@@ -84,6 +84,9 @@ public class AppSettings
     [JsonPropertyName("hotkeyBindings")]
     public Dictionary<string, string> HotkeyBindings { get; set; } = new(StringComparer.Ordinal);
 
+    [JsonPropertyName("checkForUpdates")]
+    public bool CheckForUpdates { get; set; } = true;
+
     /// <summary>
     /// Ensures auto-replacements are populated from the language preset if empty.
     /// Call after deserialization.

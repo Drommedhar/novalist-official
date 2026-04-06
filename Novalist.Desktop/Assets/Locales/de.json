@@ -187,7 +187,8 @@
     "aiSystemPromptDesc": "Benutzerdefinierter System-Prompt für die KI. Leer lassen für den Standard-Prompt. {{LANGUAGE}} als Platzhalter für die aktuelle Oberflächensprache.",
     "aiSystemPromptPlaceholder": "Leer lassen für Standard-Prompt...",
     "aiResetPrompt": "Zurücksetzen",
-    "hotkeys": "TASTENKÜRZEL"
+    "hotkeys": "TASTENKÜRZEL",
+    "general": "ALLGEMEIN"
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -791,5 +792,16 @@
     "filterDraft": "Rohfassung",
     "filterFinal": "Fertig",
     "cycleStatus": "Klicken, um den Kapitelstatus zu wechseln"
+  },
+  "update": {
+    "available": "Update verfügbar",
+    "versionInfo": "Eine neue Version ist verfügbar: {1} (aktuell: {0})",
+    "downloadInstall": "Herunterladen & Installieren",
+    "skip": "Überspringen",
+    "downloading": "Herunterladen... {0}%",
+    "launching": "Installer wird gestartet...",
+    "error": "Update fehlgeschlagen: {0}",
+    "checkForUpdates": "Nach Updates suchen",
+    "checkForUpdatesDesc": "Beim Start automatisch nach neuen Versionen suchen"
   }
 }

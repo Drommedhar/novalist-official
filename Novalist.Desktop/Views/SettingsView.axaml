@@ -607,6 +607,34 @@
                     <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,8,0,0" />
                 </StackPanel>
 
+                <!-- ── General Section ── -->
+                <StackPanel x:Name="SectionGeneral" Spacing="16"
+                            IsVisible="{Binding IsGeneralSectionVisible}">
+                    <TextBlock Text="{loc:Loc settings.general}"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource SubtleText}"
+                               LetterSpacing="1" />
+
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                            <TextBlock Text="{loc:Loc update.checkForUpdates}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="13" />
+                            <TextBlock Text="{loc:Loc update.checkForUpdatesDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ToggleSwitch IsChecked="{Binding CheckForUpdates}"
+                                      HorizontalAlignment="Right"
+                                      OnContent=""
+                                      OffContent="" />
+                    </DockPanel>
+
+                    <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,8,0,0" />
+                </StackPanel>
+
                 <!-- ── Extension Settings Sections ── -->
                 <ItemsControl x:Name="SectionExtensions" ItemsSource="{Binding ExtensionSettingsPages}">
                     <ItemsControl.ItemTemplate>

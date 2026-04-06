@@ -187,7 +187,8 @@
     "aiSystemPromptDesc": "Custom system prompt sent to the AI. Leave empty to use the default prompt. Use {{LANGUAGE}} as a placeholder for the current UI language.",
     "aiSystemPromptPlaceholder": "Leave empty for default prompt...",
     "aiResetPrompt": "Reset",
-    "hotkeys": "KEYBOARD SHORTCUTS"
+    "hotkeys": "KEYBOARD SHORTCUTS",
+    "general": "GENERAL"
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -793,5 +794,16 @@
     "filterDraft": "Draft",
     "filterFinal": "Final",
     "cycleStatus": "Click to cycle chapter status"
+  },
+  "update": {
+    "available": "Update Available",
+    "versionInfo": "A new version is available: {1} (current: {0})",
+    "downloadInstall": "Download & Install",
+    "skip": "Skip",
+    "downloading": "Downloading... {0}%",
+    "launching": "Launching installer...",
+    "error": "Update failed: {0}",
+    "checkForUpdates": "Check for updates",
+    "checkForUpdatesDesc": "Automatically check for new versions on startup"
   }
 }

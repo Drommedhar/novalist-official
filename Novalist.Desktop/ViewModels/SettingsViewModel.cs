@@ -41,6 +41,7 @@ public partial class SettingsViewModel : ObservableObject
         new("autoReplacement", "settings.autoReplacement"),
         new("templates", "settings.templates"),
         new("hotkeys", "settings.hotkeys"),
+        new("general", "settings.general"),
     ];
 
     [ObservableProperty] private bool _isLanguageSectionVisible = true;
@@ -49,6 +50,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private bool _isAutoReplacementSectionVisible = true;
     [ObservableProperty] private bool _isTemplatesSectionVisible = true;
     [ObservableProperty] private bool _isHotkeysSectionVisible = true;
+    [ObservableProperty] private bool _isGeneralSectionVisible = true;
 
     public HotkeySettingsViewModel HotkeySettings { get; } = new(App.HotkeyService);
 
@@ -98,6 +100,7 @@ public partial class SettingsViewModel : ObservableObject
             IsAutoReplacementSectionVisible = true;
             IsTemplatesSectionVisible = true;
             IsHotkeysSectionVisible = true;
+            IsGeneralSectionVisible = true;
             return;
         }
 
@@ -118,6 +121,8 @@ public partial class SettingsViewModel : ObservableObject
             Loc.T("settings.itemTemplates"), Loc.T("settings.loreTemplates"));
         IsHotkeysSectionVisible = MatchesSection(q, "hotkey", "keyboard", "shortcut", "key", "binding",
             Loc.T("settings.hotkeys"));
+        IsGeneralSectionVisible = MatchesSection(q, "general", "update", "aktualisierung",
+            Loc.T("update.checkForUpdates"), Loc.T("update.checkForUpdatesDesc"));
     }
 
     private static bool MatchesSection(string query, params string[] terms)
@@ -196,6 +201,8 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<TemplateListItem> _itemTemplates = [];
     [ObservableProperty] private ObservableCollection<TemplateListItem> _loreTemplates = [];
 
+    [ObservableProperty] private bool _checkForUpdates;
+
     public Func<TemplateEditorViewModel, Task<bool>>? ShowTemplateEditor { get; set; }
 
     public event Action? CloseRequested;
@@ -235,7 +242,15 @@ public partial class SettingsViewModel : ObservableObject
         UpdateBookWidthPreview();
         LoadTemplates();
 
+        _checkForUpdates = Settings.CheckForUpdates;
+
         _selectedCategory = Categories[0];
+    }
+
+    partial void OnCheckForUpdatesChanged(bool value)
+    {
+        Settings.CheckForUpdates = value;
+        SaveAndNotify();
     }
 
     partial void OnEditorFontFamilyChanged(string value)

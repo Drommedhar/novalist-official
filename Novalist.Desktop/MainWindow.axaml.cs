@@ -9,6 +9,7 @@ using Avalonia.Controls.Presenters;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Novalist.Core.Services;
 using Novalist.Desktop.Dialogs;
 using Novalist.Core.Models;
 using Novalist.Desktop.ViewModels;
@@ -434,6 +435,24 @@ public partial class MainWindow : Window
         });
 
         return result?.Path.LocalPath;
+    }
+
+    public async Task CheckForUpdateAsync()
+    {
+        try
+        {
+            var updateService = new UpdateService();
+            var update = await updateService.CheckForUpdateAsync();
+            if (update is null)
+                return;
+
+            var dialog = new UpdateDialog(update, updateService);
+            await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        }
+        catch
+        {
+            // Silently ignore update check failures — network may be unavailable
+        }
     }
 
     private async Task ShowDialogOverlayAsync(UserControl dialog, TaskCompletionSource tcs)

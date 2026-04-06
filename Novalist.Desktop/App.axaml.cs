@@ -131,6 +131,10 @@ public partial class App : Application
                     mainWindow.Show();
                     mainWindow.ShowWelcomeIfNeeded();
                     splash.Close();
+
+                    // Check for updates in background (non-blocking)
+                    if (SettingsService.Settings.CheckForUpdates)
+                        _ = mainWindow.CheckForUpdateAsync();
                 });
             });
 

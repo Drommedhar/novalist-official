@@ -43,6 +43,7 @@ public partial class SettingsView : UserControl
             ["autoReplacement"] = SectionAutoReplacement,
             ["templates"] = SectionTemplates,
             ["hotkeys"] = SectionHotkeys,
+            ["general"] = SectionGeneral,
         };
 
         if (key.StartsWith("ext_", StringComparison.Ordinal))
