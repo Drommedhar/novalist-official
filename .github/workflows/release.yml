@@ -36,12 +36,12 @@ jobs:
             publish_dir: novalist-macos-x64
             artifact_name: novalist-macos-x64-dmg
             package_name: novalist-macos-x64.dmg
-          - label: Linux x64
-            os: ubuntu-latest
-            rid: linux-x64
-            publish_dir: novalist-linux-x64
-            artifact_name: novalist-linux-x64
-            package_name: novalist-linux-x64.tar.gz
+          # - label: Linux x64
+          #   os: ubuntu-latest
+          #   rid: linux-x64
+          #   publish_dir: novalist-linux-x64
+          #   artifact_name: novalist-linux-x64
+          #   package_name: novalist-linux-x64.tar.gz
 
     steps:
       - name: Checkout
@@ -314,6 +314,6 @@ jobs:
           files: |
             release-assets/*.dmg
             release-assets/*.exe
-            release-assets/*.tar.gz
+            # release-assets/*.tar.gz
             release-assets/*.nupkg
             release-assets/*.zip
