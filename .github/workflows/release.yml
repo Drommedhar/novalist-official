@@ -36,6 +36,12 @@ jobs:
             publish_dir: novalist-macos-x64
             artifact_name: novalist-macos-x64-dmg
             package_name: novalist-macos-x64.dmg
+          - label: macOS ARM64
+            os: macos-latest
+            rid: osx-arm64
+            publish_dir: novalist-macos-arm64
+            artifact_name: novalist-macos-arm64-dmg
+            package_name: novalist-macos-arm64.dmg
           # - label: Linux x64
           #   os: ubuntu-latest
           #   rid: linux-x64

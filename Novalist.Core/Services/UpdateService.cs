@@ -146,9 +146,15 @@ public sealed class UpdateService : IUpdateService
                 a.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            return release.Assets.FirstOrDefault(a =>
+        {
+            var archSuffix = RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+            var macAssets = release.Assets.Where(a =>
                 a.Name != null && a.Name.Contains("macos", StringComparison.OrdinalIgnoreCase) &&
-                a.Name.EndsWith(".dmg", StringComparison.OrdinalIgnoreCase));
+                a.Name.EndsWith(".dmg", StringComparison.OrdinalIgnoreCase)).ToArray();
+
+            return macAssets.FirstOrDefault(a => a.Name!.Contains(archSuffix, StringComparison.OrdinalIgnoreCase))
+                ?? macAssets.FirstOrDefault();
+        }
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             return release.Assets.FirstOrDefault(a =>
