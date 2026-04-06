@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Sdk.Example.ViewModels"
+             xmlns:svc="using:Novalist.Sdk.Example"
+             x:Class="Novalist.Sdk.Example.Views.WordFrequencyView"
+             x:DataType="vm:WordFrequencyViewModel">
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+            <TextBlock Text="{Binding Loc[wordFrequencyView.title]}" FontSize="18" FontWeight="SemiBold" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="{Binding Loc[wordFrequencyView.analyzeButton]}"
+                        Command="{Binding AnalyzeCommand}"
+                        IsEnabled="{Binding !IsAnalyzing}" />
+                <TextBlock Text="{Binding StatusText}"
+                           VerticalAlignment="Center"
+                           Opacity="0.6" />
+            </StackPanel>
+        </StackPanel>
+
+        <Border BorderBrush="{DynamicResource SystemControlForegroundBaseMediumLowBrush}"
+                BorderThickness="0,1,0,0">
+            <DockPanel>
+                <Grid DockPanel.Dock="Top" ColumnDefinitions="2*,*" Margin="8,6">
+                    <TextBlock Grid.Column="0" Text="{Binding Loc[wordFrequencyView.columnWord]}" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="1" Text="{Binding Loc[wordFrequencyView.columnCount]}" FontWeight="SemiBold" />
+                </Grid>
+                <ListBox ItemsSource="{Binding Entries}"
+                         SelectionMode="Single">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="svc:WordFrequencyEntry">
+                            <Grid ColumnDefinitions="2*,*">
+                                <TextBlock Grid.Column="0" Text="{Binding Word}" />
+                                <TextBlock Grid.Column="1" Text="{Binding Count}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+    </DockPanel>
+</UserControl>

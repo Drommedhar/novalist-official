@@ -1,0 +1,130 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:svc="using:Novalist.Desktop.Services"
+             xmlns:glass="using:LiquidGlassAvaloniaUI"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="1200" d:DesignHeight="800"
+             x:Class="Novalist.Desktop.Views.ExtensionsView"
+             x:DataType="svc:ExtensionsViewModel">
+    <Border Background="#C0000000" x:Name="Backdrop" PointerPressed="OnBackdropPressed">
+        <glass:LiquidGlassSurface CornerRadius="12" PointerPressed="OnPanelPressed"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Margin="40"
+                                   MinWidth="540"
+                                   MaxWidth="700"
+                                   MaxHeight="600">
+            <DockPanel Margin="24">
+                <!-- Header -->
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                    <TextBlock Text="{loc:Loc extensions.title}"
+                               FontSize="20" FontWeight="SemiBold"
+                               VerticalAlignment="Center" />
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4"
+                                HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button ToolTip.Tip="{loc:Loc extensions.openFolder}"
+                                Command="{Binding OpenExtensionsFolderCommand}"
+                                Classes="ribbonButtonSmall">
+                            <PathIcon Data="{StaticResource IconFolderOpen}" Width="14" Height="14" Foreground="{DynamicResource NormalText}" />
+                        </Button>
+                        <Button Content="✕"
+                                x:Name="CloseButton"
+                                Classes="ribbonButton"
+                                FontSize="14"
+                                Padding="6,2" />
+                    </StackPanel>
+                </DockPanel>
+
+                <!-- Extension List -->
+                <ScrollViewer>
+                    <StackPanel Spacing="8">
+                        <!-- No extensions message -->
+                        <TextBlock Text="{loc:Loc extensions.noExtensions}"
+                                   Opacity="0.5"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,40"
+                                   IsVisible="{Binding !HasExtensions}" />
+
+                        <ItemsControl ItemsSource="{Binding Items}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="svc:ExtensionItemViewModel">
+                                    <Border Background="{DynamicResource EditorBackground}"
+                                            CornerRadius="6"
+                                            Padding="16,12"
+                                            Margin="0,2">
+                                        <DockPanel>
+                                            <!-- Enable/Disable toggle -->
+                                            <ToggleSwitch DockPanel.Dock="Right"
+                                                          IsChecked="{Binding IsEnabled}"
+                                                          VerticalAlignment="Top"
+                                                          Margin="12,0,0,0"
+                                                          OffContent=""
+                                                          OnContent="" />
+
+                                            <StackPanel Spacing="4">
+                                                <!-- Name + Version -->
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <TextBlock Text="🧩" FontSize="16" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Name}"
+                                                               FontWeight="SemiBold"
+                                                               FontSize="14"
+                                                               VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Version}"
+                                                               Opacity="0.5"
+                                                               FontSize="12"
+                                                               VerticalAlignment="Center" />
+                                                </StackPanel>
+
+                                                <!-- Author -->
+                                                <TextBlock Opacity="0.6" FontSize="11">
+                                                    <Run Text="{loc:Loc extensions.author}" />
+                                                    <Run Text=" " />
+                                                    <Run Text="{Binding Author}" />
+                                                </TextBlock>
+
+                                                <!-- Description -->
+                                                <TextBlock Text="{Binding Description}"
+                                                           TextWrapping="Wrap"
+                                                           Opacity="0.7"
+                                                           FontSize="12"
+                                                           Margin="0,2,0,0" />
+
+                                                <!-- Error -->
+                                                <TextBlock IsVisible="{Binding HasError}"
+                                                           Foreground="#FF6B6B"
+                                                           FontSize="11"
+                                                           TextWrapping="Wrap"
+                                                           Margin="0,4,0,0">
+                                                    <Run Text="{loc:Loc extensions.loadError}" />
+                                                    <Run Text=": " />
+                                                    <Run Text="{Binding ErrorMessage}" />
+                                                </TextBlock>
+
+                                                <!-- Settings button -->
+                                                <Button IsVisible="{Binding HasSettings}"
+                                                        Tag="{Binding SettingsKey}"
+                                                        Click="OnExtensionSettingsClick"
+                                                        Classes="ribbonButtonSmall"
+                                                        Margin="0,4,0,0"
+                                                        Padding="6,2"
+                                                        HorizontalAlignment="Left">
+                                                    <StackPanel Orientation="Horizontal" Spacing="4">
+                                                        <PathIcon Data="{StaticResource IconSettings}" Width="12" Height="12" Foreground="{DynamicResource NormalText}" />
+                                                        <TextBlock Text="Settings" FontSize="11" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </glass:LiquidGlassSurface>
+    </Border>
+</UserControl>

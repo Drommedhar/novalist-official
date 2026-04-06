@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "avaloniaui.developertools.windows": {
+      "version": "2.2.0-beta3",
+      "commands": [
+        "avdt"
+      ],
+      "rollForward": false
+    }
+  }
+}

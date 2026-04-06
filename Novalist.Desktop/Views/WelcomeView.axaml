@@ -1,0 +1,243 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             xmlns:glass="using:LiquidGlassAvaloniaUI"
+             mc:Ignorable="d"
+             d:DesignWidth="1400" d:DesignHeight="900"
+             x:Class="Novalist.Desktop.Views.WelcomeView"
+             x:DataType="vm:WelcomeViewModel">
+
+    <Border Background="{DynamicResource WelcomeBackground}">
+        <Grid ColumnDefinitions="360,*">
+
+            <!-- ═══ LEFT PANEL: Branding + Actions ═══ -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource ExplorerBackground}"
+                    BorderBrush="{DynamicResource ExplorerBorder}"
+                    BorderThickness="0,0,1,0"
+                    Padding="32,40">
+                <DockPanel>
+                    <!-- Version at bottom -->
+                    <TextBlock DockPanel.Dock="Bottom"
+                               Text="Novalist"
+                               FontSize="11"
+                               Foreground="{DynamicResource SubtleText}"
+                               Opacity="0.5"
+                               Margin="0,0,0,0" />
+
+                    <StackPanel Spacing="32">
+                        <!-- Logo + Title -->
+                        <StackPanel Spacing="10">
+                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                <Viewbox Classes="ribbonIcon" Width="36" Height="36">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Classes="ribbonIcon" Data="{StaticResource IconBookOpen}"/>
+                                    </Canvas>
+                                </Viewbox>
+                                <TextBlock Text="{loc:Loc app.title}"
+                                           FontSize="28"
+                                           FontWeight="Bold"
+                                           Foreground="{DynamicResource NormalText}"
+                                           VerticalAlignment="Center" />
+                            </StackPanel>
+                            <TextBlock Text="{loc:Loc app.subtitle}"
+                                       FontSize="13"
+                                       Foreground="{DynamicResource SubtleText}" />
+                        </StackPanel>
+
+                        <!-- Quick Actions -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{loc:Loc welcome.openTitle}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       Margin="0,0,0,4" />
+
+                            <Button Command="{Binding OpenProjectCommand}"
+                                    Classes="welcomeAction"
+                                    HorizontalAlignment="Stretch">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Viewbox Width="18" Height="18" VerticalAlignment="Center">
+                                        <Canvas Width="24" Height="24">
+                                            <Path StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                  Stroke="{DynamicResource NormalText}"
+                                                  Data="{StaticResource IconFolderOpen}"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="{loc:Loc welcome.browseFolder}"
+                                               VerticalAlignment="Center"
+                                               FontSize="13" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Command="{Binding ImportPluginProjectCommand}"
+                                    Classes="welcomeAction"
+                                    HorizontalAlignment="Stretch">
+                                <StackPanel Orientation="Horizontal" Spacing="10">
+                                    <Viewbox Width="18" Height="18" VerticalAlignment="Center">
+                                        <Canvas Width="24" Height="24">
+                                            <Path StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                  Stroke="{DynamicResource NormalText}"
+                                                  Data="{StaticResource IconUpload}"/>
+                                        </Canvas>
+                                    </Viewbox>
+                                    <TextBlock Text="{loc:Loc welcome.importPlugin}"
+                                               VerticalAlignment="Center"
+                                               FontSize="13" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+
+                        <!-- Create New Project (collapsible form) -->
+                        <StackPanel Spacing="6">
+                            <TextBlock Text="{loc:Loc welcome.createTitle}"
+                                       FontSize="11"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       Margin="0,0,0,4" />
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{loc:Loc welcome.projectName}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                                <TextBox Text="{Binding NewProjectName}"
+                                         Watermark="{loc:Loc welcome.projectNamePlaceholder}"
+                                         MaxLength="100"
+                                         FontSize="13" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{loc:Loc welcome.bookName}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                                <TextBox Text="{Binding NewBookName}"
+                                         Watermark="{loc:Loc welcome.bookNamePlaceholder}"
+                                         MaxLength="100"
+                                         FontSize="13" />
+                                <TextBlock Text="{loc:Loc welcome.bookNameHint}" FontSize="10" Foreground="{DynamicResource SubtleText}" />
+                            </StackPanel>
+
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{loc:Loc welcome.location}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBox Grid.Column="0"
+                                             Text="{Binding NewProjectLocation}"
+                                             Watermark="{loc:Loc welcome.locationPlaceholder}"
+                                             IsReadOnly="True"
+                                             FontSize="13" />
+                                    <Button Grid.Column="1"
+                                            Content="{loc:Loc welcome.browse}"
+                                            Command="{Binding BrowseLocationCommand}"
+                                            Margin="4,0,0,0"
+                                            FontSize="12" />
+                                </Grid>
+                            </StackPanel>
+
+                            <Button Content="{loc:Loc welcome.createProject}"
+                                    Command="{Binding CreateProjectCommand}"
+                                    Classes="primary"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,8,0,0" />
+                        </StackPanel>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- ═══ RIGHT PANEL: Recent Projects ═══ -->
+            <Border Grid.Column="1" Padding="40,40">
+                <DockPanel>
+                    <!-- Header -->
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="{loc:Loc welcome.recentProjects}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NormalText}"
+                               Margin="0,0,0,24" />
+
+                    <!-- No recent projects placeholder -->
+                    <StackPanel VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                Spacing="8"
+                                IsVisible="{Binding !RecentProjects.Count}">
+                        <Viewbox Width="48" Height="48" HorizontalAlignment="Center" Opacity="0.3">
+                            <Canvas Width="24" Height="24">
+                                <Path StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                      Stroke="{DynamicResource SubtleText}"
+                                      Data="{StaticResource IconBookOpen}"/>
+                            </Canvas>
+                        </Viewbox>
+                        <TextBlock Text="{loc:Loc welcome.noRecentProjects}"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource SubtleText}"
+                                   HorizontalAlignment="Center" />
+                    </StackPanel>
+
+                    <!-- Recent projects grid -->
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto"
+                                  IsVisible="{Binding RecentProjects.Count}">
+                        <ItemsControl ItemsSource="{Binding RecentProjects}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:RecentProjectCard">
+                                    <Button Classes="linkButton"
+                                            Command="{Binding $parent[ItemsControl].((vm:WelcomeViewModel)DataContext).OpenRecentProjectCommand}"
+                                            CommandParameter="{Binding}"
+                                            Padding="0"
+                                            Margin="0,0,16,16">
+                                        <glass:LiquidGlassSurface CornerRadius="8">
+                                            <Border Background="Transparent"
+                                                    BorderBrush="{DynamicResource CardBorder}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8"
+                                                    Width="160"
+                                                    ClipToBounds="True">
+                                                <StackPanel>
+                                                    <!-- Cover image or placeholder -->
+                                                    <Panel Height="200">
+                                                        <Image Source="{Binding CoverImage}"
+                                                               Stretch="UniformToFill"
+                                                               RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                               IsVisible="{Binding HasCoverImage}" />
+                                                        <Border Background="{DynamicResource CardBackground}"
+                                                                IsVisible="{Binding HasCoverImage, Converter={x:Static BoolConverters.Not}}">
+                                                            <Viewbox Width="40" Height="40"
+                                                                     HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Canvas Width="24" Height="24">
+                                                                    <Path StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                                          Stroke="{DynamicResource SubtleText}"
+                                                                          Data="{StaticResource IconBookOpen}"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Border>
+                                                    </Panel>
+                                                    <!-- Project info -->
+                                                    <StackPanel Spacing="2" Margin="10,8,10,10">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontWeight="SemiBold"
+                                                                   FontSize="13"
+                                                                   Foreground="{DynamicResource NormalText}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxLines="1" />
+                                                        <TextBlock Text="{Binding Path}"
+                                                                   FontSize="11"
+                                                                   Foreground="{DynamicResource SubtleText}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxLines="1" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </glass:LiquidGlassSurface>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,319 @@
+name: Release Standalone App
+
+on:
+  push:
+    tags:
+      - "*"
+
+env:
+  APP_NAME: Novalist
+  EXECUTABLE_NAME: Novalist.Desktop
+  MACOS_ICON_FILE: novalist.icns
+  LINUX_ICON_FILE: novalist.png
+  DOTNET_VERSION: 8.0.x
+  PROJECT_PATH: Novalist.Desktop/Novalist.Desktop.csproj
+  CONFIGURATION: Release
+
+jobs:
+  publish:
+    name: Publish ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Windows x64
+            os: windows-latest
+            rid: win-x64
+            publish_dir: novalist-windows-x64
+            artifact_name: novalist-windows-x64-installer
+            package_name: novalist-windows-x64-setup.exe
+          - label: macOS x64
+            os: macos-latest
+            rid: osx-x64
+            publish_dir: novalist-macos-x64
+            artifact_name: novalist-macos-x64-dmg
+            package_name: novalist-macos-x64.dmg
+          - label: Linux x64
+            os: ubuntu-latest
+            rid: linux-x64
+            publish_dir: novalist-linux-x64
+            artifact_name: novalist-linux-x64
+            package_name: novalist-linux-x64.tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          # Extract digits from tag (e.g. "v1.2.3" → "1.2.3")
+          VER="$(printf '%s' "$TAG" | grep -oE '[0-9]+(\.[0-9]+)*')"
+          if [ -z "$VER" ]; then VER="0.0.1"; fi
+          echo "prefix=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Publish app
+        run: >-
+          dotnet publish "${{ env.PROJECT_PATH }}"
+          -c "${{ env.CONFIGURATION }}"
+          -r "${{ matrix.rid }}"
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:EnableCompressionInSingleFile=true
+          -p:ContinuousIntegrationBuild=true
+          -p:DebugSymbols=false
+          -p:DebugType=None
+          -p:VersionPrefix=${{ steps.version.outputs.prefix }}
+          -p:VersionSuffix=
+          -o "${{ github.workspace }}/dist/${{ matrix.publish_dir }}"
+
+      - name: Install Inno Setup
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: choco install innosetup --no-progress -y
+
+      - name: Package app (Windows installer)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $appVersion = "${{ steps.version.outputs.prefix }}"
+          $publishDir = (Resolve-Path (Join-Path $env:GITHUB_WORKSPACE "dist\${{ matrix.publish_dir }}")).ProviderPath
+          $outputDir = Join-Path $env:GITHUB_WORKSPACE 'artifacts'
+          $iconPath = (Resolve-Path (Join-Path $env:GITHUB_WORKSPACE 'Novalist.Desktop\novalist.ico')).ProviderPath
+          New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
+
+          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (-not (Test-Path $iscc)) {
+            $iscc = Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe'
+          }
+          if (-not (Test-Path $iscc)) {
+            throw 'ISCC.exe not found after installing Inno Setup.'
+          }
+
+          $arguments = @(
+            "/DAppVersion=$appVersion"
+            "/DSourceDir=$publishDir"
+            "/DOutputDir=$outputDir"
+            "/DOutputBaseFilename=$([System.IO.Path]::GetFileNameWithoutExtension('${{ matrix.package_name }}'))"
+            "/DInstallerIconFile=$iconPath"
+            '.github\installers\windows\novalist.iss'
+          )
+
+          & $iscc @arguments
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Inno Setup compilation failed with exit code $LASTEXITCODE"
+          }
+
+      - name: Package app (macOS DMG)
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          app_version="${{ steps.version.outputs.prefix }}"
+
+          publish_dir="${GITHUB_WORKSPACE}/dist/${{ matrix.publish_dir }}"
+          bundle_dir="${GITHUB_WORKSPACE}/dist/${{ env.APP_NAME }}.app"
+          contents_dir="${bundle_dir}/Contents"
+          macos_dir="${contents_dir}/MacOS"
+          resources_dir="${contents_dir}/Resources"
+          artifacts_dir="${GITHUB_WORKSPACE}/artifacts"
+          dmg_root="${GITHUB_WORKSPACE}/dmg-root"
+          rw_dmg="${artifacts_dir}/${{ matrix.publish_dir }}-rw.dmg"
+          final_dmg_base="${artifacts_dir}/${{ matrix.publish_dir }}"
+          mount_point="${GITHUB_WORKSPACE}/mounted-dmg"
+          setfile_path="$(xcrun -find SetFile)"
+
+          rm -rf "${bundle_dir}" "${dmg_root}" "${mount_point}"
+          mkdir -p "${macos_dir}" "${resources_dir}" "${artifacts_dir}" "${dmg_root}"
+          shopt -s dotglob nullglob
+          for path in "${publish_dir}"/*; do
+            name="$(basename "${path}")"
+            if [[ -d "${path}" ]]; then
+              cp -R "${path}" "${resources_dir}/${name}"
+            else
+              cp -R "${path}" "${macos_dir}/${name}"
+            fi
+          done
+          shopt -u dotglob nullglob
+
+          cp "${GITHUB_WORKSPACE}/Novalist.Desktop/${{ env.MACOS_ICON_FILE }}" "${resources_dir}/${{ env.MACOS_ICON_FILE }}"
+          chmod +x "${macos_dir}/${{ env.EXECUTABLE_NAME }}"
+
+          sed \
+            -e "s/__APP_VERSION__/${app_version}/g" \
+            -e "s/__EXECUTABLE_NAME__/${{ env.EXECUTABLE_NAME }}/g" \
+            '.github/installers/macos/Info.plist.template' > "${contents_dir}/Info.plist"
+
+          # Ad-hoc sign the bundle so Gatekeeper evaluates a consistent app bundle.
+          xattr -cr "${bundle_dir}"
+          find "${bundle_dir}" -type f \( -name '*.dylib' -o -perm -111 \) -print0 | while IFS= read -r -d '' file; do
+            codesign --force --sign - --timestamp=none "${file}"
+          done
+          codesign --force --sign - --timestamp=none "${bundle_dir}"
+          codesign --verify --deep --strict --verbose=2 "${bundle_dir}"
+
+          cp -R "${bundle_dir}" "${dmg_root}/"
+          cp "${GITHUB_WORKSPACE}/Novalist.Desktop/${{ env.MACOS_ICON_FILE }}" "${dmg_root}/.VolumeIcon.icns"
+          ln -s /Applications "${dmg_root}/Applications"
+
+          hdiutil create \
+            -volname '${{ env.APP_NAME }}' \
+            -srcfolder "${dmg_root}" \
+            -ov \
+            -fs HFS+ \
+            -format UDRW \
+            "${rw_dmg}"
+
+          mkdir -p "${mount_point}"
+          hdiutil attach \
+            -readwrite \
+            -noverify \
+            -noautoopen \
+            -mountpoint "${mount_point}" \
+            "${rw_dmg}"
+
+          "${setfile_path}" -a C "${mount_point}"
+          "${setfile_path}" -a V "${mount_point}/.VolumeIcon.icns"
+
+          hdiutil detach "${mount_point}"
+          hdiutil convert "${rw_dmg}" -format UDZO -o "${final_dmg_base}"
+          rm -f "${rw_dmg}"
+
+      - name: Package app (Linux tarball)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          publish_dir="${GITHUB_WORKSPACE}/dist/${{ matrix.publish_dir }}"
+          artifacts_dir="${GITHUB_WORKSPACE}/artifacts"
+
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+          convert "${GITHUB_WORKSPACE}/Novalist.Desktop/novalist.ico[0]" -resize 256x256 "PNG32:${publish_dir}/${{ env.LINUX_ICON_FILE }}"
+          cp '.github/installers/linux/novalist.desktop.template' "${publish_dir}/novalist.desktop.template"
+          cp '.github/installers/linux/install-desktop-entry.sh' "${publish_dir}/install-desktop-entry.sh"
+          chmod +x "${publish_dir}/install-desktop-entry.sh"
+
+          mkdir -p "${artifacts_dir}"
+          tar -C "${GITHUB_WORKSPACE}/dist" -czf "${artifacts_dir}/${{ matrix.package_name }}" "${{ matrix.publish_dir }}"
+
+      - name: Upload packaged artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: artifacts/${{ matrix.package_name }}
+          if-no-files-found: error
+
+  sdk-and-example:
+    name: Pack SDK & Example Extension
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="$(printf '%s' "$TAG" | grep -oE '[0-9]+(\.[0-9]+)*')"
+          if [ -z "$VER" ]; then VER="0.0.1"; fi
+          echo "prefix=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Pack SDK NuGet
+        run: >-
+          dotnet pack Novalist.Sdk/Novalist.Sdk.csproj
+          -c Release
+          -p:VersionPrefix=${{ steps.version.outputs.prefix }}
+          -p:VersionSuffix=
+          -o artifacts
+
+      - name: Build Example Extension
+        run: >-
+          dotnet build Novalist.Sdk.Example/Novalist.Sdk.Example.csproj
+          -c Release
+          -p:VersionPrefix=${{ steps.version.outputs.prefix }}
+          -p:VersionSuffix=
+
+      - name: Zip Example Extension
+        shell: bash
+        run: |
+          set -euo pipefail
+          out="Novalist.Sdk.Example/bin/Release/net8.0"
+          staging="${GITHUB_WORKSPACE}/ext-staging"
+          mkdir -p "${staging}/Themes" "${staging}/Locales"
+          cp "${out}/Novalist.Sdk.Example.dll" "${staging}/"
+          cp "${out}/Novalist.Sdk.dll" "${staging}/"
+          cp "${out}/extension.json" "${staging}/"
+          cp "${out}"/Themes/*.axaml "${staging}/Themes/" 2>/dev/null || true
+          cp "${out}"/Locales/*.json "${staging}/Locales/" 2>/dev/null || true
+          mkdir -p artifacts
+          cd "${staging}"
+          zip -r "${GITHUB_WORKSPACE}/artifacts/novalist-example-extension.zip" .
+
+      - name: Upload SDK NuGet
+        uses: actions/upload-artifact@v4
+        with:
+          name: novalist-sdk-nupkg
+          path: artifacts/*.nupkg
+          if-no-files-found: error
+
+      - name: Upload Example Extension zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: novalist-example-extension
+          path: artifacts/novalist-example-extension.zip
+          if-no-files-found: error
+
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    needs: [publish, sdk-and-example]
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download packaged artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            release-assets/*.dmg
+            release-assets/*.exe
+            release-assets/*.tar.gz
+            release-assets/*.nupkg
+            release-assets/*.zip

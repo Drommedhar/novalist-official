@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Sdk.Example.ViewModels"
+             x:Class="Novalist.Sdk.Example.Views.ToolkitSettingsView"
+             x:DataType="vm:ToolkitSettingsViewModel">
+    <StackPanel Margin="16" Spacing="16">
+        <TextBlock Text="{Binding Loc[settings.category]}"
+                   FontSize="18" FontWeight="SemiBold" />
+
+        <!-- Pomodoro Duration -->
+        <StackPanel Spacing="4">
+            <TextBlock Text="{Binding Loc[settings.pomodoroDuration]}" FontWeight="SemiBold" />
+            <NumericUpDown Value="{Binding PomodoroDuration}"
+                           Minimum="1" Maximum="120"
+                           Increment="5"
+                           Width="200"
+                           HorizontalAlignment="Left" />
+        </StackPanel>
+    </StackPanel>
+</UserControl>

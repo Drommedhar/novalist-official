@@ -1,0 +1,12 @@
+{
+  "id": "com.novalist.writingtoolkit",
+  "name": "Writing Toolkit",
+  "description": "Word frequency analysis, writing prompts, Pomodoro timer, and custom themes. A comprehensive example demonstrating all extension hooks.",
+  "version": "1.0.0",
+  "author": "Novalist Team",
+  "entryAssembly": "Novalist.Sdk.Example.dll",
+  "minHostVersion": "0.0.1",
+  "maxHostVersion": "",
+  "dependencies": [],
+  "tags": ["productivity", "writing", "example"]
+}

@@ -1,0 +1,365 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:m="using:Novalist.Core.Models"
+             xmlns:conv="using:Novalist.Desktop.Converters"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="280" d:DesignHeight="600"
+             x:Class="Novalist.Desktop.Views.EntityPanelView"
+             x:DataType="vm:EntityPanelViewModel">
+
+    <UserControl.Resources>
+        <conv:BoolToSelectedBrushConverter x:Key="BoolToSelectedBrush" />
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource ExplorerBackground}"
+            BorderBrush="{DynamicResource ExplorerBorder}"
+            BorderThickness="0,0,1,0">
+        <DockPanel>
+            <!-- Type Tabs -->
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="4,6">
+                <Button Command="{Binding SetEntityTypeCommand}" CommandParameter="Character"
+                Classes="explorerTab" ToolTip.Tip="{loc:Loc entityPanel.charactersTooltip}" Padding="8,4"
+                Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}">
+                    <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconUser}"/></Canvas></Viewbox>
+                </Button>
+                <Button Command="{Binding SetEntityTypeCommand}" CommandParameter="Location"
+                Classes="explorerTab" ToolTip.Tip="{loc:Loc entityPanel.locationsTooltip}" Padding="8,4"
+                Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Location}}">
+                    <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconMapPin}"/></Canvas></Viewbox>
+                </Button>
+                <Button Command="{Binding SetEntityTypeCommand}" CommandParameter="Item"
+                Classes="explorerTab" ToolTip.Tip="{loc:Loc entityPanel.itemsTooltip}" Padding="8,4"
+                Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Item}}">
+                    <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconSword}"/></Canvas></Viewbox>
+                </Button>
+                <Button Command="{Binding SetEntityTypeCommand}" CommandParameter="Lore"
+                Classes="explorerTab" ToolTip.Tip="{loc:Loc entityPanel.loreTooltip}" Padding="8,4"
+                Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Lore}}">
+                    <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
+                </Button>
+            </StackPanel>
+
+            <!-- Create button -->
+            <Border DockPanel.Dock="Top" Margin="8,0,8,4">
+                <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Classes="ribbonButton" Padding="6,4" FontSize="12"
+                        x:Name="CreateButton">
+                    <Button.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="+" FontWeight="Bold" />
+                            <TextBlock Text="{loc:Loc entityPanel.new}" />
+                        </StackPanel>
+                    </Button.Content>
+                </Button>
+            </Border>
+
+            <!-- Character grouping toggle -->
+            <Border DockPanel.Dock="Top" Margin="8,0,8,6"
+                    IsVisible="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="{loc:Loc entityPanel.groupBy}"
+                               Margin="2,0,0,0"
+                               FontSize="10"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource SubtleText}" />
+                    <Border Background="{DynamicResource CardBackground}"
+                            BorderBrush="{DynamicResource CardBorder}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="2">
+                        <Grid ColumnDefinitions="*,*">
+                            <Button Grid.Column="0" Content="{loc:Loc entityPanel.role}"
+                                    Command="{Binding SetCharacterGroupingModeCommand}"
+                                    CommandParameter="Role"
+                                    Classes="groupModeButton"
+                                    CornerRadius="4,0,0,4"
+                                    Classes.active="{Binding CharacterGroupingMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Role}" />
+                            <Button Grid.Column="1" Content="{loc:Loc entityPanel.familyGroup}"
+                                    Command="{Binding SetCharacterGroupingModeCommand}"
+                                    CommandParameter="Group"
+                                    Classes="groupModeButton"
+                                    CornerRadius="0,4,4,0"
+                                    Classes.active="{Binding CharacterGroupingMode, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Group}" />
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <!-- Characters List -->
+            <ScrollViewer IsVisible="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}"
+                          HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding CharacterGroups}" Margin="4,0,4,8"
+                              HorizontalAlignment="Stretch">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CharacterGroupSectionViewModel">
+                            <StackPanel Margin="0,0,0,10"
+                                        HorizontalAlignment="Stretch">
+                                <Border Margin="4,4,4,2"
+                                        Padding="6,4"
+                                        Background="{DynamicResource CardBackground}"
+                                        BorderBrush="{DynamicResource CardBorder}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Tag="{Binding}"
+                                        DragDrop.AllowDrop="True"
+                                        DragDrop.DragOver="OnCharacterGroupDragOver"
+                                        DragDrop.DragLeave="OnDragLeave"
+                                        DragDrop.Drop="OnCharacterGroupDrop">
+                                    <TextBlock Text="{Binding Title}"
+                                               FontSize="11"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource DimText}" />
+                                </Border>
+                                <ItemsControl ItemsSource="{Binding Items}"
+                                              HorizontalAlignment="Stretch">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:CharacterListItemViewModel">
+                                            <Border Tag="{Binding}"
+                                                    Width="260"
+                                                    Margin="0,1"
+                                                    Background="{Binding IsSelected, Converter={StaticResource BoolToSelectedBrush}}"
+                                                    CornerRadius="4"
+                                                    Padding="8,6"
+                                                    PointerPressed="OnCharacterPointerPressed"
+                                                    PointerMoved="OnCharacterPointerMoved">
+                                                <Border.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="{loc:Loc entityPanel.moveToWorldBible}"
+                                                                  Tag="{Binding Character}"
+                                                                  Click="OnMoveCharacterToWBClick"
+                                                                  IsVisible="{Binding !IsWorldBible}" />
+                                                        <MenuItem Header="{loc:Loc entityPanel.moveToBook}"
+                                                                  Tag="{Binding Character}"
+                                                                  Click="OnMoveCharacterToWBClick"
+                                                                  IsVisible="{Binding IsWorldBible}" />
+                                                        <Separator />
+                                                        <MenuItem Header="{loc:Loc entityPanel.deleteEntity}"
+                                                                  Tag="{Binding Character}"
+                                                                  Click="OnDeleteCharacterClick" />
+                                                    </ContextMenu>
+                                                </Border.ContextMenu>
+                                                <Grid ColumnDefinitions="*,Auto,Auto">
+                                                    <TextBlock Text="{Binding DisplayName}"
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource NormalText}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               VerticalAlignment="Center" />
+                                                    <Border Grid.Column="1"
+                                                            Margin="4,0,0,0"
+                                                            Padding="4,1"
+                                                            CornerRadius="3"
+                                                            Background="#2E7D8C"
+                                                            IsVisible="{Binding IsWorldBible}"
+                                                            ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
+                                                        <TextBlock Text="{loc:Loc book.wbBadge}"
+                                                                   FontSize="9"
+                                                                   Foreground="White"
+                                                                   VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <Border Grid.Column="2"
+                                                            Margin="4,0,0,0"
+                                                            Padding="6,2"
+                                                            CornerRadius="4"
+                                                            Background="{Binding GenderBadgeBackground}"
+                                                            IsVisible="{Binding HasGender}">
+                                                        <TextBlock Text="{Binding Gender}"
+                                                                   FontSize="10"
+                                                                   Foreground="{DynamicResource NormalText}"
+                                                                   VerticalAlignment="Center" />
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Locations List -->
+            <TreeView x:Name="LocationTreeView"
+                      IsVisible="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Location}}"
+                      ItemsSource="{Binding LocationTree}"
+                      Margin="4,0"
+                      SelectionMode="Single"
+                      SelectionChanged="OnLocationTreeSelectionChanged">
+                <TreeView.Styles>
+                    <Style Selector="TreeViewItem">
+                        <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    </Style>
+                    <Style Selector="TreeViewItem /template/ ContentPresenter#PART_HeaderPresenter">
+                        <Setter Property="HorizontalAlignment" Value="Stretch" />
+                    </Style>
+                </TreeView.Styles>
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate x:DataType="vm:LocationTreeItemViewModel"
+                                      ItemsSource="{Binding Children}">
+                        <Border Padding="4,2"
+                                HorizontalAlignment="Stretch"
+                                Tag="{Binding}"
+                                PointerPressed="OnLocationPointerPressed"
+                                PointerMoved="OnLocationPointerMoved"
+                                DragDrop.AllowDrop="True"
+                                DragDrop.DragOver="OnLocationDragOver"
+                                DragDrop.DragLeave="OnDragLeave"
+                                DragDrop.Drop="OnLocationDrop">
+                            <Border.ContextMenu>
+                                <ContextMenu Tag="{Binding}">
+                                    <MenuItem Header="{loc:Loc entityPanel.removeParent}"
+                                              Tag="{Binding}"
+                                              Click="OnRemoveLocationParentClick"
+                                              IsVisible="{Binding HasParent}" />
+                                    <MenuItem Header="{loc:Loc entityPanel.moveToWorldBible}"
+                                              Tag="{Binding Location}"
+                                              Click="OnMoveLocationToWBClick"
+                                              IsVisible="{Binding !IsWorldBible}" />
+                                    <MenuItem Header="{loc:Loc entityPanel.moveToBook}"
+                                              Tag="{Binding Location}"
+                                              Click="OnMoveLocationToWBClick"
+                                              IsVisible="{Binding IsWorldBible}" />
+                                    <Separator />
+                                    <MenuItem Header="{loc:Loc entityPanel.deleteEntity}"
+                                              Tag="{Binding Location}"
+                                              Click="OnDeleteLocationClick" />
+                                </ContextMenu>
+                            </Border.ContextMenu>
+                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                <TextBlock Grid.Column="0"
+                                           Text="{Binding Location.Name}"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource NormalText}"
+                                           TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center" />
+                                <Border Grid.Column="1"
+                                        Margin="4,0,0,0"
+                                        Padding="4,1"
+                                        CornerRadius="3"
+                                        Background="#2E7D8C"
+                                        IsVisible="{Binding IsWorldBible}"
+                                        ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
+                                    <TextBlock Text="{loc:Loc book.wbBadge}"
+                                               FontSize="9"
+                                               Foreground="White"
+                                               VerticalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding Location.Type}"
+                                           FontSize="10"
+                                           Foreground="{DynamicResource SubtleText}"
+                                           VerticalAlignment="Center"
+                                           Margin="8,0,0,0" />
+                            </Grid>
+                        </Border>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+
+            <!-- Items List -->
+            <ScrollViewer IsVisible="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Item}}">
+                <ItemsControl ItemsSource="{Binding Items}" Margin="4,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:ItemData">
+                            <Button Classes="linkButton" HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Tag="{Binding}"
+                                    x:Name="ItemItemBtn">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{loc:Loc entityPanel.moveToWorldBible}"
+                                                  Tag="{Binding}"
+                                                  Click="OnMoveItemToWBClick"
+                                                  IsVisible="{Binding !IsWorldBible}" />
+                                        <MenuItem Header="{loc:Loc entityPanel.moveToBook}"
+                                                  Tag="{Binding}"
+                                                  Click="OnMoveItemToWBClick"
+                                                  IsVisible="{Binding IsWorldBible}" />
+                                        <Separator />
+                                        <MenuItem Header="{loc:Loc entityPanel.deleteEntity}"
+                                                  Tag="{Binding}"
+                                                  Click="OnDeleteItemClick" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Type}"
+                                               FontSize="10" Foreground="{DynamicResource SubtleText}"
+                                               VerticalAlignment="Center" Margin="8,0,0,0" />
+                                    <Border DockPanel.Dock="Right"
+                                            Margin="4,0,0,0"
+                                            Padding="4,1"
+                                            CornerRadius="3"
+                                            Background="#2E7D8C"
+                                            IsVisible="{Binding IsWorldBible}"
+                                            ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
+                                        <TextBlock Text="{loc:Loc book.wbBadge}"
+                                                   FontSize="9"
+                                                   Foreground="White"
+                                                   VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Text="{Binding Name}" FontSize="12"
+                                               Foreground="{DynamicResource NormalText}" />
+                                </DockPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Lore List -->
+            <ScrollViewer IsVisible="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Lore}}">
+                <ItemsControl ItemsSource="{Binding LoreEntries}" Margin="4,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:LoreData">
+                            <Button Classes="linkButton" HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Tag="{Binding}"
+                                    x:Name="LoreItemBtn">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{loc:Loc entityPanel.moveToWorldBible}"
+                                                  Tag="{Binding}"
+                                                  Click="OnMoveLoreToWBClick"
+                                                  IsVisible="{Binding !IsWorldBible}" />
+                                        <MenuItem Header="{loc:Loc entityPanel.moveToBook}"
+                                                  Tag="{Binding}"
+                                                  Click="OnMoveLoreToWBClick"
+                                                  IsVisible="{Binding IsWorldBible}" />
+                                        <Separator />
+                                        <MenuItem Header="{loc:Loc entityPanel.deleteEntity}"
+                                                  Tag="{Binding}"
+                                                  Click="OnDeleteLoreClick" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                                <DockPanel>
+                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Category}"
+                                               FontSize="10" Foreground="{DynamicResource SubtleText}"
+                                               VerticalAlignment="Center" Margin="8,0,0,0" />
+                                    <Border DockPanel.Dock="Right"
+                                            Margin="4,0,0,0"
+                                            Padding="4,1"
+                                            CornerRadius="3"
+                                            Background="#2E7D8C"
+                                            IsVisible="{Binding IsWorldBible}"
+                                            ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
+                                        <TextBlock Text="{loc:Loc book.wbBadge}"
+                                                   FontSize="9"
+                                                   Foreground="White"
+                                                   VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Text="{Binding Name}" FontSize="12"
+                                               Foreground="{DynamicResource NormalText}" />
+                                </DockPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+        </DockPanel>
+    </Border>
+</UserControl>

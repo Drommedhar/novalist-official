@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="extension.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Themes\*.axaml" CopyToOutputDirectory="PreserveNewest" Link="Themes\%(Filename)%(Extension)" />
+    <Content Include="Locales\*.json" CopyToOutputDirectory="PreserveNewest" Link="Locales\%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.12" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+  <Target Name="DeployExtension" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
+    <PropertyGroup>
+      <ExtensionDeployDir>$(APPDATA)\Novalist\Extensions\Sample</ExtensionDeployDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(ExtensionDeployDir)\Themes" />
+    <MakeDir Directories="$(ExtensionDeployDir)\Locales" />
+    <Copy SourceFiles="$(OutputPath)Novalist.Sdk.Example.dll;$(OutputPath)Novalist.Sdk.dll;$(OutputPath)extension.json"
+          DestinationFolder="$(ExtensionDeployDir)"
+          SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <_ThemeFiles Include="$(OutputPath)Themes\*.*" />
+      <_LocaleFiles Include="$(OutputPath)Locales\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_ThemeFiles)"
+          DestinationFolder="$(ExtensionDeployDir)\Themes"
+          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_LocaleFiles)"
+          DestinationFolder="$(ExtensionDeployDir)\Locales"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

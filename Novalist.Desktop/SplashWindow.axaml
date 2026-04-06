@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Novalist.Desktop.SplashWindow"
+        Title="Novalist"
+        Width="480" Height="400"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent">
+
+    <Panel>
+        <StackPanel VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Spacing="16">
+            <Image Source="/splash.png"
+                   Width="320"
+                   HorizontalAlignment="Center"
+                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+            <TextBlock x:Name="StatusText"
+                       Text="Loading..."
+                       FontSize="12"
+                       Foreground="#AAAAAA"
+                       HorizontalAlignment="Center" />
+            <ProgressBar IsIndeterminate="True"
+                         Height="2"
+                         Width="200"
+                         Foreground="#007ACC"
+                         Background="#40FFFFFF"
+                         HorizontalAlignment="Center" />
+        </StackPanel>
+    </Panel>
+</Window>

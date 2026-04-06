@@ -1,0 +1,280 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:loc="using:Novalist.Desktop.Localization"
+        xmlns:vm="using:Novalist.Desktop.ViewModels"
+        mc:Ignorable="d"
+        x:Class="Novalist.Desktop.Dialogs.TemplateEditorDialog"
+        x:DataType="vm:TemplateEditorViewModel"
+        Width="600"
+        Height="700"
+        Focusable="True">
+    <Border Background="Transparent" Padding="0">
+        <DockPanel>
+            <!-- Bottom buttons -->
+            <Border DockPanel.Dock="Bottom"
+                    Background="{DynamicResource SidebarBackground}"
+                    Padding="16,12"
+                    BorderThickness="0,1,0,0"
+                    BorderBrush="{DynamicResource BorderDefault}">
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="8">
+                    <Button Content="{loc:Loc dialog.cancel}"
+                            Padding="16,8"
+                            Click="OnCancel" />
+                    <Button Content="{loc:Loc template.save}"
+                            Classes="primary"
+                            Padding="16,8"
+                            Click="OnSave" />
+                </StackPanel>
+            </Border>
+
+            <!-- Scrollable content -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          Padding="24,20">
+                <StackPanel Spacing="16">
+                    <!-- Template name -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Loc template.templateName}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}" />
+                        <TextBox Text="{Binding TemplateName}"
+                                 IsReadOnly="{Binding IsBuiltIn}"
+                                 Watermark="{loc:Loc template.templateName}" />
+                    </StackPanel>
+
+                    <!-- Known fields section -->
+                    <TextBlock Text="{loc:Loc template.fields}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NormalText}"
+                               Margin="0,8,0,0" />
+
+                    <ItemsControl ItemsSource="{Binding KnownFields}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:KnownFieldRowViewModel">
+                                <StackPanel Spacing="4" Margin="0,2">
+                                    <DockPanel>
+                                        <ToggleSwitch DockPanel.Dock="Left"
+                                                      IsChecked="{Binding IsActive}"
+                                                      OnContent=""
+                                                      OffContent=""
+                                                      Margin="0,0,8,0"
+                                                      MinWidth="0" />
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource NormalText}" />
+                                        <TextBox Text="{Binding DefaultValue}"
+                                                 IsVisible="{Binding ShowDefaultValue}"
+                                                 Width="200"
+                                                 HorizontalAlignment="Right"
+                                                 Watermark="{loc:Loc template.defaultValue}" />
+                                    </DockPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Age mode (character only, visible when Age field is active) -->
+                    <StackPanel IsVisible="{Binding ShowAgeMode}" Spacing="4">
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="{loc:Loc template.ageMode}"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource DimText}" />
+                            <ComboBox ItemsSource="{Binding AgeModes}"
+                                      SelectedIndex="{Binding AgeModeIndex}"
+                                      HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                        <StackPanel Spacing="4"
+                                    IsVisible="{Binding ShowAgeOptions}">
+                            <TextBlock Text="{loc:Loc template.intervalUnit}"
+                                       FontSize="12"
+                                       Foreground="{DynamicResource DimText}" />
+                            <ComboBox ItemsSource="{Binding IntervalUnits}"
+                                      SelectedIndex="{Binding AgeIntervalUnitIndex}"
+                                      HorizontalAlignment="Stretch" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Custom fields -->
+                    <TextBlock Text="{loc:Loc template.customFields}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NormalText}"
+                               Margin="0,8,0,0" />
+
+                    <ItemsControl ItemsSource="{Binding CustomFields}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CustomFieldRowViewModel">
+                                <DockPanel Margin="0,2">
+                                    <Button DockPanel.Dock="Right"
+                                            Command="{Binding RemoveCommand}"
+                                            Content="&#xE711;"
+                                            FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                            FontSize="12"
+                                            Padding="6"
+                                            Margin="4,0,0,0"
+                                            Background="Transparent"
+                                            ToolTip.Tip="{loc:Loc template.removeField}" />
+                                    <TextBox Text="{Binding DefaultValue}"
+                                             DockPanel.Dock="Right"
+                                             Width="200"
+                                             Margin="4,0,0,0"
+                                             Watermark="{loc:Loc template.defaultValue}" />
+                                    <TextBox Text="{Binding Key}"
+                                             Watermark="{loc:Loc template.fieldKey}" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Button Content="{loc:Loc template.addCustomField}"
+                            Command="{Binding AddCustomFieldCommand}"
+                            HorizontalAlignment="Left"
+                            Padding="12,6" />
+
+                    <!-- Options section -->
+                    <TextBlock Text="{loc:Loc template.options}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NormalText}"
+                               Margin="0,8,0,0" />
+
+                    <StackPanel IsVisible="{Binding IsCharacterTemplate}" Spacing="4">
+                        <DockPanel>
+                            <ToggleSwitch IsChecked="{Binding IncludeRelationships}"
+                                          OnContent=""
+                                          OffContent=""
+                                          MinWidth="0" />
+                            <TextBlock Text="{loc:Loc template.includeRelationships}"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+                        <DockPanel>
+                            <ToggleSwitch IsChecked="{Binding IncludeChapterOverrides}"
+                                          OnContent=""
+                                          OffContent=""
+                                          MinWidth="0" />
+                            <TextBlock Text="{loc:Loc template.includeChapterOverrides}"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+                    </StackPanel>
+
+                    <DockPanel>
+                        <ToggleSwitch IsChecked="{Binding IncludeImages}"
+                                      OnContent=""
+                                      OffContent=""
+                                      MinWidth="0" />
+                        <TextBlock Text="{loc:Loc template.includeImages}"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
+
+                    <!-- Custom properties section -->
+                    <TextBlock Text="{loc:Loc template.defaultCustomProperties}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NormalText}"
+                               Margin="0,8,0,0" />
+
+                    <ItemsControl ItemsSource="{Binding PropertyDefs}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CustomPropertyDefRowViewModel">
+                                <StackPanel Spacing="4" Margin="0,4">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right"
+                                                Command="{Binding RemoveCommand}"
+                                                Content="&#xE711;"
+                                                FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                                FontSize="12"
+                                                Padding="6"
+                                                Margin="4,0,0,0"
+                                                Background="Transparent"
+                                                ToolTip.Tip="{loc:Loc template.removeProperty}" />
+                                        <ComboBox DockPanel.Dock="Right"
+                                                  ItemsSource="{Binding PropertyTypes}"
+                                                  SelectedIndex="{Binding TypeIndex}"
+                                                  Width="120"
+                                                  Margin="4,0,0,0" />
+                                        <TextBox Text="{Binding Key}"
+                                                 Watermark="{loc:Loc template.propertyName}" />
+                                    </DockPanel>
+                                    <TextBox Text="{Binding DefaultValue}"
+                                             IsVisible="{Binding !IsBoolType}"
+                                             Watermark="{loc:Loc template.propertyValue}" />
+                                    <ToggleSwitch IsVisible="{Binding IsBoolType}"
+                                                  IsChecked="False"
+                                                  OnContent="{loc:Loc template.boolTrue}"
+                                                  OffContent="{loc:Loc template.boolFalse}"
+                                                  MinWidth="0" />
+                                    <TextBox Text="{Binding EnumOptionsText}"
+                                             IsVisible="{Binding ShowEnumOptions}"
+                                             Watermark="{loc:Loc template.enumOptionsHint}" />
+                                    <StackPanel IsVisible="{Binding ShowIntervalUnit}" Spacing="4">
+                                        <TextBlock Text="{loc:Loc template.intervalUnit}"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource DimText}" />
+                                        <ComboBox ItemsSource="{Binding IntervalUnits}"
+                                                  SelectedIndex="{Binding IntervalUnitIndex}"
+                                                  HorizontalAlignment="Stretch" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Button Content="{loc:Loc template.addProperty}"
+                            Command="{Binding AddPropertyCommand}"
+                            HorizontalAlignment="Left"
+                            Padding="12,6" />
+
+                    <!-- Sections -->
+                    <TextBlock Text="{loc:Loc template.sections}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NormalText}"
+                               Margin="0,8,0,0" />
+
+                    <ItemsControl ItemsSource="{Binding Sections}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:SectionRowViewModel">
+                                <Border BorderBrush="{DynamicResource BorderDefault}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Padding="8"
+                                        Margin="0,4">
+                                    <StackPanel Spacing="6">
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Right"
+                                                    Command="{Binding RemoveCommand}"
+                                                    Content="&#xE711;"
+                                                    FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                                    FontSize="12"
+                                                    Padding="6"
+                                                    Margin="4,0,0,0"
+                                                    Background="Transparent"
+                                                    ToolTip.Tip="{loc:Loc template.removeSection}" />
+                                            <TextBox Text="{Binding Title}"
+                                                     Watermark="{loc:Loc template.sectionTitle}" />
+                                        </DockPanel>
+                                        <TextBox Text="{Binding DefaultContent}"
+                                                 AcceptsReturn="True"
+                                                 TextWrapping="Wrap"
+                                                 MinHeight="60"
+                                                 Watermark="{loc:Loc template.sectionDefaultContent}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Button Content="{loc:Loc template.addSection}"
+                            Command="{Binding AddSectionCommand}"
+                            HorizontalAlignment="Left"
+                            Padding="12,6"
+                            Margin="0,0,0,16" />
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

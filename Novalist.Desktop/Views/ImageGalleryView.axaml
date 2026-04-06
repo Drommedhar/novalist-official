@@ -1,0 +1,184 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:conv="using:Novalist.Desktop.Converters"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="Novalist.Desktop.Views.ImageGalleryView"
+             x:DataType="vm:ImageGalleryViewModel">
+    <UserControl.Resources>
+        <conv:RelativePathToBitmapConverter x:Key="PathToBitmap" />
+    </UserControl.Resources>
+
+    <Grid Background="{DynamicResource EditorBackground}">
+        <DockPanel Margin="24">
+            <!-- Toolbar -->
+            <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
+                <!-- Search -->
+                <TextBox Grid.Column="0"
+                         Text="{Binding FilterQuery}"
+                         Watermark="{loc:Loc imageGallery.search}"
+                         Margin="0,0,12,0" />
+
+                <!-- View mode + count -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                    <Button Command="{Binding SetGridViewCommand}"
+                            Classes="ribbonToggleLarge"
+                            Classes.active="{Binding IsGridView}"
+                            ToolTip.Tip="{loc:Loc imageGallery.gridView}"
+                            Padding="8">
+                        <TextBlock Text="▦" FontSize="16" />
+                    </Button>
+                    <Button Command="{Binding SetListViewCommand}"
+                            Classes="ribbonToggleLarge"
+                            Classes.active="{Binding !IsGridView}"
+                            ToolTip.Tip="{loc:Loc imageGallery.listView}"
+                            Padding="8">
+                        <TextBlock Text="☰" FontSize="16" />
+                    </Button>
+                    <TextBlock Text="{Binding CountText}"
+                               Foreground="{DynamicResource SubtleText}"
+                               VerticalAlignment="Center"
+                               FontSize="12" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Empty state -->
+            <TextBlock DockPanel.Dock="Top"
+                       Text="{Binding EmptyText}"
+                       IsVisible="{Binding IsEmpty}"
+                       Foreground="{DynamicResource SubtleText}"
+                       HorizontalAlignment="Center"
+                       Margin="0,48,0,0"
+                       FontSize="14" />
+
+            <!-- Content -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          IsVisible="{Binding !IsEmpty}">
+
+                <!-- Grid View -->
+                <Panel>
+                    <ItemsControl ItemsSource="{Binding Images}"
+                                  IsVisible="{Binding IsGridView}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ImageGalleryItem">
+                                <Border Width="180" Margin="4"
+                                        Background="{DynamicResource CardBackground}"
+                                        BorderBrush="{DynamicResource CardBorder}"
+                                        BorderThickness="1"
+                                        CornerRadius="6"
+                                        ClipToBounds="True"
+                                        Cursor="Hand"
+                                        Tapped="OnCardTapped">
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="{loc:Loc imageGallery.copyPath}"
+                                                      Command="{Binding CopyPathCommand}" />
+                                            <MenuItem Header="{loc:Loc imageGallery.openInExplorer}"
+                                                      Command="{Binding OpenInExplorerCommand}" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <StackPanel>
+                                        <Border Height="140"
+                                                Background="{DynamicResource ExplorerBackground}"
+                                                ClipToBounds="True">
+                                            <Image Source="{Binding RelativePath, Converter={StaticResource PathToBitmap}}"
+                                                   Stretch="Uniform"
+                                                   VerticalAlignment="Center"
+                                                   HorizontalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Name}"
+                                                   Padding="8,6"
+                                                   FontSize="12"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Foreground="{DynamicResource NormalText}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- List View -->
+                    <ItemsControl ItemsSource="{Binding Images}"
+                                  IsVisible="{Binding !IsGridView}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ImageGalleryItem">
+                                <Border Margin="0,2"
+                                        Background="{DynamicResource CardBackground}"
+                                        BorderBrush="{DynamicResource CardBorder}"
+                                        BorderThickness="1"
+                                        CornerRadius="4"
+                                        Padding="8"
+                                        Cursor="Hand"
+                                        Tapped="OnCardTapped">
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="{loc:Loc imageGallery.copyPath}"
+                                                      Command="{Binding CopyPathCommand}" />
+                                            <MenuItem Header="{loc:Loc imageGallery.openInExplorer}"
+                                                      Command="{Binding OpenInExplorerCommand}" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <Grid ColumnDefinitions="64,12,*">
+                                        <Border Grid.Column="0"
+                                                Width="64" Height="64"
+                                                CornerRadius="4"
+                                                ClipToBounds="True"
+                                                Background="{DynamicResource ExplorerBackground}">
+                                            <Image Source="{Binding RelativePath, Converter={StaticResource PathToBitmap}}"
+                                                   Stretch="UniformToFill" />
+                                        </Border>
+                                        <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}"
+                                                       FontSize="13"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource NormalText}" />
+                                            <TextBlock Text="{Binding RelativePath}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource SubtleText}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Panel>
+            </ScrollViewer>
+        </DockPanel>
+
+        <!-- Preview Overlay -->
+        <Border IsVisible="{Binding IsPreviewOpen}"
+                Background="#DD000000"
+                PointerPressed="OnPreviewOverlayPressed">
+            <StackPanel HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Spacing="12"
+                        Margin="48">
+                <Border Background="{DynamicResource CardBackground}"
+                        CornerRadius="8"
+                        ClipToBounds="True"
+                        Padding="8"
+                        MaxWidth="900"
+                        MaxHeight="700"
+                        PointerPressed="OnPreviewContentPressed">
+                    <Image Source="{Binding PreviewImagePath, Converter={StaticResource PathToBitmap}}"
+                           Stretch="Uniform" />
+                </Border>
+                <TextBlock Text="{Binding PreviewImageName}"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           FontSize="14" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

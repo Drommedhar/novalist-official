@@ -1,0 +1,186 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="Novalist.Desktop.Views.ExportView"
+             x:DataType="vm:ExportViewModel">
+
+    <Border Background="{DynamicResource EditorBackground}">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                      VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="640"
+                        HorizontalAlignment="Center"
+                        Margin="32,24"
+                        Spacing="20">
+
+                <!-- Header -->
+                <TextBlock Text="{loc:Loc export.header}"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="{DynamicResource NormalText}" />
+
+                <!-- No chapters message -->
+                <TextBlock Text="{loc:Loc export.noChapters}"
+                           FontSize="13"
+                           Foreground="{DynamicResource SubtleText}"
+                           IsVisible="{Binding !Chapters.Count}" />
+
+                <!-- Options Section -->
+                <Border Background="{DynamicResource ExplorerBackground}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="16"
+                        IsVisible="{Binding Chapters.Count}">
+                    <StackPanel Spacing="14">
+                        <TextBlock Text="{loc:Loc export.options}"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource NormalText}" />
+
+                        <!-- Title -->
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
+                            <TextBlock Grid.Column="0"
+                                       Text="{loc:Loc export.title}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource NormalText}" />
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding Title}"
+                                     Watermark="{loc:Loc export.titlePlaceholder}" />
+                        </Grid>
+
+                        <!-- Author -->
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
+                            <TextBlock Grid.Column="0"
+                                       Text="{loc:Loc export.author}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource NormalText}" />
+                            <TextBox Grid.Column="1"
+                                     Text="{Binding Author}"
+                                     Watermark="{loc:Loc export.authorPlaceholder}" />
+                        </Grid>
+
+                        <!-- Format -->
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
+                            <TextBlock Grid.Column="0"
+                                       Text="{loc:Loc export.format}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource NormalText}" />
+                            <ComboBox Grid.Column="1"
+                                      SelectedIndex="{Binding SelectedFormatIndex}"
+                                      ItemsSource="{Binding FormatNames}"
+                                      HorizontalAlignment="Stretch" />
+                        </Grid>
+
+                        <!-- SMF Preset (DOCX/PDF only) -->
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12"
+                              IsVisible="{Binding IsSmfVisible}">
+                            <TextBlock Grid.Column="0"
+                                       Text="{loc:Loc export.smfPreset}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource NormalText}" />
+                            <ToggleSwitch Grid.Column="1"
+                                          IsChecked="{Binding SmfPreset}"
+                                          OnContent=""
+                                          OffContent="" />
+                        </Grid>
+
+                        <TextBlock Text="{loc:Loc export.smfPresetDesc}"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource SubtleText}"
+                                   TextWrapping="Wrap"
+                                   Margin="132,0,0,0"
+                                   IsVisible="{Binding IsSmfVisible}" />
+
+                        <!-- Include Title Page -->
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
+                            <TextBlock Grid.Column="0"
+                                       Text="{loc:Loc export.includeTitlePage}"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource NormalText}" />
+                            <ToggleSwitch Grid.Column="1"
+                                          IsChecked="{Binding IncludeTitlePage}"
+                                          OnContent=""
+                                          OffContent="" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Chapter Selection -->
+                <Border Background="{DynamicResource ExplorerBackground}"
+                        BorderBrush="{DynamicResource CardBorder}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="16"
+                        IsVisible="{Binding Chapters.Count}">
+                    <StackPanel Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                            <TextBlock Grid.Column="0"
+                                       Text="{loc:Loc export.selectChapters}"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="{DynamicResource NormalText}"
+                                       VerticalAlignment="Center" />
+                            <StackPanel Grid.Column="1"
+                                        Orientation="Horizontal"
+                                        Spacing="6">
+                                <Button Content="{loc:Loc export.selectAll}"
+                                        Command="{Binding SelectAllCommand}"
+                                        Classes="exportSelectBtn" />
+                                <Button Content="{loc:Loc export.selectNone}"
+                                        Command="{Binding SelectNoneCommand}"
+                                        Classes="exportSelectBtn" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Border BorderBrush="{DynamicResource CardBorder}"
+                                BorderThickness="0,1,0,0"
+                                Padding="0,8,0,0">
+                            <ItemsControl ItemsSource="{Binding Chapters}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ExportChapterItem">
+                                        <CheckBox IsChecked="{Binding IsSelected}"
+                                                  Content="{Binding DisplayName}"
+                                                  Margin="0,3"
+                                                  Foreground="{DynamicResource NormalText}" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Export Button + Status -->
+                <StackPanel Spacing="10"
+                            IsVisible="{Binding Chapters.Count}">
+                    <Button Content="{Binding ExportButtonText}"
+                            Command="{Binding ExportCommand}"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Classes="accent"
+                            FontSize="14"
+                            Padding="16,10"
+                            IsEnabled="{Binding !IsExporting}" />
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{Binding StatusMessage}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource SubtleText}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding SelectedCountText}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource SubtleText}"
+                                   VerticalAlignment="Center" />
+                    </Grid>
+                </StackPanel>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</UserControl>

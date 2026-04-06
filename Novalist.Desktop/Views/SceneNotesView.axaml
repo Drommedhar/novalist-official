@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="800" d:DesignHeight="200"
+             x:Class="Novalist.Desktop.Views.SceneNotesView"
+             x:DataType="vm:SceneNotesViewModel">
+
+    <Border Background="{DynamicResource ExplorerBackground}"
+            BorderBrush="{DynamicResource ExplorerBorder}"
+            BorderThickness="0,1,0,0">
+        <Grid RowDefinitions="Auto,*">
+            <Border Grid.Row="0"
+                    Background="{DynamicResource ExplorerBackground}"
+                    BorderBrush="{DynamicResource ExplorerBorder}"
+                    BorderThickness="0,0,0,1"
+                    Padding="14,8">
+                <TextBlock Text="{loc:Loc sceneNotes.title}"
+                           FontSize="11"
+                           FontWeight="Bold"
+                           LetterSpacing="1"
+                           Foreground="{DynamicResource SubtleText}" />
+            </Border>
+
+            <TextBox Grid.Row="1"
+                     Text="{Binding Notes, Mode=TwoWay}"
+                     Watermark="{loc:Loc sceneNotes.placeholder}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     MinHeight="60"
+                     Padding="12,8"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     Foreground="{DynamicResource NormalText}"
+                     FontSize="12.5"
+                     IsVisible="{Binding IsSceneOpen}" />
+
+            <TextBlock Grid.Row="1"
+                       Text="{loc:Loc sceneNotes.empty}"
+                       Padding="14,12"
+                       FontSize="12"
+                       Foreground="{DynamicResource SubtleText}"
+                       IsVisible="{Binding IsSceneOpen, Converter={x:Static BoolConverters.Not}}" />
+        </Grid>
+    </Border>
+</UserControl>

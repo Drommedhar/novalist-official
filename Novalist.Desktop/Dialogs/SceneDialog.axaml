@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:loc="using:Novalist.Desktop.Localization"
+        mc:Ignorable="d"
+        x:Class="Novalist.Desktop.Dialogs.SceneDialog"
+        Width="460"
+        Focusable="True">
+    <Border Background="Transparent"
+            Padding="24">
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,20,0,0">
+                <Button Content="{loc:Loc dialog.cancel}"
+                        Padding="16,8"
+                        Click="OnCancel" />
+                <Button Content="{loc:Loc dialog.ok}"
+                        Classes="primary"
+                        IsDefault="True"
+                        Click="OnOk" />
+            </StackPanel>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="{loc:Loc dialog.sceneName}"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource NormalText}" />
+                <TextBox x:Name="TitleBox"
+                         Watermark="{loc:Loc dialog.sceneNameWatermark}"
+                         MaxLength="200" />
+
+                <TextBlock Text="{loc:Loc dialog.chapter}"
+                           Margin="0,6,0,0"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource NormalText}" />
+                <ComboBox x:Name="ChapterBox"
+                          HorizontalAlignment="Stretch"
+                          SelectedIndex="0" />
+
+                <TextBlock Text="{loc:Loc dialog.dateOptional}"
+                           Margin="0,6,0,0"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource NormalText}" />
+                <CalendarDatePicker x:Name="DatePicker"
+                                    HorizontalAlignment="Stretch"
+                                    Watermark="{loc:Loc dialog.dateWatermark}" />
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</UserControl>

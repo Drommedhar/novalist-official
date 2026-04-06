@@ -1,0 +1,165 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Novalist.Core.Models;
+using Novalist.Core.Services;
+using Novalist.Desktop.Localization;
+
+namespace Novalist.Desktop.ViewModels;
+
+public partial class CodexHubViewModel : ObservableObject
+{
+    private readonly IEntityService _entityService;
+    private readonly IProjectService _projectService;
+
+    private List<CharacterData> _allCharacters = [];
+    private List<LocationData> _allLocations = [];
+    private List<ItemData> _allItems = [];
+    private List<LoreData> _allLore = [];
+
+    [ObservableProperty]
+    private string _activeTab = "All";
+
+    [ObservableProperty]
+    private string _searchQuery = string.Empty;
+
+    [ObservableProperty]
+    private ObservableCollection<CodexEntityItem> _filteredEntities = [];
+
+    [ObservableProperty]
+    private int _totalCount;
+
+    [ObservableProperty]
+    private int _characterCount;
+
+    [ObservableProperty]
+    private int _locationCount;
+
+    [ObservableProperty]
+    private int _itemCount;
+
+    [ObservableProperty]
+    private int _loreCount;
+
+    public event Action<EntityType, object>? EntityOpenRequested;
+
+    public CodexHubViewModel(IEntityService entityService, IProjectService projectService)
+    {
+        _entityService = entityService;
+        _projectService = projectService;
+    }
+
+    public async Task LoadAsync()
+    {
+        _allCharacters = (await _entityService.LoadCharactersAsync()).OrderBy(c => c.DisplayName).ToList();
+        _allLocations = (await _entityService.LoadLocationsAsync()).OrderBy(l => l.Name).ToList();
+        _allItems = (await _entityService.LoadItemsAsync()).OrderBy(i => i.Name).ToList();
+        _allLore = (await _entityService.LoadLoreAsync()).OrderBy(l => l.Name).ToList();
+
+        CharacterCount = _allCharacters.Count;
+        LocationCount = _allLocations.Count;
+        ItemCount = _allItems.Count;
+        LoreCount = _allLore.Count;
+        TotalCount = CharacterCount + LocationCount + ItemCount + LoreCount;
+
+        ApplyFilter();
+    }
+
+    public void Refresh() => _ = LoadAsync();
+
+    partial void OnActiveTabChanged(string value) => ApplyFilter();
+    partial void OnSearchQueryChanged(string value) => ApplyFilter();
+
+    [RelayCommand]
+    private void SetTab(string tab)
+    {
+        ActiveTab = tab;
+    }
+
+    [RelayCommand]
+    private void OpenEntity(CodexEntityItem? item)
+    {
+        if (item == null) return;
+        EntityOpenRequested?.Invoke(item.EntityType, item.Entity);
+    }
+
+    private void ApplyFilter()
+    {
+        var query = SearchQuery?.Trim() ?? string.Empty;
+        var items = new List<CodexEntityItem>();
+
+        if (ActiveTab is "All" or "Character")
+        {
+            foreach (var c in _allCharacters)
+            {
+                if (MatchesSearch(c.DisplayName, query))
+                    items.Add(new CodexEntityItem(EntityType.Character, c, c.DisplayName, c.Role, CodexEntityItem.UserIconData, c.IsWorldBible));
+            }
+        }
+
+        if (ActiveTab is "All" or "Location")
+        {
+            foreach (var l in _allLocations)
+            {
+                if (MatchesSearch(l.Name, query))
+                    items.Add(new CodexEntityItem(EntityType.Location, l, l.Name, l.Type, CodexEntityItem.MapPinIconData, l.IsWorldBible));
+            }
+        }
+
+        if (ActiveTab is "All" or "Item")
+        {
+            foreach (var i in _allItems)
+            {
+                if (MatchesSearch(i.Name, query))
+                    items.Add(new CodexEntityItem(EntityType.Item, i, i.Name, i.Type, CodexEntityItem.SwordIconData, i.IsWorldBible));
+            }
+        }
+
+        if (ActiveTab is "All" or "Lore")
+        {
+            foreach (var l in _allLore)
+            {
+                if (MatchesSearch(l.Name, query))
+                    items.Add(new CodexEntityItem(EntityType.Lore, l, l.Name, l.Category.ToString(), CodexEntityItem.ScrollIconData, l.IsWorldBible));
+            }
+        }
+
+        FilteredEntities = new ObservableCollection<CodexEntityItem>(items);
+    }
+
+    private static bool MatchesSearch(string name, string query)
+    {
+        if (string.IsNullOrEmpty(query)) return true;
+        return name.Contains(query, StringComparison.OrdinalIgnoreCase);
+    }
+}
+
+public sealed class CodexEntityItem
+{
+    // Lucide-style 24x24 stroke path data for entity type icons
+    internal const string UserIconData = "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z";
+    internal const string MapPinIconData = "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0zM12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6z";
+    internal const string SwordIconData = "M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M3 3l18 18";
+    internal const string ScrollIconData = "M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4M14 3v2M14 7v2M14 11v2";
+
+    public EntityType EntityType { get; }
+    public object Entity { get; }
+    public string Name { get; }
+    public string Subtitle { get; }
+    public string Icon { get; }
+    public bool IsWorldBible { get; }
+
+    public CodexEntityItem(EntityType type, object entity, string name, string subtitle, string icon, bool isWorldBible)
+    {
+        EntityType = type;
+        Entity = entity;
+        Name = name;
+        Subtitle = subtitle ?? string.Empty;
+        Icon = icon;
+        IsWorldBible = isWorldBible;
+    }
+}

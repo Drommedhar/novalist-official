@@ -1,0 +1,62 @@
+{
+  "ribbon": {
+    "wordFreq": {
+      "label": "Worthäufigkeit",
+      "tooltip": "Worthäufigkeitsanalyse öffnen"
+    },
+    "prompt": {
+      "label": "Impuls",
+      "tooltip": "Zufälligen Schreibimpuls erzeugen"
+    },
+    "pomodoro": {
+      "label": "Pomodoro",
+      "tooltip": "Pomodoro-Timer starten/stoppen"
+    }
+  },
+  "group": {
+    "writingToolkit": "Schreibwerkzeuge"
+  },
+  "sidebar": {
+    "writingPrompts": {
+      "label": "Schreibimpulse",
+      "tooltip": "Zufällige Schreibimpulse und Inspiration"
+    }
+  },
+  "notifications": {
+    "pomodoroStopped": "Pomodoro-Timer gestoppt.",
+    "pomodoroStarted": "Pomodoro gestartet \u2014 {0} Min."
+  },
+  "settings": {
+    "category": "Schreibwerkzeuge",
+    "pomodoroDuration": "Pomodoro-Dauer (Minuten)"
+  },
+  "export": {
+    "plainTextClean": "Klartext (bereinigt)"
+  },
+  "statusBar": {
+    "pomodoroRunning": "Pomodoro: {0} Sitzungen abgeschlossen",
+    "pomodoroIdle": "Pomodoro-Timer (nicht aktiv)"
+  },
+  "contextMenu": {
+    "analyzeWordFrequency": "Worthäufigkeit analysieren"
+  },
+  "contentView": {
+    "wordFrequency": "Worthäufigkeit"
+  },
+  "wordFrequencyView": {
+    "title": "Worthäufigkeitsanalyse",
+    "analyzeButton": "Alle Szenen analysieren",
+    "columnWord": "Wort",
+    "columnCount": "Anzahl",
+    "statusReady": "Klicke auf Analysieren, um alle Szenen zu scannen.",
+    "statusAnalyzing": "Analyse läuft\u2026",
+    "statusDone": "{0} verschiedene Wörter gefunden (Top 100 angezeigt).",
+    "statusError": "Fehler: {0}"
+  },
+  "writingPromptsView": {
+    "title": "Schreibimpulse",
+    "generateButton": "Impuls erzeugen",
+    "defaultPrompt": "Klicke auf die Schaltfläche, um einen Schreibimpuls zu erzeugen.",
+    "historyLabel": "Verlauf"
+  }
+}

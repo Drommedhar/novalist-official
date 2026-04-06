@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:loc="using:Novalist.Desktop.Localization"
+        mc:Ignorable="d"
+        x:Class="Novalist.Desktop.Dialogs.ImportPluginDialog"
+        Width="520"
+        Focusable="True">
+    <Border Background="Transparent"
+            Padding="24">
+        <DockPanel>
+            <!-- Buttons -->
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,16,0,0">
+                <Button x:Name="CancelButton"
+                        Content="{loc:Loc dialog.cancel}"
+                        Padding="16,8"
+                        Click="OnCancel" />
+                <Button x:Name="ImportButton"
+                        Content="{loc:Loc import.startImport}"
+                        Classes="primary"
+                        Click="OnImport"
+                        IsDefault="True" />
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Text="{loc:Loc import.title}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource NormalText}" />
+
+                <TextBlock Text="{loc:Loc import.description}"
+                           FontSize="12"
+                           Foreground="{DynamicResource SubtleText}"
+                           TextWrapping="Wrap" />
+
+                <!-- Configuration Panel -->
+                <StackPanel x:Name="ConfigPanel" Spacing="8">
+                    <!-- Vault Folder -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Loc import.vaultFolder}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Grid.Column="0"
+                                     x:Name="VaultPathBox"
+                                     IsReadOnly="True"
+                                     Watermark="{loc:Loc import.vaultFolderPlaceholder}" />
+                            <Button Grid.Column="1"
+                                    Content="{loc:Loc welcome.browse}"
+                                    Click="OnBrowseVault"
+                                    Margin="4,0,0,0" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Plugin Project Selector (visible only when multiple projects detected) -->
+                    <StackPanel x:Name="ProjectSelectorPanel" Spacing="4" IsVisible="False">
+                        <TextBlock Text="{loc:Loc import.selectProject}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}" />
+                        <ComboBox x:Name="ProjectComboBox"
+                                  HorizontalAlignment="Stretch"
+                                  SelectionChanged="OnProjectSelectionChanged" />
+                    </StackPanel>
+
+                    <!-- Project Name -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Loc welcome.projectName}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}" />
+                        <TextBox x:Name="ProjectNameBox"
+                                 Watermark="{loc:Loc welcome.projectNamePlaceholder}"
+                                 MaxLength="100" />
+                    </StackPanel>
+
+                    <!-- Book Name -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Loc welcome.bookName}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}" />
+                        <TextBox x:Name="BookNameBox"
+                                 Watermark="{loc:Loc welcome.bookNamePlaceholder}"
+                                 MaxLength="100" />
+                    </StackPanel>
+
+                    <!-- Output Location -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Loc import.outputLocation}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}" />
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBox Grid.Column="0"
+                                     x:Name="OutputPathBox"
+                                     IsReadOnly="True"
+                                     Watermark="{loc:Loc welcome.locationPlaceholder}" />
+                            <Button Grid.Column="1"
+                                    Content="{loc:Loc welcome.browse}"
+                                    Click="OnBrowseOutput"
+                                    Margin="4,0,0,0" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Progress Panel -->
+                <StackPanel x:Name="ProgressPanel" Spacing="8" IsVisible="False">
+                    <ProgressBar x:Name="ProgressBar"
+                                 IsIndeterminate="True"
+                                 Height="4" />
+                    <TextBlock x:Name="ProgressText"
+                               FontSize="12"
+                               Foreground="{DynamicResource SubtleText}" />
+                </StackPanel>
+
+                <!-- Error Message -->
+                <TextBlock x:Name="ErrorText"
+                           FontSize="12"
+                           Foreground="#E05252"
+                           TextWrapping="Wrap"
+                           IsVisible="False" />
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</UserControl>

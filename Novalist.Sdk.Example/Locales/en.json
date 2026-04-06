@@ -1,0 +1,62 @@
+{
+  "ribbon": {
+    "wordFreq": {
+      "label": "Word Freq",
+      "tooltip": "Open word frequency analysis"
+    },
+    "prompt": {
+      "label": "Prompt",
+      "tooltip": "Generate a random writing prompt"
+    },
+    "pomodoro": {
+      "label": "Pomodoro",
+      "tooltip": "Start/stop Pomodoro timer"
+    }
+  },
+  "group": {
+    "writingToolkit": "Writing Toolkit"
+  },
+  "sidebar": {
+    "writingPrompts": {
+      "label": "Writing Prompts",
+      "tooltip": "Random writing prompts and inspiration"
+    }
+  },
+  "notifications": {
+    "pomodoroStopped": "Pomodoro timer stopped.",
+    "pomodoroStarted": "Pomodoro started \u2014 {0} min."
+  },
+  "settings": {
+    "category": "Writing Toolkit",
+    "pomodoroDuration": "Pomodoro Duration (minutes)"
+  },
+  "export": {
+    "plainTextClean": "Plain Text (clean)"
+  },
+  "statusBar": {
+    "pomodoroRunning": "Pomodoro: {0} sessions completed",
+    "pomodoroIdle": "Pomodoro timer (not running)"
+  },
+  "contextMenu": {
+    "analyzeWordFrequency": "Analyze word frequency"
+  },
+  "contentView": {
+    "wordFrequency": "Word Frequency"
+  },
+  "wordFrequencyView": {
+    "title": "Word Frequency Analysis",
+    "analyzeButton": "Analyze All Scenes",
+    "columnWord": "Word",
+    "columnCount": "Count",
+    "statusReady": "Click Analyze to scan all scenes.",
+    "statusAnalyzing": "Analyzing\u2026",
+    "statusDone": "Found {0} unique words (top 100 shown).",
+    "statusError": "Error: {0}"
+  },
+  "writingPromptsView": {
+    "title": "Writing Prompts",
+    "generateButton": "Generate Prompt",
+    "defaultPrompt": "Click the button to generate a writing prompt.",
+    "historyLabel": "History"
+  }
+}

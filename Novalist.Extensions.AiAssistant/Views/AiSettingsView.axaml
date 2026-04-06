@@ -1,0 +1,236 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Extensions.AiAssistant.ViewModels"
+             x:Class="Novalist.Extensions.AiAssistant.Views.AiSettingsView"
+             x:DataType="vm:AiSettingsViewModel">
+
+    <StackPanel Spacing="12">
+
+        <!-- Enable AI -->
+        <StackPanel Spacing="2">
+            <CheckBox IsChecked="{Binding AiEnabled}"
+                      Content="{Binding Loc[settings.aiEnabled]}"
+                      FontSize="13" />
+            <TextBlock Text="{Binding Loc[settings.aiEnabledDesc]}"
+                       FontSize="11"
+                       Foreground="{DynamicResource DimText}" />
+        </StackPanel>
+
+        <!-- Provider -->
+        <StackPanel Spacing="2">
+            <TextBlock Text="{Binding Loc[settings.aiProvider]}" FontSize="12" Foreground="{DynamicResource NormalText}" />
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <RadioButton Content="LM Studio"
+                             IsChecked="{Binding IsLmStudioProvider}"
+                             FontSize="12"
+                             Command="{Binding SetAiProviderCommand}"
+                             CommandParameter="lmstudio" />
+                <RadioButton Content="GitHub Copilot CLI"
+                             IsChecked="{Binding IsCopilotProvider}"
+                             FontSize="12"
+                             Command="{Binding SetAiProviderCommand}"
+                             CommandParameter="copilot" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Connection -->
+        <TextBlock Text="{Binding Loc[settings.aiConnection]}"
+                   FontSize="12"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource NormalText}"
+                   Margin="0,4,0,0" />
+
+        <!-- LM Studio Connection Settings -->
+        <StackPanel Spacing="8" IsVisible="{Binding IsLmStudioProvider}">
+            <StackPanel Spacing="2">
+                <TextBlock Text="{Binding Loc[settings.aiBaseUrl]}" FontSize="12" Foreground="{DynamicResource NormalText}" />
+                <TextBox Text="{Binding AiBaseUrl, Mode=TwoWay}" FontSize="12" Padding="8,6" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right"
+                            Content="{Binding Loc[settings.aiRefreshModels]}"
+                            Command="{Binding RefreshAiModelsCommand}"
+                            Classes="ribbonButton"
+                            Padding="8,4" FontSize="11"
+                            Margin="8,0,0,0" />
+                    <TextBlock Text="{Binding Loc[settings.aiModel]}" FontSize="12" Foreground="{DynamicResource NormalText}" VerticalAlignment="Center" />
+                </DockPanel>
+                <TextBox Text="{Binding AiModel, Mode=TwoWay}" FontSize="12" Padding="8,6"
+                         Watermark="{Binding Loc[settings.aiModelPlaceholder]}" />
+                <ItemsControl ItemsSource="{Binding AvailableAiModels}"
+                              IsVisible="{Binding AvailableAiModels.Count}"
+                              Margin="0,4,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AiModelListItem">
+                            <Button Classes="ribbonButton"
+                                    Padding="6,3"
+                                    FontSize="11"
+                                    Margin="0,1"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Command="{Binding $parent[ItemsControl].((vm:AiSettingsViewModel)DataContext).SelectAiModelCommand}"
+                                    CommandParameter="{Binding Key}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding DisplayName}" />
+                                    <TextBlock Text="{Binding SizeDisplay}" Foreground="{DynamicResource DimText}" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <TextBlock Text="{Binding Loc[settings.aiApiToken]}" FontSize="12" Foreground="{DynamicResource NormalText}" />
+                <TextBox Text="{Binding AiApiToken, Mode=TwoWay}" FontSize="12" Padding="8,6"
+                         PasswordChar="•" />
+                <TextBlock Text="{Binding Loc[settings.aiApiTokenDesc]}" FontSize="11" Foreground="{DynamicResource DimText}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Copilot CLI Connection Settings -->
+        <StackPanel Spacing="8" IsVisible="{Binding IsCopilotProvider}">
+            <StackPanel Spacing="2">
+                <TextBlock Text="{Binding Loc[settings.aiCopilotPath]}" FontSize="12" Foreground="{DynamicResource NormalText}" />
+                <TextBox Text="{Binding AiCopilotPath, Mode=TwoWay}" FontSize="12" Padding="8,6"
+                         Watermark="{Binding Loc[settings.aiCopilotPathPlaceholder]}" />
+                <TextBlock Text="{Binding Loc[settings.aiCopilotPathDesc]}" FontSize="11" Foreground="{DynamicResource DimText}" />
+            </StackPanel>
+
+            <StackPanel Spacing="2">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right"
+                            Content="{Binding Loc[settings.aiRefreshModels]}"
+                            Command="{Binding RefreshAiModelsCommand}"
+                            Classes="ribbonButton"
+                            Padding="8,4" FontSize="11"
+                            Margin="8,0,0,0" />
+                    <TextBlock Text="{Binding Loc[settings.aiCopilotModel]}" FontSize="12" Foreground="{DynamicResource NormalText}" VerticalAlignment="Center" />
+                </DockPanel>
+                <TextBox Text="{Binding AiCopilotModel, Mode=TwoWay}" FontSize="12" Padding="8,6"
+                         Watermark="{Binding Loc[settings.aiCopilotModelPlaceholder]}" />
+                <ItemsControl ItemsSource="{Binding AvailableAiModels}"
+                              IsVisible="{Binding AvailableAiModels.Count}"
+                              Margin="0,4,0,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AiModelListItem">
+                            <Button Classes="ribbonButton"
+                                    Padding="6,3"
+                                    FontSize="11"
+                                    Margin="0,1"
+                                    HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Command="{Binding $parent[ItemsControl].((vm:AiSettingsViewModel)DataContext).SelectAiModelCommand}"
+                                    CommandParameter="{Binding Key}">
+                                <TextBlock Text="{Binding DisplayName}" />
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="{Binding Loc[settings.aiTestConnection]}"
+                    Command="{Binding TestAiConnectionCommand}"
+                    Classes="ribbonButton"
+                    Padding="10,5" FontSize="12" />
+            <TextBlock Text="{Binding AiServerStatus}"
+                       VerticalAlignment="Center"
+                       FontSize="12"
+                       Foreground="{DynamicResource DimText}" />
+        </StackPanel>
+
+        <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4,0,0" />
+
+        <!-- Generation Parameters (LM Studio only) -->
+        <StackPanel Spacing="8" IsVisible="{Binding IsLmStudioProvider}">
+            <TextBlock Text="{Binding Loc[settings.aiParameters]}"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource NormalText}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="16" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                    <TextBlock Text="{Binding Loc[settings.aiTemperature]}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                    <NumericUpDown Value="{Binding AiTemperature}" Minimum="0" Maximum="2" Increment="0.1" FormatString="F2" FontSize="12" />
+                </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="1" Spacing="2">
+                    <TextBlock Text="{Binding Loc[settings.aiContextLength]}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                    <NumericUpDown Value="{Binding AiContextLength}" Minimum="0" Maximum="131072" Increment="1024" FormatString="N0" FontSize="12" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="0" Spacing="2">
+                    <TextBlock Text="Top P" FontSize="11" Foreground="{DynamicResource DimText}" />
+                    <NumericUpDown Value="{Binding AiTopP}" Minimum="0" Maximum="1" Increment="0.05" FormatString="F2" FontSize="12" />
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="1" Spacing="2">
+                    <TextBlock Text="Min P" FontSize="11" Foreground="{DynamicResource DimText}" />
+                    <NumericUpDown Value="{Binding AiMinP}" Minimum="0" Maximum="1" Increment="0.01" FormatString="F2" FontSize="12" />
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="0" Spacing="2">
+                    <TextBlock Text="{Binding Loc[settings.aiFrequencyPenalty]}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                    <NumericUpDown Value="{Binding AiFrequencyPenalty}" Minimum="0" Maximum="2" Increment="0.1" FormatString="F2" FontSize="12" />
+                </StackPanel>
+                <StackPanel Grid.Row="2" Grid.Column="1" Spacing="2">
+                    <TextBlock Text="{Binding Loc[settings.aiRepeatLastN]}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                    <NumericUpDown Value="{Binding AiRepeatLastN}" Minimum="0" Maximum="1024" Increment="8" FormatString="N0" FontSize="12" />
+                </StackPanel>
+            </Grid>
+
+            <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4,0,0" />
+        </StackPanel>
+
+        <!-- Analysis Checks -->
+        <TextBlock Text="{Binding Loc[settings.aiAnalysisChecks]}"
+                   FontSize="12"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource NormalText}" />
+
+        <StackPanel Spacing="4">
+            <CheckBox IsChecked="{Binding AiCheckReferences}" Content="{Binding Loc[settings.aiCheckReferences]}" FontSize="12" />
+            <CheckBox IsChecked="{Binding AiCheckInconsistencies}" Content="{Binding Loc[settings.aiCheckInconsistencies]}" FontSize="12" />
+            <CheckBox IsChecked="{Binding AiCheckSuggestions}" Content="{Binding Loc[settings.aiCheckSuggestions]}" FontSize="12" />
+            <CheckBox IsChecked="{Binding AiCheckSceneStats}" Content="{Binding Loc[settings.aiCheckSceneStats]}" FontSize="12" />
+            <CheckBox IsChecked="{Binding AiDisableRegexReferences}" Content="{Binding Loc[settings.aiDisableRegex]}" FontSize="12" />
+        </StackPanel>
+
+        <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4,0,0" />
+
+        <!-- Response Language -->
+        <TextBlock Text="{Binding Loc[settings.aiResponseLanguage]}"
+                   FontSize="12"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource NormalText}" />
+        <TextBox Text="{Binding AiResponseLanguage}"
+                 FontSize="12"
+                 Watermark="{Binding Loc[settings.aiResponseLanguagePlaceholder]}" />
+
+        <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4,0,0" />
+
+        <!-- System Prompt -->
+        <DockPanel>
+            <Button DockPanel.Dock="Right"
+                    Content="{Binding Loc[settings.aiResetPrompt]}"
+                    Command="{Binding ResetAiSystemPromptCommand}"
+                    Classes="ribbonButton"
+                    Padding="8,4" FontSize="11" />
+            <TextBlock Text="{Binding Loc[settings.aiSystemPrompt]}"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource NormalText}"
+                       VerticalAlignment="Center" />
+        </DockPanel>
+        <TextBlock Text="{Binding Loc[settings.aiSystemPromptDesc]}"
+                   FontSize="11"
+                   Foreground="{DynamicResource DimText}"
+                   TextWrapping="Wrap" />
+        <TextBox Text="{Binding AiSystemPrompt, Mode=TwoWay}"
+                 AcceptsReturn="True"
+                 Height="120"
+                 FontSize="12"
+                 TextWrapping="Wrap"
+                 Watermark="{Binding Loc[settings.aiSystemPromptPlaceholder]}" />
+    </StackPanel>
+</UserControl>

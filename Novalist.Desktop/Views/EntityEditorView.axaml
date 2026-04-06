@@ -1,0 +1,533 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:m="using:Novalist.Core.Models"
+             xmlns:conv="using:Novalist.Desktop.Converters"
+             xmlns:views="using:Novalist.Desktop.Views"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="800" d:DesignHeight="900"
+             x:Class="Novalist.Desktop.Views.EntityEditorView"
+             x:DataType="vm:EntityEditorViewModel">
+
+    <UserControl.Resources>
+        <conv:RelativePathToBitmapConverter x:Key="PathToBitmap" />
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource EditorBackground}">
+        <!-- Empty state -->
+        <Panel>
+            <Border IsVisible="{Binding !IsOpen}"
+                    IsHitTestVisible="False">
+                <TextBlock Text="{loc:Loc entityEditor.emptyState}"
+                           FontSize="16"
+                           Foreground="{DynamicResource SubtleText}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Border>
+
+            <!-- Editor content -->
+            <ScrollViewer IsVisible="{Binding IsOpen}"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="32,24" Spacing="20" MaxWidth="900">
+
+                    <!-- Header -->
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                            <Button Content="{loc:Loc entityEditor.save}" x:Name="SaveButton"
+                                    Classes="ribbonButton" Padding="12,6" />
+                            <Button x:Name="DeleteButton"
+                                    Classes="ribbonButton" Padding="8,6"
+                                    ToolTip.Tip="{loc:Loc entityEditor.delete}"
+                                    Foreground="#E05252">
+                                <PathIcon Data="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6z"
+                                          Width="14" Height="14"
+                                          Foreground="#E05252" />
+                            </Button>
+                            <Button Content="{loc:Loc entityEditor.close}" x:Name="CloseButton"
+                                    Classes="ribbonButton" Padding="12,6" />
+                        </StackPanel>
+                        <TextBlock Text="{Binding Title}"
+                                   FontSize="22" FontWeight="Bold"
+                                   Foreground="{DynamicResource NormalText}"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
+
+                    <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" />
+
+                    <!-- Override mode banner -->
+                    <Border IsVisible="{Binding IsOverrideMode}"
+                            Background="#332196F3" BorderBrush="#5592C8"
+                            BorderThickness="1" CornerRadius="4"
+                            Padding="12,8" Margin="0,4">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right"
+                                    Content="{loc:Loc entityEditor.stopOverride}"
+                                    Classes="ribbonButton" Padding="12,6"
+                                    x:Name="StopOverrideButton" />
+                            <TextBlock Text="{Binding OverrideScopeDisplay}"
+                                       FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource NormalText}"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
+                    </Border>
+
+                    <!-- ═══ CHARACTER FIELDS ═══ -->
+                    <StackPanel Spacing="16"
+                                IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}">
+
+                        <!-- Section: Basic Info -->
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
+
+                        <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto,8,Auto,8,Auto">
+                            <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Name}" Watermark="{loc:Loc entityEditor.firstName}" />
+                            <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding Surname}" Watermark="{loc:Loc entityEditor.surname}" />
+                            <TextBox Grid.Row="2" Grid.Column="0" Text="{Binding Gender}" Watermark="{loc:Loc entityEditor.gender}" />
+                            <!-- Age: plain text or date-based -->
+                            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding Age}" Watermark="{loc:Loc entityEditor.age}"
+                                     IsVisible="{Binding ShowAgeTextField}" />
+                            <CalendarDatePicker Grid.Row="2" Grid.Column="2"
+                                                SelectedDate="{Binding BirthDate}"
+                                                HorizontalAlignment="Stretch"
+                                                Watermark="{loc:Loc entityEditor.birthDate}"
+                                                IsVisible="{Binding ShowAgeDatePicker}" />
+                            <TextBox Grid.Row="4" Grid.Column="0" Text="{Binding Role}" Watermark="{loc:Loc entityEditor.rolePlaceholder}" />
+                            <TextBox Grid.Row="4" Grid.Column="2" Text="{Binding Group}" Watermark="{loc:Loc entityEditor.groupPlaceholder}"
+                                     IsEnabled="{Binding !IsOverrideMode}" />
+                        </Grid>
+
+                        <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4" />
+
+                        <!-- Section: Physical Attributes -->
+                        <TextBlock Text="{loc:Loc entityEditor.physicalAttributes}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
+
+                        <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto,8,Auto,8,Auto">
+                            <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding EyeColor}" Watermark="{loc:Loc entityEditor.eyeColor}" />
+                            <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding HairColor}" Watermark="{loc:Loc entityEditor.hairColor}" />
+                            <TextBox Grid.Row="2" Grid.Column="0" Text="{Binding HairLength}" Watermark="{loc:Loc entityEditor.hairLength}" />
+                            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding Height}" Watermark="{loc:Loc entityEditor.height}" />
+                            <TextBox Grid.Row="4" Grid.Column="0" Text="{Binding Build}" Watermark="{loc:Loc entityEditor.build}" />
+                            <TextBox Grid.Row="4" Grid.Column="2" Text="{Binding SkinTone}" Watermark="{loc:Loc entityEditor.skinTone}" />
+                            <TextBox Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="3"
+                                     Text="{Binding DistinguishingFeatures}" Watermark="{loc:Loc entityEditor.distinguishingFeatures}" />
+                        </Grid>
+
+                        <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4" />
+
+                        <!-- Section: Relationships -->
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="{loc:Loc entityEditor.addRelationship}" x:Name="AddRelBtn"
+                                    Classes="ribbonButton" Padding="8,4" FontSize="11" />
+                            <TextBlock Text="{loc:Loc entityEditor.relationships}" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SubtleText}" LetterSpacing="1"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+
+                        <ItemsControl ItemsSource="{Binding Relationships}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ObservableRelationship">
+                                    <Grid ColumnDefinitions="*,16,*,Auto" Margin="0,0,0,10">
+                                        <Grid Grid.Column="0">
+                                            <TextBox x:Name="RoleInput"
+                                                     Text="{Binding Role}"
+                                                     Watermark="{loc:Loc entityEditor.rolePlaceholderRel}"
+                                                     HorizontalAlignment="Stretch"
+                                                     GotFocus="OnRelationshipRoleGotFocus"
+                                                     TextChanged="OnRelationshipRoleTextChanged"
+                                                     KeyUp="OnRelationshipRoleKeyUp" />
+                                            <Popup IsOpen="{Binding RoleSuggestionsVisible}"
+                                                   PlacementTarget="{Binding ElementName=RoleInput}"
+                                                   Placement="Bottom"
+                                                   VerticalOffset="4"
+                                                   IsLightDismissEnabled="True">
+                                                <Border Classes="relationshipSuggestionPanel"
+                                                        Width="{Binding Bounds.Width, ElementName=RoleInput}">
+                                                    <ListBox Classes="relationshipSuggestionList"
+                                                             ItemsSource="{Binding RoleSuggestions}"
+                                                             Tag="{Binding}"
+                                                             SelectionChanged="OnRelationshipRoleSuggestionSelected" />
+                                                </Border>
+                                            </Popup>
+                                        </Grid>
+
+                                        <StackPanel Grid.Column="2" Spacing="6">
+                                            <ItemsControl ItemsSource="{Binding Targets}"
+                                                          IsVisible="{Binding HasTargets}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel Orientation="Horizontal" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="vm:ObservableRelationshipTarget">
+                                                        <Border Background="{DynamicResource CardBackground}"
+                                                                BorderBrush="{DynamicResource RibbonGroupBorder}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="999"
+                                                                Padding="8,4"
+                                                                Margin="0,0,6,6">
+                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                <TextBlock Text="{Binding Name}"
+                                                                           VerticalAlignment="Center" />
+                                                                <Button Content="✕"
+                                                                        Classes="relationshipBadgeRemove"
+                                                                        Padding="0"
+                                                                        MinWidth="16"
+                                                                        FontSize="10"
+                                                                        Tag="{Binding}"
+                                                                        ToolTip.Tip="{loc:Loc entityEditor.removeCharacterTooltip}"
+                                                                        Click="OnRemoveRelationshipTargetClicked" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <Grid ColumnDefinitions="*,8,Auto">
+                                                <Grid Grid.Column="0">
+                                                    <TextBox x:Name="TargetInput"
+                                                             Text="{Binding PendingTarget}"
+                                                             Watermark="{loc:Loc entityEditor.addCharacter}"
+                                                             HorizontalAlignment="Stretch"
+                                                             GotFocus="OnRelationshipTargetGotFocus"
+                                                             TextChanged="OnRelationshipTargetTextChanged"
+                                                             KeyUp="OnRelationshipTargetKeyUp" />
+                                                    <Popup IsOpen="{Binding TargetSuggestionsVisible}"
+                                                           PlacementTarget="{Binding ElementName=TargetInput}"
+                                                           Placement="Bottom"
+                                                           VerticalOffset="4"
+                                                           IsLightDismissEnabled="True">
+                                                        <Border Classes="relationshipSuggestionPanel"
+                                                                Width="{Binding Bounds.Width, ElementName=TargetInput}">
+                                                            <ListBox Classes="relationshipSuggestionList"
+                                                                     ItemsSource="{Binding TargetSuggestions}"
+                                                                     Tag="{Binding}"
+                                                                     SelectionChanged="OnRelationshipTargetSuggestionSelected" />
+                                                        </Border>
+                                                    </Popup>
+                                                </Grid>
+                                                <Button Grid.Column="2"
+                                                        Content="+"
+                                                        Classes="ribbonButton"
+                                                        Padding="8,4"
+                                                        FontSize="11"
+                                                        Tag="{Binding}"
+                                                        Click="OnAddRelationshipTargetClicked" />
+                                            </Grid>
+                                        </StackPanel>
+
+                                        <Button Grid.Column="3" Content="{loc:Loc entityEditor.removeRelationship}" Classes="relationshipRowRemove"
+                                            Padding="8,4" Margin="4,0,0,0" FontSize="11"
+                                            VerticalAlignment="Top"
+                                                Tag="{Binding}"
+                                            ToolTip.Tip="Remove relationship row"
+                                                x:Name="RemRelBtn" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- ═══ LOCATION FIELDS ═══ -->
+                    <StackPanel Spacing="16"
+                                IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Location}}">
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
+                        <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto,8,Auto">
+                            <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Name}" Watermark="{loc:Loc entityEditor.name}" />
+                            <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding LocationType}" Watermark="{loc:Loc entityEditor.locationType}" />
+                            <Grid Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3">
+                                <TextBox x:Name="ParentLocationInput"
+                                         Text="{Binding ParentLocation}"
+                                         Watermark="{loc:Loc entityEditor.parentLocation}"
+                                         GotFocus="OnParentLocationGotFocus"
+                                         TextChanged="OnParentLocationTextChanged"
+                                         KeyUp="OnParentLocationKeyUp" />
+                                <Popup IsOpen="{Binding ParentLocationSuggestionsVisible}"
+                                       PlacementTarget="{Binding ElementName=ParentLocationInput}"
+                                       Placement="Bottom"
+                                       VerticalOffset="4"
+                                       IsLightDismissEnabled="True">
+                                    <Border Classes="relationshipSuggestionPanel"
+                                            Width="{Binding Bounds.Width, ElementName=ParentLocationInput}">
+                                        <ListBox Classes="relationshipSuggestionList"
+                                                 ItemsSource="{Binding ParentLocationSuggestions}"
+                                                 SelectionChanged="OnParentLocationSuggestionSelected" />
+                                    </Border>
+                                </Popup>
+                            </Grid>
+                            <TextBox Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
+                                     Text="{Binding Description}" Watermark="{loc:Loc entityEditor.description}"
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- ═══ ITEM FIELDS ═══ -->
+                    <StackPanel Spacing="16"
+                                IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Item}}">
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
+                        <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto,8,Auto">
+                            <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Name}" Watermark="{loc:Loc entityEditor.name}" />
+                            <TextBox Grid.Row="0" Grid.Column="2" Text="{Binding ItemType}" Watermark="{loc:Loc entityEditor.itemType}" />
+                            <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                                     Text="{Binding Origin}" Watermark="{loc:Loc entityEditor.origin}" />
+                            <TextBox Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
+                                     Text="{Binding Description}" Watermark="{loc:Loc entityEditor.description}"
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- ═══ LORE FIELDS ═══ -->
+                    <StackPanel Spacing="16"
+                                IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Lore}}">
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
+                        <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto">
+                            <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Name}" Watermark="{loc:Loc entityEditor.name}" />
+                            <ComboBox Grid.Row="0" Grid.Column="2"
+                                      ItemsSource="{Binding LoreCategories}"
+                                      SelectedItem="{Binding Category}"
+                                      HorizontalAlignment="Stretch" />
+                            <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                                     Text="{Binding Description}" Watermark="{loc:Loc entityEditor.description}"
+                                     AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" />
+                        </Grid>
+                    </StackPanel>
+
+                    <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4"
+                            IsVisible="{Binding IsOpen}" />
+
+                    <!-- ═══ IMAGES (shared) ═══ -->
+                    <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="{loc:Loc entityEditor.addImage}" x:Name="AddImgBtn"
+                                    Classes="ribbonButton" Padding="8,4" FontSize="11" />
+                            <TextBlock Text="{loc:Loc entityEditor.images}" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SubtleText}" LetterSpacing="1"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+
+                        <ItemsControl ItemsSource="{Binding Images}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="8" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="m:EntityImage">
+                                    <Border Background="{DynamicResource CardBackground}"
+                                            BorderBrush="{DynamicResource CardBorder}"
+                                            BorderThickness="1" CornerRadius="6"
+                                            Padding="10">
+                                        <Grid ColumnDefinitions="72,12,*,Auto">
+                                            <!-- Image thumbnail -->
+                                            <Button Grid.Column="0"
+                                                    Classes="imageThumbButton"
+                                                    Width="72"
+                                                    Height="72"
+                                                    Padding="0"
+                                                    Tag="{Binding}"
+                                                    ToolTip.Tip="{loc:Loc entityEditor.chooseImageTooltip}"
+                                                    Click="OnSelectProjectImageClicked">
+                                                <Border CornerRadius="4"
+                                                        ClipToBounds="True"
+                                                        Background="{DynamicResource ExplorerBackground}"
+                                                        BorderBrush="{DynamicResource CardBorder}"
+                                                        BorderThickness="1">
+                                                    <Image Source="{Binding Path, Converter={StaticResource PathToBitmap}}"
+                                                           Stretch="UniformToFill" />
+                                                </Border>
+                                            </Button>
+                                            <!-- Editable name -->
+                                            <TextBox Grid.Column="2" Text="{Binding Name}"
+                                                     Watermark="{loc:Loc entityEditor.imageName}"
+                                                     VerticalAlignment="Center"
+                                                     FontWeight="Medium" />
+                                            <!-- Remove button -->
+                                            <Button Grid.Column="3" Content="✕"
+                                                    Classes="ribbonButton"
+                                                    Padding="8,4" FontSize="12"
+                                                    VerticalAlignment="Center"
+                                                    Tag="{Binding}"
+                                                    x:Name="RemImgBtn"
+                                                    ToolTip.Tip="{loc:Loc entityEditor.removeImageTooltip}" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4"
+                            IsVisible="{Binding IsOpen}" />
+
+                    <!-- ═══ CUSTOM PROPERTIES (shared) ═══ -->
+                    <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="{loc:Loc entityEditor.addProperty}" x:Name="AddPropBtn"
+                                    Classes="ribbonButton" Padding="8,4" FontSize="11" />
+                            <TextBlock Text="{loc:Loc entityEditor.customProperties}" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SubtleText}" LetterSpacing="1"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+
+                        <ItemsControl ItemsSource="{Binding CustomProperties}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ObservableKeyValue">
+                                    <Grid ColumnDefinitions="*,16,*,Auto" Margin="0,0,0,6">
+                                        <TextBox Grid.Column="0" Text="{Binding Key}" Watermark="{loc:Loc entityEditor.propertyName}" />
+                                        <!-- String / Int / Timespan -->
+                                        <TextBox Grid.Column="2" Text="{Binding Value}" Watermark="{loc:Loc entityEditor.propertyValue}"
+                                                 IsVisible="{Binding IsTextType}" />
+                                        <!-- Date -->
+                                        <CalendarDatePicker Grid.Column="2" SelectedDate="{Binding DateValue}"
+                                                            IsVisible="{Binding IsDateType}" HorizontalAlignment="Stretch" />
+                                        <!-- Bool -->
+                                        <CheckBox Grid.Column="2" IsChecked="{Binding BoolValue}"
+                                                  IsVisible="{Binding IsBoolType}" VerticalAlignment="Center" />
+                                        <!-- Enum -->
+                                        <ComboBox Grid.Column="2" ItemsSource="{Binding EnumOptions}" SelectedItem="{Binding Value}"
+                                                  IsVisible="{Binding IsEnumType}" HorizontalAlignment="Stretch" />
+                                        <Button Grid.Column="3" Content="✕" Classes="ribbonButton"
+                                                Padding="6,4" Margin="4,0,0,0" FontSize="11"
+                                                Tag="{Binding}"
+                                                x:Name="RemPropBtn" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4"
+                            IsVisible="{Binding IsOpen}" />
+
+                    <!-- ═══ SECTIONS (shared) ═══ -->
+                    <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Content="{loc:Loc entityEditor.addSection}" x:Name="AddSecBtn"
+                                    Classes="ribbonButton" Padding="8,4" FontSize="11" />
+                            <TextBlock Text="{loc:Loc entityEditor.sections}" FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource SubtleText}" LetterSpacing="1"
+                                       VerticalAlignment="Center" />
+                        </DockPanel>
+
+                        <ItemsControl ItemsSource="{Binding Sections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ObservableSection">
+                                    <Border Background="{DynamicResource CardBackground}"
+                                            BorderBrush="{DynamicResource CardBorder}"
+                                            BorderThickness="1" CornerRadius="6"
+                                            Padding="12" Margin="0,0,0,8">
+                                        <StackPanel Spacing="6">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Content="✕" Classes="ribbonButton"
+                                                        Padding="6,4" FontSize="11"
+                                                        Tag="{Binding}"
+                                                        x:Name="RemSecBtn" />
+                                                <TextBox Text="{Binding Title}" Watermark="{loc:Loc entityEditor.sectionTitle}"
+                                                         FontWeight="SemiBold" />
+                                            </DockPanel>
+                                            <TextBox Text="{Binding Content}" Watermark="{loc:Loc entityEditor.sectionContent}"
+                                                     AcceptsReturn="True" TextWrapping="Wrap"
+                                                     MinHeight="60" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- ═══ CHAPTER OVERRIDES (characters only) ═══ -->
+                    <StackPanel Spacing="8"
+                                IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}">
+                        <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4" />
+                        <TextBlock Text="{loc:Loc entityEditor.chapterOverrides}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
+
+                        <!-- Override scope selector -->
+                        <Grid ColumnDefinitions="*,8,*" RowDefinitions="Auto,8,Auto">
+                            <ComboBox Grid.Row="0" Grid.Column="0"
+                                      ItemsSource="{Binding AvailableChapters}"
+                                      SelectedItem="{Binding SelectedOverrideChapter}"
+                                      PlaceholderText="{loc:Loc entityEditor.selectChapter}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ChapterScopeOption">
+                                        <TextBlock Text="{Binding DisplayTitle}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <ComboBox Grid.Row="0" Grid.Column="2"
+                                      ItemsSource="{Binding AvailableScenes}"
+                                      SelectedItem="{Binding SelectedOverrideScene}"
+                                      PlaceholderText="{loc:Loc entityEditor.selectScene}"
+                                      HorizontalAlignment="Stretch"
+                                      IsVisible="{Binding SelectedOverrideChapter, Converter={x:Static ObjectConverters.IsNotNull}}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:SceneScopeOption">
+                                        <TextBlock Text="{Binding Title}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                            <Button Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                                    Content="{loc:Loc entityEditor.editOverride}"
+                                    Command="{Binding EditOrCreateOverrideCommand}"
+                                    IsEnabled="{Binding SelectedOverrideChapter, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                    Classes="ribbonButton" Padding="8,6" FontSize="12"
+                                    HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                        </Grid>
+
+                        <!-- Existing overrides list -->
+                        <ItemsControl ItemsSource="{Binding OverrideItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:OverrideListItemViewModel">
+                                    <Border Background="{DynamicResource CardBackground}"
+                                            BorderBrush="{DynamicResource CardBorder}"
+                                            BorderThickness="1" CornerRadius="4"
+                                            Padding="8,6" Margin="0,0,0,4">
+                                        <DockPanel>
+                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                                                <Button Classes="ribbonButton" Padding="6,4"
+                                                        Tag="{Binding}"
+                                                        x:Name="EditOverrideBtn">
+                                                    <PathIcon Data="{StaticResource IconPencil}" Width="11" Height="11" Foreground="{DynamicResource NormalText}" />
+                                                </Button>
+                                                <Button Classes="ribbonButton" Padding="6,4"
+                                                        Foreground="#E05252"
+                                                        Tag="{Binding}"
+                                                        x:Name="RemoveOverrideBtn">
+                                                    <PathIcon Data="{StaticResource IconTrash}" Width="11" Height="11" Foreground="#E05252" />
+                                                </Button>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding DisplayLabel}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource NormalText}"
+                                                       VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="{loc:Loc entityEditor.noOverrides}"
+                                   FontSize="11" Foreground="{DynamicResource SubtleText}"
+                                   FontStyle="Italic"
+                                   IsVisible="{Binding !OverrideItems.Count}" />
+                    </StackPanel>
+
+                    <!-- Bottom spacer -->
+                    <Border Height="40" />
+
+                </StackPanel>
+            </ScrollViewer>
+        </Panel>
+    </Border>
+</UserControl>

@@ -1,0 +1,156 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Extensions.AiAssistant.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="400" d:DesignHeight="600"
+             x:Class="Novalist.Extensions.AiAssistant.Views.AiChatView"
+             x:DataType="vm:AiChatViewModel">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- Header -->
+        <Border Grid.Row="0"
+                Background="{DynamicResource ExplorerBackground}"
+                Padding="12,8"
+                BorderBrush="{DynamicResource RibbonBorder}"
+                BorderThickness="0,0,0,1">
+            <DockPanel>
+                <Button DockPanel.Dock="Right"
+                        Content="🗑"
+                        Command="{Binding ClearChatCommand}"
+                        Classes="ribbonButton"
+                        FontSize="14"
+                        Padding="6,2" />
+                <TextBlock Text="AI Chat"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource NormalText}"
+                           VerticalAlignment="Center" />
+            </DockPanel>
+        </Border>
+
+        <!-- Messages -->
+        <ScrollViewer Grid.Row="1"
+                      x:Name="MessagesScroll"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Padding="8">
+            <StackPanel Spacing="8">
+                <ItemsControl ItemsSource="{Binding Messages}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AiChatMessageItem">
+                            <Border Padding="8,6"
+                                    CornerRadius="6"
+                                    Margin="0,2">
+                                <Border.Styles>
+                                    <Style Selector="Border">
+                                        <Setter Property="Background" Value="{DynamicResource ExplorerBackground}" />
+                                    </Style>
+                                </Border.Styles>
+                                <StackPanel Spacing="4">
+                                    <TextBlock FontWeight="SemiBold"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource DimText}">
+                                        <TextBlock.Text>
+                                            <MultiBinding StringFormat="{}{0}">
+                                                <Binding Path="Role" />
+                                            </MultiBinding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                    <SelectableTextBlock Text="{Binding Content}"
+                                               TextWrapping="Wrap"
+                                               FontSize="13"
+                                               Foreground="{DynamicResource NormalText}" />
+                                    <!-- Thinking expandable -->
+                                    <Expander IsVisible="{Binding HasThinking}"
+                                              Header="Thinking"
+                                              FontSize="11"
+                                              Padding="4">
+                                        <SelectableTextBlock Text="{Binding Thinking}"
+                                                   TextWrapping="Wrap"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource DimText}" />
+                                    </Expander>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Streaming response in progress -->
+                <Border Padding="8,6"
+                        CornerRadius="6"
+                        Background="{DynamicResource ExplorerBackground}"
+                        IsVisible="{Binding IsGenerating}">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="assistant"
+                                   FontWeight="SemiBold"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource DimText}" />
+                        <!-- Thinking stream -->
+                        <Expander IsVisible="{Binding HasThinking}"
+                                  Header="Thinking..."
+                                  IsExpanded="{Binding IsThinkingExpanded}"
+                                  FontSize="11"
+                                  Padding="4">
+                            <SelectableTextBlock Text="{Binding StreamingThinking}"
+                                       TextWrapping="Wrap"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource DimText}" />
+                        </Expander>
+                        <SelectableTextBlock Text="{Binding StreamingResponse}"
+                                   TextWrapping="Wrap"
+                                   FontSize="13"
+                                   Foreground="{DynamicResource NormalText}" />
+                        <ProgressBar IsIndeterminate="True"
+                                     Height="2"
+                                     Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Input Area -->
+        <Border Grid.Row="2"
+                Background="{DynamicResource ExplorerBackground}"
+                Padding="8"
+                BorderBrush="{DynamicResource RibbonBorder}"
+                BorderThickness="0,1,0,0">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Grid.Column="0"
+                         Text="{Binding UserInput, Mode=TwoWay}"
+                         Watermark="Ask the AI about your story..."
+                         AcceptsReturn="False"
+                         FontSize="13"
+                         Padding="8,6"
+                         x:Name="ChatInput"
+                         KeyDown="OnChatInputKeyDown" />
+                <Button Grid.Column="1"
+                        Margin="4,0,0,0"
+                        Padding="10,6"
+                        FontSize="13"
+                        Classes="ribbonButton"
+                        VerticalAlignment="Stretch">
+                    <Button.IsVisible>
+                        <Binding Path="IsGenerating" Converter="{x:Static BoolConverters.Not}" />
+                    </Button.IsVisible>
+                    <Button.Command>
+                        <Binding Path="SendCommand" />
+                    </Button.Command>
+                    <TextBlock Text="➤" />
+                </Button>
+                <Button Grid.Column="1"
+                        Margin="4,0,0,0"
+                        Padding="10,6"
+                        FontSize="13"
+                        Command="{Binding CancelCommand}"
+                        IsVisible="{Binding IsGenerating}"
+                        Classes="ribbonButton"
+                        VerticalAlignment="Stretch">
+                    <TextBlock Text="⏹" />
+                </Button>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

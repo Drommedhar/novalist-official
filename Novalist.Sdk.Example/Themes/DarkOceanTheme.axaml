@@ -1,0 +1,44 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Dark Ocean theme: deep blue tones for comfortable nighttime writing -->
+    <SolidColorBrush x:Key="RibbonBackground" Color="#1B2838" />
+    <SolidColorBrush x:Key="RibbonBorder" Color="#2A3F54" />
+    <SolidColorBrush x:Key="RibbonGroupBorder" Color="#2A3F54" />
+    <SolidColorBrush x:Key="StatusBarBackground" Color="#4DA6C9" />
+    <SolidColorBrush x:Key="StatusBarForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="StatusBarSecondaryForeground" Color="#D0E8F0" />
+    <SolidColorBrush x:Key="StatusBarHoverBackground" Color="#5BB8D8" />
+    <SolidColorBrush x:Key="ExplorerBackground" Color="#0F1E2E" />
+    <SolidColorBrush x:Key="ExplorerBorder" Color="#1B2838" />
+    <SolidColorBrush x:Key="EditorBackground" Color="#0D1B2A" />
+    <SolidColorBrush x:Key="WelcomeBackground" Color="#0D1B2A" />
+    <SolidColorBrush x:Key="CardBackground" Color="#1B2838" />
+    <SolidColorBrush x:Key="CardBorder" Color="#2A3F54" />
+    <SolidColorBrush x:Key="AccentBrush" Color="#4DA6C9" />
+    <SolidColorBrush x:Key="AccentBrushHover" Color="#5BB8D8" />
+    <SolidColorBrush x:Key="AccentForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="SubtleText" Color="#8899AA" />
+    <SolidColorBrush x:Key="TreeItemHover" Color="#162434" />
+    <SolidColorBrush x:Key="TreeItemSelected" Color="#1F3248" />
+    <SolidColorBrush x:Key="NormalText" Color="#D0D8E0" />
+    <SolidColorBrush x:Key="DimText" Color="#A0B0C0" />
+    <SolidColorBrush x:Key="SidebarBackground" Color="#0F1E2E" />
+    <SolidColorBrush x:Key="PanelBorder" Color="#2A3F54" />
+    <SolidColorBrush x:Key="TabStripBackground" Color="#1B2838" />
+    <SolidColorBrush x:Key="EditorTabInactiveBackground" Color="#1B2838" />
+    <SolidColorBrush x:Key="EditorTabActiveBackground" Color="#0D1B2A" />
+    <SolidColorBrush x:Key="EditorTabHoverBackground" Color="#1F3248" />
+    <SolidColorBrush x:Key="EditorTabBorder" Color="#0F1E2E" />
+    <SolidColorBrush x:Key="EditorTabMutedForeground" Color="#6B7D90" />
+    <SolidColorBrush x:Key="EditorTabBadgeBackground" Color="#2A3F54" />
+    <SolidColorBrush x:Key="EditorTabCloseGlyph" Color="#A0B0C0" />
+    <SolidColorBrush x:Key="EditorTabCloseHoverBackground" Color="#2A3F54" />
+
+    <SolidColorBrush x:Key="StatusOutline" Color="#506880" />
+    <SolidColorBrush x:Key="StatusFirstDraft" Color="#E8A070" />
+    <SolidColorBrush x:Key="StatusRevised" Color="#70A0E0" />
+    <SolidColorBrush x:Key="StatusEdited" Color="#80C880" />
+    <SolidColorBrush x:Key="StatusFinal" Color="#70C8B8" />
+
+</ResourceDictionary>

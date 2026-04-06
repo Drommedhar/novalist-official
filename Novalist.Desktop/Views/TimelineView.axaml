@@ -1,0 +1,421 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="900" d:DesignHeight="700"
+             x:Class="Novalist.Desktop.Views.TimelineView"
+             x:DataType="vm:TimelineViewModel">
+
+    <Border Background="{DynamicResource EditorBackground}">
+        <Grid RowDefinitions="Auto,*">
+
+            <!-- ═══ Toolbar ═══ -->
+            <Border Grid.Row="0"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    BorderThickness="0,0,0,1"
+                    Background="{DynamicResource ExplorerBackground}"
+                    Padding="12,8">
+                <Grid ColumnDefinitions="*,Auto">
+                    <!-- Left group: mode, zoom, filters -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                        <Button Command="{Binding ToggleViewModeCommand}"
+                                Classes="timelineToolbarBtn"
+                                ToolTip.Tip="{Binding ViewModeLabel}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <TextBlock Text="☰" FontSize="12" />
+                                <TextBlock Text="{Binding ViewModeLabel}" FontSize="11" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Command="{Binding CycleZoomCommand}"
+                                Classes="timelineToolbarBtn"
+                                ToolTip.Tip="{Binding ZoomLabel}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <PathIcon Data="{StaticResource IconZoomIn}" Width="12" Height="12" Foreground="{DynamicResource NormalText}" />
+                                <TextBlock Text="{Binding ZoomLabel}" FontSize="11" />
+                            </StackPanel>
+                        </Button>
+
+                        <ComboBox Classes="timelineFilter"
+                                  PlaceholderText="{loc:Loc timeline.filterCharacter}"
+                                  SelectedItem="{Binding FilterCharacter}"
+                                  ItemsSource="{Binding AvailableCharacters}"
+                                  IsVisible="{Binding AvailableCharacters.Count}" />
+
+                        <ComboBox Classes="timelineFilter"
+                                  PlaceholderText="{loc:Loc timeline.filterLocation}"
+                                  SelectedItem="{Binding FilterLocation}"
+                                  ItemsSource="{Binding AvailableLocations}"
+                                  IsVisible="{Binding AvailableLocations.Count}" />
+
+                        <ComboBox Classes="timelineFilter"
+                                  PlaceholderText="{loc:Loc timeline.filterSource}"
+                                  SelectedItem="{Binding SelectedSourceFilter}"
+                                  ItemsSource="{Binding AvailableSources}" />
+                    </StackPanel>
+
+                    <!-- Right group: add button -->
+                    <Button Grid.Column="1"
+                            Command="{Binding ShowAddFormCommand}"
+                            Classes="timelineAddBtn">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <TextBlock Text="＋" FontSize="14" />
+                            <TextBlock Text="{loc:Loc timeline.addEvent}" FontSize="11" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- ═══ Content ═══ -->
+            <Panel Grid.Row="1">
+
+                <!-- Empty state -->
+                <TextBlock Text="{loc:Loc timeline.noEvents}"
+                           IsVisible="{Binding !HasEvents}"
+                           FontSize="14"
+                           FontStyle="Italic"
+                           Foreground="{DynamicResource SubtleText}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Margin="0,48" />
+
+                <!-- Vertical timeline -->
+                <ScrollViewer IsVisible="{Binding IsVertical}"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Groups}"
+                                  Margin="24,16">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:TimelineGroup">
+                                <StackPanel Margin="0,0,0,8">
+                                    <!-- Group header -->
+                                    <Border Classes="timelineGroupHeader"
+                                            Margin="0,12,0,6">
+                                        <TextBlock Text="{Binding Label}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="14"
+                                                   Foreground="{DynamicResource AccentBrush}" />
+                                    </Border>
+
+                                    <!-- Events in group -->
+                                    <ItemsControl ItemsSource="{Binding Events}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="vm:TimelineEventItem">
+                                                <Border Classes="timelineEventCard"
+                                                        Classes.isAct="{Binding IsAct}"
+                                                        Classes.noDate="{Binding HasNoDate}"
+                                                        Margin="0,0,0,8">
+                                                    <Grid ColumnDefinitions="14,*" ColumnSpacing="10">
+                                                        <!-- Dot -->
+                                                        <Ellipse Grid.Column="0"
+                                                                 Width="10" Height="10"
+                                                                 VerticalAlignment="Top"
+                                                                 Margin="0,6,0,0">
+                                                            <Ellipse.Fill>
+                                                                <SolidColorBrush Color="{Binding SourceColor}" />
+                                                            </Ellipse.Fill>
+                                                        </Ellipse>
+
+                                                        <!-- Card content -->
+                                                        <Border Grid.Column="1"
+                                                                Background="{DynamicResource ExplorerBackground}"
+                                                                BorderBrush="{DynamicResource CardBorder}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="6"
+                                                                Padding="12,8">
+                                                            <StackPanel Spacing="4">
+                                                                <!-- Date -->
+                                                                <TextBlock Text="{Binding DateStr}"
+                                                                           FontSize="11"
+                                                                           Foreground="{DynamicResource SubtleText}" />
+
+                                                                <!-- Title + source badge -->
+                                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                    <TextBlock Text="{Binding Title}"
+                                                                               FontWeight="SemiBold"
+                                                                               FontSize="13"
+                                                                               Foreground="{DynamicResource NormalText}" />
+                                                                    <Border CornerRadius="8"
+                                                                            Padding="6,1">
+                                                                        <Border.Background>
+                                                                            <SolidColorBrush Color="{Binding SourceColor}" />
+                                                                        </Border.Background>
+                                                                        <TextBlock Text="{Binding SourceLabel}"
+                                                                                   FontSize="10"
+                                                                                   Foreground="White" />
+                                                                    </Border>
+                                                                </StackPanel>
+
+                                                                <!-- Description -->
+                                                                <TextBlock Text="{Binding Description}"
+                                                                           IsVisible="{Binding HasDescription}"
+                                                                           FontSize="11"
+                                                                           Foreground="{DynamicResource SubtleText}"
+                                                                           TextWrapping="Wrap" />
+
+                                                                <!-- Characters -->
+                                                                <ItemsControl ItemsSource="{Binding Characters}"
+                                                                              IsVisible="{Binding HasCharacters}">
+                                                                    <ItemsControl.ItemsPanel>
+                                                                        <ItemsPanelTemplate>
+                                                                            <WrapPanel Orientation="Horizontal" />
+                                                                        </ItemsPanelTemplate>
+                                                                    </ItemsControl.ItemsPanel>
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <Border CornerRadius="8"
+                                                                                    Background="{DynamicResource AccentBrush}"
+                                                                                    Padding="6,1"
+                                                                                    Margin="0,0,4,2">
+                                                                                <TextBlock Text="{Binding}"
+                                                                                           FontSize="10"
+                                                                                           Foreground="White" />
+                                                                            </Border>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+
+                                                                <!-- Locations -->
+                                                                <ItemsControl ItemsSource="{Binding Locations}"
+                                                                              IsVisible="{Binding HasLocations}">
+                                                                    <ItemsControl.ItemsPanel>
+                                                                        <ItemsPanelTemplate>
+                                                                            <WrapPanel Orientation="Horizontal" />
+                                                                        </ItemsPanelTemplate>
+                                                                    </ItemsControl.ItemsPanel>
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <Border CornerRadius="8"
+                                                                                    Background="#40c060"
+                                                                                    Padding="6,1"
+                                                                                    Margin="0,0,4,2">
+                                                                                <TextBlock Text="{Binding}"
+                                                                                           FontSize="10"
+                                                                                           Foreground="White" />
+                                                                            </Border>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+
+                                                                <!-- Manual event actions -->
+                                                                <StackPanel Orientation="Horizontal"
+                                                                            Spacing="4"
+                                                                            IsVisible="{Binding IsManual}"
+                                                                            Margin="0,4,0,0">
+                                                                    <Button Classes="timelineEventActionBtn"
+                                                                            Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).EditEventCommand}"
+                                                                            CommandParameter="{Binding Id}">
+                                                                        <TextBlock Text="{loc:Loc timeline.editEvent}" FontSize="11" />
+                                                                    </Button>
+                                                                    <Button Classes="timelineEventActionBtn timelineEventActionDanger"
+                                                                            Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).DeleteEventCommand}"
+                                                                            CommandParameter="{Binding Id}">
+                                                                        <TextBlock Text="{loc:Loc timeline.deleteEvent}" FontSize="11" />
+                                                                    </Button>
+                                                                </StackPanel>
+
+                                                                <!-- Click to open linked chapter -->
+                                                                <Button Classes="timelineEventActionBtn"
+                                                                        IsVisible="{Binding HasChapterLink}"
+                                                                        Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).OpenLinkedChapterCommand}"
+                                                                        CommandParameter="{Binding ChapterGuid}"
+                                                                        Margin="0,2,0,0">
+                                                                    <TextBlock Text="{loc:Loc timeline.openChapter}" FontSize="11" />
+                                                                </Button>
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Horizontal timeline -->
+                <ScrollViewer IsVisible="{Binding IsHorizontal}"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Groups}"
+                                  Margin="16,16">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" Spacing="16" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:TimelineGroup">
+                                <Border Background="{DynamicResource ExplorerBackground}"
+                                        BorderBrush="{DynamicResource CardBorder}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="12"
+                                        Width="300"
+                                        VerticalAlignment="Top">
+                                    <StackPanel>
+                                        <!-- Group header -->
+                                        <TextBlock Text="{Binding Label}"
+                                                   FontWeight="SemiBold"
+                                                   FontSize="14"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   Margin="0,0,0,8" />
+
+                                        <!-- Events in group -->
+                                        <ItemsControl ItemsSource="{Binding Events}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate DataType="vm:TimelineEventItem">
+                                                    <Border Classes="timelineEventCard"
+                                                            Classes.isAct="{Binding IsAct}"
+                                                            Classes.noDate="{Binding HasNoDate}"
+                                                            Margin="0,0,0,6">
+                                                        <StackPanel Spacing="4" Margin="8,6">
+                                                            <!-- Date -->
+                                                            <TextBlock Text="{Binding DateStr}"
+                                                                       FontSize="10"
+                                                                       Foreground="{DynamicResource SubtleText}" />
+
+                                                            <!-- Title + source badge -->
+                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                                <Ellipse Width="8" Height="8"
+                                                                         VerticalAlignment="Center">
+                                                                    <Ellipse.Fill>
+                                                                        <SolidColorBrush Color="{Binding SourceColor}" />
+                                                                    </Ellipse.Fill>
+                                                                </Ellipse>
+                                                                <TextBlock Text="{Binding Title}"
+                                                                           FontWeight="SemiBold"
+                                                                           FontSize="12"
+                                                                           Foreground="{DynamicResource NormalText}"
+                                                                           TextTrimming="CharacterEllipsis" />
+                                                            </StackPanel>
+
+                                                            <!-- Description -->
+                                                            <TextBlock Text="{Binding Description}"
+                                                                       IsVisible="{Binding HasDescription}"
+                                                                       FontSize="10"
+                                                                       Foreground="{DynamicResource SubtleText}"
+                                                                       TextWrapping="Wrap"
+                                                                       MaxLines="2" />
+
+                                                            <!-- Manual event actions -->
+                                                            <StackPanel Orientation="Horizontal"
+                                                                        Spacing="4"
+                                                                        IsVisible="{Binding IsManual}"
+                                                                        Margin="0,2,0,0">
+                                                                <Button Classes="timelineEventActionBtn"
+                                                                        Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).EditEventCommand}"
+                                                                        CommandParameter="{Binding Id}">
+                                                                    <TextBlock Text="{loc:Loc timeline.editEvent}" FontSize="10" />
+                                                                </Button>
+                                                                <Button Classes="timelineEventActionBtn timelineEventActionDanger"
+                                                                        Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).DeleteEventCommand}"
+                                                                        CommandParameter="{Binding Id}">
+                                                                    <TextBlock Text="{loc:Loc timeline.deleteEvent}" FontSize="10" />
+                                                                </Button>
+                                                            </StackPanel>
+
+                                                            <!-- Open linked chapter -->
+                                                            <Button Classes="timelineEventActionBtn"
+                                                                    IsVisible="{Binding HasChapterLink}"
+                                                                    Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).OpenLinkedChapterCommand}"
+                                                                    CommandParameter="{Binding ChapterGuid}"
+                                                                    Margin="0,2,0,0">
+                                                                <TextBlock Text="{loc:Loc timeline.openChapter}" FontSize="10" />
+                                                            </Button>
+                                                        </StackPanel>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- ═══ Add/Edit Form Overlay ═══ -->
+                <Border IsVisible="{Binding IsFormOpen}"
+                        Background="#66000000">
+                    <Border Background="{DynamicResource EditorBackground}"
+                            BorderBrush="{DynamicResource CardBorder}"
+                            BorderThickness="1"
+                            CornerRadius="8"
+                            MaxWidth="460"
+                            MaxHeight="500"
+                            Padding="20"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Margin="0,60,0,0">
+                        <StackPanel Spacing="10">
+                            <!-- Title -->
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{loc:Loc timeline.eventTitle}"
+                                           FontSize="11" FontWeight="Medium"
+                                           Foreground="{DynamicResource SubtleText}" />
+                                <TextBox Text="{Binding FormTitle}" />
+                            </StackPanel>
+
+                            <!-- Date -->
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{loc:Loc timeline.eventDate}"
+                                           FontSize="11" FontWeight="Medium"
+                                           Foreground="{DynamicResource SubtleText}" />
+                                <TextBox Text="{Binding FormDate}"
+                                         Watermark="YYYY-MM-DD" />
+                            </StackPanel>
+
+                            <!-- Category -->
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{loc:Loc timeline.eventCategory}"
+                                           FontSize="11" FontWeight="Medium"
+                                           Foreground="{DynamicResource SubtleText}" />
+                                <ComboBox SelectedItem="{Binding SelectedCategory}"
+                                          ItemsSource="{Binding AvailableCategories}" />
+                            </StackPanel>
+
+                            <!-- Description -->
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{loc:Loc timeline.eventDescription}"
+                                           FontSize="11" FontWeight="Medium"
+                                           Foreground="{DynamicResource SubtleText}" />
+                                <TextBox Text="{Binding FormDescription}"
+                                         AcceptsReturn="True"
+                                         MinHeight="60" />
+                            </StackPanel>
+
+                            <!-- Linked chapter -->
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{loc:Loc timeline.linkChapter}"
+                                           FontSize="11" FontWeight="Medium"
+                                           Foreground="{DynamicResource SubtleText}" />
+                                <ComboBox ItemsSource="{Binding AvailableChapters}"
+                                          SelectedValue="{Binding FormLinkedChapterGuid}"
+                                          SelectedValueBinding="{Binding Guid}"
+                                          DisplayMemberBinding="{Binding Title}" />
+                            </StackPanel>
+
+                            <!-- Actions -->
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        Spacing="8"
+                                        Margin="0,8,0,0">
+                                <Button Content="{loc:Loc timeline.cancel}"
+                                        Command="{Binding CancelFormCommand}" />
+                                <Button Content="{loc:Loc timeline.save}"
+                                        Command="{Binding SaveFormCommand}"
+                                        Classes="accent" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Border>
+            </Panel>
+        </Grid>
+    </Border>
+</UserControl>

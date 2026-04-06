@@ -1,0 +1,656 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="320" d:DesignHeight="700"
+             x:Class="Novalist.Desktop.Views.ContextSidebarView"
+             x:DataType="vm:ContextSidebarViewModel">
+
+    <Border Background="{DynamicResource ExplorerBackground}"
+            BorderBrush="{DynamicResource ExplorerBorder}"
+            BorderThickness="1,0,0,0">
+        <Grid RowDefinitions="Auto,*">
+            <Border Grid.Row="0"
+                    Background="{DynamicResource ExplorerBackground}"
+                    BorderBrush="{DynamicResource ExplorerBorder}"
+                    BorderThickness="0,0,0,1"
+                    Padding="14,12">
+                <TextBlock Text="{loc:Loc context.title}"
+                           FontSize="11"
+                           FontWeight="Bold"
+                           LetterSpacing="1"
+                           Foreground="{DynamicResource SubtleText}" />
+            </Border>
+
+            <ScrollViewer Grid.Row="1"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <Grid>
+                    <StackPanel Margin="12"
+                                Spacing="14"
+                                IsVisible="{Binding IsContextAvailable}">
+                        <StackPanel Spacing="4">
+                            <Border Classes="contextSidebarSceneContext">
+                                <Grid ColumnDefinitions="*,Auto"
+                                      ColumnSpacing="8">
+                                    <TextBlock Text="{Binding ContextLabel}"
+                                               Classes="contextSidebarSceneLabel"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding ContextDate}"
+                                               Classes="contextSidebarSceneDate"
+                                               IsVisible="{Binding HasContextDate}" />
+                                </Grid>
+                            </Border>
+
+                            <TextBlock Text="{Binding ContextSubtitle}"
+                                       Classes="contextSidebarSceneSubtitle"
+                                       IsVisible="{Binding HasContextSubtitle}" />
+                        </StackPanel>
+
+                        <StackPanel Spacing="8"
+                                    IsVisible="{Binding HasCharacterCards}">
+                            <TextBlock Text="{loc:Loc context.characters}"
+                                       Classes="contextSidebarOverviewSectionTitle" />
+
+                            <ItemsControl ItemsSource="{Binding CharacterCards}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ContextSidebarEntityCardViewModel">
+                                        <Button Classes="contextSidebarCardButton"
+                                                Command="{Binding OpenCommand}">
+                                            <Border Classes="contextSidebarOverviewCard">
+                                                <StackPanel Spacing="6">
+                                                    <Grid ColumnDefinitions="*,Auto,Auto"
+                                                          ColumnSpacing="6">
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   Classes="contextSidebarEntityTitle" />
+                                                        <Border Grid.Column="1"
+                                                                Classes="contextSidebarEntityBadge"
+                                                                IsVisible="{Binding HasPrimaryBadge}">
+                                                            <TextBlock Text="{Binding PrimaryBadge}"
+                                                                       Classes="contextSidebarEntityBadgeText" />
+                                                        </Border>
+                                                        <Border Grid.Column="2"
+                                                                Classes="contextSidebarEntityBadgeSecondary"
+                                                                IsVisible="{Binding HasSecondaryBadge}">
+                                                            <TextBlock Text="{Binding SecondaryBadge}"
+                                                                       Classes="contextSidebarEntityBadgeText" />
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <ItemsControl ItemsSource="{Binding Pills}"
+                                                                  IsVisible="{Binding HasPills}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <WrapPanel Orientation="Horizontal" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="vm:ContextSidebarPillViewModel">
+                                                                <Border Classes="contextSidebarPill">
+                                                                    <StackPanel Orientation="Horizontal"
+                                                                                Spacing="4">
+                                                                        <TextBlock Text="{Binding Label}"
+                                                                                   Classes="contextSidebarPillLabel" />
+                                                                        <TextBlock Text="{Binding Value}"
+                                                                                   Classes="contextSidebarPillValue" />
+                                                                    </StackPanel>
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+
+                                                    <TextBlock Text="{Binding Description}"
+                                                               TextWrapping="Wrap"
+                                                               Classes="contextSidebarDescription"
+                                                               IsVisible="{Binding HasDescription}" />
+
+                                                    <Border Classes="contextSidebarCardInfo"
+                                                            IsVisible="{Binding HasInfoText}">
+                                                        <TextBlock Text="{Binding InfoText}"
+                                                                   Classes="contextSidebarCardInfoText" />
+                                                    </Border>
+                                                </StackPanel>
+                                            </Border>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <StackPanel Spacing="8"
+                                    IsVisible="{Binding HasMentionFrequency}">
+                            <TextBlock Text="{loc:Loc context.mentionFrequency}"
+                                       Classes="contextSidebarOverviewSectionTitle" />
+
+                            <StackPanel Spacing="8"
+                                        Classes="contextSidebarMentionGraph">
+                                <StackPanel Orientation="Horizontal"
+                                            Spacing="12"
+                                            Classes="contextSidebarMentionLegend">
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="4"
+                                                Classes="contextSidebarMentionLegendItem">
+                                        <Border Classes="contextSidebarMentionLegendSwatch contextSidebarMentionLegendSwatchPresent" />
+                                        <TextBlock Text="{loc:Loc context.mentioned}"
+                                                   Classes="contextSidebarMentionLegendText" />
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal"
+                                                Spacing="4"
+                                                Classes="contextSidebarMentionLegendItem">
+                                        <Border Classes="contextSidebarMentionLegendSwatch contextSidebarMentionLegendSwatchAbsent" />
+                                        <TextBlock Text="{loc:Loc context.absent}"
+                                                   Classes="contextSidebarMentionLegendText" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <ItemsControl ItemsSource="{Binding MentionRows}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:ContextSidebarMentionRowViewModel">
+                                            <Button Classes="contextSidebarMentionRowButton"
+                                                    Command="{Binding OpenCommand}">
+                                                <StackPanel Spacing="4"
+                                                            Classes="contextSidebarMentionRow">
+                                                    <DockPanel>
+                                                        <Border DockPanel.Dock="Right"
+                                                                Classes="contextSidebarMentionGapWarning"
+                                                                IsVisible="{Binding HasGapWarning}">
+                                                            <TextBlock Text="{Binding GapWarning}"
+                                                                       Classes="contextSidebarMentionGapWarningText" />
+                                                        </Border>
+
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   Classes="contextSidebarMentionName" />
+                                                    </DockPanel>
+
+                                                    <ItemsControl ItemsSource="{Binding Cells}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <WrapPanel Orientation="Horizontal" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="vm:ContextSidebarMentionCellViewModel">
+                                                                <Border Classes="contextSidebarMentionCell"
+                                                                        Classes.present="{Binding IsPresent}"
+                                                                        Classes.absent="{Binding IsAbsent}"
+                                                                        Classes.current="{Binding IsCurrentChapter}"
+                                                                        ToolTip.Tip="{Binding ToolTip}">
+                                                                    <TextBlock Text="{Binding Label}"
+                                                                               Classes="contextSidebarMentionCellLabel" />
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <StackPanel Spacing="8"
+                                    IsVisible="{Binding HasLocationCards}">
+                            <TextBlock Text="{loc:Loc context.locations}"
+                                       Classes="contextSidebarOverviewSectionTitle" />
+
+                            <ItemsControl ItemsSource="{Binding LocationCards}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ContextSidebarEntityCardViewModel">
+                                        <Button Classes="contextSidebarCardButton"
+                                                Command="{Binding OpenCommand}">
+                                            <Border Classes="contextSidebarOverviewCard">
+                                                <StackPanel Spacing="6">
+                                                    <Grid ColumnDefinitions="*,Auto,Auto"
+                                                          ColumnSpacing="6">
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   Classes="contextSidebarEntityTitle" />
+                                                        <Border Grid.Column="1"
+                                                                Classes="contextSidebarEntityBadge"
+                                                                IsVisible="{Binding HasPrimaryBadge}">
+                                                            <TextBlock Text="{Binding PrimaryBadge}"
+                                                                       Classes="contextSidebarEntityBadgeText" />
+                                                        </Border>
+                                                        <Border Grid.Column="2"
+                                                                Classes="contextSidebarEntityBadgeSecondary"
+                                                                IsVisible="{Binding HasSecondaryBadge}">
+                                                            <TextBlock Text="{Binding SecondaryBadge}"
+                                                                       Classes="contextSidebarEntityBadgeText" />
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <TextBlock Text="{Binding Description}"
+                                                               TextWrapping="Wrap"
+                                                               Classes="contextSidebarDescription"
+                                                               IsVisible="{Binding HasDescription}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <StackPanel Spacing="8"
+                                    IsVisible="{Binding HasItemCards}">
+                            <TextBlock Text="{loc:Loc context.items}"
+                                       Classes="contextSidebarOverviewSectionTitle" />
+
+                            <ItemsControl ItemsSource="{Binding ItemCards}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ContextSidebarEntityCardViewModel">
+                                        <Button Classes="contextSidebarCardButton"
+                                                Command="{Binding OpenCommand}">
+                                            <Border Classes="contextSidebarOverviewCard">
+                                                <StackPanel Spacing="6">
+                                                    <Grid ColumnDefinitions="*,Auto,Auto"
+                                                          ColumnSpacing="6">
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   Classes="contextSidebarEntityTitle" />
+                                                        <Border Grid.Column="1"
+                                                                Classes="contextSidebarEntityBadge"
+                                                                IsVisible="{Binding HasPrimaryBadge}">
+                                                            <TextBlock Text="{Binding PrimaryBadge}"
+                                                                       Classes="contextSidebarEntityBadgeText" />
+                                                        </Border>
+                                                        <Border Grid.Column="2"
+                                                                Classes="contextSidebarEntityBadgeSecondary"
+                                                                IsVisible="{Binding HasSecondaryBadge}">
+                                                            <TextBlock Text="{Binding SecondaryBadge}"
+                                                                       Classes="contextSidebarEntityBadgeText" />
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <TextBlock Text="{Binding Description}"
+                                                               TextWrapping="Wrap"
+                                                               Classes="contextSidebarDescription"
+                                                               IsVisible="{Binding HasDescription}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <StackPanel Spacing="8"
+                                    IsVisible="{Binding HasLoreCards}">
+                            <TextBlock Text="{loc:Loc context.lore}"
+                                       Classes="contextSidebarOverviewSectionTitle" />
+
+                            <ItemsControl ItemsSource="{Binding LoreCards}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:ContextSidebarEntityCardViewModel">
+                                        <Button Classes="contextSidebarCardButton"
+                                                Command="{Binding OpenCommand}">
+                                            <Border Classes="contextSidebarOverviewCard">
+                                                <StackPanel Spacing="6">
+                                                    <Grid ColumnDefinitions="*,Auto,Auto"
+                                                          ColumnSpacing="6">
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   Classes="contextSidebarEntityTitle" />
+                                                        <Border Grid.Column="1"
+                                                                Classes="contextSidebarEntityBadge"
+                                                                IsVisible="{Binding HasPrimaryBadge}">
+                                                            <TextBlock Text="{Binding PrimaryBadge}"
+                                                                       Classes="contextSidebarEntityBadgeText" />
+                                                        </Border>
+                                                        <Border Grid.Column="2"
+                                                                Classes="contextSidebarEntityBadgeSecondary"
+                                                                IsVisible="{Binding HasSecondaryBadge}">
+                                                            <TextBlock Text="{Binding SecondaryBadge}"
+                                                                       Classes="contextSidebarEntityBadgeText" />
+                                                        </Border>
+                                                    </Grid>
+
+                                                    <TextBlock Text="{Binding Description}"
+                                                               TextWrapping="Wrap"
+                                                               Classes="contextSidebarDescription"
+                                                               IsVisible="{Binding HasDescription}" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
+                        <StackPanel Spacing="8"
+                                    IsVisible="{Binding HasSceneAnalysis}">
+                            <TextBlock Text="{loc:Loc context.sceneAnalysis}"
+                                       Classes="contextSidebarOverviewSectionTitle" />
+
+                            <StackPanel DataContext="{Binding SceneAnalysis}"
+                                        x:DataType="vm:ContextSidebarSceneAnalysisViewModel"
+                                        Spacing="8">
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
+                                      RowSpacing="4"
+                                      Classes="contextSidebarSceneAnalysisGrid">
+                                    <Grid Grid.Row="0"
+                                          ColumnDefinitions="68,*"
+                                          ColumnSpacing="8"
+                                          Classes="contextSidebarSceneAnalysisRow">
+                                        <TextBlock Text="{loc:Loc context.pov}"
+                                                   Classes="contextSidebarSceneAnalysisLabel" />
+                                        <Grid Grid.Column="1"
+                                              ColumnDefinitions="*,Auto"
+                                              ColumnSpacing="6">
+                                            <Button Grid.Column="0"
+                                                    Classes="contextSidebarInlineValueButton"
+                                                    Command="{Binding BeginEditPovCommand}"
+                                                    IsVisible="{Binding IsEditingPov, Converter={x:Static BoolConverters.Not}}">
+                                                <TextBlock Text="{Binding PovDisplay}"
+                                                           Classes="contextSidebarSceneAnalysisValue" />
+                                            </Button>
+
+                                            <Grid Grid.Column="0"
+                                                  IsVisible="{Binding IsEditingPov}">
+                                                <TextBox x:Name="SceneAnalysisPovInput"
+                                                         Classes="contextSidebarInlineTextBox"
+                                                         Watermark="{loc:Loc context.pov}"
+                                                         HorizontalAlignment="Stretch"
+                                                         Text="{Binding PovInput, UpdateSourceTrigger=PropertyChanged}"
+                                                         GotFocus="OnSceneAnalysisPovGotFocus"
+                                                         TextChanged="OnSceneAnalysisPovTextChanged"
+                                                         LostFocus="OnSceneAnalysisPovLostFocus"
+                                                         KeyUp="OnSceneAnalysisPovKeyUp" />
+                                                <Popup IsOpen="{Binding PovSuggestionsVisible}"
+                                                       PlacementTarget="{Binding ElementName=SceneAnalysisPovInput}"
+                                                       Placement="Bottom"
+                                                       VerticalOffset="4"
+                                                       IsLightDismissEnabled="True">
+                                                    <Border Classes="relationshipSuggestionPanel"
+                                                            Width="{Binding Bounds.Width, ElementName=SceneAnalysisPovInput}">
+                                                        <ListBox Classes="relationshipSuggestionList"
+                                                                 ItemsSource="{Binding PovSuggestions}"
+                                                                 Tag="{Binding}"
+                                                                 PointerPressed="OnSceneAnalysisPovSuggestionPointerPressed"
+                                                                 SelectionChanged="OnSceneAnalysisPovSuggestionSelected" />
+                                                    </Border>
+                                                </Popup>
+                                            </Grid>
+
+                                            <Button Grid.Column="1"
+                                                    Classes="contextSidebarResetButton"
+                                                    Command="{Binding ResetPovCommand}"
+                                                    ToolTip.Tip="{loc:Loc context.resetOverride}"
+                                                    IsVisible="{Binding HasPovOverride}">
+                                                <TextBlock Text="×" />
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid Grid.Row="1"
+                                          ColumnDefinitions="68,*"
+                                          ColumnSpacing="8"
+                                          Classes="contextSidebarSceneAnalysisRow">
+                                        <TextBlock Text="{loc:Loc context.emotion}"
+                                                   Classes="contextSidebarSceneAnalysisLabel" />
+                                        <Grid Grid.Column="1"
+                                              ColumnDefinitions="*,Auto"
+                                              ColumnSpacing="6">
+                                            <Button Grid.Column="0"
+                                                    x:Name="EmotionValueButton"
+                                                    Classes="contextSidebarInlineValueButton"
+                                                    Command="{Binding BeginEditEmotionCommand}"
+                                                    MinWidth="120"
+                                                    ToolTip.Tip="{loc:Loc context.selectEmotion}">
+                                                <Border Classes="contextSidebarEmotionBadge">
+                                                    <TextBlock Text="{Binding EmotionDisplay}"
+                                                               Classes="contextSidebarEmotionBadgeText" />
+                                                </Border>
+                                            </Button>
+
+                                            <Popup IsOpen="{Binding IsEditingEmotion, Mode=TwoWay}"
+                                                   PlacementTarget="{Binding ElementName=EmotionValueButton}"
+                                                   Placement="Bottom"
+                                                   VerticalOffset="4"
+                                                   IsLightDismissEnabled="True">
+                                                <Border Classes="relationshipSuggestionPanel"
+                                                        Width="{Binding Bounds.Width, ElementName=EmotionValueButton}">
+                                                    <ListBox Classes="relationshipSuggestionList"
+                                                             ItemsSource="{Binding EmotionOptions}"
+                                                             Tag="{Binding}"
+                                                             SelectionChanged="OnSceneAnalysisEmotionOptionSelected" />
+                                                </Border>
+                                            </Popup>
+
+                                            <Button Grid.Column="1"
+                                                    Classes="contextSidebarResetButton"
+                                                    Command="{Binding ResetEmotionCommand}"
+                                                    ToolTip.Tip="{loc:Loc context.resetOverride}"
+                                                    IsVisible="{Binding HasEmotionOverride}">
+                                                <TextBlock Text="×" />
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid Grid.Row="2"
+                                          ColumnDefinitions="68,*"
+                                          ColumnSpacing="8"
+                                          Classes="contextSidebarSceneAnalysisRow">
+                                        <TextBlock Text="{loc:Loc context.intensity}"
+                                                   Classes="contextSidebarSceneAnalysisLabel" />
+                                        <Grid Grid.Column="1"
+                                              ColumnDefinitions="*,Auto"
+                                              ColumnSpacing="6">
+                                            <StackPanel Grid.Column="0"
+                                                        Orientation="Horizontal"
+                                                        Spacing="8"
+                                                        VerticalAlignment="Center">
+                                                <Canvas Width="84"
+                                                        Height="6">
+                                                    <Border Width="84"
+                                                            Height="6"
+                                                            Classes="contextSidebarIntensityTrack" />
+                                                    <Border Width="{Binding IntensityBarWidth}"
+                                                            Height="6"
+                                                            Canvas.Left="{Binding IntensityBarLeft}"
+                                                            Classes="contextSidebarIntensityFill contextSidebarIntensityFillPositive"
+                                                            IsVisible="{Binding IsPositiveIntensity}" />
+                                                    <Border Width="{Binding IntensityBarWidth}"
+                                                            Height="6"
+                                                            Canvas.Left="{Binding IntensityBarLeft}"
+                                                            Classes="contextSidebarIntensityFill contextSidebarIntensityFillNegative"
+                                                            IsVisible="{Binding IsNegativeIntensity}" />
+                                                </Canvas>
+
+                                                <Button Classes="contextSidebarInlineValueButton"
+                                                        Command="{Binding BeginEditIntensityCommand}"
+                                                        IsVisible="{Binding IsEditingIntensity, Converter={x:Static BoolConverters.Not}}">
+                                                    <TextBlock Text="{Binding IntensityDisplay}"
+                                                               Classes="contextSidebarSceneAnalysisValue" />
+                                                </Button>
+
+                                                <TextBox Width="56"
+                                                         Classes="contextSidebarInlineTextBox"
+                                                         Watermark="{loc:Loc context.intensityRange}"
+                                                         Text="{Binding IntensityInput, UpdateSourceTrigger=PropertyChanged}"
+                                                         IsVisible="{Binding IsEditingIntensity}"
+                                                         LostFocus="OnSceneAnalysisIntensityLostFocus"
+                                                         KeyUp="OnSceneAnalysisIntensityKeyUp" />
+                                            </StackPanel>
+
+                                            <Button Grid.Column="1"
+                                                    Classes="contextSidebarResetButton"
+                                                    Command="{Binding ResetIntensityCommand}"
+                                                    ToolTip.Tip="{loc:Loc context.resetOverride}"
+                                                    IsVisible="{Binding HasIntensityOverride}">
+                                                <TextBlock Text="×" />
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid Grid.Row="3"
+                                          ColumnDefinitions="68,*"
+                                          ColumnSpacing="8"
+                                          Classes="contextSidebarSceneAnalysisRow">
+                                        <TextBlock Text="{loc:Loc context.conflict}"
+                                                   Classes="contextSidebarSceneAnalysisLabel" />
+                                        <Grid Grid.Column="1"
+                                              ColumnDefinitions="*,Auto"
+                                              ColumnSpacing="6">
+                                            <Button Grid.Column="0"
+                                                    Classes="contextSidebarInlineValueButton"
+                                                    Command="{Binding BeginEditConflictCommand}"
+                                                    IsVisible="{Binding IsEditingConflict, Converter={x:Static BoolConverters.Not}}">
+                                                <TextBlock Text="{Binding ConflictDisplay}"
+                                                           TextWrapping="Wrap"
+                                                           Classes="contextSidebarSceneAnalysisValue"
+                                                           Classes.contextSidebarSceneAnalysisEmpty="{Binding HasConflict, Converter={x:Static BoolConverters.Not}}" />
+                                            </Button>
+
+                                            <TextBox Grid.Column="0"
+                                                     Classes="contextSidebarInlineTextBox"
+                                                     Watermark="{loc:Loc context.conflict}"
+                                                     HorizontalAlignment="Stretch"
+                                                     Text="{Binding ConflictInput, UpdateSourceTrigger=PropertyChanged}"
+                                                     IsVisible="{Binding IsEditingConflict}"
+                                                     LostFocus="OnSceneAnalysisConflictLostFocus"
+                                                     KeyUp="OnSceneAnalysisConflictKeyUp" />
+
+                                            <Button Grid.Column="1"
+                                                    Classes="contextSidebarResetButton"
+                                                    Command="{Binding ResetConflictCommand}"
+                                                    ToolTip.Tip="{loc:Loc context.resetOverride}"
+                                                    IsVisible="{Binding HasConflictOverride}">
+                                                <TextBlock Text="×" />
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid Grid.Row="4"
+                                          ColumnDefinitions="68,*"
+                                          ColumnSpacing="8"
+                                          Classes="contextSidebarSceneAnalysisRow">
+                                        <TextBlock Text="{loc:Loc context.tags}"
+                                                   Classes="contextSidebarSceneAnalysisLabel" />
+                                        <Grid Grid.Column="1"
+                                              ColumnDefinitions="*,Auto,Auto"
+                                              ColumnSpacing="6">
+                                            <StackPanel Grid.Column="0"
+                                                        Spacing="4"
+                                                        IsVisible="{Binding IsEditingTags, Converter={x:Static BoolConverters.Not}}">
+                                                <ItemsControl ItemsSource="{Binding Tags}"
+                                                              IsVisible="{Binding HasTags}">
+                                                    <ItemsControl.ItemsPanel>
+                                                        <ItemsPanelTemplate>
+                                                            <WrapPanel Orientation="Horizontal" />
+                                                        </ItemsPanelTemplate>
+                                                    </ItemsControl.ItemsPanel>
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Classes="contextSidebarSceneTag">
+                                                                <TextBlock Text="{Binding}"
+                                                                           Classes="contextSidebarSceneTagText" />
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+
+                                                <TextBlock Text="{loc:Loc context.none}"
+                                                           Classes="contextSidebarSceneAnalysisValue contextSidebarSceneAnalysisEmpty"
+                                                           IsVisible="{Binding HasTags, Converter={x:Static BoolConverters.Not}}" />
+                                            </StackPanel>
+
+                                            <TextBox Grid.Column="0"
+                                                     Classes="contextSidebarInlineTextBox"
+                                                     Watermark="{loc:Loc context.commaSeparatedTags}"
+                                                     HorizontalAlignment="Stretch"
+                                                     Text="{Binding TagsInput, UpdateSourceTrigger=PropertyChanged}"
+                                                     IsVisible="{Binding IsEditingTags}"
+                                                     LostFocus="OnSceneAnalysisTagsLostFocus"
+                                                     KeyUp="OnSceneAnalysisTagsKeyUp" />
+
+                                            <Button Grid.Column="1"
+                                                    Classes="contextSidebarEditButton"
+                                                    Command="{Binding BeginEditTagsCommand}"
+                                                    ToolTip.Tip="{loc:Loc context.editTags}"
+                                                    IsVisible="{Binding IsEditingTags, Converter={x:Static BoolConverters.Not}}">
+                                                <TextBlock Text="✎" />
+                                            </Button>
+
+                                            <Button Grid.Column="2"
+                                                    Classes="contextSidebarResetButton"
+                                                    Command="{Binding ResetTagsCommand}"
+                                                    ToolTip.Tip="{loc:Loc context.resetOverride}"
+                                                    IsVisible="{Binding HasTagsOverride}">
+                                                <TextBlock Text="×" />
+                                            </Button>
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid Grid.Row="5"
+                                          ColumnDefinitions="68,*"
+                                          ColumnSpacing="8"
+                                          Classes="contextSidebarSceneAnalysisRow">
+                                        <TextBlock Text="{loc:Loc context.stats}"
+                                                   Classes="contextSidebarSceneAnalysisLabel" />
+                                        <WrapPanel Grid.Column="1"
+                                                   Orientation="Horizontal">
+                                            <TextBlock Text="{Binding WordCountDisplay}"
+                                                       Classes="contextSidebarSceneAnalysisValue" />
+                                            <TextBlock Text="·"
+                                                       Classes="contextSidebarSceneAnalysisSep" />
+                                            <TextBlock Text="{Binding DialogueDisplay}"
+                                                       Classes="contextSidebarSceneAnalysisValue" />
+                                            <TextBlock Text="·"
+                                                       Classes="contextSidebarSceneAnalysisSep" />
+                                            <TextBlock Text="{Binding AverageSentenceDisplay}"
+                                                       Classes="contextSidebarSceneAnalysisValue" />
+                                        </WrapPanel>
+                                    </Grid>
+                                </Grid>
+
+                                <Canvas Width="{Binding Sparkline.Width}"
+                                        Height="{Binding Sparkline.Height}"
+                                        IsVisible="{Binding Sparkline.HasSparkPoints}">
+                                    <Path Data="{Binding Sparkline.ZeroLineData}"
+                                          Classes="contextSidebarSparkZero" />
+                                    <Path Data="{Binding Sparkline.LineData}"
+                                          Classes="contextSidebarSparkLine"
+                                          IsVisible="{Binding Sparkline.HasLine}" />
+
+                                    <ItemsControl ItemsSource="{Binding Sparkline.SparkPoints}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <Canvas />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:ContextSidebarSparkPointViewModel">
+                                                <Ellipse Width="{Binding Diameter}"
+                                                         Height="{Binding Diameter}"
+                                                         Canvas.Left="{Binding Left}"
+                                                         Canvas.Top="{Binding Top}"
+                                                         Classes="contextSidebarSparkDot"
+                                                         Classes.active="{Binding IsCurrent}" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Canvas>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <TextBlock Text="{Binding ContextStatusMessage}"
+                                   Classes="contextSidebarEmpty"
+                                   IsVisible="{Binding HasAnyContent, Converter={x:Static BoolConverters.Not}}" />
+                    </StackPanel>
+
+                    <Border Margin="12"
+                            Padding="14"
+                            Classes="contextSidebarSceneContext"
+                            IsVisible="{Binding IsContextAvailable, Converter={x:Static BoolConverters.Not}}">
+                        <TextBlock Text="Open a scene to view chapter and scene context."
+                                   TextWrapping="Wrap"
+                                   Classes="contextSidebarEmpty" />
+                    </Border>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</UserControl>

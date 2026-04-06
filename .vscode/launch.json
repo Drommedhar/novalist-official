@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Novalist Standalone",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build Novalist Standalone",
+      "program": "${workspaceFolder}/Novalist.Desktop/bin/Debug/net8.0/Novalist.Desktop.dll",
+      "cwd": "${workspaceFolder}/Novalist.Desktop",
+      "stopAtEntry": false,
+      "console": "internalConsole",
+      "justMyCode": true
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="640" d:DesignHeight="600"
+             x:Class="Novalist.Desktop.Views.HotkeySettingsView"
+             x:DataType="vm:HotkeySettingsViewModel">
+
+    <StackPanel Spacing="12">
+        <!-- Search / Filter -->
+        <TextBox Text="{Binding FilterText, Mode=TwoWay}"
+                 Watermark="{loc:Loc hotkeys.searchPlaceholder}"
+                 FontSize="12"
+                 Padding="8,6" />
+
+        <!-- Binding list -->
+        <ItemsControl ItemsSource="{Binding DisplayItems}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <ContentControl Content="{Binding}">
+                        <ContentControl.DataTemplates>
+                            <!-- Group header -->
+                            <DataTemplate DataType="vm:HotkeyGroupHeader">
+                                <TextBlock Text="{Binding Category}"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SubtleText}"
+                                           Margin="0,16,0,4" />
+                            </DataTemplate>
+
+                            <!-- Binding row -->
+                            <DataTemplate DataType="vm:HotkeyBindingItem">
+                                <DockPanel Margin="0,3" Height="32">
+                                    <!-- Reset button (right) -->
+                                    <Button DockPanel.Dock="Right"
+                                            Content="↺"
+                                            FontSize="14"
+                                            Padding="6,2"
+                                            Background="Transparent"
+                                            ToolTip.Tip="{loc:Loc hotkeys.reset}"
+                                            IsVisible="{Binding IsModified}"
+                                            Command="{Binding $parent[ItemsControl].((vm:HotkeySettingsViewModel)DataContext).ResetBindingCommand}"
+                                            CommandParameter="{Binding}"
+                                            VerticalAlignment="Center"
+                                            Margin="4,0,0,0" />
+
+                                    <!-- Gesture button (right) -->
+                                    <Button DockPanel.Dock="Right"
+                                            MinWidth="140"
+                                            HorizontalContentAlignment="Center"
+                                            Padding="8,4"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding $parent[ItemsControl].((vm:HotkeySettingsViewModel)DataContext).StartRecordingCommand}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Styles>
+                                            <Style Selector="Button">
+                                                <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+                                                <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+                                                <Setter Property="CornerRadius" Value="4" />
+                                                <Setter Property="BorderThickness" Value="1" />
+                                                <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
+                                            </Style>
+                                        </Button.Styles>
+                                        <Panel>
+                                            <TextBlock Text="{Binding CurrentGesture}"
+                                                       FontSize="12"
+                                                       FontFamily="Consolas, Menlo, monospace"
+                                                       IsVisible="{Binding !IsRecording}"
+                                                       HorizontalAlignment="Center" />
+                                            <TextBlock Text="{loc:Loc hotkeys.pressKey}"
+                                                       FontSize="12"
+                                                       FontStyle="Italic"
+                                                       Foreground="{DynamicResource AccentBrush}"
+                                                       IsVisible="{Binding IsRecording}"
+                                                       HorizontalAlignment="Center" />
+                                        </Panel>
+                                    </Button>
+
+                                    <!-- Conflict indicator -->
+                                    <PathIcon DockPanel.Dock="Right"
+                                               Data="{StaticResource IconAlertTriangle}"
+                                               Width="14" Height="14"
+                                               Foreground="#E53E3E"
+                                               IsVisible="{Binding HasConflict}"
+                                               ToolTip.Tip="{Binding ConflictDescription}"
+                                               Margin="4,0" />
+
+                                    <!-- Action name (left) -->
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               FontSize="13"
+                                               Foreground="{DynamicResource NormalText}"
+                                               VerticalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis" />
+                                </DockPanel>
+                            </DataTemplate>
+                        </ContentControl.DataTemplates>
+                    </ContentControl>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Reset All button -->
+        <Button Content="{loc:Loc hotkeys.resetAll}"
+                Command="{Binding ResetAllCommand}"
+                HorizontalAlignment="Left"
+                Padding="12,6"
+                Margin="0,8,0,0" />
+    </StackPanel>
+</UserControl>

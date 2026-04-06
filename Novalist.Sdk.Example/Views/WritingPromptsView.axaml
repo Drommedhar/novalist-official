@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Sdk.Example.ViewModels"
+             xmlns:svc="using:Novalist.Sdk.Services"
+             x:Class="Novalist.Sdk.Example.Views.WritingPromptsView"
+             x:DataType="vm:WritingPromptsViewModel">
+    <DockPanel Margin="12">
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Loc[writingPromptsView.title]}"
+                   FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12" />
+
+        <Button DockPanel.Dock="Top" Content="{Binding Loc[writingPromptsView.generateButton]}"
+                Command="{Binding GeneratePromptCommand}"
+                HorizontalAlignment="Stretch"
+                Margin="0,0,0,12" />
+
+        <Border DockPanel.Dock="Top"
+                Background="{DynamicResource EditorBackground}"
+                CornerRadius="6"
+                Padding="12"
+                Margin="0,0,0,12">
+            <TextBlock Text="{Binding CurrentPrompt}"
+                       TextWrapping="Wrap"
+                       FontSize="13"
+                       FontStyle="Italic" />
+        </Border>
+
+        <TextBlock DockPanel.Dock="Top" Text="{Binding Loc[writingPromptsView.historyLabel]}"
+                   FontWeight="SemiBold" Opacity="0.6"
+                   Margin="0,0,0,4" />
+
+        <ScrollViewer>
+            <ItemsControl ItemsSource="{Binding History}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Border Padding="8,6" Margin="0,2"
+                                Background="{DynamicResource EditorBackground}"
+                                CornerRadius="4">
+                            <TextBlock Text="{Binding}"
+                                       TextWrapping="Wrap"
+                                       FontSize="11"
+                                       Opacity="0.7" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </DockPanel>
+</UserControl>

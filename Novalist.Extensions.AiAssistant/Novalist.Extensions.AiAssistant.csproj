@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="extension.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Locales\*.json" CopyToOutputDirectory="PreserveNewest" Link="Locales\%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
+    <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.12" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+  <Target Name="DeployExtension" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
+    <PropertyGroup>
+      <ExtensionDeployDir>$(APPDATA)\Novalist\Extensions\AiAssistant</ExtensionDeployDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(ExtensionDeployDir)\Locales" />
+    <Copy SourceFiles="$(OutputPath)Novalist.Extensions.AiAssistant.dll;$(OutputPath)Novalist.Sdk.dll;$(OutputPath)Novalist.Core.dll;$(OutputPath)extension.json"
+          DestinationFolder="$(ExtensionDeployDir)"
+          SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <_LocaleFiles Include="$(OutputPath)Locales\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_LocaleFiles)"
+          DestinationFolder="$(ExtensionDeployDir)\Locales"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="DeployExtensionMac" AfterTargets="Build" Condition="'$(OS)' != 'Windows_NT'">
+    <PropertyGroup>
+      <ExtensionDeployDir>$(HOME)/Library/Application Support/Novalist/Extensions/AiAssistant</ExtensionDeployDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(ExtensionDeployDir)/Locales" />
+    <Copy SourceFiles="$(OutputPath)Novalist.Extensions.AiAssistant.dll;$(OutputPath)Novalist.Sdk.dll;$(OutputPath)Novalist.Core.dll;$(OutputPath)extension.json"
+          DestinationFolder="$(ExtensionDeployDir)"
+          SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <_LocaleFilesMac Include="$(OutputPath)Locales/*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_LocaleFilesMac)"
+          DestinationFolder="$(ExtensionDeployDir)/Locales"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

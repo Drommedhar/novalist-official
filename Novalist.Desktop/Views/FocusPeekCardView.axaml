@@ -1,0 +1,276 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:conv="using:Novalist.Desktop.Converters"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             xmlns:glass="using:LiquidGlassAvaloniaUI"
+             mc:Ignorable="d"
+             d:DesignWidth="540" d:DesignHeight="420"
+             x:Class="Novalist.Desktop.Views.FocusPeekCardView"
+             x:DataType="vm:FocusPeekViewModel">
+
+    <UserControl.Resources>
+        <conv:RelativePathToBitmapConverter x:Key="PathToBitmap" />
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource CardBackground}"
+            CornerRadius="10"
+            Width="540"
+            MaxHeight="420"
+            IsVisible="{Binding IsOpen}">
+      <glass:LiquidGlassSurface
+            CornerRadius="10">
+        <Grid RowDefinitions="Auto,*">
+            <Border Classes="focusPeekHeader">
+                <DockPanel Margin="14,12,14,10">
+                    <StackPanel DockPanel.Dock="Right"
+                                Orientation="Horizontal"
+                                Spacing="2">
+                        <Button Command="{Binding OpenEntityCommand}"
+                                Classes="focusPeekAction"
+                                Content="↗"
+                                ToolTip.Tip="{loc:Loc focusPeek.openEntity}" />
+                        <Button Command="{Binding TogglePinCommand}"
+                                Classes="focusPeekAction"
+                                Content="{Binding PinButtonGlyph}"
+                                ToolTip.Tip="{Binding PinButtonLabel}" />
+                        <Button Command="{Binding CloseCommand}"
+                                Classes="focusPeekAction"
+                                Content="✕"
+                                ToolTip.Tip="{loc:Loc focusPeek.close}" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8">
+                        <TextBlock Text="{Binding Title}"
+                                   Classes="focusPeekName"
+                                   VerticalAlignment="Center" />
+                        <Border Background="{Binding TypeBadgeBackground}"
+                                Classes="focusPeekBadge">
+                            <TextBlock Text="{Binding TypeLabel}"
+                                       Classes="focusPeekBadgeText" />
+                        </Border>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <ScrollViewer Grid.Row="1"
+                          Margin="14,0,14,12"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel Classes="focusPeekMain"
+                            Spacing="10">
+                    <Grid Classes="focusPeekBody"
+                          ColumnDefinitions="Auto,12,*">
+                        <StackPanel Grid.Column="0"
+                                    Classes="focusPeekImageArea"
+                                    Spacing="6"
+                                    IsVisible="{Binding HasImage}">
+                            <ComboBox ItemsSource="{Binding Images}"
+                                      SelectedItem="{Binding SelectedImage}"
+                                      Classes="focusPeekCompactCombo"
+                                      IsVisible="{Binding HasMultipleImages}" />
+                            <Border Width="120"
+                                    Classes="focusPeekImageFrame"
+                                    IsVisible="{Binding HasImage}">
+                                <Image Source="{Binding SelectedImagePath, Converter={StaticResource PathToBitmap}}"
+                                       Stretch="Uniform" />
+                            </Border>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2"
+                                    Classes="focusPeekDetails"
+                                    Spacing="8">
+                            <ItemsControl ItemsSource="{Binding Pills}"
+                                          IsVisible="{Binding HasPills}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:FocusPeekPillItem">
+                                        <Border Background="{Binding Background}"
+                                                Opacity="{Binding DisplayOpacity}"
+                                                Classes="focusPeekPill">
+                                            <StackPanel Orientation="Horizontal"
+                                                        Spacing="5">
+                                                <Path Data="{Binding IconPath}"
+                                                      Fill="{Binding Foreground}"
+                                                      Width="11"
+                                                      Height="11"
+                                                      Stretch="Uniform"
+                                                      Classes="focusPeekPillIcon"
+                                                      IsVisible="{Binding HasIcon}" />
+                                                <TextBlock Text="{Binding Text}"
+                                                           Foreground="{Binding Foreground}" />
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <Border Classes="focusPeekSectionLine"
+                                    IsVisible="{Binding HasRelationships}">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{loc:Loc focusPeek.relationships}"
+                                               Classes="focusPeekSectionCaption" />
+                                    <ItemsControl ItemsSource="{Binding Relationships}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:FocusPeekRelationshipItem">
+                                                <StackPanel Orientation="Horizontal"
+                                                            Classes="focusPeekCompactRow">
+                                                    <TextBlock Text="{Binding Role}"
+                                                               Classes="focusPeekRoleLabel" />
+                                                    <ItemsControl ItemsSource="{Binding Targets}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal"
+                                                                            Spacing="0" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate x:DataType="vm:FocusPeekRelationshipTarget">
+                                                                <StackPanel Orientation="Horizontal"
+                                                                            Spacing="0">
+                                                                    <TextBlock Text=", "
+                                                                               FontSize="11"
+                                                                               Foreground="{DynamicResource NormalText}"
+                                                                               VerticalAlignment="Center"
+                                                                               IsVisible="{Binding ShowSeparator}" />
+                                                                    <Button Command="{Binding NavigateCommand}"
+                                                                            Content="{Binding Name}"
+                                                                            Classes="focusPeekLinkButton"
+                                                                            IsEnabled="{Binding CanNavigate}" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="focusPeekSectionLine"
+                                    IsVisible="{Binding HasAppearanceProperties}">
+                                <StackPanel Spacing="6">
+                                    <TextBlock Text="{loc:Loc focusPeek.appearance}"
+                                               Classes="focusPeekSectionCaption" />
+                                    <ItemsControl ItemsSource="{Binding AppearanceProperties}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:FocusPeekPropertyItem">
+                                                <StackPanel Orientation="Horizontal"
+                                                            Classes="focusPeekInlineProperty">
+                                                    <TextBlock Text="{Binding Key, StringFormat='{}{0}: '}"
+                                                               Classes="focusPeekInlinePropertyKey" />
+                                                    <TextBlock Text="{Binding Value}"
+                                                               Classes="focusPeekInlinePropertyValue" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Classes="focusPeekSectionLine"
+                                    IsVisible="{Binding HasCustomProperties}">
+                                <ItemsControl ItemsSource="{Binding CustomProperties}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:FocusPeekPropertyItem">
+                                            <DockPanel Classes="focusPeekCompactRow"
+                                                       LastChildFill="True">
+                                                <TextBlock DockPanel.Dock="Left"
+                                                           Text="{Binding Key, StringFormat='{}{0}: '}"
+                                                           Classes="focusPeekPropertyKey" />
+                                                <TextBlock Text="{Binding Value}"
+                                                           TextWrapping="Wrap"
+                                                           Classes="focusPeekPropertyValue" />
+                                            </DockPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+
+
+
+                            <Border Classes="focusPeekSectionLine"
+                                    IsVisible="{Binding HasDescription}">
+                                <TextBlock Text="{Binding Description}"
+                                           TextWrapping="Wrap"
+                                           Classes="focusPeekDescription" />
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <Border Classes="focusPeekSectionLine"
+                            IsVisible="{Binding HasSections}">
+                        <StackPanel Spacing="8">
+                            <DockPanel>
+                                <TextBlock Text="{loc:Loc focusPeek.sections}"
+                                           Classes="focusPeekSectionCaption" />
+                                <ComboBox DockPanel.Dock="Right"
+                                          ItemsSource="{Binding Sections}"
+                                          SelectedItem="{Binding SelectedSection}"
+                                          MinWidth="180"
+                                          Classes="focusPeekCompactCombo" />
+                            </DockPanel>
+                            <Border Classes="focusPeekSectionBody">
+                                <TextBlock Text="{Binding SelectedSectionContent}"
+                                           TextWrapping="Wrap"
+                                           Classes="focusPeekBodyText"
+                                           IsVisible="{Binding HasSelectedSectionContent}" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Classes="focusPeekSectionLine">
+                        <StackPanel Spacing="2">
+                            <TextBlock Text="{loc:Loc focusPeek.aiFocus}"
+                                       Classes="focusPeekSectionCaption" />
+                            <TextBlock Text="{Binding AiStubText}"
+                                       TextWrapping="Wrap"
+                                       Classes="focusPeekBodyTextItalic"
+                                       IsVisible="{Binding ShowAiStub}" />
+                            <ItemsControl ItemsSource="{Binding AiFindings}"
+                                          IsVisible="{Binding HasAiFindings}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:FocusPeekAiFindingItem">
+                                        <StackPanel Spacing="2" Margin="0,4,0,0">
+                                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                                <TextBlock Text="{Binding TypeIcon}" FontSize="11" />
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           TextWrapping="Wrap"
+                                                           Foreground="{DynamicResource PrimaryText}" />
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Description}"
+                                                       FontSize="10.5" TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource SubtleText}"
+                                                       Margin="18,0,0,0" />
+                                            <TextBlock Text="{Binding Excerpt}"
+                                                       FontSize="10" FontStyle="Italic"
+                                                       TextWrapping="Wrap"
+                                                       Foreground="{DynamicResource DimText}"
+                                                       Margin="18,0,0,0"
+                                                       IsVisible="{Binding HasExcerpt}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </glass:LiquidGlassSurface>
+    </Border>
+</UserControl>

@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:views="using:Novalist.Desktop.Views"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="Novalist.Desktop.Views.EditorView"
+             x:DataType="vm:EditorViewModel">
+
+    <Grid RowDefinitions="*">
+        <Grid Grid.Row="0" x:Name="EditorHost">
+            <!-- WebView is created in code-behind so we can catch native init
+                 failures (e.g. Xamarin.Mac / .NET 10 incompatibility on macOS). -->
+
+            <!-- Empty state overlay — on top, hides when a document is open -->
+            <Border Background="{DynamicResource EditorBackground}"
+                    IsVisible="{Binding !IsDocumentOpen}"
+                    IsHitTestVisible="False">
+                <StackPanel VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Spacing="8">
+                    <TextBlock Text="{loc:Loc editor.emptyState}"
+                               FontSize="16"
+                               Foreground="{DynamicResource SubtleText}"
+                               HorizontalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <Popup x:Name="FocusPeekPopup"
+                   Placement="AnchorAndGravity"
+                   PlacementAnchor="TopLeft"
+                   PlacementGravity="BottomRight"
+                   IsOpen="{Binding FocusPeek.IsOpen}"
+                   HorizontalOffset="{Binding FocusPeek.Left}"
+                   VerticalOffset="{Binding FocusPeek.Top}"
+                   IsLightDismissEnabled="False"
+                   WindowManagerAddShadowHint="False">
+                <views:FocusPeekCardView DataContext="{Binding FocusPeek}"
+                                         IsHitTestVisible="True" />
+            </Popup>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,0 +1,211 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:conv="using:Novalist.Desktop.Converters"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             mc:Ignorable="d"
+             d:DesignWidth="280" d:DesignHeight="600"
+             x:Class="Novalist.Desktop.Views.ExplorerView"
+             x:DataType="vm:ExplorerViewModel">
+
+    <UserControl.Resources>
+        <conv:BoolToSelectedBrushConverter x:Key="BoolToSelectedBrush" />
+        <conv:BoolToExpanderIconConverter x:Key="BoolToExpanderIcon" />
+    </UserControl.Resources>
+
+    <Border Background="{DynamicResource ExplorerBackground}"
+            BorderBrush="{DynamicResource ExplorerBorder}"
+            BorderThickness="0,0,1,0">
+        <DockPanel>
+            <!-- Header -->
+            <Border DockPanel.Dock="Top" Padding="12,8">
+                <TextBlock Text="{loc:Loc explorer.title}"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource DimText}" />
+            </Border>
+
+            <!-- Toolbar -->
+            <Border DockPanel.Dock="Top"
+                    Padding="8,4"
+                    BorderBrush="{DynamicResource ExplorerBorder}"
+                    BorderThickness="0,1,0,1">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <Button Content="{loc:Loc explorer.addChapter}"
+                            Command="{Binding CreateChapterCommand}"
+                            FontSize="11"
+                            Padding="8,4"
+                            ToolTip.Tip="{loc:Loc explorer.addChapterTooltip}" />
+                    <Button Content="{loc:Loc explorer.addScene}"
+                            Command="{Binding CreateSceneCommand}"
+                            FontSize="11"
+                            Padding="8,4"
+                        ToolTip.Tip="{loc:Loc explorer.addSceneTooltip}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Chapter/Scene Tree -->
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="ChaptersItemsControl"
+                              ItemsSource="{Binding ExplorerItems}"
+                              Margin="0,4">
+                    <ItemsControl.DataTemplates>
+
+                        <!-- ═══ Act Header Template ═══ -->
+                        <DataTemplate x:DataType="vm:ActHeaderViewModel">
+                            <Border Padding="8,8,8,4"
+                                    Margin="4,6,4,0"
+                                    Tag="{Binding}">
+                                <Border.ContextMenu>
+                                    <ContextMenu Tag="{Binding}">
+                                        <MenuItem Header="{loc:Loc explorer.contextRenameAct}" Click="OnRenameActClick" />
+                                        <MenuItem Header="{loc:Loc explorer.contextDeleteAct}" Click="OnDeleteActClick" />
+                                    </ContextMenu>
+                                </Border.ContextMenu>
+                                <TextBlock Text="{Binding DisplayName}"
+                                           FontWeight="Bold"
+                                           FontSize="12"
+                                           Foreground="{DynamicResource SubtleText}"
+                                           TextTrimming="CharacterEllipsis" />
+                            </Border>
+                        </DataTemplate>
+
+                        <!-- ═══ Chapter Template ═══ -->
+                        <DataTemplate x:DataType="vm:ChapterTreeItemViewModel">
+                            <StackPanel>
+                                <!-- Chapter Header -->
+                                <Border Padding="8,6"
+                                        Background="{Binding IsSelected, Converter={StaticResource BoolToSelectedBrush}}"
+                                        CornerRadius="4"
+                                        Margin="4,1"
+                                    Tag="{Binding}"
+                                        DragDrop.AllowDrop="True"
+                                        DragDrop.DragOver="OnChapterDragOver"
+                                        DragDrop.DragLeave="OnDragLeave"
+                                        DragDrop.Drop="OnChapterDrop">
+                                    <Border.ContextMenu>
+                                        <ContextMenu Tag="{Binding}" Opening="OnChapterContextMenuOpening">
+                                            <MenuItem Header="{loc:Loc explorer.contextAddScene}" Click="OnAddSceneClick" />
+                                            <MenuItem Header="{loc:Loc explorer.contextSetDate}" Click="OnSetChapterDateClick" />
+                                            <MenuItem Header="{loc:Loc explorer.contextSetAct}" Click="OnSetChapterActClick" />
+                                            <MenuItem Header="{loc:Loc explorer.contextRemoveFromAct}" Click="OnRemoveChapterFromActClick"
+                                                      IsVisible="{Binding HasAct}" />
+                                            <Separator />
+                                            <MenuItem Header="{loc:Loc explorer.contextRename}" Click="OnRenameChapterClick" />
+                                            <MenuItem Header="{loc:Loc explorer.contextDelete}" Click="OnDeleteChapterClick" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <Grid ColumnDefinitions="Auto,*,Auto"
+                                          PointerPressed="OnChapterPointerPressed"
+                                        PointerReleased="OnChapterPointerReleased"
+                                          PointerMoved="OnChapterPointerMoved"
+                                          Tag="{Binding}">
+                                        <!-- Expand/Collapse indicator -->
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding IsExpanded, Converter={StaticResource BoolToExpanderIcon}}"
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource SubtleText}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,6,0" />
+
+                                        <!-- Chapter Name -->
+                                        <StackPanel Grid.Column="1"
+                                                    Spacing="1"
+                                                    VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       FontWeight="SemiBold"
+                                                       FontSize="13"
+                                                       Foreground="{DynamicResource NormalText}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding DateDisplay}"
+                                                       FontSize="10"
+                                                       Foreground="{DynamicResource SubtleText}"
+                                                       IsVisible="{Binding HasDate}" />
+                                        </StackPanel>
+
+                                        <!-- Status Badge -->
+                                        <StackPanel Grid.Column="2"
+                                                    Orientation="Horizontal"
+                                                    Spacing="4"
+                                                    VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding GitStatusLabel}"
+                                                       FontSize="8"
+                                                       Foreground="#E5C07B"
+                                                       VerticalAlignment="Center"
+                                                       IsVisible="{Binding HasGitChanges}" />
+                                            <TextBlock Text="{Binding StatusDisplay}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource SubtleText}"
+                                                       VerticalAlignment="Center"
+                                                       PointerPressed="OnStatusPointerPressed"
+                                                       Cursor="Hand"
+                                                       ToolTip.Tip="{loc:Loc explorer.cycleStatusTooltip}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Scenes List -->
+                                <ItemsControl ItemsSource="{Binding Scenes}"
+                                              IsVisible="{Binding IsExpanded}"
+                                              Margin="16,0,0,2">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:SceneTreeItemViewModel">
+                                            <Border Padding="8,4"
+                                                    Background="{Binding IsSelected, Converter={StaticResource BoolToSelectedBrush}}"
+                                                    CornerRadius="4"
+                                                    Margin="4,1"
+                                                    PointerPressed="OnScenePointerPressed"
+                                                    PointerReleased="OnScenePointerReleased"
+                                                    PointerMoved="OnScenePointerMoved"
+                                                    DragDrop.AllowDrop="True"
+                                                    DragDrop.DragOver="OnSceneDragOver"
+                                                    DragDrop.DragLeave="OnDragLeave"
+                                                    DragDrop.Drop="OnSceneDrop"
+                                                    Tag="{Binding}">
+                                                <Border.ContextMenu>
+                                                    <ContextMenu Tag="{Binding}" Opening="OnSceneContextMenuOpening">
+                                                        <MenuItem Header="{loc:Loc explorer.contextSetDate}" Click="OnSetSceneDateClick" />
+                                                        <MenuItem Header="{loc:Loc explorer.contextRename}" Click="OnRenameSceneClick" />
+                                                        <MenuItem Header="{loc:Loc explorer.contextDelete}" Click="OnDeleteSceneClick" />
+                                                    </ContextMenu>
+                                                </Border.ContextMenu>
+                                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                                    <Viewbox Grid.Column="0" Classes="inlineIcon" Width="11" Height="11"
+                                                            VerticalAlignment="Center" Margin="0,0,4,0">
+                                                        <Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconFile}"/></Canvas>
+                                                    </Viewbox>
+                                                    <StackPanel Grid.Column="1"
+                                                                Spacing="1"
+                                                                VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding DisplayName}"
+                                                                   FontSize="12"
+                                                                   Foreground="{DynamicResource DimText}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding DateDisplay}"
+                                                                   FontSize="10"
+                                                                   Foreground="{DynamicResource SubtleText}"
+                                                                   IsVisible="{Binding HasDate}" />
+                                                    </StackPanel>
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="{Binding GitStatusLabel}"
+                                                               FontSize="8"
+                                                               Foreground="#E5C07B"
+                                                               VerticalAlignment="Center"
+                                                               IsVisible="{Binding HasGitChanges}" />
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+
+                    </ItemsControl.DataTemplates>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

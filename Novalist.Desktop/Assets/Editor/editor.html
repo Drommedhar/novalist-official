@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+    --bg: #1e1e2e;
+    --fg: #cdd6f4;
+    --caret: #cdd6f4;
+    --selection-bg: #45475a;
+    --font-family: 'Segoe UI', sans-serif;
+    --font-size: 16px;
+    --padding-h: 24px;
+    --padding-v: 8px;
+    --book-width: none;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    overflow: hidden;
+}
+body { display: flex; justify-content: center; }
+#editor-wrapper {
+    width: 100%;
+    max-width: var(--book-width);
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #585b7066 transparent;
+}
+#editor {
+    min-height: 100%;
+    padding: var(--padding-v) var(--padding-h);
+    outline: none;
+    caret-color: var(--caret);
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+#editor:empty::before {
+    content: '';
+    display: block;
+}
+#editor p { margin: 0; }
+#editor.book-spacing p { padding-bottom: 0.75em; }
+#editor.book-spacing p:empty { padding-bottom: 0; min-height: 1em; }
+#editor ::selection { background: var(--selection-bg); }
+#editor::-webkit-scrollbar { width: 8px; }
+#editor::-webkit-scrollbar-track { background: transparent; }
+#editor::-webkit-scrollbar-thumb { background: #585b7066; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div id="editor-wrapper">
+    <div id="editor" contenteditable="true" spellcheck="true"></div>
+</div>
+<script>
+'use strict';
+
+const editor = document.getElementById('editor');
+const wrapper = document.getElementById('editor-wrapper');
+
+// ── State ────────────────────────────────────────────────────────
+let isSettingContent = false;
+let lastHtml = '';
+let entityRegex = null;
+let entityNames = [];
+let autoReplacements = [];
+let lastHoveredAlias = null;
+let entityExitTimer = null;
+
+// ── C#→JS Bridge ────────────────────────────────────────────────
+
+function sendMessage(msg) {
+    try {
+        const json = JSON.stringify(msg);
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(json);
+        } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.webview) {
+            window.webkit.messageHandlers.webview.postMessage(json);
+        }
+    } catch (_) { /* ignore if bridge not ready */ }
+}
+
+// ── Content Management ──────────────────────────────────────────
+
+function setContent(html) {
+    isSettingContent = true;
+    if (!html || html.trim() === '' || isEmptyHtml(html)) {
+        editor.innerHTML = '<p><br></p>';
+    } else {
+        const bodyContent = extractBody(html);
+        editor.innerHTML = bodyContent;
+    }
+    lastHtml = editor.innerHTML;
+    isSettingContent = false;
+}
+
+function getContent() {
+    return editor.innerHTML;
+}
+
+function getPlainText() {
+    return editor.innerText || '';
+}
+
+function extractBody(html) {
+    const match = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    return match ? match[1] : html;
+}
+
+function isEmptyHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return !tmp.textContent || tmp.textContent.trim() === '';
+}
+
+// ── Formatting Commands ─────────────────────────────────────────
+
+function toggleBold() {
+    editor.focus();
+    document.execCommand('bold', false, null);
+    notifyFormattingChanged();
+}
+
+function toggleItalic() {
+    editor.focus();
+    document.execCommand('italic', false, null);
+    notifyFormattingChanged();
+}
+
+function toggleUnderline() {
+    editor.focus();
+    document.execCommand('underline', false, null);
+    notifyFormattingChanged();
+}
+
+function alignLeft() {
+    editor.focus();
+    document.execCommand('justifyLeft', false, null);
+    notifyFormattingChanged();
+}
+
+function alignCenter() {
+    editor.focus();
+    document.execCommand('justifyCenter', false, null);
+    notifyFormattingChanged();
+}
+
+function alignRight() {
+    editor.focus();
+    document.execCommand('justifyRight', false, null);
+    notifyFormattingChanged();
+}
+
+function alignJustify() {
+    editor.focus();
+    document.execCommand('justifyFull', false, null);
+    notifyFormattingChanged();
+}
+
+// ── Formatting State ────────────────────────────────────────────
+
+function getFormattingState() {
+    const bold = document.queryCommandState('bold');
+    const italic = document.queryCommandState('italic');
+    const underline = document.queryCommandState('underline');
+    let alignment = 'left';
+    if (document.queryCommandState('justifyCenter')) alignment = 'center';
+    else if (document.queryCommandState('justifyRight')) alignment = 'right';
+    else if (document.queryCommandState('justifyFull')) alignment = 'justify';
+    return { bold, italic, underline, alignment };
+}
+
+function notifyFormattingChanged() {
+    const state = getFormattingState();
+    sendMessage({ type: 'formattingChanged', ...state });
+}
+
+// ── Theme & Font ────────────────────────────────────────────────
+
+function setTheme(bg, fg, caretColor, selectionBg) {
+    const root = document.documentElement;
+    root.style.setProperty('--bg', bg);
+    root.style.setProperty('--fg', fg);
+    root.style.setProperty('--caret', caretColor || fg);
+    if (selectionBg) root.style.setProperty('--selection-bg', selectionBg);
+}
+
+function setFont(family, size) {
+    const root = document.documentElement;
+    if (family) {
+        const val = "'" + family + "', sans-serif";
+        root.style.setProperty('--font-family', val);
+    }
+    if (size) {
+        root.style.setProperty('--font-size', size + 'px');
+    }
+    // Force-override via a dynamic <style> to beat any inline styles
+    let s = document.getElementById('novalist-font-override');
+    if (!s) {
+        s = document.createElement('style');
+        s.id = 'novalist-font-override';
+        document.head.appendChild(s);
+    }
+    const f = family ? "'" + family + "', sans-serif" : 'var(--font-family)';
+    const sz = size ? size + 'px' : 'var(--font-size)';
+    s.textContent = '#editor, #editor * { font-family: ' + f + ' !important; font-size: ' + sz + ' !important; }';
+}
+
+function setBookWidth(enabled, widthPx) {
+    const root = document.documentElement;
+    root.style.setProperty('--book-width', enabled ? widthPx + 'px' : 'none');
+}
+
+function setPadding(horizontal, vertical) {
+    const root = document.documentElement;
+    if (horizontal != null) root.style.setProperty('--padding-h', horizontal + 'px');
+    if (vertical != null) root.style.setProperty('--padding-v', vertical + 'px');
+}
+
+function setBookParagraphSpacing(enabled) {
+    const editor = document.getElementById('editor');
+    if (enabled) editor.classList.add('book-spacing');
+    else editor.classList.remove('book-spacing');
+}
+
+function setLanguage(lang) {
+    document.documentElement.lang = lang || 'en';
+}
+
+// ── Entity Detection (Focus Peek) ───────────────────────────────
+
+function setEntityNames(namesJson) {
+    try {
+        entityNames = JSON.parse(namesJson);
+        if (entityNames.length === 0) {
+            entityRegex = null;
+            return;
+        }
+        const escaped = entityNames
+            .sort((a, b) => b.length - a.length)
+            .map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        entityRegex = new RegExp('(?<![\\p{L}\\p{N}])(' + escaped.join('|') + ')(?![\\p{L}\\p{N}])', 'iu');
+    } catch (_) {
+        entityRegex = null;
+    }
+}
+
+function findEntityAtPoint(x, y) {
+    if (!entityRegex) return null;
+
+    let range;
+    if (document.caretRangeFromPoint) {
+        range = document.caretRangeFromPoint(x, y);
+    } else if (document.caretPositionFromPoint) {
+        const pos = document.caretPositionFromPoint(x, y);
+        if (pos) {
+            range = document.createRange();
+            range.setStart(pos.offsetNode, pos.offset);
+            range.collapse(true);
+        }
+    }
+    if (!range || !range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+
+    const textNode = range.startContainer;
+    const text = textNode.textContent || '';
+    const offset = range.startOffset;
+
+    // Find the word boundaries around the offset, then check broader context
+    // We check the full line (parent element text) for entity matches
+    const parentEl = textNode.parentElement;
+    if (!parentEl) return null;
+    const lineText = parentEl.innerText || '';
+    if (!lineText) return null;
+
+    // Calculate offset within the parent element text
+    let charOffset = 0;
+    const walker = document.createTreeWalker(parentEl, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node === textNode) {
+            charOffset += offset;
+            break;
+        }
+        charOffset += (node.textContent || '').length;
+    }
+
+    // Find entity alias at this position
+    const globalRegex = new RegExp(entityRegex.source, 'giu');
+    let match;
+    while ((match = globalRegex.exec(lineText)) !== null) {
+        if (charOffset >= match.index && charOffset <= match.index + match[0].length) {
+            return match[0];
+        }
+    }
+    return null;
+}
+
+function findEntityAtCaret() {
+    if (!entityRegex) return null;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+
+    const range = sel.getRangeAt(0);
+    if (!range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+
+    const textNode = range.startContainer;
+    const offset = range.startOffset;
+    const parentEl = textNode.parentElement;
+    if (!parentEl) return null;
+    const lineText = parentEl.innerText || '';
+    if (!lineText) return null;
+
+    let charOffset = 0;
+    const walker = document.createTreeWalker(parentEl, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node === textNode) {
+            charOffset += offset;
+            break;
+        }
+        charOffset += (node.textContent || '').length;
+    }
+
+    const globalRegex = new RegExp(entityRegex.source, 'giu');
+    let match;
+    while ((match = globalRegex.exec(lineText)) !== null) {
+        if (charOffset >= match.index && charOffset <= match.index + match[0].length) {
+            return match[0];
+        }
+    }
+    return null;
+}
+
+function getCaretRect() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const range = sel.getRangeAt(0).cloneRange();
+    range.collapse(true);
+    const rect = range.getBoundingClientRect();
+    if (!rect || (rect.x === 0 && rect.y === 0 && rect.width === 0 && rect.height === 0)) return null;
+    return rect;
+}
+
+// ── Auto Replacement ────────────────────────────────────────────
+
+function setAutoReplacements(pairsJson) {
+    try {
+        autoReplacements = JSON.parse(pairsJson);
+    } catch (_) {
+        autoReplacements = [];
+    }
+}
+
+function tryAutoReplace(inputText) {
+    if (autoReplacements.length === 0 || !inputText) return null;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const range = sel.getRangeAt(0);
+    if (!range.collapsed) return null;
+
+    const textNode = range.startContainer;
+    if (textNode.nodeType !== Node.TEXT_NODE) return null;
+
+    const text = textNode.textContent || '';
+    const offset = range.startOffset;
+    // Text as it will appear after insertion
+    const textAfter = text.slice(0, offset) + inputText + text.slice(offset);
+    const lineText = textAfter.slice(0, offset + inputText.length);
+
+    for (const pair of autoReplacements) {
+        // Paired quotes: same trigger, different open/close
+        if (pair.start === pair.end && pair.startReplace !== pair.endReplace) {
+            if (lineText.endsWith(pair.end)) {
+                const opens = countOccurrences(lineText, pair.startReplace);
+                const closes = countOccurrences(lineText, pair.endReplace);
+                if (opens > closes) {
+                    return pair.endReplace;
+                }
+            }
+        }
+
+        if (lineText.endsWith(pair.start) && pair.start.length === inputText.length) {
+            return pair.startReplace;
+        }
+    }
+    return null;
+}
+
+function countOccurrences(text, token) {
+    if (!token) return 0;
+    let count = 0, idx = 0;
+    while ((idx = text.indexOf(token, idx)) >= 0) { count++; idx += token.length; }
+    return count;
+}
+
+// ── Caret Position ──────────────────────────────────────────────
+
+function getCaretPosition() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return { line: 1, column: 1 };
+
+    const range = sel.getRangeAt(0);
+    const preRange = range.cloneRange();
+    preRange.selectNodeContents(editor);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    const textBefore = preRange.toString();
+    const lines = textBefore.split('\n');
+    return { line: lines.length, column: lines[lines.length - 1].length + 1 };
+}
+
+// ── Event Handlers ──────────────────────────────────────────────
+
+let contentChangeTimer = null;
+
+editor.addEventListener('input', () => {
+    if (isSettingContent) return;
+
+    if (contentChangeTimer) clearTimeout(contentChangeTimer);
+    contentChangeTimer = setTimeout(() => {
+        const html = editor.innerHTML;
+        if (html !== lastHtml) {
+            lastHtml = html;
+            sendMessage({
+                type: 'contentChanged',
+                html: html,
+                plainText: editor.innerText || ''
+            });
+        }
+    }, 50);
+});
+
+editor.addEventListener('beforeinput', (e) => {
+    if (isSettingContent) return;
+    if (e.inputType !== 'insertText' || !e.data) return;
+
+    const replacement = tryAutoReplace(e.data);
+    if (replacement && replacement !== e.data) {
+        e.preventDefault();
+        document.execCommand('insertText', false, replacement);
+    }
+});
+
+document.addEventListener('selectionchange', () => {
+    if (isSettingContent) return;
+    notifyFormattingChanged();
+    const pos = getCaretPosition();
+    sendMessage({ type: 'caretPosition', line: pos.line, column: pos.column });
+});
+
+editor.addEventListener('mousemove', (e) => {
+    if (!entityRegex) return;
+    const alias = findEntityAtPoint(e.clientX, e.clientY);
+    if (alias) {
+        // Found an entity — cancel any pending exit and notify if alias changed
+        if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+        if (alias !== lastHoveredAlias) {
+            lastHoveredAlias = alias;
+            const wrapperRect = wrapper.getBoundingClientRect();
+            sendMessage({
+                type: 'entityHover',
+                alias: alias,
+                x: e.clientX - wrapperRect.left,
+                y: e.clientY - wrapperRect.top
+            });
+        }
+    } else if (lastHoveredAlias) {
+        // Lost entity match — debounce the exit so small pixel jitter doesn't kill the peek
+        if (!entityExitTimer) {
+            entityExitTimer = setTimeout(() => {
+                entityExitTimer = null;
+                lastHoveredAlias = null;
+                sendMessage({ type: 'entityExit' });
+            }, 200);
+        }
+    }
+});
+
+editor.addEventListener('mouseleave', () => {
+    if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+    if (lastHoveredAlias) {
+        lastHoveredAlias = null;
+        sendMessage({ type: 'entityExit' });
+    }
+});
+
+editor.addEventListener('mousedown', () => {
+    sendMessage({ type: 'pointerPressed' });
+});
+
+editor.addEventListener('keydown', (e) => {
+    // Ctrl+S → save
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        sendMessage({ type: 'save' });
+    }
+});
+
+// Handle paste: strip external formatting, keep only basic formatting
+editor.addEventListener('paste', (e) => {
+    const html = e.clipboardData?.getData('text/html');
+    if (html) {
+        e.preventDefault();
+        // Parse and sanitize the pasted HTML
+        const cleaned = sanitizePastedHtml(html);
+        document.execCommand('insertHTML', false, cleaned);
+    }
+});
+
+function sanitizePastedHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+
+    // Remove all style attributes except basic formatting
+    const allElements = tmp.querySelectorAll('*');
+    for (const el of allElements) {
+        // Keep b, i, u, strong, em, p, br, div, span
+        const tag = el.tagName.toLowerCase();
+        const allowedTags = ['b', 'i', 'u', 'strong', 'em', 'p', 'br', 'div', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+        if (!allowedTags.includes(tag)) {
+            // Replace with its text content
+            el.replaceWith(...el.childNodes);
+            continue;
+        }
+        // Remove all attributes except style with basic formatting
+        const style = el.getAttribute('style');
+        // Clear all attributes
+        while (el.attributes.length > 0) el.removeAttribute(el.attributes[0].name);
+        if (style) {
+            // Only keep font-weight, font-style, text-decoration, text-align
+            const allowed = {};
+            if (/font-weight\s*:\s*bold/i.test(style)) allowed['font-weight'] = 'bold';
+            if (/font-style\s*:\s*italic/i.test(style)) allowed['font-style'] = 'italic';
+            if (/text-decoration\s*:\s*underline/i.test(style)) allowed['text-decoration'] = 'underline';
+            const alignMatch = style.match(/text-align\s*:\s*(left|center|right|justify)/i);
+            if (alignMatch) allowed['text-align'] = alignMatch[1];
+            const parts = Object.entries(allowed).map(([k, v]) => k + ':' + v);
+            if (parts.length > 0) el.setAttribute('style', parts.join(';'));
+        }
+    }
+    return tmp.innerHTML;
+}
+
+// ── Scroll Zoom (Ctrl+Wheel) ───────────────────────────────────
+
+wrapper.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    sendMessage({ type: 'zoom', delta: delta });
+}, { passive: false });
+
+// ── Focus ───────────────────────────────────────────────────────
+
+function focusEditor() {
+    editor.focus();
+}
+
+// ── Ready Signal ────────────────────────────────────────────────
+sendMessage({ type: 'ready' });
+</script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:conv="using:Novalist.Desktop.Converters"
+        xmlns:dialogs="using:Novalist.Desktop.Dialogs"
+        xmlns:loc="using:Novalist.Desktop.Localization"
+        mc:Ignorable="d"
+        x:Class="Novalist.Desktop.Dialogs.ProjectImagePickerDialog"
+        Width="760"
+        Height="540"
+        Focusable="True">
+    <UserControl.Resources>
+        <conv:RelativePathToBitmapConverter x:Key="PathToBitmap" />
+    </UserControl.Resources>
+
+    <Border Background="Transparent"
+            Padding="24">
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,16,0,0">
+                <Button Content="{loc:Loc dialog.cancel}"
+                        Padding="16,8"
+                        Click="OnCancel" />
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Text="{loc:Loc dialog.chooseImagePrompt}"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource NormalText}" />
+                <TextBox x:Name="SearchBox"
+                         Watermark="{loc:Loc dialog.searchImages}" />
+                <TextBlock x:Name="CountText"
+                           Foreground="{DynamicResource SubtleText}" />
+
+                <TextBlock x:Name="EmptyText"
+                           Text="{loc:Loc dialog.noImagesMatch}"
+                           IsVisible="False"
+                           Foreground="{DynamicResource SubtleText}" />
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="ImageList"
+                                  IsVisible="False">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="dialogs:ProjectImageOption">
+                                <Button Classes="imagePickerRowButton"
+                                        Tag="{Binding}"
+                                        Click="OnImageClicked">
+                                    <Border Classes="imagePickerRow">
+                                        <Grid ColumnDefinitions="72,12,*,Auto">
+                                            <Border Grid.Column="0"
+                                                    Width="72"
+                                                    Height="72"
+                                                    CornerRadius="4"
+                                                    ClipToBounds="True"
+                                                    Background="{DynamicResource ExplorerBackground}"
+                                                    BorderBrush="{DynamicResource CardBorder}"
+                                                    BorderThickness="1">
+                                                <Image Source="{Binding Path, Converter={StaticResource PathToBitmap}}"
+                                                       Stretch="UniformToFill" />
+                                            </Border>
+
+                                            <StackPanel Grid.Column="2"
+                                                        Spacing="4"
+                                                        VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource NormalText}" />
+                                                <TextBlock Text="{Binding Path}"
+                                                           Classes="imagePickerPath" />
+                                            </StackPanel>
+
+                                            <Border Grid.Column="3"
+                                                    Classes="imagePickerCurrentBadge"
+                                                    VerticalAlignment="Center"
+                                                    IsVisible="{Binding IsCurrent}">
+                                                <TextBlock Text="{loc:Loc dialog.currentBadge}"
+                                                           Classes="imagePickerCurrentBadgeText" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</UserControl>

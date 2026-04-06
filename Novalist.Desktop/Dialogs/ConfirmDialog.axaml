@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:loc="using:Novalist.Desktop.Localization"
+        mc:Ignorable="d"
+        x:Class="Novalist.Desktop.Dialogs.ConfirmDialog"
+        Width="420"
+        Focusable="True">
+    <Border Background="Transparent"
+            Padding="24">
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,16,0,0">
+                <Button x:Name="CancelButton"
+                        Content="{loc:Loc dialog.cancel}"
+                        Padding="16,8"
+                        Click="OnCancel" />
+                <Button x:Name="ConfirmButton"
+                        Content="{loc:Loc dialog.delete}"
+                        Padding="16,8"
+                        Foreground="#E05252"
+                        Click="OnConfirm"
+                        IsDefault="True" />
+            </StackPanel>
+            <TextBlock x:Name="MessageText"
+                       FontSize="14"
+                       Foreground="{DynamicResource NormalText}"
+                       TextWrapping="Wrap" />
+        </DockPanel>
+    </Border>
+</UserControl>

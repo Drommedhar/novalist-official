@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Novalist
+Comment=Standalone novel planning and writing app
+Exec=__EXEC_PATH__
+Icon=__ICON_PATH__
+Terminal=false
+Categories=Office;Publishing;
+StartupNotify=true

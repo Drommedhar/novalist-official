@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+    --bg: #1e1e2e;
+    --fg: #cdd6f4;
+    --caret: #cdd6f4;
+    --selection-bg: #45475a;
+    --accent: #89b4fa;
+    --subtle: #6c7086;
+    --divider: #313244;
+    --font-family: 'Segoe UI', sans-serif;
+    --font-size: 16px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    overflow: hidden;
+}
+body { display: flex; justify-content: center; }
+#manuscript-wrapper {
+    width: 100%;
+    max-width: 760px;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #585b7066 transparent;
+    padding: 24px 32px;
+}
+.chapter-section {
+    margin-bottom: 32px;
+}
+.chapter-header {
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--divider);
+}
+.chapter-act {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 2px;
+}
+.chapter-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.chapter-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--fg);
+}
+.chapter-status {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--subtle);
+    background: var(--divider);
+    padding: 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+.chapter-status:hover {
+    opacity: 0.8;
+}
+.scene-block {
+    margin-bottom: 20px;
+}
+.scene-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+.scene-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+}
+.scene-title:hover {
+    text-decoration: underline;
+}
+.scene-wordcount {
+    font-size: 11px;
+    color: var(--subtle);
+}
+.scene-editor {
+    outline: none;
+    caret-color: var(--caret);
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    padding: 4px 0;
+    min-height: 1.6em;
+    border-left: 2px solid transparent;
+    padding-left: 8px;
+    transition: border-color 0.2s;
+}
+.scene-editor:focus {
+    border-left-color: var(--accent);
+}
+.scene-editor p { margin: 0; }
+.scene-editor.book-spacing p { padding-bottom: 0.75em; }
+.scene-editor.book-spacing p:empty { padding-bottom: 0; min-height: 1em; }
+.scene-editor ::selection { background: var(--selection-bg); }
+
+.manuscript-footer {
+    text-align: center;
+    padding: 16px;
+    margin-top: 16px;
+    margin-bottom: 32px;
+    font-size: 12px;
+    color: var(--subtle);
+    background: var(--divider);
+    border-radius: 6px;
+}
+</style>
+</head>
+<body>
+<div id="manuscript-wrapper"></div>
+<script>
+'use strict';
+
+const wrapper = document.getElementById('manuscript-wrapper');
+let isSettingContent = false;
+let bookSpacingEnabled = false;
+let contentChangeTimers = {};
+let lastHtmlMap = {};
+
+// ── C# ↔ JS Bridge ─────────────────────────────────────────────
+
+function sendMessage(msg) {
+    try {
+        const json = JSON.stringify(msg);
+        if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(json);
+        } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.webview) {
+            window.webkit.messageHandlers.webview.postMessage(json);
+        }
+    } catch (_) {}
+}
+
+// ── Manuscript Loading ──────────────────────────────────────────
+
+function setManuscript(sectionsJson) {
+    isSettingContent = true;
+    wrapper.innerHTML = '';
+    lastHtmlMap = {};
+
+    let sections;
+    try { sections = JSON.parse(sectionsJson); } catch (_) { sections = []; }
+
+    for (const section of sections) {
+        const sectionEl = document.createElement('div');
+        sectionEl.className = 'chapter-section';
+
+        // Chapter header
+        const header = document.createElement('div');
+        header.className = 'chapter-header';
+
+        if (section.act) {
+            const actEl = document.createElement('div');
+            actEl.className = 'chapter-act';
+            actEl.textContent = section.act;
+            header.appendChild(actEl);
+        }
+
+        const titleRow = document.createElement('div');
+        titleRow.className = 'chapter-title-row';
+
+        const titleEl = document.createElement('span');
+        titleEl.className = 'chapter-title';
+        titleEl.textContent = section.chapterTitle;
+        titleRow.appendChild(titleEl);
+
+        const statusEl = document.createElement('span');
+        statusEl.className = 'chapter-status';
+        statusEl.textContent = section.status;
+        statusEl.dataset.chapterGuid = section.chapterGuid;
+        statusEl.addEventListener('click', () => {
+            sendMessage({ type: 'cycleStatus', chapterGuid: section.chapterGuid });
+        });
+        titleRow.appendChild(statusEl);
+
+        header.appendChild(titleRow);
+        sectionEl.appendChild(header);
+
+        // Scenes
+        for (const scene of section.scenes) {
+            const block = document.createElement('div');
+            block.className = 'scene-block';
+
+            const sceneHeader = document.createElement('div');
+            sceneHeader.className = 'scene-header';
+
+            const sceneTitle = document.createElement('span');
+            sceneTitle.className = 'scene-title';
+            sceneTitle.textContent = scene.title;
+            sceneTitle.addEventListener('click', () => {
+                sendMessage({ type: 'openScene', chapterGuid: section.chapterGuid, sceneId: scene.sceneId });
+            });
+            sceneHeader.appendChild(sceneTitle);
+
+            const wordCount = document.createElement('span');
+            wordCount.className = 'scene-wordcount';
+            wordCount.id = 'wc-' + scene.sceneId;
+            wordCount.textContent = scene.wordCount + ' words';
+            sceneHeader.appendChild(wordCount);
+
+            block.appendChild(sceneHeader);
+
+            const editor = document.createElement('div');
+            editor.className = 'scene-editor' + (bookSpacingEnabled ? ' book-spacing' : '');
+            editor.contentEditable = 'true';
+            editor.spellcheck = true;
+            editor.dataset.sceneId = scene.sceneId;
+            editor.dataset.chapterGuid = section.chapterGuid;
+
+            const html = scene.html || '<p><br></p>';
+            editor.innerHTML = html;
+            lastHtmlMap[scene.sceneId] = editor.innerHTML;
+
+            editor.addEventListener('input', () => onSceneInput(editor));
+            editor.addEventListener('paste', onPaste);
+            editor.addEventListener('keydown', onKeyDown);
+
+            block.appendChild(editor);
+            sectionEl.appendChild(block);
+        }
+
+        wrapper.appendChild(sectionEl);
+    }
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.className = 'manuscript-footer';
+    footer.id = 'manuscript-footer';
+    wrapper.appendChild(footer);
+
+    isSettingContent = false;
+    updateFooter();
+}
+
+// Fire ready only once on initial page load
+sendMessage({ type: 'ready' });
+
+// ── Scene Content Changes ───────────────────────────────────────
+
+function onSceneInput(editor) {
+    if (isSettingContent) return;
+    const sceneId = editor.dataset.sceneId;
+    const chapterGuid = editor.dataset.chapterGuid;
+
+    if (contentChangeTimers[sceneId]) clearTimeout(contentChangeTimers[sceneId]);
+    contentChangeTimers[sceneId] = setTimeout(() => {
+        const html = editor.innerHTML;
+        if (html !== lastHtmlMap[sceneId]) {
+            lastHtmlMap[sceneId] = html;
+            const plainText = editor.innerText || '';
+            const wordCount = countWords(plainText);
+
+            // Update inline word count
+            const wcEl = document.getElementById('wc-' + sceneId);
+            if (wcEl) wcEl.textContent = wordCount + ' words';
+
+            sendMessage({
+                type: 'sceneContentChanged',
+                sceneId: sceneId,
+                chapterGuid: chapterGuid,
+                html: html,
+                plainText: plainText,
+                wordCount: wordCount
+            });
+            updateFooter();
+        }
+    }, 50);
+}
+
+function countWords(text) {
+    if (!text || !text.trim()) return 0;
+    return text.trim().split(/\s+/).length;
+}
+
+function updateFooter() {
+    const editors = wrapper.querySelectorAll('.scene-editor');
+    let totalWords = 0;
+    let totalScenes = editors.length;
+    for (const ed of editors) {
+        totalWords += countWords(ed.innerText || '');
+    }
+    const chapters = wrapper.querySelectorAll('.chapter-section').length;
+    const footer = document.getElementById('manuscript-footer');
+    if (footer) {
+        const readingTime = Math.max(1, Math.round(totalWords / 250));
+        footer.textContent = totalWords.toLocaleString() + ' words · ' + totalScenes + ' scenes · ~' + readingTime + ' min read';
+    }
+}
+
+// ── Update single scene content from C# ─────────────────────────
+
+function updateSceneContent(sceneId, html) {
+    isSettingContent = true;
+    const editor = wrapper.querySelector('.scene-editor[data-scene-id="' + sceneId + '"]');
+    if (editor) {
+        editor.innerHTML = html || '<p><br></p>';
+        lastHtmlMap[sceneId] = editor.innerHTML;
+    }
+    isSettingContent = false;
+}
+
+// ── Theme & Font ────────────────────────────────────────────────
+
+function setTheme(bg, fg, caretColor, selectionBg, accent, subtle, divider) {
+    const root = document.documentElement;
+    root.style.setProperty('--bg', bg);
+    root.style.setProperty('--fg', fg);
+    root.style.setProperty('--caret', caretColor || fg);
+    if (selectionBg) root.style.setProperty('--selection-bg', selectionBg);
+    if (accent) root.style.setProperty('--accent', accent);
+    if (subtle) root.style.setProperty('--subtle', subtle);
+    if (divider) root.style.setProperty('--divider', divider);
+}
+
+function setFont(family, size) {
+    const root = document.documentElement;
+    if (family) {
+        const val = "'" + family + "', sans-serif";
+        root.style.setProperty('--font-family', val);
+    }
+    if (size) {
+        root.style.setProperty('--font-size', size + 'px');
+    }
+    let s = document.getElementById('novalist-font-override');
+    if (!s) {
+        s = document.createElement('style');
+        s.id = 'novalist-font-override';
+        document.head.appendChild(s);
+    }
+    const f = family ? "'" + family + "', sans-serif" : 'var(--font-family)';
+    const sz = size ? size + 'px' : 'var(--font-size)';
+    s.textContent = '.scene-editor, .scene-editor * { font-family: ' + f + ' !important; font-size: ' + sz + ' !important; }';
+}
+
+function setBookParagraphSpacing(enabled) {
+    bookSpacingEnabled = enabled;
+    const editors = wrapper.querySelectorAll('.scene-editor');
+    for (const ed of editors) {
+        if (enabled) ed.classList.add('book-spacing');
+        else ed.classList.remove('book-spacing');
+    }
+}
+
+function setLanguage(lang) {
+    document.documentElement.lang = lang || 'en';
+}
+
+// ── Paste Sanitization ──────────────────────────────────────────
+
+function onPaste(e) {
+    const html = e.clipboardData?.getData('text/html');
+    if (html) {
+        e.preventDefault();
+        document.execCommand('insertHTML', false, sanitizePastedHtml(html));
+    }
+}
+
+function sanitizePastedHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const allElements = tmp.querySelectorAll('*');
+    for (const el of allElements) {
+        const tag = el.tagName.toLowerCase();
+        const allowedTags = ['b', 'i', 'u', 'strong', 'em', 'p', 'br', 'div', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+        if (!allowedTags.includes(tag)) {
+            el.replaceWith(...el.childNodes);
+            continue;
+        }
+        const style = el.getAttribute('style');
+        while (el.attributes.length > 0) el.removeAttribute(el.attributes[0].name);
+        if (style) {
+            const allowed = {};
+            if (/font-weight\s*:\s*bold/i.test(style)) allowed['font-weight'] = 'bold';
+            if (/font-style\s*:\s*italic/i.test(style)) allowed['font-style'] = 'italic';
+            if (/text-decoration\s*:\s*underline/i.test(style)) allowed['text-decoration'] = 'underline';
+            const alignMatch = style.match(/text-align\s*:\s*(left|center|right|justify)/i);
+            if (alignMatch) allowed['text-align'] = alignMatch[1];
+            const parts = Object.entries(allowed).map(([k, v]) => k + ':' + v);
+            if (parts.length > 0) el.setAttribute('style', parts.join(';'));
+        }
+    }
+    return tmp.innerHTML;
+}
+
+// ── Keyboard ────────────────────────────────────────────────────
+
+function onKeyDown(e) {
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        sendMessage({ type: 'save' });
+    }
+}
+
+// ── Ready Signal ────────────────────────────────────────────────
+sendMessage({ type: 'ready' });
+</script>
+</body>
+</html>
