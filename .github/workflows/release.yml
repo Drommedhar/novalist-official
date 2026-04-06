@@ -314,6 +314,5 @@ jobs:
           files: |
             release-assets/*.dmg
             release-assets/*.exe
-            # release-assets/*.tar.gz
             release-assets/*.nupkg
             release-assets/*.zip
