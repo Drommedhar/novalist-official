@@ -226,6 +226,7 @@ public partial class EditorView : UserControl
         }
 
         PushAutoReplacements();
+        PushDialogueCorrection();
         PushEntityNames();
     }
 
@@ -317,6 +318,7 @@ public partial class EditorView : UserControl
         {
             SetContentInWebView(_vm.Content);
             PushAutoReplacements();
+            PushDialogueCorrection();
             PushEntityNames();
         }
     }
@@ -450,6 +452,13 @@ public partial class EditorView : UserControl
         ExecuteScript($"setAutoReplacements('{EscapeForSingleQuoteJs(json)}')");
     }
 
+    private void PushDialogueCorrection()
+    {
+        if (!_webViewReady || _vm == null) return;
+        var json = _vm.DialogueCorrection.SerializeConfigJson();
+        ExecuteScript($"setDialogueCorrectionConfig('{EscapeForSingleQuoteJs(json)}')");
+    }
+
     internal void PushEntityNames()
     {
         if (!_webViewReady || _vm == null) return;
@@ -473,6 +482,7 @@ public partial class EditorView : UserControl
         else if (e.PropertyName == nameof(EditorViewModel.IsDocumentOpen) && _vm?.IsDocumentOpen == true)
         {
             PushAutoReplacements();
+            PushDialogueCorrection();
             PushEntityNames();
             ExecuteScript("focusEditor()");
         }

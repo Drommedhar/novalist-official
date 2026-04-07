@@ -46,6 +46,9 @@ public class AppSettings
     [JsonPropertyName("autoReplacements")]
     public List<AutoReplacementPair> AutoReplacements { get; set; } = new();
 
+    [JsonPropertyName("dialogueCorrectionEnabled")]
+    public bool DialogueCorrectionEnabled { get; set; }
+
     [JsonPropertyName("windowWidth")]
     public double WindowWidth { get; set; } = 1400;
 

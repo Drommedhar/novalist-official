@@ -114,8 +114,8 @@ public partial class SettingsViewModel : ObservableObject
         IsWritingGoalsSectionVisible = MatchesSection(q, "goal", "daily", "project", "deadline", "word", "writing",
             Loc.T("settings.writingGoals"), Loc.T("settings.dailyWordGoal"), Loc.T("settings.projectWordGoal"),
             Loc.T("settings.projectDeadline"));
-        IsAutoReplacementSectionVisible = MatchesSection(q, "auto", "replacement", "quote", "smart",
-            Loc.T("settings.autoReplacement"), Loc.T("settings.quoteStyle"));
+        IsAutoReplacementSectionVisible = MatchesSection(q, "auto", "replacement", "quote", "smart", "dialogue", "correction", "dialog",
+            Loc.T("settings.autoReplacement"), Loc.T("settings.quoteStyle"), Loc.T("settings.dialogueCorrection"));
         IsTemplatesSectionVisible = MatchesSection(q, "template", "character", "location", "item", "lore",
             Loc.T("settings.templates"), Loc.T("settings.characterTemplates"), Loc.T("settings.locationTemplates"),
             Loc.T("settings.itemTemplates"), Loc.T("settings.loreTemplates"));
@@ -172,6 +172,9 @@ public partial class SettingsViewModel : ObservableObject
     private string _autoReplacementPreview = string.Empty;
 
     [ObservableProperty]
+    private bool _dialogueCorrectionEnabled;
+
+    [ObservableProperty]
     private int _dailyWordGoal;
 
     [ObservableProperty]
@@ -221,6 +224,7 @@ public partial class SettingsViewModel : ObservableObject
         _bookFontFamily = Settings.BookFontFamily;
         _bookFontSize = Settings.BookFontSize;
         _selectedLanguage = Settings.AutoReplacementLanguage;
+        _dialogueCorrectionEnabled = Settings.DialogueCorrectionEnabled;
         _dailyWordGoal = ActiveProjectGoals?.DailyGoal ?? 1000;
         _projectWordGoal = ActiveProjectGoals?.ProjectGoal ?? 50000;
         _projectDeadline = ActiveProjectGoals?.Deadline ?? string.Empty;
@@ -311,6 +315,12 @@ public partial class SettingsViewModel : ObservableObject
         Settings.AutoReplacementLanguage = value;
         Settings.AutoReplacements = AutoReplacementDefaults.GetPreset(value);
         UpdatePreview();
+        SaveAndNotify();
+    }
+
+    partial void OnDialogueCorrectionEnabledChanged(bool value)
+    {
+        Settings.DialogueCorrectionEnabled = value;
         SaveAndNotify();
     }
 

@@ -143,6 +143,8 @@
     "autoReplacement": "AUTO-ERSETZUNG",
     "quoteStyle": "Anführungszeichen-Stil",
     "quoteStyleDesc": "Wählt die Sprachvorlage für typografische Anführungszeichen, Geviertstriche und Auslassungspunkte.",
+    "dialogueCorrection": "Dialog-Zeichensetzung",
+    "dialogueCorrectionDesc": "Korrigiert automatisch die Komma- und Punkt-Platzierung bei Anführungszeichen im Dialog, basierend auf der gewählten Anführungszeichen-Sprache.",
     "preview": "Vorschau",
     "templates": "VORLAGEN",
     "characterTemplates": "Charakter-Vorlagen",

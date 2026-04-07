@@ -393,6 +393,21 @@
                                   HorizontalAlignment="Right" />
                     </DockPanel>
 
+                    <!-- Dialogue Correction -->
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="300">
+                            <TextBlock Text="{loc:Loc settings.dialogueCorrection}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="13" />
+                            <TextBlock Text="{loc:Loc settings.dialogueCorrectionDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ToggleSwitch IsChecked="{Binding DialogueCorrectionEnabled}"
+                                      HorizontalAlignment="Right" />
+                    </DockPanel>
+
                     <!-- Preview -->
                     <Border Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"

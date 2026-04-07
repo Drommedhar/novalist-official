@@ -143,6 +143,8 @@
     "autoReplacement": "AUTO-REPLACEMENT",
     "quoteStyle": "Quote Style",
     "quoteStyleDesc": "Selects the language preset for smart quotes, em-dashes, and ellipsis replacement.",
+    "dialogueCorrection": "Dialogue Punctuation Correction",
+    "dialogueCorrectionDesc": "Automatically corrects comma and period placement around quotation marks in dialogue, based on the selected quote style language.",
     "preview": "Preview",
     "templates": "TEMPLATES",
     "characterTemplates": "Character Templates",

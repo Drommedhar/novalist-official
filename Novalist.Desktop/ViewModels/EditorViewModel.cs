@@ -77,6 +77,7 @@ public partial class EditorViewModel : ObservableObject
 
     public EditorExtensionManager ExtensionManager { get; } = new();
     public AutoReplacementExtension AutoReplacement { get; } = new();
+    public DialogueCorrectionExtension DialogueCorrection { get; } = new();
     public FocusPeekViewModel FocusPeek { get; } = new();
     public FocusPeekExtension FocusPeekExtension => _focusPeekExtension;
 
@@ -185,6 +186,12 @@ public partial class EditorViewModel : ObservableObject
         // Configure auto-replacement from settings
         AutoReplacement.Pairs = settingsService.Settings.AutoReplacements;
         ExtensionManager.Register(AutoReplacement);
+
+        // Configure dialogue correction from settings
+        DialogueCorrection.Enabled = settingsService.Settings.DialogueCorrectionEnabled;
+        DialogueCorrection.Language = settingsService.Settings.AutoReplacementLanguage;
+        ExtensionManager.Register(DialogueCorrection);
+
         _focusPeekExtension = new FocusPeekExtension(FocusPeek, _projectService, _entityService, HandleFocusPeekOpenRequested);
         ExtensionManager.Register(_focusPeekExtension);
     }
@@ -195,6 +202,8 @@ public partial class EditorViewModel : ObservableObject
     public void ApplySettings()
     {
         AutoReplacement.Pairs = _settingsService.Settings.AutoReplacements;
+        DialogueCorrection.Enabled = _settingsService.Settings.DialogueCorrectionEnabled;
+        DialogueCorrection.Language = _settingsService.Settings.AutoReplacementLanguage;
         OnPropertyChanged(nameof(EditorFontFamily));
         OnPropertyChanged(nameof(EditorFontSize));
         OnPropertyChanged(nameof(BookParagraphSpacingEnabled));

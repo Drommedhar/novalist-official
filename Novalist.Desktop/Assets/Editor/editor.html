@@ -75,6 +75,8 @@ let entityNames = [];
 let autoReplacements = [];
 let lastHoveredAlias = null;
 let entityExitTimer = null;
+let dialogueCorrectionConfig = null;
+let dialogueCorrectionTimer = null;
 
 // ── C#→JS Bridge ────────────────────────────────────────────────
 
@@ -370,10 +372,15 @@ function tryAutoReplace(inputText) {
     if (!range.collapsed) return null;
 
     const textNode = range.startContainer;
-    if (textNode.nodeType !== Node.TEXT_NODE) return null;
-
-    const text = textNode.textContent || '';
-    const offset = range.startOffset;
+    let text, offset;
+    if (textNode.nodeType === Node.TEXT_NODE) {
+        text = textNode.textContent || '';
+        offset = range.startOffset;
+    } else {
+        // Caret is in an element node (e.g. empty <p><br></p>) — no text yet
+        text = '';
+        offset = 0;
+    }
     // Text as it will appear after insertion
     const textAfter = text.slice(0, offset) + inputText + text.slice(offset);
     const lineText = textAfter.slice(0, offset + inputText.length);
@@ -404,6 +411,320 @@ function countOccurrences(text, token) {
     return count;
 }
 
+// ── Dialogue Punctuation Correction ─────────────────────────────
+
+function setDialogueCorrectionConfig(configJson) {
+    try {
+        dialogueCorrectionConfig = JSON.parse(configJson);
+        if (!dialogueCorrectionConfig || !dialogueCorrectionConfig.enabled) {
+            dialogueCorrectionConfig = null;
+        }
+    } catch (_) {
+        dialogueCorrectionConfig = null;
+    }
+}
+
+function tryDialogueCorrection() {
+    if (!dialogueCorrectionConfig) return;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return;
+
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+
+    // Find the paragraph element containing the caret
+    let paraEl = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+    while (paraEl && paraEl !== editor && paraEl.tagName !== 'P') {
+        paraEl = paraEl.parentElement;
+    }
+    if (!paraEl || paraEl === editor) return;
+
+    const text = paraEl.innerText || '';
+    if (!text || text.length < 3) return;
+
+    const cfg = dialogueCorrectionConfig;
+    const oq = cfg.openQuote;
+    const cq = cfg.closeQuote;
+    const verbs = cfg.speechVerbs;
+
+    const corrected = cfg.ruleFamily === 'de'
+        ? correctGermanDialogue(text, oq, cq, verbs)
+        : correctEnglishDialogue(text, oq, cq, verbs);
+
+    if (corrected && corrected !== text) {
+        applyParagraphCorrection(paraEl, text, corrected);
+    }
+}
+
+function correctGermanDialogue(text, oq, cq, verbs) {
+    let changed = false;
+    let result = text;
+
+    const verbPattern = verbs.map(v => escapeRegex(v)).join('|');
+    const cqE = escapeRegex(cq);
+    const oqE = escapeRegex(oq);
+
+    // Pass 1: Period inside closing quote before verb → remove period, comma outside
+    // „Text." sagte er → „Text", sagte er
+    const p1 = new RegExp(
+        oqE + '([^' + cqE + ']*?)\\.' + cqE + '\\s*,?\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p1, (m, inner, verb) => {
+        changed = true;
+        return oq + inner + cq + ', ' + verb.toLowerCase();
+    });
+
+    // Pass 2: Wrong period after closing quote → replace with comma
+    // „Text?". sagte er → „Text?", sagte er
+    const p2 = new RegExp(
+        cqE + '\\.\\s*,?\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p2, (m, verb) => {
+        changed = true;
+        return cq + ', ' + verb.toLowerCase();
+    });
+
+    // Pass 3: Missing comma after closing quote before verb
+    // „Text" sagte er → „Text", sagte er
+    // „Text?" sagte er → „Text?", sagte er
+    // But NOT if comma already present: „Text", sagte → skip
+    const p3 = new RegExp(
+        cqE + '(?!,)\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p3, (m, verb) => {
+        changed = true;
+        return cq + ', ' + verb.toLowerCase();
+    });
+
+    // Pass 4: Uppercase verb after comma
+    // „Text", Sagte → „Text", sagte
+    const p4 = new RegExp(
+        cqE + ',\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p4, (m, verb) => {
+        const lower = verb.charAt(0).toLowerCase() + verb.slice(1);
+        if (lower !== verb) {
+            changed = true;
+            return cq + ', ' + lower;
+        }
+        return m;
+    });
+
+    // Pass 5: Interrupted speech — add comma before continuation opening quote
+    // sagte Noah „und... → sagte Noah, „und...
+    // But NOT if period precedes opening quote (new sentence: sagte Liam. „Wir...)
+    const p5 = new RegExp(
+        '(' + verbPattern + ')(\\s+[^' + oqE + cqE + ']*?)\\s+(' + oqE + ')',
+        'giu'
+    );
+    result = result.replace(p5, (m, verb, middle, nextOq) => {
+        const trimmed = middle.trimEnd();
+        if (trimmed.endsWith('.') || trimmed.endsWith(',')) return m;
+        changed = true;
+        return verb + trimmed + ', ' + nextOq;
+    });
+
+    return changed ? result : null;
+}
+
+function correctEnglishDialogue(text, oq, cq, verbs) {
+    let changed = false;
+    let result = text;
+
+    const verbPattern = verbs.map(v => escapeRegex(v)).join('|');
+    const cqE = escapeRegex(cq);
+    const oqE = escapeRegex(oq);
+
+    // Pass 1: Period inside quotes before verb → comma inside quotes
+    // "Text." said he → "Text," said he
+    const p1 = new RegExp(
+        oqE + '([^' + cqE + ']*?)\\.' + cqE + '\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p1, (m, inner, verb) => {
+        changed = true;
+        return oq + inner + ',' + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 2: Comma outside quotes → move inside
+    // "Text", said he → "Text," said he
+    // But "Text?", asked → remove comma (handled in Pass 4)
+    const p2 = new RegExp(
+        oqE + '([^' + cqE + ']*?)' + cqE + ',\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p2, (m, inner, verb) => {
+        if (inner.endsWith(',')) return m;
+        if (/[?!]$/.test(inner)) {
+            changed = true;
+            return oq + inner + cq + ' ' + verb.toLowerCase();
+        }
+        changed = true;
+        return oq + inner + ',' + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 3: No comma at all → add comma inside quotes
+    // "Text" said he → "Text," said he
+    const p3 = new RegExp(
+        oqE + '([^' + cqE + ']*?)' + cqE + '\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p3, (m, inner, verb) => {
+        if (/[,?!]$/.test(inner)) return m;
+        changed = true;
+        return oq + inner + ',' + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 4: Remove comma after ? or !
+    // "Text?", asked → "Text?" asked
+    const p4 = new RegExp(
+        '([?!])' + cqE + ',\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p4, (m, punct, verb) => {
+        changed = true;
+        return punct + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 5: Uppercase verb → lowercase
+    // "Text," Said → "Text," said
+    const p5 = new RegExp(
+        cqE + '\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p5, (m, verb) => {
+        const lower = verb.charAt(0).toLowerCase() + verb.slice(1);
+        if (lower !== verb) {
+            changed = true;
+            return cq + ' ' + lower;
+        }
+        return m;
+    });
+
+    // Pass 6: Interrupted speech — add comma before continuation opening quote
+    // said Noah "and... → said Noah, "and...
+    // But NOT if period precedes (new sentence: said Liam. "We...)
+    const p6 = new RegExp(
+        '(' + verbPattern + ')(\\s+[^' + oqE + cqE + ']*?)\\s+(' + oqE + ')',
+        'giu'
+    );
+    result = result.replace(p6, (m, verb, middle, nextOq) => {
+        const trimmed = middle.trimEnd();
+        if (trimmed.endsWith('.') || trimmed.endsWith(',')) return m;
+        changed = true;
+        return verb + trimmed + ', ' + nextOq;
+    });
+
+    return changed ? result : null;
+}
+
+function applyParagraphCorrection(paraEl, oldText, newText) {
+    // 1. Compute caret text offset before correction
+    const sel = window.getSelection();
+    let caretTextOffset = 0;
+    if (sel && sel.rangeCount > 0) {
+        const r = sel.getRangeAt(0);
+        const preRange = document.createRange();
+        preRange.selectNodeContents(paraEl);
+        preRange.setEnd(r.startContainer, r.startOffset);
+        caretTextOffset = preRange.toString().length;
+    }
+
+    // 2. Find diff boundaries
+    let diffStart = 0;
+    const minLen = Math.min(oldText.length, newText.length);
+    while (diffStart < minLen && oldText[diffStart] === newText[diffStart]) diffStart++;
+
+    let oldEnd = oldText.length;
+    let newEnd = newText.length;
+    while (oldEnd > diffStart && newEnd > diffStart &&
+           oldText[oldEnd - 1] === newText[newEnd - 1]) {
+        oldEnd--;
+        newEnd--;
+    }
+
+    // 3. Calculate adjusted caret position
+    const delta = (newEnd - diffStart) - (oldEnd - diffStart);
+    let newCaretOffset;
+    if (caretTextOffset <= diffStart) {
+        newCaretOffset = caretTextOffset;
+    } else if (caretTextOffset >= oldEnd) {
+        newCaretOffset = caretTextOffset + delta;
+    } else {
+        newCaretOffset = newEnd;
+    }
+
+    // 4. Apply change to DOM text nodes
+    replaceInTextNodes(paraEl, oldText, diffStart, oldEnd, newText.slice(diffStart, newEnd));
+
+    // 5. Restore caret at adjusted position
+    const finalLen = (paraEl.innerText || '').length;
+    restoreCaretInElement(paraEl, Math.max(0, Math.min(newCaretOffset, finalLen)));
+}
+
+function replaceInTextNodes(element, oldText, diffStart, diffEnd, replacement) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = [];
+    let total = 0;
+    let nd;
+    while ((nd = walker.nextNode())) {
+        nodes.push({ node: nd, start: total, end: total + nd.textContent.length });
+        total += nd.textContent.length;
+    }
+    if (total !== oldText.length) return;
+
+    const isInsertion = diffStart === diffEnd;
+    let applied = false;
+    for (let i = 0; i < nodes.length; i++) {
+        const { node: tn, start: ns, end: ne } = nodes[i];
+
+        // Check overlap with changed region
+        if (isInsertion) {
+            if (diffStart < ns || diffStart > ne) continue;
+        } else {
+            if (ne <= diffStart || ns >= diffEnd) continue;
+        }
+
+        const localStart = Math.max(0, diffStart - ns);
+        const localEnd = Math.min(tn.textContent.length, diffEnd - ns);
+
+        if (!applied) {
+            tn.textContent = tn.textContent.slice(0, localStart) + replacement + tn.textContent.slice(localEnd);
+            applied = true;
+        } else {
+            tn.textContent = tn.textContent.slice(0, localStart) + tn.textContent.slice(localEnd);
+        }
+    }
+}
+
+function restoreCaretInElement(element, textOffset) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+    let accumulated = 0;
+    let node;
+    while ((node = walker.nextNode())) {
+        const len = (node.textContent || '').length;
+        if (accumulated + len >= textOffset) {
+            const sel = window.getSelection();
+            const range = document.createRange();
+            range.setStart(node, textOffset - accumulated);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            return;
+        }
+        accumulated += len;
+    }
+}
+
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // ── Caret Position ──────────────────────────────────────────────
 
 function getCaretPosition() {
@@ -425,6 +746,15 @@ let contentChangeTimer = null;
 
 editor.addEventListener('input', () => {
     if (isSettingContent) return;
+
+    // Debounced dialogue correction — runs after typing pauses
+    if (dialogueCorrectionConfig) {
+        if (dialogueCorrectionTimer) clearTimeout(dialogueCorrectionTimer);
+        dialogueCorrectionTimer = setTimeout(() => {
+            dialogueCorrectionTimer = null;
+            tryDialogueCorrection();
+        }, 600);
+    }
 
     if (contentChangeTimer) clearTimeout(contentChangeTimer);
     contentChangeTimer = setTimeout(() => {
