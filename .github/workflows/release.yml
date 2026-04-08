@@ -168,7 +168,7 @@ jobs:
 
           # Ad-hoc sign the bundle so Gatekeeper evaluates a consistent app bundle.
           xattr -cr "${bundle_dir}"
-          find "${bundle_dir}" -type f \( -name '*.dylib' -o -perm -111 \) -print0 | while IFS= read -r -d '' file; do
+          find "${bundle_dir}" -type f \( -name '*.dylib' -o -name '*.dll' -o -perm -111 \) -print0 | while IFS= read -r -d '' file; do
             codesign --force --sign - --timestamp=none "${file}"
           done
           codesign --force --sign - --timestamp=none "${bundle_dir}"
