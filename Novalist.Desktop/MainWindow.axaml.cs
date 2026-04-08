@@ -103,6 +103,9 @@ public partial class MainWindow : Window
                     FocusOverlay("ProjectOverviewOverlay");
                 UpdateWebViewVisibility();
                 break;
+            case nameof(MainWindowViewModel.IsExtensionsOpen):
+                UpdateWebViewVisibility();
+                break;
             case nameof(MainWindowViewModel.ActiveSidebarTab):
                 UpdateSidebarVisibility(vm.ActiveSidebarTab);
                 break;
@@ -763,7 +766,8 @@ public partial class MainWindow : Window
         var anyOverlay = _isDialogOpen
                          || vm.IsStartMenuOpen
                          || vm.IsSettingsOpen
-                         || vm.IsProjectOverviewOpen;
+                         || vm.IsProjectOverviewOpen
+                         || vm.IsExtensionsOpen;
         this.FindControl<EditorView>("EditorPanel")?.SetWebViewVisible(!anyOverlay);
         this.FindControl<ManuscriptView>("ManuscriptPanel")?.SetWebViewVisible(!anyOverlay);
     }

@@ -172,8 +172,8 @@
                                                         Padding="6,2"
                                                         HorizontalAlignment="Left">
                                                     <StackPanel Orientation="Horizontal" Spacing="4">
-                                                        <PathIcon Data="{StaticResource IconSettings}" Width="12" Height="12" Foreground="{DynamicResource NormalText}" />
-                                                        <TextBlock Text="Settings" FontSize="11" />
+                                                        <PathIcon Data="{StaticResource IconSettings}" Width="12" Height="12" Foreground="{DynamicResource NormalText}" VerticalAlignment="Center" />
+                                                        <TextBlock Text="Settings" FontSize="11" VerticalAlignment="Center" />
                                                     </StackPanel>
                                                 </Button>
                                             </StackPanel>
