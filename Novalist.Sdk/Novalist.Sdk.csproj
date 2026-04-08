@@ -3,8 +3,18 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- NuGet package identity -->
     <PackageId>Novalist.Sdk</PackageId>
     <Description>SDK for building Novalist extensions</Description>
+    <Authors>Drommedhar</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Drommedhar/novalist-official</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Drommedhar/novalist-official</RepositoryUrl>
+    <PackageTags>novalist extensions sdk avalonia</PackageTags>
+
+    <!-- SDK version — managed by CI. Bumped automatically based on API changes. -->
+    <VersionPrefix>1.2.0</VersionPrefix>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.12" />
