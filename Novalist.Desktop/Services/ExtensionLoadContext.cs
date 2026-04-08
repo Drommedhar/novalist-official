@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -40,11 +41,16 @@ internal sealed class ExtensionLoadContext : AssemblyLoadContext
     {
         var name = assemblyName.Name ?? string.Empty;
 
-        // Never load host assemblies into this context — they must come from the default context
+        // Never load host assemblies into this context — they must come from the default context.
+        // Resolve by name only (ignoring version) so an extension built against e.g. Sdk 2.1.0
+        // works with a host that ships Sdk 2.1.1.
         foreach (var prefix in HostPrefixes)
         {
             if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                return null;
+            {
+                return Default.Assemblies.FirstOrDefault(a =>
+                    string.Equals(a.GetName().Name, assemblyName.Name, StringComparison.OrdinalIgnoreCase));
+            }
         }
 
         // Try the extension's own dependencies (via its .deps.json)

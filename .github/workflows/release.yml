@@ -268,7 +268,9 @@ jobs:
             echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
             echo "No previous tag found — treating SDK as changed."
           else
-            CHANGES=$(git diff --name-only "$PREV_TAG" HEAD -- Novalist.Sdk/)
+            # Exclude the csproj itself — its VersionPrefix is updated automatically
+            # by CI after each release, which would cause a false positive every time.
+            CHANGES=$(git diff --name-only "$PREV_TAG" HEAD -- Novalist.Sdk/ ':!Novalist.Sdk/Novalist.Sdk.csproj')
             if [ -n "$CHANGES" ]; then
               echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
               echo "SDK files changed since $PREV_TAG:"
