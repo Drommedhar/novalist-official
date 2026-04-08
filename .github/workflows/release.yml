@@ -331,14 +331,15 @@ jobs:
           CURRENT_DLL="Novalist.Sdk/bin/Release/net8.0/Novalist.Sdk.dll"
 
           # Pass 1: check for breaking changes (default mode)
-          if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" 2>&1; then
+          # --noWarn CP0003: ignore assembly version differences (version is set at pack time, not build time)
+          if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --noWarn CP0003 2>&1; then
             echo "bump_type=major" >> "$GITHUB_OUTPUT"
             echo "BREAKING changes detected → major bump"
             exit 0
           fi
 
           # Pass 2: check for any API additions (strict mode)
-          if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --strict-mode 2>&1; then
+          if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --strict-mode --noWarn CP0003 2>&1; then
             echo "bump_type=minor" >> "$GITHUB_OUTPUT"
             echo "Non-breaking additions detected → minor bump"
             exit 0
