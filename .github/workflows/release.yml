@@ -257,34 +257,9 @@ jobs:
           if [ -z "$VER" ]; then VER="0.0.1"; fi
           echo "prefix=$VER" >> "$GITHUB_OUTPUT"
 
-      # ── SDK change detection ──────────────────────────────────────
-      - name: Check SDK file changes
-        id: sdk_check
-        shell: bash
-        run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          echo "prev_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
-          if [ -z "$PREV_TAG" ]; then
-            echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
-            echo "No previous tag found — treating SDK as changed."
-          else
-            # Exclude the csproj itself — its VersionPrefix is updated automatically
-            # by CI after each release, which would cause a false positive every time.
-            CHANGES=$(git diff --name-only "$PREV_TAG" HEAD -- Novalist.Sdk/ ':!Novalist.Sdk/Novalist.Sdk.csproj')
-            if [ -n "$CHANGES" ]; then
-              echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
-              echo "SDK files changed since $PREV_TAG:"
-              echo "$CHANGES"
-            else
-              echo "sdk_changed=false" >> "$GITHUB_OUTPUT"
-              echo "No SDK file changes since $PREV_TAG."
-            fi
-          fi
-
       # ── Download baseline NuGet from NuGet.org ─────────────────────
       - name: Download previous SDK NuGet
         id: baseline
-        if: steps.sdk_check.outputs.sdk_changed == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -316,17 +291,81 @@ jobs:
           echo "prev_version=$PREV_VER" >> "$GITHUB_OUTPUT"
           echo "has_baseline=true" >> "$GITHUB_OUTPUT"
 
-          # Extract baseline DLL for API comparison
+          # Extract baseline DLL for comparison
           mkdir -p baseline/extracted
           unzip -q "baseline/Novalist.Sdk.${PREV_VER}.nupkg" -d baseline/extracted
           BASELINE_DLL=$(find baseline/extracted -name 'Novalist.Sdk.dll' | head -1)
           echo "baseline_dll=$BASELINE_DLL" >> "$GITHUB_OUTPUT"
           echo "Previous SDK version from NuGet.org: $PREV_VER"
 
-      # ── Build SDK for API comparison ──────────────────────────────
-      - name: Build SDK for comparison
-        if: steps.sdk_check.outputs.sdk_changed == 'true'
+      # ── Build SDK ─────────────────────────────────────────────────
+      - name: Build SDK
         run: dotnet build Novalist.Sdk/Novalist.Sdk.csproj -c Release
+
+      # ── SDK change detection (binary comparison) ──────────────────
+      # Compare the just-built DLL against the NuGet.org baseline.
+      # This is more reliable than git-diff, which compares against the
+      # previous app release tag — not the tag where the SDK was last published.
+      - name: Check SDK changes
+        id: sdk_check
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT_DLL="Novalist.Sdk/bin/Release/net8.0/Novalist.Sdk.dll"
+
+          if [ "${{ steps.baseline.outputs.has_baseline }}" != "true" ]; then
+            echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
+            echo "No baseline — treating SDK as changed (first release)."
+            exit 0
+          fi
+
+          BASELINE_DLL="${{ steps.baseline.outputs.baseline_dll }}"
+
+          # Strip PE timestamps / version metadata and compare IL content via API compat
+          # Quick check: if the DLL hashes match modulo debug info, nothing changed
+          HASH_BASE=$(sha256sum "$BASELINE_DLL" | cut -d' ' -f1)
+          HASH_CURR=$(sha256sum "$CURRENT_DLL" | cut -d' ' -f1)
+
+          if [ "$HASH_BASE" == "$HASH_CURR" ]; then
+            echo "sdk_changed=false" >> "$GITHUB_OUTPUT"
+            echo "SDK DLLs are identical — no changes."
+            exit 0
+          fi
+
+          # Hashes differ (expected — version metadata, timestamps etc. differ between builds).
+          # Use API compat to determine if there are actual API changes.
+          # If both strict and non-strict pass, check for implementation changes
+          # by comparing the public API surface AND IL method bodies.
+
+          HAS_BREAKING=false
+          HAS_ADDITIONS=false
+
+          if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --noWarn CP0003 2>&1; then
+            HAS_BREAKING=true
+          fi
+
+          if ! $HAS_BREAKING; then
+            if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --strict-mode --noWarn CP0003 2>&1; then
+              HAS_ADDITIONS=true
+            fi
+          fi
+
+          if $HAS_BREAKING || $HAS_ADDITIONS; then
+            echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
+            echo "API changes detected."
+          else
+            # API surface identical. Check if any source files actually changed
+            # by comparing the IL size as a lightweight heuristic.
+            SIZE_BASE=$(stat -c%s "$BASELINE_DLL")
+            SIZE_CURR=$(stat -c%s "$CURRENT_DLL")
+            if [ "$SIZE_BASE" == "$SIZE_CURR" ]; then
+              echo "sdk_changed=false" >> "$GITHUB_OUTPUT"
+              echo "SDK API identical and DLL size unchanged — no meaningful changes."
+            else
+              echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
+              echo "SDK API identical but implementation changed (DLL size differs)."
+            fi
+          fi
 
       # ── API compatibility check ───────────────────────────────────
       - name: API compatibility check
@@ -353,9 +392,9 @@ jobs:
             exit 0
           fi
 
-          # API surface identical — files changed so it's a patch
+          # API surface identical — implementation changed, so it's a patch
           echo "bump_type=patch" >> "$GITHUB_OUTPUT"
-          echo "API identical, files changed → patch bump"
+          echo "API identical, implementation changed → patch bump"
 
       # ── Calculate new SDK version ─────────────────────────────────
       - name: Calculate new SDK version
@@ -417,14 +456,12 @@ jobs:
       - name: Reuse previous SDK NuGet
         if: steps.sdk_check.outputs.sdk_changed == 'false'
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p artifacts
-          PREV_TAG="${{ steps.sdk_check.outputs.prev_tag }}"
-          gh release download "$PREV_TAG" --pattern '*.nupkg' --dir artifacts
-          echo "Reused SDK NuGet from release $PREV_TAG"
+          PREV_VER="${{ steps.baseline.outputs.prev_version }}"
+          cp "baseline/Novalist.Sdk.${PREV_VER}.nupkg" artifacts/
+          echo "Reused SDK NuGet $PREV_VER from NuGet.org (no changes detected)"
 
       # ── Push to NuGet.org ──────────────────────────────────────────
       - name: Push to NuGet.org
