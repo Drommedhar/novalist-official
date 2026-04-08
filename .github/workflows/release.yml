@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "*"
+  workflow_dispatch:
 
 env:
   APP_NAME: Novalist
@@ -17,6 +18,7 @@ env:
 jobs:
   publish:
     name: Publish ${{ matrix.label }}
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -36,6 +38,12 @@ jobs:
             publish_dir: novalist-macos-x64
             artifact_name: novalist-macos-x64-dmg
             package_name: novalist-macos-x64.dmg
+          - label: macOS ARM64
+            os: macos-latest
+            rid: osx-arm64
+            publish_dir: novalist-macos-arm64
+            artifact_name: novalist-macos-arm64-dmg
+            package_name: novalist-macos-arm64.dmg
           # - label: Linux x64
           #   os: ubuntu-latest
           #   rid: linux-x64
@@ -223,36 +231,228 @@ jobs:
     name: Pack SDK & Example Extension
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: true
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Restore local tools
+        run: dotnet tool restore
+
       - name: Derive version from tag
         id: version
         shell: bash
         run: |
           TAG="${GITHUB_REF_NAME}"
-          VER="$(printf '%s' "$TAG" | grep -oE '[0-9]+(\.[0-9]+)*')"
+          VER="$(printf '%s' "$TAG" | grep -oE '[0-9]+(\.[0-9]+)*' || true)"
           if [ -z "$VER" ]; then VER="0.0.1"; fi
           echo "prefix=$VER" >> "$GITHUB_OUTPUT"
 
+      # ── SDK change detection ──────────────────────────────────────
+      - name: Check SDK file changes
+        id: sdk_check
+        shell: bash
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "prev_tag=$PREV_TAG" >> "$GITHUB_OUTPUT"
+          if [ -z "$PREV_TAG" ]; then
+            echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
+            echo "No previous tag found — treating SDK as changed."
+          else
+            CHANGES=$(git diff --name-only "$PREV_TAG" HEAD -- Novalist.Sdk/)
+            if [ -n "$CHANGES" ]; then
+              echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
+              echo "SDK files changed since $PREV_TAG:"
+              echo "$CHANGES"
+            else
+              echo "sdk_changed=false" >> "$GITHUB_OUTPUT"
+              echo "No SDK file changes since $PREV_TAG."
+            fi
+          fi
+
+      # ── Download baseline NuGet from NuGet.org ─────────────────────
+      - name: Download previous SDK NuGet
+        id: baseline
+        if: steps.sdk_check.outputs.sdk_changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p baseline
+
+          # Query NuGet.org for the latest published version
+          INDEX_URL="https://api.nuget.org/v3-flatcontainer/novalist.sdk/index.json"
+          VERSIONS_JSON=$(curl -sf "$INDEX_URL" || echo "")
+
+          if [ -z "$VERSIONS_JSON" ]; then
+            echo "has_baseline=false" >> "$GITHUB_OUTPUT"
+            echo "Package not yet published on NuGet.org — first release."
+            exit 0
+          fi
+
+          # Get the latest version (last entry in the versions array)
+          PREV_VER=$(echo "$VERSIONS_JSON" | python3 -c "import sys,json; v=json.load(sys.stdin).get('versions',[]); print(v[-1] if v else '')")
+
+          if [ -z "$PREV_VER" ]; then
+            echo "has_baseline=false" >> "$GITHUB_OUTPUT"
+            echo "No versions found on NuGet.org."
+            exit 0
+          fi
+
+          # Download the nupkg directly from NuGet.org flat container
+          NUPKG_URL="https://api.nuget.org/v3-flatcontainer/novalist.sdk/${PREV_VER}/novalist.sdk.${PREV_VER}.nupkg"
+          curl -sfL "$NUPKG_URL" -o "baseline/Novalist.Sdk.${PREV_VER}.nupkg"
+
+          echo "prev_version=$PREV_VER" >> "$GITHUB_OUTPUT"
+          echo "has_baseline=true" >> "$GITHUB_OUTPUT"
+
+          # Extract baseline DLL for API comparison
+          mkdir -p baseline/extracted
+          unzip -q "baseline/Novalist.Sdk.${PREV_VER}.nupkg" -d baseline/extracted
+          BASELINE_DLL=$(find baseline/extracted -name 'Novalist.Sdk.dll' | head -1)
+          echo "baseline_dll=$BASELINE_DLL" >> "$GITHUB_OUTPUT"
+          echo "Previous SDK version from NuGet.org: $PREV_VER"
+
+      # ── Build SDK for API comparison ──────────────────────────────
+      - name: Build SDK for comparison
+        if: steps.sdk_check.outputs.sdk_changed == 'true'
+        run: dotnet build Novalist.Sdk/Novalist.Sdk.csproj -c Release
+
+      # ── API compatibility check ───────────────────────────────────
+      - name: API compatibility check
+        id: apicompat
+        if: steps.sdk_check.outputs.sdk_changed == 'true' && steps.baseline.outputs.has_baseline == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASELINE_DLL="${{ steps.baseline.outputs.baseline_dll }}"
+          CURRENT_DLL="Novalist.Sdk/bin/Release/net8.0/Novalist.Sdk.dll"
+
+          # Pass 1: check for breaking changes (default mode)
+          # --noWarn CP0003: ignore assembly version differences (version is set at pack time, not build time)
+          if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --noWarn CP0003 2>&1; then
+            echo "bump_type=major" >> "$GITHUB_OUTPUT"
+            echo "BREAKING changes detected → major bump"
+            exit 0
+          fi
+
+          # Pass 2: check for any API additions (strict mode)
+          if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --strict-mode --noWarn CP0003 2>&1; then
+            echo "bump_type=minor" >> "$GITHUB_OUTPUT"
+            echo "Non-breaking additions detected → minor bump"
+            exit 0
+          fi
+
+          # API surface identical — files changed so it's a patch
+          echo "bump_type=patch" >> "$GITHUB_OUTPUT"
+          echo "API identical, files changed → patch bump"
+
+      # ── Calculate new SDK version ─────────────────────────────────
+      - name: Calculate new SDK version
+        id: calc_version
+        if: steps.sdk_check.outputs.sdk_changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${{ steps.baseline.outputs.has_baseline }}" == "true" ]; then
+            PREV="${{ steps.baseline.outputs.prev_version }}"
+            BUMP="${{ steps.apicompat.outputs.bump_type }}"
+          else
+            # No baseline (first release with this system) — use csproj version
+            PREV=$(grep '<VersionPrefix>' Novalist.Sdk/Novalist.Sdk.csproj | sed 's/.*<VersionPrefix>\(.*\)<\/VersionPrefix>.*/\1/')
+            # First release: use as-is
+            echo "new_sdk_version=$PREV" >> "$GITHUB_OUTPUT"
+            echo "First SDK release: $PREV"
+            exit 0
+          fi
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$PREV"
+          PATCH=${PATCH:-0}
+
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+
+          NEW_VER="${MAJOR}.${MINOR}.${PATCH}"
+
+          # Respect manual override: if csproj version is higher, use it
+          CSPROJ_VER=$(grep '<VersionPrefix>' Novalist.Sdk/Novalist.Sdk.csproj | sed 's/.*<VersionPrefix>\(.*\)<\/VersionPrefix>.*/\1/')
+          IFS='.' read -r CM Cm Cp <<< "$CSPROJ_VER"
+          Cp=${Cp:-0}
+          # Compare: csproj > calculated?
+          if [ "$CM" -gt "$MAJOR" ] || \
+             ([ "$CM" -eq "$MAJOR" ] && [ "$Cm" -gt "$MINOR" ]) || \
+             ([ "$CM" -eq "$MAJOR" ] && [ "$Cm" -eq "$MINOR" ] && [ "$Cp" -gt "$PATCH" ]); then
+            NEW_VER="$CSPROJ_VER"
+            echo "Manual override: csproj version $CSPROJ_VER is higher than calculated $MAJOR.$MINOR.$PATCH"
+          fi
+
+          echo "new_sdk_version=$NEW_VER" >> "$GITHUB_OUTPUT"
+          echo "SDK version: $PREV → $NEW_VER ($BUMP)"
+
+      # ── Pack SDK NuGet ────────────────────────────────────────────
       - name: Pack SDK NuGet
+        if: steps.sdk_check.outputs.sdk_changed == 'true'
         run: >-
           dotnet pack Novalist.Sdk/Novalist.Sdk.csproj
           -c Release
-          -p:VersionPrefix=${{ steps.version.outputs.prefix }}
+          -p:VersionPrefix=${{ steps.calc_version.outputs.new_sdk_version }}
           -p:VersionSuffix=
           -o artifacts
 
+      # ── Reuse previous SDK NuGet when unchanged ───────────────────
+      - name: Reuse previous SDK NuGet
+        if: steps.sdk_check.outputs.sdk_changed == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts
+          PREV_TAG="${{ steps.sdk_check.outputs.prev_tag }}"
+          gh release download "$PREV_TAG" --pattern '*.nupkg' --dir artifacts
+          echo "Reused SDK NuGet from release $PREV_TAG"
+
+      # ── Push to NuGet.org ──────────────────────────────────────────
+      - name: Push to NuGet.org
+        if: steps.sdk_check.outputs.sdk_changed == 'true'
+        run: >-
+          dotnet nuget push artifacts/*.nupkg
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      # ── Update SDK version in csproj ──────────────────────────────
+      - name: Update SDK csproj version
+        if: steps.sdk_check.outputs.sdk_changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          NEW_VER="${{ steps.calc_version.outputs.new_sdk_version }}"
+          sed -i "s|<VersionPrefix>.*</VersionPrefix>|<VersionPrefix>${NEW_VER}</VersionPrefix>|" Novalist.Sdk/Novalist.Sdk.csproj
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Novalist.Sdk/Novalist.Sdk.csproj
+          if git diff --cached --quiet; then
+            echo "No version change to commit."
+          else
+            DEFAULT_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
+            git commit -m "chore(sdk): bump SDK version to ${NEW_VER} [skip ci]"
+            git push origin HEAD:"${DEFAULT_BRANCH}"
+          fi
+
+      # ── Build & package Example Extension ─────────────────────────
       - name: Build Example Extension
         run: >-
           dotnet build Novalist.Sdk.Example/Novalist.Sdk.Example.csproj
@@ -292,6 +492,7 @@ jobs:
 
   release:
     name: Create release
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     needs: [publish, sdk-and-example]
     permissions:
