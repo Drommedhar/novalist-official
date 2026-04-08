@@ -302,11 +302,10 @@ jobs:
       - name: Build SDK
         run: dotnet build Novalist.Sdk/Novalist.Sdk.csproj -c Release
 
-      # ── SDK change detection (binary comparison) ──────────────────
-      # Compare the just-built DLL against the NuGet.org baseline.
-      # This is more reliable than git-diff, which compares against the
-      # previous app release tag — not the tag where the SDK was last published.
-      - name: Check SDK changes
+      # ── SDK change detection (API comparison) ─────────────────────
+      # Only publish a new SDK NuGet when the public API surface changes.
+      # Implementation-only changes ship via the host app, not the NuGet.
+      - name: Check SDK API changes
         id: sdk_check
         shell: bash
         run: |
@@ -315,86 +314,32 @@ jobs:
 
           if [ "${{ steps.baseline.outputs.has_baseline }}" != "true" ]; then
             echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
+            echo "bump_type=patch" >> "$GITHUB_OUTPUT"
             echo "No baseline — treating SDK as changed (first release)."
             exit 0
           fi
 
           BASELINE_DLL="${{ steps.baseline.outputs.baseline_dll }}"
 
-          # Strip PE timestamps / version metadata and compare IL content via API compat
-          # Quick check: if the DLL hashes match modulo debug info, nothing changed
-          HASH_BASE=$(sha256sum "$BASELINE_DLL" | cut -d' ' -f1)
-          HASH_CURR=$(sha256sum "$CURRENT_DLL" | cut -d' ' -f1)
-
-          if [ "$HASH_BASE" == "$HASH_CURR" ]; then
-            echo "sdk_changed=false" >> "$GITHUB_OUTPUT"
-            echo "SDK DLLs are identical — no changes."
-            exit 0
-          fi
-
-          # Hashes differ (expected — version metadata, timestamps etc. differ between builds).
-          # Use API compat to determine if there are actual API changes.
-          # If both strict and non-strict pass, check for implementation changes
-          # by comparing the public API surface AND IL method bodies.
-
-          HAS_BREAKING=false
-          HAS_ADDITIONS=false
-
+          # Pass 1: check for breaking changes
           if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --noWarn CP0003 2>&1; then
-            HAS_BREAKING=true
-          fi
-
-          if ! $HAS_BREAKING; then
-            if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --strict-mode --noWarn CP0003 2>&1; then
-              HAS_ADDITIONS=true
-            fi
-          fi
-
-          if $HAS_BREAKING || $HAS_ADDITIONS; then
             echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
-            echo "API changes detected."
-          else
-            # API surface identical. Check if any source files actually changed
-            # by comparing the IL size as a lightweight heuristic.
-            SIZE_BASE=$(stat -c%s "$BASELINE_DLL")
-            SIZE_CURR=$(stat -c%s "$CURRENT_DLL")
-            if [ "$SIZE_BASE" == "$SIZE_CURR" ]; then
-              echo "sdk_changed=false" >> "$GITHUB_OUTPUT"
-              echo "SDK API identical and DLL size unchanged — no meaningful changes."
-            else
-              echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
-              echo "SDK API identical but implementation changed (DLL size differs)."
-            fi
-          fi
-
-      # ── API compatibility check ───────────────────────────────────
-      - name: API compatibility check
-        id: apicompat
-        if: steps.sdk_check.outputs.sdk_changed == 'true' && steps.baseline.outputs.has_baseline == 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          BASELINE_DLL="${{ steps.baseline.outputs.baseline_dll }}"
-          CURRENT_DLL="Novalist.Sdk/bin/Release/net8.0/Novalist.Sdk.dll"
-
-          # Pass 1: check for breaking changes (default mode)
-          # --noWarn CP0003: ignore assembly version differences (version is set at pack time, not build time)
-          if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --noWarn CP0003 2>&1; then
             echo "bump_type=major" >> "$GITHUB_OUTPUT"
             echo "BREAKING changes detected → major bump"
             exit 0
           fi
 
-          # Pass 2: check for any API additions (strict mode)
+          # Pass 2: check for API additions (strict mode)
           if ! dotnet tool run apicompat -- -l "$BASELINE_DLL" -r "$CURRENT_DLL" --strict-mode --noWarn CP0003 2>&1; then
+            echo "sdk_changed=true" >> "$GITHUB_OUTPUT"
             echo "bump_type=minor" >> "$GITHUB_OUTPUT"
             echo "Non-breaking additions detected → minor bump"
             exit 0
           fi
 
-          # API surface identical — implementation changed, so it's a patch
-          echo "bump_type=patch" >> "$GITHUB_OUTPUT"
-          echo "API identical, implementation changed → patch bump"
+          # API surface identical — no new NuGet needed
+          echo "sdk_changed=false" >> "$GITHUB_OUTPUT"
+          echo "SDK public API unchanged — skipping NuGet publish."
 
       # ── Calculate new SDK version ─────────────────────────────────
       - name: Calculate new SDK version
@@ -406,7 +351,7 @@ jobs:
 
           if [ "${{ steps.baseline.outputs.has_baseline }}" == "true" ]; then
             PREV="${{ steps.baseline.outputs.prev_version }}"
-            BUMP="${{ steps.apicompat.outputs.bump_type }}"
+            BUMP="${{ steps.sdk_check.outputs.bump_type }}"
           else
             # No baseline (first release with this system) — use csproj version
             PREV=$(grep '<VersionPrefix>' Novalist.Sdk/Novalist.Sdk.csproj | sed 's/.*<VersionPrefix>\(.*\)<\/VersionPrefix>.*/\1/')
