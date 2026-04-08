@@ -44,12 +44,13 @@
     <AvaloniaResource Include="splash.png" />
   </ItemGroup>
 
-  <!-- Exclude WebView assemblies from single-file bundling.
+  <!-- Exclude WebView assemblies from single-file bundling on Windows only.
        WebView2's native loader cannot resolve its managed peers
-       when they are embedded inside a single-file host. -->
+       when they are embedded inside a single-file host.
+       macOS uses WebKit and does not have this issue. -->
   <Target Name="ExcludeWebViewFromSingleFile"
           AfterTargets="ComputeResolvedFilesToPublishList"
-          Condition="'$(PublishSingleFile)' == 'true'">
+          Condition="'$(PublishSingleFile)' == 'true' AND '$(RuntimeIdentifier)' != '' AND $([System.String]::Copy('$(RuntimeIdentifier)').StartsWith('win'))">
     <ItemGroup>
       <ResolvedFileToPublish Update="@(ResolvedFileToPublish)"
           Condition="'%(Filename)%(Extension)' == 'Microsoft.Web.WebView2.Core.dll' OR
