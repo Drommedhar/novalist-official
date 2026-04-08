@@ -3,9 +3,9 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Novalist.Core.Models;
+using Novalist.Sdk.Models;
 
-namespace Novalist.Core.Services;
+namespace Novalist.Sdk.Services;
 
 public class AiService : IAiService
 {

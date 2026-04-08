@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Novalist.Sdk.Models;
 
 namespace Novalist.Core.Models;
 

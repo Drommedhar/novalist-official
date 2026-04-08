@@ -2,7 +2,6 @@
   <Project Path="Novalist.Core/Novalist.Core.csproj" />
   <Project Path="Novalist.Sdk/Novalist.Sdk.csproj" />
   <Project Path="Novalist.Desktop/Novalist.Desktop.csproj" />
-  <Project Path="Novalist.Extensions.AiAssistant/Novalist.Extensions.AiAssistant.csproj" />
   <Project Path="Novalist.Sdk.Example/Novalist.Sdk.Example.csproj" />
   <Project Path="LiquidGlassAvaloniaUI/LiquidGlassAvaloniaUI/LiquidGlassAvaloniaUI.csproj" />
 </Solution>

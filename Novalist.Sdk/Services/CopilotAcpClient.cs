@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
-namespace Novalist.Core.Services;
+namespace Novalist.Sdk.Services;
 
 /// <summary>
 /// Client for the GitHub Copilot CLI using the Agent Client Protocol (ACP)

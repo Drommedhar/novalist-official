@@ -29,10 +29,6 @@
     <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" />
     <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
     <ProjectReference Include="..\LiquidGlassAvaloniaUI\LiquidGlassAvaloniaUI\LiquidGlassAvaloniaUI.csproj" />
-    <!-- Build-only dependency: ensures the bundled AI extension is built and deployed -->
-    <ProjectReference Include="..\Novalist.Extensions.AiAssistant\Novalist.Extensions.AiAssistant.csproj"
-                      ReferenceOutputAssembly="false"
-                      Private="false" />
   </ItemGroup>
 
   <ItemGroup>

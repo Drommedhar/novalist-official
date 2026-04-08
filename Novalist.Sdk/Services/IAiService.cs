@@ -1,6 +1,6 @@
-using Novalist.Core.Models;
+using Novalist.Sdk.Models;
 
-namespace Novalist.Core.Services;
+namespace Novalist.Sdk.Services;
 
 public interface IAiService
 {

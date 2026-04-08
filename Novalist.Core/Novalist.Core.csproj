@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Markdig" Version="0.40.0" />
     <PackageReference Include="PdfSharpCore" Version="1.3.65" />
   </ItemGroup>

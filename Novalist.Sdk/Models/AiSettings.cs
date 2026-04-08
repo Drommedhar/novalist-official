@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Novalist.Core.Models;
+namespace Novalist.Sdk.Models;
 
 public class AiSettings
 {
