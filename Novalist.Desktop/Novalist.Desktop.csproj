@@ -43,4 +43,28 @@
   <ItemGroup>
     <AvaloniaResource Include="splash.png" />
   </ItemGroup>
+
+  <!-- Exclude WebView assemblies from single-file bundling.
+       WebView2's native loader cannot resolve its managed peers
+       when they are embedded inside a single-file host. -->
+  <Target Name="ExcludeWebViewFromSingleFile"
+          AfterTargets="ComputeResolvedFilesToPublishList"
+          Condition="'$(PublishSingleFile)' == 'true'">
+    <ItemGroup>
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)"
+          Condition="'%(Filename)%(Extension)' == 'Microsoft.Web.WebView2.Core.dll' OR
+                     '%(Filename)%(Extension)' == 'WebView.Core.dll' OR
+                     '%(Filename)%(Extension)' == 'Avalonia.WebView.dll' OR
+                     '%(Filename)%(Extension)' == 'Avalonia.WebView.Desktop.dll' OR
+                     '%(Filename)%(Extension)' == 'Avalonia.WebView.Linux.dll' OR
+                     '%(Filename)%(Extension)' == 'AvaloniaWebView.Shared.dll' OR
+                     '%(Filename)%(Extension)' == 'Custom.Avalonia.WebView.Windows.dll' OR
+                     '%(Filename)%(Extension)' == 'Custom.Avalonia.WebView.MacCatalyst.dll' OR
+                     '%(Filename)%(Extension)' == 'Custom.WebView.Avalonia.dll' OR
+                     '%(Filename)%(Extension)' == 'Custom.WebView.Avalonia.Desktop.dll' OR
+                     '%(Filename)%(Extension)' == 'Linux.WebView.Core.dll'">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
 </Project>
