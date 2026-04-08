@@ -237,6 +237,34 @@ public sealed class ExtensionManager
     }
 
     /// <summary>
+    /// Discovers a newly installed extension by ID, adds it to the Extensions list,
+    /// enables it, and loads + initializes it.
+    /// </summary>
+    public async Task DiscoverAndEnableAsync(string extensionId)
+    {
+        // Don't duplicate if already known
+        if (Extensions.Any(e => string.Equals(e.Manifest.Id, extensionId, StringComparison.OrdinalIgnoreCase)))
+            return;
+
+        var discovered = _loader.DiscoverExtensions();
+        var info = discovered.FirstOrDefault(e =>
+            string.Equals(e.Manifest.Id, extensionId, StringComparison.OrdinalIgnoreCase));
+
+        if (info == null) return;
+
+        info.IsEnabled = true;
+        _settingsService.Settings.Extensions[extensionId] = true;
+        await _settingsService.SaveAsync();
+
+        Extensions.Add(info);
+
+        if (_loader.LoadExtension(info))
+        {
+            InitializeExtension(info);
+        }
+    }
+
+    /// <summary>
     /// Enables an extension and persists the state.
     /// Requires app restart to take effect.
     /// </summary>
@@ -273,6 +301,9 @@ public sealed class ExtensionManager
         {
             RemoveHooks(info);
             try { info.Instance?.Shutdown(); } catch { /* swallow */ }
+            info.Instance = null;
+            info.LoadContext?.Unload();
+            info.LoadContext = null;
             info.IsLoaded = false;
         }
     }
@@ -290,6 +321,9 @@ public sealed class ExtensionManager
                 info.Instance?.Shutdown();
             }
             catch { /* swallow — never let an extension crash shutdown */ }
+            info.Instance = null;
+            info.LoadContext?.Unload();
+            info.LoadContext = null;
             info.IsLoaded = false;
         }
     }

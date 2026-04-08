@@ -190,7 +190,11 @@
     "aiSystemPromptPlaceholder": "Leave empty for default prompt...",
     "aiResetPrompt": "Reset",
     "hotkeys": "KEYBOARD SHORTCUTS",
-    "general": "GENERAL"
+    "general": "GENERAL",
+    "checkForExtensionUpdates": "Check for extension updates",
+    "checkForExtensionUpdatesDesc": "Automatically check for extension updates on startup",
+    "githubToken": "GitHub Personal Access Token",
+    "githubTokenDesc": "Optional token to increase API rate limits when browsing or updating extensions (60/hr → 5000/hr)"
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -774,7 +778,25 @@
     "loadError": "Failed to load",
     "version": "Version",
     "author": "By",
-    "restart": "Restart required"
+    "restart": "Restart required",
+    "tabInstalled": "Installed",
+    "tabBrowse": "Browse Store",
+    "store": {
+      "search": "Search extensions…",
+      "loading": "Loading extensions…",
+      "empty": "No extensions available in the gallery yet.",
+      "retry": "Retry",
+      "install": "Install",
+      "uninstall": "Uninstall",
+      "installing": "Installing…",
+      "releaseNotes": "Release Notes",
+      "incompatible": "Incompatible with your Novalist version",
+      "updateAvailable": "{0} update(s) available",
+      "update": "Update",
+      "updating": "Updating…",
+      "updateAvailableSingle": "1 extension update available",
+      "updateAvailableMulti": "{0} extension updates available"
+    }
   },
   "codexHub": {
     "title": "Codex Hub",

@@ -122,7 +122,9 @@ public partial class SettingsViewModel : ObservableObject
         IsHotkeysSectionVisible = MatchesSection(q, "hotkey", "keyboard", "shortcut", "key", "binding",
             Loc.T("settings.hotkeys"));
         IsGeneralSectionVisible = MatchesSection(q, "general", "update", "aktualisierung",
-            Loc.T("update.checkForUpdates"), Loc.T("update.checkForUpdatesDesc"));
+            "extension", "github", "token", "pat",
+            Loc.T("update.checkForUpdates"), Loc.T("update.checkForUpdatesDesc"),
+            Loc.T("settings.checkForExtensionUpdates"), Loc.T("settings.githubToken"));
     }
 
     private static bool MatchesSection(string query, params string[] terms)
@@ -205,6 +207,8 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<TemplateListItem> _loreTemplates = [];
 
     [ObservableProperty] private bool _checkForUpdates;
+    [ObservableProperty] private bool _checkForExtensionUpdates;
+    [ObservableProperty] private string _githubToken = string.Empty;
 
     public Func<TemplateEditorViewModel, Task<bool>>? ShowTemplateEditor { get; set; }
 
@@ -247,6 +251,8 @@ public partial class SettingsViewModel : ObservableObject
         LoadTemplates();
 
         _checkForUpdates = Settings.CheckForUpdates;
+        _checkForExtensionUpdates = Settings.CheckForExtensionUpdates;
+        _githubToken = Settings.GitHubToken ?? string.Empty;
 
         _selectedCategory = Categories[0];
     }
@@ -254,6 +260,18 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnCheckForUpdatesChanged(bool value)
     {
         Settings.CheckForUpdates = value;
+        SaveAndNotify();
+    }
+
+    partial void OnCheckForExtensionUpdatesChanged(bool value)
+    {
+        Settings.CheckForExtensionUpdates = value;
+        SaveAndNotify();
+    }
+
+    partial void OnGithubTokenChanged(string value)
+    {
+        Settings.GitHubToken = string.IsNullOrWhiteSpace(value) ? null : value;
         SaveAndNotify();
     }
 

@@ -90,6 +90,16 @@ public class AppSettings
     [JsonPropertyName("checkForUpdates")]
     public bool CheckForUpdates { get; set; } = true;
 
+    [JsonPropertyName("checkForExtensionUpdates")]
+    public bool CheckForExtensionUpdates { get; set; } = true;
+
+    /// <summary>
+    /// Optional GitHub personal access token for extension gallery API requests.
+    /// Increases the rate limit from 60 to 5000 requests/hour.
+    /// </summary>
+    [JsonPropertyName("githubToken")]
+    public string? GitHubToken { get; set; }
+
     /// <summary>
     /// Ensures auto-replacements are populated from the language preset if empty.
     /// Call after deserialization.

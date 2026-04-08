@@ -498,3 +498,71 @@ Browse the source at `Novalist.Sdk.Example/` for a full working reference.
 5. **Compiled bindings** — If using `AvaloniaUseCompiledBindingsByDefault`, ensure all `DataTemplate` elements have `x:DataType` attributes.
 6. **Shared context** — Extensions run in the same process as the host. Unhandled exceptions in your extension can crash the app. Wrap risky operations in try-catch blocks.
 7. **Hot reload** — Disable and re-enable an extension from the Extensions panel to reload it without restarting the app.
+
+---
+
+## Publishing to the Extension Store
+
+Novalist has a built-in extension store that lets users browse, install, and update extensions directly from the app. The store is backed by the [novalist-extension-gallery](https://github.com/Drommedhar/novalist-extension-gallery) GitHub repository.
+
+### 1. Prepare your repository
+
+Your extension must live in a public GitHub repository. The repo structure should be a standard .NET project that produces a single output folder.
+
+### 2. Create a release
+
+1. Build your extension in Release mode.
+2. Package all output files into a ZIP named `{your-extension-id}.zip` (e.g., `com.example.myextension.zip`).
+3. The ZIP must contain files at the root level (no nested folder wrapper):
+   ```
+   com.example.myextension.zip
+   ├── extension.json
+   ├── MyExtension.dll
+   ├── Locales/          (optional)
+   └── Themes/           (optional)
+   ```
+4. Create a GitHub release with a semantic version tag: `v1.0.0`, `v1.2.3`, etc.
+5. Attach the ZIP file as a release asset.
+
+### 3. Configure your manifest
+
+Your `extension.json` should include these fields for the store:
+
+```jsonc
+{
+  "id": "com.example.myextension",
+  "name": "My Extension",
+  "description": "A useful writing tool.",
+  "version": "1.0.0",
+  "author": "Your Name",
+  "entryAssembly": "MyExtension.dll",
+  "minHostVersion": "0.5.0",
+  "maxHostVersion": "",
+  "tags": ["productivity", "writing"],
+  "icon": "https://raw.githubusercontent.com/you/your-repo/main/icon.png"
+}
+```
+
+- `minHostVersion` / `maxHostVersion` control compatibility — the store only offers releases compatible with the user's Novalist version.
+- `icon` is optional — a URL to a square image (PNG recommended, 128×128 or larger). Displayed in the store browse list.
+- `tags` help users find your extension via search.
+
+### 4. Submit to the gallery
+
+1. Fork the [novalist-extension-gallery](https://github.com/Drommedhar/novalist-extension-gallery) repository.
+2. Add your extension entry to `gallery.json`:
+   ```json
+   {
+     "id": "com.example.myextension",
+     "name": "My Extension",
+     "description": "A useful writing tool.",
+     "author": "Your Name",
+     "repo": "you/your-repo",
+     "tags": ["productivity", "writing"]
+   }
+   ```
+3. Open a pull request. The entry will be reviewed before merging.
+
+### 5. Publishing updates
+
+Once listed, simply create new GitHub releases on your repo with incremented version tags. The store automatically picks up new releases — no gallery PR needed for updates. You can also update your `icon` URL in `extension.json` without a gallery change.

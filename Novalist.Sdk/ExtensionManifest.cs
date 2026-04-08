@@ -36,4 +36,11 @@ public sealed class ExtensionManifest
 
     [JsonPropertyName("tags")]
     public List<string> Tags { get; set; } = [];
+
+    /// <summary>
+    /// Optional URL to an icon image (PNG recommended, 128×128 or larger).
+    /// A placeholder is shown when not set.
+    /// </summary>
+    [JsonPropertyName("icon")]
+    public string? Icon { get; set; }
 }

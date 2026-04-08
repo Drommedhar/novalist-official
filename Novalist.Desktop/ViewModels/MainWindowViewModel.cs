@@ -307,10 +307,10 @@ public partial class MainWindowViewModel : ObservableObject
     /// <summary>
     /// Called by App after extensions are discovered, loaded, and initialized.
     /// </summary>
-    public void OnExtensionsLoaded(ExtensionManager manager)
+    public void OnExtensionsLoaded(ExtensionManager manager, Core.Services.IExtensionGalleryService? galleryService = null)
     {
         ExtensionManager = manager;
-        Extensions = new ExtensionsViewModel(manager);
+        Extensions = new ExtensionsViewModel(manager, galleryService);
 
         // Build ribbon groups from contributed items
         RebuildExtensionRibbonGroups(manager);
@@ -428,7 +428,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    private async void ShowExtensionNotification(string message)
+    public async void ShowExtensionNotification(string message)
     {
         _notificationCts?.Cancel();
         _notificationCts = new CancellationTokenSource();

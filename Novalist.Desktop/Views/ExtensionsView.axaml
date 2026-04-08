@@ -11,15 +11,13 @@
              x:DataType="svc:ExtensionsViewModel">
     <Border Background="#C0000000" x:Name="Backdrop" PointerPressed="OnBackdropPressed">
         <glass:LiquidGlassSurface CornerRadius="12" PointerPressed="OnPanelPressed"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch"
                                    Margin="40"
-                                   MinWidth="540"
-                                   MaxWidth="700"
-                                   MaxHeight="600">
+                                   MaxWidth="1000">
             <DockPanel Margin="24">
                 <!-- Header -->
-                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,16">
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,12">
                     <TextBlock Text="{loc:Loc extensions.title}"
                                FontSize="20" FontWeight="SemiBold"
                                VerticalAlignment="Center" />
@@ -38,14 +36,45 @@
                     </StackPanel>
                 </DockPanel>
 
-                <!-- Extension List -->
-                <ScrollViewer>
-                    <StackPanel Spacing="8">
+                <!-- Tab buttons -->
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="0,0,0,12">
+                    <Button Classes="ribbonButtonSmall"
+                            FontWeight="{Binding SelectedTab, Converter={x:Static svc:TabFontWeightConverter.Instance}, ConverterParameter=0}"
+                            Command="{Binding SelectTabCommand}"
+                            CommandParameter="0"
+                            Padding="12,6">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <TextBlock Text="{loc:Loc extensions.tabInstalled}" VerticalAlignment="Center" />
+                            <Border IsVisible="{Binding UpdateCount}"
+                                    Background="#3388FF"
+                                    CornerRadius="8"
+                                    Padding="5,1"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="{Binding UpdateCount}"
+                                           FontSize="10"
+                                           Foreground="White"
+                                           FontWeight="Bold" />
+                            </Border>
+                        </StackPanel>
+                    </Button>
+                    <Button Content="{loc:Loc extensions.tabBrowse}"
+                            Classes="ribbonButtonSmall"
+                            FontWeight="{Binding SelectedTab, Converter={x:Static svc:TabFontWeightConverter.Instance}, ConverterParameter=1}"
+                            Command="{Binding SelectTabCommand}"
+                            CommandParameter="1"
+                            Padding="12,6" />
+                </StackPanel>
+
+                <!-- ═══ Tab 0: Installed ═══ -->
+                <ScrollViewer IsVisible="{Binding SelectedTab, Converter={x:Static svc:TabVisibilityConverter.Instance}, ConverterParameter=0}"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <DockPanel>
                         <!-- No extensions message -->
                         <TextBlock Text="{loc:Loc extensions.noExtensions}"
                                    Opacity="0.5"
                                    HorizontalAlignment="Center"
                                    Margin="0,40"
+                                   DockPanel.Dock="Top"
                                    IsVisible="{Binding !HasExtensions}" />
 
                         <ItemsControl ItemsSource="{Binding Items}">
@@ -54,15 +83,16 @@
                                     <Border Background="{DynamicResource EditorBackground}"
                                             CornerRadius="6"
                                             Padding="16,12"
-                                            Margin="0,2">
+                                            Margin="0,2"
+                                            HorizontalAlignment="Stretch">
                                         <DockPanel>
                                             <!-- Enable/Disable toggle -->
                                             <ToggleSwitch DockPanel.Dock="Right"
                                                           IsChecked="{Binding IsEnabled}"
-                                                          VerticalAlignment="Top"
-                                                          Margin="12,0,0,0"
                                                           OffContent=""
-                                                          OnContent="" />
+                                                          OnContent=""
+                                                          VerticalAlignment="Top"
+                                                          Margin="12,0,0,0" />
 
                                             <StackPanel Spacing="4">
                                                 <!-- Name + Version -->
@@ -91,6 +121,36 @@
                                                            Opacity="0.7"
                                                            FontSize="12"
                                                            Margin="0,2,0,0" />
+
+                                                <!-- Update / Restart row -->
+                                                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0"
+                                                            IsVisible="{Binding HasUpdate}">
+                                                    <Button Command="{Binding UpdateExtensionCommand}"
+                                                            Classes="ribbonButtonSmall"
+                                                            Padding="8,4">
+                                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                                            <TextBlock Text="⬆" FontSize="11" VerticalAlignment="Center" />
+                                                            <TextBlock FontSize="11" VerticalAlignment="Center">
+                                                                <Run Text="{loc:Loc extensions.store.update}" />
+                                                                <Run Text=" v" /><Run Text="{Binding AvailableVersion}" />
+                                                            </TextBlock>
+                                                        </StackPanel>
+                                                    </Button>
+                                                </StackPanel>
+
+                                                <!-- Updating indicator -->
+                                                <TextBlock IsVisible="{Binding IsUpdating}"
+                                                           Text="{loc:Loc extensions.store.updating}"
+                                                           FontSize="11"
+                                                           Opacity="0.7"
+                                                           Margin="0,4,0,0" />
+
+                                                <!-- Restart required -->
+                                                <TextBlock IsVisible="{Binding NeedsRestart}"
+                                                           Text="{loc:Loc extensions.restart}"
+                                                           FontSize="11"
+                                                           Foreground="#FFB74D"
+                                                           Margin="0,4,0,0" />
 
                                                 <!-- Error -->
                                                 <TextBlock IsVisible="{Binding HasError}"
@@ -122,8 +182,248 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </StackPanel>
+                    </DockPanel>
                 </ScrollViewer>
+
+                <!-- ═══ Tab 1: Browse Store ═══ -->
+                <Border IsVisible="{Binding SelectedTab, Converter={x:Static svc:TabVisibilityConverter.Instance}, ConverterParameter=1}">
+                    <Grid DataContext="{Binding Store}" x:DataType="svc:ExtensionStoreViewModel">
+
+                        <!-- Browse list (hidden when detail is visible) -->
+                        <DockPanel IsVisible="{Binding !IsDetailVisible}">
+                            <!-- Search bar -->
+                            <TextBox DockPanel.Dock="Top"
+                                     Text="{Binding SearchText, Mode=TwoWay}"
+                                     Watermark="{loc:Loc extensions.store.search}"
+                                     Margin="0,0,0,8" />
+
+                            <!-- Loading indicator -->
+                            <StackPanel IsVisible="{Binding IsLoading}"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center">
+                                <TextBlock Text="{loc:Loc extensions.store.loading}"
+                                           Opacity="0.5"
+                                           HorizontalAlignment="Center" />
+                            </StackPanel>
+
+                            <!-- Error -->
+                            <StackPanel IsVisible="{Binding HasError}"
+                                        VerticalAlignment="Center"
+                                        HorizontalAlignment="Center"
+                                        Spacing="8">
+                                <TextBlock Text="{Binding ErrorMessage}"
+                                           Foreground="#FF6B6B"
+                                           TextWrapping="Wrap"
+                                           HorizontalAlignment="Center" />
+                                <Button Content="{loc:Loc extensions.store.retry}"
+                                        Command="{Binding LoadCommand}"
+                                        HorizontalAlignment="Center"
+                                        Classes="ribbonButtonSmall"
+                                        Padding="12,6" />
+                            </StackPanel>
+
+                            <!-- Empty state -->
+                            <TextBlock IsVisible="{Binding IsEmpty}"
+                                       Text="{loc:Loc extensions.store.empty}"
+                                       Opacity="0.5"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,40" />
+
+                            <!-- Extension cards -->
+                            <ScrollViewer>
+                                <ItemsControl ItemsSource="{Binding Items}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate x:DataType="svc:StoreExtensionItemViewModel">
+                                            <Border Background="{DynamicResource EditorBackground}"
+                                                    CornerRadius="6"
+                                                    Padding="16,12"
+                                                    Margin="0,2"
+                                                    IsVisible="{Binding IsVisible}"
+                                                    Cursor="Hand"
+                                                    x:Name="StoreCard"
+                                                    PointerPressed="OnStoreCardPressed">
+                                                <DockPanel>
+                                                    <!-- Action button -->
+                                                    <StackPanel DockPanel.Dock="Right"
+                                                                VerticalAlignment="Center"
+                                                                Margin="12,0,0,0"
+                                                                Spacing="4">
+                                                        <!-- Install button -->
+                                                        <Button Content="{loc:Loc extensions.store.install}"
+                                                                IsVisible="{Binding !IsInstalled}"
+                                                                IsEnabled="{Binding IsCompatible}"
+                                                                Click="OnInstallClicked"
+                                                                Tag="{Binding}"
+                                                                Classes="ribbonButtonSmall"
+                                                                Padding="12,6" />
+                                                        <!-- Installed indicator -->
+                                                        <TextBlock Text="✓"
+                                                                   IsVisible="{Binding IsInstalled}"
+                                                                   FontSize="16"
+                                                                   Foreground="#4CAF50"
+                                                                   HorizontalAlignment="Center" />
+                                                    </StackPanel>
+
+                                                    <StackPanel Spacing="4">
+                                                        <!-- Name + Version -->
+                                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                                            <TextBlock Text="📦" FontSize="16" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding Name}"
+                                                                       FontWeight="SemiBold"
+                                                                       FontSize="14"
+                                                                       VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding LatestVersion}"
+                                                                       Opacity="0.5"
+                                                                       FontSize="12"
+                                                                       VerticalAlignment="Center" />
+                                                        </StackPanel>
+
+                                                        <!-- Author -->
+                                                        <TextBlock Opacity="0.6" FontSize="11">
+                                                            <Run Text="{loc:Loc extensions.author}" />
+                                                            <Run Text=" " />
+                                                            <Run Text="{Binding Author}" />
+                                                        </TextBlock>
+
+                                                        <!-- Description -->
+                                                        <TextBlock Text="{Binding Description}"
+                                                                   TextWrapping="Wrap"
+                                                                   Opacity="0.7"
+                                                                   FontSize="12"
+                                                                   MaxLines="2"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   Margin="0,2,0,0" />
+
+                                                        <!-- Tags -->
+                                                        <ItemsControl ItemsSource="{Binding Tags}" IsVisible="{Binding Tags.Count}">
+                                                            <ItemsControl.ItemsPanel>
+                                                                <ItemsPanelTemplate>
+                                                                    <WrapPanel Orientation="Horizontal" />
+                                                                </ItemsPanelTemplate>
+                                                            </ItemsControl.ItemsPanel>
+                                                            <ItemsControl.ItemTemplate>
+                                                                <DataTemplate x:DataType="x:String">
+                                                                    <Border Background="{DynamicResource EditorBackground}"
+                                                                            CornerRadius="3"
+                                                                            Padding="6,2"
+                                                                            Margin="0,2,4,0"
+                                                                            BorderBrush="{DynamicResource SubtleText}"
+                                                                            BorderThickness="1"
+                                                                            Opacity="0.6">
+                                                                        <TextBlock Text="{Binding}" FontSize="10" />
+                                                                    </Border>
+                                                                </DataTemplate>
+                                                            </ItemsControl.ItemTemplate>
+                                                        </ItemsControl>
+
+                                                        <!-- Install progress -->
+                                                        <ProgressBar IsVisible="{Binding IsInstalling}"
+                                                                     Value="{Binding InstallProgress}"
+                                                                     Maximum="1"
+                                                                     Height="4"
+                                                                     Margin="0,4,0,0" />
+
+                                                        <!-- Install error -->
+                                                        <TextBlock IsVisible="{Binding InstallError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                                   Text="{Binding InstallError}"
+                                                                   Foreground="#FF6B6B"
+                                                                   FontSize="11"
+                                                                   TextWrapping="Wrap"
+                                                                   Margin="0,2,0,0" />
+                                                    </StackPanel>
+                                                </DockPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+
+                        <!-- ═══ Detail view ═══ -->
+                        <DockPanel IsVisible="{Binding IsDetailVisible}">
+                            <!-- Back button -->
+                            <Button DockPanel.Dock="Top"
+                                    Content="← Back"
+                                    Command="{Binding HideDetailCommand}"
+                                    Classes="ribbonButtonSmall"
+                                    Padding="8,4"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,0,0,8" />
+
+                            <!-- Header + actions (fixed top) -->
+                            <StackPanel DockPanel.Dock="Top" Spacing="12"
+                                        DataContext="{Binding SelectedItem}" x:DataType="svc:StoreExtensionItemViewModel">
+                                <StackPanel Spacing="4">
+                                    <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <TextBlock Text="📦" FontSize="20" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Name}"
+                                                   FontSize="18" FontWeight="SemiBold"
+                                                   VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding LatestVersion}"
+                                                   Opacity="0.5"
+                                                   FontSize="14"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Opacity="0.6" FontSize="12">
+                                        <Run Text="{loc:Loc extensions.author}" />
+                                        <Run Text=" " />
+                                        <Run Text="{Binding Author}" />
+                                    </TextBlock>
+                                    <TextBlock Text="{Binding Description}"
+                                               TextWrapping="Wrap"
+                                               Opacity="0.7"
+                                               FontSize="13" />
+                                </StackPanel>
+
+                                <!-- Action buttons -->
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="{loc:Loc extensions.store.install}"
+                                            IsVisible="{Binding !IsInstalled}"
+                                            IsEnabled="{Binding IsCompatible}"
+                                            Click="OnDetailInstallClicked"
+                                            Classes="ribbonButtonSmall"
+                                            Padding="16,8" />
+                                    <Button Content="{loc:Loc extensions.store.uninstall}"
+                                            IsVisible="{Binding IsInstalled}"
+                                            Click="OnDetailUninstallClicked"
+                                            Classes="ribbonButtonSmall"
+                                            Padding="16,8" />
+                                    <Button Content="{Binding StatusText}"
+                                            IsVisible="{Binding HasUpdate}"
+                                            Click="OnDetailUpdateClicked"
+                                            Classes="ribbonButtonSmall"
+                                            Padding="16,8" />
+                                </StackPanel>
+
+                                <!-- Progress -->
+                                <ProgressBar IsVisible="{Binding IsInstalling}"
+                                             Value="{Binding InstallProgress}"
+                                             Maximum="1"
+                                             Height="4" />
+
+                                <Separator Margin="0,4" />
+                            </StackPanel>
+
+                            <!-- Metadata (fixed bottom) -->
+                            <StackPanel DockPanel.Dock="Bottom" Spacing="2" Margin="0,8,0,0"
+                                        DataContext="{Binding SelectedItem}" x:DataType="svc:StoreExtensionItemViewModel">
+                                <Separator Margin="0,0,0,8" />
+                                <TextBlock Opacity="0.5" FontSize="11">
+                                    <Run Text="Repository: " />
+                                    <Run Text="{Binding Repo}" />
+                                </TextBlock>
+                                <TextBlock Opacity="0.5" FontSize="11">
+                                    <Run Text="Tags: " />
+                                    <Run Text="{Binding Tags, Converter={x:Static svc:TagsJoinConverter.Instance}, Mode=OneWay}" />
+                                </TextBlock>
+                            </StackPanel>
+
+                            <!-- README + Release notes WebView (fills remaining space) -->
+                            <Grid x:Name="ReadmeWebViewHost" Margin="0,4" />
+                        </DockPanel>
+                    </Grid>
+                </Border>
+
             </DockPanel>
         </glass:LiquidGlassSurface>
     </Border>

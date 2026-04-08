@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text.Json;
 using Novalist.Sdk;
 
@@ -119,7 +120,10 @@ public sealed class ExtensionLoader
                 return false;
             }
 
-            var assembly = Assembly.LoadFrom(assemblyPath);
+            // Load into a collectible AssemblyLoadContext so we can unload later.
+            // Use stream-based loading to avoid holding file locks on the DLLs.
+            var loadContext = new ExtensionLoadContext(assemblyPath);
+            var assembly = loadContext.LoadFromFileStream(Path.GetFullPath(assemblyPath));
 
             // Find the IExtension implementation
             var extensionType = assembly.GetTypes()
@@ -139,6 +143,7 @@ public sealed class ExtensionLoader
             }
 
             info.Instance = instance;
+            info.LoadContext = loadContext;
             info.IsLoaded = true;
             return true;
         }
@@ -179,4 +184,10 @@ public sealed class ExtensionInfo
     public bool IsEnabled { get; set; } = true;
     public bool IsLoaded { get; set; }
     public string? LoadError { get; set; }
+
+    /// <summary>
+    /// The collectible <see cref="System.Runtime.Loader.AssemblyLoadContext"/> that loaded this extension.
+    /// Set to null after unloading to allow GC to collect the context and release file locks.
+    /// </summary>
+    internal ExtensionLoadContext? LoadContext { get; set; }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -113,7 +114,13 @@ public partial class App : Application
                     ExtensionManager = new ExtensionManager(SettingsService, hostServices);
                     hostServices.ExtensionManager = ExtensionManager;
                     await ExtensionManager.LoadAllAsync();
-                    mainVm.OnExtensionsLoaded(ExtensionManager);
+
+                    // Initialize gallery service
+                    var galleryService = new Novalist.Core.Services.ExtensionGalleryService();
+                    if (!string.IsNullOrWhiteSpace(SettingsService.Settings.GitHubToken))
+                        galleryService.GitHubToken = SettingsService.Settings.GitHubToken;
+
+                    mainVm.OnExtensionsLoaded(ExtensionManager, galleryService);
 
                     // Forward host language changes to extensions
                     Loc.Instance.LanguageChanged += () =>
@@ -135,6 +142,34 @@ public partial class App : Application
                     // Check for updates in background (non-blocking)
                     if (SettingsService.Settings.CheckForUpdates)
                         _ = mainWindow.CheckForUpdateAsync();
+
+                    // Check for extension updates in background (non-blocking)
+                    if (SettingsService.Settings.CheckForExtensionUpdates && mainVm.Extensions is not null)
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                var count = await mainVm.Extensions.CheckForExtensionUpdatesAsync();
+                                if (count > 0)
+                                {
+                                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                                    {
+                                        var msg = count == 1
+                                            ? Novalist.Desktop.Localization.Loc.Instance["extensions.store.updateAvailableSingle"]
+                                            : string.Format(
+                                                Novalist.Desktop.Localization.Loc.Instance["extensions.store.updateAvailableMulti"],
+                                                count);
+                                        mainVm.ShowExtensionNotification(msg);
+                                    });
+                                }
+                            }
+                            catch
+                            {
+                                // Silently ignore — not critical
+                            }
+                        });
+                    }
                 });
             });
 

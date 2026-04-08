@@ -647,6 +647,41 @@
                                       OffContent="" />
                     </DockPanel>
 
+                    <!-- Extension update check -->
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                            <TextBlock Text="{loc:Loc settings.checkForExtensionUpdates}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="13" />
+                            <TextBlock Text="{loc:Loc settings.checkForExtensionUpdatesDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ToggleSwitch IsChecked="{Binding CheckForExtensionUpdates}"
+                                      HorizontalAlignment="Right"
+                                      OnContent=""
+                                      OffContent="" />
+                    </DockPanel>
+
+                    <!-- GitHub PAT -->
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                            <TextBlock Text="{loc:Loc settings.githubToken}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="13" />
+                            <TextBlock Text="{loc:Loc settings.githubTokenDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <TextBox Text="{Binding GithubToken}"
+                                 PasswordChar="●"
+                                 HorizontalAlignment="Right"
+                                 Width="200"
+                                 Watermark="ghp_..." />
+                    </DockPanel>
+
                     <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,8,0,0" />
                 </StackPanel>
 
