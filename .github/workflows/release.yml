@@ -279,41 +279,47 @@ jobs:
             fi
           fi
 
-      # ── Download baseline NuGet from previous release ─────────────
+      # ── Download baseline NuGet from NuGet.org ─────────────────────
       - name: Download previous SDK NuGet
         id: baseline
-        if: steps.sdk_check.outputs.sdk_changed == 'true' && steps.sdk_check.outputs.prev_tag != ''
+        if: steps.sdk_check.outputs.sdk_changed == 'true'
         shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p baseline
-          PREV_TAG="${{ steps.sdk_check.outputs.prev_tag }}"
 
-          if gh release download "$PREV_TAG" --pattern '*.nupkg' --dir baseline 2>/dev/null; then
-            NUPKG=$(ls baseline/*.nupkg 2>/dev/null | head -1)
-            if [ -n "$NUPKG" ]; then
-              # Extract version from filename: Novalist.Sdk.X.Y.Z.nupkg
-              BASENAME=$(basename "$NUPKG" .nupkg)
-              PREV_VER=$(echo "$BASENAME" | sed 's/^Novalist\.Sdk\.//')
-              echo "prev_version=$PREV_VER" >> "$GITHUB_OUTPUT"
-              echo "has_baseline=true" >> "$GITHUB_OUTPUT"
+          # Query NuGet.org for the latest published version
+          INDEX_URL="https://api.nuget.org/v3-flatcontainer/novalist.sdk/index.json"
+          VERSIONS_JSON=$(curl -sf "$INDEX_URL" || echo "")
 
-              # Extract baseline DLL for API comparison
-              mkdir -p baseline/extracted
-              unzip -q "$NUPKG" -d baseline/extracted
-              BASELINE_DLL=$(find baseline/extracted -name 'Novalist.Sdk.dll' | head -1)
-              echo "baseline_dll=$BASELINE_DLL" >> "$GITHUB_OUTPUT"
-              echo "Previous SDK version: $PREV_VER"
-            else
-              echo "has_baseline=false" >> "$GITHUB_OUTPUT"
-              echo "No nupkg found in previous release."
-            fi
-          else
+          if [ -z "$VERSIONS_JSON" ]; then
             echo "has_baseline=false" >> "$GITHUB_OUTPUT"
-            echo "Could not download nupkg from release $PREV_TAG."
+            echo "Package not yet published on NuGet.org — first release."
+            exit 0
           fi
+
+          # Get the latest version (last entry in the versions array)
+          PREV_VER=$(echo "$VERSIONS_JSON" | python3 -c "import sys,json; v=json.load(sys.stdin).get('versions',[]); print(v[-1] if v else '')")
+
+          if [ -z "$PREV_VER" ]; then
+            echo "has_baseline=false" >> "$GITHUB_OUTPUT"
+            echo "No versions found on NuGet.org."
+            exit 0
+          fi
+
+          # Download the nupkg directly from NuGet.org flat container
+          NUPKG_URL="https://api.nuget.org/v3-flatcontainer/novalist.sdk/${PREV_VER}/novalist.sdk.${PREV_VER}.nupkg"
+          curl -sfL "$NUPKG_URL" -o "baseline/Novalist.Sdk.${PREV_VER}.nupkg"
+
+          echo "prev_version=$PREV_VER" >> "$GITHUB_OUTPUT"
+          echo "has_baseline=true" >> "$GITHUB_OUTPUT"
+
+          # Extract baseline DLL for API comparison
+          mkdir -p baseline/extracted
+          unzip -q "baseline/Novalist.Sdk.${PREV_VER}.nupkg" -d baseline/extracted
+          BASELINE_DLL=$(find baseline/extracted -name 'Novalist.Sdk.dll' | head -1)
+          echo "baseline_dll=$BASELINE_DLL" >> "$GITHUB_OUTPUT"
+          echo "Previous SDK version from NuGet.org: $PREV_VER"
 
       # ── Build SDK for API comparison ──────────────────────────────
       - name: Build SDK for comparison
