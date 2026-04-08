@@ -243,6 +243,60 @@ public partial class EntityEditorView : UserControl
         Vm.SetParentLocationSuggestions(filtered);
     }
 
+    // ── EntityRef field suggestion handlers ─────────────────────────
+
+    private void OnEntityRefGotFocus(object? sender, GotFocusEventArgs e)
+    {
+        if (sender is TextBox { DataContext: ObservableKeyValue kv })
+            kv.HideEntityRefSuggestions();
+    }
+
+    private void OnEntityRefTextChanged(object? sender, TextChangedEventArgs e)
+    {
+        if (sender is TextBox tb && tb.DataContext is ObservableKeyValue kv)
+            UpdateEntityRefSuggestions(kv, tb.Text);
+    }
+
+    private void OnEntityRefKeyUp(object? sender, KeyEventArgs e)
+    {
+        if (sender is not TextBox tb || tb.DataContext is not ObservableKeyValue kv) return;
+
+        if (e.Key == Key.Escape)
+        {
+            kv.HideEntityRefSuggestions();
+            e.Handled = true;
+            return;
+        }
+
+        UpdateEntityRefSuggestions(kv, tb.Text);
+    }
+
+    private void OnEntityRefSuggestionSelected(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ListBox { SelectedItem: string selected, Tag: ObservableKeyValue kv } listBox) return;
+
+        kv.Value = selected;
+        kv.HideEntityRefSuggestions();
+        Vm?.ScheduleAutoSave();
+        listBox.SelectedItem = null;
+    }
+
+    private static void UpdateEntityRefSuggestions(ObservableKeyValue kv, string? query)
+    {
+        var normalizedQuery = query?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(normalizedQuery))
+        {
+            kv.HideEntityRefSuggestions();
+            return;
+        }
+
+        var filtered = kv.AllEntityRefNames
+            .Where(n => n.Contains(normalizedQuery, StringComparison.OrdinalIgnoreCase))
+            .Take(8)
+            .ToList();
+        kv.SetEntityRefSuggestions(filtered);
+    }
+
     private static IReadOnlyList<string> FilterSuggestions(IEnumerable<string> source, string? query)
     {
         var normalizedQuery = query?.Trim() ?? string.Empty;

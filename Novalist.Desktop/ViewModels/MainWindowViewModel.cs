@@ -509,6 +509,7 @@ public partial class MainWindowViewModel : ObservableObject
         EntityEditor.Saved += OnEntitySaved;
         EntityEditor.Deleted += OnEntityDeleted;
         EntityPanel = new EntityPanelViewModel(_entityService, _projectService);
+        EntityPanel.ExtensionEntityTypes = ExtensionManager?.EntityTypes ?? [];
         EntityPanel.EntityOpenRequested += OnEntityOpenRequested;
         EntityPanel.EntityDeleted += OnEntityDeleted;
         EntityPanel.LocationParentChanged += OnLocationParentChanged;
@@ -656,6 +657,11 @@ public partial class MainWindowViewModel : ObservableObject
             case EntityType.Lore when entity is LoreData lr:
                 EntityEditor.OpenLore(lr);
                 StatusText = Loc.T("status.editing", lr.Name);
+                openedEntity = true;
+                break;
+            case EntityType.Custom when entity is CustomEntityData ce:
+                EntityEditor.OpenCustomEntity(ce);
+                StatusText = Loc.T("status.editing", ce.Name);
                 openedEntity = true;
                 break;
         }

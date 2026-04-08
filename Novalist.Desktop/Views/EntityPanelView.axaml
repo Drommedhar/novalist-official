@@ -41,6 +41,48 @@
                 Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Lore}}">
                     <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
                 </Button>
+
+                <!-- Custom entity type tabs -->
+                <ItemsControl ItemsSource="{Binding CustomEntityTypes}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:CustomEntityTypeDefinition">
+                            <Button Command="{Binding $parent[UserControl].((vm:EntityPanelViewModel)DataContext).SetCustomEntityTypeCommand}"
+                                    CommandParameter="{Binding TypeKey}"
+                                    Classes="explorerTab"
+                                    ToolTip.Tip="{Binding DisplayNamePlural}"
+                                    Padding="8,4"
+                                    x:Name="CustomTypeTabBtn">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{loc:Loc entityPanel.editType}"
+                                                  Tag="{Binding}"
+                                                  Click="OnEditEntityTypeClick"
+                                                  IsVisible="{Binding IsUserSource}" />
+                                        <Separator IsVisible="{Binding IsUserSource}" />
+                                        <MenuItem Header="{loc:Loc entityPanel.deleteType}"
+                                                  Tag="{Binding}"
+                                                  Click="OnDeleteEntityTypeClick"
+                                                  IsVisible="{Binding IsUserSource}" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                                <TextBlock Text="{Binding Icon}" FontSize="14" />
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Add custom entity type button -->
+                <Button Command="{Binding CreateEntityTypeCommand}"
+                        Classes="explorerTab"
+                        ToolTip.Tip="{loc:Loc entityPanel.newEntityType}"
+                        Padding="8,4">
+                    <TextBlock Text="+" FontSize="14" FontWeight="Bold" />
+                </Button>
             </StackPanel>
 
             <!-- Create button -->
@@ -339,6 +381,54 @@
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding Category}"
                                                FontSize="10" Foreground="{DynamicResource SubtleText}"
                                                VerticalAlignment="Center" Margin="8,0,0,0" />
+                                    <Border DockPanel.Dock="Right"
+                                            Margin="4,0,0,0"
+                                            Padding="4,1"
+                                            CornerRadius="3"
+                                            Background="#2E7D8C"
+                                            IsVisible="{Binding IsWorldBible}"
+                                            ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
+                                        <TextBlock Text="{loc:Loc book.wbBadge}"
+                                                   FontSize="9"
+                                                   Foreground="White"
+                                                   VerticalAlignment="Center" />
+                                    </Border>
+                                    <TextBlock Text="{Binding Name}" FontSize="12"
+                                               Foreground="{DynamicResource NormalText}" />
+                                </DockPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Custom Entity List -->
+            <ScrollViewer IsVisible="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Custom}}"
+                          x:Name="CustomEntityListScroll">
+                <ItemsControl x:Name="CustomEntityList" Margin="4,0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="m:CustomEntityData">
+                            <Button Classes="linkButton" HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Tag="{Binding}"
+                                    x:Name="CustomEntityItemBtn">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{loc:Loc entityPanel.moveToWorldBible}"
+                                                  Tag="{Binding}"
+                                                  Click="OnMoveCustomEntityToWBClick"
+                                                  IsVisible="{Binding !IsWorldBible}" />
+                                        <MenuItem Header="{loc:Loc entityPanel.moveToBook}"
+                                                  Tag="{Binding}"
+                                                  Click="OnMoveCustomEntityToWBClick"
+                                                  IsVisible="{Binding IsWorldBible}" />
+                                        <Separator />
+                                        <MenuItem Header="{loc:Loc entityPanel.deleteEntity}"
+                                                  Tag="{Binding}"
+                                                  Click="OnDeleteCustomEntityClick" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
+                                <DockPanel>
                                     <Border DockPanel.Dock="Right"
                                             Margin="4,0,0,0"
                                             Padding="4,1"

@@ -12,6 +12,7 @@ namespace Novalist.Desktop.ViewModels;
 public partial class TemplateEditorViewModel : ObservableObject
 {
     private readonly string _entityType;
+    private string? _customEntityTypeKey;
 
     [ObservableProperty] private string _templateName = string.Empty;
     [ObservableProperty] private bool _isBuiltIn;
@@ -147,6 +148,37 @@ public partial class TemplateEditorViewModel : ObservableObject
     public LoreTemplate BuildLoreTemplate(string id)
     {
         var template = new LoreTemplate { Id = id, Name = TemplateName, BuiltIn = IsBuiltIn, IncludeImages = IncludeImages };
+        BuildFields(template.Fields);
+        BuildPropertyDefs(template.CustomPropertyDefs);
+        BuildSections(template.Sections);
+        return template;
+    }
+
+    public void LoadCustomEntityTemplate(CustomEntityTemplate t, string[] knownFieldKeys)
+    {
+        _customEntityTypeKey = t.EntityTypeKey;
+        TemplateName = t.Name;
+        IsBuiltIn = t.BuiltIn;
+        IncludeImages = t.IncludeImages;
+        IncludeRelationships = t.IncludeRelationships;
+
+        LoadKnownFields(knownFieldKeys, t.Fields);
+        LoadCustomFields(knownFieldKeys, t.Fields);
+        LoadPropertyDefs(t.CustomPropertyDefs);
+        LoadSections(t.Sections);
+    }
+
+    public CustomEntityTemplate BuildCustomEntityTemplate(string id)
+    {
+        var template = new CustomEntityTemplate
+        {
+            Id = id,
+            Name = TemplateName,
+            BuiltIn = IsBuiltIn,
+            IncludeImages = IncludeImages,
+            IncludeRelationships = IncludeRelationships,
+            EntityTypeKey = _customEntityTypeKey ?? string.Empty
+        };
         BuildFields(template.Fields);
         BuildPropertyDefs(template.CustomPropertyDefs);
         BuildSections(template.Sections);

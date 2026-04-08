@@ -13,7 +13,8 @@ public enum CustomPropertyType
     Bool,
     Date,
     Enum,
-    Timespan
+    Timespan,
+    EntityRef
 }
 
 /// <summary>
@@ -48,6 +49,14 @@ public class CustomPropertyDefinition
     [JsonPropertyName("intervalUnit")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IntervalUnit? IntervalUnit { get; set; }
+
+    /// <summary>
+    /// Extension-provided property type key. When set, takes precedence over <see cref="Type"/>.
+    /// Falls back to the Type enum for built-in types.
+    /// </summary>
+    [JsonPropertyName("typeKey")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TypeKey { get; set; }
 }
 
 /// <summary>
@@ -206,6 +215,44 @@ public class LoreTemplate
 
     [JsonPropertyName("includeImages")]
     public bool IncludeImages { get; set; } = true;
+
+    public override string ToString() => Name;
+}
+
+/// <summary>
+/// Template for custom entity types.
+/// </summary>
+public class CustomEntityTemplate
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    /// <summary>
+    /// The custom entity type key this template applies to.
+    /// </summary>
+    [JsonPropertyName("entityTypeKey")]
+    public string EntityTypeKey { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("builtIn")]
+    public bool BuiltIn { get; set; }
+
+    [JsonPropertyName("fields")]
+    public List<TemplateField> Fields { get; set; } = [];
+
+    [JsonPropertyName("customPropertyDefs")]
+    public List<CustomPropertyDefinition> CustomPropertyDefs { get; set; } = [];
+
+    [JsonPropertyName("sections")]
+    public List<TemplateSection> Sections { get; set; } = [];
+
+    [JsonPropertyName("includeImages")]
+    public bool IncludeImages { get; set; } = true;
+
+    [JsonPropertyName("includeRelationships")]
+    public bool IncludeRelationships { get; set; }
 
     public override string ToString() => Name;
 }

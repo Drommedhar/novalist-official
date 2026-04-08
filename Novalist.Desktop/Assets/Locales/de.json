@@ -308,7 +308,13 @@
     "deleteEntity": "Löschen",
     "removeParent": "Übergeordneten Ort entfernen",
     "moveToWorldBible": "In die Weltbibel verschieben",
-    "moveToBook": "Ins Buch verschieben"
+    "moveToBook": "Ins Buch verschieben",
+    "newCustomEntity": "Neue/r {0}",
+    "customEntityNamePrompt": "{0}-Name eingeben:",
+    "editType": "Typ bearbeiten",
+    "deleteType": "Typ löschen",
+    "newEntityType": "Neuer Entitätstyp",
+    "deleteTypeConfirm": "Entitätstyp '{0}' und alle zugehörigen Entitäten löschen?"
   },
   "entityEditor": {
     "emptyState": "Wähle eine Entität aus dem Panel zum Bearbeiten.",
@@ -794,6 +800,24 @@
     "filterDraft": "Rohfassung",
     "filterFinal": "Fertig",
     "cycleStatus": "Klicken, um den Kapitelstatus zu wechseln"
+  },
+  "entityTypeManager": {
+    "displayName": "Anzeigename",
+    "displayNameWatermark": "z.B. Fraktion",
+    "pluralName": "Pluralname",
+    "pluralNameWatermark": "z.B. Fraktionen (automatisch wenn leer)",
+    "icon": "Symbol (Emoji)",
+    "fields": "Felder",
+    "fieldName": "Feldname",
+    "defaultValue": "Standardwert (optional)",
+    "enumOptions": "Kommagetrennte Optionen: Option A, Option B",
+    "required": "Erforderlich",
+    "removeField": "Feld entfernen",
+    "addField": "+ Feld hinzufügen",
+    "features": "Funktionen",
+    "includeImages": "Bilder einschließen",
+    "includeRelationships": "Beziehungen einschließen",
+    "includeSections": "Abschnitte einschließen"
   },
   "update": {
     "available": "Update verfügbar",

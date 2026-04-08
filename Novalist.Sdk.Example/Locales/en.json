@@ -58,5 +58,14 @@
     "generateButton": "Generate Prompt",
     "defaultPrompt": "Click the button to generate a writing prompt.",
     "historyLabel": "History"
+  },
+  "entityType": {
+    "faction": "Faction",
+    "factions": "Factions",
+    "faction.leader": "Leader",
+    "faction.type": "Type",
+    "faction.motto": "Motto",
+    "faction.founded": "Founded",
+    "faction.memberCount": "Member Count"
   }
 }

@@ -301,6 +301,69 @@
                         </Grid>
                     </StackPanel>
 
+                    <!-- ═══ CUSTOM ENTITY FIELDS ═══ -->
+                    <StackPanel Spacing="16"
+                                IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Custom}}">
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
+
+                        <!-- Name field -->
+                        <TextBox Text="{Binding Name}" Watermark="{loc:Loc entityEditor.name}" />
+
+                        <!-- Dynamic typed fields from entity type definition -->
+                        <ItemsControl ItemsSource="{Binding CustomEntityFields}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:ObservableKeyValue">
+                                    <Grid ColumnDefinitions="Auto,16,*" Margin="0,0,0,6">
+                                        <TextBlock Grid.Column="0" Text="{Binding Key}"
+                                                   VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource NormalText}" FontSize="12"
+                                                   MinWidth="120" />
+                                        <!-- String / Int / Timespan -->
+                                        <TextBox Grid.Column="2" Text="{Binding Value}" Watermark="{Binding Key}"
+                                                 IsVisible="{Binding IsTextType}" />
+                                        <!-- Date -->
+                                        <CalendarDatePicker Grid.Column="2" SelectedDate="{Binding DateValue}"
+                                                            IsVisible="{Binding IsDateType}" HorizontalAlignment="Stretch" />
+                                        <!-- Bool -->
+                                        <CheckBox Grid.Column="2" IsChecked="{Binding BoolValue}"
+                                                  IsVisible="{Binding IsBoolType}" VerticalAlignment="Center" />
+                                        <!-- Enum -->
+                                        <ComboBox Grid.Column="2" ItemsSource="{Binding EnumOptions}" SelectedItem="{Binding Value}"
+                                                  IsVisible="{Binding IsEnumType}" HorizontalAlignment="Stretch" />
+                                        <!-- EntityRef (autocomplete) -->
+                                        <Grid Grid.Column="2" IsVisible="{Binding IsEntityRefType}">
+                                            <TextBox x:Name="EntityRefInput"
+                                                     Text="{Binding Value}"
+                                                     Watermark="{Binding Key}"
+                                                     HorizontalAlignment="Stretch"
+                                                     GotFocus="OnEntityRefGotFocus"
+                                                     TextChanged="OnEntityRefTextChanged"
+                                                     KeyUp="OnEntityRefKeyUp" />
+                                            <Popup IsOpen="{Binding EntityRefSuggestionsVisible}"
+                                                   PlacementTarget="{Binding ElementName=EntityRefInput}"
+                                                   Placement="Bottom"
+                                                   VerticalOffset="4"
+                                                   IsLightDismissEnabled="True">
+                                                <Border Classes="relationshipSuggestionPanel"
+                                                        Width="{Binding Bounds.Width, ElementName=EntityRefInput}">
+                                                    <ListBox Classes="relationshipSuggestionList"
+                                                             ItemsSource="{Binding EntityRefSuggestions}"
+                                                             Tag="{Binding}"
+                                                             SelectionChanged="OnEntityRefSuggestionSelected" />
+                                                </Border>
+                                            </Popup>
+                                        </Grid>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <!-- Description -->
+                        <TextBox Text="{Binding Description}" Watermark="{loc:Loc entityEditor.description}"
+                                 AcceptsReturn="True" TextWrapping="Wrap" MinHeight="80" />
+                    </StackPanel>
+
                     <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4"
                             IsVisible="{Binding IsOpen}" />
 

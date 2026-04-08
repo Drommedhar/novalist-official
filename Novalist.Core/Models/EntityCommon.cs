@@ -58,7 +58,8 @@ public enum EntityType
     Character,
     Location,
     Item,
-    Lore
+    Lore,
+    Custom
 }
 
 /// <summary>

@@ -177,6 +177,18 @@ public sealed class FocusPeekExtension : IEditorExtension
         foreach (var lore in loreTask.Result)
             AddAlias(aliasCandidates, lore.Name, new FocusPeekEntityReference(EntityType.Lore, lore));
 
+        // Custom entity types
+        var customTypes = _projectService.CurrentProject?.CustomEntityTypes;
+        if (customTypes != null)
+        {
+            foreach (var typeDef in customTypes)
+            {
+                var entities = await _entityService.LoadCustomEntitiesAsync(typeDef.TypeKey);
+                foreach (var entity in entities)
+                    AddAlias(aliasCandidates, entity.Name, new FocusPeekEntityReference(EntityType.Custom, entity));
+            }
+        }
+
         _entityLookup = aliasCandidates
             .Where(pair => pair.Value.Count == 1 && !string.IsNullOrWhiteSpace(pair.Key))
             .ToDictionary(pair => pair.Key, pair => pair.Value[0], StringComparer.OrdinalIgnoreCase);
@@ -210,6 +222,7 @@ public sealed class FocusPeekExtension : IEditorExtension
             EntityType.Location => BuildLocationDisplayData((LocationData)entityReference.Entity),
             EntityType.Item => BuildItemDisplayData((ItemData)entityReference.Entity),
             EntityType.Lore => BuildLoreDisplayData((LoreData)entityReference.Entity),
+            EntityType.Custom => BuildCustomEntityDisplayData((CustomEntityData)entityReference.Entity),
             _ => throw new InvalidOperationException("Unsupported entity type.")
         };
 
@@ -371,6 +384,57 @@ public sealed class FocusPeekExtension : IEditorExtension
             Images = lore.Images.Select(image => new FocusPeekImageItem { Name = image.Name, Path = image.Path }).ToList(),
             CustomProperties = lore.CustomProperties.Where(pair => !string.IsNullOrWhiteSpace(pair.Value)).Select(pair => new FocusPeekPropertyItem { Key = pair.Key, Value = pair.Value }).ToList(),
             Sections = lore.Sections.Select(section => new FocusPeekSectionItem { Title = section.Title, Content = section.Content }).ToList()
+        };
+    }
+
+    private FocusPeekDisplayData BuildCustomEntityDisplayData(CustomEntityData entity)
+    {
+        var typeDef = _projectService.CurrentProject?.CustomEntityTypes
+            .FirstOrDefault(t => string.Equals(t.TypeKey, entity.EntityTypeKey, StringComparison.OrdinalIgnoreCase));
+        var typeLabel = typeDef?.DisplayName ?? entity.EntityTypeKey;
+        var fieldDefs = typeDef?.DefaultFields ?? [];
+
+        var pills = new List<FocusPeekPillItem>();
+        AddPill(pills, entity.Relationships.Count > 0 ? entity.Relationships.Count.ToString() : string.Empty, "#2E344D", true, UsersIconPath);
+
+        var fieldProperties = new List<FocusPeekPropertyItem>();
+        var entityRefRelationships = new List<FocusPeekRelationshipItem>();
+
+        foreach (var pair in entity.Fields)
+        {
+            if (string.IsNullOrWhiteSpace(pair.Value)) continue;
+            var def = fieldDefs.FirstOrDefault(f => string.Equals(f.Key, pair.Key, StringComparison.OrdinalIgnoreCase));
+            var label = def?.DisplayName ?? pair.Key;
+
+            if (def?.Type == CustomPropertyType.EntityRef)
+                entityRefRelationships.Add(BuildRelationshipItem(label, pair.Value));
+            else
+                fieldProperties.Add(new FocusPeekPropertyItem { Key = label, Value = pair.Value });
+        }
+
+        foreach (var pair in entity.CustomProperties)
+        {
+            if (string.IsNullOrWhiteSpace(pair.Value)) continue;
+            fieldProperties.Add(new FocusPeekPropertyItem { Key = pair.Key, Value = pair.Value });
+        }
+
+        var relationships = entity.Relationships
+            .Select(rel => BuildRelationshipItem(rel.Role, rel.Target))
+            .Concat(entityRefRelationships)
+            .ToList();
+
+        return new FocusPeekDisplayData
+        {
+            EntityType = EntityType.Custom,
+            Entity = entity,
+            Title = entity.Name,
+            TypeLabel = typeLabel,
+            TypeBadgeBackground = "#4A6A5A",
+            Pills = pills,
+            Images = entity.Images.Select(image => new FocusPeekImageItem { Name = image.Name, Path = image.Path }).ToList(),
+            Relationships = relationships,
+            CustomProperties = fieldProperties,
+            Sections = entity.Sections.Select(section => new FocusPeekSectionItem { Title = section.Title, Content = section.Content }).ToList()
         };
     }
 

@@ -205,6 +205,7 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<TemplateListItem> _locationTemplates = [];
     [ObservableProperty] private ObservableCollection<TemplateListItem> _itemTemplates = [];
     [ObservableProperty] private ObservableCollection<TemplateListItem> _loreTemplates = [];
+    [ObservableProperty] private ObservableCollection<CustomEntityTemplateGroup> _customEntityTemplateGroups = [];
 
     [ObservableProperty] private bool _checkForUpdates;
     [ObservableProperty] private bool _checkForExtensionUpdates;
@@ -595,6 +596,66 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task AddCustomEntityTemplateAsync(string? entityTypeKey)
+    {
+        var book = _projectService.ActiveBook;
+        if (book == null || string.IsNullOrEmpty(entityTypeKey)) return;
+
+        var typeDef = _projectService.CurrentProject?.CustomEntityTypes
+            .FirstOrDefault(t => string.Equals(t.TypeKey, entityTypeKey, StringComparison.Ordinal));
+        if (typeDef == null) return;
+
+        var knownFieldKeys = typeDef.DefaultFields.Select(f => f.Key).ToArray();
+        var template = new CustomEntityTemplate { Name = Loc.T("template.newTemplate"), EntityTypeKey = entityTypeKey };
+        var vm = new TemplateEditorViewModel("custom");
+        vm.LoadCustomEntityTemplate(template, knownFieldKeys);
+        if (await (ShowTemplateEditor?.Invoke(vm) ?? Task.FromResult(false)))
+        {
+            var result = vm.BuildCustomEntityTemplate(template.Id);
+            book.CustomEntityTemplates.Add(result);
+            SaveProject();
+            LoadTemplates();
+        }
+    }
+
+    [RelayCommand]
+    private async Task EditCustomEntityTemplateAsync(CustomEntityTemplateEditRequest? request)
+    {
+        var book = _projectService.ActiveBook;
+        if (book == null || request == null) return;
+
+        var template = book.CustomEntityTemplates.FirstOrDefault(t => t.Id == request.TemplateId);
+        if (template == null) return;
+
+        var typeDef = _projectService.CurrentProject?.CustomEntityTypes
+            .FirstOrDefault(t => string.Equals(t.TypeKey, template.EntityTypeKey, StringComparison.Ordinal));
+        var knownFieldKeys = typeDef?.DefaultFields.Select(f => f.Key).ToArray() ?? [];
+
+        var vm = new TemplateEditorViewModel("custom");
+        vm.LoadCustomEntityTemplate(template, knownFieldKeys);
+        if (await (ShowTemplateEditor?.Invoke(vm) ?? Task.FromResult(false)))
+        {
+            var result = vm.BuildCustomEntityTemplate(template.Id);
+            var index = book.CustomEntityTemplates.FindIndex(t => t.Id == template.Id);
+            if (index >= 0) book.CustomEntityTemplates[index] = result;
+            SaveProject();
+            LoadTemplates();
+        }
+    }
+
+    [RelayCommand]
+    private void DeleteCustomEntityTemplate(CustomEntityTemplateEditRequest? request)
+    {
+        var book = _projectService.ActiveBook;
+        if (book == null || request == null) return;
+
+        book.CustomEntityTemplates.RemoveAll(t => t.Id == request.TemplateId);
+        book.ActiveCustomEntityTemplateIds.Remove(request.EntityTypeKey);
+        SaveProject();
+        LoadTemplates();
+    }
+
+    [RelayCommand]
     private void Close()
     {
         CloseRequested?.Invoke();
@@ -645,6 +706,19 @@ public partial class SettingsViewModel : ObservableObject
             book.ItemTemplates.Select(t => new TemplateListItem(t.Id, t.Name)));
         LoreTemplates = new ObservableCollection<TemplateListItem>(
             book.LoreTemplates.Select(t => new TemplateListItem(t.Id, t.Name)));
+
+        var metadata = _projectService.CurrentProject;
+        var customTypes = metadata?.CustomEntityTypes ?? [];
+        var groups = new List<CustomEntityTemplateGroup>();
+        foreach (var typeDef in customTypes)
+        {
+            var templates = book.CustomEntityTemplates
+                .Where(t => string.Equals(t.EntityTypeKey, typeDef.TypeKey, StringComparison.Ordinal))
+                .Select(t => new TemplateListItem(t.Id, t.Name))
+                .ToList();
+            groups.Add(new CustomEntityTemplateGroup(typeDef.TypeKey, typeDef.DisplayNamePlural, templates));
+        }
+        CustomEntityTemplateGroups = new ObservableCollection<CustomEntityTemplateGroup>(groups);
     }
 
     private void SaveProject()
@@ -674,6 +748,19 @@ public sealed class TemplateListItem(string id, string name)
 
     public override bool Equals(object? obj) => obj is TemplateListItem other && string.Equals(Id, other.Id, StringComparison.Ordinal);
     public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Id);
+}
+
+public sealed class CustomEntityTemplateGroup(string typeKey, string displayName, List<TemplateListItem> templates)
+{
+    public string TypeKey { get; } = typeKey;
+    public string DisplayName { get; } = displayName;
+    public ObservableCollection<TemplateListItem> Templates { get; } = new(templates);
+}
+
+public sealed class CustomEntityTemplateEditRequest(string entityTypeKey, string templateId)
+{
+    public string EntityTypeKey { get; } = entityTypeKey;
+    public string TemplateId { get; } = templateId;
 }
 
 public sealed class PageFormatItem(string code, string displayName)

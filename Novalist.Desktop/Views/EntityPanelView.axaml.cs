@@ -88,6 +88,7 @@ public partial class EntityPanelView : UserControl
             EntityType.Location => vm.CreateLocationCommand.ExecuteAsync(null),
             EntityType.Item => vm.CreateItemCommand.ExecuteAsync(null),
             EntityType.Lore => vm.CreateLoreCommand.ExecuteAsync(null),
+            EntityType.Custom => vm.CreateCustomEntityCommand.ExecuteAsync(null),
             _ => Task.CompletedTask
         };
     }
@@ -332,5 +333,51 @@ public partial class EntityPanelView : UserControl
     {
         if (DataContext is EntityPanelViewModel vm && sender is MenuItem { Tag: LoreData lore })
             _ = vm.ToggleWorldBibleLoreCommand.ExecuteAsync(lore);
+    }
+
+    private void OnDeleteCustomEntityClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is EntityPanelViewModel vm && sender is MenuItem { Tag: CustomEntityData entity })
+            _ = vm.DeleteCustomEntityCommand.ExecuteAsync(entity);
+    }
+
+    private void OnMoveCustomEntityToWBClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is EntityPanelViewModel vm && sender is MenuItem { Tag: CustomEntityData entity })
+            _ = vm.ToggleWorldBibleCustomEntityCommand.ExecuteAsync(entity);
+    }
+
+    private void OnEditEntityTypeClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is EntityPanelViewModel vm && sender is MenuItem { Tag: CustomEntityTypeDefinition typeDef })
+            _ = vm.EditEntityTypeCommand.ExecuteAsync(typeDef);
+    }
+
+    private void OnDeleteEntityTypeClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is EntityPanelViewModel vm && sender is MenuItem { Tag: CustomEntityTypeDefinition typeDef })
+            _ = vm.DeleteEntityTypeCommand.ExecuteAsync(typeDef);
+    }
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (DataContext is EntityPanelViewModel vm)
+        {
+            vm.PropertyChanged += OnViewModelPropertyChanged;
+            UpdateCustomEntityListBinding(vm);
+        }
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(EntityPanelViewModel.ActiveCustomTypeKey) && sender is EntityPanelViewModel vm)
+            UpdateCustomEntityListBinding(vm);
+    }
+
+    private void UpdateCustomEntityListBinding(EntityPanelViewModel vm)
+    {
+        if (vm.ActiveCustomTypeKey != null)
+            CustomEntityList.ItemsSource = vm.GetCustomEntities(vm.ActiveCustomTypeKey);
     }
 }

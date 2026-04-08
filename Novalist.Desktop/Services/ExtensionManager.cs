@@ -36,6 +36,7 @@ public sealed class ExtensionManager
     public List<IAiHook> AiHooks { get; } = [];
     public List<ThemeOverride> ThemeOverrides { get; } = [];
     public List<HotkeyDescriptor> HotkeyBindings { get; } = [];
+    public List<PropertyTypeDescriptor> PropertyTypes { get; } = [];
 
     public ExtensionManager(ISettingsService settingsService, HostServices hostServices)
     {
@@ -145,6 +146,9 @@ public sealed class ExtensionManager
 
         if (instance is IEditorExtension editorExt)
             _hostServices.RegisterEditorExtension(editorExt);
+
+        if (instance is IPropertyTypeContributor propertyType)
+            PropertyTypes.AddRange(propertyType.GetPropertyTypes());
     }
 
     /// <summary>
@@ -234,6 +238,13 @@ public sealed class ExtensionManager
 
         if (instance is IEditorExtension editorExt)
             _hostServices.UnregisterEditorExtension(editorExt);
+
+        if (instance is IPropertyTypeContributor propertyType)
+        {
+            var types = propertyType.GetPropertyTypes();
+            foreach (var t in types)
+                PropertyTypes.Remove(t);
+        }
     }
 
     /// <summary>

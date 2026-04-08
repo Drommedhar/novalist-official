@@ -58,5 +58,14 @@
     "generateButton": "Impuls erzeugen",
     "defaultPrompt": "Klicke auf die Schaltfläche, um einen Schreibimpuls zu erzeugen.",
     "historyLabel": "Verlauf"
+  },
+  "entityType": {
+    "faction": "Fraktion",
+    "factions": "Fraktionen",
+    "faction.leader": "Anführer",
+    "faction.type": "Typ",
+    "faction.motto": "Motto",
+    "faction.founded": "Gegründet",
+    "faction.memberCount": "Mitgliederzahl"
   }
 }

@@ -47,6 +47,12 @@ public class ProjectMetadata
     [JsonPropertyName("coverImage")]
     public string CoverImage { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Custom entity type definitions shared across all books in the project.
+    /// </summary>
+    [JsonPropertyName("customEntityTypes")]
+    public List<CustomEntityTypeDefinition> CustomEntityTypes { get; set; } = [];
+
     public BookData? GetActiveBook()
         => Books.FirstOrDefault(b => b.Id == ActiveBookId) ?? Books.FirstOrDefault();
 }

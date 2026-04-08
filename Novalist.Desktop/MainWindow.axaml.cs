@@ -382,6 +382,7 @@ public partial class MainWindow : Window
         panel.ShowInputDialog = ShowInputDialogAsync;
         panel.ShowEntityCreationDialog = ShowEntityCreationDialogAsync;
         panel.ShowConfirmDialog = ShowConfirmDialogAsync;
+        panel.ShowEntityTypeManagerDialog = ShowEntityTypeManagerDialogAsync;
     }
 
     private void WireEntityEditor(EntityEditorViewModel? editor)
@@ -804,6 +805,13 @@ public partial class MainWindow : Window
     private async Task<bool> ShowTemplateEditorAsync(TemplateEditorViewModel vm)
     {
         var dialog = new Dialogs.TemplateEditorDialog(vm);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        return dialog.Saved;
+    }
+
+    private async Task<bool> ShowEntityTypeManagerDialogAsync(EntityTypeManagerViewModel vm)
+    {
+        var dialog = new Dialogs.EntityTypeManagerDialog(vm);
         await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
         return dialog.Saved;
     }

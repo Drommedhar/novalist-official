@@ -50,6 +50,11 @@ public interface IExtensionEntityService
     Task<IReadOnlyList<LocationInfo>> LoadLocationsAsync();
     Task<IReadOnlyList<ItemInfo>> LoadItemsAsync();
     Task<IReadOnlyList<LoreInfo>> LoadLoreAsync();
+    Task<IReadOnlyList<CustomEntityInfo>> LoadCustomEntitiesAsync(string typeKey);
+
+    /// <summary>Returns all registered custom entity type keys and display names.</summary>
+    IReadOnlyList<CustomEntityTypeInfo> GetCustomEntityTypes();
+
     List<string> GetProjectImages();
     string GetImageFullPath(string relativePath);
 }
@@ -226,4 +231,22 @@ public sealed class LoreInfo
     public string Id { get; init; } = string.Empty;
     public string Name { get; init; } = string.Empty;
     public string Category { get; init; } = string.Empty;
+}
+
+/// <summary>Lightweight custom entity info for read-only access.</summary>
+public sealed class CustomEntityInfo
+{
+    public string Id { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public string EntityTypeKey { get; init; } = string.Empty;
+    public IReadOnlyDictionary<string, string> Fields { get; init; } = new Dictionary<string, string>();
+}
+
+/// <summary>Describes a registered custom entity type.</summary>
+public sealed class CustomEntityTypeInfo
+{
+    public string TypeKey { get; init; } = string.Empty;
+    public string DisplayName { get; init; } = string.Empty;
+    public string DisplayNamePlural { get; init; } = string.Empty;
+    public string Icon { get; init; } = "📋";
 }

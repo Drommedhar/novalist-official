@@ -339,6 +339,29 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         }).ToList();
     }
 
+    async Task<IReadOnlyList<Sdk.Services.CustomEntityInfo>> IExtensionEntityService.LoadCustomEntitiesAsync(string typeKey)
+    {
+        var entities = await _entityService.LoadCustomEntitiesAsync(typeKey);
+        return entities.Select(e => new Sdk.Services.CustomEntityInfo
+        {
+            Id = e.Id,
+            Name = e.Name,
+            EntityTypeKey = e.EntityTypeKey,
+            Fields = e.Fields
+        }).ToList();
+    }
+
+    IReadOnlyList<Sdk.Services.CustomEntityTypeInfo> IExtensionEntityService.GetCustomEntityTypes()
+    {
+        return _entityService.GetCustomEntityTypes().Select(t => new Sdk.Services.CustomEntityTypeInfo
+        {
+            TypeKey = t.TypeKey,
+            DisplayName = t.DisplayName,
+            DisplayNamePlural = t.DisplayNamePlural,
+            Icon = t.Icon
+        }).ToList();
+    }
+
     List<string> IExtensionEntityService.GetProjectImages() => _entityService.GetProjectImages();
     string IExtensionEntityService.GetImageFullPath(string relativePath) => _entityService.GetImageFullPath(relativePath);
 }

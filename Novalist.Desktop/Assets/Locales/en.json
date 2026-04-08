@@ -312,7 +312,13 @@
     "deleteEntity": "Delete",
     "removeParent": "Remove Parent",
     "moveToWorldBible": "Move to World Bible",
-    "moveToBook": "Move to Book"
+    "moveToBook": "Move to Book",
+    "newCustomEntity": "New {0}",
+    "customEntityNamePrompt": "Enter {0} name:",
+    "editType": "Edit Type",
+    "deleteType": "Delete Type",
+    "newEntityType": "New Entity Type",
+    "deleteTypeConfirm": "Delete entity type '{0}' and all its entities?"
   },
   "entityEditor": {
     "emptyState": "Select an entity from the panel to edit.",
@@ -818,6 +824,24 @@
     "filterDraft": "Draft",
     "filterFinal": "Final",
     "cycleStatus": "Click to cycle chapter status"
+  },
+  "entityTypeManager": {
+    "displayName": "Display Name",
+    "displayNameWatermark": "e.g. Faction",
+    "pluralName": "Plural Name",
+    "pluralNameWatermark": "e.g. Factions (auto-generated if empty)",
+    "icon": "Icon (emoji)",
+    "fields": "Fields",
+    "fieldName": "Field name",
+    "defaultValue": "Default value (optional)",
+    "enumOptions": "Comma-separated options: Option A, Option B",
+    "required": "Required",
+    "removeField": "Remove field",
+    "addField": "+ Add Field",
+    "features": "Features",
+    "includeImages": "Include Images",
+    "includeRelationships": "Include Relationships",
+    "includeSections": "Include Sections"
   },
   "update": {
     "available": "Update Available",

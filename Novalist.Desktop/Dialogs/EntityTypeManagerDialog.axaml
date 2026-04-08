@@ -1,0 +1,159 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Novalist.Desktop.ViewModels"
+        xmlns:loc="using:Novalist.Desktop.Localization"
+        mc:Ignorable="d"
+        x:Class="Novalist.Desktop.Dialogs.EntityTypeManagerDialog"
+        x:DataType="vm:EntityTypeManagerViewModel"
+        Width="550"
+        Height="650"
+        Focusable="True">
+    <Border Background="Transparent" Padding="0">
+        <DockPanel>
+            <!-- Bottom buttons -->
+            <Border DockPanel.Dock="Bottom"
+                    Background="{DynamicResource SidebarBackground}"
+                    Padding="16,12"
+                    BorderThickness="0,1,0,0"
+                    BorderBrush="{DynamicResource BorderDefault}">
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="8">
+                    <Button Content="{loc:Loc dialog.cancel}"
+                            Padding="16,8"
+                            Click="OnCancel" />
+                    <Button Content="{loc:Loc template.save}"
+                            Classes="primary"
+                            Padding="16,8"
+                            Click="OnSave" />
+                </StackPanel>
+            </Border>
+
+            <!-- Scrollable content -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto"
+                          Padding="24,20">
+                <StackPanel Spacing="16">
+                    <!-- Display Name -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Loc entityTypeManager.displayName}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}" />
+                        <TextBox Text="{Binding DisplayName}"
+                                 Watermark="{loc:Loc entityTypeManager.displayNameWatermark}" />
+                    </StackPanel>
+
+                    <!-- Display Name Plural -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Loc entityTypeManager.pluralName}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}" />
+                        <TextBox Text="{Binding DisplayNamePlural}"
+                                 Watermark="{loc:Loc entityTypeManager.pluralNameWatermark}" />
+                    </StackPanel>
+
+                    <!-- Icon -->
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="{loc:Loc entityTypeManager.icon}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}" />
+                        <TextBox Text="{Binding Icon}"
+                                 MaxLength="4"
+                                 Width="80"
+                                 HorizontalAlignment="Left" />
+                    </StackPanel>
+
+                    <!-- Fields section -->
+                    <TextBlock Text="{loc:Loc entityTypeManager.fields}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NormalText}"
+                               Margin="0,8,0,0" />
+
+                    <ItemsControl ItemsSource="{Binding Fields}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:EntityTypeFieldRowViewModel">
+                                <StackPanel Spacing="4" Margin="0,4">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right"
+                                                Command="{Binding RemoveCommand}"
+                                                Content="&#xE711;"
+                                                FontFamily="{StaticResource SymbolThemeFontFamily}"
+                                                FontSize="12"
+                                                Padding="6"
+                                                Margin="4,0,0,0"
+                                                Background="Transparent"
+                                                ToolTip.Tip="{loc:Loc entityTypeManager.removeField}" />
+                                        <ComboBox DockPanel.Dock="Right"
+                                                  ItemsSource="{Binding PropertyTypes}"
+                                                  SelectedIndex="{Binding TypeIndex}"
+                                                  Width="110"
+                                                  Margin="4,0,0,0" />
+                                        <ToggleSwitch DockPanel.Dock="Right"
+                                                      IsChecked="{Binding Required}"
+                                                      OnContent="Req"
+                                                      OffContent=""
+                                                      MinWidth="0"
+                                                      Margin="4,0,0,0"
+                                                      ToolTip.Tip="{loc:Loc entityTypeManager.required}" />
+                                        <TextBox Text="{Binding DisplayName}"
+                                                 Watermark="{loc:Loc entityTypeManager.fieldName}" />
+                                    </DockPanel>
+                                    <TextBox Text="{Binding DefaultValue}"
+                                             Watermark="{loc:Loc entityTypeManager.defaultValue}" />
+                                    <TextBox Text="{Binding EnumOptionsText}"
+                                             IsVisible="{Binding ShowEnumOptions}"
+                                             Watermark="{loc:Loc entityTypeManager.enumOptions}" />
+                                    <ComboBox ItemsSource="{Binding EntityRefTargets}"
+                                              SelectedItem="{Binding EntityRefTarget}"
+                                              IsVisible="{Binding ShowEntityRefTarget}"
+                                              HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Button Content="{loc:Loc entityTypeManager.addField}"
+                            Command="{Binding AddFieldCommand}"
+                            HorizontalAlignment="Left"
+                            Padding="12,6" />
+
+                    <!-- Features section -->
+                    <TextBlock Text="{loc:Loc entityTypeManager.features}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NormalText}"
+                               Margin="0,8,0,0" />
+
+                    <DockPanel>
+                        <ToggleSwitch IsChecked="{Binding IncludeImages}"
+                                      OnContent=""
+                                      OffContent=""
+                                      MinWidth="0" />
+                        <TextBlock Text="{loc:Loc entityTypeManager.includeImages}"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
+
+                    <DockPanel>
+                        <ToggleSwitch IsChecked="{Binding IncludeRelationships}"
+                                      OnContent=""
+                                      OffContent=""
+                                      MinWidth="0" />
+                        <TextBlock Text="{loc:Loc entityTypeManager.includeRelationships}"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
+
+                    <DockPanel>
+                        <ToggleSwitch IsChecked="{Binding IncludeSections}"
+                                      OnContent=""
+                                      OffContent=""
+                                      MinWidth="0" />
+                        <TextBlock Text="{loc:Loc entityTypeManager.includeSections}"
+                                   VerticalAlignment="Center" />
+                    </DockPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

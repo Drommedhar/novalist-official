@@ -23,7 +23,8 @@ public sealed class WritingToolkitExtension :
     IThemeContributor,
     IStatusBarContributor,
     IContextMenuContributor,
-    IContentViewContributor
+    IContentViewContributor,
+    IEntityTypeContributor
 {
     private IHostServices _host = null!;
     private IExtensionLocalization _loc = null!;
@@ -291,6 +292,34 @@ public sealed class WritingToolkitExtension :
             },
             OnActivated = () => { },
             OnDeactivated = () => { }
+        }
+    ];
+
+    // ── IEntityTypeContributor ──────────────────────────────────────
+
+    public IReadOnlyList<EntityTypeDescriptor> GetEntityTypes() =>
+    [
+        new EntityTypeDescriptor
+        {
+            TypeKey = "ext.writingtoolkit.faction",
+            DisplayName = _loc.T("entityType.faction"),
+            DisplayNamePlural = _loc.T("entityType.factions"),
+            Icon = "⚔️",
+            FolderName = "Factions",
+            DefaultFields =
+            [
+                new EntityFieldDescriptor { Key = "leader", DisplayName = _loc.T("entityType.faction.leader"), TypeKey = "EntityRef", EnumOptions = ["Character"] },
+                new EntityFieldDescriptor { Key = "type", DisplayName = _loc.T("entityType.faction.type"), TypeKey = "Enum", EnumOptions = ["Government", "Military", "Religious", "Criminal", "Guild", "Rebellion", "Other"] },
+                new EntityFieldDescriptor { Key = "motto", DisplayName = _loc.T("entityType.faction.motto"), TypeKey = "String" },
+                new EntityFieldDescriptor { Key = "founded", DisplayName = _loc.T("entityType.faction.founded"), TypeKey = "Date" },
+                new EntityFieldDescriptor { Key = "memberCount", DisplayName = _loc.T("entityType.faction.memberCount"), TypeKey = "Int" }
+            ],
+            Features = new EntityTypeFeatures
+            {
+                IncludeImages = true,
+                IncludeRelationships = true,
+                IncludeSections = true
+            }
         }
     ];
 }

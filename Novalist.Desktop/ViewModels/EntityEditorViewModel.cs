@@ -107,6 +107,14 @@ public partial class EntityEditorViewModel : ObservableObject
     private LocationData? _location;
     private ItemData? _item;
     private LoreData? _lore;
+    private CustomEntityData? _customEntity;
+
+    // ── Custom entity fields ────────────────────────────────────────
+    [ObservableProperty]
+    private ObservableCollection<ObservableKeyValue> _customEntityFields = [];
+
+    [ObservableProperty]
+    private string _customEntityTypeKey = string.Empty;
 
     public Func<Task<string?>>? BrowseImageRequested { get; set; }
     public Func<Task<AddImageSourceChoice?>>? ChooseAddImageSourceRequested { get; set; }
@@ -216,6 +224,57 @@ public partial class EntityEditorViewModel : ObservableObject
         _isLoading = false;
     }
 
+    public void OpenCustomEntity(CustomEntityData e)
+    {
+        ResetCurrentEntityState();
+        _isLoading = true;
+        _customEntity = e;
+        EntityType = EntityType.Custom;
+        CustomEntityTypeKey = e.EntityTypeKey;
+        Title = e.Name;
+
+        Name = e.Name;
+        Description = e.Fields.GetValueOrDefault("Description", string.Empty);
+
+        // Build typed fields from the entity type definition
+        var typeDef = _entityService.GetCustomEntityTypes()
+            .FirstOrDefault(t => string.Equals(t.TypeKey, e.EntityTypeKey, StringComparison.Ordinal));
+        var fieldDefs = typeDef?.DefaultFields ?? [];
+        CustomEntityFields = new(fieldDefs
+            .Where(fd => !string.Equals(fd.Key, "Description", StringComparison.OrdinalIgnoreCase))
+            .Select(fd =>
+            {
+                var value = e.Fields.GetValueOrDefault(fd.Key, fd.DefaultValue);
+                if (fd.Type == CustomPropertyType.EntityRef)
+                {
+                    var refTarget = fd.EnumOptions is { Count: > 0 } ? fd.EnumOptions[0] : "Character";
+                    var kv = new ObservableKeyValue(fd.DisplayName, value, CustomPropertyType.EntityRef, null);
+                    kv.EntityRefTargetType = refTarget;
+                    return kv;
+                }
+                return fd.EnumOptions is { Count: > 0 }
+                    ? new ObservableKeyValue(fd.DisplayName, value, CustomPropertyType.Enum, fd.EnumOptions)
+                    : new ObservableKeyValue(fd.DisplayName, value, fd.Type, null);
+            }));
+
+        // Features
+        var features = typeDef?.Features ?? new CustomEntityFeatures();
+        if (features.IncludeImages)
+            Images = new(e.Images);
+        if (features.IncludeRelationships)
+            Relationships = new(e.Relationships.Select(CreateObservableRelationship));
+        if (features.IncludeSections)
+            Sections = new(e.Sections.Select(s => new ObservableSection(s.Title, s.Content)));
+
+        CustomProperties = BuildTypedCustomProperties(e.CustomProperties, e.TemplateId, EntityType.Custom);
+
+        // Populate entity reference names for EntityRef fields
+        _ = PopulateEntityRefNamesAsync();
+
+        IsOpen = true;
+        _isLoading = false;
+    }
+
     // ── Save ────────────────────────────────────────────────────────
 
     [RelayCommand]
@@ -258,6 +317,12 @@ public partial class EntityEditorViewModel : ObservableObject
                 Title = _lore.Name;
                 didSave = true;
                 break;
+            case EntityType.Custom when _customEntity != null:
+                WriteBackCustomEntity();
+                await _entityService.SaveCustomEntityAsync(_customEntity);
+                Title = _customEntity.Name;
+                didSave = true;
+                break;
         }
 
         if (didSave)
@@ -296,6 +361,9 @@ public partial class EntityEditorViewModel : ObservableObject
                 break;
             case EntityType.Lore when _lore != null:
                 await _entityService.DeleteLoreAsync(_lore.Id);
+                break;
+            case EntityType.Custom when _customEntity != null:
+                await _entityService.DeleteCustomEntityAsync(_customEntity.EntityTypeKey, _customEntity.Id);
                 break;
         }
 
@@ -744,6 +812,39 @@ public partial class EntityEditorViewModel : ObservableObject
         _lore.Sections = Sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }).ToList();
     }
 
+    private void WriteBackCustomEntity()
+    {
+        if (_customEntity == null) return;
+        _customEntity.Name = Name;
+
+        // Write back typed fields
+        var typeDef = _entityService.GetCustomEntityTypes()
+            .FirstOrDefault(t => string.Equals(t.TypeKey, _customEntity.EntityTypeKey, StringComparison.Ordinal));
+        var fieldDefs = typeDef?.DefaultFields ?? [];
+        var nonDescFields = fieldDefs
+            .Where(fd => !string.Equals(fd.Key, "Description", StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        for (var i = 0; i < nonDescFields.Count && i < CustomEntityFields.Count; i++)
+            _customEntity.Fields[nonDescFields[i].Key] = CustomEntityFields[i].Value;
+
+        if (!string.IsNullOrEmpty(Description) || _customEntity.Fields.ContainsKey("Description"))
+            _customEntity.Fields["Description"] = Description;
+
+        var features = typeDef?.Features ?? new CustomEntityFeatures();
+        if (features.IncludeImages)
+            _customEntity.Images = [.. Images];
+        if (features.IncludeRelationships)
+            _customEntity.Relationships = Relationships
+                .Select(r => r.ToEntityRelationship())
+                .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
+                .ToList();
+        if (features.IncludeSections)
+            _customEntity.Sections = Sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }).ToList();
+
+        _customEntity.CustomProperties = CustomProperties.ToDictionary(kv => kv.Key, kv => kv.Value);
+    }
+
     private void CloseCurrentEntity()
     {
         ResetCurrentEntityState();
@@ -791,12 +892,14 @@ public partial class EntityEditorViewModel : ObservableObject
         AvailableScenes.Clear();
         OverrideItems.Clear();
 
-        _character = null; _location = null; _item = null; _lore = null;
+        _character = null; _location = null; _item = null; _lore = null; _customEntity = null;
         Name = Surname = Gender = Age = Role = Group = string.Empty;
         IsDateAge = false; BirthDate = null; ComputedAge = string.Empty;
         EyeColor = HairColor = HairLength = Height = Build = SkinTone = DistinguishingFeatures = string.Empty;
         LocationType = ParentLocation = ItemType = Origin = Description = string.Empty;
         Category = "Other";
+        CustomEntityTypeKey = string.Empty;
+        CustomEntityFields.Clear();
         Images.Clear(); Relationships.Clear(); CustomProperties.Clear();
         Sections.Clear(); ChapterOverrides.Clear();
         RelationshipRoleSuggestions.Clear();
@@ -844,6 +947,9 @@ public partial class EntityEditorViewModel : ObservableObject
             EntityType.Lore => book.LoreTemplates
                 .FirstOrDefault(t => string.Equals(t.Id, templateId, StringComparison.Ordinal))
                 ?.CustomPropertyDefs ?? [],
+            EntityType.Custom => book.CustomEntityTemplates
+                .FirstOrDefault(t => string.Equals(t.Id, templateId, StringComparison.Ordinal))
+                ?.CustomPropertyDefs ?? [],
             _ => []
         };
     }
@@ -866,6 +972,51 @@ public partial class EntityEditorViewModel : ObservableObject
     }
 
     public IReadOnlyList<string> AllLocationNames => _allLocationNames;
+
+    private async Task PopulateEntityRefNamesAsync()
+    {
+        foreach (var field in CustomEntityFields)
+        {
+            if (field.PropertyType != CustomPropertyType.EntityRef) continue;
+
+            var target = field.EntityRefTargetType;
+            List<string> names;
+            switch (target)
+            {
+                case "Character":
+                    names = (await _entityService.LoadCharactersAsync())
+                        .Select(c => c.DisplayName).ToList();
+                    break;
+                case "Location":
+                    names = (await _entityService.LoadLocationsAsync())
+                        .Select(l => l.Name).ToList();
+                    break;
+                case "Item":
+                    names = (await _entityService.LoadItemsAsync())
+                        .Select(i => i.Name).ToList();
+                    break;
+                case "Lore":
+                    names = (await _entityService.LoadLoreAsync())
+                        .Select(l => l.Name).ToList();
+                    break;
+                default:
+                    // Custom entity type — resolve display name to typeKey
+                    var typeKey = _projectService.CurrentProject?.CustomEntityTypes
+                        .FirstOrDefault(ct => string.Equals(ct.DisplayName, target, StringComparison.OrdinalIgnoreCase)
+                                           || string.Equals(ct.TypeKey, target, StringComparison.OrdinalIgnoreCase))
+                        ?.TypeKey ?? target;
+                    names = (await _entityService.LoadCustomEntitiesAsync(typeKey))
+                        .Select(e => e.Name).ToList();
+                    break;
+            }
+
+            field.AllEntityRefNames = names
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+    }
 
     public void SetParentLocationSuggestions(IEnumerable<string> suggestions)
     {
@@ -1194,14 +1345,23 @@ public partial class ObservableKeyValue : ObservableObject
     [ObservableProperty] private string _key;
     [ObservableProperty] private string _value;
     [ObservableProperty] private CustomPropertyType _propertyType;
-    [ObservableProperty] private DateTimeOffset? _dateValue;
+    [ObservableProperty] private DateTime? _dateValue;
     [ObservableProperty] private bool _boolValue;
     [ObservableProperty] private List<string> _enumOptions = [];
+
+    // EntityRef support
+    [ObservableProperty] private ObservableCollection<string> _entityRefSuggestions = [];
+    [ObservableProperty] private bool _isEntityRefSuggestionOpen;
+
+    /// <summary>For EntityRef fields: which entity type to reference (e.g. "Character", "Location").</summary>
+    public string EntityRefTargetType { get; set; } = string.Empty;
 
     public bool IsDateType => PropertyType == CustomPropertyType.Date;
     public bool IsBoolType => PropertyType == CustomPropertyType.Bool;
     public bool IsEnumType => PropertyType == CustomPropertyType.Enum;
-    public bool IsTextType => !IsDateType && !IsBoolType && !IsEnumType;
+    public bool IsEntityRefType => PropertyType == CustomPropertyType.EntityRef;
+    public bool IsTextType => !IsDateType && !IsBoolType && !IsEnumType && !IsEntityRefType;
+    public bool EntityRefSuggestionsVisible => IsEntityRefSuggestionOpen && EntityRefSuggestions.Count > 0;
 
     private bool _suppressSync;
 
@@ -1227,7 +1387,7 @@ public partial class ObservableKeyValue : ObservableObject
         switch (type)
         {
             case CustomPropertyType.Date:
-                if (DateTimeOffset.TryParse(value, System.Globalization.CultureInfo.InvariantCulture,
+                if (DateTime.TryParse(value, System.Globalization.CultureInfo.InvariantCulture,
                         System.Globalization.DateTimeStyles.None, out var dto))
                     DateValue = dto;
                 break;
@@ -1237,7 +1397,7 @@ public partial class ObservableKeyValue : ObservableObject
         }
     }
 
-    partial void OnDateValueChanged(DateTimeOffset? value)
+    partial void OnDateValueChanged(DateTime? value)
     {
         if (_suppressSync) return;
         Value = value.HasValue
@@ -1249,6 +1409,26 @@ public partial class ObservableKeyValue : ObservableObject
     {
         if (_suppressSync) return;
         Value = value ? "true" : "false";
+    }
+
+    partial void OnIsEntityRefSuggestionOpenChanged(bool value)
+    {
+        OnPropertyChanged(nameof(EntityRefSuggestionsVisible));
+    }
+
+    /// <summary>All entity names for the referenced type, set by the editor.</summary>
+    public List<string> AllEntityRefNames { get; set; } = [];
+
+    public void SetEntityRefSuggestions(IEnumerable<string> suggestions)
+    {
+        EntityRefSuggestions = new ObservableCollection<string>(suggestions);
+        OnPropertyChanged(nameof(EntityRefSuggestionsVisible));
+        IsEntityRefSuggestionOpen = EntityRefSuggestions.Count > 0;
+    }
+
+    public void HideEntityRefSuggestions()
+    {
+        IsEntityRefSuggestionOpen = false;
     }
 }
 

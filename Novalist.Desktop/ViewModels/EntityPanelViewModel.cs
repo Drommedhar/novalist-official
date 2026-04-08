@@ -46,12 +46,28 @@ public partial class EntityPanelViewModel : ObservableObject
     [ObservableProperty]
     private object? _selectedEntity;
 
+    // ── Custom entity types ─────────────────────────────────────────
+    [ObservableProperty]
+    private ObservableCollection<CustomEntityTypeDefinition> _customEntityTypes = [];
+
+    [ObservableProperty]
+    private string? _activeCustomTypeKey;
+
+    private readonly Dictionary<string, ObservableCollection<CustomEntityData>> _customEntities = [];
+
+    /// <summary>
+    /// Extension-contributed entity types (set externally after extensions load).
+    /// Merged into the panel alongside user-defined types.
+    /// </summary>
+    public IReadOnlyList<Sdk.Models.EntityTypeDescriptor> ExtensionEntityTypes { get; set; } = [];
+
     public event Action<EntityType, object>? EntityOpenRequested;
     public event Action? EntityDeleted;
     public event Action<LocationData>? LocationParentChanged;
     public Func<string, string, string, Task<string?>>? ShowInputDialog { get; set; }
     public Func<string, string, IReadOnlyList<EntityCreationTemplateOption>, Task<EntityCreationResult?>>? ShowEntityCreationDialog { get; set; }
     public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
+    public Func<EntityTypeManagerViewModel, Task<bool>>? ShowEntityTypeManagerDialog { get; set; }
 
     public EntityPanelViewModel(IEntityService entityService, IProjectService projectService)
     {
@@ -74,13 +90,86 @@ public partial class EntityPanelViewModel : ObservableObject
 
         var lore = await _entityService.LoadLoreAsync();
         LoreEntries = new ObservableCollection<LoreData>(lore.OrderBy(l => l.Name));
+
+        await LoadCustomEntityTypesAsync();
+    }
+
+    private async Task LoadCustomEntityTypesAsync()
+    {
+        var types = _entityService.GetCustomEntityTypes();
+
+        // Merge extension-contributed entity types into project metadata if not already present
+        foreach (var ext in ExtensionEntityTypes)
+        {
+            if (string.IsNullOrEmpty(ext.TypeKey)) continue;
+            if (types.Any(t => string.Equals(t.TypeKey, ext.TypeKey, StringComparison.Ordinal))) continue;
+
+            var def = new CustomEntityTypeDefinition
+            {
+                TypeKey = ext.TypeKey,
+                DisplayName = ext.DisplayName,
+                DisplayNamePlural = ext.DisplayNamePlural,
+                Icon = ext.Icon,
+                FolderName = string.IsNullOrEmpty(ext.FolderName) ? ext.TypeKey : ext.FolderName,
+                Source = "extension",
+                DefaultFields = ext.DefaultFields.Select(f =>
+                {
+                    var fieldDef = new CustomEntityFieldDefinition
+                    {
+                        Key = f.Key,
+                        DisplayName = f.DisplayName,
+                        TypeKey = f.TypeKey,
+                        DefaultValue = f.DefaultValue,
+                        EnumOptions = f.EnumOptions,
+                        Required = f.Required
+                    };
+                    if (WellKnownPropertyTypes.TryToEnum(f.TypeKey, out var propType))
+                        fieldDef.Type = propType;
+                    return fieldDef;
+                }).ToList(),
+                Features = new CustomEntityFeatures
+                {
+                    IncludeImages = ext.Features.IncludeImages,
+                    IncludeRelationships = ext.Features.IncludeRelationships,
+                    IncludeSections = ext.Features.IncludeSections
+                }
+            };
+            await _entityService.SaveCustomEntityTypeAsync(def);
+            types = _entityService.GetCustomEntityTypes();
+        }
+
+        CustomEntityTypes = new ObservableCollection<CustomEntityTypeDefinition>(types);
+        _customEntities.Clear();
+
+        foreach (var typeDef in types)
+        {
+            var entities = await _entityService.LoadCustomEntitiesAsync(typeDef.TypeKey);
+            _customEntities[typeDef.TypeKey] = new ObservableCollection<CustomEntityData>(
+                entities.OrderBy(e => e.Name));
+        }
+    }
+
+    public ObservableCollection<CustomEntityData> GetCustomEntities(string typeKey)
+    {
+        return _customEntities.TryGetValue(typeKey, out var list) ? list : [];
     }
 
     [RelayCommand]
     private void SetEntityType(string type)
     {
         if (Enum.TryParse<EntityType>(type, out var et))
+        {
             ActiveEntityType = et;
+            if (et != EntityType.Custom)
+                ActiveCustomTypeKey = null;
+        }
+    }
+
+    [RelayCommand]
+    private void SetCustomEntityType(string typeKey)
+    {
+        ActiveEntityType = EntityType.Custom;
+        ActiveCustomTypeKey = typeKey;
     }
 
     partial void OnCharacterGroupingModeChanged(string value)
@@ -256,9 +345,129 @@ public partial class EntityPanelViewModel : ObservableObject
             LocationData => EntityType.Location,
             ItemData => EntityType.Item,
             LoreData => EntityType.Lore,
+            CustomEntityData => EntityType.Custom,
             _ => EntityType.Character
         };
         EntityOpenRequested?.Invoke(type, entity);
+    }
+
+    [RelayCommand]
+    private async Task CreateCustomEntityAsync()
+    {
+        if (ActiveCustomTypeKey == null) return;
+        var typeDef = CustomEntityTypes.FirstOrDefault(t =>
+            string.Equals(t.TypeKey, ActiveCustomTypeKey, StringComparison.Ordinal));
+        if (typeDef == null) return;
+
+        var book = _projectService.ActiveBook;
+        var templates = book?.CustomEntityTemplates
+            .Where(t => string.Equals(t.EntityTypeKey, typeDef.TypeKey, StringComparison.Ordinal))
+            .Select(t => new EntityCreationTemplateOption(t.Id, t.Name))
+            .ToList() ?? [];
+
+        var result = await (ShowEntityCreationDialog?.Invoke(
+            Loc.T("entityPanel.newCustomEntity", typeDef.DisplayName), Loc.T("entityPanel.customEntityNamePrompt", typeDef.DisplayName), templates)
+            ?? Task.FromResult<EntityCreationResult?>(null));
+        if (result == null) return;
+
+        var entity = new CustomEntityData
+        {
+            EntityTypeKey = typeDef.TypeKey,
+            Name = result.Name
+        };
+
+        // Apply default fields from type definition
+        foreach (var field in typeDef.DefaultFields)
+        {
+            if (!string.IsNullOrWhiteSpace(field.DefaultValue))
+                entity.Fields[field.Key] = field.DefaultValue;
+        }
+
+        if (result.TemplateId != null)
+            ApplyCustomEntityTemplate(entity, result.TemplateId);
+
+        await _entityService.SaveCustomEntityAsync(entity);
+
+        if (!_customEntities.ContainsKey(typeDef.TypeKey))
+            _customEntities[typeDef.TypeKey] = [];
+        _customEntities[typeDef.TypeKey].Add(entity);
+
+        EntityOpenRequested?.Invoke(EntityType.Custom, entity);
+    }
+
+    [RelayCommand]
+    private async Task DeleteCustomEntityAsync(CustomEntityData? entity)
+    {
+        if (entity == null) return;
+        var confirmed = await (ShowConfirmDialog?.Invoke(
+            Loc.T("entityEditor.deleteConfirmTitle"),
+            Loc.T("entityEditor.deleteConfirmMessage", entity.Name)) ?? Task.FromResult(false));
+        if (!confirmed) return;
+        await _entityService.DeleteCustomEntityAsync(entity.EntityTypeKey, entity.Id, entity.IsWorldBible);
+        if (_customEntities.TryGetValue(entity.EntityTypeKey, out var list))
+            list.Remove(entity);
+        EntityDeleted?.Invoke();
+    }
+
+    [RelayCommand]
+    private async Task ToggleWorldBibleCustomEntityAsync(CustomEntityData? entity)
+    {
+        if (entity == null) return;
+        if (entity.IsWorldBible)
+            await _entityService.MoveCustomEntityToBookAsync(entity.Id, entity.EntityTypeKey);
+        else
+            await _entityService.MoveCustomEntityToWorldBibleAsync(entity.Id, entity.EntityTypeKey);
+        entity.IsWorldBible = !entity.IsWorldBible;
+    }
+
+    [RelayCommand]
+    private async Task CreateEntityTypeAsync()
+    {
+        var vm = new EntityTypeManagerViewModel();
+        vm.SetCustomEntityTypes(CustomEntityTypes);
+        var saved = await (ShowEntityTypeManagerDialog?.Invoke(vm) ?? Task.FromResult(false));
+        if (!saved) return;
+
+        var def = vm.BuildDefinition();
+        await _entityService.SaveCustomEntityTypeAsync(def);
+        await LoadCustomEntityTypesAsync();
+    }
+
+    [RelayCommand]
+    private async Task EditEntityTypeAsync(CustomEntityTypeDefinition? typeDef)
+    {
+        if (typeDef == null || !string.Equals(typeDef.Source, "user", StringComparison.Ordinal)) return;
+
+        var vm = new EntityTypeManagerViewModel();
+        vm.SetCustomEntityTypes(CustomEntityTypes);
+        vm.LoadDefinition(typeDef);
+        var saved = await (ShowEntityTypeManagerDialog?.Invoke(vm) ?? Task.FromResult(false));
+        if (!saved) return;
+
+        var updated = vm.BuildDefinition();
+        await _entityService.SaveCustomEntityTypeAsync(updated);
+        await LoadCustomEntityTypesAsync();
+    }
+
+    [RelayCommand]
+    private async Task DeleteEntityTypeAsync(CustomEntityTypeDefinition? typeDef)
+    {
+        if (typeDef == null || !string.Equals(typeDef.Source, "user", StringComparison.Ordinal)) return;
+
+        var confirmed = await (ShowConfirmDialog?.Invoke(
+            Loc.T("entityEditor.deleteConfirmTitle"),
+            Loc.T("entityPanel.deleteTypeConfirm", typeDef.DisplayName)) ?? Task.FromResult(false));
+        if (!confirmed) return;
+
+        await _entityService.DeleteCustomEntityTypeAsync(typeDef.TypeKey);
+        _customEntities.Remove(typeDef.TypeKey);
+        CustomEntityTypes.Remove(typeDef);
+
+        if (string.Equals(ActiveCustomTypeKey, typeDef.TypeKey, StringComparison.Ordinal))
+        {
+            ActiveEntityType = EntityType.Character;
+            ActiveCustomTypeKey = null;
+        }
     }
 
     [RelayCommand]
@@ -571,6 +780,35 @@ public partial class EntityPanelViewModel : ObservableObject
         {
             if (!lore.Sections.Any(s => string.Equals(s.Title, section.Title, StringComparison.OrdinalIgnoreCase)))
                 lore.Sections.Add(new EntitySection { Title = section.Title, Content = section.DefaultContent });
+        }
+    }
+
+    private void ApplyCustomEntityTemplate(CustomEntityData entity, string templateId)
+    {
+        var book = _projectService.ActiveBook;
+        if (book == null) return;
+        var template = book.CustomEntityTemplates.FirstOrDefault(t =>
+            string.Equals(t.Id, templateId, StringComparison.Ordinal)
+            && string.Equals(t.EntityTypeKey, entity.EntityTypeKey, StringComparison.Ordinal));
+        if (template == null) return;
+
+        entity.TemplateId = template.Id;
+        foreach (var field in template.Fields)
+        {
+            if (!string.IsNullOrWhiteSpace(field.DefaultValue))
+                entity.Fields[field.Key] = field.DefaultValue;
+        }
+
+        foreach (var def in template.CustomPropertyDefs)
+        {
+            if (!entity.CustomProperties.ContainsKey(def.Key))
+                entity.CustomProperties[def.Key] = def.DefaultValue;
+        }
+
+        foreach (var section in template.Sections)
+        {
+            if (!entity.Sections.Any(s => string.Equals(s.Title, section.Title, StringComparison.OrdinalIgnoreCase)))
+                entity.Sections.Add(new EntitySection { Title = section.Title, Content = section.DefaultContent });
         }
     }
 

@@ -28,6 +28,20 @@ public interface IEntityService
     Task MoveEntityToWorldBibleAsync(EntityType type, string id);
     Task MoveEntityToBookAsync(EntityType type, string id);
 
+    // Custom entities
+    Task<List<CustomEntityData>> LoadCustomEntitiesAsync(string entityTypeKey);
+    Task SaveCustomEntityAsync(CustomEntityData entity);
+    Task DeleteCustomEntityAsync(string entityTypeKey, string id, bool isWorldBible = false);
+
+    // Custom entity type definitions
+    List<CustomEntityTypeDefinition> GetCustomEntityTypes();
+    Task SaveCustomEntityTypeAsync(CustomEntityTypeDefinition definition);
+    Task DeleteCustomEntityTypeAsync(string typeKey);
+
+    // Custom entity World Bible move operations
+    Task MoveCustomEntityToWorldBibleAsync(string entityTypeKey, string id);
+    Task MoveCustomEntityToBookAsync(string entityTypeKey, string id);
+
     // Images
     Task<string> ImportImageAsync(string sourcePath);
     List<string> GetProjectImages();

@@ -70,4 +70,16 @@ public class BookData
 
     [JsonPropertyName("activeLoreTemplateId")]
     public string ActiveLoreTemplateId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Templates for custom entity types, shared across all custom types in this book.
+    /// </summary>
+    [JsonPropertyName("customEntityTemplates")]
+    public List<CustomEntityTemplate> CustomEntityTemplates { get; set; } = [];
+
+    /// <summary>
+    /// Active template ID per custom entity type key.
+    /// </summary>
+    [JsonPropertyName("activeCustomEntityTemplateIds")]
+    public Dictionary<string, string> ActiveCustomEntityTemplateIds { get; set; } = [];
 }
