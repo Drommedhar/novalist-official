@@ -230,10 +230,8 @@ jobs:
   sdk-and-example:
     name: Pack SDK & Example Extension
     runs-on: ubuntu-latest
-    environment: nuget-publish
     permissions:
       contents: write
-      id-token: write
 
     steps:
       - name: Checkout
@@ -419,12 +417,14 @@ jobs:
           gh release download "$PREV_TAG" --pattern '*.nupkg' --dir artifacts
           echo "Reused SDK NuGet from release $PREV_TAG"
 
-      # ── Push to NuGet.org via Trusted Publishing ──────────────────
+      # ── Push to NuGet.org ──────────────────────────────────────────
       - name: Push to NuGet.org
         if: steps.sdk_check.outputs.sdk_changed == 'true'
         run: >-
           dotnet nuget push artifacts/*.nupkg
+          --api-key ${{ secrets.NUGET_API_KEY }}
           --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
 
       # ── Update SDK version in csproj ──────────────────────────────
       - name: Update SDK csproj version
