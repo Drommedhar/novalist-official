@@ -12,10 +12,14 @@
     <PackageProjectUrl>https://github.com/Drommedhar/novalist-official</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Drommedhar/novalist-official</RepositoryUrl>
     <PackageTags>novalist extensions sdk avalonia</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- SDK version — managed by CI. Bumped automatically based on API changes. -->
     <VersionPrefix>2.0.0</VersionPrefix>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.12" />
   </ItemGroup>
