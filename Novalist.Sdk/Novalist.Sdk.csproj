@@ -14,7 +14,7 @@
     <PackageTags>novalist extensions sdk avalonia</PackageTags>
 
     <!-- SDK version — managed by CI. Bumped automatically based on API changes. -->
-    <VersionPrefix>1.2.0</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.3.12" />
