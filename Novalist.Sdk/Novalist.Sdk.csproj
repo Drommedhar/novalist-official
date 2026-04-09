@@ -15,7 +15,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <!-- SDK version — managed by CI. Bumped automatically based on API changes. -->
-    <VersionPrefix>2.1.1</VersionPrefix>
+    <VersionPrefix>3.0.0</VersionPrefix>
   </PropertyGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
