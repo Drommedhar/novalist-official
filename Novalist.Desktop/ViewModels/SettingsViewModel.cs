@@ -105,9 +105,10 @@ public partial class SettingsViewModel : ObservableObject
         }
 
         var q = SearchQuery.Trim();
-        IsLanguageSectionVisible = MatchesSection(q, "language", "interface", "sprache", "theme", "farbschema",
+        IsLanguageSectionVisible = MatchesSection(q, "language", "interface", "sprache", "theme", "farbschema", "accent", "akzentfarbe", "color",
             Loc.T("settings.language"), Loc.T("settings.uiLanguage"), Loc.T("settings.uiLanguageDesc"),
-            Loc.T("settings.theme"), Loc.T("settings.themeDescription"));
+            Loc.T("settings.theme"), Loc.T("settings.themeDescription"),
+            Loc.T("settings.accentColor"), Loc.T("settings.accentColorDesc"));
         IsEditorSectionVisible = MatchesSection(q, "editor", "font", "book", "page", "paragraph", "spacing", "width",
             Loc.T("settings.editor"), Loc.T("settings.fontFamily"), Loc.T("settings.fontSize"),
             Loc.T("settings.bookSpacing"), Loc.T("settings.bookWidth"), Loc.T("settings.bookWidthPageFormat"));
@@ -169,6 +170,9 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private ThemeInfo _selectedTheme;
+
+    [ObservableProperty]
+    private Color _accentColor;
 
     [ObservableProperty]
     private string _autoReplacementPreview = string.Empty;
@@ -243,6 +247,12 @@ public partial class SettingsViewModel : ObservableObject
 
         _selectedTheme = AvailableThemes.FirstOrDefault(t => t.Name == App.ThemeService.ActiveThemeName)
             ?? AvailableThemes[0];
+
+        // Resolve accent color: user override → theme default → fallback blue
+        var accentHex = Settings.AccentColor
+            ?? App.ThemeService.GetActiveThemeDefaultAccentColor()
+            ?? "#007ACC";
+        _accentColor = Color.TryParse(accentHex, out var parsed) ? parsed : Color.Parse("#007ACC");
 
         _selectedPageFormat = AvailablePageFormats.FirstOrDefault(f => string.Equals(f.Code, Settings.BookPageFormat, StringComparison.Ordinal))
             ?? AvailablePageFormats.First();
@@ -354,6 +364,32 @@ public partial class SettingsViewModel : ObservableObject
     {
         App.ThemeService.ApplyTheme(value.Name);
         Settings.Theme = value.Name;
+
+        // When switching themes, reset accent to the theme's default
+        var themeAccent = value.Source?.AccentColor;
+        Settings.AccentColor = null;
+        var fallback = themeAccent ?? "#007ACC";
+        AccentColor = Color.TryParse(fallback, out var c) ? c : Color.Parse("#007ACC");
+        App.ThemeService.ApplyAccentColor(null);
+
+        SaveAndNotify();
+    }
+
+    partial void OnAccentColorChanged(Color value)
+    {
+        var hex = $"#{value.R:X2}{value.G:X2}{value.B:X2}";
+        Settings.AccentColor = hex;
+        App.ThemeService.ApplyAccentColor(hex);
+        SaveAndNotify();
+    }
+
+    [RelayCommand]
+    private void ResetAccentColor()
+    {
+        Settings.AccentColor = null;
+        var themeDefault = App.ThemeService.GetActiveThemeDefaultAccentColor() ?? "#007ACC";
+        AccentColor = Color.TryParse(themeDefault, out var c) ? c : Color.Parse("#007ACC");
+        App.ThemeService.ApplyAccentColor(null);
         SaveAndNotify();
     }
 

@@ -5,7 +5,6 @@
              xmlns:vm="using:Novalist.Desktop.ViewModels"
              xmlns:conv="using:Novalist.Desktop.Converters"
              xmlns:loc="using:Novalist.Desktop.Localization"
-             xmlns:glass="using:LiquidGlassAvaloniaUI"
              mc:Ignorable="d"
              d:DesignWidth="540" d:DesignHeight="420"
              x:Class="Novalist.Desktop.Views.FocusPeekCardView"
@@ -20,9 +19,7 @@
             Width="540"
             MaxHeight="420"
             IsVisible="{Binding IsOpen}">
-      <glass:LiquidGlassSurface
-            CornerRadius="10">
-        <Grid RowDefinitions="Auto,*">
+<Grid RowDefinitions="Auto,*">
             <Border Classes="focusPeekHeader">
                 <DockPanel Margin="14,12,14,10">
                     <StackPanel DockPanel.Dock="Right"
@@ -271,6 +268,5 @@
                 </StackPanel>
             </ScrollViewer>
         </Grid>
-    </glass:LiquidGlassSurface>
-    </Border>
+</Border>
 </UserControl>

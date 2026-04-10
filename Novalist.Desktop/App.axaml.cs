@@ -116,12 +116,20 @@ public partial class App : Application
                     Loc.Instance.LanguageChanged += () =>
                         hostServices.RaiseLanguageChanged(Loc.Instance.CurrentLanguage);
 
-                    // Register extension themes and apply saved theme
+                    // Register built-in and extension themes, then apply saved theme
                     splash.SetStatus("Applying theme...");
+                    ThemeService.RegisterBuiltInTheme("Discord",
+                        "avares://Novalist.Desktop/Assets/Themes/DiscordTheme.axaml",
+                        "#5865F2");
                     ThemeService.RegisterExtensionThemes(ExtensionManager.ThemeOverrides, ExtensionManager);
                     var savedTheme = SettingsService.Settings.Theme;
                     if (!string.IsNullOrEmpty(savedTheme) && savedTheme != "system")
                         ThemeService.ApplyTheme(savedTheme);
+
+                    // Apply saved accent color override (if any)
+                    var savedAccent = SettingsService.Settings.AccentColor;
+                    if (!string.IsNullOrEmpty(savedAccent))
+                        ThemeService.ApplyAccentColor(savedAccent);
 
                     // Everything is ready — swap to the main window
                     desktop.MainWindow = mainWindow;

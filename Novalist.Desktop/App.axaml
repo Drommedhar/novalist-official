@@ -1,28 +1,14 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:glass="using:LiquidGlassAvaloniaUI"
              x:Class="Novalist.Desktop.App"
              RequestedThemeVariant="Dark">
 
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
 
         <!-- Custom Styles -->
 
-        <!-- ── Liquid Glass defaults ── -->
-        <Style Selector="glass|LiquidGlassSurface">
-            <Setter Property="BlurRadius" Value="8" />
-            <Setter Property="Vibrancy" Value="1.2" />
-            <Setter Property="TintColor" Value="#00c3ff70" />
-            <Setter Property="RefractionHeight" Value="6" />
-            <Setter Property="RefractionAmount" Value="12" />
-            <Setter Property="HighlightEnabled" Value="True" />
-            <Setter Property="HighlightOpacity" Value="0.25" />
-            <Setter Property="HighlightWidth" Value="0.4" />
-            <Setter Property="ShadowEnabled" Value="True" />
-            <Setter Property="ShadowRadius" Value="20" />
-            <Setter Property="ShadowColor" Value="#40000000" />
-        </Style>
 
         <!-- ── Ribbon File Tab (Start button — Word-style accent) ── -->
         <Style Selector="Button.ribbonFileTab">

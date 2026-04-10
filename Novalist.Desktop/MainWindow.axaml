@@ -6,7 +6,6 @@
         xmlns:views="using:Novalist.Desktop.Views"
         xmlns:m="using:Novalist.Core.Models"
         xmlns:loc="using:Novalist.Desktop.Localization"
-        xmlns:glass="using:LiquidGlassAvaloniaUI"
         xmlns:sdk="using:Novalist.Sdk.Models"
         xmlns:conv="using:Novalist.Desktop.Converters"
         mc:Ignorable="d"
@@ -833,15 +832,15 @@
                     Focusable="True"
                     Background="Transparent"
                     PointerPressed="OnProjectOverviewOverlayPressed">
-                <glass:LiquidGlassSurface
-                        CornerRadius="8"
+                <Border CornerRadius="8"
                         Width="460"
                         MinWidth="300"
                         MaxWidth="460"
                         MaxHeight="360"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Bottom"
-                        Margin="0,0,0,26">
+                        Margin="0,0,0,26"
+                        Background="{DynamicResource CardBackground}">
                     <Border Background="Transparent"
                             Padding="10,12"
                             PointerPressed="OnProjectOverviewPopupPressed">
@@ -957,7 +956,7 @@
                         </ScrollViewer>
                     </StackPanel>
                     </Border>
-                </glass:LiquidGlassSurface>
+                </Border>
             </Border>
 
             <!-- Settings Overlay -->
@@ -979,12 +978,12 @@
             IsVisible="False"
             Focusable="True"
             ZIndex="200">
-        <glass:LiquidGlassSurface CornerRadius="8"
-                                   HorizontalAlignment="Center"
-                                   VerticalAlignment="Center"
-                                   Padding="0">
+        <Border CornerRadius="8"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{DynamicResource CardBackground}">
             <ContentPresenter x:Name="DialogHostPresenter" />
-        </glass:LiquidGlassSurface>
+        </Border>
     </Border>
 
     <!-- Start Menu Overlay (File-style backstage) — covers entire window including ribbon -->
@@ -993,11 +992,11 @@
             Background="#80000000"
             Focusable="True"
             PointerPressed="OnStartMenuOverlayPressed">
-        <glass:LiquidGlassSurface x:Name="StartMenuPanel"
+        <Border x:Name="StartMenuPanel"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Stretch"
                 Width="280"
-                CornerRadius="0">
+                Background="{DynamicResource ExplorerBackground}">
             <Border Background="Transparent"
                     PointerPressed="OnStartMenuPanelPressed">
                 <DockPanel Margin="0,8">
@@ -1101,7 +1100,7 @@
                     </StackPanel>
                 </DockPanel>
             </Border>
-        </glass:LiquidGlassSurface>
+        </Border>
     </Border>
     <!-- Extension notification toast -->
     <Border IsVisible="{Binding ExtensionNotification, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"

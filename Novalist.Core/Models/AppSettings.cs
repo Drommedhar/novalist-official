@@ -102,6 +102,13 @@ public class AppSettings
     public string? GitHubToken { get; set; }
 
     /// <summary>
+    /// User-overridden accent color as a hex string (e.g. "#5865F2").
+    /// When null, the active theme's default accent color is used.
+    /// </summary>
+    [JsonPropertyName("accentColor")]
+    public string? AccentColor { get; set; }
+
+    /// <summary>
     /// Ensures auto-replacements are populated from the language preset if empty.
     /// Call after deserialization.
     /// </summary>

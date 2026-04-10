@@ -23,7 +23,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" />
     <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
-    <ProjectReference Include="..\LiquidGlassAvaloniaUI\LiquidGlassAvaloniaUI\LiquidGlassAvaloniaUI.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +36,9 @@
 
   <ItemGroup>
     <AvaloniaResource Include="splash.png" />
+    <Content Include="Assets\\Themes\\DiscordTheme.axaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <!-- Exclude WebView assemblies from single-file bundling on Windows only.

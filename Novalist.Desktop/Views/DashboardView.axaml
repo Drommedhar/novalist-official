@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Novalist.Desktop.ViewModels"
              xmlns:loc="using:Novalist.Desktop.Localization"
-             xmlns:glass="using:LiquidGlassAvaloniaUI"
              mc:Ignorable="d"
              d:DesignWidth="900" d:DesignHeight="700"
              x:Class="Novalist.Desktop.Views.DashboardView"
@@ -68,13 +67,13 @@
 
                     <WrapPanel Orientation="Horizontal">
                         <!-- Words -->
-                        <glass:LiquidGlassSurface CornerRadius="6" Margin="0,0,10,10">
-                            <Border Background="Transparent"
-                                    BorderBrush="{DynamicResource CardBorder}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="20,16"
-                                    MinWidth="160">
+                        <Border Background="{DynamicResource CardBackground}"
+                                Margin="0,0,10,10"
+                                BorderBrush="{DynamicResource CardBorder}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="20,16"
+                                MinWidth="160">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{Binding TotalWordsDisplay}"
                                                FontSize="26"
@@ -85,16 +84,14 @@
                                                Foreground="{DynamicResource SubtleText}" />
                                 </StackPanel>
                             </Border>
-                        </glass:LiquidGlassSurface>
-
                         <!-- Chapters -->
-                        <glass:LiquidGlassSurface CornerRadius="6" Margin="0,0,10,10">
-                            <Border Background="Transparent"
-                                    BorderBrush="{DynamicResource CardBorder}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="20,16"
-                                    MinWidth="160">
+                        <Border Background="{DynamicResource CardBackground}"
+                                Margin="0,0,10,10"
+                                BorderBrush="{DynamicResource CardBorder}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="20,16"
+                                MinWidth="160">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{Binding ChapterCount}"
                                                FontSize="26"
@@ -105,16 +102,14 @@
                                                Foreground="{DynamicResource SubtleText}" />
                                 </StackPanel>
                             </Border>
-                        </glass:LiquidGlassSurface>
-
                         <!-- Scenes -->
-                        <glass:LiquidGlassSurface CornerRadius="6" Margin="0,0,10,10">
-                            <Border Background="Transparent"
-                                    BorderBrush="{DynamicResource CardBorder}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="20,16"
-                                    MinWidth="160">
+                        <Border Background="{DynamicResource CardBackground}"
+                                Margin="0,0,10,10"
+                                BorderBrush="{DynamicResource CardBorder}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="20,16"
+                                MinWidth="160">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{Binding SceneCount}"
                                                FontSize="26"
@@ -125,16 +120,14 @@
                                                Foreground="{DynamicResource SubtleText}" />
                                 </StackPanel>
                             </Border>
-                        </glass:LiquidGlassSurface>
-
                         <!-- Reading Time -->
-                        <glass:LiquidGlassSurface CornerRadius="6" Margin="0,0,10,10">
-                            <Border Background="Transparent"
-                                    BorderBrush="{DynamicResource CardBorder}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="20,16"
-                                    MinWidth="160">
+                        <Border Background="{DynamicResource CardBackground}"
+                                Margin="0,0,10,10"
+                                BorderBrush="{DynamicResource CardBorder}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="20,16"
+                                MinWidth="160">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{Binding ReadingTimeDisplay}"
                                                FontSize="26"
@@ -145,16 +138,14 @@
                                                Foreground="{DynamicResource SubtleText}" />
                                 </StackPanel>
                             </Border>
-                        </glass:LiquidGlassSurface>
-
                         <!-- Characters -->
-                        <glass:LiquidGlassSurface CornerRadius="6" Margin="0,0,10,10">
-                            <Border Background="Transparent"
-                                    BorderBrush="{DynamicResource CardBorder}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="20,16"
-                                    MinWidth="160">
+                        <Border Background="{DynamicResource CardBackground}"
+                                Margin="0,0,10,10"
+                                BorderBrush="{DynamicResource CardBorder}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="20,16"
+                                MinWidth="160">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{Binding CharacterCount}"
                                                FontSize="26"
@@ -165,16 +156,14 @@
                                                Foreground="{DynamicResource SubtleText}" />
                                 </StackPanel>
                             </Border>
-                        </glass:LiquidGlassSurface>
-
                         <!-- Locations -->
-                        <glass:LiquidGlassSurface CornerRadius="6" Margin="0,0,10,10">
-                            <Border Background="Transparent"
-                                    BorderBrush="{DynamicResource CardBorder}"
-                                    BorderThickness="1"
-                                    CornerRadius="6"
-                                    Padding="20,16"
-                                    MinWidth="160">
+                        <Border Background="{DynamicResource CardBackground}"
+                                Margin="0,0,10,10"
+                                BorderBrush="{DynamicResource CardBorder}"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="20,16"
+                                MinWidth="160">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="{Binding LocationCount}"
                                                FontSize="26"
@@ -185,13 +174,11 @@
                                                Foreground="{DynamicResource SubtleText}" />
                                 </StackPanel>
                             </Border>
-                        </glass:LiquidGlassSurface>
-                    </WrapPanel>
+</WrapPanel>
                 </StackPanel>
 
                 <!-- ═══ Daily Progress ═══ -->
-                <glass:LiquidGlassSurface CornerRadius="6">
-                    <Border Background="Transparent"
+                <Border Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"
                             BorderThickness="1"
                             CornerRadius="6"
@@ -235,11 +222,8 @@
                                          CornerRadius="4" />
                         </StackPanel>
                     </Border>
-                </glass:LiquidGlassSurface>
-
-                <!-- ═══ Goal Tracking ═══ -->
-                <glass:LiquidGlassSurface CornerRadius="6">
-                    <Border Background="Transparent"
+<!-- ═══ Goal Tracking ═══ -->
+                <Border Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"
                             BorderThickness="1"
                             CornerRadius="6"
@@ -320,11 +304,8 @@
                             </Border>
                         </StackPanel>
                     </Border>
-                </glass:LiquidGlassSurface>
-
-                <!-- ═══ Average per Chapter ═══ -->
-                <glass:LiquidGlassSurface CornerRadius="6">
-                    <Border Background="Transparent"
+<!-- ═══ Average per Chapter ═══ -->
+                <Border Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"
                             BorderThickness="1"
                             CornerRadius="6"
@@ -350,17 +331,14 @@
                             </StackPanel>
                         </Grid>
                     </Border>
-                </glass:LiquidGlassSurface>
-
-                <!-- ═══ Progress Breakdown by Status ═══ -->
+<!-- ═══ Progress Breakdown by Status ═══ -->
                 <StackPanel Spacing="10" IsVisible="{Binding HasEnhancedStats}">
                     <TextBlock Text="{loc:Loc dashboard.progressBreakdown}"
                                FontSize="13"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}" />
 
-                    <glass:LiquidGlassSurface CornerRadius="6">
-                        <Border Background="Transparent"
+                    <Border Background="{DynamicResource CardBackground}"
                                 BorderBrush="{DynamicResource CardBorder}"
                                 BorderThickness="1"
                                 CornerRadius="6"
@@ -466,8 +444,7 @@
                                 </Border>
                             </StackPanel>
                         </Border>
-                    </glass:LiquidGlassSurface>
-                </StackPanel>
+</StackPanel>
 
                 <!-- ═══ Pacing Analysis ═══ -->
                 <StackPanel Spacing="10" IsVisible="{Binding HasEnhancedStats}">
@@ -476,8 +453,7 @@
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}" />
 
-                    <glass:LiquidGlassSurface CornerRadius="6">
-                        <Border Background="Transparent"
+                    <Border Background="{DynamicResource CardBackground}"
                                 BorderBrush="{DynamicResource CardBorder}"
                                 BorderThickness="1"
                                 CornerRadius="6"
@@ -554,8 +530,7 @@
                                 </ItemsControl>
                             </StackPanel>
                         </Border>
-                    </glass:LiquidGlassSurface>
-                </StackPanel>
+</StackPanel>
 
                 <!-- ═══ Echo Finder ═══ -->
                 <StackPanel Spacing="10"
@@ -565,8 +540,7 @@
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}" />
 
-                    <glass:LiquidGlassSurface CornerRadius="6">
-                        <Border Background="Transparent"
+                    <Border Background="{DynamicResource CardBackground}"
                                 BorderBrush="{DynamicResource CardBorder}"
                                 BorderThickness="1"
                                 CornerRadius="6"
@@ -606,8 +580,7 @@
                                 </ItemsControl>
                             </StackPanel>
                         </Border>
-                    </glass:LiquidGlassSurface>
-                </StackPanel>
+</StackPanel>
 
             </StackPanel>
         </ScrollViewer>

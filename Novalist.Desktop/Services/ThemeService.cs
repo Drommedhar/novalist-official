@@ -6,7 +6,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
-using Avalonia.Styling;
+using Avalonia.Media;
+using Avalonia.Platform;
 using Novalist.Sdk.Models;
 
 namespace Novalist.Desktop.Services;
@@ -18,6 +19,7 @@ public sealed class ThemeService
 {
     private IResourceProvider? _originalInclude;
     private ResourceDictionary? _activeOverride;
+    private ResourceDictionary? _accentOverride;
     private readonly List<ThemeInfo> _availableThemes = [];
 
     public IReadOnlyList<ThemeInfo> AvailableThemes => _availableThemes;
@@ -25,7 +27,36 @@ public sealed class ThemeService
 
     public ThemeService()
     {
-        _availableThemes.Add(new ThemeInfo("Default", null, null));
+        _availableThemes.Add(new ThemeInfo("Default", null,
+            new ThemeOverride { Name = "Default", AccentColor = "#007ACC" }));
+    }
+
+    /// <summary>
+    /// Registers a built-in theme from an embedded avares:// resource path.
+    /// </summary>
+    public void RegisterBuiltInTheme(string name, string avaresPath, string? defaultAccentColor = null)
+    {
+        var source = new ThemeOverride { Name = name, AccentColor = defaultAccentColor };
+        // Read the XAML content at registration time
+        string? xamlContent = null;
+        try
+        {
+            using var stream = AssetLoader.Open(new Uri(avaresPath));
+            using var reader = new StreamReader(stream);
+            xamlContent = reader.ReadToEnd();
+        }
+        catch
+        {
+            // avares:// path may not work for AvaloniaResource items;
+            // fall back to loading from disk relative to the assembly
+            var asmDir = Path.GetDirectoryName(typeof(ThemeService).Assembly.Location);
+            // Convert avares path like "avares://Novalist.Desktop/Assets/Themes/X.axaml" to relative file path
+            var relPath = avaresPath.Replace("avares://Novalist.Desktop/", "").Replace('/', Path.DirectorySeparatorChar);
+            var filePath = asmDir != null ? Path.Combine(asmDir, relPath) : null;
+            if (filePath != null && File.Exists(filePath))
+                xamlContent = File.ReadAllText(filePath);
+        }
+        _availableThemes.Add(new ThemeInfo(name, null, source) { AvaresPath = avaresPath, CachedXaml = xamlContent });
     }
 
     /// <summary>
@@ -53,6 +84,15 @@ public sealed class ThemeService
     }
 
     /// <summary>
+    /// Gets the default accent color for the currently active theme, or null.
+    /// </summary>
+    public string? GetActiveThemeDefaultAccentColor()
+    {
+        var theme = _availableThemes.FirstOrDefault(t => t.Name == ActiveThemeName);
+        return theme?.Source?.AccentColor;
+    }
+
+    /// <summary>
     /// Applies a theme by name. Pass "Default" to restore the built-in theme.
     /// </summary>
     public void ApplyTheme(string themeName)
@@ -62,15 +102,38 @@ public sealed class ThemeService
 
         var mergedDicts = app.Resources.MergedDictionaries;
 
-        // Lazily capture the original ResourceInclude from App.axaml on first call
-        _originalInclude ??= mergedDicts.OfType<ResourceInclude>()
-            .FirstOrDefault(r => r.Source?.ToString().Contains("NovalistTheme") == true);
+        // Debug: log what's in MergedDictionaries
+        Console.Error.WriteLine($"[ThemeService] ApplyTheme({themeName}), MergedDictionaries count: {mergedDicts.Count}");
+        foreach (var d in mergedDicts)
+            Console.Error.WriteLine($"[ThemeService]   Entry: {d.GetType().FullName}, IsResourceInclude={d is ResourceInclude}, Source={(d as ResourceInclude)?.Source}");
+
+        // Lazily capture the original theme dictionary from App.axaml on first call
+        if (_originalInclude == null)
+        {
+            // Try ResourceInclude first
+            _originalInclude = mergedDicts.OfType<ResourceInclude>()
+                .FirstOrDefault(r => r.Source?.ToString().Contains("NovalistTheme") == true);
+            // If not found (Avalonia 12 may compile it as a plain ResourceDictionary),
+            // look for the first non-accent ResourceDictionary that contains our theme keys
+            _originalInclude ??= mergedDicts.OfType<ResourceDictionary>()
+                .FirstOrDefault(d => d != _activeOverride && d != _accentOverride
+                    && d.ContainsKey("RibbonBackground"));
+        }
+        Console.Error.WriteLine($"[ThemeService] _originalInclude is {(_originalInclude == null ? "NULL" : "found (" + _originalInclude.GetType().Name + ")")}");
+
 
         // Remove previous override
         if (_activeOverride != null)
         {
             mergedDicts.Remove(_activeOverride);
             _activeOverride = null;
+        }
+
+        // Remove accent override — will be re-applied after theme switch if needed
+        if (_accentOverride != null)
+        {
+            mergedDicts.Remove(_accentOverride);
+            _accentOverride = null;
         }
 
         if (themeName == "Default" || string.IsNullOrEmpty(themeName))
@@ -83,7 +146,34 @@ public sealed class ThemeService
         }
 
         var themeInfo = _availableThemes.FirstOrDefault(t => t.Name == themeName);
-        if (themeInfo?.FilePath == null) return;
+        if (themeInfo == null) return;
+
+        // Built-in theme with avares:// path
+        if (themeInfo.AvaresPath != null)
+        {
+            try
+            {
+                var xaml = themeInfo.CachedXaml
+                    ?? throw new InvalidOperationException($"No cached XAML for built-in theme '{themeName}'");
+                var overrideDict = (ResourceDictionary)AvaloniaRuntimeXamlLoader.Parse(xaml);
+                if (_originalInclude != null)
+                    mergedDicts.Remove(_originalInclude);
+                mergedDicts.Add(overrideDict);
+                _activeOverride = overrideDict;
+                ActiveThemeName = themeName;
+                Console.Error.WriteLine($"[ThemeService] Successfully applied built-in theme '{themeName}', overrideDict has {overrideDict.Count} entries");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[ThemeService] Failed to load built-in theme '{themeName}': {ex}");
+                if (_originalInclude != null && !mergedDicts.Contains(_originalInclude))
+                    mergedDicts.Add(_originalInclude);
+                ActiveThemeName = "Default";
+            }
+            return;
+        }
+
+        if (themeInfo.FilePath == null) return;
 
         // Load the override dictionary from the AXAML file
         try
@@ -106,6 +196,52 @@ public sealed class ThemeService
             ActiveThemeName = "Default";
         }
     }
+
+    /// <summary>
+    /// Applies a user-chosen accent color override on top of the current theme.
+    /// Pass null to clear the override (revert to theme default).
+    /// </summary>
+    public void ApplyAccentColor(string? hexColor)
+    {
+        var app = Application.Current;
+        if (app == null) return;
+
+        var mergedDicts = app.Resources.MergedDictionaries;
+
+        // Remove previous accent override
+        if (_accentOverride != null)
+        {
+            mergedDicts.Remove(_accentOverride);
+            _accentOverride = null;
+        }
+
+        if (string.IsNullOrWhiteSpace(hexColor))
+            return;
+
+        if (!Color.TryParse(hexColor, out var color))
+            return;
+
+        // Compute a lighter hover variant
+        var hoverColor = LightenColor(color, 0.12);
+
+        var dict = new ResourceDictionary
+        {
+            { "AccentBrush", new SolidColorBrush(color) },
+            { "AccentBrushHover", new SolidColorBrush(hoverColor) },
+            { "StatusBarBackground", new SolidColorBrush(color) },
+        };
+
+        mergedDicts.Add(dict);
+        _accentOverride = dict;
+    }
+
+    private static Color LightenColor(Color c, double amount)
+    {
+        var r = (byte)Math.Min(255, c.R + (255 - c.R) * amount);
+        var g = (byte)Math.Min(255, c.G + (255 - c.G) * amount);
+        var b = (byte)Math.Min(255, c.B + (255 - c.B) * amount);
+        return Color.FromArgb(c.A, r, g, b);
+    }
 }
 
 public sealed class ThemeInfo
@@ -120,6 +256,12 @@ public sealed class ThemeInfo
     public string Name { get; }
     public string? FilePath { get; }
     public ThemeOverride? Source { get; }
+
+    /// <summary>For built-in themes: avares:// URI to the .axaml resource.</summary>
+    public string? AvaresPath { get; init; }
+
+    /// <summary>Cached XAML content for built-in themes.</summary>
+    public string? CachedXaml { get; init; }
 
     public override string ToString() => Name;
 }

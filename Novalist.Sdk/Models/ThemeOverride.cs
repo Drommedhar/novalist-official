@@ -21,4 +21,10 @@ public sealed class ThemeOverride
     /// The host loads and merges this at startup.
     /// </summary>
     public string? ResourcePath { get; init; }
+
+    /// <summary>
+    /// Optional default accent color for this theme (e.g. "#5865F2").
+    /// Users can override this in settings.
+    /// </summary>
+    public string? AccentColor { get; init; }
 }
