@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using AvaloniaWebView;
 using Novalist.Core.Services;
 using Novalist.Desktop.Localization;
 using Novalist.Desktop.Services;
@@ -43,15 +42,6 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        var lang = ReadLanguageFromSettings();
-        AvaloniaWebViewBuilder.Initialize(config =>
-        {
-            config.UserDataFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Novalist", "WebView2", lang);
-            config.AreDefaultContextMenusEnabled = true;
-            config.Language = lang;
-        });
     }
 
     /// <summary>

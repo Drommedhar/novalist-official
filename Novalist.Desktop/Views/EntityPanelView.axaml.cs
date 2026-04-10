@@ -19,6 +19,7 @@ public partial class EntityPanelView : UserControl
     private CharacterListItemViewModel? _pendingCharacterDrag;
     private LocationTreeItemViewModel? _pendingLocationDrag;
     private Point _dragStartPoint;
+    private PointerPressedEventArgs? _lastPointerPressed;
     private Vector _savedLocationTreeScroll;
 
     public EntityPanelView()
@@ -127,12 +128,13 @@ public partial class EntityPanelView : UserControl
             vm.HandleCharacterSelection(item, ctrl, shift, openEntity: !ctrl && !shift);
             _pendingCharacterDrag = item;
             _dragStartPoint = e.GetPosition(this);
+            _lastPointerPressed = e;
         }
     }
 
     private async void OnCharacterPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (DataContext is not EntityPanelViewModel vm || _pendingCharacterDrag == null || sender is not Border border) return;
+        if (DataContext is not EntityPanelViewModel vm || _pendingCharacterDrag == null || _lastPointerPressed == null || sender is not Border border) return;
         if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed) return;
         if (!HasExceededDragThreshold(e.GetPosition(this))) return;
 
@@ -142,7 +144,7 @@ public partial class EntityPanelView : UserControl
 
         var data = new DataTransfer();
         data.Add(DataTransferItem.CreateText(CharacterDragPrefix + string.Join("|", dragging)));
-        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
+        await DragDrop.DoDragDropAsync(_lastPointerPressed, data, DragDropEffects.Move);
     }
 
     private async void OnCharacterGroupDragOver(object? sender, DragEventArgs e)
@@ -248,12 +250,13 @@ public partial class EntityPanelView : UserControl
         {
             _pendingLocationDrag = node;
             _dragStartPoint = e.GetPosition(this);
+            _lastPointerPressed = e;
         }
     }
 
     private async void OnLocationPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (DataContext is not EntityPanelViewModel || _pendingLocationDrag == null || sender is not Border border) return;
+        if (DataContext is not EntityPanelViewModel || _pendingLocationDrag == null || _lastPointerPressed == null || sender is not Border border) return;
         if (!e.GetCurrentPoint(border).Properties.IsLeftButtonPressed) return;
         if (!HasExceededDragThreshold(e.GetPosition(this))) return;
 
@@ -262,7 +265,7 @@ public partial class EntityPanelView : UserControl
 
         var data = new DataTransfer();
         data.Add(DataTransferItem.CreateText(LocationDragPrefix + dragging.Location.Id));
-        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
+        await DragDrop.DoDragDropAsync(_lastPointerPressed, data, DragDropEffects.Move);
     }
 
     private async void OnLocationDragOver(object? sender, DragEventArgs e)

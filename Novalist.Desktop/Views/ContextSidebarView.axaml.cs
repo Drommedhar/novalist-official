@@ -17,7 +17,7 @@ public partial class ContextSidebarView : UserControl
             ? analysis
             : null;
 
-    private void OnSceneAnalysisPovGotFocus(object? sender, GotFocusEventArgs e)
+    private void OnSceneAnalysisPovGotFocus(object? sender, FocusChangedEventArgs e)
     {
         if (sender is TextBox textBox && GetSceneAnalysis(sender) is { } analysis)
             analysis.UpdatePovSuggestions(textBox.Text);

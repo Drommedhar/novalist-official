@@ -5,16 +5,15 @@ using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using AvaloniaWebView;
+using Avalonia.Platform;
 using Novalist.Desktop.ViewModels;
-using WebViewCore.Events;
 
 namespace Novalist.Desktop.Views;
 
 public partial class ManuscriptView : UserControl
 {
     private ManuscriptViewModel? _vm;
-    private AvaloniaWebView.WebView? _webView;
+    private NativeWebView? _webView;
     private bool _webViewReady;
     private bool _pendingRefresh;
 
@@ -34,9 +33,16 @@ public partial class ManuscriptView : UserControl
     {
         try
         {
-            _webView = new AvaloniaWebView.WebView();
+            _webView = new NativeWebView();
             ManuscriptHost.Children.Insert(0, _webView);
 
+            _webView.EnvironmentRequested += (_, e) =>
+            {
+                if (e is WindowsWebView2EnvironmentRequestedEventArgs w)
+                    w.UserDataFolder = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Novalist", "WebView2", "default");
+            };
             _webView.NavigationCompleted += OnNavigationCompleted;
             _webView.WebMessageReceived += OnWebMessageReceived;
 
@@ -58,11 +64,11 @@ public partial class ManuscriptView : UserControl
         {
             if (OperatingSystem.IsMacOS())
             {
-                _webView.HtmlContent = File.ReadAllText(htmlPath);
+                _webView.NavigateToString(File.ReadAllText(htmlPath));
             }
             else
             {
-                _webView.Url = new Uri(htmlPath);
+                _webView.Source = new Uri(htmlPath);
             }
         }
     }
@@ -140,7 +146,7 @@ public partial class ManuscriptView : UserControl
 
     // ── Navigation Events ───────────────────────────────────────────
 
-    private void OnNavigationCompleted(object? sender, WebViewUrlLoadedEventArg e)
+    private void OnNavigationCompleted(object? sender, WebViewNavigationCompletedEventArgs e)
     {
         _webViewReady = true;
         ApplyTheme();
@@ -173,13 +179,13 @@ public partial class ManuscriptView : UserControl
 
     // ── WebView Message Handling ────────────────────────────────────
 
-    private void OnWebMessageReceived(object? sender, WebViewMessageReceivedEventArgs e)
+    private void OnWebMessageReceived(object? sender, WebMessageReceivedEventArgs e)
     {
-        if (string.IsNullOrEmpty(e.Message) || _vm == null) return;
+        if (string.IsNullOrEmpty(e.Body) || _vm == null) return;
 
         try
         {
-            using var doc = JsonDocument.Parse(e.Message);
+            using var doc = JsonDocument.Parse(e.Body);
             var root = doc.RootElement;
             var type = root.GetProperty("type").GetString();
 
@@ -293,7 +299,7 @@ public partial class ManuscriptView : UserControl
     private void ExecuteScript(string script)
     {
         if (_webViewReady && _webView != null)
-            _ = _webView.ExecuteScriptAsync(script);
+            _ = _webView.InvokeScript(script);
     }
 
     private static string FormatColor(Color c) => $"#{c.R:X2}{c.G:X2}{c.B:X2}";

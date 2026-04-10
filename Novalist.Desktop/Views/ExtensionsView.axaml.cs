@@ -1,9 +1,11 @@
 using System;
 using System.ComponentModel;
+using System.IO;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Platform;
 using Novalist.Desktop.Services;
 using Novalist.Desktop.ViewModels;
 
@@ -11,7 +13,7 @@ namespace Novalist.Desktop.Views;
 
 public partial class ExtensionsView : UserControl
 {
-    private AvaloniaWebView.WebView? _readmeWebView;
+    private NativeWebView? _readmeWebView;
 
     public ExtensionsView()
     {
@@ -39,14 +41,14 @@ public partial class ExtensionsView : UserControl
 
             EnsureReadmeWebView();
             if (_readmeWebView != null)
-                _readmeWebView.HtmlContent = html;
+                _readmeWebView.NavigateToString(html);
         }
         else if (e.PropertyName == nameof(ExtensionStoreViewModel.IsDetailVisible))
         {
             var store = sender as ExtensionStoreViewModel;
             if (store is { IsDetailVisible: false } && _readmeWebView != null)
             {
-                _readmeWebView.HtmlContent = "<html><body></body></html>";
+                _readmeWebView.NavigateToString("<html><body></body></html>");
             }
         }
     }
@@ -58,9 +60,16 @@ public partial class ExtensionsView : UserControl
 
         try
         {
-            _readmeWebView = new AvaloniaWebView.WebView
+            _readmeWebView = new NativeWebView
             {
                 MinHeight = 200,
+            };
+            _readmeWebView.EnvironmentRequested += (_, e) =>
+            {
+                if (e is WindowsWebView2EnvironmentRequestedEventArgs w)
+                    w.UserDataFolder = Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                        "Novalist", "WebView2", "default");
             };
             ReadmeWebViewHost.Children.Add(_readmeWebView);
         }

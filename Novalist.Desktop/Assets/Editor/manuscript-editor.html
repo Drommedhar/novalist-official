@@ -143,7 +143,9 @@ let lastHtmlMap = {};
 function sendMessage(msg) {
     try {
         const json = JSON.stringify(msg);
-        if (window.chrome && window.chrome.webview) {
+        if (typeof invokeCSharpAction === 'function') {
+            invokeCSharpAction(json);
+        } else if (window.chrome && window.chrome.webview) {
             window.chrome.webview.postMessage(json);
         } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.webview) {
             window.webkit.messageHandlers.webview.postMessage(json);

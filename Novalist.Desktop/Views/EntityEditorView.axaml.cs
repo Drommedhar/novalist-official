@@ -88,7 +88,7 @@ public partial class EntityEditorView : UserControl
         }
     }
 
-    private void OnRelationshipRoleGotFocus(object? sender, GotFocusEventArgs e)
+    private void OnRelationshipRoleGotFocus(object? sender, FocusChangedEventArgs e)
     {
         if (sender is TextBox { DataContext: ObservableRelationship relationship })
             relationship.HideRoleSuggestions();
@@ -116,7 +116,7 @@ public partial class EntityEditorView : UserControl
         }
     }
 
-    private void OnRelationshipTargetGotFocus(object? sender, GotFocusEventArgs e)
+    private void OnRelationshipTargetGotFocus(object? sender, FocusChangedEventArgs e)
     {
         if (sender is TextBox { DataContext: ObservableRelationship relationship })
             relationship.HideTargetSuggestions();
@@ -200,7 +200,7 @@ public partial class EntityEditorView : UserControl
 
     // ── Parent location suggestion handlers ─────────────────────────
 
-    private void OnParentLocationGotFocus(object? sender, GotFocusEventArgs e)
+    private void OnParentLocationGotFocus(object? sender, FocusChangedEventArgs e)
     {
         Vm?.HideParentLocationSuggestions();
     }
@@ -245,7 +245,7 @@ public partial class EntityEditorView : UserControl
 
     // ── EntityRef field suggestion handlers ─────────────────────────
 
-    private void OnEntityRefGotFocus(object? sender, GotFocusEventArgs e)
+    private void OnEntityRefGotFocus(object? sender, FocusChangedEventArgs e)
     {
         if (sender is TextBox { DataContext: ObservableKeyValue kv })
             kv.HideEntityRefSuggestions();

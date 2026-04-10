@@ -6,9 +6,8 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
-using AvaloniaWebView;
+using Avalonia.Platform;
 using Novalist.Desktop.ViewModels;
-using WebViewCore.Events;
 
 namespace Novalist.Desktop.Views;
 
@@ -18,7 +17,8 @@ public partial class EditorView : UserControl
     private bool _webViewReady;
     private string? _pendingContent;
     private bool _loadingContentFromViewModel;
-    private AvaloniaWebView.WebView? _webView;
+    private NativeWebView? _webView;
+    private string? _reinitLanguage;
 
     /// <summary>
     /// Hides or shows the native WebView control to work around the airspace
@@ -42,16 +42,16 @@ public partial class EditorView : UserControl
     {
         try
         {
-            _webView = new AvaloniaWebView.WebView();
-            _webView[!AvaloniaWebView.WebView.IsHitTestVisibleProperty] =
-                new Avalonia.Data.Binding(nameof(EditorViewModel.IsDocumentOpen));
+            _webView = new NativeWebView();
+            _webView[!NativeWebView.IsHitTestVisibleProperty] =
+                new Avalonia.Data.ReflectionBinding(nameof(EditorViewModel.IsDocumentOpen));
 
             EditorHost.Children.Insert(0, _webView);
             FocusPeekPopup.PlacementTarget = _webView;
 
-            _webView.WebViewCreating += OnWebViewCreating;
-            _webView.WebViewCreated += OnWebViewCreated;
-            _webView.NavigationStarting += OnNavigationStarting;
+            _webView.EnvironmentRequested += OnEnvironmentRequested;
+            _webView.AdapterCreated += OnAdapterCreated;
+            _webView.NavigationStarted += OnNavigationStarted;
             _webView.NavigationCompleted += OnNavigationCompleted;
             _webView.WebMessageReceived += OnWebMessageReceived;
 
@@ -154,11 +154,20 @@ public partial class EditorView : UserControl
 
     // ── Navigation & Content ────────────────────────────────────────
 
-    private void OnWebViewCreating(object? sender, WebViewCreatingEventArgs e)
+    private void OnEnvironmentRequested(object? sender, WebViewEnvironmentRequestedEventArgs e)
     {
+        if (e is WindowsWebView2EnvironmentRequestedEventArgs webView2)
+        {
+            var lang = _reinitLanguage ?? "default";
+            webView2.UserDataFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Novalist", "WebView2", lang);
+            if (_reinitLanguage != null)
+                webView2.Language = _reinitLanguage;
+        }
     }
 
-    private void OnWebViewCreated(object? sender, WebViewCreatedEventArgs e)
+    private void OnAdapterCreated(object? sender, WebViewAdapterEventArgs e)
     {
     }
 
@@ -175,17 +184,17 @@ public partial class EditorView : UserControl
                 // WKWebView blocks file:// URL navigation; load as HTML string instead
                 var html = File.ReadAllText(editorPath);
                 Console.WriteLine($"[Editor] Loaded HTML via HtmlContent ({html.Length} chars)");
-                _webView.HtmlContent = html;
+                _webView.NavigateToString(html);
             }
             else
             {
-                _webView.Url = new Uri(editorPath);
+                _webView.Source = new Uri(editorPath);
             }
         }
         else
         {
             Console.WriteLine("[Editor] Using bare fallback HTML (no editor.html found)");
-            _webView.HtmlContent = "<html><body><div contenteditable='true' id='editor'></div></body></html>";
+            _webView.NavigateToString("<html><body><div contenteditable='true' id='editor'></div></body></html>");
         }
     }
 
@@ -209,11 +218,11 @@ public partial class EditorView : UserControl
         return null;
     }
 
-    private void OnNavigationStarting(object? sender, WebViewUrlLoadingEventArg e)
+    private void OnNavigationStarted(object? sender, WebViewNavigationStartingEventArgs e)
     {
     }
 
-    private void OnNavigationCompleted(object? sender, WebViewUrlLoadedEventArg e)
+    private void OnNavigationCompleted(object? sender, WebViewNavigationCompletedEventArgs e)
     {
         _webViewReady = true;
         ApplyEditorSettings();
@@ -264,13 +273,13 @@ public partial class EditorView : UserControl
 
     // ── WebView Message Handling ────────────────────────────────────
 
-    private void OnWebMessageReceived(object? sender, WebViewMessageReceivedEventArgs e)
+    private void OnWebMessageReceived(object? sender, WebMessageReceivedEventArgs e)
     {
-        if (string.IsNullOrEmpty(e.Message)) return;
+        if (string.IsNullOrEmpty(e.Body)) return;
 
         try
         {
-            using var doc = JsonDocument.Parse(e.Message);
+            using var doc = JsonDocument.Parse(e.Body);
             var root = doc.RootElement;
             var type = root.GetProperty("type").GetString();
 
@@ -528,7 +537,7 @@ public partial class EditorView : UserControl
     private void ExecuteScript(string script)
     {
         if (_webViewReady && _webView != null)
-            _ = _webView.ExecuteScriptAsync(script);
+            _ = _webView.InvokeScript(script);
     }
 
     /// <summary>
@@ -541,25 +550,18 @@ public partial class EditorView : UserControl
     {
         if (_webView == null) return;
 
-        // Re-configure the builder so the NEXT WebView2 environment uses
-        // the new language.
-        AvaloniaWebViewBuilder.Initialize(config =>
-        {
-            config.UserDataFolder = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                "Novalist", "WebView2", language);
-            config.AreDefaultContextMenusEnabled = true;
-            config.Language = language;
-        });
+        // Store the language so the EnvironmentRequested handler can apply it
+        // when the NEXT WebView2 environment is created.
+        _reinitLanguage = language;
 
         // Capture current content before tearing down
         var currentContent = _vm?.IsDocumentOpen == true ? _vm.Content : null;
 
         // Unhook old WebView
         _webViewReady = false;
-        _webView.WebViewCreating -= OnWebViewCreating;
-        _webView.WebViewCreated -= OnWebViewCreated;
-        _webView.NavigationStarting -= OnNavigationStarting;
+        _webView.EnvironmentRequested -= OnEnvironmentRequested;
+        _webView.AdapterCreated -= OnAdapterCreated;
+        _webView.NavigationStarted -= OnNavigationStarted;
         _webView.NavigationCompleted -= OnNavigationCompleted;
         _webView.WebMessageReceived -= OnWebMessageReceived;
         _webView.SizeChanged -= OnEditorSizeChanged;
@@ -570,12 +572,12 @@ public partial class EditorView : UserControl
         var idx = parent.Children.IndexOf(_webView);
         parent.Children.RemoveAt(idx);
 
-        var newWebView = new AvaloniaWebView.WebView
+        var newWebView = new NativeWebView
         {
             Name = "WebViewEditor",
             IsVisible = wasVisible,
-            [!AvaloniaWebView.WebView.IsHitTestVisibleProperty] =
-                new Avalonia.Data.Binding(nameof(EditorViewModel.IsDocumentOpen))
+            [!NativeWebView.IsHitTestVisibleProperty] =
+                new Avalonia.Data.ReflectionBinding(nameof(EditorViewModel.IsDocumentOpen))
         };
         parent.Children.Insert(idx, newWebView);
         _webView = newWebView;
@@ -584,9 +586,9 @@ public partial class EditorView : UserControl
         FocusPeekPopup.PlacementTarget = newWebView;
 
         // Hook new WebView
-        _webView.WebViewCreating += OnWebViewCreating;
-        _webView.WebViewCreated += OnWebViewCreated;
-        _webView.NavigationStarting += OnNavigationStarting;
+        _webView.EnvironmentRequested += OnEnvironmentRequested;
+        _webView.AdapterCreated += OnAdapterCreated;
+        _webView.NavigationStarted += OnNavigationStarted;
         _webView.NavigationCompleted += OnNavigationCompleted;
         _webView.WebMessageReceived += OnWebMessageReceived;
         _webView.SizeChanged += OnEditorSizeChanged;

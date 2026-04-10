@@ -23,6 +23,7 @@ public partial class ExplorerView : UserControl
     private SceneTreeItemViewModel? _pendingSceneDrag;
     private SceneTreeItemViewModel? _pendingSceneOpen;
     private Point _dragStartPoint;
+    private PointerPressedEventArgs? _lastPointerPressed;
 
     public ExplorerView()
     {
@@ -50,6 +51,7 @@ public partial class ExplorerView : UserControl
             _pendingChapterDrag = chapter;
             _pendingSceneDrag = null;
             _dragStartPoint = e.GetPosition(this);
+            _lastPointerPressed = e;
         }
     }
 
@@ -80,6 +82,7 @@ public partial class ExplorerView : UserControl
             _pendingSceneOpen = !ctrl && !shift ? scene : null;
             _pendingChapterDrag = null;
             _dragStartPoint = e.GetPosition(this);
+            _lastPointerPressed = e;
         }
     }
 
@@ -105,7 +108,7 @@ public partial class ExplorerView : UserControl
 
     private async void OnChapterPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (Vm is null || _pendingChapterDrag == null || sender is not Control control) return;
+        if (Vm is null || _pendingChapterDrag == null || _lastPointerPressed == null || sender is not Control control) return;
         if (!e.GetCurrentPoint(control).Properties.IsLeftButtonPressed) return;
         if (!HasExceededDragThreshold(e.GetPosition(this))) return;
 
@@ -116,12 +119,12 @@ public partial class ExplorerView : UserControl
 
         var data = new DataTransfer();
         data.Add(DataTransferItem.CreateText(ChapterDragPrefix + string.Join("|", dragging)));
-        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
+        await DragDrop.DoDragDropAsync(_lastPointerPressed, data, DragDropEffects.Move);
     }
 
     private async void OnScenePointerMoved(object? sender, PointerEventArgs e)
     {
-        if (Vm is null || _pendingSceneDrag == null || sender is not Control control) return;
+        if (Vm is null || _pendingSceneDrag == null || _lastPointerPressed == null || sender is not Control control) return;
         if (!e.GetCurrentPoint(control).Properties.IsLeftButtonPressed) return;
         if (!HasExceededDragThreshold(e.GetPosition(this))) return;
 
@@ -133,7 +136,7 @@ public partial class ExplorerView : UserControl
 
         var data = new DataTransfer();
         data.Add(DataTransferItem.CreateText(SceneDragPrefix + string.Join("|", dragging)));
-        await DragDrop.DoDragDropAsync(e, data, DragDropEffects.Move);
+        await DragDrop.DoDragDropAsync(_lastPointerPressed, data, DragDropEffects.Move);
     }
 
     // --- Chapter context menu handlers ---

@@ -69,7 +69,7 @@ public partial class ImportPluginDialog : UserControl
             if (_detectionResult.Projects.Count > 1)
             {
                 ProjectComboBox.ItemsSource = _detectionResult.Projects;
-                ProjectComboBox.DisplayMemberBinding = new Avalonia.Data.Binding("Name");
+                ProjectComboBox.DisplayMemberBinding = new Avalonia.Data.ReflectionBinding("Name");
                 ProjectComboBox.SelectedIndex = 0;
                 ProjectSelectorPanel.IsVisible = true;
             }

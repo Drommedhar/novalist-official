@@ -14,7 +14,7 @@
     <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.3.12" />
+    <PackageReference Include="Avalonia" Version="12.0.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
   </ItemGroup>
   <Target Name="DeployExtension" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">

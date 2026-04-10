@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Avalonia.WebView.Desktop;
 using System;
 using System.IO;
 
@@ -35,7 +34,6 @@ class Program
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace()
-            .UseDesktopWebView()
             .WithDeveloperTools(options =>
             {
 //#if DEBUG
