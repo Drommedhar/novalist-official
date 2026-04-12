@@ -12,7 +12,13 @@ public sealed class StringToGeometryConverter : IValueConverter
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is string s && !string.IsNullOrEmpty(s))
-            return Geometry.Parse(s);
+        {
+            // Skip emoji / non-SVG-path strings — valid SVG path data starts with a letter command (M, m, L, etc.)
+            if (s.Length > 0 && !char.IsAsciiLetter(s[0]))
+                return null;
+            try { return Geometry.Parse(s); }
+            catch { return null; }
+        }
         return null;
     }
 

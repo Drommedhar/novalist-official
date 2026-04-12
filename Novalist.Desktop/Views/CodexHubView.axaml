@@ -99,6 +99,26 @@
                             </Border>
                         </StackPanel>
                     </Button>
+
+                    <!-- Dynamic custom entity type dropdown -->
+                    <ComboBox ItemsSource="{Binding CustomTabs}"
+                              SelectedItem="{Binding SelectedCustomTab}"
+                              Padding="12,6"
+                              FontSize="13"
+                              MinWidth="160"
+                              IsVisible="{Binding CustomTabs.Count}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CodexCustomTab">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <TextBlock Text="{Binding Icon}" FontSize="14" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding DisplayName}" FontSize="13" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource AccentBrush}" CornerRadius="8" Padding="6,1" MinWidth="24" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Count}" FontSize="11" Foreground="White" HorizontalAlignment="Center" />
+                                    </Border>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
             </Border>
 
@@ -133,7 +153,14 @@
                                                           Width="18" Height="18"
                                                           Foreground="{DynamicResource NormalText}"
                                                           VerticalAlignment="Center"
-                                                          Margin="0,0,8,0" />
+                                                          Margin="0,0,8,0"
+                                                          IsVisible="{Binding !IsEmoji}" />
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Icon}"
+                                                           FontSize="16"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,8,0"
+                                                           IsVisible="{Binding IsEmoji}" />
                                                 <TextBlock Grid.Column="1"
                                                            Text="{Binding Name}"
                                                            FontSize="14"

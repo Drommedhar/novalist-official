@@ -20,7 +20,11 @@
             BorderThickness="0,0,1,0">
         <DockPanel>
             <!-- Type Tabs -->
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="4,6">
+            <ScrollViewer DockPanel.Dock="Top"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Disabled"
+                          Margin="4,6,4,2">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                 <Button Command="{Binding SetEntityTypeCommand}" CommandParameter="Character"
                 Classes="explorerTab" ToolTip.Tip="{loc:Loc entityPanel.charactersTooltip}" Padding="8,4"
                 Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}">
@@ -84,6 +88,7 @@
                     <TextBlock Text="+" FontSize="14" FontWeight="Bold" />
                 </Button>
             </StackPanel>
+            </ScrollViewer>
 
             <!-- Create button -->
             <Border DockPanel.Dock="Top" Margin="8,0,8,4">

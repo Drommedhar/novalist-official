@@ -352,6 +352,10 @@ public partial class MainWindowViewModel : ObservableObject
         host.NotificationRequested += msg =>
             Dispatcher.UIThread.Post(() => ShowExtensionNotification(msg));
 
+        // Subscribe to extension entity refresh requests
+        host.EntityRefreshRequested += () =>
+            Dispatcher.UIThread.Post(async () => await EntityPanel.LoadAllAsync());
+
         // Subscribe to content view activation requests
         host.ContentViewActivated += viewKey =>
             Dispatcher.UIThread.Post(() =>
@@ -529,6 +533,7 @@ public partial class MainWindowViewModel : ObservableObject
         Git = new GitViewModel(_gitService);
 
         CodexHub = new CodexHubViewModel(_entityService, _projectService);
+        CodexHub.ExtensionEntityTypes = ExtensionManager?.EntityTypes ?? [];
         CodexHub.EntityOpenRequested += OnEntityOpenRequested;
 
         Manuscript = new ManuscriptViewModel(_projectService);

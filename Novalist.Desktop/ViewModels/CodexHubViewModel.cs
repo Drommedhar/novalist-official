@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Novalist.Desktop.Localization;
+using Novalist.Sdk.Models;
 
 namespace Novalist.Desktop.ViewModels;
 
@@ -20,6 +21,7 @@ public partial class CodexHubViewModel : ObservableObject
     private List<LocationData> _allLocations = [];
     private List<ItemData> _allItems = [];
     private List<LoreData> _allLore = [];
+    private Dictionary<string, List<CustomEntityData>> _allCustom = [];
 
     [ObservableProperty]
     private string _activeTab = "All";
@@ -45,6 +47,14 @@ public partial class CodexHubViewModel : ObservableObject
     [ObservableProperty]
     private int _loreCount;
 
+    [ObservableProperty]
+    private ObservableCollection<CodexCustomTab> _customTabs = [];
+
+    [ObservableProperty]
+    private CodexCustomTab? _selectedCustomTab;
+
+    public IReadOnlyList<EntityTypeDescriptor> ExtensionEntityTypes { get; set; } = [];
+
     public event Action<EntityType, object>? EntityOpenRequested;
 
     public CodexHubViewModel(IEntityService entityService, IProjectService projectService)
@@ -64,7 +74,27 @@ public partial class CodexHubViewModel : ObservableObject
         LocationCount = _allLocations.Count;
         ItemCount = _allItems.Count;
         LoreCount = _allLore.Count;
-        TotalCount = CharacterCount + LocationCount + ItemCount + LoreCount;
+
+        _allCustom.Clear();
+        var tabs = new List<CodexCustomTab>();
+        var types = _entityService.GetCustomEntityTypes();
+        foreach (var typeDef in types)
+        {
+            var entities = (await _entityService.LoadCustomEntitiesAsync(typeDef.TypeKey))
+                .OrderBy(e => e.Name).ToList();
+            _allCustom[typeDef.TypeKey] = entities;
+            tabs.Add(new CodexCustomTab
+            {
+                TypeKey = typeDef.TypeKey,
+                DisplayName = typeDef.DisplayNamePlural,
+                Icon = typeDef.Icon,
+                Count = entities.Count,
+            });
+        }
+        CustomTabs = new ObservableCollection<CodexCustomTab>(tabs);
+
+        var customTotal = _allCustom.Values.Sum(l => l.Count);
+        TotalCount = CharacterCount + LocationCount + ItemCount + LoreCount + customTotal;
 
         ApplyFilter();
     }
@@ -74,9 +104,16 @@ public partial class CodexHubViewModel : ObservableObject
     partial void OnActiveTabChanged(string value) => ApplyFilter();
     partial void OnSearchQueryChanged(string value) => ApplyFilter();
 
+    partial void OnSelectedCustomTabChanged(CodexCustomTab? value)
+    {
+        if (value is not null)
+            ActiveTab = value.TypeKey;
+    }
+
     [RelayCommand]
     private void SetTab(string tab)
     {
+        SelectedCustomTab = null;
         ActiveTab = tab;
     }
 
@@ -128,6 +165,23 @@ public partial class CodexHubViewModel : ObservableObject
             }
         }
 
+        // Custom entity types
+        foreach (var (typeKey, entities) in _allCustom)
+        {
+            if (ActiveTab != "All" && ActiveTab != typeKey) continue;
+            var typeDef = _entityService.GetCustomEntityTypes()
+                .FirstOrDefault(t => string.Equals(t.TypeKey, typeKey, StringComparison.Ordinal));
+            var icon = typeDef?.Icon ?? "📋";
+            foreach (var ce in entities)
+            {
+                if (MatchesSearch(ce.Name, query))
+                {
+                    var subtitle = ce.Fields.Count > 0 ? ce.Fields.Values.FirstOrDefault(v => !string.IsNullOrEmpty(v)) ?? "" : "";
+                    items.Add(new CodexEntityItem(EntityType.Custom, ce, ce.Name, subtitle, icon, ce.IsWorldBible, isEmoji: true));
+                }
+            }
+        }
+
         FilteredEntities = new ObservableCollection<CodexEntityItem>(items);
     }
 
@@ -136,6 +190,14 @@ public partial class CodexHubViewModel : ObservableObject
         if (string.IsNullOrEmpty(query)) return true;
         return name.Contains(query, StringComparison.OrdinalIgnoreCase);
     }
+}
+
+public sealed class CodexCustomTab
+{
+    public string TypeKey { get; init; } = string.Empty;
+    public string DisplayName { get; init; } = string.Empty;
+    public string Icon { get; init; } = "📋";
+    public int Count { get; init; }
 }
 
 public sealed class CodexEntityItem
@@ -152,8 +214,9 @@ public sealed class CodexEntityItem
     public string Subtitle { get; }
     public string Icon { get; }
     public bool IsWorldBible { get; }
+    public bool IsEmoji { get; }
 
-    public CodexEntityItem(EntityType type, object entity, string name, string subtitle, string icon, bool isWorldBible)
+    public CodexEntityItem(EntityType type, object entity, string name, string subtitle, string icon, bool isWorldBible, bool isEmoji = false)
     {
         EntityType = type;
         Entity = entity;
@@ -161,5 +224,6 @@ public sealed class CodexEntityItem
         Subtitle = subtitle ?? string.Empty;
         Icon = icon;
         IsWorldBible = isWorldBible;
+        IsEmoji = isEmoji;
     }
 }

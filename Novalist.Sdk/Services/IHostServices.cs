@@ -55,6 +55,12 @@ public interface IExtensionEntityService
     /// <summary>Returns all registered custom entity type keys and display names.</summary>
     IReadOnlyList<CustomEntityTypeInfo> GetCustomEntityTypes();
 
+    /// <summary>Saves a custom entity to the active book. The entity type must be registered.</summary>
+    Task SaveCustomEntityAsync(CustomEntityInfo entity);
+
+    /// <summary>Notifies the host that entities have changed and the UI should refresh.</summary>
+    void RequestEntityRefresh();
+
     List<string> GetProjectImages();
     string GetImageFullPath(string relativePath);
 }
@@ -233,13 +239,21 @@ public sealed class LoreInfo
     public string Category { get; init; } = string.Empty;
 }
 
-/// <summary>Lightweight custom entity info for read-only access.</summary>
+/// <summary>Custom entity info for reading and writing.</summary>
 public sealed class CustomEntityInfo
 {
     public string Id { get; init; } = string.Empty;
     public string Name { get; init; } = string.Empty;
     public string EntityTypeKey { get; init; } = string.Empty;
     public IReadOnlyDictionary<string, string> Fields { get; init; } = new Dictionary<string, string>();
+    public IReadOnlyList<CustomEntitySectionInfo>? Sections { get; init; }
+}
+
+/// <summary>A section of rich-text content within a custom entity.</summary>
+public sealed class CustomEntitySectionInfo
+{
+    public string Title { get; init; } = string.Empty;
+    public string Content { get; init; } = string.Empty;
 }
 
 /// <summary>Describes a registered custom entity type.</summary>

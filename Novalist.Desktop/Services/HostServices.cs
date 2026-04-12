@@ -362,6 +362,34 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         }).ToList();
     }
 
+    async Task IExtensionEntityService.SaveCustomEntityAsync(Sdk.Services.CustomEntityInfo entity)
+    {
+        var data = new CustomEntityData
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            EntityTypeKey = entity.EntityTypeKey,
+            Fields = new Dictionary<string, string>(entity.Fields),
+        };
+        if (entity.Sections is { } sections)
+        {
+            data.Sections = sections.Select(s => new EntitySection
+            {
+                Title = s.Title,
+                Content = s.Content,
+            }).ToList();
+        }
+        await _entityService.SaveCustomEntityAsync(data);
+    }
+
+    void IExtensionEntityService.RequestEntityRefresh()
+    {
+        EntityRefreshRequested?.Invoke();
+    }
+
+    /// <summary>Internal event for entity refresh requests from extensions.</summary>
+    internal event Action? EntityRefreshRequested;
+
     List<string> IExtensionEntityService.GetProjectImages() => _entityService.GetProjectImages();
     string IExtensionEntityService.GetImageFullPath(string relativePath) => _entityService.GetImageFullPath(relativePath);
 }
