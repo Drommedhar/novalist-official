@@ -831,12 +831,30 @@ editor.addEventListener('mousedown', () => {
 });
 
 editor.addEventListener('keydown', (e) => {
-    // Ctrl+S → save
-    if (e.ctrlKey && e.key === 's') {
+    // Forward modifier key combinations to the host app for hotkey dispatch.
+    // Exclude standard text-editing shortcuts handled natively by contenteditable.
+    if ((e.ctrlKey || e.altKey) && !isTextEditingShortcut(e)) {
         e.preventDefault();
-        sendMessage({ type: 'save' });
+        sendMessage({
+            type: 'hotkey',
+            key: e.key,
+            code: e.code,
+            ctrlKey: e.ctrlKey,
+            shiftKey: e.shiftKey,
+            altKey: e.altKey
+        });
     }
 });
+
+function isTextEditingShortcut(e) {
+    if (!e.ctrlKey) return false;
+    var k = e.key.toLowerCase();
+    // Ctrl+(no shift): select-all, copy, paste, cut, undo, redo
+    if (!e.shiftKey && !e.altKey) return 'acvxzy'.includes(k);
+    // Ctrl+Shift+Z = redo
+    if (e.shiftKey && !e.altKey && k === 'z') return true;
+    return false;
+}
 
 // Handle paste: strip external formatting, keep only basic formatting
 editor.addEventListener('paste', (e) => {

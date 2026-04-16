@@ -7,6 +7,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform;
+using Novalist.Desktop.Utilities;
 using Novalist.Desktop.ViewModels;
 
 namespace Novalist.Desktop.Views;
@@ -312,6 +313,9 @@ public partial class EditorView : UserControl
                 case "zoom":
                     OnZoom(root);
                     break;
+                case "hotkey":
+                    OnHotkeyFromWebView(root);
+                    break;
             }
         }
         catch
@@ -398,6 +402,25 @@ public partial class EditorView : UserControl
         var delta = root.GetProperty("delta").GetDouble();
         var newSize = Math.Clamp(_vm.EditorFontSize + delta, 8, 36);
         _vm.SetFontSize(newSize);
+    }
+
+    private void OnHotkeyFromWebView(JsonElement root)
+    {
+        var code = root.GetProperty("code").GetString() ?? string.Empty;
+        var key = root.GetProperty("key").GetString() ?? string.Empty;
+        var ctrl = root.GetProperty("ctrlKey").GetBoolean();
+        var shift = root.GetProperty("shiftKey").GetBoolean();
+        var alt = root.GetProperty("altKey").GetBoolean();
+
+        var avKey = WebViewKeyMapper.MapToAvaloniaKey(code, key);
+        if (avKey == Key.None) return;
+
+        var modifiers = KeyModifiers.None;
+        if (ctrl) modifiers |= KeyModifiers.Control;
+        if (shift) modifiers |= KeyModifiers.Shift;
+        if (alt) modifiers |= KeyModifiers.Alt;
+
+        App.HotkeyManager.TryExecute(avKey, modifiers);
     }
 
     // ── Settings & Theme ────────────────────────────────────────────
@@ -512,24 +535,19 @@ public partial class EditorView : UserControl
         {
             ApplyBookWidth();
         }
+        else if (e.PropertyName == nameof(EditorViewModel.AutoReplacement))
+        {
+            PushAutoReplacements();
+        }
+        else if (e.PropertyName == nameof(EditorViewModel.DialogueCorrection))
+        {
+            PushDialogueCorrection();
+        }
     }
 
     private void OnEditorSizeChanged(object? sender, SizeChangedEventArgs e)
     {
         _vm?.FocusPeekExtension.OnEditorSizeChanged(e.NewSize);
-    }
-
-    protected override void OnKeyDown(KeyEventArgs e)
-    {
-        base.OnKeyDown(e);
-        if (e.Key == Key.S && e.KeyModifiers.HasFlag(KeyModifiers.Control))
-        {
-            if (_vm != null)
-            {
-                _ = _vm.SaveAsync();
-                e.Handled = true;
-            }
-        }
     }
 
     // ── Helpers ─────────────────────────────────────────────────────

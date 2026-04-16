@@ -5,7 +5,9 @@ using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.Input;
 using Avalonia.Platform;
+using Novalist.Desktop.Utilities;
 using Novalist.Desktop.ViewModels;
 
 namespace Novalist.Desktop.Views;
@@ -217,6 +219,10 @@ public partial class ManuscriptView : UserControl
                 case "save":
                     _ = _vm.SaveAllDirtyAsync();
                     break;
+
+                case "hotkey":
+                    OnHotkeyFromWebView(root);
+                    break;
             }
         }
         catch { /* ignore malformed messages */ }
@@ -247,6 +253,25 @@ public partial class ManuscriptView : UserControl
         var chapterGuid = root.GetProperty("chapterGuid").GetString() ?? string.Empty;
         var sceneId = root.GetProperty("sceneId").GetString() ?? string.Empty;
         _vm.RequestOpenScene(chapterGuid, sceneId);
+    }
+
+    private void OnHotkeyFromWebView(JsonElement root)
+    {
+        var code = root.GetProperty("code").GetString() ?? string.Empty;
+        var key = root.GetProperty("key").GetString() ?? string.Empty;
+        var ctrl = root.GetProperty("ctrlKey").GetBoolean();
+        var shift = root.GetProperty("shiftKey").GetBoolean();
+        var alt = root.GetProperty("altKey").GetBoolean();
+
+        var avKey = WebViewKeyMapper.MapToAvaloniaKey(code, key);
+        if (avKey == Key.None) return;
+
+        var modifiers = KeyModifiers.None;
+        if (ctrl) modifiers |= KeyModifiers.Control;
+        if (shift) modifiers |= KeyModifiers.Shift;
+        if (alt) modifiers |= KeyModifiers.Alt;
+
+        App.HotkeyManager.TryExecute(avKey, modifiers);
     }
 
     // ── Theme & Font ────────────────────────────────────────────────

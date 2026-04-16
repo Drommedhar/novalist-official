@@ -32,10 +32,24 @@ public sealed class HotkeyManager
             return;
 
         var gesture = new KeyGesture(e.Key, e.KeyModifiers);
-        var gestureStr = gesture.ToString();
+        if (TryExecute(gesture.ToString()))
+            e.Handled = true;
+    }
 
+    /// <summary>
+    /// Tries to execute a hotkey action matching the given key and modifiers.
+    /// Used by WebView-hosted editors that forward key events via JS messages.
+    /// </summary>
+    public bool TryExecute(Key key, KeyModifiers modifiers)
+    {
+        var gesture = new KeyGesture(key, modifiers);
+        return TryExecute(gesture.ToString());
+    }
+
+    private bool TryExecute(string gestureStr)
+    {
         if (!_gestureMap.TryGetValue(gestureStr, out var candidates))
-            return;
+            return false;
 
         foreach (var descriptor in candidates)
         {
@@ -43,9 +57,9 @@ public sealed class HotkeyManager
                 continue;
 
             descriptor.OnExecute?.Invoke();
-            e.Handled = true;
-            return;
+            return true;
         }
+        return false;
     }
 
     private void RebuildGestureMap()

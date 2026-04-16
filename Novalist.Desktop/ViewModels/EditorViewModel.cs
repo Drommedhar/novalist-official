@@ -209,6 +209,8 @@ public partial class EditorViewModel : ObservableObject
         OnPropertyChanged(nameof(BookParagraphSpacingEnabled));
         OnPropertyChanged(nameof(BookWidthEnabled));
         OnPropertyChanged(nameof(BookEditorWidth));
+        OnPropertyChanged(nameof(AutoReplacement));
+        OnPropertyChanged(nameof(DialogueCorrection));
         UpdateStats(_plainText);
     }
 
