@@ -14,8 +14,10 @@ dotnet new classlib -n MyExtension -f net8.0
 
 ### 2. Add the SDK reference
 
+If you're consuming the published SDK package, reference the current SDK version used by this repository:
+
 ```xml
-<PackageReference Include="Novalist.Sdk" Version="0.0.1" />
+<PackageReference Include="Novalist.Sdk" Version="4.0.0" />
 ```
 
 Or, if building from source, use a project reference:
@@ -27,8 +29,10 @@ Or, if building from source, use a project reference:
 If your extension provides UI, also reference Avalonia:
 
 ```xml
-<PackageReference Include="Avalonia" Version="11.3.12" />
+<PackageReference Include="Avalonia" Version="12.0.0" />
 ```
+
+Keep the Avalonia version aligned with the version used by Novalist and `Novalist.Sdk` to avoid compatibility issues.
 
 Enable compiled bindings (recommended):
 
@@ -79,10 +83,11 @@ Place this file in your extension's output directory:
     "version": "1.0.0",
     "author": "Your Name",
     "entryAssembly": "MyExtension.dll",
-    "minHostVersion": "0.0.1",
+    "minHostVersion": "1.7.0",
     "maxHostVersion": "",
     "dependencies": [],
-    "tags": ["utility"]
+    "tags": ["utility"],
+    "icon": "https://example.com/myextension/icon.png"
 }
 ```
 
@@ -96,10 +101,13 @@ Place this file in your extension's output directory:
 | `version` | Yes | Semantic version of the extension. |
 | `author` | Yes | Author name. |
 | `entryAssembly` | Yes | Filename of the DLL containing the `IExtension` implementation. |
-| `minHostVersion` | Yes | Minimum compatible host version (e.g. `"0.0.1"`). |
+| `minHostVersion` | Yes | Minimum compatible host version (e.g. `"1.7.0"`). |
 | `maxHostVersion` | No | Maximum compatible host version. Empty string or omit for no upper bound. |
 | `dependencies` | No | List of extension IDs this extension depends on. |
 | `tags` | No | Tags for categorization. |
+| `icon` | No | URL to a square icon image for the Extensions panel and store (PNG recommended, 128×128 or larger). |
+
+Set `minHostVersion` to the oldest Novalist release your extension actually supports.
 
 ### 5. Install
 
@@ -117,9 +125,9 @@ The folder name should match the extension ID. Restart Novalist to load the exte
 
 1. **Discovery** — On startup, the host scans `%APPDATA%/Novalist/Extensions/` for subfolders containing `extension.json`.
 2. **Version check** — The host verifies `minHostVersion` (and `maxHostVersion` if set) against the running host version.
-3. **Assembly loading** — The `entryAssembly` DLL is loaded via `Assembly.LoadFrom`. The host finds the first type implementing `IExtension`.
+3. **Assembly loading** — The `entryAssembly` DLL is loaded into a collectible `AssemblyLoadContext` using stream-based loading. The host then finds the first non-abstract type implementing `IExtension`.
 4. **Initialization** — `IExtension.Initialize(IHostServices host)` is called. The extension receives all host services and should register hooks.
-5. **Hook collection** — The host checks which hook interfaces the extension implements and collects contributed items (ribbon buttons, sidebar panels, etc.).
+5. **Hook collection** — The host checks which hook interfaces the extension implements and collects contributed items (ribbon buttons, sidebar panels, status items, content views, hotkeys, property types, etc.).
 6. **Runtime** — The extension responds to events and hooks throughout the app session.
 7. **Shutdown** — `IExtension.Shutdown()` is called when the app exits or the extension is disabled.
 
@@ -167,9 +175,32 @@ Task<IReadOnlyList<CharacterInfo>> LoadCharactersAsync()
 Task<IReadOnlyList<LocationInfo>> LoadLocationsAsync()
 Task<IReadOnlyList<ItemInfo>> LoadItemsAsync()
 Task<IReadOnlyList<LoreInfo>> LoadLoreAsync()
+Task<IReadOnlyList<CustomEntityInfo>> LoadCustomEntitiesAsync(string typeKey)
+IReadOnlyList<CustomEntityTypeInfo> GetCustomEntityTypes()
+Task SaveCustomEntityAsync(CustomEntityInfo entity)
+void RequestEntityRefresh()
 List<string> GetProjectImages()
 string GetImageFullPath(string relativePath)
 ```
+
+### Host Metadata and Utilities (`IHostServices`)
+
+```csharp
+string HostVersion { get; }
+string CurrentLanguage { get; }
+string CurrentLanguageDisplayName { get; }
+
+IExtensionLocalization GetLocalization(string extensionId)
+void ShowNotification(string message)
+void ActivateContentView(string viewKey)
+void ToggleRightSidebar(string panelId)
+IReadOnlyList<IAiHook> GetAiHooks()
+
+string? ReadHostData(string key)
+Task WriteHostDataAsync(string key, string json)
+```
+
+`GetLocalization` loads JSON files from your extension's `Locales/` folder and falls back to English automatically.
 
 ### Data Storage
 
@@ -191,6 +222,16 @@ Always use `PostToUI` when modifying UI state from background threads:
 host.PostToUI(() => {
     // Safe to update UI here
 });
+```
+
+### Runtime Registration
+
+```csharp
+void RegisterEditorExtension(IEditorExtension extension)
+void UnregisterEditorExtension(IEditorExtension extension)
+
+void RegisterHotkey(HotkeyDescriptor descriptor)
+void UnregisterHotkey(string actionId)
 ```
 
 ### Events
@@ -285,7 +326,8 @@ Extend the AI system prompt and process response chunks.
 public string? OnBuildSystemPrompt(AiPromptContext context)
 {
     // context.CurrentChapterTitle, context.CurrentSceneTitle,
-    // context.CharacterNames, context.LocationNames, context.Language
+    // context.CharacterNames, context.LocationNames, context.ItemNames,
+    // context.LoreNames, context.CustomEntityNames, context.Language
     return "Additional instructions for the AI.";
     // Return null to skip
 }
@@ -352,6 +394,26 @@ public IReadOnlyList<StatusBarItem> GetStatusBarItems() =>
     }
 ];
 ```
+
+### IHotkeyContributor
+
+Register keyboard shortcuts in the host hotkey system.
+
+```csharp
+public IReadOnlyList<HotkeyDescriptor> GetHotkeyBindings() =>
+[
+    new HotkeyDescriptor
+    {
+        ActionId = "ext.com.example.myextension.openPanel",
+        DisplayName = "Open My Panel",
+        Category = "My Extension",
+        DefaultGesture = "Ctrl+Alt+M",
+        OnExecute = () => _host.ToggleRightSidebar("myext.panel")
+    }
+];
+```
+
+`DefaultGesture` uses Avalonia `KeyGesture` string syntax.
 
 ### IContextMenuContributor
 
@@ -439,6 +501,35 @@ public IReadOnlyList<EntityTypeDescriptor> GetEntityTypes() =>
 ];
 ```
 
+Custom entity types can be read and written through `host.EntityService.LoadCustomEntitiesAsync`, `SaveCustomEntityAsync`, and `RequestEntityRefresh()`.
+
+### IPropertyTypeContributor
+
+Define custom property types for entity templates and extension-defined entity types.
+
+```csharp
+public IReadOnlyList<PropertyTypeDescriptor> GetPropertyTypes() =>
+[
+    new PropertyTypeDescriptor
+    {
+        TypeKey = "rating",
+        DisplayName = "Rating",
+        DefaultValue = "3",
+        Validate = value => int.TryParse(value, out var rating) && rating is >= 1 and <= 5
+            ? null
+            : "Rating must be between 1 and 5.",
+        CreateEditor = (value, onChanged) =>
+        {
+            var textBox = new TextBox { Text = value };
+            textBox.LostFocus += (_, _) => onChanged(textBox.Text ?? string.Empty);
+            return textBox;
+        }
+    }
+];
+```
+
+Custom property types can be referenced from `EntityTypeDescriptor.DefaultFields` and from host-side entity templates.
+
 ---
 
 ## Data Models Reference
@@ -460,20 +551,30 @@ public IReadOnlyList<EntityTypeDescriptor> GetEntityTypes() =>
 | `LocationInfo` | `Id`, `Name`, `Type` |
 | `ItemInfo` | `Id`, `Name`, `Type` |
 | `LoreInfo` | `Id`, `Name`, `Category` |
+| `CustomEntityInfo` | `Id`, `Name`, `EntityTypeKey`, `Fields`, `Sections` |
+| `CustomEntitySectionInfo` | `Title`, `Content` |
+| `CustomEntityTypeInfo` | `TypeKey`, `DisplayName`, `DisplayNamePlural`, `Icon` |
 
 ### Editor Context
 
 | Type | Properties |
 |---|---|
 | `EditorDocumentContext` | `SceneId`, `ChapterGuid`, `SceneTitle`, `ChapterTitle`, `FilePath` |
-| `AiPromptContext` | `CurrentChapterTitle`, `CurrentSceneTitle`, `CharacterNames`, `LocationNames`, `Language` |
+| `AiPromptContext` | `CurrentChapterTitle`, `CurrentSceneTitle`, `CharacterNames`, `LocationNames`, `ItemNames`, `LoreNames`, `CustomEntityNames`, `Language` |
 | `ExportContext` | `ProjectRoot`, `OutputPath`, `BookName` |
+
+### Extension Models
+
+| Type | Properties |
+|---|---|
+| `HotkeyDescriptor` | `ActionId`, `DisplayName`, `Category`, `DefaultGesture`, `OnExecute`, `CanExecute` |
+| `PropertyTypeDescriptor` | `TypeKey`, `DisplayName`, `CreateEditor`, `Validate`, `DefaultValue` |
 
 ---
 
 ## Example Extension
 
-The `Novalist.Sdk.Example` project in the repository is a complete, working extension that demonstrates all 11 hook interfaces:
+The `Novalist.Sdk.Example` project in the repository is a complete, working extension that demonstrates 11 of the currently available hook interfaces. It currently does not implement `IHotkeyContributor` or `IPropertyTypeContributor`:
 
 - **Pomodoro timer** — status bar item + ribbon toggle button
 - **Word frequency analysis** — content view with ListBox
@@ -483,6 +584,7 @@ The `Novalist.Sdk.Example` project in the repository is a complete, working exte
 - **AI hook** — appends context about available tools to the system prompt
 - **Editor hook** — tracks document open/close for dirty-state management
 - **Context menu** — adds "Analyze word frequency" to chapter and scene menus
+- **Custom entity type** — adds a Factions entity type with default fields and relationships
 - **Settings page** — configurable Pomodoro duration
 
 Browse the source at `Novalist.Sdk.Example/` for a full working reference.
@@ -492,7 +594,7 @@ Browse the source at `Novalist.Sdk.Example/` for a full working reference.
 ## Debugging Tips
 
 1. **Check the extensions folder** — Ensure your `extension.json` and DLL are in `%APPDATA%/Novalist/Extensions/<your-id>/`.
-2. **Version mismatch** — If your extension doesn't load, verify `minHostVersion` in `extension.json` matches or is lower than the running Novalist version.
+2. **Version mismatch** — If your extension doesn't load, verify `minHostVersion` is not higher than the running Novalist version and that `maxHostVersion` is empty or high enough.
 3. **Load errors** — Open the Extensions panel in the Start menu. Extensions with load errors show the error message.
 4. **UI thread** — Avalonia requires UI updates on the UI thread. Use `host.PostToUI(() => { ... })` from background threads.
 5. **Compiled bindings** — If using `AvaloniaUseCompiledBindingsByDefault`, ensure all `DataTemplate` elements have `x:DataType` attributes.
@@ -536,7 +638,7 @@ Your `extension.json` should include these fields for the store:
   "version": "1.0.0",
   "author": "Your Name",
   "entryAssembly": "MyExtension.dll",
-  "minHostVersion": "0.5.0",
+    "minHostVersion": "1.7.0",
   "maxHostVersion": "",
   "tags": ["productivity", "writing"],
   "icon": "https://raw.githubusercontent.com/you/your-repo/main/icon.png"
@@ -544,6 +646,7 @@ Your `extension.json` should include these fields for the store:
 ```
 
 - `minHostVersion` / `maxHostVersion` control compatibility — the store only offers releases compatible with the user's Novalist version.
+- Set `minHostVersion` to the oldest host release you support. For the current source tree, that baseline is `1.7.x`.
 - `icon` is optional — a URL to a square image (PNG recommended, 128×128 or larger). Displayed in the store browse list.
 - `tags` help users find your extension via search.
 
