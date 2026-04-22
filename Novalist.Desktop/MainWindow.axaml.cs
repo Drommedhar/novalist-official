@@ -104,6 +104,11 @@ public partial class MainWindow : Window
                     FocusOverlay("ProjectOverviewOverlay");
                 UpdateWebViewVisibility();
                 break;
+            case nameof(MainWindowViewModel.IsBookPickerOpen):
+                if (vm.IsBookPickerOpen)
+                    FocusOverlay("BookPickerOverlay");
+                UpdateWebViewVisibility();
+                break;
             case nameof(MainWindowViewModel.IsExtensionsOpen):
                 UpdateWebViewVisibility();
                 break;
@@ -322,6 +327,20 @@ public partial class MainWindow : Window
     }
 
     private void OnProjectOverviewPopupPressed(object? sender, PointerPressedEventArgs e)
+    {
+        e.Handled = true;
+    }
+
+    private void OnBookPickerOverlayPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.CloseBookPickerCommand.Execute(null);
+            e.Handled = true;
+        }
+    }
+
+    private void OnBookPickerPopupPressed(object? sender, PointerPressedEventArgs e)
     {
         e.Handled = true;
     }

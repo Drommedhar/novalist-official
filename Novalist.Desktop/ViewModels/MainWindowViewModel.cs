@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -172,6 +173,12 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private BookData? _activeBook;
+
+    [ObservableProperty]
+    private ObservableCollection<BookCard> _bookCards = [];
+
+    [ObservableProperty]
+    private bool _isBookPickerOpen;
 
     public Func<string, string, string, Task<string?>>? ShowInputDialog { get; set; }
     public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
@@ -1046,7 +1053,7 @@ public partial class MainWindowViewModel : ObservableObject
             ?? _projectService.CurrentProject?.CoverImage
             ?? string.Empty;
         Dashboard?.Refresh(
-            ProjectName,
+            _projectService.ActiveBook?.Name ?? ProjectName,
             ProjectTotalWords,
             ProjectChapterCount,
             ProjectSceneCount,
@@ -1335,6 +1342,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (ContextSidebar != null)
             await ContextSidebar.RefreshEntityDataAsync();
         await RefreshStatusBarAsync();
+        RefreshDashboard();
 
         Title = $"Novalist {VersionInfo.Version} — {_projectService.CurrentProject?.Name} — {_projectService.ActiveBook?.Name}";
         StatusText = Loc.T("status.editing", _projectService.ActiveBook?.Name ?? "");
@@ -1411,6 +1419,81 @@ public partial class MainWindowViewModel : ObservableObject
         if (project == null) return;
 
         Books = new ObservableCollection<BookData>(project.Books);
+        RefreshBookCards();
+    }
+
+    private void RefreshBookCards()
+    {
+        var projectRoot = _projectService.ProjectRoot;
+        var activeId = _projectService.ActiveBook?.Id;
+        var cards = new ObservableCollection<BookCard>();
+        foreach (var book in Books)
+        {
+            cards.Add(new BookCard(book, projectRoot, book.Id == activeId));
+        }
+        BookCards = cards;
+    }
+
+    [RelayCommand]
+    private void ToggleBookPicker()
+    {
+        if (!IsBookPickerOpen)
+            RefreshBookCards();
+        IsBookPickerOpen = !IsBookPickerOpen;
+    }
+
+    [RelayCommand]
+    private void CloseBookPicker()
+    {
+        IsBookPickerOpen = false;
+    }
+
+    [RelayCommand]
+    private void SelectBookFromPicker(BookCard? card)
+    {
+        IsBookPickerOpen = false;
+        if (card == null) return;
+        var book = Books.FirstOrDefault(b => b.Id == card.Id);
+        if (book != null && book.Id != ActiveBook?.Id)
+            ActiveBook = book;
+    }
+}
+
+public sealed class BookCard
+{
+    public string Id { get; }
+    public string Name { get; }
+    public Bitmap? CoverImage { get; }
+    public bool HasCoverImage => CoverImage != null;
+    public bool IsActive { get; }
+
+    public BookCard(BookData book, string? projectRoot, bool isActive)
+    {
+        Id = book.Id;
+        Name = book.Name;
+        IsActive = isActive;
+        CoverImage = LoadCover(book, projectRoot);
+    }
+
+    private static Bitmap? LoadCover(BookData book, string? projectRoot)
+    {
+        if (string.IsNullOrEmpty(book.CoverImage) || string.IsNullOrEmpty(projectRoot))
+            return null;
+
+        var bookRoot = Path.Combine(projectRoot, book.FolderName);
+        var coverPath = Path.Combine(bookRoot, book.CoverImage);
+        if (!File.Exists(coverPath))
+            return null;
+
+        try
+        {
+            using var stream = File.OpenRead(coverPath);
+            return Bitmap.DecodeToWidth(stream, 240);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
 

@@ -151,17 +151,31 @@
                             <Grid RowDefinitions="*,Auto">
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
                                             VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <ComboBox ItemsSource="{Binding Books}"
-                                              SelectedItem="{Binding ActiveBook}"
-                                              MinWidth="120"
-                                              MaxWidth="200"
-                                              Padding="6,4">
-                                        <ComboBox.ItemTemplate>
-                                            <DataTemplate x:DataType="m:BookData">
-                                                <TextBlock Text="{Binding Name}" />
-                                            </DataTemplate>
-                                        </ComboBox.ItemTemplate>
-                                    </ComboBox>
+                                    <Button Command="{Binding ToggleBookPickerCommand}"
+                                            Classes="ribbonButtonSmall"
+                                            MinWidth="140"
+                                            MaxWidth="220"
+                                            Padding="8,6"
+                                            FontSize="12"
+                                            HorizontalContentAlignment="Stretch"
+                                            ToolTip.Tip="{loc:Loc book.pickerTooltip}">
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                                            <Viewbox Grid.Column="0" Width="14" Height="14" VerticalAlignment="Center">
+                                                <Canvas Width="24" Height="24">
+                                                    <Path Classes="ribbonIcon" Data="{StaticResource IconBook}"/>
+                                                </Canvas>
+                                            </Viewbox>
+                                            <TextBlock Grid.Column="1"
+                                                       Text="{Binding ActiveBook.Name, FallbackValue=''}"
+                                                       VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Grid.Column="2"
+                                                       Text="▾"
+                                                       VerticalAlignment="Center"
+                                                       FontSize="10"
+                                                       Opacity="0.7" />
+                                        </Grid>
+                                    </Button>
                                     <Button Content="{loc:Loc book.addBook}"
                                             Command="{Binding AddBookCommand}"
                                             Classes="ribbonButtonSmall"
@@ -177,7 +191,7 @@
                 <Border Classes="ribbonContent"
                         IsVisible="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=View}">
                     <StackPanel Orientation="Horizontal" Spacing="0">
-                        <!-- Panels Group -->
+                        <!-- Views Group (main content views) -->
                         <Border Classes="ribbonGroup">
                             <Grid RowDefinitions="*,Auto">
                                 <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
@@ -202,6 +216,36 @@
                                                        HorizontalAlignment="Center" />
                                         </StackPanel>
                                     </Button>
+                                    <Button Command="{Binding ShowCodexHubCommand}"
+                                            Classes="ribbonToggleLarge"
+                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=CodexHub}"
+                                            ToolTip.Tip="{loc:Loc ribbon.codexHubTooltip}">
+                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconBookOpen}"/></Canvas></Viewbox>
+                                            <TextBlock Text="{loc:Loc ribbon.codexHub}" FontSize="10"
+                                                       HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Command="{Binding ShowManuscriptCommand}"
+                                            Classes="ribbonToggleLarge"
+                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Manuscript}"
+                                            ToolTip.Tip="{loc:Loc ribbon.manuscriptTooltip}">
+                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
+                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
+                                            <TextBlock Text="{loc:Loc ribbon.manuscript}" FontSize="10"
+                                                       HorizontalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                                <TextBlock Grid.Row="1" Text="{loc:Loc ribbon.views}" Classes="ribbonGroupLabel" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Sidebars Group (toggle visibility of side panels) -->
+                        <Border Classes="ribbonGroup">
+                            <Grid RowDefinitions="*,Auto">
+                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
+                                            VerticalAlignment="Center" HorizontalAlignment="Center">
                                     <Button Command="{Binding ToggleExplorerCommand}"
                                             Classes="ribbonToggleLarge"
                                             Classes.active="{Binding IsExplorerVisible}"
@@ -229,26 +273,6 @@
                                         <StackPanel HorizontalAlignment="Center" Spacing="2">
                                             <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconPencil}"/></Canvas></Viewbox>
                                             <TextBlock Text="{loc:Loc ribbon.sceneNotes}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Command="{Binding ShowCodexHubCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=CodexHub}"
-                                            ToolTip.Tip="{loc:Loc ribbon.codexHubTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconBookOpen}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.codexHub}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Command="{Binding ShowManuscriptCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Manuscript}"
-                                            ToolTip.Tip="{loc:Loc ribbon.manuscriptTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.manuscript}" FontSize="10"
                                                        HorizontalAlignment="Center" />
                                         </StackPanel>
                                     </Button>
@@ -956,6 +980,102 @@
                         </ScrollViewer>
                     </StackPanel>
                     </Border>
+                </Border>
+            </Border>
+
+            <!-- Book Picker Overlay -->
+            <Border IsVisible="{Binding IsBookPickerOpen}"
+                    x:Name="BookPickerOverlay"
+                    Focusable="True"
+                    Background="#80000000"
+                    PointerPressed="OnBookPickerOverlayPressed">
+                <Border CornerRadius="8"
+                        MinWidth="420"
+                        MaxWidth="780"
+                        MaxHeight="560"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Background="{DynamicResource CardBackground}"
+                        PointerPressed="OnBookPickerPopupPressed">
+                    <DockPanel Margin="16">
+                        <TextBlock DockPanel.Dock="Top"
+                                   Text="{loc:Loc book.pickerTitle}"
+                                   Classes="statusPopupTitle"
+                                   Margin="0,0,0,12" />
+
+                        <Button DockPanel.Dock="Bottom"
+                                Content="{loc:Loc book.addBook}"
+                                Command="{Binding AddBookCommand}"
+                                HorizontalAlignment="Right"
+                                Margin="0,12,0,0" />
+
+                        <TextBlock Text="{loc:Loc book.noBooks}"
+                                   Classes="statusPopupBody"
+                                   IsVisible="{Binding !BookCards.Count}" />
+
+                        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                                      VerticalScrollBarVisibility="Auto"
+                                      IsVisible="{Binding BookCards.Count}">
+                            <ItemsControl ItemsSource="{Binding BookCards}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:BookCard">
+                                        <Button Classes="linkButton"
+                                                Command="{Binding $parent[ItemsControl].((vm:MainWindowViewModel)DataContext).SelectBookFromPickerCommand}"
+                                                CommandParameter="{Binding}"
+                                                Padding="0"
+                                                Margin="0,0,12,12">
+                                            <Border Background="{DynamicResource CardBackground}"
+                                                    BorderBrush="{DynamicResource CardBorder}"
+                                                    BorderThickness="1"
+                                                    Classes.active="{Binding IsActive}"
+                                                    CornerRadius="8"
+                                                    Width="160"
+                                                    ClipToBounds="True">
+                                                <Border.Styles>
+                                                    <Style Selector="Border.active">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                                        <Setter Property="BorderThickness" Value="2" />
+                                                    </Style>
+                                                </Border.Styles>
+                                                <StackPanel>
+                                                    <Panel Height="200">
+                                                        <Image Source="{Binding CoverImage}"
+                                                               Stretch="UniformToFill"
+                                                               RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                               IsVisible="{Binding HasCoverImage}" />
+                                                        <Border Background="{DynamicResource CardBackground}"
+                                                                IsVisible="{Binding !HasCoverImage}">
+                                                            <Viewbox Width="40" Height="40"
+                                                                     HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                                <Canvas Width="24" Height="24">
+                                                                    <Path StrokeThickness="2" StrokeLineCap="Round" StrokeJoin="Round"
+                                                                          Stroke="{DynamicResource SubtleText}"
+                                                                          Data="{StaticResource IconBookOpen}"/>
+                                                                </Canvas>
+                                                            </Viewbox>
+                                                        </Border>
+                                                    </Panel>
+                                                    <StackPanel Spacing="2" Margin="10,8,10,10">
+                                                        <TextBlock Text="{Binding Name}"
+                                                                   FontWeight="SemiBold"
+                                                                   FontSize="13"
+                                                                   Foreground="{DynamicResource NormalText}"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   MaxLines="1" />
+                                                    </StackPanel>
+                                                </StackPanel>
+                                            </Border>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </DockPanel>
                 </Border>
             </Border>
 
