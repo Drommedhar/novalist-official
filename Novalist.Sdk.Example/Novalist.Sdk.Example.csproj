@@ -14,8 +14,9 @@
     <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="12.0.0" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Avalonia" Version="12.0.1" />
+    <PackageReference Include="Avalonia.Controls.ColorPicker" Version="12.0.1" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
   </ItemGroup>
   <Target Name="DeployExtension" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
     <PropertyGroup>
@@ -23,18 +24,12 @@
     </PropertyGroup>
     <MakeDir Directories="$(ExtensionDeployDir)\Themes" />
     <MakeDir Directories="$(ExtensionDeployDir)\Locales" />
-    <Copy SourceFiles="$(OutputPath)Novalist.Sdk.Example.dll;$(OutputPath)Novalist.Sdk.dll;$(OutputPath)extension.json"
-          DestinationFolder="$(ExtensionDeployDir)"
-          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(OutputPath)Novalist.Sdk.Example.dll;$(OutputPath)Novalist.Sdk.dll;$(OutputPath)extension.json" DestinationFolder="$(ExtensionDeployDir)" SkipUnchangedFiles="true" />
     <ItemGroup>
       <_ThemeFiles Include="$(OutputPath)Themes\*.*" />
       <_LocaleFiles Include="$(OutputPath)Locales\*.*" />
     </ItemGroup>
-    <Copy SourceFiles="@(_ThemeFiles)"
-          DestinationFolder="$(ExtensionDeployDir)\Themes"
-          SkipUnchangedFiles="true" />
-    <Copy SourceFiles="@(_LocaleFiles)"
-          DestinationFolder="$(ExtensionDeployDir)\Locales"
-          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_ThemeFiles)" DestinationFolder="$(ExtensionDeployDir)\Themes" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_LocaleFiles)" DestinationFolder="$(ExtensionDeployDir)\Locales" SkipUnchangedFiles="true" />
   </Target>
 </Project>
