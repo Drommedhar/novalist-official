@@ -76,6 +76,20 @@ public partial class App : Application
             var localesDir = GetLocalesDirectory();
             Loc.Instance.Initialize(localesDir, "en");
 
+            // Prevent the app from quitting when we swap MainWindow from splash to
+            // the real window. On macOS, closing the splash while it is the active
+            // MainWindow can race with NSApplication's window-restoration handling
+            // (see _reopenWindowsAsNecessary…) and terminate the process.
+            desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
+
+            // Hook the dispatcher's unhandled exception event so any UI-thread
+            // exception is logged instead of taking the process down silently.
+            Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) =>
+            {
+                Program.LogCrash("Dispatcher.UnhandledException", e.Exception);
+                e.Handled = true;
+            };
+
             // Show splash screen immediately while we initialize
             var splash = new SplashWindow();
             desktop.MainWindow = splash;
@@ -88,88 +102,8 @@ public partial class App : Application
                 IsVisible = false
             };
 
-            // Load settings asynchronously, then apply the user's language choice
-            _ = mainVm.InitializeAsync().ContinueWith(_ =>
-            {
-                Avalonia.Threading.Dispatcher.UIThread.Post(async () =>
-                {
-                    splash.SetStatus("Applying settings...");
-                    var lang = SettingsService.Settings.Language;
-                    if (!string.Equals(lang, "en", StringComparison.Ordinal))
-                        Loc.Instance.CurrentLanguage = lang;
-
-                    // Initialize extension system
-                    splash.SetStatus("Loading extensions...");
-                    var hostServices = new HostServices(FileService, ProjectService, EntityService, SettingsService);
-                    ExtensionManager = new ExtensionManager(SettingsService, hostServices);
-                    hostServices.ExtensionManager = ExtensionManager;
-                    await ExtensionManager.LoadAllAsync();
-
-                    // Initialize gallery service
-                    var galleryService = new Novalist.Core.Services.ExtensionGalleryService();
-                    if (!string.IsNullOrWhiteSpace(SettingsService.Settings.GitHubToken))
-                        galleryService.GitHubToken = SettingsService.Settings.GitHubToken;
-
-                    mainVm.OnExtensionsLoaded(ExtensionManager, galleryService);
-
-                    // Forward host language changes to extensions
-                    Loc.Instance.LanguageChanged += () =>
-                        hostServices.RaiseLanguageChanged(Loc.Instance.CurrentLanguage);
-
-                    // Register built-in and extension themes, then apply saved theme
-                    splash.SetStatus("Applying theme...");
-                    ThemeService.RegisterBuiltInTheme("Discord",
-                        "avares://Novalist.Desktop/Assets/Themes/DiscordTheme.axaml",
-                        "#5865F2");
-                    ThemeService.RegisterExtensionThemes(ExtensionManager.ThemeOverrides, ExtensionManager);
-                    var savedTheme = SettingsService.Settings.Theme;
-                    if (!string.IsNullOrEmpty(savedTheme) && savedTheme != "system")
-                        ThemeService.ApplyTheme(savedTheme);
-
-                    // Apply saved accent color override (if any)
-                    var savedAccent = SettingsService.Settings.AccentColor;
-                    if (!string.IsNullOrEmpty(savedAccent))
-                        ThemeService.ApplyAccentColor(savedAccent);
-
-                    // Everything is ready — swap to the main window
-                    desktop.MainWindow = mainWindow;
-                    mainWindow.Show();
-                    mainWindow.ShowWelcomeIfNeeded();
-                    splash.Close();
-
-                    // Check for updates in background (non-blocking)
-                    if (SettingsService.Settings.CheckForUpdates)
-                        _ = mainWindow.CheckForUpdateAsync();
-
-                    // Check for extension updates in background (non-blocking)
-                    if (SettingsService.Settings.CheckForExtensionUpdates && mainVm.Extensions is not null)
-                    {
-                        _ = Task.Run(async () =>
-                        {
-                            try
-                            {
-                                var count = await mainVm.Extensions.CheckForExtensionUpdatesAsync();
-                                if (count > 0)
-                                {
-                                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                                    {
-                                        var msg = count == 1
-                                            ? Novalist.Desktop.Localization.Loc.Instance["extensions.store.updateAvailableSingle"]
-                                            : string.Format(
-                                                Novalist.Desktop.Localization.Loc.Instance["extensions.store.updateAvailableMulti"],
-                                                count);
-                                        mainVm.ShowExtensionNotification(msg);
-                                    });
-                                }
-                            }
-                            catch
-                            {
-                                // Silently ignore — not critical
-                            }
-                        });
-                    }
-                });
-            });
+            // Run async startup; surface any failure instead of letting it terminate the process.
+            _ = RunStartupAsync(desktop, splash, mainWindow, mainVm);
 
             desktop.ShutdownRequested += (_, _) =>
             {
@@ -178,5 +112,119 @@ public partial class App : Application
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static async Task RunStartupAsync(
+        IClassicDesktopStyleApplicationLifetime desktop,
+        SplashWindow splash,
+        MainWindow mainWindow,
+        MainWindowViewModel mainVm)
+    {
+        try
+        {
+            await mainVm.InitializeAsync();
+
+            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                splash.SetStatus("Applying settings...");
+                var lang = SettingsService.Settings.Language;
+                if (!string.Equals(lang, "en", StringComparison.Ordinal))
+                    Loc.Instance.CurrentLanguage = lang;
+
+                // Initialize extension system
+                splash.SetStatus("Loading extensions...");
+                var hostServices = new HostServices(FileService, ProjectService, EntityService, SettingsService);
+                ExtensionManager = new ExtensionManager(SettingsService, hostServices);
+                hostServices.ExtensionManager = ExtensionManager;
+                await ExtensionManager.LoadAllAsync();
+
+                // Initialize gallery service
+                var galleryService = new Novalist.Core.Services.ExtensionGalleryService();
+                if (!string.IsNullOrWhiteSpace(SettingsService.Settings.GitHubToken))
+                    galleryService.GitHubToken = SettingsService.Settings.GitHubToken;
+
+                mainVm.OnExtensionsLoaded(ExtensionManager, galleryService);
+
+                // Forward host language changes to extensions
+                Loc.Instance.LanguageChanged += () =>
+                    hostServices.RaiseLanguageChanged(Loc.Instance.CurrentLanguage);
+
+                // Register built-in and extension themes, then apply saved theme
+                splash.SetStatus("Applying theme...");
+                ThemeService.RegisterBuiltInTheme("Discord",
+                    "avares://Novalist.Desktop/Assets/Themes/DiscordTheme.axaml",
+                    "#5865F2");
+                ThemeService.RegisterExtensionThemes(ExtensionManager.ThemeOverrides, ExtensionManager);
+                var savedTheme = SettingsService.Settings.Theme;
+                if (!string.IsNullOrEmpty(savedTheme) && savedTheme != "system")
+                    ThemeService.ApplyTheme(savedTheme);
+
+                // Apply saved accent color override (if any)
+                var savedAccent = SettingsService.Settings.AccentColor;
+                if (!string.IsNullOrEmpty(savedAccent))
+                    ThemeService.ApplyAccentColor(savedAccent);
+
+                // Everything is ready — swap to the main window before closing the splash.
+                desktop.MainWindow = mainWindow;
+                mainWindow.Show();
+                mainWindow.ShowWelcomeIfNeeded();
+                splash.Close();
+
+                // Now it is safe to restore normal shutdown semantics.
+                desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
+
+                // Check for updates in background (non-blocking)
+                if (SettingsService.Settings.CheckForUpdates)
+                    _ = mainWindow.CheckForUpdateAsync();
+
+                // Check for extension updates in background (non-blocking)
+                if (SettingsService.Settings.CheckForExtensionUpdates && mainVm.Extensions is not null)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var count = await mainVm.Extensions.CheckForExtensionUpdatesAsync();
+                            if (count > 0)
+                            {
+                                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                                {
+                                    var msg = count == 1
+                                        ? Novalist.Desktop.Localization.Loc.Instance["extensions.store.updateAvailableSingle"]
+                                        : string.Format(
+                                            Novalist.Desktop.Localization.Loc.Instance["extensions.store.updateAvailableMulti"],
+                                            count);
+                                    mainVm.ShowExtensionNotification(msg);
+                                });
+                            }
+                        }
+                        catch
+                        {
+                            // Silently ignore — not critical
+                        }
+                    });
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            Program.LogCrash("RunStartupAsync", ex);
+
+            // Try to leave the user with *something* rather than dying silently.
+            try
+            {
+                await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    desktop.MainWindow = mainWindow;
+                    mainWindow.Show();
+                    splash.Close();
+                    desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
+                });
+            }
+            catch (Exception inner)
+            {
+                Program.LogCrash("RunStartupAsync.Recovery", inner);
+            }
+        }
     }
 }
