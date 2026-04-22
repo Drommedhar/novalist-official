@@ -186,6 +186,15 @@ public partial class ProjectService : IProjectService
         await SaveProjectAsync();
     }
 
+    public async Task RenameProjectAsync(string newName)
+    {
+        if (CurrentProject == null || ProjectRoot == null) return;
+        if (string.IsNullOrWhiteSpace(newName)) return;
+
+        CurrentProject.Name = newName.Trim();
+        await SaveProjectAsync();
+    }
+
     public async Task RenameBookAsync(string bookId, string newName)
     {
         if (CurrentProject == null || ProjectRoot == null) return;

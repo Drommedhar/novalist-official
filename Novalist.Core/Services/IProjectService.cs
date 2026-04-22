@@ -19,6 +19,9 @@ public interface IProjectService
     Task SaveProjectSettingsAsync();
     Task SaveScenesAsync();
 
+    // Project management
+    Task RenameProjectAsync(string newName);
+
     // Book management
     Task<BookData> CreateBookAsync(string bookName);
     Task SwitchBookAsync(string bookId);

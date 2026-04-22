@@ -345,6 +345,24 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
+    private void OnBookCardRenameClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem { DataContext: BookCard card } &&
+            DataContext is MainWindowViewModel vm)
+        {
+            vm.RenameBookCardCommand.Execute(card);
+        }
+    }
+
+    private void OnBookCardDeleteClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is MenuItem { DataContext: BookCard card } &&
+            DataContext is MainWindowViewModel vm)
+        {
+            vm.DeleteBookCardCommand.Execute(card);
+        }
+    }
+
     private void OnStartMenuOverlayPressed(object? sender, PointerPressedEventArgs e)
     {
         if (DataContext is MainWindowViewModel vm)

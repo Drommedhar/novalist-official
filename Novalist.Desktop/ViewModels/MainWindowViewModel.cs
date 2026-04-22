@@ -1457,10 +1457,37 @@ public partial class MainWindowViewModel : ObservableObject
         if (book != null && book.Id != ActiveBook?.Id)
             ActiveBook = book;
     }
+
+    [RelayCommand]
+    private Task RenameBookCardAsync(BookCard? card)
+        => card == null ? Task.CompletedTask : RenameBookAsync(card.Book);
+
+    [RelayCommand]
+    private Task DeleteBookCardAsync(BookCard? card)
+        => card == null ? Task.CompletedTask : DeleteBookAsync(card.Book);
+
+    [RelayCommand]
+    private async Task RenameProjectAsync()
+    {
+        if (ShowInputDialog == null) return;
+        var project = _projectService.CurrentProject;
+        if (project == null) return;
+
+        var newName = await ShowInputDialog.Invoke(
+            Loc.T("project.renameProjectTitle"),
+            Loc.T("project.renameProjectPrompt"),
+            project.Name);
+        if (string.IsNullOrWhiteSpace(newName)) return;
+
+        await _projectService.RenameProjectAsync(newName.Trim());
+        ProjectName = _projectService.CurrentProject?.Name ?? string.Empty;
+        Title = $"Novalist {VersionInfo.Version} \u2014 {_projectService.CurrentProject?.Name} \u2014 {_projectService.ActiveBook?.Name}";
+    }
 }
 
 public sealed class BookCard
 {
+    public BookData Book { get; }
     public string Id { get; }
     public string Name { get; }
     public Bitmap? CoverImage { get; }
@@ -1469,6 +1496,7 @@ public sealed class BookCard
 
     public BookCard(BookData book, string? projectRoot, bool isActive)
     {
+        Book = book;
         Id = book.Id;
         Name = book.Name;
         IsActive = isActive;

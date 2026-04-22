@@ -869,8 +869,18 @@
                             Padding="10,12"
                             PointerPressed="OnProjectOverviewPopupPressed">
                     <StackPanel Spacing="8">
-                        <TextBlock Text="{loc:Loc overview.title}"
-                                   Classes="statusPopupTitle" />
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right"
+                                    Content="{loc:Loc project.renameProject}"
+                                    Command="{Binding RenameProjectCommand}"
+                                    Padding="8,2"
+                                    FontSize="11"
+                                    VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding ProjectName}"
+                                       Classes="statusPopupTitle"
+                                       VerticalAlignment="Center"
+                                       TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
 
                         <Grid ColumnDefinitions="*,Auto,Auto"
                               ColumnSpacing="8"
@@ -1029,6 +1039,12 @@
                                                 CommandParameter="{Binding}"
                                                 Padding="0"
                                                 Margin="0,0,12,12">
+                                            <Button.ContextMenu>
+                                                <ContextMenu>
+                                                    <MenuItem Header="{loc:Loc book.renameBook}" Click="OnBookCardRenameClick" />
+                                                    <MenuItem Header="{loc:Loc book.deleteBook}" Click="OnBookCardDeleteClick" />
+                                                </ContextMenu>
+                                            </Button.ContextMenu>
                                             <Border Background="{DynamicResource CardBackground}"
                                                     BorderBrush="{DynamicResource CardBorder}"
                                                     BorderThickness="1"

@@ -573,6 +573,11 @@
     "wbBadge": "WB",
     "wbBadgeTooltip": "World Bible entity (shared across all books)"
   },
+  "project": {
+    "renameProject": "Rename",
+    "renameProjectTitle": "Rename Project",
+    "renameProjectPrompt": "New project name:"
+  },
   "template": {
     "editorTitle": "Template Editor",
     "templateName": "Template Name",

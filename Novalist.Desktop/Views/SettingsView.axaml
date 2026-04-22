@@ -318,16 +318,23 @@
                             BorderThickness="1"
                             CornerRadius="6"
                             Padding="16,12">
-                        <StackPanel Spacing="4">
-                            <TextBlock Text="{Binding CurrentProjectName}"
-                                       Foreground="{DynamicResource NormalText}"
-                                       FontSize="13"
-                                       FontWeight="SemiBold" />
-                            <TextBlock Text="{loc:Loc settings.goalsDesc}"
-                                       Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
-                                       TextWrapping="Wrap" />
-                        </StackPanel>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right"
+                                    Content="{loc:Loc project.renameProject}"
+                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RenameProjectCommand}"
+                                    Padding="10,4"
+                                    VerticalAlignment="Center" />
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="{Binding CurrentProjectName}"
+                                           Foreground="{DynamicResource NormalText}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold" />
+                                <TextBlock Text="{loc:Loc settings.goalsDesc}"
+                                           Foreground="{DynamicResource SubtleText}"
+                                           FontSize="11"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </DockPanel>
                     </Border>
 
                     <DockPanel>
