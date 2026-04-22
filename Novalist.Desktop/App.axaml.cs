@@ -173,9 +173,28 @@ public partial class App : Application
                 // Now it is safe to restore normal shutdown semantics.
                 desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
 
-                // Check for updates in background (non-blocking)
+                // Check for updates in background (non-blocking).
+                // NOTE: We delay the first HTTPS request a few seconds. On macOS 14+
+                // there is a SecureTransport / SslStream race during early startup
+                // that can crash the process with an AccessViolationException
+                // (uncatchable, comes from native code). Letting AppKit/Metal/TLS
+                // fully initialize first works around it.
                 if (SettingsService.Settings.CheckForUpdates)
-                    _ = mainWindow.CheckForUpdateAsync();
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(5));
+                            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(
+                                () => mainWindow.CheckForUpdateAsync());
+                        }
+                        catch (Exception ex)
+                        {
+                            Program.LogCrash("CheckForUpdateAsync", ex);
+                        }
+                    });
+                }
 
                 // Check for extension updates in background (non-blocking)
                 if (SettingsService.Settings.CheckForExtensionUpdates && mainVm.Extensions is not null)
@@ -184,6 +203,7 @@ public partial class App : Application
                     {
                         try
                         {
+                            await Task.Delay(TimeSpan.FromSeconds(8));
                             var count = await mainVm.Extensions.CheckForExtensionUpdatesAsync();
                             if (count > 0)
                             {
@@ -198,9 +218,9 @@ public partial class App : Application
                                 });
                             }
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // Silently ignore — not critical
+                            Program.LogCrash("CheckForExtensionUpdatesAsync", ex);
                         }
                     });
                 }
