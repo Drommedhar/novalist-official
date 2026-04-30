@@ -210,11 +210,11 @@ public class EntityService : IEntityService
                      .Where(file => ImageExtensions.Contains(Path.GetExtension(file).ToLowerInvariant())))
         {
             if (string.Equals(Path.GetFullPath(existingPath), sourceFullPath, StringComparison.OrdinalIgnoreCase))
-                return Path.Combine(Book.ImageFolder, Path.GetFileName(existingPath));
+                return Path.Combine(Book.ImageFolder, Path.GetFileName(existingPath)).Replace('\\', '/');
 
             var existingHash = await ComputeFileHashAsync(existingPath);
             if (string.Equals(existingHash, sourceHash, StringComparison.OrdinalIgnoreCase))
-                return Path.Combine(Book.ImageFolder, Path.GetFileName(existingPath));
+                return Path.Combine(Book.ImageFolder, Path.GetFileName(existingPath)).Replace('\\', '/');
         }
 
         var fileName = Path.GetFileName(sourcePath);
@@ -224,7 +224,7 @@ public class EntityService : IEntityService
         if (!string.Equals(Path.GetFullPath(destPath), sourceFullPath, StringComparison.OrdinalIgnoreCase))
             File.Copy(sourcePath, destPath);
 
-        return Path.Combine(Book.ImageFolder, destName);
+        return Path.Combine(Book.ImageFolder, destName).Replace('\\', '/');
     }
 
     public List<string> GetProjectImages()
