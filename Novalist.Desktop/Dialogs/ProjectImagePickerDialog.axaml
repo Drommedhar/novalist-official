@@ -27,22 +27,25 @@
                         Click="OnCancel" />
             </StackPanel>
 
-            <StackPanel Spacing="12">
-                <TextBlock Text="{loc:Loc dialog.chooseImagePrompt}"
-                           FontSize="14"
-                           FontWeight="SemiBold"
-                           Foreground="{DynamicResource NormalText}" />
-                <TextBox x:Name="SearchBox"
-                         Watermark="{loc:Loc dialog.searchImages}" />
-                <TextBlock x:Name="CountText"
-                           Foreground="{DynamicResource SubtleText}" />
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Spacing="12">
+                    <TextBlock Text="{loc:Loc dialog.chooseImagePrompt}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource NormalText}" />
+                    <TextBox x:Name="SearchBox"
+                             Watermark="{loc:Loc dialog.searchImages}" />
+                    <TextBlock x:Name="CountText"
+                               Foreground="{DynamicResource SubtleText}" />
 
-                <TextBlock x:Name="EmptyText"
-                           Text="{loc:Loc dialog.noImagesMatch}"
-                           IsVisible="False"
-                           Foreground="{DynamicResource SubtleText}" />
+                    <TextBlock x:Name="EmptyText"
+                               Text="{loc:Loc dialog.noImagesMatch}"
+                               IsVisible="False"
+                               Foreground="{DynamicResource SubtleText}" />
+                </StackPanel>
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                <ScrollViewer Margin="0,12,0,0"
+                              VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl x:Name="ImageList"
                                   IsVisible="False">
@@ -90,7 +93,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-            </StackPanel>
+            </DockPanel>
         </DockPanel>
     </Border>
 </UserControl>
