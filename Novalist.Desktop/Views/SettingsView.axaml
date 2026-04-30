@@ -89,10 +89,10 @@
                       VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="40,24,40,40" Spacing="32" MaxWidth="640">
 
-                <!-- ── Language Section ── -->
-                <StackPanel x:Name="SectionLanguage" Spacing="16"
-                            IsVisible="{Binding IsLanguageSectionVisible}">
-                    <TextBlock Text="{loc:Loc settings.language}"
+                <!-- ── Appearance Section ── -->
+                <StackPanel x:Name="SectionAppearance" Spacing="16"
+                            IsVisible="{Binding IsAppearanceSectionVisible}">
+                    <TextBlock Text="{loc:Loc settings.appearance}"
                                FontSize="11"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
@@ -394,10 +394,10 @@
                     <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,8,0,0" />
                 </StackPanel>
 
-                <!-- ── Auto-Replacement Section ── -->
-                <StackPanel x:Name="SectionAutoReplacement" Spacing="16"
-                            IsVisible="{Binding IsAutoReplacementSectionVisible}">
-                    <TextBlock Text="{loc:Loc settings.autoReplacement}"
+                <!-- ── Writing Assistance Section ── -->
+                <StackPanel x:Name="SectionWritingAssistance" Spacing="16"
+                            IsVisible="{Binding IsWritingAssistanceSectionVisible}">
+                    <TextBlock Text="{loc:Loc settings.writingAssistance}"
                                FontSize="11"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
@@ -473,7 +473,7 @@
                 </StackPanel>
 
                 <!-- ── Templates Section ── -->
-                <StackPanel x:Name="SectionTemplates" Spacing="16"
+                <StackPanel x:Name="SectionTemplates" Spacing="8"
                             IsVisible="{Binding IsTemplatesSectionVisible}">
                     <TextBlock Text="{loc:Loc settings.templates}"
                                FontSize="11"
@@ -482,21 +482,23 @@
                                LetterSpacing="1" />
 
                     <!-- Character Templates -->
-                    <StackPanel Spacing="8">
-                        <DockPanel>
-                            <TextBlock Text="{loc:Loc settings.characterTemplates}"
-                                       Foreground="{DynamicResource NormalText}"
-                                       FontSize="13"
-                                       FontWeight="SemiBold"
-                                       VerticalAlignment="Center" />
-                            <Button Content="+"
-                                    Command="{Binding AddCharacterTemplateCommand}"
-                                    Padding="8,4"
-                                    FontSize="14"
-                                    HorizontalAlignment="Right"
-                                    ToolTip.Tip="{loc:Loc template.addTemplate}" />
-                        </DockPanel>
-                        <ItemsControl ItemsSource="{Binding CharacterTemplates}">
+                    <Expander IsExpanded="False" Padding="0">
+                        <Expander.Header>
+                            <DockPanel>
+                                <TextBlock Text="{loc:Loc settings.characterTemplates}"
+                                           Foreground="{DynamicResource NormalText}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                                <Button Content="+"
+                                        Command="{Binding AddCharacterTemplateCommand}"
+                                        Padding="8,4"
+                                        FontSize="14"
+                                        HorizontalAlignment="Right"
+                                        ToolTip.Tip="{loc:Loc template.addTemplate}" />
+                            </DockPanel>
+                        </Expander.Header>
+                        <ItemsControl ItemsSource="{Binding CharacterTemplates}" Margin="16,4,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:TemplateListItem">
                                     <DockPanel Margin="0,2">
@@ -521,24 +523,26 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </StackPanel>
+                    </Expander>
 
                     <!-- Location Templates -->
-                    <StackPanel Spacing="8">
-                        <DockPanel>
-                            <TextBlock Text="{loc:Loc settings.locationTemplates}"
-                                       Foreground="{DynamicResource NormalText}"
-                                       FontSize="13"
-                                       FontWeight="SemiBold"
-                                       VerticalAlignment="Center" />
-                            <Button Content="+"
-                                    Command="{Binding AddLocationTemplateCommand}"
-                                    Padding="8,4"
-                                    FontSize="14"
-                                    HorizontalAlignment="Right"
-                                    ToolTip.Tip="{loc:Loc template.addTemplate}" />
-                        </DockPanel>
-                        <ItemsControl ItemsSource="{Binding LocationTemplates}">
+                    <Expander IsExpanded="False" Padding="0">
+                        <Expander.Header>
+                            <DockPanel>
+                                <TextBlock Text="{loc:Loc settings.locationTemplates}"
+                                           Foreground="{DynamicResource NormalText}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                                <Button Content="+"
+                                        Command="{Binding AddLocationTemplateCommand}"
+                                        Padding="8,4"
+                                        FontSize="14"
+                                        HorizontalAlignment="Right"
+                                        ToolTip.Tip="{loc:Loc template.addTemplate}" />
+                            </DockPanel>
+                        </Expander.Header>
+                        <ItemsControl ItemsSource="{Binding LocationTemplates}" Margin="16,4,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:TemplateListItem">
                                     <DockPanel Margin="0,2">
@@ -563,24 +567,26 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </StackPanel>
+                    </Expander>
 
                     <!-- Item Templates -->
-                    <StackPanel Spacing="8">
-                        <DockPanel>
-                            <TextBlock Text="{loc:Loc settings.itemTemplates}"
-                                       Foreground="{DynamicResource NormalText}"
-                                       FontSize="13"
-                                       FontWeight="SemiBold"
-                                       VerticalAlignment="Center" />
-                            <Button Content="+"
-                                    Command="{Binding AddItemTemplateCommand}"
-                                    Padding="8,4"
-                                    FontSize="14"
-                                    HorizontalAlignment="Right"
-                                    ToolTip.Tip="{loc:Loc template.addTemplate}" />
-                        </DockPanel>
-                        <ItemsControl ItemsSource="{Binding ItemTemplates}">
+                    <Expander IsExpanded="False" Padding="0">
+                        <Expander.Header>
+                            <DockPanel>
+                                <TextBlock Text="{loc:Loc settings.itemTemplates}"
+                                           Foreground="{DynamicResource NormalText}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                                <Button Content="+"
+                                        Command="{Binding AddItemTemplateCommand}"
+                                        Padding="8,4"
+                                        FontSize="14"
+                                        HorizontalAlignment="Right"
+                                        ToolTip.Tip="{loc:Loc template.addTemplate}" />
+                            </DockPanel>
+                        </Expander.Header>
+                        <ItemsControl ItemsSource="{Binding ItemTemplates}" Margin="16,4,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:TemplateListItem">
                                     <DockPanel Margin="0,2">
@@ -605,24 +611,26 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </StackPanel>
+                    </Expander>
 
                     <!-- Lore Templates -->
-                    <StackPanel Spacing="8">
-                        <DockPanel>
-                            <TextBlock Text="{loc:Loc settings.loreTemplates}"
-                                       Foreground="{DynamicResource NormalText}"
-                                       FontSize="13"
-                                       FontWeight="SemiBold"
-                                       VerticalAlignment="Center" />
-                            <Button Content="+"
-                                    Command="{Binding AddLoreTemplateCommand}"
-                                    Padding="8,4"
-                                    FontSize="14"
-                                    HorizontalAlignment="Right"
-                                    ToolTip.Tip="{loc:Loc template.addTemplate}" />
-                        </DockPanel>
-                        <ItemsControl ItemsSource="{Binding LoreTemplates}">
+                    <Expander IsExpanded="False" Padding="0">
+                        <Expander.Header>
+                            <DockPanel>
+                                <TextBlock Text="{loc:Loc settings.loreTemplates}"
+                                           Foreground="{DynamicResource NormalText}"
+                                           FontSize="13"
+                                           FontWeight="SemiBold"
+                                           VerticalAlignment="Center" />
+                                <Button Content="+"
+                                        Command="{Binding AddLoreTemplateCommand}"
+                                        Padding="8,4"
+                                        FontSize="14"
+                                        HorizontalAlignment="Right"
+                                        ToolTip.Tip="{loc:Loc template.addTemplate}" />
+                            </DockPanel>
+                        </Expander.Header>
+                        <ItemsControl ItemsSource="{Binding LoreTemplates}" Margin="16,4,0,0">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="vm:TemplateListItem">
                                     <DockPanel Margin="0,2">
@@ -647,7 +655,9 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                    </StackPanel>
+                    </Expander>
+
+                    <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,8,0,0" />
                 </StackPanel>
 
                 <!-- ── Keyboard Shortcuts Section ── -->
@@ -659,15 +669,24 @@
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
 
-                    <views:HotkeySettingsView DataContext="{Binding HotkeySettings}" />
+                    <Expander IsExpanded="True" Padding="0">
+                        <Expander.Header>
+                            <TextBlock Text="{loc:Loc settings.hotkeys}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="13"
+                                       FontWeight="SemiBold"
+                                       VerticalAlignment="Center" />
+                        </Expander.Header>
+                        <views:HotkeySettingsView DataContext="{Binding HotkeySettings}" Margin="0,8,0,0" />
+                    </Expander>
 
                     <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,8,0,0" />
                 </StackPanel>
 
-                <!-- ── General Section ── -->
-                <StackPanel x:Name="SectionGeneral" Spacing="16"
-                            IsVisible="{Binding IsGeneralSectionVisible}">
-                    <TextBlock Text="{loc:Loc settings.general}"
+                <!-- ── Updates & Integrations Section ── -->
+                <StackPanel x:Name="SectionUpdatesIntegrations" Spacing="16"
+                            IsVisible="{Binding IsUpdatesIntegrationsSectionVisible}">
+                    <TextBlock Text="{loc:Loc settings.updatesIntegrations}"
                                FontSize="11"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"

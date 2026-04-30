@@ -35,22 +35,22 @@ public partial class SettingsViewModel : ObservableObject
 
     public List<SettingsCategoryItem> Categories { get; } =
     [
-        new("language", "settings.language"),
+        new("appearance", "settings.appearance"),
         new("editor", "settings.editor"),
         new("writingGoals", "settings.writingGoals"),
-        new("autoReplacement", "settings.autoReplacement"),
+        new("writingAssistance", "settings.writingAssistance"),
         new("templates", "settings.templates"),
         new("hotkeys", "settings.hotkeys"),
-        new("general", "settings.general"),
+        new("updatesIntegrations", "settings.updatesIntegrations"),
     ];
 
-    [ObservableProperty] private bool _isLanguageSectionVisible = true;
+    [ObservableProperty] private bool _isAppearanceSectionVisible = true;
     [ObservableProperty] private bool _isEditorSectionVisible = true;
     [ObservableProperty] private bool _isWritingGoalsSectionVisible = true;
-    [ObservableProperty] private bool _isAutoReplacementSectionVisible = true;
+    [ObservableProperty] private bool _isWritingAssistanceSectionVisible = true;
     [ObservableProperty] private bool _isTemplatesSectionVisible = true;
     [ObservableProperty] private bool _isHotkeysSectionVisible = true;
-    [ObservableProperty] private bool _isGeneralSectionVisible = true;
+    [ObservableProperty] private bool _isUpdatesIntegrationsSectionVisible = true;
 
     public HotkeySettingsViewModel HotkeySettings { get; } = new(App.HotkeyService);
 
@@ -94,19 +94,19 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(SearchQuery))
         {
-            IsLanguageSectionVisible = true;
+            IsAppearanceSectionVisible = true;
             IsEditorSectionVisible = true;
             IsWritingGoalsSectionVisible = true;
-            IsAutoReplacementSectionVisible = true;
+            IsWritingAssistanceSectionVisible = true;
             IsTemplatesSectionVisible = true;
             IsHotkeysSectionVisible = true;
-            IsGeneralSectionVisible = true;
+            IsUpdatesIntegrationsSectionVisible = true;
             return;
         }
 
         var q = SearchQuery.Trim();
-        IsLanguageSectionVisible = MatchesSection(q, "language", "interface", "sprache", "theme", "farbschema", "accent", "akzentfarbe", "color",
-            Loc.T("settings.language"), Loc.T("settings.uiLanguage"), Loc.T("settings.uiLanguageDesc"),
+        IsAppearanceSectionVisible = MatchesSection(q, "language", "interface", "sprache", "theme", "farbschema", "accent", "akzentfarbe", "color", "appearance", "darstellung",
+            Loc.T("settings.appearance"), Loc.T("settings.language"), Loc.T("settings.uiLanguage"), Loc.T("settings.uiLanguageDesc"),
             Loc.T("settings.theme"), Loc.T("settings.themeDescription"),
             Loc.T("settings.accentColor"), Loc.T("settings.accentColorDesc"));
         IsEditorSectionVisible = MatchesSection(q, "editor", "font", "book", "page", "paragraph", "spacing", "width",
@@ -115,16 +115,17 @@ public partial class SettingsViewModel : ObservableObject
         IsWritingGoalsSectionVisible = MatchesSection(q, "goal", "daily", "project", "deadline", "word", "writing",
             Loc.T("settings.writingGoals"), Loc.T("settings.dailyWordGoal"), Loc.T("settings.projectWordGoal"),
             Loc.T("settings.projectDeadline"));
-        IsAutoReplacementSectionVisible = MatchesSection(q, "auto", "replacement", "quote", "smart", "dialogue", "correction", "dialog",
-            Loc.T("settings.autoReplacement"), Loc.T("settings.quoteStyle"), Loc.T("settings.dialogueCorrection"));
+        IsWritingAssistanceSectionVisible = MatchesSection(q, "auto", "replacement", "quote", "smart", "dialogue", "correction", "dialog", "grammar", "spelling", "writing assistance", "schreibhilfe",
+            Loc.T("settings.writingAssistance"), Loc.T("settings.autoReplacement"), Loc.T("settings.quoteStyle"), Loc.T("settings.dialogueCorrection"),
+            Loc.T("settings.grammarCheck"));
         IsTemplatesSectionVisible = MatchesSection(q, "template", "character", "location", "item", "lore",
             Loc.T("settings.templates"), Loc.T("settings.characterTemplates"), Loc.T("settings.locationTemplates"),
             Loc.T("settings.itemTemplates"), Loc.T("settings.loreTemplates"));
         IsHotkeysSectionVisible = MatchesSection(q, "hotkey", "keyboard", "shortcut", "key", "binding",
             Loc.T("settings.hotkeys"));
-        IsGeneralSectionVisible = MatchesSection(q, "general", "update", "aktualisierung",
-            "extension", "github", "token", "pat",
-            Loc.T("update.checkForUpdates"), Loc.T("update.checkForUpdatesDesc"),
+        IsUpdatesIntegrationsSectionVisible = MatchesSection(q, "general", "update", "aktualisierung",
+            "extension", "github", "token", "pat", "integration",
+            Loc.T("settings.updatesIntegrations"), Loc.T("update.checkForUpdates"), Loc.T("update.checkForUpdatesDesc"),
             Loc.T("settings.checkForExtensionUpdates"), Loc.T("settings.githubToken"));
     }
 

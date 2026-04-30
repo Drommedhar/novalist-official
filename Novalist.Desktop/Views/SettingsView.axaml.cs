@@ -37,13 +37,13 @@ public partial class SettingsView : UserControl
     {
         _sectionMap ??= new Dictionary<string, Control>
         {
-            ["language"] = SectionLanguage,
+            ["appearance"] = SectionAppearance,
             ["editor"] = SectionEditor,
             ["writingGoals"] = SectionWritingGoals,
-            ["autoReplacement"] = SectionAutoReplacement,
+            ["writingAssistance"] = SectionWritingAssistance,
             ["templates"] = SectionTemplates,
             ["hotkeys"] = SectionHotkeys,
-            ["general"] = SectionGeneral,
+            ["updatesIntegrations"] = SectionUpdatesIntegrations,
         };
 
         if (key.StartsWith("ext_", StringComparison.Ordinal))

@@ -128,6 +128,7 @@
     "bookWidthCustomDesc": "Breite des Textbereichs in Zoll.",
     "bookWidthFont": "Buchschriftart",
     "bookWidthFontSize": "Buchschriftgröße",
+    "appearance": "DARSTELLUNG",
     "language": "SPRACHE",
     "uiLanguage": "Oberflächensprache",
     "uiLanguageDesc": "Sprache der Benutzeroberfläche.",
@@ -144,6 +145,7 @@
     "projectWordGoalDesc": "Gesamte Wortzahl für das gesamte Projekt.",
     "projectDeadline": "Projektfrist",
     "projectDeadlineDesc": "Optionale Frist im Format JJJJ-MM-TT.",
+    "writingAssistance": "SCHREIBHILFE",
     "autoReplacement": "AUTO-ERSETZUNG",
     "quoteStyle": "Anführungszeichen-Stil",
     "quoteStyleDesc": "Wählt die Sprachvorlage für typografische Anführungszeichen, Geviertstriche und Auslassungspunkte.",
@@ -196,6 +198,7 @@
     "aiSystemPromptPlaceholder": "Leer lassen für Standard-Prompt...",
     "aiResetPrompt": "Zurücksetzen",
     "hotkeys": "TASTENKÜRZEL",
+    "updatesIntegrations": "UPDATES & INTEGRATIONEN",
     "general": "ALLGEMEIN"
   },
   "hotkeys": {
