@@ -353,7 +353,8 @@ public partial class ContextSidebarViewModel : ObservableObject
     private void BuildVisibleContext(ChapterData chapter, SceneData scene, string sceneContent)
     {
         var chapterSnapshot = _chapterSnapshots.TryGetValue(chapter.Guid, out var snapshot) ? snapshot : null;
-        var entityContent = chapterSnapshot?.AggregateText ?? sceneContent;
+        var currentSceneSnapshot = chapterSnapshot?.Scenes.FirstOrDefault(candidate => string.Equals(candidate.Scene.Id, scene.Id, StringComparison.OrdinalIgnoreCase));
+        var entityContent = currentSceneSnapshot?.Content ?? sceneContent;
 
         var matchedCharacters = MatchSources(entityContent, _characterSources);
         var matchedLocations = MatchSources(entityContent, _locationSources);
