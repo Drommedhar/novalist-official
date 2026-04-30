@@ -106,7 +106,6 @@ Novalist.Desktop                    Desktop application entry point, views, and 
 Novalist.Core                       Core library: models, services, serialization
 Novalist.Sdk                        Extension SDK: interfaces, hooks, and host services
 Novalist.Extensions.AiAssistant     Bundled AI assistant extension
-LiquidGlassAvaloniaUI               Glass effect UI library (submodule)
 ```
 
 ## Support the Project

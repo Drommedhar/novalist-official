@@ -164,6 +164,32 @@ public partial class App : Application
                 if (!string.IsNullOrEmpty(savedAccent))
                     ThemeService.ApplyAccentColor(savedAccent);
 
+                // Check for app updates in splash screen
+                if (SettingsService.Settings.CheckForUpdates)
+                {
+                    var userChoseUpdate = await splash.CheckForAppUpdateAsync();
+                    if (userChoseUpdate)
+                    {
+                        // User chose to update — app will shut down after installer launches
+                        desktop.Shutdown();
+                        return;
+                    }
+                }
+
+                // Check for extension updates and auto-update them
+                if (SettingsService.Settings.CheckForExtensionUpdates)
+                {
+                    var extensionsUpdated = await splash.CheckAndAutoUpdateExtensionsAsync(
+                        galleryService, ExtensionManager);
+                    if (extensionsUpdated)
+                    {
+                        splash.SetStatus("Extensions updated. Restarting...");
+                        await Task.Delay(1000);
+                        SplashWindow.RestartApp();
+                        return;
+                    }
+                }
+
                 // Everything is ready — swap to the main window before closing the splash.
                 desktop.MainWindow = mainWindow;
                 mainWindow.Show();
@@ -172,58 +198,6 @@ public partial class App : Application
 
                 // Now it is safe to restore normal shutdown semantics.
                 desktop.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
-
-                // Check for updates in background (non-blocking).
-                // NOTE: We delay the first HTTPS request a few seconds. On macOS 14+
-                // there is a SecureTransport / SslStream race during early startup
-                // that can crash the process with an AccessViolationException
-                // (uncatchable, comes from native code). Letting AppKit/Metal/TLS
-                // fully initialize first works around it.
-                if (SettingsService.Settings.CheckForUpdates)
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await Task.Delay(TimeSpan.FromSeconds(5));
-                            await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(
-                                () => mainWindow.CheckForUpdateAsync());
-                        }
-                        catch (Exception ex)
-                        {
-                            Program.LogCrash("CheckForUpdateAsync", ex);
-                        }
-                    });
-                }
-
-                // Check for extension updates in background (non-blocking)
-                if (SettingsService.Settings.CheckForExtensionUpdates && mainVm.Extensions is not null)
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        try
-                        {
-                            await Task.Delay(TimeSpan.FromSeconds(8));
-                            var count = await mainVm.Extensions.CheckForExtensionUpdatesAsync();
-                            if (count > 0)
-                            {
-                                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                                {
-                                    var msg = count == 1
-                                        ? Novalist.Desktop.Localization.Loc.Instance["extensions.store.updateAvailableSingle"]
-                                        : string.Format(
-                                            Novalist.Desktop.Localization.Loc.Instance["extensions.store.updateAvailableMulti"],
-                                            count);
-                                    mainVm.ShowExtensionNotification(msg);
-                                });
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Program.LogCrash("CheckForExtensionUpdatesAsync", ex);
-                        }
-                    });
-                }
             });
         }
         catch (Exception ex)

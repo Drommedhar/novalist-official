@@ -10,24 +10,79 @@
         TransparencyLevelHint="Transparent">
 
     <Panel>
-        <StackPanel VerticalAlignment="Center"
-                    HorizontalAlignment="Center"
-                    Spacing="16">
-            <Image Source="/splash.png"
-                   Width="320"
-                   HorizontalAlignment="Center"
-                   RenderOptions.BitmapInterpolationMode="HighQuality" />
-            <TextBlock x:Name="StatusText"
-                       Text="Loading..."
-                       FontSize="12"
-                       Foreground="#AAAAAA"
-                       HorizontalAlignment="Center" />
-            <ProgressBar IsIndeterminate="True"
-                         Height="2"
-                         Width="200"
-                         Foreground="#007ACC"
-                         Background="#40FFFFFF"
-                         HorizontalAlignment="Center" />
-        </StackPanel>
+        <!-- Rounded dark card behind everything -->
+        <Border Background="#E6181818"
+                CornerRadius="16"
+                Margin="16"
+                Padding="24,24,24,20"
+                BoxShadow="0 8 32 0 #60000000">
+            <DockPanel>
+                <!-- Bottom area: status + progress + update panel -->
+                <StackPanel DockPanel.Dock="Bottom"
+                            Spacing="10"
+                            HorizontalAlignment="Center">
+                    <TextBlock x:Name="StatusText"
+                               Text="Loading..."
+                               FontSize="12"
+                               Foreground="#999999"
+                               HorizontalAlignment="Center" />
+                    <ProgressBar x:Name="ProgressBar"
+                                 IsIndeterminate="True"
+                                 Height="2"
+                                 Width="200"
+                                 Foreground="#007ACC"
+                                 Background="#30FFFFFF"
+                                 HorizontalAlignment="Center" />
+
+                    <!-- Update available panel (hidden by default) -->
+                    <Border x:Name="UpdatePanel"
+                            IsVisible="False"
+                            Background="#20FFFFFF"
+                            CornerRadius="8"
+                            Padding="16,12"
+                            Margin="0,4,0,0">
+                        <StackPanel Spacing="10"
+                                    HorizontalAlignment="Center">
+                            <TextBlock x:Name="UpdateVersionText"
+                                       FontSize="12"
+                                       Foreground="#CCCCCC"
+                                       HorizontalAlignment="Center"
+                                       TextWrapping="Wrap"
+                                       TextAlignment="Center"
+                                       MaxWidth="340" />
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        Spacing="10">
+                                <Button x:Name="UpdateNowButton"
+                                        Content="Update now"
+                                        Click="OnUpdateNow"
+                                        Padding="20,7"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Background="#007ACC"
+                                        Foreground="White"
+                                        CornerRadius="6" />
+                                <Button x:Name="UpdateLaterButton"
+                                        Content="Later"
+                                        Click="OnUpdateLater"
+                                        Padding="20,7"
+                                        FontSize="12"
+                                        Background="#25FFFFFF"
+                                        Foreground="#BBBBBB"
+                                        CornerRadius="6" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Splash image fills remaining space -->
+                <Image Source="/splash.png"
+                       Width="300"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       Margin="0,0,0,12"
+                       RenderOptions.BitmapInterpolationMode="HighQuality" />
+            </DockPanel>
+        </Border>
     </Panel>
 </Window>
