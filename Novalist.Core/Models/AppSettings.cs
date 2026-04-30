@@ -50,6 +50,16 @@ public class AppSettings
     [JsonPropertyName("dialogueCorrectionEnabled")]
     public bool DialogueCorrectionEnabled { get; set; }
 
+    [JsonPropertyName("grammarCheckEnabled")]
+    public bool GrammarCheckEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Custom LanguageTool API URL. When null or empty, the free public API is used.
+    /// Supports self-hosted instances (e.g. "http://localhost:8081/v2/check").
+    /// </summary>
+    [JsonPropertyName("grammarCheckApiUrl")]
+    public string? GrammarCheckApiUrl { get; set; }
+
     [JsonPropertyName("windowWidth")]
     public double WindowWidth { get; set; } = 1400;
 

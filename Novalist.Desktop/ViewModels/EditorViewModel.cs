@@ -78,6 +78,7 @@ public partial class EditorViewModel : ObservableObject
     public EditorExtensionManager ExtensionManager { get; } = new();
     public AutoReplacementExtension AutoReplacement { get; } = new();
     public DialogueCorrectionExtension DialogueCorrection { get; } = new();
+    public GrammarCheckExtension GrammarCheck { get; } = new();
     public FocusPeekViewModel FocusPeek { get; } = new();
     public FocusPeekExtension FocusPeekExtension => _focusPeekExtension;
 
@@ -192,6 +193,12 @@ public partial class EditorViewModel : ObservableObject
         DialogueCorrection.Language = settingsService.Settings.AutoReplacementLanguage;
         ExtensionManager.Register(DialogueCorrection);
 
+        // Configure grammar check from settings
+        GrammarCheck.Enabled = settingsService.Settings.GrammarCheckEnabled;
+        GrammarCheck.Language = settingsService.Settings.Language;
+        GrammarCheck.CustomApiUrl = settingsService.Settings.GrammarCheckApiUrl;
+        ExtensionManager.Register(GrammarCheck);
+
         _focusPeekExtension = new FocusPeekExtension(FocusPeek, _projectService, _entityService, HandleFocusPeekOpenRequested);
         ExtensionManager.Register(_focusPeekExtension);
     }
@@ -204,6 +211,9 @@ public partial class EditorViewModel : ObservableObject
         AutoReplacement.Pairs = _settingsService.Settings.AutoReplacements;
         DialogueCorrection.Enabled = _settingsService.Settings.DialogueCorrectionEnabled;
         DialogueCorrection.Language = _settingsService.Settings.AutoReplacementLanguage;
+        GrammarCheck.Enabled = _settingsService.Settings.GrammarCheckEnabled;
+        GrammarCheck.Language = _settingsService.Settings.Language;
+        GrammarCheck.CustomApiUrl = _settingsService.Settings.GrammarCheckApiUrl;
         OnPropertyChanged(nameof(EditorFontFamily));
         OnPropertyChanged(nameof(EditorFontSize));
         OnPropertyChanged(nameof(BookParagraphSpacingEnabled));
@@ -211,6 +221,7 @@ public partial class EditorViewModel : ObservableObject
         OnPropertyChanged(nameof(BookEditorWidth));
         OnPropertyChanged(nameof(AutoReplacement));
         OnPropertyChanged(nameof(DialogueCorrection));
+        OnPropertyChanged(nameof(GrammarCheck));
         UpdateStats(_plainText);
     }
 

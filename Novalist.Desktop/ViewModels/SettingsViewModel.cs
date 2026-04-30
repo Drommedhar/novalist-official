@@ -181,6 +181,9 @@ public partial class SettingsViewModel : ObservableObject
     private bool _dialogueCorrectionEnabled;
 
     [ObservableProperty]
+    private bool _grammarCheckEnabled;
+
+    [ObservableProperty]
     private int _dailyWordGoal;
 
     [ObservableProperty]
@@ -234,6 +237,7 @@ public partial class SettingsViewModel : ObservableObject
         _bookFontSize = Settings.BookFontSize;
         _selectedLanguage = Settings.AutoReplacementLanguage;
         _dialogueCorrectionEnabled = Settings.DialogueCorrectionEnabled;
+        _grammarCheckEnabled = Settings.GrammarCheckEnabled;
         _dailyWordGoal = ActiveProjectGoals?.DailyGoal ?? 1000;
         _projectWordGoal = ActiveProjectGoals?.ProjectGoal ?? 50000;
         _projectDeadline = ActiveProjectGoals?.Deadline ?? string.Empty;
@@ -350,6 +354,12 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnDialogueCorrectionEnabledChanged(bool value)
     {
         Settings.DialogueCorrectionEnabled = value;
+        SaveAndNotify();
+    }
+
+    partial void OnGrammarCheckEnabledChanged(bool value)
+    {
+        Settings.GrammarCheckEnabled = value;
         SaveAndNotify();
     }
 

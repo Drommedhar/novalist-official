@@ -55,12 +55,126 @@ body { display: flex; justify-content: center; }
 #editor::-webkit-scrollbar { width: 8px; }
 #editor::-webkit-scrollbar-track { background: transparent; }
 #editor::-webkit-scrollbar-thumb { background: #585b7066; border-radius: 4px; }
+
+/* Grammar check underlines */
+.grammar-issue {
+    text-decoration: underline wavy;
+    text-decoration-skip-ink: none;
+    cursor: pointer;
+}
+.grammar-issue[data-issue-type="spelling"] { text-decoration-color: #f38ba8; }
+.grammar-issue[data-issue-type="grammar"] { text-decoration-color: #89b4fa; }
+.grammar-issue[data-issue-type="style"] { text-decoration-color: #a6e3a1; }
+
+/* Grammar popup */
+#grammar-popup {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    background: color-mix(in srgb, var(--bg) 95%, white 5%);
+    border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
+    border-radius: 8px;
+    padding: 10px 12px;
+    max-width: 320px;
+    font-size: 13px;
+    color: var(--fg);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    line-height: 1.4;
+}
+#grammar-popup.visible { display: block; }
+#grammar-popup .gp-message { margin-bottom: 8px; opacity: 0.85; }
+#grammar-popup .gp-suggestions { display: flex; flex-wrap: wrap; gap: 4px; }
+#grammar-popup .gp-suggestion {
+    background: color-mix(in srgb, var(--fg) 12%, transparent 88%);
+    border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
+    border-radius: 4px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.15s;
+}
+#grammar-popup .gp-suggestion:hover {
+    background: color-mix(in srgb, var(--fg) 25%, transparent 75%);
+}
+#grammar-popup .gp-dismiss {
+    margin-top: 6px;
+    font-size: 11px;
+    opacity: 0.5;
+    cursor: pointer;
+}
+#grammar-popup .gp-dismiss:hover { opacity: 0.8; }
+
+/* Custom context menu */
+#context-menu {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    background: color-mix(in srgb, var(--bg) 95%, white 5%);
+    border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
+    border-radius: 8px;
+    padding: 4px 0;
+    min-width: 200px;
+    font-size: 13px;
+    color: var(--fg);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+#context-menu.visible { display: block; }
+#context-menu .cm-item {
+    padding: 6px 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#context-menu .cm-item:hover {
+    background: color-mix(in srgb, var(--fg) 10%, transparent 90%);
+}
+#context-menu .cm-item.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+#context-menu .cm-shortcut {
+    font-size: 11px;
+    opacity: 0.5;
+    margin-left: 24px;
+}
+#context-menu .cm-separator {
+    height: 1px;
+    background: color-mix(in srgb, var(--fg) 15%, transparent 85%);
+    margin: 4px 8px;
+}
+#context-menu .cm-grammar-section {
+    border-top: 1px solid color-mix(in srgb, var(--fg) 12%, transparent 88%);
+    margin-top: 2px;
+    padding-top: 4px;
+}
+#context-menu .cm-grammar-msg {
+    padding: 4px 14px;
+    font-size: 11px;
+    opacity: 0.6;
+    font-style: italic;
+}
+#context-menu .cm-suggestion {
+    padding: 5px 14px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #89b4fa;
+}
+#context-menu .cm-suggestion:hover {
+    background: color-mix(in srgb, var(--fg) 10%, transparent 90%);
+}
 </style>
 </head>
 <body>
 <div id="editor-wrapper">
-    <div id="editor" contenteditable="true" spellcheck="true"></div>
+    <div id="editor" contenteditable="true" spellcheck="false"></div>
 </div>
+<div id="grammar-popup">
+    <div class="gp-message"></div>
+    <div class="gp-suggestions"></div>
+    <div class="gp-dismiss">Dismiss</div>
+</div>
+<div id="context-menu"></div>
 <script>
 'use strict';
 
@@ -105,6 +219,9 @@ function setContent(html) {
     }
     lastHtml = editor.innerHTML;
     isSettingContent = false;
+
+    // Trigger grammar check for the new content
+    requestGrammarCheck();
 }
 
 function getContent() {
@@ -770,6 +887,9 @@ editor.addEventListener('input', () => {
             });
         }
     }, 50);
+
+    // Request grammar check after typing pause
+    requestGrammarCheck();
 });
 
 editor.addEventListener('beforeinput', (e) => {
@@ -915,6 +1035,364 @@ wrapper.addEventListener('wheel', (e) => {
 function focusEditor() {
     editor.focus();
 }
+
+// ── Custom Context Menu ─────────────────────────────────────────
+
+const contextMenu = document.getElementById('context-menu');
+let contextMenuTarget = null;
+let contextMenuLabels = { cut: 'Cut', copy: 'Copy', paste: 'Paste', selectAll: 'Select All' };
+
+function setContextMenuLabels(labelsJson) {
+    try {
+        contextMenuLabels = JSON.parse(labelsJson);
+    } catch (_) {}
+}
+
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    hideGrammarPopup();
+
+    contextMenuTarget = e.target;
+    const sel = window.getSelection();
+    const hasSelection = sel && !sel.isCollapsed;
+
+    let html = '';
+
+    // Check if right-clicking on a grammar issue
+    const issueSpan = e.target.closest('.grammar-issue');
+    if (issueSpan && grammarEnabled) {
+        const index = parseInt(issueSpan.getAttribute('data-issue-index'), 10);
+        const issue = grammarIssues[index];
+        if (issue) {
+            html += '<div class="cm-grammar-msg">' + escapeHtml(issue.message) + '</div>';
+            if (issue.replacements && issue.replacements.length > 0) {
+                for (const rep of issue.replacements) {
+                    html += '<div class="cm-suggestion" data-issue-index="' + index + '" data-replacement="' + escapeHtml(rep) + '">' + escapeHtml(rep) + '</div>';
+                }
+            }
+            html += '<div class="cm-separator"></div>';
+        }
+    }
+
+    // Standard editing items
+    const disabledAttr = hasSelection ? '' : ' disabled';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="cut"><span>' + escapeHtml(contextMenuLabels.cut || 'Cut') + '</span><span class="cm-shortcut">Ctrl+X</span></div>';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="copy"><span>' + escapeHtml(contextMenuLabels.copy || 'Copy') + '</span><span class="cm-shortcut">Ctrl+C</span></div>';
+    html += '<div class="cm-item" data-action="paste"><span>' + escapeHtml(contextMenuLabels.paste || 'Paste') + '</span><span class="cm-shortcut">Ctrl+V</span></div>';
+    html += '<div class="cm-separator"></div>';
+    html += '<div class="cm-item" data-action="selectAll"><span>' + escapeHtml(contextMenuLabels.selectAll || 'Select All') + '</span><span class="cm-shortcut">Ctrl+A</span></div>';
+
+    contextMenu.innerHTML = html;
+
+    // Position
+    let x = e.clientX, y = e.clientY;
+    contextMenu.classList.add('visible');
+    const rect = contextMenu.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 4;
+    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
+    contextMenu.style.left = x + 'px';
+    contextMenu.style.top = y + 'px';
+});
+
+contextMenu.addEventListener('click', (e) => {
+    const suggestion = e.target.closest('.cm-suggestion');
+    if (suggestion) {
+        const index = parseInt(suggestion.getAttribute('data-issue-index'), 10);
+        const replacement = suggestion.getAttribute('data-replacement');
+        applyGrammarSuggestion(index, replacement);
+        hideContextMenu();
+        return;
+    }
+
+    const item = e.target.closest('.cm-item');
+    if (!item || item.classList.contains('disabled')) return;
+
+    const action = item.getAttribute('data-action');
+    switch (action) {
+        case 'cut':
+            document.execCommand('cut');
+            break;
+        case 'copy':
+            document.execCommand('copy');
+            break;
+        case 'paste':
+            navigator.clipboard.readText().then(text => {
+                document.execCommand('insertText', false, text);
+            }).catch(() => {
+                document.execCommand('paste');
+            });
+            break;
+        case 'selectAll':
+            document.execCommand('selectAll');
+            break;
+    }
+    hideContextMenu();
+});
+
+function hideContextMenu() {
+    contextMenu.classList.remove('visible');
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+document.addEventListener('click', (e) => {
+    if (!contextMenu.contains(e.target)) hideContextMenu();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideContextMenu();
+});
+wrapper.addEventListener('scroll', hideContextMenu);
+
+// ── Grammar Check ───────────────────────────────────────────────
+
+let grammarIssues = [];
+let grammarCheckTimer = null;
+let grammarEnabled = false;
+const grammarPopup = document.getElementById('grammar-popup');
+
+function setGrammarCheckEnabled(enabled) {
+    grammarEnabled = enabled;
+    if (!enabled) {
+        clearGrammarHighlights();
+        grammarIssues = [];
+        hideGrammarPopup();
+    } else {
+        // Trigger an initial check if there's content
+        requestGrammarCheck();
+    }
+}
+
+function setGrammarIssues(issuesJson) {
+    try {
+        const raw = JSON.parse(issuesJson);
+        // Filter out issues that target known entity names
+        const plainText = editor.innerText || '';
+        grammarIssues = raw.filter(issue => {
+            const flaggedText = plainText.substring(issue.offset, issue.offset + issue.length);
+            return !isKnownEntity(flaggedText);
+        });
+    } catch (_) {
+        grammarIssues = [];
+    }
+    applyGrammarHighlights();
+}
+
+function isKnownEntity(text) {
+    if (!text || entityNames.length === 0) return false;
+    const lower = text.toLowerCase();
+    for (const name of entityNames) {
+        if (name.toLowerCase() === lower) return true;
+    }
+    return false;
+}
+
+function clearGrammarHighlights() {
+    const marks = editor.querySelectorAll('.grammar-issue');
+    for (const mark of marks) {
+        const parent = mark.parentNode;
+        while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+        parent.removeChild(mark);
+    }
+    // Normalize adjacent text nodes
+    editor.normalize();
+}
+
+function applyGrammarHighlights() {
+    // Save caret position
+    const sel = window.getSelection();
+    let savedRange = null;
+    let caretTextOffset = -1;
+    if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
+        const r = sel.getRangeAt(0);
+        const preRange = document.createRange();
+        preRange.selectNodeContents(editor);
+        preRange.setEnd(r.startContainer, r.startOffset);
+        caretTextOffset = preRange.toString().length;
+    }
+
+    // Remove existing highlights
+    clearGrammarHighlights();
+
+    if (!grammarIssues || grammarIssues.length === 0) return;
+
+    // Build a map of text nodes to innerText offsets.
+    // innerText inserts \n between block elements (p, div, br), but those
+    // newlines don't exist as text nodes. We must account for them so offsets
+    // from LanguageTool (which analyzed innerText) line up with actual DOM nodes.
+    const textNodes = [];
+    let innerTextOffset = 0;
+    let prevBlockEnd = null;
+
+    function walkNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const len = node.textContent.length;
+            textNodes.push({ node, start: innerTextOffset, end: innerTextOffset + len });
+            innerTextOffset += len;
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const tag = node.tagName;
+            const isBlock = tag === 'P' || tag === 'DIV' || tag === 'BR'
+                         || tag === 'H1' || tag === 'H2' || tag === 'H3'
+                         || tag === 'H4' || tag === 'H5' || tag === 'H6';
+
+            // Block-level elements produce a \n in innerText between siblings
+            if (isBlock && prevBlockEnd !== null && innerTextOffset > 0) {
+                innerTextOffset++; // account for the \n between blocks
+            }
+
+            if (tag === 'BR') {
+                innerTextOffset++; // <br> produces a \n
+                prevBlockEnd = innerTextOffset;
+            } else {
+                const children = node.childNodes;
+                for (let i = 0; i < children.length; i++) {
+                    walkNode(children[i]);
+                }
+                if (isBlock) prevBlockEnd = innerTextOffset;
+            }
+        }
+    }
+
+    for (let i = 0; i < editor.childNodes.length; i++) {
+        walkNode(editor.childNodes[i]);
+    }
+
+    // Sort issues by offset descending so we can apply from the end
+    const sorted = [...grammarIssues].sort((a, b) => b.offset - a.offset);
+
+    for (const issue of sorted) {
+        const issueStart = issue.offset;
+        const issueEnd = issue.offset + issue.length;
+
+        // Find the text nodes that contain this range
+        for (let i = 0; i < textNodes.length; i++) {
+            const tn = textNodes[i];
+            if (tn.end <= issueStart || tn.start >= issueEnd) continue;
+
+            // Calculate local offsets within this text node
+            const localStart = Math.max(0, issueStart - tn.start);
+            const localEnd = Math.min(tn.node.textContent.length, issueEnd - tn.start);
+
+            // Only wrap within a single text node for simplicity
+            if (localStart < localEnd) {
+                const textNode = tn.node;
+                const range = document.createRange();
+                range.setStart(textNode, localStart);
+                range.setEnd(textNode, localEnd);
+
+                const span = document.createElement('span');
+                span.className = 'grammar-issue';
+                span.setAttribute('data-issue-type', issue.type || 'grammar');
+                span.setAttribute('data-issue-index', grammarIssues.indexOf(issue));
+                range.surroundContents(span);
+
+                // We only handle the first text node hit per issue
+                break;
+            }
+        }
+    }
+
+    // Restore caret
+    if (caretTextOffset >= 0) {
+        restoreCaretInElement(editor, caretTextOffset);
+    }
+}
+
+function showGrammarPopup(issueIndex, x, y) {
+    const issue = grammarIssues[issueIndex];
+    if (!issue) return;
+
+    const msgEl = grammarPopup.querySelector('.gp-message');
+    const sugEl = grammarPopup.querySelector('.gp-suggestions');
+
+    msgEl.textContent = issue.message || 'Issue detected';
+    sugEl.innerHTML = '';
+
+    if (issue.replacements && issue.replacements.length > 0) {
+        for (const rep of issue.replacements) {
+            const btn = document.createElement('span');
+            btn.className = 'gp-suggestion';
+            btn.textContent = rep;
+            btn.addEventListener('click', () => {
+                applyGrammarSuggestion(issueIndex, rep);
+                hideGrammarPopup();
+            });
+            sugEl.appendChild(btn);
+        }
+    }
+
+    // Position popup
+    grammarPopup.style.left = Math.min(x, window.innerWidth - 340) + 'px';
+    grammarPopup.style.top = (y + 20) + 'px';
+    grammarPopup.classList.add('visible');
+}
+
+function hideGrammarPopup() {
+    grammarPopup.classList.remove('visible');
+}
+
+function applyGrammarSuggestion(issueIndex, replacement) {
+    const span = editor.querySelector('[data-issue-index="' + issueIndex + '"]');
+    if (!span) return;
+
+    // Replace the span content with the suggestion text
+    const textNode = document.createTextNode(replacement);
+    span.parentNode.replaceChild(textNode, span);
+    editor.normalize();
+
+    // Remove the issue from the list
+    grammarIssues.splice(issueIndex, 1);
+
+    // Notify content changed
+    const html = editor.innerHTML;
+    lastHtml = html;
+    sendMessage({
+        type: 'contentChanged',
+        html: html,
+        plainText: editor.innerText || ''
+    });
+
+    // Request a recheck
+    requestGrammarCheck();
+}
+
+function requestGrammarCheck() {
+    if (!grammarEnabled) return;
+    if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
+    grammarCheckTimer = setTimeout(() => {
+        grammarCheckTimer = null;
+        sendMessage({
+            type: 'grammarCheckRequest',
+            plainText: editor.innerText || ''
+        });
+    }, 1500);
+}
+
+// Grammar issue click/hover handler
+editor.addEventListener('click', (e) => {
+    const issueSpan = e.target.closest('.grammar-issue');
+    if (issueSpan) {
+        const index = parseInt(issueSpan.getAttribute('data-issue-index'), 10);
+        const rect = issueSpan.getBoundingClientRect();
+        showGrammarPopup(index, rect.left, rect.bottom);
+        e.stopPropagation();
+    } else {
+        hideGrammarPopup();
+    }
+});
+
+// Dismiss button
+grammarPopup.querySelector('.gp-dismiss').addEventListener('click', hideGrammarPopup);
+
+// Hide popup on scroll or outside click
+wrapper.addEventListener('scroll', hideGrammarPopup);
+document.addEventListener('click', (e) => {
+    if (!grammarPopup.contains(e.target) && !e.target.closest('.grammar-issue')) {
+        hideGrammarPopup();
+    }
+});
 
 // ── Ready Signal ────────────────────────────────────────────────
 sendMessage({ type: 'ready' });

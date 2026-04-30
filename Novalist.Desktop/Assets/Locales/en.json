@@ -149,6 +149,8 @@
     "quoteStyleDesc": "Selects the language preset for smart quotes, em-dashes, and ellipsis replacement.",
     "dialogueCorrection": "Dialogue Punctuation Correction",
     "dialogueCorrectionDesc": "Automatically corrects comma and period placement around quotation marks in dialogue, based on the selected quote style language.",
+    "grammarCheck": "Grammar & Spelling Check",
+    "grammarCheckDesc": "Checks your text for grammar, spelling, and style issues using LanguageTool. Requires an internet connection (or a self-hosted LanguageTool server).",
     "preview": "Preview",
     "templates": "TEMPLATES",
     "characterTemplates": "Character Templates",
@@ -503,7 +505,11 @@
     "alignLeftTooltip": "Align paragraph left",
     "alignCenterTooltip": "Center paragraph",
     "alignRightTooltip": "Align paragraph right",
-    "alignJustifyTooltip": "Justify paragraph"
+    "alignJustifyTooltip": "Justify paragraph",
+    "contextMenu.cut": "Cut",
+    "contextMenu.copy": "Copy",
+    "contextMenu.paste": "Paste",
+    "contextMenu.selectAll": "Select All"
   },
   "section": {
     "newSection": "New Section"

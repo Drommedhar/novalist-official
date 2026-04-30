@@ -117,6 +117,7 @@ public partial class EditorView : UserControl
 
         _vm = vm;
         _vm.PropertyChanged += OnViewModelPropertyChanged;
+        _vm.GrammarCheck.SetScriptExecutor(ExecuteScript);
         WireFormattingActions(vm);
         ApplyEditorSettings();
     }
@@ -227,6 +228,8 @@ public partial class EditorView : UserControl
     {
         _webViewReady = true;
         ApplyEditorSettings();
+        PushContextMenuLabels();
+        PushGrammarCheckState();
 
         if (_pendingContent != null)
         {
@@ -316,6 +319,9 @@ public partial class EditorView : UserControl
                 case "hotkey":
                     OnHotkeyFromWebView(root);
                     break;
+                case "grammarCheckRequest":
+                    OnGrammarCheckRequest(root);
+                    break;
             }
         }
         catch
@@ -327,6 +333,8 @@ public partial class EditorView : UserControl
     private void OnEditorReady()
     {
         ApplyEditorSettings();
+        PushContextMenuLabels();
+        PushGrammarCheckState();
         if (_vm?.IsDocumentOpen == true)
         {
             SetContentInWebView(_vm.Content);
@@ -498,6 +506,31 @@ public partial class EditorView : UserControl
         ExecuteScript($"setEntityNames('{EscapeForSingleQuoteJs(json)}')");
     }
 
+    private void PushGrammarCheckState()
+    {
+        if (!_webViewReady || _vm == null) return;
+        _vm.GrammarCheck.SetScriptExecutor(ExecuteScript);
+        _vm.GrammarCheck.PushState();
+    }
+
+    private void PushContextMenuLabels()
+    {
+        if (!_webViewReady) return;
+        var loc = Localization.Loc.Instance;
+        var json = $"{{\"cut\":\"{EscapeForJsonValue(loc["editor.contextMenu.cut"])}\","
+                 + $"\"copy\":\"{EscapeForJsonValue(loc["editor.contextMenu.copy"])}\","
+                 + $"\"paste\":\"{EscapeForJsonValue(loc["editor.contextMenu.paste"])}\","
+                 + $"\"selectAll\":\"{EscapeForJsonValue(loc["editor.contextMenu.selectAll"])}\"}}";
+        ExecuteScript($"setContextMenuLabels('{EscapeForSingleQuoteJs(json)}')");
+    }
+
+    private void OnGrammarCheckRequest(JsonElement root)
+    {
+        if (_vm == null) return;
+        var plainText = root.GetProperty("plainText").GetString() ?? string.Empty;
+        _ = _vm.GrammarCheck.CheckTextAsync(plainText);
+    }
+
     // ── ViewModel Property Change Handling ──────────────────────────
 
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -516,6 +549,7 @@ public partial class EditorView : UserControl
             PushAutoReplacements();
             PushDialogueCorrection();
             PushEntityNames();
+            PushGrammarCheckState();
             ExecuteScript("focusEditor()");
         }
         else if (e.PropertyName == nameof(EditorViewModel.IsDocumentOpen) && _vm?.IsDocumentOpen == false)
@@ -542,6 +576,10 @@ public partial class EditorView : UserControl
         else if (e.PropertyName == nameof(EditorViewModel.DialogueCorrection))
         {
             PushDialogueCorrection();
+        }
+        else if (e.PropertyName == nameof(EditorViewModel.GrammarCheck))
+        {
+            PushGrammarCheckState();
         }
     }
 
@@ -622,4 +660,7 @@ public partial class EditorView : UserControl
 
     private static string EscapeForSingleQuoteJs(string value)
         => value.Replace("\\", "\\\\").Replace("'", "\\'");
+
+    private static string EscapeForJsonValue(string value)
+        => value.Replace("\\", "\\\\").Replace("\"", "\\\"");
 }

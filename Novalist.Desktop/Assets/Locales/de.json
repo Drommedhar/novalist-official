@@ -149,6 +149,8 @@
     "quoteStyleDesc": "Wählt die Sprachvorlage für typografische Anführungszeichen, Geviertstriche und Auslassungspunkte.",
     "dialogueCorrection": "Dialog-Zeichensetzung",
     "dialogueCorrectionDesc": "Korrigiert automatisch die Komma- und Punkt-Platzierung bei Anführungszeichen im Dialog, basierend auf der gewählten Anführungszeichen-Sprache.",
+    "grammarCheck": "Grammatik- & Rechtschreibprüfung",
+    "grammarCheckDesc": "Prüft Ihren Text auf Grammatik-, Rechtschreib- und Stilfehler mithilfe von LanguageTool. Erfordert eine Internetverbindung (oder einen selbst gehosteten LanguageTool-Server).",
     "preview": "Vorschau",
     "templates": "VORLAGEN",
     "characterTemplates": "Charakter-Vorlagen",
@@ -499,7 +501,11 @@
     "alignLeftTooltip": "Absatz linksbündig ausrichten",
     "alignCenterTooltip": "Absatz zentrieren",
     "alignRightTooltip": "Absatz rechtsbündig ausrichten",
-    "alignJustifyTooltip": "Absatz im Blocksatz ausrichten"
+    "alignJustifyTooltip": "Absatz im Blocksatz ausrichten",
+    "contextMenu.cut": "Ausschneiden",
+    "contextMenu.copy": "Kopieren",
+    "contextMenu.paste": "Einfügen",
+    "contextMenu.selectAll": "Alles auswählen"
   },
   "section": {
     "newSection": "Neuer Abschnitt"

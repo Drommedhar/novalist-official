@@ -225,7 +225,7 @@ function setManuscript(sectionsJson) {
             const editor = document.createElement('div');
             editor.className = 'scene-editor' + (bookSpacingEnabled ? ' book-spacing' : '');
             editor.contentEditable = 'true';
-            editor.spellcheck = true;
+            editor.spellcheck = false;
             editor.dataset.sceneId = scene.sceneId;
             editor.dataset.chapterGuid = section.chapterGuid;
 
