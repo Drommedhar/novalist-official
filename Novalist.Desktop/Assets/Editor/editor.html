@@ -969,6 +969,9 @@ editor.addEventListener('keydown', (e) => {
 function isTextEditingShortcut(e) {
     if (!e.ctrlKey) return false;
     var k = e.key.toLowerCase();
+    // Navigation keys that should be handled natively by contenteditable
+    var navKeys = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'home', 'end'];
+    if (navKeys.includes(k)) return true;
     // Ctrl+(no shift): select-all, copy, paste, cut, undo, redo
     if (!e.shiftKey && !e.altKey) return 'acvxzy'.includes(k);
     // Ctrl+Shift+Z = redo
