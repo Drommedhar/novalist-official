@@ -339,6 +339,9 @@ public partial class MainWindowViewModel : ObservableObject
 
 
 
+        // Pass grammar check contributors to the editor
+        Editor?.SetGrammarCheckContributors(manager.GrammarCheckContributors);
+
         // Bridge SDK editor extensions into the Desktop EditorExtensionManager
         var host = manager.Host;
         host.EditorExtensionRegistered += sdkExt =>
@@ -501,6 +504,9 @@ public partial class MainWindowViewModel : ObservableObject
         Editor = new EditorViewModel(_projectService, _settingsService, _entityService);
         Editor.PropertyChanged += OnEditorPropertyChanged;
         Editor.FocusPeekEntityOpenRequested += OnFocusPeekEntityOpenRequested;
+
+        // Pass grammar check contributors to the newly created editor
+        Editor.SetGrammarCheckContributors(ExtensionManager?.GrammarCheckContributors ?? []);
 
         ContextSidebar = new ContextSidebarViewModel(_projectService, _entityService);
         ContextSidebar.EntityOpenRequested += OnEntityOpenRequested;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -81,6 +82,15 @@ public partial class EditorViewModel : ObservableObject
     public GrammarCheckExtension GrammarCheck { get; } = new();
     public FocusPeekViewModel FocusPeek { get; } = new();
     public FocusPeekExtension FocusPeekExtension => _focusPeekExtension;
+
+    /// <summary>
+    /// Sets the grammar check contributors from loaded extensions.
+    /// Called by MainWindowViewModel after extensions are loaded.
+    /// </summary>
+    public void SetGrammarCheckContributors(List<Novalist.Sdk.Hooks.IGrammarCheckContributor> contributors)
+    {
+        GrammarCheck.SetContributors(contributors);
+    }
 
     public event Action<EntityType, object>? FocusPeekEntityOpenRequested;
 

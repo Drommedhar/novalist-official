@@ -61,6 +61,9 @@ public class AiSettings
     [JsonPropertyName("disableRegexReferences")]
     public bool DisableRegexReferences { get; set; }
 
+    [JsonPropertyName("grammarCheckEnabled")]
+    public bool GrammarCheckEnabled { get; set; } = true;
+
     /// <summary>
     /// Override the language used for AI analysis output (titles, descriptions).
     /// When empty, defaults to the application UI language.

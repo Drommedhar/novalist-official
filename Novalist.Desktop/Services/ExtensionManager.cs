@@ -34,6 +34,7 @@ public sealed class ExtensionManager
     public List<EntityTypeDescriptor> EntityTypes { get; } = [];
     public List<ExportFormatDescriptor> ExportFormats { get; } = [];
     public List<IAiHook> AiHooks { get; } = [];
+    public List<IGrammarCheckContributor> GrammarCheckContributors { get; } = [];
     public List<ThemeOverride> ThemeOverrides { get; } = [];
     public List<HotkeyDescriptor> HotkeyBindings { get; } = [];
     public List<PropertyTypeDescriptor> PropertyTypes { get; } = [];
@@ -134,6 +135,9 @@ public sealed class ExtensionManager
         if (instance is IAiHook aiHook)
             AiHooks.Add(aiHook);
 
+        if (instance is IGrammarCheckContributor grammarCheck)
+            GrammarCheckContributors.Add(grammarCheck);
+
         if (instance is IThemeContributor theme)
             ThemeOverrides.AddRange(theme.GetThemeOverrides());
 
@@ -218,6 +222,9 @@ public sealed class ExtensionManager
 
         if (instance is IAiHook aiHook)
             AiHooks.Remove(aiHook);
+
+        if (instance is IGrammarCheckContributor grammarCheck)
+            GrammarCheckContributors.Remove(grammarCheck);
 
         if (instance is IThemeContributor theme)
         {

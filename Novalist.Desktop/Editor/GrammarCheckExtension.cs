@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Novalist.Core.Services;
+using Novalist.Sdk.Hooks;
 
 namespace Novalist.Desktop.Editor;
 
@@ -19,6 +22,7 @@ public sealed class GrammarCheckExtension : IEditorExtension
     private bool _enabled;
     private string _language = "en";
     private Action<string>? _executeScript;
+    private List<IGrammarCheckContributor> _contributors = [];
 
     public string Name => "GrammarCheck";
     public int Priority => 200;
@@ -57,7 +61,16 @@ public sealed class GrammarCheckExtension : IEditorExtension
     }
 
     /// <summary>
+    /// Sets the list of extension contributors to also query.
+    /// </summary>
+    public void SetContributors(List<IGrammarCheckContributor> contributors)
+    {
+        _contributors = contributors;
+    }
+
+    /// <summary>
     /// Called when the JS editor requests a grammar check (after typing pause).
+    /// Also queries any registered extension contributors and merges results.
     /// </summary>
     public async Task CheckTextAsync(string plainText)
     {
@@ -73,6 +86,10 @@ public sealed class GrammarCheckExtension : IEditorExtension
             var languageCode = GrammarCheckService.MapLanguageCode(_language);
             var issues = await _service.CheckAsync(plainText, languageCode, token).ConfigureAwait(false);
 
+            // Also query extension contributors (AI-powered checks, etc.)
+            var contributorIssues = await QueryContributorsAsync(plainText, _language, token).ConfigureAwait(false);
+            issues.AddRange(contributorIssues);
+
             if (token.IsCancellationRequested) return;
 
             var json = SerializeIssuesJson(issues);
@@ -87,6 +104,64 @@ public sealed class GrammarCheckExtension : IEditorExtension
         }
     }
 
+    private async Task<List<Core.Services.GrammarIssue>> QueryContributorsAsync(string plainText, string language, CancellationToken token)
+    {
+        var results = new List<Core.Services.GrammarIssue>();
+        if (_contributors.Count == 0) return results;
+
+        var tasks = _contributors
+            .Where(c => c.IsGrammarCheckEnabled)
+            .Select(async c =>
+            {
+                try
+                {
+                    return await c.CheckAsync(plainText, language, token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch
+                {
+                    // Best-effort: ignore contributor failures
+                    return new GrammarCheckResult();
+                }
+            })
+            .ToList();
+
+        if (tasks.Count == 0) return results;
+
+        // Wait for all contributors, but respect cancellation
+        await Task.WhenAll(tasks).ConfigureAwait(false);
+
+        foreach (var task in tasks)
+        {
+            if (task.IsCompletedSuccessfully)
+            {
+                results.AddRange(task.Result.Issues.Select(MapSdkIssue));
+            }
+        }
+
+        return results;
+    }
+
+    private static Core.Services.GrammarIssue MapSdkIssue(Sdk.Hooks.GrammarIssue issue)
+    {
+        return new Core.Services.GrammarIssue
+        {
+            Offset = issue.Offset,
+            Length = issue.Length,
+            Message = issue.Message,
+            Type = issue.Type switch
+            {
+                Sdk.Hooks.GrammarIssueType.Spelling => Core.Services.GrammarIssueType.Spelling,
+                Sdk.Hooks.GrammarIssueType.Style => Core.Services.GrammarIssueType.Style,
+                _ => Core.Services.GrammarIssueType.Grammar
+            },
+            Replacements = issue.Replacements
+        };
+    }
+
     /// <summary>
     /// Pushes current enabled state to JS (call after webview ready).
     /// </summary>
@@ -95,7 +170,7 @@ public sealed class GrammarCheckExtension : IEditorExtension
         _executeScript?.Invoke($"setGrammarCheckEnabled({(_enabled ? "true" : "false")})");
     }
 
-    private static string SerializeIssuesJson(System.Collections.Generic.List<GrammarIssue> issues)
+    private static string SerializeIssuesJson(System.Collections.Generic.List<Core.Services.GrammarIssue> issues)
     {
         if (issues.Count == 0) return "[]";
 
@@ -109,8 +184,8 @@ public sealed class GrammarCheckExtension : IEditorExtension
             sb.Append(",\"length\":").Append(issue.Length);
             sb.Append(",\"type\":\"").Append(issue.Type switch
             {
-                GrammarIssueType.Spelling => "spelling",
-                GrammarIssueType.Style => "style",
+                Core.Services.GrammarIssueType.Spelling => "spelling",
+                Core.Services.GrammarIssueType.Style => "style",
                 _ => "grammar"
             }).Append('"');
             sb.Append(",\"message\":").Append(JsonSerializer.Serialize(issue.Message));

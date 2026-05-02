@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Novalist.Extensions.AiAssistant.Services;
 using Novalist.Extensions.AiAssistant.ViewModels;
 using Novalist.Extensions.AiAssistant.Views;
 using Novalist.Sdk;
@@ -8,7 +9,7 @@ using Novalist.Sdk.Services;
 
 namespace Novalist.Extensions.AiAssistant;
 
-public sealed class AiAssistantExtension : IExtension, IRibbonContributor, ISidebarContributor, IContentViewContributor, ISettingsContributor
+public sealed class AiAssistantExtension : IExtension, IRibbonContributor, ISidebarContributor, IContentViewContributor, ISettingsContributor, IGrammarCheckContributor
 {
     public string Id => "com.novalist.ai";
     public string DisplayName => "AI Assistant";
@@ -20,12 +21,34 @@ public sealed class AiAssistantExtension : IExtension, IRibbonContributor, ISide
     private IExtensionLocalization _loc = null!;
     internal AiService AiService { get; } = new();
     internal AiSettings Settings { get; private set; } = new();
+    private AiGrammarCheckService? _grammarCheckService;
 
     private AiChatViewModel? _chatVm;
     private StoryAnalysisViewModel? _analysisVm;
     private AiSettingsViewModel? _settingsVm;
     private bool _isChatVisible;
     private bool _isAnalysisVisible;
+
+    // ── IGrammarCheckContributor ────────────────────────────────────
+
+    public string GrammarCheckName => _grammarCheckService?.GrammarCheckName ?? "AI Grammar Check";
+
+    public bool IsGrammarCheckEnabled
+    {
+        get => _grammarCheckService?.IsGrammarCheckEnabled ?? false;
+        set
+        {
+            if (_grammarCheckService != null)
+                _grammarCheckService.IsGrammarCheckEnabled = value;
+        }
+    }
+
+    public Task<GrammarCheckResult> CheckAsync(string plainText, string language, CancellationToken cancellationToken = default)
+    {
+        if (_grammarCheckService == null)
+            return Task.FromResult(new GrammarCheckResult());
+        return _grammarCheckService.CheckAsync(plainText, language, cancellationToken);
+    }
 
     // Icon paths (Lucide)
     private const string IconMessageSquare = "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z";
@@ -38,6 +61,8 @@ public sealed class AiAssistantExtension : IExtension, IRibbonContributor, ISide
 
         LoadSettings();
         ConfigureAiService();
+        _grammarCheckService = new AiGrammarCheckService(AiService);
+        _grammarCheckService.IsGrammarCheckEnabled = Settings.GrammarCheckEnabled;
 
         host.LanguageChanged += OnLanguageChanged;
     }
@@ -83,6 +108,10 @@ public sealed class AiAssistantExtension : IExtension, IRibbonContributor, ISide
         AiService.LanguageName = !string.IsNullOrWhiteSpace(aiLangOverride)
             ? aiLangOverride
             : _host.CurrentLanguageDisplayName;
+
+        // Sync grammar check enabled state with settings
+        if (_grammarCheckService != null)
+            _grammarCheckService.IsGrammarCheckEnabled = Settings.GrammarCheckEnabled;
     }
 
     private void OnLanguageChanged(string lang)

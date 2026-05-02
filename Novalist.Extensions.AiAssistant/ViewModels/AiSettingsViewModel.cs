@@ -31,6 +31,7 @@ public partial class AiSettingsViewModel : ObservableObject
     [ObservableProperty] private bool _aiCheckSuggestions;
     [ObservableProperty] private bool _aiCheckSceneStats;
     [ObservableProperty] private bool _aiDisableRegexReferences;
+    [ObservableProperty] private bool _aiGrammarCheckEnabled = true;
     [ObservableProperty] private string _aiResponseLanguage = string.Empty;
     [ObservableProperty] private string _aiSystemPrompt = string.Empty;
     [ObservableProperty] private ObservableCollection<AiModelListItem> _availableAiModels = [];
@@ -77,6 +78,7 @@ public partial class AiSettingsViewModel : ObservableObject
         AiCheckSuggestions = ai.CheckSuggestions;
         AiCheckSceneStats = ai.CheckSceneStats;
         AiDisableRegexReferences = ai.DisableRegexReferences;
+        AiGrammarCheckEnabled = ai.GrammarCheckEnabled;
         AiResponseLanguage = ai.ResponseLanguage;
         AiSystemPrompt = ai.SystemPrompt;
         _isLoading = false;
@@ -106,6 +108,7 @@ public partial class AiSettingsViewModel : ObservableObject
     partial void OnAiCheckSuggestionsChanged(bool value) { Settings.CheckSuggestions = value; SaveAndNotify(); }
     partial void OnAiCheckSceneStatsChanged(bool value) { Settings.CheckSceneStats = value; SaveAndNotify(); }
     partial void OnAiDisableRegexReferencesChanged(bool value) { Settings.DisableRegexReferences = value; SaveAndNotify(); }
+    partial void OnAiGrammarCheckEnabledChanged(bool value) { Settings.GrammarCheckEnabled = value; SaveAndNotify(); }
     partial void OnAiResponseLanguageChanged(string value) { Settings.ResponseLanguage = value; SaveAndNotify(); }
     partial void OnAiSystemPromptChanged(string value) { Settings.SystemPrompt = value; SaveAndNotify(); }
 
