@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Services;
@@ -55,26 +57,49 @@ public partial class ImageGalleryViewModel : ObservableObject
         ApplyFilter();
     }
 
-    public void Refresh()
-    {
-        var paths = _entityService.GetProjectImages();
-        _allImages = paths.Select(p =>
-        {
-            var fullPath = _entityService.GetImageFullPath(p);
-            return new ImageGalleryItem
-            {
-                RelativePath = p,
-                Name = Path.GetFileNameWithoutExtension(p),
-                FullPath = fullPath,
-                CopyPathCommand = new RelayCommand(() =>
-                {
-                    if (CopyToClipboard != null) _ = CopyToClipboard.Invoke(p);
-                }),
-                OpenInExplorerCommand = new RelayCommand(() => RevealInExplorer?.Invoke(fullPath)),
-            };
-        }).ToArray();
+    public void Refresh() => _ = RefreshAsync();
 
+    public async Task RefreshAsync()
+    {
+        // File scan off UI thread
+        var items = await Task.Run(() =>
+        {
+            var paths = _entityService.GetProjectImages();
+            return paths.Select(p =>
+            {
+                var fullPath = _entityService.GetImageFullPath(p);
+                return new ImageGalleryItem
+                {
+                    RelativePath = p,
+                    Name = Path.GetFileNameWithoutExtension(p),
+                    FullPath = fullPath,
+                    CopyPathCommand = new RelayCommand(() =>
+                    {
+                        if (CopyToClipboard != null) _ = CopyToClipboard.Invoke(p);
+                    }),
+                    OpenInExplorerCommand = new RelayCommand(() => RevealInExplorer?.Invoke(fullPath)),
+                };
+            }).ToArray();
+        }).ConfigureAwait(true);
+
+        _allImages = items;
         ApplyFilter();
+
+        // Lazy-decode thumbnails off UI thread, marshal back per-item
+        _ = Task.Run(() =>
+        {
+            foreach (var item in items)
+            {
+                try
+                {
+                    if (!File.Exists(item.FullPath)) continue;
+                    using var stream = File.OpenRead(item.FullPath);
+                    var bmp = Bitmap.DecodeToWidth(stream, 200);
+                    Dispatcher.UIThread.Post(() => item.Thumbnail = bmp);
+                }
+                catch { /* ignore decode failure */ }
+            }
+        });
     }
 
     [RelayCommand]
@@ -118,11 +143,14 @@ public partial class ImageGalleryViewModel : ObservableObject
     }
 }
 
-public sealed class ImageGalleryItem
+public partial class ImageGalleryItem : ObservableObject
 {
     public string RelativePath { get; init; } = string.Empty;
     public string Name { get; init; } = string.Empty;
     public string FullPath { get; init; } = string.Empty;
     public RelayCommand? CopyPathCommand { get; init; }
     public RelayCommand? OpenInExplorerCommand { get; init; }
+
+    [ObservableProperty]
+    private Bitmap? _thumbnail;
 }

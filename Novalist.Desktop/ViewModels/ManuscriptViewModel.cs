@@ -169,7 +169,9 @@ public partial class ManuscriptViewModel : ObservableObject
 
     // ── Refresh ─────────────────────────────────────────────────────
 
-    public void Refresh()
+    public void Refresh() => _ = RefreshAsync();
+
+    public async Task RefreshAsync()
     {
         if (!_projectService.IsProjectLoaded)
         {
@@ -179,47 +181,59 @@ public partial class ManuscriptViewModel : ObservableObject
             return;
         }
 
-        var chapters = _projectService.GetChaptersOrdered();
-        var sections = new ObservableCollection<ManuscriptSection>();
-        _sceneIndex.Clear();
-        var totalWords = 0;
-        var totalScenes = 0;
+        var filterStatus = FilterStatus;
 
-        foreach (var chapter in chapters)
+        // Heavy file I/O off UI thread
+        var built = await Task.Run(() =>
         {
-            if (FilterStatus != "All" &&
-                !string.Equals(chapter.Status.ToString(), FilterStatus, StringComparison.OrdinalIgnoreCase))
-                continue;
+            var chapters = _projectService.GetChaptersOrdered();
+            var sections = new List<ManuscriptSection>();
+            var sceneIndex = new Dictionary<string, ManuscriptSceneItem>();
+            var totalWords = 0;
+            var totalScenes = 0;
 
-            var scenes = _projectService.GetScenesForChapter(chapter.Guid);
-            var sceneItems = new List<ManuscriptSceneItem>();
-
-            foreach (var scene in scenes)
+            foreach (var chapter in chapters)
             {
-                var html = ReadSceneContent(chapter, scene);
-                var wordCount = scene.WordCount;
-                totalWords += wordCount;
-                totalScenes++;
+                if (filterStatus != "All" &&
+                    !string.Equals(chapter.Status.ToString(), filterStatus, StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-                var item = new ManuscriptSceneItem(chapter, scene, scene.Title, html, wordCount);
-                sceneItems.Add(item);
-                _sceneIndex[scene.Id] = item;
+                var scenes = _projectService.GetScenesForChapter(chapter.Guid);
+                var sceneItems = new List<ManuscriptSceneItem>();
+
+                foreach (var scene in scenes)
+                {
+                    var html = ReadSceneContent(chapter, scene);
+                    var wordCount = scene.WordCount;
+                    totalWords += wordCount;
+                    totalScenes++;
+
+                    var item = new ManuscriptSceneItem(chapter, scene, scene.Title, html, wordCount);
+                    sceneItems.Add(item);
+                    sceneIndex[scene.Id] = item;
+                }
+
+                if (sceneItems.Count > 0)
+                {
+                    sections.Add(new ManuscriptSection(
+                        chapter,
+                        chapter.Status.ToString(),
+                        string.IsNullOrWhiteSpace(chapter.Act) ? null : chapter.Act,
+                        sceneItems));
+                }
             }
 
-            if (sceneItems.Count > 0)
-            {
-                sections.Add(new ManuscriptSection(
-                    chapter,
-                    chapter.Status.ToString(),
-                    string.IsNullOrWhiteSpace(chapter.Act) ? null : chapter.Act,
-                    sceneItems));
-            }
-        }
+            return (sections, sceneIndex, totalWords, totalScenes);
+        }).ConfigureAwait(true);
 
-        Sections = sections;
-        TotalWords = totalWords;
-        TotalScenes = totalScenes;
-        HasContent = sections.Count > 0;
+        _sceneIndex.Clear();
+        foreach (var kv in built.sceneIndex)
+            _sceneIndex[kv.Key] = kv.Value;
+
+        Sections = new ObservableCollection<ManuscriptSection>(built.sections);
+        TotalWords = built.totalWords;
+        TotalScenes = built.totalScenes;
+        HasContent = built.sections.Count > 0;
         OnPropertyChanged(nameof(TotalWordsDisplay));
         OnPropertyChanged(nameof(ReadingTimeDisplay));
     }

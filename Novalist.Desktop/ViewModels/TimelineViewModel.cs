@@ -103,7 +103,9 @@ public partial class TimelineViewModel : ObservableObject
         _projectService = projectService;
     }
 
-    public void Refresh()
+    public void Refresh() => _ = RefreshAsync();
+
+    public async Task RefreshAsync()
     {
         var timeline = _projectService.ProjectSettings.Timeline;
         ViewMode = timeline.ViewMode;
@@ -116,18 +118,36 @@ public partial class TimelineViewModel : ObservableObject
             new() { Value = "manual", Label = Loc.T("timeline.manualEvent") },
         ]);
 
-        BuildAndRender();
+        // Heavy build off UI thread
+        var built = await Task.Run(BuildSnapshot).ConfigureAwait(true);
+        Events = new ObservableCollection<TimelineEventItem>(built.FilteredEvents);
+        HasEvents = Events.Count > 0;
+        AvailableCharacters = new ObservableCollection<string>(built.Characters);
+        AvailableLocations = new ObservableCollection<string>(built.Locations);
+        Groups = new ObservableCollection<TimelineGroup>(built.Groups);
     }
 
     private void BuildAndRender()
     {
-        var allEvents = BuildEvents();
-        var filtered = ApplyFilters(allEvents);
-
-        Events = new ObservableCollection<TimelineEventItem>(filtered);
+        var snap = BuildSnapshot();
+        Events = new ObservableCollection<TimelineEventItem>(snap.FilteredEvents);
         HasEvents = Events.Count > 0;
+        AvailableCharacters = new ObservableCollection<string>(snap.Characters);
+        AvailableLocations = new ObservableCollection<string>(snap.Locations);
+        Groups = new ObservableCollection<TimelineGroup>(snap.Groups);
+    }
 
-        // Extract available filter values
+    private record TimelineSnapshot(
+        List<TimelineEventItem> FilteredEvents,
+        SortedSet<string> Characters,
+        SortedSet<string> Locations,
+        List<TimelineGroup> Groups);
+
+    private TimelineSnapshot BuildSnapshot()
+    {
+        var allEvents = BuildEvents();
+        var filtered = ApplyFilters(allEvents).ToList();
+
         var chars = new SortedSet<string>();
         var locs = new SortedSet<string>();
         foreach (var e in allEvents)
@@ -135,10 +155,7 @@ public partial class TimelineViewModel : ObservableObject
             foreach (var c in e.Characters) chars.Add(c);
             foreach (var l in e.Locations) locs.Add(l);
         }
-        AvailableCharacters = new ObservableCollection<string>(chars);
-        AvailableLocations = new ObservableCollection<string>(locs);
 
-        // Group events
         var groupMap = new Dictionary<string, List<TimelineEventItem>>();
         foreach (var evt in filtered)
         {
@@ -155,7 +172,7 @@ public partial class TimelineViewModel : ObservableObject
             .Select(kv => new TimelineGroup { Key = kv.Key, Label = GroupLabel(kv.Key, ZoomLevel), Events = new ObservableCollection<TimelineEventItem>(kv.Value) })
             .ToList();
 
-        Groups = new ObservableCollection<TimelineGroup>(groupsList);
+        return new TimelineSnapshot(filtered, chars, locs, groupsList);
     }
 
     private List<TimelineEventItem> BuildEvents()

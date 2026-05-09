@@ -91,7 +91,7 @@
                                         <Border Height="140"
                                                 Background="{DynamicResource ExplorerBackground}"
                                                 ClipToBounds="True">
-                                            <Image Source="{Binding RelativePath, Converter={StaticResource PathToBitmap}}"
+                                            <Image Source="{Binding Thumbnail}"
                                                    Stretch="Uniform"
                                                    VerticalAlignment="Center"
                                                    HorizontalAlignment="Center" />
@@ -108,9 +108,17 @@
                     </ItemsControl>
 
                     <!-- List View -->
-                    <ItemsControl ItemsSource="{Binding Images}"
-                                  IsVisible="{Binding !IsGridView}">
-                        <ItemsControl.ItemTemplate>
+                    <ListBox ItemsSource="{Binding Images}"
+                             IsVisible="{Binding !IsGridView}"
+                             Background="Transparent"
+                             SelectionMode="Single"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel Orientation="Vertical" />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
                             <DataTemplate x:DataType="vm:ImageGalleryItem">
                                 <Border Margin="0,2"
                                         Background="{DynamicResource CardBackground}"
@@ -134,7 +142,7 @@
                                                 CornerRadius="4"
                                                 ClipToBounds="True"
                                                 Background="{DynamicResource ExplorerBackground}">
-                                            <Image Source="{Binding RelativePath, Converter={StaticResource PathToBitmap}}"
+                                            <Image Source="{Binding Thumbnail}"
                                                    Stretch="UniformToFill" />
                                         </Border>
                                         <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
@@ -150,8 +158,8 @@
                                     </Grid>
                                 </Border>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
                 </Panel>
             </ScrollViewer>
         </DockPanel>

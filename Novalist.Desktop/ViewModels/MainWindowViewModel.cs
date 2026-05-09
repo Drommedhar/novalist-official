@@ -156,15 +156,28 @@ public partial class MainWindowViewModel : ObservableObject
     /// <summary>Data-driven editor tab strip. Rebuilt on tab open/close/title/dirty changes.</summary>
     public ObservableCollection<EditorTabDescriptor> ContentTabs { get; } = [];
 
-    partial void OnIsDashboardOpenChanged(bool value) => SyncContentTabs();
-    partial void OnIsTimelineOpenChanged(bool value) => SyncContentTabs();
-    partial void OnIsCodexHubOpenChanged(bool value) => SyncContentTabs();
-    partial void OnIsManuscriptOpenChanged(bool value) => SyncContentTabs();
-    partial void OnIsExportOpenChanged(bool value) => SyncContentTabs();
-    partial void OnIsImageGalleryOpenChanged(bool value) => SyncContentTabs();
-    partial void OnIsGitOpenChanged(bool value) => SyncContentTabs();
-    partial void OnIsExtensionContentOpenChanged(bool value) => SyncContentTabs();
-    partial void OnExtensionContentTabTitleChanged(string value) => SyncContentTabs();
+    private bool _tabsSyncPending;
+
+    private void QueueSyncContentTabs()
+    {
+        if (_tabsSyncPending) return;
+        _tabsSyncPending = true;
+        Dispatcher.UIThread.Post(() =>
+        {
+            _tabsSyncPending = false;
+            SyncContentTabs();
+        }, Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    partial void OnIsDashboardOpenChanged(bool value) => QueueSyncContentTabs();
+    partial void OnIsTimelineOpenChanged(bool value) => QueueSyncContentTabs();
+    partial void OnIsCodexHubOpenChanged(bool value) => QueueSyncContentTabs();
+    partial void OnIsManuscriptOpenChanged(bool value) => QueueSyncContentTabs();
+    partial void OnIsExportOpenChanged(bool value) => QueueSyncContentTabs();
+    partial void OnIsImageGalleryOpenChanged(bool value) => QueueSyncContentTabs();
+    partial void OnIsGitOpenChanged(bool value) => QueueSyncContentTabs();
+    partial void OnIsExtensionContentOpenChanged(bool value) => QueueSyncContentTabs();
+    partial void OnExtensionContentTabTitleChanged(string value) => QueueSyncContentTabs();
 
     private void SyncContentTabs()
     {
@@ -291,6 +304,12 @@ public partial class MainWindowViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(IsContextSidebarShowing));
         UpdateContentTabActive();
+        // Sync ActiveActivityView for content-typed activity buttons (Export/ImageGallery/Git).
+        // Other views (Dashboard/Scene/Entity/Timeline/CodexHub/Manuscript/ext:*) clear it.
+        if (value == "Export" || value == "ImageGallery" || value == "Git")
+            ActiveActivityView = value;
+        else if (ActiveActivityView == "Export" || ActiveActivityView == "ImageGallery" || ActiveActivityView == "Git")
+            ActiveActivityView = string.Empty;
     }
 
     partial void OnHasExtensionContextTabsChanged(bool value) =>
@@ -716,6 +735,8 @@ public partial class MainWindowViewModel : ObservableObject
         ContextSidebar.EntityOpenRequested += OnEntityOpenRequested;
         ContextSidebar.AttachEditor(Editor);
         _ = ContextSidebar.RefreshEntityDataAsync();
+        // Preload chapter snapshots in background so first scene open avoids inline forceReload.
+        _ = ContextSidebar.PreloadSnapshotsAsync();
 
         SceneNotes = new SceneNotesViewModel(_projectService);
         SceneNotes.AttachEditor(Editor);
@@ -761,6 +782,8 @@ public partial class MainWindowViewModel : ObservableObject
         _settingsService.AddRecentProject(metadata.Name, projectPath, GetCoverImageAbsolutePath());
         _ = _settingsService.SaveAsync();
         _ = RefreshStatusBarAsync();
+        // Preload word metrics so first scene open doesn't trigger heavy first-time compute.
+        _ = RefreshProjectWordMetricsAsync();
         OnPropertyChanged(nameof(HasOpenEditors));
 
         // Restore per-project view state
@@ -845,7 +868,7 @@ public partial class MainWindowViewModel : ObservableObject
             ActiveContentView = "Scene";
             IsProjectOverviewOpen = false;
             await Editor.OpenSceneAsync(chapter, scene);
-            ContextSidebar?.RefreshContext();
+            // ContextSidebar already auto-refreshed via Editor PropertyChanged (Content/IsDocumentOpen/DocumentTitle)
             StatusText = Loc.T("status.editing", scene.Title);
             RefreshProjectWordMetrics();
         }
@@ -942,7 +965,7 @@ public partial class MainWindowViewModel : ObservableObject
             or nameof(EditorViewModel.IsDirty)
             or nameof(EditorViewModel.DocumentTitle))
         {
-            SyncContentTabs();
+            QueueSyncContentTabs();
         }
 
         if (e.PropertyName == nameof(EditorViewModel.IsDocumentOpen))
@@ -958,10 +981,9 @@ public partial class MainWindowViewModel : ObservableObject
 
         if (e.PropertyName is nameof(EditorViewModel.WordCount)
             or nameof(EditorViewModel.IsDocumentOpen)
-            or nameof(EditorViewModel.CurrentScene)
             or nameof(EditorViewModel.ReadabilityScore))
         {
-            RefreshProjectWordMetrics();
+            _ = RefreshProjectWordMetricsAsync();
         }
 
         // Refresh git indicators when a save completes (IsDirty transitions to false)
@@ -981,7 +1003,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (e.PropertyName is nameof(EntityEditorViewModel.IsOpen)
             or nameof(EntityEditorViewModel.Title))
         {
-            SyncContentTabs();
+            QueueSyncContentTabs();
         }
 
         if (e.PropertyName != nameof(EntityEditorViewModel.IsOpen))
@@ -1079,81 +1101,110 @@ public partial class MainWindowViewModel : ObservableObject
         ProjectLocationCount = locationsTask.Result.Count;
     }
 
-    private void RefreshProjectWordMetrics()
+    private void RefreshProjectWordMetrics() => _ = RefreshProjectWordMetricsAsync();
+
+    private int _wordMetricsVersion;
+
+    private async Task RefreshProjectWordMetricsAsync()
     {
         if (!_projectService.IsProjectLoaded || _projectService.CurrentProject == null)
             return;
 
+        var version = Interlocked.Increment(ref _wordMetricsVersion);
+
+        // Snapshot data needed off UI
         var chapters = _projectService.GetChaptersOrdered();
-        var totalWords = 0;
-        var totalScenes = 0;
-        var breakdown = new StringBuilder();
-        breakdown.AppendLine(Loc.T("status.chapterBreakdown"));
-        var chapterOverviewSource = new List<(ChapterData Chapter, int WordCount, ReadabilityResult Readability, List<StatusBarSceneOverviewItem> Scenes)>(chapters.Count);
-        var maxChapterWords = 1;
+        var lang = _settingsService.Settings.AutoReplacementLanguage;
+        var activeSceneId = Editor?.IsDocumentOpen == true ? Editor.CurrentScene?.Id : null;
+        var activeContent = Editor?.IsDocumentOpen == true ? Editor.Content : null;
+        var activeWordCount = Editor?.IsDocumentOpen == true ? Editor.WordCount : 0;
+        var projectRoot = _projectService.ProjectRoot;
 
-        foreach (var chapter in chapters)
+        var chapterScenes = chapters
+            .Select(ch => (Chapter: ch, Scenes: _projectService.GetScenesForChapter(ch.Guid).ToList(),
+                           ScenePaths: _projectService.GetScenesForChapter(ch.Guid).Select(s => _projectService.GetSceneFilePath(ch, s)).ToList()))
+            .ToList();
+
+        var built = await Task.Run(() =>
         {
-            var scenes = _projectService.GetScenesForChapter(chapter.Guid);
-            var chapterWords = 0;
-            totalScenes += scenes.Count;
-            var sceneOverview = new List<StatusBarSceneOverviewItem>(scenes.Count);
-            var chapterText = new StringBuilder();
+            var totalWords = 0;
+            var totalScenes = 0;
+            var breakdown = new StringBuilder();
+            breakdown.AppendLine(Loc.T("status.chapterBreakdown"));
+            var chapterOverviewSource = new List<(ChapterData Chapter, int WordCount, ReadabilityResult Readability, List<StatusBarSceneOverviewItem> Scenes)>(chapterScenes.Count);
+            var maxChapterWords = 1;
 
-            foreach (var scene in scenes)
+            foreach (var (chapter, scenes, scenePaths) in chapterScenes)
             {
-                var sceneWords = GetSceneWordCount(scene);
-                chapterWords += sceneWords;
-                sceneOverview.Add(new StatusBarSceneOverviewItem(scene.Title, sceneWords));
+                var chapterWords = 0;
+                totalScenes += scenes.Count;
+                var sceneOverview = new List<StatusBarSceneOverviewItem>(scenes.Count);
+                var chapterText = new StringBuilder();
 
-                var sceneContent = GetSceneContentForStats(chapter, scene);
-                if (!string.IsNullOrWhiteSpace(sceneContent))
+                for (int i = 0; i < scenes.Count; i++)
                 {
-                    if (chapterText.Length > 0)
-                        chapterText.AppendLine();
+                    var scene = scenes[i];
+                    var path = scenePaths[i];
+                    var isActive = activeSceneId != null && scene.Id == activeSceneId;
+                    var sceneWords = isActive ? activeWordCount : scene.WordCount;
+                    chapterWords += sceneWords;
+                    sceneOverview.Add(new StatusBarSceneOverviewItem(scene.Title, sceneWords));
 
-                    chapterText.Append(sceneContent);
+                    string sceneContent = isActive
+                        ? (activeContent ?? string.Empty)
+                        : (projectRoot != null && File.Exists(path) ? File.ReadAllText(path) : string.Empty);
+
+                    if (!string.IsNullOrWhiteSpace(sceneContent))
+                    {
+                        if (chapterText.Length > 0)
+                            chapterText.AppendLine();
+                        chapterText.Append(sceneContent);
+                    }
                 }
+
+                totalWords += chapterWords;
+                maxChapterWords = Math.Max(maxChapterWords, chapterWords);
+                breakdown.Append(chapter.Title).Append(": ").AppendLine(TextStatistics.FormatCompactCount(chapterWords));
+
+                foreach (var scene in scenes)
+                {
+                    var w = activeSceneId != null && scene.Id == activeSceneId ? activeWordCount : scene.WordCount;
+                    breakdown.Append("  - ").Append(scene.Title).Append(": ").AppendLine(TextStatistics.FormatCompactCount(w));
+                }
+
+                var chapterReadability = TextStatistics.Calculate(chapterText.ToString(), lang).Readability;
+                chapterOverviewSource.Add((chapter, chapterWords, chapterReadability, sceneOverview));
             }
 
-            totalWords += chapterWords;
-            maxChapterWords = Math.Max(maxChapterWords, chapterWords);
-            breakdown.Append(chapter.Title)
-                .Append(": ")
-                .AppendLine(TextStatistics.FormatCompactCount(chapterWords));
+            return (totalWords, totalScenes, breakdown.ToString().TrimEnd(), chapterOverviewSource, maxChapterWords);
+        }).ConfigureAwait(true);
 
-            foreach (var scene in scenes)
-            {
-                breakdown.Append("  - ")
-                    .Append(scene.Title)
-                    .Append(": ")
-                    .AppendLine(TextStatistics.FormatCompactCount(GetSceneWordCount(scene)));
-            }
+        // Stale check — if newer call started, drop result
+        if (version != _wordMetricsVersion)
+            return;
 
-            var chapterReadability = TextStatistics.Calculate(chapterText.ToString(), _settingsService.Settings.AutoReplacementLanguage).Readability;
-            chapterOverviewSource.Add((chapter, chapterWords, chapterReadability, sceneOverview));
-        }
+        var (totalWords2, totalScenes2, breakdownText, chapterOverviewSource2, maxChapterWords2) = built;
 
-        var chapterOverview = chapterOverviewSource
+        var chapterOverview = chapterOverviewSource2
             .Select(entry => new StatusBarChapterOverviewItem(
                 entry.Chapter.Title,
                 entry.WordCount,
                 entry.Readability,
                 entry.Scenes,
-                CalculatePopupBarWidth(entry.WordCount, maxChapterWords),
-                maxChapterWords))
+                CalculatePopupBarWidth(entry.WordCount, maxChapterWords2),
+                maxChapterWords2))
             .ToList();
 
-        var goals = EnsureProjectGoals(totalWords);
-        var dailyBaseline = goals.DailyBaselineWords ?? totalWords;
-        var dailyWords = Math.Max(0, totalWords - dailyBaseline);
+        var goals = EnsureProjectGoals(totalWords2);
+        var dailyBaseline = goals.DailyBaselineWords ?? totalWords2;
+        var dailyWords = Math.Max(0, totalWords2 - dailyBaseline);
 
-        ProjectTotalWords = totalWords;
+        ProjectTotalWords = totalWords2;
         ProjectChapterCount = chapters.Count;
-        ProjectSceneCount = totalScenes;
-        ProjectReadingTimeMinutes = TextStatistics.EstimateReadingTime(totalWords);
-        AverageChapterWords = chapters.Count > 0 ? (int)Math.Round(totalWords / (double)chapters.Count) : 0;
-        ProjectBreakdownTooltip = breakdown.ToString().TrimEnd();
+        ProjectSceneCount = totalScenes2;
+        ProjectReadingTimeMinutes = TextStatistics.EstimateReadingTime(totalWords2);
+        AverageChapterWords = chapters.Count > 0 ? (int)Math.Round(totalWords2 / (double)chapters.Count) : 0;
+        ProjectBreakdownTooltip = breakdownText;
         ProjectOverviewChapters = chapterOverview;
 
         DailyGoalCurrentWords = dailyWords;
@@ -1164,10 +1215,10 @@ public partial class MainWindowViewModel : ObservableObject
 
         ProjectGoalTargetWords = goals.ProjectGoal;
         ProjectGoalPercent = goals.ProjectGoal > 0
-            ? Math.Min(100, (int)Math.Round(totalWords * 100d / goals.ProjectGoal))
+            ? Math.Min(100, (int)Math.Round(totalWords2 * 100d / goals.ProjectGoal))
             : 0;
 
-        GoalTooltip = BuildGoalTooltip(goals, dailyWords, totalWords);
+        GoalTooltip = BuildGoalTooltip(goals, dailyWords, totalWords2);
         NotifyStatusBarDisplayPropertiesChanged();
         RefreshDashboard();
     }
@@ -1293,7 +1344,8 @@ public partial class MainWindowViewModel : ObservableObject
     private void CloseExportTab()
     {
         IsExportOpen = false;
-        if (ActiveContentView == "Export") SetActiveContentView("Scene");
+        if (ActiveContentView == "Export")
+            ActiveContentView = GetFallbackView("Export");
     }
 
     [RelayCommand]
@@ -1309,7 +1361,8 @@ public partial class MainWindowViewModel : ObservableObject
     private void CloseImageGalleryTab()
     {
         IsImageGalleryOpen = false;
-        if (ActiveContentView == "ImageGallery") SetActiveContentView("Scene");
+        if (ActiveContentView == "ImageGallery")
+            ActiveContentView = GetFallbackView("ImageGallery");
     }
 
     [RelayCommand]
@@ -1348,7 +1401,8 @@ public partial class MainWindowViewModel : ObservableObject
     private void CloseGitTab()
     {
         IsGitOpen = false;
-        if (ActiveContentView == "Git") SetActiveContentView("Scene");
+        if (ActiveContentView == "Git")
+            ActiveContentView = GetFallbackView("Git");
     }
 
     [RelayCommand]
@@ -1356,7 +1410,8 @@ public partial class MainWindowViewModel : ObservableObject
     {
         IsExtensionContentOpen = false;
         ExtensionContentTabTitle = string.Empty;
-        if (ActiveContentView.StartsWith("ext:", StringComparison.Ordinal)) SetActiveContentView("Scene");
+        if (ActiveContentView.StartsWith("ext:", StringComparison.Ordinal))
+            ActiveContentView = GetFallbackView(ActiveContentView);
     }
 
     private void RefreshDashboard()

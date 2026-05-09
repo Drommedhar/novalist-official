@@ -407,13 +407,21 @@ public partial class ContextSidebarViewModel : ObservableObject
         _ = EnsureProjectContextAsync(forceReload);
     }
 
+    private bool _refreshPending;
+
     private void OnEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(EditorViewModel.Content)
             or nameof(EditorViewModel.IsDocumentOpen)
             or nameof(EditorViewModel.DocumentTitle))
         {
-            RefreshContext();
+            if (_refreshPending) return;
+            _refreshPending = true;
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                _refreshPending = false;
+                RefreshContext();
+            }, Avalonia.Threading.DispatcherPriority.Background);
         }
     }
 
@@ -449,6 +457,29 @@ public partial class ContextSidebarViewModel : ObservableObject
             if (refreshVersion == _snapshotVersion)
                 IsContextLoading = false;
         }
+    }
+
+    /// <summary>
+    /// Eager preload: builds chapter snapshots from disk so first scene-open Ctx refresh
+    /// runs forceReload=False instead of doing N file reads inline.
+    /// </summary>
+    public async Task PreloadSnapshotsAsync()
+    {
+        var snapshots = new Dictionary<string, ContextSidebarChapterSnapshot>(StringComparer.OrdinalIgnoreCase);
+        foreach (var chapter in _projectService.GetChaptersOrdered())
+        {
+            var scenes = _projectService.GetScenesForChapter(chapter.Guid)
+                .OrderBy(scene => scene.Order)
+                .ToList();
+            var sceneSnapshots = new List<ContextSidebarSceneSnapshot>(scenes.Count);
+            foreach (var scene in scenes)
+            {
+                var content = NormalizeSceneContent(await _projectService.ReadSceneContentAsync(chapter, scene));
+                sceneSnapshots.Add(new ContextSidebarSceneSnapshot(scene, content));
+            }
+            snapshots[chapter.Guid] = new ContextSidebarChapterSnapshot(chapter, sceneSnapshots);
+        }
+        _chapterSnapshots = snapshots;
     }
 
     private async Task<Dictionary<string, ContextSidebarChapterSnapshot>> BuildProjectSnapshotsAsync(

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -253,10 +254,11 @@ public partial class EditorView : UserControl
         SetContentInWebView(content);
     }
 
-    private void SetContentInWebView(string content)
+    private async void SetContentInWebView(string content)
     {
         _loadingContentFromViewModel = true;
-        var escaped = JsonEncodedText.Encode(content).ToString();
+        // JSON-escape large HTML off UI thread
+        var escaped = await Task.Run(() => JsonEncodedText.Encode(content).ToString()).ConfigureAwait(true);
         ExecuteScript($"setContent(\"{escaped}\")");
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
