@@ -163,6 +163,51 @@ body { display: flex; justify-content: center; }
 #context-menu .cm-suggestion:hover {
     background: color-mix(in srgb, var(--fg) 10%, transparent 90%);
 }
+
+/* Floating selection toolbar */
+#floating-toolbar {
+    display: none;
+    position: fixed;
+    z-index: 10001;
+    background: color-mix(in srgb, var(--bg) 92%, white 8%);
+    border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
+    border-radius: 6px;
+    padding: 3px 4px;
+    gap: 2px;
+    align-items: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+    pointer-events: auto;
+}
+#floating-toolbar.visible { display: flex; }
+#floating-toolbar button {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--fg);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 3px 7px;
+    min-width: 28px;
+    min-height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s;
+}
+#floating-toolbar button:hover {
+    background: color-mix(in srgb, var(--fg) 12%, transparent 88%);
+}
+#floating-toolbar button.active {
+    background: color-mix(in srgb, var(--fg) 18%, transparent 82%);
+    border-color: color-mix(in srgb, var(--fg) 30%, transparent 70%);
+}
+#floating-toolbar .ft-sep {
+    width: 1px;
+    height: 18px;
+    background: color-mix(in srgb, var(--fg) 18%, transparent 82%);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
 </style>
 </head>
 <body>
@@ -175,6 +220,16 @@ body { display: flex; justify-content: center; }
     <div class="gp-dismiss">Dismiss</div>
 </div>
 <div id="context-menu"></div>
+<div id="floating-toolbar">
+    <button id="ft-bold" title="Bold (Ctrl+B)"><b>B</b></button>
+    <button id="ft-italic" title="Italic (Ctrl+I)"><i>I</i></button>
+    <button id="ft-underline" title="Underline (Ctrl+U)" style="text-decoration:underline">U</button>
+    <div class="ft-sep"></div>
+    <button id="ft-align-left" title="Align Left">&#8676;</button>
+    <button id="ft-align-center" title="Center">&#8677;</button>
+    <button id="ft-align-right" title="Align Right">&#8678;</button>
+    <button id="ft-align-justify" title="Justify">&#8801;</button>
+</div>
 <script>
 'use strict';
 
@@ -1395,6 +1450,65 @@ document.addEventListener('click', (e) => {
     if (!grammarPopup.contains(e.target) && !e.target.closest('.grammar-issue')) {
         hideGrammarPopup();
     }
+});
+
+// ── Floating Selection Toolbar ───────────────────────────────────
+
+const floatingToolbar = document.getElementById('floating-toolbar');
+let floatingToolbarTimer = null;
+
+function updateFloatingToolbar() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
+        floatingToolbar.classList.remove('visible');
+        return;
+    }
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+        floatingToolbar.classList.remove('visible');
+        return;
+    }
+
+    // Update active state for format buttons
+    document.getElementById('ft-bold').classList.toggle('active', document.queryCommandState('bold'));
+    document.getElementById('ft-italic').classList.toggle('active', document.queryCommandState('italic'));
+    document.getElementById('ft-underline').classList.toggle('active', document.queryCommandState('underline'));
+    document.getElementById('ft-align-left').classList.toggle('active', document.queryCommandState('justifyLeft'));
+    document.getElementById('ft-align-center').classList.toggle('active', document.queryCommandState('justifyCenter'));
+    document.getElementById('ft-align-right').classList.toggle('active', document.queryCommandState('justifyRight'));
+    document.getElementById('ft-align-justify').classList.toggle('active', document.queryCommandState('justifyFull'));
+
+    floatingToolbar.classList.add('visible');
+    const tbWidth = floatingToolbar.offsetWidth || 220;
+    const tbHeight = floatingToolbar.offsetHeight || 34;
+    let x = rect.left + rect.width / 2 - tbWidth / 2;
+    let y = rect.top - tbHeight - 8;
+    if (x < 4) x = 4;
+    if (x + tbWidth > window.innerWidth - 4) x = window.innerWidth - tbWidth - 4;
+    if (y < 4) y = rect.bottom + 8;
+    floatingToolbar.style.left = x + 'px';
+    floatingToolbar.style.top = y + 'px';
+}
+
+document.addEventListener('selectionchange', () => {
+    if (floatingToolbarTimer) clearTimeout(floatingToolbarTimer);
+    floatingToolbarTimer = setTimeout(updateFloatingToolbar, 60);
+});
+
+floatingToolbar.addEventListener('mousedown', (e) => {
+    e.preventDefault(); // keep selection alive
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.id;
+    if (id === 'ft-bold') document.execCommand('bold', false, null);
+    else if (id === 'ft-italic') document.execCommand('italic', false, null);
+    else if (id === 'ft-underline') document.execCommand('underline', false, null);
+    else if (id === 'ft-align-left') document.execCommand('justifyLeft', false, null);
+    else if (id === 'ft-align-center') document.execCommand('justifyCenter', false, null);
+    else if (id === 'ft-align-right') document.execCommand('justifyRight', false, null);
+    else if (id === 'ft-align-justify') document.execCommand('justifyFull', false, null);
+    updateFloatingToolbar();
 });
 
 // ── Ready Signal ────────────────────────────────────────────────

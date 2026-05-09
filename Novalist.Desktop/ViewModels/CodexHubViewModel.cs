@@ -53,6 +53,9 @@ public partial class CodexHubViewModel : ObservableObject
     [ObservableProperty]
     private CodexCustomTab? _selectedCustomTab;
 
+    [ObservableProperty]
+    private bool _isLoading;
+
     public IReadOnlyList<EntityTypeDescriptor> ExtensionEntityTypes { get; set; } = [];
 
     public event Action<EntityType, object>? EntityOpenRequested;
@@ -64,6 +67,19 @@ public partial class CodexHubViewModel : ObservableObject
     }
 
     public async Task LoadAsync()
+    {
+        IsLoading = true;
+        try
+        {
+        await LoadInternalAsync();
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadInternalAsync()
     {
         _allCharacters = (await _entityService.LoadCharactersAsync()).OrderBy(c => c.DisplayName).ToList();
         _allLocations = (await _entityService.LoadLocationsAsync()).OrderBy(l => l.Name).ToList();
@@ -134,7 +150,8 @@ public partial class CodexHubViewModel : ObservableObject
             foreach (var c in _allCharacters)
             {
                 if (MatchesSearch(c.DisplayName, query))
-                    items.Add(new CodexEntityItem(EntityType.Character, c, c.DisplayName, c.Role, CodexEntityItem.UserIconData, c.IsWorldBible));
+                    items.Add(new CodexEntityItem(EntityType.Character, c, c.DisplayName, c.Role, CodexEntityItem.UserIconData, c.IsWorldBible,
+                        imagePath: c.Images.FirstOrDefault()?.Path));
             }
         }
 
@@ -143,7 +160,8 @@ public partial class CodexHubViewModel : ObservableObject
             foreach (var l in _allLocations)
             {
                 if (MatchesSearch(l.Name, query))
-                    items.Add(new CodexEntityItem(EntityType.Location, l, l.Name, l.Type, CodexEntityItem.MapPinIconData, l.IsWorldBible));
+                    items.Add(new CodexEntityItem(EntityType.Location, l, l.Name, l.Type, CodexEntityItem.MapPinIconData, l.IsWorldBible,
+                        imagePath: l.Images.FirstOrDefault()?.Path));
             }
         }
 
@@ -215,8 +233,10 @@ public sealed class CodexEntityItem
     public string Icon { get; }
     public bool IsWorldBible { get; }
     public bool IsEmoji { get; }
+    public string? ImagePath { get; }
+    public bool HasImage => !string.IsNullOrEmpty(ImagePath);
 
-    public CodexEntityItem(EntityType type, object entity, string name, string subtitle, string icon, bool isWorldBible, bool isEmoji = false)
+    public CodexEntityItem(EntityType type, object entity, string name, string subtitle, string icon, bool isWorldBible, bool isEmoji = false, string? imagePath = null)
     {
         EntityType = type;
         Entity = entity;
@@ -225,5 +245,6 @@ public sealed class CodexEntityItem
         Icon = icon;
         IsWorldBible = isWorldBible;
         IsEmoji = isEmoji;
+        ImagePath = imagePath;
     }
 }

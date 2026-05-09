@@ -390,6 +390,7 @@
   },
   "context": {
     "title": "NOVALIST CONTEXT",
+    "tab": "Context",
     "characters": "CHARACTERS",
     "mentionFrequency": "MENTION FREQUENCY",
     "mentioned": "Mentioned",
@@ -426,7 +427,8 @@
     "avgSentenceDisplay": "{0} avg sentence",
     "aiAnalysis": "AI SCENE ANALYSIS",
     "runAiAnalysis": "Run AI analysis for this scene",
-    "addEntity": "Add to project"
+    "addEntity": "Add to project",
+    "openSceneHint": "Open a scene to view chapter and scene context."
   },
   "focusPeek": {
     "openEntity": "Open entity",
@@ -791,6 +793,15 @@
     "pushSuccess": "Pushed to remote.",
     "pullSuccess": "Pulled from remote."
   },
+  "toast": {
+    "saved": "Saved",
+    "saveFailed": "Save failed: {0}",
+    "pushFailed": "Push failed: {0}",
+    "pullFailed": "Pull failed: {0}",
+    "projectLoadFailed": "Failed to load project: {0}",
+    "extensionLoadFailed": "Extension '{0}' failed: {1}",
+    "extensionInitFailed": "Extension '{0}' init failed: {1}"
+  },
   "extensions": {
     "title": "Extensions",
     "tooltip": "Manage installed extensions",
@@ -806,6 +817,7 @@
     "version": "Version",
     "author": "By",
     "restart": "Restart required",
+    "settings": "Settings",
     "tabInstalled": "Installed",
     "tabBrowse": "Browse Store",
     "store": {

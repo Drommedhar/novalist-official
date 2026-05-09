@@ -220,6 +220,10 @@ public partial class ManuscriptView : UserControl
                     _ = _vm.SaveAllDirtyAsync();
                     break;
 
+                case "sceneFocused":
+                    OnSceneFocused(root);
+                    break;
+
                 case "hotkey":
                     OnHotkeyFromWebView(root);
                     break;
@@ -253,6 +257,14 @@ public partial class ManuscriptView : UserControl
         var chapterGuid = root.GetProperty("chapterGuid").GetString() ?? string.Empty;
         var sceneId = root.GetProperty("sceneId").GetString() ?? string.Empty;
         _vm.RequestOpenScene(chapterGuid, sceneId);
+    }
+
+    private void OnSceneFocused(JsonElement root)
+    {
+        if (_vm == null) return;
+        var chapterGuid = root.GetProperty("chapterGuid").GetString() ?? string.Empty;
+        var sceneId = root.GetProperty("sceneId").GetString() ?? string.Empty;
+        _vm.OnSceneFocused(chapterGuid, sceneId);
     }
 
     private void OnHotkeyFromWebView(JsonElement root)

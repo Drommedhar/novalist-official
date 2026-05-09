@@ -67,7 +67,11 @@ public sealed class ExtensionManager
                 continue;
 
             if (!_loader.LoadExtension(info))
+            {
+                if (!string.IsNullOrWhiteSpace(info.LoadError))
+                    ViewModels.Toast.Show?.Invoke(Localization.Loc.T("toast.extensionLoadFailed", info.Manifest.Name, info.LoadError), ViewModels.ToastSeverity.Error);
                 continue;
+            }
 
             InitializeExtension(info);
         }
@@ -96,6 +100,7 @@ public sealed class ExtensionManager
         {
             info.LoadError = $"Initialize failed: {ex.Message}";
             info.IsLoaded = false;
+            ViewModels.Toast.Show?.Invoke(Localization.Loc.T("toast.extensionInitFailed", info.Manifest.Name, ex.Message), ViewModels.ToastSeverity.Error);
         }
     }
 

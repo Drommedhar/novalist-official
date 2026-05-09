@@ -386,6 +386,7 @@
   },
   "context": {
     "title": "NOVALIST KONTEXT",
+    "tab": "Kontext",
     "characters": "CHARAKTERE",
     "mentionFrequency": "ERWÄHNUNGSHÄUFIGKEIT",
     "mentioned": "Erwähnt",
@@ -422,7 +423,8 @@
     "avgSentenceDisplay": "{0} Ø Satzlänge",
     "aiAnalysis": "KI-SZENENANALYSE",
     "runAiAnalysis": "KI-Analyse für diese Szene ausführen",
-    "addEntity": "Zum Projekt hinzufügen"
+    "addEntity": "Zum Projekt hinzufügen",
+    "openSceneHint": "Öffne eine Szene, um Kapitel- und Szenenkontext zu sehen."
   },
   "focusPeek": {
     "openEntity": "Entität öffnen",
@@ -787,6 +789,15 @@
     "pushSuccess": "Zum Remote gepusht.",
     "pullSuccess": "Vom Remote gepullt."
   },
+  "toast": {
+    "saved": "Gespeichert",
+    "saveFailed": "Speichern fehlgeschlagen: {0}",
+    "pushFailed": "Push fehlgeschlagen: {0}",
+    "pullFailed": "Pull fehlgeschlagen: {0}",
+    "projectLoadFailed": "Projekt konnte nicht geladen werden: {0}",
+    "extensionLoadFailed": "Erweiterung '{0}' fehlgeschlagen: {1}",
+    "extensionInitFailed": "Erweiterung '{0}' Initialisierung fehlgeschlagen: {1}"
+  },
   "extensions": {
     "title": "Erweiterungen",
     "tooltip": "Installierte Erweiterungen verwalten",
@@ -801,7 +812,8 @@
     "loadError": "Laden fehlgeschlagen",
     "version": "Version",
     "author": "Von",
-    "restart": "Neustart erforderlich"
+    "restart": "Neustart erforderlich",
+    "settings": "Einstellungen"
   },
   "codexHub": {
     "title": "Codex Hub",

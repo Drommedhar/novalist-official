@@ -19,7 +19,7 @@ public sealed class SidebarPanel
     /// <summary>Optional SVG path geometry data for a vector icon.</summary>
     public string? IconPath { get; init; }
 
-    /// <summary>"Left" or "Right" sidebar placement.</summary>
+    /// <summary>"Left", "Right", or "Context" sidebar placement. "Context" integrates as a tab inside the context sidebar.</summary>
     public string Side { get; init; } = "Right";
 
     /// <summary>Factory that creates the Avalonia Control for this panel.</summary>

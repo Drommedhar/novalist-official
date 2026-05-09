@@ -179,10 +179,12 @@ public partial class GitViewModel : ObservableObject
         {
             HasError = true;
             StatusMessage = error;
+            Toast.Show?.Invoke(Loc.T("toast.pushFailed", error), ToastSeverity.Error);
         }
         else
         {
             StatusMessage = Loc.T("git.pushSuccess");
+            Toast.Show?.Invoke(Loc.T("git.pushSuccess"), ToastSeverity.Success);
         }
 
         IsLoading = false;
@@ -203,10 +205,12 @@ public partial class GitViewModel : ObservableObject
         {
             HasError = true;
             StatusMessage = error;
+            Toast.Show?.Invoke(Loc.T("toast.pullFailed", error), ToastSeverity.Error);
         }
         else
         {
             StatusMessage = Loc.T("git.pullSuccess");
+            Toast.Show?.Invoke(Loc.T("git.pullSuccess"), ToastSeverity.Success);
         }
 
         IsLoading = false;

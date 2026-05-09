@@ -12,10 +12,7 @@
     <Border Background="{DynamicResource EditorBackground}">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto">
-            <!-- SpacingXXL=20 -->
-            <StackPanel MaxWidth="900"
-                        HorizontalAlignment="Center"
-                        Margin="20,20"
+            <StackPanel Margin="32,24,32,24"
                         Spacing="20">
 
                 <!-- Header -->
@@ -75,7 +72,7 @@
                             <!-- SpacingTighter=4 -->
                             <StackPanel Spacing="4">
                                 <TextBlock Text="{Binding TotalWordsDisplay}"
-                                           FontSize="26"
+                                           FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}" />
                                 <TextBlock Text="{loc:Loc dashboard.words}"
@@ -90,7 +87,7 @@
                                 MinWidth="160">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="{Binding ChapterCount}"
-                                           FontSize="26"
+                                           FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}" />
                                 <TextBlock Text="{loc:Loc dashboard.chapters}"
@@ -105,7 +102,7 @@
                                 MinWidth="160">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="{Binding SceneCount}"
-                                           FontSize="26"
+                                           FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}" />
                                 <TextBlock Text="{loc:Loc dashboard.scenes}"
@@ -120,7 +117,7 @@
                                 MinWidth="160">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="{Binding ReadingTimeDisplay}"
-                                           FontSize="26"
+                                           FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}" />
                                 <TextBlock Text="{loc:Loc dashboard.readingTime}"
@@ -135,7 +132,7 @@
                                 MinWidth="160">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="{Binding CharacterCount}"
-                                           FontSize="26"
+                                           FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}" />
                                 <TextBlock Text="{loc:Loc dashboard.characters}"
@@ -150,7 +147,7 @@
                                 MinWidth="160">
                             <StackPanel Spacing="4">
                                 <TextBlock Text="{Binding LocationCount}"
-                                           FontSize="26"
+                                           FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}" />
                                 <TextBlock Text="{loc:Loc dashboard.locations}"
@@ -171,7 +168,7 @@
 
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock FontSize="22" FontWeight="Bold"
+                                <TextBlock FontSize="{DynamicResource FontSizeDisplay}" FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}">
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}{0:N0} / {1:N0}">
@@ -186,7 +183,7 @@
                             </StackPanel>
                             <TextBlock Grid.Column="1"
                                        VerticalAlignment="Center"
-                                       FontSize="32"
+                                       FontSize="{DynamicResource FontSizeDisplayLarge}"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource AccentBrush}">
                                 <TextBlock.Text>
@@ -213,7 +210,7 @@
 
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Grid.Column="0" Spacing="4">
-                                <TextBlock FontSize="22" FontWeight="Bold"
+                                <TextBlock FontSize="{DynamicResource FontSizeDisplay}" FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}">
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}{0:N0} / {1:N0}">
@@ -228,7 +225,7 @@
                             </StackPanel>
                             <TextBlock Grid.Column="1"
                                        VerticalAlignment="Center"
-                                       FontSize="32"
+                                       FontSize="{DynamicResource FontSizeDisplayLarge}"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource AccentBrush}">
                                 <TextBlock.Text>
@@ -287,7 +284,7 @@
                     <Grid ColumnDefinitions="*,*">
                         <StackPanel Grid.Column="0" Spacing="4">
                             <TextBlock Text="{Binding AverageChapterWordsDisplay}"
-                                       FontSize="22"
+                                       FontSize="{DynamicResource FontSizeDisplay}"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource NormalText}" />
                             <TextBlock Text="{loc:Loc dashboard.avgPerChapter}"
@@ -296,7 +293,7 @@
                         </StackPanel>
                         <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right">
                             <TextBlock Text="{Binding ReadingTimeDisplay}"
-                                       FontSize="22"
+                                       FontSize="{DynamicResource FontSizeDisplay}"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource NormalText}" />
                             <TextBlock Text="{loc:Loc dashboard.estReadingTime}"
@@ -325,23 +322,12 @@
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource NormalText}"
                                                        VerticalAlignment="Center" />
-                                            <!-- SpacingMedium=8 -->
-                                            <Border Grid.Column="1"
-                                                    Height="16"
-                                                    CornerRadius="{DynamicResource RadiusSmall}"
-                                                    Background="{DynamicResource ExplorerBackground}"
-                                                    Margin="8,0">
-                                                <Border HorizontalAlignment="Left"
-                                                        Height="16"
-                                                        CornerRadius="{DynamicResource RadiusSmall}"
-                                                        Background="{DynamicResource AccentBrush}">
-                                                    <Border.Width>
-                                                        <MultiBinding StringFormat="{}{0}">
-                                                            <Binding Path="Count" />
-                                                        </MultiBinding>
-                                                    </Border.Width>
-                                                </Border>
-                                            </Border>
+                                            <ProgressBar Grid.Column="1"
+                                                         Minimum="0" Maximum="1"
+                                                         Value="{Binding BarPercent}"
+                                                         Height="16"
+                                                         CornerRadius="{DynamicResource RadiusSmall}"
+                                                         Margin="8,0" />
                                             <!-- SpacingMedium=8 -->
                                             <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
                                                 <TextBlock Text="{Binding Count}"
@@ -366,7 +352,7 @@
                                 <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="10">
                                     <StackPanel Grid.Column="0" Spacing="4" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInOutline}"
-                                                   FontSize="16" FontWeight="Bold"
+                                                   FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
                                                    HorizontalAlignment="Center" />
                                         <TextBlock Text="{loc:Loc dashboard.statusOutline}"
@@ -376,7 +362,7 @@
                                     </StackPanel>
                                     <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInFirstDraft}"
-                                                   FontSize="16" FontWeight="Bold"
+                                                   FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
                                                    HorizontalAlignment="Center" />
                                         <TextBlock Text="{loc:Loc dashboard.statusFirstDraft}"
@@ -386,7 +372,7 @@
                                     </StackPanel>
                                     <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInRevised}"
-                                                   FontSize="16" FontWeight="Bold"
+                                                   FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
                                                    HorizontalAlignment="Center" />
                                         <TextBlock Text="{loc:Loc dashboard.statusRevised}"
@@ -396,7 +382,7 @@
                                     </StackPanel>
                                     <StackPanel Grid.Column="3" Spacing="4" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInEdited}"
-                                                   FontSize="16" FontWeight="Bold"
+                                                   FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
                                                    HorizontalAlignment="Center" />
                                         <TextBlock Text="{loc:Loc dashboard.statusEdited}"
@@ -406,7 +392,7 @@
                                     </StackPanel>
                                     <StackPanel Grid.Column="4" Spacing="4" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInFinal}"
-                                                   FontSize="16" FontWeight="Bold"
+                                                   FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
                                                    HorizontalAlignment="Center" />
                                         <TextBlock Text="{loc:Loc dashboard.statusFinal}"
@@ -433,7 +419,7 @@
                             <Grid ColumnDefinitions="*,*,*" ColumnSpacing="20">
                                 <StackPanel Grid.Column="0" Spacing="4">
                                     <TextBlock Text="{Binding LongestChapterWords}"
-                                               FontSize="18" FontWeight="Bold"
+                                               FontSize="{DynamicResource FontSizeDisplaySmall}" FontWeight="Bold"
                                                Foreground="{DynamicResource NormalText}" />
                                     <TextBlock Text="{loc:Loc dashboard.longestChapter}"
                                                FontSize="{DynamicResource FontSizeCaption}"
@@ -441,14 +427,14 @@
                                 </StackPanel>
                                 <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding ShortestChapterWords}"
-                                               FontSize="18" FontWeight="Bold"
+                                               FontSize="{DynamicResource FontSizeDisplaySmall}" FontWeight="Bold"
                                                Foreground="{DynamicResource NormalText}" />
                                     <TextBlock Text="{loc:Loc dashboard.shortestChapter}"
                                                FontSize="{DynamicResource FontSizeCaption}"
                                                Foreground="{DynamicResource SubtleText}" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Right">
-                                    <TextBlock FontSize="18" FontWeight="Bold"
+                                    <TextBlock FontSize="{DynamicResource FontSizeDisplaySmall}" FontWeight="Bold"
                                                Foreground="{DynamicResource NormalText}">
                                         <TextBlock.Text>
                                             <Binding Path="AverageSceneWords" StringFormat="{}{0:N0}" />

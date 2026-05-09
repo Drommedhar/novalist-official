@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
@@ -141,6 +142,24 @@ public partial class ContextSidebarViewModel : ObservableObject
     private string _contextDate = string.Empty;
 
     [ObservableProperty]
+    private bool _isCharactersSectionExpanded = true;
+
+    [ObservableProperty]
+    private bool _isMentionsSectionExpanded = true;
+
+    [ObservableProperty]
+    private bool _isLocationsSectionExpanded = true;
+
+    [ObservableProperty]
+    private bool _isItemsSectionExpanded = true;
+
+    [ObservableProperty]
+    private bool _isLoreSectionExpanded = true;
+
+    [ObservableProperty]
+    private bool _isSceneAnalysisSectionExpanded = true;
+
+    [ObservableProperty]
     private ObservableCollection<ContextSidebarEntityCardViewModel> _characterCards = [];
 
     [ObservableProperty]
@@ -161,6 +180,27 @@ public partial class ContextSidebarViewModel : ObservableObject
     public event Action<EntityType, object>? EntityOpenRequested;
 
     public bool HasContextDate => !string.IsNullOrWhiteSpace(ContextDate);
+
+    public string ContextDateDisplay
+    {
+        get
+        {
+            var raw = ContextDate;
+            if (string.IsNullOrWhiteSpace(raw)) return raw;
+            if (!DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+                return raw;
+            try
+            {
+                var culture = CultureInfo.GetCultureInfo(Loc.Instance.CurrentLanguage);
+                var dayName = dt.ToString("dddd", culture);
+                return $"{raw} · {dayName}";
+            }
+            catch
+            {
+                return $"{raw} · {dt:dddd}";
+            }
+        }
+    }
     public bool HasContextSubtitle => !string.IsNullOrWhiteSpace(ContextSubtitle);
     public bool HasCharacterCards => CharacterCards.Count > 0;
     public bool HasMentionFrequency => MentionRows.Count > 0;
@@ -177,7 +217,74 @@ public partial class ContextSidebarViewModel : ObservableObject
     {
         _projectService = projectService;
         _entityService = entityService;
+        LoadSectionState();
+        Loc.Instance.LanguageChanged += () => OnPropertyChanged(nameof(ContextDateDisplay));
     }
+
+    private void LoadSectionState()
+    {
+        var vs = _projectService.ProjectSettings.ViewState;
+        IsCharactersSectionExpanded = vs.ContextCharactersExpanded;
+        IsMentionsSectionExpanded = vs.ContextMentionsExpanded;
+        IsLocationsSectionExpanded = vs.ContextLocationsExpanded;
+        IsItemsSectionExpanded = vs.ContextItemsExpanded;
+        IsLoreSectionExpanded = vs.ContextLoreExpanded;
+        IsSceneAnalysisSectionExpanded = vs.ContextSceneAnalysisExpanded;
+    }
+
+    partial void OnIsCharactersSectionExpandedChanged(bool value)
+    {
+        _projectService.ProjectSettings.ViewState.ContextCharactersExpanded = value;
+        _ = _projectService.SaveProjectSettingsAsync();
+    }
+
+    partial void OnIsMentionsSectionExpandedChanged(bool value)
+    {
+        _projectService.ProjectSettings.ViewState.ContextMentionsExpanded = value;
+        _ = _projectService.SaveProjectSettingsAsync();
+    }
+
+    partial void OnIsLocationsSectionExpandedChanged(bool value)
+    {
+        _projectService.ProjectSettings.ViewState.ContextLocationsExpanded = value;
+        _ = _projectService.SaveProjectSettingsAsync();
+    }
+
+    partial void OnIsItemsSectionExpandedChanged(bool value)
+    {
+        _projectService.ProjectSettings.ViewState.ContextItemsExpanded = value;
+        _ = _projectService.SaveProjectSettingsAsync();
+    }
+
+    partial void OnIsLoreSectionExpandedChanged(bool value)
+    {
+        _projectService.ProjectSettings.ViewState.ContextLoreExpanded = value;
+        _ = _projectService.SaveProjectSettingsAsync();
+    }
+
+    partial void OnIsSceneAnalysisSectionExpandedChanged(bool value)
+    {
+        _projectService.ProjectSettings.ViewState.ContextSceneAnalysisExpanded = value;
+        _ = _projectService.SaveProjectSettingsAsync();
+    }
+
+    [RelayCommand]
+    private void ToggleCharactersSection() => IsCharactersSectionExpanded = !IsCharactersSectionExpanded;
+
+    [RelayCommand]
+    private void ToggleMentionsSection() => IsMentionsSectionExpanded = !IsMentionsSectionExpanded;
+
+    [RelayCommand]
+    private void ToggleLocationsSection() => IsLocationsSectionExpanded = !IsLocationsSectionExpanded;
+
+    [RelayCommand]
+    private void ToggleItemsSection() => IsItemsSectionExpanded = !IsItemsSectionExpanded;
+
+    [RelayCommand]
+    private void ToggleLoreSection() => IsLoreSectionExpanded = !IsLoreSectionExpanded;
+
+    [RelayCommand]
+    private void ToggleSceneAnalysisSection() => IsSceneAnalysisSectionExpanded = !IsSceneAnalysisSectionExpanded;
 
     public void AttachEditor(EditorViewModel? editor)
     {
@@ -269,6 +376,30 @@ public partial class ContextSidebarViewModel : ObservableObject
 
         UpdateCurrentSceneSnapshot(chapter, scene, currentContent);
         BuildVisibleContext(chapter, scene, currentContent);
+
+        IsContextAvailable = true;
+
+        var forceReload = NeedsSnapshotReload(chapter.Guid, scenes);
+        _ = EnsureProjectContextAsync(forceReload);
+    }
+
+    public void RefreshContextForScene(ChapterData chapter, SceneData scene, string plainTextContent)
+    {
+        var scenes = _projectService.GetScenesForChapter(chapter.Guid)
+            .OrderBy(candidate => candidate.Order)
+            .ToList();
+        var sceneIndex = scenes.FindIndex(candidate => candidate.Id == scene.Id) + 1;
+
+        ContextLabel = string.IsNullOrWhiteSpace(scene.Title)
+            ? chapter.Title.Trim()
+            : scene.Title.Trim();
+        ContextSubtitle = BuildContextSubtitle(chapter, sceneIndex, scenes.Count);
+        ContextDate = !string.IsNullOrWhiteSpace(scene.Date)
+            ? scene.Date.Trim()
+            : chapter.Date.Trim();
+
+        UpdateCurrentSceneSnapshot(chapter, scene, plainTextContent);
+        BuildVisibleContext(chapter, scene, plainTextContent);
 
         IsContextAvailable = true;
 
@@ -976,6 +1107,7 @@ public partial class ContextSidebarViewModel : ObservableObject
     private void NotifyStateChanged()
     {
         OnPropertyChanged(nameof(HasContextDate));
+        OnPropertyChanged(nameof(ContextDateDisplay));
         OnPropertyChanged(nameof(HasContextSubtitle));
         OnPropertyChanged(nameof(HasCharacterCards));
         OnPropertyChanged(nameof(HasMentionFrequency));

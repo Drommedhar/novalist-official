@@ -80,7 +80,7 @@ public partial class MainWindowViewModel : ObservableObject
     private string _statusText = Loc.T("app.ready");
 
     [ObservableProperty]
-    private string _activeTab = "Edit";
+    private string _activeActivityView = string.Empty;
 
     [ObservableProperty]
     private bool _isStartMenuOpen;
@@ -142,6 +142,106 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string _activeContentView = "Scene";
 
+    // ── Open-tab state for all tab-managed views ────────────────────
+    [ObservableProperty] private bool _isDashboardOpen;
+    [ObservableProperty] private bool _isTimelineOpen;
+    [ObservableProperty] private bool _isCodexHubOpen;
+    [ObservableProperty] private bool _isManuscriptOpen;
+    [ObservableProperty] private bool _isExportOpen;
+    [ObservableProperty] private bool _isImageGalleryOpen;
+    [ObservableProperty] private bool _isGitOpen;
+    [ObservableProperty] private bool _isExtensionContentOpen;
+    [ObservableProperty] private string _extensionContentTabTitle = string.Empty;
+
+    /// <summary>Data-driven editor tab strip. Rebuilt on tab open/close/title/dirty changes.</summary>
+    public ObservableCollection<EditorTabDescriptor> ContentTabs { get; } = [];
+
+    partial void OnIsDashboardOpenChanged(bool value) => SyncContentTabs();
+    partial void OnIsTimelineOpenChanged(bool value) => SyncContentTabs();
+    partial void OnIsCodexHubOpenChanged(bool value) => SyncContentTabs();
+    partial void OnIsManuscriptOpenChanged(bool value) => SyncContentTabs();
+    partial void OnIsExportOpenChanged(bool value) => SyncContentTabs();
+    partial void OnIsImageGalleryOpenChanged(bool value) => SyncContentTabs();
+    partial void OnIsGitOpenChanged(bool value) => SyncContentTabs();
+    partial void OnIsExtensionContentOpenChanged(bool value) => SyncContentTabs();
+    partial void OnExtensionContentTabTitleChanged(string value) => SyncContentTabs();
+
+    private void SyncContentTabs()
+    {
+        // Build desired list in display order
+        var desired = new List<EditorTabDescriptor>();
+
+        if (IsDashboardOpen)
+            desired.Add(new EditorTabDescriptor("Dashboard", "Dashboard", "Dashboard", () => CloseDashboardTabCommand.Execute(null)));
+        if (IsTimelineOpen)
+            desired.Add(new EditorTabDescriptor("Timeline", "Timeline", "Timeline", () => CloseTimelineTabCommand.Execute(null)));
+        if (IsCodexHubOpen)
+            desired.Add(new EditorTabDescriptor("CodexHub", "CodexHub", "Codex", () => CloseCodexHubTabCommand.Execute(null)));
+        if (IsManuscriptOpen)
+            desired.Add(new EditorTabDescriptor("Manuscript", "Manuscript", "Manuscript", () => CloseManuscriptTabCommand.Execute(null)));
+        if (IsExportOpen)
+            desired.Add(new EditorTabDescriptor("Export", "Export", Loc.T("ribbon.export"), () => CloseExportTabCommand.Execute(null)));
+        if (IsImageGalleryOpen)
+            desired.Add(new EditorTabDescriptor("ImageGallery", "ImageGallery", Loc.T("ribbon.gallery"), () => CloseImageGalleryTabCommand.Execute(null)));
+        if (IsGitOpen)
+            desired.Add(new EditorTabDescriptor("Git", "Git", Loc.T("ribbon.git"), () => CloseGitTabCommand.Execute(null)));
+        if (IsExtensionContentOpen)
+            desired.Add(new EditorTabDescriptor("ExtensionContent", ActiveContentView, ExtensionContentTabTitle, () => CloseExtensionContentTabCommand.Execute(null)));
+        if (Editor?.IsDocumentOpen == true)
+        {
+            var sceneTab = new EditorTabDescriptor(
+                "Scene", "Scene", Editor.SceneTabTitle ?? string.Empty,
+                () => _ = CloseSceneTabAsync(),
+                badge: "SCN", minWidth: 160, tooltip: Editor.DocumentTitle)
+            {
+                IsDirty = Editor.IsDirty
+            };
+            desired.Add(sceneTab);
+        }
+        if (EntityEditor?.IsOpen == true)
+        {
+            desired.Add(new EditorTabDescriptor(
+                "Entity", "Entity", EntityEditor.Title ?? string.Empty,
+                () => _ = CloseEntityTabAsync(),
+                badge: "ENT", minWidth: 160, tooltip: EntityEditor.Title));
+        }
+
+        // Rebuild collection in-place to preserve ItemsControl identity
+        // Match by Id; update existing, remove missing, add new
+        var existingById = ContentTabs.ToDictionary(t => t.Id);
+        for (int i = ContentTabs.Count - 1; i >= 0; i--)
+        {
+            if (!desired.Any(d => d.Id == ContentTabs[i].Id))
+                ContentTabs.RemoveAt(i);
+        }
+        for (int i = 0; i < desired.Count; i++)
+        {
+            var d = desired[i];
+            if (existingById.TryGetValue(d.Id, out var existing))
+            {
+                existing.Title = d.Title;
+                existing.IsDirty = d.IsDirty;
+                existing.Tooltip = d.Tooltip;
+                existing.IsActive = d.ActivationKey == ActiveContentView;
+                int curIdx = ContentTabs.IndexOf(existing);
+                if (curIdx != i)
+                    ContentTabs.Move(curIdx, i);
+            }
+            else
+            {
+                d.IsActive = d.ActivationKey == ActiveContentView;
+                ContentTabs.Insert(i, d);
+            }
+        }
+    }
+
+    private void UpdateContentTabActive()
+    {
+        foreach (var t in ContentTabs)
+            t.IsActive = t.ActivationKey == ActiveContentView
+                || (t.Id == "ExtensionContent" && ActiveContentView.StartsWith("ext:", StringComparison.Ordinal));
+    }
+
     /// <summary>
     /// Tracks which sidebar tab is active: "Chapters" or "Entities".
     /// </summary>
@@ -159,6 +259,42 @@ public partial class MainWindowViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     private bool _isContextSidebarVisible = true;
+
+    /// <summary>
+    /// True when the context sidebar should be shown — sidebar is toggled on AND the active view supports it.
+    /// </summary>
+    public bool IsContextSidebarShowing =>
+        IsContextSidebarVisible &&
+        (ActiveContentView == "Scene" || ActiveContentView == "Manuscript" || HasExtensionContextTabs);
+
+    [ObservableProperty]
+    private bool _hasExtensionContextTabs;
+
+    [ObservableProperty]
+    private string _activeContextTab = "Context";
+
+    public ObservableCollection<ExtensionContextTabVM> ExtensionContextTabs { get; } = [];
+
+    public bool IsContextTabActive => ActiveContextTab == "Context";
+
+    partial void OnActiveContextTabChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsContextTabActive));
+        foreach (var tab in ExtensionContextTabs)
+            tab.IsActive = tab.Id == value;
+    }
+
+    partial void OnIsContextSidebarVisibleChanged(bool value) =>
+        OnPropertyChanged(nameof(IsContextSidebarShowing));
+
+    partial void OnActiveContentViewChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsContextSidebarShowing));
+        UpdateContentTabActive();
+    }
+
+    partial void OnHasExtensionContextTabsChanged(bool value) =>
+        OnPropertyChanged(nameof(IsContextSidebarShowing));
 
     /// <summary>
     /// Controls visibility of the scene notes panel (below editor).
@@ -189,6 +325,8 @@ public partial class MainWindowViewModel : ObservableObject
         _settingsService = settingsService;
         _entityService = entityService;
         _gitService = gitService;
+
+        Toast.Show = (msg, sev) => Dispatcher.UIThread.Post(() => ShowToast(msg, sev));
 
         RegisterBuiltInHotkeys();
     }
@@ -245,7 +383,7 @@ public partial class MainWindowViewModel : ObservableObject
             new HotkeyDescriptor { ActionId = "app.editor.alignJustify", DisplayName = Loc.T("hotkeys.editor.alignJustify"), Category = catEditor, DefaultGesture = "Ctrl+J", OnExecute = () => Editor?.AlignJustifyAction?.Invoke(), CanExecute = () => Editor?.IsDocumentOpen == true && ActiveContentView == "Scene" },
 
             // ── Project ──
-            new HotkeyDescriptor { ActionId = "app.project.save", DisplayName = Loc.T("hotkeys.project.save"), Category = catProject, DefaultGesture = "Ctrl+S", OnExecute = () => { if (Editor?.IsDirty == true) _ = Editor.SaveAsync(); }, CanExecute = () => Editor?.IsDocumentOpen == true },
+            new HotkeyDescriptor { ActionId = "app.project.save", DisplayName = Loc.T("hotkeys.project.save"), Category = catProject, DefaultGesture = "Ctrl+S", OnExecute = () => { if (Editor?.IsDirty == true) _ = Editor.SaveAsync().ContinueWith(t => { if (t.IsCompletedSuccessfully) Toast.Show?.Invoke(Loc.T("toast.saved"), ToastSeverity.Success); else if (t.Exception != null) Toast.Show?.Invoke(Loc.T("toast.saveFailed", t.Exception.GetBaseException().Message), ToastSeverity.Error); }); }, CanExecute = () => Editor?.IsDocumentOpen == true },
 
             // ── Git ──
             new HotkeyDescriptor { ActionId = "app.git.commitAll", DisplayName = Loc.T("hotkeys.git.commitAll"), Category = catGit, DefaultGesture = "Ctrl+Shift+K", OnExecute = () => Git?.CommitAllCommand.Execute(null), CanExecute = () => Git?.IsGitRepo == true },
@@ -278,13 +416,8 @@ public partial class MainWindowViewModel : ObservableObject
 
     public ExtensionManager? ExtensionManager { get; private set; }
 
-    /// <summary>Ribbon groups contributed by extensions, keyed by group name.</summary>
-    [ObservableProperty]
-    private ObservableCollection<ExtensionRibbonGroup> _extensionRibbonGroups = [];
-
-    /// <summary>Ribbon groups contributed by extensions for the View tab.</summary>
-    [ObservableProperty]
-    private ObservableCollection<ExtensionRibbonGroup> _extensionViewRibbonGroups = [];
+    /// <summary>Activity bar buttons contributed by extensions.</summary>
+    public ObservableCollection<ActivityBarItem> ExtensionActivityBarItems { get; } = [];
 
     /// <summary>Status bar items contributed by extensions.</summary>
     [ObservableProperty]
@@ -308,6 +441,16 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private string? _extensionNotification;
 
+    /// <summary>Active toast notifications, newest at top. Auto-dismiss or click-dismiss.</summary>
+    public ObservableCollection<ToastNotification> Toasts { get; } = [];
+
+    [RelayCommand]
+    private void DismissToast(ToastNotification? toast)
+    {
+        if (toast != null)
+            Toasts.Remove(toast);
+    }
+
     private CancellationTokenSource? _notificationCts;
     private DispatcherTimer? _statusBarRefreshTimer;
 
@@ -319,8 +462,8 @@ public partial class MainWindowViewModel : ObservableObject
         ExtensionManager = manager;
         Extensions = new ExtensionsViewModel(manager, galleryService);
 
-        // Build ribbon groups from contributed items
-        RebuildExtensionRibbonGroups(manager);
+        // Build activity bar items from contributed ribbon items
+        RebuildExtensionActivityBarItems(manager);
 
         // Expose status bar items
         ExtensionStatusBarItems = new ObservableCollection<ExtensionStatusBarItemVM>(
@@ -329,13 +472,22 @@ public partial class MainWindowViewModel : ObservableObject
         // Build sidebar tabs from contributed panels (left sidebar only)
         ExtensionSidebarTabs = new ObservableCollection<ExtensionSidebarTabVM>(
             manager.SidebarPanels
-                .Where(p => !string.Equals(p.Side, "Right", StringComparison.OrdinalIgnoreCase))
+                .Where(p => !string.Equals(p.Side, "Right", StringComparison.OrdinalIgnoreCase)
+                         && !string.Equals(p.Side, "Context", StringComparison.OrdinalIgnoreCase))
                 .Select(p => new ExtensionSidebarTabVM(p)));
 
         // Store right sidebar panels for on-demand creation
         ExtensionRightSidebarPanels = manager.SidebarPanels
             .Where(p => string.Equals(p.Side, "Right", StringComparison.OrdinalIgnoreCase))
             .ToList();
+
+        // Context panels integrate as tabs inside the context sidebar
+        foreach (var p in manager.SidebarPanels
+            .Where(p => string.Equals(p.Side, "Context", StringComparison.OrdinalIgnoreCase)))
+        {
+            ExtensionContextTabs.Add(new ExtensionContextTabVM(p));
+        }
+        HasExtensionContextTabs = ExtensionContextTabs.Count > 0;
 
 
 
@@ -367,19 +519,40 @@ public partial class MainWindowViewModel : ObservableObject
             Dispatcher.UIThread.Post(async () => await EntityPanel.LoadAllAsync());
 
         // Subscribe to content view activation requests
-        host.ContentViewActivated += viewKey =>
+        host.ContentViewActivated += (viewKey, displayName) =>
             Dispatcher.UIThread.Post(() =>
             {
                 if (string.IsNullOrEmpty(viewKey))
+                {
                     SetActiveContentView("Scene");
+                }
                 else
+                {
+                    IsExtensionContentOpen = true;
+                    ExtensionContentTabTitle = !string.IsNullOrEmpty(displayName) ? displayName : viewKey;
                     ActiveContentView = $"ext:{viewKey}";
+                }
             });
 
         // Subscribe to right sidebar toggle requests
         host.RightSidebarToggled += panelId =>
             Dispatcher.UIThread.Post(() =>
             {
+                // Context panels open as tabs inside the context sidebar
+                if (ExtensionContextTabs.Any(t => t.Id == panelId))
+                {
+                    if (ActiveContextTab == panelId)
+                    {
+                        ActiveContextTab = "Context";
+                    }
+                    else
+                    {
+                        IsContextSidebarVisible = true;
+                        ActiveContextTab = panelId;
+                    }
+                    return;
+                }
+
                 if (_activeRightSidebarPanelId == panelId && IsExtensionRightSidebarVisible)
                 {
                     IsExtensionRightSidebarVisible = false;
@@ -402,27 +575,55 @@ public partial class MainWindowViewModel : ObservableObject
         _statusBarRefreshTimer.Start();
     }
 
-    private void RebuildExtensionRibbonGroups(ExtensionManager manager)
+    private void RebuildExtensionActivityBarItems(ExtensionManager manager)
     {
-        var extensionGroups = manager.RibbonItems
-            .Where(r => string.Equals(r.Tab, "Extensions", StringComparison.OrdinalIgnoreCase))
-            .GroupBy(r => r.Group)
-            .Select(g => new ExtensionRibbonGroup(g.Key, g.ToList()))
-            .ToList();
-        ExtensionRibbonGroups = new ObservableCollection<ExtensionRibbonGroup>(extensionGroups);
-
-        var viewGroups = manager.RibbonItems
-            .Where(r => string.Equals(r.Tab, "View", StringComparison.OrdinalIgnoreCase))
-            .GroupBy(r => r.Group)
-            .Select(g => new ExtensionRibbonGroup(g.Key, g.ToList()))
-            .ToList();
-        ExtensionViewRibbonGroups = new ObservableCollection<ExtensionRibbonGroup>(viewGroups);
+        ExtensionActivityBarItems.Clear();
+        foreach (var r in manager.RibbonItems)
+        {
+            ExtensionActivityBarItems.Add(new ActivityBarItem
+            {
+                Label = r.Label,
+                Tooltip = string.IsNullOrEmpty(r.Tooltip) ? r.Label : r.Tooltip,
+                Icon = r.Icon,
+                IconPath = r.IconPath,
+                OnClick = r.OnClick
+            });
+        }
     }
 
     [RelayCommand]
-    private void ExecuteExtensionRibbonItem(RibbonItem item)
+    private void ExecuteExtensionActivityBarItem(ActivityBarItem item)
     {
         item.OnClick?.Invoke();
+    }
+
+    [RelayCommand]
+    private async Task ShowActivityViewAsync(string view)
+    {
+        switch (view)
+        {
+            case "Settings":
+                ToggleSettings();
+                ActiveActivityView = IsSettingsOpen ? view : string.Empty;
+                return;
+            case "Extensions":
+                ToggleExtensions();
+                ActiveActivityView = IsExtensionsOpen ? view : string.Empty;
+                return;
+        }
+
+        if (ActiveActivityView == view)
+        {
+            ActiveActivityView = string.Empty;
+            return;
+        }
+        ActiveActivityView = view;
+        switch (view)
+        {
+            case "Export": ShowExport(); break;
+            case "ImageGallery": ShowImageGallery(); break;
+            case "Git": await ShowGitAsync(); break;
+        }
     }
 
     [RelayCommand]
@@ -442,21 +643,24 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    public async void ShowExtensionNotification(string message)
-    {
-        _notificationCts?.Cancel();
-        _notificationCts = new CancellationTokenSource();
-        var token = _notificationCts.Token;
+    public void ShowExtensionNotification(string message) =>
+        ShowToast(message, ToastSeverity.Info);
 
-        ExtensionNotification = message;
-        try
+    public void ShowToast(string message, ToastSeverity severity = ToastSeverity.Info, int autoDismissMs = 8000)
+    {
+        var toast = new ToastNotification(message, severity);
+        // Cap stack at 4; drop oldest
+        while (Toasts.Count >= 4)
+            Toasts.RemoveAt(Toasts.Count - 1);
+        Toasts.Insert(0, toast);
+
+        if (autoDismissMs > 0)
         {
-            await Task.Delay(4000, token);
-            ExtensionNotification = null;
-        }
-        catch (TaskCanceledException)
-        {
-            // A newer notification replaced this one
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(autoDismissMs);
+                Dispatcher.UIThread.Post(() => Toasts.Remove(toast));
+            });
         }
     }
 
@@ -551,6 +755,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         Manuscript = new ManuscriptViewModel(_projectService);
         Manuscript.SceneOpenRequested += OnSceneOpenRequested;
+        Manuscript.SceneFocusChanged += OnManuscriptSceneFocused;
         Manuscript.SceneSaved += () => _ = RefreshGitStatusAsync();
 
         _settingsService.AddRecentProject(metadata.Name, projectPath, GetCoverImageAbsolutePath());
@@ -565,6 +770,7 @@ public partial class MainWindowViewModel : ObservableObject
         IsSceneNotesVisible = viewState.IsSceneNotesVisible;
 
         // Auto-open dashboard
+        IsDashboardOpen = true;
         ActiveContentView = "Dashboard";
 
         // Initialize Git integration asynchronously
@@ -649,6 +855,11 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    private void OnManuscriptSceneFocused(ChapterData chapter, SceneData scene, string plainText)
+    {
+        ContextSidebar?.RefreshContextForScene(chapter, scene, plainText);
+    }
+
     private void OnEntityOpenRequested(EntityType type, object entity)
     {
         if (EntityEditor == null) return;
@@ -710,7 +921,7 @@ public partial class MainWindowViewModel : ObservableObject
         if (EntityPanel == null) return;
         await EntityPanel.LoadAllAsync();
         if (EntityEditor?.IsOpen != true)
-            ActiveContentView = Editor?.IsDocumentOpen == true ? "Scene" : "Dashboard";
+            ActiveContentView = GetFallbackView("Entity");
         if (Editor != null)
             await Editor.RefreshFocusPeekAsync();
         if (ContextSidebar != null)
@@ -726,12 +937,20 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void OnEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(EditorViewModel.IsDocumentOpen)
+            or nameof(EditorViewModel.SceneTabTitle)
+            or nameof(EditorViewModel.IsDirty)
+            or nameof(EditorViewModel.DocumentTitle))
+        {
+            SyncContentTabs();
+        }
+
         if (e.PropertyName == nameof(EditorViewModel.IsDocumentOpen))
         {
             if (Editor?.IsDocumentOpen != true
                 && ActiveContentView == "Scene")
             {
-                ActiveContentView = EntityEditor?.IsOpen == true ? "Entity" : "Dashboard";
+                ActiveContentView = GetFallbackView("Scene");
             }
 
             OnPropertyChanged(nameof(HasOpenEditors));
@@ -759,11 +978,17 @@ public partial class MainWindowViewModel : ObservableObject
 
     private void OnEntityEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName is nameof(EntityEditorViewModel.IsOpen)
+            or nameof(EntityEditorViewModel.Title))
+        {
+            SyncContentTabs();
+        }
+
         if (e.PropertyName != nameof(EntityEditorViewModel.IsOpen))
             return;
 
         if (EntityEditor?.IsOpen != true && ActiveContentView == "Entity")
-            ActiveContentView = Editor?.IsDocumentOpen == true ? "Scene" : "Dashboard";
+            ActiveContentView = GetFallbackView("Entity");
 
         OnPropertyChanged(nameof(HasOpenEditors));
     }
@@ -787,6 +1012,51 @@ public partial class MainWindowViewModel : ObservableObject
 
         await EntityEditor.CloseCommand.ExecuteAsync(null);
         StatusText = Editor?.IsDocumentOpen == true ? Loc.T("status.editing", Editor.SceneTabTitle) : Loc.T("app.ready");
+    }
+
+    [RelayCommand]
+    private void CloseDashboardTab()
+    {
+        IsDashboardOpen = false;
+        if (ActiveContentView == "Dashboard")
+            ActiveContentView = GetFallbackView("Dashboard");
+    }
+
+    [RelayCommand]
+    private void CloseTimelineTab()
+    {
+        IsTimelineOpen = false;
+        if (ActiveContentView == "Timeline")
+            ActiveContentView = GetFallbackView("Timeline");
+    }
+
+    [RelayCommand]
+    private void CloseCodexHubTab()
+    {
+        IsCodexHubOpen = false;
+        if (ActiveContentView == "CodexHub")
+            ActiveContentView = GetFallbackView("CodexHub");
+    }
+
+    [RelayCommand]
+    private void CloseManuscriptTab()
+    {
+        IsManuscriptOpen = false;
+        if (ActiveContentView == "Manuscript")
+            ActiveContentView = GetFallbackView("Manuscript");
+    }
+
+    private string GetFallbackView(string excluding = "")
+    {
+        if (excluding != "Scene" && Editor?.IsDocumentOpen == true) return "Scene";
+        if (excluding != "Entity" && EntityEditor?.IsOpen == true) return "Entity";
+        if (excluding != "Dashboard" && IsDashboardOpen) return "Dashboard";
+        if (excluding != "Timeline" && IsTimelineOpen) return "Timeline";
+        if (excluding != "CodexHub" && IsCodexHubOpen) return "CodexHub";
+        if (excluding != "Manuscript" && IsManuscriptOpen) return "Manuscript";
+        // Nothing open — open dashboard as last resort
+        IsDashboardOpen = true;
+        return "Dashboard";
     }
 
     public async Task RefreshStatusBarAsync()
@@ -996,6 +1266,7 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ShowDashboard()
     {
+        IsDashboardOpen = true;
         ActiveContentView = "Dashboard";
         IsStartMenuOpen = false;
     }
@@ -1003,6 +1274,7 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ShowTimeline()
     {
+        IsTimelineOpen = true;
         ActiveContentView = "Timeline";
         Timeline?.Refresh();
         IsStartMenuOpen = false;
@@ -1011,22 +1283,39 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ShowExport()
     {
+        IsExportOpen = true;
         ActiveContentView = "Export";
         Export?.Refresh();
         IsStartMenuOpen = false;
     }
 
     [RelayCommand]
+    private void CloseExportTab()
+    {
+        IsExportOpen = false;
+        if (ActiveContentView == "Export") SetActiveContentView("Scene");
+    }
+
+    [RelayCommand]
     private void ShowImageGallery()
     {
+        IsImageGalleryOpen = true;
         ActiveContentView = "ImageGallery";
         ImageGallery?.Refresh();
         IsStartMenuOpen = false;
     }
 
     [RelayCommand]
+    private void CloseImageGalleryTab()
+    {
+        IsImageGalleryOpen = false;
+        if (ActiveContentView == "ImageGallery") SetActiveContentView("Scene");
+    }
+
+    [RelayCommand]
     private void ShowCodexHub()
     {
+        IsCodexHubOpen = true;
         ActiveContentView = "CodexHub";
         CodexHub?.Refresh();
         IsStartMenuOpen = false;
@@ -1035,6 +1324,7 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void ShowManuscript()
     {
+        IsManuscriptOpen = true;
         ActiveContentView = "Manuscript";
         if (Manuscript != null)
         {
@@ -1047,10 +1337,26 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task ShowGitAsync()
     {
+        IsGitOpen = true;
         ActiveContentView = "Git";
         if (Git != null)
             await Git.RefreshAsync();
         IsStartMenuOpen = false;
+    }
+
+    [RelayCommand]
+    private void CloseGitTab()
+    {
+        IsGitOpen = false;
+        if (ActiveContentView == "Git") SetActiveContentView("Scene");
+    }
+
+    [RelayCommand]
+    private void CloseExtensionContentTab()
+    {
+        IsExtensionContentOpen = false;
+        ExtensionContentTabTitle = string.Empty;
+        if (ActiveContentView.StartsWith("ext:", StringComparison.Ordinal)) SetActiveContentView("Scene");
     }
 
     private void RefreshDashboard()
@@ -1099,13 +1405,6 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void SetActiveTab(string tab)
-    {
-        IsStartMenuOpen = false;
-        ActiveTab = tab;
-    }
-
-    [RelayCommand]
     private void ToggleStartMenu()
     {
         IsStartMenuOpen = !IsStartMenuOpen;
@@ -1144,6 +1443,10 @@ public partial class MainWindowViewModel : ObservableObject
     {
         IsStartMenuOpen = false;
         IsProjectLoaded = false;
+        IsDashboardOpen = false;
+        IsTimelineOpen = false;
+        IsCodexHubOpen = false;
+        IsManuscriptOpen = false;
         Title = $"{Loc.T("app.title")} {VersionInfo.Version}";
         StatusText = string.Empty;
     }
@@ -1151,14 +1454,22 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void SetActiveContentView(string view)
     {
+        if (!string.IsNullOrEmpty(view) && view.StartsWith("ext:", StringComparison.Ordinal))
+        {
+            ActiveContentView = view;
+            return;
+        }
+
         if (string.Equals(view, "Dashboard", StringComparison.Ordinal))
         {
+            IsDashboardOpen = true;
             ActiveContentView = "Dashboard";
             return;
         }
 
         if (string.Equals(view, "Timeline", StringComparison.Ordinal))
         {
+            IsTimelineOpen = true;
             ActiveContentView = "Timeline";
             Timeline?.Refresh();
             return;
@@ -1187,6 +1498,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         if (string.Equals(view, "CodexHub", StringComparison.Ordinal))
         {
+            IsCodexHubOpen = true;
             ActiveContentView = "CodexHub";
             CodexHub?.Refresh();
             return;
@@ -1194,6 +1506,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         if (string.Equals(view, "Manuscript", StringComparison.Ordinal))
         {
+            IsManuscriptOpen = true;
             ActiveContentView = "Manuscript";
             if (Manuscript != null)
             {
@@ -1579,18 +1892,6 @@ public sealed class StatusBarSceneOverviewItem
     public double BarWidth { get; set; }
 }
 
-public sealed class ExtensionRibbonGroup
-{
-    public ExtensionRibbonGroup(string groupName, List<RibbonItem> items)
-    {
-        GroupName = groupName;
-        Items = items;
-    }
-
-    public string GroupName { get; }
-    public List<RibbonItem> Items { get; }
-}
-
 public sealed class ExtensionStatusBarItemVM : INotifyPropertyChanged
 {
     public ExtensionStatusBarItemVM(StatusBarItem source)
@@ -1622,4 +1923,24 @@ public sealed class ExtensionSidebarTabVM
     public string Id => Panel.Id;
     public string Label => Panel.Label;
     public string Tooltip => Panel.Tooltip;
+}
+
+public sealed class ExtensionContextTabVM : CommunityToolkit.Mvvm.ComponentModel.ObservableObject
+{
+    public ExtensionContextTabVM(SidebarPanel panel)
+    {
+        Panel = panel;
+    }
+
+    public SidebarPanel Panel { get; }
+    public string Id => Panel.Id;
+    public string Label => Panel.Label;
+    public string Tooltip => Panel.Tooltip;
+
+    private bool _isActive;
+    public bool IsActive
+    {
+        get => _isActive;
+        set => SetProperty(ref _isActive, value);
+    }
 }

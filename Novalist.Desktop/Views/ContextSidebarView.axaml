@@ -34,16 +34,14 @@
                                 IsVisible="{Binding IsContextAvailable}">
                         <StackPanel Spacing="4">
                             <Border Classes="contextSidebarSceneContext">
-                                <Grid ColumnDefinitions="*,Auto"
-                                      ColumnSpacing="8">
+                                <StackPanel Spacing="2">
                                     <TextBlock Text="{Binding ContextLabel}"
                                                Classes="contextSidebarSceneLabel"
                                                TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Grid.Column="1"
-                                               Text="{Binding ContextDate}"
+                                    <TextBlock Text="{Binding ContextDateDisplay}"
                                                Classes="contextSidebarSceneDate"
                                                IsVisible="{Binding HasContextDate}" />
-                                </Grid>
+                                </StackPanel>
                             </Border>
 
                             <TextBlock Text="{Binding ContextSubtitle}"
@@ -53,10 +51,18 @@
 
                         <StackPanel Spacing="8"
                                     IsVisible="{Binding HasCharacterCards}">
-                            <TextBlock Text="{loc:Loc context.characters}"
-                                       Classes="contextSidebarOverviewSectionTitle" />
+                            <Button Classes="contextSidebarSectionHeaderButton"
+                                    Command="{Binding ToggleCharactersSectionCommand}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{loc:Loc context.characters}"
+                                               Classes="contextSidebarOverviewSectionTitle" />
+                                    <Path Grid.Column="1" Classes="contextSidebarSectionChevron"
+                                          Classes.collapsed="{Binding IsCharactersSectionExpanded, Converter={x:Static BoolConverters.Not}}" />
+                                </Grid>
+                            </Button>
 
-                            <ItemsControl ItemsSource="{Binding CharacterCards}">
+                            <ItemsControl ItemsSource="{Binding CharacterCards}"
+                                          IsVisible="{Binding IsCharactersSectionExpanded}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:ContextSidebarEntityCardViewModel">
                                         <Button Classes="contextSidebarCardButton"
@@ -123,11 +129,19 @@
 
                         <StackPanel Spacing="8"
                                     IsVisible="{Binding HasMentionFrequency}">
-                            <TextBlock Text="{loc:Loc context.mentionFrequency}"
-                                       Classes="contextSidebarOverviewSectionTitle" />
+                            <Button Classes="contextSidebarSectionHeaderButton"
+                                    Command="{Binding ToggleMentionsSectionCommand}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{loc:Loc context.mentionFrequency}"
+                                               Classes="contextSidebarOverviewSectionTitle" />
+                                    <Path Grid.Column="1" Classes="contextSidebarSectionChevron"
+                                          Classes.collapsed="{Binding IsMentionsSectionExpanded, Converter={x:Static BoolConverters.Not}}" />
+                                </Grid>
+                            </Button>
 
                             <StackPanel Spacing="8"
-                                        Classes="contextSidebarMentionGraph">
+                                        Classes="contextSidebarMentionGraph"
+                                        IsVisible="{Binding IsMentionsSectionExpanded}">
                                 <StackPanel Orientation="Horizontal"
                                             Spacing="12"
                                             Classes="contextSidebarMentionLegend">
@@ -195,10 +209,18 @@
 
                         <StackPanel Spacing="8"
                                     IsVisible="{Binding HasLocationCards}">
-                            <TextBlock Text="{loc:Loc context.locations}"
-                                       Classes="contextSidebarOverviewSectionTitle" />
+                            <Button Classes="contextSidebarSectionHeaderButton"
+                                    Command="{Binding ToggleLocationsSectionCommand}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{loc:Loc context.locations}"
+                                               Classes="contextSidebarOverviewSectionTitle" />
+                                    <Path Grid.Column="1" Classes="contextSidebarSectionChevron"
+                                          Classes.collapsed="{Binding IsLocationsSectionExpanded, Converter={x:Static BoolConverters.Not}}" />
+                                </Grid>
+                            </Button>
 
-                            <ItemsControl ItemsSource="{Binding LocationCards}">
+                            <ItemsControl ItemsSource="{Binding LocationCards}"
+                                          IsVisible="{Binding IsLocationsSectionExpanded}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:ContextSidebarEntityCardViewModel">
                                         <Button Classes="contextSidebarCardButton"
@@ -237,10 +259,18 @@
 
                         <StackPanel Spacing="8"
                                     IsVisible="{Binding HasItemCards}">
-                            <TextBlock Text="{loc:Loc context.items}"
-                                       Classes="contextSidebarOverviewSectionTitle" />
+                            <Button Classes="contextSidebarSectionHeaderButton"
+                                    Command="{Binding ToggleItemsSectionCommand}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{loc:Loc context.items}"
+                                               Classes="contextSidebarOverviewSectionTitle" />
+                                    <Path Grid.Column="1" Classes="contextSidebarSectionChevron"
+                                          Classes.collapsed="{Binding IsItemsSectionExpanded, Converter={x:Static BoolConverters.Not}}" />
+                                </Grid>
+                            </Button>
 
-                            <ItemsControl ItemsSource="{Binding ItemCards}">
+                            <ItemsControl ItemsSource="{Binding ItemCards}"
+                                          IsVisible="{Binding IsItemsSectionExpanded}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:ContextSidebarEntityCardViewModel">
                                         <Button Classes="contextSidebarCardButton"
@@ -279,10 +309,18 @@
 
                         <StackPanel Spacing="8"
                                     IsVisible="{Binding HasLoreCards}">
-                            <TextBlock Text="{loc:Loc context.lore}"
-                                       Classes="contextSidebarOverviewSectionTitle" />
+                            <Button Classes="contextSidebarSectionHeaderButton"
+                                    Command="{Binding ToggleLoreSectionCommand}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{loc:Loc context.lore}"
+                                               Classes="contextSidebarOverviewSectionTitle" />
+                                    <Path Grid.Column="1" Classes="contextSidebarSectionChevron"
+                                          Classes.collapsed="{Binding IsLoreSectionExpanded, Converter={x:Static BoolConverters.Not}}" />
+                                </Grid>
+                            </Button>
 
-                            <ItemsControl ItemsSource="{Binding LoreCards}">
+                            <ItemsControl ItemsSource="{Binding LoreCards}"
+                                          IsVisible="{Binding IsLoreSectionExpanded}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:ContextSidebarEntityCardViewModel">
                                         <Button Classes="contextSidebarCardButton"
@@ -321,10 +359,18 @@
 
                         <StackPanel Spacing="8"
                                     IsVisible="{Binding HasSceneAnalysis}">
-                            <TextBlock Text="{loc:Loc context.sceneAnalysis}"
-                                       Classes="contextSidebarOverviewSectionTitle" />
+                            <Button Classes="contextSidebarSectionHeaderButton"
+                                    Command="{Binding ToggleSceneAnalysisSectionCommand}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{loc:Loc context.sceneAnalysis}"
+                                               Classes="contextSidebarOverviewSectionTitle" />
+                                    <Path Grid.Column="1" Classes="contextSidebarSectionChevron"
+                                          Classes.collapsed="{Binding IsSceneAnalysisSectionExpanded, Converter={x:Static BoolConverters.Not}}" />
+                                </Grid>
+                            </Button>
 
                             <StackPanel DataContext="{Binding SceneAnalysis}"
+                                        IsVisible="{Binding $parent[StackPanel].((vm:ContextSidebarViewModel)DataContext).IsSceneAnalysisSectionExpanded}"
                                         x:DataType="vm:ContextSidebarSceneAnalysisViewModel"
                                         Spacing="8">
                                 <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
@@ -645,7 +691,7 @@
                             Padding="14"
                             Classes="contextSidebarSceneContext"
                             IsVisible="{Binding IsContextAvailable, Converter={x:Static BoolConverters.Not}}">
-                        <TextBlock Text="Open a scene to view chapter and scene context."
+                        <TextBlock Text="{loc:Loc context.openSceneHint}"
                                    TextWrapping="Wrap"
                                    Classes="contextSidebarEmpty" />
                     </Border>

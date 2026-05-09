@@ -7,6 +7,7 @@
     <SolidColorBrush x:Key="RibbonBackground" Color="#252526" />
     <SolidColorBrush x:Key="RibbonBorder" Color="#333333" />
     <SolidColorBrush x:Key="RibbonGroupBorder" Color="#333333" />
+    <SolidColorBrush x:Key="ActivityBarBackground" Color="#1E1E1E" />
 
     <!-- Status bar (accent-based, slightly softer) -->
     <SolidColorBrush x:Key="StatusBarBackground" Color="#006AB3" />
@@ -55,6 +56,17 @@
     <SolidColorBrush x:Key="EditorTabBadgeBackground" Color="#333333" />
     <SolidColorBrush x:Key="EditorTabCloseGlyph" Color="#C5C5C5" />
     <SolidColorBrush x:Key="EditorTabCloseHoverBackground" Color="#4B4B4B" />
+
+    <!-- Overlay scrim (modal backdrops) -->
+    <SolidColorBrush x:Key="OverlayScrim" Color="#80000000" />
+
+    <!-- Focus ring -->
+    <SolidColorBrush x:Key="FocusRingBrush" Color="#990E8BDF" />
+
+    <!-- Elevation (BoxShadow values) -->
+    <BoxShadows x:Key="ElevationLow">0 1 3 0 #20000000</BoxShadows>
+    <BoxShadows x:Key="ElevationMedium">0 4 12 0 #40000000</BoxShadows>
+    <BoxShadows x:Key="ElevationHigh">0 8 24 0 #50000000</BoxShadows>
 
     <!-- Chapter Status Colors -->
     <SolidColorBrush x:Key="StatusOutline" Color="#6C7086" />

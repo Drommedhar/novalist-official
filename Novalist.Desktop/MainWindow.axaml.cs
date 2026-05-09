@@ -12,6 +12,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Novalist.Core.Services;
 using Novalist.Desktop.Dialogs;
+using Novalist.Desktop.Localization;
 using Novalist.Core.Models;
 using Novalist.Desktop.ViewModels;
 using Novalist.Desktop.Views;
@@ -28,6 +29,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // Restore window state from settings before opening
+        Opened += OnWindowOpened;
+        Closing += OnWindowClosing;
+
         DataContextChanged += (_, _) =>
         {
             if (DataContext is MainWindowViewModel vm)
@@ -47,14 +53,14 @@ public partial class MainWindow : Window
                     if (folders.Count > 0)
                     {
                         try { await vm.LoadProjectAsync(folders[0].Path.LocalPath); }
-                        catch (Exception ex) { vm.StatusText = $"Error: {ex.Message}"; }
+                        catch (Exception ex) { vm.StatusText = $"Error: {ex.Message}"; Toast.Show?.Invoke(Loc.T("toast.projectLoadFailed", ex.Message), ToastSeverity.Error); }
                     }
                 };
 
                 vm.OpenRecentProjectFromMenuRequested += async (path) =>
                 {
                     try { await vm.LoadProjectAsync(path); }
-                    catch (Exception ex) { vm.StatusText = $"Error: {ex.Message}"; }
+                    catch (Exception ex) { vm.StatusText = $"Error: {ex.Message}"; Toast.Show?.Invoke(Loc.T("toast.projectLoadFailed", ex.Message), ToastSeverity.Error); }
                 };
 
                 vm.PropertyChanged += (_, e) =>
@@ -117,15 +123,22 @@ public partial class MainWindow : Window
                 break;
             case nameof(MainWindowViewModel.ActiveContentView):
                 UpdateContentVisibility(vm.ActiveContentView);
+                ToggleContextSidebarColumn(vm.IsContextSidebarShowing);
                 break;
             case nameof(MainWindowViewModel.IsExplorerVisible):
                 ToggleExplorerColumn(vm.IsExplorerVisible);
                 break;
             case nameof(MainWindowViewModel.IsContextSidebarVisible):
-                ToggleContextSidebarColumn(vm.IsContextSidebarVisible);
+                ToggleContextSidebarColumn(vm.IsContextSidebarShowing);
                 break;
             case nameof(MainWindowViewModel.IsExtensionRightSidebarVisible):
                 ToggleExtensionRightSidebarColumn(vm);
+                break;
+            case nameof(MainWindowViewModel.HasExtensionContextTabs):
+                ToggleContextSidebarColumn(vm.IsContextSidebarShowing);
+                break;
+            case nameof(MainWindowViewModel.ActiveContextTab):
+                UpdateContextTabContent(vm);
                 break;
         }
     }
@@ -133,18 +146,19 @@ public partial class MainWindow : Window
     private void ToggleExplorerColumn(bool visible)
     {
         var grid = this.FindControl<Grid>("ProjectContentGrid");
-        if (grid == null || grid.ColumnDefinitions.Count < 1) return;
-        var col = grid.ColumnDefinitions[0];
+        if (grid == null || grid.ColumnDefinitions.Count < 2) return;
+        var col = grid.ColumnDefinitions[1];
 
         if (visible)
         {
-            col.Width = _savedExplorerWidth;
+            col.Width = _savedExplorerWidth.Value > 0 ? _savedExplorerWidth : new GridLength(280);
             col.MinWidth = 180;
             col.MaxWidth = 500;
         }
         else
         {
-            _savedExplorerWidth = col.Width;
+            if (col.Width.IsAbsolute && col.Width.Value > 0)
+                _savedExplorerWidth = col.Width;
             col.MinWidth = 0;
             col.MaxWidth = 0;
             col.Width = new GridLength(0);
@@ -153,7 +167,7 @@ public partial class MainWindow : Window
 
     private void ToggleContextSidebarColumn(bool visible)
     {
-        var grid = this.FindControl<Grid>("SceneContentPanel");
+        var grid = this.FindControl<Grid>("OuterContentGrid");
         if (grid == null || grid.ColumnDefinitions.Count < 3) return;
         var col = grid.ColumnDefinitions[2];
 
@@ -177,10 +191,10 @@ public partial class MainWindow : Window
     private void ToggleExtensionRightSidebarColumn(MainWindowViewModel vm)
     {
         var grid = this.FindControl<Grid>("SceneContentPanel");
-        if (grid == null || grid.ColumnDefinitions.Count < 5) return;
+        if (grid == null || grid.ColumnDefinitions.Count < 3) return;
 
-        var splitterCol = grid.ColumnDefinitions[3];
-        var sidebarCol = grid.ColumnDefinitions[4];
+        var splitterCol = grid.ColumnDefinitions[1];
+        var sidebarCol = grid.ColumnDefinitions[2];
         var host = this.FindControl<ContentControl>("ExtensionRightSidebarHost");
         var visible = vm.IsExtensionRightSidebarVisible;
 
@@ -256,6 +270,56 @@ public partial class MainWindow : Window
             {
                 extHost.IsVisible = false;
             }
+        }
+    }
+
+    // ── Context sidebar tab switching ────────────────────────────────
+
+    private void OnContextTabClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+            vm.ActiveContextTab = "Context";
+    }
+
+    private void OnContextExtTabClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string panelId && DataContext is MainWindowViewModel vm)
+            vm.ActiveContextTab = panelId;
+    }
+
+    private readonly Dictionary<string, Control> _contextExtTabViews = new();
+
+    private void UpdateContextTabContent(MainWindowViewModel vm)
+    {
+        var ctxSidebar = this.FindControl<ContextSidebarView>("ContextSidebarPanel");
+        var extHost = this.FindControl<ContentControl>("ContextExtTabHost");
+        var isNative = string.Equals(vm.ActiveContextTab, "Context", StringComparison.Ordinal);
+
+        if (ctxSidebar != null) ctxSidebar.IsVisible = isNative;
+
+        if (extHost == null) return;
+
+        if (!isNative)
+        {
+            var panelId = vm.ActiveContextTab;
+            if (!_contextExtTabViews.TryGetValue(panelId, out var view))
+            {
+                var panel = vm.ExtensionContextTabs.FirstOrDefault(t => t.Id == panelId)?.Panel;
+                if (panel != null)
+                {
+                    view = panel.CreateView();
+                    _contextExtTabViews[panelId] = view;
+                }
+            }
+            if (view != null)
+            {
+                extHost.Content = view;
+                extHost.IsVisible = true;
+            }
+        }
+        else
+        {
+            extHost.IsVisible = false;
         }
     }
 
@@ -377,28 +441,64 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    private async void OnEditorTabPointerPressed(object? sender, PointerPressedEventArgs e)
+    private void OnWindowOpened(object? sender, EventArgs e)
     {
-        if (sender is not Control control
-            || control.Tag is not string tab
-            || DataContext is not MainWindowViewModel vm)
+        var s = App.SettingsService.Settings;
+        if (s.WindowWidth > 100 && s.WindowHeight > 100)
         {
-            return;
+            Width = s.WindowWidth;
+            Height = s.WindowHeight;
         }
+        if (s.WindowX.HasValue && s.WindowY.HasValue)
+        {
+            // Clamp to current screen bounds (multi-monitor reconnect safety)
+            var screens = Screens.All;
+            if (screens.Count > 0)
+            {
+                var px = (int)s.WindowX.Value;
+                var py = (int)s.WindowY.Value;
+                var inAnyScreen = screens.Any(scr =>
+                    px >= scr.Bounds.X - 50 && px < scr.Bounds.X + scr.Bounds.Width - 50 &&
+                    py >= scr.Bounds.Y - 50 && py < scr.Bounds.Y + scr.Bounds.Height - 50);
+                if (inAnyScreen)
+                    Position = new PixelPoint(px, py);
+            }
+        }
+        if (s.IsMaximized)
+            WindowState = WindowState.Maximized;
+    }
 
+    private void OnWindowClosing(object? sender, WindowClosingEventArgs e)
+    {
+        var s = App.SettingsService.Settings;
+        s.IsMaximized = WindowState == WindowState.Maximized;
+        if (WindowState == WindowState.Normal)
+        {
+            s.WindowWidth = Width;
+            s.WindowHeight = Height;
+            s.WindowX = Position.X;
+            s.WindowY = Position.Y;
+        }
+        _ = App.SettingsService.SaveAsync();
+    }
+
+    private void OnEditorTabPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (sender is not Control control)
+            return;
         if (!e.GetCurrentPoint(control).Properties.IsMiddleButtonPressed)
+            return;
+        if (control.DataContext is not EditorTabDescriptor desc)
             return;
 
         e.Handled = true;
+        desc.OnClose?.Invoke();
+    }
 
-        if (string.Equals(tab, "Scene", StringComparison.Ordinal))
-        {
-            await vm.CloseSceneTabCommand.ExecuteAsync(null);
-            return;
-        }
-
-        if (string.Equals(tab, "Entity", StringComparison.Ordinal))
-            await vm.CloseEntityTabCommand.ExecuteAsync(null);
+    private void OnEditorTabCloseClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control c && c.DataContext is EditorTabDescriptor desc)
+            desc.OnClose?.Invoke();
     }
 
     // ── Wiring ──────────────────────────────────────────────────────
@@ -662,7 +762,7 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
-                vm.StatusText = $"Error: {ex.Message}";
+                vm.StatusText = $"Error: {ex.Message}"; Toast.Show?.Invoke(Loc.T("toast.projectLoadFailed", ex.Message), ToastSeverity.Error);
             }
         };
 
@@ -674,7 +774,7 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
-                vm.StatusText = $"Error: {ex.Message}";
+                vm.StatusText = $"Error: {ex.Message}"; Toast.Show?.Invoke(Loc.T("toast.projectLoadFailed", ex.Message), ToastSeverity.Error);
             }
         };
 
@@ -730,7 +830,7 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
-                vm.StatusText = $"Error: {ex.Message}";
+                vm.StatusText = $"Error: {ex.Message}"; Toast.Show?.Invoke(Loc.T("toast.projectLoadFailed", ex.Message), ToastSeverity.Error);
             }
         };
 

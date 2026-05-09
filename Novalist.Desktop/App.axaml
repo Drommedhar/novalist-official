@@ -14,8 +14,9 @@
             <Setter Property="Background" Value="{DynamicResource CardBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
             <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusLarge}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusXLarge}" />
             <Setter Property="Padding" Value="12,12" />
+            <Setter Property="BoxShadow" Value="0 1 4 0 #14000000" />
         </Style>
 
         <!-- ── NlvButtonPrimary: main action button (accent-filled) ── -->
@@ -72,140 +73,129 @@
             <Setter Property="LetterSpacing" Value="0.6" />
         </Style>
 
-        <!-- ── Ribbon File Tab (Start button — Word-style accent) ── -->
-        <Style Selector="Button.ribbonFileTab">
-            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="16,6" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="CornerRadius" Value="0" />
-            <Setter Property="Margin" Value="0" />
+        <!-- ── App Bar (slim, replaces ribbon) ── -->
+        <Style Selector="Border.appBar">
+            <Setter Property="Background" Value="{DynamicResource RibbonBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource RibbonBorder}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Padding" Value="4,0,6,0" />
         </Style>
-        <Style Selector="Button.ribbonFileTab:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}" />
-            <Setter Property="Foreground" Value="White" />
-        </Style>
-
-        <!-- ── Ribbon Tab ── -->
-        <Style Selector="Button.ribbonTab">
+        <Style Selector="Button.appBarButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
-            <Setter Property="BorderThickness" Value="0,0,0,2" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8,4" />
             <Setter Property="FontSize" Value="12" />
-            <Setter Property="CornerRadius" Value="0" />
-        </Style>
-        <Style Selector="Button.ribbonTab:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
-            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
-        </Style>
-        <Style Selector="Button.ribbonTab.active /template/ ContentPresenter">
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
-        </Style>
-
-        <!-- ── Ribbon Content Panel ── -->
-        <Style Selector="Border.ribbonContent">
-            <Setter Property="Padding" Value="8,4,8,4" />
-            <Setter Property="MinHeight" Value="72" />
-            <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
-            <Setter Property="BorderThickness" Value="0,1,0,0" />
-        </Style>
-
-        <!-- ── Ribbon Group (softer separator between groups) ── -->
-        <Style Selector="Border.ribbonGroup">
-            <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
-            <Setter Property="BorderThickness" Value="0,0,1,0" />
-            <Setter Property="Padding" Value="8,0,8,0" />
-            <Setter Property="VerticalAlignment" Value="Stretch" />
-        </Style>
-
-        <!-- ── Ribbon Separator (vertical line inside a group) ── -->
-        <Style Selector="Border.ribbonSeparator">
-            <Setter Property="Width" Value="1" />
-            <Setter Property="Height" Value="24" />
-            <Setter Property="Margin" Value="4,0" />
-            <Setter Property="Background" Value="{DynamicResource RibbonGroupBorder}" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
-
-        <!-- ── Ribbon Small Button (inline formatting, alignment) ── -->
-        <Style Selector="Button.ribbonButtonSmall">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Padding" Value="6,4" />
-            <Setter Property="MinWidth" Value="30" />
-            <Setter Property="MinHeight" Value="28" />
-            <Setter Property="CornerRadius" Value="3" />
-            <Setter Property="HorizontalContentAlignment" Value="Center" />
-        </Style>
-        <Style Selector="Button.ribbonButtonSmall:pointerover /template/ ContentPresenter">
+        <Style Selector="Button.appBarButton:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
         </Style>
-        <Style Selector="Button.ribbonButtonSmall.active /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource TreeItemSelected}" />
+        <Style Selector="Button.appBarBookPicker">
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="2,0,0,0" />
+        </Style>
+
+        <!-- ── Activity Bar (leftmost icon column) ── -->
+        <Style Selector="Border.activityBar">
+            <Setter Property="Background" Value="{DynamicResource ActivityBarBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource RibbonBorder}" />
+            <Setter Property="BorderThickness" Value="0,0,1,0" />
+        </Style>
+        <Style Selector="Button.activityBarButton">
+            <Setter Property="Width" Value="44" />
+            <Setter Property="Height" Value="44" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="3,0,0,0" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.activityBarButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
+        </Style>
+        <Style Selector="Button.activityBarButton.active">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
         </Style>
+        <Style Selector="Button.activityBarButton.active /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TreeItemSelected}" />
+        </Style>
+        <Style Selector="Viewbox.activityBarIcon">
+            <Setter Property="Width" Value="20" />
+            <Setter Property="Height" Value="20" />
+        </Style>
+        <Style Selector="Path.activityBarIconPath">
+            <Setter Property="StrokeThickness" Value="1.5" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="Stroke" Value="{DynamicResource DimText}" />
+        </Style>
+        <Style Selector="Button.activityBarButton:pointerover Path.activityBarIconPath">
+            <Setter Property="Stroke" Value="{DynamicResource NormalText}" />
+        </Style>
+        <Style Selector="Button.activityBarButton.active Path.activityBarIconPath">
+            <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+        </Style>
 
-        <!-- ── Ribbon Large Button (create chapter/scene) ── -->
-        <Style Selector="Button.ribbonButtonLarge">
+        <!-- ── Ribbon Old Button (backward compat for any extension using ribbonButton class) ── -->
+        <!-- ── Codex Filter Pill (lightweight filter chip for Codex hub) ── -->
+        <Style Selector="Button.codexFilterPill">
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Padding" Value="8,4" />
-            <Setter Property="MinWidth" Value="52" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Foreground" Value="{DynamicResource SubtleText}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusPill}" />
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeBody}" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
         </Style>
-        <Style Selector="Button.ribbonButtonLarge:pointerover /template/ ContentPresenter">
+        <Style Selector="Button.codexFilterPill:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
+            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+        </Style>
+        <Style Selector="Button.codexFilterPill.active /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Foreground" Value="White" />
         </Style>
 
-        <!-- ── Ribbon Toggle Large (View panel toggles — segmented-style) ── -->
-        <Style Selector="Button.ribbonToggleLarge">
+        <!-- ── Panel Toggle Button (VS Code-style header buttons) ── -->
+        <Style Selector="Button.panelToggleButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource DimText}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Padding" Value="10,4" />
-            <Setter Property="MinWidth" Value="58" />
-            <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="5" />
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
-        <Style Selector="Button.ribbonToggleLarge:pointerover /template/ ContentPresenter">
+        <Style Selector="Button.panelToggleButton:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
-            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
         </Style>
-        <Style Selector="Button.ribbonToggleLarge.active /template/ ContentPresenter">
+        <Style Selector="Button.panelToggleButton.active /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource TreeItemSelected}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
         </Style>
-
-        <!-- ── Ribbon Old Button (backward compat) ── -->
-        <Style Selector="Button.ribbonButton">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
-            <Setter Property="Padding" Value="10,6" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="CornerRadius" Value="4" />
+        <Style Selector="Viewbox.panelToggleIcon">
+            <Setter Property="Width" Value="15" />
+            <Setter Property="Height" Value="15" />
         </Style>
-        <Style Selector="Button.ribbonButton.active /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource TreeItemSelected}" />
-            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        <Style Selector="Path.panelToggleIcon">
+            <Setter Property="StrokeThickness" Value="1.5" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="Stroke" Value="{DynamicResource DimText}" />
         </Style>
-        <Style Selector="Button.ribbonButton:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
-            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+        <Style Selector="Button.panelToggleButton:pointerover Path.panelToggleIcon">
+            <Setter Property="Stroke" Value="{DynamicResource NormalText}" />
+        </Style>
+        <Style Selector="Button.panelToggleButton.active Path.panelToggleIcon">
+            <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
         </Style>
 
         <!-- ── Start Menu Panel (File-style backstage) ── -->
@@ -228,32 +218,11 @@
             <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
         </Style>
 
-        <Style Selector="TextBlock.ribbonGroupLabel">
-            <Setter Property="FontSize" Value="9" />
-            <Setter Property="Foreground" Value="{DynamicResource SubtleText}" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-        </Style>
-
-        <!-- ── Ribbon Vector Icon (Viewbox + Path) ── -->
-        <Style Selector="Viewbox.ribbonIcon">
-            <Setter Property="Width" Value="20" />
-            <Setter Property="Height" Value="20" />
-            <Setter Property="HorizontalAlignment" Value="Center" />
-        </Style>
+        <!-- ── Ribbon Vector Icon (kept for start menu icons) ── -->
         <Style Selector="Path.ribbonIcon">
-            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeThickness" Value="1.5" />
             <Setter Property="StrokeLineCap" Value="Round" />
             <Setter Property="StrokeJoin" Value="Round" />
-            <Setter Property="Stroke" Value="{DynamicResource NormalText}" />
-        </Style>
-        <Style Selector="Button.ribbonToggleLarge Path.ribbonIcon">
-            <Setter Property="Stroke" Value="{DynamicResource DimText}" />
-        </Style>
-        <Style Selector="Button.ribbonToggleLarge:pointerover Path.ribbonIcon">
-            <Setter Property="Stroke" Value="{DynamicResource NormalText}" />
-        </Style>
-        <Style Selector="Button.ribbonToggleLarge.active Path.ribbonIcon">
             <Setter Property="Stroke" Value="{DynamicResource NormalText}" />
         </Style>
 
@@ -376,6 +345,8 @@
 
         <Style Selector="Border.editorTabHost.active">
             <Setter Property="Background" Value="{DynamicResource EditorTabActiveBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="BorderThickness" Value="0,2,1,0" />
         </Style>
 
         <Style Selector="Border.editorTabHost:pointerover">
@@ -496,7 +467,8 @@
             <Setter Property="Padding" Value="12,10" />
             <Setter Property="CornerRadius" Value="6" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="MinHeight" Value="44" />
         </Style>
         <Style Selector="Button.welcomeAction:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
@@ -620,7 +592,39 @@
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="LetterSpacing" Value="1" />
             <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
-            <Setter Property="Margin" Value="0,0,0,2" />
+        </Style>
+
+        <Style Selector="Button.contextSidebarSectionHeaderButton">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0,0,0,2" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.contextSidebarSectionHeaderButton:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
+        </Style>
+        <Style Selector="Path.contextSidebarSectionChevron">
+            <Setter Property="Stroke" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="StrokeThickness" Value="1.5" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="Width" Value="8" />
+            <Setter Property="Height" Value="5" />
+            <Setter Property="Stretch" Value="Uniform" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Data" Value="M0 0 L4 4 L8 0" />
+            <Setter Property="RenderTransformOrigin" Value="50%,50%" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.15" />
+                </Transitions>
+            </Setter>
+        </Style>
+        <Style Selector="Path.contextSidebarSectionChevron.collapsed">
+            <Setter Property="RenderTransform" Value="rotate(-90deg)" />
         </Style>
 
         <Style Selector="Button.contextSidebarCardButton">
@@ -1459,6 +1463,8 @@
             <StreamGeometry x:Key="IconCalendar">M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zM16 2v4M8 2v4M3 10h18</StreamGeometry>
             <StreamGeometry x:Key="IconFolder">M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z</StreamGeometry>
             <StreamGeometry x:Key="IconPanelRight">M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM15 3v18</StreamGeometry>
+            <StreamGeometry x:Key="IconPanelLeft">M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM9 3v18</StreamGeometry>
+            <StreamGeometry x:Key="IconPanelBottom">M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zM3 15h18</StreamGeometry>
             <StreamGeometry x:Key="IconPencil">M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5zM15 5l4 4</StreamGeometry>
             <StreamGeometry x:Key="IconMessageSquare">M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z</StreamGeometry>
             <StreamGeometry x:Key="IconSearch">M11 3a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM21 21l-4.35-4.35</StreamGeometry>

@@ -22,6 +22,12 @@ public partial class WelcomeViewModel : ObservableObject
     [ObservableProperty]
     private string _newBookName = string.Empty;
 
+    [ObservableProperty]
+    private bool _isCreateFormOpen;
+
+    [RelayCommand]
+    private void ToggleCreateForm() => IsCreateFormOpen = !IsCreateFormOpen;
+
     public ObservableCollection<RecentProjectCard> RecentProjects { get; } = new();
 
     public event Func<string, string, string, Task>? CreateProjectRequested;

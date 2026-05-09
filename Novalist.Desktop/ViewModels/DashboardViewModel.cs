@@ -301,16 +301,19 @@ public partial class DashboardViewModel : ObservableObject
         ScenesInEdited = statusCounts[ChapterStatus.Edited];
         ScenesInFinal = statusCounts[ChapterStatus.Final];
 
+        var totalScenes = statusCounts.Values.Sum();
         var breakdownItems = new ObservableCollection<StatusBreakdownItem>();
         foreach (var status in Enum.GetValues<ChapterStatus>())
         {
             if (statusCounts[status] > 0)
             {
+                var pct = totalScenes > 0 ? (double)statusCounts[status] / totalScenes : 0.0;
                 breakdownItems.Add(new StatusBreakdownItem(
                     status.ToString(),
                     statusCounts[status],
                     statusWords[status],
-                    GetStatusColor(status)));
+                    GetStatusColor(status),
+                    pct));
             }
         }
         StatusBreakdown = breakdownItems;
@@ -414,14 +417,16 @@ public sealed class StatusBreakdownItem
     public int Count { get; }
     public int WordCount { get; }
     public string Color { get; }
+    public double BarPercent { get; }
     public string WordCountDisplay => TextStatistics.FormatCompactCount(WordCount);
 
-    public StatusBreakdownItem(string status, int count, int wordCount, string color)
+    public StatusBreakdownItem(string status, int count, int wordCount, string color, double barPercent = 0)
     {
         Status = status;
         Count = count;
         WordCount = wordCount;
         Color = color;
+        BarPercent = barPercent;
     }
 }
 

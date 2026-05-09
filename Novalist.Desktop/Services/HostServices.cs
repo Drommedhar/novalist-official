@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Novalist.Core;
@@ -100,7 +99,9 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
     public void ActivateContentView(string viewKey)
     {
         System.Diagnostics.Debug.WriteLine($"[ExtCtxMenu] ActivateContentView called with '{viewKey}', handler null? {ContentViewActivated is null}");
-        ContentViewActivated?.Invoke(viewKey);
+        var displayName = ExtensionManager?.ContentViews
+            .FirstOrDefault(v => v.ViewKey == viewKey)?.DisplayName ?? viewKey;
+        ContentViewActivated?.Invoke(viewKey, displayName);
     }
 
     public void ToggleRightSidebar(string panelId)
@@ -137,24 +138,13 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
 
     public string? ReadHostData(string key)
     {
-        return key switch
-        {
-            "ai" => JsonSerializer.Serialize(_settingsService.Settings.Ai),
-            _ => null
-        };
+        return _settingsService.Settings.ExtensionData.TryGetValue(key, out var json) ? json : null;
     }
 
     public async Task WriteHostDataAsync(string key, string json)
     {
-        if (key == "ai")
-        {
-            var settings = JsonSerializer.Deserialize<AiSettings>(json);
-            if (settings != null)
-            {
-                _settingsService.Settings.Ai = settings;
-                await _settingsService.SaveAsync();
-            }
-        }
+        _settingsService.Settings.ExtensionData[key] = json;
+        await _settingsService.SaveAsync();
     }
 
     // ── Events ──────────────────────────────────────────────────────
@@ -171,8 +161,8 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
     internal event Action<IEditorExtension>? EditorExtensionUnregistered;
     /// <summary>Internal event for notification requests from extensions.</summary>
     internal event Action<string>? NotificationRequested;
-    /// <summary>Internal event for content view activation requests.</summary>
-    internal event Action<string>? ContentViewActivated;
+    /// <summary>Internal event for content view activation requests (viewKey, displayName).</summary>
+    internal event Action<string, string>? ContentViewActivated;
     /// <summary>Internal event for right sidebar toggle requests.</summary>
     internal event Action<string>? RightSidebarToggled;
 

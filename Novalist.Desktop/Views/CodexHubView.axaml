@@ -10,11 +10,23 @@
              x:Class="Novalist.Desktop.Views.CodexHubView"
              x:DataType="vm:CodexHubViewModel">
 
+    <UserControl.Resources>
+        <conv:RelativePathToBitmapConverter x:Key="PathToBitmap" />
+    </UserControl.Resources>
+
     <Border Background="{DynamicResource EditorBackground}">
-        <!-- SpacingXXL=20, SpacingLarge=12 -->
-        <DockPanel Margin="20,20">
+        <DockPanel Margin="32,24,32,24">
+
+            <!-- Loading bar -->
+            <ProgressBar DockPanel.Dock="Top"
+                         IsIndeterminate="True"
+                         IsVisible="{Binding IsLoading}"
+                         Height="2"
+                         Margin="0,0,0,0"
+                         CornerRadius="0" />
+
             <!-- Header -->
-            <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,12">
+            <StackPanel DockPanel.Dock="Top" Spacing="4" Margin="0,0,0,16">
                 <TextBlock Text="{loc:Loc codexHub.title}"
                            FontSize="{DynamicResource FontSizeTitle}"
                            FontWeight="{DynamicResource FontWeightTitle}"
@@ -25,150 +37,125 @@
             </StackPanel>
 
             <!-- Search Bar -->
-            <Border DockPanel.Dock="Top"
-                    Margin="0,0,0,12"
-                    MaxWidth="860"
-                    HorizontalAlignment="Stretch">
-                <TextBox Text="{Binding SearchQuery, Mode=TwoWay}"
-                         Watermark="{loc:Loc codexHub.searchPlaceholder}"
-                         Padding="10,8"
-                         FontSize="14" />
-            </Border>
+            <TextBox DockPanel.Dock="Top"
+                     Text="{Binding SearchQuery, Mode=TwoWay}"
+                     Watermark="{loc:Loc codexHub.searchPlaceholder}"
+                     Padding="10,8"
+                     FontSize="13"
+                     Margin="0,0,0,12" />
 
-            <!-- Tabs: All | Characters | Locations | Items | Lore -->
-            <Border DockPanel.Dock="Top"
-                    Margin="0,0,0,16"
-                    MaxWidth="860"
-                    HorizontalAlignment="Stretch">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <!-- All -->
-                    <Button Command="{Binding SetTabCommand}" CommandParameter="All"
-                            Classes="ribbonToggleLarge"
-                            Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=All}"
-                            Padding="12,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <TextBlock Text="{loc:Loc codexHub.all}" FontSize="13" />
-                            <!-- RadiusPill for badge -->
-                            <Border Background="{DynamicResource AccentBrush}"
-                                    CornerRadius="{DynamicResource RadiusPill}"
-                                    Padding="6,1" MinWidth="24">
-                                <TextBlock Text="{Binding TotalCount}"
-                                           FontSize="11"
-                                           Foreground="White"
-                                           HorizontalAlignment="Center" />
-                            </Border>
-                        </StackPanel>
-                    </Button>
+            <!-- Filter pills -->
+            <StackPanel DockPanel.Dock="Top"
+                        Orientation="Horizontal"
+                        Spacing="4"
+                        Margin="0,0,0,20">
+                <Button Command="{Binding SetTabCommand}" CommandParameter="All"
+                        Classes="codexFilterPill"
+                        Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=All}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBlock Text="{loc:Loc codexHub.all}" />
+                        <Border Background="#30808080"
+                                CornerRadius="{DynamicResource RadiusPill}"
+                                Padding="5,1" MinWidth="20">
+                            <TextBlock Text="{Binding TotalCount}"
+                                       FontSize="10"
+                                       HorizontalAlignment="Center" />
+                        </Border>
+                    </StackPanel>
+                </Button>
 
-                    <!-- Characters -->
-                    <Button Command="{Binding SetTabCommand}" CommandParameter="Character"
-                            Classes="ribbonToggleLarge"
-                            Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Character}"
-                            Padding="12,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconUser}"/></Canvas></Viewbox>
-                            <TextBlock Text="{loc:Loc codexHub.characters}" FontSize="13" />
-                            <Border Background="{DynamicResource AccentBrush}"
-                                    CornerRadius="{DynamicResource RadiusPill}"
-                                    Padding="6,1" MinWidth="24">
-                                <TextBlock Text="{Binding CharacterCount}"
-                                           FontSize="11"
-                                           Foreground="White"
-                                           HorizontalAlignment="Center" />
-                            </Border>
-                        </StackPanel>
-                    </Button>
+                <Button Command="{Binding SetTabCommand}" CommandParameter="Character"
+                        Classes="codexFilterPill"
+                        Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Character}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconUser}"/></Canvas></Viewbox>
+                        <TextBlock Text="{loc:Loc codexHub.characters}" />
+                        <Border Background="#30808080"
+                                CornerRadius="{DynamicResource RadiusPill}"
+                                Padding="5,1" MinWidth="20">
+                            <TextBlock Text="{Binding CharacterCount}"
+                                       FontSize="10"
+                                       HorizontalAlignment="Center" />
+                        </Border>
+                    </StackPanel>
+                </Button>
 
-                    <!-- Locations -->
-                    <Button Command="{Binding SetTabCommand}" CommandParameter="Location"
-                            Classes="ribbonToggleLarge"
-                            Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Location}"
-                            Padding="12,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconMapPin}"/></Canvas></Viewbox>
-                            <TextBlock Text="{loc:Loc codexHub.locations}" FontSize="13" />
-                            <Border Background="{DynamicResource AccentBrush}"
-                                    CornerRadius="{DynamicResource RadiusPill}"
-                                    Padding="6,1" MinWidth="24">
-                                <TextBlock Text="{Binding LocationCount}"
-                                           FontSize="11"
-                                           Foreground="White"
-                                           HorizontalAlignment="Center" />
-                            </Border>
-                        </StackPanel>
-                    </Button>
+                <Button Command="{Binding SetTabCommand}" CommandParameter="Location"
+                        Classes="codexFilterPill"
+                        Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Location}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconMapPin}"/></Canvas></Viewbox>
+                        <TextBlock Text="{loc:Loc codexHub.locations}" />
+                        <Border Background="#30808080"
+                                CornerRadius="{DynamicResource RadiusPill}"
+                                Padding="5,1" MinWidth="20">
+                            <TextBlock Text="{Binding LocationCount}"
+                                       FontSize="10"
+                                       HorizontalAlignment="Center" />
+                        </Border>
+                    </StackPanel>
+                </Button>
 
-                    <!-- Items -->
-                    <Button Command="{Binding SetTabCommand}" CommandParameter="Item"
-                            Classes="ribbonToggleLarge"
-                            Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Item}"
-                            Padding="12,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconSword}"/></Canvas></Viewbox>
-                            <TextBlock Text="{loc:Loc codexHub.items}" FontSize="13" />
-                            <Border Background="{DynamicResource AccentBrush}"
-                                    CornerRadius="{DynamicResource RadiusPill}"
-                                    Padding="6,1" MinWidth="24">
-                                <TextBlock Text="{Binding ItemCount}"
-                                           FontSize="11"
-                                           Foreground="White"
-                                           HorizontalAlignment="Center" />
-                            </Border>
-                        </StackPanel>
-                    </Button>
+                <Button Command="{Binding SetTabCommand}" CommandParameter="Item"
+                        Classes="codexFilterPill"
+                        Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Item}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconSword}"/></Canvas></Viewbox>
+                        <TextBlock Text="{loc:Loc codexHub.items}" />
+                        <Border Background="#30808080"
+                                CornerRadius="{DynamicResource RadiusPill}"
+                                Padding="5,1" MinWidth="20">
+                            <TextBlock Text="{Binding ItemCount}"
+                                       FontSize="10"
+                                       HorizontalAlignment="Center" />
+                        </Border>
+                    </StackPanel>
+                </Button>
 
-                    <!-- Lore -->
-                    <Button Command="{Binding SetTabCommand}" CommandParameter="Lore"
-                            Classes="ribbonToggleLarge"
-                            Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Lore}"
-                            Padding="12,6">
-                        <StackPanel Orientation="Horizontal" Spacing="6">
-                            <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
-                            <TextBlock Text="{loc:Loc codexHub.lore}" FontSize="13" />
-                            <Border Background="{DynamicResource AccentBrush}"
-                                    CornerRadius="{DynamicResource RadiusPill}"
-                                    Padding="6,1" MinWidth="24">
-                                <TextBlock Text="{Binding LoreCount}"
-                                           FontSize="11"
-                                           Foreground="White"
-                                           HorizontalAlignment="Center" />
-                            </Border>
-                        </StackPanel>
-                    </Button>
+                <Button Command="{Binding SetTabCommand}" CommandParameter="Lore"
+                        Classes="codexFilterPill"
+                        Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Lore}">
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
+                        <TextBlock Text="{loc:Loc codexHub.lore}" />
+                        <Border Background="#30808080"
+                                CornerRadius="{DynamicResource RadiusPill}"
+                                Padding="5,1" MinWidth="20">
+                            <TextBlock Text="{Binding LoreCount}"
+                                       FontSize="10"
+                                       HorizontalAlignment="Center" />
+                        </Border>
+                    </StackPanel>
+                </Button>
 
-                    <!-- Dynamic custom entity type dropdown -->
-                    <ComboBox ItemsSource="{Binding CustomTabs}"
-                              SelectedItem="{Binding SelectedCustomTab}"
-                              Padding="12,6"
-                              FontSize="13"
-                              MinWidth="160"
-                              IsVisible="{Binding CustomTabs.Count}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate x:DataType="vm:CodexCustomTab">
-                                <StackPanel Orientation="Horizontal" Spacing="6">
-                                    <TextBlock Text="{Binding Icon}" FontSize="14" VerticalAlignment="Center" />
-                                    <TextBlock Text="{Binding DisplayName}" FontSize="13" VerticalAlignment="Center" />
-                                    <Border Background="{DynamicResource AccentBrush}"
-                                            CornerRadius="{DynamicResource RadiusPill}"
-                                            Padding="6,1" MinWidth="24" VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Count}"
-                                                   FontSize="11"
-                                                   Foreground="White"
-                                                   HorizontalAlignment="Center" />
-                                    </Border>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
-                </StackPanel>
-            </Border>
+                <ComboBox ItemsSource="{Binding CustomTabs}"
+                          SelectedItem="{Binding SelectedCustomTab}"
+                          Padding="10,5"
+                          FontSize="12"
+                          MinWidth="140"
+                          IsVisible="{Binding CustomTabs.Count}">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CodexCustomTab">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="{Binding Icon}" FontSize="13" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center" />
+                                <Border Background="#30808080"
+                                        CornerRadius="{DynamicResource RadiusPill}"
+                                        Padding="5,1" MinWidth="20" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Count}"
+                                               FontSize="10"
+                                               HorizontalAlignment="Center" />
+                                </Border>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
+            </StackPanel>
 
             <!-- Entity Grid -->
             <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding FilteredEntities}"
-                              MaxWidth="860"
-                              HorizontalAlignment="Stretch">
+                <ItemsControl ItemsSource="{Binding FilteredEntities}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <WrapPanel Orientation="Horizontal" />
@@ -176,54 +163,69 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:CodexEntityItem">
-                            <!-- Use NlvCard for consistent card style -->
                             <Button Classes="imageThumbButton"
                                     Command="{Binding $parent[ItemsControl].((vm:CodexHubViewModel)DataContext).OpenEntityCommand}"
                                     CommandParameter="{Binding}"
-                                    Margin="0,0,10,10"
-                                    Padding="0">
+                                    Margin="0,0,12,12"
+                                    Padding="0"
+                                    Width="240">
                                 <Border Classes="nlvCard"
-                                        Width="200"
-                                        Padding="16,12">
-                                    <StackPanel Spacing="6">
-                                        <Grid ColumnDefinitions="Auto,*,Auto">
-                                            <!-- Icon path -->
-                                            <PathIcon Grid.Column="0"
-                                                      Data="{Binding Icon, Converter={x:Static conv:StringToGeometryConverter.Instance}}"
-                                                      Width="18" Height="18"
-                                                      Foreground="{DynamicResource NormalText}"
-                                                      VerticalAlignment="Center"
-                                                      Margin="0,0,8,0"
-                                                      IsVisible="{Binding !IsEmoji}" />
-                                            <!-- Emoji icon -->
-                                            <TextBlock Grid.Column="0"
-                                                       Text="{Binding Icon}"
-                                                       FontSize="16"
-                                                       VerticalAlignment="Center"
-                                                       Margin="0,0,8,0"
-                                                       IsVisible="{Binding IsEmoji}" />
-                                            <!-- Name -->
-                                            <TextBlock Grid.Column="1"
-                                                       Text="{Binding Name}"
-                                                       FontSize="14"
-                                                       FontWeight="SemiBold"
-                                                       Foreground="{DynamicResource NormalText}"
+                                        Padding="0"
+                                        ClipToBounds="True">
+                                    <StackPanel>
+                                        <!-- Image / icon area — always 120px tall -->
+                                        <Border Height="120"
+                                                Background="{DynamicResource ExplorerBackground}">
+                                            <Panel>
+                                                <!-- Portrait when available -->
+                                                <Image Source="{Binding ImagePath, Converter={StaticResource PathToBitmap}}"
+                                                       Stretch="Uniform"
+                                                       RenderOptions.BitmapInterpolationMode="HighQuality"
+                                                       IsVisible="{Binding HasImage}" />
+                                                <!-- Icon placeholder -->
+                                                <Panel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                       IsVisible="{Binding !HasImage}">
+                                                    <PathIcon Data="{Binding Icon, Converter={x:Static conv:StringToGeometryConverter.Instance}}"
+                                                              Width="28" Height="28"
+                                                              Foreground="{DynamicResource SubtleText}"
+                                                              IsVisible="{Binding !IsEmoji}" />
+                                                    <TextBlock Text="{Binding Icon}"
+                                                               FontSize="24"
+                                                               IsVisible="{Binding IsEmoji}" />
+                                                </Panel>
+                                            </Panel>
+                                        </Border>
+
+                                        <!-- Info section -->
+                                        <Border Padding="12,10,12,12">
+                                        <StackPanel Spacing="3">
+                                            <Grid ColumnDefinitions="*,Auto">
+                                                <TextBlock Grid.Column="0"
+                                                           Text="{Binding Name}"
+                                                           FontSize="13"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource NormalText}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <Border Grid.Column="1"
+                                                        Background="{DynamicResource AccentBrush}"
+                                                        CornerRadius="{DynamicResource RadiusSmall}"
+                                                        Padding="4,1"
+                                                        IsVisible="{Binding IsWorldBible}"
+                                                        VerticalAlignment="Center"
+                                                        Margin="6,0,0,0">
+                                                    <TextBlock Text="WB"
+                                                               FontSize="9"
+                                                               FontWeight="Bold"
+                                                               Foreground="White" />
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="{Binding Subtitle}"
+                                                       FontSize="11"
+                                                       Foreground="{DynamicResource SubtleText}"
                                                        TextTrimming="CharacterEllipsis"
-                                                       VerticalAlignment="Center" />
-                                            <!-- World Bible badge -->
-                                            <TextBlock Grid.Column="2"
-                                                       Text="WB"
-                                                       FontSize="9"
-                                                       FontWeight="Bold"
-                                                       Foreground="{DynamicResource AccentBrush}"
-                                                       VerticalAlignment="Center"
-                                                       IsVisible="{Binding IsWorldBible}" />
-                                        </Grid>
-                                        <!-- Subtitle -->
-                                        <TextBlock Text="{Binding Subtitle}"
-                                                   FontSize="11"
-                                                   Foreground="{DynamicResource SubtleText}"
-                                                   TextTrimming="CharacterEllipsis" />
+                                                       IsVisible="{Binding Subtitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                        </StackPanel>
+                                        </Border>
                                     </StackPanel>
                                 </Border>
                             </Button>

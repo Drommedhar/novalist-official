@@ -236,6 +236,9 @@ function setManuscript(sectionsJson) {
             editor.addEventListener('input', () => onSceneInput(editor));
             editor.addEventListener('paste', onPaste);
             editor.addEventListener('keydown', onKeyDown);
+            editor.addEventListener('focus', () => {
+                sendMessage({ type: 'sceneFocused', sceneId: scene.sceneId, chapterGuid: section.chapterGuid });
+            });
 
             block.appendChild(editor);
             sectionEl.appendChild(block);

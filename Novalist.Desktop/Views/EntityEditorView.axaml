@@ -226,7 +226,7 @@
                                             Padding="8,4" Margin="4,0,0,0" FontSize="11"
                                             VerticalAlignment="Top"
                                                 Tag="{Binding}"
-                                            ToolTip.Tip="Remove relationship row"
+                                            ToolTip.Tip="{loc:Loc entity.removeRelationship}"
                                                 x:Name="RemRelBtn" />
                                     </Grid>
                                 </DataTemplate>

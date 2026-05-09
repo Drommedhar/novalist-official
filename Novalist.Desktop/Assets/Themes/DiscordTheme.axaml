@@ -5,6 +5,7 @@
     <SolidColorBrush x:Key="RibbonBackground" Color="#2B2D31" />
     <SolidColorBrush x:Key="RibbonBorder" Color="#1E1F22" />
     <SolidColorBrush x:Key="RibbonGroupBorder" Color="#3F4147" />
+    <SolidColorBrush x:Key="ActivityBarBackground" Color="#1E1F22" />
     <SolidColorBrush x:Key="StatusBarBackground" Color="#5865F2" />
     <SolidColorBrush x:Key="StatusBarForeground" Color="#FFFFFF" />
     <SolidColorBrush x:Key="StatusBarSecondaryForeground" Color="#D4D7FC" />

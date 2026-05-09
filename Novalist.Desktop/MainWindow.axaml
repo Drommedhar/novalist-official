@@ -15,461 +15,104 @@
         Title="{Binding Title}"
         Width="1400" Height="900"
         MinWidth="800" MinHeight="600"
-        WindowState="Maximized"
         WindowStartupLocation="CenterScreen">
 
     <Panel>
     <DockPanel>
-        <!-- Ribbon Bar -->
+        <!-- App Bar (slim, replaces ribbon) -->
         <Border DockPanel.Dock="Top"
-                Background="{DynamicResource RibbonBackground}"
-                BorderBrush="{DynamicResource RibbonBorder}"
-                BorderThickness="0,0,0,1"
+                Classes="appBar"
                 IsVisible="{Binding IsProjectLoaded}">
-            <StackPanel>
-                <!-- Ribbon Tabs -->
-                <StackPanel x:Name="RibbonTabRow" Orientation="Horizontal" Margin="0,0,0,0">
-                    <!-- Start (File-style) button — distinct styling -->
-                    <Button Content="{loc:Loc ribbon.start}"
-                            Command="{Binding ToggleStartMenuCommand}"
-                            Classes="ribbonFileTab" />
-
-                    <Button Content="{loc:Loc ribbon.edit}"
-                            Command="{Binding SetActiveTabCommand}"
-                            CommandParameter="Edit"
-                            Classes="ribbonTab"
-                            Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Edit}" />
-                    <Button Content="{loc:Loc ribbon.view}"
-                            Command="{Binding SetActiveTabCommand}"
-                            CommandParameter="View"
-                            Classes="ribbonTab"
-                            Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=View}" />
-                    <Button Content="{loc:Loc ribbon.extensions}"
-                            Command="{Binding SetActiveTabCommand}"
-                            CommandParameter="Extensions"
-                            Classes="ribbonTab"
-                            Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Extensions}" />
-                </StackPanel>
-
-                <!-- ═══ Edit Tab Content ═══ -->
-                <Border Classes="ribbonContent"
-                        IsVisible="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Edit}">
-                    <StackPanel Orientation="Horizontal" Spacing="0">
-                        <!-- Create Group -->
-                        <Border Classes="ribbonGroup">
-                            <Grid RowDefinitions="*,Auto">
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
-                                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Button Command="{Binding Explorer.CreateChapterCommand}"
-                                            Classes="ribbonButtonLarge"
-                                            ToolTip.Tip="{loc:Loc ribbon.chapterTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconBook}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.chapter}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Command="{Binding Explorer.CreateSceneCommand}"
-                                            Classes="ribbonButtonLarge"
-                                            ToolTip.Tip="{loc:Loc ribbon.sceneTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconFileText}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.scene}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{loc:Loc ribbon.create}" Classes="ribbonGroupLabel" />
-                            </Grid>
-                        </Border>
-
-                        <!-- Text Formatting Group (visible when editor has a doc open) -->
-                        <Border Classes="ribbonGroup"
-                                IsVisible="{Binding Editor.IsDocumentOpen}">
-                            <Grid RowDefinitions="*,Auto">
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="2"
-                                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Button Command="{Binding Editor.ToggleBoldCommand}"
-                                            Classes="ribbonButtonSmall"
-                                            Classes.active="{Binding Editor.IsBoldActive}"
-                                            Focusable="False"
-                                            ToolTip.Tip="{loc:Loc editor.boldTooltip}">
-                                        <TextBlock Text="B" FontWeight="Bold" FontSize="14" />
-                                    </Button>
-                                    <Button Command="{Binding Editor.ToggleItalicCommand}"
-                                            Classes="ribbonButtonSmall"
-                                            Classes.active="{Binding Editor.IsItalicActive}"
-                                            Focusable="False"
-                                            ToolTip.Tip="{loc:Loc editor.italicTooltip}">
-                                        <TextBlock Text="I" FontStyle="Italic" FontSize="14" />
-                                    </Button>
-                                    <Button Command="{Binding Editor.ToggleUnderlineCommand}"
-                                            Classes="ribbonButtonSmall"
-                                            Classes.active="{Binding Editor.IsUnderlineActive}"
-                                            Focusable="False"
-                                            ToolTip.Tip="{loc:Loc editor.underlineTooltip}">
-                                        <TextBlock Text="U" TextDecorations="Underline" FontSize="14" />
-                                    </Button>
-
-                                    <Border Classes="ribbonSeparator" />
-
-                                    <Button Command="{Binding Editor.AlignLeftCommand}"
-                                            Classes="ribbonButtonSmall"
-                                            Classes.active="{Binding Editor.IsAlignLeft}"
-                                            Focusable="False"
-                                            ToolTip.Tip="{loc:Loc editor.alignLeftTooltip}">
-                                        <TextBlock Text="☰" FontSize="14" />
-                                    </Button>
-                                    <Button Command="{Binding Editor.AlignCenterCommand}"
-                                            Classes="ribbonButtonSmall"
-                                            Classes.active="{Binding Editor.IsAlignCenter}"
-                                            Focusable="False"
-                                            ToolTip.Tip="{loc:Loc editor.alignCenterTooltip}">
-                                        <TextBlock Text="☷" FontSize="14" />
-                                    </Button>
-                                    <Button Command="{Binding Editor.AlignRightCommand}"
-                                            Classes="ribbonButtonSmall"
-                                            Classes.active="{Binding Editor.IsAlignRight}"
-                                            Focusable="False"
-                                            ToolTip.Tip="{loc:Loc editor.alignRightTooltip}">
-                                        <TextBlock Text="☵" FontSize="14" />
-                                    </Button>
-                                    <Button Command="{Binding Editor.AlignJustifyCommand}"
-                                            Classes="ribbonButtonSmall"
-                                            Classes.active="{Binding Editor.IsAlignJustify}"
-                                            Focusable="False"
-                                            ToolTip.Tip="{loc:Loc editor.alignJustifyTooltip}">
-                                        <TextBlock Text="☱" FontSize="14" />
-                                    </Button>
-                                </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{loc:Loc ribbon.font}" Classes="ribbonGroupLabel" />
-                            </Grid>
-                        </Border>
-
-                        <!-- Book Switcher Group -->
-                        <Border Classes="ribbonGroup">
-                            <Grid RowDefinitions="*,Auto">
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
-                                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Button Command="{Binding ToggleBookPickerCommand}"
-                                            Classes="ribbonButtonSmall"
-                                            MinWidth="140"
-                                            MaxWidth="220"
-                                            Padding="8,6"
-                                            FontSize="12"
-                                            HorizontalContentAlignment="Stretch"
-                                            ToolTip.Tip="{loc:Loc book.pickerTooltip}">
-                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-                                            <Viewbox Grid.Column="0" Width="14" Height="14" VerticalAlignment="Center">
-                                                <Canvas Width="24" Height="24">
-                                                    <Path Classes="ribbonIcon" Data="{StaticResource IconBook}"/>
-                                                </Canvas>
-                                            </Viewbox>
-                                            <TextBlock Grid.Column="1"
-                                                       Text="{Binding ActiveBook.Name, FallbackValue=''}"
-                                                       VerticalAlignment="Center"
-                                                       TextTrimming="CharacterEllipsis" />
-                                            <TextBlock Grid.Column="2"
-                                                       Text="▾"
-                                                       VerticalAlignment="Center"
-                                                       FontSize="10"
-                                                       Opacity="0.7" />
-                                        </Grid>
-                                    </Button>
-                                    <Button Content="{loc:Loc book.addBook}"
-                                            Command="{Binding AddBookCommand}"
-                                            Classes="ribbonButtonSmall"
-                                            Padding="8,6" FontSize="11" />
-                                </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{loc:Loc book.switcherLabel}" Classes="ribbonGroupLabel" />
-                            </Grid>
-                        </Border>
+            <Grid ColumnDefinitions="Auto,Auto,*,4,Auto,Auto,4,Auto,Auto,Auto"
+                  VerticalAlignment="Center">
+                <!-- Hamburger -->
+                <Button Grid.Column="0"
+                        Classes="appBarButton"
+                        Command="{Binding ToggleStartMenuCommand}"
+                        ToolTip.Tip="{loc:Loc ribbon.start}">
+                    <Viewbox Classes="panelToggleIcon">
+                        <Canvas Width="24" Height="24">
+                            <Path Classes="panelToggleIcon" Data="M2,5 H22 M2,12 H22 M2,19 H22" />
+                        </Canvas>
+                    </Viewbox>
+                </Button>
+                <!-- Book picker -->
+                <Button Grid.Column="1"
+                        Classes="appBarButton appBarBookPicker"
+                        Command="{Binding ToggleBookPickerCommand}"
+                        ToolTip.Tip="{loc:Loc book.pickerTooltip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <TextBlock Text="{Binding ActiveBook.Name, FallbackValue=''}"
+                                   VerticalAlignment="Center"
+                                   MaxWidth="200"
+                                   TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="▾" VerticalAlignment="Center" FontSize="10" Opacity="0.6" />
                     </StackPanel>
-                </Border>
-
-                <!-- ═══ View Tab Content ═══ -->
-                <Border Classes="ribbonContent"
-                        IsVisible="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=View}">
-                    <StackPanel Orientation="Horizontal" Spacing="0">
-                        <!-- Views Group (main content views) -->
-                        <Border Classes="ribbonGroup">
-                            <Grid RowDefinitions="*,Auto">
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
-                                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Button Command="{Binding ShowDashboardCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Dashboard}"
-                                            ToolTip.Tip="{loc:Loc ribbon.dashboardTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconBarChart}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.dashboard}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Command="{Binding ShowTimelineCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Timeline}"
-                                            ToolTip.Tip="{loc:Loc ribbon.timelineTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconCalendar}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.timeline}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Command="{Binding ShowCodexHubCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=CodexHub}"
-                                            ToolTip.Tip="{loc:Loc ribbon.codexHubTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconBookOpen}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.codexHub}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Command="{Binding ShowManuscriptCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Manuscript}"
-                                            ToolTip.Tip="{loc:Loc ribbon.manuscriptTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.manuscript}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{loc:Loc ribbon.views}" Classes="ribbonGroupLabel" />
-                            </Grid>
-                        </Border>
-
-                        <!-- Sidebars Group (toggle visibility of side panels) -->
-                        <Border Classes="ribbonGroup">
-                            <Grid RowDefinitions="*,Auto">
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
-                                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Button Command="{Binding ToggleExplorerCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding IsExplorerVisible}"
-                                            ToolTip.Tip="{loc:Loc ribbon.explorerTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconFolder}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.explorer}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Command="{Binding ToggleContextSidebarCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding IsContextSidebarVisible}"
-                                            ToolTip.Tip="{loc:Loc ribbon.contextSidebarTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconPanelRight}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.contextSidebar}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                    <Button Command="{Binding ToggleSceneNotesCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding IsSceneNotesVisible}"
-                                            ToolTip.Tip="{loc:Loc ribbon.sceneNotesTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconPencil}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.sceneNotes}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{loc:Loc ribbon.panels}" Classes="ribbonGroupLabel" />
-                            </Grid>
-                        </Border>
-
-                        <!-- Export Group -->
-                        <Border Classes="ribbonGroup">
-                            <Grid RowDefinitions="*,Auto">
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
-                                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Button Command="{Binding ShowExportCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Export}"
-                                            ToolTip.Tip="{loc:Loc ribbon.exportTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconUpload}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.export}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{loc:Loc ribbon.exportGroup}" Classes="ribbonGroupLabel" />
-                            </Grid>
-                        </Border>
-
-                        <!-- Image Gallery Group -->
-                        <Border Classes="ribbonGroup">
-                            <Grid RowDefinitions="*,Auto">
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
-                                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Button Command="{Binding ShowImageGalleryCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=ImageGallery}"
-                                            ToolTip.Tip="{loc:Loc ribbon.galleryTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconImage}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.gallery}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{loc:Loc ribbon.galleryGroup}" Classes="ribbonGroupLabel" />
-                            </Grid>
-                        </Border>
-
-                        <!-- Git Group -->
-                        <Border Classes="ribbonGroup"
-                                IsVisible="{Binding IsInGitRepo}">
-                            <Grid RowDefinitions="*,Auto">
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
-                                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Button Command="{Binding ShowGitCommand}"
-                                            Classes="ribbonToggleLarge"
-                                            Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Git}"
-                                            ToolTip.Tip="{loc:Loc ribbon.gitTooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconGitBranch}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc ribbon.git}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{loc:Loc ribbon.gitGroup}" Classes="ribbonGroupLabel" />
-                            </Grid>
-                        </Border>
-
-                        <!-- Dynamic extension ribbon groups for the View tab -->
-                        <ItemsControl ItemsSource="{Binding ExtensionViewRibbonGroups}"
-                                      x:DataType="vm:MainWindowViewModel">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="0" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:ExtensionRibbonGroup">
-                                    <Border Classes="ribbonGroup">
-                                        <Grid RowDefinitions="*,Auto">
-                                            <ItemsControl Grid.Row="0" ItemsSource="{Binding Items}">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <StackPanel Orientation="Horizontal" Spacing="4"
-                                                                    VerticalAlignment="Center" HorizontalAlignment="Center" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate x:DataType="sdk:RibbonItem">
-                                                        <Button Classes="ribbonToggleLarge"
-                                                                ToolTip.Tip="{Binding Tooltip}"
-                                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExecuteExtensionRibbonItemCommand}"
-                                                                CommandParameter="{Binding}">
-                                                            <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                                                <Viewbox Classes="ribbonIcon">
-                                                                    <Canvas Width="24" Height="24">
-                                                                        <Path Classes="ribbonIcon" Data="{Binding IconPath}" />
-                                                                    </Canvas>
-                                                                </Viewbox>
-                                                                <TextBlock Text="{Binding Label}" FontSize="10" HorizontalAlignment="Center" />
-                                                            </StackPanel>
-                                                        </Button>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                            <TextBlock Grid.Row="1" Text="{Binding GroupName}" Classes="ribbonGroupLabel" />
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                </Button>
+                <!-- Spacer (column 2) -->
+                <!-- Gap (column 3 = 4px) -->
+                <!-- +Chapter -->
+                <Button Grid.Column="4"
+                        Classes="appBarButton"
+                        Command="{Binding Explorer.CreateChapterCommand}"
+                        ToolTip.Tip="{loc:Loc ribbon.chapterTooltip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Viewbox Classes="panelToggleIcon">
+                            <Canvas Width="24" Height="24"><Path Classes="panelToggleIcon" Data="{StaticResource IconBook}"/></Canvas>
+                        </Viewbox>
+                        <TextBlock Text="{loc:Loc ribbon.chapter}" VerticalAlignment="Center" FontSize="11" />
                     </StackPanel>
-                </Border>
-
-                <!-- ═══ Extensions Tab Content ═══ -->
-                <Border Classes="ribbonContent"
-                        IsVisible="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Extensions}">
-                    <StackPanel Orientation="Horizontal" Spacing="0">
-                        <!-- Manage Group -->
-                        <Border Classes="ribbonGroup">
-                            <Grid RowDefinitions="*,Auto">
-                                <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="4"
-                                            VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Button Command="{Binding ToggleExtensionsCommand}"
-                                            Classes="ribbonButtonLarge"
-                                            ToolTip.Tip="{loc:Loc extensions.tooltip}">
-                                        <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                            <Viewbox Classes="ribbonIcon"><Canvas Width="24" Height="24"><Path Classes="ribbonIcon" Data="{StaticResource IconPlug}"/></Canvas></Viewbox>
-                                            <TextBlock Text="{loc:Loc extensions.manage}" FontSize="10"
-                                                       HorizontalAlignment="Center" />
-                                        </StackPanel>
-                                    </Button>
-                                </StackPanel>
-                                <TextBlock Grid.Row="1" Text="{loc:Loc extensions.title}" Classes="ribbonGroupLabel" />
-                            </Grid>
-                        </Border>
-
-                        <!-- Dynamic extension ribbon groups -->
-                        <ItemsControl ItemsSource="{Binding ExtensionRibbonGroups}"
-                                      x:DataType="vm:MainWindowViewModel">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="0" />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate x:DataType="vm:ExtensionRibbonGroup">
-                                    <Border Classes="ribbonGroup">
-                                        <Grid RowDefinitions="*,Auto">
-                                            <ItemsControl Grid.Row="0" ItemsSource="{Binding Items}">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <StackPanel Orientation="Horizontal" Spacing="4"
-                                                                    VerticalAlignment="Center" HorizontalAlignment="Center" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate x:DataType="sdk:RibbonItem">
-                                                        <Button Classes="ribbonButtonLarge"
-                                                                ToolTip.Tip="{Binding Tooltip}"
-                                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExecuteExtensionRibbonItemCommand}"
-                                                                CommandParameter="{Binding}">
-                                                            <StackPanel HorizontalAlignment="Center" Spacing="2">
-                                                                <Panel>
-                                                                    <Viewbox Classes="ribbonIcon"
-                                                                             IsVisible="{Binding IconPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                                                        <Canvas Width="24" Height="24">
-                                                                            <Path Classes="ribbonIcon"
-                                                                                  Data="{Binding IconPath, Converter={x:Static conv:StringToGeometryConverter.Instance}}" />
-                                                                        </Canvas>
-                                                                    </Viewbox>
-                                                                    <TextBlock Text="{Binding Icon}" FontSize="20" HorizontalAlignment="Center"
-                                                                               IsVisible="{Binding IconPath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
-                                                                </Panel>
-                                                                <TextBlock Text="{Binding Label}" FontSize="10"
-                                                                           HorizontalAlignment="Center" />
-                                                            </StackPanel>
-                                                        </Button>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                            <TextBlock Grid.Row="1" Text="{Binding GroupName}" Classes="ribbonGroupLabel" />
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
+                </Button>
+                <!-- +Scene -->
+                <Button Grid.Column="5"
+                        Classes="appBarButton"
+                        Command="{Binding Explorer.CreateSceneCommand}"
+                        ToolTip.Tip="{loc:Loc ribbon.sceneTooltip}">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Viewbox Classes="panelToggleIcon">
+                            <Canvas Width="24" Height="24"><Path Classes="panelToggleIcon" Data="{StaticResource IconFileText}"/></Canvas>
+                        </Viewbox>
+                        <TextBlock Text="{loc:Loc ribbon.scene}" VerticalAlignment="Center" FontSize="11" />
                     </StackPanel>
-                </Border>
-            </StackPanel>
+                </Button>
+                <!-- Gap (column 6 = 4px) -->
+                <!-- Explorer toggle -->
+                <Button Grid.Column="7"
+                        Classes="panelToggleButton"
+                        Classes.active="{Binding IsExplorerVisible}"
+                        Command="{Binding ToggleExplorerCommand}"
+                        ToolTip.Tip="{loc:Loc ribbon.explorerTooltip}">
+                    <Viewbox Classes="panelToggleIcon">
+                        <Canvas Width="24" Height="24"><Path Classes="panelToggleIcon" Data="{StaticResource IconPanelLeft}"/></Canvas>
+                    </Viewbox>
+                </Button>
+                <!-- Context sidebar toggle -->
+                <Button Grid.Column="8"
+                        Classes="panelToggleButton"
+                        Classes.active="{Binding IsContextSidebarVisible}"
+                        Command="{Binding ToggleContextSidebarCommand}"
+                        ToolTip.Tip="{loc:Loc ribbon.contextSidebarTooltip}">
+                    <Viewbox Classes="panelToggleIcon">
+                        <Canvas Width="24" Height="24"><Path Classes="panelToggleIcon" Data="{StaticResource IconPanelRight}"/></Canvas>
+                    </Viewbox>
+                </Button>
+                <!-- Scene notes toggle -->
+                <Button Grid.Column="9"
+                        Classes="panelToggleButton"
+                        Classes.active="{Binding IsSceneNotesVisible}"
+                        Command="{Binding ToggleSceneNotesCommand}"
+                        ToolTip.Tip="{loc:Loc ribbon.sceneNotesTooltip}">
+                    <Viewbox Classes="panelToggleIcon">
+                        <Canvas Width="24" Height="24"><Path Classes="panelToggleIcon" Data="{StaticResource IconPanelBottom}"/></Canvas>
+                    </Viewbox>
+                </Button>
+            </Grid>
         </Border>
 
         <!-- Status Bar -->
         <Border DockPanel.Dock="Bottom"
-                Background="{DynamicResource StatusBarBackground}"
-                BorderBrush="{DynamicResource RibbonBorder}"
+                Background="{DynamicResource RibbonBackground}"
+                BorderBrush="{DynamicResource AccentBrush}"
                 BorderThickness="0,1,0,0"
                 Padding="10,4"
                 IsVisible="{Binding IsProjectLoaded}">
@@ -478,31 +121,32 @@
                             Orientation="Horizontal"
                             Spacing="10"
                             VerticalAlignment="Center">
-                    <TextBlock Text="{Binding Editor.WordCount, StringFormat='{}{0:N0} words'}"
-                               Classes="statusMetric"
-                               Foreground="{DynamicResource NormalText}"
-                               IsVisible="{Binding Editor.IsDocumentOpen}" />
-                    <TextBlock Text="{Binding Editor.CharacterCount, StringFormat='{}{0:N0} chars'}"
-                               Classes="statusMetric"
-                               IsVisible="{Binding Editor.IsDocumentOpen}" />
-                    <TextBlock Text="{Binding Editor.CharacterCountWithoutSpaces, StringFormat='{}{0:N0} (no spaces)'}"
-                               Classes="statusMetricDim"
-                               IsVisible="{Binding Editor.IsDocumentOpen}" />
-                    <TextBlock Text="{Binding Editor.ReadingTimeDisplay}"
-                               Classes="statusMetric"
-                               IsVisible="{Binding Editor.IsDocumentOpen}" />
-                    <Border Classes="statusScoreBadge"
-                            Background="{Binding Editor.ReadabilityColor}"
-                            IsVisible="{Binding Editor.HasReadability}">
-                        <TextBlock Text="{Binding Editor.ReadabilityDisplay}"
-                                   FontSize="10"
-                                   FontWeight="SemiBold"
-                                   HorizontalAlignment="Center"
-                                   Foreground="White" />
-                    </Border>
-                    <TextBlock Text="{Binding Editor.ReadabilityLevelLabel}"
-                               Classes="statusMetric"
-                               IsVisible="{Binding Editor.HasReadability}" />
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="10"
+                                IsVisible="{Binding Editor.IsDocumentOpen}">
+                        <TextBlock Text="{Binding Editor.WordCount, StringFormat='{}{0:N0} words'}"
+                                   Classes="statusMetric"
+                                   Foreground="{DynamicResource NormalText}">
+                            <ToolTip.Tip>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Editor.CharacterCount, StringFormat='{}{0:N0} chars'}" />
+                                    <TextBlock Text="{Binding Editor.CharacterCountWithoutSpaces, StringFormat='{}{0:N0} chars (no spaces)'}" />
+                                </StackPanel>
+                            </ToolTip.Tip>
+                        </TextBlock>
+                        <TextBlock Text="{Binding Editor.ReadingTimeDisplay}"
+                                   Classes="statusMetric" />
+                        <Border Classes="statusScoreBadge"
+                                Background="{Binding Editor.ReadabilityColor}"
+                                IsVisible="{Binding Editor.HasReadability}"
+                                ToolTip.Tip="{Binding Editor.ReadabilityLevelLabel}">
+                            <TextBlock Text="{Binding Editor.ReadabilityDisplay}"
+                                       FontSize="10"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       Foreground="White" />
+                        </Border>
+                    </StackPanel>
                     <TextBlock Text="{loc:Loc statusBar.openSceneHint}"
                                Classes="statusMetricDim"
                                IsVisible="{Binding Editor.IsDocumentOpen, Converter={x:Static BoolConverters.Not}}" />
@@ -607,13 +251,136 @@
             <!-- Project Content (when project loaded) -->
             <Grid x:Name="ProjectContentGrid" IsVisible="{Binding IsProjectLoaded}">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="44" />
                     <ColumnDefinition Width="280" MinWidth="180" MaxWidth="500" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
+                <!-- Activity Bar -->
+                <Border Grid.Column="0" Classes="activityBar">
+                    <Grid RowDefinitions="*,Auto">
+                        <!-- Top: project-scoped views -->
+                        <StackPanel Grid.Row="0" Spacing="0" Margin="0,4,0,0">
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Dashboard}"
+                                    Command="{Binding ShowDashboardCommand}"
+                                    IsVisible="{Binding IsProjectLoaded}"
+                                    ToolTip.Tip="{loc:Loc ribbon.dashboardTooltip}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconBarChart}"/></Canvas>
+                                </Viewbox>
+                            </Button>
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Timeline}"
+                                    Command="{Binding ShowTimelineCommand}"
+                                    IsVisible="{Binding IsProjectLoaded}"
+                                    ToolTip.Tip="{loc:Loc ribbon.timelineTooltip}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconCalendar}"/></Canvas>
+                                </Viewbox>
+                            </Button>
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=CodexHub}"
+                                    Command="{Binding ShowCodexHubCommand}"
+                                    IsVisible="{Binding IsProjectLoaded}"
+                                    ToolTip.Tip="{loc:Loc ribbon.codexHubTooltip}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconBookOpen}"/></Canvas>
+                                </Viewbox>
+                            </Button>
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Manuscript}"
+                                    Command="{Binding ShowManuscriptCommand}"
+                                    IsVisible="{Binding IsProjectLoaded}"
+                                    ToolTip.Tip="{loc:Loc ribbon.manuscriptTooltip}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconScroll}"/></Canvas>
+                                </Viewbox>
+                            </Button>
+                            <!-- Separator -->
+                            <Border Height="1" Background="{DynamicResource RibbonBorder}" Margin="6,4" />
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveActivityView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Export}"
+                                    Command="{Binding ShowActivityViewCommand}"
+                                    CommandParameter="Export"
+                                    IsVisible="{Binding IsProjectLoaded}"
+                                    ToolTip.Tip="{loc:Loc ribbon.export}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconUpload}"/></Canvas>
+                                </Viewbox>
+                            </Button>
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveActivityView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=ImageGallery}"
+                                    Command="{Binding ShowActivityViewCommand}"
+                                    CommandParameter="ImageGallery"
+                                    IsVisible="{Binding IsProjectLoaded}"
+                                    ToolTip.Tip="{loc:Loc ribbon.gallery}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconImage}"/></Canvas>
+                                </Viewbox>
+                            </Button>
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveActivityView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Git}"
+                                    Command="{Binding ShowActivityViewCommand}"
+                                    CommandParameter="Git"
+                                    IsVisible="{Binding IsInGitRepo}"
+                                    ToolTip.Tip="{loc:Loc ribbon.git}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconGitBranch}"/></Canvas>
+                                </Viewbox>
+                            </Button>
+                            <!-- Extension-contributed items -->
+                            <ItemsControl ItemsSource="{Binding ExtensionActivityBarItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="sdk:ActivityBarItem">
+                                        <Button Classes="activityBarButton"
+                                                ToolTip.Tip="{Binding Tooltip}"
+                                                Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ExecuteExtensionActivityBarItemCommand}"
+                                                CommandParameter="{Binding}">
+                                            <Panel>
+                                                <Viewbox Classes="activityBarIcon"
+                                                         IsVisible="{Binding IconPath, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                    <Canvas Width="24" Height="24">
+                                                        <Path Classes="activityBarIconPath"
+                                                              Data="{Binding IconPath, Converter={x:Static conv:StringToGeometryConverter.Instance}}" />
+                                                    </Canvas>
+                                                </Viewbox>
+                                                <TextBlock Text="{Binding Icon}" FontSize="16"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           IsVisible="{Binding IconPath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                                            </Panel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                        <!-- Bottom: always-present -->
+                        <StackPanel Grid.Row="1" Spacing="0" Margin="0,0,0,4">
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveActivityView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Extensions}"
+                                    Command="{Binding ShowActivityViewCommand}"
+                                    CommandParameter="Extensions"
+                                    ToolTip.Tip="{loc:Loc extensions.title}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconPlug}"/></Canvas>
+                                </Viewbox>
+                            </Button>
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveActivityView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Settings}"
+                                    Command="{Binding ShowActivityViewCommand}"
+                                    CommandParameter="Settings"
+                                    ToolTip.Tip="{loc:Loc ribbon.settingsLabel}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconSettings}"/></Canvas>
+                                </Viewbox>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
                 <!-- Left Sidebar: stacked Explorer + Entity Panel -->
-                          <Grid Grid.Column="0"
+                          <Grid Grid.Column="1"
                               RowDefinitions="Auto,*"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Stretch"
@@ -673,179 +440,199 @@
                                 </Grid>
 
                 <!-- Splitter -->
-                <GridSplitter Grid.Column="1"
+                <GridSplitter Grid.Column="2"
                               ResizeDirection="Columns"
                               Background="Transparent"
                               IsVisible="{Binding IsExplorerVisible}" />
 
                 <!-- Main Content Area -->
-                <Grid Grid.Column="2">
+                <Grid Grid.Column="3">
                     <Grid Grid.Column="0"
                       RowDefinitions="Auto,*">
                     <Border Grid.Row="0"
                             Classes="editorTabStrip"
-                            IsVisible="{Binding HasOpenEditors}">
-                        <StackPanel Orientation="Horizontal"
-                                    Spacing="0">
-                            <Border Classes="editorTabHost"
-                                    Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Scene}"
-                                    IsVisible="{Binding Editor.IsDocumentOpen}"
-                                    Tag="Scene"
-                                    PointerPressed="OnEditorTabPointerPressed">
-                                <Grid ColumnDefinitions="*,Auto"
-                                      MinWidth="180">
-                                    <Button Grid.Column="0"
-                                            Classes="editorTabSurface"
-                                            Command="{Binding SetActiveContentViewCommand}"
-                                            CommandParameter="Scene"
-                                            ToolTip.Tip="{Binding Editor.DocumentTitle}">
-                                        <StackPanel Orientation="Horizontal"
-                                                    Spacing="8">
-                                            <Border Classes="editorTabBadge">
-                                                <TextBlock Text="SCN"
-                                                           Classes="editorTabBadgeText" />
-                                            </Border>
-                                            <TextBlock Text="{Binding Editor.SceneTabTitle}"
-                                                       Classes="editorTabText" />
-                                            <Border Classes="editorTabDirtyDot"
-                                                    IsVisible="{Binding Editor.IsDirty}" />
-                                        </StackPanel>
-                                    </Button>
-
-                                    <Button Grid.Column="1"
-                                            Classes="editorTabCloseButton"
-                                            Command="{Binding CloseSceneTabCommand}"
-                                            ToolTip.Tip="Close scene tab">
-                                        <Path Classes="editorTabCloseGlyph" />
-                                    </Button>
-                                </Grid>
-                            </Border>
-
-                            <Border Classes="editorTabHost"
-                                    Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Entity}"
-                                    IsVisible="{Binding EntityEditor.IsOpen}"
-                                    Tag="Entity"
-                                    PointerPressed="OnEditorTabPointerPressed">
-                                <Grid ColumnDefinitions="*,Auto"
-                                      MinWidth="180">
-                                    <Button Grid.Column="0"
-                                            Classes="editorTabSurface"
-                                            Command="{Binding SetActiveContentViewCommand}"
-                                            CommandParameter="Entity"
-                                            ToolTip.Tip="{Binding EntityEditor.Title}">
-                                        <StackPanel Orientation="Horizontal"
-                                                    Spacing="8">
-                                            <Border Classes="editorTabBadge">
-                                                <TextBlock Text="ENT"
-                                                           Classes="editorTabBadgeText" />
-                                            </Border>
-                                            <TextBlock Text="{Binding EntityEditor.Title}"
-                                                       Classes="editorTabText" />
-                                        </StackPanel>
-                                    </Button>
-
-                                    <Button Grid.Column="1"
-                                            Classes="editorTabCloseButton"
-                                            Command="{Binding CloseEntityTabCommand}"
-                                            ToolTip.Tip="Close entity tab">
-                                        <Path Classes="editorTabCloseGlyph" />
-                                    </Button>
-                                </Grid>
-                            </Border>
-                        </StackPanel>
+                            IsVisible="{Binding IsProjectLoaded}">
+                        <ItemsControl ItemsSource="{Binding ContentTabs}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="0" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:EditorTabDescriptor">
+                                    <Border Classes="editorTabHost"
+                                            Classes.active="{Binding IsActive}"
+                                            Tag="{Binding Id}"
+                                            PointerPressed="OnEditorTabPointerPressed">
+                                        <Grid ColumnDefinitions="*,Auto" MinWidth="{Binding MinWidth}">
+                                            <Button Grid.Column="0"
+                                                    Classes="editorTabSurface"
+                                                    Padding="12,10"
+                                                    Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SetActiveContentViewCommand}"
+                                                    CommandParameter="{Binding ActivationKey}"
+                                                    ToolTip.Tip="{Binding Tooltip}">
+                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                    <Border Classes="editorTabBadge"
+                                                            IsVisible="{Binding Badge, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                        <TextBlock Text="{Binding Badge}" Classes="editorTabBadgeText" />
+                                                    </Border>
+                                                    <TextBlock Text="{Binding Title}" Classes="editorTabText" />
+                                                    <Border Classes="editorTabDirtyDot" IsVisible="{Binding IsDirty}" />
+                                                </StackPanel>
+                                            </Button>
+                                            <Button Grid.Column="1"
+                                                    Classes="editorTabCloseButton"
+                                                    Click="OnEditorTabCloseClick"
+                                                    ToolTip.Tip="Close">
+                                                <Path Classes="editorTabCloseGlyph" />
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Border>
 
                     <Grid Grid.Row="1">
-                        <Grid x:Name="SceneContentPanel">
+                        <!-- Outer grid: [all panels] [shared ctx splitter] [shared ctx sidebar] -->
+                        <Grid x:Name="OuterContentGrid">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
-                                <ColumnDefinition Width="320" MinWidth="280" MaxWidth="600" />
-                                <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0" />
                             </Grid.ColumnDefinitions>
-                            <Grid Grid.Column="0"
-                                  RowDefinitions="*,Auto,Auto">
-                                <views:EditorView Grid.Row="0"
-                                                  DataContext="{Binding Editor}"
-                                                  x:Name="EditorPanel" />
 
-                                <GridSplitter Grid.Row="1"
-                                              ResizeDirection="Rows"
-                                              Height="4"
-                                              Background="Transparent"
-                                              IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSceneNotesVisible}" />
+                            <!-- Column 0: all content panels stacked -->
+                            <Grid Grid.Column="0">
+                                <Grid x:Name="SceneContentPanel">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid Grid.Column="0"
+                                          RowDefinitions="*,Auto,Auto">
+                                        <views:EditorView Grid.Row="0"
+                                                          DataContext="{Binding Editor}"
+                                                          x:Name="EditorPanel" />
 
-                                <views:SceneNotesView Grid.Row="2"
-                                                      DataContext="{Binding SceneNotes}"
-                                                      Height="180"
+                                        <GridSplitter Grid.Row="1"
+                                                      ResizeDirection="Rows"
+                                                      Height="4"
+                                                      Background="Transparent"
                                                       IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSceneNotesVisible}" />
+
+                                        <views:SceneNotesView Grid.Row="2"
+                                                              DataContext="{Binding SceneNotes}"
+                                                              Height="180"
+                                                              IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSceneNotesVisible}" />
+                                    </Grid>
+
+                                    <!-- Extension right sidebar splitter -->
+                                    <GridSplitter Grid.Column="1"
+                                                  ResizeDirection="Columns"
+                                                  Background="Transparent"
+                                                  IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsExtensionRightSidebarVisible}" />
+
+                                    <!-- Extension right sidebar host -->
+                                    <ContentControl Grid.Column="2"
+                                                    x:Name="ExtensionRightSidebarHost"
+                                                    IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsExtensionRightSidebarVisible}" />
+                                </Grid>
+
+                                <!-- Entity Editor -->
+                                <views:EntityEditorView DataContext="{Binding EntityEditor}"
+                                                         x:Name="EntityEditorPanel"
+                                                         IsVisible="False" />
+
+                                <!-- Dashboard -->
+                                <views:DashboardView DataContext="{Binding Dashboard}"
+                                                      x:Name="DashboardPanel"
+                                                      IsVisible="False" />
+
+                                <!-- Timeline -->
+                                <views:TimelineView DataContext="{Binding Timeline}"
+                                                     x:Name="TimelinePanel"
+                                                     IsVisible="False" />
+
+                                <!-- Export -->
+                                <views:ExportView DataContext="{Binding Export}"
+                                                   x:Name="ExportPanel"
+                                                   IsVisible="False" />
+
+                                <!-- Image Gallery -->
+                                <views:ImageGalleryView DataContext="{Binding ImageGallery}"
+                                                         x:Name="ImageGalleryPanel"
+                                                         IsVisible="False" />
+
+                                <!-- Git -->
+                                <views:GitView DataContext="{Binding Git}"
+                                                x:Name="GitPanel"
+                                                IsVisible="False" />
+
+                                <!-- Codex Hub -->
+                                <views:CodexHubView DataContext="{Binding CodexHub}"
+                                                     x:Name="CodexHubPanel"
+                                                     IsVisible="False" />
+
+                                <!-- Manuscript -->
+                                <views:ManuscriptView DataContext="{Binding Manuscript}"
+                                                       x:Name="ManuscriptPanel"
+                                                       IsVisible="False" />
+
+                                <!-- Extension content views -->
+                                <ContentControl x:Name="ExtensionContentHost" IsVisible="False" />
                             </Grid>
 
+                            <!-- Shared context sidebar splitter (visible for Scene and Manuscript views) -->
                             <GridSplitter Grid.Column="1"
                                           ResizeDirection="Columns"
                                           Background="Transparent"
-                                          IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsContextSidebarVisible}" />
+                                          IsVisible="{Binding IsContextSidebarShowing}" />
 
-                            <views:ContextSidebarView Grid.Column="2"
-                                                      DataContext="{Binding ContextSidebar}"
-                                                      x:Name="ContextSidebarPanel"
-                                                      IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsContextSidebarVisible}" />
-
-                            <!-- Extension right sidebar splitter -->
-                            <GridSplitter Grid.Column="3"
-                                          ResizeDirection="Columns"
-                                          Background="Transparent"
-                                          IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsExtensionRightSidebarVisible}" />
-
-                            <!-- Extension right sidebar host -->
-                            <ContentControl Grid.Column="4"
-                                            x:Name="ExtensionRightSidebarHost"
-                                            IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsExtensionRightSidebarVisible}" />
+                            <!-- Context sidebar with optional extension tabs -->
+                            <Grid Grid.Column="2"
+                                  RowDefinitions="Auto,*"
+                                  IsVisible="{Binding IsContextSidebarShowing}">
+                                <!-- Tab strip: only visible when extension context panels are contributed -->
+                                <Border Grid.Row="0"
+                                        Background="{DynamicResource ExplorerBackground}"
+                                        BorderBrush="{DynamicResource ExplorerBorder}"
+                                        BorderThickness="1,0,0,1"
+                                        IsVisible="{Binding HasExtensionContextTabs}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Content="{loc:Loc context.tab}"
+                                                Click="OnContextTabClick" Tag="Context"
+                                                Classes="explorerTab" Padding="10,6" FontSize="11"
+                                                Classes.active="{Binding IsContextTabActive}" />
+                                        <ItemsControl ItemsSource="{Binding ExtensionContextTabs}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate>
+                                                    <StackPanel Orientation="Horizontal" />
+                                                </ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate x:DataType="vm:ExtensionContextTabVM">
+                                                    <Button Content="{Binding Label}"
+                                                            Click="OnContextExtTabClick"
+                                                            Tag="{Binding Id}"
+                                                            Classes="explorerTab" Padding="10,6" FontSize="11"
+                                                            Classes.active="{Binding IsActive}"
+                                                            ToolTip.Tip="{Binding Tooltip}" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                                <!-- Content: native context sidebar or extension panel -->
+                                <Panel Grid.Row="1">
+                                    <views:ContextSidebarView DataContext="{Binding ContextSidebar}"
+                                                              x:Name="ContextSidebarPanel" />
+                                    <ContentControl x:Name="ContextExtTabHost"
+                                                    IsVisible="False" />
+                                </Panel>
+                            </Grid>
                         </Grid>
-
-                        <!-- Entity Editor -->
-                        <views:EntityEditorView DataContext="{Binding EntityEditor}"
-                                                 x:Name="EntityEditorPanel"
-                                                 IsVisible="False" />
-
-                        <!-- Dashboard -->
-                        <views:DashboardView DataContext="{Binding Dashboard}"
-                                              x:Name="DashboardPanel"
-                                              IsVisible="False" />
-
-                        <!-- Timeline -->
-                        <views:TimelineView DataContext="{Binding Timeline}"
-                                             x:Name="TimelinePanel"
-                                             IsVisible="False" />
-
-                        <!-- Export -->
-                        <views:ExportView DataContext="{Binding Export}"
-                                           x:Name="ExportPanel"
-                                           IsVisible="False" />
-
-                        <!-- Image Gallery -->
-                        <views:ImageGalleryView DataContext="{Binding ImageGallery}"
-                                                 x:Name="ImageGalleryPanel"
-                                                 IsVisible="False" />
-
-                        <!-- Git -->
-                        <views:GitView DataContext="{Binding Git}"
-                                        x:Name="GitPanel"
-                                        IsVisible="False" />
-
-                        <!-- Codex Hub -->
-                        <views:CodexHubView DataContext="{Binding CodexHub}"
-                                             x:Name="CodexHubPanel"
-                                             IsVisible="False" />
-
-                        <!-- Manuscript -->
-                        <views:ManuscriptView DataContext="{Binding Manuscript}"
-                                               x:Name="ManuscriptPanel"
-                                               IsVisible="False" />
-
-                        <!-- Extension content views -->
-                        <ContentControl x:Name="ExtensionContentHost" IsVisible="False" />
                     </Grid>
                 </Grid>
                 </Grid>
@@ -997,7 +784,7 @@
             <Border IsVisible="{Binding IsBookPickerOpen}"
                     x:Name="BookPickerOverlay"
                     Focusable="True"
-                    Background="#80000000"
+                    Background="{DynamicResource OverlayScrim}"
                     PointerPressed="OnBookPickerOverlayPressed">
                 <Border CornerRadius="8"
                         MinWidth="420"
@@ -1110,7 +897,7 @@
 
     <!-- Dialog Host Overlay — covers entire window for in-window modal dialogs -->
     <Border x:Name="DialogOverlay"
-            Background="#80000000"
+            Background="{DynamicResource OverlayScrim}"
             IsVisible="False"
             Focusable="True"
             ZIndex="200">
@@ -1125,7 +912,7 @@
     <!-- Start Menu Overlay (File-style backstage) — covers entire window including ribbon -->
     <Border IsVisible="{Binding IsStartMenuOpen}"
             x:Name="StartMenuOverlay"
-            Background="#80000000"
+            Background="{DynamicResource OverlayScrim}"
             Focusable="True"
             PointerPressed="OnStartMenuOverlayPressed">
         <Border x:Name="StartMenuPanel"
@@ -1238,20 +1025,38 @@
             </Border>
         </Border>
     </Border>
-    <!-- Extension notification toast -->
-    <Border IsVisible="{Binding ExtensionNotification, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Bottom"
-            Margin="0,0,0,52"
-            Padding="16,10"
-            CornerRadius="8"
-            Background="{DynamicResource SidebarBackground}"
-            BorderBrush="{DynamicResource PanelBorder}"
-            BorderThickness="1"
-            BoxShadow="0 4 12 0 #40000000">
-        <TextBlock Text="{Binding ExtensionNotification}"
-                   Foreground="{DynamicResource NormalText}"
-                   FontSize="13" />
-    </Border>
+    <!-- Toast stack (click-dismiss) -->
+    <ItemsControl ItemsSource="{Binding Toasts}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Bottom"
+                  Margin="0,0,0,52"
+                  ZIndex="300">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Vertical" Spacing="8" />
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:ToastNotification">
+                <Button Classes="toastButton"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).DismissToastCommand}"
+                        CommandParameter="{Binding}"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0">
+                    <Border Padding="16,10"
+                            CornerRadius="8"
+                            Background="{DynamicResource CardBackground}"
+                            BorderBrush="{Binding Severity, Converter={x:Static conv:ToastSeverityToBrushConverter.Instance}}"
+                            BorderThickness="3,1,1,1"
+                            BoxShadow="0 4 12 0 #40000000">
+                        <TextBlock Text="{Binding Message}"
+                                   Foreground="{DynamicResource NormalText}"
+                                   FontSize="13" />
+                    </Border>
+                </Button>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
     </Panel>
 </Window>

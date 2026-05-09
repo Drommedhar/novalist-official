@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Novalist.Sdk.Models;
 
 namespace Novalist.Core.Models;
 
@@ -84,8 +83,12 @@ public class AppSettings
     [JsonPropertyName("relationshipPairs")]
     public Dictionary<string, List<string>> RelationshipPairs { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
-    [JsonPropertyName("ai")]
-    public AiSettings Ai { get; set; } = new();
+    /// <summary>
+    /// Arbitrary JSON blobs stored by extensions. Key = extension-defined string (e.g. "com.novalist.ai").
+    /// Extensions read/write via IHostServices.ReadHostData / WriteHostDataAsync.
+    /// </summary>
+    [JsonPropertyName("extensionData")]
+    public Dictionary<string, string> ExtensionData { get; set; } = new(StringComparer.Ordinal);
 
     [JsonPropertyName("extensions")]
     public Dictionary<string, bool> Extensions { get; set; } = new(StringComparer.OrdinalIgnoreCase);

@@ -37,6 +37,24 @@ public class ProjectViewState
 
     [JsonPropertyName("isSceneNotesVisible")]
     public bool IsSceneNotesVisible { get; set; }
+
+    [JsonPropertyName("contextCharactersExpanded")]
+    public bool ContextCharactersExpanded { get; set; } = true;
+
+    [JsonPropertyName("contextMentionsExpanded")]
+    public bool ContextMentionsExpanded { get; set; } = true;
+
+    [JsonPropertyName("contextLocationsExpanded")]
+    public bool ContextLocationsExpanded { get; set; } = true;
+
+    [JsonPropertyName("contextItemsExpanded")]
+    public bool ContextItemsExpanded { get; set; } = true;
+
+    [JsonPropertyName("contextLoreExpanded")]
+    public bool ContextLoreExpanded { get; set; } = true;
+
+    [JsonPropertyName("contextSceneAnalysisExpanded")]
+    public bool ContextSceneAnalysisExpanded { get; set; } = true;
 }
 
 public class ProjectWordCountGoals

@@ -39,6 +39,7 @@ public partial class ManuscriptViewModel : ObservableObject
     public string ReadingTimeDisplay => LocFormatters.ReadingTime(TextStatistics.EstimateReadingTime(TotalWords));
 
     public event Action<ChapterData, SceneData>? SceneOpenRequested;
+    public event Action<ChapterData, SceneData, string>? SceneFocusChanged;
     public event Action? ContentRefreshRequested;
     public event Action? SceneSaved;
 
@@ -69,6 +70,14 @@ public partial class ManuscriptViewModel : ObservableObject
         var item = FindScene(sceneId);
         if (item != null)
             SceneOpenRequested?.Invoke(item.Chapter, item.Scene);
+    }
+
+    public void OnSceneFocused(string chapterGuid, string sceneId)
+    {
+        var item = FindScene(sceneId);
+        if (item == null) return;
+        var plainText = System.Text.RegularExpressions.Regex.Replace(item.HtmlContent, "<[^>]+>", string.Empty);
+        SceneFocusChanged?.Invoke(item.Chapter, item.Scene, plainText);
     }
 
     public async Task CycleStatusByGuidAsync(string chapterGuid)
