@@ -25,7 +25,8 @@
                                 Classes="timelineToolbarBtn"
                                 ToolTip.Tip="{Binding ViewModeLabel}">
                             <StackPanel Orientation="Horizontal" Spacing="4">
-                                <TextBlock Text="☰" FontSize="12" />
+                                <!-- Use icon instead of Unicode -->
+                                <PathIcon Data="{StaticResource IconBarChart}" Width="12" Height="12" Foreground="{DynamicResource NormalText}" />
                                 <TextBlock Text="{Binding ViewModeLabel}" FontSize="11" />
                             </StackPanel>
                         </Button>
@@ -62,7 +63,8 @@
                             Command="{Binding ShowAddFormCommand}"
                             Classes="timelineAddBtn">
                         <StackPanel Orientation="Horizontal" Spacing="4">
-                            <TextBlock Text="＋" FontSize="14" />
+                            <!-- Use icon instead of Unicode plus -->
+                            <PathIcon Data="{StaticResource IconFileText}" Width="12" Height="12" Foreground="{DynamicResource AccentForeground}" />
                             <TextBlock Text="{loc:Loc timeline.addEvent}" FontSize="11" />
                         </StackPanel>
                     </Button>
@@ -119,12 +121,9 @@
                                                             </Ellipse.Fill>
                                                         </Ellipse>
 
-                                                        <!-- Card content -->
+                                                        <!-- Card content using NlvCard -->
                                                         <Border Grid.Column="1"
-                                                                Background="{DynamicResource ExplorerBackground}"
-                                                                BorderBrush="{DynamicResource CardBorder}"
-                                                                BorderThickness="1"
-                                                                CornerRadius="6"
+                                                                Classes="nlvCard"
                                                                 Padding="12,8">
                                                             <StackPanel Spacing="4">
                                                                 <!-- Date -->
@@ -138,8 +137,8 @@
                                                                                FontWeight="SemiBold"
                                                                                FontSize="13"
                                                                                Foreground="{DynamicResource NormalText}" />
-                                                                    <Border CornerRadius="8"
-                                                                            Padding="6,1">
+                                                                    <Border CornerRadius="{DynamicResource RadiusPill}"
+                                                                            Padding="6,2">
                                                                         <Border.Background>
                                                                             <SolidColorBrush Color="{Binding SourceColor}" />
                                                                         </Border.Background>
@@ -166,9 +165,9 @@
                                                                     </ItemsControl.ItemsPanel>
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate>
-                                                                            <Border CornerRadius="8"
+                                                                            <Border CornerRadius="{DynamicResource RadiusPill}"
                                                                                     Background="{DynamicResource AccentBrush}"
-                                                                                    Padding="6,1"
+                                                                                    Padding="6,2"
                                                                                     Margin="0,0,4,2">
                                                                                 <TextBlock Text="{Binding}"
                                                                                            FontSize="10"
@@ -188,9 +187,10 @@
                                                                     </ItemsControl.ItemsPanel>
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate>
-                                                                            <Border CornerRadius="8"
-                                                                                    Background="#40c060"
-                                                                                    Padding="6,1"
+                                                                            <!-- Use SuccessBrush instead of hardcoded color -->
+                                                                            <Border CornerRadius="{DynamicResource RadiusPill}"
+                                                                                    Background="{DynamicResource SuccessBrush}"
+                                                                                    Padding="6,2"
                                                                                     Margin="0,0,4,2">
                                                                                 <TextBlock Text="{Binding}"
                                                                                            FontSize="10"
@@ -251,11 +251,8 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="vm:TimelineGroup">
-                                <Border Background="{DynamicResource ExplorerBackground}"
-                                        BorderBrush="{DynamicResource CardBorder}"
-                                        BorderThickness="1"
-                                        CornerRadius="8"
-                                        Padding="12"
+                                <!-- Use NlvCard for group container -->
+                                <Border Classes="nlvCard"
                                         Width="300"
                                         VerticalAlignment="Top">
                                     <StackPanel>
@@ -340,16 +337,13 @@
                     </ItemsControl>
                 </ScrollViewer>
 
-                <!-- ═══ Add/Edit Form Overlay ═══ -->
+                <!-- ═══ Add/Edit Form Overlay (modern dialog style) ═══ -->
                 <Border IsVisible="{Binding IsFormOpen}"
                         Background="#66000000">
-                    <Border Background="{DynamicResource EditorBackground}"
-                            BorderBrush="{DynamicResource CardBorder}"
-                            BorderThickness="1"
-                            CornerRadius="8"
+                    <!-- Use NlvCard for form container -->
+                    <Border Classes="nlvCard"
                             MaxWidth="460"
                             MaxHeight="500"
-                            Padding="20"
                             HorizontalAlignment="Center"
                             VerticalAlignment="Top"
                             Margin="0,60,0,0">

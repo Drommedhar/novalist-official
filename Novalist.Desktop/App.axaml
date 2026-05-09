@@ -9,6 +9,68 @@
 
         <!-- Custom Styles -->
 
+        <!-- ── NlvCard: standard card for panels, dashboards, overlays ── -->
+        <Style Selector="Border.nlvCard">
+            <Setter Property="Background" Value="{DynamicResource CardBackground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusLarge}" />
+            <Setter Property="Padding" Value="12,12" />
+        </Style>
+
+        <!-- ── NlvButtonPrimary: main action button (accent-filled) ── -->
+        <Style Selector="Button.nlvButtonPrimary">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentForeground}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="16,9" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}" />
+        </Style>
+        <Style Selector="Button.nlvButtonPrimary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}" />
+        </Style>
+
+        <!-- ── NlvButtonSecondary: subtle outlined button ── -->
+        <Style Selector="Button.nlvButtonSecondary">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
+            <Setter Property="Padding" Value="14,8" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}" />
+        </Style>
+        <Style Selector="Button.nlvButtonSecondary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+        </Style>
+
+        <!-- ── NlvButtonGhost: minimal hover-only button ── -->
+        <Style Selector="Button.nlvButtonGhost">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="8,6" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusSmall}" />
+        </Style>
+        <Style Selector="Button.nlvButtonGhost:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
+        </Style>
+
+        <!-- ── NlvSectionHeader: consistent section titles in views ── -->
+        <Style Selector="TextBlock.nlvSectionHeader">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeTitleSmall}" />
+            <Setter Property="FontWeight" Value="{DynamicResource FontWeightTitle}" />
+            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+            <Setter Property="Margin" Value="0,4,0,6" />
+        </Style>
+
+        <!-- ── NlvCaptionLabel: small labels above inputs/cards ── -->
+        <Style Selector="TextBlock.nlvCaptionLabel">
+            <Setter Property="FontSize" Value="{DynamicResource FontSizeCaption}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource SubtleText}" />
+            <Setter Property="LetterSpacing" Value="0.6" />
+        </Style>
 
         <!-- ── Ribbon File Tab (Start button — Word-style accent) ── -->
         <Style Selector="Button.ribbonFileTab">
@@ -53,7 +115,7 @@
             <Setter Property="BorderThickness" Value="0,1,0,0" />
         </Style>
 
-        <!-- ── Ribbon Group (vertical separator between groups) ── -->
+        <!-- ── Ribbon Group (softer separator between groups) ── -->
         <Style Selector="Border.ribbonGroup">
             <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
             <Setter Property="BorderThickness" Value="0,0,1,0" />
@@ -106,7 +168,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
         </Style>
 
-        <!-- ── Ribbon Toggle Large (View panel toggles — full height, on/off) ── -->
+        <!-- ── Ribbon Toggle Large (View panel toggles — segmented-style) ── -->
         <Style Selector="Button.ribbonToggleLarge">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource DimText}" />
@@ -114,7 +176,7 @@
             <Setter Property="BorderBrush" Value="Transparent" />
             <Setter Property="Padding" Value="10,4" />
             <Setter Property="MinWidth" Value="58" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
         </Style>
         <Style Selector="Button.ribbonToggleLarge:pointerover /template/ ContentPresenter">
@@ -127,7 +189,7 @@
             <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
         </Style>
 
-        <!-- ── Ribbon Old Button (backward compat — kept for any remaining usage) ── -->
+        <!-- ── Ribbon Old Button (backward compat) ── -->
         <Style Selector="Button.ribbonButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
@@ -207,6 +269,7 @@
             <Setter Property="Stroke" Value="{DynamicResource NormalText}" />
         </Style>
 
+        <!-- ── Editor Toolbar ── -->
         <Style Selector="Border.editorToolbar">
             <Setter Property="Background" Value="{DynamicResource EditorBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
@@ -255,6 +318,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
+        <!-- ── Group Mode Button (segmented-style) ── -->
         <Style Selector="Button.groupModeButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource DimText}" />
@@ -277,6 +341,7 @@
             <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
         </Style>
 
+        <!-- ── Explorer Tabs (left sidebar) ── -->
         <Style Selector="Button.explorerTab">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource DimText}" />
@@ -295,6 +360,7 @@
             <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
         </Style>
 
+        <!-- ── Editor Tab Strip & Tabs (refined) ── -->
         <Style Selector="Border.editorTabStrip">
             <Setter Property="Background" Value="{DynamicResource TabStripBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource EditorTabBorder}" />
@@ -406,6 +472,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
+        <!-- ── Link Button ── -->
         <Style Selector="Button.linkButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -436,6 +503,7 @@
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
         </Style>
 
+        <!-- ── Relationship Controls ── -->
         <Style Selector="Button.relationshipBadgeRemove">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
@@ -493,6 +561,7 @@
             <Setter Property="Background" Value="{DynamicResource TreeItemSelected}" />
         </Style>
 
+        <!-- ── Image Controls ── -->
         <Style Selector="Button.imageThumbButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
@@ -519,6 +588,7 @@
             <Setter Property="Background" Value="Transparent" />
         </Style>
 
+        <!-- ── Context Sidebar Styles (cards, pills, mentions) ── -->
         <Style Selector="Border.contextSidebarSceneContext">
             <Setter Property="Background" Value="{DynamicResource CardBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
@@ -663,6 +733,7 @@
             <Setter Property="LineHeight" Value="16" />
         </Style>
 
+        <!-- Mentions grid -->
         <Style Selector="Button.contextSidebarMentionRowButton">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderBrush" Value="Transparent" />
@@ -759,6 +830,7 @@
             <Setter Property="Foreground" Value="{DynamicResource AccentForeground}" />
         </Style>
 
+        <!-- Scene analysis -->
         <Style Selector="Grid.contextSidebarSceneAnalysisRow">
             <Setter Property="Margin" Value="0,0,0,1" />
         </Style>
@@ -864,6 +936,7 @@
             <Setter Property="Foreground" Value="{DynamicResource SubtleText}" />
         </Style>
 
+        <!-- Emotion / intensity -->
         <Style Selector="Border.contextSidebarEmotionBadge">
             <Setter Property="Background" Value="#253B82F6" />
             <Setter Property="CornerRadius" Value="4" />
@@ -893,6 +966,7 @@
             <Setter Property="Background" Value="#F87171" />
         </Style>
 
+        <!-- Tags -->
         <Style Selector="Border.contextSidebarSceneTag">
             <Setter Property="Background" Value="{DynamicResource ExplorerBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
@@ -907,6 +981,7 @@
             <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
         </Style>
 
+        <!-- Sparklines -->
         <Style Selector="Path.contextSidebarSparkZero">
             <Setter Property="Stroke" Value="{DynamicResource RibbonGroupBorder}" />
             <Setter Property="StrokeThickness" Value="1" />
@@ -933,6 +1008,7 @@
             <Setter Property="LineHeight" Value="18" />
         </Style>
 
+        <!-- Image picker -->
         <Style Selector="Border.imagePickerRow">
             <Setter Property="Background" Value="{DynamicResource CardBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
@@ -962,6 +1038,7 @@
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
 
+        <!-- ── Status Bar Styles (cleaner, more readable) ── -->
         <Style Selector="TextBlock.statusMetric">
             <Setter Property="FontSize" Value="11" />
             <Setter Property="Foreground" Value="{DynamicResource StatusBarForeground}" />
@@ -992,6 +1069,7 @@
             <Setter Property="MinWidth" Value="42" />
         </Style>
 
+        <!-- Status popup -->
         <Style Selector="Border.statusPopupCard">
             <Setter Property="Background" Value="{DynamicResource EditorBackground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
@@ -1087,6 +1165,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
 
+        <!-- ── Focus Peek Styles ── -->
         <Style Selector="Border.focusPeekCard">
             <Setter Property="Width" Value="540" />
             <Setter Property="MaxHeight" Value="420" />
@@ -1290,11 +1369,13 @@
             <Setter Property="Padding" Value="9,7" />
         </Style>
 
+        <!-- Drop target -->
         <Style Selector="Border.dropTarget">
             <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
             <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
         </Style>
 
+        <!-- Primary button (generic) -->
         <Style Selector="Button.primary">
             <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
             <Setter Property="Foreground" Value="{DynamicResource AccentForeground}" />
@@ -1365,7 +1446,10 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- Theme colors -->
                 <ResourceInclude Source="avares://Novalist.Desktop/Assets/Themes/NovalistTheme.axaml" />
+                <!-- Design tokens (spacing, radii, shadows, motion) -->
+                <ResourceInclude Source="avares://Novalist.Desktop/Assets/Themes/DesignTokens.axaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Ribbon icon geometries (Lucide-style, 24×24 stroke paths) -->
