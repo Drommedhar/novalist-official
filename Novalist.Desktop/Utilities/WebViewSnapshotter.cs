@@ -189,6 +189,31 @@ internal static class WebViewSnapshotter
     }
 
     // ── macOS (NSView cacheDisplayInRect on window contentView) ──────
+    //
+    // TODO(macos-snapshot): Image still renders ~1.5–2× too big when overlay
+    // opens, even though capture pixels are correct.
+    //
+    // Verified diagnostic log:
+    //   bounds=784x613.5 dip, contentH=900, rect=(330,212.5,784,613.5),
+    //   px=1568x1227, bytesPerRow=6272, bpp=32, spp=4
+    // → backing-scale 2× capture is correct. Bitmap pixel dims and rect match
+    //   the webView's DIP bounds. Issue is on the DISPLAY side, not capture.
+    //
+    // Tried so far (none fixed):
+    //   • Stretch=Fill + explicit Image.Width/Height pin + HAlign.Left/VAlign.Top
+    //   • Stretch=None relying on bitmap DPI (192) for intrinsic DIP size
+    //
+    // Likely culprits to investigate on real macOS device:
+    //   1. Avalonia macOS Image renderer may ignore WriteableBitmap DPI and
+    //      treat pxW as DIPs → intrinsic = 1568 DIP instead of 784.
+    //      Fix: override intrinsic via wrapping Border with Width/Height +
+    //      Image inside with Stretch=Uniform.
+    //   2. Width pin not honored when Image is direct child of Grid with
+    //      `*` row/column. Try wrapping in a Canvas or Border.
+    //   3. PixelFormat/AlphaFormat mismatch causing Skia to upscale.
+    //   4. WriteableBitmap DPI=192 may be interpreted as "display at 2× device
+    //      pixels" instead of "logical=intrinsic/2" on Avalonia's macOS backend.
+    //      Test: hardcode dpi = (96, 96) and pin Image.Width=bounds.W.
 
     private const string LibObjc = "/usr/lib/libobjc.dylib";
     private const string LibAppKit = "/System/Library/Frameworks/AppKit.framework/AppKit";
