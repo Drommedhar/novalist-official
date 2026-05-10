@@ -42,6 +42,8 @@ public partial class MainWindow : Window
                 vm.ShowInputDialog = ShowInputDialogAsync;
                 vm.ShowConfirmDialog = ShowConfirmDialogAsync;
                 vm.ShowSnapshotsDialog = ShowSnapshotsDialogAsync;
+                vm.ShowFindReplaceDialog = ShowFindReplaceDialogAsync;
+                vm.ShowCommandPalette = ShowCommandPaletteAsync;
                 vm.PropertyChanged += WireDashboardOnCreation;
 
                 vm.OpenProjectFromMenuRequested += async () =>
@@ -81,6 +83,15 @@ public partial class MainWindow : Window
         {
             case nameof(MainWindowViewModel.Explorer):
                 WireExplorerDialog(vm.Explorer);
+                break;
+            case nameof(MainWindowViewModel.PlotGrid):
+                WirePlotGrid(vm.PlotGrid);
+                break;
+            case nameof(MainWindowViewModel.Research):
+                WireResearch(vm.Research);
+                break;
+            case nameof(MainWindowViewModel.IsSplitEditorOpen):
+                UpdateSplitColumnWidths(vm.IsSplitEditorOpen);
                 break;
             case nameof(MainWindowViewModel.EntityPanel):
                 WireEntityPanel(vm.EntityPanel);
@@ -229,6 +240,39 @@ public partial class MainWindow : Window
 
     // ── Sidebar tab switching ───────────────────────────────────────
 
+    private static EditorTabDescriptor? FindTabDescriptor(object? sender)
+    {
+        if (sender is not MenuItem mi) return null;
+        // Walk up to Avalonia.Controls.ContextMenu to read its Tag (set to the
+        // tab descriptor by the XAML binding).
+        Avalonia.StyledElement? ctx = mi.Parent;
+        while (ctx is not null && ctx is not Avalonia.Controls.ContextMenu)
+            ctx = ctx.Parent;
+        if (ctx is Avalonia.Controls.ContextMenu cm && cm.Tag is EditorTabDescriptor desc)
+            return desc;
+        return mi.DataContext as EditorTabDescriptor;
+    }
+
+    private void UpdateSplitColumnWidths(bool split)
+    {
+        var grid = this.FindControl<Grid>("EditorSplitGrid");
+        if (grid == null || grid.ColumnDefinitions.Count < 3) return;
+        grid.ColumnDefinitions[1].Width = split ? GridLength.Auto : new GridLength(0);
+        grid.ColumnDefinitions[2].Width = split ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+    }
+
+    private void OnTabContextCloseClick(object? sender, RoutedEventArgs e)
+    {
+        var desc = FindTabDescriptor(sender);
+        desc?.OnClose?.Invoke();
+    }
+
+    private void OnTabContextMoveClick(object? sender, RoutedEventArgs e)
+    {
+        var desc = FindTabDescriptor(sender);
+        desc?.MoveToOtherPaneAction?.Invoke();
+    }
+
     private void OnSidebarTabClick(object? sender, RoutedEventArgs e)
     {
         if (sender is Button btn && btn.Tag is string tab && DataContext is MainWindowViewModel vm)
@@ -249,10 +293,12 @@ public partial class MainWindow : Window
     {
         var explorer = this.FindControl<ExplorerView>("ExplorerPanel");
         var entityPanel = this.FindControl<EntityPanelView>("EntityPanelControl");
+        var smartListsPanel = this.FindControl<SmartListsPanelView>("SmartListsPanelControl");
         var extHost = this.FindControl<ContentControl>("ExtensionSidebarHost");
 
         if (explorer != null) explorer.IsVisible = tab == "Chapters";
         if (entityPanel != null) entityPanel.IsVisible = tab == "Entities";
+        if (smartListsPanel != null) smartListsPanel.IsVisible = tab == "SmartLists";
 
         if (extHost != null)
         {
@@ -337,6 +383,8 @@ public partial class MainWindow : Window
         var gitPanel = this.FindControl<GitView>("GitPanel");
         var codexHubPanel = this.FindControl<CodexHubView>("CodexHubPanel");
         var manuscriptPanel = this.FindControl<ManuscriptView>("ManuscriptPanel");
+        var plotGridPanel = this.FindControl<PlotGridView>("PlotGridPanel");
+        var researchPanel = this.FindControl<ResearchView>("ResearchPanel");
         var extHost = this.FindControl<ContentControl>("ExtensionContentHost");
 
         var isExtView = view.StartsWith("ext:", StringComparison.Ordinal);
@@ -366,6 +414,8 @@ public partial class MainWindow : Window
         if (gitPanel != null) gitPanel.IsVisible = view == "Git";
         if (codexHubPanel != null) codexHubPanel.IsVisible = view == "CodexHub";
         if (manuscriptPanel != null) manuscriptPanel.IsVisible = manuscriptVisible;
+        if (plotGridPanel != null) plotGridPanel.IsVisible = view == "PlotGrid";
+        if (researchPanel != null) researchPanel.IsVisible = view == "Research";
 
         // Restore visibility after parent panel shown — respects overlay state.
         UpdateWebViewVisibility();
@@ -516,10 +566,35 @@ public partial class MainWindow : Window
 
     // ── Wiring ──────────────────────────────────────────────────────
 
+    private void WirePlotGrid(PlotGridViewModel? pg)
+    {
+        if (pg == null) return;
+        pg.ShowInputDialog = (title, prompt, def) => ShowOptionalInputDialogAsync(title, prompt, def ?? string.Empty);
+        pg.ShowConfirmDialog = ShowConfirmDialogAsync;
+    }
+
+    private void WireResearch(ResearchViewModel? research)
+    {
+        if (research == null) return;
+        research.ShowConfirmDialog = ShowConfirmDialogAsync;
+        research.PickFileToImport = async () =>
+        {
+            var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+            {
+                Title = "Import file into research",
+                AllowMultiple = false
+            });
+            return files.Count > 0 ? files[0].Path.LocalPath : null;
+        };
+    }
+
     private void WireExplorerDialog(ExplorerViewModel? explorer)
     {
         if (explorer == null) return;
         explorer.ShowInputDialog = ShowInputDialogAsync;
+        explorer.ShowSmartListEditor = ShowSmartListEditorAsync;
+        explorer.ShowConfirmDialog = ShowConfirmDialogAsync;
+        explorer.AttachSmartListService(App.SmartListService);
         explorer.ShowOptionalInputDialog = ShowOptionalInputDialogAsync;
         explorer.ShowDatePickerDialog = ShowDatePickerDialogAsync;
         explorer.ShowAutoCompleteInputDialog = ShowAutoCompleteInputDialogAsync;
@@ -632,11 +707,53 @@ public partial class MainWindow : Window
         UpdateWebViewVisibility();
     }
 
+    private async Task<Novalist.Core.Models.SmartList?> ShowSmartListEditorAsync(Novalist.Core.Models.SmartList? source)
+    {
+        var dialog = new SmartListEditorDialog(source);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        return dialog.Result;
+    }
+
     private async Task<string?> ShowInputDialogAsync(string title, string prompt, string defaultValue)
     {
         var dialog = new InputDialog(title, prompt, defaultValue);
         await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
         return dialog.Result;
+    }
+
+    private async Task ShowCommandPaletteAsync()
+    {
+        var dialog = new CommandPaletteDialog(App.HotkeyService);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+    }
+
+    private async Task ShowFindReplaceDialogAsync()
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        var frVm = new FindReplaceViewModel(
+            App.FindReplaceService,
+            App.SnapshotService,
+            getCurrentSceneAnchor: () =>
+            {
+                var s = vm.Editor?.CurrentScene;
+                if (s == null) return null;
+                return (s.ChapterGuid, s.Id);
+            },
+            onJumpRequested: async match =>
+            {
+                var chapter = App.ProjectService.GetChaptersOrdered()
+                    .FirstOrDefault(c => c.Guid == match.ChapterGuid);
+                if (chapter == null) return;
+                var scene = App.ProjectService.GetScenesForChapter(chapter.Guid)
+                    .FirstOrDefault(s => s.Id == match.SceneId);
+                if (scene == null) return;
+                if (vm.Editor != null)
+                    await vm.Editor.OpenSceneAsync(chapter, scene);
+            });
+        var dialog = new FindReplaceDialog(frVm);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
     }
 
     private async Task ShowSnapshotsDialogAsync(Novalist.Core.Models.ChapterData chapter, Novalist.Core.Models.SceneData scene)

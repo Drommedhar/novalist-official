@@ -2,6 +2,85 @@
   "language": {
     "name": "English"
   },
+  "menu": {
+    "edit": "Edit",
+    "view": "View",
+    "findReplace": "Find / Replace...",
+    "takeSnapshot": "Take Snapshot",
+    "snapshots": "Snapshots...",
+    "toggleExplorer": "Toggle Explorer",
+    "toggleContextSidebar": "Toggle Context Sidebar",
+    "toggleSceneNotes": "Toggle Scene Notes",
+    "focusMode": "Focus Mode",
+    "plotGrid": "Plot Grid",
+    "research": "Research",
+    "toggleSplitEditor": "Toggle split editor",
+    "addComment": "Add comment",
+    "commandPalette": "Command Palette..."
+  },
+  "commandPalette": {
+    "placeholder": "Type a command name..."
+  },
+  "research": {
+    "title": "Research",
+    "addNote": "+ Note",
+    "addLink": "+ Link",
+    "importFile": "Import file...",
+    "openExternal": "Open externally",
+    "deleteItem": "Delete",
+    "titleWatermark": "Title",
+    "contentWatermark": "Notes / URL / file path",
+    "empty": "No research item selected. Add one or pick from the list.",
+    "confirmDeleteTitle": "Delete research item?",
+    "confirmDelete": "Delete \"{0}\"?"
+  },
+  "plotGrid": {
+    "title": "Plot Grid",
+    "addPlotline": "+ Add plotline",
+    "empty": "No plotlines yet. Add one to start mapping plot threads against scenes.",
+    "rename": "Rename...",
+    "delete": "Delete",
+    "addTitle": "New plotline",
+    "addPrompt": "Plotline name",
+    "renameTitle": "Rename plotline",
+    "renamePrompt": "New name",
+    "confirmDeleteTitle": "Delete plotline?",
+    "confirmDelete": "Delete \"{0}\"? Scene assignments will be removed."
+  },
+  "comments": {
+    "addTitle": "Add comment",
+    "addPrompt": "Comment text",
+    "noSelection": "Select some text in the scene first."
+  },
+  "commentPeek": {
+    "placeholder": "Type your comment...",
+    "delete": "Delete comment",
+    "close": "Close"
+  },
+  "smartList": {
+    "section": "Smart Lists",
+    "addNew": "+ New smart list",
+    "edit": "Edit...",
+    "refresh": "Refresh",
+    "delete": "Delete",
+    "loading": "Loading...",
+    "editTitle": "Smart list",
+    "name": "Name",
+    "chapterStatus": "Chapter status",
+    "povContains": "POV contains",
+    "tag": "Tag",
+    "confirmDeleteTitle": "Delete smart list?",
+    "confirmDelete": "Delete \"{0}\"? This cannot be undone."
+  },
+  "findReplace": {
+    "title": "Find and Replace",
+    "find": "Find",
+    "replace": "Replace",
+    "replaceAll": "Replace All",
+    "matchCase": "Match case",
+    "wholeWord": "Whole word",
+    "regex": "Regex"
+  },
   "app": {
     "title": "Novalist",
     "subtitle": "A writing tool for novelists",
@@ -68,7 +147,8 @@
   },
   "sidebar": {
     "chapters": "Chapters",
-    "entities": "Entities"
+    "entities": "Entities",
+    "smartLists": "Lists"
   },
   "tabs": {
     "scnBadge": "SCN",
@@ -223,6 +303,9 @@
       "project": "Project",
       "git": "Git"
     },
+    "app": {
+      "commandPalette": "Open Command Palette"
+    },
     "nav": {
       "dashboard": "Go to Dashboard",
       "editor": "Go to Editor",
@@ -262,7 +345,9 @@
       "alignLeft": "Align Left",
       "alignCenter": "Align Center",
       "alignRight": "Align Right",
-      "alignJustify": "Align Justify"
+      "alignJustify": "Align Justify",
+      "findReplace": "Find / Replace",
+      "addComment": "Add comment to selection"
     },
     "project": {
       "save": "Save Scene"
@@ -506,6 +591,8 @@
   },
   "editor": {
     "emptyState": "Select a scene from the explorer to start writing.",
+    "tabClose": "Close tab",
+    "tabMoveOther": "Move to other split",
     "boldTooltip": "Bold (Ctrl+B)",
     "italicTooltip": "Italic (Ctrl+I)",
     "underlineTooltip": "Underline (Ctrl+U)",
@@ -542,6 +629,7 @@
     "cancel": "Cancel",
     "ok": "OK",
     "close": "Close",
+    "save": "Save",
     "update": "Update",
     "chapterTitle": "Chapter",
     "chapterName": "Chapter name",
@@ -645,7 +733,10 @@
     "placeholder": "Add notes about this scene...",
     "empty": "Open a scene to add notes.",
     "synopsisTitle": "SYNOPSIS",
-    "synopsisPlaceholder": "Brief summary of this scene..."
+    "synopsisPlaceholder": "Brief summary of this scene...",
+    "commentsTitle": "COMMENTS",
+    "commentPlaceholder": "Type your comment...",
+    "jumpToComment": "Jump to anchor"
   },
   "snapshots": {
     "title": "Scene snapshots",
@@ -733,6 +824,7 @@
     "filterLocation": "Filter by location…",
     "filterSource": "Filter by source…",
     "addEvent": "Add Event",
+    "applyStructure": "Add structure...",
     "editEvent": "Edit",
     "deleteEvent": "Delete",
     "openChapter": "Open Chapter",
@@ -788,6 +880,7 @@
     "formatMarkdown": "Markdown",
     "smfPreset": "SMF",
     "smfPresetDesc": "Standard Manuscript Format: 12 pt Courier, double-spaced, 1-inch margins, page headers with surname / title.",
+    "preset": "Preset",
     "selectAll": "Select all",
     "selectNone": "Select none",
     "exportButton": "Export {0}",

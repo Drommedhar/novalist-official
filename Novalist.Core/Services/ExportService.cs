@@ -20,8 +20,23 @@ public class ExportOptions
     public bool IncludeTitlePage { get; set; } = true;
     public string Title { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
+    /// <summary>
+    /// Legacy boolean — Shunn manuscript format. Kept for backward compat:
+    /// when <see cref="PresetId"/> is unset, <c>SmfPreset=true</c> is treated
+    /// as <see cref="ExportPresets.ShunnId"/>.
+    /// </summary>
     public bool SmfPreset { get; set; }
+    /// <summary>Optional preset id from <see cref="ExportPresets.All"/>.</summary>
+    public string? PresetId { get; set; }
     public List<string> SelectedChapterGuids { get; set; } = [];
+
+    /// <summary>Resolves to the configured preset (or default).</summary>
+    public ExportPreset ResolvePreset()
+    {
+        if (!string.IsNullOrWhiteSpace(PresetId))
+            return ExportPresets.GetById(PresetId);
+        return SmfPreset ? ExportPresets.GetById(ExportPresets.ShunnId) : ExportPresets.GetById(ExportPresets.DefaultId);
+    }
 }
 
 public class ChapterExportContent
@@ -657,7 +672,7 @@ public partial class ExportService
         using var stream = new FileStream(outputPath, FileMode.Create, FileAccess.Write);
         using var zip = new ZipArchive(stream, ZipArchiveMode.Create);
 
-        var smf = options.SmfPreset;
+        var smf = options.ResolvePreset().ShunnHeader;
 
         // [Content_Types].xml
         var contentTypesExtra = smf
@@ -786,7 +801,7 @@ public partial class ExportService
 
     private static string GenerateDocxStyles(ExportOptions options)
     {
-        var smf = options.SmfPreset;
+        var smf = options.ResolvePreset().ShunnHeader;
         var fontFamily = smf ? "Courier New" : "Georgia";
         var fontSize = "24";
         var lineSpacing = smf ? "480" : "360";
@@ -916,7 +931,7 @@ public partial class ExportService
         ExportOptions options,
         string outputPath)
     {
-        var smf = options.SmfPreset;
+        var smf = options.ResolvePreset().ShunnHeader;
         var doc = new PdfSharpCore.Pdf.PdfDocument();
         doc.Info.Title = options.Title;
         if (!string.IsNullOrWhiteSpace(options.Author))

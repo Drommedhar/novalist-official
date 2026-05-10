@@ -1,0 +1,127 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             x:Class="Novalist.Desktop.Views.PlotGridView"
+             x:DataType="vm:PlotGridViewModel">
+    <Border Background="{DynamicResource EditorBackground}">
+        <DockPanel>
+            <Border DockPanel.Dock="Top"
+                    Padding="16,10"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    BorderThickness="0,0,0,1"
+                    Background="{DynamicResource ExplorerBackground}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0"
+                               Text="{loc:Loc plotGrid.title}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource NormalText}" />
+                    <Button Grid.Column="1"
+                            Content="{loc:Loc plotGrid.addPlotline}"
+                            Command="{Binding AddPlotlineCommand}"
+                            Padding="12,5"
+                            Classes="primary" />
+                </Grid>
+            </Border>
+
+            <Border IsVisible="{Binding !HasContent}"
+                    Padding="40">
+                <TextBlock Text="{loc:Loc plotGrid.empty}"
+                           FontSize="13"
+                           Foreground="{DynamicResource SubtleText}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Border>
+
+            <ScrollViewer IsVisible="{Binding HasContent}"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="0">
+                    <!-- Header row: scene columns -->
+                    <ItemsControl ItemsSource="{Binding Columns}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PlotGridSceneColumn">
+                                <Border Width="120"
+                                        Padding="6"
+                                        BorderBrush="{DynamicResource ExplorerBorder}"
+                                        BorderThickness="0,0,1,1"
+                                        Background="{DynamicResource ExplorerBackground}">
+                                    <StackPanel Spacing="2">
+                                        <TextBlock Text="{Binding ChapterTitle}"
+                                                   FontSize="10"
+                                                   Opacity="0.6"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding SceneTitle}"
+                                                   FontSize="11.5"
+                                                   FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Plotline rows -->
+                    <ItemsControl ItemsSource="{Binding Rows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:PlotGridRow">
+                                <Grid ColumnDefinitions="180,*">
+                                    <Border Grid.Column="0"
+                                            Padding="8,4"
+                                            BorderBrush="{DynamicResource ExplorerBorder}"
+                                            BorderThickness="0,0,1,1"
+                                            Background="{DynamicResource ExplorerBackground}">
+                                        <Border.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="{loc:Loc plotGrid.rename}"
+                                                          Click="OnRenamePlotlineClick"
+                                                          Tag="{Binding}" />
+                                                <MenuItem Header="{loc:Loc plotGrid.delete}"
+                                                          Click="OnDeletePlotlineClick"
+                                                          Tag="{Binding}" />
+                                            </ContextMenu>
+                                        </Border.ContextMenu>
+                                        <TextBox Text="{Binding Name, Mode=TwoWay}"
+                                                 FontWeight="SemiBold"
+                                                 BorderThickness="0"
+                                                 Background="Transparent"
+                                                 FontSize="12.5" />
+                                    </Border>
+
+                                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Cells}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:PlotGridCell">
+                                                <Border Width="120"
+                                                        Padding="0"
+                                                        BorderBrush="{DynamicResource ExplorerBorder}"
+                                                        BorderThickness="0,0,1,1"
+                                                        ToolTip.Tip="{Binding Tooltip}">
+                                                    <CheckBox IsChecked="{Binding IsAssigned, Mode=TwoWay}"
+                                                              HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"
+                                                              Margin="6" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

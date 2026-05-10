@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:models="using:Novalist.Core.Models"
              xmlns:loc="using:Novalist.Desktop.Localization"
              mc:Ignorable="d"
              d:DesignWidth="900" d:DesignHeight="700"
@@ -58,16 +59,32 @@
                                   ItemsSource="{Binding AvailableSources}" />
                     </StackPanel>
 
-                    <!-- Right group: add button -->
-                    <Button Grid.Column="1"
-                            Command="{Binding ShowAddFormCommand}"
-                            Classes="timelineAddBtn">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
-                            <!-- Use icon instead of Unicode plus -->
-                            <PathIcon Data="{StaticResource IconFileText}" Width="12" Height="12" Foreground="{DynamicResource AccentForeground}" />
-                            <TextBlock Text="{loc:Loc timeline.addEvent}" FontSize="11" />
-                        </StackPanel>
-                    </Button>
+                    <!-- Right group: structure template menu + add button -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                        <Button Classes="timelineAddBtn"
+                                ToolTip.Tip="{loc:Loc timeline.applyStructure}">
+                            <Button.Flyout>
+                                <MenuFlyout ItemsSource="{Binding AvailableStructureTemplates}">
+                                    <MenuFlyout.ItemTemplate>
+                                        <DataTemplate DataType="models:StoryStructureTemplate">
+                                            <MenuItem Header="{Binding DisplayName}"
+                                                      ToolTip.Tip="{Binding Description}"
+                                                      Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).ApplyStructureTemplateCommand}"
+                                                      CommandParameter="{Binding Id}" />
+                                        </DataTemplate>
+                                    </MenuFlyout.ItemTemplate>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                            <TextBlock Text="{loc:Loc timeline.applyStructure}" FontSize="11" />
+                        </Button>
+                        <Button Command="{Binding ShowAddFormCommand}"
+                                Classes="timelineAddBtn">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                                <PathIcon Data="{StaticResource IconFileText}" Width="12" Height="12" Foreground="{DynamicResource AccentForeground}" />
+                                <TextBlock Text="{loc:Loc timeline.addEvent}" FontSize="11" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
 

@@ -1,0 +1,110 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:models="using:Novalist.Core.Models"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             x:Class="Novalist.Desktop.Views.ResearchView"
+             x:DataType="vm:ResearchViewModel">
+    <Border Background="{DynamicResource EditorBackground}">
+        <Grid ColumnDefinitions="280,*">
+            <!-- Sidebar: list -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource ExplorerBackground}"
+                    BorderBrush="{DynamicResource ExplorerBorder}"
+                    BorderThickness="0,0,1,0">
+                <DockPanel>
+                    <Border DockPanel.Dock="Top"
+                            Padding="10,8"
+                            BorderBrush="{DynamicResource ExplorerBorder}"
+                            BorderThickness="0,0,0,1">
+                        <TextBlock Text="{loc:Loc research.title}"
+                                   FontSize="13"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource NormalText}" />
+                    </Border>
+
+                    <Border DockPanel.Dock="Top" Padding="6,4">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button Content="{loc:Loc research.addNote}"
+                                    Command="{Binding AddNoteCommand}"
+                                    FontSize="11" Padding="8,4" />
+                            <Button Content="{loc:Loc research.addLink}"
+                                    Command="{Binding AddLinkCommand}"
+                                    FontSize="11" Padding="8,4" />
+                            <Button Content="{loc:Loc research.importFile}"
+                                    Command="{Binding ImportFileCommand}"
+                                    FontSize="11" Padding="8,4" />
+                        </StackPanel>
+                    </Border>
+
+                    <ListBox ItemsSource="{Binding Items}"
+                             SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                             Background="Transparent">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate DataType="models:ResearchItem">
+                                <StackPanel Spacing="2" Margin="2,2">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Type}" FontSize="10" Opacity="0.6" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+
+            <!-- Editor pane -->
+            <DockPanel Grid.Column="1"
+                       IsVisible="{Binding HasSelection}"
+                       Margin="14,12">
+                <StackPanel DockPanel.Dock="Top" Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding SelectedItem.Title, Mode=TwoWay}"
+                                 Watermark="{loc:Loc research.titleWatermark}"
+                                 FontSize="14"
+                                 FontWeight="SemiBold" />
+                        <ComboBox Grid.Column="1"
+                                  ItemsSource="{Binding AvailableTypes}"
+                                  SelectedItem="{Binding SelectedItem.Type, Mode=TwoWay}"
+                                  Width="120" />
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel DockPanel.Dock="Bottom"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="8"
+                            Margin="0,12,0,0">
+                    <Button Content="{loc:Loc research.openExternal}"
+                            Command="{Binding OpenExternalCommand}"
+                            Padding="12,6" />
+                    <Button Content="{loc:Loc research.deleteItem}"
+                            Command="{Binding DeleteSelectedCommand}"
+                            Padding="12,6" />
+                    <Button Content="{loc:Loc dialog.save}"
+                            Command="{Binding SaveSelectedCommand}"
+                            Classes="primary"
+                            Padding="14,6" />
+                </StackPanel>
+
+                <TextBox Text="{Binding SelectedItem.Content, Mode=TwoWay}"
+                         Watermark="{loc:Loc research.contentWatermark}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Margin="0,12,0,0"
+                         MinHeight="200" />
+            </DockPanel>
+
+            <Border Grid.Column="1"
+                    IsVisible="{Binding !HasSelection}"
+                    Padding="40">
+                <TextBlock Text="{loc:Loc research.empty}"
+                           FontSize="13"
+                           Foreground="{DynamicResource SubtleText}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

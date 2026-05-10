@@ -76,25 +76,27 @@
                                       HorizontalAlignment="Stretch" />
                         </Grid>
 
-                        <!-- SMF Preset (DOCX/PDF only) -->
-                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12"
-                              IsVisible="{Binding IsSmfVisible}">
+                        <!-- Compile preset -->
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
                             <TextBlock Grid.Column="0"
-                                       Text="{loc:Loc export.smfPreset}"
+                                       Text="{loc:Loc export.preset}"
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource NormalText}" />
-                            <ToggleSwitch Grid.Column="1"
-                                          IsChecked="{Binding SmfPreset}"
-                                          OnContent=""
-                                          OffContent="" />
+                            <ComboBox Grid.Column="1"
+                                      ItemsSource="{Binding AvailablePresets}"
+                                      SelectedValue="{Binding SelectedPresetId, Mode=TwoWay}"
+                                      SelectedValueBinding="{Binding Id}"
+                                      HorizontalAlignment="Stretch">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12.5" />
+                                            <TextBlock Text="{Binding Description}" FontSize="10.5" Opacity="0.7" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
                         </Grid>
-
-                        <TextBlock Text="{loc:Loc export.smfPresetDesc}"
-                                   FontSize="11"
-                                   Foreground="{DynamicResource SubtleText}"
-                                   TextWrapping="Wrap"
-                                   Margin="132,0,0,0"
-                                   IsVisible="{Binding IsSmfVisible}" />
 
                         <!-- Include Title Page -->
                         <Grid ColumnDefinitions="120,*" ColumnSpacing="12">

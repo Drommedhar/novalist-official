@@ -10,8 +10,60 @@
              x:Class="Novalist.Desktop.Views.EditorView"
              x:DataType="vm:EditorViewModel">
 
-    <Grid RowDefinitions="*">
-        <Grid Grid.Row="0" x:Name="EditorHost">
+    <Grid RowDefinitions="Auto,*">
+        <!-- Per-pane scene tab strip (visible whenever any scene tab is open) -->
+        <Border Grid.Row="0"
+                IsVisible="{Binding HasOpenScenes}"
+                Background="{DynamicResource EditorTabsBackground}"
+                BorderBrush="{DynamicResource RibbonBorder}"
+                BorderThickness="0,0,0,1">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding OpenScenes}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="0" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:EditorOpenScene">
+                            <Border Classes="editorTabHost"
+                                    Classes.active="{Binding IsActive}"
+                                    Tag="{Binding}"
+                                    PointerPressed="OnTabPointerPressed">
+                                <Border.ContextMenu>
+                                    <ContextMenu Tag="{Binding}">
+                                        <MenuItem Header="{loc:Loc editor.tabClose}"
+                                                  Click="OnTabContextCloseClick" />
+                                        <MenuItem Header="{loc:Loc editor.tabMoveOther}"
+                                                  Click="OnTabContextMoveClick" />
+                                    </ContextMenu>
+                                </Border.ContextMenu>
+                                <Grid ColumnDefinitions="*,Auto" MinWidth="160">
+                                    <Button Grid.Column="0"
+                                            Classes="editorTabSurface"
+                                            Padding="12,8"
+                                            Command="{Binding $parent[UserControl].((vm:EditorViewModel)DataContext).ActivateTabFromUiCommand}"
+                                            CommandParameter="{Binding}">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Text="{Binding DisplayTitle}" Classes="editorTabText" />
+                                            <Border Classes="editorTabDirtyDot" IsVisible="{Binding IsDirty}" />
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Grid.Column="1"
+                                            Classes="editorTabCloseButton"
+                                            Click="OnTabCloseClick"
+                                            Tag="{Binding}">
+                                        <Path Classes="editorTabCloseGlyph" />
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <Grid Grid.Row="1" x:Name="EditorHost">
             <!-- WebView is created in code-behind so we can catch native init
                  failures (e.g. Xamarin.Mac / .NET 10 incompatibility on macOS). -->
 
@@ -41,6 +93,7 @@
                 <views:FocusPeekCardView DataContext="{Binding FocusPeek}"
                                          IsHitTestVisible="True" />
             </Popup>
+
         </Grid>
     </Grid>
 </UserControl>
