@@ -315,6 +315,23 @@ public partial class EditorViewModel : ObservableObject
     }
 
     /// <summary>
+    /// Re-reads the current scene from disk and replaces the editor content.
+    /// Used after operations like snapshot restore that bypass the editor.
+    /// </summary>
+    public async Task ReloadCurrentSceneAsync()
+    {
+        if (_chapter == null || _scene == null)
+            return;
+
+        var text = await _projectService.ReadSceneContentAsync(_chapter, _scene);
+        _savedContent = text;
+        Content = text;
+        IsDirty = false;
+        _plainText = StripHtmlForStats(text);
+        UpdateStats(_plainText);
+    }
+
+    /// <summary>
     /// Called by the view when the editor content changes.
     /// Content is stored as HTML to preserve formatting (bold, italic, etc.).
     /// </summary>

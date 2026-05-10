@@ -14,7 +14,17 @@
       "Bash(grep -i \"NativeWebView$\\\\|NativeWebView \" /c/Users/domin/.claude/projects/j--git-novalist-official/fea57830-5081-451e-a2f9-3bb2c38126a0/tool-results/bjj25smii.txt)",
       "Bash(grep -E \"Avalonia\\\\.Controls\\\\.[A-Z][a-zA-Z]*$\" /c/Users/domin/.claude/projects/j--git-novalist-official/fea57830-5081-451e-a2f9-3bb2c38126a0/tool-results/bjj25smii.txt)",
       "PowerShell(try { $asm = [System.Reflection.Assembly]::LoadFrom\\('C:\\\\Users\\\\domin\\\\.nuget\\\\packages\\\\avalonia.controls.webview\\\\12.0.0\\\\lib\\\\net8.0\\\\Avalonia.Controls.WebView.dll'\\); $types = $asm.GetTypes\\(\\) } catch [System.Reflection.ReflectionTypeLoadException] { $types = $_.Exception.Types | Where-Object { $_ -ne $null } }; foreach \\($n in @\\('Avalonia.Controls.WebViewAdapter','Avalonia.Controls.IWebView','Avalonia.Controls.WebViewAdapterEventArgs','Avalonia.Controls.IWebViewAdapterWithCommands','Avalonia.Controls.INativeWebViewControlImpl'\\)\\) { $t = $types | Where-Object { $_.FullName -eq $n } | Select-Object -First 1; if \\($t\\) { Write-Output \\('=== ' + $n + ' ==='\\); $t.GetMembers\\(\\) | ForEach-Object { Write-Output \\('  ' + $_.MemberType + ' ' + $_.ToString\\(\\)\\) } } })",
-      "PowerShell(dotnet build Novalist.Desktop\\\\Novalist.Desktop.csproj -nologo -v q 2>&1)"
+      "PowerShell(dotnet build Novalist.Desktop\\\\Novalist.Desktop.csproj -nologo -v q 2>&1)",
+      "WebFetch(domain:www.literatureandlatte.com)",
+      "WebSearch",
+      "Bash(grep -E \"\\\\.cs$\")",
+      "WebFetch(domain:www.setapp.com)",
+      "Bash(ls E:/git/novalist-aiassistant 2>&1 | head -50)",
+      "Read(//e/git/novalist-aiassistant/**)",
+      "Bash(mkdir -p e:/git/novalist-official/docs && cp \"/c/Users/domin/.claude/plans/compare-novalist-with-https-www-literatu-swift-wreath.md\" \"e:/git/novalist-official/docs/PARITY_AUDIT.md\" && ls -la e:/git/novalist-official/docs/PARITY_AUDIT.md)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\domin\\.claude\\plans"
     ]
   }
 }

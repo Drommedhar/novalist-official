@@ -12,11 +12,37 @@
     <Border Background="{DynamicResource ExplorerBackground}"
             BorderBrush="{DynamicResource ExplorerBorder}"
             BorderThickness="0,1,0,0">
-        <Grid RowDefinitions="Auto,*">
+        <Grid RowDefinitions="Auto,Auto,Auto,*">
             <Border Grid.Row="0"
                     Background="{DynamicResource ExplorerBackground}"
                     BorderBrush="{DynamicResource ExplorerBorder}"
                     BorderThickness="0,0,0,1"
+                    Padding="14,8">
+                <TextBlock Text="{loc:Loc sceneNotes.synopsisTitle}"
+                           FontSize="11"
+                           FontWeight="Bold"
+                           LetterSpacing="1"
+                           Foreground="{DynamicResource SubtleText}" />
+            </Border>
+
+            <TextBox Grid.Row="1"
+                     Text="{Binding Synopsis, Mode=TwoWay}"
+                     Watermark="{loc:Loc sceneNotes.synopsisPlaceholder}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     MinHeight="40"
+                     MaxHeight="120"
+                     Padding="12,8"
+                     BorderThickness="0"
+                     Background="Transparent"
+                     Foreground="{DynamicResource NormalText}"
+                     FontSize="12.5"
+                     IsVisible="{Binding IsSceneOpen}" />
+
+            <Border Grid.Row="2"
+                    Background="{DynamicResource ExplorerBackground}"
+                    BorderBrush="{DynamicResource ExplorerBorder}"
+                    BorderThickness="0,1,0,1"
                     Padding="14,8">
                 <TextBlock Text="{loc:Loc sceneNotes.title}"
                            FontSize="11"
@@ -25,7 +51,7 @@
                            Foreground="{DynamicResource SubtleText}" />
             </Border>
 
-            <TextBox Grid.Row="1"
+            <TextBox Grid.Row="3"
                      Text="{Binding Notes, Mode=TwoWay}"
                      Watermark="{loc:Loc sceneNotes.placeholder}"
                      AcceptsReturn="True"
@@ -38,7 +64,7 @@
                      FontSize="12.5"
                      IsVisible="{Binding IsSceneOpen}" />
 
-            <TextBlock Grid.Row="1"
+            <TextBlock Grid.Row="3"
                        Text="{loc:Loc sceneNotes.empty}"
                        Padding="14,12"
                        FontSize="12"

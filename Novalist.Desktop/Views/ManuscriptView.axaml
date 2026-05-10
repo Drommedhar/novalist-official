@@ -29,8 +29,29 @@
                                    VerticalAlignment="Center" />
                     </StackPanel>
 
-                    <!-- Right: Filter controls -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4">
+                    <!-- Right: View mode + Filter controls -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button Content="{loc:Loc manuscript.viewModeManuscript}"
+                                    Command="{Binding SetViewModeCommand}"
+                                    CommandParameter="Manuscript"
+                                    Classes="ribbonToggleLarge"
+                                    Classes.active="{Binding IsManuscriptMode}"
+                                    Padding="10,5" FontSize="11" />
+                            <Button Content="{loc:Loc manuscript.viewModeCorkboard}"
+                                    Command="{Binding SetViewModeCommand}"
+                                    CommandParameter="Corkboard"
+                                    Classes="ribbonToggleLarge"
+                                    Classes.active="{Binding IsCorkboardMode}"
+                                    Padding="10,5" FontSize="11" />
+                            <Button Content="{loc:Loc manuscript.viewModeOutliner}"
+                                    Command="{Binding SetViewModeCommand}"
+                                    CommandParameter="Outliner"
+                                    Classes="ribbonToggleLarge"
+                                    Classes.active="{Binding IsOutlinerMode}"
+                                    Padding="10,5" FontSize="11" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="4">
                         <Button Content="{loc:Loc manuscript.filterAll}"
                                 Command="{Binding SetFilterCommand}"
                                 CommandParameter="All"
@@ -58,6 +79,7 @@
                                 Classes="ribbonToggleLarge"
                                 Classes.active="{Binding FilterStatus, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Final}"
                                 Padding="10,5" FontSize="11" />
+                        </StackPanel>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -72,9 +94,124 @@
                            VerticalAlignment="Center" />
             </Border>
 
-            <!-- WebView host -->
-            <Grid x:Name="ManuscriptHost"
-                  IsVisible="{Binding HasContent}" />
+            <Grid IsVisible="{Binding HasContent}">
+                <!-- WebView host (composite Manuscript mode) -->
+                <Grid x:Name="ManuscriptHost"
+                      IsVisible="{Binding IsManuscriptMode}" />
+
+                <!-- Corkboard mode: chapters as headers, scenes as cards -->
+                <ScrollViewer IsVisible="{Binding IsCorkboardMode}"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Sections}" Margin="16">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:ManuscriptSection">
+                                <StackPanel Margin="0,0,0,18">
+                                    <TextBlock Text="{Binding ChapterTitle}"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,8"
+                                               Foreground="{DynamicResource NormalText}" />
+                                    <ItemsControl ItemsSource="{Binding Scenes}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate DataType="vm:ManuscriptSceneItem">
+                                                <Border Width="220" Height="160"
+                                                        Margin="0,0,12,12"
+                                                        Background="{DynamicResource ExplorerBackground}"
+                                                        BorderBrush="{DynamicResource CardBorder}"
+                                                        BorderThickness="1"
+                                                        CornerRadius="4"
+                                                        Padding="10">
+                                                    <DockPanel>
+                                                        <TextBlock DockPanel.Dock="Top"
+                                                                   Text="{Binding Title}"
+                                                                   FontWeight="SemiBold"
+                                                                   FontSize="12.5"
+                                                                   TextWrapping="NoWrap"
+                                                                   TextTrimming="CharacterEllipsis"
+                                                                   Foreground="{DynamicResource NormalText}" />
+                                                        <TextBlock DockPanel.Dock="Bottom"
+                                                                   FontSize="10.5"
+                                                                   Margin="0,4,0,0"
+                                                                   Foreground="{DynamicResource SubtleText}">
+                                                            <Run Text="{Binding WordCount}" />
+                                                            <Run Text=" " />
+                                                            <Run Text="{loc:Loc snapshots.words}" />
+                                                        </TextBlock>
+                                                        <TextBox Text="{Binding Synopsis, Mode=TwoWay}"
+                                                                 AcceptsReturn="True"
+                                                                 TextWrapping="Wrap"
+                                                                 Watermark="{loc:Loc sceneNotes.synopsisPlaceholder}"
+                                                                 BorderThickness="0"
+                                                                 Background="Transparent"
+                                                                 Padding="0,4,0,0"
+                                                                 FontSize="11.5"
+                                                                 Foreground="{DynamicResource NormalText}" />
+                                                    </DockPanel>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Outliner mode: table of scenes -->
+                <ScrollViewer IsVisible="{Binding IsOutlinerMode}"
+                              HorizontalScrollBarVisibility="Auto"
+                              VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding AllScenes}" Margin="16">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:ManuscriptSceneItem">
+                                <Grid ColumnDefinitions="180,160,*,80,80"
+                                      Margin="0,0,0,4"
+                                      Background="{DynamicResource ExplorerBackground}">
+                                    <TextBlock Grid.Column="0"
+                                               Text="{Binding ChapterTitle}"
+                                               Padding="6,4"
+                                               TextTrimming="CharacterEllipsis"
+                                               Foreground="{DynamicResource SubtleText}" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Title}"
+                                               Padding="6,4"
+                                               TextTrimming="CharacterEllipsis"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource NormalText}" />
+                                    <TextBox Grid.Column="2"
+                                             Text="{Binding Synopsis, Mode=TwoWay}"
+                                             Padding="6,4"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             Watermark="{loc:Loc sceneNotes.synopsisPlaceholder}" />
+                                    <TextBox Grid.Column="3"
+                                             Text="{Binding Pov, Mode=TwoWay}"
+                                             Padding="6,4"
+                                             BorderThickness="0"
+                                             Background="Transparent"
+                                             Watermark="POV" />
+                                    <TextBlock Grid.Column="4"
+                                               Text="{Binding WordCount}"
+                                               Padding="6,4"
+                                               HorizontalAlignment="Right"
+                                               Foreground="{DynamicResource SubtleText}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
         </DockPanel>
     </Border>
 </UserControl>

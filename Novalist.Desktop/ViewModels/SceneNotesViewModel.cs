@@ -19,6 +19,9 @@ public partial class SceneNotesViewModel : ObservableObject
     private string _notes = string.Empty;
 
     [ObservableProperty]
+    private string _synopsis = string.Empty;
+
+    [ObservableProperty]
     private bool _isSceneOpen;
 
     public SceneNotesViewModel(IProjectService projectService)
@@ -46,6 +49,15 @@ public partial class SceneNotesViewModel : ObservableObject
         ScheduleAutoSave();
     }
 
+    partial void OnSynopsisChanged(string value)
+    {
+        if (_editor?.CurrentScene == null || !IsSceneOpen)
+            return;
+
+        _editor.CurrentScene.Synopsis = string.IsNullOrWhiteSpace(value) ? null : value;
+        ScheduleAutoSave();
+    }
+
     private void OnEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(EditorViewModel.CurrentScene) or nameof(EditorViewModel.IsDocumentOpen))
@@ -59,6 +71,7 @@ public partial class SceneNotesViewModel : ObservableObject
             _currentSceneId = null;
             IsSceneOpen = false;
             Notes = string.Empty;
+            Synopsis = string.Empty;
             CancelAutoSave();
             return;
         }
@@ -70,6 +83,7 @@ public partial class SceneNotesViewModel : ObservableObject
         CancelAutoSave();
         _currentSceneId = scene.Id;
         Notes = scene.Notes ?? string.Empty;
+        Synopsis = scene.Synopsis ?? string.Empty;
         IsSceneOpen = true;
     }
 

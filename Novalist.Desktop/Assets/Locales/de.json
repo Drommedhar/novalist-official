@@ -39,6 +39,8 @@
     "contextSidebarTooltip": "Kontext-Seitenleiste ein-/ausblenden",
     "sceneNotes": "Notizen",
     "sceneNotesTooltip": "Szenen-Notizen ein-/ausblenden",
+    "snapshots": "Stände",
+    "snapshotsTooltip": "Szenen-Stände verwalten und wiederherstellen",
     "dashboard": "Dashboard",
     "dashboardTooltip": "Projekt-Dashboard anzeigen",
     "timeline": "Zeitleiste",
@@ -103,6 +105,7 @@
     "bookNameHint": "Wird auf den Projektnamen gesetzt, wenn leer.",
     "location": "Speicherort",
     "locationPlaceholder": "Ordner auswählen...",
+    "template": "Vorlage",
     "browse": "Durchsuchen...",
     "createProject": "Projekt erstellen",
     "openTitle": "Bestehendes Projekt öffnen",
@@ -236,7 +239,8 @@
       "sidebarChapters": "Zum Kapitel-Tab wechseln",
       "sidebarEntities": "Zum Entitäten-Tab wechseln",
       "projectOverview": "Projektübersicht umschalten",
-      "sceneNotes": "Szenennotizen umschalten"
+      "sceneNotes": "Szenennotizen umschalten",
+      "focusMode": "Fokusmodus umschalten"
     },
     "scene": {
       "closeTab": "Aktuellen Tab schließen",
@@ -275,6 +279,8 @@
     "contextSetDate": "Datum setzen",
     "contextRename": "Umbenennen",
     "contextDelete": "Löschen",
+    "contextTakeSnapshot": "Stand sichern",
+    "contextSnapshots": "Stände...",
     "renameChapter": "Kapitel umbenennen",
     "renameChapterPrompt": "Neuer Kapitelname:",
     "renameScene": "Szene umbenennen",
@@ -531,6 +537,7 @@
   "dialog": {
     "cancel": "Abbrechen",
     "ok": "OK",
+    "close": "Schließen",
     "update": "Aktualisieren",
     "chapterTitle": "Kapitel",
     "chapterName": "Kapitelname",
@@ -632,7 +639,36 @@
   "sceneNotes": {
     "title": "SZENEN-NOTIZEN",
     "placeholder": "Notizen zu dieser Szene hinzufügen...",
-    "empty": "Öffne eine Szene, um Notizen hinzuzufügen."
+    "empty": "Öffne eine Szene, um Notizen hinzuzufügen.",
+    "synopsisTitle": "ZUSAMMENFASSUNG",
+    "synopsisPlaceholder": "Kurze Zusammenfassung dieser Szene..."
+  },
+  "snapshots": {
+    "title": "Szenen-Stände",
+    "take": "Stand sichern",
+    "labelWatermark": "Optionales Label (z.B. 'Vor Überarbeitung')",
+    "restore": "Wiederherstellen",
+    "delete": "Löschen",
+    "compare": "Vergleichen",
+    "empty": "Noch keine Stände. Sichere einen vor riskanten Änderungen.",
+    "unlabeled": "(ohne Label)",
+    "words": "Wörter",
+    "taken": "Stand gesichert",
+    "confirmRestoreTitle": "Stand wiederherstellen?",
+    "confirmRestoreMessage": "Aktuelle Szene mit diesem Stand ersetzen. Aktueller Zustand wird vorher automatisch gesichert.",
+    "confirmRestore": "Wiederherstellen",
+    "confirmDeleteTitle": "Stand löschen?",
+    "confirmDeleteMessage": "Dieser Stand wird endgültig entfernt.",
+    "confirmDelete": "Löschen",
+    "compareTitle": "Mit Stand vergleichen",
+    "compareCurrent": "Aktuell",
+    "compareLeft": "Stand",
+    "compareRight": "Aktuell",
+    "compareApplySelected": "Markierte Zeilen aus Stand übernehmen",
+    "compareApplySelectedTooltip": "Für jede markierte Zeile die Stand-Version statt der aktuellen verwenden. Aktueller Zustand wird vorher automatisch gesichert.",
+    "compareApplyHunkTooltip": "Stand-Version dieser Zeile verwenden",
+    "compareSelectAll": "Alle auswählen",
+    "compareSelectNone": "Keine auswählen"
   },
   "dashboard": {
     "subtitle": "Projekt-Dashboard",
@@ -832,7 +868,10 @@
     "filterOutline": "Entwurf",
     "filterDraft": "Rohfassung",
     "filterFinal": "Fertig",
-    "cycleStatus": "Klicken, um den Kapitelstatus zu wechseln"
+    "cycleStatus": "Klicken, um den Kapitelstatus zu wechseln",
+    "viewModeManuscript": "Manuskript",
+    "viewModeCorkboard": "Pinnwand",
+    "viewModeOutliner": "Übersicht"
   },
   "entityTypeManager": {
     "displayName": "Anzeigename",

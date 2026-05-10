@@ -23,8 +23,8 @@
         <!-- App Bar (slim, replaces ribbon) -->
         <Border DockPanel.Dock="Top"
                 Classes="appBar"
-                IsVisible="{Binding IsProjectLoaded}">
-            <Grid ColumnDefinitions="Auto,Auto,*,4,Auto,Auto,4,Auto,Auto,Auto"
+                IsVisible="{Binding IsAppChromeVisible}">
+            <Grid ColumnDefinitions="Auto,Auto,*,4,Auto,Auto,4,Auto,Auto,Auto,Auto"
                   VerticalAlignment="Center">
                 <!-- Hamburger -->
                 <Button Grid.Column="0"
@@ -106,6 +106,17 @@
                     <Viewbox Classes="panelToggleIcon">
                         <Canvas Width="24" Height="24"><Path Classes="panelToggleIcon" Data="{StaticResource IconPanelBottom}"/></Canvas>
                     </Viewbox>
+                </Button>
+                <!-- Snapshots -->
+                <Button Grid.Column="10"
+                        Classes="panelToggleButton"
+                        Command="{Binding OpenSnapshotsCommand}"
+                        ToolTip.Tip="{loc:Loc ribbon.snapshotsTooltip}">
+                    <TextBlock Text="{loc:Loc ribbon.snapshots}"
+                               FontSize="11"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Padding="6,0" />
                 </Button>
             </Grid>
         </Border>

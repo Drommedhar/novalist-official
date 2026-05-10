@@ -8,6 +8,7 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Models;
+using Novalist.Core.Services;
 
 namespace Novalist.Desktop.ViewModels;
 
@@ -25,18 +26,24 @@ public partial class WelcomeViewModel : ObservableObject
     [ObservableProperty]
     private bool _isCreateFormOpen;
 
+    [ObservableProperty]
+    private string _selectedTemplateId = "blank";
+
+    public IReadOnlyList<ProjectTemplate> Templates { get; }
+
     [RelayCommand]
     private void ToggleCreateForm() => IsCreateFormOpen = !IsCreateFormOpen;
 
     public ObservableCollection<RecentProjectCard> RecentProjects { get; } = new();
 
-    public event Func<string, string, string, Task>? CreateProjectRequested;
+    public event Func<string, string, string, string, Task>? CreateProjectRequested;
     public event Func<string, Task>? OpenProjectRequested;
     public event Func<Task<string?>>? BrowseFolderRequested;
     public event Func<Task>? ImportPluginProjectRequested;
 
-    public WelcomeViewModel(IEnumerable<RecentProject> recentProjects)
+    public WelcomeViewModel(IEnumerable<RecentProject> recentProjects, IReadOnlyList<ProjectTemplate>? templates = null)
     {
+        Templates = templates ?? Array.Empty<ProjectTemplate>();
         foreach (var rp in recentProjects.OrderByDescending(r => r.LastOpened))
         {
             if (Directory.Exists(rp.Path))
@@ -64,7 +71,7 @@ public partial class WelcomeViewModel : ObservableObject
         var bookName = string.IsNullOrWhiteSpace(NewBookName) ? NewProjectName.Trim() : NewBookName.Trim();
 
         if (CreateProjectRequested != null)
-            await CreateProjectRequested.Invoke(NewProjectLocation, NewProjectName.Trim(), bookName);
+            await CreateProjectRequested.Invoke(NewProjectLocation, NewProjectName.Trim(), bookName, SelectedTemplateId ?? "blank");
     }
 
     [RelayCommand]
