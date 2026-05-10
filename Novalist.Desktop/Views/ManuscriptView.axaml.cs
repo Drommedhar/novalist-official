@@ -58,7 +58,7 @@ public partial class ManuscriptView : UserControl
         if (_snapshotImage != null || _webView == null) return;
         _snapshotImage = new Image
         {
-            Stretch = Stretch.None,
+            Stretch = Stretch.Uniform,
             IsHitTestVisible = false,
             IsVisible = false,
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
