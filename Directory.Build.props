@@ -3,7 +3,7 @@
     <!-- Single source of truth for Novalist versioning.
          CI overrides these via -p:VersionPrefix=x.y.z on the dotnet publish command.
          Local/dev builds default to 0.0.1-dev. -->
-    <VersionPrefix>1.7</VersionPrefix>
+    <VersionPrefix>1.10</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)' == '' AND '$(ContinuousIntegrationBuild)' != 'true'">dev</VersionSuffix>
 
     <!-- These all derive from Version automatically, but we set them explicitly
