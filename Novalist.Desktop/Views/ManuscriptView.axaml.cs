@@ -38,11 +38,14 @@ public partial class ManuscriptView : UserControl
         {
             if (_webView.IsVisible)
             {
+                var capturedBounds = _webView.Bounds;
                 var bmp = WebViewSnapshotter.Capture(_webView);
                 if (bmp != null)
                 {
                     EnsureSnapshotImage();
                     _snapshotImage!.Source = bmp;
+                    _snapshotImage.Width = capturedBounds.Width;
+                    _snapshotImage.Height = capturedBounds.Height;
                     _snapshotImage.IsVisible = true;
                 }
             }
@@ -58,6 +61,8 @@ public partial class ManuscriptView : UserControl
             Stretch = Stretch.Fill,
             IsHitTestVisible = false,
             IsVisible = false,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
         };
         var idx = ManuscriptHost.Children.IndexOf(_webView);
         ManuscriptHost.Children.Insert(idx + 1, _snapshotImage);
