@@ -63,6 +63,13 @@ public class AiChatMessage
 {
     public string Role { get; set; } = "user";
     public string Content { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Optional absolute filesystem paths to images that should be sent
+    /// alongside <see cref="Content"/> as a multimodal message. Only used by
+    /// vision-capable models (LM Studio with a vision model loaded).
+    /// </summary>
+    public List<string>? ImagePaths { get; set; }
 }
 
 public class AiChatResult

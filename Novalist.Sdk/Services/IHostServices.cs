@@ -39,6 +39,11 @@ public interface IExtensionProjectService
 
     /// <summary>Get scenes for a chapter.</summary>
     IReadOnlyList<SceneInfo> GetScenesForChapter(string chapterGuid);
+
+    /// <summary>The scene currently open in the editor, or null when none.
+    /// Updated by the host before the <see cref="IHostServices.SceneOpened"/>
+    /// event fires.</summary>
+    SceneInfo? CurrentScene { get; }
 }
 
 /// <summary>
@@ -63,6 +68,16 @@ public interface IExtensionEntityService
 
     List<string> GetProjectImages();
     string GetImageFullPath(string relativePath);
+
+    /// <summary>
+    /// Returns the absolute filesystem path of the character's image as it
+    /// applies in the given chapter/scene context, walking per-chapter /
+    /// per-scene overrides before falling back to the default. Returns null
+    /// when the character has no image. The host owns the override
+    /// resolution so extensions stay opaque to chapter/scene/act fall-back
+    /// rules.
+    /// </summary>
+    Task<string?> GetCharacterImagePathAsync(string characterId, string? chapterGuid, string? sceneId);
 }
 
 /// <summary>

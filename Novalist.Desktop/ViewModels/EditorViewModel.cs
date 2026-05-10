@@ -298,6 +298,11 @@ public partial class EditorViewModel : ObservableObject
                 FilePath = _projectService.GetSceneFilePath(chapter, scene)
             });
 
+            // Notify the SDK-level SceneOpened event so extensions (AI Assistant,
+            // etc.) can react to scene navigation.
+            App.ExtensionManager?.Host?.RaiseSceneOpened(
+                scene.Id, scene.Title, chapter.Guid, chapter.Title, scene.WordCount);
+
             if (requestId == _openSceneRequestId)
             {
                 IsSceneLoading = false;

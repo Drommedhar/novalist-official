@@ -173,13 +173,18 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         ProjectLoaded?.Invoke(new Sdk.Services.ProjectInfo { Name = name, RootPath = rootPath });
     }
 
+    private Sdk.Services.SceneInfo? _currentScene;
+
     internal void RaiseSceneOpened(string id, string title, string chapterGuid, string chapterTitle, int wordCount)
     {
-        SceneOpened?.Invoke(new Sdk.Services.SceneInfo
+        var info = new Sdk.Services.SceneInfo
         {
             Id = id, Title = title, ChapterGuid = chapterGuid,
             ChapterTitle = chapterTitle, WordCount = wordCount
-        });
+        };
+        _currentScene = info;
+        System.Diagnostics.Debug.WriteLine($"[HostServices] RaiseSceneOpened id={id} title={title} subscribers={SceneOpened?.GetInvocationList().Length ?? 0}");
+        SceneOpened?.Invoke(info);
     }
 
     internal void RaiseSceneSaved(string id, string title, string chapterGuid, string chapterTitle, int wordCount)
@@ -225,6 +230,7 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
     string? IExtensionProjectService.ActiveBookRoot => _projectService.ActiveBookRoot;
     string? IExtensionProjectService.WorldBibleRoot => _projectService.WorldBibleRoot;
     bool IExtensionProjectService.IsProjectLoaded => _projectService.IsProjectLoaded;
+    Sdk.Services.SceneInfo? IExtensionProjectService.CurrentScene => _currentScene;
 
     async Task<string> IExtensionProjectService.ReadSceneContentAsync(string chapterGuid, string sceneId)
     {
@@ -382,4 +388,54 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
 
     List<string> IExtensionEntityService.GetProjectImages() => _entityService.GetProjectImages();
     string IExtensionEntityService.GetImageFullPath(string relativePath) => _entityService.GetImageFullPath(relativePath);
+
+    async Task<string?> IExtensionEntityService.GetCharacterImagePathAsync(string characterId, string? chapterGuid, string? sceneId)
+    {
+        var characters = await _entityService.LoadCharactersAsync();
+        var character = characters.FirstOrDefault(c => string.Equals(c.Id, characterId, StringComparison.OrdinalIgnoreCase));
+        if (character == null) return null;
+
+        // Resolve chapter title + scene title for override matching (Scene
+        // field on overrides is stored as title, not id).
+        Novalist.Core.Models.ChapterData? chapter = null;
+        Novalist.Core.Models.SceneData? scene = null;
+        if (!string.IsNullOrEmpty(chapterGuid))
+        {
+            chapter = _projectService.GetChaptersOrdered()
+                .FirstOrDefault(c => string.Equals(c.Guid, chapterGuid, StringComparison.OrdinalIgnoreCase));
+            if (chapter != null && !string.IsNullOrEmpty(sceneId))
+            {
+                scene = _projectService.GetScenesForChapter(chapter.Guid)
+                    .FirstOrDefault(s => string.Equals(s.Id, sceneId, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        bool ChapterMatches(Novalist.Core.Models.CharacterOverride o)
+            => chapter != null
+               && (string.Equals(o.Chapter, chapter.Guid, StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(o.Chapter, chapter.Title, StringComparison.OrdinalIgnoreCase));
+
+        // Prefer override that matches both chapter AND scene; then chapter-only.
+        Novalist.Core.Models.CharacterOverride? match = null;
+        if (chapter != null && scene != null)
+        {
+            match = character.ChapterOverrides.FirstOrDefault(o =>
+                ChapterMatches(o)
+                && !string.IsNullOrWhiteSpace(o.Scene)
+                && string.Equals(o.Scene, scene.Title, StringComparison.OrdinalIgnoreCase));
+        }
+        match ??= chapter == null
+            ? null
+            : character.ChapterOverrides.FirstOrDefault(o => ChapterMatches(o) && string.IsNullOrWhiteSpace(o.Scene));
+
+        var images = match?.Images ?? character.Images;
+        if (images == null || images.Count == 0)
+            images = character.Images;
+
+        var first = images.FirstOrDefault(img => !string.IsNullOrWhiteSpace(img.Path));
+        if (first == null) return null;
+
+        var abs = _entityService.GetImageFullPath(first.Path);
+        return string.IsNullOrEmpty(abs) ? null : abs;
+    }
 }

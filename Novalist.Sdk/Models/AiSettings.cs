@@ -65,6 +65,29 @@ public class AiSettings
     public bool GrammarCheckEnabled { get; set; } = true;
 
     /// <summary>
+    /// Master toggle for the per-character / per-scene knowledge tracking
+    /// feature. When off, "Talk as character" sends the codex persona only.
+    /// </summary>
+    [JsonPropertyName("enableCharacterKnowledge")]
+    public bool EnableCharacterKnowledge { get; set; }
+
+    /// <summary>
+    /// Set to true once the initial knowledge scan has finished for the
+    /// current project. Used to skip re-prompting for scan on every open.
+    /// </summary>
+    [JsonPropertyName("knowledgeScanCompleted")]
+    public bool KnowledgeScanCompleted { get; set; }
+
+    /// <summary>
+    /// Maximum number of LLM prompts dispatched in parallel during the
+    /// knowledge scan. Should be ≤ the LM Studio model's "Max parallel
+    /// requests" setting; otherwise the server queues overflow on the
+    /// single loaded instance. Copilot CLI is always serial.
+    /// </summary>
+    [JsonPropertyName("maxParallelPrompts")]
+    public int MaxParallelPrompts { get; set; } = 4;
+
+    /// <summary>
     /// Override the language used for AI analysis output (titles, descriptions).
     /// When empty, defaults to the application UI language.
     /// </summary>
