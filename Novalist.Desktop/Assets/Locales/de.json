@@ -1,4 +1,73 @@
 {
+  "menu": {
+    "edit": "Bearbeiten",
+    "view": "Ansicht",
+    "findReplace": "Suchen / Ersetzen...",
+    "takeSnapshot": "Stand sichern",
+    "snapshots": "Stände...",
+    "toggleExplorer": "Explorer umschalten",
+    "toggleContextSidebar": "Kontext-Sidebar umschalten",
+    "toggleSceneNotes": "Szenen-Notizen umschalten",
+    "focusMode": "Fokusmodus",
+    "plotGrid": "Plot-Raster",
+    "research": "Recherche",
+    "toggleSplitEditor": "Geteilter Editor",
+    "addComment": "Kommentar hinzufügen",
+    "commandPalette": "Befehlspalette..."
+  },
+  "commandPalette": {
+    "placeholder": "Befehlsname eingeben..."
+  },
+  "research": {
+    "title": "Recherche",
+    "addNote": "+ Notiz",
+    "addLink": "+ Link",
+    "importFile": "Datei importieren...",
+    "openExternal": "Extern öffnen",
+    "deleteItem": "Löschen",
+    "titleWatermark": "Titel",
+    "contentWatermark": "Notiz / URL / Dateipfad",
+    "empty": "Kein Recherche-Eintrag ausgewählt. Lege einen an oder wähle aus der Liste.",
+    "confirmDeleteTitle": "Recherche-Eintrag löschen?",
+    "confirmDelete": "\"{0}\" löschen?"
+  },
+  "plotGrid": {
+    "title": "Plot-Raster",
+    "addPlotline": "+ Plotstrang",
+    "empty": "Noch keine Plotstränge. Lege einen an, um Stränge gegen Szenen abzubilden.",
+    "rename": "Umbenennen...",
+    "delete": "Löschen",
+    "addTitle": "Neuer Plotstrang",
+    "addPrompt": "Name des Plotstrangs",
+    "renameTitle": "Plotstrang umbenennen",
+    "renamePrompt": "Neuer Name",
+    "confirmDeleteTitle": "Plotstrang löschen?",
+    "confirmDelete": "\"{0}\" löschen? Szenenzuweisungen werden entfernt."
+  },
+  "smartList": {
+    "section": "Smart-Listen",
+    "addNew": "+ Neue Smart-Liste",
+    "edit": "Bearbeiten...",
+    "refresh": "Aktualisieren",
+    "delete": "Löschen",
+    "loading": "Lade...",
+    "editTitle": "Smart-Liste",
+    "name": "Name",
+    "chapterStatus": "Kapitelstatus",
+    "povContains": "POV enthält",
+    "tag": "Tag",
+    "confirmDeleteTitle": "Smart-Liste löschen?",
+    "confirmDelete": "\"{0}\" löschen? Kann nicht rückgängig gemacht werden."
+  },
+  "findReplace": {
+    "title": "Suchen und Ersetzen",
+    "find": "Suchen",
+    "replace": "Ersetzen",
+    "replaceAll": "Alle ersetzen",
+    "matchCase": "Groß-/Kleinschreibung",
+    "wholeWord": "Ganzes Wort",
+    "regex": "Regex"
+  },
   "language": {
     "name": "Deutsch"
   },
@@ -68,7 +137,8 @@
   },
   "sidebar": {
     "chapters": "Kapitel",
-    "entities": "Entitäten"
+    "entities": "Entitäten",
+    "smartLists": "Listen"
   },
   "tabs": {
     "scnBadge": "SZN",
@@ -219,6 +289,9 @@
       "project": "Projekt",
       "git": "Git"
     },
+    "app": {
+      "commandPalette": "Befehlspalette öffnen"
+    },
     "nav": {
       "dashboard": "Zum Dashboard",
       "editor": "Zum Editor",
@@ -258,7 +331,9 @@
       "alignLeft": "Linksbündig",
       "alignCenter": "Zentriert",
       "alignRight": "Rechtsbündig",
-      "alignJustify": "Blocksatz"
+      "alignJustify": "Blocksatz",
+      "findReplace": "Suchen / Ersetzen",
+      "addComment": "Kommentar zur Auswahl hinzufügen"
     },
     "project": {
       "save": "Szene speichern"
@@ -502,6 +577,8 @@
   },
   "editor": {
     "emptyState": "Wähle eine Szene im Explorer, um zu schreiben.",
+    "tabClose": "Tab schließen",
+    "tabMoveOther": "Auf andere Seite verschieben",
     "boldTooltip": "Fett (Strg+B)",
     "italicTooltip": "Kursiv (Strg+I)",
     "underlineTooltip": "Unterstreichen (Strg+U)",
@@ -538,6 +615,7 @@
     "cancel": "Abbrechen",
     "ok": "OK",
     "close": "Schließen",
+    "save": "Speichern",
     "update": "Aktualisieren",
     "chapterTitle": "Kapitel",
     "chapterName": "Kapitelname",
@@ -641,7 +719,20 @@
     "placeholder": "Notizen zu dieser Szene hinzufügen...",
     "empty": "Öffne eine Szene, um Notizen hinzuzufügen.",
     "synopsisTitle": "ZUSAMMENFASSUNG",
-    "synopsisPlaceholder": "Kurze Zusammenfassung dieser Szene..."
+    "synopsisPlaceholder": "Kurze Zusammenfassung dieser Szene...",
+    "commentsTitle": "KOMMENTARE",
+    "commentPlaceholder": "Kommentar eingeben...",
+    "jumpToComment": "Zum Anker springen"
+  },
+  "comments": {
+    "addTitle": "Kommentar hinzufügen",
+    "addPrompt": "Kommentartext",
+    "noSelection": "Wähle zuerst Text in der Szene aus."
+  },
+  "commentPeek": {
+    "placeholder": "Kommentar eingeben...",
+    "delete": "Kommentar löschen",
+    "close": "Schließen"
   },
   "snapshots": {
     "title": "Szenen-Stände",
@@ -729,6 +820,7 @@
     "filterLocation": "Nach Ort filtern…",
     "filterSource": "Nach Quelle filtern…",
     "addEvent": "Ereignis hinzufügen",
+    "applyStructure": "Struktur einfügen...",
     "editEvent": "Bearbeiten",
     "deleteEvent": "Löschen",
     "openChapter": "Kapitel öffnen",
@@ -784,6 +876,7 @@
     "formatMarkdown": "Markdown",
     "smfPreset": "SMF",
     "smfPresetDesc": "Standard-Manuskriptformat: 12 pt Courier, doppelter Zeilenabstand, 1-Zoll-Ränder, Seitenkopf mit Nachname / Titel.",
+    "preset": "Vorlage",
     "selectAll": "Alle auswählen",
     "selectNone": "Keine auswählen",
     "exportButton": "Exportieren {0}",

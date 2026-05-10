@@ -42,6 +42,17 @@ public partial class ExportViewModel : ObservableObject
     private bool _smfPreset;
 
     [ObservableProperty]
+    private string _selectedPresetId = ExportPresets.DefaultId;
+
+    public IReadOnlyList<ExportPreset> AvailablePresets { get; } = ExportPresets.All;
+
+    partial void OnSelectedPresetIdChanged(string value)
+    {
+        // Keep legacy SmfPreset bool synced for any consumer still reading it.
+        SmfPreset = string.Equals(value, ExportPresets.ShunnId, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [ObservableProperty]
     private bool _isExporting;
 
     [ObservableProperty]
@@ -225,6 +236,7 @@ public partial class ExportViewModel : ObservableObject
                     Title = string.IsNullOrWhiteSpace(Title) ? "Untitled" : Title,
                     Author = Author,
                     SmfPreset = SmfPreset && IsSmfVisible,
+                    PresetId = SelectedPresetId,
                     SelectedChapterGuids = Chapters
                         .Where(c => c.IsSelected)
                         .Select(c => c.Guid)

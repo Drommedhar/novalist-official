@@ -21,6 +21,10 @@ public partial class App : Application
     public static IGitService GitService { get; } = new GitService();
     public static ISnapshotService SnapshotService { get; } = new SnapshotService(ProjectService, FileService);
     public static IProjectTemplateService ProjectTemplateService { get; } = new ProjectTemplateService();
+    public static IFindReplaceService FindReplaceService { get; } = new FindReplaceService(ProjectService);
+    public static ISmartListService SmartListService { get; } = new SmartListService(ProjectService, EntityService);
+    public static IPlotlineService PlotlineService { get; } = new PlotlineService(ProjectService);
+    public static IResearchService ResearchService { get; } = new ResearchService(ProjectService, FileService);
     public static ExtensionManager ExtensionManager { get; private set; } = null!;
     public static ThemeService ThemeService { get; } = new();
     public static IHotkeyService HotkeyService { get; } = new HotkeyService(SettingsService);

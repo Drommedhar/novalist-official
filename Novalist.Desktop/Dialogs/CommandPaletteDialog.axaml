@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             xmlns:dlg="using:Novalist.Desktop.Dialogs"
+             x:Class="Novalist.Desktop.Dialogs.CommandPaletteDialog"
+             Width="640"
+             MaxHeight="520"
+             Focusable="True">
+    <Border Background="Transparent" Padding="16">
+        <DockPanel>
+            <TextBox DockPanel.Dock="Top"
+                     x:Name="QueryBox"
+                     Watermark="{loc:Loc commandPalette.placeholder}"
+                     FontSize="14"
+                     Margin="0,0,0,10"
+                     KeyDown="OnQueryKeyDown" />
+
+            <ListBox x:Name="ResultsList"
+                     SelectionMode="Single"
+                     KeyDown="OnListKeyDown"
+                     DoubleTapped="OnDoubleTap">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="dlg:CommandPaletteItem">
+                        <Grid ColumnDefinitions="*,Auto" Margin="2,2">
+                            <StackPanel Grid.Column="0" Spacing="1">
+                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12.5" />
+                                <TextBlock Text="{Binding Category}" FontSize="10.5" Opacity="0.6" />
+                            </StackPanel>
+                            <Border Grid.Column="1"
+                                    Background="{DynamicResource CardBackground}"
+                                    BorderBrush="{DynamicResource ExplorerBorder}"
+                                    BorderThickness="1"
+                                    CornerRadius="3"
+                                    Padding="6,2"
+                                    VerticalAlignment="Center"
+                                    IsVisible="{Binding HasGesture}">
+                                <TextBlock Text="{Binding Gesture}"
+                                           FontFamily="Consolas, Menlo, monospace"
+                                           FontSize="10.5"
+                                           Opacity="0.85" />
+                            </Border>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </DockPanel>
+    </Border>
+</UserControl>

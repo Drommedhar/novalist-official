@@ -44,6 +44,30 @@ public partial class MainWindowViewModel : ObservableObject
     private EditorViewModel? _editor;
 
     [ObservableProperty]
+    private EditorViewModel? _secondaryEditor;
+
+    [ObservableProperty]
+    private bool _isSplitEditorOpen;
+
+    /// <summary>
+    /// The pane currently focused. Context sidebar re-attaches to follow it.
+    /// </summary>
+    [ObservableProperty]
+    private EditorViewModel? _activeEditor;
+
+    partial void OnActiveEditorChanged(EditorViewModel? value)
+    {
+        ContextSidebar?.AttachEditor(value);
+    }
+
+    public void SetActivePane(EditorViewModel pane)
+    {
+        if (Editor != null) Editor.IsPaneFocused = pane == Editor;
+        if (SecondaryEditor != null) SecondaryEditor.IsPaneFocused = pane == SecondaryEditor;
+        ActiveEditor = pane;
+    }
+
+    [ObservableProperty]
     private EntityPanelViewModel? _entityPanel;
 
     [ObservableProperty]
@@ -75,6 +99,22 @@ public partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty]
     private ManuscriptViewModel? _manuscript;
+
+    [ObservableProperty]
+    private PlotGridViewModel? _plotGrid;
+
+    [ObservableProperty]
+    private bool _isPlotGridOpen;
+
+    partial void OnIsPlotGridOpenChanged(bool value) => QueueSyncContentTabs();
+
+    [ObservableProperty]
+    private ResearchViewModel? _research;
+
+    [ObservableProperty]
+    private bool _isResearchOpen;
+
+    partial void OnIsResearchOpenChanged(bool value) => QueueSyncContentTabs();
 
     [ObservableProperty]
     private string _statusText = Loc.T("app.ready");
@@ -178,6 +218,132 @@ public partial class MainWindowViewModel : ObservableObject
     partial void OnIsGitOpenChanged(bool value) => QueueSyncContentTabs();
     partial void OnIsExtensionContentOpenChanged(bool value) => QueueSyncContentTabs();
     partial void OnExtensionContentTabTitleChanged(string value) => QueueSyncContentTabs();
+    partial void OnIsSplitEditorOpenChanged(bool value) => QueueSyncContentTabs();
+
+    partial void OnEditorChanged(EditorViewModel? oldValue, EditorViewModel? newValue)
+    {
+        if (oldValue != null) DetachPaneListeners(oldValue);
+        if (newValue != null) AttachPaneListeners(newValue);
+    }
+
+    partial void OnSecondaryEditorChanged(EditorViewModel? oldValue, EditorViewModel? newValue)
+    {
+        if (oldValue != null) DetachPaneListeners(oldValue);
+        if (newValue != null) AttachPaneListeners(newValue);
+        QueueSyncContentTabs();
+    }
+
+    private readonly Dictionary<EditorViewModel, System.Collections.Specialized.NotifyCollectionChangedEventHandler> _paneCollectionHandlers = new();
+
+    private void AttachPaneListeners(EditorViewModel pane)
+    {
+        // Capture pane in the handler so we can identify it on event fire.
+        // (CollectionChanged.sender is the collection, not the owner.)
+        System.Collections.Specialized.NotifyCollectionChangedEventHandler handler =
+            (_, e) => OnPaneOpenScenesChanged(pane, e);
+        _paneCollectionHandlers[pane] = handler;
+        pane.OpenScenes.CollectionChanged += handler;
+        pane.PropertyChanged += OnPanePropertyChanged;
+    }
+
+    private void DetachPaneListeners(EditorViewModel pane)
+    {
+        if (_paneCollectionHandlers.TryGetValue(pane, out var handler))
+        {
+            pane.OpenScenes.CollectionChanged -= handler;
+            _paneCollectionHandlers.Remove(pane);
+        }
+        pane.PropertyChanged -= OnPanePropertyChanged;
+    }
+
+    private void OnPaneOpenScenesChanged(EditorViewModel pane, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        QueueSyncContentTabs();
+        if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove
+            && pane == SecondaryEditor
+            && pane.OpenScenes.Count == 0
+            && IsSplitEditorOpen)
+        {
+            Dispatcher.UIThread.Post(() => _ = ToggleSplitEditorAsync(),
+                Avalonia.Threading.DispatcherPriority.Background);
+        }
+    }
+
+    private void OnPanePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(EditorViewModel.ActiveOpenScene)
+            or nameof(EditorViewModel.IsDirty)
+            or nameof(EditorViewModel.SceneTabTitle))
+        {
+            // Track which scene tab is active per pane focus.
+            if (sender is EditorViewModel pane && pane == ActiveEditor && pane.ActiveOpenScene != null)
+            {
+                var paneKey = pane == Editor ? "P" : "S";
+                ActiveSceneTabKey = $"Scene:{paneKey}:{pane.ActiveOpenScene.Scene.Id}";
+            }
+            QueueSyncContentTabs();
+        }
+    }
+
+    private void AddSceneTabsForPane(List<EditorTabDescriptor> desired, EditorViewModel? pane, string paneKey)
+    {
+        if (pane == null || pane.OpenScenes.Count == 0) return;
+
+        foreach (var open in pane.OpenScenes)
+        {
+            var id = $"Scene:{paneKey}:{open.Scene.Id}";
+            var titleBase = string.IsNullOrWhiteSpace(open.Scene.Title) ? open.Chapter.Title : open.Scene.Title;
+            var title = SecondaryEditor != null ? $"{titleBase} ({paneKey})" : titleBase;
+            var captured = open;
+            var tab = new EditorTabDescriptor(
+                id, id, title,
+                () => _ = pane.CloseTabAsync(captured),
+                badge: "SCN", minWidth: 160, tooltip: $"{open.Chapter.Title} — {open.Scene.Title}")
+            {
+                IsDirty = open == pane.ActiveOpenScene && pane.IsDirty,
+                ActivateAction = () => _ = ActivateSceneTabAsync(pane, captured),
+                MoveToOtherPaneAction = () => _ = MoveTabAsync(pane, captured)
+            };
+            desired.Add(tab);
+        }
+    }
+
+    [ObservableProperty]
+    private string _activeSceneTabKey = string.Empty;
+
+    partial void OnActiveSceneTabKeyChanged(string value) => QueueSyncContentTabs();
+
+    private async Task ActivateSceneTabAsync(EditorViewModel pane, EditorOpenScene tab)
+    {
+        SetActivePane(pane);
+        ActiveContentView = "Scene";
+        var paneKey = pane == Editor ? "P" : "S";
+        ActiveSceneTabKey = $"Scene:{paneKey}:{tab.Scene.Id}";
+        await pane.ActivateTabAsync(tab);
+    }
+
+    /// <summary>Moves a tab between editor panes. Auto-opens the split if
+    /// closed and auto-closes it when the source pane empties.</summary>
+    public Task MoveSceneTabAsync(EditorViewModel sourcePane, EditorOpenScene tab)
+        => MoveTabAsync(sourcePane, tab);
+
+    private async Task MoveTabAsync(EditorViewModel sourcePane, EditorOpenScene tab)
+    {
+        var destPane = sourcePane == Editor ? SecondaryEditor : Editor;
+        if (destPane == null)
+        {
+            await ToggleSplitEditorAsync(mirrorCurrentScene: false);
+            destPane = sourcePane == Editor ? SecondaryEditor : Editor;
+        }
+        if (destPane == null || destPane == sourcePane) return;
+
+        var detached = await sourcePane.DetachTabAsync(tab);
+        if (detached != null)
+        {
+            await destPane.AttachTabAsync(detached);
+            SetActivePane(destPane);
+        }
+    }
 
     private void SyncContentTabs()
     {
@@ -192,6 +358,10 @@ public partial class MainWindowViewModel : ObservableObject
             desired.Add(new EditorTabDescriptor("CodexHub", "CodexHub", "Codex", () => CloseCodexHubTabCommand.Execute(null)));
         if (IsManuscriptOpen)
             desired.Add(new EditorTabDescriptor("Manuscript", "Manuscript", "Manuscript", () => CloseManuscriptTabCommand.Execute(null)));
+        if (IsPlotGridOpen)
+            desired.Add(new EditorTabDescriptor("PlotGrid", "PlotGrid", Loc.T("plotGrid.title"), () => ClosePlotGridTabCommand.Execute(null)));
+        if (IsResearchOpen)
+            desired.Add(new EditorTabDescriptor("Research", "Research", Loc.T("research.title"), () => CloseResearchTabCommand.Execute(null)));
         if (IsExportOpen)
             desired.Add(new EditorTabDescriptor("Export", "Export", Loc.T("ribbon.export"), () => CloseExportTabCommand.Execute(null)));
         if (IsImageGalleryOpen)
@@ -200,16 +370,19 @@ public partial class MainWindowViewModel : ObservableObject
             desired.Add(new EditorTabDescriptor("Git", "Git", Loc.T("ribbon.git"), () => CloseGitTabCommand.Execute(null)));
         if (IsExtensionContentOpen)
             desired.Add(new EditorTabDescriptor("ExtensionContent", ActiveContentView, ExtensionContentTabTitle, () => CloseExtensionContentTabCommand.Execute(null)));
-        if (Editor?.IsDocumentOpen == true)
+        // Singular Scene tab — top bar only switches scene/content mode; the
+        // per-pane tab strips inside the editor handle which scene is active
+        // in each pane (mirrors VS Code split editor).
+        if ((Editor?.IsDocumentOpen == true) || (SecondaryEditor?.IsDocumentOpen == true))
         {
-            var sceneTab = new EditorTabDescriptor(
-                "Scene", "Scene", Editor.SceneTabTitle ?? string.Empty,
+            var pane = (ActiveEditor == Editor || ActiveEditor == SecondaryEditor) ? ActiveEditor! : Editor!;
+            desired.Add(new EditorTabDescriptor(
+                "Scene", "Scene", pane.SceneTabTitle ?? string.Empty,
                 () => _ = CloseSceneTabAsync(),
-                badge: "SCN", minWidth: 160, tooltip: Editor.DocumentTitle)
+                badge: "SCN", minWidth: 160, tooltip: pane.DocumentTitle)
             {
-                IsDirty = Editor.IsDirty
-            };
-            desired.Add(sceneTab);
+                IsDirty = pane.IsDirty
+            });
         }
         if (EntityEditor?.IsOpen == true)
         {
@@ -221,7 +394,10 @@ public partial class MainWindowViewModel : ObservableObject
 
         // Rebuild collection in-place to preserve ItemsControl identity
         // Match by Id; update existing, remove missing, add new
-        var existingById = ContentTabs.ToDictionary(t => t.Id);
+        // Dedup desired and tolerate stale duplicates in ContentTabs.
+        desired = desired.GroupBy(d => d.Id).Select(g => g.First()).ToList();
+        var existingById = new Dictionary<string, EditorTabDescriptor>();
+        foreach (var t in ContentTabs) existingById.TryAdd(t.Id, t);
         for (int i = ContentTabs.Count - 1; i >= 0; i--)
         {
             if (!desired.Any(d => d.Id == ContentTabs[i].Id))
@@ -230,19 +406,22 @@ public partial class MainWindowViewModel : ObservableObject
         for (int i = 0; i < desired.Count; i++)
         {
             var d = desired[i];
+            bool isActive = d.ActivationKey.StartsWith("Scene:", StringComparison.Ordinal)
+                ? d.ActivationKey == ActiveSceneTabKey
+                : d.ActivationKey == ActiveContentView;
             if (existingById.TryGetValue(d.Id, out var existing))
             {
                 existing.Title = d.Title;
                 existing.IsDirty = d.IsDirty;
                 existing.Tooltip = d.Tooltip;
-                existing.IsActive = d.ActivationKey == ActiveContentView;
+                existing.IsActive = isActive;
                 int curIdx = ContentTabs.IndexOf(existing);
                 if (curIdx != i)
                     ContentTabs.Move(curIdx, i);
             }
             else
             {
-                d.IsActive = d.ActivationKey == ActiveContentView;
+                d.IsActive = isActive;
                 ContentTabs.Insert(i, d);
             }
         }
@@ -338,6 +517,8 @@ public partial class MainWindowViewModel : ObservableObject
     public Func<string, string, string, Task<string?>>? ShowInputDialog { get; set; }
     public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
     public Func<ChapterData, SceneData, Task>? ShowSnapshotsDialog { get; set; }
+    public Func<Task>? ShowFindReplaceDialog { get; set; }
+    public Func<Task>? ShowCommandPalette { get; set; }
 
     [ObservableProperty]
     private bool _isFocusMode;
@@ -383,6 +564,8 @@ public partial class MainWindowViewModel : ObservableObject
         Toast.Show = (msg, sev) => Dispatcher.UIThread.Post(() => ShowToast(msg, sev));
 
         RegisterBuiltInHotkeys();
+        // Re-register on language change so descriptor display names re-localise.
+        Loc.Instance.LanguageChanged += RegisterBuiltInHotkeys;
     }
 
     /// <summary>
@@ -420,6 +603,9 @@ public partial class MainWindowViewModel : ObservableObject
             new HotkeyDescriptor { ActionId = "app.panel.projectOverview", DisplayName = Loc.T("hotkeys.panel.projectOverview"), Category = catPanels, DefaultGesture = "Ctrl+Shift+O", OnExecute = ToggleProjectOverview, CanExecute = () => IsProjectLoaded },
             new HotkeyDescriptor { ActionId = "app.panel.sceneNotes", DisplayName = Loc.T("hotkeys.panel.sceneNotes"), Category = catPanels, DefaultGesture = "Ctrl+Shift+N", OnExecute = ToggleSceneNotes, CanExecute = () => IsProjectLoaded },
             new HotkeyDescriptor { ActionId = "app.panel.focusMode", DisplayName = Loc.T("hotkeys.panel.focusMode"), Category = catPanels, DefaultGesture = "F11", OnExecute = ToggleFocusMode, CanExecute = () => IsProjectLoaded },
+            new HotkeyDescriptor { ActionId = "app.editor.findReplace", DisplayName = Loc.T("hotkeys.editor.findReplace"), Category = catEditor, DefaultGesture = "Ctrl+H", OnExecute = () => _ = OpenFindReplaceAsync(), CanExecute = () => IsProjectLoaded },
+            new HotkeyDescriptor { ActionId = "app.commandPalette", DisplayName = Loc.T("hotkeys.app.commandPalette"), Category = cat, DefaultGesture = "Ctrl+Shift+P", OnExecute = () => _ = OpenCommandPaletteAsync() },
+            new HotkeyDescriptor { ActionId = "app.editor.addComment", DisplayName = Loc.T("hotkeys.editor.addComment"), Category = catEditor, DefaultGesture = "Ctrl+Shift+M", OnExecute = AddComment, CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
 
             // ── Scene / Tab management ──
             new HotkeyDescriptor { ActionId = "app.scene.closeTab", DisplayName = Loc.T("hotkeys.scene.closeTab"), Category = catScene, DefaultGesture = "Ctrl+W", OnExecute = () => _ = CloseSceneTabAsync(), CanExecute = () => Editor?.IsDocumentOpen == true },
@@ -771,6 +957,8 @@ public partial class MainWindowViewModel : ObservableObject
         Editor = new EditorViewModel(_projectService, _settingsService, _entityService);
         Editor.PropertyChanged += OnEditorPropertyChanged;
         Editor.FocusPeekEntityOpenRequested += OnFocusPeekEntityOpenRequested;
+        ActiveEditor = Editor;
+        Editor.IsPaneFocused = true;
 
         // Pass grammar check contributors to the newly created editor
         Editor.SetGrammarCheckContributors(ExtensionManager?.GrammarCheckContributors ?? []);
@@ -819,6 +1007,8 @@ public partial class MainWindowViewModel : ObservableObject
         CodexHub.EntityOpenRequested += OnEntityOpenRequested;
 
         Manuscript = new ManuscriptViewModel(_projectService, _entityService);
+        PlotGrid = new PlotGridViewModel(_projectService, App.PlotlineService);
+        Research = new ResearchViewModel(App.ResearchService);
         Manuscript.SceneOpenRequested += OnSceneOpenRequested;
         Manuscript.SceneFocusChanged += OnManuscriptSceneFocused;
         Manuscript.SceneSaved += () => _ = RefreshGitStatusAsync();
@@ -906,12 +1096,17 @@ public partial class MainWindowViewModel : ObservableObject
 
     private async void OnSceneOpenRequested(ChapterData chapter, SceneData scene)
     {
-        if (Editor == null) return;
+        // Only honor ActiveEditor when it's still one of the live panes.
+        var target = (ActiveEditor == Editor || ActiveEditor == SecondaryEditor)
+            ? ActiveEditor
+            : Editor;
+        if (target == null) return;
         try
         {
             ActiveContentView = "Scene";
             IsProjectOverviewOpen = false;
-            await Editor.OpenSceneAsync(chapter, scene);
+            await target.OpenSceneAsync(chapter, scene);
+            SetActivePane(target);
             // ContextSidebar already auto-refreshed via Editor PropertyChanged (Content/IsDocumentOpen/DocumentTitle)
             StatusText = Loc.T("status.editing", scene.Title);
             RefreshProjectWordMetrics();
@@ -1110,6 +1305,38 @@ public partial class MainWindowViewModel : ObservableObject
         IsManuscriptOpen = false;
         if (ActiveContentView == "Manuscript")
             ActiveContentView = GetFallbackView("Manuscript");
+    }
+
+    [RelayCommand]
+    private void OpenPlotGrid()
+    {
+        IsPlotGridOpen = true;
+        ActiveContentView = "PlotGrid";
+        PlotGrid?.Refresh();
+    }
+
+    [RelayCommand]
+    private void ClosePlotGridTab()
+    {
+        IsPlotGridOpen = false;
+        if (ActiveContentView == "PlotGrid")
+            ActiveContentView = GetFallbackView("PlotGrid");
+    }
+
+    [RelayCommand]
+    private void OpenResearch()
+    {
+        IsResearchOpen = true;
+        ActiveContentView = "Research";
+        Research?.Refresh();
+    }
+
+    [RelayCommand]
+    private void CloseResearchTab()
+    {
+        IsResearchOpen = false;
+        if (ActiveContentView == "Research")
+            ActiveContentView = GetFallbackView("Research");
     }
 
     private string GetFallbackView(string excluding = "")
@@ -1553,6 +1780,26 @@ public partial class MainWindowViewModel : ObservableObject
     [RelayCommand]
     private void SetActiveContentView(string view)
     {
+        // Scene tabs encoded as "Scene:{paneKey}:{sceneId}" — route to the
+        // matching pane and activate the scene there.
+        if (!string.IsNullOrEmpty(view) && view.StartsWith("Scene:", StringComparison.Ordinal))
+        {
+            var parts = view.Split(':', 3);
+            if (parts.Length == 3)
+            {
+                var pane = parts[1] == "P" ? Editor : SecondaryEditor;
+                if (pane != null)
+                {
+                    var tab = pane.OpenScenes.FirstOrDefault(t => t.Scene.Id == parts[2]);
+                    if (tab != null)
+                    {
+                        _ = ActivateSceneTabAsync(pane, tab);
+                        return;
+                    }
+                }
+            }
+        }
+
         if (!string.IsNullOrEmpty(view) && view.StartsWith("ext:", StringComparison.Ordinal))
         {
             ActiveContentView = view;
@@ -1666,6 +1913,47 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private Task ToggleSplitEditorAsync() => ToggleSplitEditorAsync(mirrorCurrentScene: true);
+
+    private async Task ToggleSplitEditorAsync(bool mirrorCurrentScene)
+    {
+        if (IsSplitEditorOpen)
+        {
+            if (SecondaryEditor is { } existing)
+            {
+                if (existing.IsDirty) await existing.SaveAsync();
+            }
+            if (Editor != null) SetActivePane(Editor);
+            SecondaryEditor = null;
+            IsSplitEditorOpen = false;
+            return;
+        }
+
+        SecondaryEditor = new EditorViewModel(_projectService, _settingsService, _entityService);
+        SecondaryEditor.SetGrammarCheckContributors(ExtensionManager?.GrammarCheckContributors ?? []);
+
+        if (mirrorCurrentScene
+            && Editor is { CurrentChapter: { } chap, CurrentScene: { } sc })
+        {
+            await SecondaryEditor.OpenSceneAsync(chap, sc);
+        }
+
+        IsSplitEditorOpen = true;
+    }
+
+    [RelayCommand]
+    private async Task OpenInSplitAsync(SceneTreeItemViewModel? sceneVm)
+    {
+        if (sceneVm == null) return;
+        if (SecondaryEditor == null)
+        {
+            await ToggleSplitEditorAsync();
+            if (SecondaryEditor == null) return;
+        }
+        await SecondaryEditor.OpenSceneAsync(sceneVm.ParentChapter, sceneVm.Scene);
+    }
+
+    [RelayCommand]
     private async Task OpenSnapshotsAsync()
     {
         if (Editor?.CurrentScene == null || ShowSnapshotsDialog == null)
@@ -1678,6 +1966,56 @@ public partial class MainWindowViewModel : ObservableObject
             return;
 
         await ShowSnapshotsDialog.Invoke(chapter, scene);
+    }
+
+    [RelayCommand]
+    private void AddComment()
+    {
+        var pane = (ActiveEditor == Editor || ActiveEditor == SecondaryEditor) ? ActiveEditor : Editor;
+        if (pane?.CurrentScene == null || pane.AddCommentAction == null) return;
+
+        var commentId = System.Guid.NewGuid().ToString();
+        void OnAnchored(string id, string anchorText)
+        {
+            if (id != commentId) return;
+            pane.CommentAnchored -= OnAnchored;
+
+            if (string.IsNullOrEmpty(anchorText))
+            {
+                Toast.Show?.Invoke(Loc.T("comments.noSelection"), ToastSeverity.Warning);
+                return;
+            }
+
+            var scene = pane.CurrentScene;
+            if (scene == null) return;
+            scene.Comments ??= new List<SceneComment>();
+            scene.Comments.Add(new SceneComment
+            {
+                Id = commentId,
+                AnchorText = anchorText,
+                Text = string.Empty
+            });
+            _ = _projectService.SaveScenesAsync();
+
+            IsSceneNotesVisible = true;
+            SceneNotes?.SyncCommentsFromScene(scene, commentId);
+        }
+        pane.CommentAnchored += OnAnchored;
+        pane.AddCommentAction.Invoke(commentId);
+    }
+
+    [RelayCommand]
+    private async Task OpenFindReplaceAsync()
+    {
+        if (ShowFindReplaceDialog != null)
+            await ShowFindReplaceDialog.Invoke();
+    }
+
+    [RelayCommand]
+    private async Task OpenCommandPaletteAsync()
+    {
+        if (ShowCommandPalette != null)
+            await ShowCommandPalette.Invoke();
     }
 
     [RelayCommand]

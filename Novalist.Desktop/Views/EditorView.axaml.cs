@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia;
@@ -174,6 +175,10 @@ public partial class EditorView : UserControl
 
     private void WireFormattingActions(EditorViewModel vm)
     {
+        vm.AddCommentAction = id => ExecuteScript($"addCommentToSelection('{EscapeForSingleQuoteJs(id)}')");
+        vm.RemoveCommentAction = id => ExecuteScript($"removeCommentById('{EscapeForSingleQuoteJs(id)}')");
+        vm.ScrollToCommentAction = id => ExecuteScript($"scrollToCommentById('{EscapeForSingleQuoteJs(id)}')");
+        vm.SyncCommentsAction = () => SyncCommentsToWebView();
         vm.ToggleBoldAction = () => ExecuteScript("toggleBold()");
         vm.ToggleItalicAction = () => ExecuteScript("toggleItalic()");
         vm.ToggleUnderlineAction = () => ExecuteScript("toggleUnderline()");
@@ -302,7 +307,23 @@ public partial class EditorView : UserControl
         Avalonia.Threading.Dispatcher.UIThread.Post(() =>
         {
             _loadingContentFromViewModel = false;
+            SyncCommentsToWebView();
         }, Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    internal void SyncCommentsToWebView()
+    {
+        if (!_webViewReady) return;
+        var comments = _vm?.CurrentScene?.Comments;
+        var payload = comments == null
+            ? "[]"
+            : JsonSerializer.Serialize(comments.Select(c => new
+            {
+                id = c.Id,
+                anchorText = c.AnchorText ?? string.Empty,
+                text = c.Text ?? string.Empty
+            }));
+        ExecuteScript($"setCommentsData({payload})");
     }
 
     internal string GetPlainText()
@@ -363,6 +384,40 @@ public partial class EditorView : UserControl
                 case "grammarCheckRequest":
                     OnGrammarCheckRequest(root);
                     break;
+                case "commentAdded":
+                {
+                    var commentId = root.GetProperty("commentId").GetString() ?? string.Empty;
+                    var anchorText = root.TryGetProperty("anchorText", out var a) ? a.GetString() ?? string.Empty : string.Empty;
+                    if (!string.IsNullOrEmpty(commentId) && _vm != null)
+                    {
+                        _vm.RaiseCommentAnchored(commentId, anchorText);
+                        // Push updated comment list so the gutter card appears.
+                        SyncCommentsToWebView();
+                    }
+                    break;
+                }
+                case "commentTextChanged":
+                {
+                    var commentId = root.GetProperty("commentId").GetString() ?? string.Empty;
+                    var text = root.TryGetProperty("text", out var tv) ? tv.GetString() ?? string.Empty : string.Empty;
+                    if (!string.IsNullOrEmpty(commentId) && _vm != null)
+                        _vm.RaiseCommentTextEdited(commentId, text);
+                    break;
+                }
+                case "commentDeleted":
+                {
+                    var commentId = root.GetProperty("commentId").GetString() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(commentId) && _vm != null)
+                        _vm.RaiseCommentDeleteRequested(commentId);
+                    break;
+                }
+                case "commentClicked":
+                {
+                    var commentId = root.GetProperty("commentId").GetString() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(commentId))
+                        _vm?.RaiseCommentClicked(commentId);
+                    break;
+                }
             }
         }
         catch
@@ -437,12 +492,79 @@ public partial class EditorView : UserControl
     private void OnPointerPressedInEditor()
     {
         _vm?.FocusPeekExtension.OnPointerPressed();
+        NotifyActivePane();
+    }
+
+    /// <summary>
+    /// Tells MainWindow that this pane is now the focused one so the context
+    /// sidebar binds against this pane's active scene. Called whenever the
+    /// editor receives a click.
+    /// </summary>
+    private void NotifyActivePane()
+    {
+        if (_vm == null) return;
+        if (TopLevel.GetTopLevel(this) is MainWindow mw && mw.DataContext is MainWindowViewModel main)
+            main.SetActivePane(_vm);
     }
 
     private void OnSaveRequested()
     {
         if (_vm != null)
             _ = _vm.SaveAsync();
+    }
+
+    private void OnTabPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        // Middle-click closes tab.
+        var props = e.GetCurrentPoint(sender as Control).Properties;
+        if (props.IsMiddleButtonPressed && sender is Control c && c.Tag is EditorOpenScene tab)
+        {
+            _ = _vm?.CloseTabAsync(tab);
+            e.Handled = true;
+            return;
+        }
+        // Any click in this pane = focus this pane.
+        NotifyActivePane();
+    }
+
+    private async void OnTabCloseClick(object? sender, RoutedEventArgs e)
+    {
+        if (_vm == null) return;
+        if (sender is Control c && c.Tag is EditorOpenScene tab)
+            await _vm.CloseTabAsync(tab);
+    }
+
+    private static string Truncate(string s, int max)
+        => string.IsNullOrEmpty(s) || s.Length <= max ? (s ?? string.Empty) : s[..max] + "…";
+
+    private static EditorOpenScene? FindTabFromMenu(object? sender)
+    {
+        if (sender is not MenuItem mi) return null;
+        // MenuItem inside ContextMenu inherits placement-target DataContext.
+        if (mi.DataContext is EditorOpenScene tab) return tab;
+        // Fallback: walk up to ContextMenu and read its Tag (set in XAML).
+        Avalonia.StyledElement? p = mi.Parent;
+        while (p is not null && p is not Avalonia.Controls.ContextMenu) p = p.Parent;
+        if (p is Avalonia.Controls.ContextMenu cm && cm.Tag is EditorOpenScene cmTab) return cmTab;
+        return null;
+    }
+
+    private async void OnTabContextCloseClick(object? sender, RoutedEventArgs e)
+    {
+        if (_vm == null) return;
+        var tab = FindTabFromMenu(sender);
+        if (tab != null) await _vm.CloseTabAsync(tab);
+    }
+
+    private async void OnTabContextMoveClick(object? sender, RoutedEventArgs e)
+    {
+        if (_vm == null) return;
+        var tab = FindTabFromMenu(sender);
+        if (tab == null) return;
+        if (TopLevel.GetTopLevel(this) is not MainWindow mw
+            || mw.DataContext is not MainWindowViewModel main)
+            return;
+        await main.MoveSceneTabAsync(_vm, tab);
     }
 
     private void OnZoom(JsonElement root)

@@ -20,6 +20,46 @@
 
     <Panel>
     <DockPanel>
+        <!-- Classic menu bar -->
+        <Menu DockPanel.Dock="Top" IsVisible="{Binding IsAppChromeVisible}">
+            <MenuItem Header="{loc:Loc menu.edit}">
+                <MenuItem Header="{loc:Loc menu.commandPalette}"
+                          Command="{Binding OpenCommandPaletteCommand}"
+                          InputGesture="Ctrl+Shift+P" />
+                <Separator />
+                <MenuItem Header="{loc:Loc menu.findReplace}"
+                          Command="{Binding OpenFindReplaceCommand}"
+                          InputGesture="Ctrl+H" />
+                <MenuItem Header="{loc:Loc menu.addComment}"
+                          Command="{Binding AddCommentCommand}"
+                          InputGesture="Ctrl+Shift+M" />
+                <Separator />
+                <MenuItem Header="{loc:Loc menu.takeSnapshot}"
+                          Command="{Binding TakeSnapshotCommand}" />
+                <MenuItem Header="{loc:Loc menu.snapshots}"
+                          Command="{Binding OpenSnapshotsCommand}" />
+            </MenuItem>
+            <MenuItem Header="{loc:Loc menu.view}">
+                <MenuItem Header="{loc:Loc menu.toggleExplorer}"
+                          Command="{Binding ToggleExplorerCommand}" />
+                <MenuItem Header="{loc:Loc menu.toggleContextSidebar}"
+                          Command="{Binding ToggleContextSidebarCommand}" />
+                <MenuItem Header="{loc:Loc menu.toggleSceneNotes}"
+                          Command="{Binding ToggleSceneNotesCommand}" />
+                <Separator />
+                <MenuItem Header="{loc:Loc menu.focusMode}"
+                          Command="{Binding ToggleFocusModeCommand}"
+                          InputGesture="F11" />
+                <MenuItem Header="{loc:Loc menu.plotGrid}"
+                          Command="{Binding OpenPlotGridCommand}" />
+                <MenuItem Header="{loc:Loc menu.research}"
+                          Command="{Binding OpenResearchCommand}" />
+                <Separator />
+                <MenuItem Header="{loc:Loc menu.toggleSplitEditor}"
+                          Command="{Binding ToggleSplitEditorCommand}" />
+            </MenuItem>
+        </Menu>
+
         <!-- App Bar (slim, replaces ribbon) -->
         <Border DockPanel.Dock="Top"
                 Classes="appBar"
@@ -398,20 +438,28 @@
                               VerticalAlignment="Stretch"
                               IsVisible="{Binding IsExplorerVisible}">
                     <!-- Sidebar mode tabs -->
-                                        <Grid Grid.Row="0" ColumnDefinitions="*,*,Auto"
+                                        <Grid Grid.Row="0" ColumnDefinitions="*,*,*,Auto"
                           Background="{DynamicResource ExplorerBackground}">
                         <Button Grid.Column="0" Content="{loc:Loc sidebar.chapters}"
                                 x:Name="SidebarChaptersTab"
                                 Click="OnSidebarTabClick" Tag="Chapters"
                                 Classes="explorerTab" Padding="10,6" FontSize="11"
+                                Classes.active="{Binding ActiveSidebarTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Chapters}"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
                         <Button Grid.Column="1" Content="{loc:Loc sidebar.entities}"
                                 x:Name="SidebarEntitiesTab"
                                 Click="OnSidebarTabClick" Tag="Entities"
                                 Classes="explorerTab" Padding="10,6" FontSize="11"
+                                Classes.active="{Binding ActiveSidebarTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Entities}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                        <Button Grid.Column="2" Content="{loc:Loc sidebar.smartLists}"
+                                x:Name="SidebarSmartListsTab"
+                                Click="OnSidebarTabClick" Tag="SmartLists"
+                                Classes="explorerTab" Padding="10,6" FontSize="11"
+                                Classes.active="{Binding ActiveSidebarTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=SmartLists}"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
                         <!-- Extension sidebar tabs -->
-                        <ItemsControl Grid.Column="2" ItemsSource="{Binding ExtensionSidebarTabs}">
+                        <ItemsControl Grid.Column="3" ItemsSource="{Binding ExtensionSidebarTabs}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel Orientation="Horizontal" />
@@ -439,6 +487,13 @@
                                                 <!-- Entity Panel -->
                                                 <views:EntityPanelView DataContext="{Binding EntityPanel}"
                                                                                              x:Name="EntityPanelControl"
+                                                                                             HorizontalAlignment="Stretch"
+                                                                                             VerticalAlignment="Stretch"
+                                                                                             IsVisible="False" />
+
+                                                <!-- Smart Lists Panel -->
+                                                <views:SmartListsPanelView DataContext="{Binding Explorer}"
+                                                                                             x:Name="SmartListsPanelControl"
                                                                                              HorizontalAlignment="Stretch"
                                                                                              VerticalAlignment="Stretch"
                                                                                              IsVisible="False" />
@@ -475,6 +530,14 @@
                                             Classes.active="{Binding IsActive}"
                                             Tag="{Binding Id}"
                                             PointerPressed="OnEditorTabPointerPressed">
+                                        <Border.ContextMenu>
+                                            <ContextMenu Tag="{Binding}">
+                                                <MenuItem Header="{loc:Loc editor.tabClose}"
+                                                          Click="OnTabContextCloseClick" />
+                                                <MenuItem Header="{loc:Loc editor.tabMoveOther}"
+                                                          Click="OnTabContextMoveClick" />
+                                            </ContextMenu>
+                                        </Border.ContextMenu>
                                         <Grid ColumnDefinitions="*,Auto" MinWidth="{Binding MinWidth}">
                                             <Button Grid.Column="0"
                                                     Classes="editorTabSurface"
@@ -527,9 +590,24 @@
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="180" MinHeight="60" />
                                         </Grid.RowDefinitions>
-                                        <views:EditorView Grid.Row="0"
-                                                          DataContext="{Binding Editor}"
-                                                          x:Name="EditorPanel" />
+                                        <Grid Grid.Row="0" x:Name="EditorSplitGrid">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="0" />
+                                                <ColumnDefinition Width="0" />
+                                            </Grid.ColumnDefinitions>
+                                            <views:EditorView Grid.Column="0"
+                                                              DataContext="{Binding Editor}"
+                                                              x:Name="EditorPanel" />
+                                            <GridSplitter Grid.Column="1"
+                                                          ResizeDirection="Columns"
+                                                          Width="4"
+                                                          IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSplitEditorOpen}" />
+                                            <views:EditorView Grid.Column="2"
+                                                              DataContext="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SecondaryEditor}"
+                                                              x:Name="SecondaryEditorPanel"
+                                                              IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSplitEditorOpen}" />
+                                        </Grid>
 
                                         <GridSplitter Grid.Row="1"
                                                       ResizeDirection="Rows"
@@ -590,6 +668,16 @@
                                 <views:ManuscriptView DataContext="{Binding Manuscript}"
                                                        x:Name="ManuscriptPanel"
                                                        IsVisible="False" />
+
+                                <!-- Plot Grid -->
+                                <views:PlotGridView DataContext="{Binding PlotGrid}"
+                                                    x:Name="PlotGridPanel"
+                                                    IsVisible="False" />
+
+                                <!-- Research -->
+                                <views:ResearchView DataContext="{Binding Research}"
+                                                    x:Name="ResearchPanel"
+                                                    IsVisible="False" />
 
                                 <!-- Extension content views -->
                                 <ContentControl x:Name="ExtensionContentHost" IsVisible="False" />

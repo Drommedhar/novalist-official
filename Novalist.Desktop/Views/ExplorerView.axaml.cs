@@ -200,6 +200,22 @@ public partial class ExplorerView : UserControl
         Vm.SetSceneDateCommand.Execute(scene);
     }
 
+    private void OnEditSmartListClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var item = GetContextMenuTag<SmartListItemViewModel>(sender);
+        if (item != null)
+            Vm.EditSmartListCommand.Execute(item);
+    }
+
+    private void OnDeleteSmartListClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var item = GetContextMenuTag<SmartListItemViewModel>(sender);
+        if (item != null)
+            Vm.DeleteSmartListCommand.Execute(item);
+    }
+
     private async void OnTakeSnapshotClick(object? sender, RoutedEventArgs e)
     {
         var scene = GetContextMenuTag<SceneTreeItemViewModel>(sender);

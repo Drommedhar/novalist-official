@@ -208,6 +208,86 @@ body { display: flex; justify-content: center; }
     margin: 0 2px;
     flex-shrink: 0;
 }
+.nv-comment {
+    background-color: rgba(255, 200, 60, 0.28);
+    border-bottom: 1px dashed rgba(255, 160, 30, 0.7);
+    cursor: pointer;
+}
+.nv-comment.nv-comment-active {
+    background-color: rgba(255, 200, 60, 0.55);
+}
+
+/* Margin comment gutter — sizes in em scale with --font-size */
+#commentGutter {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 18em;
+    font-size: var(--font-size);
+    pointer-events: none;
+    overflow: visible;
+    z-index: 5;
+}
+body.has-comments { padding-right: 18em; }
+.nv-cc-card {
+    position: absolute;
+    left: 0.5em;
+    right: 0.5em;
+    pointer-events: auto;
+    background: color-mix(in srgb, var(--bg) 88%, white 12%);
+    border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent 75%);
+    border-left: 0.2em solid #f9c46a;
+    border-radius: 0.4em;
+    padding: 0.5em 1.5em 0.5em 0.625em;
+    box-shadow: 0 0.125em 0.5em rgba(0,0,0,0.25);
+    font-size: 0.78em;
+    color: var(--fg);
+    transition: top 0.12s ease;
+}
+.nv-cc-card.active {
+    border-left-color: #ffd76a;
+    box-shadow: 0 0.125em 0.75em rgba(255, 200, 60, 0.35);
+}
+.nv-cc-anchor {
+    font-size: 0.85em;
+    opacity: 0.7;
+    font-style: italic;
+    margin-bottom: 0.3em;
+    word-break: break-word;
+    line-height: 1.3;
+}
+.nv-cc-text {
+    width: 100%;
+    min-height: 3em;
+    max-height: 12em;
+    box-sizing: border-box;
+    resize: vertical;
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent 88%);
+    border-radius: 0.25em;
+    padding: 0.25em 0.4em;
+    font: inherit;
+}
+.nv-cc-text:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--fg) 35%, transparent 65%);
+}
+.nv-cc-del {
+    position: absolute;
+    top: 0.2em;
+    right: 0.25em;
+    background: transparent;
+    border: 0;
+    color: var(--fg);
+    opacity: 0.5;
+    cursor: pointer;
+    font-size: 1.15em;
+    padding: 0.125em 0.4em;
+    line-height: 1;
+}
+.nv-cc-del:hover { opacity: 1; }
 </style>
 </head>
 <body>
@@ -965,6 +1045,138 @@ document.addEventListener('selectionchange', () => {
     sendMessage({ type: 'caretPosition', line: pos.line, column: pos.column });
 });
 
+// ── Margin Comment Gutter ───────────────────────────────────────
+const commentsState = new Map(); // id -> { anchorText, text }
+let commentGutterEl = null;
+let commentRenderScheduled = false;
+
+function ensureGutter() {
+    if (commentGutterEl) return commentGutterEl;
+    commentGutterEl = document.createElement('div');
+    commentGutterEl.id = 'commentGutter';
+    document.body.appendChild(commentGutterEl);
+    return commentGutterEl;
+}
+
+function scheduleCommentRender() {
+    if (commentRenderScheduled) return;
+    commentRenderScheduled = true;
+    requestAnimationFrame(() => {
+        commentRenderScheduled = false;
+        renderCommentGutter();
+    });
+}
+
+window.setCommentsData = function (data) {
+    try {
+        const arr = typeof data === 'string' ? JSON.parse(data) : (data || []);
+        commentsState.clear();
+        (arr || []).forEach(c => {
+            if (!c || !c.id) return;
+            commentsState.set(c.id, {
+                anchorText: c.anchorText || '',
+                text: c.text || ''
+            });
+        });
+        scheduleCommentRender();
+    } catch (_) { /* ignore */ }
+};
+
+function createCommentCard(id, data) {
+    const card = document.createElement('div');
+    card.className = 'nv-cc-card';
+    card.dataset.commentId = id;
+
+    const anchor = document.createElement('div');
+    anchor.className = 'nv-cc-anchor';
+    anchor.textContent = data.anchorText || '';
+    card.appendChild(anchor);
+
+    const ta = document.createElement('textarea');
+    ta.className = 'nv-cc-text';
+    ta.value = data.text || '';
+    ta.spellcheck = true;
+    ta.addEventListener('input', () => {
+        const cur = commentsState.get(id);
+        if (cur) cur.text = ta.value;
+        sendMessage({ type: 'commentTextChanged', commentId: id, text: ta.value });
+        scheduleCommentRender();
+    });
+    ta.addEventListener('focus', () => {
+        scrollToComment(id, false);
+    });
+    card.appendChild(ta);
+
+    const del = document.createElement('button');
+    del.className = 'nv-cc-del';
+    del.type = 'button';
+    del.textContent = '×';
+    del.title = 'Delete comment';
+    del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sendMessage({ type: 'commentDeleted', commentId: id });
+    });
+    card.appendChild(del);
+
+    card.addEventListener('mousedown', (e) => {
+        if (e.target === ta || e.target === del) return;
+        e.preventDefault();
+    });
+    card.addEventListener('click', (e) => {
+        if (e.target === ta || e.target === del) return;
+        scrollToComment(id, true);
+        ta.focus();
+    });
+    return card;
+}
+
+function renderCommentGutter() {
+    const gutter = ensureGutter();
+    const liveIds = new Set();
+    const items = [];
+    const spans = editor.querySelectorAll('span.nv-comment[data-comment-id]');
+    spans.forEach(s => {
+        const id = s.getAttribute('data-comment-id');
+        if (!id || !commentsState.has(id) || liveIds.has(id)) return;
+        liveIds.add(id);
+        const r = s.getBoundingClientRect();
+        items.push({ id, top: r.top });
+    });
+    items.sort((a, b) => a.top - b.top);
+
+    const have = new Map();
+    Array.from(gutter.children).forEach(c => have.set(c.dataset.commentId, c));
+    have.forEach((card, id) => { if (!liveIds.has(id)) card.remove(); });
+
+    let prevBottom = 0;
+    const gap = 6;
+    items.forEach(item => {
+        const data = commentsState.get(item.id);
+        let card = have.get(item.id);
+        if (!card) {
+            card = createCommentCard(item.id, data);
+            gutter.appendChild(card);
+        } else {
+            const ta = card.querySelector('textarea');
+            if (ta && document.activeElement !== ta && ta.value !== data.text) {
+                ta.value = data.text;
+            }
+            const ae = card.querySelector('.nv-cc-anchor');
+            if (ae && ae.textContent !== data.anchorText) ae.textContent = data.anchorText;
+        }
+        const desired = Math.max(item.top, prevBottom + gap);
+        card.style.top = desired + 'px';
+        prevBottom = desired + card.offsetHeight;
+    });
+
+    document.body.classList.toggle('has-comments', liveIds.size > 0);
+}
+
+wrapper.addEventListener('scroll', scheduleCommentRender);
+window.addEventListener('resize', scheduleCommentRender);
+const commentObserver = new MutationObserver(scheduleCommentRender);
+commentObserver.observe(editor, { childList: true, characterData: true, subtree: true });
+
 editor.addEventListener('mousemove', (e) => {
     if (!entityRegex) return;
     const alias = findEntityAtPoint(e.clientX, e.clientY);
@@ -1526,6 +1738,93 @@ floatingToolbar.addEventListener('mousedown', (e) => {
     else if (id === 'ft-align-justify') document.execCommand('justifyFull', false, null);
     updateFloatingToolbar();
 });
+
+// ── Inline Comments ─────────────────────────────────────────────
+
+function wrapSelectionAsComment(commentId) {
+    var sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    var range = sel.getRangeAt(0);
+    if (range.collapsed) return null;
+    var anchorText = sel.toString();
+    if (!anchorText) return null;
+
+    var span = document.createElement('span');
+    span.className = 'nv-comment';
+    span.setAttribute('data-comment-id', commentId);
+    try {
+        range.surroundContents(span);
+    } catch (e1) {
+        try {
+            var frag = range.extractContents();
+            span.appendChild(frag);
+            range.insertNode(span);
+        } catch (e2) {
+            return null;
+        }
+    }
+    sel.removeAllRanges();
+    // Notify host that the editor HTML changed so the comment span persists.
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    return anchorText;
+}
+
+function removeCommentSpan(commentId) {
+    var nodes = document.querySelectorAll('span.nv-comment[data-comment-id="' + commentId + '"]');
+    for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        var parent = node.parentNode;
+        while (node.firstChild) parent.insertBefore(node.firstChild, node);
+        parent.removeChild(node);
+        parent.normalize();
+    }
+    commentsState.delete(commentId);
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    scheduleCommentRender();
+}
+
+function scrollToComment(commentId, doScroll) {
+    document.querySelectorAll('span.nv-comment.nv-comment-active').forEach(function (n) {
+        n.classList.remove('nv-comment-active');
+    });
+    if (commentGutterEl) {
+        Array.from(commentGutterEl.children).forEach(function (c) {
+            c.classList.toggle('active', c.dataset.commentId === commentId);
+        });
+    }
+    var node = document.querySelector('span.nv-comment[data-comment-id="' + commentId + '"]');
+    if (!node) return;
+    node.classList.add('nv-comment-active');
+    if (doScroll !== false) node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+editor.addEventListener('click', function (e) {
+    var target = e.target;
+    while (target && target !== editor && !target.classList?.contains('nv-comment')) {
+        target = target.parentNode;
+    }
+    if (target && target !== editor && target.classList?.contains('nv-comment')) {
+        var id = target.getAttribute('data-comment-id');
+        if (id) sendMessage({ type: 'commentClicked', commentId: id });
+    }
+});
+
+// Host bridge: addComment(id) wraps current selection. Returns anchor via message.
+window.addCommentToSelection = function (commentId) {
+    try {
+        var anchor = wrapSelectionAsComment(commentId);
+        sendMessage({
+            type: 'commentAdded',
+            commentId: commentId,
+            anchorText: anchor || ''
+        });
+    } catch (err) {
+        sendMessage({ type: 'commentAdded', commentId: commentId, anchorText: '' });
+    }
+};
+
+window.removeCommentById = removeCommentSpan;
+window.scrollToCommentById = scrollToComment;
 
 // ── Ready Signal ────────────────────────────────────────────────
 sendMessage({ type: 'ready' });

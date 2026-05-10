@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -27,6 +29,23 @@ public partial class EditorViewModel : ObservableObject
     private CancellationTokenSource? _autoSaveCts;
     private readonly SemaphoreSlim _openSceneGate = new(1, 1);
     private int _openSceneRequestId;
+
+    /// <summary>
+    /// Open scene tabs in this editor pane. The active tab's content is shown
+    /// in the WebView; switching tabs caches the live content of the previous
+    /// tab and restores the new tab's cached content into the editor.
+    /// </summary>
+    public ObservableCollection<EditorOpenScene> OpenScenes { get; } = [];
+
+    [ObservableProperty]
+    private EditorOpenScene? _activeOpenScene;
+
+    /// <summary>True when this pane has focus (drives ActiveEditor in MainWindow).</summary>
+    [ObservableProperty]
+    private bool _isPaneFocused;
+
+    public bool HasMultipleTabs => OpenScenes.Count > 1;
+    public bool HasOpenScenes => OpenScenes.Count > 0;
 
     [ObservableProperty]
     private string _content = string.Empty;
@@ -118,6 +137,29 @@ public partial class EditorViewModel : ObservableObject
     private bool _isAlignJustify;
 
     // ── Formatting action delegates (set by EditorView) ─────────────
+
+    /// <summary>Wraps the current selection in a comment span. Param = comment id.</summary>
+    public Action<string>? AddCommentAction { get; set; }
+    /// <summary>Removes the comment span for the given id.</summary>
+    public Action<string>? RemoveCommentAction { get; set; }
+    /// <summary>Scrolls to and highlights the comment span.</summary>
+    public Action<string>? ScrollToCommentAction { get; set; }
+    /// <summary>Pushes the current scene's comment list to the WebView gutter.</summary>
+    public Action? SyncCommentsAction { get; set; }
+
+    /// <summary>Fired by the view when the WebView reports a new comment was anchored.</summary>
+    public event Action<string, string>? CommentAnchored; // commentId, anchorText
+    /// <summary>Fired by the view when the user clicks an existing comment span.</summary>
+    public event Action<string>? CommentClicked; // commentId
+    /// <summary>Fired when the gutter card text is edited.</summary>
+    public event Action<string, string>? CommentTextEdited; // commentId, text
+    /// <summary>Fired when the gutter card delete button is clicked.</summary>
+    public event Action<string>? CommentDeleteRequested; // commentId
+
+    internal void RaiseCommentAnchored(string id, string anchor) => CommentAnchored?.Invoke(id, anchor);
+    internal void RaiseCommentClicked(string id) => CommentClicked?.Invoke(id);
+    internal void RaiseCommentTextEdited(string id, string text) => CommentTextEdited?.Invoke(id, text);
+    internal void RaiseCommentDeleteRequested(string id) => CommentDeleteRequested?.Invoke(id);
 
     public Action? ToggleBoldAction { get; set; }
     public Action? ToggleItalicAction { get; set; }
@@ -211,6 +253,24 @@ public partial class EditorViewModel : ObservableObject
 
         _focusPeekExtension = new FocusPeekExtension(FocusPeek, _projectService, _entityService, HandleFocusPeekOpenRequested);
         ExtensionManager.Register(_focusPeekExtension);
+
+        // Persist comment edits made in the margin gutter back to the scene file.
+        CommentTextEdited += (id, newText) =>
+        {
+            if (_scene?.Comments == null) return;
+            var c = _scene.Comments.FirstOrDefault(x => x.Id == id);
+            if (c == null) return;
+            c.Text = newText;
+            _ = _projectService.SaveScenesAsync();
+        };
+        CommentDeleteRequested += id =>
+        {
+            if (_scene == null) return;
+            RemoveCommentAction?.Invoke(id);
+            _scene.Comments?.RemoveAll(x => x.Id == id);
+            _ = _projectService.SaveScenesAsync();
+            SyncCommentsAction?.Invoke();
+        };
     }
 
     /// <summary>
@@ -239,51 +299,77 @@ public partial class EditorViewModel : ObservableObject
     public SceneData? CurrentScene => _scene;
 
     /// <summary>
-    /// Opens a scene for editing. Saves the previous document first if dirty.
+    /// Opens a scene for editing. If a tab for the same scene already exists,
+    /// activates it; otherwise adds a new tab and activates it. Saves the
+    /// previously active tab's dirty content first.
     /// </summary>
     public async Task OpenSceneAsync(ChapterData chapter, SceneData scene)
     {
+        // Existing tab? Just switch to it.
+        var existing = OpenScenes.FirstOrDefault(t => string.Equals(t.Scene.Id, scene.Id, StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
+        {
+            await ActivateTabAsync(existing);
+            return;
+        }
+
+        // Cache live content of currently active tab before switching.
+        await CacheActiveTabAsync();
+
+        var newTab = new EditorOpenScene(chapter, scene);
+        OpenScenes.Add(newTab);
+        OnPropertyChanged(nameof(HasMultipleTabs)); OnPropertyChanged(nameof(HasOpenScenes));
+        await ActivateTabAsync(newTab, isFreshLoad: true);
+    }
+
+    /// <summary>
+    /// Switches the editor to show the given already-open tab.
+    /// </summary>
+    public async Task ActivateTabAsync(EditorOpenScene tab, bool isFreshLoad = false)
+    {
+        if (!OpenScenes.Contains(tab)) return;
+        if (ActiveOpenScene == tab && !isFreshLoad) return;
+
+        // Snapshot live state into outgoing tab before switch.
+        if (!isFreshLoad)
+            await CacheActiveTabAsync();
+
         var requestId = Interlocked.Increment(ref _openSceneRequestId);
         IsSceneLoading = true;
-
         await _openSceneGate.WaitAsync();
         try
         {
-            if (requestId != _openSceneRequestId)
-            {
-                return;
-            }
+            if (requestId != _openSceneRequestId) return;
 
             CancelAutoSave();
-
-            // Save current if dirty
-            if (IsDirty && _chapter != null && _scene != null)
-            {
-                await SaveAsync();
-            }
-
-            if (requestId != _openSceneRequestId)
-            {
-                return;
-            }
-
-            // Close previous
             ExtensionManager.NotifyDocumentClosing();
 
-            var text = await _projectService.ReadSceneContentAsync(chapter, scene);
-            if (requestId != _openSceneRequestId)
+            // Use cached content if available; otherwise read from disk.
+            string text;
+            if (tab.HasCachedContent)
             {
-                return;
+                text = tab.CachedContent;
+            }
+            else
+            {
+                text = await _projectService.ReadSceneContentAsync(tab.Chapter, tab.Scene);
+                tab.CachedContent = text;
+                tab.SavedContent = text;
+                tab.HasCachedContent = true;
             }
 
-            _chapter = chapter;
-            _scene = scene;
-            _savedContent = text;
+            if (requestId != _openSceneRequestId) return;
+
+            _chapter = tab.Chapter;
+            _scene = tab.Scene;
+            _savedContent = tab.SavedContent;
             Content = text;
-            IsDirty = false;
+            IsDirty = tab.IsDirty;
             IsDocumentOpen = true;
-            SceneTabTitle = string.IsNullOrWhiteSpace(scene.Title) ? chapter.Title : scene.Title;
-            DocumentTitle = $"{chapter.Title} — {scene.Title}";
+            SceneTabTitle = string.IsNullOrWhiteSpace(tab.Scene.Title) ? tab.Chapter.Title : tab.Scene.Title;
+            DocumentTitle = $"{tab.Chapter.Title} — {tab.Scene.Title}";
+            foreach (var t in OpenScenes) t.IsActive = t == tab;
+            ActiveOpenScene = tab;
             OnPropertyChanged(nameof(CurrentChapter));
             OnPropertyChanged(nameof(CurrentScene));
             _plainText = StripHtmlForStats(text);
@@ -291,32 +377,149 @@ public partial class EditorViewModel : ObservableObject
 
             ExtensionManager.NotifyDocumentOpened(new EditorDocumentContext
             {
-                SceneId = scene.Id,
-                ChapterGuid = chapter.Guid,
-                SceneTitle = scene.Title,
-                ChapterTitle = chapter.Title,
-                FilePath = _projectService.GetSceneFilePath(chapter, scene)
+                SceneId = tab.Scene.Id,
+                ChapterGuid = tab.Chapter.Guid,
+                SceneTitle = tab.Scene.Title,
+                ChapterTitle = tab.Chapter.Title,
+                FilePath = _projectService.GetSceneFilePath(tab.Chapter, tab.Scene)
             });
 
-            // Notify the SDK-level SceneOpened event so extensions (AI Assistant,
-            // etc.) can react to scene navigation.
             App.ExtensionManager?.Host?.RaiseSceneOpened(
-                scene.Id, scene.Title, chapter.Guid, chapter.Title, scene.WordCount);
-
-            if (requestId == _openSceneRequestId)
-            {
-                IsSceneLoading = false;
-            }
+                tab.Scene.Id, tab.Scene.Title, tab.Chapter.Guid, tab.Chapter.Title, tab.Scene.WordCount);
         }
         finally
         {
             if (requestId == _openSceneRequestId)
-            {
                 IsSceneLoading = false;
-            }
-
             _openSceneGate.Release();
         }
+    }
+
+    /// <summary>
+    /// Closes a tab. Saves dirty content first. Activates the next available
+    /// tab, or clears the editor if this was the last one.
+    /// </summary>
+    public async Task CloseTabAsync(EditorOpenScene tab)
+    {
+        if (!OpenScenes.Contains(tab)) return;
+
+        // If closing the active tab, save its current state first.
+        if (ActiveOpenScene == tab)
+        {
+            if (IsDirty) await SaveAsync();
+        }
+        else if (tab.IsDirty)
+        {
+            // Persist dirty cached content for non-active tab.
+            await _projectService.WriteSceneContentAsync(tab.Chapter, tab.Scene, tab.CachedContent);
+            tab.Scene.WordCount = CountWords(StripHtmlForStats(tab.CachedContent));
+            await _projectService.SaveScenesAsync();
+            tab.IsDirty = false;
+            tab.SavedContent = tab.CachedContent;
+        }
+
+        var idx = OpenScenes.IndexOf(tab);
+        OpenScenes.Remove(tab);
+        OnPropertyChanged(nameof(HasMultipleTabs)); OnPropertyChanged(nameof(HasOpenScenes));
+
+        if (ActiveOpenScene == tab)
+        {
+            if (OpenScenes.Count == 0)
+            {
+                await ClearEditorStateAsync();
+            }
+            else
+            {
+                var next = OpenScenes[Math.Clamp(idx, 0, OpenScenes.Count - 1)];
+                await ActivateTabAsync(next, isFreshLoad: true);
+            }
+        }
+    }
+
+    /// <summary>Removes a tab from this pane without saving (caller handles transfer).</summary>
+    public async Task<EditorOpenScene?> DetachTabAsync(EditorOpenScene tab)
+    {
+        if (!OpenScenes.Contains(tab)) return null;
+        if (ActiveOpenScene == tab)
+        {
+            // Cache live content first so we don't lose user edits.
+            await CacheActiveTabAsync();
+        }
+        var idx = OpenScenes.IndexOf(tab);
+        OpenScenes.Remove(tab);
+        OnPropertyChanged(nameof(HasMultipleTabs)); OnPropertyChanged(nameof(HasOpenScenes));
+
+        if (ActiveOpenScene == tab)
+        {
+            if (OpenScenes.Count == 0) await ClearEditorStateAsync();
+            else await ActivateTabAsync(OpenScenes[Math.Clamp(idx, 0, OpenScenes.Count - 1)], isFreshLoad: true);
+        }
+        return tab;
+    }
+
+    /// <summary>Adds a previously-detached tab to this pane and activates it.</summary>
+    public async Task AttachTabAsync(EditorOpenScene tab)
+    {
+        OpenScenes.Add(tab);
+        OnPropertyChanged(nameof(HasMultipleTabs)); OnPropertyChanged(nameof(HasOpenScenes));
+        await ActivateTabAsync(tab, isFreshLoad: true);
+    }
+
+    private async Task CacheActiveTabAsync()
+    {
+        var active = ActiveOpenScene;
+        if (active == null) return;
+        active.CachedContent = Content;
+        active.IsDirty = IsDirty;
+        active.HasCachedContent = true;
+        if (IsDirty) await SaveAsync();
+    }
+
+    private async Task ClearEditorStateAsync()
+    {
+        await Task.CompletedTask;
+        CancelAutoSave();
+        ExtensionManager.NotifyDocumentClosing();
+        _chapter = null;
+        _scene = null;
+        Content = string.Empty;
+        _savedContent = string.Empty;
+        _plainText = string.Empty;
+        IsDirty = false;
+        IsDocumentOpen = false;
+        SceneTabTitle = string.Empty;
+        DocumentTitle = string.Empty;
+        ActiveOpenScene = null;
+        OnPropertyChanged(nameof(CurrentChapter));
+        OnPropertyChanged(nameof(CurrentScene));
+        WordCount = 0;
+        CharacterCount = 0;
+        CharacterCountWithoutSpaces = 0;
+        ReadingTimeMinutes = 0;
+        ReadabilityScore = 0;
+        ReadabilityLevelLabel = string.Empty;
+        ReadabilityColor = "#B91C1C";
+        FocusPeek.Hide();
+    }
+
+    private static int CountWords(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return 0;
+        return System.Text.RegularExpressions.Regex.Matches(text,
+            @"[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*",
+            System.Text.RegularExpressions.RegexOptions.CultureInvariant).Count;
+    }
+
+    [RelayCommand]
+    private async Task ActivateTabFromUi(EditorOpenScene? tab)
+    {
+        if (tab != null) await ActivateTabAsync(tab);
+    }
+
+    [RelayCommand]
+    private async Task CloseTabFromUi(EditorOpenScene? tab)
+    {
+        if (tab != null) await CloseTabAsync(tab);
     }
 
     /// <summary>
@@ -345,6 +548,7 @@ public partial class EditorViewModel : ObservableObject
         Content = htmlContent;
         _plainText = plainText;
         IsDirty = htmlContent != _savedContent;
+        if (ActiveOpenScene != null) ActiveOpenScene.IsDirty = IsDirty;
         UpdateStats(plainText);
         ScheduleAutoSave();
     }
@@ -362,6 +566,14 @@ public partial class EditorViewModel : ObservableObject
         await _projectService.WriteSceneContentAsync(_chapter, _scene, Content);
         _savedContent = Content;
         IsDirty = false;
+
+        // Mirror into the active tab so future switches see clean state.
+        if (ActiveOpenScene != null)
+        {
+            ActiveOpenScene.CachedContent = Content;
+            ActiveOpenScene.SavedContent = Content;
+            ActiveOpenScene.IsDirty = false;
+        }
 
         // Update word count in scene metadata
         _scene.WordCount = WordCount;
@@ -458,5 +670,31 @@ public partial class EditorViewModel : ObservableObject
         // Quick HTML tag strip for stats — not a full parser, just enough for word/char counts.
         var text = System.Text.RegularExpressions.Regex.Replace(content, "<[^>]+>", string.Empty);
         return System.Net.WebUtility.HtmlDecode(text);
+    }
+}
+
+public partial class EditorOpenScene : ObservableObject
+{
+    public ChapterData Chapter { get; }
+    public SceneData Scene { get; }
+
+    [ObservableProperty]
+    private string _displayTitle;
+
+    [ObservableProperty]
+    private bool _isDirty;
+
+    [ObservableProperty]
+    private bool _isActive;
+
+    public string CachedContent { get; set; } = string.Empty;
+    public string SavedContent { get; set; } = string.Empty;
+    public bool HasCachedContent { get; set; }
+
+    public EditorOpenScene(ChapterData chapter, SceneData scene)
+    {
+        Chapter = chapter;
+        Scene = scene;
+        _displayTitle = string.IsNullOrWhiteSpace(scene.Title) ? chapter.Title : scene.Title;
     }
 }

@@ -51,9 +51,68 @@ public partial class ExplorerViewModel : ObservableObject
 
     public ObservableCollection<object> ExplorerItems { get; } = new();
 
+    public ObservableCollection<SmartListItemViewModel> SmartLists { get; } = new();
+
+    private ISmartListService? _smartListService;
+
+    public Func<SmartList?, Task<SmartList?>>? ShowSmartListEditor { get; set; }
+    public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
+
     public ExplorerViewModel(IProjectService projectService)
     {
         _projectService = projectService;
+    }
+
+    public void AttachSmartListService(ISmartListService service)
+    {
+        _smartListService = service;
+        RefreshSmartLists();
+    }
+
+    public void RefreshSmartLists()
+    {
+        SmartLists.Clear();
+        if (_smartListService == null) return;
+        foreach (var list in _smartListService.GetAll())
+            SmartLists.Add(new SmartListItemViewModel(list, _smartListService, OnSmartListSceneOpenRequested));
+    }
+
+    private void OnSmartListSceneOpenRequested(ChapterData chapter, SceneData scene)
+        => SceneOpenRequested?.Invoke(chapter, scene);
+
+    [RelayCommand]
+    private async Task CreateSmartListAsync()
+    {
+        if (ShowSmartListEditor == null || _smartListService == null) return;
+        var draft = await ShowSmartListEditor.Invoke(null);
+        if (draft == null) return;
+        await _smartListService.SaveAsync(draft);
+        RefreshSmartLists();
+    }
+
+    [RelayCommand]
+    private async Task EditSmartListAsync(SmartListItemViewModel item)
+    {
+        if (ShowSmartListEditor == null || _smartListService == null || item == null) return;
+        var updated = await ShowSmartListEditor.Invoke(item.Source);
+        if (updated == null) return;
+        await _smartListService.SaveAsync(updated);
+        RefreshSmartLists();
+    }
+
+    [RelayCommand]
+    private async Task DeleteSmartListAsync(SmartListItemViewModel item)
+    {
+        if (_smartListService == null || item == null) return;
+        if (ShowConfirmDialog != null)
+        {
+            var ok = await ShowConfirmDialog.Invoke(
+                Loc.T("smartList.confirmDeleteTitle"),
+                string.Format(Loc.T("smartList.confirmDelete"), item.Source.Name));
+            if (!ok) return;
+        }
+        await _smartListService.DeleteAsync(item.Source.Id);
+        RefreshSmartLists();
     }
 
     /// <summary>

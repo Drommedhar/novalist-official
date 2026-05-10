@@ -70,6 +70,7 @@
                        FontSize="12"
                        Foreground="{DynamicResource SubtleText}"
                        IsVisible="{Binding IsSceneOpen, Converter={x:Static BoolConverters.Not}}" />
+
         </Grid>
     </Border>
 </UserControl>

@@ -53,6 +53,17 @@ public class ProjectMetadata
     [JsonPropertyName("customEntityTypes")]
     public List<CustomEntityTypeDefinition> CustomEntityTypes { get; set; } = [];
 
+    /// <summary>
+    /// Saved scene queries (Scrivener-style "Collections"). Persisted with the
+    /// project so they survive restart.
+    /// </summary>
+    [JsonPropertyName("smartLists")]
+    public List<SmartList> SmartLists { get; set; } = [];
+
+    /// <summary>Research notes / links / imported files attached to the project.</summary>
+    [JsonPropertyName("researchItems")]
+    public List<ResearchItem> ResearchItems { get; set; } = [];
+
     public BookData? GetActiveBook()
         => Books.FirstOrDefault(b => b.Id == ActiveBookId) ?? Books.FirstOrDefault();
 }

@@ -423,6 +423,33 @@ public partial class TimelineViewModel : ObservableObject
         IsFormOpen = false;
     }
 
+    public IReadOnlyList<StoryStructureTemplate> AvailableStructureTemplates { get; } = StoryStructureTemplates.All;
+
+    [RelayCommand]
+    private async Task ApplyStructureTemplateAsync(string? templateId)
+    {
+        if (string.IsNullOrWhiteSpace(templateId)) return;
+        var template = StoryStructureTemplates.GetById(templateId);
+        if (template == null) return;
+
+        var timeline = _projectService.ProjectSettings.Timeline;
+        var nextOrder = timeline.ManualEvents.Count;
+        foreach (var beat in template.Beats)
+        {
+            timeline.ManualEvents.Add(new TimelineManualEvent
+            {
+                Id = $"evt-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}-{Guid.NewGuid().ToString()[..7]}",
+                Title = beat.Title,
+                Description = beat.Description,
+                CategoryId = beat.CategoryId,
+                Order = nextOrder++
+            });
+        }
+
+        await _projectService.SaveProjectSettingsAsync();
+        BuildAndRender();
+    }
+
     private void PopulateCategories()
     {
         AvailableCategories = new ObservableCollection<CategoryItem>([

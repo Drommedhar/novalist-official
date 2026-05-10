@@ -82,4 +82,8 @@ public class BookData
     /// </summary>
     [JsonPropertyName("activeCustomEntityTemplateIds")]
     public Dictionary<string, string> ActiveCustomEntityTemplateIds { get; set; } = [];
+
+    /// <summary>Plot threads defined for this book. Drives the Plot Grid view.</summary>
+    [JsonPropertyName("plotlines")]
+    public List<PlotlineData> Plotlines { get; set; } = [];
 }

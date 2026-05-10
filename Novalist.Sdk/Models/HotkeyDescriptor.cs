@@ -13,11 +13,28 @@ public sealed class HotkeyDescriptor
     /// </summary>
     public string ActionId { get; init; } = string.Empty;
 
-    /// <summary>Human-readable display name (localized by the caller).</summary>
+    /// <summary>Human-readable display name (localized by the caller). When
+    /// <see cref="DisplayNameProvider"/> is set it takes precedence — use the
+    /// provider when the name should re-translate on language change.</summary>
     public string DisplayName { get; init; } = string.Empty;
+
+    /// <summary>Late-bound display name provider. Callers that want their
+    /// command label to refresh on language switch should set this with a
+    /// lambda that calls into the host's localization service.</summary>
+    public Func<string>? DisplayNameProvider { get; init; }
+
+    /// <summary>Resolved display name, preferring the provider when present.</summary>
+    public string EffectiveDisplayName
+        => DisplayNameProvider?.Invoke() ?? DisplayName;
 
     /// <summary>Grouping label for the settings UI (e.g. "Navigation", "Editor", or extension display name).</summary>
     public string Category { get; init; } = string.Empty;
+
+    /// <summary>Late-bound category provider. Same semantics as
+    /// <see cref="DisplayNameProvider"/>.</summary>
+    public Func<string>? CategoryProvider { get; init; }
+
+    public string EffectiveCategory => CategoryProvider?.Invoke() ?? Category;
 
     /// <summary>
     /// Default key gesture as a string (e.g. "Ctrl+Shift+N").

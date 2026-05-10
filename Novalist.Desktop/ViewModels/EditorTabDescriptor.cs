@@ -11,6 +11,15 @@ public partial class EditorTabDescriptor : ObservableObject
     public double MinWidth { get; }
     public Action OnClose { get; }
 
+    /// <summary>Override for click activation. When null, the host falls back
+    /// to setting <see cref="MainWindowViewModel.ActiveContentView"/> to
+    /// <see cref="ActivationKey"/>.</summary>
+    public Action? ActivateAction { get; init; }
+
+    /// <summary>Optional handler for "Move to other split" context menu.
+    /// Only present on scene tabs.</summary>
+    public Action? MoveToOtherPaneAction { get; init; }
+
     [ObservableProperty]
     private string _title;
 

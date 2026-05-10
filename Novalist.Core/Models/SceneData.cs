@@ -37,9 +37,39 @@ public class SceneData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? LabelColor { get; set; }
 
+    /// <summary>Plotline ids this scene contributes to (Plot Grid).</summary>
+    [JsonPropertyName("plotlineIds")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? PlotlineIds { get; set; }
+
+    /// <summary>Inline comments anchored to text ranges in the scene HTML.</summary>
+    [JsonPropertyName("comments")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<SceneComment>? Comments { get; set; }
+
     [JsonPropertyName("analysisOverrides")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SceneAnalysisOverrides? AnalysisOverrides { get; set; }
+}
+
+public class SceneComment
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = System.Guid.NewGuid().ToString();
+
+    /// <summary>The text snippet the comment was originally anchored to —
+    /// shown in the comment list.</summary>
+    [JsonPropertyName("anchorText")]
+    public string AnchorText { get; set; } = string.Empty;
+
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = string.Empty;
+
+    [JsonPropertyName("createdAt")]
+    public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
+
+    [JsonPropertyName("resolved")]
+    public bool Resolved { get; set; }
 }
 
 public class SceneAnalysisOverrides
