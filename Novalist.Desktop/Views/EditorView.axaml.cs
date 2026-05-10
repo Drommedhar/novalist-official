@@ -61,7 +61,7 @@ public partial class EditorView : UserControl
         if (_snapshotImage != null || _webView == null) return;
         _snapshotImage = new Image
         {
-            Stretch = Avalonia.Media.Stretch.None,
+            Stretch = Avalonia.Media.Stretch.Uniform,
             IsHitTestVisible = false,
             IsVisible = false,
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,

@@ -190,30 +190,11 @@ internal static class WebViewSnapshotter
 
     // ── macOS (NSView cacheDisplayInRect on window contentView) ──────
     //
-    // TODO(macos-snapshot): Image still renders ~1.5–2× too big when overlay
-    // opens, even though capture pixels are correct.
-    //
-    // Verified diagnostic log:
-    //   bounds=784x613.5 dip, contentH=900, rect=(330,212.5,784,613.5),
-    //   px=1568x1227, bytesPerRow=6272, bpp=32, spp=4
-    // → backing-scale 2× capture is correct. Bitmap pixel dims and rect match
-    //   the webView's DIP bounds. Issue is on the DISPLAY side, not capture.
-    //
-    // Tried so far (none fixed):
-    //   • Stretch=Fill + explicit Image.Width/Height pin + HAlign.Left/VAlign.Top
-    //   • Stretch=None relying on bitmap DPI (192) for intrinsic DIP size
-    //
-    // Likely culprits to investigate on real macOS device:
-    //   1. Avalonia macOS Image renderer may ignore WriteableBitmap DPI and
-    //      treat pxW as DIPs → intrinsic = 1568 DIP instead of 784.
-    //      Fix: override intrinsic via wrapping Border with Width/Height +
-    //      Image inside with Stretch=Uniform.
-    //   2. Width pin not honored when Image is direct child of Grid with
-    //      `*` row/column. Try wrapping in a Canvas or Border.
-    //   3. PixelFormat/AlphaFormat mismatch causing Skia to upscale.
-    //   4. WriteableBitmap DPI=192 may be interpreted as "display at 2× device
-    //      pixels" instead of "logical=intrinsic/2" on Avalonia's macOS backend.
-    //      Test: hardcode dpi = (96, 96) and pin Image.Width=bounds.W.
+    // Avalonia's macOS backend ignores WriteableBitmap DPI when computing the
+    // Image control's intrinsic DIP size — it uses raw PixelSize. So we set
+    // dpi=(96,96) and rely on the snapshot Image's Stretch=Uniform + explicit
+    // Width/Height (DIP) pin to scale the bitmap down to the webView's DIP
+    // bounds at render time.
 
     private const string LibObjc = "/usr/lib/libobjc.dylib";
     private const string LibAppKit = "/System/Library/Frameworks/AppKit.framework/AppKit";
@@ -338,13 +319,11 @@ internal static class WebViewSnapshotter
         if (pxW <= 0 || pxH <= 0 || bitmapData == IntPtr.Zero) return null;
         if (bitsPerPixel != 32) return null; // expect RGBA8
 
-        // Use a high DPI so bitmap logical size == webView DIP size; Image.Width
-        // also pins it. Combination prevents 2x zoom on Retina.
-        var scaleX = pxW / Math.Max(1.0, bounds.Width);
-        var scaleY = pxH / Math.Max(1.0, bounds.Height);
-        var dpi = new Vector(96 * scaleX, 96 * scaleY);
+        // dpi=(96,96): Avalonia macOS backend ignores DPI for Image intrinsic
+        // sizing, so don't pretend. Caller pins Image.Width/Height to DIP
+        // bounds with Stretch=Uniform, which scales the bitmap correctly.
         var pixelSize = new PixelSize(pxW, pxH);
-        var writeable = new WriteableBitmap(pixelSize, dpi, PixelFormat.Bgra8888, AlphaFormat.Premul);
+        var writeable = new WriteableBitmap(pixelSize, new Vector(96, 96), PixelFormat.Bgra8888, AlphaFormat.Premul);
 
         var rowBuf = new byte[Math.Min(bytesPerRow, pxW * 4)];
         using (var fb = writeable.Lock())
