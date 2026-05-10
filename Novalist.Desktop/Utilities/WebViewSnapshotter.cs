@@ -307,10 +307,17 @@ internal static class WebViewSnapshotter
         var bitsPerPixel = (int)msgSend_Long(rep, sel_registerName("bitsPerPixel"));
         var samplesPerPixel = (int)msgSend_Long(rep, sel_registerName("samplesPerPixel"));
         var bitmapData = msgSend_IntPtr(rep, sel_registerName("bitmapData"));
+        Console.WriteLine($"[WebViewSnapshotter.macOS] bounds={bounds.Width}x{bounds.Height} dip, " +
+                          $"contentH={contentH}, rect=({rect.Origin.X},{rect.Origin.Y},{rect.Size.Width},{rect.Size.Height}), " +
+                          $"px={pxW}x{pxH}, bytesPerRow={bytesPerRow}, bpp={bitsPerPixel}, spp={samplesPerPixel}");
         if (pxW <= 0 || pxH <= 0 || bitmapData == IntPtr.Zero) return null;
         if (bitsPerPixel != 32) return null; // expect RGBA8
 
-        var dpi = new Vector(96 * (pxW / Math.Max(1.0, bounds.Width)), 96 * (pxH / Math.Max(1.0, bounds.Height)));
+        // Use a high DPI so bitmap logical size == webView DIP size; Image.Width
+        // also pins it. Combination prevents 2x zoom on Retina.
+        var scaleX = pxW / Math.Max(1.0, bounds.Width);
+        var scaleY = pxH / Math.Max(1.0, bounds.Height);
+        var dpi = new Vector(96 * scaleX, 96 * scaleY);
         var pixelSize = new PixelSize(pxW, pxH);
         var writeable = new WriteableBitmap(pixelSize, dpi, PixelFormat.Bgra8888, AlphaFormat.Premul);
 
