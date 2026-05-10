@@ -17,11 +17,15 @@ namespace Novalist.Desktop.ViewModels;
 public partial class ManuscriptViewModel : ObservableObject
 {
     private readonly IProjectService _projectService;
+    private readonly IEntityService? _entityService;
     private readonly Dictionary<string, ManuscriptSceneItem> _sceneIndex = new();
     private System.Threading.CancellationTokenSource? _autoSaveCts;
 
     [ObservableProperty]
     private ObservableCollection<ManuscriptSection> _sections = [];
+
+    [ObservableProperty]
+    private ObservableCollection<ManuscriptSceneItem> _allScenes = [];
 
     [ObservableProperty]
     private int _totalWords;
@@ -35,6 +39,33 @@ public partial class ManuscriptViewModel : ObservableObject
     [ObservableProperty]
     private string _filterStatus = "All";
 
+    /// <summary>
+    /// "Manuscript" (composite WebView), "Corkboard" (cards), or "Outliner" (table).
+    /// </summary>
+    [ObservableProperty]
+    private string _viewMode = "Manuscript";
+
+    public bool IsManuscriptMode => ViewMode == "Manuscript";
+    public bool IsCorkboardMode => ViewMode == "Corkboard";
+    public bool IsOutlinerMode => ViewMode == "Outliner";
+
+    partial void OnViewModeChanged(string value)
+    {
+        OnPropertyChanged(nameof(IsManuscriptMode));
+        OnPropertyChanged(nameof(IsCorkboardMode));
+        OnPropertyChanged(nameof(IsOutlinerMode));
+    }
+
+    [RelayCommand]
+    private void SetViewMode(string mode)
+    {
+        if (!string.IsNullOrEmpty(mode))
+            ViewMode = mode;
+    }
+
+    public IReadOnlyList<ChapterStatusOption> StatusOptions { get; } = Enum.GetValues<ChapterStatus>()
+        .Select(s => new ChapterStatusOption(s)).ToList();
+
     public string TotalWordsDisplay => TextStatistics.FormatCompactCount(TotalWords);
     public string ReadingTimeDisplay => LocFormatters.ReadingTime(TextStatistics.EstimateReadingTime(TotalWords));
 
@@ -43,9 +74,10 @@ public partial class ManuscriptViewModel : ObservableObject
     public event Action? ContentRefreshRequested;
     public event Action? SceneSaved;
 
-    public ManuscriptViewModel(IProjectService projectService)
+    public ManuscriptViewModel(IProjectService projectService, IEntityService? entityService = null)
     {
         _projectService = projectService;
+        _entityService = entityService;
     }
 
     partial void OnFilterStatusChanged(string value)
@@ -182,6 +214,9 @@ public partial class ManuscriptViewModel : ObservableObject
         }
 
         var filterStatus = FilterStatus;
+        var characters = _entityService != null
+            ? await _entityService.LoadCharactersAsync()
+            : new List<CharacterData>();
 
         // Heavy file I/O off UI thread
         var built = await Task.Run(() =>
@@ -208,7 +243,12 @@ public partial class ManuscriptViewModel : ObservableObject
                     totalWords += wordCount;
                     totalScenes++;
 
-                    var item = new ManuscriptSceneItem(chapter, scene, scene.Title, html, wordCount);
+                    var plain = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
+                    var autoPov = PovDetector.Detect(plain, characters);
+                    var item = new ManuscriptSceneItem(chapter, scene, scene.Title, html, wordCount, OnSceneItemEdited)
+                    {
+                        AutoPov = autoPov
+                    };
                     sceneItems.Add(item);
                     sceneIndex[scene.Id] = item;
                 }
@@ -231,6 +271,8 @@ public partial class ManuscriptViewModel : ObservableObject
             _sceneIndex[kv.Key] = kv.Value;
 
         Sections = new ObservableCollection<ManuscriptSection>(built.sections);
+        AllScenes = new ObservableCollection<ManuscriptSceneItem>(
+            built.sections.SelectMany(s => s.Scenes));
         TotalWords = built.totalWords;
         TotalScenes = built.totalScenes;
         HasContent = built.sections.Count > 0;
@@ -252,6 +294,27 @@ public partial class ManuscriptViewModel : ObservableObject
         _sceneIndex.TryGetValue(sceneId, out var item);
         return item;
     }
+
+    private System.Threading.CancellationTokenSource? _editAutoSaveCts;
+
+    private void OnSceneItemEdited(ManuscriptSceneItem item)
+    {
+        _editAutoSaveCts?.Cancel();
+        _editAutoSaveCts?.Dispose();
+        _editAutoSaveCts = new System.Threading.CancellationTokenSource();
+        var token = _editAutoSaveCts.Token;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await Task.Delay(500, token);
+                if (!token.IsCancellationRequested)
+                    await _projectService.SaveScenesAsync();
+            }
+            catch (OperationCanceledException) { }
+        }, token);
+    }
 }
 
 public sealed class ManuscriptSection
@@ -272,19 +335,97 @@ public sealed class ManuscriptSection
     }
 }
 
-public sealed class ManuscriptSceneItem
+public sealed class ManuscriptSceneItem : ObservableObject
 {
+    private readonly Action<ManuscriptSceneItem>? _onEdited;
+
     public ChapterData Chapter { get; }
     public SceneData Scene { get; }
     public string Title { get; }
     public string HtmlContent { get; set; }
     public bool IsDirty { get; set; }
 
-    public ManuscriptSceneItem(ChapterData chapter, SceneData scene, string title, string htmlContent, int wordCount)
+    public ManuscriptSceneItem(ChapterData chapter, SceneData scene, string title, string htmlContent, int wordCount, Action<ManuscriptSceneItem>? onEdited = null)
     {
         Chapter = chapter;
         Scene = scene;
         Title = title;
         HtmlContent = htmlContent;
+        _onEdited = onEdited;
     }
+
+    public string ChapterTitle => Chapter.Title;
+    public int WordCount => Scene.WordCount;
+
+    public string Synopsis
+    {
+        get => Scene.Synopsis ?? string.Empty;
+        set
+        {
+            var trimmed = string.IsNullOrWhiteSpace(value) ? null : value;
+            if (Scene.Synopsis == trimmed) return;
+            Scene.Synopsis = trimmed;
+            OnPropertyChanged();
+            _onEdited?.Invoke(this);
+        }
+    }
+
+    public string AutoPov { get; set; } = string.Empty;
+
+    public string Pov
+    {
+        get => Scene.AnalysisOverrides?.Pov ?? AutoPov;
+        set
+        {
+            var trimmed = string.IsNullOrWhiteSpace(value) ? null : value;
+            var overrides = Scene.AnalysisOverrides ?? new SceneAnalysisOverrides();
+            // Only persist override if it differs from auto-detected POV.
+            if (string.Equals(trimmed, AutoPov, StringComparison.OrdinalIgnoreCase))
+                trimmed = null;
+            if (overrides.Pov == trimmed) return;
+            overrides.Pov = trimmed;
+            Scene.AnalysisOverrides = overrides.HasValues ? overrides : null;
+            OnPropertyChanged();
+            _onEdited?.Invoke(this);
+        }
+    }
+
+    public ChapterStatus ChapterStatusValue
+    {
+        get => Chapter.Status;
+        set
+        {
+            if (Chapter.Status == value) return;
+            Chapter.Status = value;
+            OnPropertyChanged();
+            _onEdited?.Invoke(this);
+        }
+    }
+
+    public string LabelColor
+    {
+        get => Scene.LabelColor ?? string.Empty;
+        set
+        {
+            var trimmed = string.IsNullOrWhiteSpace(value) ? null : value;
+            if (Scene.LabelColor == trimmed) return;
+            Scene.LabelColor = trimmed;
+            OnPropertyChanged();
+            _onEdited?.Invoke(this);
+        }
+    }
+}
+
+public sealed class ChapterStatusOption
+{
+    public ChapterStatus Value { get; }
+    public string Display { get; }
+
+    public ChapterStatusOption(ChapterStatus value)
+    {
+        Value = value;
+        Display = value.ToString();
+    }
+
+    public override string ToString() => Display;
 }

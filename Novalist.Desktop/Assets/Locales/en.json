@@ -39,6 +39,8 @@
     "contextSidebarTooltip": "Toggle the context sidebar",
     "sceneNotes": "Notes",
     "sceneNotesTooltip": "Toggle the scene notes panel",
+    "snapshots": "Snapshots",
+    "snapshotsTooltip": "View and manage snapshots of the current scene",
     "dashboard": "Dashboard",
     "dashboardTooltip": "Show the project dashboard",
     "timeline": "Timeline",
@@ -103,6 +105,7 @@
     "bookNameHint": "Defaults to project name if left empty.",
     "location": "Location",
     "locationPlaceholder": "Select a folder...",
+    "template": "Template",
     "browse": "Browse...",
     "createProject": "Create Project",
     "openTitle": "Open Existing Project",
@@ -240,7 +243,8 @@
       "sidebarChapters": "Switch to Chapters Tab",
       "sidebarEntities": "Switch to Entities Tab",
       "projectOverview": "Toggle Project Overview",
-      "sceneNotes": "Toggle Scene Notes"
+      "sceneNotes": "Toggle Scene Notes",
+      "focusMode": "Toggle focus mode"
     },
     "scene": {
       "closeTab": "Close Current Tab",
@@ -279,6 +283,8 @@
     "contextSetDate": "Set Date",
     "contextRename": "Rename",
     "contextDelete": "Delete",
+    "contextTakeSnapshot": "Take Snapshot",
+    "contextSnapshots": "Snapshots...",
     "renameChapter": "Rename Chapter",
     "renameChapterPrompt": "New chapter name:",
     "renameScene": "Rename Scene",
@@ -535,6 +541,7 @@
   "dialog": {
     "cancel": "Cancel",
     "ok": "OK",
+    "close": "Close",
     "update": "Update",
     "chapterTitle": "Chapter",
     "chapterName": "Chapter name",
@@ -636,7 +643,36 @@
   "sceneNotes": {
     "title": "SCENE NOTES",
     "placeholder": "Add notes about this scene...",
-    "empty": "Open a scene to add notes."
+    "empty": "Open a scene to add notes.",
+    "synopsisTitle": "SYNOPSIS",
+    "synopsisPlaceholder": "Brief summary of this scene..."
+  },
+  "snapshots": {
+    "title": "Scene snapshots",
+    "take": "Take snapshot",
+    "labelWatermark": "Optional label (e.g. 'Before rewrite')",
+    "restore": "Restore",
+    "delete": "Delete",
+    "compare": "Compare",
+    "empty": "No snapshots yet. Take one before risky edits.",
+    "unlabeled": "(unlabeled)",
+    "words": "words",
+    "taken": "Snapshot taken",
+    "confirmRestoreTitle": "Restore snapshot?",
+    "confirmRestoreMessage": "Replace current scene with this snapshot. Current state will be auto-snapshotted first.",
+    "confirmRestore": "Restore",
+    "confirmDeleteTitle": "Delete snapshot?",
+    "confirmDeleteMessage": "This snapshot will be permanently removed.",
+    "confirmDelete": "Delete",
+    "compareTitle": "Compare with snapshot",
+    "compareCurrent": "Current",
+    "compareLeft": "Snapshot",
+    "compareRight": "Current",
+    "compareApplySelected": "Apply selected lines from snapshot",
+    "compareApplySelectedTooltip": "For each marked line, use the snapshot version instead of the current. Current state is auto-snapshotted first.",
+    "compareApplyHunkTooltip": "Use snapshot version of this line",
+    "compareSelectAll": "Select all",
+    "compareSelectNone": "Select none"
   },
   "dashboard": {
     "subtitle": "Project Dashboard",
@@ -856,7 +892,10 @@
     "filterOutline": "Outline",
     "filterDraft": "Draft",
     "filterFinal": "Final",
-    "cycleStatus": "Click to cycle chapter status"
+    "cycleStatus": "Click to cycle chapter status",
+    "viewModeManuscript": "Manuscript",
+    "viewModeCorkboard": "Corkboard",
+    "viewModeOutliner": "Outliner"
   },
   "entityTypeManager": {
     "displayName": "Display Name",

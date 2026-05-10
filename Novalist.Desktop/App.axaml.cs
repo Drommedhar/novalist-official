@@ -19,6 +19,8 @@ public partial class App : Application
     public static IProjectService ProjectService { get; } = new ProjectService(FileService);
     public static IEntityService EntityService { get; } = new EntityService(ProjectService);
     public static IGitService GitService { get; } = new GitService();
+    public static ISnapshotService SnapshotService { get; } = new SnapshotService(ProjectService, FileService);
+    public static IProjectTemplateService ProjectTemplateService { get; } = new ProjectTemplateService();
     public static ExtensionManager ExtensionManager { get; private set; } = null!;
     public static ThemeService ThemeService { get; } = new();
     public static IHotkeyService HotkeyService { get; } = new HotkeyService(SettingsService);

@@ -337,6 +337,41 @@ public partial class MainWindowViewModel : ObservableObject
 
     public Func<string, string, string, Task<string?>>? ShowInputDialog { get; set; }
     public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
+    public Func<ChapterData, SceneData, Task>? ShowSnapshotsDialog { get; set; }
+
+    [ObservableProperty]
+    private bool _isFocusMode;
+
+    private bool _focusModeSavedExplorer;
+    private bool _focusModeSavedContextSidebar;
+    private bool _focusModeSavedSceneNotes;
+
+    public bool IsAppChromeVisible => IsProjectLoaded && !IsFocusMode;
+
+    partial void OnIsProjectLoadedChanged(bool value) => OnPropertyChanged(nameof(IsAppChromeVisible));
+    partial void OnIsFocusModeChanged(bool value) => OnPropertyChanged(nameof(IsAppChromeVisible));
+
+    [RelayCommand]
+    private void ToggleFocusMode()
+    {
+        if (!IsFocusMode)
+        {
+            _focusModeSavedExplorer = IsExplorerVisible;
+            _focusModeSavedContextSidebar = IsContextSidebarVisible;
+            _focusModeSavedSceneNotes = IsSceneNotesVisible;
+            IsExplorerVisible = false;
+            IsContextSidebarVisible = false;
+            IsSceneNotesVisible = false;
+            IsFocusMode = true;
+        }
+        else
+        {
+            IsFocusMode = false;
+            IsExplorerVisible = _focusModeSavedExplorer;
+            IsContextSidebarVisible = _focusModeSavedContextSidebar;
+            IsSceneNotesVisible = _focusModeSavedSceneNotes;
+        }
+    }
 
     public MainWindowViewModel(IProjectService projectService, ISettingsService settingsService, IEntityService entityService, IGitService gitService)
     {
@@ -384,6 +419,7 @@ public partial class MainWindowViewModel : ObservableObject
             new HotkeyDescriptor { ActionId = "app.panel.sidebarEntities", DisplayName = Loc.T("hotkeys.panel.sidebarEntities"), Category = catPanels, DefaultGesture = "Ctrl+Shift+D2", OnExecute = () => ActiveSidebarTab = "Entities", CanExecute = () => IsProjectLoaded },
             new HotkeyDescriptor { ActionId = "app.panel.projectOverview", DisplayName = Loc.T("hotkeys.panel.projectOverview"), Category = catPanels, DefaultGesture = "Ctrl+Shift+O", OnExecute = ToggleProjectOverview, CanExecute = () => IsProjectLoaded },
             new HotkeyDescriptor { ActionId = "app.panel.sceneNotes", DisplayName = Loc.T("hotkeys.panel.sceneNotes"), Category = catPanels, DefaultGesture = "Ctrl+Shift+N", OnExecute = ToggleSceneNotes, CanExecute = () => IsProjectLoaded },
+            new HotkeyDescriptor { ActionId = "app.panel.focusMode", DisplayName = Loc.T("hotkeys.panel.focusMode"), Category = catPanels, DefaultGesture = "F11", OnExecute = ToggleFocusMode, CanExecute = () => IsProjectLoaded },
 
             // ── Scene / Tab management ──
             new HotkeyDescriptor { ActionId = "app.scene.closeTab", DisplayName = Loc.T("hotkeys.scene.closeTab"), Category = catScene, DefaultGesture = "Ctrl+W", OnExecute = () => _ = CloseSceneTabAsync(), CanExecute = () => Editor?.IsDocumentOpen == true },
@@ -694,9 +730,17 @@ public partial class MainWindowViewModel : ObservableObject
         OnProjectLoaded(metadata, projectPath);
     }
 
-    public async Task CreateProjectAsync(string parentDirectory, string projectName, string firstBookName)
+    public async Task CreateProjectAsync(string parentDirectory, string projectName, string firstBookName, string? templateId = null)
     {
         var metadata = await _projectService.CreateProjectAsync(parentDirectory, projectName, firstBookName);
+
+        if (!string.IsNullOrWhiteSpace(templateId))
+        {
+            var template = App.ProjectTemplateService.GetById(templateId);
+            if (template != null)
+                await App.ProjectTemplateService.ApplyAsync(_projectService, template);
+        }
+
         var projectPath = _projectService.ProjectRoot!;
         OnProjectLoaded(metadata, projectPath);
     }
@@ -774,7 +818,7 @@ public partial class MainWindowViewModel : ObservableObject
         CodexHub.ExtensionEntityTypes = ExtensionManager?.EntityTypes ?? [];
         CodexHub.EntityOpenRequested += OnEntityOpenRequested;
 
-        Manuscript = new ManuscriptViewModel(_projectService);
+        Manuscript = new ManuscriptViewModel(_projectService, _entityService);
         Manuscript.SceneOpenRequested += OnSceneOpenRequested;
         Manuscript.SceneFocusChanged += OnManuscriptSceneFocused;
         Manuscript.SceneSaved += () => _ = RefreshGitStatusAsync();
@@ -1619,6 +1663,37 @@ public partial class MainWindowViewModel : ObservableObject
     {
         IsSceneNotesVisible = !IsSceneNotesVisible;
         SaveViewState();
+    }
+
+    [RelayCommand]
+    private async Task OpenSnapshotsAsync()
+    {
+        if (Editor?.CurrentScene == null || ShowSnapshotsDialog == null)
+            return;
+
+        var scene = Editor.CurrentScene;
+        var chapter = _projectService.GetChaptersOrdered()
+            .FirstOrDefault(c => string.Equals(c.Guid, scene.ChapterGuid, StringComparison.OrdinalIgnoreCase));
+        if (chapter == null)
+            return;
+
+        await ShowSnapshotsDialog.Invoke(chapter, scene);
+    }
+
+    [RelayCommand]
+    private async Task TakeSnapshotAsync()
+    {
+        if (Editor?.CurrentScene == null)
+            return;
+
+        var scene = Editor.CurrentScene;
+        var chapter = _projectService.GetChaptersOrdered()
+            .FirstOrDefault(c => string.Equals(c.Guid, scene.ChapterGuid, StringComparison.OrdinalIgnoreCase));
+        if (chapter == null)
+            return;
+
+        await App.SnapshotService.TakeAsync(chapter, scene, string.Empty);
+        Toast.Show?.Invoke(Loc.T("snapshots.taken"), ToastSeverity.Info);
     }
 
     private void SaveViewState()

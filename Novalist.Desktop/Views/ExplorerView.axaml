@@ -169,6 +169,9 @@
                                                     <ContextMenu Tag="{Binding}" Opening="OnSceneContextMenuOpening">
                                                         <MenuItem Header="{loc:Loc explorer.contextSetDate}" Click="OnSetSceneDateClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextRename}" Click="OnRenameSceneClick" />
+                                                        <MenuItem Header="{loc:Loc explorer.contextTakeSnapshot}" Click="OnTakeSnapshotClick" />
+                                                        <MenuItem Header="{loc:Loc explorer.contextSnapshots}" Click="OnOpenSnapshotsClick" />
+                                                        <Separator />
                                                         <MenuItem Header="{loc:Loc explorer.contextDelete}" Click="OnDeleteSceneClick" />
                                                     </ContextMenu>
                                                 </Border.ContextMenu>

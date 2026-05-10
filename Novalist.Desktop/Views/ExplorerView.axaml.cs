@@ -200,6 +200,24 @@ public partial class ExplorerView : UserControl
         Vm.SetSceneDateCommand.Execute(scene);
     }
 
+    private async void OnTakeSnapshotClick(object? sender, RoutedEventArgs e)
+    {
+        var scene = GetContextMenuTag<SceneTreeItemViewModel>(sender);
+        if (scene == null) return;
+        await App.SnapshotService.TakeAsync(scene.ParentChapter, scene.Scene, string.Empty);
+        Toast.Show?.Invoke(Localization.Loc.T("snapshots.taken"), ToastSeverity.Info);
+    }
+
+    private void OnOpenSnapshotsClick(object? sender, RoutedEventArgs e)
+    {
+        var scene = GetContextMenuTag<SceneTreeItemViewModel>(sender);
+        if (scene == null) return;
+        if (TopLevel.GetTopLevel(this) is MainWindow mw && mw.DataContext is MainWindowViewModel vm && vm.ShowSnapshotsDialog != null)
+        {
+            _ = vm.ShowSnapshotsDialog.Invoke(scene.ParentChapter, scene.Scene);
+        }
+    }
+
     // --- Act context menu handlers ---
 
     private void OnRenameActClick(object? sender, RoutedEventArgs e)

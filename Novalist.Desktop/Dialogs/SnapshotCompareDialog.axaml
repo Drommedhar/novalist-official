@@ -1,0 +1,66 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:loc="using:Novalist.Desktop.Localization"
+        mc:Ignorable="d"
+        x:Class="Novalist.Desktop.Dialogs.SnapshotCompareDialog"
+        Focusable="True">
+    <Border Background="Transparent" Padding="20">
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,10">
+                <TextBlock Text="{loc:Loc snapshots.compareTitle}"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource NormalText}" />
+                <TextBlock x:Name="HeaderText"
+                           FontSize="11"
+                           Foreground="{DynamicResource SubtleText}" />
+            </StackPanel>
+
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        Margin="0,12,0,0">
+                <Button Content="{loc:Loc snapshots.compareSelectAll}"
+                        Padding="12,6"
+                        Click="OnSelectAll" />
+                <Button Content="{loc:Loc snapshots.compareSelectNone}"
+                        Padding="12,6"
+                        Click="OnSelectNone" />
+                <Button Content="{loc:Loc snapshots.compareApplySelected}"
+                        Classes="primary"
+                        Padding="14,6"
+                        Click="OnApplySelected"
+                        ToolTip.Tip="{loc:Loc snapshots.compareApplySelectedTooltip}" />
+                <Button Content="{loc:Loc dialog.close}"
+                        Padding="16,6"
+                        Click="OnClose" />
+            </StackPanel>
+
+            <Grid ColumnDefinitions="40,*,*" RowDefinitions="Auto,*">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="" />
+                <TextBlock Grid.Row="0" Grid.Column="1"
+                           Text="{loc:Loc snapshots.compareLeft}"
+                           FontWeight="SemiBold"
+                           FontSize="12"
+                           Margin="6,4"
+                           Foreground="{DynamicResource SubtleText}" />
+                <TextBlock Grid.Row="0" Grid.Column="2"
+                           Text="{loc:Loc snapshots.compareRight}"
+                           FontWeight="SemiBold"
+                           FontSize="12"
+                           Margin="6,4"
+                           Foreground="{DynamicResource SubtleText}" />
+
+                <ScrollViewer Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                              x:Name="MainScroll"
+                              HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto">
+                    <StackPanel x:Name="RowsHost" Spacing="1" />
+                </ScrollViewer>
+            </Grid>
+        </DockPanel>
+    </Border>
+</UserControl>

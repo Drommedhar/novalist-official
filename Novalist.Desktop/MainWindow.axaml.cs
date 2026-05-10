@@ -41,6 +41,7 @@ public partial class MainWindow : Window
                 vm.PropertyChanged += OnViewModelPropertyChanged;
                 vm.ShowInputDialog = ShowInputDialogAsync;
                 vm.ShowConfirmDialog = ShowConfirmDialogAsync;
+                vm.ShowSnapshotsDialog = ShowSnapshotsDialogAsync;
                 vm.PropertyChanged += WireDashboardOnCreation;
 
                 vm.OpenProjectFromMenuRequested += async () =>
@@ -638,6 +639,38 @@ public partial class MainWindow : Window
         return dialog.Result;
     }
 
+    private async Task ShowSnapshotsDialogAsync(Novalist.Core.Models.ChapterData chapter, Novalist.Core.Models.SceneData scene)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+            return;
+
+        var dialog = new SnapshotsDialog(
+            App.SnapshotService,
+            chapter,
+            scene,
+            onRestored: () =>
+            {
+                if (vm.Editor != null && string.Equals(vm.Editor.CurrentScene?.Id, scene.Id, StringComparison.OrdinalIgnoreCase))
+                {
+                    _ = vm.Editor.ReloadCurrentSceneAsync();
+                }
+            },
+            onCompare: async snapshot =>
+            {
+                var current = await vm.ProjectService.ReadSceneContentAsync(chapter, scene);
+                var compare = new SnapshotCompareDialog(snapshot, current, vm.ProjectService, chapter, scene,
+                    onPartialApply: () =>
+                    {
+                        if (vm.Editor != null && string.Equals(vm.Editor.CurrentScene?.Id, scene.Id, StringComparison.OrdinalIgnoreCase))
+                        {
+                            _ = vm.Editor.ReloadCurrentSceneAsync();
+                        }
+                    });
+                await ShowDialogOverlayAsync(compare, compare.DialogClosed);
+            });
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+    }
+
     private async Task<EntityCreationResult?> ShowEntityCreationDialogAsync(
         string title, string prompt, IReadOnlyList<EntityCreationTemplateOption> templates)
     {
@@ -754,7 +787,7 @@ public partial class MainWindow : Window
         var welcomeView = this.FindControl<WelcomeView>("WelcomeViewControl");
         if (welcomeView == null) return;
 
-        var welcomeVm = new WelcomeViewModel(vm.SettingsService.Settings.RecentProjects);
+        var welcomeVm = new WelcomeViewModel(vm.SettingsService.Settings.RecentProjects, App.ProjectTemplateService.GetTemplates());
 
         welcomeVm.BrowseFolderRequested += async () =>
         {
@@ -766,11 +799,11 @@ public partial class MainWindow : Window
             return folders.Count > 0 ? folders[0].Path.LocalPath : null;
         };
 
-        welcomeVm.CreateProjectRequested += async (parentDir, name, bookName) =>
+        welcomeVm.CreateProjectRequested += async (parentDir, name, bookName, templateId) =>
         {
             try
             {
-                await vm.CreateProjectAsync(parentDir, name, bookName);
+                await vm.CreateProjectAsync(parentDir, name, bookName, templateId);
             }
             catch (Exception ex)
             {

@@ -116,6 +116,23 @@
                                 <TextBlock Text="{loc:Loc welcome.bookNameHint}" FontSize="10" Foreground="{DynamicResource SubtleText}" />
                             </StackPanel>
                             <StackPanel Spacing="4">
+                                <TextBlock Text="{loc:Loc welcome.template}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                                <ComboBox ItemsSource="{Binding Templates}"
+                                          SelectedValue="{Binding SelectedTemplateId, Mode=TwoWay}"
+                                          SelectedValueBinding="{Binding Id}"
+                                          HorizontalAlignment="Stretch"
+                                          FontSize="13">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12.5" />
+                                                <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{DynamicResource SubtleText}" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Spacing="4">
                                 <TextBlock Text="{loc:Loc welcome.location}" FontSize="11" Foreground="{DynamicResource DimText}" />
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBox Grid.Column="0"
