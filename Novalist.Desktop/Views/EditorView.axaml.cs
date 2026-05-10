@@ -41,11 +41,14 @@ public partial class EditorView : UserControl
         {
             if (_webView.IsVisible)
             {
+                var capturedBounds = _webView.Bounds;
                 var bmp = WebViewSnapshotter.Capture(_webView);
                 if (bmp != null)
                 {
                     EnsureSnapshotImage();
                     _snapshotImage!.Source = bmp;
+                    _snapshotImage.Width = capturedBounds.Width;
+                    _snapshotImage.Height = capturedBounds.Height;
                     _snapshotImage.IsVisible = true;
                 }
             }
@@ -61,6 +64,8 @@ public partial class EditorView : UserControl
             Stretch = Avalonia.Media.Stretch.Fill,
             IsHitTestVisible = false,
             IsVisible = false,
+            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Left,
+            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Top,
         };
         var idx = EditorHost.Children.IndexOf(_webView);
         EditorHost.Children.Insert(idx + 1, _snapshotImage);
