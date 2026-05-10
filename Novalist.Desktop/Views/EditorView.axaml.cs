@@ -21,15 +21,49 @@ public partial class EditorView : UserControl
     private bool _loadingContentFromViewModel;
     private NativeWebView? _webView;
     private string? _reinitLanguage;
+    private Image? _snapshotImage;
 
     /// <summary>
     /// Hides or shows the native WebView control to work around the airspace
     /// problem where the WebView2 HWND renders on top of all Avalonia overlays.
+    /// On hide, captures a bitmap of the WebView and shows it in place so the
+    /// transition is visually seamless.
     /// </summary>
     internal void SetWebViewVisible(bool visible)
     {
-        if (_webView != null)
-            _webView.IsVisible = visible;
+        if (_webView == null) return;
+        if (visible)
+        {
+            _webView.IsVisible = true;
+            if (_snapshotImage != null) _snapshotImage.IsVisible = false;
+        }
+        else
+        {
+            if (_webView.IsVisible)
+            {
+                var bmp = WebViewSnapshotter.Capture(_webView);
+                if (bmp != null)
+                {
+                    EnsureSnapshotImage();
+                    _snapshotImage!.Source = bmp;
+                    _snapshotImage.IsVisible = true;
+                }
+            }
+            _webView.IsVisible = false;
+        }
+    }
+
+    private void EnsureSnapshotImage()
+    {
+        if (_snapshotImage != null || _webView == null) return;
+        _snapshotImage = new Image
+        {
+            Stretch = Avalonia.Media.Stretch.Fill,
+            IsHitTestVisible = false,
+            IsVisible = false,
+        };
+        var idx = EditorHost.Children.IndexOf(_webView);
+        EditorHost.Children.Insert(idx + 1, _snapshotImage);
     }
 
     public EditorView()

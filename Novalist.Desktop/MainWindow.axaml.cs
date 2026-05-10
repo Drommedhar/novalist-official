@@ -347,7 +347,16 @@ public partial class MainWindow : Window
             _activeExtensionContentView = null;
         }
 
-        if (sceneContent != null) sceneContent.IsVisible = view == "Scene";
+        var editorPanel = this.FindControl<EditorView>("EditorPanel");
+        var sceneVisible = view == "Scene";
+        var manuscriptVisible = view == "Manuscript";
+
+        // Snapshot+hide WebViews BEFORE flipping parent IsVisible so the
+        // native HWND doesn't flash on top of the new view during transition.
+        if (!sceneVisible) editorPanel?.SetWebViewVisible(false);
+        if (!manuscriptVisible) manuscriptPanel?.SetWebViewVisible(false);
+
+        if (sceneContent != null) sceneContent.IsVisible = sceneVisible;
         if (entityEditor != null) entityEditor.IsVisible = view == "Entity";
         if (dashboard != null) dashboard.IsVisible = view == "Dashboard";
         if (timeline != null) timeline.IsVisible = view == "Timeline";
@@ -355,7 +364,10 @@ public partial class MainWindow : Window
         if (galleryPanel != null) galleryPanel.IsVisible = view == "ImageGallery";
         if (gitPanel != null) gitPanel.IsVisible = view == "Git";
         if (codexHubPanel != null) codexHubPanel.IsVisible = view == "CodexHub";
-        if (manuscriptPanel != null) manuscriptPanel.IsVisible = view == "Manuscript";
+        if (manuscriptPanel != null) manuscriptPanel.IsVisible = manuscriptVisible;
+
+        // Restore visibility after parent panel shown — respects overlay state.
+        UpdateWebViewVisibility();
 
         if (extHost != null)
         {
