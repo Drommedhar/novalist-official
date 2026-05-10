@@ -13,6 +13,7 @@
         x:Class="Novalist.Desktop.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="{Binding Title}"
+        Background="{DynamicResource EditorBackground}"
         Width="1400" Height="900"
         MinWidth="800" MinHeight="600"
         WindowStartupLocation="CenterScreen">
@@ -442,7 +443,6 @@
                 <!-- Splitter -->
                 <GridSplitter Grid.Column="2"
                               ResizeDirection="Columns"
-                              Background="Transparent"
                               IsVisible="{Binding IsExplorerVisible}" />
 
                 <!-- Main Content Area -->
@@ -510,28 +510,28 @@
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="0" MinWidth="0" MaxWidth="0" />
                                     </Grid.ColumnDefinitions>
-                                    <Grid Grid.Column="0"
-                                          RowDefinitions="*,Auto,Auto">
+                                    <Grid Grid.Column="0">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" MinHeight="80" />
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="180" MinHeight="60" />
+                                        </Grid.RowDefinitions>
                                         <views:EditorView Grid.Row="0"
                                                           DataContext="{Binding Editor}"
                                                           x:Name="EditorPanel" />
 
                                         <GridSplitter Grid.Row="1"
                                                       ResizeDirection="Rows"
-                                                      Height="4"
-                                                      Background="Transparent"
                                                       IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSceneNotesVisible}" />
 
                                         <views:SceneNotesView Grid.Row="2"
                                                               DataContext="{Binding SceneNotes}"
-                                                              Height="180"
                                                               IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsSceneNotesVisible}" />
                                     </Grid>
 
                                     <!-- Extension right sidebar splitter -->
                                     <GridSplitter Grid.Column="1"
                                                   ResizeDirection="Columns"
-                                                  Background="Transparent"
                                                   IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsExtensionRightSidebarVisible}" />
 
                                     <!-- Extension right sidebar host -->
@@ -587,7 +587,6 @@
                             <!-- Shared context sidebar splitter (visible for Scene and Manuscript views) -->
                             <GridSplitter Grid.Column="1"
                                           ResizeDirection="Columns"
-                                          Background="Transparent"
                                           IsVisible="{Binding IsContextSidebarShowing}" />
 
                             <!-- Context sidebar with optional extension tabs -->

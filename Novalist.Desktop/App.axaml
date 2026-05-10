@@ -1445,6 +1445,18 @@
             <Setter Property="Foreground" Value="#e74c3c" />
             <Setter Property="BorderBrush" Value="#e74c3c" />
         </Style>
+        <!-- ── GridSplitter (thin themed separator) ── -->
+        <Style Selector="GridSplitter">
+            <Setter Property="Background" Value="{DynamicResource RibbonBorder}" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="MinHeight" Value="0" />
+        </Style>
+        <Style Selector="GridSplitter[ResizeDirection=Columns]">
+            <Setter Property="Width" Value="1" />
+        </Style>
+        <Style Selector="GridSplitter[ResizeDirection=Rows]">
+            <Setter Property="Height" Value="1" />
+        </Style>
     </Application.Styles>
 
     <Application.Resources>
