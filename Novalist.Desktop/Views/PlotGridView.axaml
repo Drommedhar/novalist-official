@@ -39,34 +39,40 @@
                           HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="0">
-                    <!-- Header row: scene columns -->
-                    <ItemsControl ItemsSource="{Binding Columns}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:PlotGridSceneColumn">
-                                <Border Width="120"
-                                        Padding="6"
-                                        BorderBrush="{DynamicResource ExplorerBorder}"
-                                        BorderThickness="0,0,1,1"
-                                        Background="{DynamicResource ExplorerBackground}">
-                                    <StackPanel Spacing="2">
-                                        <TextBlock Text="{Binding ChapterTitle}"
-                                                   FontSize="10"
-                                                   Opacity="0.6"
-                                                   TextTrimming="CharacterEllipsis" />
-                                        <TextBlock Text="{Binding SceneTitle}"
-                                                   FontSize="11.5"
-                                                   FontWeight="SemiBold"
-                                                   TextTrimming="CharacterEllipsis" />
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <!-- Header row: 180px label gutter + scene columns -->
+                    <Grid ColumnDefinitions="180,*">
+                        <Border Grid.Column="0"
+                                BorderBrush="{DynamicResource ExplorerBorder}"
+                                BorderThickness="0,0,1,1"
+                                Background="{DynamicResource ExplorerBackground}" />
+                        <ItemsControl Grid.Column="1" ItemsSource="{Binding Columns}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="vm:PlotGridSceneColumn">
+                                    <Border Width="120"
+                                            Padding="6"
+                                            BorderBrush="{DynamicResource ExplorerBorder}"
+                                            BorderThickness="0,0,1,1"
+                                            Background="{DynamicResource ExplorerBackground}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="{Binding ChapterTitle}"
+                                                       FontSize="10"
+                                                       Opacity="0.6"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding SceneTitle}"
+                                                       FontSize="11.5"
+                                                       FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
 
                     <!-- Plotline rows -->
                     <ItemsControl ItemsSource="{Binding Rows}">
