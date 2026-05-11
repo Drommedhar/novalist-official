@@ -132,6 +132,13 @@
                                                     Orientation="Horizontal"
                                                     Spacing="4"
                                                     VerticalAlignment="Center">
+                                            <Viewbox Width="12" Height="12"
+                                                     VerticalAlignment="Center"
+                                                     IsVisible="{Binding IsFavorite}">
+                                                <Canvas Width="24" Height="24">
+                                                    <Path Fill="#E5C07B" Data="{StaticResource IconStar}" />
+                                                </Canvas>
+                                            </Viewbox>
                                             <TextBlock Text="{Binding GitStatusLabel}"
                                                        FontSize="8"
                                                        Foreground="#E5C07B"
@@ -193,7 +200,7 @@
                                                         <MenuItem Header="{loc:Loc explorer.contextDelete}" Click="OnDeleteSceneClick" />
                                                     </ContextMenu>
                                                 </Border.ContextMenu>
-                                                <Grid ColumnDefinitions="Auto,*,Auto">
+                                                <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                                                     <Viewbox Grid.Column="0" Classes="inlineIcon" Width="11" Height="11"
                                                             VerticalAlignment="Center" Margin="0,0,4,0">
                                                         <Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconFile}"/></Canvas>
@@ -210,11 +217,22 @@
                                                                    Foreground="{DynamicResource SubtleText}"
                                                                    IsVisible="{Binding HasDate}" />
                                                     </StackPanel>
-                                                    <TextBlock Grid.Column="2"
+                                                    <Viewbox Grid.Column="2"
+                                                             Width="11" Height="11"
+                                                             VerticalAlignment="Center"
+                                                             Margin="4,0,0,0"
+                                                             IsVisible="{Binding IsFavorite}">
+                                                        <Canvas Width="24" Height="24">
+                                                            <Path Fill="#E5C07B"
+                                                                  Data="{StaticResource IconStar}" />
+                                                        </Canvas>
+                                                    </Viewbox>
+                                                    <TextBlock Grid.Column="3"
                                                                Text="{Binding GitStatusLabel}"
                                                                FontSize="8"
                                                                Foreground="#E5C07B"
                                                                VerticalAlignment="Center"
+                                                               Margin="4,0,0,0"
                                                                IsVisible="{Binding HasGitChanges}" />
                                                 </Grid>
                                             </Border>
