@@ -1501,6 +1501,7 @@
             <StreamGeometry x:Key="IconLink">M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71</StreamGeometry>
             <StreamGeometry x:Key="IconLightbulb">M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.73V17h8v-2.27A7 7 0 0 0 12 2z</StreamGeometry>
             <conv:ColorStringToBrushConverter x:Key="ColorStringToBrush" />
+            <conv:SceneRowBackgroundConverter x:Key="SceneRowBackground" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

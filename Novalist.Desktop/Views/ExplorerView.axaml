@@ -155,7 +155,6 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:SceneTreeItemViewModel">
                                             <Border Padding="8,4"
-                                                    Background="{Binding IsSelected, Converter={StaticResource BoolToSelectedBrush}}"
                                                     CornerRadius="4"
                                                     Margin="4,1"
                                                     PointerPressed="OnScenePointerPressed"
@@ -166,6 +165,12 @@
                                                     DragDrop.DragLeave="OnDragLeave"
                                                     DragDrop.Drop="OnSceneDrop"
                                                     Tag="{Binding}">
+                                                <Border.Background>
+                                                    <MultiBinding Converter="{StaticResource SceneRowBackground}">
+                                                        <Binding Path="IsSelected" />
+                                                        <Binding Path="LabelColor" />
+                                                    </MultiBinding>
+                                                </Border.Background>
                                                 <Border.ContextMenu>
                                                     <ContextMenu Tag="{Binding}" Opening="OnSceneContextMenuOpening">
                                                         <MenuItem Header="{loc:Loc explorer.contextSetDate}" Click="OnSetSceneDateClick" />
@@ -193,12 +198,6 @@
                                                             VerticalAlignment="Center" Margin="0,0,4,0">
                                                         <Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconFile}"/></Canvas>
                                                     </Viewbox>
-                                                    <Ellipse Grid.Column="0"
-                                                             Width="8" Height="8"
-                                                             VerticalAlignment="Center"
-                                                             HorizontalAlignment="Left"
-                                                             IsVisible="{Binding HasLabelColor}"
-                                                             Fill="{Binding LabelColor, Converter={StaticResource ColorStringToBrush}}" />
                                                     <StackPanel Grid.Column="1"
                                                                 Spacing="1"
                                                                 VerticalAlignment="Center">

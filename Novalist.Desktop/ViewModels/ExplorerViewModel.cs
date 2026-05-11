@@ -422,14 +422,13 @@ public partial class ExplorerViewModel : ObservableObject
         sceneVm.RefreshDisplay();
     }
 
-    [RelayCommand]
-    private async Task SetSceneLabelColor((SceneTreeItemViewModel scene, string color) args)
+    public async Task SetSceneLabelColorAsync(SceneTreeItemViewModel? scene, string color)
     {
-        if (args.scene == null) return;
-        await _projectService.SetSceneLabelColorAsync(args.scene.Scene.ChapterGuid, args.scene.Scene.Id, args.color);
-        args.scene.Scene.LabelColor = string.IsNullOrWhiteSpace(args.color) ? null : args.color.Trim();
-        args.scene.RefreshDisplay();
-        ProjectChanged?.Invoke();
+        if (scene == null) return;
+        await _projectService.SetSceneLabelColorAsync(scene.Scene.ChapterGuid, scene.Scene.Id, color);
+        scene.Scene.LabelColor = string.IsNullOrWhiteSpace(color) ? null : color.Trim();
+        scene.RefreshDisplay();
+        System.Diagnostics.Debug.WriteLine($"[LabelColor] saved sceneId={scene.Scene.Id} → {scene.Scene.LabelColor}");
     }
 
     [RelayCommand]

@@ -214,13 +214,14 @@ public partial class ExplorerView : UserControl
         Vm.ToggleSceneFavoriteCommand.Execute(scene);
     }
 
-    private void OnSetSceneColorClick(object? sender, RoutedEventArgs e)
+    private async void OnSetSceneColorClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is null) return;
         var scene = GetContextMenuTag<SceneTreeItemViewModel>(sender);
         if (scene == null) return;
         var color = (sender as MenuItem)?.Tag as string ?? string.Empty;
-        Vm.SetSceneLabelColorCommand.Execute((scene, color));
+        System.Diagnostics.Debug.WriteLine($"[LabelColor] scene='{scene.Scene.Title}' color='{color}'");
+        await Vm.SetSceneLabelColorAsync(scene, color);
     }
 
     private void OnEditSmartListClick(object? sender, RoutedEventArgs e)
@@ -401,9 +402,13 @@ public partial class ExplorerView : UserControl
 
     private static T? GetContextMenuTag<T>(object? sender) where T : class
     {
-        if (sender is MenuItem menuItem && menuItem.Parent is ContextMenu contextMenu)
+        // Walk up parent chain; submenus nest MenuItem → MenuItem → ContextMenu.
+        var current = sender as Control;
+        while (current != null)
         {
-            return contextMenu.Tag as T;
+            if (current is ContextMenu cm)
+                return cm.Tag as T;
+            current = current.Parent as Control;
         }
         return null;
     }
