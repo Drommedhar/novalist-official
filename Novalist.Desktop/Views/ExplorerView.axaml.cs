@@ -214,6 +214,15 @@ public partial class ExplorerView : UserControl
         Vm.ToggleSceneFavoriteCommand.Execute(scene);
     }
 
+    private void OnSetSceneColorClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var scene = GetContextMenuTag<SceneTreeItemViewModel>(sender);
+        if (scene == null) return;
+        var color = (sender as MenuItem)?.Tag as string ?? string.Empty;
+        Vm.SetSceneLabelColorCommand.Execute((scene, color));
+    }
+
     private void OnEditSmartListClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is null) return;

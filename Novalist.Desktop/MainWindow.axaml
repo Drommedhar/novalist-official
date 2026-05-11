@@ -356,6 +356,15 @@
                                     <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconCalendarDays}"/></Canvas>
                                 </Viewbox>
                             </Button>
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=RelationshipsGraph}"
+                                    Command="{Binding OpenRelationshipsGraphCommand}"
+                                    IsVisible="{Binding IsProjectLoaded}"
+                                    ToolTip.Tip="{loc:Loc ribbon.relationshipsTooltip}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconUser}"/></Canvas>
+                                </Viewbox>
+                            </Button>
                             <!-- Separator -->
                             <Border Height="1" Background="{DynamicResource RibbonBorder}" Margin="6,4" />
                             <Button Classes="activityBarButton"

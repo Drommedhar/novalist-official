@@ -423,6 +423,16 @@ public partial class ExplorerViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task SetSceneLabelColor((SceneTreeItemViewModel scene, string color) args)
+    {
+        if (args.scene == null) return;
+        await _projectService.SetSceneLabelColorAsync(args.scene.Scene.ChapterGuid, args.scene.Scene.Id, args.color);
+        args.scene.Scene.LabelColor = string.IsNullOrWhiteSpace(args.color) ? null : args.color.Trim();
+        args.scene.RefreshDisplay();
+        ProjectChanged?.Invoke();
+    }
+
+    [RelayCommand]
     private void ToggleFavoritesOnlyFilter() => ShowFavoritesOnly = !ShowFavoritesOnly;
 
     [ObservableProperty]
@@ -902,6 +912,8 @@ public partial class SceneTreeItemViewModel : ObservableObject
     public string DateDisplay => Scene.Date;
 
     public bool IsFavorite => Scene.IsFavorite;
+    public string LabelColor => Scene.LabelColor ?? string.Empty;
+    public bool HasLabelColor => !string.IsNullOrWhiteSpace(Scene.LabelColor);
 
     public SceneTreeItemViewModel(SceneData scene, ChapterData parentChapter)
     {
@@ -916,6 +928,8 @@ public partial class SceneTreeItemViewModel : ObservableObject
         OnPropertyChanged(nameof(HasDate));
         OnPropertyChanged(nameof(DateDisplay));
         OnPropertyChanged(nameof(IsFavorite));
+        OnPropertyChanged(nameof(LabelColor));
+        OnPropertyChanged(nameof(HasLabelColor));
     }
 }
 

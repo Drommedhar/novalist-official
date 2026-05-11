@@ -39,6 +39,7 @@ public interface IProjectService
     Task SetSceneDateAsync(string chapterGuid, string sceneId, string date);
     Task SetChapterFavoriteAsync(string chapterGuid, bool favorite);
     Task SetSceneFavoriteAsync(string chapterGuid, string sceneId, bool favorite);
+    Task SetSceneLabelColorAsync(string chapterGuid, string sceneId, string? labelColor);
     Task SetChapterDateRangeAsync(string chapterGuid, StoryDateRange? dateRange);
     Task SetSceneDateRangeAsync(string chapterGuid, string sceneId, StoryDateRange? dateRange);
     Task SetSceneAnalysisOverridesAsync(string chapterGuid, string sceneId, SceneAnalysisOverrides? overrides);

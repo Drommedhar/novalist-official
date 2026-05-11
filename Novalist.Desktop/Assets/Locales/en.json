@@ -64,7 +64,8 @@
     "delete": "Delete footnote"
   },
   "relationships": {
-    "title": "Relationships"
+    "title": "Relationships",
+    "hint": "Drag to pan · Wheel to zoom"
   },
   "calendar": {
     "title": "Calendar",
@@ -165,7 +166,8 @@
     "codexHubTooltip": "Browse all entities in one unified view",
     "manuscript": "Manuscript",
     "manuscriptTooltip": "View the full manuscript as a continuous document",
-    "calendarTooltip": "Open the scene calendar"
+    "calendarTooltip": "Open the scene calendar",
+    "relationshipsTooltip": "Open the relationships graph"
   },
   "sidebar": {
     "chapters": "Chapters",
@@ -397,6 +399,15 @@
     "contextAddScene": "Add Scene",
     "contextSetDate": "Set Date",
     "contextToggleFavorite": "Toggle Favorite",
+    "contextSetLabelColor": "Set Color",
+    "colorRed": "Red",
+    "colorOrange": "Orange",
+    "colorYellow": "Yellow",
+    "colorGreen": "Green",
+    "colorBlue": "Blue",
+    "colorPurple": "Purple",
+    "colorGray": "Gray",
+    "colorClear": "Clear",
     "showFavoritesOnly": "Favorites only",
     "contextRename": "Rename",
     "contextDelete": "Delete",

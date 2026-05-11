@@ -365,6 +365,16 @@ public partial class ProjectService : IProjectService
         await SaveScenesAsync();
     }
 
+    public async Task SetSceneLabelColorAsync(string chapterGuid, string sceneId, string? labelColor)
+    {
+        if (ScenesManifest == null) return;
+        if (!ScenesManifest.Chapters.TryGetValue(chapterGuid, out var scenes)) return;
+        var scene = scenes.FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null) return;
+        scene.LabelColor = string.IsNullOrWhiteSpace(labelColor) ? null : labelColor.Trim();
+        await SaveScenesAsync();
+    }
+
     public async Task SetChapterDateRangeAsync(string chapterGuid, StoryDateRange? dateRange)
     {
         if (ActiveBook == null) return;

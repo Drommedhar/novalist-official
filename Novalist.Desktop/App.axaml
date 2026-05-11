@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="using:Novalist.Desktop.Converters"
              x:Class="Novalist.Desktop.App"
              RequestedThemeVariant="Dark">
 
@@ -1499,6 +1500,7 @@
             <StreamGeometry x:Key="IconPin">M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76z</StreamGeometry>
             <StreamGeometry x:Key="IconLink">M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71</StreamGeometry>
             <StreamGeometry x:Key="IconLightbulb">M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.73V17h8v-2.27A7 7 0 0 0 12 2z</StreamGeometry>
+            <conv:ColorStringToBrushConverter x:Key="ColorStringToBrush" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

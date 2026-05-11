@@ -170,6 +170,17 @@
                                                     <ContextMenu Tag="{Binding}" Opening="OnSceneContextMenuOpening">
                                                         <MenuItem Header="{loc:Loc explorer.contextSetDate}" Click="OnSetSceneDateClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextToggleFavorite}" Click="OnToggleSceneFavoriteClick" />
+                                                        <MenuItem Header="{loc:Loc explorer.contextSetLabelColor}">
+                                                            <MenuItem Header="{loc:Loc explorer.colorRed}"    Click="OnSetSceneColorClick" Tag="#e74c3c" />
+                                                            <MenuItem Header="{loc:Loc explorer.colorOrange}" Click="OnSetSceneColorClick" Tag="#e67e22" />
+                                                            <MenuItem Header="{loc:Loc explorer.colorYellow}" Click="OnSetSceneColorClick" Tag="#f1c40f" />
+                                                            <MenuItem Header="{loc:Loc explorer.colorGreen}"  Click="OnSetSceneColorClick" Tag="#27ae60" />
+                                                            <MenuItem Header="{loc:Loc explorer.colorBlue}"   Click="OnSetSceneColorClick" Tag="#3498db" />
+                                                            <MenuItem Header="{loc:Loc explorer.colorPurple}" Click="OnSetSceneColorClick" Tag="#9b59b6" />
+                                                            <MenuItem Header="{loc:Loc explorer.colorGray}"   Click="OnSetSceneColorClick" Tag="#7f8c8d" />
+                                                            <Separator />
+                                                            <MenuItem Header="{loc:Loc explorer.colorClear}"  Click="OnSetSceneColorClick" Tag="" />
+                                                        </MenuItem>
                                                         <MenuItem Header="{loc:Loc explorer.contextRename}" Click="OnRenameSceneClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextTakeSnapshot}" Click="OnTakeSnapshotClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextSnapshots}" Click="OnOpenSnapshotsClick" />
@@ -182,6 +193,12 @@
                                                             VerticalAlignment="Center" Margin="0,0,4,0">
                                                         <Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconFile}"/></Canvas>
                                                     </Viewbox>
+                                                    <Ellipse Grid.Column="0"
+                                                             Width="8" Height="8"
+                                                             VerticalAlignment="Center"
+                                                             HorizontalAlignment="Left"
+                                                             IsVisible="{Binding HasLabelColor}"
+                                                             Fill="{Binding LabelColor, Converter={StaticResource ColorStringToBrush}}" />
                                                     <StackPanel Grid.Column="1"
                                                                 Spacing="1"
                                                                 VerticalAlignment="Center">

@@ -22,3 +22,30 @@ This covers all pictographs in the Unicode emoji blocks:
 - When adding a new menu item, button, ribbon entry, descriptor, or locale string: use a text label and either an empty `Icon` field or an SVG `IconPath`. Never reach for an emoji as a quick visual marker.
 - When touching a file that already contains emojis (in UI, locales, or labels): strip them as part of the change.
 - Do not put emojis in Debug.WriteLine or console.log prefixes either (e.g. avoid `[💡 InlineActions]` — use `[InlineActions]`).
+
+## New dedicated views need an activity bar entry
+
+Every new "dedicated" view (top-level content tab the user navigates to — same class as Dashboard, Timeline, Codex Hub, Manuscript, Calendar, Relationships graph, Plot Grid, Research, etc.) MUST also get an entry in the activity bar in `Novalist.Desktop/MainWindow.axaml` so the user can actually find it. Hotkeys and command-palette entries alone are insufficient — the user has stated explicitly that views without activity-bar buttons are invisible to them.
+
+**What counts as a "dedicated view":**
+- New `xxxView.axaml` registered as `ActiveContentView` (e.g. `IsXOpen`, `OpenXCommand`, switched in `MainWindow.axaml.cs` `UpdateContentVisibility`).
+- New content-tab descriptors added to `QueueSyncContentTabs` output.
+- Anything reached via `ShowXCommand` / `OpenXCommand` that fills the main content area.
+
+**What does NOT count (no activity bar required):**
+- Dialogs / overlays (e.g. snapshots dialog, find/replace dialog, story-date-range dialog).
+- Sidebar panels (Context sidebar tabs, Footnotes panel, Smart Lists panel).
+- Sub-views inside an existing content view (Corkboard inside Manuscript, etc.).
+- Popups (Focus peek, Comment gutter).
+
+**Activity bar conventions:**
+- Location: `Novalist.Desktop/MainWindow.axaml`, the top `StackPanel Grid.Row="0"` inside `Border Classes="activityBar"`. Put the new button alongside the existing `Dashboard / Timeline / CodexHub / Manuscript / Calendar / Relationships` block; below the separator is the activity-view block (Export / Gallery / Git).
+- Use an SVG `Path Data="{StaticResource IconX}"` icon. If no existing `Icon*` resource fits, add a new `<StreamGeometry x:Key="IconX">` to `App.axaml` (Lucide-style path). Never an emoji.
+- Wire `Classes.active` to `ActiveContentView` with the matching `ConverterParameter`.
+- Bind `Command` to the existing `OpenXCommand` (or `ShowXCommand`).
+- Add a `ToolTip.Tip` bound to `{loc:Loc ribbon.xTooltip}` plus matching `en.json` and `de.json` entries.
+- Respect `IsVisible="{Binding IsProjectLoaded}"` (or `IsInGitRepo` for git-only views) so the button only appears when relevant.
+
+**How to apply:**
+- When you ship a new dedicated view, also add the activity-bar button in the same change. Do not split this into a follow-up.
+- If you're unsure whether something qualifies as a "dedicated view" (e.g. it's a hybrid panel, or it might end up nested inside another view): **ask the user before shipping.** Do not assume.

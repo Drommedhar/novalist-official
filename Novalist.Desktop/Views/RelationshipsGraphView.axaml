@@ -11,67 +11,39 @@
                     BorderBrush="{DynamicResource CardBorder}"
                     BorderThickness="0,0,0,1"
                     Background="{DynamicResource ExplorerBackground}">
-                <TextBlock Text="{loc:Loc relationships.title}"
-                           FontSize="14"
-                           FontWeight="SemiBold"
-                           VerticalAlignment="Center"
-                           Foreground="{DynamicResource NormalText}" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <TextBlock Grid.Column="0"
+                               Text="{loc:Loc relationships.title}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource NormalText}" />
+                    <TextBlock Grid.Column="1"
+                               Text="{loc:Loc relationships.hint}"
+                               FontSize="11"
+                               Opacity="0.6"
+                               VerticalAlignment="Center" />
+                </Grid>
             </Border>
 
-            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-                <Canvas Width="960" Height="720" Background="{DynamicResource EditorBackground}">
-                    <ItemsControl ItemsSource="{Binding Edges}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:RelationshipEdge">
-                                <Canvas>
-                                    <Line StartPoint="{Binding StartPoint}"
-                                          EndPoint="{Binding EndPoint}"
-                                          Stroke="{DynamicResource SubtleText}"
-                                          StrokeThickness="1"
-                                          Opacity="0.5" />
-                                    <TextBlock Canvas.Left="{Binding LabelX}"
-                                               Canvas.Top="{Binding LabelY}"
-                                               Text="{Binding Label}"
-                                               FontSize="10"
-                                               Opacity="0.65"
-                                               Foreground="{DynamicResource SubtleText}" />
-                                </Canvas>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-
-                    <ItemsControl ItemsSource="{Binding Nodes}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <Canvas />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate x:DataType="vm:RelationshipNode">
-                                <Border Canvas.Left="{Binding X}"
-                                        Canvas.Top="{Binding Y}"
-                                        Width="80"
-                                        Padding="6,4"
-                                        Background="{DynamicResource CardBackground}"
-                                        BorderBrush="{DynamicResource AccentBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="14">
-                                    <TextBlock Text="{Binding Name}"
-                                               TextAlignment="Center"
-                                               FontSize="11"
-                                               TextWrapping="Wrap"
-                                               Foreground="{DynamicResource NormalText}" />
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+            <!-- Pan/zoom viewport. Mouse drag = pan, wheel = zoom. -->
+            <Border x:Name="ViewportHost"
+                    ClipToBounds="True"
+                    Background="{DynamicResource EditorBackground}">
+                <Canvas x:Name="GraphCanvas"
+                        Width="3000" Height="3000"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        RenderTransformOrigin="0,0"
+                        Background="{DynamicResource EditorBackground}">
+                    <Canvas.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="1" ScaleY="1" />
+                            <TranslateTransform X="0" Y="0" />
+                        </TransformGroup>
+                    </Canvas.RenderTransform>
                 </Canvas>
-            </ScrollViewer>
+            </Border>
         </DockPanel>
     </Border>
 </UserControl>

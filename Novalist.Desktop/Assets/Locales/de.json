@@ -134,7 +134,8 @@
     "codexHubTooltip": "Alle Entitäten in einer Ansicht durchsuchen",
     "manuscript": "Manuskript",
     "manuscriptTooltip": "Das vollständige Manuskript als fortlaufendes Dokument anzeigen",
-    "calendarTooltip": "Szenenkalender öffnen"
+    "calendarTooltip": "Szenenkalender öffnen",
+    "relationshipsTooltip": "Beziehungsgraph öffnen"
   },
   "sidebar": {
     "chapters": "Kapitel",
@@ -362,6 +363,15 @@
     "contextAddScene": "Szene hinzufügen",
     "contextSetDate": "Datum setzen",
     "contextToggleFavorite": "Favorit umschalten",
+    "contextSetLabelColor": "Farbe setzen",
+    "colorRed": "Rot",
+    "colorOrange": "Orange",
+    "colorYellow": "Gelb",
+    "colorGreen": "Grün",
+    "colorBlue": "Blau",
+    "colorPurple": "Lila",
+    "colorGray": "Grau",
+    "colorClear": "Entfernen",
     "showFavoritesOnly": "Nur Favoriten",
     "contextRename": "Umbenennen",
     "contextDelete": "Löschen",
@@ -760,7 +770,8 @@
     "delete": "Fußnote löschen"
   },
   "relationships": {
-    "title": "Beziehungen"
+    "title": "Beziehungen",
+    "hint": "Ziehen zum Verschieben · Mausrad zum Zoomen"
   },
   "calendar": {
     "title": "Kalender",
