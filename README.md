@@ -14,84 +14,106 @@
 
 ## What is Novalist?
 
-Novalist is a desktop application built for writing novels. It handles the full scope of a writing project -- manuscript editing, world building, character management, timelines, and exporting -- in a single, self-contained tool. It runs on Windows and macOS using .NET 8 and Avalonia UI.
+Novalist is an offline-first desktop application for writing novels. It handles the full scope of a writing project — manuscript editing, worldbuilding, plotting, timelines, exporting, and version control — in a single, self-contained tool. It runs on Windows, macOS, and Linux on top of .NET 8 and Avalonia.
 
-Rather than scattering notes across separate apps or browser tabs, Novalist keeps everything about your project in one place: your chapters and scenes, a world bible of characters, locations, items, and lore, a visual timeline, an image gallery, and an integrated AI assistant for story analysis.
+Rather than scattering notes across separate apps, browser tabs, and Markdown files, Novalist keeps everything about a project in one folder of plain files: chapters and scenes as HTML, entities and metadata as JSON, images and research alongside. The folder is yours — back it up, sync it, version-control it, edit it with any text editor when Novalist is closed.
 
-<p align="center">
-  <img src="docs/images/welcome.jpg" alt="Welcome screen with recent projects and project creation" width="700" />
-</p>
+## Documentation
+
+A full **User Manual** lives in [`docs/manual/`](docs/manual/README.md). It covers every feature in detail with cross-linked pages for getting started, the interface, projects and books, the editor, worldbuilding, plotting, exporting, extensions, hotkeys, and troubleshooting.
+
+For extension authors, the [Extension Guide](docs/extension-guide.md) walks through the SDK, hooks, packaging, and store submission.
 
 ## Features
 
-### Writing and Manuscript
+### Writing
 
-- Rich text editor backed by WebView2 with spellcheck support
-- Organize books into chapters and scenes with status tracking (Outline, First Draft, Revised, Edited, Final)
-- Scene-level metadata: point of view, emotion, intensity, conflict, and custom tags
-- Scene notes panel alongside the editor for quick reference
-- Multi-book projects with a shared World Bible across all books
+- WYSIWYG editor with formatting, paragraph styles (heading, subheading, blockquote, poetry), inline comments, and numbered footnotes.
+- Auto-save with per-scene **snapshot history** and a side-by-side compare view — revert a single scene without touching the rest of the project.
+- **Focus Mode** that hides every panel except the editor.
+- **Split editor** for editing two scenes side by side.
+- **Auto-replacements** for smart quotes, em-dashes, and ellipses with language presets (English, German, French, Spanish, Italian, Portuguese, Russian, Polish, Czech, Slovak).
+- **Dialogue punctuation correction** as you type.
+- **Grammar and spelling check** via LanguageTool (public endpoint by default; self-hosted endpoint supported).
+- Live word count, reading time, and Flesch readability score in the status bar; per-chapter readability in the Project Overview.
 
-<p align="center">
-  <img src="docs/images/main.jpg" alt="Main interface with ribbon toolbar, chapter explorer, and project dashboard" width="700" />
-</p>
-<p align="center"><em>The main interface: ribbon toolbar for quick access to all views, chapter explorer on the left, and the project dashboard with word counts, daily progress, and goal tracking.</em></p>
+### Project structure
 
-### World Building
+- Multi-book projects with a shared **World Bible** for entities used across books.
+- Chapters with status tracking (Outline → First Draft → Revised → Edited → Final), optional acts, optional in-world date ranges, label colors, and favorites.
+- Scenes with synopsis, notes, label color, plotline membership, in-world date range, POV / emotion / intensity / conflict / tags (auto-detected with manual overrides).
+- **Smart Lists** — saved scene queries by status, POV, tag, or plotline.
 
-- **Characters** -- Detailed profiles with demographics, relationships, roles, groups, and custom properties. Per-chapter overrides to track how characters change throughout the story.
-- **Locations** -- Hierarchical location types with descriptions and custom fields.
-- **Items** -- Objects with origins, types, and descriptions.
-- **Lore** -- Categorized entries for organizations, cultures, history, and other world-building material.
-- **Templates** -- Create reusable templates for each entity type to keep your data consistent.
-- **Fast Peek Cards** -- Preview any entity without leaving the editor.
+### Worldbuilding (Codex)
 
-### Timeline
+- **Characters** with name/surname, gender, age (manual or computed from birth date and the in-world calendar), role, group, physical traits, images, relationships, and per-act / per-chapter / per-scene overrides for any field.
+- **Locations** with hierarchical parents, types, and custom fields.
+- **Items** with origin, type, and description.
+- **Lore** entries for magic systems, religions, history, in-world books.
+- **Custom entity types** — define your own (Factions, Spells, Vehicles, Races, …) with custom field schemas.
+- **Templates** per entity type with default sections, custom properties, and field defaults.
+- **Sections** of long-form Markdown content per entity.
+- **Relationships** with auto-learned inverse-role pairs and inverse-prompting on new relationships.
+- **Focus peek** card on entity hover inside the editor.
 
-Manual timeline events linked to specific chapters and scenes. Categorize events as plot points, character events, or world events to keep track of your story's chronology.
+### Planning & visualization
 
-### AI Assistant
+- **Plot Grid** — spreadsheet view of plotlines (rows) by scenes (columns); toggle scene membership in a thread with a click.
+- **Timeline** — chronological view of acts, chapters, scenes, and manual events with vertical/horizontal layout and day/week/month/year zoom.
+- **In-world Calendar** — full Gregorian or fully custom calendar (custom month names, days per month, weekday names, year label) with Week, Month, and Year views.
+- **Relationships graph** — auto-clustered force-directed graph of characters with family detection in English and German.
+- **Manuscript view** — read the whole book end-to-end, switch to Corkboard for index-card planning, or Outliner for a sortable scene table.
+- **Dashboard** — totals, status breakdown, chapter pacing, echo phrases, daily / project word goals with deadlines.
 
-A built-in extension that provides a chat-based AI interface for working with your manuscript. Supports LMStudio (local inference) and GitHub Copilot as providers. Configurable parameters for temperature, context length, and other model settings. Analysis modes include:
+### Research & assets
 
-- Checking for character reference inconsistencies
-- Identifying story inconsistencies
-- Generating scene statistics
-- Providing revision suggestions
+- **Research view** — notes, links, files, images, and PDFs attached to the project with tags and search.
+- **Image Gallery** — every project image at a glance with lazy thumbnails, search, and copy-path / reveal actions.
+- Add images from file, clipboard, URL, or the existing project gallery.
 
-The assistant uses dynamic prompt templating with context from your project entities, so it understands the characters, locations, and lore you have already defined.
+### Output
 
-### Export
+- Export to **EPUB**, **DOCX**, **PDF**, **Markdown**, **Final Draft / Fountain**, **LaTeX**, and **Codex Markdown**.
+- Built-in **Shunn Modern Manuscript Format** preset for submissions.
+- Chapter-level selection, optional title page, custom title and author.
+- Extensions can contribute additional formats and presets.
 
-Export your manuscript in multiple formats:
+### Version control
 
-- EPUB
-- DOCX
-- PDF
-- Markdown
+- Built-in **Git** client — stage, commit, push, pull from the app; branch and changed-file count in the status bar.
+- Per-scene snapshot history is complementary to Git for fine-grained, per-file recovery.
 
-Includes title page customization for each export format.
+### Find & Replace
 
-### Git Integration
+- Plain-text, whole-word, case-sensitive, or .NET regex search.
+- Scope to the current scene, the selection, the active book, or every book in the project.
+- Replace one or all matches; snapshots cover the replacements.
 
-Built-in version control through Git. View branch status, see ahead/behind counts, and commit, push, or pull directly from the application.
+### Customization
 
-### Extension System
+- **Hotkeys** — every action is rebindable; defaults documented in [`docs/manual/26-hotkeys.md`](docs/manual/26-hotkeys.md).
+- **Command Palette** (`Ctrl+Shift+P`) — every action by name.
+- **Localization** — drop-in JSON locale files; English and German ship in the box.
+- **Theme** — system / light / dark with a custom accent color.
+- **Book preview** — render the editor as a printed page with configurable trim size and book font.
 
-Novalist has a plugin architecture through the Novalist SDK. Extensions can contribute ribbon buttons, sidebar panels, content views, settings pages, and editor integrations. Extensions are .NET 8 class libraries discovered at runtime from a plugins folder. See the [Extension Guide](docs/extension-guide.md) for details.
+### Extension system
 
-### Localization
+Novalist has a plugin architecture through the **Novalist SDK**. Extensions can contribute:
 
-Multi-language UI support with locale JSON files. The editor respects the language setting for spellcheck and context menus.
+- Ribbon and status-bar items
+- Sidebar and context-sidebar tabs
+- Full-screen content views with activity-bar icons
+- Settings categories and pages
+- Hotkeys
+- Editor hooks (lifecycle, inline actions, grammar checks)
+- Context-menu items
+- Export formats and presets
+- Themes
+- Custom entity types and custom property types
+- AI integration hooks (prompt building, response processing)
 
-### Keyboard Shortcuts
-
-All keyboard shortcuts are fully customizable. Rebind editor actions, Git operations, and navigation commands to fit your workflow.
-
-<p align="center">
-  <img src="docs/images/rebind.jpg" alt="Keyboard shortcut customization in settings" width="700" />
-</p>
-<p align="center"><em>The keyboard shortcuts settings page with filterable shortcut list and rebindable keys.</em></p>
+Extensions are .NET 8 class libraries discovered at runtime from the user extensions folder. See the [Extension Guide](docs/extension-guide.md) and the bundled `Novalist.Sdk.Example` project for a working reference implementation.
 
 ## Building
 
@@ -99,13 +121,20 @@ All keyboard shortcuts are fully customizable. Rebind editor actions, Git operat
 dotnet build Novalist.Desktop/Novalist.Desktop.csproj
 ```
 
-## Project Structure
+To run a Release build:
 
 ```
-Novalist.Desktop                    Desktop application entry point, views, and view models
-Novalist.Core                       Core library: models, services, serialization
-Novalist.Sdk                        Extension SDK: interfaces, hooks, and host services
-Novalist.Extensions.AiAssistant     Bundled AI assistant extension
+dotnet run --project Novalist.Desktop/Novalist.Desktop.csproj -c Release
+```
+
+## Project structure
+
+```
+Novalist.Desktop      Desktop application — views, view models, dialogs, editor extensions
+Novalist.Core         Core library — models, services, serialization, localization, utilities
+Novalist.Sdk          Extension SDK — public interfaces, hooks, host-service contracts, descriptor models
+Novalist.Sdk.Example  Reference extension demonstrating 11 hook types
+docs/                 User manual, extension guide, gallery images
 ```
 
 ## Support the Project
