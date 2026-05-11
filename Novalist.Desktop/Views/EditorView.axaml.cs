@@ -542,6 +542,8 @@ public partial class EditorView : UserControl
         var alias = root.GetProperty("alias").GetString() ?? string.Empty;
         var x = root.GetProperty("x").GetDouble();
         var y = root.GetProperty("y").GetDouble();
+        if (_webView != null)
+            _vm.FocusPeekExtension.EditorBounds = _webView.Bounds.Size;
         _ = _vm.FocusPeekExtension.OnEntityHoverAsync(alias, x, y);
     }
 

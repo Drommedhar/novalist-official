@@ -1221,12 +1221,11 @@ editor.addEventListener('mousemove', (e) => {
         if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
         if (alias !== lastHoveredAlias) {
             lastHoveredAlias = alias;
-            const wrapperRect = wrapper.getBoundingClientRect();
             sendMessage({
                 type: 'entityHover',
                 alias: alias,
-                x: e.clientX - wrapperRect.left,
-                y: e.clientY - wrapperRect.top
+                x: e.clientX,
+                y: e.clientY
             });
         }
     } else if (lastHoveredAlias) {
