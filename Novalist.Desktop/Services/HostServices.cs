@@ -438,4 +438,115 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         var abs = _entityService.GetImageFullPath(first.Path);
         return string.IsNullOrEmpty(abs) ? null : abs;
     }
+
+    async Task<Sdk.Services.CharacterDetailedInfo?> IExtensionEntityService.GetCharacterDetailedAsync(string characterId, string? chapterGuid, string? sceneId)
+    {
+        var characters = await _entityService.LoadCharactersAsync();
+        var character = characters.FirstOrDefault(c => string.Equals(c.Id, characterId, StringComparison.OrdinalIgnoreCase));
+        if (character == null) return null;
+
+        Novalist.Core.Models.ChapterData? chapter = null;
+        Novalist.Core.Models.SceneData? scene = null;
+        if (!string.IsNullOrEmpty(chapterGuid))
+        {
+            chapter = _projectService.GetChaptersOrdered()
+                .FirstOrDefault(c => string.Equals(c.Guid, chapterGuid, StringComparison.OrdinalIgnoreCase));
+            if (chapter != null && !string.IsNullOrEmpty(sceneId))
+            {
+                scene = _projectService.GetScenesForChapter(chapter.Guid)
+                    .FirstOrDefault(s => string.Equals(s.Id, sceneId, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+
+        bool ChapterMatches(Novalist.Core.Models.CharacterOverride o)
+            => chapter != null
+               && (string.Equals(o.Chapter, chapter.Guid, StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(o.Chapter, chapter.Title, StringComparison.OrdinalIgnoreCase));
+
+        bool ActMatches(Novalist.Core.Models.CharacterOverride o)
+            => chapter != null
+               && !string.IsNullOrWhiteSpace(o.Act)
+               && !string.IsNullOrWhiteSpace(chapter.Act)
+               && string.Equals(o.Act, chapter.Act, StringComparison.OrdinalIgnoreCase);
+
+        // Resolution order: scene-scoped override → chapter-scoped override → act-scoped override.
+        Novalist.Core.Models.CharacterOverride? sceneOverride = null;
+        Novalist.Core.Models.CharacterOverride? chapterOverride = null;
+        Novalist.Core.Models.CharacterOverride? actOverride = null;
+
+        if (scene != null)
+        {
+            sceneOverride = character.ChapterOverrides.FirstOrDefault(o =>
+                ChapterMatches(o)
+                && !string.IsNullOrWhiteSpace(o.Scene)
+                && string.Equals(o.Scene, scene.Title, StringComparison.OrdinalIgnoreCase));
+        }
+        chapterOverride = character.ChapterOverrides.FirstOrDefault(o =>
+            ChapterMatches(o) && string.IsNullOrWhiteSpace(o.Scene));
+        actOverride = character.ChapterOverrides.FirstOrDefault(o =>
+            ActMatches(o) && string.IsNullOrWhiteSpace(o.Scene) && string.IsNullOrWhiteSpace(o.Chapter));
+
+        // Per-field resolution: scene > chapter > act > base.
+        string Pick(Func<Novalist.Core.Models.CharacterOverride?, string?> selector, string baseValue)
+        {
+            var v = selector(sceneOverride);
+            if (!string.IsNullOrWhiteSpace(v)) return v!;
+            v = selector(chapterOverride);
+            if (!string.IsNullOrWhiteSpace(v)) return v!;
+            v = selector(actOverride);
+            if (!string.IsNullOrWhiteSpace(v)) return v!;
+            return baseValue;
+        }
+
+        var relationships = sceneOverride?.Relationships
+                            ?? chapterOverride?.Relationships
+                            ?? actOverride?.Relationships
+                            ?? character.Relationships;
+        var customProps = sceneOverride?.CustomProperties
+                          ?? chapterOverride?.CustomProperties
+                          ?? actOverride?.CustomProperties
+                          ?? character.CustomProperties;
+        var sections = sceneOverride?.Sections
+                       ?? chapterOverride?.Sections
+                       ?? actOverride?.Sections
+                       ?? character.Sections;
+
+        var resolvedFrom = sceneOverride != null ? sceneOverride.ScopeLabel
+            : chapterOverride != null ? chapterOverride.ScopeLabel
+            : actOverride != null ? actOverride.ScopeLabel
+            : string.Empty;
+
+        return new Sdk.Services.CharacterDetailedInfo
+        {
+            Id = character.Id,
+            DisplayName = character.DisplayName,
+            Name = Pick(o => o?.Name, character.Name),
+            Surname = Pick(o => o?.Surname, character.Surname),
+            Aliases = [],
+            Age = Pick(o => o?.Age, character.Age),
+            Gender = Pick(o => o?.Gender, character.Gender),
+            Role = Pick(o => o?.Role, character.Role),
+            Group = character.Group,
+            EyeColor = Pick(o => o?.EyeColor, character.EyeColor),
+            HairColor = Pick(o => o?.HairColor, character.HairColor),
+            HairLength = Pick(o => o?.HairLength, character.HairLength),
+            Height = Pick(o => o?.Height, character.Height),
+            Build = Pick(o => o?.Build, character.Build),
+            SkinTone = Pick(o => o?.SkinTone, character.SkinTone),
+            DistinguishingFeatures = Pick(o => o?.DistinguishingFeatures, character.DistinguishingFeatures),
+            CustomProperties = customProps?.ToDictionary(kv => kv.Key, kv => kv.Value) ?? new Dictionary<string, string>(),
+            Relationships = (relationships ?? []).Select(r => new Sdk.Services.CharacterRelationshipInfo
+            {
+                Role = r.Role ?? string.Empty,
+                TargetName = r.Target ?? string.Empty,
+                Note = string.Empty,
+            }).ToList(),
+            Sections = (sections ?? []).Select(s => new Sdk.Services.CharacterSectionInfo
+            {
+                Title = s.Title ?? string.Empty,
+                Content = s.Content ?? string.Empty,
+            }).ToList(),
+            ResolvedFromScope = resolvedFrom ?? string.Empty,
+        };
+    }
 }

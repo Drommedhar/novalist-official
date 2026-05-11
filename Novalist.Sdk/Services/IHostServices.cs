@@ -78,6 +78,14 @@ public interface IExtensionEntityService
     /// rules.
     /// </summary>
     Task<string?> GetCharacterImagePathAsync(string characterId, string? chapterGuid, string? sceneId);
+
+    /// <summary>
+    /// Returns the character's full profile resolved for the given chapter/scene
+    /// context. Per-scene overrides take precedence over per-chapter, which take
+    /// precedence over per-act, which fall back to the base profile. Returns
+    /// null when the character does not exist.
+    /// </summary>
+    Task<CharacterDetailedInfo?> GetCharacterDetailedAsync(string characterId, string? chapterGuid, string? sceneId);
 }
 
 /// <summary>
@@ -228,6 +236,52 @@ public sealed class CharacterInfo
     public string DisplayName { get; init; } = string.Empty;
     public string Role { get; init; } = string.Empty;
     public List<string> Aliases { get; init; } = [];
+}
+
+/// <summary>
+/// Rich character info with all profile data, resolved for a specific
+/// chapter/scene context (per-scene → per-chapter → per-act override fallback
+/// applied by the host before return). Extensions never see raw override
+/// lists; they get the effective view for the requested context.
+/// </summary>
+public sealed class CharacterDetailedInfo
+{
+    public string Id { get; init; } = string.Empty;
+    public string DisplayName { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public string Surname { get; init; } = string.Empty;
+    public List<string> Aliases { get; init; } = [];
+    public string Age { get; init; } = string.Empty;
+    public string Gender { get; init; } = string.Empty;
+    public string Role { get; init; } = string.Empty;
+    public string Group { get; init; } = string.Empty;
+    public string EyeColor { get; init; } = string.Empty;
+    public string HairColor { get; init; } = string.Empty;
+    public string HairLength { get; init; } = string.Empty;
+    public string Height { get; init; } = string.Empty;
+    public string Build { get; init; } = string.Empty;
+    public string SkinTone { get; init; } = string.Empty;
+    public string DistinguishingFeatures { get; init; } = string.Empty;
+    public Dictionary<string, string> CustomProperties { get; init; } = new();
+    public List<CharacterRelationshipInfo> Relationships { get; init; } = [];
+    public List<CharacterSectionInfo> Sections { get; init; } = [];
+
+    /// <summary>Scope label of the override that produced the resolved view
+    /// (e.g. "Scene: 04 - Bridge"). Empty when the base profile was used.</summary>
+    public string ResolvedFromScope { get; init; } = string.Empty;
+}
+
+public sealed class CharacterRelationshipInfo
+{
+    public string Role { get; init; } = string.Empty;
+    public string TargetName { get; init; } = string.Empty;
+    public string Note { get; init; } = string.Empty;
+}
+
+public sealed class CharacterSectionInfo
+{
+    public string Title { get; init; } = string.Empty;
+    public string Content { get; init; } = string.Empty;
 }
 
 /// <summary>Lightweight location info for read-only access.</summary>
