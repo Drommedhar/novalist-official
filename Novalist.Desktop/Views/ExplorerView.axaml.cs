@@ -429,7 +429,7 @@ public partial class ExplorerView : UserControl
 
         foreach (var ci in matching)
         {
-            var contextData = menu.Tag;
+            var contextData = ToSdkContext(menu.Tag, context);
             System.Diagnostics.Debug.WriteLine($"[ExtCtxMenu] Adding item: '{ci.Label}', OnClick null? {ci.OnClick is null}, contextData: {contextData?.GetType().Name ?? "null"}");
             var item = ci; // capture for closure
             var mi = new MenuItem
@@ -448,6 +448,35 @@ public partial class ExplorerView : UserControl
             };
             menu.Items.Add(mi);
         }
+    }
+
+    private static object? ToSdkContext(object? tag, string context)
+    {
+        if (tag is SceneTreeItemViewModel s)
+        {
+            var chTitle = s.Scene.ChapterGuid is { Length: > 0 } cg
+                ? App.ProjectService.ActiveBook?.Chapters.FirstOrDefault(c => c.Guid == cg)?.Title ?? string.Empty
+                : string.Empty;
+            return new Novalist.Sdk.Services.SceneInfo
+            {
+                Id = s.Scene.Id,
+                Title = s.Scene.Title,
+                ChapterGuid = s.Scene.ChapterGuid,
+                ChapterTitle = chTitle,
+                WordCount = s.Scene.WordCount,
+            };
+        }
+        if (tag is ChapterTreeItemViewModel c)
+        {
+            return new Novalist.Sdk.Services.ChapterInfo
+            {
+                Guid = c.Chapter.Guid,
+                Title = c.Chapter.Title,
+                Order = c.Chapter.Order,
+                Date = c.Chapter.Date,
+            };
+        }
+        return tag;
     }
 
     private sealed class SimpleCommand(Action execute) : ICommand

@@ -119,6 +119,34 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         EditorExtensionUnregistered?.Invoke(extension);
     }
 
+    private readonly List<IInlineActionContributor> _inlineActionContributors = new();
+
+    public void RegisterInlineActionContributor(IInlineActionContributor contributor)
+    {
+        lock (_inlineActionContributors)
+        {
+            if (!_inlineActionContributors.Contains(contributor))
+                _inlineActionContributors.Add(contributor);
+        }
+        System.Diagnostics.Debug.WriteLine($"[InlineActions] HostServices register contributor {contributor.GetType().Name}. Total: {_inlineActionContributors.Count}. Listeners: {(InlineActionContributorsChanged?.GetInvocationList().Length ?? 0)}");
+        InlineActionContributorsChanged?.Invoke();
+    }
+
+    public void UnregisterInlineActionContributor(IInlineActionContributor contributor)
+    {
+        bool removed;
+        lock (_inlineActionContributors) { removed = _inlineActionContributors.Remove(contributor); }
+        if (removed) InlineActionContributorsChanged?.Invoke();
+    }
+
+    public IReadOnlyList<IInlineActionContributor> GetInlineActionContributors()
+    {
+        lock (_inlineActionContributors) { return _inlineActionContributors.ToList(); }
+    }
+
+    /// <summary>Fired when contributors are added/removed so the host can refresh menus.</summary>
+    internal event Action? InlineActionContributorsChanged;
+
     public void RegisterHotkey(HotkeyDescriptor descriptor)
     {
         App.HotkeyService.Register(descriptor);
@@ -250,6 +278,25 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
             return string.Empty;
 
         return await _projectService.ReadSceneContentAsync(chapter, scene);
+    }
+
+    Task<string> IExtensionProjectService.GetSceneSynopsisAsync(string chapterGuid, string sceneId)
+    {
+        var manifest = _projectService.ScenesManifest;
+        if (manifest == null || !manifest.Chapters.TryGetValue(chapterGuid, out var scenes))
+            return Task.FromResult(string.Empty);
+        var scene = scenes.FirstOrDefault(s => s.Id == sceneId);
+        return Task.FromResult(scene?.Synopsis ?? string.Empty);
+    }
+
+    async Task IExtensionProjectService.SetSceneSynopsisAsync(string chapterGuid, string sceneId, string synopsis)
+    {
+        var manifest = _projectService.ScenesManifest;
+        if (manifest == null || !manifest.Chapters.TryGetValue(chapterGuid, out var scenes)) return;
+        var scene = scenes.FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null) return;
+        scene.Synopsis = string.IsNullOrWhiteSpace(synopsis) ? null : synopsis.Trim();
+        await _projectService.SaveScenesAsync();
     }
 
     IReadOnlyList<Sdk.Services.ChapterInfo> IExtensionProjectService.GetChaptersOrdered()

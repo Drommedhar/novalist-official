@@ -1369,6 +1369,26 @@ document.addEventListener('contextmenu', (e) => {
     html += '<div class="cm-separator"></div>';
     html += '<div class="cm-item" data-action="selectAll"><span>' + escapeHtml(contextMenuLabels.selectAll || 'Select All') + '</span><span class="cm-shortcut">Ctrl+A</span></div>';
 
+    console.log('[InlineActions] context menu open. hasSelection=', hasSelection, 'inlineActions.length=', (inlineActions || []).length);
+    // Inline actions (extension-contributed). Shown only when selection non-empty.
+    if (hasSelection && inlineActions && inlineActions.length > 0) {
+        const grouped = {};
+        for (const a of inlineActions) {
+            const g = a.group || '';
+            (grouped[g] = grouped[g] || []).push(a);
+        }
+        for (const groupName of Object.keys(grouped)) {
+            html += '<div class="cm-separator"></div>';
+            if (groupName) {
+                html += '<div class="cm-grammar-msg">' + escapeHtml(groupName) + '</div>';
+            }
+            for (const a of grouped[groupName]) {
+                const icon = a.icon ? (escapeHtml(a.icon) + ' ') : '';
+                html += '<div class="cm-item" data-inline-action="' + escapeHtml(a.id) + '"><span>' + icon + escapeHtml(a.label) + '</span></div>';
+            }
+        }
+    }
+
     contextMenu.innerHTML = html;
 
     // Position
@@ -1387,6 +1407,14 @@ contextMenu.addEventListener('click', (e) => {
         const index = parseInt(suggestion.getAttribute('data-issue-index'), 10);
         const replacement = suggestion.getAttribute('data-replacement');
         applyGrammarSuggestion(index, replacement);
+        hideContextMenu();
+        return;
+    }
+
+    const inlineItem = e.target.closest('[data-inline-action]');
+    if (inlineItem) {
+        const id = inlineItem.getAttribute('data-inline-action');
+        triggerInlineAction(id);
         hideContextMenu();
         return;
     }
@@ -1825,6 +1853,59 @@ window.addCommentToSelection = function (commentId) {
 
 window.removeCommentById = removeCommentSpan;
 window.scrollToCommentById = scrollToComment;
+
+// ── Inline actions (extension-contributed) ──────────────────────
+let inlineActions = [];
+let pendingInlineAction = null; // { id, range, originalText, disposition }
+
+window.setInlineActions = function (json) {
+    try {
+        inlineActions = typeof json === 'string' ? JSON.parse(json) : (json || []);
+        console.log('[InlineActions] setInlineActions received', inlineActions.length, 'items', inlineActions);
+    } catch (e) {
+        console.log('[InlineActions] setInlineActions parse error', e);
+        inlineActions = [];
+    }
+};
+
+function triggerInlineAction(id) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0).cloneRange();
+    const text = sel.toString();
+    if (!text) return;
+    pendingInlineAction = { id: id, range: range };
+    sendMessage({ type: 'inlineActionRequested', actionId: id, selectedText: text });
+}
+
+window.applyInlineActionResult = function (json) {
+    try {
+        var payload = typeof json === 'string' ? JSON.parse(json) : json;
+        if (!payload || !pendingInlineAction) return;
+        if (payload.actionId !== pendingInlineAction.id) { pendingInlineAction = null; return; }
+        if (payload.error) { pendingInlineAction = null; return; }
+
+        const range = pendingInlineAction.range;
+        const disposition = payload.disposition || 'replace';
+        const text = payload.text || '';
+
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+
+        if (disposition === 'insertAfter') {
+            range.collapse(false);
+            document.execCommand('insertText', false, '\n' + text);
+        } else {
+            document.execCommand('insertText', false, text);
+        }
+
+        pendingInlineAction = null;
+        try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    } catch (_) {
+        pendingInlineAction = null;
+    }
+};
 
 // ── Ready Signal ────────────────────────────────────────────────
 sendMessage({ type: 'ready' });

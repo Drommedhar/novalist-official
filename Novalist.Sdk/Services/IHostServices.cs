@@ -34,6 +34,12 @@ public interface IExtensionProjectService
     /// <summary>Read scene content.</summary>
     Task<string> ReadSceneContentAsync(string chapterGuid, string sceneId);
 
+    /// <summary>Reads the stored scene synopsis (one- or two-line summary).</summary>
+    Task<string> GetSceneSynopsisAsync(string chapterGuid, string sceneId);
+
+    /// <summary>Updates the scene synopsis and persists the scenes manifest.</summary>
+    Task SetSceneSynopsisAsync(string chapterGuid, string sceneId, string synopsis);
+
     /// <summary>Get chapters in order.</summary>
     IReadOnlyList<ChapterInfo> GetChaptersOrdered();
 
@@ -150,6 +156,15 @@ public interface IHostServices
 
     /// <summary>Unregister an editor extension hook.</summary>
     void UnregisterEditorExtension(IEditorExtension extension);
+
+    /// <summary>Register an inline-action contributor (editor context-menu AI / text actions).</summary>
+    void RegisterInlineActionContributor(IInlineActionContributor contributor);
+
+    /// <summary>Unregister a previously registered inline-action contributor.</summary>
+    void UnregisterInlineActionContributor(IInlineActionContributor contributor);
+
+    /// <summary>Returns all currently registered inline-action contributors.</summary>
+    IReadOnlyList<IInlineActionContributor> GetInlineActionContributors();
 
     /// <summary>Dynamically register a keyboard shortcut at runtime.</summary>
     void RegisterHotkey(HotkeyDescriptor descriptor);

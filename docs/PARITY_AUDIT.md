@@ -144,6 +144,7 @@ Legend: ✅ have · ⚠️ partial · ❌ missing
 23. MOBI / Final Draft (.fdx) / LaTeX export.
 24. In-world calendar with date arithmetic; bind `ChapterData.Date` and `TimelineManualEvent.Date`.
 25. Outline export from timeline.
+26. Codex export (readable export with all entity data) as markdown/pdf WITH images.
 
 ### Out of scope
 

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -132,6 +133,9 @@ public partial class EditorView : UserControl
         if (_webView != null)
             _webView.SizeChanged += OnEditorSizeChanged;
 
+        if (App.ExtensionManager?.Host is { } host)
+            host.InlineActionContributorsChanged += OnInlineActionContributorsChanged;
+
         if (DataContext is EditorViewModel vm)
             AttachToViewModel(vm);
     }
@@ -141,8 +145,15 @@ public partial class EditorView : UserControl
         DataContextChanged -= OnDataContextChanged;
         if (_webView != null)
             _webView.SizeChanged -= OnEditorSizeChanged;
+        if (App.ExtensionManager?.Host is { } host)
+            host.InlineActionContributorsChanged -= OnInlineActionContributorsChanged;
         DetachFromViewModel();
         base.OnDetachedFromVisualTree(e);
+    }
+
+    private void OnInlineActionContributorsChanged()
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(PushInlineActions);
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -274,6 +285,7 @@ public partial class EditorView : UserControl
         _webViewReady = true;
         ApplyEditorSettings();
         PushContextMenuLabels();
+        PushInlineActions();
         PushGrammarCheckState();
 
         if (_pendingContent != null)
@@ -418,6 +430,14 @@ public partial class EditorView : UserControl
                         _vm?.RaiseCommentClicked(commentId);
                     break;
                 }
+                case "inlineActionRequested":
+                {
+                    var actionId = root.GetProperty("actionId").GetString() ?? string.Empty;
+                    var selected = root.GetProperty("selectedText").GetString() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(actionId) && !string.IsNullOrEmpty(selected) && _vm != null)
+                        _ = ExecuteInlineActionAsync(actionId, selected);
+                    break;
+                }
             }
         }
         catch
@@ -430,6 +450,7 @@ public partial class EditorView : UserControl
     {
         ApplyEditorSettings();
         PushContextMenuLabels();
+        PushInlineActions();
         PushGrammarCheckState();
         if (_vm?.IsDocumentOpen == true)
         {
@@ -685,6 +706,78 @@ public partial class EditorView : UserControl
                  + $"\"paste\":\"{EscapeForJsonValue(loc["editor.contextMenu.paste"])}\","
                  + $"\"selectAll\":\"{EscapeForJsonValue(loc["editor.contextMenu.selectAll"])}\"}}";
         ExecuteScript($"setContextMenuLabels('{EscapeForSingleQuoteJs(json)}')");
+    }
+
+    private void PushInlineActions()
+    {
+        if (!_webViewReady)
+        {
+            System.Diagnostics.Debug.WriteLine("[InlineActions] PushInlineActions skipped — webView not ready.");
+            return;
+        }
+        var contributors = App.ExtensionManager?.Host.GetInlineActionContributors() ?? new List<Novalist.Sdk.Hooks.IInlineActionContributor>();
+        System.Diagnostics.Debug.WriteLine($"[InlineActions] PushInlineActions. Host null? {App.ExtensionManager is null}. Contributors: {contributors.Count}");
+        var flat = new List<object>();
+        foreach (var c in contributors)
+        {
+            var actions = c.GetInlineActions().OrderBy(a => a.Priority).ToList();
+            System.Diagnostics.Debug.WriteLine($"[InlineActions]  contributor={c.GetType().Name} actions={actions.Count} ids={string.Join(",", actions.Select(a => a.Id))}");
+            foreach (var a in actions)
+            {
+                flat.Add(new
+                {
+                    id = a.Id,
+                    label = a.Label,
+                    group = a.Group ?? string.Empty,
+                    icon = a.Icon ?? string.Empty,
+                });
+            }
+        }
+        var json = JsonSerializer.Serialize(flat);
+        System.Diagnostics.Debug.WriteLine($"[InlineActions]  pushing JSON to JS: {json}");
+        ExecuteScript($"setInlineActions({json})");
+    }
+
+    private async Task ExecuteInlineActionAsync(string actionId, string selectedText)
+    {
+        try
+        {
+            var contributors = App.ExtensionManager?.Host.GetInlineActionContributors();
+            if (contributors == null) return;
+            Novalist.Sdk.Hooks.IInlineActionContributor? matched = null;
+            foreach (var c in contributors)
+            {
+                if (c.GetInlineActions().Any(a => string.Equals(a.Id, actionId, StringComparison.Ordinal)))
+                {
+                    matched = c;
+                    break;
+                }
+            }
+            if (matched == null) return;
+
+            var request = new Novalist.Sdk.Hooks.InlineActionRequest
+            {
+                SelectedText = selectedText,
+                SceneId = _vm?.CurrentScene?.Id ?? string.Empty,
+                ChapterGuid = _vm?.CurrentScene?.ChapterGuid ?? string.Empty,
+            };
+            var result = await matched.ExecuteAsync(actionId, request, default).ConfigureAwait(true);
+
+            var payload = JsonSerializer.Serialize(new
+            {
+                actionId,
+                text = result.Text ?? string.Empty,
+                disposition = result.Disposition == Novalist.Sdk.Hooks.InlineActionDisposition.InsertAfterSelection ? "insertAfter" : "replace",
+                error = result.Error,
+            });
+            ExecuteScript($"applyInlineActionResult({payload})");
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[InlineAction] {actionId} failed: {ex.Message}");
+            var payload = JsonSerializer.Serialize(new { actionId, text = string.Empty, disposition = "replace", error = ex.Message });
+            ExecuteScript($"applyInlineActionResult({payload})");
+        }
     }
 
     private void OnGrammarCheckRequest(JsonElement root)

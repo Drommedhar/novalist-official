@@ -21,7 +21,9 @@
       "WebFetch(domain:www.setapp.com)",
       "Bash(ls E:/git/novalist-aiassistant 2>&1 | head -50)",
       "Read(//e/git/novalist-aiassistant/**)",
-      "Bash(mkdir -p e:/git/novalist-official/docs && cp \"/c/Users/domin/.claude/plans/compare-novalist-with-https-www-literatu-swift-wreath.md\" \"e:/git/novalist-official/docs/PARITY_AUDIT.md\" && ls -la e:/git/novalist-official/docs/PARITY_AUDIT.md)"
+      "Bash(mkdir -p e:/git/novalist-official/docs && cp \"/c/Users/domin/.claude/plans/compare-novalist-with-https-www-literatu-swift-wreath.md\" \"e:/git/novalist-official/docs/PARITY_AUDIT.md\" && ls -la e:/git/novalist-official/docs/PARITY_AUDIT.md)",
+      "Bash(rm -f \"/c/Users/domin/.claude/projects/e--git-novalist-official/memory/feedback_no_emojis.md\")",
+      "Read(//c/Users/domin/.claude/projects/e--git-novalist-official/memory//**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\domin\\.claude\\plans"
