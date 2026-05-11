@@ -25,6 +25,11 @@ public class ProjectSettings
     [JsonPropertyName("chapterAnalysis")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, ChapterAnalysisResult>? ChapterAnalysis { get; set; }
+
+    /// <summary>Anchor date for the calendar view (ISO yyyy-MM-dd).</summary>
+    [JsonPropertyName("calendarAnchor")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? CalendarAnchor { get; set; }
 }
 
 public class ProjectViewState

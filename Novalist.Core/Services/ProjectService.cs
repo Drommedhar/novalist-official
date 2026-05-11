@@ -365,6 +365,29 @@ public partial class ProjectService : IProjectService
         await SaveScenesAsync();
     }
 
+    public async Task SetChapterDateRangeAsync(string chapterGuid, StoryDateRange? dateRange)
+    {
+        if (ActiveBook == null) return;
+        var chapter = ActiveBook.Chapters.FirstOrDefault(c => c.Guid == chapterGuid);
+        if (chapter == null) return;
+        chapter.DateRange = dateRange?.HasValue == true ? dateRange.Clone() : null;
+        if (dateRange?.HasValue == true && !string.IsNullOrWhiteSpace(dateRange.Start))
+            chapter.Date = dateRange.Start;
+        await SaveProjectAsync();
+    }
+
+    public async Task SetSceneDateRangeAsync(string chapterGuid, string sceneId, StoryDateRange? dateRange)
+    {
+        if (ScenesManifest == null) return;
+        if (!ScenesManifest.Chapters.TryGetValue(chapterGuid, out var scenes)) return;
+        var scene = scenes.FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null) return;
+        scene.DateRange = dateRange?.HasValue == true ? dateRange.Clone() : null;
+        if (dateRange?.HasValue == true && !string.IsNullOrWhiteSpace(dateRange.Start))
+            scene.Date = dateRange.Start;
+        await SaveScenesAsync();
+    }
+
     public async Task SetSceneAnalysisOverridesAsync(string chapterGuid, string sceneId, SceneAnalysisOverrides? overrides)
     {
         if (ScenesManifest == null) return;

@@ -66,6 +66,13 @@
   "relationships": {
     "title": "Relationships"
   },
+  "calendar": {
+    "title": "Calendar",
+    "today": "Today",
+    "weekView": "Week",
+    "monthView": "Month",
+    "yearView": "Year"
+  },
   "commentPeek": {
     "placeholder": "Type your comment...",
     "delete": "Delete comment",
@@ -157,7 +164,8 @@
     "codexHub": "Codex",
     "codexHubTooltip": "Browse all entities in one unified view",
     "manuscript": "Manuscript",
-    "manuscriptTooltip": "View the full manuscript as a continuous document"
+    "manuscriptTooltip": "View the full manuscript as a continuous document",
+    "calendarTooltip": "Open the scene calendar"
   },
   "sidebar": {
     "chapters": "Chapters",
@@ -333,6 +341,7 @@
       "settings": "Toggle Settings",
       "extensions": "Toggle Extensions",
       "relationships": "Open Relationships Graph",
+      "calendar": "Open Calendar",
       "startMenu": "Toggle Start Menu"
     },
     "panel": {
@@ -661,6 +670,12 @@
     "chapterNameWatermark": "Enter chapter title...",
     "dateOptional": "Date (optional)",
     "dateWatermark": "e.g. 03/15/1993",
+    "dateStart": "Start",
+    "dateEnd": "End",
+    "dateEndWatermark": "End (optional)",
+    "dateNoteWatermark": "Note (optional)",
+    "timeStart": "Start time",
+    "timeEnd": "End time",
     "sceneTitle": "Scene",
     "sceneName": "Scene name",
     "sceneNameWatermark": "Enter scene title...",

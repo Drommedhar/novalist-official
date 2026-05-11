@@ -1,0 +1,346 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:conv="using:Novalist.Desktop.Converters"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             x:Class="Novalist.Desktop.Views.CalendarView"
+             x:DataType="vm:CalendarViewModel">
+    <UserControl.Resources>
+        <conv:MultiplyConverter x:Key="Mul" />
+    </UserControl.Resources>
+    <Border Background="{DynamicResource EditorBackground}">
+        <DockPanel>
+            <!-- Toolbar -->
+            <Border DockPanel.Dock="Top"
+                    Padding="16,10"
+                    BorderBrush="{DynamicResource CardBorder}"
+                    BorderThickness="0,0,0,1"
+                    Background="{DynamicResource ExplorerBackground}">
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
+                    <Button Grid.Column="0" Content="{loc:Loc calendar.today}" Command="{Binding TodayCommand}" Padding="10,4" />
+                    <Button Grid.Column="1" Content="&lt;" Command="{Binding PreviousWeekCommand}" Padding="10,4" />
+                    <Button Grid.Column="2" Content="&gt;" Command="{Binding NextWeekCommand}" Padding="10,4" />
+                    <TextBlock Grid.Column="3"
+                               Text="{Binding RangeLabel}"
+                               FontSize="14"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Margin="12,0,0,0"
+                               Foreground="{DynamicResource NormalText}" />
+                    <Button Grid.Column="4"
+                            Content="{loc:Loc calendar.weekView}"
+                            Command="{Binding SetWeekViewCommand}"
+                            Classes.active="{Binding IsWeekView}"
+                            Padding="10,4" />
+                    <Button Grid.Column="5"
+                            Content="{loc:Loc calendar.monthView}"
+                            Command="{Binding SetMonthViewCommand}"
+                            Classes.active="{Binding IsMonthView}"
+                            Padding="10,4" />
+                    <Button Grid.Column="6"
+                            Content="{loc:Loc calendar.yearView}"
+                            Command="{Binding SetYearViewCommand}"
+                            Classes.active="{Binding IsYearView}"
+                            Padding="10,4" />
+                </Grid>
+            </Border>
+
+            <!-- Body container (fills remaining space) -->
+            <Grid>
+            <!-- Week content -->
+            <Grid IsVisible="{Binding IsWeekView}" RowDefinitions="Auto,*">
+            <!-- Header row: days (week mode only) -->
+            <Grid Grid.Row="0"
+                  ColumnDefinitions="60,*,*,*,*,*,*,*"
+                  Background="{DynamicResource ExplorerBackground}">
+                <Border Grid.Column="0"
+                        BorderBrush="{DynamicResource ExplorerBorder}"
+                        BorderThickness="0,0,1,1" />
+                <ItemsControl Grid.Column="1" Grid.ColumnSpan="7"
+                              ItemsSource="{Binding Days}"
+                              HorizontalAlignment="Stretch">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="7" HorizontalAlignment="Stretch" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CalendarDayColumn">
+                            <Border BorderBrush="{DynamicResource ExplorerBorder}"
+                                    BorderThickness="0,0,1,1"
+                                    Padding="8,4">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding DayLabel}"
+                                               FontWeight="SemiBold"
+                                               FontSize="12" />
+                                    <ItemsControl ItemsSource="{Binding AllDayEvents}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:CalendarSceneEvent">
+                                                <Button Padding="4,2"
+                                                        Margin="0,1"
+                                                        HorizontalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Left"
+                                                        Background="{DynamicResource AccentBrush}"
+                                                        Foreground="{DynamicResource AccentForeground}"
+                                                        FontSize="11"
+                                                        Command="{Binding OpenCommand}"
+                                                        ToolTip.Tip="{Binding Tooltip}">
+                                                    <StackPanel Spacing="1">
+                                                        <TextBlock Text="{Binding Title}"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding Note}"
+                                                                   IsVisible="{Binding HasNote}"
+                                                                   FontStyle="Italic"
+                                                                   Opacity="0.85"
+                                                                   FontSize="10"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+
+            <!-- Hour grid scroller (week mode only) -->
+            <ScrollViewer Grid.Row="1"
+                          VerticalScrollBarVisibility="Auto">
+                <Grid ColumnDefinitions="60,*,*,*,*,*,*,*">
+                    <!-- Hour labels -->
+                    <ItemsControl Grid.Column="0" ItemsSource="{Binding HoursOfDay}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Height="48"
+                                        BorderBrush="{DynamicResource ExplorerBorder}"
+                                        BorderThickness="0,0,1,1"
+                                        Padding="6,2">
+                                    <TextBlock Text="{Binding}"
+                                               FontSize="11"
+                                               Opacity="0.6" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Day columns -->
+                    <ItemsControl Grid.Column="1" Grid.ColumnSpan="7" ItemsSource="{Binding Days}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="7" HorizontalAlignment="Stretch" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CalendarDayColumn">
+                                <Panel MinHeight="1152">
+                                    <!-- Hour grid background -->
+                                    <ItemsControl ItemsSource="{Binding HoursOfDay}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Height="48"
+                                                        BorderBrush="{DynamicResource ExplorerBorder}"
+                                                        BorderThickness="0,0,1,1" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <!-- Timed events absolutely positioned via Canvas.
+                                         ItemsControl wraps each item in a ContentPresenter;
+                                         set Canvas.Top on the ContentPresenter via styles so
+                                         Canvas (direct parent) picks up the attached property. -->
+                                    <ItemsControl ItemsSource="{Binding TimedEvents}">
+                                        <ItemsControl.Styles>
+                                            <Style Selector="ContentPresenter">
+                                                <Setter Property="Canvas.Top" Value="{ReflectionBinding TopPx}" />
+                                                <Setter Property="Height" Value="{ReflectionBinding HeightPx}" />
+                                                <Setter Property="Canvas.Left">
+                                                    <Setter.Value>
+                                                        <MultiBinding Converter="{StaticResource Mul}">
+                                                            <ReflectionBinding Path="LeftFraction" />
+                                                            <Binding Path="Bounds.Width" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                        </MultiBinding>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Setter Property="Width">
+                                                    <Setter.Value>
+                                                        <MultiBinding Converter="{StaticResource Mul}">
+                                                            <ReflectionBinding Path="WidthFraction" />
+                                                            <Binding Path="Bounds.Width" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                        </MultiBinding>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ItemsControl.Styles>
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <Canvas />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:CalendarTimedEvent">
+                                                <Button HorizontalAlignment="Stretch"
+                                                        VerticalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Stretch"
+                                                        VerticalContentAlignment="Top"
+                                                        Padding="6,3"
+                                                        Background="{DynamicResource AccentBrush}"
+                                                        Foreground="{DynamicResource AccentForeground}"
+                                                        BorderThickness="0"
+                                                        CornerRadius="3"
+                                                        FontSize="11"
+                                                        Command="{Binding Event.OpenCommand}"
+                                                        ToolTip.Tip="{Binding Event.Tooltip}">
+                                                    <StackPanel Spacing="2">
+                                                        <TextBlock Text="{Binding Event.Title}"
+                                                                   FontWeight="SemiBold"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding Event.ChapterTitle}"
+                                                                   Opacity="0.85"
+                                                                   FontSize="10"
+                                                                   TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding Event.Note}"
+                                                                   IsVisible="{Binding Event.HasNote}"
+                                                                   Opacity="0.7"
+                                                                   FontStyle="Italic"
+                                                                   FontSize="10"
+                                                                   TextWrapping="Wrap" />
+                                                    </StackPanel>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Panel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
+            </Grid>
+            <!-- Month grid (fills available space) -->
+            <Grid RowDefinitions="Auto,*"
+                  IsVisible="{Binding IsMonthView}">
+                <UniformGrid Grid.Row="0" Columns="7" Background="{DynamicResource ExplorerBackground}">
+                    <TextBlock Text="Mon" FontSize="11" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Tue" FontSize="11" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Wed" FontSize="11" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Thu" FontSize="11" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Fri" FontSize="11" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Sat" FontSize="11" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Sun" FontSize="11" Opacity="0.6" Padding="6,4" />
+                </UniformGrid>
+                <ItemsControl Grid.Row="1" ItemsSource="{Binding MonthDays}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="7" Rows="6" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:CalendarMonthDay">
+                            <Button Padding="4,2"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Top"
+                                    Background="{DynamicResource EditorBackground}"
+                                    BorderBrush="{DynamicResource ExplorerBorder}"
+                                    BorderThickness="0,0,1,1"
+                                    Command="{Binding JumpCommand}">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding DayNumber}"
+                                               FontSize="12"
+                                               FontWeight="SemiBold"
+                                               HorizontalAlignment="Right" />
+                                    <ItemsControl ItemsSource="{Binding VisibleEvents}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:CalendarSceneEvent">
+                                                <Border Background="{DynamicResource AccentBrush}"
+                                                        CornerRadius="2"
+                                                        Padding="3,1"
+                                                        Margin="0,1">
+                                                    <TextBlock Text="{Binding Title}"
+                                                               Foreground="{DynamicResource AccentForeground}"
+                                                               FontSize="10"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               ToolTip.Tip="{Binding Tooltip}" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <TextBlock Text="{Binding OverflowLabel}"
+                                               FontSize="10"
+                                               Opacity="0.7"
+                                               IsVisible="{Binding HasOverflow}" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+
+            <!-- Year grid (fills space, lists scenes per month) -->
+            <ItemsControl IsVisible="{Binding IsYearView}" ItemsSource="{Binding YearMonths}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="4" Rows="3" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:CalendarYearMonth">
+                        <Border Margin="3"
+                                Background="{DynamicResource ExplorerBackground}"
+                                BorderBrush="{DynamicResource CardBorder}"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                            <DockPanel>
+                                <Button DockPanel.Dock="Top"
+                                        Padding="10,6"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        Background="Transparent"
+                                        BorderThickness="0,0,0,1"
+                                        BorderBrush="{DynamicResource CardBorder}"
+                                        Command="{Binding JumpCommand}">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding Label}"
+                                                   FontSize="13"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource NormalText}" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding EventCountLabel}"
+                                                   FontSize="11"
+                                                   Opacity="0.7"
+                                                   Foreground="{DynamicResource SubtleText}" />
+                                    </Grid>
+                                </Button>
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="6,4">
+                                    <ItemsControl ItemsSource="{Binding Events}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:CalendarSceneEvent">
+                                                <Button Padding="6,3"
+                                                        Margin="0,1"
+                                                        HorizontalAlignment="Stretch"
+                                                        HorizontalContentAlignment="Left"
+                                                        Background="{DynamicResource AccentBrush}"
+                                                        Foreground="{DynamicResource AccentForeground}"
+                                                        FontSize="11"
+                                                        Command="{Binding OpenCommand}"
+                                                        ToolTip.Tip="{Binding Tooltip}">
+                                                    <TextBlock Text="{Binding Title}"
+                                                               TextTrimming="CharacterEllipsis" />
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
+                            </DockPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            </Grid>
+        </DockPanel>
+    </Border>
+</UserControl>

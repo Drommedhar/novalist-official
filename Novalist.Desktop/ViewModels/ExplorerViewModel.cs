@@ -334,18 +334,31 @@ public partial class ExplorerViewModel : ObservableObject
         ProjectChanged?.Invoke();
     }
 
+    public Func<string, StoryDateRange?, Task<DateRangeDialogResult>>? ShowDateRangeDialog { get; set; }
+
     [RelayCommand]
     private async Task SetChapterDate(ChapterTreeItemViewModel? chapterVm)
     {
         chapterVm ??= SelectedChapter;
         if (chapterVm == null) return;
+        if (ShowDateRangeDialog == null) return;
 
-        var date = await RequestDateInput(Loc.T("explorer.chapterDate"), Loc.T("explorer.chapterDatePrompt"), chapterVm.Chapter.Date);
-        if (date == null) return;
+        var initial = chapterVm.Chapter.DateRange ?? (string.IsNullOrWhiteSpace(chapterVm.Chapter.Date)
+            ? null
+            : new StoryDateRange { Start = chapterVm.Chapter.Date });
 
-        await _projectService.SetChapterDateAsync(chapterVm.Chapter.Guid, date);
-        chapterVm.Chapter.Date = date;
+        var r = await ShowDateRangeDialog.Invoke(Loc.T("explorer.chapterDate"), initial);
+        if (r.Cancelled) return;
+
+        var range = r.Range;
+        await _projectService.SetChapterDateRangeAsync(chapterVm.Chapter.Guid, range);
+        chapterVm.Chapter.DateRange = range?.HasValue == true ? range : null;
+        if (range?.HasValue == true && !string.IsNullOrWhiteSpace(range.Start))
+            chapterVm.Chapter.Date = range.Start;
+        else
+            chapterVm.Chapter.Date = string.Empty;
         chapterVm.RefreshDisplay();
+        ProjectChanged?.Invoke();
     }
 
     [RelayCommand]
@@ -365,14 +378,27 @@ public partial class ExplorerViewModel : ObservableObject
     {
         sceneVm ??= SelectedScene;
         if (sceneVm == null) return;
+        if (ShowDateRangeDialog == null) return;
 
-        var date = await RequestDateInput(Loc.T("explorer.sceneDate"), Loc.T("explorer.sceneDatePrompt"), sceneVm.Scene.Date);
-        if (date == null) return;
+        var initial = sceneVm.Scene.DateRange ?? (string.IsNullOrWhiteSpace(sceneVm.Scene.Date)
+            ? null
+            : new StoryDateRange { Start = sceneVm.Scene.Date });
 
-        await _projectService.SetSceneDateAsync(sceneVm.Scene.ChapterGuid, sceneVm.Scene.Id, date);
-        sceneVm.Scene.Date = date;
+        var r = await ShowDateRangeDialog.Invoke(Loc.T("explorer.sceneDate"), initial);
+        if (r.Cancelled) return;
+
+        var range = r.Range;
+        await _projectService.SetSceneDateRangeAsync(sceneVm.Scene.ChapterGuid, sceneVm.Scene.Id, range);
+        sceneVm.Scene.DateRange = range?.HasValue == true ? range : null;
+        if (range?.HasValue == true && !string.IsNullOrWhiteSpace(range.Start))
+            sceneVm.Scene.Date = range.Start;
+        else
+            sceneVm.Scene.Date = string.Empty;
         sceneVm.RefreshDisplay();
+        ProjectChanged?.Invoke();
     }
+
+    public sealed record DateRangeDialogResult(bool Cancelled, StoryDateRange? Range);
 
     [RelayCommand]
     private async Task ToggleChapterFavorite(ChapterTreeItemViewModel? chapterVm)

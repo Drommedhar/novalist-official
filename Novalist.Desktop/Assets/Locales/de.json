@@ -133,7 +133,8 @@
     "codexHub": "Codex",
     "codexHubTooltip": "Alle Entitäten in einer Ansicht durchsuchen",
     "manuscript": "Manuskript",
-    "manuscriptTooltip": "Das vollständige Manuskript als fortlaufendes Dokument anzeigen"
+    "manuscriptTooltip": "Das vollständige Manuskript als fortlaufendes Dokument anzeigen",
+    "calendarTooltip": "Szenenkalender öffnen"
   },
   "sidebar": {
     "chapters": "Kapitel",
@@ -305,6 +306,7 @@
       "settings": "Einstellungen umschalten",
       "extensions": "Erweiterungen umschalten",
       "relationships": "Beziehungsgraph öffnen",
+      "calendar": "Kalender öffnen",
       "startMenu": "Startmenü umschalten"
     },
     "panel": {
@@ -633,6 +635,12 @@
     "chapterNameWatermark": "Kapiteltitel eingeben...",
     "dateOptional": "Datum (optional)",
     "dateWatermark": "z.B. 15.03.1993",
+    "dateStart": "Beginn",
+    "dateEnd": "Ende",
+    "dateEndWatermark": "Ende (optional)",
+    "dateNoteWatermark": "Notiz (optional)",
+    "timeStart": "Beginn-Uhrzeit",
+    "timeEnd": "End-Uhrzeit",
     "sceneTitle": "Szene",
     "sceneName": "Szenenname",
     "sceneNameWatermark": "Szenentitel eingeben...",
@@ -753,6 +761,13 @@
   },
   "relationships": {
     "title": "Beziehungen"
+  },
+  "calendar": {
+    "title": "Kalender",
+    "today": "Heute",
+    "weekView": "Woche",
+    "monthView": "Monat",
+    "yearView": "Jahr"
   },
   "commentPeek": {
     "placeholder": "Kommentar eingeben...",

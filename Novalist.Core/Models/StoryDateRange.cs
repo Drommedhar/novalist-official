@@ -18,11 +18,26 @@ public class StoryDateRange
     [JsonPropertyName("note")]
     public string Note { get; set; } = string.Empty;
 
+    /// <summary>Optional time-of-day for <see cref="Start"/> as "HH:mm".</summary>
+    [JsonPropertyName("startTime")]
+    public string StartTime { get; set; } = string.Empty;
+
+    /// <summary>Optional time-of-day for <see cref="End"/> as "HH:mm".</summary>
+    [JsonPropertyName("endTime")]
+    public string EndTime { get; set; } = string.Empty;
+
     [JsonIgnore]
     public bool HasValue
         => !string.IsNullOrWhiteSpace(Start)
            || !string.IsNullOrWhiteSpace(End)
            || !string.IsNullOrWhiteSpace(Note);
 
-    public StoryDateRange Clone() => new() { Start = Start, End = End, Note = Note };
+    public StoryDateRange Clone() => new()
+    {
+        Start = Start,
+        End = End,
+        Note = Note,
+        StartTime = StartTime,
+        EndTime = EndTime,
+    };
 }

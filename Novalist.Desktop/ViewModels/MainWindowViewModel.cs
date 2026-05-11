@@ -118,6 +118,14 @@ public partial class MainWindowViewModel : ObservableObject
     partial void OnIsRelationshipsGraphOpenChanged(bool value) => QueueSyncContentTabs();
 
     [ObservableProperty]
+    private CalendarViewModel? _calendar;
+
+    [ObservableProperty]
+    private bool _isCalendarOpen;
+
+    partial void OnIsCalendarOpenChanged(bool value) => QueueSyncContentTabs();
+
+    [ObservableProperty]
     private ResearchViewModel? _research;
 
     [ObservableProperty]
@@ -416,6 +424,8 @@ public partial class MainWindowViewModel : ObservableObject
             desired.Add(new EditorTabDescriptor("PlotGrid", "PlotGrid", Loc.T("plotGrid.title"), () => ClosePlotGridTabCommand.Execute(null)));
         if (IsRelationshipsGraphOpen)
             desired.Add(new EditorTabDescriptor("RelationshipsGraph", "RelationshipsGraph", Loc.T("relationships.title"), () => CloseRelationshipsGraphTabCommand.Execute(null)));
+        if (IsCalendarOpen)
+            desired.Add(new EditorTabDescriptor("Calendar", "Calendar", Loc.T("calendar.title"), () => CloseCalendarTabCommand.Execute(null)));
         if (IsResearchOpen)
             desired.Add(new EditorTabDescriptor("Research", "Research", Loc.T("research.title"), () => CloseResearchTabCommand.Execute(null)));
         if (IsExportOpen)
@@ -655,6 +665,7 @@ public partial class MainWindowViewModel : ObservableObject
             new HotkeyDescriptor { ActionId = "app.nav.settings", DisplayName = Loc.T("hotkeys.nav.settings"), Category = cat, DefaultGesture = "Ctrl+OemComma", OnExecute = ToggleSettings },
             new HotkeyDescriptor { ActionId = "app.nav.extensions", DisplayName = Loc.T("hotkeys.nav.extensions"), Category = cat, DefaultGesture = "Ctrl+Shift+X", OnExecute = ToggleExtensions },
             new HotkeyDescriptor { ActionId = "app.nav.relationships", DisplayName = Loc.T("hotkeys.nav.relationships"), Category = cat, DefaultGesture = "Ctrl+Shift+R", OnExecute = () => _ = OpenRelationshipsGraphAsync() },
+            new HotkeyDescriptor { ActionId = "app.nav.calendar", DisplayName = Loc.T("hotkeys.nav.calendar"), Category = cat, DefaultGesture = "Ctrl+Shift+K", OnExecute = OpenCalendar },
             new HotkeyDescriptor { ActionId = "app.nav.startMenu", DisplayName = Loc.T("hotkeys.nav.startMenu"), Category = cat, DefaultGesture = "Alt+F", OnExecute = ToggleStartMenu },
 
             // ── Panels ──
@@ -1081,6 +1092,14 @@ public partial class MainWindowViewModel : ObservableObject
         PlotGrid = new PlotGridViewModel(_projectService, App.PlotlineService);
 
         RelationshipsGraph = new RelationshipsGraphViewModel(_entityService);
+
+        Calendar = new CalendarViewModel(_projectService);
+        Calendar.SceneOpenRequested += (chapterGuid, sceneId) =>
+        {
+            var ch = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);
+            var sc = ch == null ? null : _projectService.GetScenesForChapter(ch.Guid).FirstOrDefault(s => s.Id == sceneId);
+            if (ch != null && sc != null) OnSceneOpenRequested(ch, sc);
+        };
         Research = new ResearchViewModel(App.ResearchService);
         Manuscript.SceneOpenRequested += OnSceneOpenRequested;
         Manuscript.SceneFocusChanged += OnManuscriptSceneFocused;
@@ -1268,6 +1287,7 @@ public partial class MainWindowViewModel : ObservableObject
     {
         await RefreshStatusBarAsync();
         ContextSidebar?.RefreshContext();
+        Calendar?.Refresh();
     }
 
     private void OnEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -1410,6 +1430,22 @@ public partial class MainWindowViewModel : ObservableObject
         IsRelationshipsGraphOpen = false;
         if (ActiveContentView == "RelationshipsGraph")
             ActiveContentView = GetFallbackView("RelationshipsGraph");
+    }
+
+    [RelayCommand]
+    private void OpenCalendar()
+    {
+        IsCalendarOpen = true;
+        ActiveContentView = "Calendar";
+        Calendar?.Refresh();
+    }
+
+    [RelayCommand]
+    private void CloseCalendarTab()
+    {
+        IsCalendarOpen = false;
+        if (ActiveContentView == "Calendar")
+            ActiveContentView = GetFallbackView("Calendar");
     }
 
     [RelayCommand]

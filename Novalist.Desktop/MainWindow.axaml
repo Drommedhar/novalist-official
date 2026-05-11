@@ -347,6 +347,15 @@
                                     <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconScroll}"/></Canvas>
                                 </Viewbox>
                             </Button>
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Calendar}"
+                                    Command="{Binding OpenCalendarCommand}"
+                                    IsVisible="{Binding IsProjectLoaded}"
+                                    ToolTip.Tip="{loc:Loc ribbon.calendarTooltip}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconCalendarDays}"/></Canvas>
+                                </Viewbox>
+                            </Button>
                             <!-- Separator -->
                             <Border Height="1" Background="{DynamicResource RibbonBorder}" Margin="6,4" />
                             <Button Classes="activityBarButton"
@@ -675,6 +684,11 @@
                                 <views:RelationshipsGraphView DataContext="{Binding RelationshipsGraph}"
                                                               x:Name="RelationshipsGraphPanel"
                                                               IsVisible="False" />
+
+                                <!-- Calendar -->
+                                <views:CalendarView DataContext="{Binding Calendar}"
+                                                    x:Name="CalendarPanel"
+                                                    IsVisible="False" />
 
                                 <!-- Research -->
                                 <views:ResearchView DataContext="{Binding Research}"

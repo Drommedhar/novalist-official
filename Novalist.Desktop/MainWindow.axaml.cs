@@ -392,6 +392,7 @@ public partial class MainWindow : Window
         var manuscriptPanel = this.FindControl<ManuscriptView>("ManuscriptPanel");
         var plotGridPanel = this.FindControl<PlotGridView>("PlotGridPanel");
         var relGraphPanel = this.FindControl<RelationshipsGraphView>("RelationshipsGraphPanel");
+        var calendarPanel = this.FindControl<CalendarView>("CalendarPanel");
         var researchPanel = this.FindControl<ResearchView>("ResearchPanel");
         var extHost = this.FindControl<ContentControl>("ExtensionContentHost");
 
@@ -424,6 +425,7 @@ public partial class MainWindow : Window
         if (manuscriptPanel != null) manuscriptPanel.IsVisible = manuscriptVisible;
         if (plotGridPanel != null) plotGridPanel.IsVisible = view == "PlotGrid";
         if (relGraphPanel != null) relGraphPanel.IsVisible = view == "RelationshipsGraph";
+        if (calendarPanel != null) calendarPanel.IsVisible = view == "Calendar";
         if (researchPanel != null) researchPanel.IsVisible = view == "Research";
 
         // Restore visibility after parent panel shown — respects overlay state.
@@ -609,6 +611,16 @@ public partial class MainWindow : Window
         explorer.ShowAutoCompleteInputDialog = ShowAutoCompleteInputDialogAsync;
         explorer.ShowChapterDialog = ShowChapterDialogAsync;
         explorer.ShowSceneDialog = ShowSceneDialogAsync;
+        explorer.ShowDateRangeDialog = ShowDateRangeDialogAsync;
+    }
+
+    private async Task<ExplorerViewModel.DateRangeDialogResult> ShowDateRangeDialogAsync(string prompt, Novalist.Core.Models.StoryDateRange? initial)
+    {
+        var dialog = new Dialogs.StoryDateRangeDialog(prompt, initial);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        if (dialog.Cleared) return new ExplorerViewModel.DateRangeDialogResult(false, null);
+        if (dialog.Result == null) return new ExplorerViewModel.DateRangeDialogResult(true, null);
+        return new ExplorerViewModel.DateRangeDialogResult(false, dialog.Result);
     }
 
     private void WireEntityPanel(EntityPanelViewModel? panel)
