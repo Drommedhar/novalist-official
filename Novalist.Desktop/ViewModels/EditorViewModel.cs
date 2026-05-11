@@ -140,6 +140,32 @@ public partial class EditorViewModel : ObservableObject
 
     /// <summary>Wraps the current selection in a comment span. Param = comment id.</summary>
     public Action<string>? AddCommentAction { get; set; }
+    /// <summary>Inserts a footnote anchor at the current caret position. Param = footnote id.</summary>
+    public Action<string>? AddFootnoteAction { get; set; }
+    /// <summary>Applies a named paragraph style to the paragraph at the caret.
+    /// Pass empty string to clear styles. Built-in ids: heading, subheading,
+    /// blockquote, poetry.</summary>
+    public Action<string>? ApplyParagraphStyleAction { get; set; }
+    /// <summary>Removes a footnote anchor. Param = footnote id.</summary>
+    public Action<string>? RemoveFootnoteAction { get; set; }
+    /// <summary>Scrolls to and highlights a footnote anchor. Param = footnote id.</summary>
+    public Action<string>? ScrollToFootnoteAction { get; set; }
+
+    /// <summary>Fired by the view when the WebView reports a new footnote anchor.</summary>
+    public event Action<string, int>? FootnoteInserted; // footnoteId, ordinal
+    /// <summary>Fired when the user clicks a footnote anchor.</summary>
+    public event Action<string>? FootnoteClicked;
+    internal void RaiseFootnoteInserted(string id, int number) => FootnoteInserted?.Invoke(id, number);
+    internal void RaiseFootnoteClicked(string id) => FootnoteClicked?.Invoke(id);
+
+    /// <summary>Fired when the user clicks "Add comment" in the WebView
+    /// (toolbar / context menu). MainWindow listens to drive the existing
+    /// AddComment flow.</summary>
+    public event Action? AddCommentRequested;
+    /// <summary>Fired when the user clicks "Add footnote" in the WebView.</summary>
+    public event Action? AddFootnoteRequested;
+    internal void RaiseAddCommentRequested() => AddCommentRequested?.Invoke();
+    internal void RaiseAddFootnoteRequested() => AddFootnoteRequested?.Invoke();
     /// <summary>Removes the comment span for the given id.</summary>
     public Action<string>? RemoveCommentAction { get; set; }
     /// <summary>Scrolls to and highlights the comment span.</summary>

@@ -213,6 +213,39 @@ body { display: flex; justify-content: center; }
     border-bottom: 1px dashed rgba(255, 160, 30, 0.7);
     cursor: pointer;
 }
+.nv-fn {
+    color: #89b4fa;
+    cursor: pointer;
+    font-size: 0.7em;
+    padding: 0 1px;
+    vertical-align: super;
+    line-height: 0;
+}
+.nv-fn:hover { text-decoration: underline; }
+
+/* Named paragraph styles */
+p.nv-style-heading {
+    font-size: 1.6em;
+    font-weight: 700;
+    margin-top: 1em;
+}
+p.nv-style-subheading {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin-top: 0.6em;
+}
+p.nv-style-blockquote {
+    margin-left: 2em;
+    font-style: italic;
+    opacity: 0.85;
+    border-left: 3px solid color-mix(in srgb, var(--fg) 35%, transparent 65%);
+    padding-left: 0.8em;
+}
+p.nv-style-poetry {
+    font-family: Georgia, "Times New Roman", serif;
+    white-space: pre-wrap;
+    margin-left: 1em;
+}
 .nv-comment.nv-comment-active {
     background-color: rgba(255, 200, 60, 0.55);
 }
@@ -309,6 +342,9 @@ body.has-comments { padding-right: 18em; }
     <button id="ft-align-center" title="Center">&#8677;</button>
     <button id="ft-align-right" title="Align Right">&#8678;</button>
     <button id="ft-align-justify" title="Justify">&#8801;</button>
+    <div class="ft-sep"></div>
+    <button id="ft-comment" title="Add comment">Cmt</button>
+    <button id="ft-footnote" title="Add footnote">Fn</button>
 </div>
 <script>
 'use strict';
@@ -1368,6 +1404,9 @@ document.addEventListener('contextmenu', (e) => {
     html += '<div class="cm-item" data-action="paste"><span>' + escapeHtml(contextMenuLabels.paste || 'Paste') + '</span><span class="cm-shortcut">Ctrl+V</span></div>';
     html += '<div class="cm-separator"></div>';
     html += '<div class="cm-item" data-action="selectAll"><span>' + escapeHtml(contextMenuLabels.selectAll || 'Select All') + '</span><span class="cm-shortcut">Ctrl+A</span></div>';
+    html += '<div class="cm-separator"></div>';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="addComment"><span>' + escapeHtml(contextMenuLabels.addComment || 'Add comment') + '</span><span class="cm-shortcut">Ctrl+Shift+M</span></div>';
+    html += '<div class="cm-item" data-action="addFootnote"><span>' + escapeHtml(contextMenuLabels.addFootnote || 'Add footnote') + '</span><span class="cm-shortcut">Ctrl+Shift+F</span></div>';
 
     console.log('[InlineActions] context menu open. hasSelection=', hasSelection, 'inlineActions.length=', (inlineActions || []).length);
     // Inline actions (extension-contributed). Shown only when selection non-empty.
@@ -1439,6 +1478,12 @@ contextMenu.addEventListener('click', (e) => {
             break;
         case 'selectAll':
             document.execCommand('selectAll');
+            break;
+        case 'addComment':
+            sendMessage({ type: 'requestAddComment' });
+            break;
+        case 'addFootnote':
+            sendMessage({ type: 'requestAddFootnote' });
             break;
     }
     hideContextMenu();
@@ -1764,6 +1809,8 @@ floatingToolbar.addEventListener('mousedown', (e) => {
     else if (id === 'ft-align-center') document.execCommand('justifyCenter', false, null);
     else if (id === 'ft-align-right') document.execCommand('justifyRight', false, null);
     else if (id === 'ft-align-justify') document.execCommand('justifyFull', false, null);
+    else if (id === 'ft-comment') sendMessage({ type: 'requestAddComment' });
+    else if (id === 'ft-footnote') sendMessage({ type: 'requestAddFootnote' });
     updateFloatingToolbar();
 });
 
@@ -1853,6 +1900,89 @@ window.addCommentToSelection = function (commentId) {
 
 window.removeCommentById = removeCommentSpan;
 window.scrollToCommentById = scrollToComment;
+
+// ── Footnotes ──────────────────────────────────────────────────
+function renumberFootnotes() {
+    var sups = editor.querySelectorAll('sup.nv-fn[data-fn-id]');
+    var i = 1;
+    sups.forEach(function (sup) { sup.textContent = i; i++; });
+    return Array.from(sups).map(function (s) { return s.getAttribute('data-fn-id'); });
+}
+
+window.insertFootnoteAtSelection = function (footnoteId) {
+    var sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    var range = sel.getRangeAt(0);
+    var sup = document.createElement('sup');
+    sup.className = 'nv-fn';
+    sup.setAttribute('data-fn-id', footnoteId);
+    sup.textContent = '0';
+    range.collapse(false);
+    range.insertNode(sup);
+    range.setStartAfter(sup);
+    range.setEndAfter(sup);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    var ids = renumberFootnotes();
+    var num = ids.indexOf(footnoteId) + 1;
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    sendMessage({ type: 'footnoteInserted', footnoteId: footnoteId, number: num });
+    return num;
+};
+
+// Named paragraph styles: applies a class to the paragraph containing the
+// current selection / caret. Pass empty styleId to clear.
+window.applyParagraphStyle = function (styleId) {
+    var sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    var range = sel.getRangeAt(0);
+    var node = range.startContainer;
+    while (node && node !== editor && !(node.nodeType === 1 && node.tagName === 'P'))
+        node = node.parentNode;
+    if (!node || node === editor) return;
+    var classes = (node.className || '').split(/\s+/).filter(function (c) { return c && c.indexOf('nv-style-') !== 0; });
+    if (styleId) classes.push('nv-style-' + styleId);
+    node.className = classes.join(' ');
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+};
+
+window.setFootnotesData = function (data) {
+    try {
+        var arr = typeof data === 'string' ? JSON.parse(data) : (data || []);
+        var byId = {};
+        for (var i = 0; i < arr.length; i++) byId[arr[i].id] = arr[i].text || '';
+        var sups = editor.querySelectorAll('sup.nv-fn[data-fn-id]');
+        sups.forEach(function (s) {
+            var id = s.getAttribute('data-fn-id');
+            var t = byId[id];
+            if (t) s.setAttribute('title', t); else s.removeAttribute('title');
+        });
+    } catch (_) { /* ignore */ }
+};
+
+window.scrollToFootnoteById = function (footnoteId) {
+    var node = editor.querySelector('sup.nv-fn[data-fn-id="' + footnoteId + '"]');
+    if (!node) return;
+    node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var prev = node.style.background;
+    node.style.background = 'rgba(137, 180, 250, 0.4)';
+    setTimeout(function () { node.style.background = prev || ''; }, 1200);
+};
+
+window.removeFootnoteById = function (footnoteId) {
+    var nodes = editor.querySelectorAll('sup.nv-fn[data-fn-id="' + footnoteId + '"]');
+    nodes.forEach(function (n) { n.parentNode && n.parentNode.removeChild(n); });
+    renumberFootnotes();
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+};
+
+editor.addEventListener('click', function (e) {
+    var target = e.target;
+    if (target && target.classList && target.classList.contains('nv-fn')) {
+        var id = target.getAttribute('data-fn-id');
+        if (id) sendMessage({ type: 'footnoteClicked', footnoteId: id });
+    }
+});
 
 // ── Inline actions (extension-contributed) ──────────────────────
 let inlineActions = [];

@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             x:Class="Novalist.Desktop.Views.FootnotesPanelView"
+             x:DataType="vm:FootnotesPanelViewModel">
+    <Border Background="{DynamicResource ExplorerBackground}"
+            BorderBrush="{DynamicResource ExplorerBorder}"
+            BorderThickness="1,0,0,0">
+        <DockPanel>
+            <Border DockPanel.Dock="Top"
+                    Padding="14,10"
+                    BorderBrush="{DynamicResource ExplorerBorder}"
+                    BorderThickness="0,0,0,1">
+                <TextBlock Text="{loc:Loc footnotes.panelTitle}"
+                           FontSize="11"
+                           FontWeight="Bold"
+                           LetterSpacing="1"
+                           Foreground="{DynamicResource SubtleText}" />
+            </Border>
+
+            <TextBlock DockPanel.Dock="Top"
+                       Padding="14,12"
+                       FontSize="12"
+                       Foreground="{DynamicResource SubtleText}"
+                       Text="{loc:Loc footnotes.empty}"
+                       IsVisible="{Binding !HasFootnotes}" />
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="6,4">
+                <ItemsControl ItemsSource="{Binding Footnotes}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FootnoteItem">
+                            <Border Background="{DynamicResource CardBackground}"
+                                    CornerRadius="4"
+                                    Padding="8,6"
+                                    Margin="0,3">
+                                <DockPanel>
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6">
+                                        <Button Background="Transparent"
+                                                BorderThickness="0"
+                                                Padding="2,1"
+                                                FontSize="11"
+                                                Command="{Binding JumpCommand}"
+                                                ToolTip.Tip="{loc:Loc footnotes.jump}">
+                                            <TextBlock>
+                                                <Run Text="#" />
+                                                <Run Text="{Binding Number}" FontWeight="Bold" />
+                                            </TextBlock>
+                                        </Button>
+                                        <Button DockPanel.Dock="Right"
+                                                Content="×"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                FontSize="13"
+                                                Padding="6,1"
+                                                HorizontalAlignment="Right"
+                                                Command="{Binding DeleteCommand}"
+                                                ToolTip.Tip="{loc:Loc footnotes.delete}" />
+                                    </StackPanel>
+                                    <TextBox Text="{Binding Text, Mode=TwoWay}"
+                                             AcceptsReturn="True"
+                                             TextWrapping="Wrap"
+                                             FontSize="12"
+                                             MinHeight="36"
+                                             Margin="0,4,0,0" />
+                                </DockPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

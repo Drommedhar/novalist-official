@@ -304,6 +304,7 @@
       "manuscript": "Zum Manuskript",
       "settings": "Einstellungen umschalten",
       "extensions": "Erweiterungen umschalten",
+      "relationships": "Beziehungsgraph öffnen",
       "startMenu": "Startmenü umschalten"
     },
     "panel": {
@@ -333,7 +334,13 @@
       "alignRight": "Rechtsbündig",
       "alignJustify": "Blocksatz",
       "findReplace": "Suchen / Ersetzen",
-      "addComment": "Kommentar zur Auswahl hinzufügen"
+      "addComment": "Kommentar zur Auswahl hinzufügen",
+      "addFootnote": "Fußnote am Cursor einfügen",
+      "styleHeading": "Stil: Überschrift",
+      "styleSubheading": "Stil: Unterüberschrift",
+      "styleBlockquote": "Stil: Blockzitat",
+      "stylePoetry": "Stil: Lyrik",
+      "styleClear": "Stil: Zurücksetzen"
     },
     "project": {
       "save": "Szene speichern"
@@ -352,6 +359,8 @@
     "addSceneTooltip": "Szene hinzufügen und Kapitel wählen",
     "contextAddScene": "Szene hinzufügen",
     "contextSetDate": "Datum setzen",
+    "contextToggleFavorite": "Favorit umschalten",
+    "showFavoritesOnly": "Nur Favoriten",
     "contextRename": "Umbenennen",
     "contextDelete": "Löschen",
     "contextTakeSnapshot": "Stand sichern",
@@ -593,7 +602,9 @@
     "contextMenu.cut": "Ausschneiden",
     "contextMenu.copy": "Kopieren",
     "contextMenu.paste": "Einfügen",
-    "contextMenu.selectAll": "Alles auswählen"
+    "contextMenu.selectAll": "Alles auswählen",
+    "contextMenu.addComment": "Kommentar hinzufügen",
+    "contextMenu.addFootnote": "Fußnote hinzufügen"
   },
   "section": {
     "newSection": "Neuer Abschnitt"
@@ -729,6 +740,20 @@
     "addPrompt": "Kommentartext",
     "noSelection": "Wähle zuerst Text in der Szene aus."
   },
+  "footnotes": {
+    "addTitle": "Fußnote hinzufügen",
+    "addPrompt": "Fußnotentext",
+    "editTitle": "Fußnote bearbeiten",
+    "editPrompt": "Text bearbeiten — leer lassen zum Löschen",
+    "tab": "Fußnoten",
+    "panelTitle": "FUSSNOTEN",
+    "empty": "Keine Fußnoten in dieser Szene.",
+    "jump": "Zur Fußnote in der Szene springen",
+    "delete": "Fußnote löschen"
+  },
+  "relationships": {
+    "title": "Beziehungen"
+  },
   "commentPeek": {
     "placeholder": "Kommentar eingeben...",
     "delete": "Kommentar löschen",
@@ -820,6 +845,7 @@
     "filterLocation": "Nach Ort filtern…",
     "filterSource": "Nach Quelle filtern…",
     "addEvent": "Ereignis hinzufügen",
+    "exportOutline": "Outline exportieren",
     "applyStructure": "Struktur einfügen...",
     "editEvent": "Bearbeiten",
     "deleteEvent": "Löschen",
@@ -874,6 +900,9 @@
     "formatDocx": "DOCX (Word)",
     "formatPdf": "PDF",
     "formatMarkdown": "Markdown",
+    "formatFinalDraft": "Final Draft (.fdx)",
+    "formatLatex": "LaTeX",
+    "formatCodex": "Codex (Markdown)",
     "smfPreset": "SMF",
     "smfPresetDesc": "Standard-Manuskriptformat: 12 pt Courier, doppelter Zeilenabstand, 1-Zoll-Ränder, Seitenkopf mit Nachname / Titel.",
     "preset": "Vorlage",

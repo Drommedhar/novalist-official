@@ -162,6 +162,8 @@ public partial class ExplorerViewModel : ObservableObject
             var scenes = _projectService.GetScenesForChapter(chapter.Guid);
             foreach (var scene in scenes)
             {
+                if (ShowFavoritesOnly && !scene.IsFavorite && !chapter.IsFavorite)
+                    continue;
                 var sceneVm = new SceneTreeItemViewModel(scene, chapter)
                 {
                     IsSelected = selectedSceneSet.Contains(scene.Id)
@@ -173,6 +175,9 @@ public partial class ExplorerViewModel : ObservableObject
                     SelectedScene ??= sceneVm;
                 }
             }
+
+            if (ShowFavoritesOnly && !chapter.IsFavorite && chapterVm.Scenes.Count == 0)
+                continue;
 
             if (chapterVm.IsSelected)
             {
@@ -368,6 +373,36 @@ public partial class ExplorerViewModel : ObservableObject
         sceneVm.Scene.Date = date;
         sceneVm.RefreshDisplay();
     }
+
+    [RelayCommand]
+    private async Task ToggleChapterFavorite(ChapterTreeItemViewModel? chapterVm)
+    {
+        chapterVm ??= SelectedChapter;
+        if (chapterVm == null) return;
+        var newValue = !chapterVm.Chapter.IsFavorite;
+        await _projectService.SetChapterFavoriteAsync(chapterVm.Chapter.Guid, newValue);
+        chapterVm.Chapter.IsFavorite = newValue;
+        chapterVm.RefreshDisplay();
+    }
+
+    [RelayCommand]
+    private async Task ToggleSceneFavorite(SceneTreeItemViewModel? sceneVm)
+    {
+        sceneVm ??= SelectedScene;
+        if (sceneVm == null) return;
+        var newValue = !sceneVm.Scene.IsFavorite;
+        await _projectService.SetSceneFavoriteAsync(sceneVm.Scene.ChapterGuid, sceneVm.Scene.Id, newValue);
+        sceneVm.Scene.IsFavorite = newValue;
+        sceneVm.RefreshDisplay();
+    }
+
+    [RelayCommand]
+    private void ToggleFavoritesOnlyFilter() => ShowFavoritesOnly = !ShowFavoritesOnly;
+
+    [ObservableProperty]
+    private bool _showFavoritesOnly;
+
+    partial void OnShowFavoritesOnlyChanged(bool value) => Refresh();
 
     // ── Act commands ────────────────────────────────────────────────
 
@@ -782,6 +817,8 @@ public partial class ChapterTreeItemViewModel : ObservableObject
 
     public string DateDisplay => Chapter.Date;
 
+    public bool IsFavorite => Chapter.IsFavorite;
+
     public string StatusDisplay => Chapter.Status switch
     {
         ChapterStatus.Outline => "○",
@@ -806,6 +843,7 @@ public partial class ChapterTreeItemViewModel : ObservableObject
         OnPropertyChanged(nameof(StatusDisplay));
         OnPropertyChanged(nameof(HasDate));
         OnPropertyChanged(nameof(DateDisplay));
+        OnPropertyChanged(nameof(IsFavorite));
     }
 
     public void RefreshGitStatus()
@@ -837,6 +875,8 @@ public partial class SceneTreeItemViewModel : ObservableObject
 
     public string DateDisplay => Scene.Date;
 
+    public bool IsFavorite => Scene.IsFavorite;
+
     public SceneTreeItemViewModel(SceneData scene, ChapterData parentChapter)
     {
         Scene = scene;
@@ -849,6 +889,7 @@ public partial class SceneTreeItemViewModel : ObservableObject
         DisplayName = Scene.Title;
         OnPropertyChanged(nameof(HasDate));
         OnPropertyChanged(nameof(DateDisplay));
+        OnPropertyChanged(nameof(IsFavorite));
     }
 }
 

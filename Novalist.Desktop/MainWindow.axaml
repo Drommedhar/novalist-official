@@ -30,9 +30,6 @@
                 <MenuItem Header="{loc:Loc menu.findReplace}"
                           Command="{Binding OpenFindReplaceCommand}"
                           InputGesture="Ctrl+H" />
-                <MenuItem Header="{loc:Loc menu.addComment}"
-                          Command="{Binding AddCommentCommand}"
-                          InputGesture="Ctrl+Shift+M" />
                 <Separator />
                 <MenuItem Header="{loc:Loc menu.takeSnapshot}"
                           Command="{Binding TakeSnapshotCommand}" />
@@ -674,6 +671,11 @@
                                                     x:Name="PlotGridPanel"
                                                     IsVisible="False" />
 
+                                <!-- Relationships graph -->
+                                <views:RelationshipsGraphView DataContext="{Binding RelationshipsGraph}"
+                                                              x:Name="RelationshipsGraphPanel"
+                                                              IsVisible="False" />
+
                                 <!-- Research -->
                                 <views:ResearchView DataContext="{Binding Research}"
                                                     x:Name="ResearchPanel"
@@ -692,17 +694,20 @@
                             <Grid Grid.Column="2"
                                   RowDefinitions="Auto,*"
                                   IsVisible="{Binding IsContextSidebarShowing}">
-                                <!-- Tab strip: only visible when extension context panels are contributed -->
+                                <!-- Tab strip: always shown so users can flip between Context / Footnotes / extension tabs -->
                                 <Border Grid.Row="0"
                                         Background="{DynamicResource ExplorerBackground}"
                                         BorderBrush="{DynamicResource ExplorerBorder}"
-                                        BorderThickness="1,0,0,1"
-                                        IsVisible="{Binding HasExtensionContextTabs}">
+                                        BorderThickness="1,0,0,1">
                                     <StackPanel Orientation="Horizontal">
                                         <Button Content="{loc:Loc context.tab}"
                                                 Click="OnContextTabClick" Tag="Context"
                                                 Classes="explorerTab" Padding="10,6" FontSize="11"
                                                 Classes.active="{Binding IsContextTabActive}" />
+                                        <Button Content="{loc:Loc footnotes.tab}"
+                                                Click="OnContextTabClick" Tag="Footnotes"
+                                                Classes="explorerTab" Padding="10,6" FontSize="11"
+                                                Classes.active="{Binding IsFootnotesTabActive}" />
                                         <ItemsControl ItemsSource="{Binding ExtensionContextTabs}">
                                             <ItemsControl.ItemsPanel>
                                                 <ItemsPanelTemplate>
@@ -722,10 +727,14 @@
                                         </ItemsControl>
                                     </StackPanel>
                                 </Border>
-                                <!-- Content: native context sidebar or extension panel -->
+                                <!-- Content: native context sidebar, footnotes panel, or extension panel -->
                                 <Panel Grid.Row="1">
                                     <views:ContextSidebarView DataContext="{Binding ContextSidebar}"
-                                                              x:Name="ContextSidebarPanel" />
+                                                              x:Name="ContextSidebarPanel"
+                                                              IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsContextTabActive}" />
+                                    <views:FootnotesPanelView DataContext="{Binding FootnotesPanel}"
+                                                              x:Name="FootnotesPanel"
+                                                              IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).IsFootnotesTabActive}" />
                                     <ContentControl x:Name="ContextExtTabHost"
                                                     IsVisible="False" />
                                 </Panel>

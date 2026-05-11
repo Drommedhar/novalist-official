@@ -102,6 +102,9 @@ public partial class MainWindow : Window
             case nameof(MainWindowViewModel.Export):
                 WireExport(vm.Export);
                 break;
+            case nameof(MainWindowViewModel.Timeline):
+                WireTimeline(vm.Timeline);
+                break;
             case nameof(MainWindowViewModel.ImageGallery):
                 WireImageGallery(vm.ImageGallery);
                 break;
@@ -324,8 +327,8 @@ public partial class MainWindow : Window
 
     private void OnContextTabClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is MainWindowViewModel vm)
-            vm.ActiveContextTab = "Context";
+        if (sender is Button btn && btn.Tag is string tag && DataContext is MainWindowViewModel vm)
+            vm.ActiveContextTab = tag;
     }
 
     private void OnContextExtTabClick(object? sender, RoutedEventArgs e)
@@ -339,14 +342,18 @@ public partial class MainWindow : Window
     private void UpdateContextTabContent(MainWindowViewModel vm)
     {
         var ctxSidebar = this.FindControl<ContextSidebarView>("ContextSidebarPanel");
+        var fnPanel = this.FindControl<FootnotesPanelView>("FootnotesPanel");
         var extHost = this.FindControl<ContentControl>("ContextExtTabHost");
         var isNative = string.Equals(vm.ActiveContextTab, "Context", StringComparison.Ordinal);
+        var isFootnotes = string.Equals(vm.ActiveContextTab, "Footnotes", StringComparison.Ordinal);
+        var isExt = !isNative && !isFootnotes;
 
         if (ctxSidebar != null) ctxSidebar.IsVisible = isNative;
+        if (fnPanel != null) fnPanel.IsVisible = isFootnotes;
 
         if (extHost == null) return;
 
-        if (!isNative)
+        if (isExt)
         {
             var panelId = vm.ActiveContextTab;
             if (!_contextExtTabViews.TryGetValue(panelId, out var view))
@@ -384,6 +391,7 @@ public partial class MainWindow : Window
         var codexHubPanel = this.FindControl<CodexHubView>("CodexHubPanel");
         var manuscriptPanel = this.FindControl<ManuscriptView>("ManuscriptPanel");
         var plotGridPanel = this.FindControl<PlotGridView>("PlotGridPanel");
+        var relGraphPanel = this.FindControl<RelationshipsGraphView>("RelationshipsGraphPanel");
         var researchPanel = this.FindControl<ResearchView>("ResearchPanel");
         var extHost = this.FindControl<ContentControl>("ExtensionContentHost");
 
@@ -415,6 +423,7 @@ public partial class MainWindow : Window
         if (codexHubPanel != null) codexHubPanel.IsVisible = view == "CodexHub";
         if (manuscriptPanel != null) manuscriptPanel.IsVisible = manuscriptVisible;
         if (plotGridPanel != null) plotGridPanel.IsVisible = view == "PlotGrid";
+        if (relGraphPanel != null) relGraphPanel.IsVisible = view == "RelationshipsGraph";
         if (researchPanel != null) researchPanel.IsVisible = view == "Research";
 
         // Restore visibility after parent panel shown — respects overlay state.
@@ -625,6 +634,12 @@ public partial class MainWindow : Window
     {
         if (export == null) return;
         export.ShowSaveFileDialog = ShowExportSaveFileDialogAsync;
+    }
+
+    private void WireTimeline(TimelineViewModel? timeline)
+    {
+        if (timeline == null) return;
+        timeline.ShowSaveFileDialog = ShowExportSaveFileDialogAsync;
     }
 
     private void WireImageGallery(ImageGalleryViewModel? gallery)

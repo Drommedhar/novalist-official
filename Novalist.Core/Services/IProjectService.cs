@@ -37,6 +37,8 @@ public interface IProjectService
     Task DeleteSceneAsync(string chapterGuid, string sceneId);
     Task SetChapterDateAsync(string chapterGuid, string date);
     Task SetSceneDateAsync(string chapterGuid, string sceneId, string date);
+    Task SetChapterFavoriteAsync(string chapterGuid, bool favorite);
+    Task SetSceneFavoriteAsync(string chapterGuid, string sceneId, bool favorite);
     Task SetSceneAnalysisOverridesAsync(string chapterGuid, string sceneId, SceneAnalysisOverrides? overrides);
     Task ReorderChapterAsync(string chapterGuid, int newOrder);
     Task ReorderSceneAsync(string chapterGuid, string sceneId, int newOrder);

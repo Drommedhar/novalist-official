@@ -84,6 +84,10 @@
                                 <TextBlock Text="{loc:Loc timeline.addEvent}" FontSize="11" />
                             </StackPanel>
                         </Button>
+                        <Button Command="{Binding ExportOutlineCommand}"
+                                Classes="timelineAddBtn">
+                            <TextBlock Text="{loc:Loc timeline.exportOutline}" FontSize="11" />
+                        </Button>
                     </StackPanel>
                 </Grid>
             </Border>

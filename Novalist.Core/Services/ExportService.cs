@@ -11,7 +11,10 @@ public enum ExportFormat
     Epub,
     Docx,
     Pdf,
-    Markdown
+    Markdown,
+    FinalDraft,
+    LaTeX,
+    Codex
 }
 
 public class ExportOptions
@@ -72,10 +75,12 @@ public partial class ExportService
     private const string SceneBreakText = "* * *";
 
     private readonly IProjectService _projectService;
+    private readonly IEntityService? _entityService;
 
-    public ExportService(IProjectService projectService)
+    public ExportService(IProjectService projectService, IEntityService? entityService = null)
     {
         _projectService = projectService;
+        _entityService = entityService;
     }
 
     /// <summary>
@@ -98,6 +103,20 @@ public partial class ExportService
             foreach (var scene in scenes)
             {
                 var html = await _projectService.ReadSceneContentAsync(chapter, scene);
+                if (scene.Footnotes is { Count: > 0 } notes)
+                {
+                    var fnHtml = new StringBuilder();
+                    fnHtml.Append("<p>&nbsp;</p><p>—— Footnotes ——</p>");
+                    foreach (var fn in notes.OrderBy(n => n.Number))
+                    {
+                        fnHtml.Append("<p>");
+                        fnHtml.Append(fn.Number);
+                        fnHtml.Append(". ");
+                        fnHtml.Append(WebUtility.HtmlEncode(fn.Text ?? string.Empty));
+                        fnHtml.Append("</p>");
+                    }
+                    html += fnHtml.ToString();
+                }
                 sceneContents.Add(new SceneExportContent
                 {
                     Title = scene.Title,
@@ -138,7 +157,385 @@ public partial class ExportService
             case ExportFormat.Markdown:
                 await ExportToMarkdownAsync(chapters, options, outputPath);
                 break;
+            case ExportFormat.FinalDraft:
+                await ExportToFinalDraftAsync(chapters, options, outputPath);
+                break;
+            case ExportFormat.LaTeX:
+                await ExportToLatexAsync(chapters, options, outputPath);
+                break;
+            case ExportFormat.Codex:
+                await ExportCodexAsync(options, outputPath);
+                break;
         }
+    }
+
+    // ─── Final Draft (.fdx) ──────────────────────────────────────────
+
+    private async Task ExportToFinalDraftAsync(List<ChapterExportContent> chapters, ExportOptions options, string outputPath)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>");
+        sb.AppendLine("<FinalDraft DocumentType=\"Script\" Template=\"No\" Version=\"5\">");
+        sb.AppendLine("  <Content>");
+
+        if (options.IncludeTitlePage && !string.IsNullOrWhiteSpace(options.Title))
+        {
+            sb.AppendLine("    <Paragraph Type=\"General\"><Text>" + XmlEscape(options.Title) + "</Text></Paragraph>");
+            if (!string.IsNullOrWhiteSpace(options.Author))
+                sb.AppendLine("    <Paragraph Type=\"General\"><Text>" + XmlEscape(options.Author) + "</Text></Paragraph>");
+        }
+
+        foreach (var chapter in chapters)
+        {
+            sb.AppendLine($"    <Paragraph Type=\"Scene Heading\"><Text>{XmlEscape(chapter.Title.ToUpperInvariant())}</Text></Paragraph>");
+            foreach (var scene in chapter.Scenes)
+            {
+                sb.AppendLine($"    <Paragraph Type=\"Scene Heading\"><Text>{XmlEscape(scene.Title.ToUpperInvariant())}</Text></Paragraph>");
+                foreach (var para in ParseHtmlToParagraphs(scene.HtmlContent))
+                {
+                    var text = string.Concat(para.Select(p => p.Text));
+                    if (string.IsNullOrWhiteSpace(text)) continue;
+                    sb.AppendLine($"    <Paragraph Type=\"Action\"><Text>{XmlEscape(text.Trim())}</Text></Paragraph>");
+                }
+            }
+        }
+
+        sb.AppendLine("  </Content>");
+        sb.AppendLine("</FinalDraft>");
+        await File.WriteAllTextAsync(outputPath, sb.ToString(), Encoding.UTF8);
+    }
+
+    private static string XmlEscape(string s)
+        => s.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;");
+
+    // ─── LaTeX ───────────────────────────────────────────────────────
+
+    private async Task ExportToLatexAsync(List<ChapterExportContent> chapters, ExportOptions options, string outputPath)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("\\documentclass[12pt,a4paper]{book}");
+        sb.AppendLine("\\usepackage[utf8]{inputenc}");
+        sb.AppendLine("\\usepackage{csquotes}");
+        sb.AppendLine("\\usepackage{setspace}");
+        sb.AppendLine("\\doublespacing");
+        if (!string.IsNullOrWhiteSpace(options.Title)) sb.AppendLine($"\\title{{{LatexEscape(options.Title)}}}");
+        if (!string.IsNullOrWhiteSpace(options.Author)) sb.AppendLine($"\\author{{{LatexEscape(options.Author)}}}");
+        sb.AppendLine("\\begin{document}");
+        if (options.IncludeTitlePage) sb.AppendLine("\\maketitle");
+
+        foreach (var chapter in chapters)
+        {
+            sb.AppendLine($"\\chapter{{{LatexEscape(chapter.Title)}}}");
+            for (int si = 0; si < chapter.Scenes.Count; si++)
+            {
+                if (si > 0) sb.AppendLine("\\begin{center}* * *\\end{center}");
+                foreach (Match pm in ParagraphAnyRegex().Matches(chapter.Scenes[si].HtmlContent))
+                {
+                    var styleId = ExtractStyleClass(pm.Groups[1].Value);
+                    var segments = ParseInlineFormatting(pm.Groups[2].Value);
+                    if (segments.Count == 0 || segments.All(s => string.IsNullOrWhiteSpace(s.Text))) continue;
+                    var body = string.Concat(segments.Select(seg =>
+                    {
+                        var t = LatexEscape(seg.Text);
+                        if (seg.Bold && seg.Italic) return $"\\textbf{{\\textit{{{t}}}}}";
+                        if (seg.Bold) return $"\\textbf{{{t}}}";
+                        if (seg.Italic) return $"\\textit{{{t}}}";
+                        return t;
+                    }));
+                    string line = styleId switch
+                    {
+                        "heading" => $"\\section*{{{body}}}",
+                        "subheading" => $"\\subsection*{{{body}}}",
+                        "blockquote" => $"\\begin{{quote}}{body}\\end{{quote}}",
+                        "poetry" => $"\\begin{{verse}}{body}\\end{{verse}}",
+                        _ => body,
+                    };
+                    sb.AppendLine(line);
+                    sb.AppendLine();
+                }
+            }
+        }
+        sb.AppendLine("\\end{document}");
+        await File.WriteAllTextAsync(outputPath, sb.ToString(), Encoding.UTF8);
+    }
+
+    // ─── Codex (markdown with images) ────────────────────────────────
+
+    public async Task ExportCodexAsync(ExportOptions options, string outputPath)
+    {
+        if (_entityService == null)
+        {
+            await File.WriteAllTextAsync(outputPath, "Codex export requires entity service.", Encoding.UTF8);
+            return;
+        }
+
+        var outputDir = Path.GetDirectoryName(outputPath) ?? string.Empty;
+        var baseName = Path.GetFileNameWithoutExtension(outputPath);
+        var imagesFolderName = SanitizeFolderName(baseName) + "_images";
+        var imagesAbsDir = Path.Combine(outputDir, imagesFolderName);
+        Directory.CreateDirectory(imagesAbsDir);
+
+        var copyMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        string? CopyImage(string relativePath)
+        {
+            if (string.IsNullOrWhiteSpace(relativePath)) return null;
+            if (copyMap.TryGetValue(relativePath, out var existing)) return existing;
+            var abs = _entityService!.GetImageFullPath(relativePath);
+            if (string.IsNullOrWhiteSpace(abs) || !File.Exists(abs)) return null;
+            var fileName = Path.GetFileName(abs);
+            var dest = Path.Combine(imagesAbsDir, fileName);
+            int n = 1;
+            while (File.Exists(dest) &&
+                   !FilesEqual(abs, dest))
+            {
+                fileName = $"{Path.GetFileNameWithoutExtension(abs)}_{n}{Path.GetExtension(abs)}";
+                dest = Path.Combine(imagesAbsDir, fileName);
+                n++;
+            }
+            if (!File.Exists(dest)) File.Copy(abs, dest, overwrite: false);
+            var rel = imagesFolderName + "/" + fileName;
+            copyMap[relativePath] = rel;
+            return rel;
+        }
+
+        var sb = new StringBuilder();
+        sb.AppendLine($"# {options.Title ?? "Codex"}");
+        if (!string.IsNullOrWhiteSpace(options.Author)) sb.AppendLine($"_by {options.Author}_");
+        sb.AppendLine();
+
+        var characters = await _entityService.LoadCharactersAsync();
+        var locations = await _entityService.LoadLocationsAsync();
+        var items = await _entityService.LoadItemsAsync();
+        var lore = await _entityService.LoadLoreAsync();
+
+        if (characters.Count > 0)
+        {
+            sb.AppendLine("## Characters");
+            foreach (var c in characters.OrderBy(x => x.DisplayName, System.StringComparer.CurrentCultureIgnoreCase))
+                AppendCharacter(sb, c, CopyImage);
+        }
+
+        if (locations.Count > 0)
+        {
+            sb.AppendLine("## Locations");
+            foreach (var l in locations.OrderBy(x => x.Name, System.StringComparer.CurrentCultureIgnoreCase))
+                AppendGenericEntity(sb, l.Name, l.Type, l.Description, l.Images, l.CustomProperties, l.Sections, CopyImage);
+        }
+
+        if (items.Count > 0)
+        {
+            sb.AppendLine("## Items");
+            foreach (var it in items.OrderBy(x => x.Name, System.StringComparer.CurrentCultureIgnoreCase))
+                AppendGenericEntity(sb, it.Name, it.Type, it.Description, it.Images, it.CustomProperties, it.Sections, CopyImage);
+        }
+
+        if (lore.Count > 0)
+        {
+            sb.AppendLine("## Lore");
+            foreach (var lo in lore.OrderBy(x => x.Name, System.StringComparer.CurrentCultureIgnoreCase))
+                AppendGenericEntity(sb, lo.Name, lo.Category, lo.Description, lo.Images, lo.CustomProperties, lo.Sections, CopyImage);
+        }
+
+        await File.WriteAllTextAsync(outputPath, sb.ToString(), Encoding.UTF8);
+
+        // Remove the images folder if nothing was copied (entities had no images).
+        if (copyMap.Count == 0)
+        {
+            try { Directory.Delete(imagesAbsDir, recursive: false); } catch { }
+        }
+    }
+
+    private static bool FilesEqual(string a, string b)
+    {
+        try
+        {
+            var fa = new FileInfo(a);
+            var fb = new FileInfo(b);
+            return fa.Length == fb.Length;
+        }
+        catch { return false; }
+    }
+
+    private static string SanitizeFolderName(string s)
+    {
+        var invalid = Path.GetInvalidFileNameChars();
+        var arr = s.Select(c => invalid.Contains(c) ? '_' : c).ToArray();
+        var clean = new string(arr).Trim();
+        return string.IsNullOrEmpty(clean) ? "codex" : clean;
+    }
+
+    private static void AppendCharacter(StringBuilder sb, CharacterData c, Func<string, string?> copyImage)
+    {
+        sb.AppendLine($"### {c.DisplayName}");
+        if (c.Images is { Count: > 0 })
+        {
+            foreach (var img in c.Images)
+            {
+                if (string.IsNullOrWhiteSpace(img.Path)) continue;
+                var rel = copyImage(img.Path);
+                if (rel != null) sb.AppendLine($"![{img.Name}]({rel})");
+            }
+        }
+        sb.AppendLine();
+        if (!string.IsNullOrWhiteSpace(c.Role)) sb.AppendLine($"- **Role:** {c.Role}");
+        if (!string.IsNullOrWhiteSpace(c.Age)) sb.AppendLine($"- **Age:** {c.Age}");
+        if (!string.IsNullOrWhiteSpace(c.Gender)) sb.AppendLine($"- **Gender:** {c.Gender}");
+        if (!string.IsNullOrWhiteSpace(c.Group)) sb.AppendLine($"- **Group:** {c.Group}");
+        if (!string.IsNullOrWhiteSpace(c.EyeColor)) sb.AppendLine($"- **Eyes:** {c.EyeColor}");
+        if (!string.IsNullOrWhiteSpace(c.HairColor)) sb.AppendLine($"- **Hair:** {c.HairColor}");
+        if (!string.IsNullOrWhiteSpace(c.Height)) sb.AppendLine($"- **Height:** {c.Height}");
+        if (!string.IsNullOrWhiteSpace(c.Build)) sb.AppendLine($"- **Build:** {c.Build}");
+        if (!string.IsNullOrWhiteSpace(c.SkinTone)) sb.AppendLine($"- **Skin:** {c.SkinTone}");
+        if (!string.IsNullOrWhiteSpace(c.DistinguishingFeatures)) sb.AppendLine($"- **Notable:** {c.DistinguishingFeatures}");
+
+        if (c.CustomProperties is { Count: > 0 })
+            foreach (var kv in c.CustomProperties)
+                if (!string.IsNullOrWhiteSpace(kv.Value))
+                    sb.AppendLine($"- **{kv.Key}:** {kv.Value}");
+
+        if (c.Relationships is { Count: > 0 })
+        {
+            sb.AppendLine();
+            sb.AppendLine("**Relationships**");
+            foreach (var r in c.Relationships)
+                sb.AppendLine($"- {r.Role}: {r.Target}");
+        }
+
+        if (c.Sections is { Count: > 0 })
+        {
+            foreach (var s in c.Sections)
+            {
+                if (string.IsNullOrWhiteSpace(s.Content)) continue;
+                sb.AppendLine();
+                sb.AppendLine($"**{s.Title}**");
+                sb.AppendLine(StripHtml(s.Content));
+            }
+        }
+        sb.AppendLine();
+    }
+
+    private static void AppendGenericEntity(StringBuilder sb, string name, string type, string description,
+        List<EntityImage>? images, Dictionary<string, string>? customProps, List<EntitySection>? sections,
+        Func<string, string?> copyImage)
+    {
+        sb.AppendLine($"### {name}");
+        if (images is { Count: > 0 })
+            foreach (var img in images)
+            {
+                if (string.IsNullOrWhiteSpace(img.Path)) continue;
+                var rel = copyImage(img.Path);
+                if (rel != null) sb.AppendLine($"![{img.Name}]({rel})");
+            }
+        sb.AppendLine();
+        if (!string.IsNullOrWhiteSpace(type)) sb.AppendLine($"- **Type:** {type}");
+        if (!string.IsNullOrWhiteSpace(description)) sb.AppendLine($"- **Description:** {description}");
+        if (customProps is { Count: > 0 })
+            foreach (var kv in customProps)
+                if (!string.IsNullOrWhiteSpace(kv.Value))
+                    sb.AppendLine($"- **{kv.Key}:** {kv.Value}");
+        if (sections is { Count: > 0 })
+        {
+            foreach (var s in sections)
+            {
+                if (string.IsNullOrWhiteSpace(s.Content)) continue;
+                sb.AppendLine();
+                sb.AppendLine($"**{s.Title}**");
+                sb.AppendLine(StripHtml(s.Content));
+            }
+        }
+        sb.AppendLine();
+    }
+
+    private static string LatexEscape(string s)
+    {
+        var sb = new StringBuilder(s.Length);
+        foreach (var c in s)
+        {
+            switch (c)
+            {
+                case '\\': sb.Append("\\textbackslash{}"); break;
+                case '&': sb.Append("\\&"); break;
+                case '%': sb.Append("\\%"); break;
+                case '$': sb.Append("\\$"); break;
+                case '#': sb.Append("\\#"); break;
+                case '_': sb.Append("\\_"); break;
+                case '{': sb.Append("\\{"); break;
+                case '}': sb.Append("\\}"); break;
+                case '~': sb.Append("\\textasciitilde{}"); break;
+                case '^': sb.Append("\\textasciicircum{}"); break;
+                default: sb.Append(c); break;
+            }
+        }
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Export the project's timeline as a chronological outline (Markdown).
+    /// Groups events by their linked chapter when present; otherwise lists them
+    /// under "Unscheduled events" in <see cref="TimelineManualEvent.Order"/>.
+    /// </summary>
+    public async Task ExportTimelineOutlineAsync(string outputPath)
+    {
+        var timeline = _projectService.ProjectSettings?.Timeline ?? new TimelineData();
+        var chapters = _projectService.GetChaptersOrdered().ToList();
+        var categories = timeline.Categories.ToDictionary(c => c.Id, c => c.Name, StringComparer.OrdinalIgnoreCase);
+
+        var sb = new StringBuilder();
+        sb.AppendLine("# Story Outline");
+        sb.AppendLine();
+
+        var eventsByChapter = timeline.ManualEvents
+            .GroupBy(ev => string.IsNullOrWhiteSpace(ev.LinkedChapterGuid) ? string.Empty : ev.LinkedChapterGuid)
+            .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Order).ToList());
+
+        foreach (var chapter in chapters)
+        {
+            sb.Append("## ").Append(chapter.Order).Append(". ").AppendLine(chapter.Title);
+            if (!string.IsNullOrWhiteSpace(chapter.Act))
+                sb.Append("_Act: ").Append(chapter.Act).AppendLine("_");
+            if (!string.IsNullOrWhiteSpace(chapter.Date))
+                sb.Append("_Date: ").Append(chapter.Date).AppendLine("_");
+
+            if (eventsByChapter.TryGetValue(chapter.Guid, out var chapterEvents))
+            {
+                foreach (var ev in chapterEvents)
+                    AppendEvent(sb, ev, categories);
+            }
+
+            var scenes = _projectService.GetScenesForChapter(chapter.Guid);
+            foreach (var scene in scenes)
+            {
+                sb.Append("- **").Append(scene.Title).Append("**");
+                if (!string.IsNullOrWhiteSpace(scene.Date))
+                    sb.Append(" — ").Append(scene.Date);
+                if (!string.IsNullOrWhiteSpace(scene.Synopsis))
+                    sb.Append(" — ").Append(scene.Synopsis.Replace('\n', ' '));
+                sb.AppendLine();
+            }
+            sb.AppendLine();
+        }
+
+        if (eventsByChapter.TryGetValue(string.Empty, out var unscheduled) && unscheduled.Count > 0)
+        {
+            sb.AppendLine("## Unscheduled events");
+            foreach (var ev in unscheduled)
+                AppendEvent(sb, ev, categories);
+            sb.AppendLine();
+        }
+
+        await File.WriteAllTextAsync(outputPath, sb.ToString(), Encoding.UTF8);
+    }
+
+    private static void AppendEvent(StringBuilder sb, TimelineManualEvent ev, IReadOnlyDictionary<string, string> categories)
+    {
+        sb.Append("- ");
+        if (!string.IsNullOrWhiteSpace(ev.Date)) sb.Append('[').Append(ev.Date).Append("] ");
+        sb.Append(ev.Title);
+        if (!string.IsNullOrWhiteSpace(ev.CategoryId) && categories.TryGetValue(ev.CategoryId, out var cat))
+            sb.Append(" _(").Append(cat).Append(")_");
+        if (!string.IsNullOrWhiteSpace(ev.Description))
+            sb.Append(" — ").Append(ev.Description.Replace('\n', ' '));
+        sb.AppendLine();
     }
 
     // ─── HTML Processing ─────────────────────────────────────────────
@@ -1179,12 +1576,23 @@ public partial class ExportService
                 }
 
                 var scene = chapter.Scenes[si];
-                var paragraphs = ParseHtmlToParagraphs(scene.HtmlContent);
-
-                foreach (var para in paragraphs)
+                foreach (Match pm in ParagraphAnyRegex().Matches(scene.HtmlContent))
                 {
-                    var text = SegmentsToMarkdown(para);
-                    sb.AppendLine(text);
+                    var styleId = ExtractStyleClass(pm.Groups[1].Value);
+                    var inner = pm.Groups[2].Value;
+                    var segments = ParseInlineFormatting(inner);
+                    if (segments.Count == 0 || segments.All(s => string.IsNullOrWhiteSpace(s.Text)))
+                        continue;
+                    var text = SegmentsToMarkdown(segments);
+                    var line = styleId switch
+                    {
+                        "heading" => $"# {text}",
+                        "subheading" => $"## {text}",
+                        "blockquote" => $"> {text}",
+                        "poetry" => $"    {text}",
+                        _ => text,
+                    };
+                    sb.AppendLine(line);
                     sb.AppendLine();
                 }
             }
@@ -1212,4 +1620,19 @@ public partial class ExportService
 
     [GeneratedRegex(@"<p[^>]*>(.*?)</p>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex ParagraphRegex();
+
+    [GeneratedRegex(@"<p[^>]*\bclass=""([^""]*)""[^>]*>(.*?)</p>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex ParagraphWithClassRegex();
+
+    [GeneratedRegex(@"<p([^>]*)>(.*?)</p>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex ParagraphAnyRegex();
+
+    private static string? ExtractStyleClass(string attrs)
+    {
+        var m = Regex.Match(attrs, @"class=""([^""]*)""", RegexOptions.IgnoreCase);
+        if (!m.Success) return null;
+        foreach (var token in m.Groups[1].Value.Split(' ', System.StringSplitOptions.RemoveEmptyEntries))
+            if (token.StartsWith("nv-style-")) return token.Substring("nv-style-".Length);
+        return null;
+    }
 }

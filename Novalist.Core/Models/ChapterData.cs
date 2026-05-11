@@ -22,6 +22,15 @@ public class ChapterData
     [JsonPropertyName("date")]
     public string Date { get; set; } = string.Empty;
 
+    [JsonPropertyName("isFavorite")]
+    public bool IsFavorite { get; set; }
+
+    /// <summary>Optional in-world date range. When present takes precedence
+    /// over <see cref="Date"/>.</summary>
+    [JsonPropertyName("dateRange")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public StoryDateRange? DateRange { get; set; }
+
     /// <summary>
     /// The folder name on disk for this chapter (e.g. "01 - First Chapter").
     /// </summary>

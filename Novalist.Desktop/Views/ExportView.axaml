@@ -118,7 +118,7 @@
                         BorderThickness="1"
                         CornerRadius="6"
                         Padding="16"
-                        IsVisible="{Binding Chapters.Count}">
+                        IsVisible="{Binding ChaptersVisible}">
                     <StackPanel Spacing="10">
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
                             <TextBlock Grid.Column="0"
@@ -157,8 +157,7 @@
                 </Border>
 
                 <!-- Export Button + Status -->
-                <StackPanel Spacing="10"
-                            IsVisible="{Binding Chapters.Count}">
+                <StackPanel Spacing="10">
                     <Button Content="{Binding ExportButtonText}"
                             Command="{Binding ExportCommand}"
                             HorizontalAlignment="Stretch"

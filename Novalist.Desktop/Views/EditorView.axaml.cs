@@ -189,6 +189,10 @@ public partial class EditorView : UserControl
         vm.AddCommentAction = id => ExecuteScript($"addCommentToSelection('{EscapeForSingleQuoteJs(id)}')");
         vm.RemoveCommentAction = id => ExecuteScript($"removeCommentById('{EscapeForSingleQuoteJs(id)}')");
         vm.ScrollToCommentAction = id => ExecuteScript($"scrollToCommentById('{EscapeForSingleQuoteJs(id)}')");
+        vm.AddFootnoteAction = id => ExecuteScript($"insertFootnoteAtSelection('{EscapeForSingleQuoteJs(id)}')");
+        vm.RemoveFootnoteAction = id => ExecuteScript($"removeFootnoteById('{EscapeForSingleQuoteJs(id)}')");
+        vm.ScrollToFootnoteAction = id => ExecuteScript($"scrollToFootnoteById('{EscapeForSingleQuoteJs(id)}')");
+        vm.ApplyParagraphStyleAction = id => ExecuteScript($"applyParagraphStyle('{EscapeForSingleQuoteJs(id)}')");
         vm.SyncCommentsAction = () => SyncCommentsToWebView();
         vm.ToggleBoldAction = () => ExecuteScript("toggleBold()");
         vm.ToggleItalicAction = () => ExecuteScript("toggleItalic()");
@@ -336,6 +340,17 @@ public partial class EditorView : UserControl
                 text = c.Text ?? string.Empty
             }));
         ExecuteScript($"setCommentsData({payload})");
+        SyncFootnotesToWebView();
+    }
+
+    internal void SyncFootnotesToWebView()
+    {
+        if (!_webViewReady) return;
+        var fns = _vm?.CurrentScene?.Footnotes;
+        var payload = fns == null
+            ? "[]"
+            : JsonSerializer.Serialize(fns.Select(f => new { id = f.Id, text = f.Text ?? string.Empty }));
+        ExecuteScript($"setFootnotesData({payload})");
     }
 
     internal string GetPlainText()
@@ -428,6 +443,31 @@ public partial class EditorView : UserControl
                     var commentId = root.GetProperty("commentId").GetString() ?? string.Empty;
                     if (!string.IsNullOrEmpty(commentId))
                         _vm?.RaiseCommentClicked(commentId);
+                    break;
+                }
+                case "footnoteInserted":
+                {
+                    var fnId = root.GetProperty("footnoteId").GetString() ?? string.Empty;
+                    var num = root.TryGetProperty("number", out var n) ? n.GetInt32() : 0;
+                    if (!string.IsNullOrEmpty(fnId) && _vm != null)
+                        _vm.RaiseFootnoteInserted(fnId, num);
+                    break;
+                }
+                case "footnoteClicked":
+                {
+                    var fnId = root.GetProperty("footnoteId").GetString() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(fnId))
+                        _vm?.RaiseFootnoteClicked(fnId);
+                    break;
+                }
+                case "requestAddComment":
+                {
+                    _vm?.RaiseAddCommentRequested();
+                    break;
+                }
+                case "requestAddFootnote":
+                {
+                    _vm?.RaiseAddFootnoteRequested();
                     break;
                 }
                 case "inlineActionRequested":
@@ -704,7 +744,9 @@ public partial class EditorView : UserControl
         var json = $"{{\"cut\":\"{EscapeForJsonValue(loc["editor.contextMenu.cut"])}\","
                  + $"\"copy\":\"{EscapeForJsonValue(loc["editor.contextMenu.copy"])}\","
                  + $"\"paste\":\"{EscapeForJsonValue(loc["editor.contextMenu.paste"])}\","
-                 + $"\"selectAll\":\"{EscapeForJsonValue(loc["editor.contextMenu.selectAll"])}\"}}";
+                 + $"\"selectAll\":\"{EscapeForJsonValue(loc["editor.contextMenu.selectAll"])}\","
+                 + $"\"addComment\":\"{EscapeForJsonValue(loc["editor.contextMenu.addComment"])}\","
+                 + $"\"addFootnote\":\"{EscapeForJsonValue(loc["editor.contextMenu.addFootnote"])}\"}}";
         ExecuteScript($"setContextMenuLabels('{EscapeForSingleQuoteJs(json)}')");
     }
 

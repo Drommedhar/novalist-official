@@ -91,6 +91,7 @@
                                             <MenuItem Header="{loc:Loc explorer.contextAddScene}" Click="OnAddSceneClick" />
                                             <MenuItem Header="{loc:Loc explorer.contextSetDate}" Click="OnSetChapterDateClick" />
                                             <MenuItem Header="{loc:Loc explorer.contextSetAct}" Click="OnSetChapterActClick" />
+                                            <MenuItem Header="{loc:Loc explorer.contextToggleFavorite}" Click="OnToggleChapterFavoriteClick" />
                                             <MenuItem Header="{loc:Loc explorer.contextRemoveFromAct}" Click="OnRemoveChapterFromActClick"
                                                       IsVisible="{Binding HasAct}" />
                                             <Separator />
@@ -168,6 +169,7 @@
                                                 <Border.ContextMenu>
                                                     <ContextMenu Tag="{Binding}" Opening="OnSceneContextMenuOpening">
                                                         <MenuItem Header="{loc:Loc explorer.contextSetDate}" Click="OnSetSceneDateClick" />
+                                                        <MenuItem Header="{loc:Loc explorer.contextToggleFavorite}" Click="OnToggleSceneFavoriteClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextRename}" Click="OnRenameSceneClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextTakeSnapshot}" Click="OnTakeSnapshotClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextSnapshots}" Click="OnOpenSnapshotsClick" />

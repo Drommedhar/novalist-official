@@ -346,6 +346,25 @@ public partial class ProjectService : IProjectService
         await SaveScenesAsync();
     }
 
+    public async Task SetChapterFavoriteAsync(string chapterGuid, bool favorite)
+    {
+        if (ActiveBook == null) return;
+        var chapter = ActiveBook.Chapters.FirstOrDefault(c => c.Guid == chapterGuid);
+        if (chapter == null) return;
+        chapter.IsFavorite = favorite;
+        await SaveProjectAsync();
+    }
+
+    public async Task SetSceneFavoriteAsync(string chapterGuid, string sceneId, bool favorite)
+    {
+        if (ScenesManifest == null) return;
+        if (!ScenesManifest.Chapters.TryGetValue(chapterGuid, out var scenes)) return;
+        var scene = scenes.FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null) return;
+        scene.IsFavorite = favorite;
+        await SaveScenesAsync();
+    }
+
     public async Task SetSceneAnalysisOverridesAsync(string chapterGuid, string sceneId, SceneAnalysisOverrides? overrides)
     {
         if (ScenesManifest == null) return;

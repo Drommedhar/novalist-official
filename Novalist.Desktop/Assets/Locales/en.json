@@ -52,6 +52,20 @@
     "addPrompt": "Comment text",
     "noSelection": "Select some text in the scene first."
   },
+  "footnotes": {
+    "addTitle": "Add footnote",
+    "addPrompt": "Footnote text",
+    "editTitle": "Edit footnote",
+    "editPrompt": "Edit text — leave empty to delete",
+    "tab": "Footnotes",
+    "panelTitle": "FOOTNOTES",
+    "empty": "No footnotes in this scene.",
+    "jump": "Jump to footnote in scene",
+    "delete": "Delete footnote"
+  },
+  "relationships": {
+    "title": "Relationships"
+  },
   "commentPeek": {
     "placeholder": "Type your comment...",
     "delete": "Delete comment",
@@ -318,6 +332,7 @@
       "manuscript": "Go to Manuscript",
       "settings": "Toggle Settings",
       "extensions": "Toggle Extensions",
+      "relationships": "Open Relationships Graph",
       "startMenu": "Toggle Start Menu"
     },
     "panel": {
@@ -347,7 +362,13 @@
       "alignRight": "Align Right",
       "alignJustify": "Align Justify",
       "findReplace": "Find / Replace",
-      "addComment": "Add comment to selection"
+      "addComment": "Add comment to selection",
+      "addFootnote": "Add footnote at cursor",
+      "styleHeading": "Style: Heading",
+      "styleSubheading": "Style: Subheading",
+      "styleBlockquote": "Style: Block quote",
+      "stylePoetry": "Style: Poetry",
+      "styleClear": "Style: Clear"
     },
     "project": {
       "save": "Save Scene"
@@ -366,6 +387,8 @@
     "addSceneTooltip": "Add a scene and choose its chapter",
     "contextAddScene": "Add Scene",
     "contextSetDate": "Set Date",
+    "contextToggleFavorite": "Toggle Favorite",
+    "showFavoritesOnly": "Favorites only",
     "contextRename": "Rename",
     "contextDelete": "Delete",
     "contextTakeSnapshot": "Take Snapshot",
@@ -607,7 +630,9 @@
     "contextMenu.cut": "Cut",
     "contextMenu.copy": "Copy",
     "contextMenu.paste": "Paste",
-    "contextMenu.selectAll": "Select All"
+    "contextMenu.selectAll": "Select All",
+    "contextMenu.addComment": "Add comment",
+    "contextMenu.addFootnote": "Add footnote"
   },
   "section": {
     "newSection": "New Section"
@@ -824,6 +849,7 @@
     "filterLocation": "Filter by location…",
     "filterSource": "Filter by source…",
     "addEvent": "Add Event",
+    "exportOutline": "Export Outline",
     "applyStructure": "Add structure...",
     "editEvent": "Edit",
     "deleteEvent": "Delete",
@@ -878,6 +904,9 @@
     "formatDocx": "DOCX (Word)",
     "formatPdf": "PDF",
     "formatMarkdown": "Markdown",
+    "formatFinalDraft": "Final Draft (.fdx)",
+    "formatLatex": "LaTeX",
+    "formatCodex": "Codex (Markdown)",
     "smfPreset": "SMF",
     "smfPresetDesc": "Standard Manuscript Format: 12 pt Courier, double-spaced, 1-inch margins, page headers with surname / title.",
     "preset": "Preset",

@@ -22,6 +22,15 @@ public class SceneData
     [JsonPropertyName("date")]
     public string Date { get; set; } = string.Empty;
 
+    [JsonPropertyName("isFavorite")]
+    public bool IsFavorite { get; set; }
+
+    /// <summary>Optional in-world date range. When present takes precedence
+    /// over <see cref="Date"/>.</summary>
+    [JsonPropertyName("dateRange")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public StoryDateRange? DateRange { get; set; }
+
     [JsonPropertyName("wordCount")]
     public int WordCount { get; set; }
 
@@ -47,9 +56,29 @@ public class SceneData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<SceneComment>? Comments { get; set; }
 
+    /// <summary>Footnotes / endnotes in this scene, referenced by
+    /// <c>&lt;sup class="nv-fn" data-fn-id="..."&gt;n&lt;/sup&gt;</c> anchors
+    /// in the scene HTML.</summary>
+    [JsonPropertyName("footnotes")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<SceneFootnote>? Footnotes { get; set; }
+
     [JsonPropertyName("analysisOverrides")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SceneAnalysisOverrides? AnalysisOverrides { get; set; }
+}
+
+public class SceneFootnote
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = System.Guid.NewGuid().ToString();
+
+    /// <summary>1-based ordinal number rendered in the superscript anchor.</summary>
+    [JsonPropertyName("number")]
+    public int Number { get; set; }
+
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = string.Empty;
 }
 
 public class SceneComment

@@ -58,6 +58,7 @@ public partial class MainWindowViewModel : ObservableObject
     partial void OnActiveEditorChanged(EditorViewModel? value)
     {
         ContextSidebar?.AttachEditor(value);
+        FootnotesPanel?.AttachEditor(value);
     }
 
     public void SetActivePane(EditorViewModel pane)
@@ -107,6 +108,14 @@ public partial class MainWindowViewModel : ObservableObject
     private bool _isPlotGridOpen;
 
     partial void OnIsPlotGridOpenChanged(bool value) => QueueSyncContentTabs();
+
+    [ObservableProperty]
+    private RelationshipsGraphViewModel? _relationshipsGraph;
+
+    [ObservableProperty]
+    private bool _isRelationshipsGraphOpen;
+
+    partial void OnIsRelationshipsGraphOpenChanged(bool value) => QueueSyncContentTabs();
 
     [ObservableProperty]
     private ResearchViewModel? _research;
@@ -244,6 +253,11 @@ public partial class MainWindowViewModel : ObservableObject
         _paneCollectionHandlers[pane] = handler;
         pane.OpenScenes.CollectionChanged += handler;
         pane.PropertyChanged += OnPanePropertyChanged;
+        pane.AddCommentRequested += AddComment;
+        pane.AddFootnoteRequested += OnAddFootnoteRequestedFromPane;
+        Action<string> footnoteClickedHandler = id => _ = EditFootnoteAsync(pane, id);
+        _paneFootnoteHandlers[pane] = footnoteClickedHandler;
+        pane.FootnoteClicked += footnoteClickedHandler;
     }
 
     private void DetachPaneListeners(EditorViewModel pane)
@@ -254,6 +268,46 @@ public partial class MainWindowViewModel : ObservableObject
             _paneCollectionHandlers.Remove(pane);
         }
         pane.PropertyChanged -= OnPanePropertyChanged;
+        pane.AddCommentRequested -= AddComment;
+        pane.AddFootnoteRequested -= OnAddFootnoteRequestedFromPane;
+        if (_paneFootnoteHandlers.TryGetValue(pane, out var fnHandler))
+        {
+            pane.FootnoteClicked -= fnHandler;
+            _paneFootnoteHandlers.Remove(pane);
+        }
+    }
+
+    private readonly Dictionary<EditorViewModel, Action<string>> _paneFootnoteHandlers = new();
+
+    private void OnAddFootnoteRequestedFromPane() => _ = AddFootnote();
+
+    private async Task EditFootnoteAsync(EditorViewModel pane, string footnoteId)
+    {
+        var scene = pane.CurrentScene;
+        if (scene?.Footnotes == null) return;
+        var fn = scene.Footnotes.FirstOrDefault(f => f.Id == footnoteId);
+        if (fn == null) return;
+        if (ShowInputDialog == null) return;
+
+        var result = await ShowInputDialog(
+            Loc.T("footnotes.editTitle"),
+            Loc.T("footnotes.editPrompt"),
+            fn.Text);
+        if (result == null) return; // user cancelled
+
+        if (string.IsNullOrWhiteSpace(result))
+        {
+            // empty = delete
+            scene.Footnotes.RemoveAll(f => f.Id == footnoteId);
+            pane.RemoveFootnoteAction?.Invoke(footnoteId);
+            await _projectService.SaveScenesAsync();
+            pane.SyncCommentsAction?.Invoke();
+            return;
+        }
+
+        fn.Text = result.Trim();
+        await _projectService.SaveScenesAsync();
+        pane.SyncCommentsAction?.Invoke();
     }
 
     private void OnPaneOpenScenesChanged(EditorViewModel pane, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -360,6 +414,8 @@ public partial class MainWindowViewModel : ObservableObject
             desired.Add(new EditorTabDescriptor("Manuscript", "Manuscript", "Manuscript", () => CloseManuscriptTabCommand.Execute(null)));
         if (IsPlotGridOpen)
             desired.Add(new EditorTabDescriptor("PlotGrid", "PlotGrid", Loc.T("plotGrid.title"), () => ClosePlotGridTabCommand.Execute(null)));
+        if (IsRelationshipsGraphOpen)
+            desired.Add(new EditorTabDescriptor("RelationshipsGraph", "RelationshipsGraph", Loc.T("relationships.title"), () => CloseRelationshipsGraphTabCommand.Execute(null)));
         if (IsResearchOpen)
             desired.Add(new EditorTabDescriptor("Research", "Research", Loc.T("research.title"), () => CloseResearchTabCommand.Execute(null)));
         if (IsExportOpen)
@@ -468,13 +524,18 @@ public partial class MainWindowViewModel : ObservableObject
     public ObservableCollection<ExtensionContextTabVM> ExtensionContextTabs { get; } = [];
 
     public bool IsContextTabActive => ActiveContextTab == "Context";
+    public bool IsFootnotesTabActive => ActiveContextTab == "Footnotes";
 
     partial void OnActiveContextTabChanged(string value)
     {
         OnPropertyChanged(nameof(IsContextTabActive));
+        OnPropertyChanged(nameof(IsFootnotesTabActive));
         foreach (var tab in ExtensionContextTabs)
             tab.IsActive = tab.Id == value;
     }
+
+    [ObservableProperty]
+    private FootnotesPanelViewModel? _footnotesPanel;
 
     partial void OnIsContextSidebarVisibleChanged(bool value) =>
         OnPropertyChanged(nameof(IsContextSidebarShowing));
@@ -593,6 +654,7 @@ public partial class MainWindowViewModel : ObservableObject
             new HotkeyDescriptor { ActionId = "app.nav.manuscript", DisplayName = Loc.T("hotkeys.nav.manuscript"), Category = cat, DefaultGesture = "Ctrl+D9", OnExecute = ShowManuscript },
             new HotkeyDescriptor { ActionId = "app.nav.settings", DisplayName = Loc.T("hotkeys.nav.settings"), Category = cat, DefaultGesture = "Ctrl+OemComma", OnExecute = ToggleSettings },
             new HotkeyDescriptor { ActionId = "app.nav.extensions", DisplayName = Loc.T("hotkeys.nav.extensions"), Category = cat, DefaultGesture = "Ctrl+Shift+X", OnExecute = ToggleExtensions },
+            new HotkeyDescriptor { ActionId = "app.nav.relationships", DisplayName = Loc.T("hotkeys.nav.relationships"), Category = cat, DefaultGesture = "Ctrl+Shift+R", OnExecute = () => _ = OpenRelationshipsGraphAsync() },
             new HotkeyDescriptor { ActionId = "app.nav.startMenu", DisplayName = Loc.T("hotkeys.nav.startMenu"), Category = cat, DefaultGesture = "Alt+F", OnExecute = ToggleStartMenu },
 
             // ── Panels ──
@@ -606,6 +668,12 @@ public partial class MainWindowViewModel : ObservableObject
             new HotkeyDescriptor { ActionId = "app.editor.findReplace", DisplayName = Loc.T("hotkeys.editor.findReplace"), Category = catEditor, DefaultGesture = "Ctrl+H", OnExecute = () => _ = OpenFindReplaceAsync(), CanExecute = () => IsProjectLoaded },
             new HotkeyDescriptor { ActionId = "app.commandPalette", DisplayName = Loc.T("hotkeys.app.commandPalette"), Category = cat, DefaultGesture = "Ctrl+Shift+P", OnExecute = () => _ = OpenCommandPaletteAsync() },
             new HotkeyDescriptor { ActionId = "app.editor.addComment", DisplayName = Loc.T("hotkeys.editor.addComment"), Category = catEditor, DefaultGesture = "Ctrl+Shift+M", OnExecute = AddComment, CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
+            new HotkeyDescriptor { ActionId = "app.editor.addFootnote", DisplayName = Loc.T("hotkeys.editor.addFootnote"), Category = catEditor, DefaultGesture = "Ctrl+Shift+F", OnExecute = () => _ = AddFootnote(), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
+            new HotkeyDescriptor { ActionId = "app.editor.styleHeading", DisplayName = Loc.T("hotkeys.editor.styleHeading"), Category = catEditor, DefaultGesture = "Ctrl+Alt+1", OnExecute = () => ApplyParagraphStyle("heading"), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
+            new HotkeyDescriptor { ActionId = "app.editor.styleSubheading", DisplayName = Loc.T("hotkeys.editor.styleSubheading"), Category = catEditor, DefaultGesture = "Ctrl+Alt+2", OnExecute = () => ApplyParagraphStyle("subheading"), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
+            new HotkeyDescriptor { ActionId = "app.editor.styleBlockquote", DisplayName = Loc.T("hotkeys.editor.styleBlockquote"), Category = catEditor, DefaultGesture = "Ctrl+Alt+3", OnExecute = () => ApplyParagraphStyle("blockquote"), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
+            new HotkeyDescriptor { ActionId = "app.editor.stylePoetry", DisplayName = Loc.T("hotkeys.editor.stylePoetry"), Category = catEditor, DefaultGesture = "Ctrl+Alt+4", OnExecute = () => ApplyParagraphStyle("poetry"), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
+            new HotkeyDescriptor { ActionId = "app.editor.styleClear", DisplayName = Loc.T("hotkeys.editor.styleClear"), Category = catEditor, DefaultGesture = "Ctrl+Alt+0", OnExecute = () => ApplyParagraphStyle(string.Empty), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
 
             // ── Scene / Tab management ──
             new HotkeyDescriptor { ActionId = "app.scene.closeTab", DisplayName = Loc.T("hotkeys.scene.closeTab"), Category = catScene, DefaultGesture = "Ctrl+W", OnExecute = () => _ = CloseSceneTabAsync(), CanExecute = () => Editor?.IsDocumentOpen == true },
@@ -973,6 +1041,9 @@ public partial class MainWindowViewModel : ObservableObject
         SceneNotes = new SceneNotesViewModel(_projectService);
         SceneNotes.AttachEditor(Editor);
 
+        FootnotesPanel = new FootnotesPanelViewModel(_projectService);
+        FootnotesPanel.AttachEditor(Editor);
+
         Explorer = new ExplorerViewModel(_projectService);
         Explorer.SceneOpenRequested += OnSceneOpenRequested;
         Explorer.ProjectChanged += OnProjectChanged;
@@ -994,7 +1065,7 @@ public partial class MainWindowViewModel : ObservableObject
         Timeline = new TimelineViewModel(_projectService);
         Timeline.SceneOpenRequested += OnSceneOpenRequested;
 
-        Export = new ExportViewModel(_projectService);
+        Export = new ExportViewModel(_projectService, _entityService);
         if (ExtensionManager?.ExportFormats is { Count: > 0 } exportFormats)
             Export.LoadExtensionFormats(exportFormats);
 
@@ -1008,6 +1079,8 @@ public partial class MainWindowViewModel : ObservableObject
 
         Manuscript = new ManuscriptViewModel(_projectService, _entityService);
         PlotGrid = new PlotGridViewModel(_projectService, App.PlotlineService);
+
+        RelationshipsGraph = new RelationshipsGraphViewModel(_entityService);
         Research = new ResearchViewModel(App.ResearchService);
         Manuscript.SceneOpenRequested += OnSceneOpenRequested;
         Manuscript.SceneFocusChanged += OnManuscriptSceneFocused;
@@ -1321,6 +1394,22 @@ public partial class MainWindowViewModel : ObservableObject
         IsPlotGridOpen = false;
         if (ActiveContentView == "PlotGrid")
             ActiveContentView = GetFallbackView("PlotGrid");
+    }
+
+    [RelayCommand]
+    private async Task OpenRelationshipsGraphAsync()
+    {
+        IsRelationshipsGraphOpen = true;
+        ActiveContentView = "RelationshipsGraph";
+        if (RelationshipsGraph != null) await RelationshipsGraph.ReloadAsync();
+    }
+
+    [RelayCommand]
+    private void CloseRelationshipsGraphTab()
+    {
+        IsRelationshipsGraphOpen = false;
+        if (ActiveContentView == "RelationshipsGraph")
+            ActiveContentView = GetFallbackView("RelationshipsGraph");
     }
 
     [RelayCommand]
@@ -2002,6 +2091,39 @@ public partial class MainWindowViewModel : ObservableObject
         }
         pane.CommentAnchored += OnAnchored;
         pane.AddCommentAction.Invoke(commentId);
+    }
+
+    private void ApplyParagraphStyle(string styleId)
+    {
+        var pane = (ActiveEditor == Editor || ActiveEditor == SecondaryEditor) ? ActiveEditor : Editor;
+        pane?.ApplyParagraphStyleAction?.Invoke(styleId);
+    }
+
+    [RelayCommand]
+    private async Task AddFootnote()
+    {
+        var pane = (ActiveEditor == Editor || ActiveEditor == SecondaryEditor) ? ActiveEditor : Editor;
+        if (pane?.CurrentScene == null || pane.AddFootnoteAction == null) return;
+
+        if (ShowInputDialog == null) return;
+        var text = await ShowInputDialog(Loc.T("footnotes.addTitle"), Loc.T("footnotes.addPrompt"), string.Empty);
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        var fnId = System.Guid.NewGuid().ToString();
+        void OnInserted(string id, int number)
+        {
+            if (id != fnId) return;
+            pane.FootnoteInserted -= OnInserted;
+
+            var scene = pane.CurrentScene;
+            if (scene == null) return;
+            scene.Footnotes ??= new List<SceneFootnote>();
+            scene.Footnotes.Add(new SceneFootnote { Id = fnId, Number = number, Text = text });
+            _ = _projectService.SaveScenesAsync();
+            pane.SyncCommentsAction?.Invoke();
+        }
+        pane.FootnoteInserted += OnInserted;
+        pane.AddFootnoteAction.Invoke(fnId);
     }
 
     [RelayCommand]

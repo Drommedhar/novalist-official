@@ -86,4 +86,14 @@ public class BookData
     /// <summary>Plot threads defined for this book. Drives the Plot Grid view.</summary>
     [JsonPropertyName("plotlines")]
     public List<PlotlineData> Plotlines { get; set; } = [];
+
+    /// <summary>Optional per-act metadata (date ranges etc.). Acts referenced
+    /// by name from <see cref="ChapterData.Act"/>.</summary>
+    [JsonPropertyName("acts")]
+    public List<ActData> Acts { get; set; } = [];
+
+    /// <summary>In-world calendar configuration.</summary>
+    [JsonPropertyName("calendar")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public InWorldCalendar? Calendar { get; set; }
 }

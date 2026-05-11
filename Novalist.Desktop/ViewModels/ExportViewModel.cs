@@ -77,7 +77,7 @@ public partial class ExportViewModel : ObservableObject
     /// <summary>Display names for the ComboBox (built-in + extension).</summary>
     public ObservableCollection<string> FormatNames { get; } = [];
 
-    private const int BuiltInFormatCount = 4;
+    private const int BuiltInFormatCount = 7;
 
     private bool IsExtensionFormat => SelectedFormatIndex >= BuiltInFormatCount;
 
@@ -92,6 +92,9 @@ public partial class ExportViewModel : ObservableObject
         1 => "DOCX",
         2 => "PDF",
         3 => "Markdown",
+        4 => "Final Draft",
+        5 => "LaTeX",
+        6 => "Codex (Markdown)",
         _ => SelectedExtensionFormat?.DisplayName ?? "EPUB"
     };
 
@@ -101,6 +104,9 @@ public partial class ExportViewModel : ObservableObject
         1 => ExportFormat.Docx,
         2 => ExportFormat.Pdf,
         3 => ExportFormat.Markdown,
+        4 => ExportFormat.FinalDraft,
+        5 => ExportFormat.LaTeX,
+        6 => ExportFormat.Codex,
         _ => ExportFormat.Epub
     };
 
@@ -110,12 +116,18 @@ public partial class ExportViewModel : ObservableObject
         1 => ".docx",
         2 => ".pdf",
         3 => ".md",
+        4 => ".fdx",
+        5 => ".tex",
+        6 => ".md",
         _ => SelectedExtensionFormat?.FileExtension ?? ".epub"
     };
 
-    public ExportViewModel(IProjectService projectService)
+    private readonly IEntityService? _entityService;
+
+    public ExportViewModel(IProjectService projectService, IEntityService? entityService = null)
     {
         _projectService = projectService;
+        _entityService = entityService;
     }
 
     public void LoadExtensionFormats(IReadOnlyList<ExportFormatDescriptor> formats)
@@ -134,6 +146,9 @@ public partial class ExportViewModel : ObservableObject
         FormatNames.Add(Loc.T("export.formatDocx"));
         FormatNames.Add(Loc.T("export.formatPdf"));
         FormatNames.Add(Loc.T("export.formatMarkdown"));
+        FormatNames.Add(Loc.T("export.formatFinalDraft"));
+        FormatNames.Add(Loc.T("export.formatLatex"));
+        FormatNames.Add(Loc.T("export.formatCodex"));
         foreach (var ext in ExtensionFormats)
         {
             System.Diagnostics.Debug.WriteLine($"[Export] Adding extension format: '{ext.DisplayName}'");
@@ -180,6 +195,8 @@ public partial class ExportViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(IsSmfVisible));
         OnPropertyChanged(nameof(ExportButtonText));
+        OnPropertyChanged(nameof(IsCodexFormat));
+        OnPropertyChanged(nameof(ChaptersVisible));
 
         // Reset SMF when switching away from DOCX/PDF
         if (!IsSmfVisible)
@@ -200,11 +217,14 @@ public partial class ExportViewModel : ObservableObject
             ch.IsSelected = false;
     }
 
+    public bool IsCodexFormat => SelectedFormatIndex == 6;
+    public bool ChaptersVisible => !IsCodexFormat;
+
     [RelayCommand]
     private async Task ExportAsync()
     {
-        if (IsExporting || SelectedCount == 0 || ShowSaveFileDialog == null)
-            return;
+        if (IsExporting || ShowSaveFileDialog == null) return;
+        if (!IsCodexFormat && SelectedCount == 0) return;
 
         var filename = SanitizeFilename(Title) + FileExtension;
         var outputPath = await ShowSaveFileDialog.Invoke(filename, FormatLabel);
@@ -243,7 +263,7 @@ public partial class ExportViewModel : ObservableObject
                         .ToList()
                 };
 
-                var exportService = new ExportService(_projectService);
+                var exportService = new ExportService(_projectService, _entityService);
                 await exportService.ExportAsync(options, outputPath);
             }
 

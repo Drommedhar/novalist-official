@@ -295,6 +295,21 @@ public partial class TimelineViewModel : ObservableObject
 
     // ── Commands ────────────────────────────────────────────────────
 
+    /// <summary>Provided by the host to show a Save-file picker. Returns the
+    /// chosen path or null when the user cancels.</summary>
+    public Func<string, string, Task<string?>>? ShowSaveFileDialog { get; set; }
+
+    [RelayCommand]
+    private async Task ExportOutlineAsync()
+    {
+        if (ShowSaveFileDialog == null) return;
+        var path = await ShowSaveFileDialog.Invoke("story_outline.md", "Markdown");
+        if (string.IsNullOrEmpty(path)) return;
+
+        var export = new ExportService(_projectService);
+        await export.ExportTimelineOutlineAsync(path);
+    }
+
     [RelayCommand]
     private async Task ToggleViewModeAsync()
     {

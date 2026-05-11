@@ -155,6 +155,13 @@ public partial class ExplorerView : UserControl
         Vm.SetChapterDateCommand.Execute(chapter);
     }
 
+    private void OnToggleChapterFavoriteClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var chapter = GetContextMenuTag<ChapterTreeItemViewModel>(sender);
+        Vm.ToggleChapterFavoriteCommand.Execute(chapter);
+    }
+
     private void OnRenameChapterClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is null) return;
@@ -198,6 +205,13 @@ public partial class ExplorerView : UserControl
         if (Vm is null) return;
         var scene = GetContextMenuTag<SceneTreeItemViewModel>(sender);
         Vm.SetSceneDateCommand.Execute(scene);
+    }
+
+    private void OnToggleSceneFavoriteClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var scene = GetContextMenuTag<SceneTreeItemViewModel>(sender);
+        Vm.ToggleSceneFavoriteCommand.Execute(scene);
     }
 
     private void OnEditSmartListClick(object? sender, RoutedEventArgs e)

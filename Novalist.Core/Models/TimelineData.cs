@@ -46,6 +46,10 @@ public class TimelineManualEvent
     [JsonPropertyName("date")]
     public string Date { get; set; } = string.Empty;
 
+    /// <summary>Optional end of the timeframe — empty for instantaneous events.</summary>
+    [JsonPropertyName("endDate")]
+    public string EndDate { get; set; } = string.Empty;
+
     [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
 
