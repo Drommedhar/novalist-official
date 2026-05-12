@@ -41,17 +41,16 @@ The choice persists per book.
 A second toggle changes the time granularity:
 
 - **Day**
-- **Week**
 - **Month**
 - **Year**
 
-The labels along the time axis change accordingly. Zoom out to see the whole book at once; zoom in to see hour-level scheduling for a tightly-timed thriller.
+The labels along the time axis change accordingly. Zoom out to see the whole book at once; zoom in to see day-by-day scheduling for a tightly-timed thriller.
 
 ## Navigation
 
 The toolbar has:
 
-- **Previous / Next** — moves the visible window by one zoom unit (one day, one week, one month, one year).
+- **Previous / Next** — moves the visible window by one zoom unit (one day, one month, or one year).
 - **Today** — re-center on today's real-world date.
 - **Jump to date** — opens a date picker (uses the active in-world calendar if one is configured for the book; see [Calendar](13-calendar.md)).
 

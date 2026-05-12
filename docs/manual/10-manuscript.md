@@ -62,23 +62,21 @@ Corkboard mode is ideal for planning passes: rearrange the structure quickly wit
 
 ## Outliner mode
 
-A table view of every scene with sortable columns:
+A table view of every scene with these columns:
 
-- **Title**
 - **Chapter**
-- **Status** (inherited from chapter)
-- **Words**
+- **Title**
 - **Synopsis** — inline-editable.
-- **Date / Date range** — if set.
 - **POV** — derived or overridden.
+- **Words**
 
-Click a row to open the scene; double-click the synopsis cell to edit in place. Sort by any column. Filter via a search box on the toolbar.
+Click a row to open the scene; edit the synopsis cell to update it in place.
 
 The outliner is useful for:
 
 - Bulk editing synopses.
 - Auditing POV distribution.
-- Sorting by word count to find unusually short or long scenes.
+- Eyeballing word counts to find unusually short or long scenes.
 
 ## Toggling between modes
 

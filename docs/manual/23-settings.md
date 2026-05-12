@@ -30,7 +30,7 @@ The Settings overlay is divided into the following sections.
 - **Editor font size** — point size. Default 14.
 - **Enable book paragraph spacing** — when on, the editor renders paragraphs the way a printed book would (first-line indents, tighter spacing).
 - **Enable book width** — when on, constrains the column to a printed-page width.
-- **Book page format** — choice of trim sizes. Default is **US Trade 6×9**. Other options include A5, A4, US Letter, Mass Market.
+- **Book page format** — choice of trim sizes. Default is **US Trade 6×9**. Other options include Digest (5.5×8.5), A5, Mass Market, and a Custom size.
 - **Book text-block width** — optional manual override of the text-block width within the page.
 - **Book font family** — typeface used in book preview / book export. Defaults to **Times New Roman**.
 - **Book font size** — book-preview point size. Default 11.
@@ -53,7 +53,7 @@ The Settings overlay is divided into the following sections.
 
 Per-entity-type template management. For each of Character, Location, Item, Lore, and each custom entity type:
 
-- A list of available templates with **Set active**, **Duplicate**, **Edit**, **Delete** actions.
+- A list of available templates with **Edit** and **Delete** actions.
 - A **+New template** button.
 
 See [Templates](07-templates.md) for the template editor itself.
@@ -87,7 +87,6 @@ A small set of settings are project-scoped rather than app-scoped, stored in `<P
 
 - **Author name** for exports.
 - **Project default templates** (when distinct from the global ones).
-- **Per-project autosave interval** (if surfaced by the build).
 
 ## Where settings live
 

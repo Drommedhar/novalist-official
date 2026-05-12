@@ -13,7 +13,6 @@ Click the bar-chart icon in the activity bar, or use **View → Dashboard** (or 
 - **Book cover image** (if set) — uploaded via the dashboard's image picker or the book editor.
 - **Book name** — large title.
 - **Author** (from project settings, optional).
-- **Last edited** timestamp.
 
 ### Top-line stats
 
@@ -35,8 +34,6 @@ A bar (or stacked donut, depending on layout) showing how many chapters are at e
 - Revised
 - Edited
 - Final
-
-Each segment is clickable: clicking a status filters the Manuscript view to that status.
 
 ### Writing goals
 

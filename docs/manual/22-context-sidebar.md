@@ -29,7 +29,7 @@ When you open or edit a scene, the Context tab analyzes the prose and shows:
 - **Items** — items referenced.
 - **Lore** — lore entries referenced.
 
-Detection is name-match-based. False positives can be hidden via the **Ignore** action on a row.
+Detection is name-match-based.
 
 #### POV analysis
 
@@ -50,9 +50,7 @@ You can override any of these from the analysis overrides editor.
 
 #### Counts
 
-- **Dialogue** lines, **sentence** count, **word** count, **paragraph** count.
-- Distribution of **sentence length**.
-- Dialogue percentage of total words.
+- **Word** count, **sentence** count, and **average sentence length**.
 
 #### Live updates
 

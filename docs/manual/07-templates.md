@@ -27,7 +27,7 @@ Templates are read-only at project-creation time — once your project is create
 
 ## Entity templates
 
-For each entity type (Character, Location, Item, Lore, and each custom type) a book can have **multiple templates**. When you create a new entity, Novalist pre-fills it from the **active** template for that type. The active template is stored on the book.
+For each entity type (Character, Location, Item, Lore, and each custom type) a book can have **multiple templates**. When you create a new entity, Novalist pre-fills it from the template for that type.
 
 ### Why templates
 
@@ -53,14 +53,6 @@ Every character you create from this template starts with all of that already in
    - **Built-in field defaults** — pre-filled values for the type's built-in fields (e.g. a default Group for characters).
 6. Save.
 
-### Activating a template
-
-In the entity-type's template list, click the **radio** or **Set active** button next to the template you want to be the default. Only one template per type is active at a time per book.
-
-### Built-in vs custom templates
-
-Templates that came from the project template or an extension are marked **built-in**. They can be cloned (via **Duplicate**) but not edited in place. Your duplicates can be edited freely. Built-in templates always remain even after re-applying a project template.
-
 ### Re-applying a template to an existing entity
 
 The entity editor's template selector lets you change which template an entity uses. Re-applying:
@@ -84,7 +76,7 @@ The result: you start with a structural outline laid out as chapters, and you fi
 
 ## Custom entity-type templates
 
-Custom entity types (see [Codex](06-codex.md)) can also have multiple templates. Templates for custom types live in `BookData.customEntityTemplates`, keyed by the type's `entityTypeKey`. The active template per type is stored in `BookData.activeCustomEntityTemplateIds`.
+Custom entity types (see [Codex](06-codex.md)) can also have multiple templates. Templates for custom types live in `BookData.customEntityTemplates`, keyed by the type's `entityTypeKey`.
 
 The template editor's tabs include one per custom type, exposing the same UI as the built-in types.
 
@@ -98,8 +90,7 @@ The template editor is reachable from:
 
 It lets you:
 
-- List, create, rename, duplicate, delete templates.
-- Mark a template as **active**.
+- List, create, rename, delete templates.
 - Edit a template's sections (add / rename / reorder / delete; set default content per section).
 - Edit a template's custom properties (key, type, default, enum values).
 - Edit a template's built-in field defaults.

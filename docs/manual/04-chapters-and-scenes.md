@@ -13,7 +13,6 @@ Above the tree is a row of controls:
 - **New chapter** — same as the **+Chapter** button in the app bar.
 - **New scene** — same as the **+Scene** button in the app bar.
 - **Search** — filters the tree by title.
-- **Collapse all / Expand all**.
 
 The tree supports:
 
@@ -139,7 +138,7 @@ Story-structure templates (such as the three-act or hero's-journey templates) pr
 
 Every time you save a scene a **snapshot** is captured automatically. Snapshots are independent per scene and let you revert one scene's content without affecting the rest of the project. See [Snapshots](17-snapshots.md) for the snapshot browser, compare view, and pruning.
 
-You can also take a manual snapshot at any time from **Edit → Take Snapshot** or `Ctrl+Alt+S` (default binding).
+You can also take a manual snapshot at any time from **Edit → Take Snapshot**, or from a scene's right-click menu in the Explorer.
 
 ## Where to go next
 

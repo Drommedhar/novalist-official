@@ -39,7 +39,6 @@ The toolbar offers:
 - **Click a node** — opens the character editor in a new tab.
 - **Hover** — preview the character's focus-peek card.
 - **Drag a node** — repositions it; the rest of the graph re-layouts.
-- **Double-click** — pin / unpin (some builds).
 
 ## Adding and editing relationships
 

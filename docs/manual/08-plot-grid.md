@@ -27,36 +27,28 @@ Color-coded backgrounds reflect each plotline's color, making it visually obviou
 A plotline has:
 
 - **Name** — short label.
-- **Color** — pick from a swatch.
+- **Color** — assigned automatically from the palette.
 - **Description** — optional longer notes.
-- **Order** — its row position in the grid; drag to reorder.
+- **Order** — its row position in the grid.
 
 ### Adding a plotline
 
 Click **+New plotline** in the grid toolbar. An input dialog asks for the name. The plotline appears as a new row at the bottom of the grid, with a default color.
 
-### Renaming, recoloring, deleting
+### Renaming and deleting
 
 Click the plotline name in the grid header → context menu:
 
 - **Rename**
-- **Change color**
-- **Edit description**
 - **Delete**
 
 Deletion removes the plotline and clears it from any scenes that referenced it.
-
-### Reordering
-
-Drag plotline rows up and down to change their order. Order affects display only; nothing semantic.
 
 ## Marking scenes
 
 Click a cell at the intersection of a plotline and a scene to toggle that scene's membership in the plotline. The cell highlights with the plotline color.
 
 A scene can belong to any number of plotlines. The list of plotline IDs is stored on `SceneData.plotlineIds`.
-
-You can also edit a scene's plotline memberships from the scene's right-click menu in the Explorer (**Plotlines →** ...) without opening the grid.
 
 ## Filtering and reading
 

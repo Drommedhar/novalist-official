@@ -52,7 +52,6 @@ The toolbar above the editor (or the **Format** menu of the editor extension, or
 | Bold | `Ctrl+B` |
 | Italic | `Ctrl+I` |
 | Underline | `Ctrl+U` |
-| Strikethrough | `Ctrl+Shift+X` |
 
 ### Alignment
 
@@ -75,11 +74,6 @@ Apply structural paragraph styles by placing the cursor in the paragraph (or sel
 - **Clear style** — reverts the paragraph to Body.
 
 Each style has a default hotkey (see [Hotkeys](26-hotkeys.md)).
-
-### Indentation and lists
-
-- **Indent / Outdent** — `Tab` / `Shift+Tab` at the start of a paragraph.
-- **Bullet list / Numbered list** — via the toolbar.
 
 ## Auto-replacements
 
