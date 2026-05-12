@@ -246,6 +246,8 @@
                                     Background="{DynamicResource EditorBackground}"
                                     BorderBrush="{DynamicResource ExplorerBorder}"
                                     BorderThickness="0,0,1,1"
+                                    DragDrop.AllowDrop="True"
+                                    Tag="{Binding}"
                                     Command="{Binding JumpCommand}">
                                 <StackPanel Spacing="2">
                                     <TextBlock Text="{Binding DayNumber}"
@@ -258,7 +260,9 @@
                                                 <Border Background="{DynamicResource AccentBrush}"
                                                         CornerRadius="2"
                                                         Padding="3,1"
-                                                        Margin="0,1">
+                                                        Margin="0,1"
+                                                        Tag="{Binding}"
+                                                        PointerPressed="OnMonthEventPointerPressed">
                                                     <TextBlock Text="{Binding Title}"
                                                                Foreground="{DynamicResource AccentForeground}"
                                                                FontSize="10"

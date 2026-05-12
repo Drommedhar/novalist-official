@@ -44,6 +44,9 @@ public partial class ExplorerViewModel : ObservableObject
     /// </summary>
     public event Action<ChapterData, SceneData>? SceneOpenRequested;
 
+    /// <summary>Fired when a scene should open in the secondary editor pane.</summary>
+    public Action<SceneTreeItemViewModel>? OpenSceneInSplitPaneRequested;
+
     /// <summary>
     /// Fired when chapter or scene changes affect project-level statistics.
     /// </summary>

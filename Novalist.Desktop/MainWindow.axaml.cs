@@ -588,6 +588,17 @@ public partial class MainWindow : Window
     {
         if (research == null) return;
         research.ShowConfirmDialog = ShowConfirmDialogAsync;
+        research.RevealInExplorer = path =>
+        {
+            if (System.IO.File.Exists(path))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = System.IO.Path.GetDirectoryName(path)!,
+                    UseShellExecute = true
+                });
+            }
+        };
         research.PickFileToImport = async () =>
         {
             var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
@@ -638,6 +649,7 @@ public partial class MainWindow : Window
         editor.BrowseImageRequested = BrowseForImageAsync;
         editor.ChooseAddImageSourceRequested = ShowAddImageSourceDialogAsync;
         editor.PickProjectImageRequested = ShowProjectImagePickerAsync;
+        editor.ImportExternalImageRequested = ImportExternalImageAsync;
         editor.ShowInverseRelationshipDialog = ShowInverseRelationshipDialogAsync;
         editor.ConfirmDeleteRequested = ShowConfirmDialogAsync;
     }
@@ -685,6 +697,95 @@ public partial class MainWindow : Window
                 });
             }
         };
+    }
+
+    private async Task<string?> ImportExternalImageAsync(Dialogs.AddImageSourceChoice source)
+    {
+        if (source == Dialogs.AddImageSourceChoice.Clipboard)
+        {
+            var clipboard = GetTopLevel(this)?.Clipboard;
+            if (clipboard == null) return null;
+
+            try
+            {
+                using var bitmap = await Avalonia.Input.Platform.ClipboardExtensions.TryGetBitmapAsync(clipboard);
+                if (bitmap != null)
+                {
+                    var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
+                        $"novalist-clip-{Guid.NewGuid():N}.png");
+                    bitmap.Save(tempPath);
+                    return tempPath;
+                }
+            }
+            catch { /* fall through to text check */ }
+
+            try
+            {
+                var text = await Avalonia.Input.Platform.ClipboardExtensions.TryGetTextAsync(clipboard);
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    text = text.Trim();
+                    if (System.IO.File.Exists(text))
+                        return text;
+
+                    if (Uri.TryCreate(text, UriKind.Absolute, out var clipUri)
+                        && (clipUri.Scheme == Uri.UriSchemeHttp || clipUri.Scheme == Uri.UriSchemeHttps))
+                    {
+                        return await DownloadImageToTempAsync(clipUri);
+                    }
+                }
+            }
+            catch { /* swallow */ }
+
+            return null;
+        }
+
+        if (source == Dialogs.AddImageSourceChoice.Url)
+        {
+            var url = await ShowInputDialogAsync(
+                Localization.Loc.T("dialog.fromUrl"),
+                Localization.Loc.T("dialog.fromUrlPrompt"),
+                string.Empty);
+            if (string.IsNullOrWhiteSpace(url)) return null;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return null;
+            if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps) return null;
+            return await DownloadImageToTempAsync(uri);
+        }
+
+        return null;
+    }
+
+    private static async Task<string?> DownloadImageToTempAsync(Uri uri)
+    {
+        try
+        {
+            using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(30) };
+            using var response = await http.GetAsync(uri);
+            response.EnsureSuccessStatusCode();
+            var contentType = response.Content.Headers.ContentType?.MediaType ?? string.Empty;
+            if (!contentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            var ext = contentType switch
+            {
+                "image/png" => ".png",
+                "image/jpeg" => ".jpg",
+                "image/gif" => ".gif",
+                "image/webp" => ".webp",
+                "image/bmp" => ".bmp",
+                _ => System.IO.Path.GetExtension(uri.LocalPath) is { Length: > 0 } e ? e : ".img"
+            };
+
+            var bytes = await response.Content.ReadAsByteArrayAsync();
+            var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
+                $"novalist-url-{Guid.NewGuid():N}{ext}");
+            await System.IO.File.WriteAllBytesAsync(tempPath, bytes);
+            return tempPath;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private async Task<string?> ShowExportSaveFileDialogAsync(string suggestedName, string formatLabel)
@@ -910,6 +1011,7 @@ public partial class MainWindow : Window
         vm.Dashboard.ChooseAddImageSourceRequested = ShowAddImageSourceDialogAsync;
         vm.Dashboard.PickCoverImageRequested = ShowProjectImagePickerAsync;
         vm.Dashboard.BrowseImageRequested = BrowseForImageAsync;
+        vm.Dashboard.ImportExternalImageRequested = ImportExternalImageAsync;
         vm.Dashboard.CoverImageSelected = path => vm.SetCoverImageFromPickerAsync(path);
     }
 

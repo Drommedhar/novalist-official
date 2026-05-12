@@ -41,6 +41,28 @@
                             </StackPanel>
                         </Button>
 
+                        <Button Command="{Binding PanPreviousCommand}"
+                                Classes="timelineToolbarBtn"
+                                ToolTip.Tip="{loc:Loc timeline.prev}">
+                            <TextBlock Text="‹" FontSize="13" />
+                        </Button>
+
+                        <Button Command="{Binding PanNextCommand}"
+                                Classes="timelineToolbarBtn"
+                                ToolTip.Tip="{loc:Loc timeline.next}">
+                            <TextBlock Text="›" FontSize="13" />
+                        </Button>
+
+                        <Button Command="{Binding ScrollToTodayCommand}"
+                                Classes="timelineToolbarBtn">
+                            <TextBlock Text="{loc:Loc timeline.today}" FontSize="11" />
+                        </Button>
+
+                        <Button Command="{Binding OpenJumpFlyoutCommand}"
+                                Classes="timelineToolbarBtn">
+                            <TextBlock Text="{loc:Loc timeline.jumpTo}" FontSize="11" />
+                        </Button>
+
                         <ComboBox Classes="timelineFilter"
                                   PlaceholderText="{loc:Loc timeline.filterCharacter}"
                                   SelectedItem="{Binding FilterCharacter}"
@@ -357,6 +379,33 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
+
+                <!-- ═══ Jump-to-date Flyout ═══ -->
+                <Border IsVisible="{Binding IsJumpFlyoutOpen}"
+                        Background="#66000000">
+                    <Border Classes="nlvCard"
+                            MaxWidth="320"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Margin="0,60,0,0">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="{loc:Loc timeline.jumpTo}"
+                                       FontSize="13"
+                                       FontWeight="SemiBold" />
+                            <TextBox Text="{Binding JumpDateInput}"
+                                     Watermark="YYYY-MM-DD" />
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        Spacing="8">
+                                <Button Content="{loc:Loc timeline.cancel}"
+                                        Command="{Binding CancelJumpCommand}" />
+                                <Button Content="{loc:Loc timeline.save}"
+                                        Command="{Binding ConfirmJumpCommand}"
+                                        Classes="accent" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </Border>
 
                 <!-- ═══ Add/Edit Form Overlay (modern dialog style) ═══ -->
                 <Border IsVisible="{Binding IsFormOpen}"

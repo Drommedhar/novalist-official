@@ -112,6 +112,7 @@ public partial class EditorViewModel : ObservableObject
     }
 
     public event Action<EntityType, object>? FocusPeekEntityOpenRequested;
+    public event Action<ChapterData, SceneData>? SceneSaved;
 
     // ── Formatting state (updated by EditorView) ────────────────────
 
@@ -604,6 +605,7 @@ public partial class EditorViewModel : ObservableObject
         // Update word count in scene metadata
         _scene.WordCount = WordCount;
         await _projectService.SaveScenesAsync();
+        SceneSaved?.Invoke(_chapter, _scene);
     }
 
     public async Task CloseAsync()

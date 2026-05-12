@@ -27,6 +27,7 @@ public partial class MainWindowViewModel : ObservableObject
     private readonly ISettingsService _settingsService;
     private readonly IEntityService _entityService;
     private readonly IGitService _gitService;
+    private readonly IRecentActivityService _recentActivityService = new RecentActivityService();
 
     [ObservableProperty]
     private string _title = $"{Loc.T("app.title")} {VersionInfo.Version}";
@@ -669,7 +670,7 @@ public partial class MainWindowViewModel : ObservableObject
             new HotkeyDescriptor { ActionId = "app.nav.startMenu", DisplayName = Loc.T("hotkeys.nav.startMenu"), Category = cat, DefaultGesture = "Alt+F", OnExecute = ToggleStartMenu },
 
             // ── Panels ──
-            new HotkeyDescriptor { ActionId = "app.panel.explorer", DisplayName = Loc.T("hotkeys.panel.explorer"), Category = catPanels, DefaultGesture = "Ctrl+B", OnExecute = ToggleExplorer, CanExecute = () => IsProjectLoaded },
+            new HotkeyDescriptor { ActionId = "app.panel.explorer", DisplayName = Loc.T("hotkeys.panel.explorer"), Category = catPanels, DefaultGesture = "Ctrl+B", OnExecute = ToggleExplorer, CanExecute = () => IsProjectLoaded && ActiveContentView != "Scene" },
             new HotkeyDescriptor { ActionId = "app.panel.contextSidebar", DisplayName = Loc.T("hotkeys.panel.contextSidebar"), Category = catPanels, DefaultGesture = "Ctrl+Shift+B", OnExecute = ToggleContextSidebar, CanExecute = () => IsProjectLoaded },
             new HotkeyDescriptor { ActionId = "app.panel.sidebarChapters", DisplayName = Loc.T("hotkeys.panel.sidebarChapters"), Category = catPanels, DefaultGesture = "Ctrl+Shift+D1", OnExecute = () => ActiveSidebarTab = "Chapters", CanExecute = () => IsProjectLoaded },
             new HotkeyDescriptor { ActionId = "app.panel.sidebarEntities", DisplayName = Loc.T("hotkeys.panel.sidebarEntities"), Category = catPanels, DefaultGesture = "Ctrl+Shift+D2", OnExecute = () => ActiveSidebarTab = "Entities", CanExecute = () => IsProjectLoaded },
@@ -678,8 +679,8 @@ public partial class MainWindowViewModel : ObservableObject
             new HotkeyDescriptor { ActionId = "app.panel.focusMode", DisplayName = Loc.T("hotkeys.panel.focusMode"), Category = catPanels, DefaultGesture = "F11", OnExecute = ToggleFocusMode, CanExecute = () => IsProjectLoaded },
             new HotkeyDescriptor { ActionId = "app.editor.findReplace", DisplayName = Loc.T("hotkeys.editor.findReplace"), Category = catEditor, DefaultGesture = "Ctrl+H", OnExecute = () => _ = OpenFindReplaceAsync(), CanExecute = () => IsProjectLoaded },
             new HotkeyDescriptor { ActionId = "app.commandPalette", DisplayName = Loc.T("hotkeys.app.commandPalette"), Category = cat, DefaultGesture = "Ctrl+Shift+P", OnExecute = () => _ = OpenCommandPaletteAsync() },
-            new HotkeyDescriptor { ActionId = "app.editor.addComment", DisplayName = Loc.T("hotkeys.editor.addComment"), Category = catEditor, DefaultGesture = "Ctrl+Shift+M", OnExecute = AddComment, CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
-            new HotkeyDescriptor { ActionId = "app.editor.addFootnote", DisplayName = Loc.T("hotkeys.editor.addFootnote"), Category = catEditor, DefaultGesture = "Ctrl+Shift+F", OnExecute = () => _ = AddFootnote(), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
+            new HotkeyDescriptor { ActionId = "app.editor.addComment", DisplayName = Loc.T("hotkeys.editor.addComment"), Category = catEditor, DefaultGesture = "Ctrl+Shift+M", OnExecute = AddComment, CanExecute = () => ActiveContentView == "Scene" && (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
+            new HotkeyDescriptor { ActionId = "app.editor.addFootnote", DisplayName = Loc.T("hotkeys.editor.addFootnote"), Category = catEditor, DefaultGesture = "Ctrl+Shift+F", OnExecute = () => _ = AddFootnote(), CanExecute = () => ActiveContentView == "Scene" && (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
             new HotkeyDescriptor { ActionId = "app.editor.styleHeading", DisplayName = Loc.T("hotkeys.editor.styleHeading"), Category = catEditor, DefaultGesture = "Ctrl+Alt+1", OnExecute = () => ApplyParagraphStyle("heading"), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
             new HotkeyDescriptor { ActionId = "app.editor.styleSubheading", DisplayName = Loc.T("hotkeys.editor.styleSubheading"), Category = catEditor, DefaultGesture = "Ctrl+Alt+2", OnExecute = () => ApplyParagraphStyle("subheading"), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
             new HotkeyDescriptor { ActionId = "app.editor.styleBlockquote", DisplayName = Loc.T("hotkeys.editor.styleBlockquote"), Category = catEditor, DefaultGesture = "Ctrl+Alt+3", OnExecute = () => ApplyParagraphStyle("blockquote"), CanExecute = () => (ActiveEditor ?? Editor)?.IsDocumentOpen == true },
@@ -1036,8 +1037,11 @@ public partial class MainWindowViewModel : ObservableObject
         Editor = new EditorViewModel(_projectService, _settingsService, _entityService);
         Editor.PropertyChanged += OnEditorPropertyChanged;
         Editor.FocusPeekEntityOpenRequested += OnFocusPeekEntityOpenRequested;
+        Editor.SceneSaved += OnSceneSavedForActivity;
         ActiveEditor = Editor;
         Editor.IsPaneFocused = true;
+
+        _ = LoadRecentActivityAsync(projectPath);
 
         // Pass grammar check contributors to the newly created editor
         Editor.SetGrammarCheckContributors(ExtensionManager?.GrammarCheckContributors ?? []);
@@ -1058,6 +1062,7 @@ public partial class MainWindowViewModel : ObservableObject
         Explorer = new ExplorerViewModel(_projectService);
         Explorer.SceneOpenRequested += OnSceneOpenRequested;
         Explorer.ProjectChanged += OnProjectChanged;
+        Explorer.OpenSceneInSplitPaneRequested = sceneVm => _ = OpenSceneInSplitPaneAsync(sceneVm);
         Explorer.Refresh();
 
         EntityEditor = new EntityEditorViewModel(_entityService, _settingsService, _projectService);
@@ -1192,6 +1197,29 @@ public partial class MainWindowViewModel : ObservableObject
         await Git.RefreshAsync();
     }
 
+    private async Task OpenSceneInSplitPaneAsync(SceneTreeItemViewModel sceneVm)
+    {
+        var chapter = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == sceneVm.Scene.ChapterGuid);
+        if (chapter == null) return;
+
+        if (SecondaryEditor == null)
+            await ToggleSplitEditorAsync(mirrorCurrentScene: false);
+        if (SecondaryEditor == null) return;
+
+        ActiveContentView = "Scene";
+        IsProjectOverviewOpen = false;
+        try
+        {
+            await SecondaryEditor.OpenSceneAsync(chapter, sceneVm.Scene);
+            SetActivePane(SecondaryEditor);
+            StatusText = Loc.T("status.editing", sceneVm.Scene.Title);
+        }
+        catch (System.Exception ex)
+        {
+            StatusText = Loc.T("status.errorOpenScene", ex.Message);
+        }
+    }
+
     private async void OnSceneOpenRequested(ChapterData chapter, SceneData scene)
     {
         // Only honor ActiveEditor when it's still one of the live panes.
@@ -1218,6 +1246,37 @@ public partial class MainWindowViewModel : ObservableObject
     private void OnManuscriptSceneFocused(ChapterData chapter, SceneData scene, string plainText)
     {
         ContextSidebar?.RefreshContextForScene(chapter, scene, plainText);
+    }
+
+    private async Task LoadRecentActivityAsync(string projectPath)
+    {
+        try
+        {
+            await _recentActivityService.LoadAsync(projectPath);
+        }
+        catch { /* non-critical */ }
+        UpdateDashboardRecentActivity();
+        _recentActivityService.Changed -= UpdateDashboardRecentActivity;
+        _recentActivityService.Changed += UpdateDashboardRecentActivity;
+    }
+
+    private void UpdateDashboardRecentActivity()
+    {
+        if (Dashboard == null) return;
+        Dashboard.RecentActivity = new ObservableCollection<ActivityItem>(_recentActivityService.Recent);
+    }
+
+    private void OnSceneSavedForActivity(ChapterData chapter, SceneData scene)
+    {
+        _ = _recentActivityService.LogAsync(new ActivityItem
+        {
+            Type = ActivityType.Edit,
+            ChapterGuid = chapter.Guid,
+            ChapterTitle = chapter.Title,
+            SceneId = scene.Id,
+            SceneTitle = scene.Title,
+            Timestamp = DateTime.UtcNow
+        });
     }
 
     private void OnEntityOpenRequested(EntityType type, object entity)

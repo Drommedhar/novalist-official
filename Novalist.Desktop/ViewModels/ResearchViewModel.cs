@@ -50,6 +50,11 @@ public partial class ResearchViewModel : ObservableObject
     partial void OnSelectedItemChanged(ResearchItem? value)
     {
         HasSelection = value != null;
+        OnPropertyChanged(nameof(SelectedIsImage));
+        OnPropertyChanged(nameof(SelectedIsFile));
+        OnPropertyChanged(nameof(SelectedAbsolutePath));
+        OnPropertyChanged(nameof(SelectedFileSize));
+        OnPropertyChanged(nameof(SelectedModified));
     }
 
     partial void OnSearchQueryChanged(string value) => ApplyFilter();
@@ -145,6 +150,81 @@ public partial class ResearchViewModel : ObservableObject
         }
         await _service.DeleteAsync(SelectedItem.Id);
         SelectedItem = null;
+        Refresh();
+    }
+
+    [ObservableProperty]
+    private string _newTagText = string.Empty;
+
+    public Action<string>? RevealInExplorer { get; set; }
+
+    public bool SelectedIsImage =>
+        SelectedItem?.Type == ResearchItemType.Image && !string.IsNullOrWhiteSpace(SelectedItem.Content);
+
+    public bool SelectedIsFile =>
+        SelectedItem != null && SelectedItem.Type is ResearchItemType.File or ResearchItemType.Pdf or ResearchItemType.Image;
+
+    public string? SelectedAbsolutePath =>
+        SelectedItem != null && !string.IsNullOrWhiteSpace(SelectedItem.Content) && SelectedIsFile
+            ? _service.GetAbsolutePath(SelectedItem.Content)
+            : null;
+
+    public string SelectedFileSize
+    {
+        get
+        {
+            var p = SelectedAbsolutePath;
+            if (string.IsNullOrEmpty(p) || !System.IO.File.Exists(p)) return string.Empty;
+            try
+            {
+                var bytes = new System.IO.FileInfo(p).Length;
+                if (bytes < 1024) return $"{bytes} B";
+                if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+                return $"{bytes / 1024.0 / 1024.0:F2} MB";
+            }
+            catch { return string.Empty; }
+        }
+    }
+
+    public string SelectedModified
+    {
+        get
+        {
+            var p = SelectedAbsolutePath;
+            if (string.IsNullOrEmpty(p) || !System.IO.File.Exists(p)) return string.Empty;
+            try { return new System.IO.FileInfo(p).LastWriteTime.ToString("yyyy-MM-dd HH:mm"); }
+            catch { return string.Empty; }
+        }
+    }
+
+    [RelayCommand]
+    private void RevealSelected()
+    {
+        var p = SelectedAbsolutePath;
+        if (!string.IsNullOrEmpty(p)) RevealInExplorer?.Invoke(p);
+    }
+
+    [RelayCommand]
+    private async Task AddTagAsync()
+    {
+        if (SelectedItem == null) return;
+        var tag = (NewTagText ?? string.Empty).Trim();
+        if (string.IsNullOrEmpty(tag)) return;
+        if (!SelectedItem.Tags.Any(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase)))
+        {
+            SelectedItem.Tags.Add(tag);
+            await _service.SaveAsync(SelectedItem);
+            Refresh();
+        }
+        NewTagText = string.Empty;
+    }
+
+    [RelayCommand]
+    private async Task RemoveTagAsync(string? tag)
+    {
+        if (SelectedItem == null || string.IsNullOrEmpty(tag)) return;
+        SelectedItem.Tags.RemoveAll(t => string.Equals(t, tag, StringComparison.OrdinalIgnoreCase));
+        await _service.SaveAsync(SelectedItem);
         Refresh();
     }
 

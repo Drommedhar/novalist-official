@@ -119,6 +119,7 @@ public partial class EntityEditorViewModel : ObservableObject
     public Func<Task<string?>>? BrowseImageRequested { get; set; }
     public Func<Task<AddImageSourceChoice?>>? ChooseAddImageSourceRequested { get; set; }
     public Func<string?, Task<string?>>? PickProjectImageRequested { get; set; }
+    public Func<AddImageSourceChoice, Task<string?>>? ImportExternalImageRequested { get; set; }
     public Func<string, string, string, IReadOnlyList<string>, Task<string?>>? ShowInverseRelationshipDialog { get; set; }
     public Func<string, string, Task<bool>>? ConfirmDeleteRequested { get; set; }
     public event Action? Saved;
@@ -482,6 +483,15 @@ public partial class EntityEditorViewModel : ObservableObject
 
                 relativePath = await _entityService.ImportImageAsync(path);
                 imageName = Path.GetFileNameWithoutExtension(path);
+                break;
+            case AddImageSourceChoice.Clipboard:
+            case AddImageSourceChoice.Url:
+                var external = await (ImportExternalImageRequested?.Invoke(sourceChoice.Value) ?? Task.FromResult<string?>(null));
+                if (string.IsNullOrWhiteSpace(external))
+                    return;
+
+                relativePath = await _entityService.ImportImageAsync(external);
+                imageName = Path.GetFileNameWithoutExtension(external);
                 break;
             default:
                 return;

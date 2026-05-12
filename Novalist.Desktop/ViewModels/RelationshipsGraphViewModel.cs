@@ -25,6 +25,62 @@ public partial class RelationshipsGraphViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
+    [ObservableProperty]
+    private string _searchQuery = string.Empty;
+
+    [ObservableProperty]
+    private string? _filterGroup;
+
+    [ObservableProperty]
+    private string? _filterRole;
+
+    [ObservableProperty]
+    private bool _hideWorldBibleCharacters;
+
+    [ObservableProperty]
+    private ObservableCollection<string> _availableGroups = [];
+
+    [ObservableProperty]
+    private ObservableCollection<string> _availableRoles = [];
+
+    private IReadOnlyList<CharacterData> _allCharacters = [];
+
+    partial void OnSearchQueryChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasActiveFilter));
+        Rebuild();
+    }
+    partial void OnFilterGroupChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasActiveFilter));
+        Rebuild();
+    }
+    partial void OnFilterRoleChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasActiveFilter));
+        Rebuild();
+    }
+    partial void OnHideWorldBibleCharactersChanged(bool value)
+    {
+        OnPropertyChanged(nameof(HasActiveFilter));
+        Rebuild();
+    }
+
+    public bool HasActiveFilter =>
+        !string.IsNullOrWhiteSpace(SearchQuery)
+        || !string.IsNullOrWhiteSpace(FilterGroup)
+        || !string.IsNullOrWhiteSpace(FilterRole)
+        || HideWorldBibleCharacters;
+
+    [CommunityToolkit.Mvvm.Input.RelayCommand]
+    private void ClearFilters()
+    {
+        SearchQuery = string.Empty;
+        FilterGroup = null;
+        FilterRole = null;
+        HideWorldBibleCharacters = false;
+    }
+
     public RelationshipsGraphViewModel(IEntityService entityService)
     {
         _entityService = entityService;
@@ -35,13 +91,39 @@ public partial class RelationshipsGraphViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            var characters = await _entityService.LoadCharactersAsync();
-            BuildGraph(characters.ToList());
+            _allCharacters = (await _entityService.LoadCharactersAsync()).ToList();
+            AvailableGroups = new ObservableCollection<string>(
+                _allCharacters.Select(c => c.Group).Where(g => !string.IsNullOrWhiteSpace(g)).Distinct().OrderBy(g => g));
+            AvailableRoles = new ObservableCollection<string>(
+                _allCharacters.Select(c => c.Role).Where(r => !string.IsNullOrWhiteSpace(r)).Distinct().OrderBy(r => r));
+            Rebuild();
         }
         finally
         {
             IsLoading = false;
         }
+    }
+
+    private void Rebuild()
+    {
+        if (_allCharacters.Count == 0)
+        {
+            BuildGraph([]);
+            return;
+        }
+        IEnumerable<CharacterData> filtered = _allCharacters;
+        var q = (SearchQuery ?? string.Empty).Trim();
+        if (!string.IsNullOrEmpty(q))
+            filtered = filtered.Where(c =>
+                (c.DisplayName?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (c.Name?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false));
+        if (!string.IsNullOrWhiteSpace(FilterGroup))
+            filtered = filtered.Where(c => string.Equals(c.Group, FilterGroup, StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(FilterRole))
+            filtered = filtered.Where(c => string.Equals(c.Role, FilterRole, StringComparison.OrdinalIgnoreCase));
+        if (HideWorldBibleCharacters)
+            filtered = filtered.Where(c => !c.IsWorldBible);
+        BuildGraph(filtered.ToList());
     }
 
     private static readonly string[] ParentRoles =

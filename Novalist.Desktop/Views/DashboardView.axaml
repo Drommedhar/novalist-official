@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:m="using:Novalist.Core.Models"
              xmlns:loc="using:Novalist.Desktop.Localization"
              mc:Ignorable="d"
              d:DesignWidth="900" d:DesignHeight="700"
@@ -536,6 +537,40 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- ═══ Recent Activity ═══ -->
+                <StackPanel Spacing="12"
+                            IsVisible="{Binding HasRecentActivity}">
+                    <TextBlock Classes="nlvSectionHeader"
+                               Text="{loc:Loc dashboard.recentActivity}" />
+
+                    <Border Classes="nlvCard">
+                        <ItemsControl ItemsSource="{Binding RecentActivity}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="m:ActivityItem">
+                                    <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                                        <StackPanel Grid.Column="0" Spacing="1">
+                                            <TextBlock Text="{Binding SceneTitle}"
+                                                       FontSize="12"
+                                                       FontWeight="SemiBold"
+                                                       Foreground="{DynamicResource NormalText}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding ChapterTitle}"
+                                                       FontSize="10"
+                                                       Foreground="{DynamicResource SubtleText}"
+                                                       TextTrimming="CharacterEllipsis" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="1"
+                                                   Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource SubtleText}"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </Border>
                 </StackPanel>
 

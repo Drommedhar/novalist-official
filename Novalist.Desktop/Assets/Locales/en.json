@@ -25,6 +25,10 @@
   "research": {
     "title": "Research",
     "search": "Search research…",
+    "tags": "Tags",
+    "addTag": "Add tag…",
+    "reveal": "Reveal in file manager",
+    "metadata": "File",
     "addNote": "+ Note",
     "addLink": "+ Link",
     "importFile": "Import file...",
@@ -67,7 +71,12 @@
   },
   "relationships": {
     "title": "Relationships",
-    "hint": "Drag to pan · Wheel to zoom"
+    "hint": "Drag to pan · Wheel to zoom",
+    "search": "Search characters…",
+    "filterGroup": "Group…",
+    "filterRole": "Role…",
+    "hideWorldBible": "Hide world bible",
+    "clearFilters": "Clear filters"
   },
   "calendar": {
     "title": "Calendar",
@@ -416,6 +425,7 @@
     "colorClear": "Clear",
     "showFavoritesOnly": "Favorites only",
     "contextRename": "Rename",
+    "contextOpenInSplit": "Open in split pane",
     "contextDelete": "Delete",
     "contextTakeSnapshot": "Take Snapshot",
     "contextSnapshots": "Snapshots...",
@@ -703,6 +713,9 @@
     "addImageDescription": "Select an existing image from the project library or import a new file into the project image folder.",
     "selectFromLibrary": "Select From Library",
     "importFile": "Import File",
+    "fromClipboard": "From Clipboard",
+    "fromUrl": "From URL",
+    "fromUrlPrompt": "Image URL (https://…)",
     "inverseRelTitle": "Define Inverse Relationship",
     "inverseRelDescription": "Add an inverse relationship to {0} for '{1}'.",
     "inverseRelQuestion": "How should {0} refer to {1}?",
@@ -854,7 +867,8 @@
     "shortestChapter": "Shortest Chapter",
     "avgSceneWords": "Avg Scene Words",
     "echoFinder": "ECHO FINDER",
-    "echoDescription": "Frequently repeated phrases across your manuscript. Consider varying your language where counts are high."
+    "echoDescription": "Frequently repeated phrases across your manuscript. Consider varying your language where counts are high.",
+    "recentActivity": "RECENT ACTIVITY"
   },
   "import": {
     "title": "Import from Obsidian Plugin",
@@ -883,6 +897,10 @@
     "filterSource": "Filter by source…",
     "addEvent": "Add Event",
     "exportOutline": "Export Outline",
+    "prev": "Previous",
+    "next": "Next",
+    "today": "Today",
+    "jumpTo": "Jump to date…",
     "applyStructure": "Add structure...",
     "editEvent": "Edit",
     "deleteEvent": "Delete",

@@ -20,6 +20,7 @@ public partial class DashboardViewModel : ObservableObject
     public Func<Task<AddImageSourceChoice?>>? ChooseAddImageSourceRequested { get; set; }
     public Func<string?, Task<string?>>? PickCoverImageRequested { get; set; }
     public Func<Task<string?>>? BrowseImageRequested { get; set; }
+    public Func<AddImageSourceChoice, Task<string?>>? ImportExternalImageRequested { get; set; }
     public Func<string?, Task>? CoverImageSelected { get; set; }
 
     private string? _currentCoverRelativePath;
@@ -67,6 +68,14 @@ public partial class DashboardViewModel : ObservableObject
 
     [ObservableProperty]
     private string _author = string.Empty;
+
+    [ObservableProperty]
+    private ObservableCollection<ActivityItem> _recentActivity = [];
+
+    public bool HasRecentActivity => RecentActivity.Count > 0;
+
+    partial void OnRecentActivityChanged(ObservableCollection<ActivityItem> value)
+        => OnPropertyChanged(nameof(HasRecentActivity));
 
     public bool HasAuthor => !string.IsNullOrWhiteSpace(Author);
 
@@ -162,6 +171,13 @@ public partial class DashboardViewModel : ObservableObject
                 if (string.IsNullOrEmpty(filePath)) return;
                 // Pass with "import:" prefix so the parent knows to import
                 await CoverImageSelected.Invoke("import:" + filePath);
+                return;
+            case AddImageSourceChoice.Clipboard:
+            case AddImageSourceChoice.Url:
+                if (ImportExternalImageRequested == null) return;
+                var externalPath = await ImportExternalImageRequested.Invoke(choice.Value);
+                if (string.IsNullOrEmpty(externalPath)) return;
+                await CoverImageSelected.Invoke("import:" + externalPath);
                 return;
             default:
                 return;

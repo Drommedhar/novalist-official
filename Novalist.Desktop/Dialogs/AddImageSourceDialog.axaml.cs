@@ -45,6 +45,18 @@ public partial class AddImageSourceDialog : UserControl
         DialogClosed.TrySetResult();
     }
 
+    private void OnFromClipboard(object? sender, RoutedEventArgs e)
+    {
+        Result = AddImageSourceChoice.Clipboard;
+        DialogClosed.TrySetResult();
+    }
+
+    private void OnFromUrl(object? sender, RoutedEventArgs e)
+    {
+        Result = AddImageSourceChoice.Url;
+        DialogClosed.TrySetResult();
+    }
+
     private void OnCancel(object? sender, RoutedEventArgs e)
     {
         Result = null;

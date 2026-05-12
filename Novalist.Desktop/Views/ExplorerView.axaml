@@ -199,6 +199,7 @@
                                                             <MenuItem Header="{loc:Loc explorer.colorClear}"  Click="OnSetSceneColorClick" Tag="" />
                                                         </MenuItem>
                                                         <MenuItem Header="{loc:Loc explorer.contextRename}" Click="OnRenameSceneClick" />
+                                                        <MenuItem Header="{loc:Loc explorer.contextOpenInSplit}" Click="OnOpenSceneInSplitClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextTakeSnapshot}" Click="OnTakeSnapshotClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextSnapshots}" Click="OnOpenSnapshotsClick" />
                                                         <Separator />

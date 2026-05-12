@@ -42,6 +42,18 @@
                         HorizontalAlignment="Stretch"
                         Padding="14,10"
                         Click="OnImportFile" />
+
+                <Button x:Name="ClipboardButton"
+                        Content="{loc:Loc dialog.fromClipboard}"
+                        HorizontalAlignment="Stretch"
+                        Padding="14,10"
+                        Click="OnFromClipboard" />
+
+                <Button x:Name="UrlButton"
+                        Content="{loc:Loc dialog.fromUrl}"
+                        HorizontalAlignment="Stretch"
+                        Padding="14,10"
+                        Click="OnFromUrl" />
             </StackPanel>
         </DockPanel>
     </Border>

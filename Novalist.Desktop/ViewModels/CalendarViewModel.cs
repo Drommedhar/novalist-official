@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Models;
@@ -93,6 +94,14 @@ public partial class CalendarViewModel : ObservableObject
     [RelayCommand] private void SetWeekView() => ViewMode = "Week";
     [RelayCommand] private void SetMonthView() => ViewMode = "Month";
     [RelayCommand] private void SetYearView() => ViewMode = "Year";
+
+    public async Task RescheduleSceneAsync(string chapterGuid, string sceneId, DateTime newDate)
+    {
+        if (string.IsNullOrEmpty(chapterGuid) || string.IsNullOrEmpty(sceneId)) return;
+        var iso = newDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        await _projectService.SetSceneDateAsync(chapterGuid, sceneId, iso);
+        Refresh();
+    }
 
     [RelayCommand]
     private void JumpToDate(DateTime date)

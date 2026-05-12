@@ -22,6 +22,10 @@
   "research": {
     "title": "Recherche",
     "search": "Recherche durchsuchen…",
+    "tags": "Tags",
+    "addTag": "Tag hinzufügen…",
+    "reveal": "Im Dateimanager anzeigen",
+    "metadata": "Datei",
     "addNote": "+ Notiz",
     "addLink": "+ Link",
     "importFile": "Datei importieren...",
@@ -380,6 +384,7 @@
     "colorClear": "Entfernen",
     "showFavoritesOnly": "Nur Favoriten",
     "contextRename": "Umbenennen",
+    "contextOpenInSplit": "Im geteilten Editor öffnen",
     "contextDelete": "Löschen",
     "contextTakeSnapshot": "Stand sichern",
     "contextSnapshots": "Stände...",
@@ -667,6 +672,9 @@
     "addImageDescription": "Wählen Sie ein Bild aus der Projektbibliothek oder importieren Sie eine neue Datei in den Projektbilderordner.",
     "selectFromLibrary": "Aus Bibliothek wählen",
     "importFile": "Datei importieren",
+    "fromClipboard": "Aus Zwischenablage",
+    "fromUrl": "Aus URL",
+    "fromUrlPrompt": "Bild-URL (https://…)",
     "inverseRelTitle": "Inverse Beziehung definieren",
     "inverseRelDescription": "Inverse Beziehung zu {0} für '{1}' hinzufügen.",
     "inverseRelQuestion": "Wie soll {0} auf {1} verweisen?",
@@ -778,7 +786,12 @@
   },
   "relationships": {
     "title": "Beziehungen",
-    "hint": "Ziehen zum Verschieben · Mausrad zum Zoomen"
+    "hint": "Ziehen zum Verschieben · Mausrad zum Zoomen",
+    "search": "Charaktere suchen…",
+    "filterGroup": "Gruppe…",
+    "filterRole": "Rolle…",
+    "hideWorldBible": "Welt-Bibel ausblenden",
+    "clearFilters": "Filter zurücksetzen"
   },
   "calendar": {
     "title": "Kalender",
@@ -850,7 +863,8 @@
     "shortestChapter": "Kürzestes Kapitel",
     "avgSceneWords": "Ø Wörter pro Szene",
     "echoFinder": "ECHO-FINDER",
-    "echoDescription": "Häufig wiederholte Phrasen in Ihrem Manuskript. Erwägen Sie, Ihre Sprache zu variieren, wenn die Anzahl hoch ist."
+    "echoDescription": "Häufig wiederholte Phrasen in Ihrem Manuskript. Erwägen Sie, Ihre Sprache zu variieren, wenn die Anzahl hoch ist.",
+    "recentActivity": "LETZTE AKTIVITÄT"
   },
   "import": {
     "title": "Aus Obsidian-Plugin importieren",
@@ -879,6 +893,10 @@
     "filterSource": "Nach Quelle filtern…",
     "addEvent": "Ereignis hinzufügen",
     "exportOutline": "Outline exportieren",
+    "prev": "Zurück",
+    "next": "Weiter",
+    "today": "Heute",
+    "jumpTo": "Springe zu Datum…",
     "applyStructure": "Struktur einfügen...",
     "editEvent": "Bearbeiten",
     "deleteEvent": "Löschen",

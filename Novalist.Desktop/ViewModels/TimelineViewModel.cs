@@ -94,6 +94,20 @@ public partial class TimelineViewModel : ObservableObject
     private string _formLinkedChapterGuid = string.Empty;
 
     [ObservableProperty]
+    private DateTime? _anchorDate;
+
+    [ObservableProperty]
+    private string _highlightedGroupKey = string.Empty;
+
+    [ObservableProperty]
+    private bool _isJumpFlyoutOpen;
+
+    [ObservableProperty]
+    private string _jumpDateInput = string.Empty;
+
+    public event Action<string>? ScrollToGroupRequested;
+
+    [ObservableProperty]
     private ObservableCollection<ChapterData> _availableChapters = [];
 
     private string? _editingEventId;
@@ -438,6 +452,55 @@ public partial class TimelineViewModel : ObservableObject
         IsFormOpen = false;
     }
 
+    [RelayCommand]
+    private void ScrollToToday() => SetAnchorAndScroll(DateTime.Today);
+
+    [RelayCommand]
+    private void PanPrevious() => Pan(-1);
+
+    [RelayCommand]
+    private void PanNext() => Pan(1);
+
+    [RelayCommand]
+    private void OpenJumpFlyout()
+    {
+        JumpDateInput = (AnchorDate ?? DateTime.Today).ToString("yyyy-MM-dd");
+        IsJumpFlyoutOpen = true;
+    }
+
+    [RelayCommand]
+    private void ConfirmJump()
+    {
+        if (DateTime.TryParseExact(JumpDateInput?.Trim() ?? string.Empty, "yyyy-MM-dd",
+            CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+        {
+            SetAnchorAndScroll(parsed);
+        }
+        IsJumpFlyoutOpen = false;
+    }
+
+    [RelayCommand]
+    private void CancelJump() => IsJumpFlyoutOpen = false;
+
+    private void Pan(int direction)
+    {
+        var current = AnchorDate ?? DateTime.Today;
+        var next = ZoomLevel switch
+        {
+            "year" => current.AddYears(direction),
+            "day" => current.AddDays(direction),
+            _ => current.AddMonths(direction),
+        };
+        SetAnchorAndScroll(next);
+    }
+
+    private void SetAnchorAndScroll(DateTime date)
+    {
+        AnchorDate = date;
+        HighlightedGroupKey = GroupKey(date, ZoomLevel);
+        ScrollToGroupRequested?.Invoke(HighlightedGroupKey);
+    }
+
     public IReadOnlyList<StoryStructureTemplate> AvailableStructureTemplates { get; } = StoryStructureTemplates.All;
 
     [RelayCommand]
@@ -510,7 +573,12 @@ public partial class TimelineViewModel : ObservableObject
         OnPropertyChanged(nameof(IsVertical));
         OnPropertyChanged(nameof(IsHorizontal));
     }
-    partial void OnZoomLevelChanged(string value) => OnPropertyChanged(nameof(ZoomLabel));
+    partial void OnZoomLevelChanged(string value)
+    {
+        OnPropertyChanged(nameof(ZoomLabel));
+        if (AnchorDate.HasValue)
+            HighlightedGroupKey = GroupKey(AnchorDate.Value, value);
+    }
     partial void OnFilterCharacterChanged(string? value) => BuildAndRender();
     partial void OnFilterLocationChanged(string? value) => BuildAndRender();
     partial void OnSelectedSourceFilterChanged(SourceFilterItem? value)

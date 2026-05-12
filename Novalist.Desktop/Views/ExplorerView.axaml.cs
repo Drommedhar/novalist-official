@@ -200,6 +200,14 @@ public partial class ExplorerView : UserControl
         Vm.DeleteSceneCommand.Execute(null);
     }
 
+    private void OnOpenSceneInSplitClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var scene = GetContextMenuTag<SceneTreeItemViewModel>(sender);
+        if (scene == null) return;
+        Vm.OpenSceneInSplitPaneRequested?.Invoke(scene);
+    }
+
     private void OnSetSceneDateClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is null) return;

@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Novalist.Desktop.ViewModels"
              xmlns:models="using:Novalist.Core.Models"
+             xmlns:conv="using:Novalist.Desktop.Converters"
              xmlns:loc="using:Novalist.Desktop.Localization"
              x:Class="Novalist.Desktop.Views.ResearchView"
              x:DataType="vm:ResearchViewModel">
@@ -82,6 +83,10 @@
                             HorizontalAlignment="Right"
                             Spacing="8"
                             Margin="0,12,0,0">
+                    <Button Content="{loc:Loc research.reveal}"
+                            Command="{Binding RevealSelectedCommand}"
+                            IsVisible="{Binding SelectedIsFile}"
+                            Padding="12,6" />
                     <Button Content="{loc:Loc research.openExternal}"
                             Command="{Binding OpenExternalCommand}"
                             Padding="12,6" />
@@ -92,6 +97,82 @@
                             Command="{Binding SaveSelectedCommand}"
                             Classes="primary"
                             Padding="14,6" />
+                </StackPanel>
+
+                <Border DockPanel.Dock="Top"
+                        IsVisible="{Binding SelectedIsImage}"
+                        Background="{DynamicResource ExplorerBackground}"
+                        CornerRadius="4"
+                        Padding="6"
+                        Margin="0,12,0,0"
+                        MaxHeight="320">
+                    <Image Source="{Binding SelectedAbsolutePath, Converter={x:Static conv:AbsolutePathToBitmapConverter.Instance}}"
+                           Stretch="Uniform"
+                           RenderOptions.BitmapInterpolationMode="HighQuality" />
+                </Border>
+
+                <Border DockPanel.Dock="Top"
+                        IsVisible="{Binding SelectedIsFile}"
+                        Margin="0,8,0,0">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="{loc:Loc research.metadata}"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource SubtleText}" />
+                        <TextBlock Text="{Binding SelectedAbsolutePath}"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource SubtleText}"
+                                   TextWrapping="Wrap" />
+                        <TextBlock FontSize="11" Foreground="{DynamicResource SubtleText}">
+                            <Run Text="{Binding SelectedFileSize}" />
+                            <Run Text=" · " />
+                            <Run Text="{Binding SelectedModified}" />
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0,8,0,0">
+                    <TextBlock Text="{loc:Loc research.tags}"
+                               FontSize="11"
+                               Foreground="{DynamicResource SubtleText}" />
+                    <ItemsControl ItemsSource="{Binding SelectedItem.Tags}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Border CornerRadius="{DynamicResource RadiusPill}"
+                                        Background="{DynamicResource AccentBrush}"
+                                        Padding="8,2"
+                                        Margin="0,0,4,4">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock Text="{Binding}"
+                                                   FontSize="11"
+                                                   Foreground="White" />
+                                        <Button Content="×"
+                                                FontSize="11"
+                                                Padding="2,0"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Foreground="White"
+                                                Command="{Binding $parent[UserControl].((vm:ResearchViewModel)DataContext).RemoveTagCommand}"
+                                                CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <StackPanel Orientation="Horizontal" Spacing="6">
+                        <TextBox Text="{Binding NewTagText, Mode=TwoWay}"
+                                 Watermark="{loc:Loc research.addTag}"
+                                 FontSize="11"
+                                 MinWidth="180" />
+                        <Button Content="+"
+                                Command="{Binding AddTagCommand}"
+                                Padding="10,4" />
+                    </StackPanel>
                 </StackPanel>
 
                 <TextBox Text="{Binding SelectedItem.Content, Mode=TwoWay}"
