@@ -141,6 +141,8 @@ public partial class ExplorerViewModel : ObservableObject
         SelectedScene = null;
 
         var chapters = _projectService.GetChaptersOrdered();
+        var query = (SearchQuery ?? string.Empty).Trim();
+        var hasQuery = !string.IsNullOrEmpty(query);
 
         // Group by act: chapters with an act are grouped under act headers,
         // chapters without an act appear at the top level.
@@ -157,12 +159,18 @@ public partial class ExplorerViewModel : ObservableObject
                 currentAct = act;
             }
 
+            var chapterTitleMatches = !hasQuery
+                || (chapter.Title?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false);
+
             var chapterVm = new ChapterTreeItemViewModel(chapter);
             chapterVm.IsSelected = selectedChapterSet.Contains(chapter.Guid);
             var scenes = _projectService.GetScenesForChapter(chapter.Guid);
             foreach (var scene in scenes)
             {
                 if (ShowFavoritesOnly && !scene.IsFavorite && !chapter.IsFavorite)
+                    continue;
+                if (hasQuery && !chapterTitleMatches &&
+                    !(scene.Title?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false))
                     continue;
                 var sceneVm = new SceneTreeItemViewModel(scene, chapter)
                 {
@@ -178,6 +186,12 @@ public partial class ExplorerViewModel : ObservableObject
 
             if (ShowFavoritesOnly && !chapter.IsFavorite && chapterVm.Scenes.Count == 0)
                 continue;
+
+            if (hasQuery && !chapterTitleMatches && chapterVm.Scenes.Count == 0)
+                continue;
+
+            if (hasQuery)
+                chapterVm.IsExpanded = true;
 
             if (chapterVm.IsSelected)
             {
@@ -438,6 +452,11 @@ public partial class ExplorerViewModel : ObservableObject
     private bool _showFavoritesOnly;
 
     partial void OnShowFavoritesOnlyChanged(bool value) => Refresh();
+
+    [ObservableProperty]
+    private string _searchQuery = string.Empty;
+
+    partial void OnSearchQueryChanged(string value) => Refresh();
 
     // ── Act commands ────────────────────────────────────────────────
 

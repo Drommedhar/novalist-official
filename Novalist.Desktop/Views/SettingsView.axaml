@@ -391,6 +391,21 @@
                                  HorizontalAlignment="Right" />
                     </DockPanel>
 
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="300">
+                            <TextBlock Text="{loc:Loc settings.projectAuthor}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="13" />
+                            <TextBlock Text="{loc:Loc settings.projectAuthorDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <TextBox Text="{Binding ProjectAuthor}"
+                                 MinWidth="220"
+                                 HorizontalAlignment="Right" />
+                    </DockPanel>
+
                     <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,8,0,0" />
                 </StackPanel>
 

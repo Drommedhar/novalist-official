@@ -66,6 +66,13 @@ public partial class DashboardViewModel : ObservableObject
     private string _projectName = string.Empty;
 
     [ObservableProperty]
+    private string _author = string.Empty;
+
+    public bool HasAuthor => !string.IsNullOrWhiteSpace(Author);
+
+    partial void OnAuthorChanged(string value) => OnPropertyChanged(nameof(HasAuthor));
+
+    [ObservableProperty]
     private int _totalWords;
 
     [ObservableProperty]

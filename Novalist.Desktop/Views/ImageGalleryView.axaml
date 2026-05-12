@@ -83,6 +83,10 @@
                                         <ContextMenu>
                                             <MenuItem Header="{loc:Loc imageGallery.copyPath}"
                                                       Command="{Binding CopyPathCommand}" />
+                                            <MenuItem Header="{loc:Loc imageGallery.copyMarkdown}"
+                                                      Command="{Binding CopyAsMarkdownCommand}" />
+                                            <MenuItem Header="{loc:Loc imageGallery.openExternally}"
+                                                      Command="{Binding OpenExternallyCommand}" />
                                             <MenuItem Header="{loc:Loc imageGallery.openInExplorer}"
                                                       Command="{Binding OpenInExplorerCommand}" />
                                         </ContextMenu>
@@ -132,6 +136,10 @@
                                         <ContextMenu>
                                             <MenuItem Header="{loc:Loc imageGallery.copyPath}"
                                                       Command="{Binding CopyPathCommand}" />
+                                            <MenuItem Header="{loc:Loc imageGallery.copyMarkdown}"
+                                                      Command="{Binding CopyAsMarkdownCommand}" />
+                                            <MenuItem Header="{loc:Loc imageGallery.openExternally}"
+                                                      Command="{Binding OpenExternallyCommand}" />
                                             <MenuItem Header="{loc:Loc imageGallery.openInExplorer}"
                                                       Command="{Binding OpenInExplorerCommand}" />
                                         </ContextMenu>

@@ -674,6 +674,17 @@ public partial class MainWindow : Window
                 });
             }
         };
+        gallery.OpenExternally = path =>
+        {
+            if (System.IO.File.Exists(path))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true
+                });
+            }
+        };
     }
 
     private async Task<string?> ShowExportSaveFileDialogAsync(string suggestedName, string formatLabel)
@@ -965,6 +976,12 @@ public partial class MainWindow : Window
             {
                 vm.StatusText = $"Error: {ex.Message}"; Toast.Show?.Invoke(Loc.T("toast.projectLoadFailed", ex.Message), ToastSeverity.Error);
             }
+        };
+
+        welcomeVm.RemoveRecentRequested += async (card) =>
+        {
+            vm.SettingsService.RemoveRecentProject(card.Path);
+            await vm.SettingsService.SaveAsync();
         };
 
         welcomeVm.ImportPluginProjectRequested += async () =>

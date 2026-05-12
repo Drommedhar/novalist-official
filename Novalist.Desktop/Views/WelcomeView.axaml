@@ -192,6 +192,13 @@
                                             CommandParameter="{Binding}"
                                             Padding="0"
                                             Margin="0,0,12,12">
+                                        <Button.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="{loc:Loc welcome.removeFromList}"
+                                                          Command="{Binding $parent[ItemsControl].((vm:WelcomeViewModel)DataContext).RemoveRecentProjectCommand}"
+                                                          CommandParameter="{Binding}" />
+                                            </ContextMenu>
+                                        </Button.ContextMenu>
                                         <Border Background="{DynamicResource CardBackground}"
                                                 BorderBrush="{DynamicResource CardBorder}"
                                                 BorderThickness="1"

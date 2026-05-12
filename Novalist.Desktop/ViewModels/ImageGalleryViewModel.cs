@@ -46,6 +46,7 @@ public partial class ImageGalleryViewModel : ObservableObject
 
     public Func<string, Task>? CopyToClipboard { get; set; }
     public Action<string>? RevealInExplorer { get; set; }
+    public Action<string>? OpenExternally { get; set; }
 
     public ImageGalleryViewModel(IEntityService entityService)
     {
@@ -68,16 +69,22 @@ public partial class ImageGalleryViewModel : ObservableObject
             return paths.Select(p =>
             {
                 var fullPath = _entityService.GetImageFullPath(p);
+                var fileName = Path.GetFileNameWithoutExtension(p);
                 return new ImageGalleryItem
                 {
                     RelativePath = p,
-                    Name = Path.GetFileNameWithoutExtension(p),
+                    Name = fileName,
                     FullPath = fullPath,
                     CopyPathCommand = new RelayCommand(() =>
                     {
                         if (CopyToClipboard != null) _ = CopyToClipboard.Invoke(p);
                     }),
                     OpenInExplorerCommand = new RelayCommand(() => RevealInExplorer?.Invoke(fullPath)),
+                    OpenExternallyCommand = new RelayCommand(() => OpenExternally?.Invoke(fullPath)),
+                    CopyAsMarkdownCommand = new RelayCommand(() =>
+                    {
+                        if (CopyToClipboard != null) _ = CopyToClipboard.Invoke($"![{fileName}]({p.Replace('\\', '/')})");
+                    }),
                 };
             }).ToArray();
         }).ConfigureAwait(true);
@@ -150,6 +157,8 @@ public partial class ImageGalleryItem : ObservableObject
     public string FullPath { get; init; } = string.Empty;
     public RelayCommand? CopyPathCommand { get; init; }
     public RelayCommand? OpenInExplorerCommand { get; init; }
+    public RelayCommand? OpenExternallyCommand { get; init; }
+    public RelayCommand? CopyAsMarkdownCommand { get; init; }
 
     [ObservableProperty]
     private Bitmap? _thumbnail;

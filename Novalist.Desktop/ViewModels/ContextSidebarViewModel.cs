@@ -108,7 +108,8 @@ public partial class ContextSidebarViewModel : ObservableObject
         new("peaceful", "Peaceful", ["peace", "calm", "still", "soft", "rest", "gentle"]),
         new("chaotic", "Chaotic", ["chaos", "riot", "wild", "fracture", "spiral", "rattle"]),
         new("sorrowful", "Sorrowful", ["sorrow", "grief", "weep", "mourning", "ache", "loss"]),
-        new("triumphant", "Triumphant", ["triumph", "victory", "won", "conquer", "defiant", "surge"])
+        new("triumphant", "Triumphant", ["triumph", "victory", "won", "conquer", "defiant", "surge"]),
+        new("somber", "Somber", ["somber", "grim", "mournful", "bleak", "subdued", "solemn", "heavy"])
     ];
 
     private static readonly IReadOnlyList<string> EmotionKeys = EmotionProfiles

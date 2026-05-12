@@ -23,6 +23,11 @@ public partial class ResearchViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasSelection;
 
+    [ObservableProperty]
+    private string _searchQuery = string.Empty;
+
+    private ResearchItem[] _allItems = [];
+
     public Func<Task<string?>>? PickFileToImport { get; set; }
     public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
 
@@ -35,7 +40,8 @@ public partial class ResearchViewModel : ObservableObject
 
     public void Refresh()
     {
-        Items = new ObservableCollection<ResearchItem>(_service.GetAll());
+        _allItems = _service.GetAll().ToArray();
+        ApplyFilter();
         if (SelectedItem != null)
             SelectedItem = Items.FirstOrDefault(i => i.Id == SelectedItem.Id);
         HasSelection = SelectedItem != null;
@@ -44,6 +50,24 @@ public partial class ResearchViewModel : ObservableObject
     partial void OnSelectedItemChanged(ResearchItem? value)
     {
         HasSelection = value != null;
+    }
+
+    partial void OnSearchQueryChanged(string value) => ApplyFilter();
+
+    private void ApplyFilter()
+    {
+        var q = (SearchQuery ?? string.Empty).Trim();
+        if (string.IsNullOrEmpty(q))
+        {
+            Items = new ObservableCollection<ResearchItem>(_allItems);
+            return;
+        }
+
+        var filtered = _allItems.Where(i =>
+            (i.Title?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (i.Content?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            i.Tags.Any(t => t.Contains(q, StringComparison.OrdinalIgnoreCase)));
+        Items = new ObservableCollection<ResearchItem>(filtered);
     }
 
     [RelayCommand]

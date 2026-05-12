@@ -32,17 +32,22 @@
                     Padding="8,4"
                     BorderBrush="{DynamicResource ExplorerBorder}"
                     BorderThickness="0,1,0,1">
-                <StackPanel Orientation="Horizontal" Spacing="4">
-                    <Button Content="{loc:Loc explorer.addChapter}"
-                            Command="{Binding CreateChapterCommand}"
-                            FontSize="11"
-                            Padding="8,4"
-                            ToolTip.Tip="{loc:Loc explorer.addChapterTooltip}" />
-                    <Button Content="{loc:Loc explorer.addScene}"
-                            Command="{Binding CreateSceneCommand}"
-                            FontSize="11"
-                            Padding="8,4"
-                        ToolTip.Tip="{loc:Loc explorer.addSceneTooltip}" />
+                <StackPanel Spacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                        <Button Content="{loc:Loc explorer.addChapter}"
+                                Command="{Binding CreateChapterCommand}"
+                                FontSize="11"
+                                Padding="8,4"
+                                ToolTip.Tip="{loc:Loc explorer.addChapterTooltip}" />
+                        <Button Content="{loc:Loc explorer.addScene}"
+                                Command="{Binding CreateSceneCommand}"
+                                FontSize="11"
+                                Padding="8,4"
+                            ToolTip.Tip="{loc:Loc explorer.addSceneTooltip}" />
+                    </StackPanel>
+                    <TextBox Text="{Binding SearchQuery, Mode=TwoWay}"
+                             Watermark="{loc:Loc explorer.search}"
+                             FontSize="11" />
                 </StackPanel>
             </Border>
 

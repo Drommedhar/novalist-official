@@ -56,9 +56,24 @@ public partial class CodexHubViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
+    [ObservableProperty]
+    private CodexSortMode _sortMode = CodexSortMode.Name;
+
+    public int SortModeIndex
+    {
+        get => (int)SortMode;
+        set
+        {
+            var mode = (CodexSortMode)value;
+            if (SortMode != mode) SortMode = mode;
+        }
+    }
+
     public IReadOnlyList<EntityTypeDescriptor> ExtensionEntityTypes { get; set; } = [];
 
     public event Action<EntityType, object>? EntityOpenRequested;
+    public event Action? ManageEntityTypesRequested;
+    public event Action? OpenTemplatesRequested;
 
     public CodexHubViewModel(IEntityService entityService, IProjectService projectService)
     {
@@ -119,6 +134,11 @@ public partial class CodexHubViewModel : ObservableObject
 
     partial void OnActiveTabChanged(string value) => ApplyFilter();
     partial void OnSearchQueryChanged(string value) => ApplyFilter();
+    partial void OnSortModeChanged(CodexSortMode value)
+    {
+        OnPropertyChanged(nameof(SortModeIndex));
+        ApplyFilter();
+    }
 
     partial void OnSelectedCustomTabChanged(CodexCustomTab? value)
     {
@@ -139,6 +159,12 @@ public partial class CodexHubViewModel : ObservableObject
         if (item == null) return;
         EntityOpenRequested?.Invoke(item.EntityType, item.Entity);
     }
+
+    [RelayCommand]
+    private void ManageEntityTypes() => ManageEntityTypesRequested?.Invoke();
+
+    [RelayCommand]
+    private void OpenTemplates() => OpenTemplatesRequested?.Invoke();
 
     private void ApplyFilter()
     {
@@ -200,6 +226,12 @@ public partial class CodexHubViewModel : ObservableObject
             }
         }
 
+        items = SortMode switch
+        {
+            CodexSortMode.NameDescending => items.OrderByDescending(i => i.Name, StringComparer.OrdinalIgnoreCase).ToList(),
+            _ => items.OrderBy(i => i.Name, StringComparer.OrdinalIgnoreCase).ToList(),
+        };
+
         FilteredEntities = new ObservableCollection<CodexEntityItem>(items);
     }
 
@@ -208,6 +240,12 @@ public partial class CodexHubViewModel : ObservableObject
         if (string.IsNullOrEmpty(query)) return true;
         return name.Contains(query, StringComparison.OrdinalIgnoreCase);
     }
+}
+
+public enum CodexSortMode
+{
+    Name,
+    NameDescending,
 }
 
 public sealed class CodexCustomTab

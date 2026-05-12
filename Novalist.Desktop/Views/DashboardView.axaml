@@ -52,6 +52,10 @@
                                    FontSize="{DynamicResource FontSizeTitle}"
                                    FontWeight="{DynamicResource FontWeightTitle}"
                                    Foreground="{DynamicResource NormalText}" />
+                        <TextBlock Text="{Binding Author}"
+                                   IsVisible="{Binding HasAuthor}"
+                                   FontSize="{DynamicResource FontSizeBody}"
+                                   Foreground="{DynamicResource NormalText}" />
                         <TextBlock Text="{loc:Loc dashboard.subtitle}"
                                    FontSize="{DynamicResource FontSizeBodySmall}"
                                    Foreground="{DynamicResource SubtleText}" />

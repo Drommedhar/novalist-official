@@ -37,6 +37,12 @@
                         </StackPanel>
                     </Border>
 
+                    <Border DockPanel.Dock="Top" Padding="6,4,6,6">
+                        <TextBox Text="{Binding SearchQuery, Mode=TwoWay}"
+                                 Watermark="{loc:Loc research.search}"
+                                 FontSize="11" />
+                    </Border>
+
                     <ListBox ItemsSource="{Binding Items}"
                              SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
                              Background="Transparent">

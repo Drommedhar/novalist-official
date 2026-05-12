@@ -9,6 +9,9 @@ namespace Novalist.Core.Models;
 /// </summary>
 public class ProjectSettings
 {
+    [JsonPropertyName("author")]
+    public string Author { get; set; } = string.Empty;
+
     [JsonPropertyName("viewState")]
     public ProjectViewState ViewState { get; set; } = new();
 

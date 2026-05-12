@@ -53,4 +53,9 @@ public class SettingsService : ISettingsService
         if (Settings.RecentProjects.Count > 10)
             Settings.RecentProjects.RemoveRange(10, Settings.RecentProjects.Count - 10);
     }
+
+    public void RemoveRecentProject(string path)
+    {
+        Settings.RecentProjects.RemoveAll(r => string.Equals(r.Path, path, StringComparison.OrdinalIgnoreCase));
+    }
 }

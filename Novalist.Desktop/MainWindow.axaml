@@ -31,6 +31,13 @@
                           Command="{Binding OpenFindReplaceCommand}"
                           InputGesture="Ctrl+H" />
                 <Separator />
+                <MenuItem Header="{loc:Loc menu.addComment}"
+                          Command="{Binding AddCommentCommand}"
+                          InputGesture="Ctrl+Shift+M" />
+                <MenuItem Header="{loc:Loc menu.addFootnote}"
+                          Command="{Binding AddFootnoteCommand}"
+                          InputGesture="Ctrl+Shift+F" />
+                <Separator />
                 <MenuItem Header="{loc:Loc menu.takeSnapshot}"
                           Command="{Binding TakeSnapshotCommand}" />
                 <MenuItem Header="{loc:Loc menu.snapshots}"

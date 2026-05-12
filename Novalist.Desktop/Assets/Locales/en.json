@@ -16,6 +16,7 @@
     "research": "Research",
     "toggleSplitEditor": "Toggle split editor",
     "addComment": "Add comment",
+    "addFootnote": "Add footnote",
     "commandPalette": "Command Palette..."
   },
   "commandPalette": {
@@ -23,6 +24,7 @@
   },
   "research": {
     "title": "Research",
+    "search": "Search research…",
     "addNote": "+ Note",
     "addLink": "+ Link",
     "importFile": "Import file...",
@@ -216,7 +218,8 @@
     "browseFolder": "Browse for Project Folder...",
     "importPlugin": "Import from Obsidian Plugin...",
     "recentProjects": "Recent Projects",
-    "noRecentProjects": "No recent projects yet. Create or open a project to get started."
+    "noRecentProjects": "No recent projects yet. Create or open a project to get started.",
+    "removeFromList": "Remove from list"
   },
   "settings": {
     "title": "Settings",
@@ -252,6 +255,8 @@
     "projectWordGoalDesc": "Target total word count for the full project.",
     "projectDeadline": "Project Deadline",
     "projectDeadlineDesc": "Optional deadline in YYYY-MM-DD format.",
+    "projectAuthor": "Author",
+    "projectAuthorDesc": "Author name used as default on the dashboard header and in exports.",
     "writingAssistance": "WRITING ASSISTANCE",
     "autoReplacement": "AUTO-REPLACEMENT",
     "quoteStyle": "Quote Style",
@@ -396,6 +401,7 @@
     "addChapterTooltip": "Create a new chapter",
     "addScene": "+ Scene",
     "addSceneTooltip": "Add a scene and choose its chapter",
+    "search": "Search chapters and scenes…",
     "contextAddScene": "Add Scene",
     "contextSetDate": "Set Date",
     "contextToggleFavorite": "Toggle Favorite",
@@ -605,7 +611,8 @@
     "peaceful": "Peaceful",
     "chaotic": "Chaotic",
     "sorrowful": "Sorrowful",
-    "triumphant": "Triumphant"
+    "triumphant": "Triumphant",
+    "somber": "Somber"
   },
   "sceneTag": {
     "dialogue": "Dialogue",
@@ -890,7 +897,9 @@
     "cancel": "Cancel",
     "catPlot": "Plot Point",
     "catCharacter": "Character Event",
+    "catLocation": "Location Event",
     "catWorld": "World Event",
+    "catOther": "Other",
     "chapterEvent": "Chapter",
     "sceneEvent": "Scene",
     "actEvent": "Act",
@@ -952,6 +961,8 @@
     "noImages": "No images found in the project image folder.",
     "noResults": "No images match the search query.",
     "copyPath": "Copy path",
+    "copyMarkdown": "Copy as Markdown",
+    "openExternally": "Open externally",
     "openInExplorer": "Open in file explorer"
   },
   "git": {
@@ -1029,7 +1040,11 @@
     "characters": "Characters",
     "locations": "Locations",
     "items": "Items",
-    "lore": "Lore"
+    "lore": "Lore",
+    "manageTypes": "Manage types",
+    "templates": "Templates",
+    "sortName": "Sort: Name (A–Z)",
+    "sortNameDesc": "Sort: Name (Z–A)"
   },
   "manuscript": {
     "title": "Manuscript",

@@ -1087,6 +1087,12 @@ public partial class MainWindowViewModel : ObservableObject
         CodexHub = new CodexHubViewModel(_entityService, _projectService);
         CodexHub.ExtensionEntityTypes = ExtensionManager?.EntityTypes ?? [];
         CodexHub.EntityOpenRequested += OnEntityOpenRequested;
+        CodexHub.ManageEntityTypesRequested += () =>
+        {
+            if (EntityPanel?.CreateEntityTypeCommand.CanExecute(null) == true)
+                EntityPanel.CreateEntityTypeCommand.Execute(null);
+        };
+        CodexHub.OpenTemplatesRequested += () => OpenSettingsToCategory("templates");
 
         Manuscript = new ManuscriptViewModel(_projectService, _entityService);
         PlotGrid = new PlotGridViewModel(_projectService, App.PlotlineService);
@@ -1832,6 +1838,9 @@ public partial class MainWindowViewModel : ObservableObject
             _projectService.ProjectSettings.WordCountGoals.Deadline,
             GetCoverImageAbsolutePath(),
             coverRelative);
+
+        if (Dashboard != null)
+            Dashboard.Author = _projectService.ProjectSettings.Author ?? string.Empty;
 
         // Enhanced stats
         if (Dashboard != null && _projectService.IsProjectLoaded)

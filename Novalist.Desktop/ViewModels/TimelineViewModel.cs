@@ -470,7 +470,9 @@ public partial class TimelineViewModel : ObservableObject
         AvailableCategories = new ObservableCollection<CategoryItem>([
             new() { Value = "plot", Label = Loc.T("timeline.catPlot") },
             new() { Value = "character", Label = Loc.T("timeline.catCharacter") },
+            new() { Value = "location", Label = Loc.T("timeline.catLocation") },
             new() { Value = "world", Label = Loc.T("timeline.catWorld") },
+            new() { Value = "other", Label = Loc.T("timeline.catOther") },
         ]);
     }
 

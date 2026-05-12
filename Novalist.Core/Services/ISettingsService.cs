@@ -8,4 +8,5 @@ public interface ISettingsService
     Task LoadAsync();
     Task SaveAsync();
     void AddRecentProject(string name, string path, string coverImagePath = "");
+    void RemoveRecentProject(string path);
 }

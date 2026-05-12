@@ -13,6 +13,7 @@
     "research": "Recherche",
     "toggleSplitEditor": "Geteilter Editor",
     "addComment": "Kommentar hinzufügen",
+    "addFootnote": "Fußnote hinzufügen",
     "commandPalette": "Befehlspalette..."
   },
   "commandPalette": {
@@ -20,6 +21,7 @@
   },
   "research": {
     "title": "Recherche",
+    "search": "Recherche durchsuchen…",
     "addNote": "+ Notiz",
     "addLink": "+ Link",
     "importFile": "Datei importieren...",
@@ -184,7 +186,8 @@
     "browseFolder": "Projektordner auswählen...",
     "importPlugin": "Aus Obsidian-Plugin importieren...",
     "recentProjects": "Zuletzt geöffnete Projekte",
-    "noRecentProjects": "Noch keine Projekte. Erstellen oder öffnen Sie ein Projekt."
+    "noRecentProjects": "Noch keine Projekte. Erstellen oder öffnen Sie ein Projekt.",
+    "removeFromList": "Aus Liste entfernen"
   },
   "settings": {
     "title": "Einstellungen",
@@ -220,6 +223,8 @@
     "projectWordGoalDesc": "Gesamte Wortzahl für das gesamte Projekt.",
     "projectDeadline": "Projektfrist",
     "projectDeadlineDesc": "Optionale Frist im Format JJJJ-MM-TT.",
+    "projectAuthor": "Autor",
+    "projectAuthorDesc": "Standardname für Autor im Dashboard-Header und beim Export.",
     "writingAssistance": "SCHREIBHILFE",
     "autoReplacement": "AUTO-ERSETZUNG",
     "quoteStyle": "Anführungszeichen-Stil",
@@ -360,6 +365,7 @@
     "addChapterTooltip": "Ein neues Kapitel erstellen",
     "addScene": "+ Szene",
     "addSceneTooltip": "Szene hinzufügen und Kapitel wählen",
+    "search": "Kapitel und Szenen durchsuchen…",
     "contextAddScene": "Szene hinzufügen",
     "contextSetDate": "Datum setzen",
     "contextToggleFavorite": "Favorit umschalten",
@@ -569,7 +575,8 @@
     "peaceful": "Friedlich",
     "chaotic": "Chaotisch",
     "sorrowful": "Trauernd",
-    "triumphant": "Triumphierend"
+    "triumphant": "Triumphierend",
+    "somber": "Düster"
   },
   "sceneTag": {
     "dialogue": "Dialog",
@@ -886,7 +893,9 @@
     "cancel": "Abbrechen",
     "catPlot": "Handlungspunkt",
     "catCharacter": "Charakter-Ereignis",
+    "catLocation": "Ortsereignis",
     "catWorld": "Welt-Ereignis",
+    "catOther": "Sonstiges",
     "chapterEvent": "Kapitel",
     "sceneEvent": "Szene",
     "actEvent": "Akt",
@@ -948,6 +957,8 @@
     "noImages": "Keine Bilder im Projektbilderordner gefunden.",
     "noResults": "Keine Bilder entsprechen der Suchanfrage.",
     "copyPath": "Pfad kopieren",
+    "copyMarkdown": "Als Markdown kopieren",
+    "openExternally": "Extern öffnen",
     "openInExplorer": "Im Datei-Explorer öffnen"
   },
   "git": {
@@ -1007,7 +1018,11 @@
     "characters": "Charaktere",
     "locations": "Orte",
     "items": "Gegenstände",
-    "lore": "Wissen"
+    "lore": "Wissen",
+    "manageTypes": "Typen verwalten",
+    "templates": "Vorlagen",
+    "sortName": "Sortieren: Name (A–Z)",
+    "sortNameDesc": "Sortieren: Name (Z–A)"
   },
   "manuscript": {
     "title": "Manuskript",
