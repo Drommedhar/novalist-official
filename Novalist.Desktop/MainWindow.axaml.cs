@@ -824,6 +824,22 @@ public partial class MainWindow : Window
         }
     }
 
+    private Novalist.Sdk.Services.IBusyProgress CreateBusyProgressDialog(Novalist.Sdk.Services.BusyProgressOptions options)
+    {
+        var dialog = new Dialogs.BusyProgressDialog(options);
+        // Fire and forget — extension closes via Dispose() which completes DialogClosed.
+        _ = ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        return dialog;
+    }
+
+    /// <summary>Called by App after the ExtensionManager finishes loading so
+    /// extension calls to <see cref="Novalist.Sdk.Services.IHostServices.ShowBusyProgress"/>
+    /// can create real dialogs.</summary>
+    public void WireExtensionBusyProgress(Services.HostServices hostServices)
+    {
+        hostServices.BusyProgressFactory = CreateBusyProgressDialog;
+    }
+
     private async Task ShowDialogOverlayAsync(UserControl dialog, TaskCompletionSource tcs)
     {
         var dialogOverlay = this.FindControl<Border>("DialogOverlay")!;

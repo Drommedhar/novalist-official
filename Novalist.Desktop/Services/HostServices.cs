@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using Novalist.Core;
@@ -94,6 +95,41 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
     public void ShowNotification(string message)
     {
         NotificationRequested?.Invoke(message);
+    }
+
+    /// <summary>Set by MainWindow at startup. Creates the actual dialog overlay.</summary>
+    internal Func<BusyProgressOptions, IBusyProgress>? BusyProgressFactory { get; set; }
+
+    public IBusyProgress ShowBusyProgress(BusyProgressOptions options)
+    {
+        var factory = BusyProgressFactory;
+        if (factory == null)
+            return new NoopBusyProgress();
+
+        if (Dispatcher.UIThread.CheckAccess())
+            return factory(options);
+
+        IBusyProgress? handle = null;
+        var done = new System.Threading.ManualResetEventSlim();
+        Dispatcher.UIThread.Post(() =>
+        {
+            try { handle = factory(options); }
+            finally { done.Set(); }
+        });
+        done.Wait();
+        return handle ?? new NoopBusyProgress();
+    }
+
+    private sealed class NoopBusyProgress : IBusyProgress
+    {
+        public CancellationToken CancellationToken => CancellationToken.None;
+        public bool IsClosed { get; private set; }
+        public event Action? Cancelled { add { } remove { } }
+        public void SetStatus(string status) { }
+        public void SetProgress(double value) { }
+        public void SetTitle(string title) { }
+        public void SetIndeterminate(bool isIndeterminate) { }
+        public void Dispose() => IsClosed = true;
     }
 
     public void ActivateContentView(string viewKey)

@@ -27,7 +27,9 @@
       "Bash(grep 'M:Avalonia.Input.Platform.ClipboardExtensions' /c/Users/domin/.nuget/packages/avalonia/11.3.10/lib/net8.0/Avalonia.Base.xml | head -20)",
       "Read(//c/Users/domin/.nuget/packages/avalonia/11.3.10/lib/net8.0/**)",
       "Bash(ls /c/Users/domin/.nuget/packages/avalonia/ 2>&1 | head -5)",
-      "Read(//c/Users/domin/.nuget/packages/avalonia//**)"
+      "Read(//c/Users/domin/.nuget/packages/avalonia//**)",
+      "Bash(ls -la \"/c/Users/domin/AppData/Roaming/Novalist/Extensions/AiAssistant/\" 2>&1 | head -10)",
+      "Read(//c/Users/domin/AppData/Roaming/Novalist/Extensions/AiAssistant//**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\domin\\.claude\\plans"

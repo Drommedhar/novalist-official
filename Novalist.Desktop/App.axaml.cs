@@ -142,6 +142,7 @@ public partial class App : Application
                 var hostServices = new HostServices(FileService, ProjectService, EntityService, SettingsService);
                 ExtensionManager = new ExtensionManager(SettingsService, hostServices);
                 hostServices.ExtensionManager = ExtensionManager;
+                mainWindow.WireExtensionBusyProgress(hostServices);
                 await ExtensionManager.LoadAllAsync();
 
                 // Initialize gallery service

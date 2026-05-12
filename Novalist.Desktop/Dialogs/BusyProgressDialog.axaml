@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             x:Class="Novalist.Desktop.Dialogs.BusyProgressDialog"
+             x:DataType="vm:BusyProgressDialogViewModel"
+             Width="420"
+             Focusable="True">
+    <Border Background="Transparent" Padding="0">
+        <StackPanel Spacing="12" Margin="20">
+            <TextBlock Text="{Binding Title}"
+                       FontSize="15"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource NormalText}"
+                       TextWrapping="Wrap" />
+
+            <TextBlock Text="{Binding Status}"
+                       IsVisible="{Binding HasStatus}"
+                       FontSize="12"
+                       Foreground="{DynamicResource SubtleText}"
+                       TextWrapping="Wrap" />
+
+            <ProgressBar IsVisible="{Binding ShowProgressBar}"
+                         IsIndeterminate="{Binding IsIndeterminate}"
+                         Minimum="0"
+                         Maximum="1"
+                         Value="{Binding Progress}"
+                         Height="6" />
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Spacing="8"
+                        IsVisible="{Binding AllowCancel}">
+                <Button Content="{Binding CancelLabel}"
+                        Padding="14,6"
+                        Click="OnCancel" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>

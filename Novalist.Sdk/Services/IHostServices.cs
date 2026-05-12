@@ -142,6 +142,14 @@ public interface IHostServices
     /// <summary>Show a toast notification to the user.</summary>
     void ShowNotification(string message);
 
+    /// <summary>
+    /// Show a busy-progress dialog. Returns a handle that lets the extension
+    /// update the status text, progress value, or close the dialog.
+    /// Dispose the returned handle to close.
+    /// Safe to call from any thread.
+    /// </summary>
+    IBusyProgress ShowBusyProgress(BusyProgressOptions options);
+
     /// <summary>Activate an extension content view by its ViewKey.</summary>
     void ActivateContentView(string viewKey);
 
