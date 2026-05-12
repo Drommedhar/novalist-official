@@ -129,6 +129,7 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         public void SetProgress(double value) { }
         public void SetTitle(string title) { }
         public void SetIndeterminate(bool isIndeterminate) { }
+        public void SetDetails(System.Collections.Generic.IReadOnlyList<string>? lines) { }
         public void Dispose() => IsClosed = true;
     }
 

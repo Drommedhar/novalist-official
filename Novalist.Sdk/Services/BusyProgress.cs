@@ -70,6 +70,13 @@ public interface IBusyProgress : IDisposable
     void SetIndeterminate(bool isIndeterminate);
 
     /// <summary>
+    /// Set a list of secondary detail lines shown beneath the status text.
+    /// Each line is rendered as its own row (use for ETA, counts, active
+    /// per-item status, etc.). Pass null or empty to hide the detail block.
+    /// </summary>
+    void SetDetails(System.Collections.Generic.IReadOnlyList<string>? lines);
+
+    /// <summary>
     /// Cancellation token that fires when the user clicks Cancel.
     /// Always present even when <see cref="BusyProgressOptions.AllowCancel"/>
     /// is false (in which case it never fires).

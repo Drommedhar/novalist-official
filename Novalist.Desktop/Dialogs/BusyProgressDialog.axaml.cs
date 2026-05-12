@@ -62,6 +62,20 @@ public partial class BusyProgressDialog : UserControl, IBusyProgress
     public void SetIndeterminate(bool isIndeterminate)
         => Dispatcher.UIThread.Post(() => _vm.IsIndeterminate = isIndeterminate);
 
+    public void SetDetails(System.Collections.Generic.IReadOnlyList<string>? lines)
+    {
+        Dispatcher.UIThread.Post(() =>
+        {
+            _vm.Details.Clear();
+            if (lines != null)
+            {
+                foreach (var line in lines)
+                    _vm.Details.Add(line ?? string.Empty);
+            }
+            _vm.HasDetails = _vm.Details.Count > 0;
+        });
+    }
+
     public void Dispose()
     {
         if (IsClosed) return;

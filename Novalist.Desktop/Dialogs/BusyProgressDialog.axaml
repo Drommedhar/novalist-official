@@ -27,6 +27,20 @@
                          Value="{Binding Progress}"
                          Height="6" />
 
+            <ItemsControl IsVisible="{Binding HasDetails}"
+                          ItemsSource="{Binding Details}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock Text="{Binding}"
+                                   FontSize="11"
+                                   Opacity="0.75"
+                                   Foreground="{DynamicResource SubtleText}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,1" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
                         Spacing="8"

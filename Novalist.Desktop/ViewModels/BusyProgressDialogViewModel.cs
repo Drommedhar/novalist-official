@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Novalist.Desktop.ViewModels;
@@ -25,6 +26,11 @@ public partial class BusyProgressDialogViewModel : ObservableObject
 
     [ObservableProperty]
     private string _cancelLabel = "Cancel";
+
+    public ObservableCollection<string> Details { get; } = [];
+
+    [ObservableProperty]
+    private bool _hasDetails;
 
     public bool HasStatus => !string.IsNullOrWhiteSpace(Status);
 
