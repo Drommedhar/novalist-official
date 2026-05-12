@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Core.Utilities;
 using Novalist.Desktop.Dialogs;
 using Novalist.Desktop.Localization;
 
@@ -868,11 +869,11 @@ public partial class ChapterTreeItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasGitChanges;
 
-    public bool HasDate => !string.IsNullOrWhiteSpace(Chapter.Date);
+    public bool HasDate => StoryDateFormatter.HasAnyDate(Chapter.Date, Chapter.DateRange);
 
     public bool HasAct => !string.IsNullOrWhiteSpace(Chapter.Act);
 
-    public string DateDisplay => Chapter.Date;
+    public string DateDisplay => StoryDateFormatter.Format(Chapter.Date, Chapter.DateRange);
 
     public bool IsFavorite => Chapter.IsFavorite;
 
@@ -928,9 +929,9 @@ public partial class SceneTreeItemViewModel : ObservableObject
     [ObservableProperty]
     private bool _hasGitChanges;
 
-    public bool HasDate => !string.IsNullOrWhiteSpace(Scene.Date);
+    public bool HasDate => StoryDateFormatter.HasAnyDate(Scene.Date, Scene.DateRange);
 
-    public string DateDisplay => Scene.Date;
+    public string DateDisplay => StoryDateFormatter.Format(Scene.Date, Scene.DateRange);
 
     public bool IsFavorite => Scene.IsFavorite;
     public string LabelColor => Scene.LabelColor ?? string.Empty;

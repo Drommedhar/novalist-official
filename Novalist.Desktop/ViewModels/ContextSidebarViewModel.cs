@@ -13,6 +13,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Core.Utilities;
 using Novalist.Desktop.Localization;
 
 namespace Novalist.Desktop.ViewModels;
@@ -188,7 +189,9 @@ public partial class ContextSidebarViewModel : ObservableObject
         {
             var raw = ContextDate;
             if (string.IsNullOrWhiteSpace(raw)) return raw;
-            if (!DateTime.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+            var leading = StoryDateFormatter.ExtractLeadingDate(raw);
+            if (leading is null) return raw;
+            if (!DateTime.TryParseExact(leading, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
                 return raw;
             try
             {
@@ -369,9 +372,7 @@ public partial class ContextSidebarViewModel : ObservableObject
             ? chapter.Title.Trim()
             : scene.Title.Trim();
         ContextSubtitle = BuildContextSubtitle(chapter, sceneIndex, scenes.Count);
-        ContextDate = !string.IsNullOrWhiteSpace(scene.Date)
-            ? scene.Date.Trim()
-            : chapter.Date.Trim();
+        ContextDate = ResolveContextDateDisplay(chapter, scene);
 
         var currentContent = _editor.PlainTextContent;
 
@@ -395,9 +396,7 @@ public partial class ContextSidebarViewModel : ObservableObject
             ? chapter.Title.Trim()
             : scene.Title.Trim();
         ContextSubtitle = BuildContextSubtitle(chapter, sceneIndex, scenes.Count);
-        ContextDate = !string.IsNullOrWhiteSpace(scene.Date)
-            ? scene.Date.Trim()
-            : chapter.Date.Trim();
+        ContextDate = ResolveContextDateDisplay(chapter, scene);
 
         UpdateCurrentSceneSnapshot(chapter, scene, plainTextContent);
         BuildVisibleContext(chapter, scene, plainTextContent);
@@ -406,6 +405,17 @@ public partial class ContextSidebarViewModel : ObservableObject
 
         var forceReload = NeedsSnapshotReload(chapter.Guid, scenes);
         _ = EnsureProjectContextAsync(forceReload);
+    }
+
+    private static string ResolveContextDateDisplay(ChapterData chapter, SceneData scene)
+    {
+        if (scene.DateRange?.HasValue == true)
+            return StoryDateFormatter.FormatRange(scene.DateRange);
+        if (!string.IsNullOrWhiteSpace(scene.Date))
+            return scene.Date.Trim();
+        if (chapter.DateRange?.HasValue == true)
+            return StoryDateFormatter.FormatRange(chapter.DateRange);
+        return chapter.Date.Trim();
     }
 
     private bool _refreshPending;
