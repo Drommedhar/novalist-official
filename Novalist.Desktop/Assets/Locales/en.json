@@ -1106,5 +1106,25 @@
     "error": "Update failed: {0}",
     "checkForUpdates": "Check for updates",
     "checkForUpdatesDesc": "Automatically check for new versions on startup"
+  },
+  "relationships": {
+    "parent": ["father", "mother", "parent", "dad", "mom", "mum", "papa", "mama"],
+    "child": ["child", "daughter", "son"],
+    "partner": [
+      "spouse", "husband", "wife", "partner",
+      "fiance", "fiancé", "fiancée",
+      "ex-husband", "ex-wife"
+    ],
+    "sibling": ["brother", "sister", "sibling", "twin"],
+    "pseudo": [
+      "brother", "sister", "sibling", "twin",
+      "cousin",
+      "uncle", "aunt",
+      "nephew", "niece",
+      "grandfather", "grandmother", "grandparent",
+      "grandchild", "grandson", "granddaughter",
+      "stepbrother", "stepsister", "half-brother", "half-sister",
+      "brother-in-law", "sister-in-law"
+    ]
   }
 }

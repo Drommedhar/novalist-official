@@ -1082,5 +1082,26 @@
     "error": "Update fehlgeschlagen: {0}",
     "checkForUpdates": "Nach Updates suchen",
     "checkForUpdatesDesc": "Beim Start automatisch nach neuen Versionen suchen"
+  },
+  "relationships": {
+    "parent": ["vater", "mutter", "eltern", "papa", "mama"],
+    "child": ["kind", "tochter", "sohn"],
+    "partner": [
+      "ehemann", "ehefrau", "ehepartner", "ehegatte", "gatte", "gattin",
+      "partner", "partnerin", "lebensgefährte", "lebensgefährtin",
+      "verlobt",
+      "mann", "frau", "ex-mann", "ex-frau"
+    ],
+    "sibling": ["bruder", "schwester", "geschwister", "zwilling"],
+    "pseudo": [
+      "bruder", "schwester", "geschwister", "zwilling",
+      "cousin", "cousine", "vetter", "base",
+      "onkel", "tante",
+      "neffe", "nichte",
+      "großvater", "grossvater", "großmutter", "grossmutter", "oma", "opa",
+      "enkel", "enkelin",
+      "stiefbruder", "stiefschwester", "halbbruder", "halbschwester",
+      "schwager", "schwägerin"
+    ]
   }
 }

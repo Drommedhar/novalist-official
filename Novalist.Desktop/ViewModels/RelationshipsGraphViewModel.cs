@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Desktop.Localization;
 
 namespace Novalist.Desktop.ViewModels;
 
@@ -126,26 +127,17 @@ public partial class RelationshipsGraphViewModel : ObservableObject
         BuildGraph(filtered.ToList());
     }
 
-    private static readonly string[] ParentRoles =
-        ["vater", "mutter", "eltern", "father", "mother", "parent", "papa", "mama"];
-    private static readonly string[] ChildRoles =
-        ["kind", "tochter", "sohn", "child", "daughter", "son"];
-    private static readonly string[] PartnerRoles =
-        ["ehemann", "ehefrau", "ehepartner", "ehegatte", "gatte", "gattin",
-         "partner", "partnerin", "lebensgefährte", "lebensgefährtin",
-         "spouse", "husband", "wife", "verlobt", "fiancé", "fiancée",
-         "mann", "frau", "ex-mann", "ex-frau"];
-    private static readonly string[] SiblingRoles =
-        ["bruder", "schwester", "geschwister", "brother", "sister", "sibling", "zwilling", "twin"];
-
+    // Role keyword lists live in the locale files (Assets/Locales/*.json under
+    // the "relationships" section). RelationshipRoles aggregates them across
+    // all installed locales so adding a new language never requires a recompile.
     private static bool IsParentRole(string role) =>
-        ParentRoles.Any(p => role.Contains(p, StringComparison.OrdinalIgnoreCase));
+        RelationshipRoles.Parent.Any(p => role.Contains(p, StringComparison.OrdinalIgnoreCase));
     private static bool IsChildRole(string role) =>
-        ChildRoles.Any(c => role.Contains(c, StringComparison.OrdinalIgnoreCase));
+        RelationshipRoles.Child.Any(c => role.Contains(c, StringComparison.OrdinalIgnoreCase));
     private static bool IsPartnerRole(string role) =>
-        PartnerRoles.Any(p => role.Contains(p, StringComparison.OrdinalIgnoreCase));
+        RelationshipRoles.Partner.Any(p => role.Contains(p, StringComparison.OrdinalIgnoreCase));
     private static bool IsSiblingRoleS(string role) =>
-        SiblingRoles.Any(s => role.Contains(s, StringComparison.OrdinalIgnoreCase));
+        RelationshipRoles.Sibling.Any(s => role.Contains(s, StringComparison.OrdinalIgnoreCase));
     private static bool IsFamilyRole(string role) =>
         IsParentRole(role) || IsChildRole(role) || IsPartnerRole(role) || IsSiblingRoleS(role);
 
@@ -490,16 +482,7 @@ public partial class RelationshipsGraphViewModel : ObservableObject
         // member via sibling/cousin/uncle/etc. → place adjacent to that family
         // member (chosen by oldest generation when multiple targets).
         // Build per-node candidate anchors first.
-        string[] pseudoRoles = [
-            "bruder","schwester","geschwister","brother","sister","sibling","zwilling","twin",
-            "cousin","cousine","vetter","base",
-            "onkel","tante","uncle","aunt",
-            "neffe","nichte","nephew","niece",
-            "großvater","grossvater","großmutter","grossmutter","oma","opa","grandfather","grandmother","grandparent",
-            "enkel","enkelin","grandchild","grandson","granddaughter",
-            "stiefbruder","stiefschwester","halbbruder","halbschwester","stepbrother","stepsister","half-brother","half-sister",
-            "schwager","schwägerin","brother-in-law","sister-in-law",
-        ];
+        var pseudoRoles = RelationshipRoles.Pseudo;
         bool IsPseudoRole(string r) => pseudoRoles.Any(p => r.Contains(p, StringComparison.OrdinalIgnoreCase));
 
         // Generation lookup per family member (already computed per family — recompute global map).

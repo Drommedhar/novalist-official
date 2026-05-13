@@ -67,6 +67,27 @@ Translated:
 
 A handful of strings are stitched together at runtime with conjunctions ("X and Y", "X, Y, and Z"). Where possible the entire fragment is in the JSON; if you spot an awkward fragment that the JSON can't fully express, file an issue.
 
+## Relationship role keywords
+
+The [Relationships graph](14-relationships.md) classifies family roles (father, mother, sibling, …) via keyword matching. The keyword lists live in each locale file under a top-level `relationships` object:
+
+```json
+"relationships": {
+  "parent":  ["father", "mother", "parent", "dad", "mom", "papa", "mama"],
+  "child":   ["child", "daughter", "son"],
+  "partner": ["spouse", "husband", "wife", "partner"],
+  "sibling": ["brother", "sister", "sibling", "twin"],
+  "pseudo":  ["cousin", "uncle", "aunt", "nephew", "grandfather", ...]
+}
+```
+
+The matcher merges these arrays from **every** locale file on disk, so the graph keeps recognising English roles when the UI is in German (and vice versa). To add language coverage, add a `relationships` section to your `<code>.json` — no rebuild required.
+
+Buckets:
+
+- `parent` / `child` / `partner` / `sibling` drive family clustering and edge typing in the graph.
+- `pseudo` covers extended family (cousin, uncle, in-laws, grandparents…) used to anchor non-immediate family characters next to the right node.
+
 ## Contributing translations back
 
 If you'd like your translation included in a future Novalist release, open a pull request against the project repo with your `<code>.json` added under `Novalist.Desktop/Assets/Locales/`. Translations are welcome.

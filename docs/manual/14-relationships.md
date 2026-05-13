@@ -16,10 +16,7 @@ The layout is force-directed: well-connected characters pull together, weakly-co
 
 ## How clustering works
 
-Novalist detects family roles automatically via keyword matching:
-
-- English roles: father, mother, parent, child, son, daughter, sibling, brother, sister, spouse, husband, wife, partner.
-- German roles: Vater, Mutter, Eltern, Kind, Sohn, Tochter, Geschwister, Bruder, Schwester, Partner, Ehefrau, Ehemann.
+Novalist detects family roles automatically via keyword matching. The keyword lists live in the locale files under the `relationships` section (`parent`, `child`, `partner`, `sibling`, `pseudo`) — see `Assets/Locales/en.json` and `de.json` for the shipped vocabularies. Adding a new language is a matter of dropping a locale JSON with its own `relationships` section; all installed locales are merged at load time so role matching always covers every shipped vocabulary regardless of the active UI language.
 
 Characters with these connections are grouped into family clusters. Characters with the same `Group` field (see [Codex](06-codex.md)) are clustered together too.
 

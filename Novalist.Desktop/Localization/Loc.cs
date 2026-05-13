@@ -30,6 +30,11 @@ public sealed class Loc : INotifyPropertyChanged
     private string _currentLanguage = "en";
     private string _localesDirectory = string.Empty;
 
+    /// <summary>
+    /// Directory holding the locale JSON files. Empty until <see cref="Initialize"/> runs.
+    /// </summary>
+    public string LocalesDirectory => _localesDirectory;
+
     public event PropertyChangedEventHandler? PropertyChanged;
     public event Action? LanguageChanged;
 
