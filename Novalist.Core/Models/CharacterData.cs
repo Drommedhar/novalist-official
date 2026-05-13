@@ -16,6 +16,10 @@ public class CharacterData : IEntityData
     [JsonPropertyName("surname")]
     public string Surname { get; set; } = string.Empty;
 
+    [JsonPropertyName("aliases")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<string> Aliases { get; set; } = [];
+
     [JsonPropertyName("gender")]
     public string Gender { get; set; } = string.Empty;
 
@@ -100,6 +104,10 @@ public class CharacterOverride
 
     [JsonPropertyName("surname")]
     public string? Surname { get; set; }
+
+    [JsonPropertyName("aliases")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? Aliases { get; set; }
 
     [JsonPropertyName("gender")]
     public string? Gender { get; set; }

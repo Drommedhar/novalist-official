@@ -86,6 +86,14 @@ public partial class EntityEditorViewModel : ObservableObject
     [ObservableProperty]
     private ObservableCollection<CharacterOverride> _chapterOverrides = [];
 
+    /// <summary>Alternate names for the active entity. Drives the `@mention` picker
+    /// and the focus-peek hover detection.</summary>
+    [ObservableProperty]
+    private ObservableCollection<string> _aliases = [];
+
+    [ObservableProperty]
+    private string _newAliasInput = string.Empty;
+
     [ObservableProperty]
     private ObservableCollection<string> _relationshipRoleSuggestions = [];
 
@@ -147,6 +155,7 @@ public partial class EntityEditorViewModel : ObservableObject
         Title = c.DisplayName;
 
         Name = c.Name; Surname = c.Surname;
+        Aliases = new ObservableCollection<string>(c.Aliases);
         Gender = c.Gender; Age = c.Age; Role = c.Role; Group = c.Group;
         IsDateAge = string.Equals(c.AgeMode, "date", StringComparison.OrdinalIgnoreCase);
         if (IsDateAge && DateTime.TryParse(c.BirthDate, System.Globalization.CultureInfo.InvariantCulture,
@@ -178,7 +187,9 @@ public partial class EntityEditorViewModel : ObservableObject
         EntityType = EntityType.Location;
         Title = l.Name;
 
-        Name = l.Name; LocationType = l.Type; ParentLocation = l.Parent;
+        Name = l.Name;
+        Aliases = new ObservableCollection<string>(l.Aliases);
+        LocationType = l.Type; ParentLocation = l.Parent;
         Description = l.Description;
         Images = new(l.Images);
         CustomProperties = BuildTypedCustomProperties(l.CustomProperties, l.TemplateId, EntityType.Location);
@@ -197,7 +208,9 @@ public partial class EntityEditorViewModel : ObservableObject
         EntityType = EntityType.Item;
         Title = i.Name;
 
-        Name = i.Name; ItemType = i.Type; Origin = i.Origin;
+        Name = i.Name;
+        Aliases = new ObservableCollection<string>(i.Aliases);
+        ItemType = i.Type; Origin = i.Origin;
         Description = i.Description;
         Images = new(i.Images);
         CustomProperties = BuildTypedCustomProperties(i.CustomProperties, i.TemplateId, EntityType.Item);
@@ -215,7 +228,9 @@ public partial class EntityEditorViewModel : ObservableObject
         EntityType = EntityType.Lore;
         Title = l.Name;
 
-        Name = l.Name; Category = l.Category;
+        Name = l.Name;
+        Aliases = new ObservableCollection<string>(l.Aliases);
+        Category = l.Category;
         Description = l.Description;
         Images = new(l.Images);
         CustomProperties = BuildTypedCustomProperties(l.CustomProperties, l.TemplateId, EntityType.Lore);
@@ -235,6 +250,7 @@ public partial class EntityEditorViewModel : ObservableObject
         Title = e.Name;
 
         Name = e.Name;
+        Aliases = new ObservableCollection<string>(e.Aliases);
         Description = e.Fields.GetValueOrDefault("Description", string.Empty);
 
         // Build typed fields from the entity type definition
@@ -629,6 +645,7 @@ public partial class EntityEditorViewModel : ObservableObject
         _character.CustomProperties = CustomProperties.ToDictionary(kv => kv.Key, kv => kv.Value);
         _character.Sections = Sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }).ToList();
         _character.ChapterOverrides = [.. ChapterOverrides];
+        _character.Aliases = [.. Aliases];
     }
 
     private async Task SyncInverseRelationshipsAsync(CharacterData sourceCharacter)
@@ -778,6 +795,29 @@ public partial class EntityEditorViewModel : ObservableObject
     private string GetCurrentCharacterDisplayName()
         => string.IsNullOrWhiteSpace(Surname) ? Name.Trim() : $"{Name.Trim()} {Surname.Trim()}".Trim();
 
+    [RelayCommand]
+    private void AddAlias()
+    {
+        var value = (NewAliasInput ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(value)) return;
+        if (string.Equals(value, Name?.Trim(), StringComparison.OrdinalIgnoreCase)) { NewAliasInput = string.Empty; return; }
+        if (string.Equals(value, Surname?.Trim(), StringComparison.OrdinalIgnoreCase)) { NewAliasInput = string.Empty; return; }
+        if (Aliases.Any(a => string.Equals(a, value, StringComparison.OrdinalIgnoreCase))) { NewAliasInput = string.Empty; return; }
+        Aliases.Add(value);
+        NewAliasInput = string.Empty;
+        ScheduleAutoSave();
+    }
+
+    [RelayCommand]
+    private void RemoveAlias(string? alias)
+    {
+        if (string.IsNullOrWhiteSpace(alias)) return;
+        var found = Aliases.FirstOrDefault(a => string.Equals(a, alias, StringComparison.OrdinalIgnoreCase));
+        if (found == null) return;
+        Aliases.Remove(found);
+        ScheduleAutoSave();
+    }
+
     private static List<string> ParseRelationshipTargets(string? rawValue)
         => (rawValue ?? string.Empty)
             .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -800,6 +840,7 @@ public partial class EntityEditorViewModel : ObservableObject
         _location.Images = [.. Images];
         _location.CustomProperties = CustomProperties.ToDictionary(kv => kv.Key, kv => kv.Value);
         _location.Sections = Sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }).ToList();
+        _location.Aliases = [.. Aliases];
     }
 
     private void WriteBackItem()
@@ -810,6 +851,7 @@ public partial class EntityEditorViewModel : ObservableObject
         _item.Images = [.. Images];
         _item.CustomProperties = CustomProperties.ToDictionary(kv => kv.Key, kv => kv.Value);
         _item.Sections = Sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }).ToList();
+        _item.Aliases = [.. Aliases];
     }
 
     private void WriteBackLore()
@@ -820,12 +862,14 @@ public partial class EntityEditorViewModel : ObservableObject
         _lore.Images = [.. Images];
         _lore.CustomProperties = CustomProperties.ToDictionary(kv => kv.Key, kv => kv.Value);
         _lore.Sections = Sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }).ToList();
+        _lore.Aliases = [.. Aliases];
     }
 
     private void WriteBackCustomEntity()
     {
         if (_customEntity == null) return;
         _customEntity.Name = Name;
+        _customEntity.Aliases = [.. Aliases];
 
         // Write back typed fields
         var typeDef = _entityService.GetCustomEntityTypes()

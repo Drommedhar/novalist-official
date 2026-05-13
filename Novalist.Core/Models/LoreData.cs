@@ -13,6 +13,10 @@ public class LoreData : IEntityData
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
+    [JsonPropertyName("aliases")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<string> Aliases { get; set; } = [];
+
     [JsonPropertyName("category")]
     public string Category { get; set; } = "Other";
 

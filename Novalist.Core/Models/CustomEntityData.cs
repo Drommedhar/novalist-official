@@ -23,6 +23,10 @@ public class CustomEntityData : IEntityData
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
+    [JsonPropertyName("aliases")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<string> Aliases { get; set; } = [];
+
     /// <summary>
     /// Known fields defined by the entity type definition, stored as key-value pairs.
     /// </summary>

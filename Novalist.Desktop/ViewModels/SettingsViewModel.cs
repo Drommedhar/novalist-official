@@ -185,6 +185,18 @@ public partial class SettingsViewModel : ObservableObject
     private bool _grammarCheckEnabled;
 
     [ObservableProperty]
+    private bool _typewriterScrollEnabled;
+
+    [ObservableProperty]
+    private bool _typewriterAnchorTop;
+
+    [ObservableProperty]
+    private bool _typewriterAnchorMiddle;
+
+    [ObservableProperty]
+    private bool _typewriterAnchorBottom;
+
+    [ObservableProperty]
     private int _dailyWordGoal;
 
     [ObservableProperty]
@@ -242,6 +254,11 @@ public partial class SettingsViewModel : ObservableObject
         _selectedLanguage = Settings.AutoReplacementLanguage;
         _dialogueCorrectionEnabled = Settings.DialogueCorrectionEnabled;
         _grammarCheckEnabled = Settings.GrammarCheckEnabled;
+        _typewriterScrollEnabled = Settings.TypewriterScrollEnabled;
+        var twAnchor = Settings.TypewriterScrollAnchor ?? "middle";
+        _typewriterAnchorTop = twAnchor == "top";
+        _typewriterAnchorMiddle = twAnchor == "middle";
+        _typewriterAnchorBottom = twAnchor == "bottom";
         _dailyWordGoal = ActiveProjectGoals?.DailyGoal ?? 1000;
         _projectWordGoal = ActiveProjectGoals?.ProjectGoal ?? 50000;
         _projectDeadline = ActiveProjectGoals?.Deadline ?? string.Empty;
@@ -365,6 +382,34 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnGrammarCheckEnabledChanged(bool value)
     {
         Settings.GrammarCheckEnabled = value;
+        SaveAndNotify();
+    }
+
+    partial void OnTypewriterScrollEnabledChanged(bool value)
+    {
+        Settings.TypewriterScrollEnabled = value;
+        SaveAndNotify();
+    }
+
+    partial void OnTypewriterAnchorTopChanged(bool value)
+    {
+        if (value) ApplyTypewriterAnchor("top");
+    }
+
+    partial void OnTypewriterAnchorMiddleChanged(bool value)
+    {
+        if (value) ApplyTypewriterAnchor("middle");
+    }
+
+    partial void OnTypewriterAnchorBottomChanged(bool value)
+    {
+        if (value) ApplyTypewriterAnchor("bottom");
+    }
+
+    private void ApplyTypewriterAnchor(string anchor)
+    {
+        if (Settings.TypewriterScrollAnchor == anchor) return;
+        Settings.TypewriterScrollAnchor = anchor;
         SaveAndNotify();
     }
 

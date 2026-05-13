@@ -243,6 +243,12 @@ public partial class EditorViewModel : ObservableObject
     /// <summary>Calculated editor max width in pixels when book-width mode is active.</summary>
     public double BookEditorWidth => BookWidthCalculator.Calculate(_settingsService.Settings);
 
+    /// <summary>Whether typewriter scroll is enabled.</summary>
+    public bool TypewriterScrollEnabled => _settingsService.Settings.TypewriterScrollEnabled;
+
+    /// <summary>Vertical anchor for typewriter scroll: "top" | "middle" | "bottom".</summary>
+    public string TypewriterScrollAnchor => _settingsService.Settings.TypewriterScrollAnchor ?? "middle";
+
     /// <summary>Update the editor font size and persist to settings.</summary>
     public void SetFontSize(double size)
     {
@@ -316,6 +322,8 @@ public partial class EditorViewModel : ObservableObject
         OnPropertyChanged(nameof(BookParagraphSpacingEnabled));
         OnPropertyChanged(nameof(BookWidthEnabled));
         OnPropertyChanged(nameof(BookEditorWidth));
+        OnPropertyChanged(nameof(TypewriterScrollEnabled));
+        OnPropertyChanged(nameof(TypewriterScrollAnchor));
         OnPropertyChanged(nameof(AutoReplacement));
         OnPropertyChanged(nameof(DialogueCorrection));
         OnPropertyChanged(nameof(GrammarCheck));

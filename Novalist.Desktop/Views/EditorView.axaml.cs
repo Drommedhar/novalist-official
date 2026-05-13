@@ -169,6 +169,7 @@ public partial class EditorView : UserControl
 
         _vm = vm;
         _vm.PropertyChanged += OnViewModelPropertyChanged;
+        _vm.FocusPeekExtension.EntityIndexChanged += OnEntityIndexChanged;
         _vm.GrammarCheck.SetScriptExecutor(ExecuteScript);
         WireFormattingActions(vm);
         ApplyEditorSettings();
@@ -180,8 +181,14 @@ public partial class EditorView : UserControl
         {
             ClearFormattingActions(_vm);
             _vm.PropertyChanged -= OnViewModelPropertyChanged;
+            _vm.FocusPeekExtension.EntityIndexChanged -= OnEntityIndexChanged;
             _vm = null;
         }
+    }
+
+    private void OnEntityIndexChanged()
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(PushEntityNames);
     }
 
     private void WireFormattingActions(EditorViewModel vm)
@@ -393,6 +400,9 @@ public partial class EditorView : UserControl
                 case "entityHover":
                     OnEntityHover(root);
                     break;
+                case "entityMentionHover":
+                    OnEntityMentionHover(root);
+                    break;
                 case "entityExit":
                     OnEntityExit();
                     break;
@@ -547,6 +557,17 @@ public partial class EditorView : UserControl
         _ = _vm.FocusPeekExtension.OnEntityHoverAsync(alias, x, y);
     }
 
+    private void OnEntityMentionHover(JsonElement root)
+    {
+        if (_vm == null) return;
+        var entityId = root.GetProperty("entityId").GetString() ?? string.Empty;
+        var x = root.GetProperty("x").GetDouble();
+        var y = root.GetProperty("y").GetDouble();
+        if (_webView != null)
+            _vm.FocusPeekExtension.EditorBounds = _webView.Bounds.Size;
+        _ = _vm.FocusPeekExtension.OnEntityHoverByIdAsync(entityId, x, y);
+    }
+
     private void OnEntityExit()
     {
         _vm?.FocusPeekExtension.OnEntityExit();
@@ -668,6 +689,7 @@ public partial class EditorView : UserControl
         ApplyBookParagraphSpacing();
         ApplyBookWidth();
         ApplyLanguage();
+        ApplyTypewriterScroll();
     }
 
     private void ApplyTheme()
@@ -730,6 +752,17 @@ public partial class EditorView : UserControl
         if (!_webViewReady || _vm == null) return;
         var json = _vm.FocusPeekExtension.GetEntityNamesJson();
         ExecuteScript($"setEntityNames('{EscapeForSingleQuoteJs(json)}')");
+
+        var candidates = _vm.FocusPeekExtension.GetMentionCandidatesJson();
+        ExecuteScript($"setMentionCandidates('{EscapeForSingleQuoteJs(candidates)}')");
+    }
+
+    private void ApplyTypewriterScroll()
+    {
+        if (!_webViewReady || _vm == null) return;
+        var enabled = _vm.TypewriterScrollEnabled ? "true" : "false";
+        var anchor = _vm.TypewriterScrollAnchor ?? "middle";
+        ExecuteScript($"setTypewriterScroll({enabled}, '{EscapeForSingleQuoteJs(anchor)}')");
     }
 
     private void PushGrammarCheckState()
@@ -868,6 +901,10 @@ public partial class EditorView : UserControl
         else if (e.PropertyName is nameof(EditorViewModel.BookWidthEnabled) or nameof(EditorViewModel.BookEditorWidth))
         {
             ApplyBookWidth();
+        }
+        else if (e.PropertyName is nameof(EditorViewModel.TypewriterScrollEnabled) or nameof(EditorViewModel.TypewriterScrollAnchor))
+        {
+            ApplyTypewriterScroll();
         }
         else if (e.PropertyName == nameof(EditorViewModel.AutoReplacement))
         {

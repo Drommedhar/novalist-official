@@ -66,6 +66,17 @@ public class SceneData
     [JsonPropertyName("analysisOverrides")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SceneAnalysisOverrides? AnalysisOverrides { get; set; }
+
+    /// <summary>UTC timestamp when the scene was moved to the archive. Null = active.</summary>
+    [JsonPropertyName("archivedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public System.DateTime? ArchivedAt { get; set; }
+
+    /// <summary>The chapter this scene came from before archiving. Used as default
+    /// restore target. Null on non-archived scenes.</summary>
+    [JsonPropertyName("originChapterGuid")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? OriginChapterGuid { get; set; }
 }
 
 public class SceneFootnote
@@ -150,4 +161,9 @@ public class ScenesManifest
 {
     [JsonPropertyName("chapters")]
     public Dictionary<string, List<SceneData>> Chapters { get; set; } = new();
+
+    /// <summary>Archived scenes — out of manuscript, restorable.</summary>
+    [JsonPropertyName("archived")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<SceneData> Archived { get; set; } = [];
 }

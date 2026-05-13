@@ -32,6 +32,10 @@ public sealed class FocusPeekExtension : IEditorExtension
     private string? _lastAlias;
     private FocusPeekEntityReference? _currentReference;
 
+    /// <summary>Fired after <see cref="RefreshEntityIndexAsync"/> rebuilds the
+    /// entity-alias index so the host can re-push to the editor WebView.</summary>
+    public event Action? EntityIndexChanged;
+
     /// <summary>Bounds of the editor control, set by EditorView when size changes.</summary>
     public Size EditorBounds { get; set; }
 
@@ -70,13 +74,157 @@ public sealed class FocusPeekExtension : IEditorExtension
     }
 
     /// <summary>
-    /// Returns a JSON array of entity names for the JS editor to detect on hover.
+    /// Returns a JSON array of entity-detection records for the editor.
+    /// Each item is {name, entityId, entityType, isAlias}. Longer names first so
+    /// the regex matches them preferentially.
     /// </summary>
     public string GetEntityNamesJson()
     {
         if (_entityLookup.Count == 0) return "[]";
-        var names = _entityLookup.Keys.OrderByDescending(k => k.Length);
-        return "[" + string.Join(",", names.Select(n => "\"" + JsonEscape(n) + "\"")) + "]";
+        var ordered = _entityLookup
+            .OrderByDescending(pair => pair.Key.Length)
+            .ToList();
+        var sb = new System.Text.StringBuilder();
+        sb.Append('[');
+        for (int i = 0; i < ordered.Count; i++)
+        {
+            var name = ordered[i].Key;
+            var entRef = ordered[i].Value;
+            var entityId = GetEntityId(entRef.Entity);
+            var typeKey = entRef.Type == EntityType.Custom
+                ? (entRef.Entity is CustomEntityData cd ? cd.EntityTypeKey : "custom")
+                : entRef.Type.ToString().ToLowerInvariant();
+            if (i > 0) sb.Append(',');
+            sb.Append("{\"name\":\"").Append(JsonEscape(name)).Append('\"');
+            sb.Append(",\"entityId\":\"").Append(JsonEscape(entityId)).Append('\"');
+            sb.Append(",\"entityType\":\"").Append(JsonEscape(typeKey)).Append('\"');
+            sb.Append(",\"isAlias\":").Append(entRef.IsAlias ? "true" : "false");
+            sb.Append('}');
+        }
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// Returns a JSON array of mention candidates for the @-picker — every
+    /// entity + alias resolves to its primary record.
+    /// </summary>
+    public string GetMentionCandidatesJson()
+    {
+        if (_entityLookup.Count == 0) return "[]";
+        var sb = new System.Text.StringBuilder();
+        sb.Append('[');
+        // Build one row per (display name OR alias) so the picker can fuzzy-match.
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        bool first = true;
+        foreach (var pair in _entityLookup)
+        {
+            var key = pair.Value.IsAlias ? $"{GetEntityId(pair.Value.Entity)}|alias|{pair.Key}" : $"{GetEntityId(pair.Value.Entity)}|primary";
+            if (!seen.Add(key)) continue;
+
+            var entityId = GetEntityId(pair.Value.Entity);
+            var typeKey = pair.Value.Type == EntityType.Custom
+                ? (pair.Value.Entity is CustomEntityData cd ? cd.EntityTypeKey : "custom")
+                : pair.Value.Type.ToString().ToLowerInvariant();
+            var primaryName = GetPrimaryName(pair.Value.Entity);
+            var matchedText = pair.Key;
+            var subtitle = GetSubtitle(pair.Value);
+
+            if (!first) sb.Append(',');
+            first = false;
+            sb.Append('{');
+            sb.Append("\"entityId\":\"").Append(JsonEscape(entityId)).Append('\"');
+            sb.Append(",\"entityType\":\"").Append(JsonEscape(typeKey)).Append('\"');
+            sb.Append(",\"primaryName\":\"").Append(JsonEscape(primaryName)).Append('\"');
+            sb.Append(",\"matchedText\":\"").Append(JsonEscape(matchedText)).Append('\"');
+            sb.Append(",\"isAlias\":").Append(pair.Value.IsAlias ? "true" : "false");
+            sb.Append(",\"subtitle\":\"").Append(JsonEscape(subtitle)).Append('\"');
+            sb.Append('}');
+        }
+        sb.Append(']');
+        return sb.ToString();
+    }
+
+    private static string GetEntityId(object entity) => entity switch
+    {
+        CharacterData c => c.Id,
+        LocationData l => l.Id,
+        ItemData i => i.Id,
+        LoreData lo => lo.Id,
+        CustomEntityData ce => ce.Id,
+        _ => string.Empty
+    };
+
+    private static string GetPrimaryName(object entity) => entity switch
+    {
+        CharacterData c => c.DisplayName,
+        LocationData l => l.Name,
+        ItemData i => i.Name,
+        LoreData lo => lo.Name,
+        CustomEntityData ce => ce.Name,
+        _ => string.Empty
+    };
+
+    private string GetSubtitle(FocusPeekEntityReference entRef)
+    {
+        return entRef.Entity switch
+        {
+            CharacterData c => string.IsNullOrWhiteSpace(c.Role) ? Loc.T("focusPeek.typeCharacter") : c.Role,
+            LocationData l => string.IsNullOrWhiteSpace(l.Type) ? Loc.T("focusPeek.typeLocation") : l.Type,
+            ItemData i => string.IsNullOrWhiteSpace(i.Type) ? Loc.T("focusPeek.typeItem") : i.Type,
+            LoreData lo => string.IsNullOrWhiteSpace(lo.Category) ? Loc.T("focusPeek.typeLore") : lo.Category,
+            CustomEntityData ce => _projectService.CurrentProject?.CustomEntityTypes
+                .FirstOrDefault(t => string.Equals(t.TypeKey, ce.EntityTypeKey, StringComparison.OrdinalIgnoreCase))?.DisplayName ?? ce.EntityTypeKey,
+            _ => string.Empty
+        };
+    }
+
+    /// <summary>
+    /// Resolves an entity by ID for direct mention-span hover handling (preferred
+    /// over the alias-text path because it survives renames).
+    /// </summary>
+    public Task<FocusPeekDisplayData?> BuildDisplayDataByIdAsync(string entityId)
+    {
+        var match = _entityLookup.Values.FirstOrDefault(r => GetEntityId(r.Entity) == entityId);
+        if (match == null) return Task.FromResult<FocusPeekDisplayData?>(null);
+        return BuildDisplayDataNullableAsync(match);
+    }
+
+    private async Task<FocusPeekDisplayData?> BuildDisplayDataNullableAsync(FocusPeekEntityReference reference)
+    {
+        try { return await BuildDisplayDataAsync(reference); }
+        catch { return null; }
+    }
+
+    /// <summary>
+    /// Called by EditorView when JS reports a hover on an `nv-entity-mention` span
+    /// carrying a stable entity id.
+    /// </summary>
+    public async Task OnEntityHoverByIdAsync(string entityId, double x, double y)
+    {
+        if (_viewModel.IsPinned) return;
+
+        CancelPendingPeek();
+        _peekCts = new CancellationTokenSource();
+        var token = _peekCts.Token;
+
+        try
+        {
+            await Task.Delay(250, token);
+            if (token.IsCancellationRequested) return;
+
+            await Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var reference = _entityLookup.Values.FirstOrDefault(r => GetEntityId(r.Entity) == entityId);
+                if (reference == null) return;
+                _currentReference = reference;
+                _lastAlias = GetPrimaryName(reference.Entity);
+                var displayData = await BuildDisplayDataAsync(reference);
+                var position = CalculatePosition(x, y);
+                _viewModel.Show(displayData, position.X, position.Y);
+            });
+        }
+        catch (OperationCanceledException) { }
     }
 
     private void CancelPendingPeek()
@@ -163,19 +311,37 @@ public sealed class FocusPeekExtension : IEditorExtension
 
         foreach (var character in charactersTask.Result)
         {
-            AddAlias(aliasCandidates, character.DisplayName, new FocusPeekEntityReference(EntityType.Character, character));
+            var refPrimary = new FocusPeekEntityReference(EntityType.Character, character, isAlias: false);
+            AddAlias(aliasCandidates, character.DisplayName, refPrimary);
             if (!string.Equals(character.Name, character.DisplayName, StringComparison.OrdinalIgnoreCase))
-                AddAlias(aliasCandidates, character.Name, new FocusPeekEntityReference(EntityType.Character, character));
+                AddAlias(aliasCandidates, character.Name, refPrimary);
+            foreach (var alias in character.Aliases)
+                AddAlias(aliasCandidates, alias, new FocusPeekEntityReference(EntityType.Character, character, isAlias: true));
         }
 
         foreach (var location in _locations)
-            AddAlias(aliasCandidates, location.Name, new FocusPeekEntityReference(EntityType.Location, location));
+        {
+            var refPrimary = new FocusPeekEntityReference(EntityType.Location, location, isAlias: false);
+            AddAlias(aliasCandidates, location.Name, refPrimary);
+            foreach (var alias in location.Aliases)
+                AddAlias(aliasCandidates, alias, new FocusPeekEntityReference(EntityType.Location, location, isAlias: true));
+        }
 
         foreach (var item in itemsTask.Result)
-            AddAlias(aliasCandidates, item.Name, new FocusPeekEntityReference(EntityType.Item, item));
+        {
+            var refPrimary = new FocusPeekEntityReference(EntityType.Item, item, isAlias: false);
+            AddAlias(aliasCandidates, item.Name, refPrimary);
+            foreach (var alias in item.Aliases)
+                AddAlias(aliasCandidates, alias, new FocusPeekEntityReference(EntityType.Item, item, isAlias: true));
+        }
 
         foreach (var lore in loreTask.Result)
-            AddAlias(aliasCandidates, lore.Name, new FocusPeekEntityReference(EntityType.Lore, lore));
+        {
+            var refPrimary = new FocusPeekEntityReference(EntityType.Lore, lore, isAlias: false);
+            AddAlias(aliasCandidates, lore.Name, refPrimary);
+            foreach (var alias in lore.Aliases)
+                AddAlias(aliasCandidates, alias, new FocusPeekEntityReference(EntityType.Lore, lore, isAlias: true));
+        }
 
         // Custom entity types
         var customTypes = _projectService.CurrentProject?.CustomEntityTypes;
@@ -185,13 +351,20 @@ public sealed class FocusPeekExtension : IEditorExtension
             {
                 var entities = await _entityService.LoadCustomEntitiesAsync(typeDef.TypeKey);
                 foreach (var entity in entities)
-                    AddAlias(aliasCandidates, entity.Name, new FocusPeekEntityReference(EntityType.Custom, entity));
+                {
+                    var refPrimary = new FocusPeekEntityReference(EntityType.Custom, entity, isAlias: false);
+                    AddAlias(aliasCandidates, entity.Name, refPrimary);
+                    foreach (var alias in entity.Aliases)
+                        AddAlias(aliasCandidates, alias, new FocusPeekEntityReference(EntityType.Custom, entity, isAlias: true));
+                }
             }
         }
 
         _entityLookup = aliasCandidates
             .Where(pair => pair.Value.Count == 1 && !string.IsNullOrWhiteSpace(pair.Key))
             .ToDictionary(pair => pair.Key, pair => pair.Value[0], StringComparer.OrdinalIgnoreCase);
+
+        EntityIndexChanged?.Invoke();
     }
 
     private Point CalculatePosition(double x, double y)
@@ -618,13 +791,15 @@ public sealed class FocusPeekExtension : IEditorExtension
 
     private sealed class FocusPeekEntityReference
     {
-        public FocusPeekEntityReference(EntityType type, object entity)
+        public FocusPeekEntityReference(EntityType type, object entity, bool isAlias = false)
         {
             Type = type;
             Entity = entity;
+            IsAlias = isAlias;
         }
 
         public EntityType Type { get; }
         public object Entity { get; }
+        public bool IsAlias { get; }
     }
 }

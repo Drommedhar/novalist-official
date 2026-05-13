@@ -13,6 +13,10 @@ public class ItemData : IEntityData
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
+    [JsonPropertyName("aliases")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<string> Aliases { get; set; } = [];
+
     [JsonPropertyName("type")]
     public string Type { get; set; } = string.Empty;
 

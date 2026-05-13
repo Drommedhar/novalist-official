@@ -54,6 +54,7 @@
             <!-- Chapter/Scene Tree -->
             <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
+                <StackPanel>
                 <ItemsControl x:Name="ChaptersItemsControl"
                               ItemsSource="{Binding ExplorerItems}"
                               Margin="0,4">
@@ -203,6 +204,7 @@
                                                         <MenuItem Header="{loc:Loc explorer.contextTakeSnapshot}" Click="OnTakeSnapshotClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextSnapshots}" Click="OnOpenSnapshotsClick" />
                                                         <Separator />
+                                                        <MenuItem Header="{loc:Loc explorer.contextArchive}" Click="OnArchiveSceneClick" />
                                                         <MenuItem Header="{loc:Loc explorer.contextDelete}" Click="OnDeleteSceneClick" />
                                                     </ContextMenu>
                                                 </Border.ContextMenu>
@@ -250,6 +252,70 @@
 
                     </ItemsControl.DataTemplates>
                 </ItemsControl>
+
+                <!-- Archive section -->
+                <StackPanel Margin="4,12,4,8"
+                            IsVisible="{Binding HasArchivedScenes}">
+                    <Border Padding="6,4"
+                            CornerRadius="4"
+                            Background="Transparent">
+                        <Button Classes="link"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Command="{Binding ToggleArchiveCommand}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <TextBlock Text="▸"
+                                           FontSize="10"
+                                           Foreground="{DynamicResource SubtleText}"
+                                           IsVisible="{Binding !IsArchiveExpanded}" />
+                                <TextBlock Text="▾"
+                                           FontSize="10"
+                                           Foreground="{DynamicResource SubtleText}"
+                                           IsVisible="{Binding IsArchiveExpanded}" />
+                                <TextBlock Text="{loc:Loc explorer.archive}"
+                                           FontSize="11"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource SubtleText}"
+                                           LetterSpacing="1" />
+                            </StackPanel>
+                        </Button>
+                    </Border>
+                    <ItemsControl ItemsSource="{Binding ArchivedScenes}"
+                                  IsVisible="{Binding IsArchiveExpanded}"
+                                  Margin="16,0,0,4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:ArchivedSceneItemViewModel">
+                                <Border Padding="8,4"
+                                        CornerRadius="4"
+                                        Margin="4,1">
+                                    <Border.ContextMenu>
+                                        <ContextMenu Tag="{Binding}">
+                                            <MenuItem Header="{loc:Loc explorer.archiveRestore}"
+                                                      Click="OnRestoreArchivedSceneClick" />
+                                            <MenuItem Header="{loc:Loc explorer.archiveDelete}"
+                                                      Click="OnDeleteArchivedSceneClick" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+                                    <StackPanel Spacing="1">
+                                        <TextBlock Text="{Binding DisplayName}"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource DimText}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                        <TextBlock Text="{Binding OriginLabel}"
+                                                   FontSize="10"
+                                                   Foreground="{DynamicResource SubtleText}"
+                                                   IsVisible="{Binding OriginLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                   TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+                </StackPanel>
             </ScrollViewer>
         </DockPanel>
     </Border>

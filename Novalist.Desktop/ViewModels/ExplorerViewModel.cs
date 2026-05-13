@@ -55,6 +55,13 @@ public partial class ExplorerViewModel : ObservableObject
 
     public ObservableCollection<object> ExplorerItems { get; } = new();
 
+    public ObservableCollection<ArchivedSceneItemViewModel> ArchivedScenes { get; } = new();
+
+    public bool HasArchivedScenes => ArchivedScenes.Count > 0;
+
+    [ObservableProperty]
+    private bool _isArchiveExpanded;
+
     public ObservableCollection<SmartListItemViewModel> SmartLists { get; } = new();
 
     private ISmartListService? _smartListService;
@@ -205,6 +212,82 @@ public partial class ExplorerViewModel : ObservableObject
 
             ExplorerItems.Add(chapterVm);
         }
+
+        RefreshArchived();
+    }
+
+    private void RefreshArchived()
+    {
+        ArchivedScenes.Clear();
+        var archived = _projectService.GetArchivedScenes();
+        foreach (var scene in archived.OrderByDescending(s => s.ArchivedAt ?? DateTime.MinValue))
+        {
+            string? originTitle = null;
+            if (!string.IsNullOrEmpty(scene.OriginChapterGuid))
+            {
+                var origin = _projectService.GetChaptersOrdered()
+                    .FirstOrDefault(c => string.Equals(c.Guid, scene.OriginChapterGuid, StringComparison.OrdinalIgnoreCase));
+                originTitle = origin?.Title;
+            }
+            ArchivedScenes.Add(new ArchivedSceneItemViewModel(scene, originTitle));
+        }
+        OnPropertyChanged(nameof(HasArchivedScenes));
+    }
+
+    [RelayCommand]
+    private async Task ArchiveSelectedScene()
+    {
+        var scenesToArchive = GetSelectedScenes();
+        if (scenesToArchive.Count == 0 && SelectedScene != null)
+            scenesToArchive.Add(SelectedScene);
+
+        foreach (var scene in scenesToArchive)
+            await _projectService.ArchiveSceneAsync(scene.Scene.ChapterGuid, scene.Scene.Id);
+
+        ClearSelections();
+        Refresh();
+        ProjectChanged?.Invoke();
+    }
+
+    [RelayCommand]
+    private async Task RestoreArchivedScene(ArchivedSceneItemViewModel? item)
+    {
+        if (item == null) return;
+        var origin = item.Scene.OriginChapterGuid;
+        var targetGuid = !string.IsNullOrEmpty(origin)
+            ? origin
+            : _projectService.GetChaptersOrdered().FirstOrDefault()?.Guid;
+        if (string.IsNullOrEmpty(targetGuid)) return;
+
+        // If the origin chapter is gone, fall back to first chapter.
+        if (!_projectService.GetChaptersOrdered().Any(c => string.Equals(c.Guid, targetGuid, StringComparison.OrdinalIgnoreCase)))
+            targetGuid = _projectService.GetChaptersOrdered().First().Guid;
+
+        await _projectService.RestoreArchivedSceneAsync(item.Scene.Id, targetGuid, null);
+        Refresh();
+        ProjectChanged?.Invoke();
+    }
+
+    [RelayCommand]
+    private async Task DeleteArchivedScene(ArchivedSceneItemViewModel? item)
+    {
+        if (item == null) return;
+        if (ShowConfirmDialog != null)
+        {
+            var ok = await ShowConfirmDialog.Invoke(
+                Loc.T("explorer.archive.confirmDeleteTitle"),
+                string.Format(Loc.T("explorer.archive.confirmDelete"), item.Scene.Title));
+            if (!ok) return;
+        }
+        await _projectService.DeleteArchivedSceneAsync(item.Scene.Id);
+        Refresh();
+        ProjectChanged?.Invoke();
+    }
+
+    [RelayCommand]
+    private void ToggleArchive()
+    {
+        IsArchiveExpanded = !IsArchiveExpanded;
     }
 
     [RelayCommand]
@@ -952,6 +1035,26 @@ public partial class SceneTreeItemViewModel : ObservableObject
         OnPropertyChanged(nameof(IsFavorite));
         OnPropertyChanged(nameof(LabelColor));
         OnPropertyChanged(nameof(HasLabelColor));
+    }
+}
+
+public partial class ArchivedSceneItemViewModel : ObservableObject
+{
+    public SceneData Scene { get; }
+    public string? OriginChapterTitle { get; }
+
+    public string DisplayName => Scene.Title;
+    public string OriginLabel => string.IsNullOrEmpty(OriginChapterTitle)
+        ? string.Empty
+        : OriginChapterTitle!;
+    public string ArchivedAtDisplay => Scene.ArchivedAt.HasValue
+        ? Scene.ArchivedAt.Value.ToLocalTime().ToString("yyyy-MM-dd")
+        : string.Empty;
+
+    public ArchivedSceneItemViewModel(SceneData scene, string? originChapterTitle)
+    {
+        Scene = scene;
+        OriginChapterTitle = originChapterTitle;
     }
 }
 

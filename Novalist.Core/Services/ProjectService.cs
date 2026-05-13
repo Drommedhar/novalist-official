@@ -635,6 +635,129 @@ public partial class ProjectService : IProjectService
         await SaveScenesAsync();
     }
 
+    // ── Scene archive ───────────────────────────────────────────────
+
+    private const string ArchiveFolderName = "__Archive";
+
+    private string GetArchiveFolderPath()
+    {
+        if (ActiveBookRoot == null || ActiveBook == null)
+            throw new InvalidOperationException("No active book.");
+        return _fileService.CombinePath(ActiveBookRoot, ActiveBook.ChapterFolder, ArchiveFolderName);
+    }
+
+    public string GetArchivedSceneFilePath(SceneData scene)
+    {
+        return _fileService.CombinePath(GetArchiveFolderPath(), scene.FileName);
+    }
+
+    public async Task<string> ReadArchivedSceneContentAsync(SceneData scene)
+    {
+        var path = GetArchivedSceneFilePath(scene);
+        if (await _fileService.ExistsAsync(path))
+            return await _fileService.ReadTextAsync(path);
+        return string.Empty;
+    }
+
+    public IReadOnlyList<SceneData> GetArchivedScenes()
+        => ScenesManifest?.Archived ?? new List<SceneData>();
+
+    public async Task ArchiveSceneAsync(string chapterGuid, string sceneId)
+    {
+        if (ScenesManifest == null || ActiveBook == null || ActiveBookRoot == null) return;
+        if (!ScenesManifest.Chapters.TryGetValue(chapterGuid, out var scenes)) return;
+
+        var scene = scenes.FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null) return;
+
+        var chapter = ActiveBook.Chapters.FirstOrDefault(c => c.Guid == chapterGuid);
+        if (chapter == null) return;
+
+        var sourcePath = GetSceneFilePath(chapter, scene);
+        var archiveFolder = GetArchiveFolderPath();
+        await _fileService.CreateDirectoryAsync(archiveFolder);
+
+        // Resolve filename collisions in the archive folder by suffixing with the scene id.
+        var targetFileName = scene.FileName;
+        var targetPath = _fileService.CombinePath(archiveFolder, targetFileName);
+        if (await _fileService.ExistsAsync(targetPath))
+        {
+            var ext = Path.GetExtension(scene.FileName);
+            var stem = Path.GetFileNameWithoutExtension(scene.FileName);
+            targetFileName = $"{stem}-{scene.Id}{ext}";
+            targetPath = _fileService.CombinePath(archiveFolder, targetFileName);
+        }
+
+        if (await _fileService.ExistsAsync(sourcePath))
+            await _fileService.MoveFileAsync(sourcePath, targetPath);
+
+        scene.FileName = targetFileName;
+        scene.OriginChapterGuid = chapterGuid;
+        scene.ArchivedAt = DateTime.UtcNow;
+        scene.ChapterGuid = string.Empty;
+
+        scenes.Remove(scene);
+        ReindexScenes(scenes);
+        ScenesManifest.Archived.Add(scene);
+
+        await SaveScenesAsync();
+    }
+
+    public async Task RestoreArchivedSceneAsync(string sceneId, string targetChapterGuid, int? targetIndex)
+    {
+        if (ScenesManifest == null || ActiveBook == null || ActiveBookRoot == null) return;
+
+        var scene = ScenesManifest.Archived.FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null) return;
+
+        var targetChapter = ActiveBook.Chapters.FirstOrDefault(c => c.Guid == targetChapterGuid);
+        if (targetChapter == null) return;
+
+        if (!ScenesManifest.Chapters.TryGetValue(targetChapterGuid, out var targetScenes))
+        {
+            targetScenes = new List<SceneData>();
+            ScenesManifest.Chapters[targetChapterGuid] = targetScenes;
+        }
+
+        var sourcePath = GetArchivedSceneFilePath(scene);
+        // Generate a fresh, non-colliding filename in the target chapter.
+        var newFileName = GetNextSceneFileName(targetScenes);
+        scene.FileName = newFileName;
+        scene.ChapterGuid = targetChapterGuid;
+        scene.ArchivedAt = null;
+        scene.OriginChapterGuid = null;
+
+        var targetPath = GetSceneFilePath(targetChapter, scene);
+
+        await _fileService.CreateDirectoryAsync(GetChapterFolderPath(targetChapter));
+        if (await _fileService.ExistsAsync(sourcePath))
+            await _fileService.MoveFileAsync(sourcePath, targetPath);
+
+        var insertAt = targetIndex.HasValue
+            ? Math.Clamp(targetIndex.Value, 0, targetScenes.Count)
+            : targetScenes.Count;
+        targetScenes.Insert(insertAt, scene);
+        ReindexScenes(targetScenes);
+        ScenesManifest.Archived.Remove(scene);
+
+        await SaveScenesAsync();
+    }
+
+    public async Task DeleteArchivedSceneAsync(string sceneId)
+    {
+        if (ScenesManifest == null) return;
+
+        var scene = ScenesManifest.Archived.FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null) return;
+
+        var path = GetArchivedSceneFilePath(scene);
+        if (await _fileService.ExistsAsync(path))
+            await _fileService.DeleteFileAsync(path);
+
+        ScenesManifest.Archived.Remove(scene);
+        await SaveScenesAsync();
+    }
+
     public string GetChapterFolderPath(ChapterData chapter)
     {
         return _fileService.CombinePath(ActiveBookRoot!, ActiveBook!.ChapterFolder, chapter.FolderName);

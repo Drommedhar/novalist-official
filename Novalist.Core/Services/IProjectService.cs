@@ -50,6 +50,14 @@ public interface IProjectService
     Task RenameChapterAsync(string chapterGuid, string newTitle);
     Task RenameSceneAsync(string chapterGuid, string sceneId, string newTitle);
 
+    // Scene archive
+    Task ArchiveSceneAsync(string chapterGuid, string sceneId);
+    Task RestoreArchivedSceneAsync(string sceneId, string targetChapterGuid, int? targetIndex);
+    Task DeleteArchivedSceneAsync(string sceneId);
+    IReadOnlyList<SceneData> GetArchivedScenes();
+    string GetArchivedSceneFilePath(SceneData scene);
+    Task<string> ReadArchivedSceneContentAsync(SceneData scene);
+
     string GetChapterFolderPath(ChapterData chapter);
     string GetSceneFilePath(ChapterData chapter, SceneData scene);
     Task<string> ReadSceneContentAsync(ChapterData chapter, SceneData scene);

@@ -214,6 +214,37 @@
                                       OffContent="" />
                     </DockPanel>
 
+                    <!-- Typewriter Scroll -->
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                            <TextBlock Text="{loc:Loc settings.typewriterScroll}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="13" />
+                            <TextBlock Text="{loc:Loc settings.typewriterScrollDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ToggleSwitch IsChecked="{Binding TypewriterScrollEnabled}"
+                                      HorizontalAlignment="Right"
+                                      OnContent=""
+                                      OffContent="" />
+                    </DockPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="12"
+                                IsVisible="{Binding TypewriterScrollEnabled}"
+                                HorizontalAlignment="Right">
+                        <RadioButton GroupName="TypewriterAnchor"
+                                     Content="{loc:Loc settings.typewriterAnchorTop}"
+                                     IsChecked="{Binding TypewriterAnchorTop}" />
+                        <RadioButton GroupName="TypewriterAnchor"
+                                     Content="{loc:Loc settings.typewriterAnchorMiddle}"
+                                     IsChecked="{Binding TypewriterAnchorMiddle}" />
+                        <RadioButton GroupName="TypewriterAnchor"
+                                     Content="{loc:Loc settings.typewriterAnchorBottom}"
+                                     IsChecked="{Binding TypewriterAnchorBottom}" />
+                    </StackPanel>
+
                     <!-- Book Page Width -->
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">

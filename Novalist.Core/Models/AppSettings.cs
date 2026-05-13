@@ -52,6 +52,13 @@ public class AppSettings
     [JsonPropertyName("grammarCheckEnabled")]
     public bool GrammarCheckEnabled { get; set; } = true;
 
+    [JsonPropertyName("typewriterScrollEnabled")]
+    public bool TypewriterScrollEnabled { get; set; }
+
+    /// <summary>Vertical anchor for typewriter scroll. "top" | "middle" | "bottom".</summary>
+    [JsonPropertyName("typewriterScrollAnchor")]
+    public string TypewriterScrollAnchor { get; set; } = "middle";
+
     /// <summary>
     /// Custom LanguageTool API URL. When null or empty, the free public API is used.
     /// Supports self-hosted instances (e.g. "http://localhost:8081/v2/check").

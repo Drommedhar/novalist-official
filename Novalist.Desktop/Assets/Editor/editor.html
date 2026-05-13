@@ -321,6 +321,82 @@ body.has-comments { padding-right: 18em; }
     line-height: 1;
 }
 .nv-cc-del:hover { opacity: 1; }
+
+/* Entity mention spans (inserted via @ picker) */
+.nv-entity-mention {
+    border-bottom: 1px solid color-mix(in srgb, var(--fg) 35%, transparent 65%);
+    border-bottom-style: solid;
+    text-decoration: none;
+    cursor: default;
+}
+.nv-entity-mention:hover {
+    border-bottom-color: color-mix(in srgb, var(--fg) 70%, transparent 30%);
+    background: color-mix(in srgb, var(--fg) 6%, transparent 94%);
+}
+.nv-entity-mention.nv-mention-missing {
+    border-bottom-style: dashed;
+    border-bottom-color: rgba(243, 139, 168, 0.7);
+}
+.nv-mention-pending {
+    background: color-mix(in srgb, var(--fg) 12%, transparent 88%);
+    border-radius: 2px;
+}
+
+/* Mention picker popup (rendered inside the WebView) */
+#mention-picker {
+    position: absolute;
+    display: none;
+    z-index: 9998;
+    min-width: 16em;
+    max-width: 22em;
+    max-height: 18em;
+    overflow-y: auto;
+    background: color-mix(in srgb, var(--bg) 92%, white 8%);
+    border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent 75%);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    font-size: 0.85em;
+    padding: 4px 0;
+}
+#mention-picker.visible { display: block; }
+.nv-mp-row {
+    padding: 0.35em 0.7em;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border-left: 2px solid transparent;
+}
+.nv-mp-row.selected {
+    background: color-mix(in srgb, var(--fg) 14%, transparent 86%);
+    border-left-color: #89b4fa;
+}
+.nv-mp-row:hover { background: color-mix(in srgb, var(--fg) 10%, transparent 90%); }
+.nv-mp-name { font-weight: 500; color: var(--fg); }
+.nv-mp-name .nv-mp-alias-hint {
+    opacity: 0.65;
+    font-weight: 400;
+    font-style: italic;
+    margin-left: 0.3em;
+}
+.nv-mp-subtitle { opacity: 0.6; font-size: 0.82em; }
+.nv-mp-create {
+    padding: 0.4em 0.7em;
+    cursor: pointer;
+    border-top: 1px solid color-mix(in srgb, var(--fg) 15%, transparent 85%);
+    opacity: 0.85;
+    font-style: italic;
+}
+.nv-mp-create:hover { background: color-mix(in srgb, var(--fg) 10%, transparent 90%); }
+.nv-mp-empty { padding: 0.5em 0.7em; opacity: 0.6; font-style: italic; }
+
+/* Typewriter scroll virtual top + bottom padding so caret can reach any anchor */
+body.typewriter-on #editor { padding-top: 70vh; }
+body.typewriter-on #editor::after {
+    content: '';
+    display: block;
+    height: 70vh;
+}
 </style>
 </head>
 <body>
@@ -346,6 +422,7 @@ body.has-comments { padding-right: 18em; }
     <button id="ft-comment" title="Add comment">Cmt</button>
     <button id="ft-footnote" title="Add footnote">Fn</button>
 </div>
+<div id="mention-picker" tabindex="-1"></div>
 <script>
 'use strict';
 
@@ -357,11 +434,27 @@ let isSettingContent = false;
 let lastHtml = '';
 let entityRegex = null;
 let entityNames = [];
+let entityIndex = new Map(); // lowercase name → {entityId, entityType, isAlias}
 let autoReplacements = [];
 let lastHoveredAlias = null;
+let lastHoveredMentionId = null;
 let entityExitTimer = null;
 let dialogueCorrectionConfig = null;
 let dialogueCorrectionTimer = null;
+
+// Mention picker state
+let mentionState = null;          // {startNode, startOffset, queryNode, query} when picker is active
+let mentionCandidates = [];       // full list pushed by host
+let mentionFiltered = [];
+let mentionSelectedIndex = 0;
+
+// Typewriter scroll state
+let typewriterEnabled = false;
+let typewriterAnchor = 'middle';  // 'top' | 'middle' | 'bottom'
+let typewriterFrame = 0;
+let typewriterLastY = -9999;
+let typewriterMouseDown = false;
+let typewriterSuspendUntil = 0;   // ms epoch — suppress recenter until then
 
 // ── C#→JS Bridge ────────────────────────────────────────────────
 
@@ -532,18 +625,334 @@ function setLanguage(lang) {
 
 function setEntityNames(namesJson) {
     try {
-        entityNames = JSON.parse(namesJson);
-        if (entityNames.length === 0) {
+        const parsed = JSON.parse(namesJson);
+        entityIndex = new Map();
+
+        if (parsed.length === 0) {
+            entityNames = [];
             entityRegex = null;
             return;
         }
+
+        // Accept both legacy ["Name", ...] and richer [{name, entityId, entityType, isAlias}, ...]
+        if (typeof parsed[0] === 'string') {
+            entityNames = parsed;
+        } else {
+            entityNames = parsed.map(p => p.name);
+            for (const rec of parsed) {
+                if (!rec || !rec.name) continue;
+                const key = String(rec.name).toLowerCase();
+                if (!entityIndex.has(key)) {
+                    entityIndex.set(key, {
+                        entityId: rec.entityId || '',
+                        entityType: rec.entityType || '',
+                        isAlias: !!rec.isAlias
+                    });
+                }
+            }
+        }
+
         const escaped = entityNames
+            .slice()
             .sort((a, b) => b.length - a.length)
             .map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
         entityRegex = new RegExp('(?<![\\p{L}\\p{N}])(' + escaped.join('|') + ')(?![\\p{L}\\p{N}])', 'iu');
     } catch (_) {
         entityRegex = null;
     }
+}
+
+// ── Typewriter scroll ───────────────────────────────────────────
+
+function setTypewriterScroll(enabled, anchor) {
+    typewriterEnabled = !!enabled;
+    typewriterAnchor = (anchor === 'top' || anchor === 'bottom') ? anchor : 'middle';
+    document.body.classList.toggle('typewriter-on', typewriterEnabled);
+    typewriterLastY = -9999;
+    if (typewriterEnabled) scheduleTypewriterRecenter();
+}
+
+function scheduleTypewriterRecenter() {
+    if (!typewriterEnabled) return;
+    if (typewriterMouseDown) return;                       // user drag-selecting
+    if (Date.now() < typewriterSuspendUntil) return;       // recently wheel-scrolled
+    if (typewriterFrame) return;
+    typewriterFrame = requestAnimationFrame(() => {
+        typewriterFrame = 0;
+        recenterCaret();
+    });
+}
+
+// Mouse interaction pauses typewriter so drag-select works.
+document.addEventListener('mousedown', (e) => {
+    if (e.button === 0) typewriterMouseDown = true;
+}, true);
+document.addEventListener('mouseup', () => {
+    if (typewriterMouseDown) {
+        typewriterMouseDown = false;
+        // Keep suppressing for a moment so the trailing selectionchange does
+        // not snap the caret line away from where the user pointed.
+        typewriterSuspendUntil = Date.now() + 400;
+    }
+}, true);
+
+// Mouse-wheel / trackpad scroll: respect user's chosen position briefly.
+wrapper.addEventListener('wheel', () => {
+    typewriterSuspendUntil = Date.now() + 1200;
+}, { passive: true });
+
+function recenterCaret() {
+    if (!typewriterEnabled) return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0).cloneRange();
+
+    // Get rect at caret. Empty range needs a temp text node to measure.
+    let rect = range.getBoundingClientRect();
+    if (rect.top === 0 && rect.bottom === 0) {
+        const span = document.createElement('span');
+        span.appendChild(document.createTextNode('​'));
+        range.insertNode(span);
+        rect = span.getBoundingClientRect();
+        const parent = span.parentNode;
+        if (parent) parent.removeChild(span);
+    }
+
+    if (Math.abs(rect.top - typewriterLastY) < 4) return;
+    typewriterLastY = rect.top;
+
+    const viewportH = wrapper.clientHeight;
+    let frac = 0.5;
+    if (typewriterAnchor === 'top') frac = 0.33;
+    else if (typewriterAnchor === 'bottom') frac = 0.66;
+    const targetY = viewportH * frac;
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const caretRelative = rect.top - wrapperRect.top;
+    const delta = caretRelative - targetY;
+    if (Math.abs(delta) < 2) return;
+    wrapper.scrollTop = wrapper.scrollTop + delta;
+}
+
+// ── Mention picker (@) ──────────────────────────────────────────
+
+const mentionPicker = document.getElementById('mention-picker');
+
+function setMentionCandidates(candidatesJson) {
+    try { mentionCandidates = JSON.parse(candidatesJson) || []; }
+    catch (_) { mentionCandidates = []; }
+}
+
+function isWordChar(ch) {
+    return /[\p{L}\p{N}_]/u.test(ch || '');
+}
+
+function detectMentionAtCaret() {
+    // Returns {node, atOffset} if caret is right after a `@` that started a
+    // mention sequence (i.e. preceded by start-of-text or a non-word char).
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+    const range = sel.getRangeAt(0);
+    if (range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+    const text = range.startContainer.textContent || '';
+    const offset = range.startOffset;
+    if (offset === 0) return null;
+    if (text.charAt(offset - 1) !== '@') return null;
+    if (offset >= 2 && isWordChar(text.charAt(offset - 2))) return null;
+    return { node: range.startContainer, atOffset: offset - 1 };
+}
+
+function openMentionPicker() {
+    const pos = detectMentionAtCaret();
+    if (!pos) return false;
+    mentionState = { node: pos.node, atOffset: pos.atOffset, query: '' };
+    renderMentionPicker();
+    return true;
+}
+
+function closeMentionPicker(_keepLiteral) {
+    mentionState = null;
+    mentionPicker.classList.remove('visible');
+    mentionPicker.innerHTML = '';
+}
+
+function updateMentionQuery() {
+    if (!mentionState) return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) {
+        closeMentionPicker(true);
+        return;
+    }
+    const range = sel.getRangeAt(0);
+    if (range.startContainer !== mentionState.node) {
+        // Caret left the @-bearing text node — close.
+        closeMentionPicker(true);
+        return;
+    }
+    const txt = mentionState.node.textContent || '';
+    // Verify @ is still there at atOffset.
+    if (mentionState.atOffset >= txt.length || txt.charAt(mentionState.atOffset) !== '@') {
+        closeMentionPicker(true);
+        return;
+    }
+    const caret = range.startOffset;
+    if (caret <= mentionState.atOffset) {
+        closeMentionPicker(true);
+        return;
+    }
+    const query = txt.slice(mentionState.atOffset + 1, caret);
+    // Abort if query contains a space (mention names are single-word for the picker).
+    if (/\s/.test(query)) {
+        closeMentionPicker(true);
+        return;
+    }
+    mentionState.query = query;
+    renderMentionPicker();
+}
+
+function getMentionPositionRect() {
+    // Position the picker right below the `@` character.
+    if (!mentionState) return null;
+    try {
+        const r = document.createRange();
+        r.setStart(mentionState.node, mentionState.atOffset);
+        r.setEnd(mentionState.node, Math.min(mentionState.atOffset + 1, (mentionState.node.textContent || '').length));
+        return r.getBoundingClientRect();
+    } catch (_) { return null; }
+}
+
+function scoreCandidate(cand, query) {
+    if (!query) return 1;
+    const q = query.toLowerCase();
+    const name = (cand.matchedText || cand.primaryName || '').toLowerCase();
+    if (name === q) return 1000;
+    if (name.startsWith(q)) return 600 - (cand.isAlias ? 5 : 0);
+    if (name.includes(q)) return 300 - (cand.isAlias ? 5 : 0);
+    // Subsequence
+    let i = 0;
+    for (const ch of name) { if (ch === q[i]) i++; if (i === q.length) break; }
+    if (i === q.length) return 100 - name.length - (cand.isAlias ? 5 : 0);
+    return -1;
+}
+
+function renderMentionPicker() {
+    if (!mentionState) return;
+
+    mentionFiltered = mentionCandidates
+        .map(c => ({ c: c, score: scoreCandidate(c, mentionState.query) }))
+        .filter(p => p.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 20)
+        .map(p => p.c);
+
+    mentionSelectedIndex = 0;
+    mentionPicker.innerHTML = '';
+
+    if (mentionFiltered.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'nv-mp-empty';
+        empty.textContent = 'No matches';
+        mentionPicker.appendChild(empty);
+    } else {
+        mentionFiltered.forEach((c, idx) => {
+            const row = document.createElement('div');
+            row.className = 'nv-mp-row' + (idx === 0 ? ' selected' : '');
+            const name = document.createElement('div');
+            name.className = 'nv-mp-name';
+            name.textContent = c.primaryName;
+            if (c.isAlias) {
+                const hint = document.createElement('span');
+                hint.className = 'nv-mp-alias-hint';
+                hint.textContent = '(' + c.matchedText + ')';
+                name.appendChild(hint);
+            }
+            row.appendChild(name);
+            if (c.subtitle) {
+                const sub = document.createElement('div');
+                sub.className = 'nv-mp-subtitle';
+                sub.textContent = c.subtitle;
+                row.appendChild(sub);
+            }
+            row.addEventListener('mousedown', (ev) => {
+                ev.preventDefault();
+                confirmMentionAt(idx);
+            });
+            mentionPicker.appendChild(row);
+        });
+    }
+
+    // Position picker right below the `@` char.
+    const rect = getMentionPositionRect();
+    if (rect) {
+        mentionPicker.style.left = (rect.left + window.scrollX) + 'px';
+        mentionPicker.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+        mentionPicker.classList.add('visible');
+    }
+}
+
+function moveMentionSelection(delta) {
+    if (mentionFiltered.length === 0) return;
+    mentionSelectedIndex = (mentionSelectedIndex + delta + mentionFiltered.length) % mentionFiltered.length;
+    Array.from(mentionPicker.children).forEach((row, idx) => {
+        row.classList.toggle('selected', idx === mentionSelectedIndex);
+    });
+    // Scroll into view
+    const sel = mentionPicker.children[mentionSelectedIndex];
+    if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
+}
+
+function confirmMentionAt(idx) {
+    if (!mentionState) return;
+    if (idx < 0 || idx >= mentionFiltered.length) return;
+    const cand = mentionFiltered[idx];
+    const displayText = cand.matchedText || cand.primaryName;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) { closeMentionPicker(true); return; }
+
+    // Select from `@` to current caret so execCommand replaces the whole token.
+    const range = document.createRange();
+    range.setStart(mentionState.node, mentionState.atOffset);
+    const endRange = sel.getRangeAt(0);
+    range.setEnd(endRange.endContainer, endRange.endOffset);
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    const html = '<span class="nv-entity-mention"'
+        + ' data-entity-id="' + escapeAttr(cand.entityId) + '"'
+        + ' data-entity-type="' + escapeAttr(cand.entityType) + '"'
+        + ' data-mention-source="' + (cand.isAlias ? 'alias' : 'name') + '">'
+        + escapeHtml(displayText)
+        + '</span>&nbsp;';
+
+    // Use execCommand for undo-stack support. Falls back to manual replace.
+    let inserted = false;
+    try { inserted = document.execCommand('insertHTML', false, html); } catch (_) {}
+    if (!inserted) {
+        // Fallback: manual DOM edit (no undo stack).
+        range.deleteContents();
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const frag = document.createDocumentFragment();
+        while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+        range.insertNode(frag);
+    }
+
+    closeMentionPicker(false);
+    queueContentChangedSoon();
+}
+
+function escapeAttr(s) {
+    return String(s).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+}
+function escapeHtml(s) {
+    return String(s).replace(/[&<>]/g, c =>
+        ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' })[c]);
+}
+
+function queueContentChangedSoon() {
+    // Lightweight nudge — dispatch input event so the input listener picks it up.
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 function findEntityAtPoint(x, y) {
@@ -1074,11 +1483,68 @@ editor.addEventListener('beforeinput', (e) => {
     }
 });
 
+// Capture-phase keydown for mention picker navigation — runs before main keydown.
+editor.addEventListener('keydown', (e) => {
+    if (!mentionState) return;
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMentionPicker(true);
+        return;
+    }
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        e.stopPropagation();
+        moveMentionSelection(1);
+        return;
+    }
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        moveMentionSelection(-1);
+        return;
+    }
+    if (e.key === 'Enter' || e.key === 'Tab') {
+        if (mentionFiltered.length > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            confirmMentionAt(mentionSelectedIndex);
+            return;
+        }
+        // No matches — fall through; Enter inserts a newline and closes picker.
+        closeMentionPicker(true);
+        return;
+    }
+}, true);
+
+editor.addEventListener('input', () => {
+    if (mentionState) {
+        updateMentionQuery();
+        return;
+    }
+    // After a normal input event, check if caret just landed right after a
+    // freshly-typed `@` that should open the picker.
+    if (detectMentionAtCaret()) {
+        openMentionPicker();
+    }
+});
+
 document.addEventListener('selectionchange', () => {
     if (isSettingContent) return;
     notifyFormattingChanged();
     const pos = getCaretPosition();
     sendMessage({ type: 'caretPosition', line: pos.line, column: pos.column });
+    // Close mention picker if caret leaves the pending span.
+    if (mentionState) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            const r = sel.getRangeAt(0);
+            if (!mentionState.span.contains(r.startContainer)) {
+                closeMentionPicker(true);
+            }
+        }
+    }
+    scheduleTypewriterRecenter();
 });
 
 // ── Margin Comment Gutter ───────────────────────────────────────
@@ -1214,6 +1680,39 @@ const commentObserver = new MutationObserver(scheduleCommentRender);
 commentObserver.observe(editor, { childList: true, characterData: true, subtree: true });
 
 editor.addEventListener('mousemove', (e) => {
+    // First, check if the cursor is over an `nv-entity-mention` span — preferred
+    // because it carries a stable entity ID immune to renames.
+    const target = e.target;
+    let mention = null;
+    if (target && target.closest) mention = target.closest('.nv-entity-mention');
+    if (mention) {
+        const id = mention.getAttribute('data-entity-id') || '';
+        if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+        if (id && id !== lastHoveredMentionId) {
+            lastHoveredMentionId = id;
+            lastHoveredAlias = null;
+            sendMessage({
+                type: 'entityMentionHover',
+                entityId: id,
+                x: e.clientX,
+                y: e.clientY
+            });
+        }
+        return;
+    }
+    if (lastHoveredMentionId) {
+        // Left a mention span — debounce exit
+        if (!entityExitTimer) {
+            entityExitTimer = setTimeout(() => {
+                entityExitTimer = null;
+                lastHoveredMentionId = null;
+                lastHoveredAlias = null;
+                sendMessage({ type: 'entityExit' });
+            }, 200);
+        }
+        return;
+    }
+
     if (!entityRegex) return;
     const alias = findEntityAtPoint(e.clientX, e.clientY);
     if (alias) {
@@ -1242,8 +1741,9 @@ editor.addEventListener('mousemove', (e) => {
 
 editor.addEventListener('mouseleave', () => {
     if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
-    if (lastHoveredAlias) {
+    if (lastHoveredAlias || lastHoveredMentionId) {
         lastHoveredAlias = null;
+        lastHoveredMentionId = null;
         sendMessage({ type: 'entityExit' });
     }
 });

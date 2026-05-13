@@ -200,6 +200,33 @@ public partial class ExplorerView : UserControl
         Vm.DeleteSceneCommand.Execute(null);
     }
 
+    private void OnArchiveSceneClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var scene = GetContextMenuTag<SceneTreeItemViewModel>(sender);
+        if (scene != null)
+        {
+            Vm.HandleSceneSelection(scene, ctrl: false, shift: false, openScene: false);
+        }
+        Vm.ArchiveSelectedSceneCommand.Execute(null);
+    }
+
+    private void OnRestoreArchivedSceneClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var item = GetContextMenuTag<ArchivedSceneItemViewModel>(sender);
+        if (item == null) return;
+        Vm.RestoreArchivedSceneCommand.Execute(item);
+    }
+
+    private void OnDeleteArchivedSceneClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var item = GetContextMenuTag<ArchivedSceneItemViewModel>(sender);
+        if (item == null) return;
+        Vm.DeleteArchivedSceneCommand.Execute(item);
+    }
+
     private void OnOpenSceneInSplitClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is null) return;
