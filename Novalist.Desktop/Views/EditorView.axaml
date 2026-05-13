@@ -10,7 +10,7 @@
              x:Class="Novalist.Desktop.Views.EditorView"
              x:DataType="vm:EditorViewModel">
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*">
         <!-- Per-pane scene tab strip (visible whenever any scene tab is open) -->
         <Border Grid.Row="0"
                 IsVisible="{Binding HasOpenScenes}"
@@ -63,7 +63,27 @@
             </ScrollViewer>
         </Border>
 
-        <Grid Grid.Row="1" x:Name="EditorHost">
+        <!-- Archived-scene banner: read-only notice + Restore action -->
+        <Border Grid.Row="1"
+                IsVisible="{Binding IsCurrentSceneArchived}"
+                Background="#332196F3"
+                BorderBrush="#5592C8"
+                BorderThickness="0,0,0,1"
+                Padding="12,8">
+            <DockPanel>
+                <Button DockPanel.Dock="Right"
+                        Content="{loc:Loc editor.archiveBanner.restore}"
+                        Padding="10,4"
+                        Margin="6,0,0,0"
+                        Command="{Binding RestoreCurrentArchivedSceneCommand}" />
+                <TextBlock Text="{loc:Loc editor.archiveBanner.text}"
+                           Foreground="{DynamicResource NormalText}"
+                           VerticalAlignment="Center"
+                           TextWrapping="Wrap" />
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="2" x:Name="EditorHost">
             <!-- WebView is created in code-behind so we can catch native init
                  failures (e.g. Xamarin.Mac / .NET 10 incompatibility on macOS). -->
 

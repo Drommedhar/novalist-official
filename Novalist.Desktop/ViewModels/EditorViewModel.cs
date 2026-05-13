@@ -249,6 +249,13 @@ public partial class EditorViewModel : ObservableObject
     /// <summary>Vertical anchor for typewriter scroll: "top" | "middle" | "bottom".</summary>
     public string TypewriterScrollAnchor => _settingsService.Settings.TypewriterScrollAnchor ?? "middle";
 
+    /// <summary>True when the currently active scene is archived. The view
+    /// shows a banner offering Restore; saves are short-circuited.</summary>
+    public bool IsCurrentSceneArchived => _scene?.ArchivedAt.HasValue == true;
+
+    /// <summary>Whether page view (visual paper-page rendering) is enabled.</summary>
+    public bool PageViewEnabled => _settingsService.Settings.PageViewEnabled;
+
     /// <summary>Update the editor font size and persist to settings.</summary>
     public void SetFontSize(double size)
     {
@@ -324,6 +331,7 @@ public partial class EditorViewModel : ObservableObject
         OnPropertyChanged(nameof(BookEditorWidth));
         OnPropertyChanged(nameof(TypewriterScrollEnabled));
         OnPropertyChanged(nameof(TypewriterScrollAnchor));
+        OnPropertyChanged(nameof(PageViewEnabled));
         OnPropertyChanged(nameof(AutoReplacement));
         OnPropertyChanged(nameof(DialogueCorrection));
         OnPropertyChanged(nameof(GrammarCheck));
@@ -387,7 +395,9 @@ public partial class EditorViewModel : ObservableObject
             }
             else
             {
-                text = await _projectService.ReadSceneContentAsync(tab.Chapter, tab.Scene);
+                text = tab.Scene.ArchivedAt.HasValue
+                    ? await _projectService.ReadArchivedSceneContentAsync(tab.Scene)
+                    : await _projectService.ReadSceneContentAsync(tab.Chapter, tab.Scene);
                 tab.CachedContent = text;
                 tab.SavedContent = text;
                 tab.HasCachedContent = true;
@@ -401,6 +411,7 @@ public partial class EditorViewModel : ObservableObject
             Content = text;
             IsDirty = tab.IsDirty;
             IsDocumentOpen = true;
+            OnPropertyChanged(nameof(IsCurrentSceneArchived));
             SceneTabTitle = string.IsNullOrWhiteSpace(tab.Scene.Title) ? tab.Chapter.Title : tab.Scene.Title;
             DocumentTitle = $"{tab.Chapter.Title} — {tab.Scene.Title}";
             foreach (var t in OpenScenes) t.IsActive = t == tab;
@@ -597,8 +608,20 @@ public partial class EditorViewModel : ObservableObject
     public async Task SaveAsync()
     {
         if (_chapter == null || _scene == null || !IsDirty) return;
+        // Archived scenes are read-only — drop dirty state without writing.
+        if (_scene.ArchivedAt.HasValue)
+        {
+            _savedContent = Content;
+            IsDirty = false;
+            return;
+        }
 
         await _projectService.WriteSceneContentAsync(_chapter, _scene, Content);
+
+        // Record into the word-history journal (after write succeeded).
+        var bookId = _projectService.ActiveBook?.Id ?? string.Empty;
+        _scene.WordCount = WordCount;
+        await App.WordHistoryService.RecordSaveAsync(bookId, _scene.Id, WordCount);
         _savedContent = Content;
         IsDirty = false;
 
@@ -693,6 +716,19 @@ public partial class EditorViewModel : ObservableObject
 
     public Task RefreshFocusPeekAsync()
         => _focusPeekExtension.RefreshEntityIndexAsync();
+
+    /// <summary>
+    /// Fired when the editor wants the host to restore the currently-open
+    /// archived scene to a chapter. Host handles refresh + reopen.
+    /// </summary>
+    public event Action<SceneData>? RestoreArchivedSceneRequested;
+
+    [RelayCommand]
+    private void RestoreCurrentArchivedScene()
+    {
+        if (_scene == null || !_scene.ArchivedAt.HasValue) return;
+        RestoreArchivedSceneRequested?.Invoke(_scene);
+    }
 
     private void HandleFocusPeekOpenRequested(EntityType type, object entity)
     {

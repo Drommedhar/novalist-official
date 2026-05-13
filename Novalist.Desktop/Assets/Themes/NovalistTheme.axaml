@@ -23,6 +23,10 @@
     <SolidColorBrush x:Key="EditorBackground" Color="#181818" />
     <SolidColorBrush x:Key="WelcomeBackground" Color="#181818" />
 
+    <!-- Page-view paper surface — themed; matches the dark card aesthetic. -->
+    <SolidColorBrush x:Key="EditorPageBackground" Color="#1F2127" />
+    <SolidColorBrush x:Key="EditorPageForeground" Color="#E6EDF3" />
+
     <!-- Cards / elevated surfaces -->
     <SolidColorBrush x:Key="CardBackground" Color="#252526" />
     <SolidColorBrush x:Key="CardBorder" Color="#333333" />

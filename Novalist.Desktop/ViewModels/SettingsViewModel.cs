@@ -197,6 +197,9 @@ public partial class SettingsViewModel : ObservableObject
     private bool _typewriterAnchorBottom;
 
     [ObservableProperty]
+    private bool _pageViewEnabled;
+
+    [ObservableProperty]
     private int _dailyWordGoal;
 
     [ObservableProperty]
@@ -259,6 +262,7 @@ public partial class SettingsViewModel : ObservableObject
         _typewriterAnchorTop = twAnchor == "top";
         _typewriterAnchorMiddle = twAnchor == "middle";
         _typewriterAnchorBottom = twAnchor == "bottom";
+        _pageViewEnabled = Settings.PageViewEnabled;
         _dailyWordGoal = ActiveProjectGoals?.DailyGoal ?? 1000;
         _projectWordGoal = ActiveProjectGoals?.ProjectGoal ?? 50000;
         _projectDeadline = ActiveProjectGoals?.Deadline ?? string.Empty;
@@ -410,6 +414,12 @@ public partial class SettingsViewModel : ObservableObject
     {
         if (Settings.TypewriterScrollAnchor == anchor) return;
         Settings.TypewriterScrollAnchor = anchor;
+        SaveAndNotify();
+    }
+
+    partial void OnPageViewEnabledChanged(bool value)
+    {
+        Settings.PageViewEnabled = value;
         SaveAndNotify();
     }
 

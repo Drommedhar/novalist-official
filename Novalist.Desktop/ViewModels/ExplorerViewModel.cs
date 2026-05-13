@@ -45,6 +45,10 @@ public partial class ExplorerViewModel : ObservableObject
     /// </summary>
     public event Action<ChapterData, SceneData>? SceneOpenRequested;
 
+    /// <summary>Fired when the user double-clicks an archived-scene row to
+    /// preview it. The host opens the scene read-only.</summary>
+    public event Action<SceneData>? ArchivedSceneOpenRequested;
+
     /// <summary>Fired when a scene should open in the secondary editor pane.</summary>
     public Action<SceneTreeItemViewModel>? OpenSceneInSplitPaneRequested;
 
@@ -288,6 +292,13 @@ public partial class ExplorerViewModel : ObservableObject
     private void ToggleArchive()
     {
         IsArchiveExpanded = !IsArchiveExpanded;
+    }
+
+    [RelayCommand]
+    private void OpenArchivedScene(ArchivedSceneItemViewModel? item)
+    {
+        if (item == null) return;
+        ArchivedSceneOpenRequested?.Invoke(item.Scene);
     }
 
     [RelayCommand]

@@ -101,11 +101,11 @@ public sealed class SnapshotService : ISnapshotService
     private string? GetSceneDir(SceneData scene)
     {
         var book = _projectService.ActiveBook;
-        var bookRoot = _projectService.ActiveBookRoot;
-        if (book == null || bookRoot == null)
+        var root = _projectService.ActiveDraftRoot ?? _projectService.ActiveBookRoot;
+        if (book == null || root == null)
             return null;
 
-        return _fileService.CombinePath(bookRoot, book.SnapshotFolder, scene.Id);
+        return _fileService.CombinePath(root, book.SnapshotFolder, scene.Id);
     }
 
     private async Task<string> EnsureSceneDirAsync(SceneData scene)

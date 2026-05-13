@@ -14,6 +14,8 @@
     <SolidColorBrush x:Key="ExplorerBorder" Color="#1E1F22" />
     <SolidColorBrush x:Key="EditorBackground" Color="#313338" />
     <SolidColorBrush x:Key="WelcomeBackground" Color="#313338" />
+    <SolidColorBrush x:Key="EditorPageBackground" Color="#383A40" />
+    <SolidColorBrush x:Key="EditorPageForeground" Color="#F2F3F5" />
     <SolidColorBrush x:Key="CardBackground" Color="#2B2D31" />
     <SolidColorBrush x:Key="CardBorder" Color="#3F4147" />
     <SolidColorBrush x:Key="AccentBrush" Color="#5865F2" />

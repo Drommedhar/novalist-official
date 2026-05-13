@@ -245,6 +245,8 @@
     "typewriterAnchorTop": "Top",
     "typewriterAnchorMiddle": "Middle",
     "typewriterAnchorBottom": "Bottom",
+    "pageView": "Page View",
+    "pageViewDesc": "Renders the editor as a printed-book-style page with paper background, margins, and shadow.",
     "bookWidth": "Book Page Width",
     "bookWidthDesc": "Constrains the editor width to match a printed book page, so line breaks approximate the final output.",
     "bookWidthPageFormat": "Page Format",
@@ -378,7 +380,10 @@
       "closeTab": "Close Current Tab",
       "create": "Create Scene",
       "next": "Next Scene",
-      "prev": "Previous Scene"
+      "prev": "Previous Scene",
+      "archive": "Archive Selected Scene",
+      "restoreFromArchive": "Restore Archived Scene",
+      "openArchive": "Toggle Archive Panel"
     },
     "chapter": {
       "create": "Create Chapter"
@@ -431,9 +436,11 @@
     "showFavoritesOnly": "Favorites only",
     "contextRename": "Rename",
     "contextOpenInSplit": "Open in split pane",
+    "draftLabelInExplorer": "Drafts",
     "contextDelete": "Delete",
     "contextArchive": "Archive",
     "archive": "ARCHIVE",
+    "archivePreview": "Open (read-only)",
     "archiveRestore": "Restore...",
     "archiveDelete": "Delete forever",
     "archive.confirmDeleteTitle": "Delete archived scene",
@@ -663,8 +670,21 @@
     "errorOpenScene": "Error opening scene: {0}",
     "chapterBreakdown": "Chapter breakdown"
   },
+  "draft": {
+    "label": "Draft",
+    "pickerTooltip": "Switch or create draft",
+    "listTitle": "Drafts of this book",
+    "add": "+ New draft (clone from current)",
+    "newTitle": "New draft",
+    "newPrompt": "Name for the new draft:",
+    "defaultName": "Draft 2",
+    "deleteTitle": "Delete draft",
+    "deleteMessage": "Delete draft \"{0}\" and all of its scenes? This cannot be undone."
+  },
   "editor": {
     "emptyState": "Select a scene from the explorer to start writing.",
+    "archiveBanner.text": "This scene is archived. Restore it to edit and include in the manuscript.",
+    "archiveBanner.restore": "Restore",
     "tabClose": "Close tab",
     "tabMoveOther": "Move to other split",
     "boldTooltip": "Bold (Ctrl+B)",
@@ -861,6 +881,7 @@
     "locations": "Locations",
     "dailyProgress": "DAILY PROGRESS",
     "wordsToday": "words written today",
+    "streak": "Streak:",
     "goalTracking": "GOAL TRACKING",
     "totalWords": "total words",
     "deadline": "Deadline",

@@ -130,7 +130,8 @@ public partial class EntityEditorViewModel : ObservableObject
     public Func<AddImageSourceChoice, Task<string?>>? ImportExternalImageRequested { get; set; }
     public Func<string, string, string, IReadOnlyList<string>, Task<string?>>? ShowInverseRelationshipDialog { get; set; }
     public Func<string, string, Task<bool>>? ConfirmDeleteRequested { get; set; }
-    public event Action? Saved;
+    /// <summary>Fired after save. Payload is the saved entity (null on fallback).</summary>
+    public event Action<IEntityData?>? Saved;
     public event Action? Deleted;
 
     public string[] LoreCategories => LoreData.Categories;
@@ -343,7 +344,18 @@ public partial class EntityEditorViewModel : ObservableObject
         }
 
         if (didSave)
-            Saved?.Invoke();
+        {
+            IEntityData? savedEntity = EntityType switch
+            {
+                EntityType.Character => _character,
+                EntityType.Location => _location,
+                EntityType.Item => _item,
+                EntityType.Lore => _lore,
+                EntityType.Custom => _customEntity,
+                _ => null
+            };
+            Saved?.Invoke(savedEntity);
+        }
     }
 
     [RelayCommand]

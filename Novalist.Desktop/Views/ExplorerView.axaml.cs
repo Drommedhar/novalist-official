@@ -227,6 +227,21 @@ public partial class ExplorerView : UserControl
         Vm.DeleteArchivedSceneCommand.Execute(item);
     }
 
+    private void OnArchivedScenePreviewClick(object? sender, Avalonia.Input.TappedEventArgs e)
+    {
+        if (Vm is null) return;
+        if (sender is Avalonia.Controls.Control c && c.Tag is ArchivedSceneItemViewModel item)
+            Vm.OpenArchivedSceneCommand.Execute(item);
+    }
+
+    private void OnArchivedScenePreviewMenuClick(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is null) return;
+        var item = GetContextMenuTag<ArchivedSceneItemViewModel>(sender);
+        if (item == null) return;
+        Vm.OpenArchivedSceneCommand.Execute(item);
+    }
+
     private void OnOpenSceneInSplitClick(object? sender, RoutedEventArgs e)
     {
         if (Vm is null) return;

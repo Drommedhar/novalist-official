@@ -10,6 +10,7 @@ public interface IProjectService
     ScenesManifest? ScenesManifest { get; }
     string? ProjectRoot { get; }
     string? ActiveBookRoot { get; }
+    string? ActiveDraftRoot { get; }
     string? WorldBibleRoot { get; }
     bool IsProjectLoaded { get; }
 
@@ -27,6 +28,12 @@ public interface IProjectService
     Task SwitchBookAsync(string bookId);
     Task RenameBookAsync(string bookId, string newName);
     Task DeleteBookAsync(string bookId);
+
+    // Draft management
+    Task<BookDraftMetadata> CreateDraftAsync(string draftName, string? cloneFromDraftId = null);
+    Task SwitchDraftAsync(string draftId);
+    Task RenameDraftAsync(string draftId, string newName);
+    Task DeleteDraftAsync(string draftId);
 
     // World Bible
     Task InitializeWorldBibleAsync();
@@ -62,6 +69,14 @@ public interface IProjectService
     string GetSceneFilePath(ChapterData chapter, SceneData scene);
     Task<string> ReadSceneContentAsync(ChapterData chapter, SceneData scene);
     Task WriteSceneContentAsync(ChapterData chapter, SceneData scene, string content);
+
+    /// <summary>
+    /// Rewrites the inner text of every `nv-entity-mention` span whose
+    /// `data-entity-id` matches and whose `data-mention-source` is not "manual"
+    /// across all scenes in the active book (including archived).
+    /// Returns the number of scene files modified.
+    /// </summary>
+    Task<int> SyncMentionDisplayTextAsync(string entityId, string newDisplayText);
 
     List<ChapterData> GetChaptersOrdered();
     List<SceneData> GetScenesForChapter(string chapterGuid);

@@ -290,9 +290,13 @@
                             <DataTemplate x:DataType="vm:ArchivedSceneItemViewModel">
                                 <Border Padding="8,4"
                                         CornerRadius="4"
-                                        Margin="4,1">
+                                        Margin="4,1"
+                                        DoubleTapped="OnArchivedScenePreviewClick"
+                                        Tag="{Binding}">
                                     <Border.ContextMenu>
                                         <ContextMenu Tag="{Binding}">
+                                            <MenuItem Header="{loc:Loc explorer.archivePreview}"
+                                                      Click="OnArchivedScenePreviewMenuClick" />
                                             <MenuItem Header="{loc:Loc explorer.archiveRestore}"
                                                       Click="OnRestoreArchivedSceneClick" />
                                             <MenuItem Header="{loc:Loc explorer.archiveDelete}"

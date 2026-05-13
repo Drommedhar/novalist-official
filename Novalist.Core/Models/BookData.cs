@@ -96,4 +96,18 @@ public class BookData
     [JsonPropertyName("calendar")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public InWorldCalendar? Calendar { get; set; }
+
+    /// <summary>Named drafts of this book. The active draft's chapters / acts
+    /// live in BookData.Chapters / Acts at runtime; on switch, the outgoing
+    /// draft is flushed to draft.json and the incoming draft loaded.</summary>
+    [JsonPropertyName("drafts")]
+    public List<BookDraftMetadata> Drafts { get; set; } = new();
+
+    [JsonPropertyName("activeDraftId")]
+    public string ActiveDraftId { get; set; } = string.Empty;
+
+    [JsonIgnore]
+    public BookDraftMetadata? ActiveDraft
+        => Drafts.FirstOrDefault(d => string.Equals(d.Id, ActiveDraftId, StringComparison.OrdinalIgnoreCase))
+           ?? Drafts.FirstOrDefault();
 }

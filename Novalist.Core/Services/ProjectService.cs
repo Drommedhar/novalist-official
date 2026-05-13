@@ -21,6 +21,14 @@ public partial class ProjectService : IProjectService
     public string? ActiveBookRoot => ProjectRoot != null && ActiveBook != null
         ? _fileService.CombinePath(ProjectRoot, ActiveBook.FolderName)
         : null;
+    public string? ActiveDraftRoot
+    {
+        get
+        {
+            if (ActiveBookRoot == null || ActiveBook?.ActiveDraft == null) return null;
+            return _fileService.CombinePath(ActiveBookRoot, "Drafts", ActiveBook.ActiveDraft.FolderName);
+        }
+    }
     public string? WorldBibleRoot => ProjectRoot != null && CurrentProject != null
         ? _fileService.CombinePath(ProjectRoot, CurrentProject.WorldBibleFolder)
         : null;
@@ -39,12 +47,21 @@ public partial class ProjectService : IProjectService
         await _fileService.CreateDirectoryAsync(projectDir);
 
         var bookId = $"book-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+        var defaultDraft = new BookDraftMetadata
+        {
+            Id = "draft-default",
+            Name = "Draft 1",
+            FolderName = "default",
+            CreatedAt = DateTime.UtcNow,
+        };
         var book = new BookData
         {
             Id = bookId,
             Name = firstBookName,
             FolderName = SanitizeFileName(firstBookName),
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            Drafts = [defaultDraft],
+            ActiveDraftId = defaultDraft.Id,
         };
 
         var metadata = new ProjectMetadata
@@ -95,7 +112,23 @@ public partial class ProjectService : IProjectService
         if (ActiveBook == null)
             throw new InvalidOperationException("Project has no books.");
 
-        // Load scenes manifest for the active book
+        // Multi-draft migration: pre-multi-draft books need their chapter tree
+        // moved under Drafts/default/.
+        foreach (var book in metadata.Books)
+        {
+            if (book.Drafts.Count == 0)
+            {
+                var prevActive = ActiveBook;
+                ActiveBook = book;
+                await MigrateToMultiDraftAsync(book);
+                ActiveBook = prevActive;
+            }
+        }
+
+        // Load the active draft's chapters/acts from draft.json (if present).
+        await LoadActiveDraftDataAsync();
+
+        // Load scenes manifest for the active book/draft.
         await LoadScenesManifestAsync();
 
         // Load project-level settings
@@ -108,20 +141,57 @@ public partial class ProjectService : IProjectService
     {
         if (CurrentProject == null || ProjectRoot == null) return;
 
+        // Persist the active draft's chapter / act tree into draft.json.
+        await SaveActiveDraftDataAsync();
+
+        // Temporarily clear chapters + acts on books that have multi-draft
+        // storage so project.json doesn't duplicate the data.
+        var snapshot = new List<(BookData Book, List<ChapterData> Chapters, List<ActData> Acts)>();
+        foreach (var book in CurrentProject.Books)
+        {
+            if (book.Drafts.Count > 0)
+            {
+                snapshot.Add((book, book.Chapters, book.Acts));
+                book.Chapters = new List<ChapterData>();
+                book.Acts = new List<ActData>();
+            }
+        }
+
         var metadataPath = _fileService.CombinePath(ProjectRoot, ".novalist", "project.json");
         var json = JsonSerializer.Serialize(CurrentProject, JsonOptions);
         await _fileService.WriteTextAsync(metadataPath, json);
+
+        // Restore in-memory state.
+        foreach (var (book, chs, acts) in snapshot)
+        {
+            book.Chapters = chs;
+            book.Acts = acts;
+        }
     }
 
     public async Task SaveScenesAsync()
     {
-        if (ScenesManifest == null || ActiveBookRoot == null) return;
+        if (ScenesManifest == null) return;
+        var path = GetActiveDraftScenesPath();
+        if (path == null) return;
 
-        var bookDir = _fileService.CombinePath(ActiveBookRoot, ".book");
-        await _fileService.CreateDirectoryAsync(bookDir);
-        var scenesPath = _fileService.CombinePath(bookDir, "scenes.json");
+        var dir = _fileService.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir))
+            await _fileService.CreateDirectoryAsync(dir);
         var json = JsonSerializer.Serialize(ScenesManifest, JsonOptions);
-        await _fileService.WriteTextAsync(scenesPath, json);
+        await _fileService.WriteTextAsync(path, json);
+    }
+
+    private string? GetActiveDraftScenesPath()
+    {
+        if (ActiveDraftRoot == null) return null;
+        return _fileService.CombinePath(ActiveDraftRoot, "scenes.json");
+    }
+
+    private string? GetActiveDraftDataPath()
+    {
+        if (ActiveDraftRoot == null) return null;
+        return _fileService.CombinePath(ActiveDraftRoot, "draft.json");
     }
 
     public async Task SaveProjectSettingsAsync()
@@ -193,6 +263,147 @@ public partial class ProjectService : IProjectService
 
         CurrentProject.Name = newName.Trim();
         await SaveProjectAsync();
+    }
+
+    // ── Draft management ────────────────────────────────────────────
+
+    public async Task<BookDraftMetadata> CreateDraftAsync(string draftName, string? cloneFromDraftId = null)
+    {
+        if (ActiveBook == null || ProjectRoot == null)
+            throw new InvalidOperationException("No active book.");
+
+        var safeName = SanitizeFileName(draftName);
+        var folderName = MakeUniqueDraftFolder(ActiveBook, safeName);
+        var draft = new BookDraftMetadata
+        {
+            Id = $"draft-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}",
+            Name = draftName,
+            FolderName = folderName,
+            CreatedAt = DateTime.UtcNow,
+            ParentDraftId = cloneFromDraftId,
+        };
+        ActiveBook.Drafts.Add(draft);
+
+        var bookRoot = ActiveBookRoot!;
+        var draftRoot = _fileService.CombinePath(bookRoot, "Drafts", draft.FolderName);
+        await _fileService.CreateDirectoryAsync(draftRoot);
+        await _fileService.CreateDirectoryAsync(_fileService.CombinePath(draftRoot, ActiveBook.ChapterFolder));
+        await _fileService.CreateDirectoryAsync(_fileService.CombinePath(draftRoot, ActiveBook.SnapshotFolder));
+
+        if (!string.IsNullOrEmpty(cloneFromDraftId))
+        {
+            var source = ActiveBook.Drafts.FirstOrDefault(d => d.Id == cloneFromDraftId);
+            if (source != null)
+            {
+                var srcRoot = _fileService.CombinePath(bookRoot, "Drafts", source.FolderName);
+                await CopyDraftTreeAsync(srcRoot, draftRoot);
+            }
+        }
+        else
+        {
+            // Empty draft.
+            var emptyData = new BookDraftData();
+            await _fileService.WriteTextAsync(
+                _fileService.CombinePath(draftRoot, "draft.json"),
+                JsonSerializer.Serialize(emptyData, JsonOptions));
+            await _fileService.WriteTextAsync(
+                _fileService.CombinePath(draftRoot, "scenes.json"),
+                JsonSerializer.Serialize(new ScenesManifest(), JsonOptions));
+        }
+
+        await SaveProjectAsync();
+        return draft;
+    }
+
+    public async Task SwitchDraftAsync(string draftId)
+    {
+        if (ActiveBook == null || ProjectRoot == null) return;
+        var target = ActiveBook.Drafts.FirstOrDefault(d => string.Equals(d.Id, draftId, StringComparison.OrdinalIgnoreCase));
+        if (target == null || string.Equals(ActiveBook.ActiveDraftId, target.Id, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        // Flush the outgoing draft to disk.
+        await SaveActiveDraftDataAsync();
+        await SaveScenesAsync();
+
+        ActiveBook.ActiveDraftId = target.Id;
+
+        // Reload incoming draft state into ActiveBook.Chapters / Acts + manifest.
+        ActiveBook.Chapters = new List<ChapterData>();
+        ActiveBook.Acts = new List<ActData>();
+        await LoadActiveDraftDataAsync();
+        await LoadScenesManifestAsync();
+        await SaveProjectAsync();
+    }
+
+    public async Task RenameDraftAsync(string draftId, string newName)
+    {
+        if (ActiveBook == null) return;
+        var draft = ActiveBook.Drafts.FirstOrDefault(d => d.Id == draftId);
+        if (draft == null || string.IsNullOrWhiteSpace(newName)) return;
+        draft.Name = newName.Trim();
+        await SaveProjectAsync();
+    }
+
+    public async Task DeleteDraftAsync(string draftId)
+    {
+        if (ActiveBook == null || ProjectRoot == null) return;
+        if (ActiveBook.Drafts.Count <= 1)
+            throw new InvalidOperationException("Cannot delete the last draft.");
+
+        var draft = ActiveBook.Drafts.FirstOrDefault(d => d.Id == draftId);
+        if (draft == null) return;
+        var wasActive = string.Equals(ActiveBook.ActiveDraftId, draftId, StringComparison.OrdinalIgnoreCase);
+
+        ActiveBook.Drafts.Remove(draft);
+        if (wasActive)
+        {
+            var next = ActiveBook.Drafts.First();
+            ActiveBook.ActiveDraftId = next.Id;
+            ActiveBook.Chapters = new List<ChapterData>();
+            ActiveBook.Acts = new List<ActData>();
+            await LoadActiveDraftDataAsync();
+            await LoadScenesManifestAsync();
+        }
+
+        await SaveProjectAsync();
+
+        var bookRoot = ActiveBookRoot!;
+        var draftRoot = _fileService.CombinePath(bookRoot, "Drafts", draft.FolderName);
+        if (await _fileService.DirectoryExistsAsync(draftRoot))
+            await _fileService.DeleteDirectoryAsync(draftRoot);
+    }
+
+    private static string MakeUniqueDraftFolder(BookData book, string baseName)
+    {
+        var safe = string.IsNullOrEmpty(baseName) ? "draft" : baseName;
+        if (!book.Drafts.Any(d => string.Equals(d.FolderName, safe, StringComparison.OrdinalIgnoreCase)))
+            return safe;
+        var i = 2;
+        while (book.Drafts.Any(d => string.Equals(d.FolderName, safe + "-" + i, StringComparison.OrdinalIgnoreCase)))
+            i++;
+        return safe + "-" + i;
+    }
+
+    private async Task CopyDraftTreeAsync(string srcRoot, string dstRoot)
+    {
+        // Recursive copy. Files only — sub-dirs walked manually using IFileService.
+        var dirs = await _fileService.GetDirectoriesAsync(srcRoot);
+        var files = await _fileService.GetFilesAsync(srcRoot, "*");
+        foreach (var f in files)
+        {
+            var name = _fileService.GetFileName(f);
+            var target = _fileService.CombinePath(dstRoot, name);
+            var content = await _fileService.ReadTextAsync(f);
+            await _fileService.WriteTextAsync(target, content);
+        }
+        foreach (var d in dirs)
+        {
+            var name = _fileService.GetFileName(d);
+            var targetDir = _fileService.CombinePath(dstRoot, name);
+            await _fileService.CreateDirectoryAsync(targetDir);
+            await CopyDraftTreeAsync(d, targetDir);
+        }
     }
 
     public async Task RenameBookAsync(string bookId, string newName)
@@ -641,9 +852,10 @@ public partial class ProjectService : IProjectService
 
     private string GetArchiveFolderPath()
     {
-        if (ActiveBookRoot == null || ActiveBook == null)
-            throw new InvalidOperationException("No active book.");
-        return _fileService.CombinePath(ActiveBookRoot, ActiveBook.ChapterFolder, ArchiveFolderName);
+        if (ActiveBook == null) throw new InvalidOperationException("No active book.");
+        var root = ActiveDraftRoot ?? ActiveBookRoot
+            ?? throw new InvalidOperationException("No active book root.");
+        return _fileService.CombinePath(root, ActiveBook.ChapterFolder, ArchiveFolderName);
     }
 
     public string GetArchivedSceneFilePath(SceneData scene)
@@ -758,9 +970,87 @@ public partial class ProjectService : IProjectService
         await SaveScenesAsync();
     }
 
+    // ── Mention-span sync ───────────────────────────────────────────
+
+    private static readonly Regex MentionSpanRegex = new(
+        @"<span\s+([^>]*?)class\s*=\s*[""']nv-entity-mention[""']([^>]*)>([\s\S]*?)</span>",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    public async Task<int> SyncMentionDisplayTextAsync(string entityId, string newDisplayText)
+    {
+        if (ScenesManifest == null || ActiveBook == null || ActiveBookRoot == null) return 0;
+        if (string.IsNullOrEmpty(entityId)) return 0;
+
+        var modified = 0;
+        var escapedDisplay = System.Net.WebUtility.HtmlEncode(newDisplayText);
+
+        // Active scenes
+        foreach (var entry in ScenesManifest.Chapters)
+        {
+            var chapter = ActiveBook.Chapters.FirstOrDefault(c => c.Guid == entry.Key);
+            if (chapter == null) continue;
+
+            foreach (var scene in entry.Value)
+            {
+                var path = GetSceneFilePath(chapter, scene);
+                if (await TryRewriteSceneMentionsAsync(path, entityId, escapedDisplay))
+                    modified++;
+            }
+        }
+
+        // Archived scenes
+        foreach (var scene in ScenesManifest.Archived)
+        {
+            var path = GetArchivedSceneFilePath(scene);
+            if (await TryRewriteSceneMentionsAsync(path, entityId, escapedDisplay))
+                modified++;
+        }
+
+        return modified;
+    }
+
+    private async Task<bool> TryRewriteSceneMentionsAsync(string path, string entityId, string newDisplayHtml)
+    {
+        if (!await _fileService.ExistsAsync(path)) return false;
+        var content = await _fileService.ReadTextAsync(path);
+        if (string.IsNullOrEmpty(content) || content.IndexOf("nv-entity-mention", StringComparison.OrdinalIgnoreCase) < 0)
+            return false;
+
+        var changed = false;
+        var rewritten = MentionSpanRegex.Replace(content, match =>
+        {
+            var attrsLeft = match.Groups[1].Value;
+            var attrsRight = match.Groups[2].Value;
+            var inner = match.Groups[3].Value;
+            var attrs = attrsLeft + attrsRight;
+
+            var idMatch = Regex.Match(attrs, @"data-entity-id\s*=\s*[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+            if (!idMatch.Success || !string.Equals(idMatch.Groups[1].Value, entityId, StringComparison.Ordinal))
+                return match.Value;
+
+            var sourceMatch = Regex.Match(attrs, @"data-mention-source\s*=\s*[""']([^""']*)[""']", RegexOptions.IgnoreCase);
+            if (sourceMatch.Success && string.Equals(sourceMatch.Groups[1].Value, "manual", StringComparison.OrdinalIgnoreCase))
+                return match.Value;
+            if (sourceMatch.Success && string.Equals(sourceMatch.Groups[1].Value, "alias", StringComparison.OrdinalIgnoreCase))
+                return match.Value; // alias-sourced spans keep their text
+
+            if (string.Equals(inner, newDisplayHtml, StringComparison.Ordinal))
+                return match.Value;
+
+            changed = true;
+            // Reconstruct, preserving original attributes verbatim.
+            return $"<span {attrsLeft}class=\"nv-entity-mention\"{attrsRight}>{newDisplayHtml}</span>";
+        });
+
+        if (!changed) return false;
+        await _fileService.WriteTextAsync(path, rewritten);
+        return true;
+    }
+
     public string GetChapterFolderPath(ChapterData chapter)
     {
-        return _fileService.CombinePath(ActiveBookRoot!, ActiveBook!.ChapterFolder, chapter.FolderName);
+        var root = ActiveDraftRoot ?? ActiveBookRoot!;
+        return _fileService.CombinePath(root, ActiveBook!.ChapterFolder, chapter.FolderName);
     }
 
     public string GetSceneFilePath(ChapterData chapter, SceneData scene)
@@ -806,33 +1096,137 @@ public partial class ProjectService : IProjectService
         var bookMetaDir = _fileService.CombinePath(bookRoot, ".book");
         await _fileService.CreateDirectoryAsync(bookMetaDir);
 
-        await _fileService.CreateDirectoryAsync(_fileService.CombinePath(bookRoot, book.ChapterFolder));
+        // Codex folders (per-book, shared across drafts).
         await _fileService.CreateDirectoryAsync(_fileService.CombinePath(bookRoot, book.CharacterFolder));
         await _fileService.CreateDirectoryAsync(_fileService.CombinePath(bookRoot, book.LocationFolder));
         await _fileService.CreateDirectoryAsync(_fileService.CombinePath(bookRoot, book.ItemFolder));
         await _fileService.CreateDirectoryAsync(_fileService.CombinePath(bookRoot, book.LoreFolder));
         await _fileService.CreateDirectoryAsync(_fileService.CombinePath(bookRoot, book.ImageFolder));
-        await _fileService.CreateDirectoryAsync(_fileService.CombinePath(bookRoot, book.SnapshotFolder));
+
+        // Active draft folder structure (chapters + snapshots).
+        var activeDraft = book.ActiveDraft;
+        if (activeDraft != null)
+        {
+            var draftRoot = _fileService.CombinePath(bookRoot, "Drafts", activeDraft.FolderName);
+            await _fileService.CreateDirectoryAsync(draftRoot);
+            await _fileService.CreateDirectoryAsync(_fileService.CombinePath(draftRoot, book.ChapterFolder));
+            await _fileService.CreateDirectoryAsync(_fileService.CombinePath(draftRoot, book.SnapshotFolder));
+        }
     }
 
     private async Task LoadScenesManifestAsync()
     {
-        if (ActiveBookRoot == null)
+        var draftScenesPath = GetActiveDraftScenesPath();
+        if (draftScenesPath != null && await _fileService.ExistsAsync(draftScenesPath))
         {
-            ScenesManifest = new ScenesManifest();
+            var scenesJson = await _fileService.ReadTextAsync(draftScenesPath);
+            ScenesManifest = JsonSerializer.Deserialize<ScenesManifest>(scenesJson, JsonOptions) ?? new ScenesManifest();
             return;
         }
 
-        var scenesPath = _fileService.CombinePath(ActiveBookRoot, ".book", "scenes.json");
-        if (await _fileService.ExistsAsync(scenesPath))
+        // Legacy fallback — old layout had scenes.json under .book/.
+        if (ActiveBookRoot != null)
         {
-            var scenesJson = await _fileService.ReadTextAsync(scenesPath);
-            ScenesManifest = JsonSerializer.Deserialize<ScenesManifest>(scenesJson, JsonOptions) ?? new ScenesManifest();
+            var legacyPath = _fileService.CombinePath(ActiveBookRoot, ".book", "scenes.json");
+            if (await _fileService.ExistsAsync(legacyPath))
+            {
+                var scenesJson = await _fileService.ReadTextAsync(legacyPath);
+                ScenesManifest = JsonSerializer.Deserialize<ScenesManifest>(scenesJson, JsonOptions) ?? new ScenesManifest();
+                return;
+            }
         }
-        else
+
+        ScenesManifest = new ScenesManifest();
+    }
+
+    /// <summary>
+    /// Migrates pre-multi-draft books: creates a default draft, moves chapter
+    /// content + snapshots + scenes.json under <c>Drafts/default/</c>, and
+    /// flushes chapters/acts into <c>draft.json</c>. Called from
+    /// <see cref="LoadProjectAsync"/> when a book has no drafts.
+    /// </summary>
+    private async Task MigrateToMultiDraftAsync(BookData book)
+    {
+        if (book.Drafts.Count > 0) return;
+        if (ProjectRoot == null) return;
+
+        var bookRoot = _fileService.CombinePath(ProjectRoot, book.FolderName);
+        var defaultDraft = new BookDraftMetadata
         {
-            ScenesManifest = new ScenesManifest();
-        }
+            Id = "draft-default",
+            Name = "Draft 1",
+            FolderName = "default",
+            CreatedAt = DateTime.UtcNow,
+        };
+        book.Drafts.Add(defaultDraft);
+        book.ActiveDraftId = defaultDraft.Id;
+
+        var draftRoot = _fileService.CombinePath(bookRoot, "Drafts", defaultDraft.FolderName);
+        await _fileService.CreateDirectoryAsync(draftRoot);
+
+        // Move Chapters folder.
+        var oldChapters = _fileService.CombinePath(bookRoot, book.ChapterFolder);
+        var newChapters = _fileService.CombinePath(draftRoot, book.ChapterFolder);
+        if (await _fileService.DirectoryExistsAsync(oldChapters) && !await _fileService.DirectoryExistsAsync(newChapters))
+            Directory.Move(oldChapters, newChapters);
+
+        // Move Snapshots folder.
+        var oldSnaps = _fileService.CombinePath(bookRoot, book.SnapshotFolder);
+        var newSnaps = _fileService.CombinePath(draftRoot, book.SnapshotFolder);
+        if (await _fileService.DirectoryExistsAsync(oldSnaps) && !await _fileService.DirectoryExistsAsync(newSnaps))
+            Directory.Move(oldSnaps, newSnaps);
+
+        // Move scenes.json from .book/ to draft root.
+        var oldScenes = _fileService.CombinePath(bookRoot, ".book", "scenes.json");
+        var newScenes = _fileService.CombinePath(draftRoot, "scenes.json");
+        if (await _fileService.ExistsAsync(oldScenes) && !await _fileService.ExistsAsync(newScenes))
+            await _fileService.MoveFileAsync(oldScenes, newScenes);
+
+        // Flush chapters + acts into draft.json, then clear them on BookData
+        // so project.json doesn't duplicate the data.
+        var draftData = new BookDraftData
+        {
+            Chapters = book.Chapters,
+            Acts = book.Acts,
+        };
+        var draftJson = JsonSerializer.Serialize(draftData, JsonOptions);
+        await _fileService.WriteTextAsync(_fileService.CombinePath(draftRoot, "draft.json"), draftJson);
+
+        // Keep chapters/acts in memory for the active session; project.json will
+        // still serialize them empty after migration (legacy fields stay for
+        // older readers). Subsequent saves go to draft.json.
+        await SaveProjectAsync();
+    }
+
+    private async Task LoadActiveDraftDataAsync()
+    {
+        if (ActiveBook == null) return;
+        var path = GetActiveDraftDataPath();
+        if (path == null || !await _fileService.ExistsAsync(path))
+            return;
+
+        var raw = await _fileService.ReadTextAsync(path);
+        var data = JsonSerializer.Deserialize<BookDraftData>(raw, JsonOptions) ?? new BookDraftData();
+        ActiveBook.Chapters = data.Chapters;
+        ActiveBook.Acts = data.Acts;
+    }
+
+    private async Task SaveActiveDraftDataAsync()
+    {
+        if (ActiveBook == null) return;
+        var path = GetActiveDraftDataPath();
+        if (path == null) return;
+
+        var dir = _fileService.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(dir))
+            await _fileService.CreateDirectoryAsync(dir);
+
+        var data = new BookDraftData
+        {
+            Chapters = ActiveBook.Chapters,
+            Acts = ActiveBook.Acts,
+        };
+        await _fileService.WriteTextAsync(path, JsonSerializer.Serialize(data, JsonOptions));
     }
 
     private static void ReindexScenes(List<SceneData> scenes)

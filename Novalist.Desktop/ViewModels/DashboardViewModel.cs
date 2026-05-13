@@ -9,6 +9,7 @@ using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Models;
+using Novalist.Core.Services;
 using Novalist.Core.Utilities;
 using Novalist.Desktop.Dialogs;
 using Novalist.Desktop.Localization;
@@ -129,6 +130,79 @@ public partial class DashboardViewModel : ObservableObject
     [ObservableProperty]
     private Bitmap? _coverImage;
 
+    // ── Word history chart ──
+    private IWordHistoryService? _wordHistory;
+    private string? _activeBookId;
+
+    [ObservableProperty]
+    private int _historyRangeDays = 30;
+
+    [ObservableProperty]
+    private int _currentStreak;
+
+    [ObservableProperty]
+    private int _todayWords;
+
+    [ObservableProperty]
+    private ObservableCollection<WordHistoryBarItem> _wordHistoryBars = [];
+
+    public void AttachWordHistory(IWordHistoryService service)
+    {
+        if (_wordHistory != null)
+            _wordHistory.HistoryChanged -= OnHistoryChanged;
+        _wordHistory = service;
+        _wordHistory.HistoryChanged += OnHistoryChanged;
+    }
+
+    public void SetActiveBookId(string bookId)
+    {
+        _activeBookId = bookId;
+        RefreshWordHistory();
+    }
+
+    private void OnHistoryChanged() => RefreshWordHistory();
+
+    [RelayCommand]
+    private void SetHistoryRange(string? days)
+    {
+        if (!int.TryParse(days, out var d)) return;
+        HistoryRangeDays = d;
+        RefreshWordHistory();
+    }
+
+    public void RefreshWordHistory()
+    {
+        if (_wordHistory == null) return;
+        var today = DateOnly.FromDateTime(DateTime.Now);
+        var goal = DailyGoalTarget;
+
+        TodayWords = _wordHistory.TotalForDay(today, _activeBookId);
+        CurrentStreak = _wordHistory.CurrentStreak(today, Math.Max(1, goal), _activeBookId);
+
+        var bars = new List<WordHistoryBarItem>();
+        var maxWords = 1;
+        for (int i = HistoryRangeDays - 1; i >= 0; i--)
+        {
+            var day = today.AddDays(-i);
+            var words = _wordHistory.TotalForDay(day, _activeBookId);
+            if (words > maxWords) maxWords = words;
+            bars.Add(new WordHistoryBarItem
+            {
+                Date = day,
+                Words = words,
+                MetGoal = goal > 0 && words >= goal,
+            });
+        }
+        const double MaxBarPx = 100.0;
+        foreach (var b in bars)
+        {
+            b.HeightFraction = Math.Min(1.0, b.Words / (double)maxWords);
+            b.HeightPx = Math.Max(2.0, b.HeightFraction * MaxBarPx);
+        }
+
+        WordHistoryBars = new ObservableCollection<WordHistoryBarItem>(bars);
+    }
+
     public string TotalWordsDisplay => TextStatistics.FormatCompactCount(TotalWords);
     public string AverageChapterWordsDisplay => TextStatistics.FormatCompactCount(AverageChapterWords);
     public string ReadingTimeDisplay => LocFormatters.ReadingTime(ReadingTimeMinutes);
@@ -227,6 +301,7 @@ public partial class DashboardViewModel : ObservableObject
         _currentCoverRelativePath = coverRelativePath;
         ComputeDeadlineMetrics(totalWords, projectGoalTarget, deadline);
         NotifyComputedProperties();
+        RefreshWordHistory();
     }
 
     private void LoadCoverImage(string? path)
@@ -478,4 +553,16 @@ public sealed class EchoPhrase
         Phrase = phrase;
         Count = count;
     }
+}
+
+public sealed class WordHistoryBarItem
+{
+    public DateOnly Date { get; set; }
+    public int Words { get; set; }
+    public double HeightFraction { get; set; }
+    public double HeightPx { get; set; }
+    public bool MetGoal { get; set; }
+    public string BarColor => MetGoal ? "#5BA855" : "#7C7CB2";
+    public string DateLabel => Date.ToString("MMM d", System.Globalization.CultureInfo.CurrentCulture);
+    public string Tooltip => $"{DateLabel}: {Words:N0} words";
 }

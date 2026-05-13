@@ -202,6 +202,57 @@
                                      Value="{Binding DailyGoalPercent}"
                                      Height="8"
                                      CornerRadius="{DynamicResource RadiusSmall}" />
+
+                        <!-- Streak + range buttons -->
+                        <DockPanel>
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                                <Button Content="30d" Padding="6,2"
+                                        Command="{Binding SetHistoryRangeCommand}" CommandParameter="30" />
+                                <Button Content="90d" Padding="6,2"
+                                        Command="{Binding SetHistoryRangeCommand}" CommandParameter="90" />
+                                <Button Content="365d" Padding="6,2"
+                                        Command="{Binding SetHistoryRangeCommand}" CommandParameter="365" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock Text="{loc:Loc dashboard.streak}"
+                                           FontSize="{DynamicResource FontSizeCaption}"
+                                           Foreground="{DynamicResource SubtleText}"
+                                           VerticalAlignment="Center" />
+                                <TextBlock FontSize="{DynamicResource FontSizeBody}"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource NormalText}"
+                                           VerticalAlignment="Center">
+                                    <TextBlock.Text>
+                                        <Binding Path="CurrentStreak" StringFormat="{}{0} d" />
+                                    </TextBlock.Text>
+                                </TextBlock>
+                            </StackPanel>
+                        </DockPanel>
+
+                        <!-- Word-history bar chart -->
+                        <Border Height="120" CornerRadius="6"
+                                Background="{DynamicResource SubtleBackground}"
+                                Padding="6">
+                            <ItemsControl ItemsSource="{Binding WordHistoryBars}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <UniformGrid Rows="1" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:WordHistoryBarItem">
+                                        <Grid VerticalAlignment="Stretch" Margin="1,0"
+                                              ToolTip.Tip="{Binding Tooltip}">
+                                            <Border VerticalAlignment="Bottom"
+                                                    HorizontalAlignment="Stretch"
+                                                    Height="{Binding HeightPx}"
+                                                    Background="{Binding BarColor}"
+                                                    CornerRadius="2" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
                     </StackPanel>
                 </Border>
 

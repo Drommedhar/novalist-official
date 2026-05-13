@@ -59,6 +59,9 @@ public class AppSettings
     [JsonPropertyName("typewriterScrollAnchor")]
     public string TypewriterScrollAnchor { get; set; } = "middle";
 
+    [JsonPropertyName("pageViewEnabled")]
+    public bool PageViewEnabled { get; set; }
+
     /// <summary>
     /// Custom LanguageTool API URL. When null or empty, the free public API is used.
     /// Supports self-hosted instances (e.g. "http://localhost:8081/v2/check").

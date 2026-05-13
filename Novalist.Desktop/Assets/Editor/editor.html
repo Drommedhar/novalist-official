@@ -397,6 +397,57 @@ body.typewriter-on #editor::after {
     display: block;
     height: 70vh;
 }
+
+/* Page view: editor content is grouped into <div class="nv-page"> containers
+   by repaginatePageView(). Each .nv-page is a paper surface in flow. */
+/* Page-view paper colors default; overridden by setTheme via --page-bg/--page-fg. */
+:root {
+    --page-bg: #f5efe6;
+    --page-fg: #1c1a18;
+}
+body.page-view #editor-wrapper {
+    background: color-mix(in srgb, var(--bg) 70%, black 30%);
+    /* em-based so paper + padding scale with editor font size / zoom.
+       Width is clamped to the visible viewport so big zoom levels do not
+       push the page off-screen. */
+    --page-target-width: 32em;
+    --page-h-padding: 4em;
+    --page-v-padding: 4em;
+    --page-width: min(var(--page-target-width), calc(100vw - 6em));
+    --page-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.15);
+}
+body.page-view #editor {
+    background: transparent;
+    color: inherit;
+    padding: 32px 0;
+    margin: 0;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+}
+body.page-view .nv-page {
+    background: var(--page-bg);
+    color: var(--page-fg);
+    caret-color: var(--page-fg);
+    padding: var(--page-v-padding) var(--page-h-padding);
+    box-shadow: var(--page-shadow);
+    border-radius: 2px;
+    width: var(--page-width);
+    max-width: calc(100% - 4em);
+    box-sizing: border-box;
+    /* Full page height = content budget (48em, mirrored in repaginatePageView)
+       + vertical padding (2 × 4em). All pages are sized to this height so the
+       last page shows the writer how much room remains before overflow. */
+    min-height: calc(48em + var(--page-v-padding) * 2);
+    overflow-wrap: break-word;
+}
+body.page-view .nv-page > p { margin: 0; }
+body.page-view .nv-page ::selection {
+    background: color-mix(in srgb, var(--page-fg) 22%, transparent 78%);
+}
+body.page-view.typewriter-on #editor { padding-top: 70vh; }
 </style>
 </head>
 <body>
@@ -486,10 +537,14 @@ function setContent(html) {
 
     // Trigger grammar check for the new content
     requestGrammarCheck();
+
+    // If page view is on, paginate synchronously before paint so users never
+    // see the unpaginated layout flash.
+    if (pageViewEnabled) repaginatePageView();
 }
 
 function getContent() {
-    return editor.innerHTML;
+    return getCleanContentHtml();
 }
 
 function getPlainText() {
@@ -571,12 +626,14 @@ function notifyFormattingChanged() {
 
 // ── Theme & Font ────────────────────────────────────────────────
 
-function setTheme(bg, fg, caretColor, selectionBg) {
+function setTheme(bg, fg, caretColor, selectionBg, pageBg, pageFg) {
     const root = document.documentElement;
     root.style.setProperty('--bg', bg);
     root.style.setProperty('--fg', fg);
     root.style.setProperty('--caret', caretColor || fg);
     if (selectionBg) root.style.setProperty('--selection-bg', selectionBg);
+    if (pageBg) root.style.setProperty('--page-bg', pageBg);
+    if (pageFg) root.style.setProperty('--page-fg', pageFg);
 }
 
 function setFont(family, size) {
@@ -663,6 +720,142 @@ function setEntityNames(namesJson) {
 }
 
 // ── Typewriter scroll ───────────────────────────────────────────
+
+let pageViewEnabled = false;
+let pageViewRepaginateScheduled = false;
+let pageViewMutationObserver = null;
+let pageViewRepaginating = false;
+
+function setPageView(enabled) {
+    pageViewEnabled = !!enabled;
+    document.body.classList.toggle('page-view', pageViewEnabled);
+    if (pageViewEnabled) {
+        if (!pageViewMutationObserver) {
+            pageViewMutationObserver = new MutationObserver(() => {
+                if (pageViewRepaginating) return;
+                schedulePageViewRepaginate();
+            });
+        }
+        pageViewMutationObserver.observe(editor, { childList: true, characterData: true, subtree: true });
+        schedulePageViewRepaginate();
+    } else {
+        if (pageViewMutationObserver) {
+            pageViewMutationObserver.disconnect();
+        }
+        unwrapPages();
+    }
+}
+
+function schedulePageViewRepaginate() {
+    if (!pageViewEnabled) return;
+    if (pageViewRepaginateScheduled) return;
+    pageViewRepaginateScheduled = true;
+    setTimeout(() => {
+        pageViewRepaginateScheduled = false;
+        repaginatePageView();
+    }, 150);
+}
+
+function getTextOffsetInEditor() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return -1;
+    const range = sel.getRangeAt(0);
+    if (!editor.contains(range.startContainer)) return -1;
+    const pre = document.createRange();
+    pre.selectNodeContents(editor);
+    pre.setEnd(range.startContainer, range.startOffset);
+    return pre.toString().length;
+}
+
+function restoreTextOffsetInEditor(offset) {
+    if (offset < 0) return;
+    const walker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null, false);
+    let node = walker.nextNode();
+    let remaining = offset;
+    while (node) {
+        const len = node.textContent.length;
+        if (remaining <= len) {
+            const r = document.createRange();
+            r.setStart(node, remaining);
+            r.collapse(true);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(r);
+            return;
+        }
+        remaining -= len;
+        node = walker.nextNode();
+    }
+}
+
+function unwrapPages() {
+    const pages = Array.from(editor.querySelectorAll(':scope > .nv-page'));
+    if (pages.length === 0) return;
+    pages.forEach(page => {
+        while (page.firstChild) editor.insertBefore(page.firstChild, page);
+        page.remove();
+    });
+}
+
+function repaginatePageView() {
+    if (!pageViewEnabled) return;
+    pageViewRepaginating = true;
+    if (pageViewMutationObserver) pageViewMutationObserver.disconnect();
+    try {
+        const caretOffset = getTextOffsetInEditor();
+
+        // Unwrap any existing pages so we can re-measure flat content.
+        unwrapPages();
+
+        const children = Array.from(editor.children);
+        if (children.length === 0) return;
+
+        // Force layout, then snapshot heights so wrapping does not invalidate
+        // measurements mid-pass.
+        void editor.offsetHeight;
+        const heights = children.map(el => Math.max(1, el.offsetHeight));
+
+        // Content budget per page measured in current em so it scales with font / zoom.
+        const emPx = parseFloat(getComputedStyle(editor).fontSize) || 16;
+        const pageContentHeight = 48 * emPx;
+
+        // Compute groups by summing heights.
+        const groups = [];
+        let current = [];
+        let currentHeight = 0;
+        for (let i = 0; i < children.length; i++) {
+            const h = heights[i];
+            if (currentHeight + h > pageContentHeight && current.length > 0) {
+                groups.push(current);
+                current = [];
+                currentHeight = 0;
+            }
+            current.push(children[i]);
+            currentHeight += h;
+        }
+        if (current.length > 0) groups.push(current);
+
+        // Wrap each group in a .nv-page container.
+        groups.forEach(group => {
+            const page = document.createElement('div');
+            page.className = 'nv-page';
+            const first = group[0];
+            editor.insertBefore(page, first);
+            group.forEach(el => page.appendChild(el));
+        });
+
+        restoreTextOffsetInEditor(caretOffset);
+    } finally {
+        pageViewRepaginating = false;
+        if (pageViewMutationObserver && pageViewEnabled) {
+            pageViewMutationObserver.observe(editor, { childList: true, characterData: true, subtree: true });
+        }
+    }
+}
+
+window.addEventListener('resize', () => {
+    if (pageViewEnabled) schedulePageViewRepaginate();
+});
 
 function setTypewriterScroll(enabled, anchor) {
     typewriterEnabled = !!enabled;
@@ -1443,6 +1636,17 @@ function getCaretPosition() {
 
 let contentChangeTimer = null;
 
+function getCleanContentHtml() {
+    if (!pageViewEnabled) return editor.innerHTML;
+    const clone = editor.cloneNode(true);
+    clone.querySelectorAll('.nv-page').forEach(p => {
+        const parent = p.parentNode;
+        while (p.firstChild) parent.insertBefore(p.firstChild, p);
+        parent.removeChild(p);
+    });
+    return clone.innerHTML;
+}
+
 editor.addEventListener('input', () => {
     if (isSettingContent) return;
 
@@ -1457,7 +1661,7 @@ editor.addEventListener('input', () => {
 
     if (contentChangeTimer) clearTimeout(contentChangeTimer);
     contentChangeTimer = setTimeout(() => {
-        const html = editor.innerHTML;
+        const html = getCleanContentHtml();
         if (html !== lastHtml) {
             lastHtml = html;
             sendMessage({

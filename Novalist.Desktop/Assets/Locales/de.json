@@ -208,6 +208,8 @@
     "typewriterAnchorTop": "Oben",
     "typewriterAnchorMiddle": "Mitte",
     "typewriterAnchorBottom": "Unten",
+    "pageView": "Seitenansicht",
+    "pageViewDesc": "Rendert den Editor wie eine gedruckte Buchseite mit Papierhintergrund, Rändern und Schatten.",
     "bookWidth": "Buchseitenbreite",
     "bookWidthDesc": "Begrenzt die Editorbreite auf die einer gedruckten Buchseite, sodass Zeilenumbrüche dem Druckergebnis entsprechen.",
     "bookWidthPageFormat": "Seitenformat",
@@ -337,7 +339,10 @@
       "closeTab": "Aktuellen Tab schließen",
       "create": "Szene erstellen",
       "next": "Nächste Szene",
-      "prev": "Vorherige Szene"
+      "prev": "Vorherige Szene",
+      "archive": "Ausgewählte Szene archivieren",
+      "restoreFromArchive": "Archivierte Szene wiederherstellen",
+      "openArchive": "Archiv-Bereich umschalten"
     },
     "chapter": {
       "create": "Kapitel erstellen"
@@ -393,6 +398,7 @@
     "contextDelete": "Löschen",
     "contextArchive": "Archivieren",
     "archive": "ARCHIV",
+    "archivePreview": "Öffnen (schreibgeschützt)",
     "archiveRestore": "Wiederherstellen...",
     "archiveDelete": "Endgültig löschen",
     "archive.confirmDeleteTitle": "Archivierte Szene löschen",
@@ -622,8 +628,21 @@
     "errorOpenScene": "Fehler beim Öffnen der Szene: {0}",
     "chapterBreakdown": "Kapitelübersicht"
   },
+  "draft": {
+    "label": "Fassung",
+    "pickerTooltip": "Fassung wechseln oder erstellen",
+    "listTitle": "Fassungen dieses Buchs",
+    "add": "+ Neue Fassung (Kopie der aktuellen)",
+    "newTitle": "Neue Fassung",
+    "newPrompt": "Name der neuen Fassung:",
+    "defaultName": "Fassung 2",
+    "deleteTitle": "Fassung löschen",
+    "deleteMessage": "Fassung \"{0}\" und alle ihre Szenen löschen? Kann nicht rückgängig gemacht werden."
+  },
   "editor": {
     "emptyState": "Wähle eine Szene im Explorer, um zu schreiben.",
+    "archiveBanner.text": "Diese Szene ist archiviert. Stelle sie wieder her, um zu bearbeiten und ins Manuskript aufzunehmen.",
+    "archiveBanner.restore": "Wiederherstellen",
     "tabClose": "Tab schließen",
     "tabMoveOther": "Auf andere Seite verschieben",
     "boldTooltip": "Fett (Strg+B)",
@@ -857,6 +876,7 @@
     "locations": "Orte",
     "dailyProgress": "TAGESFORTSCHRITT",
     "wordsToday": "heute geschriebene Wörter",
+    "streak": "Streak:",
     "goalTracking": "ZIELVERFOLGUNG",
     "totalWords": "Wörter gesamt",
     "deadline": "Frist",

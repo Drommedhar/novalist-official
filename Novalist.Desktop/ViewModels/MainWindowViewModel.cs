@@ -693,6 +693,9 @@ public partial class MainWindowViewModel : ObservableObject
             new HotkeyDescriptor { ActionId = "app.scene.next", DisplayName = Loc.T("hotkeys.scene.next"), Category = catScene, DefaultGesture = "Ctrl+OemCloseBrackets", OnExecute = () => Explorer?.NavigateScene(1), CanExecute = () => Explorer != null },
             new HotkeyDescriptor { ActionId = "app.scene.prev", DisplayName = Loc.T("hotkeys.scene.prev"), Category = catScene, DefaultGesture = "Ctrl+OemOpenBrackets", OnExecute = () => Explorer?.NavigateScene(-1), CanExecute = () => Explorer != null },
             new HotkeyDescriptor { ActionId = "app.chapter.create", DisplayName = Loc.T("hotkeys.chapter.create"), Category = catScene, DefaultGesture = "Ctrl+Shift+M", OnExecute = () => Explorer?.CreateChapterCommand.Execute(null), CanExecute = () => Explorer != null },
+            new HotkeyDescriptor { ActionId = "app.scene.archive", DisplayName = Loc.T("hotkeys.scene.archive"), Category = catScene, DefaultGesture = "", OnExecute = () => Explorer?.ArchiveSelectedSceneCommand.Execute(null), CanExecute = () => Explorer?.SelectedScene != null },
+            new HotkeyDescriptor { ActionId = "app.scene.restoreFromArchive", DisplayName = Loc.T("hotkeys.scene.restoreFromArchive"), Category = catScene, DefaultGesture = "", OnExecute = () => { if (Editor?.RestoreCurrentArchivedSceneCommand.CanExecute(null) == true) Editor.RestoreCurrentArchivedSceneCommand.Execute(null); }, CanExecute = () => Editor?.IsCurrentSceneArchived == true },
+            new HotkeyDescriptor { ActionId = "app.scene.openArchive", DisplayName = Loc.T("hotkeys.scene.openArchive"), Category = catScene, DefaultGesture = "", OnExecute = () => { if (Explorer != null) Explorer.IsArchiveExpanded = !Explorer.IsArchiveExpanded; }, CanExecute = () => Explorer?.HasArchivedScenes == true },
 
             // ── Editor formatting ──
             new HotkeyDescriptor { ActionId = "app.editor.bold", DisplayName = Loc.T("hotkeys.editor.bold"), Category = catEditor, DefaultGesture = "Ctrl+B", OnExecute = () => Editor?.ToggleBoldAction?.Invoke(), CanExecute = () => Editor?.IsDocumentOpen == true && ActiveContentView == "Scene" },
@@ -1016,6 +1019,9 @@ public partial class MainWindowViewModel : ObservableObject
         IsProjectLoaded = true;
         ProjectName = metadata.Name;
 
+        _ = LoadAndMigrateWordHistoryAsync();
+        RefreshDraftList();
+
         var activeBook = _projectService.ActiveBook;
         Books = new ObservableCollection<BookData>(metadata.Books);
         ActiveBook = Books.FirstOrDefault(b => b.Id == activeBook?.Id);
@@ -1038,6 +1044,7 @@ public partial class MainWindowViewModel : ObservableObject
         Editor.PropertyChanged += OnEditorPropertyChanged;
         Editor.FocusPeekEntityOpenRequested += OnFocusPeekEntityOpenRequested;
         Editor.SceneSaved += OnSceneSavedForActivity;
+        Editor.RestoreArchivedSceneRequested += OnRestoreArchivedSceneFromEditor;
         ActiveEditor = Editor;
         Editor.IsPaneFocused = true;
 
@@ -1061,6 +1068,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         Explorer = new ExplorerViewModel(_projectService);
         Explorer.SceneOpenRequested += OnSceneOpenRequested;
+        Explorer.ArchivedSceneOpenRequested += OnArchivedSceneOpenRequested;
         Explorer.ProjectChanged += OnProjectChanged;
         Explorer.OpenSceneInSplitPaneRequested = sceneVm => _ = OpenSceneInSplitPaneAsync(sceneVm);
         Explorer.Refresh();
@@ -1077,6 +1085,8 @@ public partial class MainWindowViewModel : ObservableObject
         _ = EntityPanel.LoadAllAsync();
 
         Dashboard = new DashboardViewModel();
+        Dashboard.AttachWordHistory(App.WordHistoryService);
+        Dashboard.SetActiveBookId(_projectService.ActiveBook?.Id ?? string.Empty);
 
         Timeline = new TimelineViewModel(_projectService);
         Timeline.SceneOpenRequested += OnSceneOpenRequested;
@@ -1323,9 +1333,19 @@ public partial class MainWindowViewModel : ObservableObject
         OnEntityOpenRequested(type, entity);
     }
 
-    private async void OnEntitySaved()
+    private async void OnEntitySaved(IEntityData? entity)
     {
         if (EntityPanel == null) return;
+
+        // Auto-rewrite mention spans whose data-mention-source != "manual"
+        // to reflect the entity's new display text after rename.
+        if (entity != null)
+        {
+            var displayText = GetEntityDisplayText(entity);
+            if (!string.IsNullOrEmpty(displayText))
+                _ = _projectService.SyncMentionDisplayTextAsync(entity.Id, displayText);
+        }
+
         await EntityPanel.LoadAllAsync();
         if (Editor != null)
             await Editor.RefreshFocusPeekAsync();
@@ -1333,6 +1353,68 @@ public partial class MainWindowViewModel : ObservableObject
             await ContextSidebar.RefreshEntityDataAsync();
         await RefreshStatusBarAsync();
         _ = RefreshGitStatusAsync();
+    }
+
+    private static async Task LoadAndMigrateWordHistoryAsync()
+    {
+        await App.WordHistoryService.LoadAsync();
+        await App.WordHistoryService.MigrateLegacyBaselineAsync();
+    }
+
+    private static string GetEntityDisplayText(IEntityData entity) => entity switch
+    {
+        CharacterData c => c.DisplayName,
+        LocationData l => l.Name,
+        ItemData i => i.Name,
+        LoreData lo => lo.Name,
+        CustomEntityData ce => ce.Name,
+        _ => string.Empty
+    };
+
+    private void OnArchivedSceneOpenRequested(SceneData scene)
+    {
+        if (Editor == null) return;
+        // Synthesize a placeholder chapter so the editor can show + load content.
+        var chapter = new ChapterData
+        {
+            Guid = scene.OriginChapterGuid ?? string.Empty,
+            Title = string.IsNullOrEmpty(scene.OriginChapterGuid)
+                ? Loc.T("explorer.archive")
+                : (_projectService.GetChaptersOrdered()
+                    .FirstOrDefault(c => string.Equals(c.Guid, scene.OriginChapterGuid, StringComparison.OrdinalIgnoreCase))?.Title
+                   ?? Loc.T("explorer.archive"))
+        };
+        OnSceneOpenRequested(chapter, scene);
+        SetActiveContentView("Scene");
+    }
+
+    private async void OnRestoreArchivedSceneFromEditor(SceneData scene)
+    {
+        if (Editor == null) return;
+        var origin = scene.OriginChapterGuid;
+        var chapters = _projectService.GetChaptersOrdered();
+        if (chapters.Count == 0) return;
+        var targetGuid = !string.IsNullOrEmpty(origin)
+            && chapters.Any(c => string.Equals(c.Guid, origin, StringComparison.OrdinalIgnoreCase))
+                ? origin
+                : chapters[0].Guid;
+
+        // Close the tab showing the archived scene so the file move is safe.
+        var openTab = Editor.OpenScenes.FirstOrDefault(t => t.Scene.Id == scene.Id);
+        if (openTab != null)
+            await Editor.CloseTabAsync(openTab);
+
+        await _projectService.RestoreArchivedSceneAsync(scene.Id, targetGuid!, null);
+
+        Explorer?.Refresh();
+        await RefreshStatusBarAsync();
+        _ = RefreshGitStatusAsync();
+
+        // Re-open the restored scene.
+        var chapter = chapters.FirstOrDefault(c => string.Equals(c.Guid, targetGuid, StringComparison.OrdinalIgnoreCase));
+        var restored = _projectService.GetScenesForChapter(targetGuid!).FirstOrDefault(s => s.Id == scene.Id);
+        if (chapter != null && restored != null)
+            OnSceneOpenRequested(chapter, restored);
     }
 
     private async void OnEntityDeleted()
@@ -2445,6 +2527,67 @@ public partial class MainWindowViewModel : ObservableObject
             cards.Add(new BookCard(book, projectRoot, book.Id == activeId));
         }
         BookCards = cards;
+    }
+
+    public string ActiveDraftName
+        => _projectService.ActiveBook?.ActiveDraft?.Name ?? string.Empty;
+
+    public ObservableCollection<BookDraftMetadata> ActiveBookDrafts { get; } = new();
+
+    public void RefreshDraftList()
+    {
+        ActiveBookDrafts.Clear();
+        if (_projectService.ActiveBook == null) return;
+        foreach (var d in _projectService.ActiveBook.Drafts)
+            ActiveBookDrafts.Add(d);
+        OnPropertyChanged(nameof(ActiveDraftName));
+    }
+
+    [RelayCommand]
+    private async Task SwitchDraftAsync(BookDraftMetadata? draft)
+    {
+        if (draft == null || _projectService.ActiveBook == null) return;
+        await _projectService.SwitchDraftAsync(draft.Id);
+        Explorer?.Refresh();
+        await RefreshStatusBarAsync();
+        RefreshDraftList();
+        OnPropertyChanged(nameof(ActiveDraftName));
+    }
+
+    [RelayCommand]
+    private async Task CreateDraftAsync()
+    {
+        if (_projectService.ActiveBook == null) return;
+        if (ShowInputDialog == null) return;
+        var name = await ShowInputDialog.Invoke(Loc.T("draft.newTitle"), Loc.T("draft.newPrompt"), Loc.T("draft.defaultName"));
+        if (string.IsNullOrWhiteSpace(name)) return;
+        // Clone from currently-active draft so user can experiment from current state.
+        var fromId = _projectService.ActiveBook.ActiveDraftId;
+        var created = await _projectService.CreateDraftAsync(name.Trim(), fromId);
+        await _projectService.SwitchDraftAsync(created.Id);
+        Explorer?.Refresh();
+        await RefreshStatusBarAsync();
+        RefreshDraftList();
+        OnPropertyChanged(nameof(ActiveDraftName));
+    }
+
+    [RelayCommand]
+    private async Task DeleteDraftAsync(BookDraftMetadata? draft)
+    {
+        if (draft == null || _projectService.ActiveBook == null) return;
+        if (_projectService.ActiveBook.Drafts.Count <= 1) return;
+        if (ShowConfirmDialog != null)
+        {
+            var ok = await ShowConfirmDialog.Invoke(
+                Loc.T("draft.deleteTitle"),
+                string.Format(Loc.T("draft.deleteMessage"), draft.Name));
+            if (!ok) return;
+        }
+        await _projectService.DeleteDraftAsync(draft.Id);
+        Explorer?.Refresh();
+        await RefreshStatusBarAsync();
+        RefreshDraftList();
+        OnPropertyChanged(nameof(ActiveDraftName));
     }
 
     [RelayCommand]

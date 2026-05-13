@@ -245,6 +245,23 @@
                                      IsChecked="{Binding TypewriterAnchorBottom}" />
                     </StackPanel>
 
+                    <!-- Page View -->
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                            <TextBlock Text="{loc:Loc settings.pageView}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="13" />
+                            <TextBlock Text="{loc:Loc settings.pageViewDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="11"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ToggleSwitch IsChecked="{Binding PageViewEnabled}"
+                                      HorizontalAlignment="Right"
+                                      OnContent=""
+                                      OffContent="" />
+                    </DockPanel>
+
                     <!-- Book Page Width -->
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">

@@ -690,11 +690,14 @@ public partial class EditorView : UserControl
         ApplyBookWidth();
         ApplyLanguage();
         ApplyTypewriterScroll();
+        ApplyPageView();
     }
 
     private void ApplyTheme()
     {
         string bg = "#1e1e2e", fg = "#cdd6f4", selBg = "#45475a";
+        string pageBg = "#f5efe6", pageFg = "#1c1a18";
+
         if (App.Current?.TryGetResource("EditorBackground", App.Current.ActualThemeVariant, out var bgRes) == true
             && bgRes is ISolidColorBrush bgBrush)
             bg = FormatColor(bgBrush.Color);
@@ -703,7 +706,15 @@ public partial class EditorView : UserControl
             && fgRes is ISolidColorBrush fgBrush)
             fg = FormatColor(fgBrush.Color);
 
-        ExecuteScript($"setTheme('{bg}','{fg}','{fg}','{selBg}')");
+        if (App.Current?.TryGetResource("EditorPageBackground", App.Current.ActualThemeVariant, out var pageBgRes) == true
+            && pageBgRes is ISolidColorBrush pageBgBrush)
+            pageBg = FormatColor(pageBgBrush.Color);
+
+        if (App.Current?.TryGetResource("EditorPageForeground", App.Current.ActualThemeVariant, out var pageFgRes) == true
+            && pageFgRes is ISolidColorBrush pageFgBrush)
+            pageFg = FormatColor(pageFgBrush.Color);
+
+        ExecuteScript($"setTheme('{bg}','{fg}','{fg}','{selBg}','{pageBg}','{pageFg}')");
     }
 
     private void ApplyFont()
@@ -763,6 +774,13 @@ public partial class EditorView : UserControl
         var enabled = _vm.TypewriterScrollEnabled ? "true" : "false";
         var anchor = _vm.TypewriterScrollAnchor ?? "middle";
         ExecuteScript($"setTypewriterScroll({enabled}, '{EscapeForSingleQuoteJs(anchor)}')");
+    }
+
+    private void ApplyPageView()
+    {
+        if (!_webViewReady || _vm == null) return;
+        var enabled = _vm.PageViewEnabled ? "true" : "false";
+        ExecuteScript($"setPageView({enabled})");
     }
 
     private void PushGrammarCheckState()
@@ -905,6 +923,10 @@ public partial class EditorView : UserControl
         else if (e.PropertyName is nameof(EditorViewModel.TypewriterScrollEnabled) or nameof(EditorViewModel.TypewriterScrollAnchor))
         {
             ApplyTypewriterScroll();
+        }
+        else if (e.PropertyName == nameof(EditorViewModel.PageViewEnabled))
+        {
+            ApplyPageView();
         }
         else if (e.PropertyName == nameof(EditorViewModel.AutoReplacement))
         {
