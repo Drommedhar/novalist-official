@@ -184,6 +184,21 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
     /// <summary>Fired when contributors are added/removed so the host can refresh menus.</summary>
     internal event Action? InlineActionContributorsChanged;
 
+    /// <summary>Host-side delegate that the MainWindow plugs in. Extensions
+    /// reach the wizard dialog through <see cref="RunWizardAsync"/>.</summary>
+    internal Func<Novalist.Sdk.Models.Wizards.WizardDefinition,
+                  Novalist.Sdk.Models.Wizards.WizardResult?,
+                  Task<Novalist.Sdk.Models.Wizards.WizardResult?>>? WizardLauncher { get; set; }
+
+    public Task<Novalist.Sdk.Models.Wizards.WizardResult?> RunWizardAsync(
+        Novalist.Sdk.Models.Wizards.WizardDefinition definition,
+        Novalist.Sdk.Models.Wizards.WizardResult? seed = null)
+    {
+        if (WizardLauncher == null)
+            return Task.FromResult<Novalist.Sdk.Models.Wizards.WizardResult?>(null);
+        return WizardLauncher.Invoke(definition, seed);
+    }
+
     public void RegisterHotkey(HotkeyDescriptor descriptor)
     {
         App.HotkeyService.Register(descriptor);

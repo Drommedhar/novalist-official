@@ -143,6 +143,7 @@ public partial class App : Application
                 var hostServices = new HostServices(FileService, ProjectService, EntityService, SettingsService);
                 ExtensionManager = new ExtensionManager(SettingsService, hostServices);
                 hostServices.ExtensionManager = ExtensionManager;
+                hostServices.WizardLauncher = (def, seed) => mainWindow.RunWizardForExtensionAsync(def, seed);
                 mainWindow.WireExtensionBusyProgress(hostServices);
                 await ExtensionManager.LoadAllAsync();
 

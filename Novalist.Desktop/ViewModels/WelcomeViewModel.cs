@@ -41,6 +41,7 @@ public partial class WelcomeViewModel : ObservableObject
     public event Func<Task<string?>>? BrowseFolderRequested;
     public event Func<Task>? ImportPluginProjectRequested;
     public event Func<RecentProjectCard, Task>? RemoveRecentRequested;
+    public event Func<Task>? RunProjectWizardRequested;
 
     public WelcomeViewModel(IEnumerable<RecentProject> recentProjects, IReadOnlyList<ProjectTemplate>? templates = null)
     {
@@ -98,6 +99,13 @@ public partial class WelcomeViewModel : ObservableObject
     {
         if (ImportPluginProjectRequested != null)
             await ImportPluginProjectRequested.Invoke();
+    }
+
+    [RelayCommand]
+    private async Task RunProjectWizard()
+    {
+        if (RunProjectWizardRequested != null)
+            await RunProjectWizardRequested.Invoke();
     }
 
     [RelayCommand]

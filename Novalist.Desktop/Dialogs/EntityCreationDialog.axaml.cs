@@ -11,6 +11,7 @@ public partial class EntityCreationDialog : UserControl
 {
     public string? ResultName { get; private set; }
     public string? ResultTemplateId { get; private set; }
+    public bool ResultUseWizard { get; private set; }
     public TaskCompletionSource DialogClosed { get; } = new();
 
     public EntityCreationDialog()
@@ -62,6 +63,7 @@ public partial class EntityCreationDialog : UserControl
             ResultTemplateId = (TemplateComboBox.SelectedItem as TemplateOption)?.Id;
             if (string.IsNullOrEmpty(ResultTemplateId))
                 ResultTemplateId = null;
+            ResultUseWizard = UseWizardCheck?.IsChecked == true;
             DialogClosed.TrySetResult();
         }
     }

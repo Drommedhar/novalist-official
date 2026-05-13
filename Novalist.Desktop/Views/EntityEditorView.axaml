@@ -37,6 +37,10 @@
                     <!-- Header -->
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                            <Button Content="{loc:Loc wizard.runInterview}"
+                                    Command="{Binding RunCharacterInterviewCommand}"
+                                    Classes="ribbonButton" Padding="12,6"
+                                    IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}" />
                             <Button Content="{loc:Loc entityEditor.save}" x:Name="SaveButton"
                                     Classes="ribbonButton" Padding="12,6" />
                             <Button x:Name="DeleteButton"

@@ -168,6 +168,16 @@ public interface IHostServices
     /// <summary>Register an inline-action contributor (editor context-menu AI / text actions).</summary>
     void RegisterInlineActionContributor(IInlineActionContributor contributor);
 
+    /// <summary>
+    /// Runs the supplied <see cref="Novalist.Sdk.Models.Wizards.WizardDefinition"/>
+    /// interactively in the host's wizard dialog. Optionally accepts a seed
+    /// result whose answers are pre-populated. Returns the completed result,
+    /// or <c>null</c> when the user cancelled.
+    /// </summary>
+    Task<Novalist.Sdk.Models.Wizards.WizardResult?> RunWizardAsync(
+        Novalist.Sdk.Models.Wizards.WizardDefinition definition,
+        Novalist.Sdk.Models.Wizards.WizardResult? seed = null);
+
     /// <summary>Unregister a previously registered inline-action contributor.</summary>
     void UnregisterInlineActionContributor(IInlineActionContributor contributor);
 

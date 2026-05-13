@@ -66,6 +66,11 @@ public partial class EntityPanelViewModel : ObservableObject
     public event Action<LocationData>? LocationParentChanged;
     public Func<string, string, string, Task<string?>>? ShowInputDialog { get; set; }
     public Func<string, string, IReadOnlyList<EntityCreationTemplateOption>, Task<EntityCreationResult?>>? ShowEntityCreationDialog { get; set; }
+
+    /// <summary>Host-supplied hook to run the guided wizard against an entity
+    /// that was just created. The host opens the wizard, applies the result,
+    /// and refreshes the affected lists.</summary>
+    public Func<EntityType, object, string?, Task>? RunEntityWizardRequested { get; set; }
     public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
     public Func<EntityTypeManagerViewModel, Task<bool>>? ShowEntityTypeManagerDialog { get; set; }
 
@@ -268,6 +273,8 @@ public partial class EntityPanelViewModel : ObservableObject
         Characters.Add(character);
         Characters = new ObservableCollection<CharacterData>(Characters.OrderBy(c => c.DisplayName));
         RefreshCharacterGroups();
+        if (result.UseWizard && RunEntityWizardRequested != null)
+            await RunEntityWizardRequested.Invoke(EntityType.Character, character, null);
         EntityOpenRequested?.Invoke(EntityType.Character, character);
     }
 
@@ -290,6 +297,8 @@ public partial class EntityPanelViewModel : ObservableObject
         await _entityService.SaveLocationAsync(location);
         Locations.Add(location);
         BuildLocationTree();
+        if (result.UseWizard && RunEntityWizardRequested != null)
+            await RunEntityWizardRequested.Invoke(EntityType.Location, location, null);
         EntityOpenRequested?.Invoke(EntityType.Location, location);
     }
 
@@ -311,6 +320,8 @@ public partial class EntityPanelViewModel : ObservableObject
             ApplyItemTemplate(item, result.TemplateId);
         await _entityService.SaveItemAsync(item);
         Items.Add(item);
+        if (result.UseWizard && RunEntityWizardRequested != null)
+            await RunEntityWizardRequested.Invoke(EntityType.Item, item, null);
         EntityOpenRequested?.Invoke(EntityType.Item, item);
     }
 
@@ -332,6 +343,8 @@ public partial class EntityPanelViewModel : ObservableObject
             ApplyLoreTemplate(lore, result.TemplateId);
         await _entityService.SaveLoreAsync(lore);
         LoreEntries.Add(lore);
+        if (result.UseWizard && RunEntityWizardRequested != null)
+            await RunEntityWizardRequested.Invoke(EntityType.Lore, lore, null);
         EntityOpenRequested?.Invoke(EntityType.Lore, lore);
     }
 
@@ -392,6 +405,8 @@ public partial class EntityPanelViewModel : ObservableObject
             _customEntities[typeDef.TypeKey] = [];
         _customEntities[typeDef.TypeKey].Add(entity);
 
+        if (result.UseWizard && RunEntityWizardRequested != null)
+            await RunEntityWizardRequested.Invoke(EntityType.Custom, entity, typeDef.TypeKey);
         EntityOpenRequested?.Invoke(EntityType.Custom, entity);
     }
 
@@ -927,10 +942,11 @@ public sealed class EntityCreationTemplateOption(string id, string name)
     public string Name { get; } = name;
 }
 
-public sealed class EntityCreationResult(string name, string? templateId)
+public sealed class EntityCreationResult(string name, string? templateId, bool useWizard = false)
 {
     public string Name { get; } = name;
     public string? TemplateId { get; } = templateId;
+    public bool UseWizard { get; } = useWizard;
 }
 
 public class CharacterGroupSectionViewModel

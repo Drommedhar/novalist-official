@@ -588,6 +588,7 @@ public partial class MainWindowViewModel : ObservableObject
 
     public Func<string, string, string, Task<string?>>? ShowInputDialog { get; set; }
     public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
+    public Func<Novalist.Sdk.Models.Wizards.WizardDefinition, string?, Novalist.Sdk.Models.Wizards.WizardResult?, Task<Novalist.Sdk.Models.Wizards.WizardResult?>>? ShowWizardDialog { get; set; }
     public Func<ChapterData, SceneData, Task>? ShowSnapshotsDialog { get; set; }
     public Func<Task>? ShowFindReplaceDialog { get; set; }
     public Func<Task>? ShowCommandPalette { get; set; }
@@ -999,6 +1000,167 @@ public partial class MainWindowViewModel : ObservableObject
         OnProjectLoaded(metadata, projectPath);
     }
 
+    /// <summary>
+    /// Runs the Project Snowflake wizard, then creates the project from its
+    /// answers and applies the cast/chapter seed via
+    /// <see cref="Services.Wizards.ProjectWizardMapper"/>.
+    /// </summary>
+    public async Task RunProjectSnowflakeWizardAsync(string parentDirectory)
+    {
+        if (ShowWizardDialog == null) return;
+
+        var definition = Novalist.Core.Wizards.ProjectSnowflakeWizard.Build(Loc.T);
+        var stateDir = GetWizardStateDirForScope(definition.Scope);
+        var result = await ShowWizardDialog.Invoke(definition, stateDir, null);
+        if (result == null || !result.Completed) return;
+
+        var projectName = Novalist.Desktop.Services.Wizards.ProjectWizardMapper.ExtractProjectName(result);
+        var bookName = Novalist.Desktop.Services.Wizards.ProjectWizardMapper.ExtractBookName(result);
+        if (string.IsNullOrWhiteSpace(projectName))
+        {
+            StatusText = Loc.T("toast.projectLoadFailed", "missing project name");
+            return;
+        }
+
+        try
+        {
+            await CreateProjectAsync(parentDirectory, projectName, bookName, "blank");
+            await Novalist.Desktop.Services.Wizards.ProjectWizardMapper.ApplyAsync(_projectService, _entityService, result);
+            // Mapper writes characters via IEntityService.SaveCharacterAsync; the
+            // freshly-loaded EntityPanel was populated before those writes
+            // landed, so re-load it now.
+            if (EntityPanel != null)
+                await EntityPanel.LoadAllAsync();
+            if (Editor != null)
+                await Editor.RefreshFocusPeekAsync();
+            Explorer?.Refresh();
+            await RefreshStatusBarAsync();
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Error: {ex.Message}";
+            Toast.Show?.Invoke(Loc.T("toast.projectLoadFailed", ex.Message), ToastSeverity.Error);
+        }
+    }
+
+    /// <summary>
+    /// Runs the generic guided-entity wizard for a freshly-created entity, maps
+    /// the result onto it, and saves.
+    /// </summary>
+    public async Task RunEntityWizardForCreatedAsync(EntityType type, object entity, string? customTypeKey)
+    {
+        if (ShowWizardDialog == null) return;
+
+        Novalist.Core.Models.CustomEntityTypeDefinition? customDef = null;
+        if (type == EntityType.Custom && customTypeKey != null)
+        {
+            customDef = _projectService.CurrentProject?.CustomEntityTypes
+                .FirstOrDefault(t => string.Equals(t.TypeKey, customTypeKey, StringComparison.Ordinal));
+        }
+
+        var definition = Novalist.Core.Wizards.EntityGuidedWizard.BuildFor(type, customDef, Loc.T);
+
+        // Entity already has the name from the creation dialog. Hide the wizard's
+        // name step and seed its answer so the user is not asked twice.
+        var existingName = GetEntityName(entity);
+        definition.Steps = definition.Steps
+            .Where(s => !string.Equals(s.Id, "name", System.StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        var seed = new Novalist.Sdk.Models.Wizards.WizardResult { DefinitionId = definition.Id };
+        if (!string.IsNullOrEmpty(existingName))
+            seed.Answers["name"] = new Novalist.Sdk.Models.Wizards.WizardAnswer { Text = existingName };
+
+        var stateDir = GetWizardStateDirForScope(definition.Scope);
+        var result = await ShowWizardDialog.Invoke(definition, stateDir, seed);
+        if (result == null || !result.Completed) return;
+
+        switch (type)
+        {
+            case EntityType.Character when entity is CharacterData c:
+                var nc = Novalist.Desktop.Services.Wizards.EntityWizardMapper.BuildCharacter(result);
+                c.Surname = nc.Surname;
+                c.Gender = nc.Gender;
+                c.Age = nc.Age;
+                c.Role = nc.Role;
+                c.Group = nc.Group;
+                foreach (var s in nc.Sections) c.Sections.Add(s);
+                await _entityService.SaveCharacterAsync(c);
+                break;
+            case EntityType.Location when entity is LocationData l:
+                var nl = Novalist.Desktop.Services.Wizards.EntityWizardMapper.BuildLocation(result);
+                l.Type = nl.Type;
+                l.Parent = nl.Parent;
+                l.Description = nl.Description;
+                await _entityService.SaveLocationAsync(l);
+                break;
+            case EntityType.Item when entity is ItemData i:
+                var ni = Novalist.Desktop.Services.Wizards.EntityWizardMapper.BuildItem(result);
+                i.Type = ni.Type;
+                i.Origin = ni.Origin;
+                i.Description = ni.Description;
+                await _entityService.SaveItemAsync(i);
+                break;
+            case EntityType.Lore when entity is LoreData lo:
+                var nlo = Novalist.Desktop.Services.Wizards.EntityWizardMapper.BuildLore(result);
+                lo.Category = nlo.Category;
+                lo.Description = nlo.Description;
+                await _entityService.SaveLoreAsync(lo);
+                break;
+            case EntityType.Custom when entity is CustomEntityData ce && customDef != null:
+                var nce = Novalist.Desktop.Services.Wizards.EntityWizardMapper.BuildCustomEntity(result, customDef);
+                foreach (var kv in nce.Fields) ce.Fields[kv.Key] = kv.Value;
+                await _entityService.SaveCustomEntityAsync(ce);
+                break;
+        }
+
+        if (Editor != null)
+            await Editor.RefreshFocusPeekAsync();
+    }
+
+    /// <summary>
+    /// Runs the character-interview wizard for the given character, then maps
+    /// its result onto the character and saves.
+    /// </summary>
+    public async Task RunCharacterInterviewForAsync(CharacterData character)
+    {
+        if (ShowWizardDialog == null) return;
+        var definition = Novalist.Core.Wizards.CharacterInterviewWizard.Build(Loc.T);
+        var stateDir = GetWizardStateDirForScope(definition.Scope);
+
+        // Strip the wizard's name step — character already exists. Seed answer
+        // so the mapper can still write back if needed.
+        definition.Steps = definition.Steps
+            .Where(s => !string.Equals(s.Id, "name", System.StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        var seed = new Novalist.Sdk.Models.Wizards.WizardResult { DefinitionId = definition.Id };
+        seed.Answers["name"] = new Novalist.Sdk.Models.Wizards.WizardAnswer { Text = character.Name };
+
+        var result = await ShowWizardDialog.Invoke(definition, stateDir, seed);
+        if (result == null || !result.Completed) return;
+
+        Novalist.Desktop.Services.Wizards.CharacterInterviewMapper.Apply(character, result);
+        await _entityService.SaveCharacterAsync(character);
+        if (Editor != null)
+            await Editor.RefreshFocusPeekAsync();
+    }
+
+    /// <summary>Returns the directory where wizard state files for the given
+    /// scope are persisted. Project-scope: app data; Entity/Reference: active
+    /// book's <c>.book/wizards/</c> folder.</summary>
+    public string? GetWizardStateDirForScope(Novalist.Sdk.Models.Wizards.WizardScope scope)
+    {
+        return scope switch
+        {
+            Novalist.Sdk.Models.Wizards.WizardScope.Project
+                => System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Novalist", "Wizards"),
+            _ when _projectService.ActiveBookRoot != null
+                => System.IO.Path.Combine(_projectService.ActiveBookRoot, ".book", "Wizards"),
+            _ => null,
+        };
+    }
+
     public async Task CreateProjectAsync(string parentDirectory, string projectName, string firstBookName, string? templateId = null)
     {
         var metadata = await _projectService.CreateProjectAsync(parentDirectory, projectName, firstBookName);
@@ -1077,6 +1239,7 @@ public partial class MainWindowViewModel : ObservableObject
         EntityEditor.PropertyChanged += OnEntityEditorPropertyChanged;
         EntityEditor.Saved += OnEntitySaved;
         EntityEditor.Deleted += OnEntityDeleted;
+        EntityEditor.RunCharacterInterviewRequested = RunCharacterInterviewForAsync;
         EntityPanel = new EntityPanelViewModel(_entityService, _projectService);
         EntityPanel.ExtensionEntityTypes = ExtensionManager?.EntityTypes ?? [];
         EntityPanel.EntityOpenRequested += OnEntityOpenRequested;
@@ -1360,6 +1523,16 @@ public partial class MainWindowViewModel : ObservableObject
         await App.WordHistoryService.LoadAsync();
         await App.WordHistoryService.MigrateLegacyBaselineAsync();
     }
+
+    private static string GetEntityName(object entity) => entity switch
+    {
+        CharacterData c => c.Name,
+        LocationData l => l.Name,
+        ItemData i => i.Name,
+        LoreData lo => lo.Name,
+        CustomEntityData ce => ce.Name,
+        _ => string.Empty
+    };
 
     private static string GetEntityDisplayText(IEntityData entity) => entity switch
     {

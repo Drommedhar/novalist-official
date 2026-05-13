@@ -1137,5 +1137,117 @@
       "stiefbruder", "stiefschwester", "halbbruder", "halbschwester",
       "schwager", "schwägerin"
     ]
+  },
+  "wizard": {
+    "cancel": "Abbrechen",
+    "back": "Zurück",
+    "skip": "Überspringen",
+    "next": "Weiter",
+    "finish": "Fertigstellen",
+    "review": "Übersicht",
+    "edit": "Bearbeiten",
+    "addEntry": "+ Eintrag hinzufügen",
+    "helpHeader": "ZU DIESEM SCHRITT",
+    "runInterview": "Charakter-Interview starten…",
+    "useWizard": "Geführten Assistenten verwenden",
+    "resumeTitle": "Assistenten fortsetzen?",
+    "resumePrompt": "Gespeicherter Fortschritt für \"{0}\" gefunden. Dort fortsetzen, wo du aufgehört hast?",
+    "loadingChoices": "Optionen werden geladen…",
+    "project": {
+      "displayName": "Snowflake-Projekteinrichtung",
+      "description": "Führt dich von einer Ein-Satz-Prämisse zu einem ausgearbeiteten Manuskript mit erstem Cast.",
+      "projectName": {
+        "title": "Wie heißt das Projekt?",
+        "help": "Der Anzeigename des Projekts; auch der Ordnername auf der Festplatte.",
+        "placeholder": "Mein Roman"
+      },
+      "bookName": {
+        "title": "Arbeitstitel des ersten Buchs",
+        "help": "Kannst du später umbenennen.",
+        "placeholder": "Buch 1"
+      },
+      "premise": {
+        "title": "Prämisse — ein Satz",
+        "help": "Worum geht es in deinem Roman in einem Satz? Versuche: Eine [Figur] will [Ziel], aber [Hindernis].",
+        "placeholder": "Eine pensionierte Diebin muss den Mann ausrauben, der sie reingelegt hat."
+      },
+      "paragraph": {
+        "title": "Prämisse zu einem Absatz ausbauen",
+        "help": "Skizziere Welt, Einsatz, auslösendes Ereignis und grobe Form des Höhepunkts."
+      },
+      "actOne": { "title": "Akt 1 — Exposition", "help": "Wie sieht der Status quo aus? Wer ist die Protagonistin, bevor sie sich ändern muss?" },
+      "actTwo": { "title": "Akt 2 — Konfrontation", "help": "Mittelteil. Steigende Spannung, Komplikationen, die Protagonistin versucht und scheitert." },
+      "actThree": { "title": "Akt 3 — Auflösung", "help": "Höhepunkt + neues Gleichgewicht. Was hat es gekostet? Was hat sich verändert?" },
+      "chaptersPerAct": {
+        "title": "Wie viele Kapitel pro Akt ungefähr?",
+        "help": "Wir legen Platzhalter-Kapitel je Akt an. 5–12 sind ein guter Start. Du kannst Kapitel später jederzeit hinzufügen oder löschen."
+      },
+      "protagonists": {
+        "title": "Um wen geht es in dieser Geschichte? (Protagonisten)",
+        "help": "Füge eine oder mehrere Hauptfiguren hinzu. Nur Namen für jetzt — Details später im Codex."
+      },
+      "antagonists": {
+        "title": "Wer steht im Weg? (Antagonisten)",
+        "help": "Füge Personen, Fraktionen oder Kräfte hinzu, die gegen die Protagonisten arbeiten."
+      },
+      "cast": {
+        "name": "Name",
+        "namePlaceholder": "Vorname",
+        "namePlaceholderAlt": "Name oder Bezeichnung",
+        "role": "Rolle / Archetyp",
+        "protagonistPlaceholder": "Protagonist, Mentor, …",
+        "antagonistPlaceholder": "Antagonist, Konterpart, …"
+      }
+    },
+    "interview": {
+      "displayName": "Charakter-Interview",
+      "description": "Geht die sieben Psychologie-Pfeiler durch: Wunde, Angst, Lüge, Wille, Bedürfnis, Geheimnis, Stimme.",
+      "name": { "title": "Name", "help": "Der Hauptname der Figur. Aliase kannst du später hinzufügen." },
+      "wound": { "title": "Wunde", "help": "Ein prägendes Ereignis aus der Vergangenheit der Figur, das sie noch immer formt. Oft die Quelle der Lüge, die sie glaubt." },
+      "fear": { "title": "Angst", "help": "Wovor hat die Figur am meisten Angst? Oft ein Wiederauftauchen der Wunde." },
+      "lie": { "title": "Lüge, die sie glaubt", "help": "Die falsche Überzeugung über sich selbst oder die Welt, die die Figur verinnerlicht hat — \"Ich bin nicht liebenswert\", \"Stärke = Isolation\", \"Die Welt ist gerecht\"." },
+      "want": { "title": "Wille (externes Ziel)", "help": "Was die Figur bewusst verfolgt. Greifbar, in der Welt, zeigbar." },
+      "need": { "title": "Bedürfnis (innere Wahrheit)", "help": "Die Lektion, die sie lernen muss — meist das Gegenteil der Lüge. Oft im dritten Akt erkannt." },
+      "secret": { "title": "Geheimnis", "help": "Etwas, das die Figur vor anderen (und vielleicht vor sich selbst) verbirgt." },
+      "voice": { "title": "Stimme — Beispielsätze", "help": "Ein paar Sätze in der Stimme dieser Figur, damit der Dialog im Manuskript konsistent bleibt." }
+    },
+    "entity": {
+      "character": {
+        "displayName": "Geführte Charaktererstellung",
+        "nameHelp": "Vorname oder einziger Name.",
+        "surnameHelp": "Nachname. Leer lassen, wenn nicht anwendbar.",
+        "ageHelp": "Ein konkreter Wert (z. B. \"23\") oder Beschreibung (z. B. \"Anfang 30\"). Datum-basiertes Alter kannst du später am Eintrag setzen.",
+        "roleHelp": "Protagonist, Antagonist, Mentor, Konterpart, …",
+        "groupHelp": "Familie, Organisation, Fraktion — freier Text, gruppiert den Cast.",
+        "descriptionHelp": "Eine Kurzbeschreibung in einem Absatz — erscheint im Focus Peek."
+      },
+      "location": {
+        "displayName": "Geführte Ort-Erstellung",
+        "typeHelp": "Stadt, Wald, Gebäude, Kontinent, …",
+        "parent": "Übergeordneter Ort",
+        "parentHelp": "Wenn dieser Ort in einem anderen liegt (z. B. eine Stadt in einem Land)."
+      },
+      "item": {
+        "displayName": "Geführte Gegenstand-Erstellung",
+        "typeHelp": "Waffe, Artefakt, Fahrzeug, …",
+        "origin": "Herkunft",
+        "originHelp": "Woher der Gegenstand in der Welt kommt."
+      },
+      "lore": {
+        "displayName": "Geführte Lore-Erstellung",
+        "category": "Kategorie"
+      },
+      "field": {
+        "name": "Name",
+        "surname": "Nachname",
+        "gender": "Geschlecht",
+        "age": "Alter",
+        "role": "Rolle",
+        "group": "Gruppe",
+        "shortDescription": "Kurzbeschreibung",
+        "description": "Beschreibung",
+        "type": "Typ"
+      }
+    }
   }
 }

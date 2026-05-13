@@ -40,6 +40,8 @@
                     <ComboBox x:Name="TemplateComboBox"
                               HorizontalAlignment="Stretch" />
                 </StackPanel>
+                <CheckBox x:Name="UseWizardCheck"
+                          Content="{loc:Loc wizard.useWizard}" />
             </StackPanel>
         </DockPanel>
     </Border>

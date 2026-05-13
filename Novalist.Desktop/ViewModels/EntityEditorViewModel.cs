@@ -807,6 +807,21 @@ public partial class EntityEditorViewModel : ObservableObject
     private string GetCurrentCharacterDisplayName()
         => string.IsNullOrWhiteSpace(Surname) ? Name.Trim() : $"{Name.Trim()} {Surname.Trim()}".Trim();
 
+    /// <summary>Host-supplied hook to run the character-interview wizard
+    /// against the currently-open character. The host opens the wizard dialog
+    /// and applies its result via <see cref="Services.Wizards.CharacterInterviewMapper"/>.</summary>
+    public Func<CharacterData, Task>? RunCharacterInterviewRequested { get; set; }
+
+    [RelayCommand]
+    private async Task RunCharacterInterviewAsync()
+    {
+        if (_character == null) return;
+        if (RunCharacterInterviewRequested == null) return;
+        await RunCharacterInterviewRequested.Invoke(_character);
+        // Reload entity into the editor so newly-added sections are visible.
+        OpenCharacter(_character);
+    }
+
     [RelayCommand]
     private void AddAlias()
     {

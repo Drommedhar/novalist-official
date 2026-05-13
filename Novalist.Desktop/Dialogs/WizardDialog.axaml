@@ -1,0 +1,330 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             x:Class="Novalist.Desktop.Dialogs.WizardDialog"
+             x:DataType="vm:WizardDialogViewModel"
+             Width="960" Height="640">
+
+    <UserControl.KeyBindings>
+        <KeyBinding Gesture="Ctrl+Enter" Command="{Binding NextCommand}" />
+    </UserControl.KeyBindings>
+
+    <Border Background="{DynamicResource CardBackground}"
+            BorderBrush="{DynamicResource CardBorder}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="0">
+        <Grid ColumnDefinitions="200,*,240" MinHeight="500">
+
+            <!-- ═══ Left: progress sidebar ═══ -->
+            <Border Grid.Column="0"
+                    Background="{DynamicResource SubtleBackground}"
+                    BorderBrush="{DynamicResource RibbonGroupBorder}"
+                    BorderThickness="0,0,1,0"
+                    Padding="14,18">
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Top"
+                               Text="{Binding Title}"
+                               FontSize="11"
+                               FontWeight="SemiBold"
+                               LetterSpacing="1"
+                               Foreground="{DynamicResource SubtleText}"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12" />
+
+                    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{Binding StepNavItems}">
+                            <ItemsControl.Styles>
+                                <Style Selector="Button.wizardStep">
+                                    <Setter Property="Background" Value="Transparent" />
+                                    <Setter Property="BorderThickness" Value="0" />
+                                    <Setter Property="Foreground" Value="{DynamicResource DimText}" />
+                                </Style>
+                                <Style Selector="Button.wizardStep.current">
+                                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                                    <Setter Property="Foreground" Value="{DynamicResource AccentForeground}" />
+                                </Style>
+                                <Style Selector="Border.stepDot">
+                                    <Setter Property="Background" Value="{DynamicResource SubtleText}" />
+                                </Style>
+                                <Style Selector="Border.stepDot.current">
+                                    <Setter Property="Background" Value="{DynamicResource AccentForeground}" />
+                                </Style>
+                                <Style Selector="Border.stepDot.answered">
+                                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                                </Style>
+                            </ItemsControl.Styles>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:StepNavItem">
+                                    <Button Classes="wizardStep"
+                                            Classes.current="{Binding IsCurrent}"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Left"
+                                            Padding="8,6"
+                                            CornerRadius="4"
+                                            Margin="0,1"
+                                            Command="{Binding $parent[ItemsControl].((vm:WizardDialogViewModel)DataContext).JumpToStepCommand}"
+                                            CommandParameter="{Binding}">
+                                        <DockPanel>
+                                            <Border DockPanel.Dock="Left"
+                                                    Classes="stepDot"
+                                                    Classes.current="{Binding IsCurrent}"
+                                                    Classes.answered="{Binding IsAnswered}"
+                                                    Width="6" Height="6"
+                                                    Margin="0,0,8,0"
+                                                    CornerRadius="3"
+                                                    VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding Title}"
+                                                       FontSize="12"
+                                                       TextWrapping="Wrap" />
+                                        </DockPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- ═══ Middle: step content / review ═══ -->
+            <DockPanel Grid.Column="1" Margin="24,18,24,18" LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,14">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Right"
+                                   Text="{Binding StepCounter}"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource SubtleText}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding StepTitle}"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource NormalText}"
+                                   TextWrapping="Wrap" />
+                    </DockPanel>
+                </StackPanel>
+
+                <!-- Footer block: progress/error stacked above buttons,
+                     anchored together so width stays constant regardless of
+                     body layout. -->
+                <StackPanel DockPanel.Dock="Bottom"
+                            Spacing="10"
+                            Margin="0,12,0,0">
+                    <Border Background="#33E74C3C"
+                            BorderBrush="#E74C3C"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="10,6"
+                            IsVisible="{Binding HasValidationError}">
+                        <TextBlock Text="{Binding ValidationError}"
+                                   Foreground="{DynamicResource NormalText}"
+                                   TextWrapping="Wrap" />
+                    </Border>
+                    <Border Background="{DynamicResource SubtleBackground}"
+                            BorderBrush="{DynamicResource RibbonGroupBorder}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="10,6"
+                            IsVisible="{Binding IsAsyncRunning}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <ProgressBar IsIndeterminate="True"
+                                         Width="80"
+                                         Height="4"
+                                         VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding AsyncStatusText}"
+                                       Foreground="{DynamicResource DimText}"
+                                       FontSize="12"
+                                       VerticalAlignment="Center"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Orientation="Horizontal"
+                                Spacing="8"
+                                HorizontalAlignment="Right">
+                    <Button Content="{loc:Loc wizard.cancel}"
+                            Command="{Binding CancelCommand}" />
+                    <Button Content="{loc:Loc wizard.back}"
+                            Command="{Binding BackCommand}"
+                            IsEnabled="{Binding !IsFirstStep}" />
+                    <Button Content="{loc:Loc wizard.skip}"
+                            Command="{Binding SkipCommand}"
+                            IsVisible="{Binding IsCurrentStepSkippable}"
+                            IsEnabled="{Binding !IsReviewMode}" />
+                    <Button Content="{loc:Loc wizard.next}"
+                            Command="{Binding NextCommand}"
+                            IsVisible="{Binding !IsLastStep}"
+                            IsEnabled="{Binding CanProceed}"
+                            Classes="accent" />
+                    <Button Content="{loc:Loc wizard.review}"
+                            Command="{Binding NextCommand}"
+                            IsVisible="{Binding ShowReviewButton}"
+                            IsEnabled="{Binding CanProceed}"
+                            Classes="accent" />
+                    <Button Content="{loc:Loc wizard.finish}"
+                            Command="{Binding NextCommand}"
+                            IsVisible="{Binding ShowFinishOnLastStep}"
+                            IsEnabled="{Binding CanProceed}"
+                            Classes="accent" />
+                    <Button Content="{loc:Loc wizard.finish}"
+                            Command="{Binding FinishCommand}"
+                            IsVisible="{Binding IsReviewMode}"
+                            Classes="accent" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Step body -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              MinHeight="260">
+                    <StackPanel Spacing="10">
+                        <!-- Normal step content -->
+                        <StackPanel Spacing="8"
+                                    IsVisible="{Binding ShowStepContent}">
+
+                            <TextBox Text="{Binding TextAnswer, Mode=TwoWay}"
+                                     Watermark="{Binding Placeholder}"
+                                     FontSize="14"
+                                     IsVisible="{Binding IsTextStep}"
+                                     IsEnabled="{Binding !IsMultilineText}" />
+
+                            <TextBox Text="{Binding TextAnswer, Mode=TwoWay}"
+                                     Watermark="{Binding Placeholder}"
+                                     AcceptsReturn="True"
+                                     TextWrapping="Wrap"
+                                     MinHeight="140"
+                                     FontSize="14"
+                                     IsVisible="{Binding IsMultilineText}" />
+
+                            <NumericUpDown Value="{Binding NumberAnswer, Mode=TwoWay}"
+                                           Minimum="{Binding NumberMin}"
+                                           Maximum="{Binding NumberMax}"
+                                           Increment="1"
+                                           FormatString="0"
+                                           IsVisible="{Binding IsNumberStep}" />
+
+                            <ItemsControl ItemsSource="{Binding Choices}"
+                                          IsVisible="{Binding IsChoiceStep}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:ChoiceOption">
+                                        <RadioButton GroupName="WizardChoice"
+                                                     IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                                     Margin="0,2">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding Label}" FontSize="13" />
+                                                <TextBlock Text="{Binding Description}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource SubtleText}"
+                                                           TextWrapping="Wrap"
+                                                           IsVisible="{Binding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+
+                            <CalendarDatePicker SelectedDate="{Binding DateAnswer, Mode=TwoWay}"
+                                                HorizontalAlignment="Stretch"
+                                                IsVisible="{Binding IsDateStep}" />
+
+                            <!-- Entity list: row per entry, cell per sub-step. -->
+                            <StackPanel Spacing="6" IsVisible="{Binding IsEntityListStep}">
+                                <ItemsControl ItemsSource="{Binding EntityListEntries}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="vm:EntityListEntry">
+                                            <Border Padding="6"
+                                                    Margin="0,0,0,6"
+                                                    Background="{DynamicResource SubtleBackground}"
+                                                    CornerRadius="4">
+                                                <DockPanel>
+                                                    <Button DockPanel.Dock="Right"
+                                                            Content="×"
+                                                            Padding="6,2"
+                                                            Margin="6,0,0,0"
+                                                            Command="{Binding $parent[ItemsControl].((vm:WizardDialogViewModel)DataContext).RemoveEntityListEntryCommand}"
+                                                            CommandParameter="{Binding}" />
+                                                    <ItemsControl ItemsSource="{Binding Cells}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal" Spacing="6" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate DataType="vm:EntityListCell">
+                                                                <TextBox Text="{Binding Value, Mode=TwoWay}"
+                                                                         Watermark="{Binding Placeholder}"
+                                                                         MinWidth="160" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </DockPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <Button Content="{loc:Loc wizard.addEntry}"
+                                        Padding="8,4"
+                                        HorizontalAlignment="Left"
+                                        Command="{Binding AddEntityListEntryCommand}" />
+                            </StackPanel>
+                        </StackPanel>
+
+                        <!-- Review summary -->
+                        <ItemsControl ItemsSource="{Binding ReviewItems}"
+                                      IsVisible="{Binding IsReviewMode}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:ReviewItem">
+                                    <Border Padding="8"
+                                            Margin="0,0,0,6"
+                                            Background="{DynamicResource SubtleBackground}"
+                                            CornerRadius="4">
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Right"
+                                                    Content="{loc:Loc wizard.edit}"
+                                                    Padding="8,4"
+                                                    Command="{Binding $parent[ItemsControl].((vm:WizardDialogViewModel)DataContext).EditFromReviewCommand}"
+                                                    CommandParameter="{Binding}" />
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding StepTitle}"
+                                                           FontSize="12"
+                                                           FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource NormalText}"
+                                                           TextWrapping="Wrap" />
+                                                <TextBlock Text="{Binding AnswerSummary}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource DimText}"
+                                                           TextWrapping="Wrap" />
+                                            </StackPanel>
+                                        </DockPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+
+            <!-- ═══ Right: help panel ═══ -->
+            <Border Grid.Column="2"
+                    Background="{DynamicResource SubtleBackground}"
+                    BorderBrush="{DynamicResource RibbonGroupBorder}"
+                    BorderThickness="1,0,0,0"
+                    Padding="16,18">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="{loc:Loc wizard.helpHeader}"
+                                   FontSize="11"
+                                   FontWeight="SemiBold"
+                                   LetterSpacing="1"
+                                   Foreground="{DynamicResource SubtleText}" />
+                        <TextBlock Text="{Binding StepHelp}"
+                                   FontSize="12"
+                                   Foreground="{DynamicResource DimText}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

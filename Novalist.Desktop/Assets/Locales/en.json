@@ -213,6 +213,8 @@
   },
   "welcome": {
     "createTitle": "Create New Project",
+    "createWithWizard": "Guided setup (wizard)",
+    "pickFolderTitle": "Pick parent folder for the new project",
     "projectName": "Project Name",
     "projectNamePlaceholder": "My Novel",
     "bookName": "First Book Name",
@@ -669,6 +671,118 @@
     "editing": "Editing: {0}",
     "errorOpenScene": "Error opening scene: {0}",
     "chapterBreakdown": "Chapter breakdown"
+  },
+  "wizard": {
+    "cancel": "Cancel",
+    "back": "Back",
+    "skip": "Skip",
+    "next": "Next",
+    "finish": "Finish",
+    "review": "Review",
+    "edit": "Edit",
+    "addEntry": "+ Add entry",
+    "helpHeader": "ABOUT THIS STEP",
+    "runInterview": "Run character interview…",
+    "useWizard": "Use guided wizard",
+    "resumeTitle": "Resume wizard?",
+    "resumePrompt": "Found saved progress for \"{0}\". Resume from where you left off?",
+    "loadingChoices": "Loading options…",
+    "project": {
+      "displayName": "Snowflake project setup",
+      "description": "Walks you from a one-line premise to an outlined manuscript with seed cast.",
+      "projectName": {
+        "title": "What's the project called?",
+        "help": "The display name for the project; also the folder name on disk.",
+        "placeholder": "My Novel"
+      },
+      "bookName": {
+        "title": "Working title of the first book",
+        "help": "You can rename this later.",
+        "placeholder": "Book 1"
+      },
+      "premise": {
+        "title": "Premise — one sentence",
+        "help": "What is your story about in a single line? Try the form: A [character] wants [goal] but [obstacle].",
+        "placeholder": "A retired thief must rob the man who framed her."
+      },
+      "paragraph": {
+        "title": "Expand the premise into a paragraph",
+        "help": "Set up the world, stakes, the inciting incident, and the rough shape of the climax."
+      },
+      "actOne": { "title": "Act 1 — Setup", "help": "What's the status quo? Who's the protagonist before they're forced to change?" },
+      "actTwo": { "title": "Act 2 — Confrontation", "help": "The middle. Rising tension, complications, the protagonist tries and fails." },
+      "actThree": { "title": "Act 3 — Resolution", "help": "Climax + new equilibrium. What's the cost? What changed?" },
+      "chaptersPerAct": {
+        "title": "Roughly how many chapters per act?",
+        "help": "We'll create placeholder chapters under each act. Aim for 5–12. You can add and remove chapters freely later."
+      },
+      "protagonists": {
+        "title": "Who is this story about? (protagonists)",
+        "help": "Add one or more main characters. Just names for now — develop them later in the Codex."
+      },
+      "antagonists": {
+        "title": "Who stands in the way? (antagonists)",
+        "help": "Add the people, factions, or forces opposing the protagonist."
+      },
+      "cast": {
+        "name": "Name",
+        "namePlaceholder": "First name",
+        "namePlaceholderAlt": "Name or label",
+        "role": "Role / archetype",
+        "protagonistPlaceholder": "Protagonist, mentor, …",
+        "antagonistPlaceholder": "Antagonist, foil, …"
+      }
+    },
+    "interview": {
+      "displayName": "Character interview",
+      "description": "Walks the seven psychology pillars: wound, fear, lie, want, need, secret, voice.",
+      "name": { "title": "Name", "help": "The character's primary name. You can add aliases later." },
+      "wound": { "title": "Wound", "help": "A formative event from the character's past that still shapes them. Often the source of the lie they believe." },
+      "fear": { "title": "Fear", "help": "What does the character most fear happening to them? It's often a re-occurrence of the wound." },
+      "lie": { "title": "Lie they believe", "help": "The false belief about themselves or the world the character has internalised — \"I'm unlovable\", \"strength = isolation\", \"the world is fair\"." },
+      "want": { "title": "Want (external goal)", "help": "The thing the character is consciously chasing. Tangible, in-world, can be pointed at." },
+      "need": { "title": "Need (internal truth)", "help": "The lesson they must learn — usually the inverse of the lie. Often realised in act three." },
+      "secret": { "title": "Secret", "help": "Something the character hides from other characters (and maybe themselves)." },
+      "voice": { "title": "Voice — sample lines", "help": "A few sentences in this character's voice so their dialogue stays consistent across the manuscript." }
+    },
+    "entity": {
+      "character": {
+        "displayName": "Guided character creation",
+        "nameHelp": "First name or sole name.",
+        "surnameHelp": "Family name. Leave blank if not applicable.",
+        "ageHelp": "A literal value (e.g. \"23\") or descriptor (e.g. \"early 30s\"). Date-based ages can be set on the entity afterwards.",
+        "roleHelp": "Protagonist, antagonist, mentor, foil, …",
+        "groupHelp": "Family, organisation, faction — free text, used to cluster the cast.",
+        "descriptionHelp": "A one-paragraph thumbnail — surfaces in the focus peek."
+      },
+      "location": {
+        "displayName": "Guided location creation",
+        "typeHelp": "City, forest, building, continent, …",
+        "parent": "Parent location",
+        "parentHelp": "If this place sits inside another (e.g. a city inside a country)."
+      },
+      "item": {
+        "displayName": "Guided item creation",
+        "typeHelp": "Weapon, artifact, vehicle, …",
+        "origin": "Origin",
+        "originHelp": "Where the item came from in-world."
+      },
+      "lore": {
+        "displayName": "Guided lore creation",
+        "category": "Category"
+      },
+      "field": {
+        "name": "Name",
+        "surname": "Surname",
+        "gender": "Gender",
+        "age": "Age",
+        "role": "Role",
+        "group": "Group",
+        "shortDescription": "Short description",
+        "description": "Description",
+        "type": "Type"
+      }
+    }
   },
   "draft": {
     "label": "Draft",

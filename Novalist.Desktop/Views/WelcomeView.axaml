@@ -92,6 +92,17 @@
                         </Button>
                     </Grid>
 
+                    <Button Command="{Binding RunProjectWizardCommand}"
+                            Classes="welcomeAction"
+                            HorizontalAlignment="Stretch"
+                            Margin="0,8,0,0">
+                        <TextBlock Text="{loc:Loc welcome.createWithWizard}"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   FontSize="13"
+                                   TextWrapping="Wrap" TextAlignment="Center" />
+                    </Button>
+
                     <!-- Inline create form (collapsible) -->
                     <Border IsVisible="{Binding IsCreateFormOpen}"
                             Background="{DynamicResource CardBackground}"

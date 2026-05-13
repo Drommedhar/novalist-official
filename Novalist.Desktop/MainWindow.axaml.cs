@@ -41,6 +41,7 @@ public partial class MainWindow : Window
                 vm.PropertyChanged += OnViewModelPropertyChanged;
                 vm.ShowInputDialog = ShowInputDialogAsync;
                 vm.ShowConfirmDialog = ShowConfirmDialogAsync;
+                vm.ShowWizardDialog = ShowWizardDialogAsync;
                 vm.ShowSnapshotsDialog = ShowSnapshotsDialogAsync;
                 vm.ShowFindReplaceDialog = ShowFindReplaceDialogAsync;
                 vm.ShowCommandPalette = ShowCommandPaletteAsync;
@@ -641,6 +642,14 @@ public partial class MainWindow : Window
         panel.ShowEntityCreationDialog = ShowEntityCreationDialogAsync;
         panel.ShowConfirmDialog = ShowConfirmDialogAsync;
         panel.ShowEntityTypeManagerDialog = ShowEntityTypeManagerDialogAsync;
+        panel.RunEntityWizardRequested = RunEntityWizardForCreatedEntityAsync;
+    }
+
+    private async Task RunEntityWizardForCreatedEntityAsync(
+        Novalist.Core.Models.EntityType type, object entity, string? customTypeKey)
+    {
+        if (DataContext is not MainWindowViewModel main) return;
+        await main.RunEntityWizardForCreatedAsync(type, entity, customTypeKey);
     }
 
     private void WireEntityEditor(EntityEditorViewModel? editor)
@@ -943,6 +952,65 @@ public partial class MainWindow : Window
         await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
     }
 
+    /// <summary>
+    /// Launches a wizard from an extension. Uses a shared "Extensions"
+    /// state-directory so persistence works without per-extension wiring.
+    /// </summary>
+    internal Task<Novalist.Sdk.Models.Wizards.WizardResult?> RunWizardForExtensionAsync(
+        Novalist.Sdk.Models.Wizards.WizardDefinition definition,
+        Novalist.Sdk.Models.Wizards.WizardResult? seed)
+    {
+        var stateDir = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Novalist", "Wizards", "Extensions");
+        return ShowWizardDialogAsync(definition, stateDir, seed);
+    }
+
+    private async Task<Novalist.Sdk.Models.Wizards.WizardResult?> ShowWizardDialogAsync(
+        Novalist.Sdk.Models.Wizards.WizardDefinition definition,
+        string? stateDir,
+        Novalist.Sdk.Models.Wizards.WizardResult? seed)
+    {
+        var runner = new Novalist.Desktop.Services.WizardRunner(
+            App.FileService,
+            stateDir == null ? null : () => stateDir);
+
+        Novalist.Sdk.Models.Wizards.WizardResult? resume = seed;
+        if (resume == null && stateDir != null)
+        {
+            var disk = await Novalist.Desktop.Services.WizardRunner.TryLoadStateAsync(
+                App.FileService, stateDir, definition.Id);
+            if (disk != null && disk.Answers.Count > 0)
+            {
+                var keep = await ShowConfirmDialogAsync(
+                    Loc.T("wizard.resumeTitle"),
+                    Loc.T("wizard.resumePrompt", definition.DisplayName));
+                if (keep)
+                {
+                    resume = disk;
+                }
+                else
+                {
+                    // Discard old state so the next launch starts clean.
+                    try
+                    {
+                        var path = App.FileService.CombinePath(stateDir, $"wizard-state-{definition.Id}.json");
+                        if (await App.FileService.ExistsAsync(path))
+                            await App.FileService.DeleteFileAsync(path);
+                    }
+                    catch { }
+                }
+            }
+        }
+
+        await runner.StartAsync(definition, resume);
+
+        var vm = new Novalist.Desktop.ViewModels.WizardDialogViewModel(runner);
+        var dialog = new Novalist.Desktop.Dialogs.WizardDialog(vm);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        return runner.Result.Completed ? runner.Result : null;
+    }
+
     private async Task<EntityCreationResult?> ShowEntityCreationDialogAsync(
         string title, string prompt, IReadOnlyList<EntityCreationTemplateOption> templates)
     {
@@ -950,7 +1018,7 @@ public partial class MainWindow : Window
         var dialog = new EntityCreationDialog(title, prompt, options);
         await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
         return dialog.ResultName != null
-            ? new EntityCreationResult(dialog.ResultName, dialog.ResultTemplateId)
+            ? new EntityCreationResult(dialog.ResultName, dialog.ResultTemplateId, dialog.ResultUseWizard)
             : null;
     }
 
@@ -1094,6 +1162,20 @@ public partial class MainWindow : Window
             {
                 vm.StatusText = $"Error: {ex.Message}"; Toast.Show?.Invoke(Loc.T("toast.projectLoadFailed", ex.Message), ToastSeverity.Error);
             }
+        };
+
+        welcomeVm.RunProjectWizardRequested += async () =>
+        {
+            // Pick parent folder first.
+            var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            {
+                Title = Loc.T("welcome.pickFolderTitle"),
+                AllowMultiple = false,
+            });
+            if (folders.Count == 0) return;
+            var parentDir = folders[0].Path.LocalPath;
+
+            await vm.RunProjectSnowflakeWizardAsync(parentDir);
         };
 
         welcomeVm.RemoveRecentRequested += async (card) =>
