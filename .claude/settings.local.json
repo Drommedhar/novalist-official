@@ -29,7 +29,17 @@
       "Bash(ls /c/Users/domin/.nuget/packages/avalonia/ 2>&1 | head -5)",
       "Read(//c/Users/domin/.nuget/packages/avalonia//**)",
       "Bash(ls -la \"/c/Users/domin/AppData/Roaming/Novalist/Extensions/AiAssistant/\" 2>&1 | head -10)",
-      "Read(//c/Users/domin/AppData/Roaming/Novalist/Extensions/AiAssistant//**)"
+      "Read(//c/Users/domin/AppData/Roaming/Novalist/Extensions/AiAssistant//**)",
+      "Bash(py /tmp/scan.py)",
+      "Bash(where py *)",
+      "Read(//c/Users/domin/AppData/Local/Programs/Python/**)",
+      "Bash(\"C:/Users/domin/AppData/Local/Programs/Python/Python311/python.exe\" /tmp/scan.py)",
+      "Bash(cat)",
+      "Bash(\"C:/Users/domin/AppData/Local/Programs/Python/Python311/python.exe\" /tmp/scan2.py)",
+      "Bash(\"C:/Users/domin/AppData/Local/Programs/Python/Python311/python.exe\" /tmp/fix.py)",
+      "Bash(xargs grep -l \"scene.*explorer\\\\|outline.*tree\" -i)",
+      "Bash(xargs grep -l \"context.*sidebar\\\\|scene.*properties\" -i)",
+      "Bash(xargs grep -l \"class SceneData\\\\|class ChapterData\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\domin\\.claude\\plans"

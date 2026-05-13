@@ -21,7 +21,7 @@ The Settings overlay is divided into the following sections.
 ### Appearance
 
 - **Language** — UI language. Discovered from the `Assets/Locales/*.json` files (English and German ship by default). The display name comes from each file's `language.name` key. Changes apply immediately without restart.
-- **Theme** — system / light / dark.
+- **Theme** — picks the active color scheme. Ships with **Default** (VS Code Dark+ inspired) and **Discord**. Custom themes can be dropped into `<InstallDir>/Assets/Themes/` as `.axaml` files and appear in the picker on next launch; extensions can also contribute themes via the SDK. The selection is stored in `AppSettings.Theme`.
 - **Accent color** — pick a custom accent or leave it on the theme default. The hex string is stored in `AppSettings.AccentColor`.
 
 ### Editor

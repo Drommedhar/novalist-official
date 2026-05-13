@@ -21,6 +21,7 @@ public sealed class ThemeService
     private ResourceDictionary? _activeOverride;
     private ResourceDictionary? _accentOverride;
     private readonly List<ThemeInfo> _availableThemes = [];
+    private readonly HashSet<string> _builtInFileNames = new(StringComparer.OrdinalIgnoreCase);
 
     public IReadOnlyList<ThemeInfo> AvailableThemes => _availableThemes;
     public string ActiveThemeName { get; private set; } = "Default";
@@ -47,16 +48,52 @@ public sealed class ThemeService
         }
         catch
         {
-            // avares:// path may not work for AvaloniaResource items;
-            // fall back to loading from disk relative to the assembly
-            var asmDir = Path.GetDirectoryName(typeof(ThemeService).Assembly.Location);
-            // Convert avares path like "avares://Novalist.Desktop/Assets/Themes/X.axaml" to relative file path
+            // Fallback when AssetLoader cannot resolve the avares:// URI
+            // (e.g. theme included as Content rather than AvaloniaResource).
+            // Use AppContext.BaseDirectory — Assembly.Location is empty under
+            // single-file publish, so it cannot be relied on.
+            var asmDir = AppContext.BaseDirectory;
             var relPath = avaresPath.Replace("avares://Novalist.Desktop/", "").Replace('/', Path.DirectorySeparatorChar);
-            var filePath = asmDir != null ? Path.Combine(asmDir, relPath) : null;
+            var filePath = !string.IsNullOrEmpty(asmDir) ? Path.Combine(asmDir, relPath) : null;
             if (filePath != null && File.Exists(filePath))
                 xamlContent = File.ReadAllText(filePath);
         }
         _availableThemes.Add(new ThemeInfo(name, null, source) { AvaresPath = avaresPath, CachedXaml = xamlContent });
+        _builtInFileNames.Add(Path.GetFileNameWithoutExtension(avaresPath));
+    }
+
+    /// <summary>
+    /// Scans a folder for user-supplied theme .axaml files and registers each as
+    /// an available theme. Skips core resource dictionaries (NovalistTheme,
+    /// DesignTokens) and any file already registered as a built-in theme.
+    /// Theme display name is the filename without extension and without a
+    /// trailing "Theme" suffix.
+    /// </summary>
+    public void RegisterFolderThemes(string folderPath)
+    {
+        if (string.IsNullOrEmpty(folderPath) || !Directory.Exists(folderPath))
+            return;
+
+        var reserved = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "NovalistTheme", "DesignTokens"
+        };
+
+        foreach (var file in Directory.EnumerateFiles(folderPath, "*.axaml", SearchOption.TopDirectoryOnly))
+        {
+            var fileName = Path.GetFileNameWithoutExtension(file);
+            if (reserved.Contains(fileName)) continue;
+            if (_builtInFileNames.Contains(fileName)) continue;
+
+            var name = fileName.EndsWith("Theme", StringComparison.OrdinalIgnoreCase) && fileName.Length > 5
+                ? fileName[..^5]
+                : fileName;
+
+            if (_availableThemes.Any(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
+            _availableThemes.Add(new ThemeInfo(name, file, new ThemeOverride { Name = name }));
+        }
     }
 
     /// <summary>

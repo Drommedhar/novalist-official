@@ -161,6 +161,7 @@ public partial class App : Application
                 ThemeService.RegisterBuiltInTheme("Discord",
                     "avares://Novalist.Desktop/Assets/Themes/DiscordTheme.axaml",
                     "#5865F2");
+                ThemeService.RegisterFolderThemes(Path.Combine(AppContext.BaseDirectory, "Assets", "Themes"));
                 ThemeService.RegisterExtensionThemes(ExtensionManager.ThemeOverrides, ExtensionManager);
                 var savedTheme = SettingsService.Settings.Theme;
                 if (!string.IsNullOrEmpty(savedTheme) && savedTheme != "system")
