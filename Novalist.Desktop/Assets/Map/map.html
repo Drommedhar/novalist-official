@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+    --bg: #1e1e2e;
+    --fg: #cdd6f4;
+    --accent: #0E8BDF;
+    --pin: #f9c46a;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); font-family: 'Segoe UI', sans-serif; user-select: none; }
+#stage {
+    position: fixed; inset: 0; cursor: default; overflow: hidden;
+}
+#stage.dragging { cursor: grabbing; }
+#world {
+    position: absolute; left: 0; top: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+}
+.nv-image {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: auto;
+    image-rendering: high-quality;
+    transform-origin: 0 0;
+    /* Composited transform: translate(center) rotate translate(-half) scale = visual
+       rect at (x,y,w,h) rotated about its center. Natural pixels preserved for sharp
+       zoom-in until intrinsic resolution is exceeded. */
+}
+body.mode-view .nv-image { pointer-events: none; }
+.nv-image.selected { outline: 2px solid var(--accent); }
+/* Pins live in a screen-space overlay (NOT scaled with #world) so the marker
+   stays crisp + constant-size at any zoom level. The host element is anchored
+   at the pin's world point projected to screen coords. */
+#pin-overlay {
+    position: absolute; inset: 0;
+    pointer-events: none;
+}
+#image-handles {
+    position: absolute; inset: 0;
+    pointer-events: none;
+}
+.nv-handle {
+    position: absolute;
+    width: 10px; height: 10px;
+    background: #fff;
+    border: 1px solid #1c1a18;
+    pointer-events: auto;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 1px 3px rgba(0,0,0,.4);
+}
+.nv-handle.rotate {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    border-color: #fff;
+}
+.nv-handle.nw, .nv-handle.se { cursor: nwse-resize; }
+.nv-handle.ne, .nv-handle.sw { cursor: nesw-resize; }
+.nv-handle.n,  .nv-handle.s  { cursor: ns-resize; }
+.nv-handle.e,  .nv-handle.w  { cursor: ew-resize; }
+.nv-handle.rotate { cursor: grab; }
+.nv-handle-frame {
+    position: absolute;
+    border: 1px dashed var(--accent);
+    pointer-events: none;
+    transform-origin: 50% 50%;
+}
+.nv-clip-line {
+    position: absolute;
+    height: 0;
+    border-top: 1px dashed #ff9c42;
+    transform-origin: 0 0;
+    pointer-events: none;
+}
+.nv-clip-handle {
+    background: #ff9c42 !important;
+    border-color: #1c1a18 !important;
+    cursor: move;
+}
+#nv-clip-toolbar {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    background: #2a2a3a;
+    border: 1px solid #ff9c42;
+    border-radius: 4px;
+    padding: 8px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 4px 14px rgba(0,0,0,.5);
+}
+#nv-clip-toolbar .hint { color: #aaa; font-size: 11px; }
+#nv-clip-toolbar button {
+    padding: 6px 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+}
+#nv-clip-toolbar button.primary { background: var(--accent); color: #fff; }
+#nv-clip-toolbar button.secondary { background: #444; color: #fff; }
+.nv-ctx-menu {
+    position: fixed;
+    background: #2a2a3a;
+    border: 1px solid #555;
+    padding: 4px 0;
+    z-index: 1000;
+    font-size: 12px;
+    min-width: 170px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.5);
+    border-radius: 3px;
+}
+.nv-ctx-menu div {
+    padding: 6px 14px;
+    cursor: pointer;
+    color: #cdd6f4;
+}
+.nv-ctx-menu div:hover { background: #3a3a4a; }
+.nv-pin-host {
+    position: absolute;
+    transform: translate(-50%, -100%); /* pin tip aligns to (x,y) */
+    pointer-events: auto;
+    cursor: pointer;
+}
+.nv-pin-marker {
+    width: 22px; height: 22px;
+    background: var(--pin);
+    border: 2px solid #1c1a18;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+.nv-pin-host.selected .nv-pin-marker {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+.nv-pin-label {
+    position: absolute;
+    left: 50%; bottom: 100%;
+    margin-bottom: 6px;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #fff;
+    white-space: nowrap;
+    pointer-events: none;
+}
+#hud {
+    position: fixed; left: 12px; top: 12px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    pointer-events: none;
+}
+</style>
+</head>
+<body class="mode-edit">
+<div id="stage">
+    <div id="world"></div>
+    <div id="image-handles"></div>
+    <div id="pin-overlay"></div>
+</div>
+<div id="hud">Map</div>
+<script>
+'use strict';
+
+const stage = document.getElementById('stage');
+const world = document.getElementById('world');
+const pinOverlay = document.getElementById('pin-overlay');
+const handlesOverlay = document.getElementById('image-handles');
+const hud = document.getElementById('hud');
+
+let mapData = { groups: [], pins: [] };
+let mode = 'edit';
+let pan = { x: 0, y: 0 };
+let zoom = 1;
+let selected = null; // { kind:'image'|'pin', id, layerId? }
+let imageBaseUrl = '';
+let activeLayerId = '';
+let clipEdit = null; // { layerId, imageId, points: [{x,y} in natural-pixel coords] }
+let toolMode = 'select'; // 'select' | 'add-pin'
+
+function sendMessage(msg) {
+    try {
+        const json = JSON.stringify(msg);
+        if (typeof invokeCSharpAction === 'function') invokeCSharpAction(json);
+        else if (window.chrome && window.chrome.webview) window.chrome.webview.postMessage(json);
+        else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.webview)
+            window.webkit.messageHandlers.webview.postMessage(json);
+    } catch (e) { console.error(e); }
+}
+
+function log(msg) {
+    console.log('[Map]', msg);
+    sendMessage({ type: 'log', text: String(msg) });
+}
+
+window.addEventListener('error', e => log('window.error: ' + e.message + ' @ ' + e.filename + ':' + e.lineno));
+
+let lastZoomApplied = -1;
+function applyTransform() {
+    // #world only translates by pan. Each image's transform encodes its own zoom
+    // so the browser re-rasterizes the image at the current zoom (no GPU bitmap
+    // stretch from a cached world-scale layer = sharper zoom-in).
+    world.style.transform = `translate(${pan.x}px, ${pan.y}px)`;
+    hud.textContent = `${mapData.name || 'Map'} — zoom ${zoom.toFixed(2)}`;
+    repositionPins();
+    updateLayerVisibility();
+    if (zoom !== lastZoomApplied) {
+        lastZoomApplied = zoom;
+        applyZoomToAllImages();
+    }
+    updateImageHandles();
+    if (clipEdit) renderClipEditor();
+}
+
+function applyZoomToAllImages() {
+    Array.from(world.querySelectorAll('.nv-image')).forEach(el => {
+        const lid = el.dataset.layerId;
+        const iid = el.dataset.imageId;
+        const layer = findLayer(lid);
+        if (!layer) return;
+        const img = (layer.images || []).find(i => i.id === iid);
+        if (!img) return;
+        applyImageTransform(el, img);
+    });
+}
+
+// ── Recursive layer-tree helpers ────────────────────────────────────────
+// mapData.layers is a tree of nodes. A node with children[] acts as a group;
+// images[] may live on any node. Group behaviors (isConnectedSet) only matter
+// when a node has children.
+
+let isolatedImageId = null; // non-persisted: when set, only this image renders
+
+function walkNodes(nodes, cb, parents) {
+    parents = parents || [];
+    for (const n of nodes || []) {
+        cb(n, parents);
+        if (n.children && n.children.length) walkNodes(n.children, cb, parents.concat(n));
+    }
+}
+
+function findLayer(layerId) {
+    let found = null;
+    walkNodes(mapData.layers, n => { if (n.id === layerId) found = n; });
+    return found;
+}
+
+function findImageNode(imageId) {
+    let found = null;
+    walkNodes(mapData.layers, n => {
+        if (!found && (n.images || []).some(i => i.id === imageId)) found = n;
+    });
+    return found;
+}
+
+// Effective per-node state: visibility + opacity, cascaded from ancestors.
+// Returns Map<nodeId, { visible:bool, opacity:number, locked:bool }>.
+function computeNodeState() {
+    const state = new Map();
+    function recurse(nodes, parentVisible, parentOpacity, parentLocked) {
+        for (const n of nodes || []) {
+            let visible = parentVisible && !n.hidden;
+            if (n.minZoom != null && zoom < n.minZoom) visible = false;
+            if (n.maxZoom != null && zoom > n.maxZoom) visible = false;
+            const opacity = parentOpacity * (n.opacity ?? 1);
+            const locked = parentLocked || !!n.locked;
+            state.set(n.id, { visible, opacity, locked });
+            // Connected set: only the active child is visible.
+            const isConnected = n.isConnectedSet && n.children && n.children.length;
+            const activeChildId = isConnected
+                ? (n.defaultMemberLayerId || (n.children[0] && n.children[0].id))
+                : null;
+            for (const c of n.children || []) {
+                const childParentVisible = visible && (!isConnected || c.id === activeChildId);
+                recurse([c], childParentVisible, opacity, locked);
+            }
+        }
+    }
+    recurse(mapData.layers, true, 1, false);
+    return state;
+}
+
+function updateLayerVisibility() {
+    const state = computeNodeState();
+    Array.from(world.querySelectorAll('.nv-image')).forEach(el => {
+        const lid = el.dataset.layerId;
+        const st = state.get(lid);
+        let show = st ? st.visible : true;
+        if (show && isolatedImageId && el.dataset.imageId !== isolatedImageId) show = false;
+        if (show) {
+            const node = findLayer(lid);
+            const img = node && (node.images || []).find(i => i.id === el.dataset.imageId);
+            if (img) {
+                if (img.minZoom != null && zoom < img.minZoom) show = false;
+                if (img.maxZoom != null && zoom > img.maxZoom) show = false;
+            }
+        }
+        el.style.display = show ? '' : 'none';
+        if (show && st) el.style.opacity = st.opacity;
+    });
+}
+
+// Place-pin mode short-circuits ALL element interactions: any left-click drops a pin,
+// even on top of images or other pins. Returns true if the click was consumed.
+function tryPlacePin(e) {
+    if (toolMode !== 'add-pin' || mode !== 'edit') return false;
+    if (e.button !== 0) return false;
+    e.stopPropagation();
+    e.preventDefault();
+    const wx = (e.clientX - pan.x) / zoom;
+    const wy = (e.clientY - pan.y) / zoom;
+    sendMessage({ type: 'placePinAt', x: wx, y: wy });
+    return true;
+}
+
+function repositionPins() {
+    const hosts = pinOverlay.querySelectorAll('.nv-pin-host');
+    hosts.forEach(host => {
+        const x = parseFloat(host.dataset.worldX) || 0;
+        const y = parseFloat(host.dataset.worldY) || 0;
+        host.style.left = (pan.x + x * zoom) + 'px';
+        host.style.top  = (pan.y + y * zoom) + 'px';
+    });
+}
+
+function setMapData(json) {
+    try { mapData = JSON.parse(json) || { layers: [], pins: [] }; }
+    catch (e) { mapData = { layers: [], pins: [] }; log('setMapData parse error: ' + e.message); }
+    if (!mapData.layers) mapData.layers = [];
+    if (!mapData.pins) mapData.pins = [];
+    const rect = stage.getBoundingClientRect();
+    pan.x = mapData.initialView?.centerX || (rect.width / 2);
+    pan.y = mapData.initialView?.centerY || (rect.height / 2);
+    zoom = mapData.initialView?.zoom || 1;
+    let nodeCount = 0, imageCount = 0;
+    walkNodes(mapData.layers, n => { nodeCount++; imageCount += (n.images || []).length; });
+    log(`setMapData nodes=${nodeCount} images=${imageCount} pins=${(mapData.pins || []).length} stage=${rect.width}x${rect.height} pan=${pan.x},${pan.y} zoom=${zoom}`);
+    render();
+}
+
+function setImageBaseUrl(url) {
+    imageBaseUrl = url || '';
+    log('setImageBaseUrl = ' + imageBaseUrl);
+    render();
+}
+
+function setMode(m) {
+    mode = m === 'view' ? 'view' : 'edit';
+    document.body.classList.toggle('mode-edit', mode === 'edit');
+    document.body.classList.toggle('mode-view', mode === 'view');
+}
+
+function render() {
+    world.innerHTML = '';
+    pinOverlay.innerHTML = '';
+    // Depth-first walk: images render in tree order so deeper / later nodes
+    // paint on top. updateLayerVisibility() (via applyTransform) handles the
+    // hidden / connected-set / zoom-range / isolate cascade afterwards.
+    walkNodes(mapData.layers, node => {
+        for (const img of node.images || []) renderImage(node, img);
+    });
+    for (const pin of mapData.pins || []) renderPin(pin);
+    applyTransform();
+}
+
+function applyImageTransform(el, img) {
+    // Encode pan-less screen-space rect: image lives inside #world (translated by pan).
+    // Per-image transform includes current zoom so changing zoom updates each image
+    // independently, forcing the browser to repaint at the new effective resolution.
+    const natW = el.naturalWidth || img.width || 1;
+    const natH = el.naturalHeight || img.height || 1;
+    el.style.width = natW + 'px';
+    el.style.height = natH + 'px';
+    const w = img.width || natW;
+    const h = img.height || natH;
+    const z = zoom;
+    const sw = w * z;
+    const sh = h * z;
+    const cx = ((img.x || 0) + w / 2) * z;
+    const cy = ((img.y || 0) + h / 2) * z;
+    const rot = img.rotation || 0;
+    el.style.transform =
+        `translate(${cx}px, ${cy}px) rotate(${rot}deg) translate(${-sw / 2}px, ${-sh / 2}px) scale(${sw / natW}, ${sh / natH})`;
+    applyClipPath(el, img, natW, natH);
+}
+
+function applyClipPath(el, img, natW, natH) {
+    if (!img.clipPolygon || img.clipPolygon.length < 3) {
+        el.style.clipPath = '';
+        return;
+    }
+    natW = natW || el.naturalWidth || 1;
+    natH = natH || el.naturalHeight || 1;
+    const pts = img.clipPolygon
+        .map(p => `${(p.x / natW * 100).toFixed(3)}% ${(p.y / natH * 100).toFixed(3)}%`)
+        .join(',');
+    el.style.clipPath = `polygon(${pts})`;
+}
+
+function renderImage(layer, img) {
+    const el = document.createElement('img');
+    el.className = 'nv-image';
+    el.draggable = false;
+    // Encode each path segment so spaces / non-ASCII chars resolve correctly.
+    const encoded = String(img.path || '')
+        .split('/')
+        .map(s => encodeURIComponent(s))
+        .join('/');
+    el.src = imageBaseUrl + encoded;
+    log(`renderImage path="${img.path}" url="${el.src}" pos=${img.x},${img.y} size=${img.width}x${img.height}`);
+    el.addEventListener('load', () => {
+        log(`image loaded ok: ${img.path} (natural ${el.naturalWidth}x${el.naturalHeight})`);
+        applyImageTransform(el, img);
+        updateImageHandles();
+    });
+    el.addEventListener('error', () => log(`IMAGE LOAD FAILED: ${el.src}`));
+    el.style.opacity = layer.opacity ?? 1;
+    el.dataset.imageId = img.id;
+    el.dataset.layerId = layer.id;
+    applyImageTransform(el, img);
+    el.addEventListener('mousedown', (e) => {
+        // Middle button = pan, always.
+        if (e.button === 1) {
+            e.preventDefault();
+            e.stopPropagation();
+            startPan(e);
+            return;
+        }
+        if (tryPlacePin(e)) return;
+        if (mode !== 'edit') return;
+        // Locked layer = left-click just clears selection; pan via middle button only.
+        if (layer.locked) {
+            if (e.button === 0) {
+                e.stopPropagation();
+                selected = null;
+                Array.from(world.querySelectorAll('.selected')).forEach(n => n.classList.remove('selected'));
+                updateImageHandles();
+            }
+            return;
+        }
+        if (e.button === 2) return;
+        e.stopPropagation();
+        selectImage(layer.id, img.id);
+        startImageDrag(e, layer, img, el);
+    });
+    el.addEventListener('contextmenu', (e) => {
+        if (mode !== 'edit') return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (clipEdit && clipEdit.imageId === img.id) return; // right-click is point-delete during clip edit
+        selectImage(layer.id, img.id);
+        showImageContextMenu(e, layer, img);
+    });
+    el.addEventListener('dblclick', (e) => {
+        if (!clipEdit || clipEdit.imageId !== img.id) return;
+        e.stopPropagation();
+        const [px, py] = unprojectImagePoint(e.clientX, e.clientY, img, el);
+        clipEdit.points.push({ x: px, y: py });
+        renderClipEditor();
+    });
+    world.appendChild(el);
+}
+
+function showImageContextMenu(ev, layer, img) {
+    closeContextMenu();
+    const menu = document.createElement('div');
+    menu.className = 'nv-ctx-menu';
+    menu.style.left = ev.clientX + 'px';
+    menu.style.top = ev.clientY + 'px';
+    function item(label, action) {
+        const it = document.createElement('div');
+        it.textContent = label;
+        it.addEventListener('mousedown', e => { e.stopPropagation(); });
+        it.addEventListener('click', () => { closeContextMenu(); action(); });
+        return it;
+    }
+    const labels = ctxMenuLabels;
+    menu.appendChild(item(labels.move, () => {
+        sendMessage({ type: 'imageContext', imageId: img.id, layerId: layer.id });
+    }));
+    menu.appendChild(item(labels.clip, () => enterClipEdit(layer.id, img.id)));
+    menu.appendChild(item(labels.delete, () => deleteImage(layer.id, img.id)));
+    document.body.appendChild(menu);
+    setTimeout(() => window.addEventListener('mousedown', closeContextMenu, { once: true }), 0);
+}
+
+function closeContextMenu() {
+    const m = document.querySelector('.nv-ctx-menu');
+    if (m) m.remove();
+}
+
+function deleteImage(layerId, imageId) {
+    const layer = findLayer(layerId);
+    if (!layer) return;
+    layer.images = (layer.images || []).filter(i => i.id !== imageId);
+    if (selected?.kind === 'image' && selected.id === imageId) selected = null;
+    render();
+    sendMessage({ type: 'mapChanged' });
+}
+
+// Labels for the native HTML context menu. C# can override via setContextMenuLabels.
+let ctxMenuLabels = { move: 'Move to layer…', clip: 'Edit clip mask', delete: 'Delete' };
+window.setContextMenuLabels = (m, c, d) => { ctxMenuLabels = { move: m || ctxMenuLabels.move, clip: c || ctxMenuLabels.clip, delete: d || ctxMenuLabels.delete }; };
+
+function renderPin(pin) {
+    const host = document.createElement('div');
+    host.className = 'nv-pin-host' + (selected?.kind === 'pin' && selected.id === pin.id ? ' selected' : '');
+    host.dataset.pinId = pin.id;
+    host.dataset.worldX = pin.x;
+    host.dataset.worldY = pin.y;
+
+    if (pin.label) {
+        const lbl = document.createElement('div');
+        lbl.className = 'nv-pin-label';
+        lbl.textContent = pin.label;
+        host.appendChild(lbl);
+    }
+    const marker = document.createElement('div');
+    marker.className = 'nv-pin-marker';
+    if (pin.color) marker.style.background = pin.color;
+    host.appendChild(marker);
+
+    host.addEventListener('mousedown', (e) => {
+        if (e.button === 1) {
+            e.preventDefault();
+            e.stopPropagation();
+            startPan(e);
+            return;
+        }
+        if (tryPlacePin(e)) return;
+        e.stopPropagation();
+        if (mode === 'view') {
+            sendMessage({ type: 'pinClick', pinId: pin.id, entityId: pin.entityId || '', entityType: pin.entityType || '' });
+            return;
+        }
+        if (e.button === 2) return; // right-click handled below
+        selected = { kind: 'pin', id: pin.id };
+        sendMessage({ type: 'pinSelected', pinId: pin.id, color: pin.color || '' });
+        startPinDrag(e, pin, host);
+    });
+    host.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        if (mode !== 'edit') return;
+        sendMessage({
+            type: 'pinContext',
+            pinId: pin.id,
+            label: pin.label || '',
+            entityId: pin.entityId || '',
+            entityType: pin.entityType || '',
+            color: pin.color || '',
+        });
+    });
+    pinOverlay.appendChild(host);
+}
+
+function selectImage(layerId, imageId) {
+    selected = { kind: 'image', id: imageId, layerId: layerId };
+    Array.from(world.querySelectorAll('.nv-image')).forEach(el => {
+        el.classList.toggle('selected', el.dataset.imageId === imageId && el.dataset.layerId === layerId);
+    });
+    updateImageHandles();
+    const layer = findLayer(layerId);
+    const img = layer && (layer.images || []).find(i => i.id === imageId);
+    if (img) {
+        sendMessage({
+            type: 'imageSelected',
+            imageId: imageId,
+            layerId: layerId,
+            minZoom: img.minZoom == null ? 0 : img.minZoom,
+            maxZoom: img.maxZoom == null ? 0 : img.maxZoom,
+        });
+    }
+}
+
+function updateImageHandles() {
+    handlesOverlay.innerHTML = '';
+    if (mode !== 'edit' || !selected || selected.kind !== 'image') return;
+    if (toolMode === 'add-pin') return;
+    const layer = findLayer(selected.layerId);
+    if (!layer || layer.locked || layer.hidden) return;
+    const img = (layer.images || []).find(i => i.id === selected.id);
+    if (!img) return;
+
+    const sx = pan.x + img.x * zoom;
+    const sy = pan.y + img.y * zoom;
+    const sw = (img.width || 0) * zoom;
+    const sh = (img.height || 0) * zoom;
+    const rot = img.rotation || 0;
+
+    // Frame (dashed outline)
+    const frame = document.createElement('div');
+    frame.className = 'nv-handle-frame';
+    frame.style.left = sx + 'px';
+    frame.style.top = sy + 'px';
+    frame.style.width = sw + 'px';
+    frame.style.height = sh + 'px';
+    if (rot) frame.style.transform = `rotate(${rot}deg)`;
+    handlesOverlay.appendChild(frame);
+
+    // Handle positions in local (unrotated) image space, then rotate around image center.
+    const cx = sx + sw / 2, cy = sy + sh / 2;
+    const rad = rot * Math.PI / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+    const project = (lx, ly) => {
+        const dx = lx - cx, dy = ly - cy;
+        return [cx + dx * cos - dy * sin, cy + dx * sin + dy * cos];
+    };
+    const corners = [
+        ['nw', sx,           sy],
+        ['ne', sx + sw,      sy],
+        ['se', sx + sw,      sy + sh],
+        ['sw', sx,           sy + sh],
+        ['n',  sx + sw / 2,  sy],
+        ['e',  sx + sw,      sy + sh / 2],
+        ['s',  sx + sw / 2,  sy + sh],
+        ['w',  sx,           sy + sh / 2],
+    ];
+    for (const [dir, hx, hy] of corners) {
+        const [px, py] = project(hx, hy);
+        const h = document.createElement('div');
+        h.className = 'nv-handle ' + dir;
+        h.style.left = px + 'px';
+        h.style.top = py + 'px';
+        h.addEventListener('mousedown', e => startImageResize(e, layer, img, dir));
+        handlesOverlay.appendChild(h);
+    }
+    // Rotation handle: 28px above top-center in local space, then rotated.
+    const [rx, ry] = project(sx + sw / 2, sy - 28);
+    const rh = document.createElement('div');
+    rh.className = 'nv-handle rotate';
+    rh.style.left = rx + 'px';
+    rh.style.top = ry + 'px';
+    rh.addEventListener('mousedown', e => startImageRotate(e, layer, img));
+    handlesOverlay.appendChild(rh);
+}
+
+function startImageResize(ev, layer, img, dir) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    const start = { mx: ev.clientX, my: ev.clientY, x: img.x, y: img.y, w: img.width, h: img.height };
+    const ratio = start.w / Math.max(1, start.h);
+    function move(e) {
+        const dx = (e.clientX - start.mx) / zoom;
+        const dy = (e.clientY - start.my) / zoom;
+        let nx = start.x, ny = start.y, nw = start.w, nh = start.h;
+        if (dir.includes('e')) nw = Math.max(8, start.w + dx);
+        if (dir.includes('w')) { nw = Math.max(8, start.w - dx); nx = start.x + (start.w - nw); }
+        if (dir.includes('s')) nh = Math.max(8, start.h + dy);
+        if (dir.includes('n')) { nh = Math.max(8, start.h - dy); ny = start.y + (start.h - nh); }
+        if (e.shiftKey && nw > 0 && nh > 0) {
+            if (Math.abs(dx) > Math.abs(dy)) nh = nw / ratio;
+            else nw = nh * ratio;
+            if (dir.includes('w')) nx = start.x + (start.w - nw);
+            if (dir.includes('n')) ny = start.y + (start.h - nh);
+        }
+        img.x = nx; img.y = ny; img.width = nw; img.height = nh;
+        const el = world.querySelector(`.nv-image[data-image-id="${img.id}"]`);
+        if (el) applyImageTransform(el, img);
+        updateImageHandles();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+function startImageRotate(ev, layer, img) {
+    ev.stopPropagation(); ev.preventDefault();
+    const cx = img.x + (img.width || 0) / 2;
+    const cy = img.y + (img.height || 0) / 2;
+    const scx = pan.x + cx * zoom;
+    const scy = pan.y + cy * zoom;
+    const startA = Math.atan2(ev.clientY - scy, ev.clientX - scx);
+    const startRot = img.rotation || 0;
+    function move(e) {
+        const a = Math.atan2(e.clientY - scy, e.clientX - scx);
+        let deg = startRot + (a - startA) * 180 / Math.PI;
+        if (e.shiftKey) deg = Math.round(deg / 15) * 15;
+        img.rotation = deg;
+        const el = world.querySelector(`.nv-image[data-image-id="${img.id}"]`);
+        if (el) applyImageTransform(el, img);
+        updateImageHandles();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+function startImageDrag(ev, layer, img, el) {
+    const start = { x: ev.clientX, y: ev.clientY, ix: img.x, iy: img.y };
+    function move(e) {
+        const dx = (e.clientX - start.x) / zoom;
+        const dy = (e.clientY - start.y) / zoom;
+        img.x = start.ix + dx;
+        img.y = start.iy + dy;
+        applyImageTransform(el, img);
+        updateImageHandles();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+function startPinDrag(ev, pin, host) {
+    const start = { x: ev.clientX, y: ev.clientY, px: pin.x, py: pin.y };
+    function move(e) {
+        const dx = (e.clientX - start.x) / zoom;
+        const dy = (e.clientY - start.y) / zoom;
+        pin.x = start.px + dx;
+        pin.y = start.py + dy;
+        host.dataset.worldX = pin.x;
+        host.dataset.worldY = pin.y;
+        host.style.left = (pan.x + pin.x * zoom) + 'px';
+        host.style.top  = (pan.y + pin.y * zoom) + 'px';
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+// ── Clip-mask editing ───────────────────────────────────────────────────
+function enterClipEdit(layerId, imageId) {
+    const layer = findLayer(layerId);
+    if (!layer) return;
+    const img = (layer.images || []).find(i => i.id === imageId);
+    if (!img) return;
+    const el = world.querySelector(`.nv-image[data-image-id="${imageId}"]`);
+    if (!el) return;
+    const natW = el.naturalWidth || img.width || 100;
+    const natH = el.naturalHeight || img.height || 100;
+    let points = (img.clipPolygon || []).map(p => ({ x: p.x, y: p.y }));
+    if (points.length < 3) {
+        // Seed with full-image rectangle so user starts from a sensible default.
+        points = [{ x: 0, y: 0 }, { x: natW, y: 0 }, { x: natW, y: natH }, { x: 0, y: natH }];
+    }
+    clipEdit = { layerId, imageId, points };
+    selected = { kind: 'image', id: imageId, layerId };
+    showClipToolbar();
+    renderClipEditor();
+}
+
+function exitClipEdit(commit) {
+    if (!clipEdit) return;
+    const { layerId, imageId, points } = clipEdit;
+    clipEdit = null;
+    hideClipToolbar();
+    Array.from(handlesOverlay.querySelectorAll('.nv-clip-handle, .nv-clip-line')).forEach(n => n.remove());
+    if (commit) {
+        const layer = findLayer(layerId);
+        const img = (layer?.images || []).find(i => i.id === imageId);
+        if (img) {
+            img.clipPolygon = points.length >= 3 ? points.map(p => ({ x: p.x, y: p.y })) : null;
+            const el = world.querySelector(`.nv-image[data-image-id="${img.id}"]`);
+            if (el) applyClipPath(el, img);
+            sendMessage({ type: 'mapChanged' });
+        }
+    } else {
+        // Re-render so any preview clip-path reverts to saved state.
+        const layer = findLayer(layerId);
+        const img = (layer?.images || []).find(i => i.id === imageId);
+        if (img) {
+            const el = world.querySelector(`.nv-image[data-image-id="${img.id}"]`);
+            if (el) applyClipPath(el, img);
+        }
+    }
+    updateImageHandles();
+}
+
+// Map a natural-pixel coord (within the image) to screen coords, accounting for
+// the image's world position, size, rotation, and current pan/zoom.
+function projectImagePoint(natX, natY, img, el) {
+    const natW = el.naturalWidth || img.width || 1;
+    const natH = el.naturalHeight || img.height || 1;
+    const w = img.width || natW;
+    const h = img.height || natH;
+    const rot = (img.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rot), sin = Math.sin(rot);
+    const localX = (natX / natW) * w - w / 2;
+    const localY = (natY / natH) * h - h / 2;
+    const rx = localX * cos - localY * sin;
+    const ry = localX * sin + localY * cos;
+    const wx = img.x + w / 2 + rx;
+    const wy = img.y + h / 2 + ry;
+    return [pan.x + wx * zoom, pan.y + wy * zoom];
+}
+
+// Inverse of projectImagePoint: screen → natural-pixel within the image.
+function unprojectImagePoint(sx, sy, img, el) {
+    const natW = el.naturalWidth || img.width || 1;
+    const natH = el.naturalHeight || img.height || 1;
+    const w = img.width || natW;
+    const h = img.height || natH;
+    const rot = (img.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rot), sin = Math.sin(rot);
+    const wx = (sx - pan.x) / zoom;
+    const wy = (sy - pan.y) / zoom;
+    const dx = wx - (img.x + w / 2);
+    const dy = wy - (img.y + h / 2);
+    const ux = dx * cos + dy * sin;
+    const uy = -dx * sin + dy * cos;
+    const px = (ux + w / 2) / w * natW;
+    const py = (uy + h / 2) / h * natH;
+    return [Math.max(0, Math.min(natW, px)), Math.max(0, Math.min(natH, py))];
+}
+
+function renderClipEditor() {
+    Array.from(handlesOverlay.querySelectorAll('.nv-clip-handle, .nv-clip-line')).forEach(n => n.remove());
+    if (!clipEdit) return;
+    const layer = findLayer(clipEdit.layerId);
+    const img = (layer?.images || []).find(i => i.id === clipEdit.imageId);
+    if (!img) return;
+    const el = world.querySelector(`.nv-image[data-image-id="${img.id}"]`);
+    if (!el) return;
+
+    const pts = clipEdit.points;
+    // Live-preview the working polygon on the image.
+    applyClipPath(el, { clipPolygon: pts });
+
+    // Polygon edges as rotated dashed lines.
+    for (let i = 0; i < pts.length; i++) {
+        const next = pts[(i + 1) % pts.length];
+        const [x1, y1] = projectImagePoint(pts[i].x, pts[i].y, img, el);
+        const [x2, y2] = projectImagePoint(next.x, next.y, img, el);
+        const line = document.createElement('div');
+        line.className = 'nv-clip-line';
+        const len = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        const ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+        line.style.left = x1 + 'px';
+        line.style.top = y1 + 'px';
+        line.style.width = len + 'px';
+        line.style.transform = `rotate(${ang}deg)`;
+        handlesOverlay.appendChild(line);
+    }
+    // Point handles, draggable + right-click to delete.
+    pts.forEach((p, idx) => {
+        const [sx, sy] = projectImagePoint(p.x, p.y, img, el);
+        const h = document.createElement('div');
+        h.className = 'nv-handle nv-clip-handle';
+        h.style.left = sx + 'px';
+        h.style.top = sy + 'px';
+        h.dataset.idx = idx;
+        h.addEventListener('mousedown', e => startClipPointDrag(e, idx, img, el));
+        h.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (clipEdit.points.length > 3) {
+                clipEdit.points.splice(idx, 1);
+                renderClipEditor();
+            }
+        });
+        handlesOverlay.appendChild(h);
+    });
+}
+
+function startClipPointDrag(ev, idx, img, el) {
+    ev.stopPropagation();
+    ev.preventDefault();
+    function move(e) {
+        const [px, py] = unprojectImagePoint(e.clientX, e.clientY, img, el);
+        clipEdit.points[idx] = { x: px, y: py };
+        renderClipEditor();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+function showClipToolbar() {
+    let tb = document.getElementById('nv-clip-toolbar');
+    if (!tb) {
+        tb = document.createElement('div');
+        tb.id = 'nv-clip-toolbar';
+        const hint = document.createElement('span');
+        hint.className = 'hint';
+        hint.textContent = 'Drag points · Double-click image to add · Right-click point to remove · Esc to cancel';
+        const done = document.createElement('button');
+        done.className = 'primary';
+        done.textContent = 'Done';
+        done.addEventListener('click', () => exitClipEdit(true));
+        const reset = document.createElement('button');
+        reset.className = 'secondary';
+        reset.textContent = 'Clear';
+        reset.addEventListener('click', () => {
+            if (clipEdit) { clipEdit.points = []; renderClipEditor(); }
+        });
+        const cancel = document.createElement('button');
+        cancel.className = 'secondary';
+        cancel.textContent = 'Cancel';
+        cancel.addEventListener('click', () => exitClipEdit(false));
+        tb.appendChild(hint);
+        tb.appendChild(reset);
+        tb.appendChild(cancel);
+        tb.appendChild(done);
+        document.body.appendChild(tb);
+    }
+    tb.style.display = 'flex';
+}
+function hideClipToolbar() {
+    const tb = document.getElementById('nv-clip-toolbar');
+    if (tb) tb.style.display = 'none';
+}
+
+window.toggleClipEditOnSelected = () => {
+    if (clipEdit) { exitClipEdit(false); return; }
+    if (!selected || selected.kind !== 'image') { log('toggleClipEdit: no image selected'); return; }
+    enterClipEdit(selected.layerId, selected.id);
+};
+
+window.addEventListener('keydown', (e) => {
+    if (clipEdit) {
+        if (e.key === 'Escape') exitClipEdit(false);
+        else if (e.key === 'Enter') exitClipEdit(true);
+        return;
+    }
+    if (e.key === 'Escape' && toolMode === 'add-pin') {
+        sendMessage({ type: 'cancelPinPlace' });
+        toolMode = 'select';
+        stage.style.cursor = 'default';
+        return;
+    }
+    if ((e.key === 'Delete' || e.key === 'Backspace') && selected && mode === 'edit') {
+        // Ignore when user is typing in an input/textarea or contentEditable area.
+        const t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+        e.preventDefault();
+        deleteSelected();
+    }
+});
+
+// Stage pan + wheel zoom.
+let panStart = null;
+function startPan(e) {
+    panStart = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+    stage.classList.add('dragging');
+}
+stage.addEventListener('mousedown', (e) => {
+    if (e.button === 1) { // middle button = pan
+        e.preventDefault();
+        startPan(e);
+        return;
+    }
+    if (tryPlacePin(e)) return;
+    if (e.target !== stage && e.target !== world) return;
+    if (e.button !== 0) return;
+    // Left-click on empty stage just clears selection. Pan requires middle button.
+    selected = null;
+    Array.from(world.querySelectorAll('.selected')).forEach(el => el.classList.remove('selected'));
+    updateImageHandles();
+    sendMessage({ type: 'selectionCleared' });
+});
+// Suppress middle-click auto-scroll cursor inside the stage.
+stage.addEventListener('auxclick', (e) => { if (e.button === 1) e.preventDefault(); });
+// Suppress native browser context menu on empty map area (no element handles it).
+stage.addEventListener('contextmenu', (e) => {
+    if (e.target === stage || e.target === world || e.target === pinOverlay || e.target === handlesOverlay)
+        e.preventDefault();
+});
+window.addEventListener('mousemove', (e) => {
+    if (!panStart) return;
+    pan.x = e.clientX - panStart.x;
+    pan.y = e.clientY - panStart.y;
+    applyTransform();
+});
+window.addEventListener('mouseup', () => {
+    if (panStart) {
+        panStart = null;
+        stage.classList.remove('dragging');
+        mapData.initialView = { centerX: pan.x, centerY: pan.y, zoom: zoom };
+        sendMessage({ type: 'viewChanged', centerX: pan.x, centerY: pan.y, zoom: zoom });
+    }
+});
+stage.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+    const wx = (e.clientX - pan.x) / zoom;
+    const wy = (e.clientY - pan.y) / zoom;
+    zoom = Math.max(0.05, Math.min(10, zoom * factor));
+    pan.x = e.clientX - wx * zoom;
+    pan.y = e.clientY - wy * zoom;
+    applyTransform();
+    mapData.initialView = { centerX: pan.x, centerY: pan.y, zoom: zoom };
+    sendMessage({ type: 'viewChanged', centerX: pan.x, centerY: pan.y, zoom: zoom });
+}, { passive: false });
+
+// Host API
+window.setMapData = setMapData;
+window.setImageBaseUrl = setImageBaseUrl;
+window.setMode = setMode;
+window.getMapData = () => JSON.stringify(mapData);
+window.setActiveLayer = (layerId) => { activeLayerId = layerId || ''; log('setActiveLayer = ' + activeLayerId); };
+
+// Compute world-space bounding box of all currently-visible images.
+function visibleImageBounds() {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const state = computeNodeState();
+    walkNodes(mapData.layers, node => {
+        const st = state.get(node.id);
+        if (st && !st.visible) return;
+        for (const img of node.images || []) {
+            const x = img.x || 0, y = img.y || 0;
+            const w = img.width || 0, h = img.height || 0;
+            if (x < minX) minX = x;
+            if (y < minY) minY = y;
+            if (x + w > maxX) maxX = x + w;
+            if (y + h > maxY) maxY = y + h;
+        }
+    });
+    if (minX === Infinity) return null;
+    return { minX, minY, maxX, maxY };
+}
+
+window.zoomToFit = () => {
+    const b = visibleImageBounds();
+    const rect = stage.getBoundingClientRect();
+    if (!b) { // nothing to fit — reset
+        pan.x = rect.width / 2; pan.y = rect.height / 2; zoom = 1;
+    } else {
+        const bw = Math.max(1, b.maxX - b.minX);
+        const bh = Math.max(1, b.maxY - b.minY);
+        const margin = 0.92;
+        zoom = Math.max(0.05, Math.min(10, Math.min(rect.width / bw, rect.height / bh) * margin));
+        const cx = (b.minX + b.maxX) / 2;
+        const cy = (b.minY + b.maxY) / 2;
+        pan.x = rect.width / 2 - cx * zoom;
+        pan.y = rect.height / 2 - cy * zoom;
+    }
+    lastZoomApplied = -1;
+    applyTransform();
+    mapData.initialView = { centerX: pan.x, centerY: pan.y, zoom };
+    sendMessage({ type: 'viewChanged', centerX: pan.x, centerY: pan.y, zoom });
+};
+
+window.resetView = () => {
+    const rect = stage.getBoundingClientRect();
+    pan.x = rect.width / 2;
+    pan.y = rect.height / 2;
+    zoom = 1;
+    lastZoomApplied = -1;
+    applyTransform();
+    mapData.initialView = { centerX: pan.x, centerY: pan.y, zoom };
+    sendMessage({ type: 'viewChanged', centerX: pan.x, centerY: pan.y, zoom });
+};
+
+function firstLeafNode() {
+    let leaf = null;
+    walkNodes(mapData.layers, n => {
+        if (!leaf && (!n.children || n.children.length === 0)) leaf = n;
+    });
+    return leaf;
+}
+
+window.addImageToMap = (relPath, w, h) => {
+    log(`addImageToMap relPath="${relPath}" w=${w} h=${h} activeLayer=${activeLayerId}`);
+    if (!mapData.layers) mapData.layers = [];
+    // Resolve target node: prefer the active layer, else first leaf, else create one.
+    let node = activeLayerId ? findLayer(activeLayerId) : null;
+    if (!node) node = firstLeafNode();
+    if (!node) {
+        node = { id: 'layer-1', name: 'Base', opacity: 1, locked: false, hidden: false, expanded: true, images: [], children: [] };
+        mapData.layers.push(node);
+    }
+    if (!node.images) node.images = [];
+    log(`addImageToMap target node=${node.id} (hidden=${node.hidden} minZoom=${node.minZoom} maxZoom=${node.maxZoom})`);
+    const stageRect = stage.getBoundingClientRect();
+    const cx = (stageRect.width / 2 - pan.x) / zoom;
+    const cy = (stageRect.height / 2 - pan.y) / zoom;
+    const ww = w || 256;
+    const hh = h || 256;
+    node.images.push({
+        id: 'image-' + Date.now(),
+        path: relPath,
+        x: cx - ww / 2,
+        y: cy - hh / 2,
+        width: ww,
+        height: hh,
+        rotation: 0,
+    });
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+window.setToolMode = (m) => {
+    toolMode = (m === 'add-pin') ? 'add-pin' : 'select';
+    stage.style.cursor = toolMode === 'add-pin' ? 'crosshair' : 'default';
+    if (toolMode === 'add-pin') {
+        // Drop existing selection so handles don't intercept clicks and the user
+        // gets a clean canvas to drop the pin on.
+        selected = null;
+        Array.from(world.querySelectorAll('.selected')).forEach(n => n.classList.remove('selected'));
+        updateImageHandles();
+        if (clipEdit) exitClipEdit(false);
+    }
+    log('toolMode = ' + toolMode);
+};
+
+window.addPinAtPoint = (wx, wy, label, entityType, entityId, color) => {
+    mapData.pins = mapData.pins || [];
+    mapData.pins.push({
+        id: 'pin-' + Date.now(),
+        x: wx, y: wy,
+        style: 'dot',
+        label: label || '',
+        entityType: entityType || '',
+        entityId: entityId || '',
+        color: color || null,
+    });
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.addPinAtCenter = (label, entityType, entityId, color) => {
+    const stageRect = stage.getBoundingClientRect();
+    const cx = (stageRect.width / 2 - pan.x) / zoom;
+    const cy = (stageRect.height / 2 - pan.y) / zoom;
+    mapData.pins.push({
+        id: 'pin-' + Date.now(),
+        x: cx, y: cy,
+        style: 'dot',
+        label: label || '',
+        entityType: entityType || '',
+        entityId: entityId || '',
+        color: color || null,
+    });
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+window.updateImageZoomRange = (imageId, minZoom, maxZoom) => {
+    const node = findImageNode(imageId);
+    if (!node) return;
+    const img = node.images.find(i => i.id === imageId);
+    if (!img) return;
+    img.minZoom = (minZoom && minZoom > 0) ? minZoom : null;
+    img.maxZoom = (maxZoom && maxZoom > 0) ? maxZoom : null;
+    updateLayerVisibility();
+    sendMessage({ type: 'mapChanged' });
+};
+
+// Isolate mode: view-only toggle so the user can see exactly which image
+// they're editing. Not persisted — getMapData never writes it.
+window.setIsolatedImage = (imageId) => {
+    isolatedImageId = imageId || null;
+    updateLayerVisibility();
+};
+
+window.updatePinColor = (pinId, color) => {
+    const pin = (mapData.pins || []).find(p => p.id === pinId);
+    if (!pin) return;
+    pin.color = color || null;
+    const host = pinOverlay.querySelector(`.nv-pin-host[data-pin-id="${pinId}"]`);
+    if (host) {
+        const marker = host.querySelector('.nv-pin-marker');
+        if (marker) marker.style.background = color || '';
+    }
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.updatePin = (pinId, label, entityType, entityId, color) => {
+    const pin = (mapData.pins || []).find(p => p.id === pinId);
+    if (!pin) return;
+    pin.label = label || '';
+    pin.entityType = entityType || '';
+    pin.entityId = entityId || '';
+    pin.color = color || null;
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+window.moveImageToLayer = (sourceLayerId, imageId, targetLayerId) => {
+    const src = findLayer(sourceLayerId);
+    const dst = findLayer(targetLayerId);
+    if (!src || !dst) { log('moveImageToLayer: layer not found'); return; }
+    const idx = (src.images || []).findIndex(i => i.id === imageId);
+    if (idx < 0) return;
+    const [img] = src.images.splice(idx, 1);
+    dst.images = dst.images || [];
+    dst.images.push(img);
+    selected = { kind: 'image', id: imageId, layerId: targetLayerId };
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.deletePin = (pinId) => {
+    if (!mapData.pins) return;
+    mapData.pins = mapData.pins.filter(p => p.id !== pinId);
+    if (selected?.kind === 'pin' && selected.id === pinId) selected = null;
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+window.deleteSelected = () => {
+    if (!selected) return;
+    if (selected.kind === 'image') {
+        const node = findLayer(selected.layerId) || findImageNode(selected.id);
+        if (node) node.images = (node.images || []).filter(i => i.id !== selected.id);
+    } else if (selected.kind === 'pin') {
+        mapData.pins = (mapData.pins || []).filter(p => p.id !== selected.id);
+    }
+    selected = null;
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+
+sendMessage({ type: 'ready' });
+</script>
+</body>
+</html>

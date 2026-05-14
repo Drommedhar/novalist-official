@@ -33,35 +33,36 @@ If you are looking for a specific feature, jump straight to its page from the ta
 11. [Relationships graph](14-relationships.md) — auto-clustered family/social graph of your characters.
 12. [Calendar & in-world dates](13-calendar.md) — Gregorian and fully custom calendars, scene placement, story date ranges.
 13. [Timeline](12-timeline.md) — chronological event view across acts, chapters, scenes, and manual events.
+14. [Maps](29-maps.md) — interactive map view with layered images, polygon clip masks, entity-linked pins, floor stacks.
 
 ### Project management
 
-14. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
-15. [Research](15-research.md) — notes, links, files, PDFs, images attached to your project.
-16. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline.
-17. [Snapshots](17-snapshots.md) — per-scene version history with side-by-side compare.
-18. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
-19. [Git integration](18-git.md) — stage, commit, push, pull without leaving the app.
+15. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
+16. [Research](15-research.md) — notes, links, files, PDFs, images attached to your project.
+17. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline.
+18. [Snapshots](17-snapshots.md) — per-scene version history with side-by-side compare.
+19. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
+20. [Git integration](18-git.md) — stage, commit, push, pull without leaving the app.
 
 ### Output
 
-20. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, plus formats added by extensions.
+21. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, plus formats added by extensions.
 
 ### Context panels
 
-21. [Context sidebar, Notes, Footnotes, Comments](22-context-sidebar.md) — the right-hand and bottom panels that surround the editor.
+22. [Context sidebar, Notes, Footnotes, Comments](22-context-sidebar.md) — the right-hand and bottom panels that surround the editor.
 
 ### Customisation
 
-22. [Settings](23-settings.md) — appearance, editor, writing assistance, writing goals, accent color, language.
-23. [Extensions](24-extensions.md) — install, enable, disable, browse the gallery, write your own.
-24. [Command palette](25-command-palette.md) — every action in one searchable box.
-25. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut, and how to rebind.
-26. [Localization](27-localization.md) — switching language, contributing translations.
+23. [Settings](23-settings.md) — appearance, editor, writing assistance, writing goals, accent color, language.
+24. [Extensions](24-extensions.md) — install, enable, disable, browse the gallery, write your own.
+25. [Command palette](25-command-palette.md) — every action in one searchable box.
+26. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut, and how to rebind.
+27. [Localization](27-localization.md) — switching language, contributing translations.
 
 ### Help
 
-27. [Troubleshooting & FAQ](28-troubleshooting.md) — common problems, where files live, how to recover.
+28. [Troubleshooting & FAQ](28-troubleshooting.md) — common problems, where files live, how to recover.
 
 ## Conventions used in this manual
 

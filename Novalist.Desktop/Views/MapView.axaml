@@ -1,0 +1,546 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Novalist.Desktop.ViewModels"
+             xmlns:m="using:Novalist.Core.Models"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             x:Class="Novalist.Desktop.Views.MapView"
+             x:DataType="vm:MapViewModel">
+    <UserControl.Styles>
+        <Style Selector="Button.toolBtn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
+            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="CornerRadius" Value="4" />
+        </Style>
+        <Style Selector="Button.toolBtn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
+        </Style>
+        <Style Selector="ToggleButton.toolBtn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
+            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+            <Setter Property="Width" Value="28" />
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style Selector="ToggleButton.toolBtn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
+        </Style>
+        <Style Selector="ToggleButton.toolBtn:checked /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+            <Setter Property="TextElement.Foreground" Value="{DynamicResource AccentForeground}" />
+        </Style>
+        <Style Selector="Path.toolIcon">
+            <Setter Property="Stroke" Value="{DynamicResource NormalText}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="Fill" Value="Transparent" />
+            <Setter Property="Width" Value="15" />
+            <Setter Property="Height" Value="15" />
+            <Setter Property="Stretch" Value="Uniform" />
+        </Style>
+        <Style Selector="ToggleButton.toolBtn:checked Path.toolIcon">
+            <Setter Property="Stroke" Value="{DynamicResource AccentForeground}" />
+        </Style>
+
+        <!-- Layer-panel row: flat Affinity-style row, indented by Depth. -->
+        <Style Selector="Border.layerRow">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Padding" Value="2,3" />
+            <Setter Property="CornerRadius" Value="3" />
+        </Style>
+        <Style Selector="Border.layerRow:pointerover">
+            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
+        </Style>
+        <Style Selector="Border.layerRow.selectedRow">
+            <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+        </Style>
+        <Style Selector="Border.layerRow.selectedRow TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource AccentForeground}" />
+        </Style>
+        <Style Selector="Button.rowIconBtn">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="3" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MinWidth" Value="0" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style Selector="Button.rowIconBtn:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource RibbonGroupBorder}" />
+        </Style>
+        <Style Selector="Path.rowIcon">
+            <Setter Property="Stroke" Value="{DynamicResource NormalText}" />
+            <Setter Property="StrokeThickness" Value="1.8" />
+            <Setter Property="StrokeLineCap" Value="Round" />
+            <Setter Property="StrokeJoin" Value="Round" />
+            <Setter Property="Fill" Value="Transparent" />
+            <Setter Property="Width" Value="14" />
+            <Setter Property="Height" Value="14" />
+            <Setter Property="Stretch" Value="Uniform" />
+        </Style>
+        <Style Selector="Path.rowIcon.rowIconMuted">
+            <Setter Property="Stroke" Value="{DynamicResource SubtleText}" />
+        </Style>
+
+        <!-- Compact NumericUpDown: shrink spinner buttons so the text stays readable. -->
+        <Style Selector="NumericUpDown.compactNud">
+            <Setter Property="MinWidth" Value="58" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="4,2" />
+        </Style>
+        <Style Selector="NumericUpDown.compactNud /template/ ButtonSpinner">
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="MaxHeight" Value="24" />
+        </Style>
+        <Style Selector="NumericUpDown.compactNud /template/ ButtonSpinner /template/ RepeatButton">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="MinWidth" Value="16" />
+            <Setter Property="Height" Value="11" />
+            <Setter Property="MinHeight" Value="11" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="FontSize" Value="8" />
+        </Style>
+        <Style Selector="NumericUpDown.compactNud /template/ ButtonSpinner /template/ RepeatButton /template/ ContentPresenter">
+            <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="NumericUpDown.compactNud /template/ ButtonSpinner /template/ RepeatButton PathIcon">
+            <Setter Property="Width" Value="6" />
+            <Setter Property="Height" Value="6" />
+        </Style>
+        <Style Selector="NumericUpDown.compactNud /template/ TextBox">
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Padding" Value="4,2" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
+        </Style>
+    </UserControl.Styles>
+
+    <Grid ColumnDefinitions="Auto,*,Auto">
+
+        <!-- Tool rail (vertical) -->
+        <Border Grid.Column="0"
+                Background="{DynamicResource SubtleBackground}"
+                BorderBrush="{DynamicResource RibbonGroupBorder}"
+                BorderThickness="0,0,1,0"
+                Padding="4,8"
+                IsVisible="{Binding HasMap}">
+            <StackPanel Spacing="5" HorizontalAlignment="Center">
+                <Button Classes="toolBtn"
+                        ToolTip.Tip="{loc:Loc map.toolAddImageTooltip}"
+                        Command="{Binding AddImageCommand}"
+                        IsEnabled="{Binding IsEditMode}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconImage}" />
+                </Button>
+                <ToggleButton Classes="toolBtn"
+                              ToolTip.Tip="{loc:Loc map.toolAddPinTooltip}"
+                              IsChecked="{Binding IsPinPlaceMode, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditMode}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconMapPin}" />
+                </ToggleButton>
+                <Button Classes="toolBtn"
+                        ToolTip.Tip="{loc:Loc map.editClipTooltip}"
+                        Click="OnEditClipClick"
+                        IsEnabled="{Binding IsEditMode}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconScissors}" />
+                </Button>
+                <Button Classes="toolBtn"
+                        ToolTip.Tip="{loc:Loc map.toolDeleteTooltip}"
+                        Click="OnDeleteSelectedClick"
+                        IsEnabled="{Binding IsEditMode}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconTrash}" />
+                </Button>
+                <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="6,4" />
+                <Button Classes="toolBtn"
+                        ToolTip.Tip="{loc:Loc map.toolZoomFitTooltip}"
+                        Click="OnZoomToFitClick">
+                    <Path Classes="toolIcon" Data="{StaticResource IconMaximize}" />
+                </Button>
+                <Button Classes="toolBtn"
+                        ToolTip.Tip="{loc:Loc map.toolResetViewTooltip}"
+                        Click="OnResetViewClick">
+                    <Path Classes="toolIcon" Data="{StaticResource IconRotateCcw}" />
+                </Button>
+                <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="6,4" />
+                <Button Classes="toolBtn"
+                        ToolTip.Tip="{loc:Loc map.modeToggle}"
+                        Command="{Binding ToggleModeCommand}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconEye}" />
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <!-- Main: slim toolbar + WebView -->
+        <DockPanel Grid.Column="1">
+            <Border DockPanel.Dock="Top"
+                    Background="{DynamicResource RibbonBackground}"
+                    BorderBrush="{DynamicResource RibbonBorder}"
+                    BorderThickness="0,0,0,1"
+                    Padding="6,4">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                    <!-- File menu replaces the old map-list rail. Button+MenuFlyout
+                         instead of Menu so the popup is an overlay we can pair with
+                         the WebView snapshot-hide via the flyout's Opened/Closed. -->
+                    <Button Grid.Column="0"
+                            x:Name="MapFileButton"
+                            Content="{loc:Loc map.menuFile}"
+                            Padding="10,4"
+                            VerticalAlignment="Center">
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuItem Header="{loc:Loc map.menuNewMap}"
+                                          Command="{Binding CreateMapCommand}" />
+                                <MenuItem Header="{loc:Loc map.menuOpenMap}"
+                                          ItemsSource="{Binding Maps}">
+                                    <MenuItem.ItemTemplate>
+                                        <DataTemplate DataType="m:MapReference">
+                                            <TextBlock Text="{Binding Name}"
+                                                       PointerPressed="OnOpenMapItemClick"
+                                                       Tag="{Binding}" />
+                                        </DataTemplate>
+                                    </MenuItem.ItemTemplate>
+                                </MenuItem>
+                                <MenuItem Header="{loc:Loc map.menuRenameMap}"
+                                          Command="{Binding RenameMapCommand}"
+                                          CommandParameter="{Binding SelectedMap}" />
+                                <MenuItem Header="{loc:Loc map.menuDeleteMap}"
+                                          Command="{Binding DeleteMapConfirmCommand}"
+                                          CommandParameter="{Binding SelectedMap}" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding ActiveMap.Name, FallbackValue=''}"
+                               FontWeight="SemiBold"
+                               VerticalAlignment="Center"
+                               Margin="10,0,0,0" />
+                    <Border Grid.Column="3"
+                            Padding="4,2"
+                            IsVisible="{Binding HasSelectedPin}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <TextBlock Text="{loc:Loc map.pinColorLabel}"
+                                       FontSize="10"
+                                       VerticalAlignment="Center"
+                                       Foreground="{DynamicResource SubtleText}" />
+                            <ColorPicker x:Name="PinColorPicker"
+                                         Color="{Binding SelectedPinColor, Mode=TwoWay}"
+                                         IsAlphaEnabled="False"
+                                         IsColorPaletteVisible="True"
+                                         IsColorComponentsVisible="True"
+                                         IsColorSpectrumVisible="True"
+                                         IsColorPreviewVisible="True"
+                                         VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ToggleButton Grid.Column="4"
+                                  Content="{loc:Loc map.layerPanel}"
+                                  Padding="8,4"
+                                  IsChecked="{Binding IsLayerPanelOpen}" />
+                </Grid>
+            </Border>
+
+            <Grid x:Name="MapHost">
+                <Border Background="{DynamicResource EditorBackground}"
+                        IsVisible="{Binding !HasMap}">
+                    <TextBlock Text="{loc:Loc map.emptyState}"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource SubtleText}"
+                               FontSize="14" />
+                </Border>
+            </Grid>
+        </DockPanel>
+
+        <!-- Right: layer panel + properties section -->
+        <Border Grid.Column="3"
+                Width="290"
+                Background="{DynamicResource SubtleBackground}"
+                BorderBrush="{DynamicResource RibbonGroupBorder}"
+                BorderThickness="1,0,0,0"
+                IsVisible="{Binding IsLayerPanelOpen}">
+            <DockPanel>
+                <!-- Panel header -->
+                <Border DockPanel.Dock="Top"
+                        Padding="12,10"
+                        BorderBrush="{DynamicResource RibbonGroupBorder}"
+                        BorderThickness="0,0,0,1">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0"
+                                   Text="{loc:Loc map.layerPanelTitle}"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center" />
+                        <Button Grid.Column="1"
+                                Content="{loc:Loc map.layerAdd}"
+                                Padding="6,3"
+                                FontSize="11"
+                                Command="{Binding AddLayerCommand}"
+                                ToolTip.Tip="{loc:Loc map.layerAddTooltip}"
+                                IsEnabled="{Binding IsEditMode}" />
+                    </Grid>
+                </Border>
+
+                <!-- Properties section (bottom, only when a node is selected) -->
+                <Border DockPanel.Dock="Bottom"
+                        IsVisible="{Binding HasSelectedNode}"
+                        Background="{DynamicResource RibbonBackground}"
+                        BorderBrush="{DynamicResource RibbonGroupBorder}"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,10"
+                        MaxHeight="340">
+                    <ScrollViewer AllowAutoHide="False" Padding="0,0,10,0">
+                        <StackPanel Spacing="8" DataContext="{Binding SelectedNode}">
+                            <TextBlock Text="{loc:Loc map.properties}"
+                                       FontWeight="SemiBold"
+                                       FontSize="12" />
+                            <TextBlock Text="{Binding Name}"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       TextTrimming="CharacterEllipsis" />
+
+                            <!-- Opacity: compact percentage field (Affinity-style) -->
+                            <Grid ColumnDefinitions="Auto,Auto">
+                                <TextBlock Grid.Column="0" Text="{loc:Loc map.propOpacity}"
+                                           FontSize="10" VerticalAlignment="Center"
+                                           Margin="0,0,8,0"
+                                           Foreground="{DynamicResource SubtleText}" />
+                                <NumericUpDown Grid.Column="1"
+                                               Value="{Binding Opacity, Converter={x:Static vm:MapConverters.OpacityToPercent}, Mode=OneWay}"
+                                               Minimum="0" Maximum="100" Increment="5"
+                                               FormatString="0'%'" FontSize="11"
+                                               Classes="compactNud"
+                                               Foreground="{DynamicResource NormalText}"
+                                               ValueChanged="OnPropOpacityChanged" />
+                            </Grid>
+
+                            <!-- Zoom range -->
+                            <TextBlock Text="{loc:Loc map.layerZoomRangeCaption}"
+                                       FontSize="10"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       TextWrapping="Wrap" />
+                            <Grid ColumnDefinitions="Auto,*,Auto,*">
+                                <TextBlock Grid.Column="0" Text="{loc:Loc map.layerZoomFrom}"
+                                           FontSize="10" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                <NumericUpDown Grid.Column="1"
+                                               Value="{Binding MinZoom, Mode=OneWay}"
+                                               Minimum="0" Maximum="10" Increment="0.1"
+                                               FormatString="0.0" FontSize="11"
+                                               Classes="compactNud"
+                                               Foreground="{DynamicResource NormalText}"
+                                               ValueChanged="OnPropMinZoomChanged" />
+                                <TextBlock Grid.Column="2" Text="{loc:Loc map.layerZoomTo}"
+                                           FontSize="10" VerticalAlignment="Center" Margin="6,0,4,0" />
+                                <NumericUpDown Grid.Column="3"
+                                               Value="{Binding MaxZoom, Mode=OneWay}"
+                                               Minimum="0" Maximum="10" Increment="0.1"
+                                               FormatString="0.0" FontSize="11"
+                                               Classes="compactNud"
+                                               Foreground="{DynamicResource NormalText}"
+                                               ValueChanged="OnPropMaxZoomChanged" />
+                            </Grid>
+
+                            <!-- Floor mode (only meaningful for a group node) -->
+                            <CheckBox Content="{loc:Loc map.floorMode}"
+                                      IsChecked="{Binding IsConnectedSet, Mode=OneWay}"
+                                      ToolTip.Tip="{loc:Loc map.floorModeTooltip}"
+                                      IsVisible="{Binding HasChildren}"
+                                      FontSize="11"
+                                      Click="OnPropConnectedSetClick" />
+                            <StackPanel Spacing="2"
+                                        IsVisible="{Binding IsConnectedSet}">
+                                <TextBlock Text="{loc:Loc map.activeFloor}" FontSize="10"
+                                           Foreground="{DynamicResource SubtleText}" />
+                                <ComboBox ItemsSource="{Binding Children}"
+                                          SelectedValue="{Binding ActiveMemberLayerId, Mode=OneWay}"
+                                          SelectedValueBinding="{Binding NodeId}"
+                                          FontSize="11"
+                                          HorizontalAlignment="Stretch"
+                                          SelectionChanged="OnPropActiveMemberChanged">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:LayerNodeRow">
+                                            <TextBlock Text="{Binding Name}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+
+                            <!-- Images on this node -->
+                            <TextBlock Text="{loc:Loc map.propImages}" FontSize="10"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       Margin="0,4,0,0"
+                                       IsVisible="{Binding Images.Count}" />
+                            <ItemsControl ItemsSource="{Binding Images}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="vm:ImageRow">
+                                        <Border Margin="0,0,0,4" Padding="6,4"
+                                                Background="{DynamicResource SubtleBackground}"
+                                                BorderBrush="{DynamicResource RibbonGroupBorder}"
+                                                BorderThickness="1" CornerRadius="3">
+                                            <StackPanel Spacing="3">
+                                                <Grid ColumnDefinitions="*,Auto">
+                                                    <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
+                                                               FontSize="10"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               VerticalAlignment="Center" />
+                                                    <ToggleButton Grid.Column="1"
+                                                                  Content="{loc:Loc map.isolate}"
+                                                                  IsChecked="{Binding IsIsolated, Mode=OneWay}"
+                                                                  ToolTip.Tip="{loc:Loc map.isolateTooltip}"
+                                                                  FontSize="9" Padding="4,2"
+                                                                  MinHeight="0"
+                                                                  Tag="{Binding}"
+                                                                  Click="OnPropImageIsolateClick" />
+                                                </Grid>
+                                                <Grid ColumnDefinitions="Auto,*,Auto,*">
+                                                    <TextBlock Grid.Column="0" Text="{loc:Loc map.layerZoomFrom}"
+                                                               FontSize="9" VerticalAlignment="Center" Margin="0,0,3,0" />
+                                                    <NumericUpDown Grid.Column="1"
+                                                                   Value="{Binding MinZoom, Mode=OneWay}"
+                                                                   Minimum="0" Maximum="10" Increment="0.1"
+                                                                   FormatString="0.0" FontSize="10"
+                                                                   Classes="compactNud"
+                                                                   Foreground="{DynamicResource NormalText}"
+                                                                   Tag="{Binding}"
+                                                                   ValueChanged="OnPropImageMinZoomChanged" />
+                                                    <TextBlock Grid.Column="2" Text="{loc:Loc map.layerZoomTo}"
+                                                               FontSize="9" VerticalAlignment="Center" Margin="5,0,3,0" />
+                                                    <NumericUpDown Grid.Column="3"
+                                                                   Value="{Binding MaxZoom, Mode=OneWay}"
+                                                                   Minimum="0" Maximum="10" Increment="0.1"
+                                                                   FormatString="0.0" FontSize="10"
+                                                                   Classes="compactNud"
+                                                                   Foreground="{DynamicResource NormalText}"
+                                                                   Tag="{Binding}"
+                                                                   ValueChanged="OnPropImageMaxZoomChanged" />
+                                                </Grid>
+                                            </StackPanel>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Layer tree (flattened VisibleRows) -->
+                <ScrollViewer>
+                    <StackPanel>
+                    <ItemsControl ItemsSource="{Binding VisibleRows}" Padding="4,6">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:LayerNodeRow">
+                                <Border Classes="layerRow"
+                                        Classes.selectedRow="{Binding IsActive}"
+                                        Tag="{Binding}"
+                                        PointerPressed="OnNodeDragPressed"
+                                        PointerMoved="OnNodeDragMoved"
+                                        PointerReleased="OnNodeDragReleased"
+                                        DragDrop.AllowDrop="True"
+                                        DragDrop.DragOver="OnNodeDragOver"
+                                        DragDrop.Drop="OnNodeDrop">
+                                    <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto"
+                                          Margin="{Binding IndentThickness}">
+                                        <!-- Chevron (groups only) -->
+                                        <Button Grid.Column="0"
+                                                Classes="rowIconBtn"
+                                                Width="18"
+                                                IsVisible="{Binding HasChildren}"
+                                                Tag="{Binding}"
+                                                Click="OnNodeToggleExpand"
+                                                Content="{Binding IsExpanded, Converter={x:Static vm:MapConverters.ChevronGlyph}}" />
+                                        <Border Grid.Column="0" Width="18"
+                                                IsVisible="{Binding !HasChildren}" />
+                                        <!-- Lock toggle (icon swaps locked / unlocked) -->
+                                        <Button Grid.Column="1"
+                                                Classes="rowIconBtn"
+                                                Tag="{Binding}"
+                                                Click="OnNodeToggleLocked"
+                                                ToolTip.Tip="{loc:Loc map.layerToggleLock}">
+                                            <Panel>
+                                                <Path Classes="rowIcon"
+                                                      Data="{StaticResource IconLock}"
+                                                      IsVisible="{Binding Locked}" />
+                                                <Path Classes="rowIcon rowIconMuted"
+                                                      Data="{StaticResource IconUnlock}"
+                                                      IsVisible="{Binding !Locked}" />
+                                            </Panel>
+                                        </Button>
+                                        <!-- Name: TextBlock + inline-rename TextBox -->
+                                        <Panel Grid.Column="2" Tag="{Binding}"
+                                               DoubleTapped="OnNodeNameDoubleTapped">
+                                            <TextBlock Text="{Binding Name}"
+                                                       FontSize="12"
+                                                       VerticalAlignment="Center"
+                                                       Margin="4,0,0,0"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       IsVisible="{Binding !IsRenaming}" />
+                                            <TextBox Text="{Binding Name}"
+                                                     FontSize="12"
+                                                     Padding="2,0"
+                                                     MinHeight="0"
+                                                     Tag="{Binding}"
+                                                     IsVisible="{Binding IsRenaming}"
+                                                     KeyDown="OnNodeNameKeyDown"
+                                                     LostFocus="OnNodeNameLostFocus" />
+                                        </Panel>
+                                        <!-- Add child -->
+                                        <Button Grid.Column="3"
+                                                Classes="rowIconBtn"
+                                                Content="+"
+                                                Tag="{Binding}"
+                                                Click="OnNodeAddChild"
+                                                ToolTip.Tip="{loc:Loc map.layerAddChildTooltip}" />
+                                        <!-- Eye (icon swaps visible / hidden) -->
+                                        <Button Grid.Column="4"
+                                                Classes="rowIconBtn"
+                                                Tag="{Binding}"
+                                                Click="OnNodeToggleHidden"
+                                                ToolTip.Tip="{loc:Loc map.layerToggleVisibility}">
+                                            <Panel>
+                                                <Path Classes="rowIcon"
+                                                      Data="{StaticResource IconEye}"
+                                                      IsVisible="{Binding !Hidden}" />
+                                                <Path Classes="rowIcon rowIconMuted"
+                                                      Data="{StaticResource IconEyeOff}"
+                                                      IsVisible="{Binding Hidden}" />
+                                            </Panel>
+                                        </Button>
+                                        <!-- Delete -->
+                                        <Button Grid.Column="5"
+                                                Classes="rowIconBtn"
+                                                Content="×"
+                                                FontSize="13"
+                                                Tag="{Binding}"
+                                                Click="OnNodeDelete"
+                                                ToolTip.Tip="{loc:Loc map.layerDelete}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <!-- Drop here to move a layer back to the root level -->
+                    <Border MinHeight="60"
+                            Background="Transparent"
+                            DragDrop.AllowDrop="True"
+                            DragDrop.DragOver="OnRootDropZoneDragOver"
+                            DragDrop.Drop="OnRootDropZoneDrop" />
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

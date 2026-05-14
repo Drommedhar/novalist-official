@@ -23,6 +23,11 @@ namespace Novalist.Desktop;
 public partial class MainWindow : Window
 {
     private bool _isDialogOpen;
+
+    /// <summary>True while a modal dialog overlay is shown. The map view checks this
+    /// so its File-menu flyout doesn't re-show the WebView on top of a dialog that a
+    /// menu command just opened.</summary>
+    internal bool IsDialogOverlayOpen => _isDialogOpen;
     private string _webViewLanguage = App.ReadLanguageFromSettings();
     private GridLength _savedExplorerWidth = new(280);
     private GridLength _savedContextSidebarWidth = new(320);
@@ -99,6 +104,9 @@ public partial class MainWindow : Window
                 break;
             case nameof(MainWindowViewModel.EntityEditor):
                 WireEntityEditor(vm.EntityEditor);
+                break;
+            case nameof(MainWindowViewModel.Maps):
+                WireMapView(vm.Maps);
                 break;
             case nameof(MainWindowViewModel.Export):
                 WireExport(vm.Export);
@@ -414,6 +422,8 @@ public partial class MainWindow : Window
         // native HWND doesn't flash on top of the new view during transition.
         if (!sceneVisible) editorPanel?.SetWebViewVisible(false);
         if (!manuscriptVisible) manuscriptPanel?.SetWebViewVisible(false);
+        var mapsVisible = view == "Maps";
+        if (!mapsVisible) this.FindControl<MapView>("MapsPanel")?.SetWebViewVisible(false);
 
         if (sceneContent != null) sceneContent.IsVisible = sceneVisible;
         if (entityEditor != null) entityEditor.IsVisible = view == "Entity";
@@ -424,6 +434,8 @@ public partial class MainWindow : Window
         if (gitPanel != null) gitPanel.IsVisible = view == "Git";
         if (codexHubPanel != null) codexHubPanel.IsVisible = view == "CodexHub";
         if (manuscriptPanel != null) manuscriptPanel.IsVisible = manuscriptVisible;
+        var mapsPanel = this.FindControl<MapView>("MapsPanel");
+        if (mapsPanel != null) mapsPanel.IsVisible = view == "Maps";
         if (plotGridPanel != null) plotGridPanel.IsVisible = view == "PlotGrid";
         if (relGraphPanel != null) relGraphPanel.IsVisible = view == "RelationshipsGraph";
         if (calendarPanel != null) calendarPanel.IsVisible = view == "Calendar";
@@ -609,6 +621,163 @@ public partial class MainWindow : Window
             });
             return files.Count > 0 ? files[0].Path.LocalPath : null;
         };
+    }
+
+    private void WireMapView(MapViewModel? maps)
+    {
+        if (maps == null) return;
+        maps.ShowInputDialog = ShowInputDialogAsync;
+        maps.PickImageRequested = PickImageForMapAsync;
+        maps.PromptPinDetailsRequested = PromptPinDetailsAsync;
+        maps.RequestPinEditDialog = RequestPinEditAsync;
+        maps.ShowConfirmDialog = ShowConfirmDialogAsync;
+        maps.PromptLayerPicker = PromptLayerPickerAsync;
+    }
+
+    private async Task<string?> PromptLayerPickerAsync(List<(string Id, string Name)> options, string currentLayerId)
+    {
+        if (options.Count == 0) return null;
+        var dialog = new Dialogs.LayerPickerDialog(options, currentLayerId);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        return dialog.ResultLayerId;
+    }
+
+
+    private async Task<(string Label, string EntityId, string EntityType, string Color)?> PromptPinDetailsAsync()
+    {
+        var opts = await BuildEntityOptionsAsync();
+        var dialog = new Dialogs.MapPinDialog(opts);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        if (dialog.ResultLabel == null) return null;
+        return (dialog.ResultLabel, dialog.ResultEntityId ?? string.Empty, dialog.ResultEntityType ?? string.Empty, dialog.ResultColor ?? string.Empty);
+    }
+
+    private async Task<(string Label, string EntityId, string EntityType, string Color, bool Delete)?> RequestPinEditAsync(
+        string pinId, string label, string entityId, string entityType, string color)
+    {
+        var opts = await BuildEntityOptionsAsync();
+        var dialog = new Dialogs.MapPinDialog(opts, label, entityId, color, allowDelete: true);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        if (dialog.ResultDelete) return (string.Empty, string.Empty, string.Empty, string.Empty, true);
+        if (dialog.ResultLabel == null) return null;
+        return (dialog.ResultLabel, dialog.ResultEntityId ?? string.Empty, dialog.ResultEntityType ?? string.Empty, dialog.ResultColor ?? string.Empty, false);
+    }
+
+    private async Task<List<Dialogs.EntityOption>> BuildEntityOptionsAsync()
+    {
+        var list = new List<Dialogs.EntityOption>();
+        try
+        {
+            var chars = await App.EntityService.LoadCharactersAsync();
+            foreach (var c in chars)
+                list.Add(new Dialogs.EntityOption(c.Id, c.DisplayName, "character"));
+            var locs = await App.EntityService.LoadLocationsAsync();
+            foreach (var l in locs)
+                list.Add(new Dialogs.EntityOption(l.Id, l.Name, "location"));
+            var items = await App.EntityService.LoadItemsAsync();
+            foreach (var i in items)
+                list.Add(new Dialogs.EntityOption(i.Id, i.Name, "item"));
+            var lore = await App.EntityService.LoadLoreAsync();
+            foreach (var lr in lore)
+                list.Add(new Dialogs.EntityOption(lr.Id, lr.Name, "lore"));
+            var types = App.ProjectService.CurrentProject?.CustomEntityTypes ?? new();
+            foreach (var t in types)
+            {
+                var customs = await App.EntityService.LoadCustomEntitiesAsync(t.TypeKey);
+                foreach (var ce in customs)
+                    list.Add(new Dialogs.EntityOption(ce.Id, ce.Name, $"custom:{t.TypeKey}"));
+            }
+        }
+        catch { }
+        return list.OrderBy(o => o.Name, System.StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    private async Task<(string RelativePath, double Width, double Height)?> PickImageForMapAsync()
+    {
+        try
+        {
+            var book = App.ProjectService.ActiveBook;
+            var bookRoot = App.ProjectService.ActiveBookRoot;
+            if (book == null || bookRoot == null) return null;
+            var imagesDir = System.IO.Path.Combine(bookRoot, book.ImageFolder);
+            System.IO.Directory.CreateDirectory(imagesDir);
+
+            var choice = await ShowAddImageSourceDialogAsync();
+            if (choice == null) return null;
+
+            // Paths returned are book-root-relative (e.g. "Images/foo.png").
+            string? relPath = null;
+            switch (choice.Value)
+            {
+                case Dialogs.AddImageSourceChoice.Library:
+                    relPath = await ShowProjectImagePickerAsync(null);
+                    if (string.IsNullOrEmpty(relPath)) return null;
+                    break;
+
+                case Dialogs.AddImageSourceChoice.Import:
+                {
+                    var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+                    {
+                        Title = "Pick an image for the map",
+                        AllowMultiple = false,
+                        FileTypeFilter = new[]
+                        {
+                            new FilePickerFileType("Images")
+                            {
+                                Patterns = new[] { "*.png", "*.jpg", "*.jpeg", "*.webp", "*.svg", "*.bmp" }
+                            }
+                        }
+                    });
+                    if (files.Count == 0) return null;
+                    relPath = CopyIntoImagesFolder(files[0].Path.LocalPath, imagesDir, book.ImageFolder);
+                    break;
+                }
+
+                case Dialogs.AddImageSourceChoice.Clipboard:
+                case Dialogs.AddImageSourceChoice.Url:
+                {
+                    var tempPath = await ImportExternalImageAsync(choice.Value);
+                    if (string.IsNullOrEmpty(tempPath)) return null;
+                    relPath = CopyIntoImagesFolder(tempPath, imagesDir, book.ImageFolder);
+                    try { System.IO.File.Delete(tempPath); } catch { }
+                    break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(relPath)) return null;
+
+            double w = 0, h = 0;
+            try
+            {
+                using var fs = System.IO.File.OpenRead(System.IO.Path.Combine(bookRoot, relPath));
+                var bmp = new Avalonia.Media.Imaging.Bitmap(fs);
+                w = bmp.PixelSize.Width;
+                h = bmp.PixelSize.Height;
+            }
+            catch { /* SVG / unsupported: leave 0×0, JS uses natural size */ }
+
+            return (relPath, w, h);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Map] PickImageForMapAsync failed: {ex}");
+            return null;
+        }
+    }
+
+    private static string CopyIntoImagesFolder(string sourcePath, string imagesDir, string imagesFolderName)
+    {
+        var name = System.IO.Path.GetFileName(sourcePath);
+        var dest = System.IO.Path.Combine(imagesDir, name);
+        if (System.IO.File.Exists(dest))
+        {
+            var ext = System.IO.Path.GetExtension(name);
+            var stem = System.IO.Path.GetFileNameWithoutExtension(name);
+            name = $"{stem}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}{ext}";
+            dest = System.IO.Path.Combine(imagesDir, name);
+        }
+        System.IO.File.Copy(sourcePath, dest, overwrite: false);
+        return $"{imagesFolderName}/{name}".Replace('\\', '/');
     }
 
     private void WireExplorerDialog(ExplorerViewModel? explorer)
@@ -1315,6 +1484,7 @@ public partial class MainWindow : Window
                          || vm.IsExtensionsOpen;
         this.FindControl<EditorView>("EditorPanel")?.SetWebViewVisible(!anyOverlay);
         this.FindControl<ManuscriptView>("ManuscriptPanel")?.SetWebViewVisible(!anyOverlay);
+        this.FindControl<MapView>("MapsPanel")?.SetWebViewVisible(!anyOverlay);
     }
 
     private void FocusOverlay(string name)

@@ -141,7 +141,8 @@
     "manuscript": "Manuskript",
     "manuscriptTooltip": "Das vollständige Manuskript als fortlaufendes Dokument anzeigen",
     "calendarTooltip": "Szenenkalender öffnen",
-    "relationshipsTooltip": "Beziehungsgraph öffnen"
+    "relationshipsTooltip": "Beziehungsgraph öffnen",
+    "mapsTooltip": "Interaktive Kartenansicht öffnen"
   },
   "sidebar": {
     "chapters": "Kapitel",

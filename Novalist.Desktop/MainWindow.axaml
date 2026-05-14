@@ -428,6 +428,15 @@
                                     <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconUser}"/></Canvas>
                                 </Viewbox>
                             </Button>
+                            <Button Classes="activityBarButton"
+                                    Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Maps}"
+                                    Command="{Binding OpenMapsCommand}"
+                                    IsVisible="{Binding IsProjectLoaded}"
+                                    ToolTip.Tip="{loc:Loc ribbon.mapsTooltip}">
+                                <Viewbox Classes="activityBarIcon">
+                                    <Canvas Width="24" Height="24"><Path Classes="activityBarIconPath" Data="{StaticResource IconMap}"/></Canvas>
+                                </Viewbox>
+                            </Button>
                             <!-- Separator -->
                             <Border Height="1" Background="{DynamicResource RibbonBorder}" Margin="6,4" />
                             <Button Classes="activityBarButton"
@@ -746,6 +755,11 @@
                                 <views:ManuscriptView DataContext="{Binding Manuscript}"
                                                        x:Name="ManuscriptPanel"
                                                        IsVisible="False" />
+
+                                <!-- Maps -->
+                                <views:MapView DataContext="{Binding Maps}"
+                                               x:Name="MapsPanel"
+                                               IsVisible="False" />
 
                                 <!-- Plot Grid -->
                                 <views:PlotGridView DataContext="{Binding PlotGrid}"

@@ -25,6 +25,7 @@ public partial class App : Application
     public static ISmartListService SmartListService { get; } = new SmartListService(ProjectService, EntityService);
     public static IPlotlineService PlotlineService { get; } = new PlotlineService(ProjectService);
     public static IResearchService ResearchService { get; } = new ResearchService(ProjectService, FileService);
+    public static IMapService MapService { get; } = new MapService(ProjectService, FileService);
     public static IWordHistoryService WordHistoryService { get; } = new WordHistoryService(FileService, ProjectService);
     public static ExtensionManager ExtensionManager { get; private set; } = null!;
     public static ThemeService ThemeService { get; } = new();

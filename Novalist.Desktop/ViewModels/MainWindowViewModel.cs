@@ -103,6 +103,9 @@ public partial class MainWindowViewModel : ObservableObject
     private ManuscriptViewModel? _manuscript;
 
     [ObservableProperty]
+    private MapViewModel? _maps;
+
+    [ObservableProperty]
     private PlotGridViewModel? _plotGrid;
 
     [ObservableProperty]
@@ -205,6 +208,7 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty] private bool _isTimelineOpen;
     [ObservableProperty] private bool _isCodexHubOpen;
     [ObservableProperty] private bool _isManuscriptOpen;
+    [ObservableProperty] private bool _isMapsOpen;
     [ObservableProperty] private bool _isExportOpen;
     [ObservableProperty] private bool _isImageGalleryOpen;
     [ObservableProperty] private bool _isGitOpen;
@@ -231,6 +235,7 @@ public partial class MainWindowViewModel : ObservableObject
     partial void OnIsTimelineOpenChanged(bool value) => QueueSyncContentTabs();
     partial void OnIsCodexHubOpenChanged(bool value) => QueueSyncContentTabs();
     partial void OnIsManuscriptOpenChanged(bool value) => QueueSyncContentTabs();
+    partial void OnIsMapsOpenChanged(bool value) => QueueSyncContentTabs();
     partial void OnIsExportOpenChanged(bool value) => QueueSyncContentTabs();
     partial void OnIsImageGalleryOpenChanged(bool value) => QueueSyncContentTabs();
     partial void OnIsGitOpenChanged(bool value) => QueueSyncContentTabs();
@@ -1273,6 +1278,11 @@ public partial class MainWindowViewModel : ObservableObject
         CodexHub.OpenTemplatesRequested += () => OpenSettingsToCategory("templates");
 
         Manuscript = new ManuscriptViewModel(_projectService, _entityService);
+        Maps = new MapViewModel(App.MapService, _projectService);
+        Maps.RefreshMaps();
+        // Note: Maps.ShowInputDialog + Maps.PickImageRequested are wired by
+        // MainWindow.WireMapView when the Maps property changes — do NOT set
+        // them here (would clobber the host picker with a null fallback).
         PlotGrid = new PlotGridViewModel(_projectService, App.PlotlineService);
 
         RelationshipsGraph = new RelationshipsGraphViewModel(_entityService);
@@ -1522,6 +1532,51 @@ public partial class MainWindowViewModel : ObservableObject
     {
         await App.WordHistoryService.LoadAsync();
         await App.WordHistoryService.MigrateLegacyBaselineAsync();
+    }
+
+    /// <summary>Called from MapView when a pin is clicked in view mode.</summary>
+    public async Task OpenEntityByIdAsync(string entityId)
+    {
+        if (string.IsNullOrEmpty(entityId)) return;
+        var characters = await _entityService.LoadCharactersAsync();
+        var ch = characters.FirstOrDefault(c => string.Equals(c.Id, entityId, StringComparison.OrdinalIgnoreCase));
+        if (ch != null) { OnEntityOpenRequested(EntityType.Character, ch); return; }
+        var locations = await _entityService.LoadLocationsAsync();
+        var loc = locations.FirstOrDefault(l => string.Equals(l.Id, entityId, StringComparison.OrdinalIgnoreCase));
+        if (loc != null) { OnEntityOpenRequested(EntityType.Location, loc); return; }
+        var items = await _entityService.LoadItemsAsync();
+        var it = items.FirstOrDefault(i => string.Equals(i.Id, entityId, StringComparison.OrdinalIgnoreCase));
+        if (it != null) { OnEntityOpenRequested(EntityType.Item, it); return; }
+        var lore = await _entityService.LoadLoreAsync();
+        var lr = lore.FirstOrDefault(l => string.Equals(l.Id, entityId, StringComparison.OrdinalIgnoreCase));
+        if (lr != null) { OnEntityOpenRequested(EntityType.Lore, lr); return; }
+        // Custom entity types.
+        var types = _projectService.CurrentProject?.CustomEntityTypes ?? new();
+        foreach (var t in types)
+        {
+            var customs = await _entityService.LoadCustomEntitiesAsync(t.TypeKey);
+            var match = customs.FirstOrDefault(ce => string.Equals(ce.Id, entityId, StringComparison.OrdinalIgnoreCase));
+            if (match != null) { OnEntityOpenRequested(EntityType.Custom, match); return; }
+        }
+    }
+
+    private async Task<(string RelativePath, double Width, double Height)?> PickMapImageAsync()
+    {
+        // Picker lives on MainWindow; ViewModel asks the View.
+        if (PickImageForMapRequested != null)
+            return await PickImageForMapRequested.Invoke();
+        return null;
+    }
+
+    /// <summary>Host-supplied (MainWindow): picks an image, copies it into the
+    /// book's Images/ folder if needed, and returns a relative path + dimensions.</summary>
+    public Func<Task<(string RelativePath, double Width, double Height)?>>? PickImageForMapRequested { get; set; }
+
+    [RelayCommand]
+    private void OpenMaps()
+    {
+        ActiveContentView = "Maps";
+        IsMapsOpen = true;
     }
 
     private static string GetEntityName(object entity) => entity switch

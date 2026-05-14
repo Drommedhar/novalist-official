@@ -110,4 +110,9 @@ public class BookData
     public BookDraftMetadata? ActiveDraft
         => Drafts.FirstOrDefault(d => string.Equals(d.Id, ActiveDraftId, StringComparison.OrdinalIgnoreCase))
            ?? Drafts.FirstOrDefault();
+
+    /// <summary>Interactive map references. Map content itself is stored in
+    /// per-map JSON under the active draft's Maps/ folder.</summary>
+    [JsonPropertyName("maps")]
+    public List<MapReference> Maps { get; set; } = new();
 }

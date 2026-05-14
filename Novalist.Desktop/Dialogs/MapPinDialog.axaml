@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             x:Class="Novalist.Desktop.Dialogs.MapPinDialog"
+             Width="460">
+    <Border Padding="24">
+        <DockPanel>
+            <Grid DockPanel.Dock="Bottom" Margin="0,16,0,0" ColumnDefinitions="Auto,*,Auto,Auto">
+                <Button x:Name="DeleteButton"
+                        Grid.Column="0"
+                        Content="{loc:Loc map.pinDelete}"
+                        Padding="12,8"
+                        IsVisible="False"
+                        Foreground="#E05252"
+                        Click="OnDelete" />
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                    <Button Content="{loc:Loc dialog.cancel}" Padding="16,8" Click="OnCancel" />
+                </StackPanel>
+                <Button Grid.Column="3" Content="{loc:Loc dialog.ok}" Padding="16,8" Classes="primary" Click="OnOk" IsDefault="True" Margin="8,0,0,0" />
+            </Grid>
+
+            <StackPanel Spacing="10">
+                <TextBlock Text="{loc:Loc map.pinTitle}"
+                           FontSize="14" FontWeight="SemiBold"
+                           Foreground="{DynamicResource NormalText}" />
+
+                <TextBlock Text="{loc:Loc map.pinLabel}"
+                           FontSize="11" Foreground="{DynamicResource SubtleText}" />
+                <TextBox x:Name="LabelInput"
+                         Watermark="{loc:Loc map.pinLabelWatermark}"
+                         MaxLength="120" />
+
+                <TextBlock Text="{loc:Loc map.pinEntity}"
+                           FontSize="11" Foreground="{DynamicResource SubtleText}" />
+                <AutoCompleteBox x:Name="EntityInput"
+                                 Watermark="{loc:Loc map.pinEntityWatermark}"
+                                 MinimumPrefixLength="0"
+                                 FilterMode="ContainsOrdinal"
+                                 HorizontalAlignment="Stretch" />
+                <TextBlock Text="{loc:Loc map.pinEntityHint}"
+                           FontSize="10"
+                           Foreground="{DynamicResource SubtleText}"
+                           TextWrapping="Wrap" />
+
+                <TextBlock Text="{loc:Loc map.pinColor}"
+                           FontSize="11" Foreground="{DynamicResource SubtleText}"
+                           Margin="0,6,0,0" />
+                <ColorPicker x:Name="ColorInput"
+                             HorizontalAlignment="Left"
+                             IsAlphaEnabled="False"
+                             IsColorPaletteVisible="True"
+                             IsColorComponentsVisible="True"
+                             IsColorSpectrumVisible="True"
+                             IsColorPreviewVisible="True" />
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</UserControl>
