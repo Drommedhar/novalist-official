@@ -11,20 +11,20 @@
         Focusable="True">
     <Border Background="Transparent" Padding="24">
         <DockPanel>
-            <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,12">
+            <StackPanel DockPanel.Dock="Top" Spacing="{StaticResource SpacingSmall}" Margin="0,0,0,12">
                 <TextBlock Text="{loc:Loc snapshots.title}"
-                           FontSize="16"
+                           FontSize="{StaticResource FontSizeTitle}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
                 <TextBlock x:Name="SceneTitleText"
-                           FontSize="12"
+                           FontSize="{StaticResource FontSizeBody}"
                            Foreground="{DynamicResource SubtleText}" />
             </StackPanel>
 
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,16,0,0">
                 <Button Content="{loc:Loc dialog.close}"
                         Padding="16,8"
@@ -46,20 +46,20 @@
                 <Border Grid.Row="1"
                         BorderBrush="{DynamicResource ExplorerBorder}"
                         BorderThickness="1"
-                        CornerRadius="4">
+                        CornerRadius="{StaticResource RadiusSmall}">
                     <ListBox x:Name="SnapshotList"
                              Background="Transparent"
                              SelectionMode="Single">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="dlg:SnapshotsDialog+SnapshotRow">
-                                <StackPanel Margin="6,4" Spacing="4">
+                                <StackPanel Margin="6,4" Spacing="{StaticResource SpacingTighter}">
                                     <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                                        <StackPanel Grid.Column="0" Spacing="2">
+                                        <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTightest}">
                                             <TextBlock Text="{Binding DisplayLabel}"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource NormalText}" />
                                             <TextBlock Text="{Binding DisplaySubtitle}"
-                                                       FontSize="11"
+                                                       FontSize="{StaticResource FontSizeBodySmall}"
                                                        Foreground="{DynamicResource SubtleText}" />
                                         </StackPanel>
                                         <Button Grid.Column="1"
@@ -90,7 +90,7 @@
                                             <TextBlock Grid.Column="0"
                                                        Text="{loc:Loc snapshots.confirmRestoreMessage}"
                                                        VerticalAlignment="Center"
-                                                       FontSize="11"
+                                                       FontSize="{StaticResource FontSizeBodySmall}"
                                                        TextWrapping="Wrap"
                                                        Foreground="{DynamicResource NormalText}" />
                                             <Button Grid.Column="1"
@@ -117,7 +117,7 @@
                                             <TextBlock Grid.Column="0"
                                                        Text="{loc:Loc snapshots.confirmDeleteMessage}"
                                                        VerticalAlignment="Center"
-                                                       FontSize="11"
+                                                       FontSize="{StaticResource FontSizeBodySmall}"
                                                        TextWrapping="Wrap"
                                                        Foreground="{DynamicResource NormalText}" />
                                             <Button Grid.Column="1"

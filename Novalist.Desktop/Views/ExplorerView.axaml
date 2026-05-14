@@ -22,7 +22,7 @@
             <!-- Header -->
             <Border DockPanel.Dock="Top" Padding="12,8">
                 <TextBlock Text="{loc:Loc explorer.title}"
-                           FontSize="13"
+                           FontSize="{StaticResource FontSizeBodyLarge}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource DimText}" />
             </Border>
@@ -32,22 +32,22 @@
                     Padding="8,4"
                     BorderBrush="{DynamicResource ExplorerBorder}"
                     BorderThickness="0,1,0,1">
-                <StackPanel Spacing="4">
-                    <StackPanel Orientation="Horizontal" Spacing="4">
+                <StackPanel Spacing="{StaticResource SpacingTighter}">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                         <Button Content="{loc:Loc explorer.addChapter}"
                                 Command="{Binding CreateChapterCommand}"
-                                FontSize="11"
+                                FontSize="{StaticResource FontSizeBodySmall}"
                                 Padding="8,4"
                                 ToolTip.Tip="{loc:Loc explorer.addChapterTooltip}" />
                         <Button Content="{loc:Loc explorer.addScene}"
                                 Command="{Binding CreateSceneCommand}"
-                                FontSize="11"
+                                FontSize="{StaticResource FontSizeBodySmall}"
                                 Padding="8,4"
                             ToolTip.Tip="{loc:Loc explorer.addSceneTooltip}" />
                     </StackPanel>
                     <TextBox Text="{Binding SearchQuery, Mode=TwoWay}"
                              Watermark="{loc:Loc explorer.search}"
-                             FontSize="11" />
+                             FontSize="{StaticResource FontSizeBodySmall}" />
                 </StackPanel>
             </Border>
 
@@ -73,7 +73,7 @@
                                 </Border.ContextMenu>
                                 <TextBlock Text="{Binding DisplayName}"
                                            FontWeight="Bold"
-                                           FontSize="12"
+                                           FontSize="{StaticResource FontSizeBody}"
                                            Foreground="{DynamicResource SubtleText}"
                                            TextTrimming="CharacterEllipsis" />
                             </Border>
@@ -85,7 +85,7 @@
                                 <!-- Chapter Header -->
                                 <Border Padding="8,6"
                                         Background="{Binding IsSelected, Converter={StaticResource BoolToSelectedBrush}}"
-                                        CornerRadius="4"
+                                        CornerRadius="{StaticResource RadiusSmall}"
                                         Margin="4,1"
                                     Tag="{Binding}"
                                         DragDrop.AllowDrop="True"
@@ -113,7 +113,7 @@
                                         <!-- Expand/Collapse indicator -->
                                         <TextBlock Grid.Column="0"
                                                    Text="{Binding IsExpanded, Converter={StaticResource BoolToExpanderIcon}}"
-                                                   FontSize="10"
+                                                   FontSize="{StaticResource FontSizeCaption}"
                                                    Foreground="{DynamicResource SubtleText}"
                                                    VerticalAlignment="Center"
                                                    Margin="0,0,6,0" />
@@ -124,11 +124,11 @@
                                                     VerticalAlignment="Center">
                                             <TextBlock Text="{Binding DisplayName}"
                                                        FontWeight="SemiBold"
-                                                       FontSize="13"
+                                                       FontSize="{StaticResource FontSizeBodyLarge}"
                                                        Foreground="{DynamicResource NormalText}"
                                                        TextTrimming="CharacterEllipsis" />
                                             <TextBlock Text="{Binding DateDisplay}"
-                                                       FontSize="10"
+                                                       FontSize="{StaticResource FontSizeCaption}"
                                                        Foreground="{DynamicResource SubtleText}"
                                                        IsVisible="{Binding HasDate}" />
                                         </StackPanel>
@@ -136,7 +136,7 @@
                                         <!-- Status Badge -->
                                         <StackPanel Grid.Column="2"
                                                     Orientation="Horizontal"
-                                                    Spacing="4"
+                                                    Spacing="{StaticResource SpacingTighter}"
                                                     VerticalAlignment="Center">
                                             <Viewbox Width="12" Height="12"
                                                      VerticalAlignment="Center"
@@ -146,12 +146,12 @@
                                                 </Canvas>
                                             </Viewbox>
                                             <TextBlock Text="{Binding GitStatusLabel}"
-                                                       FontSize="8"
+                                                       FontSize="{StaticResource FontSizeTiny}"
                                                        Foreground="#E5C07B"
                                                        VerticalAlignment="Center"
                                                        IsVisible="{Binding HasGitChanges}" />
                                             <TextBlock Text="{Binding StatusDisplay}"
-                                                       FontSize="12"
+                                                       FontSize="{StaticResource FontSizeBody}"
                                                        Foreground="{DynamicResource SubtleText}"
                                                        VerticalAlignment="Center"
                                                        PointerPressed="OnStatusPointerPressed"
@@ -168,7 +168,7 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate x:DataType="vm:SceneTreeItemViewModel">
                                             <Border Padding="8,4"
-                                                    CornerRadius="4"
+                                                    CornerRadius="{StaticResource RadiusSmall}"
                                                     Margin="4,1"
                                                     PointerPressed="OnScenePointerPressed"
                                                     PointerReleased="OnScenePointerReleased"
@@ -217,11 +217,11 @@
                                                                 Spacing="1"
                                                                 VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding DisplayName}"
-                                                                   FontSize="12"
+                                                                   FontSize="{StaticResource FontSizeBody}"
                                                                    Foreground="{DynamicResource DimText}"
                                                                    TextTrimming="CharacterEllipsis" />
                                                         <TextBlock Text="{Binding DateDisplay}"
-                                                                   FontSize="10"
+                                                                   FontSize="{StaticResource FontSizeCaption}"
                                                                    Foreground="{DynamicResource SubtleText}"
                                                                    IsVisible="{Binding HasDate}" />
                                                     </StackPanel>
@@ -237,7 +237,7 @@
                                                     </Viewbox>
                                                     <TextBlock Grid.Column="3"
                                                                Text="{Binding GitStatusLabel}"
-                                                               FontSize="8"
+                                                               FontSize="{StaticResource FontSizeTiny}"
                                                                Foreground="#E5C07B"
                                                                VerticalAlignment="Center"
                                                                Margin="4,0,0,0"
@@ -257,7 +257,7 @@
                 <StackPanel Margin="4,12,4,8"
                             IsVisible="{Binding HasArchivedScenes}">
                     <Border Padding="6,4"
-                            CornerRadius="4"
+                            CornerRadius="{StaticResource RadiusSmall}"
                             Background="Transparent">
                         <Button Classes="link"
                                 Padding="0"
@@ -266,17 +266,17 @@
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"
                                 Command="{Binding ToggleArchiveCommand}">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                                 <TextBlock Text="▸"
-                                           FontSize="10"
+                                           FontSize="{StaticResource FontSizeCaption}"
                                            Foreground="{DynamicResource SubtleText}"
                                            IsVisible="{Binding !IsArchiveExpanded}" />
                                 <TextBlock Text="▾"
-                                           FontSize="10"
+                                           FontSize="{StaticResource FontSizeCaption}"
                                            Foreground="{DynamicResource SubtleText}"
                                            IsVisible="{Binding IsArchiveExpanded}" />
                                 <TextBlock Text="{loc:Loc explorer.archive}"
-                                           FontSize="11"
+                                           FontSize="{StaticResource FontSizeBodySmall}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource SubtleText}"
                                            LetterSpacing="1" />
@@ -289,7 +289,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:ArchivedSceneItemViewModel">
                                 <Border Padding="8,4"
-                                        CornerRadius="4"
+                                        CornerRadius="{StaticResource RadiusSmall}"
                                         Margin="4,1"
                                         DoubleTapped="OnArchivedScenePreviewClick"
                                         Tag="{Binding}">
@@ -305,11 +305,11 @@
                                     </Border.ContextMenu>
                                     <StackPanel Spacing="1">
                                         <TextBlock Text="{Binding DisplayName}"
-                                                   FontSize="12"
+                                                   FontSize="{StaticResource FontSizeBody}"
                                                    Foreground="{DynamicResource DimText}"
                                                    TextTrimming="CharacterEllipsis" />
                                         <TextBlock Text="{Binding OriginLabel}"
-                                                   FontSize="10"
+                                                   FontSize="{StaticResource FontSizeCaption}"
                                                    Foreground="{DynamicResource SubtleText}"
                                                    IsVisible="{Binding OriginLabel, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                                    TextTrimming="CharacterEllipsis" />

@@ -1,0 +1,182 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:Novalist.Desktop.Localization"
+             xmlns:d="using:Novalist.Desktop.Dialogs"
+             x:Class="Novalist.Desktop.Dialogs.MapProfileEditorDialog"
+             Width="720" Height="560">
+    <Border Padding="20">
+        <DockPanel>
+            <!-- Buttons -->
+            <Grid DockPanel.Dock="Bottom" Margin="0,14,0,0" ColumnDefinitions="*,Auto,Auto">
+                <Button Grid.Column="1" Content="{loc:Loc dialog.cancel}" Padding="16,8" Click="OnCancel" />
+                <Button Grid.Column="2" Content="{loc:Loc dialog.ok}" Padding="16,8"
+                        Classes="primary" Click="OnOk" IsDefault="True" Margin="8,0,0,0" />
+            </Grid>
+
+            <TextBlock DockPanel.Dock="Top" Text="{loc:Loc map.profilesTitle}"
+                       FontSize="{StaticResource FontSizeTitleSmall}" FontWeight="SemiBold" Margin="0,0,0,12" />
+
+            <Grid ColumnDefinitions="200,*">
+                <!-- Profile list -->
+                <DockPanel Grid.Column="0" Margin="0,0,14,0">
+                    <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,*" Margin="0,8,0,0">
+                        <Button Grid.Column="0" Content="{loc:Loc map.profileAdd}"
+                                Padding="6,4" FontSize="{StaticResource FontSizeBody}" Margin="0,0,4,0"
+                                HorizontalAlignment="Stretch" Click="OnAddProfile" />
+                        <Button Grid.Column="1" Content="{loc:Loc map.profileDelete}"
+                                Padding="6,4" FontSize="{StaticResource FontSizeBody}"
+                                HorizontalAlignment="Stretch" Click="OnDeleteProfile" />
+                    </Grid>
+                    <ListBox x:Name="ProfileList" SelectionMode="Single" />
+                </DockPanel>
+
+                <!-- Selected profile editor -->
+                <ScrollViewer Grid.Column="1" AllowAutoHide="False"
+                              x:DataType="d:MapProfileEditorDialog+ProfileRow"
+                              DataContext="{Binding #ProfileList.SelectedItem}"
+                              IsVisible="{Binding Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}">
+                        <Grid ColumnDefinitions="90,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.profileName}"
+                                       VerticalAlignment="Center" FontSize="{StaticResource FontSizeBody}"
+                                       Foreground="{DynamicResource SubtleText}" />
+                            <TextBox Grid.Column="1" Text="{Binding Name, Mode=TwoWay}" FontSize="{StaticResource FontSizeBody}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="90,Auto,Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.profileKind}"
+                                       VerticalAlignment="Center" FontSize="{StaticResource FontSizeBody}"
+                                       Foreground="{DynamicResource SubtleText}" />
+                            <ComboBox Grid.Column="1" SelectedItem="{Binding Kind, Mode=TwoWay}"
+                                      FontSize="{StaticResource FontSizeBody}" Width="100">
+                                <ComboBox.Items>
+                                    <x:String>road</x:String>
+                                    <x:String>river</x:String>
+                                </ComboBox.Items>
+                            </ComboBox>
+                            <TextBlock Grid.Column="2" Text="{loc:Loc map.profileWidth}"
+                                       VerticalAlignment="Center" FontSize="{StaticResource FontSizeBody}" Margin="14,0,6,0"
+                                       Foreground="{DynamicResource SubtleText}" />
+                            <NumericUpDown Grid.Column="3" Value="{Binding DefaultWidth, Mode=TwoWay}"
+                                           Minimum="2" Maximum="400" Increment="2"
+                                           FormatString="0" FontSize="{StaticResource FontSizeBody}" Classes="compactNud"
+                                           HorizontalAlignment="Left" Width="90" />
+                        </Grid>
+
+                        <!-- Casing -->
+                        <Border Background="{DynamicResource SubtleBackground}"
+                                BorderBrush="{DynamicResource RibbonGroupBorder}"
+                                BorderThickness="1" CornerRadius="3" Padding="8,6">
+                            <StackPanel Spacing="{StaticResource SpacingSmall}">
+                                <TextBlock Text="{loc:Loc map.profileCasing}" FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" />
+                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingNormal}">
+                                    <StackPanel Spacing="{StaticResource SpacingTightest}">
+                                        <TextBlock Text="{loc:Loc map.colorCasing}" FontSize="{StaticResource FontSizeBody}"
+                                                   Foreground="{DynamicResource SubtleText}" />
+                                        <ColorPicker Color="{Binding CasingColor, Mode=TwoWay}" IsAlphaEnabled="False" />
+                                    </StackPanel>
+                                    <StackPanel Spacing="{StaticResource SpacingTightest}">
+                                        <TextBlock Text="{loc:Loc map.profileCasingExtra}" FontSize="{StaticResource FontSizeBody}"
+                                                   Foreground="{DynamicResource SubtleText}" />
+                                        <NumericUpDown Value="{Binding CasingExtra, Mode=TwoWay}"
+                                                       Minimum="0" Maximum="40" Increment="0.5"
+                                                       FormatString="0.0" FontSize="{StaticResource FontSizeBody}"
+                                                       Classes="compactNud" Width="90" />
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Bands -->
+                        <Border Background="{DynamicResource SubtleBackground}"
+                                BorderBrush="{DynamicResource RibbonGroupBorder}"
+                                BorderThickness="1" CornerRadius="3" Padding="8,6">
+                            <StackPanel Spacing="{StaticResource SpacingSmall}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{loc:Loc map.profileBands}"
+                                               FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center" />
+                                    <Button Grid.Column="1" Content="{loc:Loc map.profileAddBand}"
+                                            Padding="6,2" FontSize="{StaticResource FontSizeBody}" Click="OnAddBand" />
+                                </Grid>
+                                <TextBlock Text="{loc:Loc map.profileBandsHint}" FontSize="{StaticResource FontSizeBody}"
+                                           Foreground="{DynamicResource SubtleText}" TextWrapping="Wrap" />
+                                <ItemsControl ItemsSource="{Binding Bands}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="d:MapProfileEditorDialog+BandRow">
+                                            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto"
+                                                  Margin="0,0,0,4">
+                                                <TextBlock Grid.Column="0" Text="{loc:Loc map.bandFrom}" FontSize="{StaticResource FontSizeBody}"
+                                                           VerticalAlignment="Center" Margin="0,0,3,0"
+                                                           Foreground="{DynamicResource SubtleText}" />
+                                                <NumericUpDown Grid.Column="1" Value="{Binding From, Mode=TwoWay}"
+                                                               Minimum="-1" Maximum="1" Increment="0.05"
+                                                               FormatString="0.00" FontSize="{StaticResource FontSizeBody}"
+                                                               Classes="compactNud" Width="78" />
+                                                <TextBlock Grid.Column="2" Text="{loc:Loc map.bandTo}" FontSize="{StaticResource FontSizeBody}"
+                                                           VerticalAlignment="Center" Margin="6,0,3,0"
+                                                           Foreground="{DynamicResource SubtleText}" />
+                                                <NumericUpDown Grid.Column="3" Value="{Binding To, Mode=TwoWay}"
+                                                               Minimum="-1" Maximum="1" Increment="0.05"
+                                                               FormatString="0.00" FontSize="{StaticResource FontSizeBody}"
+                                                               Classes="compactNud" Width="78" />
+                                                <ColorPicker Grid.Column="4" Color="{Binding Color, Mode=TwoWay}"
+                                                             IsAlphaEnabled="False" Margin="8,0,0,0" />
+                                                <Button Grid.Column="6" Content="×" Padding="6,2" FontSize="{StaticResource FontSizeBody}"
+                                                        Tag="{Binding}" Click="OnDeleteBand" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Markings -->
+                        <Border Background="{DynamicResource SubtleBackground}"
+                                BorderBrush="{DynamicResource RibbonGroupBorder}"
+                                BorderThickness="1" CornerRadius="3" Padding="8,6">
+                            <StackPanel Spacing="{StaticResource SpacingSmall}">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{loc:Loc map.profileMarkings}"
+                                               FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center" />
+                                    <Button Grid.Column="1" Content="{loc:Loc map.profileAddMarking}"
+                                            Padding="6,2" FontSize="{StaticResource FontSizeBody}" Click="OnAddMarking" />
+                                </Grid>
+                                <ItemsControl ItemsSource="{Binding Markings}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate DataType="d:MapProfileEditorDialog+MarkingRow">
+                                            <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto"
+                                                  Margin="0,0,0,4">
+                                                <TextBlock Grid.Column="0" Text="{loc:Loc map.markOffset}" FontSize="{StaticResource FontSizeBody}"
+                                                           VerticalAlignment="Center" Margin="0,0,3,0"
+                                                           Foreground="{DynamicResource SubtleText}" />
+                                                <NumericUpDown Grid.Column="1" Value="{Binding Offset, Mode=TwoWay}"
+                                                               Minimum="-1" Maximum="1" Increment="0.05"
+                                                               FormatString="0.00" FontSize="{StaticResource FontSizeBody}"
+                                                               Classes="compactNud" Width="74" />
+                                                <TextBlock Grid.Column="2" Text="{loc:Loc map.markWidth}" FontSize="{StaticResource FontSizeBody}"
+                                                           VerticalAlignment="Center" Margin="6,0,3,0"
+                                                           Foreground="{DynamicResource SubtleText}" />
+                                                <NumericUpDown Grid.Column="3" Value="{Binding Width, Mode=TwoWay}"
+                                                               Minimum="0.5" Maximum="8" Increment="0.2"
+                                                               FormatString="0.0" FontSize="{StaticResource FontSizeBody}"
+                                                               Classes="compactNud" Width="64" />
+                                                <ColorPicker Grid.Column="4" Color="{Binding Color, Mode=TwoWay}"
+                                                             IsAlphaEnabled="False" Margin="6,0,0,0" />
+                                                <TextBlock Grid.Column="5" Text="{loc:Loc map.markDash}" FontSize="{StaticResource FontSizeBody}"
+                                                           VerticalAlignment="Center" Margin="6,0,3,0"
+                                                           Foreground="{DynamicResource SubtleText}" />
+                                                <TextBox Grid.Column="6" Text="{Binding Dash, Mode=TwoWay}"
+                                                         Watermark="12,10" FontSize="{StaticResource FontSizeBody}" Width="70" />
+                                                <Button Grid.Column="8" Content="×" Padding="6,2" FontSize="{StaticResource FontSizeBody}"
+                                                        Tag="{Binding}" Click="OnDeleteMarking" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </DockPanel>
+    </Border>
+</UserControl>

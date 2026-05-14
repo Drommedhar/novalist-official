@@ -11,43 +11,43 @@
                     BorderBrush="{DynamicResource CardBorder}"
                     BorderThickness="0,0,0,1"
                     Background="{DynamicResource ExplorerBackground}">
-                <StackPanel Spacing="8">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <StackPanel Spacing="{StaticResource SpacingMedium}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpacingMedium}">
                         <TextBlock Grid.Column="0"
                                    Text="{loc:Loc relationships.title}"
-                                   FontSize="14"
+                                   FontSize="{StaticResource FontSizeTitleSmall}"
                                    FontWeight="SemiBold"
                                    VerticalAlignment="Center"
                                    Foreground="{DynamicResource NormalText}" />
                         <TextBlock Grid.Column="1"
                                    Text="{loc:Loc relationships.hint}"
-                                   FontSize="11"
+                                   FontSize="{StaticResource FontSizeBodySmall}"
                                    Opacity="0.6"
                                    VerticalAlignment="Center" />
                     </Grid>
-                    <StackPanel Orientation="Horizontal" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <TextBox Text="{Binding SearchQuery, Mode=TwoWay}"
                                  Watermark="{loc:Loc relationships.search}"
-                                 FontSize="11"
+                                 FontSize="{StaticResource FontSizeBodySmall}"
                                  MinWidth="180" />
                         <ComboBox PlaceholderText="{loc:Loc relationships.filterGroup}"
                                   SelectedItem="{Binding FilterGroup, Mode=TwoWay}"
                                   ItemsSource="{Binding AvailableGroups}"
-                                  FontSize="11"
+                                  FontSize="{StaticResource FontSizeBodySmall}"
                                   MinWidth="140" />
                         <ComboBox PlaceholderText="{loc:Loc relationships.filterRole}"
                                   SelectedItem="{Binding FilterRole, Mode=TwoWay}"
                                   ItemsSource="{Binding AvailableRoles}"
-                                  FontSize="11"
+                                  FontSize="{StaticResource FontSizeBodySmall}"
                                   MinWidth="140" />
                         <ToggleButton IsChecked="{Binding HideWorldBibleCharacters, Mode=TwoWay}"
                                       Content="{loc:Loc relationships.hideWorldBible}"
-                                      FontSize="11"
+                                      FontSize="{StaticResource FontSizeBodySmall}"
                                       Padding="8,4" />
                         <Button Command="{Binding ClearFiltersCommand}"
                                 IsVisible="{Binding HasActiveFilter}"
                                 Content="{loc:Loc relationships.clearFilters}"
-                                FontSize="11"
+                                FontSize="{StaticResource FontSizeBodySmall}"
                                 Padding="8,4" />
                     </StackPanel>
                 </StackPanel>

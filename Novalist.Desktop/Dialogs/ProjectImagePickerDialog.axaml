@@ -20,7 +20,7 @@
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,16,0,0">
                 <Button Content="{loc:Loc dialog.cancel}"
                         Padding="16,8"
@@ -28,9 +28,9 @@
             </StackPanel>
 
             <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Spacing="12">
+                <StackPanel DockPanel.Dock="Top" Spacing="{StaticResource SpacingLarge}">
                     <TextBlock Text="{loc:Loc dialog.chooseImagePrompt}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource NormalText}" />
                     <TextBox x:Name="SearchBox"
@@ -59,7 +59,7 @@
                                             <Border Grid.Column="0"
                                                     Width="72"
                                                     Height="72"
-                                                    CornerRadius="4"
+                                                    CornerRadius="{StaticResource RadiusSmall}"
                                                     ClipToBounds="True"
                                                     Background="{DynamicResource ExplorerBackground}"
                                                     BorderBrush="{DynamicResource CardBorder}"
@@ -69,10 +69,10 @@
                                             </Border>
 
                                             <StackPanel Grid.Column="2"
-                                                        Spacing="4"
+                                                        Spacing="{StaticResource SpacingTighter}"
                                                         VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Name}"
-                                                           FontSize="13"
+                                                           FontSize="{StaticResource FontSizeBodyLarge}"
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource NormalText}" />
                                                 <TextBlock Text="{Binding Path}"

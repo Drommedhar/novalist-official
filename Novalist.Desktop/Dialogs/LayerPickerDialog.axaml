@@ -6,16 +6,16 @@
     <Border Padding="22">
         <DockPanel>
             <Grid DockPanel.Dock="Bottom" Margin="0,16,0,0" ColumnDefinitions="*,Auto,Auto">
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}">
                     <Button Content="{loc:Loc dialog.cancel}" Padding="16,8" Click="OnCancel" />
                 </StackPanel>
                 <Button Grid.Column="2" Content="{loc:Loc dialog.ok}" Padding="16,8" Classes="primary" Click="OnOk" IsDefault="True" Margin="8,0,0,0" />
             </Grid>
-            <StackPanel Spacing="10">
+            <StackPanel Spacing="{StaticResource SpacingNormal}">
                 <TextBlock Text="{loc:Loc map.layerPickerTitle}"
-                           FontSize="14" FontWeight="SemiBold" />
+                           FontSize="{StaticResource FontSizeTitleSmall}" FontWeight="SemiBold" />
                 <TextBlock Text="{loc:Loc map.layerPickerPrompt}"
-                           FontSize="11"
+                           FontSize="{StaticResource FontSizeBodySmall}"
                            Foreground="{DynamicResource SubtleText}"
                            TextWrapping="Wrap" />
                 <ListBox x:Name="LayerList"

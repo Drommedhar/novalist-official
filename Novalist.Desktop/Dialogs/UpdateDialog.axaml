@@ -14,7 +14,7 @@
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,16,0,0">
                 <Button x:Name="SkipButton"
                         Content="{loc:Loc update.skip}"
@@ -28,16 +28,16 @@
                         IsDefault="True" />
             </StackPanel>
 
-            <StackPanel Spacing="12">
+            <StackPanel Spacing="{StaticResource SpacingLarge}">
                 <!-- Title -->
                 <TextBlock x:Name="TitleText"
-                           FontSize="16"
+                           FontSize="{StaticResource FontSizeTitle}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
 
                 <!-- Version info -->
                 <TextBlock x:Name="VersionText"
-                           FontSize="13"
+                           FontSize="{StaticResource FontSizeBodyLarge}"
                            Foreground="{DynamicResource SubtleText}"
                            TextWrapping="Wrap" />
 
@@ -46,7 +46,7 @@
                               x:Name="ReleaseNotesScroll"
                               IsVisible="False">
                     <TextBlock x:Name="ReleaseNotesText"
-                               FontSize="12"
+                               FontSize="{StaticResource FontSizeBody}"
                                Foreground="{DynamicResource SubtleText}"
                                TextWrapping="Wrap" />
                 </ScrollViewer>
@@ -54,20 +54,20 @@
                 <!-- Progress bar (hidden until downloading) -->
                 <StackPanel x:Name="ProgressPanel"
                             IsVisible="False"
-                            Spacing="4">
+                            Spacing="{StaticResource SpacingTighter}">
                     <ProgressBar x:Name="DownloadProgress"
                                  Minimum="0"
                                  Maximum="100"
                                  Height="6" />
                     <TextBlock x:Name="ProgressText"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                Foreground="{DynamicResource SubtleText}"
                                HorizontalAlignment="Center" />
                 </StackPanel>
 
                 <!-- Error message -->
                 <TextBlock x:Name="ErrorText"
-                           FontSize="12"
+                           FontSize="{StaticResource FontSizeBody}"
                            Foreground="#E05252"
                            TextWrapping="Wrap"
                            IsVisible="False" />

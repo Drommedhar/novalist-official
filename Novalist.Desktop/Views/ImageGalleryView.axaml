@@ -24,25 +24,25 @@
                          Margin="0,0,12,0" />
 
                 <!-- View mode + count -->
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}" VerticalAlignment="Center">
                     <Button Command="{Binding SetGridViewCommand}"
                             Classes="ribbonToggleLarge"
                             Classes.active="{Binding IsGridView}"
                             ToolTip.Tip="{loc:Loc imageGallery.gridView}"
                             Padding="8">
-                        <TextBlock Text="▦" FontSize="16" />
+                        <TextBlock Text="▦" FontSize="{StaticResource FontSizeTitle}" />
                     </Button>
                     <Button Command="{Binding SetListViewCommand}"
                             Classes="ribbonToggleLarge"
                             Classes.active="{Binding !IsGridView}"
                             ToolTip.Tip="{loc:Loc imageGallery.listView}"
                             Padding="8">
-                        <TextBlock Text="☰" FontSize="16" />
+                        <TextBlock Text="☰" FontSize="{StaticResource FontSizeTitle}" />
                     </Button>
                     <TextBlock Text="{Binding CountText}"
                                Foreground="{DynamicResource SubtleText}"
                                VerticalAlignment="Center"
-                               FontSize="12" />
+                               FontSize="{StaticResource FontSizeBody}" />
                 </StackPanel>
             </Grid>
 
@@ -53,7 +53,7 @@
                        Foreground="{DynamicResource SubtleText}"
                        HorizontalAlignment="Center"
                        Margin="0,48,0,0"
-                       FontSize="14" />
+                       FontSize="{StaticResource FontSizeTitleSmall}" />
 
             <!-- Content -->
             <ScrollViewer VerticalScrollBarVisibility="Auto"
@@ -75,7 +75,7 @@
                                         Background="{DynamicResource CardBackground}"
                                         BorderBrush="{DynamicResource CardBorder}"
                                         BorderThickness="1"
-                                        CornerRadius="6"
+                                        CornerRadius="{StaticResource RadiusMedium}"
                                         ClipToBounds="True"
                                         Cursor="Hand"
                                         Tapped="OnCardTapped">
@@ -102,7 +102,7 @@
                                         </Border>
                                         <TextBlock Text="{Binding Name}"
                                                    Padding="8,6"
-                                                   FontSize="12"
+                                                   FontSize="{StaticResource FontSizeBody}"
                                                    TextTrimming="CharacterEllipsis"
                                                    Foreground="{DynamicResource NormalText}" />
                                     </StackPanel>
@@ -128,7 +128,7 @@
                                         Background="{DynamicResource CardBackground}"
                                         BorderBrush="{DynamicResource CardBorder}"
                                         BorderThickness="1"
-                                        CornerRadius="4"
+                                        CornerRadius="{StaticResource RadiusSmall}"
                                         Padding="8"
                                         Cursor="Hand"
                                         Tapped="OnCardTapped">
@@ -147,19 +147,19 @@
                                     <Grid ColumnDefinitions="64,12,*">
                                         <Border Grid.Column="0"
                                                 Width="64" Height="64"
-                                                CornerRadius="4"
+                                                CornerRadius="{StaticResource RadiusSmall}"
                                                 ClipToBounds="True"
                                                 Background="{DynamicResource ExplorerBackground}">
                                             <Image Source="{Binding Thumbnail}"
                                                    Stretch="UniformToFill" />
                                         </Border>
-                                        <StackPanel Grid.Column="2" Spacing="4" VerticalAlignment="Center">
+                                        <StackPanel Grid.Column="2" Spacing="{StaticResource SpacingTighter}" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Name}"
-                                                       FontSize="13"
+                                                       FontSize="{StaticResource FontSizeBodyLarge}"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource NormalText}" />
                                             <TextBlock Text="{Binding RelativePath}"
-                                                       FontSize="11"
+                                                       FontSize="{StaticResource FontSizeBodySmall}"
                                                        Foreground="{DynamicResource SubtleText}"
                                                        TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
@@ -178,10 +178,10 @@
                 PointerPressed="OnPreviewOverlayPressed">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center"
-                        Spacing="12"
+                        Spacing="{StaticResource SpacingLarge}"
                         Margin="48">
                 <Border Background="{DynamicResource CardBackground}"
-                        CornerRadius="8"
+                        CornerRadius="{StaticResource RadiusLarge}"
                         ClipToBounds="True"
                         Padding="8"
                         MaxWidth="900"
@@ -193,7 +193,7 @@
                 <TextBlock Text="{Binding PreviewImageName}"
                            Foreground="White"
                            HorizontalAlignment="Center"
-                           FontSize="14" />
+                           FontSize="{StaticResource FontSizeTitleSmall}" />
             </StackPanel>
         </Border>
     </Grid>

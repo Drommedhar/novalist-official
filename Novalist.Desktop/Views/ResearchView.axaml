@@ -19,29 +19,29 @@
                             BorderBrush="{DynamicResource ExplorerBorder}"
                             BorderThickness="0,0,0,1">
                         <TextBlock Text="{loc:Loc research.title}"
-                                   FontSize="13"
+                                   FontSize="{StaticResource FontSizeBodyLarge}"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource NormalText}" />
                     </Border>
 
                     <Border DockPanel.Dock="Top" Padding="6,4">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                             <Button Content="{loc:Loc research.addNote}"
                                     Command="{Binding AddNoteCommand}"
-                                    FontSize="11" Padding="8,4" />
+                                    FontSize="{StaticResource FontSizeBodySmall}" Padding="8,4" />
                             <Button Content="{loc:Loc research.addLink}"
                                     Command="{Binding AddLinkCommand}"
-                                    FontSize="11" Padding="8,4" />
+                                    FontSize="{StaticResource FontSizeBodySmall}" Padding="8,4" />
                             <Button Content="{loc:Loc research.importFile}"
                                     Command="{Binding ImportFileCommand}"
-                                    FontSize="11" Padding="8,4" />
+                                    FontSize="{StaticResource FontSizeBodySmall}" Padding="8,4" />
                         </StackPanel>
                     </Border>
 
                     <Border DockPanel.Dock="Top" Padding="6,4,6,6">
                         <TextBox Text="{Binding SearchQuery, Mode=TwoWay}"
                                  Watermark="{loc:Loc research.search}"
-                                 FontSize="11" />
+                                 FontSize="{StaticResource FontSizeBodySmall}" />
                     </Border>
 
                     <ListBox ItemsSource="{Binding Items}"
@@ -49,10 +49,10 @@
                              Background="Transparent">
                         <ListBox.ItemTemplate>
                             <DataTemplate DataType="models:ResearchItem">
-                                <StackPanel Spacing="2" Margin="2,2">
-                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="12.5"
+                                <StackPanel Spacing="{StaticResource SpacingTightest}" Margin="2,2">
+                                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}"
                                                TextTrimming="CharacterEllipsis" />
-                                    <TextBlock Text="{Binding Type}" FontSize="10" Opacity="0.6" />
+                                    <TextBlock Text="{Binding Type}" FontSize="{StaticResource FontSizeCaption}" Opacity="0.6" />
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -64,12 +64,12 @@
             <DockPanel Grid.Column="1"
                        IsVisible="{Binding HasSelection}"
                        Margin="14,12">
-                <StackPanel DockPanel.Dock="Top" Spacing="8">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <StackPanel DockPanel.Dock="Top" Spacing="{StaticResource SpacingMedium}">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpacingMedium}">
                         <TextBox Grid.Column="0"
                                  Text="{Binding SelectedItem.Title, Mode=TwoWay}"
                                  Watermark="{loc:Loc research.titleWatermark}"
-                                 FontSize="14"
+                                 FontSize="{StaticResource FontSizeTitleSmall}"
                                  FontWeight="SemiBold" />
                         <ComboBox Grid.Column="1"
                                   ItemsSource="{Binding AvailableTypes}"
@@ -81,7 +81,7 @@
                 <StackPanel DockPanel.Dock="Bottom"
                             Orientation="Horizontal"
                             HorizontalAlignment="Right"
-                            Spacing="8"
+                            Spacing="{StaticResource SpacingMedium}"
                             Margin="0,12,0,0">
                     <Button Content="{loc:Loc research.reveal}"
                             Command="{Binding RevealSelectedCommand}"
@@ -102,7 +102,7 @@
                 <Border DockPanel.Dock="Top"
                         IsVisible="{Binding SelectedIsImage}"
                         Background="{DynamicResource ExplorerBackground}"
-                        CornerRadius="4"
+                        CornerRadius="{StaticResource RadiusSmall}"
                         Padding="6"
                         Margin="0,12,0,0"
                         MaxHeight="320">
@@ -114,16 +114,16 @@
                 <Border DockPanel.Dock="Top"
                         IsVisible="{Binding SelectedIsFile}"
                         Margin="0,8,0,0">
-                    <StackPanel Spacing="2">
+                    <StackPanel Spacing="{StaticResource SpacingTightest}">
                         <TextBlock Text="{loc:Loc research.metadata}"
-                                   FontSize="11"
+                                   FontSize="{StaticResource FontSizeBodySmall}"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" />
                         <TextBlock Text="{Binding SelectedAbsolutePath}"
-                                   FontSize="11"
+                                   FontSize="{StaticResource FontSizeBodySmall}"
                                    Foreground="{DynamicResource SubtleText}"
                                    TextWrapping="Wrap" />
-                        <TextBlock FontSize="11" Foreground="{DynamicResource SubtleText}">
+                        <TextBlock FontSize="{StaticResource FontSizeBodySmall}" Foreground="{DynamicResource SubtleText}">
                             <Run Text="{Binding SelectedFileSize}" />
                             <Run Text=" · " />
                             <Run Text="{Binding SelectedModified}" />
@@ -131,9 +131,9 @@
                     </StackPanel>
                 </Border>
 
-                <StackPanel DockPanel.Dock="Bottom" Spacing="6" Margin="0,8,0,0">
+                <StackPanel DockPanel.Dock="Bottom" Spacing="{StaticResource SpacingSmall}" Margin="0,8,0,0">
                     <TextBlock Text="{loc:Loc research.tags}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                Foreground="{DynamicResource SubtleText}" />
                     <ItemsControl ItemsSource="{Binding SelectedItem.Tags}">
                         <ItemsControl.ItemsPanel>
@@ -147,12 +147,12 @@
                                         Background="{DynamicResource AccentBrush}"
                                         Padding="8,2"
                                         Margin="0,0,4,4">
-                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                                         <TextBlock Text="{Binding}"
-                                                   FontSize="11"
+                                                   FontSize="{StaticResource FontSizeBodySmall}"
                                                    Foreground="White" />
                                         <Button Content="×"
-                                                FontSize="11"
+                                                FontSize="{StaticResource FontSizeBodySmall}"
                                                 Padding="2,0"
                                                 Background="Transparent"
                                                 BorderThickness="0"
@@ -164,10 +164,10 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <StackPanel Orientation="Horizontal" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <TextBox Text="{Binding NewTagText, Mode=TwoWay}"
                                  Watermark="{loc:Loc research.addTag}"
-                                 FontSize="11"
+                                 FontSize="{StaticResource FontSizeBodySmall}"
                                  MinWidth="180" />
                         <Button Content="+"
                                 Command="{Binding AddTagCommand}"
@@ -187,7 +187,7 @@
                     IsVisible="{Binding !HasSelection}"
                     Padding="40">
                 <TextBlock Text="{loc:Loc research.empty}"
-                           FontSize="13"
+                           FontSize="{StaticResource FontSizeBodyLarge}"
                            Foreground="{DynamicResource SubtleText}"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center" />

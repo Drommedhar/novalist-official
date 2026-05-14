@@ -9,11 +9,11 @@
              x:Class="Novalist.Desktop.Views.HotkeySettingsView"
              x:DataType="vm:HotkeySettingsViewModel">
 
-    <StackPanel Spacing="12">
+    <StackPanel Spacing="{StaticResource SpacingLarge}">
         <!-- Search / Filter -->
         <TextBox Text="{Binding FilterText, Mode=TwoWay}"
                  Watermark="{loc:Loc hotkeys.searchPlaceholder}"
-                 FontSize="12"
+                 FontSize="{StaticResource FontSizeBody}"
                  Padding="8,6" />
 
         <!-- Binding list -->
@@ -25,7 +25,7 @@
                             <!-- Group header -->
                             <DataTemplate DataType="vm:HotkeyGroupHeader">
                                 <TextBlock Text="{Binding Category}"
-                                           FontSize="12"
+                                           FontSize="{StaticResource FontSizeBody}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource SubtleText}"
                                            Margin="0,16,0,4" />
@@ -37,7 +37,7 @@
                                     <!-- Reset button (right) -->
                                     <Button DockPanel.Dock="Right"
                                             Content="↺"
-                                            FontSize="14"
+                                            FontSize="{StaticResource FontSizeTitleSmall}"
                                             Padding="6,2"
                                             Background="Transparent"
                                             ToolTip.Tip="{loc:Loc hotkeys.reset}"
@@ -59,19 +59,19 @@
                                             <Style Selector="Button">
                                                 <Setter Property="Background" Value="{DynamicResource CardBackground}" />
                                                 <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
-                                                <Setter Property="CornerRadius" Value="4" />
+                                                <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
                                                 <Setter Property="BorderThickness" Value="1" />
                                                 <Setter Property="BorderBrush" Value="{DynamicResource RibbonGroupBorder}" />
                                             </Style>
                                         </Button.Styles>
                                         <Panel>
                                             <TextBlock Text="{Binding CurrentGesture}"
-                                                       FontSize="12"
+                                                       FontSize="{StaticResource FontSizeBody}"
                                                        FontFamily="Consolas, Menlo, monospace"
                                                        IsVisible="{Binding !IsRecording}"
                                                        HorizontalAlignment="Center" />
                                             <TextBlock Text="{loc:Loc hotkeys.pressKey}"
-                                                       FontSize="12"
+                                                       FontSize="{StaticResource FontSizeBody}"
                                                        FontStyle="Italic"
                                                        Foreground="{DynamicResource AccentBrush}"
                                                        IsVisible="{Binding IsRecording}"
@@ -90,7 +90,7 @@
 
                                     <!-- Action name (left) -->
                                     <TextBlock Text="{Binding DisplayName}"
-                                               FontSize="13"
+                                               FontSize="{StaticResource FontSizeBodyLarge}"
                                                Foreground="{DynamicResource NormalText}"
                                                VerticalAlignment="Center"
                                                TextTrimming="CharacterEllipsis" />

@@ -426,6 +426,8 @@ public partial class MainWindowViewModel : ObservableObject
             desired.Add(new EditorTabDescriptor("CodexHub", "CodexHub", "Codex", () => CloseCodexHubTabCommand.Execute(null)));
         if (IsManuscriptOpen)
             desired.Add(new EditorTabDescriptor("Manuscript", "Manuscript", "Manuscript", () => CloseManuscriptTabCommand.Execute(null)));
+        if (IsMapsOpen)
+            desired.Add(new EditorTabDescriptor("Maps", "Maps", Loc.T("ribbon.maps"), () => CloseMapsTabCommand.Execute(null)));
         if (IsPlotGridOpen)
             desired.Add(new EditorTabDescriptor("PlotGrid", "PlotGrid", Loc.T("plotGrid.title"), () => ClosePlotGridTabCommand.Execute(null)));
         if (IsRelationshipsGraphOpen)
@@ -1773,6 +1775,14 @@ public partial class MainWindowViewModel : ObservableObject
         IsManuscriptOpen = false;
         if (ActiveContentView == "Manuscript")
             ActiveContentView = GetFallbackView("Manuscript");
+    }
+
+    [RelayCommand]
+    private void CloseMapsTab()
+    {
+        IsMapsOpen = false;
+        if (ActiveContentView == "Maps")
+            ActiveContentView = GetFallbackView("Maps");
     }
 
     [RelayCommand]

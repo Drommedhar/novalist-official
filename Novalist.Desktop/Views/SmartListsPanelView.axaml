@@ -10,7 +10,7 @@
         <DockPanel>
             <Border DockPanel.Dock="Top" Padding="12,8">
                 <TextBlock Text="{loc:Loc smartList.section}"
-                           FontSize="13"
+                           FontSize="{StaticResource FontSizeBodyLarge}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource DimText}" />
             </Border>
@@ -21,7 +21,7 @@
                     BorderThickness="0,1,0,1">
                 <Button Content="{loc:Loc smartList.addNew}"
                         Command="{Binding CreateSmartListCommand}"
-                        FontSize="11"
+                        FontSize="{StaticResource FontSizeBodySmall}"
                         Padding="10,4"
                         HorizontalAlignment="Stretch" />
             </Border>
@@ -51,14 +51,14 @@
                                     </Border.ContextMenu>
                                     <TextBlock Text="{Binding Name}"
                                                FontWeight="Bold"
-                                               FontSize="12"
+                                               FontSize="{StaticResource FontSizeBody}"
                                                Foreground="{DynamicResource SubtleText}"
                                                TextTrimming="CharacterEllipsis" />
                                 </Border>
 
                                 <StackPanel IsVisible="{Binding IsExpanded}" Margin="0,0,0,4">
                                     <TextBlock Text="{loc:Loc smartList.loading}"
-                                               FontSize="10"
+                                               FontSize="{StaticResource FontSizeCaption}"
                                                Opacity="0.6"
                                                Margin="14,2"
                                                IsVisible="{Binding IsLoading}" />
@@ -71,7 +71,7 @@
                                                         HorizontalContentAlignment="Left"
                                                         Background="Transparent"
                                                         BorderThickness="0"
-                                                        FontSize="11.5"
+                                                        FontSize="{StaticResource FontSizeBodySmall}"
                                                         Padding="14,3"
                                                         Foreground="{DynamicResource DimText}" />
                                             </DataTemplate>

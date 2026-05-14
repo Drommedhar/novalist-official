@@ -14,11 +14,11 @@
         <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                       VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="32,24,32,24"
-                        Spacing="20">
+                        Spacing="{StaticResource SpacingXXL}">
 
                 <!-- Header -->
                 <!-- ColumnSpacing/SpacingXL=16 -->
-                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource SpacingXL}">
                     <!-- Cover image (clickable) -->
                     <Button Grid.Column="0"
                             Command="{Binding PickCoverImageCommand}"
@@ -38,7 +38,7 @@
                                        RenderOptions.BitmapInterpolationMode="HighQuality"
                                        IsVisible="{Binding HasCoverImage}" />
                                 <TextBlock Text="🖼"
-                                           FontSize="36"
+                                           FontSize="{StaticResource FontSizeDisplayLarge}"
                                            HorizontalAlignment="Center"
                                            VerticalAlignment="Center"
                                            Foreground="{DynamicResource SubtleText}"
@@ -48,7 +48,7 @@
                     </Button>
 
                     <!-- SpacingTighter=4 -->
-                    <StackPanel Grid.Column="1" Spacing="4" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="1" Spacing="{StaticResource SpacingTighter}" VerticalAlignment="Center">
                         <TextBlock Text="{Binding ProjectName}"
                                    FontSize="{DynamicResource FontSizeTitle}"
                                    FontWeight="{DynamicResource FontWeightTitle}"
@@ -65,7 +65,7 @@
 
                 <!-- ═══ Project Overview (metric cards) ═══ -->
                 <!-- SpacingLarge=12 -->
-                <StackPanel Spacing="12">
+                <StackPanel Spacing="{StaticResource SpacingLarge}">
                     <TextBlock Classes="nlvSectionHeader"
                                Text="{loc:Loc dashboard.projectOverview}" />
 
@@ -75,7 +75,7 @@
                                 Margin="0,0,16,12"
                                 MinWidth="160">
                             <!-- SpacingTighter=4 -->
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{Binding TotalWordsDisplay}"
                                            FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
@@ -90,7 +90,7 @@
                         <Border Classes="nlvCard"
                                 Margin="0,0,16,12"
                                 MinWidth="160">
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{Binding ChapterCount}"
                                            FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
@@ -105,7 +105,7 @@
                         <Border Classes="nlvCard"
                                 Margin="0,0,16,12"
                                 MinWidth="160">
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{Binding SceneCount}"
                                            FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
@@ -120,7 +120,7 @@
                         <Border Classes="nlvCard"
                                 Margin="0,0,16,12"
                                 MinWidth="160">
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{Binding ReadingTimeDisplay}"
                                            FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
@@ -135,7 +135,7 @@
                         <Border Classes="nlvCard"
                                 Margin="0,0,16,12"
                                 MinWidth="160">
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{Binding CharacterCount}"
                                            FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
@@ -150,7 +150,7 @@
                         <Border Classes="nlvCard"
                                 Margin="0,0,16,12"
                                 MinWidth="160">
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{Binding LocationCount}"
                                            FontSize="{DynamicResource FontSizeDisplay}"
                                            FontWeight="Bold"
@@ -165,14 +165,14 @@
 
                 <!-- ═══ Daily Progress ═══ -->
                 <Border Classes="nlvCard">
-                    <StackPanel Spacing="12">
+                    <StackPanel Spacing="{StaticResource SpacingLarge}">
                         <TextBlock Text="{loc:Loc dashboard.dailyProgress}"
                                    FontSize="{DynamicResource FontSizeBody}"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" />
 
                         <Grid ColumnDefinitions="*,Auto">
-                            <StackPanel Grid.Column="0" Spacing="4">
+                            <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock FontSize="{DynamicResource FontSizeDisplay}" FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}">
                                     <TextBlock.Text>
@@ -205,7 +205,7 @@
 
                         <!-- Streak + range buttons -->
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                                 <Button Content="30d" Padding="6,2"
                                         Command="{Binding SetHistoryRangeCommand}" CommandParameter="30" />
                                 <Button Content="90d" Padding="6,2"
@@ -213,7 +213,7 @@
                                 <Button Content="365d" Padding="6,2"
                                         Command="{Binding SetHistoryRangeCommand}" CommandParameter="365" />
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}">
                                 <TextBlock Text="{loc:Loc dashboard.streak}"
                                            FontSize="{DynamicResource FontSizeCaption}"
                                            Foreground="{DynamicResource SubtleText}"
@@ -230,7 +230,7 @@
                         </DockPanel>
 
                         <!-- Word-history bar chart -->
-                        <Border Height="120" CornerRadius="6"
+                        <Border Height="120" CornerRadius="{StaticResource RadiusMedium}"
                                 Background="{DynamicResource SubtleBackground}"
                                 Padding="6">
                             <ItemsControl ItemsSource="{Binding WordHistoryBars}">
@@ -258,14 +258,14 @@
 
                 <!-- ═══ Goal Tracking ═══ -->
                 <Border Classes="nlvCard">
-                    <StackPanel Spacing="12">
+                    <StackPanel Spacing="{StaticResource SpacingLarge}">
                         <TextBlock Text="{loc:Loc dashboard.goalTracking}"
                                    FontSize="{DynamicResource FontSizeBody}"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" />
 
                         <Grid ColumnDefinitions="*,Auto">
-                            <StackPanel Grid.Column="0" Spacing="4">
+                            <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock FontSize="{DynamicResource FontSizeDisplay}" FontWeight="Bold"
                                            Foreground="{DynamicResource NormalText}">
                                     <TextBlock.Text>
@@ -302,31 +302,31 @@
                                 CornerRadius="{DynamicResource RadiusMedium}"
                                 Padding="12,12"
                                 Margin="0,4,0,0">
-                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="16">
-                                <StackPanel Grid.Column="0" Spacing="4">
+                            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="{StaticResource SpacingXL}">
+                                <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTighter}">
                                     <TextBlock Text="{loc:Loc dashboard.deadline}"
                                                FontSize="{DynamicResource FontSizeCaption}"
                                                Foreground="{DynamicResource SubtleText}" />
                                     <TextBlock Text="{Binding DeadlineDisplay}"
-                                               FontSize="14"
+                                               FontSize="{StaticResource FontSizeTitleSmall}"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource NormalText}" />
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Spacing="4">
+                                <StackPanel Grid.Column="1" Spacing="{StaticResource SpacingTighter}">
                                     <TextBlock Text="{loc:Loc dashboard.daysLeft}"
                                                FontSize="{DynamicResource FontSizeCaption}"
                                                Foreground="{DynamicResource SubtleText}" />
                                     <TextBlock Text="{Binding DaysRemaining}"
-                                               FontSize="14"
+                                               FontSize="{StaticResource FontSizeTitleSmall}"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource NormalText}" />
                                 </StackPanel>
-                                <StackPanel Grid.Column="2" Spacing="4">
+                                <StackPanel Grid.Column="2" Spacing="{StaticResource SpacingTighter}">
                                     <TextBlock Text="{loc:Loc dashboard.neededPerDay}"
                                                FontSize="{DynamicResource FontSizeCaption}"
                                                Foreground="{DynamicResource SubtleText}" />
                                     <TextBlock Text="{Binding WordsPerDayLabel}"
-                                               FontSize="14"
+                                               FontSize="{StaticResource FontSizeTitleSmall}"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource NormalText}" />
                                 </StackPanel>
@@ -338,7 +338,7 @@
                 <!-- ═══ Average per Chapter ═══ -->
                 <Border Classes="nlvCard">
                     <Grid ColumnDefinitions="*,*">
-                        <StackPanel Grid.Column="0" Spacing="4">
+                        <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTighter}">
                             <TextBlock Text="{Binding AverageChapterWordsDisplay}"
                                        FontSize="{DynamicResource FontSizeDisplay}"
                                        FontWeight="Bold"
@@ -347,7 +347,7 @@
                                        FontSize="{DynamicResource FontSizeCaption}"
                                        Foreground="{DynamicResource SubtleText}" />
                         </StackPanel>
-                        <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Right">
+                        <StackPanel Grid.Column="1" Spacing="{StaticResource SpacingTighter}" HorizontalAlignment="Right">
                             <TextBlock Text="{Binding ReadingTimeDisplay}"
                                        FontSize="{DynamicResource FontSizeDisplay}"
                                        FontWeight="Bold"
@@ -360,13 +360,13 @@
                 </Border>
 
                 <!-- ═══ Progress Breakdown by Status ═══ -->
-                <StackPanel Spacing="12" IsVisible="{Binding HasEnhancedStats}">
+                <StackPanel Spacing="{StaticResource SpacingLarge}" IsVisible="{Binding HasEnhancedStats}">
                     <TextBlock Classes="nlvSectionHeader"
                                Text="{loc:Loc dashboard.progressBreakdown}" />
 
                     <Border Classes="nlvCard">
                         <!-- SpacingNormal=10 -->
-                        <StackPanel Spacing="10">
+                        <StackPanel Spacing="{StaticResource SpacingNormal}">
                             <ItemsControl ItemsSource="{Binding StatusBreakdown}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:StatusBreakdownItem">
@@ -385,7 +385,7 @@
                                                          CornerRadius="{DynamicResource RadiusSmall}"
                                                          Margin="8,0" />
                                             <!-- SpacingMedium=8 -->
-                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}">
                                                 <TextBlock Text="{Binding Count}"
                                                            FontSize="{DynamicResource FontSizeBodySmall}"
                                                            FontWeight="Bold"
@@ -405,8 +405,8 @@
                                     Padding="12,12"
                                     Margin="0,4,0,0">
                                 <!-- SpacingNormal=10 -->
-                                <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="10">
-                                    <StackPanel Grid.Column="0" Spacing="4" HorizontalAlignment="Center">
+                                <Grid ColumnDefinitions="*,*,*,*,*" ColumnSpacing="{StaticResource SpacingNormal}">
+                                    <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTighter}" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInOutline}"
                                                    FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
@@ -416,7 +416,7 @@
                                                    Foreground="{DynamicResource SubtleText}"
                                                    HorizontalAlignment="Center" />
                                     </StackPanel>
-                                    <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
+                                    <StackPanel Grid.Column="1" Spacing="{StaticResource SpacingTighter}" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInFirstDraft}"
                                                    FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
@@ -426,7 +426,7 @@
                                                    Foreground="{DynamicResource SubtleText}"
                                                    HorizontalAlignment="Center" />
                                     </StackPanel>
-                                    <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Center">
+                                    <StackPanel Grid.Column="2" Spacing="{StaticResource SpacingTighter}" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInRevised}"
                                                    FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
@@ -436,7 +436,7 @@
                                                    Foreground="{DynamicResource SubtleText}"
                                                    HorizontalAlignment="Center" />
                                     </StackPanel>
-                                    <StackPanel Grid.Column="3" Spacing="4" HorizontalAlignment="Center">
+                                    <StackPanel Grid.Column="3" Spacing="{StaticResource SpacingTighter}" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInEdited}"
                                                    FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
@@ -446,7 +446,7 @@
                                                    Foreground="{DynamicResource SubtleText}"
                                                    HorizontalAlignment="Center" />
                                     </StackPanel>
-                                    <StackPanel Grid.Column="4" Spacing="4" HorizontalAlignment="Center">
+                                    <StackPanel Grid.Column="4" Spacing="{StaticResource SpacingTighter}" HorizontalAlignment="Center">
                                         <TextBlock Text="{Binding ScenesInFinal}"
                                                    FontSize="{DynamicResource FontSizeTitle}" FontWeight="Bold"
                                                    Foreground="{DynamicResource NormalText}"
@@ -463,17 +463,17 @@
                 </StackPanel>
 
                 <!-- ═══ Pacing Analysis ═══ -->
-                <StackPanel Spacing="12" IsVisible="{Binding HasEnhancedStats}">
+                <StackPanel Spacing="{StaticResource SpacingLarge}" IsVisible="{Binding HasEnhancedStats}">
                     <TextBlock Classes="nlvSectionHeader"
                                Text="{loc:Loc dashboard.pacingAnalysis}" />
 
                     <Border Classes="nlvCard">
                         <!-- SpacingXL=16 -->
-                        <StackPanel Spacing="16">
+                        <StackPanel Spacing="{StaticResource SpacingXL}">
                             <!-- Pacing summary -->
                             <!-- SpacingXXL=20 -->
-                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="20">
-                                <StackPanel Grid.Column="0" Spacing="4">
+                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="{StaticResource SpacingXXL}">
+                                <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTighter}">
                                     <TextBlock Text="{Binding LongestChapterWords}"
                                                FontSize="{DynamicResource FontSizeDisplaySmall}" FontWeight="Bold"
                                                Foreground="{DynamicResource NormalText}" />
@@ -481,7 +481,7 @@
                                                FontSize="{DynamicResource FontSizeCaption}"
                                                Foreground="{DynamicResource SubtleText}" />
                                 </StackPanel>
-                                <StackPanel Grid.Column="1" Spacing="4" HorizontalAlignment="Center">
+                                <StackPanel Grid.Column="1" Spacing="{StaticResource SpacingTighter}" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding ShortestChapterWords}"
                                                FontSize="{DynamicResource FontSizeDisplaySmall}" FontWeight="Bold"
                                                Foreground="{DynamicResource NormalText}" />
@@ -489,7 +489,7 @@
                                                FontSize="{DynamicResource FontSizeCaption}"
                                                Foreground="{DynamicResource SubtleText}" />
                                 </StackPanel>
-                                <StackPanel Grid.Column="2" Spacing="4" HorizontalAlignment="Right">
+                                <StackPanel Grid.Column="2" Spacing="{StaticResource SpacingTighter}" HorizontalAlignment="Right">
                                     <TextBlock FontSize="{DynamicResource FontSizeDisplaySmall}" FontWeight="Bold"
                                                Foreground="{DynamicResource NormalText}">
                                         <TextBlock.Text>
@@ -547,14 +547,14 @@
                 </StackPanel>
 
                 <!-- ═══ Echo Finder ═══ -->
-                <StackPanel Spacing="12"
+                <StackPanel Spacing="{StaticResource SpacingLarge}"
                             IsVisible="{Binding EchoPhrases.Count}">
                     <TextBlock Classes="nlvSectionHeader"
                                Text="{loc:Loc dashboard.echoFinder}" />
 
                     <Border Classes="nlvCard">
                         <!-- SpacingTighter=4 -->
-                        <StackPanel Spacing="4">
+                        <StackPanel Spacing="{StaticResource SpacingTighter}">
                             <!-- Margin bottom 12 (SpacingLarge) -->
                             <TextBlock Text="{loc:Loc dashboard.echoDescription}"
                                        FontSize="{DynamicResource FontSizeBodySmall}"
@@ -592,7 +592,7 @@
                 </StackPanel>
 
                 <!-- ═══ Recent Activity ═══ -->
-                <StackPanel Spacing="12"
+                <StackPanel Spacing="{StaticResource SpacingLarge}"
                             IsVisible="{Binding HasRecentActivity}">
                     <TextBlock Classes="nlvSectionHeader"
                                Text="{loc:Loc dashboard.recentActivity}" />
@@ -604,18 +604,18 @@
                                     <Grid ColumnDefinitions="*,Auto" Margin="0,2">
                                         <StackPanel Grid.Column="0" Spacing="1">
                                             <TextBlock Text="{Binding SceneTitle}"
-                                                       FontSize="12"
+                                                       FontSize="{StaticResource FontSizeBody}"
                                                        FontWeight="SemiBold"
                                                        Foreground="{DynamicResource NormalText}"
                                                        TextTrimming="CharacterEllipsis" />
                                             <TextBlock Text="{Binding ChapterTitle}"
-                                                       FontSize="10"
+                                                       FontSize="{StaticResource FontSizeCaption}"
                                                        Foreground="{DynamicResource SubtleText}"
                                                        TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
                                         <TextBlock Grid.Column="1"
                                                    Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}"
-                                                   FontSize="10"
+                                                   FontSize="{StaticResource FontSizeCaption}"
                                                    Foreground="{DynamicResource SubtleText}"
                                                    VerticalAlignment="Center" />
                                     </Grid>

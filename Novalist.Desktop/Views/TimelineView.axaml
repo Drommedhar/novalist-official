@@ -21,46 +21,46 @@
                     Padding="12,8">
                 <Grid ColumnDefinitions="*,Auto">
                     <!-- Left group: mode, zoom, filters -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Button Command="{Binding ToggleViewModeCommand}"
                                 Classes="timelineToolbarBtn"
                                 ToolTip.Tip="{Binding ViewModeLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                                 <!-- Use icon instead of Unicode -->
                                 <PathIcon Data="{StaticResource IconBarChart}" Width="12" Height="12" Foreground="{DynamicResource NormalText}" />
-                                <TextBlock Text="{Binding ViewModeLabel}" FontSize="11" />
+                                <TextBlock Text="{Binding ViewModeLabel}" FontSize="{StaticResource FontSizeBodySmall}" />
                             </StackPanel>
                         </Button>
 
                         <Button Command="{Binding CycleZoomCommand}"
                                 Classes="timelineToolbarBtn"
                                 ToolTip.Tip="{Binding ZoomLabel}">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                                 <PathIcon Data="{StaticResource IconZoomIn}" Width="12" Height="12" Foreground="{DynamicResource NormalText}" />
-                                <TextBlock Text="{Binding ZoomLabel}" FontSize="11" />
+                                <TextBlock Text="{Binding ZoomLabel}" FontSize="{StaticResource FontSizeBodySmall}" />
                             </StackPanel>
                         </Button>
 
                         <Button Command="{Binding PanPreviousCommand}"
                                 Classes="timelineToolbarBtn"
                                 ToolTip.Tip="{loc:Loc timeline.prev}">
-                            <TextBlock Text="‹" FontSize="13" />
+                            <TextBlock Text="‹" FontSize="{StaticResource FontSizeBodyLarge}" />
                         </Button>
 
                         <Button Command="{Binding PanNextCommand}"
                                 Classes="timelineToolbarBtn"
                                 ToolTip.Tip="{loc:Loc timeline.next}">
-                            <TextBlock Text="›" FontSize="13" />
+                            <TextBlock Text="›" FontSize="{StaticResource FontSizeBodyLarge}" />
                         </Button>
 
                         <Button Command="{Binding ScrollToTodayCommand}"
                                 Classes="timelineToolbarBtn">
-                            <TextBlock Text="{loc:Loc timeline.today}" FontSize="11" />
+                            <TextBlock Text="{loc:Loc timeline.today}" FontSize="{StaticResource FontSizeBodySmall}" />
                         </Button>
 
                         <Button Command="{Binding OpenJumpFlyoutCommand}"
                                 Classes="timelineToolbarBtn">
-                            <TextBlock Text="{loc:Loc timeline.jumpTo}" FontSize="11" />
+                            <TextBlock Text="{loc:Loc timeline.jumpTo}" FontSize="{StaticResource FontSizeBodySmall}" />
                         </Button>
 
                         <ComboBox Classes="timelineFilter"
@@ -82,7 +82,7 @@
                     </StackPanel>
 
                     <!-- Right group: structure template menu + add button -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Button Classes="timelineAddBtn"
                                 ToolTip.Tip="{loc:Loc timeline.applyStructure}">
                             <Button.Flyout>
@@ -97,18 +97,18 @@
                                     </MenuFlyout.ItemTemplate>
                                 </MenuFlyout>
                             </Button.Flyout>
-                            <TextBlock Text="{loc:Loc timeline.applyStructure}" FontSize="11" />
+                            <TextBlock Text="{loc:Loc timeline.applyStructure}" FontSize="{StaticResource FontSizeBodySmall}" />
                         </Button>
                         <Button Command="{Binding ShowAddFormCommand}"
                                 Classes="timelineAddBtn">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                                 <PathIcon Data="{StaticResource IconFileText}" Width="12" Height="12" Foreground="{DynamicResource AccentForeground}" />
-                                <TextBlock Text="{loc:Loc timeline.addEvent}" FontSize="11" />
+                                <TextBlock Text="{loc:Loc timeline.addEvent}" FontSize="{StaticResource FontSizeBodySmall}" />
                             </StackPanel>
                         </Button>
                         <Button Command="{Binding ExportOutlineCommand}"
                                 Classes="timelineAddBtn">
-                            <TextBlock Text="{loc:Loc timeline.exportOutline}" FontSize="11" />
+                            <TextBlock Text="{loc:Loc timeline.exportOutline}" FontSize="{StaticResource FontSizeBodySmall}" />
                         </Button>
                     </StackPanel>
                 </Grid>
@@ -120,7 +120,7 @@
                 <!-- Empty state -->
                 <TextBlock Text="{loc:Loc timeline.noEvents}"
                            IsVisible="{Binding !HasEvents}"
-                           FontSize="14"
+                           FontSize="{StaticResource FontSizeTitleSmall}"
                            FontStyle="Italic"
                            Foreground="{DynamicResource SubtleText}"
                            HorizontalAlignment="Center"
@@ -141,7 +141,7 @@
                                             Margin="0,12,0,6">
                                         <TextBlock Text="{Binding Label}"
                                                    FontWeight="SemiBold"
-                                                   FontSize="14"
+                                                   FontSize="{StaticResource FontSizeTitleSmall}"
                                                    Foreground="{DynamicResource AccentBrush}" />
                                     </Border>
 
@@ -153,7 +153,7 @@
                                                         Classes.isAct="{Binding IsAct}"
                                                         Classes.noDate="{Binding HasNoDate}"
                                                         Margin="0,0,0,8">
-                                                    <Grid ColumnDefinitions="14,*" ColumnSpacing="10">
+                                                    <Grid ColumnDefinitions="14,*" ColumnSpacing="{StaticResource SpacingNormal}">
                                                         <!-- Dot -->
                                                         <Ellipse Grid.Column="0"
                                                                  Width="10" Height="10"
@@ -168,17 +168,17 @@
                                                         <Border Grid.Column="1"
                                                                 Classes="nlvCard"
                                                                 Padding="12,8">
-                                                            <StackPanel Spacing="4">
+                                                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                                                 <!-- Date -->
                                                                 <TextBlock Text="{Binding DateStr}"
-                                                                           FontSize="11"
+                                                                           FontSize="{StaticResource FontSizeBodySmall}"
                                                                            Foreground="{DynamicResource SubtleText}" />
 
                                                                 <!-- Title + source badge -->
-                                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}">
                                                                     <TextBlock Text="{Binding Title}"
                                                                                FontWeight="SemiBold"
-                                                                               FontSize="13"
+                                                                               FontSize="{StaticResource FontSizeBodyLarge}"
                                                                                Foreground="{DynamicResource NormalText}" />
                                                                     <Border CornerRadius="{DynamicResource RadiusPill}"
                                                                             Padding="6,2">
@@ -186,7 +186,7 @@
                                                                             <SolidColorBrush Color="{Binding SourceColor}" />
                                                                         </Border.Background>
                                                                         <TextBlock Text="{Binding SourceLabel}"
-                                                                                   FontSize="10"
+                                                                                   FontSize="{StaticResource FontSizeCaption}"
                                                                                    Foreground="White" />
                                                                     </Border>
                                                                 </StackPanel>
@@ -194,7 +194,7 @@
                                                                 <!-- Description -->
                                                                 <TextBlock Text="{Binding Description}"
                                                                            IsVisible="{Binding HasDescription}"
-                                                                           FontSize="11"
+                                                                           FontSize="{StaticResource FontSizeBodySmall}"
                                                                            Foreground="{DynamicResource SubtleText}"
                                                                            TextWrapping="Wrap" />
 
@@ -213,7 +213,7 @@
                                                                                     Padding="6,2"
                                                                                     Margin="0,0,4,2">
                                                                                 <TextBlock Text="{Binding}"
-                                                                                           FontSize="10"
+                                                                                           FontSize="{StaticResource FontSizeCaption}"
                                                                                            Foreground="White" />
                                                                             </Border>
                                                                         </DataTemplate>
@@ -236,7 +236,7 @@
                                                                                     Padding="6,2"
                                                                                     Margin="0,0,4,2">
                                                                                 <TextBlock Text="{Binding}"
-                                                                                           FontSize="10"
+                                                                                           FontSize="{StaticResource FontSizeCaption}"
                                                                                            Foreground="White" />
                                                                             </Border>
                                                                         </DataTemplate>
@@ -245,18 +245,18 @@
 
                                                                 <!-- Manual event actions -->
                                                                 <StackPanel Orientation="Horizontal"
-                                                                            Spacing="4"
+                                                                            Spacing="{StaticResource SpacingTighter}"
                                                                             IsVisible="{Binding IsManual}"
                                                                             Margin="0,4,0,0">
                                                                     <Button Classes="timelineEventActionBtn"
                                                                             Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).EditEventCommand}"
                                                                             CommandParameter="{Binding Id}">
-                                                                        <TextBlock Text="{loc:Loc timeline.editEvent}" FontSize="11" />
+                                                                        <TextBlock Text="{loc:Loc timeline.editEvent}" FontSize="{StaticResource FontSizeBodySmall}" />
                                                                     </Button>
                                                                     <Button Classes="timelineEventActionBtn timelineEventActionDanger"
                                                                             Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).DeleteEventCommand}"
                                                                             CommandParameter="{Binding Id}">
-                                                                        <TextBlock Text="{loc:Loc timeline.deleteEvent}" FontSize="11" />
+                                                                        <TextBlock Text="{loc:Loc timeline.deleteEvent}" FontSize="{StaticResource FontSizeBodySmall}" />
                                                                     </Button>
                                                                 </StackPanel>
 
@@ -266,7 +266,7 @@
                                                                         Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).OpenLinkedChapterCommand}"
                                                                         CommandParameter="{Binding ChapterGuid}"
                                                                         Margin="0,2,0,0">
-                                                                    <TextBlock Text="{loc:Loc timeline.openChapter}" FontSize="11" />
+                                                                    <TextBlock Text="{loc:Loc timeline.openChapter}" FontSize="{StaticResource FontSizeBodySmall}" />
                                                                 </Button>
                                                             </StackPanel>
                                                         </Border>
@@ -289,7 +289,7 @@
                                   Margin="16,16">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="16" />
+                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingXL}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
@@ -302,7 +302,7 @@
                                         <!-- Group header -->
                                         <TextBlock Text="{Binding Label}"
                                                    FontWeight="SemiBold"
-                                                   FontSize="14"
+                                                   FontSize="{StaticResource FontSizeTitleSmall}"
                                                    Foreground="{DynamicResource AccentBrush}"
                                                    Margin="0,0,0,8" />
 
@@ -314,14 +314,14 @@
                                                             Classes.isAct="{Binding IsAct}"
                                                             Classes.noDate="{Binding HasNoDate}"
                                                             Margin="0,0,0,6">
-                                                        <StackPanel Spacing="4" Margin="8,6">
+                                                        <StackPanel Spacing="{StaticResource SpacingTighter}" Margin="8,6">
                                                             <!-- Date -->
                                                             <TextBlock Text="{Binding DateStr}"
-                                                                       FontSize="10"
+                                                                       FontSize="{StaticResource FontSizeCaption}"
                                                                        Foreground="{DynamicResource SubtleText}" />
 
                                                             <!-- Title + source badge -->
-                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                                                                 <Ellipse Width="8" Height="8"
                                                                          VerticalAlignment="Center">
                                                                     <Ellipse.Fill>
@@ -330,7 +330,7 @@
                                                                 </Ellipse>
                                                                 <TextBlock Text="{Binding Title}"
                                                                            FontWeight="SemiBold"
-                                                                           FontSize="12"
+                                                                           FontSize="{StaticResource FontSizeBody}"
                                                                            Foreground="{DynamicResource NormalText}"
                                                                            TextTrimming="CharacterEllipsis" />
                                                             </StackPanel>
@@ -338,25 +338,25 @@
                                                             <!-- Description -->
                                                             <TextBlock Text="{Binding Description}"
                                                                        IsVisible="{Binding HasDescription}"
-                                                                       FontSize="10"
+                                                                       FontSize="{StaticResource FontSizeCaption}"
                                                                        Foreground="{DynamicResource SubtleText}"
                                                                        TextWrapping="Wrap"
                                                                        MaxLines="2" />
 
                                                             <!-- Manual event actions -->
                                                             <StackPanel Orientation="Horizontal"
-                                                                        Spacing="4"
+                                                                        Spacing="{StaticResource SpacingTighter}"
                                                                         IsVisible="{Binding IsManual}"
                                                                         Margin="0,2,0,0">
                                                                 <Button Classes="timelineEventActionBtn"
                                                                         Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).EditEventCommand}"
                                                                         CommandParameter="{Binding Id}">
-                                                                    <TextBlock Text="{loc:Loc timeline.editEvent}" FontSize="10" />
+                                                                    <TextBlock Text="{loc:Loc timeline.editEvent}" FontSize="{StaticResource FontSizeCaption}" />
                                                                 </Button>
                                                                 <Button Classes="timelineEventActionBtn timelineEventActionDanger"
                                                                         Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).DeleteEventCommand}"
                                                                         CommandParameter="{Binding Id}">
-                                                                    <TextBlock Text="{loc:Loc timeline.deleteEvent}" FontSize="10" />
+                                                                    <TextBlock Text="{loc:Loc timeline.deleteEvent}" FontSize="{StaticResource FontSizeCaption}" />
                                                                 </Button>
                                                             </StackPanel>
 
@@ -366,7 +366,7 @@
                                                                     Command="{Binding $parent[UserControl].((vm:TimelineViewModel)DataContext).OpenLinkedChapterCommand}"
                                                                     CommandParameter="{Binding ChapterGuid}"
                                                                     Margin="0,2,0,0">
-                                                                <TextBlock Text="{loc:Loc timeline.openChapter}" FontSize="10" />
+                                                                <TextBlock Text="{loc:Loc timeline.openChapter}" FontSize="{StaticResource FontSizeCaption}" />
                                                             </Button>
                                                         </StackPanel>
                                                     </Border>
@@ -388,15 +388,15 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Top"
                             Margin="0,60,0,0">
-                        <StackPanel Spacing="10">
+                        <StackPanel Spacing="{StaticResource SpacingNormal}">
                             <TextBlock Text="{loc:Loc timeline.jumpTo}"
-                                       FontSize="13"
+                                       FontSize="{StaticResource FontSizeBodyLarge}"
                                        FontWeight="SemiBold" />
                             <TextBox Text="{Binding JumpDateInput}"
                                      Watermark="YYYY-MM-DD" />
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Right"
-                                        Spacing="8">
+                                        Spacing="{StaticResource SpacingMedium}">
                                 <Button Content="{loc:Loc timeline.cancel}"
                                         Command="{Binding CancelJumpCommand}" />
                                 <Button Content="{loc:Loc timeline.save}"
@@ -417,37 +417,37 @@
                             HorizontalAlignment="Center"
                             VerticalAlignment="Top"
                             Margin="0,60,0,0">
-                        <StackPanel Spacing="10">
+                        <StackPanel Spacing="{StaticResource SpacingNormal}">
                             <!-- Title -->
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{loc:Loc timeline.eventTitle}"
-                                           FontSize="11" FontWeight="Medium"
+                                           FontSize="{StaticResource FontSizeBodySmall}" FontWeight="Medium"
                                            Foreground="{DynamicResource SubtleText}" />
                                 <TextBox Text="{Binding FormTitle}" />
                             </StackPanel>
 
                             <!-- Date -->
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{loc:Loc timeline.eventDate}"
-                                           FontSize="11" FontWeight="Medium"
+                                           FontSize="{StaticResource FontSizeBodySmall}" FontWeight="Medium"
                                            Foreground="{DynamicResource SubtleText}" />
                                 <TextBox Text="{Binding FormDate}"
                                          Watermark="YYYY-MM-DD" />
                             </StackPanel>
 
                             <!-- Category -->
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{loc:Loc timeline.eventCategory}"
-                                           FontSize="11" FontWeight="Medium"
+                                           FontSize="{StaticResource FontSizeBodySmall}" FontWeight="Medium"
                                            Foreground="{DynamicResource SubtleText}" />
                                 <ComboBox SelectedItem="{Binding SelectedCategory}"
                                           ItemsSource="{Binding AvailableCategories}" />
                             </StackPanel>
 
                             <!-- Description -->
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{loc:Loc timeline.eventDescription}"
-                                           FontSize="11" FontWeight="Medium"
+                                           FontSize="{StaticResource FontSizeBodySmall}" FontWeight="Medium"
                                            Foreground="{DynamicResource SubtleText}" />
                                 <TextBox Text="{Binding FormDescription}"
                                          AcceptsReturn="True"
@@ -455,9 +455,9 @@
                             </StackPanel>
 
                             <!-- Linked chapter -->
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{loc:Loc timeline.linkChapter}"
-                                           FontSize="11" FontWeight="Medium"
+                                           FontSize="{StaticResource FontSizeBodySmall}" FontWeight="Medium"
                                            Foreground="{DynamicResource SubtleText}" />
                                 <ComboBox ItemsSource="{Binding AvailableChapters}"
                                           SelectedValue="{Binding FormLinkedChapterGuid}"
@@ -468,7 +468,7 @@
                             <!-- Actions -->
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Right"
-                                        Spacing="8"
+                                        Spacing="{StaticResource SpacingMedium}"
                                         Margin="0,8,0,0">
                                 <Button Content="{loc:Loc timeline.cancel}"
                                         Command="{Binding CancelFormCommand}" />

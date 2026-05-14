@@ -25,11 +25,11 @@
                             Content="✕"
                             x:Name="CloseButton"
                             Classes="ribbonButton"
-                            FontSize="14"
+                            FontSize="{StaticResource FontSizeTitleSmall}"
                             Padding="6,2"
                             VerticalAlignment="Center" />
                     <TextBlock Text="{loc:Loc settings.title}"
-                               FontSize="16"
+                               FontSize="{StaticResource FontSizeTitle}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource NormalText}"
                                VerticalAlignment="Center" />
@@ -40,7 +40,7 @@
                     <TextBox x:Name="SearchBox"
                              Text="{Binding SearchQuery, Mode=TwoWay}"
                              Watermark="{loc:Loc settings.searchPlaceholder}"
-                             FontSize="12"
+                             FontSize="{StaticResource FontSizeBody}"
                              Padding="8,6" />
                 </Border>
 
@@ -54,10 +54,10 @@
                     <ListBox.Styles>
                         <Style Selector="ListBoxItem">
                             <Setter Property="Padding" Value="24,8"/>
-                            <Setter Property="FontSize" Value="13"/>
+                            <Setter Property="FontSize" Value="{StaticResource FontSizeBodyLarge}"/>
                             <Setter Property="Foreground" Value="{DynamicResource NormalText}"/>
                             <Setter Property="Background" Value="Transparent"/>
-                            <Setter Property="CornerRadius" Value="0"/>
+                            <Setter Property="CornerRadius" Value="{StaticResource RadiusNone}"/>
                             <Setter Property="BorderThickness" Value="3,0,0,0"/>
                             <Setter Property="BorderBrush" Value="Transparent"/>
                         </Style>
@@ -90,22 +90,22 @@
             <StackPanel Margin="40,24,40,40" Spacing="32" MaxWidth="640">
 
                 <!-- ── Appearance Section ── -->
-                <StackPanel x:Name="SectionAppearance" Spacing="16"
+                <StackPanel x:Name="SectionAppearance" Spacing="{StaticResource SpacingXL}"
                             IsVisible="{Binding IsAppearanceSectionVisible}">
                     <TextBlock Text="{loc:Loc settings.appearance}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
 
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="200">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                             <TextBlock Text="{loc:Loc settings.uiLanguage}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.uiLanguageDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11" />
+                                       FontSize="{StaticResource FontSizeBodySmall}" />
                         </StackPanel>
                         <ComboBox ItemsSource="{Binding AvailableUiLanguages}"
                                   SelectedItem="{Binding SelectedUiLanguage}"
@@ -115,13 +115,13 @@
 
                     <!-- Theme -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="200">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                             <TextBlock Text="{loc:Loc settings.theme}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.themeDescription}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11" />
+                                       FontSize="{StaticResource FontSizeBodySmall}" />
                         </StackPanel>
                         <ComboBox ItemsSource="{Binding AvailableThemes}"
                                   SelectedItem="{Binding SelectedTheme}"
@@ -131,22 +131,22 @@
 
                     <!-- Accent Color -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="200">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                             <TextBlock Text="{loc:Loc settings.accentColor}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.accentColorDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11" />
+                                       FontSize="{StaticResource FontSizeBodySmall}" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right"
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}" HorizontalAlignment="Right"
                                     VerticalAlignment="Center">
                             <ColorPicker Color="{Binding AccentColor}"
                                          IsAlphaVisible="False" />
                             <Button Content="{loc:Loc settings.accentColorReset}"
                                     Command="{Binding ResetAccentColorCommand}"
                                     Padding="8,4"
-                                    FontSize="11" />
+                                    FontSize="{StaticResource FontSizeBodySmall}" />
                         </StackPanel>
                     </DockPanel>
 
@@ -154,23 +154,23 @@
                 </StackPanel>
 
                 <!-- ── Editor Section ── -->
-                <StackPanel x:Name="SectionEditor" Spacing="16"
+                <StackPanel x:Name="SectionEditor" Spacing="{StaticResource SpacingXL}"
                             IsVisible="{Binding IsEditorSectionVisible}">
                     <TextBlock Text="{loc:Loc settings.editor}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
 
                     <!-- Font Family -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="200">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                             <TextBlock Text="{loc:Loc settings.fontFamily}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.fontFamilyDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11" />
+                                       FontSize="{StaticResource FontSizeBodySmall}" />
                         </StackPanel>
                         <ComboBox ItemsSource="{Binding AvailableFonts}"
                                   SelectedItem="{Binding EditorFontFamily}"
@@ -180,13 +180,13 @@
 
                     <!-- Font Size -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="200">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                             <TextBlock Text="{loc:Loc settings.fontSize}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.fontSizeDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11" />
+                                       FontSize="{StaticResource FontSizeBodySmall}" />
                         </StackPanel>
                         <NumericUpDown Value="{Binding EditorFontSize}"
                                        Minimum="8"
@@ -199,13 +199,13 @@
 
                     <!-- Book Paragraph Spacing -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="360">
                             <TextBlock Text="{loc:Loc settings.bookSpacing}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.bookSpacingDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <ToggleSwitch IsChecked="{Binding EnableBookParagraphSpacing}"
@@ -216,13 +216,13 @@
 
                     <!-- Typewriter Scroll -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="360">
                             <TextBlock Text="{loc:Loc settings.typewriterScroll}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.typewriterScrollDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <ToggleSwitch IsChecked="{Binding TypewriterScrollEnabled}"
@@ -231,7 +231,7 @@
                                       OffContent="" />
                     </DockPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="12"
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingLarge}"
                                 IsVisible="{Binding TypewriterScrollEnabled}"
                                 HorizontalAlignment="Right">
                         <RadioButton GroupName="TypewriterAnchor"
@@ -247,13 +247,13 @@
 
                     <!-- Page View -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="360">
                             <TextBlock Text="{loc:Loc settings.pageView}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.pageViewDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <ToggleSwitch IsChecked="{Binding PageViewEnabled}"
@@ -264,13 +264,13 @@
 
                     <!-- Book Page Width -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="360">
                             <TextBlock Text="{loc:Loc settings.bookWidth}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.bookWidthDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <ToggleSwitch IsChecked="{Binding EnableBookWidth}"
@@ -279,14 +279,14 @@
                                       OffContent="" />
                     </DockPanel>
 
-                    <StackPanel Spacing="12"
+                    <StackPanel Spacing="{StaticResource SpacingLarge}"
                                 IsVisible="{Binding EnableBookWidth}">
                         <!-- Page Format -->
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Left" Spacing="2" Width="200">
+                            <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                                 <TextBlock Text="{loc:Loc settings.bookWidthPageFormat}"
                                            Foreground="{DynamicResource NormalText}"
-                                           FontSize="13" />
+                                           FontSize="{StaticResource FontSizeBodyLarge}" />
                             </StackPanel>
                             <ComboBox ItemsSource="{Binding AvailablePageFormats}"
                                       SelectedItem="{Binding SelectedPageFormat}"
@@ -296,13 +296,13 @@
 
                         <!-- Custom Width -->
                         <DockPanel IsVisible="{Binding IsCustomPageFormat}">
-                            <StackPanel DockPanel.Dock="Left" Spacing="2" Width="200">
+                            <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                                 <TextBlock Text="{loc:Loc settings.bookWidthCustom}"
                                            Foreground="{DynamicResource NormalText}"
-                                           FontSize="13" />
+                                           FontSize="{StaticResource FontSizeBodyLarge}" />
                                 <TextBlock Text="{loc:Loc settings.bookWidthCustomDesc}"
                                            Foreground="{DynamicResource SubtleText}"
-                                           FontSize="11" />
+                                           FontSize="{StaticResource FontSizeBodySmall}" />
                             </StackPanel>
                             <NumericUpDown Value="{Binding BookTextBlockWidth}"
                                            Minimum="2"
@@ -315,10 +315,10 @@
 
                         <!-- Book Font -->
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Left" Spacing="2" Width="200">
+                            <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                                 <TextBlock Text="{loc:Loc settings.bookWidthFont}"
                                            Foreground="{DynamicResource NormalText}"
-                                           FontSize="13" />
+                                           FontSize="{StaticResource FontSizeBodyLarge}" />
                             </StackPanel>
                             <ComboBox ItemsSource="{Binding AvailableFonts}"
                                       SelectedItem="{Binding BookFontFamily}"
@@ -328,10 +328,10 @@
 
                         <!-- Book Font Size -->
                         <DockPanel>
-                            <StackPanel DockPanel.Dock="Left" Spacing="2" Width="200">
+                            <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                                 <TextBlock Text="{loc:Loc settings.bookWidthFontSize}"
                                            Foreground="{DynamicResource NormalText}"
-                                           FontSize="13" />
+                                           FontSize="{StaticResource FontSizeBodyLarge}" />
                             </StackPanel>
                             <NumericUpDown Value="{Binding BookFontSize}"
                                            Minimum="6"
@@ -345,7 +345,7 @@
                         <!-- Chars per line preview -->
                         <TextBlock Text="{Binding BookWidthCharsPerLine}"
                                    Foreground="{DynamicResource SubtleText}"
-                                   FontSize="11"
+                                   FontSize="{StaticResource FontSizeBodySmall}"
                                    FontStyle="Italic" />
                     </StackPanel>
 
@@ -353,10 +353,10 @@
                 </StackPanel>
 
                 <!-- ── Writing Goals Section ── -->
-                <StackPanel x:Name="SectionWritingGoals" Spacing="16"
+                <StackPanel x:Name="SectionWritingGoals" Spacing="{StaticResource SpacingXL}"
                             IsVisible="{Binding IsWritingGoalsSectionVisible}">
                     <TextBlock Text="{loc:Loc settings.writingGoals}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
@@ -364,7 +364,7 @@
                     <Border Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"
                             BorderThickness="1"
-                            CornerRadius="6"
+                            CornerRadius="{StaticResource RadiusMedium}"
                             Padding="16,12">
                         <DockPanel>
                             <Button DockPanel.Dock="Right"
@@ -372,27 +372,27 @@
                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).RenameProjectCommand}"
                                     Padding="10,4"
                                     VerticalAlignment="Center" />
-                            <StackPanel Spacing="4">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{Binding CurrentProjectName}"
                                            Foreground="{DynamicResource NormalText}"
-                                           FontSize="13"
+                                           FontSize="{StaticResource FontSizeBodyLarge}"
                                            FontWeight="SemiBold" />
                                 <TextBlock Text="{loc:Loc settings.goalsDesc}"
                                            Foreground="{DynamicResource SubtleText}"
-                                           FontSize="11"
+                                           FontSize="{StaticResource FontSizeBodySmall}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </DockPanel>
                     </Border>
 
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="300">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
                             <TextBlock Text="{loc:Loc settings.dailyWordGoal}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.dailyWordGoalDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <NumericUpDown Value="{Binding DailyWordGoal}"
@@ -405,13 +405,13 @@
                     </DockPanel>
 
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="300">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
                             <TextBlock Text="{loc:Loc settings.projectWordGoal}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.projectWordGoalDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <NumericUpDown Value="{Binding ProjectWordGoal}"
@@ -424,13 +424,13 @@
                     </DockPanel>
 
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="300">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
                             <TextBlock Text="{loc:Loc settings.projectDeadline}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.projectDeadlineDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <TextBox Text="{Binding ProjectDeadline}"
@@ -440,13 +440,13 @@
                     </DockPanel>
 
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="300">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
                             <TextBlock Text="{loc:Loc settings.projectAuthor}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.projectAuthorDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <TextBox Text="{Binding ProjectAuthor}"
@@ -458,23 +458,23 @@
                 </StackPanel>
 
                 <!-- ── Writing Assistance Section ── -->
-                <StackPanel x:Name="SectionWritingAssistance" Spacing="16"
+                <StackPanel x:Name="SectionWritingAssistance" Spacing="{StaticResource SpacingXL}"
                             IsVisible="{Binding IsWritingAssistanceSectionVisible}">
                     <TextBlock Text="{loc:Loc settings.writingAssistance}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
 
                     <!-- Language -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="300">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
                             <TextBlock Text="{loc:Loc settings.quoteStyle}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.quoteStyleDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <ComboBox ItemsSource="{Binding AvailableLanguages}"
@@ -485,13 +485,13 @@
 
                     <!-- Dialogue Correction -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="300">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
                             <TextBlock Text="{loc:Loc settings.dialogueCorrection}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.dialogueCorrectionDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <ToggleSwitch IsChecked="{Binding DialogueCorrectionEnabled}"
@@ -500,13 +500,13 @@
 
                     <!-- Grammar Check -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="300">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
                             <TextBlock Text="{loc:Loc settings.grammarCheck}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.grammarCheckDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <ToggleSwitch IsChecked="{Binding GrammarCheckEnabled}"
@@ -517,16 +517,16 @@
                     <Border Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"
                             BorderThickness="1"
-                            CornerRadius="6"
+                            CornerRadius="{StaticResource RadiusMedium}"
                             Padding="16,12">
-                        <StackPanel Spacing="4">
+                        <StackPanel Spacing="{StaticResource SpacingTighter}">
                             <TextBlock Text="{loc:Loc settings.preview}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource SubtleText}" />
                             <TextBlock Text="{Binding AutoReplacementPreview}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13"
+                                       FontSize="{StaticResource FontSizeBodyLarge}"
                                        TextWrapping="Wrap"
                                        FontFamily="Cascadia Mono, Consolas, monospace" />
                         </StackPanel>
@@ -536,10 +536,10 @@
                 </StackPanel>
 
                 <!-- ── Templates Section ── -->
-                <StackPanel x:Name="SectionTemplates" Spacing="8"
+                <StackPanel x:Name="SectionTemplates" Spacing="{StaticResource SpacingMedium}"
                             IsVisible="{Binding IsTemplatesSectionVisible}">
                     <TextBlock Text="{loc:Loc settings.templates}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
@@ -550,13 +550,13 @@
                             <DockPanel>
                                 <TextBlock Text="{loc:Loc settings.characterTemplates}"
                                            Foreground="{DynamicResource NormalText}"
-                                           FontSize="13"
+                                           FontSize="{StaticResource FontSizeBodyLarge}"
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center" />
                                 <Button Content="+"
                                         Command="{Binding AddCharacterTemplateCommand}"
                                         Padding="8,4"
-                                        FontSize="14"
+                                        FontSize="{StaticResource FontSizeTitleSmall}"
                                         HorizontalAlignment="Right"
                                         ToolTip.Tip="{loc:Loc template.addTemplate}" />
                             </DockPanel>
@@ -567,7 +567,7 @@
                                     <DockPanel Margin="0,2">
                                         <Button Content="&#xE711;"
                                                 FontFamily="{StaticResource SymbolThemeFontFamily}"
-                                                FontSize="12"
+                                                FontSize="{StaticResource FontSizeBody}"
                                                 Padding="6"
                                                 Background="Transparent"
                                                 DockPanel.Dock="Right"
@@ -594,13 +594,13 @@
                             <DockPanel>
                                 <TextBlock Text="{loc:Loc settings.locationTemplates}"
                                            Foreground="{DynamicResource NormalText}"
-                                           FontSize="13"
+                                           FontSize="{StaticResource FontSizeBodyLarge}"
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center" />
                                 <Button Content="+"
                                         Command="{Binding AddLocationTemplateCommand}"
                                         Padding="8,4"
-                                        FontSize="14"
+                                        FontSize="{StaticResource FontSizeTitleSmall}"
                                         HorizontalAlignment="Right"
                                         ToolTip.Tip="{loc:Loc template.addTemplate}" />
                             </DockPanel>
@@ -611,7 +611,7 @@
                                     <DockPanel Margin="0,2">
                                         <Button Content="&#xE711;"
                                                 FontFamily="{StaticResource SymbolThemeFontFamily}"
-                                                FontSize="12"
+                                                FontSize="{StaticResource FontSizeBody}"
                                                 Padding="6"
                                                 Background="Transparent"
                                                 DockPanel.Dock="Right"
@@ -638,13 +638,13 @@
                             <DockPanel>
                                 <TextBlock Text="{loc:Loc settings.itemTemplates}"
                                            Foreground="{DynamicResource NormalText}"
-                                           FontSize="13"
+                                           FontSize="{StaticResource FontSizeBodyLarge}"
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center" />
                                 <Button Content="+"
                                         Command="{Binding AddItemTemplateCommand}"
                                         Padding="8,4"
-                                        FontSize="14"
+                                        FontSize="{StaticResource FontSizeTitleSmall}"
                                         HorizontalAlignment="Right"
                                         ToolTip.Tip="{loc:Loc template.addTemplate}" />
                             </DockPanel>
@@ -655,7 +655,7 @@
                                     <DockPanel Margin="0,2">
                                         <Button Content="&#xE711;"
                                                 FontFamily="{StaticResource SymbolThemeFontFamily}"
-                                                FontSize="12"
+                                                FontSize="{StaticResource FontSizeBody}"
                                                 Padding="6"
                                                 Background="Transparent"
                                                 DockPanel.Dock="Right"
@@ -682,13 +682,13 @@
                             <DockPanel>
                                 <TextBlock Text="{loc:Loc settings.loreTemplates}"
                                            Foreground="{DynamicResource NormalText}"
-                                           FontSize="13"
+                                           FontSize="{StaticResource FontSizeBodyLarge}"
                                            FontWeight="SemiBold"
                                            VerticalAlignment="Center" />
                                 <Button Content="+"
                                         Command="{Binding AddLoreTemplateCommand}"
                                         Padding="8,4"
-                                        FontSize="14"
+                                        FontSize="{StaticResource FontSizeTitleSmall}"
                                         HorizontalAlignment="Right"
                                         ToolTip.Tip="{loc:Loc template.addTemplate}" />
                             </DockPanel>
@@ -699,7 +699,7 @@
                                     <DockPanel Margin="0,2">
                                         <Button Content="&#xE711;"
                                                 FontFamily="{StaticResource SymbolThemeFontFamily}"
-                                                FontSize="12"
+                                                FontSize="{StaticResource FontSizeBody}"
                                                 Padding="6"
                                                 Background="Transparent"
                                                 DockPanel.Dock="Right"
@@ -724,10 +724,10 @@
                 </StackPanel>
 
                 <!-- ── Keyboard Shortcuts Section ── -->
-                <StackPanel x:Name="SectionHotkeys" Spacing="16"
+                <StackPanel x:Name="SectionHotkeys" Spacing="{StaticResource SpacingXL}"
                             IsVisible="{Binding IsHotkeysSectionVisible}">
                     <TextBlock Text="{loc:Loc settings.hotkeys}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
@@ -736,7 +736,7 @@
                         <Expander.Header>
                             <TextBlock Text="{loc:Loc settings.hotkeys}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13"
+                                       FontSize="{StaticResource FontSizeBodyLarge}"
                                        FontWeight="SemiBold"
                                        VerticalAlignment="Center" />
                         </Expander.Header>
@@ -747,22 +747,22 @@
                 </StackPanel>
 
                 <!-- ── Updates & Integrations Section ── -->
-                <StackPanel x:Name="SectionUpdatesIntegrations" Spacing="16"
+                <StackPanel x:Name="SectionUpdatesIntegrations" Spacing="{StaticResource SpacingXL}"
                             IsVisible="{Binding IsUpdatesIntegrationsSectionVisible}">
                     <TextBlock Text="{loc:Loc settings.updatesIntegrations}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
 
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="360">
                             <TextBlock Text="{loc:Loc update.checkForUpdates}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc update.checkForUpdatesDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <ToggleSwitch IsChecked="{Binding CheckForUpdates}"
@@ -773,13 +773,13 @@
 
                     <!-- Extension update check -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="360">
                             <TextBlock Text="{loc:Loc settings.checkForExtensionUpdates}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.checkForExtensionUpdatesDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <ToggleSwitch IsChecked="{Binding CheckForExtensionUpdates}"
@@ -790,13 +790,13 @@
 
                     <!-- GitHub PAT -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Left" Spacing="2" Width="360">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="360">
                             <TextBlock Text="{loc:Loc settings.githubToken}"
                                        Foreground="{DynamicResource NormalText}"
-                                       FontSize="13" />
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
                             <TextBlock Text="{loc:Loc settings.githubTokenDesc}"
                                        Foreground="{DynamicResource SubtleText}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <TextBox Text="{Binding GithubToken}"
@@ -813,9 +813,9 @@
                 <ItemsControl x:Name="SectionExtensions" ItemsSource="{Binding ExtensionSettingsPages}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:ExtensionSettingsPageVM">
-                            <StackPanel Spacing="12" Margin="0,16,0,0">
+                            <StackPanel Spacing="{StaticResource SpacingLarge}" Margin="0,16,0,0">
                                 <TextBlock Text="{Binding Category}"
-                                           FontSize="11"
+                                           FontSize="{StaticResource FontSizeBodySmall}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource SubtleText}"
                                            LetterSpacing="1" />

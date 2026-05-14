@@ -21,7 +21,7 @@
                             Spacing="36">
 
                     <!-- Hero -->
-                    <StackPanel Spacing="12" HorizontalAlignment="Center">
+                    <StackPanel Spacing="{StaticResource SpacingLarge}" HorizontalAlignment="Center">
                         <StackPanel Orientation="Horizontal" Spacing="14" HorizontalAlignment="Center">
                             <Viewbox Classes="ribbonIcon" Width="40" Height="40">
                                 <Canvas Width="24" Height="24">
@@ -29,19 +29,19 @@
                                 </Canvas>
                             </Viewbox>
                             <TextBlock Text="{loc:Loc app.title}"
-                                       FontSize="32"
+                                       FontSize="{StaticResource FontSizeDisplayLarge}"
                                        FontWeight="Bold"
                                        Foreground="{DynamicResource NormalText}"
                                        VerticalAlignment="Center" />
                         </StackPanel>
                         <TextBlock Text="{loc:Loc app.subtitle}"
-                                   FontSize="13"
+                                   FontSize="{StaticResource FontSizeBodyLarge}"
                                    Foreground="{DynamicResource SubtleText}"
                                    HorizontalAlignment="Center" />
                     </StackPanel>
 
                     <!-- Primary action row -->
-                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="12">
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="{StaticResource SpacingLarge}">
                         <Button Grid.Column="0"
                                 Command="{Binding OpenProjectCommand}"
                                 Classes="welcomeAction"
@@ -56,7 +56,7 @@
                                 </Viewbox>
                                 <TextBlock Grid.Column="1"
                                            Text="{loc:Loc welcome.browseFolder}"
-                                           VerticalAlignment="Center" FontSize="13"
+                                           VerticalAlignment="Center" FontSize="{StaticResource FontSizeBodyLarge}"
                                            TextWrapping="Wrap" TextAlignment="Left" />
                             </Grid>
                         </Button>
@@ -75,7 +75,7 @@
                                 </Viewbox>
                                 <TextBlock Grid.Column="1"
                                            Text="{loc:Loc welcome.importPlugin}"
-                                           VerticalAlignment="Center" FontSize="13"
+                                           VerticalAlignment="Center" FontSize="{StaticResource FontSizeBodyLarge}"
                                            TextWrapping="Wrap" TextAlignment="Left" />
                             </Grid>
                         </Button>
@@ -87,7 +87,7 @@
                             <TextBlock Text="{loc:Loc welcome.createTitle}"
                                        VerticalAlignment="Center"
                                        HorizontalAlignment="Center"
-                                       FontSize="13"
+                                       FontSize="{StaticResource FontSizeBodyLarge}"
                                        TextWrapping="Wrap" TextAlignment="Center" />
                         </Button>
                     </Grid>
@@ -99,7 +99,7 @@
                         <TextBlock Text="{loc:Loc welcome.createWithWizard}"
                                    VerticalAlignment="Center"
                                    HorizontalAlignment="Center"
-                                   FontSize="13"
+                                   FontSize="{StaticResource FontSizeBodyLarge}"
                                    TextWrapping="Wrap" TextAlignment="Center" />
                     </Button>
 
@@ -108,54 +108,54 @@
                             Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"
                             BorderThickness="1"
-                            CornerRadius="8"
+                            CornerRadius="{StaticResource RadiusLarge}"
                             Padding="20">
-                        <StackPanel Spacing="10">
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="{loc:Loc welcome.projectName}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                        <StackPanel Spacing="{StaticResource SpacingNormal}">
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
+                                <TextBlock Text="{loc:Loc welcome.projectName}" FontSize="{StaticResource FontSizeBodySmall}" Foreground="{DynamicResource DimText}" />
                                 <TextBox Text="{Binding NewProjectName}"
                                          Watermark="{loc:Loc welcome.projectNamePlaceholder}"
                                          MaxLength="100"
-                                         FontSize="13" />
+                                         FontSize="{StaticResource FontSizeBodyLarge}" />
                             </StackPanel>
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="{loc:Loc welcome.bookName}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
+                                <TextBlock Text="{loc:Loc welcome.bookName}" FontSize="{StaticResource FontSizeBodySmall}" Foreground="{DynamicResource DimText}" />
                                 <TextBox Text="{Binding NewBookName}"
                                          Watermark="{loc:Loc welcome.bookNamePlaceholder}"
                                          MaxLength="100"
-                                         FontSize="13" />
-                                <TextBlock Text="{loc:Loc welcome.bookNameHint}" FontSize="10" Foreground="{DynamicResource SubtleText}" />
+                                         FontSize="{StaticResource FontSizeBodyLarge}" />
+                                <TextBlock Text="{loc:Loc welcome.bookNameHint}" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource SubtleText}" />
                             </StackPanel>
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="{loc:Loc welcome.template}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
+                                <TextBlock Text="{loc:Loc welcome.template}" FontSize="{StaticResource FontSizeBodySmall}" Foreground="{DynamicResource DimText}" />
                                 <ComboBox ItemsSource="{Binding Templates}"
                                           SelectedValue="{Binding SelectedTemplateId, Mode=TwoWay}"
                                           SelectedValueBinding="{Binding Id}"
                                           HorizontalAlignment="Stretch"
-                                          FontSize="13">
+                                          FontSize="{StaticResource FontSizeBodyLarge}">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <StackPanel Spacing="2">
-                                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12.5" />
-                                                <TextBlock Text="{Binding Description}" FontSize="10.5" Foreground="{DynamicResource SubtleText}" />
+                                            <StackPanel Spacing="{StaticResource SpacingTightest}">
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" />
+                                                <TextBlock Text="{Binding Description}" FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource SubtleText}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                             </StackPanel>
-                            <StackPanel Spacing="4">
-                                <TextBlock Text="{loc:Loc welcome.location}" FontSize="11" Foreground="{DynamicResource DimText}" />
+                            <StackPanel Spacing="{StaticResource SpacingTighter}">
+                                <TextBlock Text="{loc:Loc welcome.location}" FontSize="{StaticResource FontSizeBodySmall}" Foreground="{DynamicResource DimText}" />
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBox Grid.Column="0"
                                              Text="{Binding NewProjectLocation}"
                                              Watermark="{loc:Loc welcome.locationPlaceholder}"
                                              IsReadOnly="True"
-                                             FontSize="13" />
+                                             FontSize="{StaticResource FontSizeBodyLarge}" />
                                     <Button Grid.Column="1"
                                             Content="{loc:Loc welcome.browse}"
                                             Command="{Binding BrowseLocationCommand}"
                                             Margin="4,0,0,0"
-                                            FontSize="12" />
+                                            FontSize="{StaticResource FontSizeBody}" />
                                 </Grid>
                             </StackPanel>
                             <Button Content="{loc:Loc welcome.createProject}"
@@ -169,12 +169,12 @@
                     <!-- Recent projects -->
                     <StackPanel Spacing="14">
                         <TextBlock Text="{loc:Loc welcome.recentProjects}"
-                                   FontSize="14"
+                                   FontSize="{StaticResource FontSizeTitleSmall}"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource NormalText}" />
 
                         <StackPanel HorizontalAlignment="Center"
-                                    Spacing="8"
+                                    Spacing="{StaticResource SpacingMedium}"
                                     IsVisible="{Binding !RecentProjects.Count}">
                             <Viewbox Width="40" Height="40" HorizontalAlignment="Center" Opacity="0.3">
                                 <Canvas Width="24" Height="24">
@@ -184,7 +184,7 @@
                                 </Canvas>
                             </Viewbox>
                             <TextBlock Text="{loc:Loc welcome.noRecentProjects}"
-                                       FontSize="12"
+                                       FontSize="{StaticResource FontSizeBody}"
                                        Foreground="{DynamicResource SubtleText}"
                                        HorizontalAlignment="Center" />
                         </StackPanel>
@@ -213,7 +213,7 @@
                                         <Border Background="{DynamicResource CardBackground}"
                                                 BorderBrush="{DynamicResource CardBorder}"
                                                 BorderThickness="1"
-                                                CornerRadius="8"
+                                                CornerRadius="{StaticResource RadiusLarge}"
                                                 Width="160"
                                                 ClipToBounds="True">
                                             <StackPanel>
@@ -234,15 +234,15 @@
                                                         </Viewbox>
                                                     </Border>
                                                 </Panel>
-                                                <StackPanel Spacing="2" Margin="10,8,10,10">
+                                                <StackPanel Spacing="{StaticResource SpacingTightest}" Margin="10,8,10,10">
                                                     <TextBlock Text="{Binding Name}"
                                                                FontWeight="SemiBold"
-                                                               FontSize="13"
+                                                               FontSize="{StaticResource FontSizeBodyLarge}"
                                                                Foreground="{DynamicResource NormalText}"
                                                                TextTrimming="CharacterEllipsis"
                                                                MaxLines="1" />
                                                     <TextBlock Text="{Binding Path}"
-                                                               FontSize="11"
+                                                               FontSize="{StaticResource FontSizeBodySmall}"
                                                                Foreground="{DynamicResource SubtleText}"
                                                                TextTrimming="CharacterEllipsis"
                                                                MaxLines="1" />

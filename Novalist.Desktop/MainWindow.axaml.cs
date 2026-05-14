@@ -632,6 +632,15 @@ public partial class MainWindow : Window
         maps.RequestPinEditDialog = RequestPinEditAsync;
         maps.ShowConfirmDialog = ShowConfirmDialogAsync;
         maps.PromptLayerPicker = PromptLayerPickerAsync;
+        maps.ManageProfilesRequested = ManageMapProfilesAsync;
+    }
+
+    private async Task<List<Novalist.Core.Models.MapProfile>?> ManageMapProfilesAsync(
+        List<Novalist.Core.Models.MapProfile> current)
+    {
+        var dialog = new Dialogs.MapProfileEditorDialog(current);
+        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
+        return dialog.Result;
     }
 
     private async Task<string?> PromptLayerPickerAsync(List<(string Id, string Name)> options, string currentLayerId)

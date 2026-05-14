@@ -19,11 +19,11 @@
             <DockPanel>
                 <!-- Bottom area: status + progress + update panel -->
                 <StackPanel DockPanel.Dock="Bottom"
-                            Spacing="10"
+                            Spacing="{StaticResource SpacingNormal}"
                             HorizontalAlignment="Center">
                     <TextBlock x:Name="StatusText"
                                Text="Loading..."
-                               FontSize="12"
+                               FontSize="{StaticResource FontSizeBody}"
                                Foreground="#999999"
                                HorizontalAlignment="Center" />
                     <ProgressBar x:Name="ProgressBar"
@@ -38,13 +38,13 @@
                     <Border x:Name="UpdatePanel"
                             IsVisible="False"
                             Background="#20FFFFFF"
-                            CornerRadius="8"
+                            CornerRadius="{StaticResource RadiusLarge}"
                             Padding="16,12"
                             Margin="0,4,0,0">
-                        <StackPanel Spacing="10"
+                        <StackPanel Spacing="{StaticResource SpacingNormal}"
                                     HorizontalAlignment="Center">
                             <TextBlock x:Name="UpdateVersionText"
-                                       FontSize="12"
+                                       FontSize="{StaticResource FontSizeBody}"
                                        Foreground="#CCCCCC"
                                        HorizontalAlignment="Center"
                                        TextWrapping="Wrap"
@@ -52,24 +52,24 @@
                                        MaxWidth="340" />
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Center"
-                                        Spacing="10">
+                                        Spacing="{StaticResource SpacingNormal}">
                                 <Button x:Name="UpdateNowButton"
                                         Content="Update now"
                                         Click="OnUpdateNow"
                                         Padding="20,7"
-                                        FontSize="12"
+                                        FontSize="{StaticResource FontSizeBody}"
                                         FontWeight="SemiBold"
                                         Background="#007ACC"
                                         Foreground="White"
-                                        CornerRadius="6" />
+                                        CornerRadius="{StaticResource RadiusMedium}" />
                                 <Button x:Name="UpdateLaterButton"
                                         Content="Later"
                                         Click="OnUpdateLater"
                                         Padding="20,7"
-                                        FontSize="12"
+                                        FontSize="{StaticResource FontSizeBody}"
                                         Background="#25FFFFFF"
                                         Foreground="#BBBBBB"
-                                        CornerRadius="6" />
+                                        CornerRadius="{StaticResource RadiusMedium}" />
                             </StackPanel>
                         </StackPanel>
                     </Border>

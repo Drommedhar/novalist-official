@@ -16,8 +16,8 @@
             <Setter Property="Width" Value="28" />
             <Setter Property="Height" Value="28" />
             <Setter Property="Padding" Value="2" />
-            <Setter Property="FontSize" Value="10" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeCaption}" />
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
         </Style>
         <Style Selector="Button.toolBtn:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
@@ -30,7 +30,7 @@
             <Setter Property="Width" Value="28" />
             <Setter Property="Height" Value="28" />
             <Setter Property="Padding" Value="2" />
-            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="CornerRadius" Value="{StaticResource RadiusSmall}" />
             <Setter Property="HorizontalContentAlignment" Value="Center" />
             <Setter Property="VerticalContentAlignment" Value="Center" />
         </Style>
@@ -76,7 +76,7 @@
             <Setter Property="Padding" Value="3" />
             <Setter Property="MinHeight" Value="0" />
             <Setter Property="MinWidth" Value="0" />
-            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeBodySmall}" />
             <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
@@ -96,39 +96,57 @@
         <Style Selector="Path.rowIcon.rowIconMuted">
             <Setter Property="Stroke" Value="{DynamicResource SubtleText}" />
         </Style>
-
-        <!-- Compact NumericUpDown: shrink spinner buttons so the text stays readable. -->
-        <Style Selector="NumericUpDown.compactNud">
-            <Setter Property="MinWidth" Value="58" />
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Padding" Value="4,2" />
-        </Style>
-        <Style Selector="NumericUpDown.compactNud /template/ ButtonSpinner">
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="MaxHeight" Value="24" />
-        </Style>
-        <Style Selector="NumericUpDown.compactNud /template/ ButtonSpinner /template/ RepeatButton">
-            <Setter Property="Width" Value="16" />
-            <Setter Property="MinWidth" Value="16" />
-            <Setter Property="Height" Value="11" />
-            <Setter Property="MinHeight" Value="11" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="FontSize" Value="8" />
-        </Style>
-        <Style Selector="NumericUpDown.compactNud /template/ ButtonSpinner /template/ RepeatButton /template/ ContentPresenter">
-            <Setter Property="Padding" Value="0" />
-        </Style>
-        <Style Selector="NumericUpDown.compactNud /template/ ButtonSpinner /template/ RepeatButton PathIcon">
-            <Setter Property="Width" Value="6" />
-            <Setter Property="Height" Value="6" />
-        </Style>
-        <Style Selector="NumericUpDown.compactNud /template/ TextBox">
-            <Setter Property="MinHeight" Value="0" />
-            <Setter Property="Padding" Value="4,2" />
-            <Setter Property="FontSize" Value="11" />
-            <Setter Property="Foreground" Value="{DynamicResource NormalText}" />
-        </Style>
     </UserControl.Styles>
+
+    <UserControl.Resources>
+        <!-- Properties-panel row for a spline / pin / label: name + Isolate +
+             From/To zoom range — the same controls an image row has. -->
+        <DataTemplate x:Key="LayerElementRowTemplate" DataType="vm:LayerElementRow">
+            <Border Margin="0,0,0,4" Padding="6,4"
+                    Background="{DynamicResource SubtleBackground}"
+                    BorderBrush="{DynamicResource RibbonGroupBorder}"
+                    BorderThickness="1" CornerRadius="3">
+                <StackPanel Spacing="3">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
+                                   FontSize="{StaticResource FontSizeCaption}"
+                                   TextTrimming="CharacterEllipsis"
+                                   VerticalAlignment="Center" />
+                        <ToggleButton Grid.Column="1"
+                                      Content="{loc:Loc map.isolate}"
+                                      IsChecked="{Binding IsIsolated, Mode=OneWay}"
+                                      ToolTip.Tip="{loc:Loc map.isolateTooltip}"
+                                      FontSize="{StaticResource FontSizeTiny}" Padding="4,2"
+                                      MinHeight="0"
+                                      Tag="{Binding}"
+                                      Click="OnPropElementIsolateClick" />
+                    </Grid>
+                    <Grid ColumnDefinitions="Auto,*,Auto,*">
+                        <TextBlock Grid.Column="0" Text="{loc:Loc map.layerZoomFrom}"
+                                   FontSize="{StaticResource FontSizeTiny}" VerticalAlignment="Center" Margin="0,0,3,0" />
+                        <NumericUpDown Grid.Column="1"
+                                       Value="{Binding MinZoom, Mode=OneWay}"
+                                       Minimum="0" Maximum="10" Increment="0.1"
+                                       FormatString="0.0" FontSize="{StaticResource FontSizeCaption}"
+                                       Classes="compactNud"
+                                       Foreground="{DynamicResource NormalText}"
+                                       Tag="{Binding}"
+                                       ValueChanged="OnPropElementMinZoomChanged" />
+                        <TextBlock Grid.Column="2" Text="{loc:Loc map.layerZoomTo}"
+                                   FontSize="{StaticResource FontSizeTiny}" VerticalAlignment="Center" Margin="5,0,3,0" />
+                        <NumericUpDown Grid.Column="3"
+                                       Value="{Binding MaxZoom, Mode=OneWay}"
+                                       Minimum="0" Maximum="10" Increment="0.1"
+                                       FormatString="0.0" FontSize="{StaticResource FontSizeCaption}"
+                                       Classes="compactNud"
+                                       Foreground="{DynamicResource NormalText}"
+                                       Tag="{Binding}"
+                                       ValueChanged="OnPropElementMaxZoomChanged" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </UserControl.Resources>
 
     <Grid ColumnDefinitions="Auto,*,Auto">
 
@@ -152,6 +170,93 @@
                               IsEnabled="{Binding IsEditMode}">
                     <Path Classes="toolIcon" Data="{StaticResource IconMapPin}" />
                 </ToggleButton>
+                <ToggleButton Classes="toolBtn"
+                              ToolTip.Tip="{loc:Loc map.toolAddLabelTooltip}"
+                              IsChecked="{Binding IsLabelPlaceMode, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditMode}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconType}" />
+                </ToggleButton>
+                <ToggleButton x:Name="SplineToolButton"
+                              Classes="toolBtn"
+                              ToolTip.Tip="{loc:Loc map.toolSplineTooltip}"
+                              IsChecked="{Binding IsSplineMode, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditMode}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconSpline}" />
+                    <ToggleButton.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="{loc:Loc map.splineRoadHeader}">
+                                <MenuItem Header="{loc:Loc map.roadMotorway}" Tag="road:motorway" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.roadPrimary}" Tag="road:primary" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.roadSecondary}" Tag="road:secondary" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.roadResidential}" Tag="road:residential" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.roadService}" Tag="road:service" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.roadPedestrian}" Tag="road:pedestrian" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.roadTrail}" Tag="road:trail" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.roadTrack}" Tag="road:track" Click="OnSplinePresetClick" />
+                            </MenuItem>
+                            <MenuItem Header="{loc:Loc map.splineRiverHeader}">
+                                <MenuItem Header="{loc:Loc map.riverBrook}" Tag="river:brook" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.riverStream}" Tag="river:stream" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.riverRiver}" Tag="river:river" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.riverCanal}" Tag="river:canal" Click="OnSplinePresetClick" />
+                                <MenuItem Header="{loc:Loc map.riverEstuary}" Tag="river:estuary" Click="OnSplinePresetClick" />
+                            </MenuItem>
+                            <MenuItem Header="{loc:Loc map.splineCustomHeader}"
+                                      ItemsSource="{Binding CustomProfileChoices}">
+                                <MenuItem.ItemTemplate>
+                                    <DataTemplate DataType="vm:MapProfileChoice">
+                                        <TextBlock Text="{Binding Name}" Tag="{Binding}"
+                                                   PointerPressed="OnToolCustomProfilePick" />
+                                    </DataTemplate>
+                                </MenuItem.ItemTemplate>
+                            </MenuItem>
+                            <MenuItem Header="{loc:Loc map.manageProfiles}" Click="OnManageProfilesClick" />
+                        </MenuFlyout>
+                    </ToggleButton.Flyout>
+                </ToggleButton>
+                <ToggleButton x:Name="TerrainToolButton"
+                              Classes="toolBtn"
+                              ToolTip.Tip="{loc:Loc map.toolTerrainTooltip}"
+                              IsChecked="{Binding IsTerrainMode, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditMode}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconTerrain}" />
+                    <ToggleButton.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="{loc:Loc map.terrainGrass}" Tag="grass" Click="OnTerrainTypeClick" />
+                            <MenuItem Header="{loc:Loc map.terrainForest}" Tag="forest" Click="OnTerrainTypeClick" />
+                            <MenuItem Header="{loc:Loc map.terrainConcrete}" Tag="concrete" Click="OnTerrainTypeClick" />
+                            <MenuItem Header="{loc:Loc map.terrainSand}" Tag="sand" Click="OnTerrainTypeClick" />
+                            <MenuItem Header="{loc:Loc map.terrainHills}" Tag="hills" Click="OnTerrainTypeClick" />
+                            <MenuItem Header="{loc:Loc map.terrainMountain}" Tag="mountain" Click="OnTerrainTypeClick" />
+                            <MenuItem Header="{loc:Loc map.terrainWater}" Tag="water" Click="OnTerrainTypeClick" />
+                        </MenuFlyout>
+                    </ToggleButton.Flyout>
+                </ToggleButton>
+                <ToggleButton x:Name="BuildingToolButton"
+                              Classes="toolBtn"
+                              ToolTip.Tip="{loc:Loc map.toolBuildingTooltip}"
+                              IsChecked="{Binding IsBuildingMode, Mode=TwoWay}"
+                              IsEnabled="{Binding IsEditMode}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconBuilding}" />
+                    <ToggleButton.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="{loc:Loc map.bldRowHome}" Tag="rowHome" Click="OnBuildingTypeClick" />
+                            <MenuItem Header="{loc:Loc map.bldSingleFamily}" Tag="singleFamily" Click="OnBuildingTypeClick" />
+                            <MenuItem Header="{loc:Loc map.bldSchool}" Tag="school" Click="OnBuildingTypeClick" />
+                            <MenuItem Header="{loc:Loc map.bldPolice}" Tag="police" Click="OnBuildingTypeClick" />
+                            <MenuItem Header="{loc:Loc map.bldFireStation}" Tag="fireStation" Click="OnBuildingTypeClick" />
+                            <MenuItem Header="{loc:Loc map.bldHall}" Tag="hall" Click="OnBuildingTypeClick" />
+                            <MenuItem Header="{loc:Loc map.bldPlayground}" Tag="playground" Click="OnBuildingTypeClick" />
+                            <MenuItem Header="{loc:Loc map.bldTrainStation}" Tag="trainStation" Click="OnBuildingTypeClick" />
+                        </MenuFlyout>
+                    </ToggleButton.Flyout>
+                </ToggleButton>
+                <Button Classes="toolBtn"
+                        ToolTip.Tip="{loc:Loc map.toolBorderTooltip}"
+                        Command="{Binding EditMapBorderCommand}"
+                        IsEnabled="{Binding IsEditMode}">
+                    <Path Classes="toolIcon" Data="{StaticResource IconBorder}" />
+                </Button>
                 <Button Classes="toolBtn"
                         ToolTip.Tip="{loc:Loc map.editClipTooltip}"
                         Click="OnEditClipClick"
@@ -191,7 +296,7 @@
                     BorderBrush="{DynamicResource RibbonBorder}"
                     BorderThickness="0,0,0,1"
                     Padding="6,4">
-                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto">
                     <!-- File menu replaces the old map-list rail. Button+MenuFlyout
                          instead of Menu so the popup is an overlay we can pair with
                          the WebView snapshot-hide via the flyout's Opened/Closed. -->
@@ -228,14 +333,32 @@
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"
                                Margin="10,0,0,0" />
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                Spacing="{StaticResource SpacingSmall}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Margin="0,0,8,0"
+                                IsVisible="{Binding IsBuildingMode}">
+                        <TextBlock Text="{loc:Loc map.buildingScale}"
+                                   FontSize="{StaticResource FontSizeCaption}"
+                                   VerticalAlignment="Center"
+                                   Foreground="{DynamicResource SubtleText}" />
+                        <NumericUpDown Classes="compactNud"
+                                       Value="{Binding BuildingScale, Mode=TwoWay}"
+                                       Minimum="0.25" Maximum="20" Increment="0.25"
+                                       FormatString="0.00"
+                                       FontSize="{StaticResource FontSizeBodySmall}" Width="100"
+                                       VerticalAlignment="Center" />
+                    </StackPanel>
                     <Border Grid.Column="3"
                             Padding="4,2"
                             IsVisible="{Binding HasSelectedPin}"
                             VerticalAlignment="Center"
                             Margin="0,0,8,0">
-                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}" VerticalAlignment="Center">
                             <TextBlock Text="{loc:Loc map.pinColorLabel}"
-                                       FontSize="10"
+                                       FontSize="{StaticResource FontSizeCaption}"
                                        VerticalAlignment="Center"
                                        Foreground="{DynamicResource SubtleText}" />
                             <ColorPicker x:Name="PinColorPicker"
@@ -252,6 +375,12 @@
                                   Content="{loc:Loc map.layerPanel}"
                                   Padding="8,4"
                                   IsChecked="{Binding IsLayerPanelOpen}" />
+                    <ToggleButton Grid.Column="5"
+                                  Content="{loc:Loc map.view3d}"
+                                  Padding="8,4"
+                                  Margin="6,0,0,0"
+                                  IsVisible="{Binding HasMap}"
+                                  IsChecked="{Binding Is3DMode, Mode=TwoWay}" />
                 </Grid>
             </Border>
 
@@ -262,7 +391,7 @@
                                HorizontalAlignment="Center"
                                VerticalAlignment="Center"
                                Foreground="{DynamicResource SubtleText}"
-                               FontSize="14" />
+                               FontSize="{StaticResource FontSizeTitleSmall}" />
                 </Border>
             </Grid>
         </DockPanel>
@@ -288,11 +417,478 @@
                         <Button Grid.Column="1"
                                 Content="{loc:Loc map.layerAdd}"
                                 Padding="6,3"
-                                FontSize="11"
+                                FontSize="{StaticResource FontSizeBodySmall}"
                                 Command="{Binding AddLayerCommand}"
                                 ToolTip.Tip="{loc:Loc map.layerAddTooltip}"
                                 IsEnabled="{Binding IsEditMode}" />
                     </Grid>
+                </Border>
+
+                <!-- Map border properties (bottom, while editing the border) -->
+                <Border DockPanel.Dock="Bottom"
+                        IsVisible="{Binding BorderEditActive}"
+                        Background="{DynamicResource RibbonBackground}"
+                        BorderBrush="{DynamicResource RibbonGroupBorder}"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,10">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}">
+                        <TextBlock Text="{loc:Loc map.borderProperties}"
+                                   FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.borderOutlineColor}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <ColorPicker Grid.Column="1" HorizontalAlignment="Left"
+                                         Color="{Binding BorderOutlineColor, Mode=TwoWay}"
+                                         IsAlphaEnabled="False" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.borderOutlineWidth}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <NumericUpDown Grid.Column="1" Classes="compactNud"
+                                           Value="{Binding BorderOutlineWidth, Mode=TwoWay}"
+                                           Minimum="0" Maximum="40" Increment="1" FormatString="0"
+                                           FontSize="{StaticResource FontSizeBodySmall}" Width="100"
+                                           HorizontalAlignment="Left" />
+                        </Grid>
+                        <Button Content="{loc:Loc map.borderClear}"
+                                Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                HorizontalAlignment="Stretch"
+                                Command="{Binding ClearMapBorderCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Selected-building properties (bottom, when a building is selected) -->
+                <Border DockPanel.Dock="Bottom"
+                        IsVisible="{Binding HasSelectedBuilding}"
+                        Background="{DynamicResource RibbonBackground}"
+                        BorderBrush="{DynamicResource RibbonGroupBorder}"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,10">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}">
+                        <TextBlock Text="{loc:Loc map.buildingProperties}"
+                                   FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.buildingType}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <Button Grid.Column="1" HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Padding="6,3" FontSize="{StaticResource FontSizeBodySmall}"
+                                    Content="{Binding SelectedBuildingType}">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuItem Header="{loc:Loc map.bldRowHome}" Tag="rowHome" Click="OnSelectedBuildingTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.bldSingleFamily}" Tag="singleFamily" Click="OnSelectedBuildingTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.bldSchool}" Tag="school" Click="OnSelectedBuildingTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.bldPolice}" Tag="police" Click="OnSelectedBuildingTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.bldFireStation}" Tag="fireStation" Click="OnSelectedBuildingTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.bldHall}" Tag="hall" Click="OnSelectedBuildingTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.bldPlayground}" Tag="playground" Click="OnSelectedBuildingTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.bldTrainStation}" Tag="trainStation" Click="OnSelectedBuildingTypeClick" />
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.buildingRoof}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <Button Grid.Column="1" HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Padding="6,3" FontSize="{StaticResource FontSizeBodySmall}"
+                                    Content="{Binding SelectedBuildingRoofKind}">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuItem Header="{loc:Loc map.roofGable}" Tag="gable" Click="OnBuildingRoofKindClick" />
+                                        <MenuItem Header="{loc:Loc map.roofHip}" Tag="hip" Click="OnBuildingRoofKindClick" />
+                                        <MenuItem Header="{loc:Loc map.roofFlat}" Tag="flat" Click="OnBuildingRoofKindClick" />
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
+                        </Grid>
+                        <TextBlock Text="{loc:Loc map.roofPitch}" FontSize="{StaticResource FontSizeCaption}"
+                                   Foreground="{DynamicResource SubtleText}" />
+                        <Slider Minimum="0" Maximum="1" TickFrequency="0.05" IsSnapToTickEnabled="True"
+                                Value="{Binding SelectedBuildingRoofPitch, Mode=TwoWay}" />
+                        <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.buildingFloors}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,6,0" Foreground="{DynamicResource SubtleText}" />
+                            <NumericUpDown Grid.Column="1" Classes="compactNud"
+                                           Value="{Binding SelectedBuildingFloorCount, Mode=TwoWay}"
+                                           Minimum="0" Maximum="20" Increment="1" FormatString="0"
+                                           FontSize="{StaticResource FontSizeBodySmall}" Width="80"
+                                           HorizontalAlignment="Left" />
+                            <TextBlock Grid.Column="3" Text="{loc:Loc map.buildingPlanZoom}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="12,0,6,0" Foreground="{DynamicResource SubtleText}" />
+                            <NumericUpDown Grid.Column="4" Classes="compactNud"
+                                           Value="{Binding SelectedBuildingPlanZoom, Mode=TwoWay}"
+                                           Minimum="1" Maximum="20" Increment="0.5" FormatString="0.0"
+                                           FontSize="{StaticResource FontSizeBodySmall}" Width="90"
+                                           HorizontalAlignment="Left" />
+                        </Grid>
+                        <Button Content="{loc:Loc map.buildingEditPlan}"
+                                Padding="6,3" FontSize="{StaticResource FontSizeBodySmall}"
+                                HorizontalAlignment="Stretch"
+                                Command="{Binding EditSelectedBuildingPlanCommand}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="{StaticResource SpacingTighter}">
+                            <Button Grid.Column="0" Content="{loc:Loc map.shapeForward}"
+                                    Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding MoveSelectedBuildingForwardCommand}" />
+                            <Button Grid.Column="1" Content="{loc:Loc map.shapeBackward}"
+                                    Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding MoveSelectedBuildingBackwardCommand}" />
+                        </Grid>
+                        <Button Content="{loc:Loc map.buildingDelete}"
+                                Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                HorizontalAlignment="Stretch"
+                                Command="{Binding DeleteSelectedBuildingCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Selected-shape properties (bottom, when a terrain shape is selected) -->
+                <Border DockPanel.Dock="Bottom"
+                        IsVisible="{Binding HasSelectedShape}"
+                        Background="{DynamicResource RibbonBackground}"
+                        BorderBrush="{DynamicResource RibbonGroupBorder}"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,10">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}">
+                        <TextBlock Text="{loc:Loc map.shapeProperties}"
+                                   FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.shapeType}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <Button Grid.Column="1" HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Left"
+                                    Padding="6,3" FontSize="{StaticResource FontSizeBodySmall}"
+                                    Content="{Binding SelectedShapeType}">
+                                <Button.Flyout>
+                                    <MenuFlyout>
+                                        <MenuItem Header="{loc:Loc map.terrainGrass}" Tag="grass" Click="OnShapeTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.terrainForest}" Tag="forest" Click="OnShapeTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.terrainConcrete}" Tag="concrete" Click="OnShapeTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.terrainSand}" Tag="sand" Click="OnShapeTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.terrainHills}" Tag="hills" Click="OnShapeTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.terrainMountain}" Tag="mountain" Click="OnShapeTypeClick" />
+                                        <MenuItem Header="{loc:Loc map.terrainWater}" Tag="water" Click="OnShapeTypeClick" />
+                                    </MenuFlyout>
+                                </Button.Flyout>
+                            </Button>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.shapeColor}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <ColorPicker Grid.Column="1" HorizontalAlignment="Left"
+                                         Color="{Binding SelectedShapeColor, Mode=TwoWay}"
+                                         IsAlphaEnabled="False" />
+                        </Grid>
+                        <CheckBox Content="{loc:Loc map.shapeSmooth}"
+                                  FontSize="{StaticResource FontSizeBodySmall}"
+                                  IsChecked="{Binding SelectedShapeSmooth, Mode=TwoWay}" />
+                        <TextBlock Text="{loc:Loc map.shapeBlend}" FontSize="{StaticResource FontSizeCaption}"
+                                   Foreground="{DynamicResource SubtleText}" />
+                        <Slider Minimum="0" Maximum="120"
+                                TickFrequency="4" IsSnapToTickEnabled="True"
+                                Value="{Binding SelectedShapeBlend, Mode=TwoWay}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="{StaticResource SpacingTighter}">
+                            <Button Grid.Column="0" Content="{loc:Loc map.shapeForward}"
+                                    Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding MoveSelectedShapeForwardCommand}" />
+                            <Button Grid.Column="1" Content="{loc:Loc map.shapeBackward}"
+                                    Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding MoveSelectedShapeBackwardCommand}" />
+                        </Grid>
+                        <Button Content="{loc:Loc map.shapeDelete}"
+                                Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                HorizontalAlignment="Stretch"
+                                Command="{Binding DeleteSelectedShapeCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Selected-label properties (bottom, when a text label is selected) -->
+                <Border DockPanel.Dock="Bottom"
+                        IsVisible="{Binding HasSelectedLabel}"
+                        Background="{DynamicResource RibbonBackground}"
+                        BorderBrush="{DynamicResource RibbonGroupBorder}"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,10">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}">
+                        <TextBlock Text="{loc:Loc map.labelProperties}"
+                                   FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" />
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.labelFontSize}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <NumericUpDown Grid.Column="1" Classes="compactNud"
+                                           Value="{Binding SelectedLabelFontSize, Mode=TwoWay}"
+                                           Minimum="4" Maximum="400" Increment="2" FormatString="0"
+                                           FontSize="{StaticResource FontSizeBodySmall}" Width="100"
+                                           HorizontalAlignment="Left" />
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.labelFont}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <ComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                                      FontSize="{StaticResource FontSizeBodySmall}"
+                                      ItemsSource="{Binding LabelFontChoices}"
+                                      SelectedValueBinding="{Binding Css}"
+                                      SelectedValue="{Binding SelectedLabelFontFamily, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="vm:LabelFontChoice">
+                                        <TextBlock Text="{Binding Name}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.labelAlign}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                        Spacing="{StaticResource SpacingTighter}">
+                                <Button Content="{loc:Loc map.alignLeft}" Tag="left"
+                                        Click="OnLabelAlignClick" Padding="8,3"
+                                        FontSize="{StaticResource FontSizeBodySmall}" />
+                                <Button Content="{loc:Loc map.alignCenter}" Tag="center"
+                                        Click="OnLabelAlignClick" Padding="8,3"
+                                        FontSize="{StaticResource FontSizeBodySmall}" />
+                                <Button Content="{loc:Loc map.alignRight}" Tag="right"
+                                        Click="OnLabelAlignClick" Padding="8,3"
+                                        FontSize="{StaticResource FontSizeBodySmall}" />
+                            </StackPanel>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Grid.Column="0" Text="{loc:Loc map.labelColor}"
+                                       FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                       Margin="0,0,8,0" Foreground="{DynamicResource SubtleText}" />
+                            <ColorPicker Grid.Column="1" HorizontalAlignment="Left"
+                                         Color="{Binding SelectedLabelColor, Mode=TwoWay}"
+                                         IsAlphaEnabled="False" />
+                        </Grid>
+                        <Button Content="{loc:Loc map.labelDelete}"
+                                Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                HorizontalAlignment="Stretch"
+                                Command="{Binding DeleteSelectedLabelCommand}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Selected-spline properties (bottom, when a road/river is selected) -->
+                <Border DockPanel.Dock="Bottom"
+                        IsVisible="{Binding HasSelectedSpline}"
+                        Background="{DynamicResource RibbonBackground}"
+                        BorderBrush="{DynamicResource RibbonGroupBorder}"
+                        BorderThickness="0,1,0,0"
+                        Padding="12,10"
+                        MaxHeight="320">
+                    <ScrollViewer AllowAutoHide="False" Padding="0,0,10,0">
+                        <StackPanel Spacing="{StaticResource SpacingMedium}">
+                            <TextBlock Text="{loc:Loc map.splineProperties}"
+                                       FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" />
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Grid.Column="0" Text="{loc:Loc map.splineType}"
+                                           FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                           Margin="0,0,8,0"
+                                           Foreground="{DynamicResource SubtleText}" />
+                                <Button Grid.Column="1"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        Padding="6,3" FontSize="{StaticResource FontSizeBodySmall}"
+                                        Content="{Binding SelectedSplinePreset}">
+                                    <Button.Flyout>
+                                        <MenuFlyout>
+                                            <MenuItem Header="{loc:Loc map.splineRoadHeader}">
+                                                <MenuItem Header="{loc:Loc map.roadMotorway}" Tag="road:motorway" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.roadPrimary}" Tag="road:primary" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.roadSecondary}" Tag="road:secondary" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.roadResidential}" Tag="road:residential" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.roadService}" Tag="road:service" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.roadPedestrian}" Tag="road:pedestrian" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.roadTrail}" Tag="road:trail" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.roadTrack}" Tag="road:track" Click="OnSplinePropPresetClick" />
+                                            </MenuItem>
+                                            <MenuItem Header="{loc:Loc map.splineRiverHeader}">
+                                                <MenuItem Header="{loc:Loc map.riverBrook}" Tag="river:brook" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.riverStream}" Tag="river:stream" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.riverRiver}" Tag="river:river" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.riverCanal}" Tag="river:canal" Click="OnSplinePropPresetClick" />
+                                                <MenuItem Header="{loc:Loc map.riverEstuary}" Tag="river:estuary" Click="OnSplinePropPresetClick" />
+                                            </MenuItem>
+                                            <MenuItem Header="{loc:Loc map.splineCustomHeader}"
+                                                      ItemsSource="{Binding CustomProfileChoices}">
+                                                <MenuItem.ItemTemplate>
+                                                    <DataTemplate DataType="vm:MapProfileChoice">
+                                                        <TextBlock Text="{Binding Name}" Tag="{Binding}"
+                                                                   PointerPressed="OnPropCustomProfilePick" />
+                                                    </DataTemplate>
+                                                </MenuItem.ItemTemplate>
+                                            </MenuItem>
+                                            <MenuItem Header="{loc:Loc map.manageProfiles}" Click="OnManageProfilesClick" />
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </Grid>
+
+                            <!-- Closed-loop toggle (roundabouts, lakes) -->
+                            <CheckBox Content="{loc:Loc map.splineClosed}"
+                                      FontSize="{StaticResource FontSizeBodySmall}"
+                                      IsChecked="{Binding SelectedSplineClosed, Mode=TwoWay}" />
+
+                            <!-- Centerline marking style override -->
+                            <Grid ColumnDefinitions="Auto,*">
+                                <TextBlock Grid.Column="0" Text="{loc:Loc map.splineMarking}"
+                                           FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                           Margin="0,0,8,0"
+                                           Foreground="{DynamicResource SubtleText}" />
+                                <Button Grid.Column="1"
+                                        HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Left"
+                                        Padding="6,3" FontSize="{StaticResource FontSizeBodySmall}"
+                                        Content="{Binding SelectedSplineMarkingDisplay}">
+                                    <Button.Flyout>
+                                        <MenuFlyout>
+                                            <MenuItem Header="{loc:Loc map.markPresetDefault}" Tag="" Click="OnSplineMarkingStyleClick" />
+                                            <MenuItem Header="{loc:Loc map.markNone}" Tag="none" Click="OnSplineMarkingStyleClick" />
+                                            <MenuItem Header="{loc:Loc map.markSingle}" Tag="single" Click="OnSplineMarkingStyleClick" />
+                                            <MenuItem Header="{loc:Loc map.markDashed}" Tag="dashed" Click="OnSplineMarkingStyleClick" />
+                                            <MenuItem Header="{loc:Loc map.markDouble}" Tag="double" Click="OnSplineMarkingStyleClick" />
+                                            <MenuItem Header="{loc:Loc map.markSolidDashed}" Tag="solid-dashed" Click="OnSplineMarkingStyleClick" />
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </Grid>
+
+                            <!-- Per-part colour overrides -->
+                            <TextBlock Text="{loc:Loc map.splineColors}" FontSize="{StaticResource FontSizeCaption}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       Margin="0,4,0,0" />
+                            <Grid ColumnDefinitions="Auto,Auto,Auto" ColumnSpacing="{StaticResource SpacingMedium}">
+                                <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTightest}">
+                                    <TextBlock Text="{loc:Loc map.colorCasing}" FontSize="{StaticResource FontSizeTiny}"
+                                               Foreground="{DynamicResource SubtleText}" />
+                                    <ColorPicker Color="{Binding SelectedSplineCasingColor, Mode=TwoWay}"
+                                                 IsAlphaEnabled="False" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Spacing="{StaticResource SpacingTightest}">
+                                    <TextBlock Text="{loc:Loc map.colorFill}" FontSize="{StaticResource FontSizeTiny}"
+                                               Foreground="{DynamicResource SubtleText}" />
+                                    <ColorPicker Color="{Binding SelectedSplineFillColor, Mode=TwoWay}"
+                                                 IsAlphaEnabled="False" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="2" Spacing="{StaticResource SpacingTightest}">
+                                    <TextBlock Text="{loc:Loc map.colorMarking}" FontSize="{StaticResource FontSizeTiny}"
+                                               Foreground="{DynamicResource SubtleText}" />
+                                    <ColorPicker Color="{Binding SelectedSplineMarkingColor, Mode=TwoWay}"
+                                                 IsAlphaEnabled="False" />
+                                </StackPanel>
+                            </Grid>
+                            <Button Content="{loc:Loc map.colorReset}"
+                                    Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding ResetSplineColorsCommand}" />
+
+                            <!-- Focused knot — click a knot on the map to switch which one this edits -->
+                            <Border Background="{DynamicResource SubtleBackground}"
+                                    BorderBrush="{DynamicResource RibbonGroupBorder}"
+                                    BorderThickness="1" CornerRadius="3"
+                                    Padding="8,6" Margin="0,2,0,0">
+                                <StackPanel Spacing="{StaticResource SpacingSmall}">
+                                    <TextBlock Text="{Binding SelectedKnotLabel}"
+                                               FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold" />
+                                    <TextBlock Text="{loc:Loc map.knotHint}" FontSize="{StaticResource FontSizeTiny}"
+                                               Foreground="{DynamicResource SubtleText}"
+                                               TextWrapping="Wrap" />
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <TextBlock Grid.Column="0" Text="{loc:Loc map.splineType}"
+                                                   FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                                   Margin="0,0,8,0"
+                                                   Foreground="{DynamicResource SubtleText}" />
+                                        <Button Grid.Column="1"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Left"
+                                                Padding="5,2" FontSize="{StaticResource FontSizeCaption}"
+                                                Content="{Binding SelectedKnotTypeDisplay}">
+                                            <Button.Flyout>
+                                                <MenuFlyout>
+                                                    <MenuItem Header="{loc:Loc map.knotClearType}" Tag="" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.roadMotorway}" Tag="motorway" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.roadPrimary}" Tag="primary" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.roadSecondary}" Tag="secondary" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.roadResidential}" Tag="residential" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.roadService}" Tag="service" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.roadPedestrian}" Tag="pedestrian" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.roadTrail}" Tag="trail" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.roadTrack}" Tag="track" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.riverBrook}" Tag="brook" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.riverStream}" Tag="stream" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.riverRiver}" Tag="river" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.riverCanal}" Tag="canal" Click="OnKnotTypeClick" />
+                                                    <MenuItem Header="{loc:Loc map.riverEstuary}" Tag="estuary" Click="OnKnotTypeClick" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </Grid>
+                                    <TextBlock Text="{loc:Loc map.splineBlend}" FontSize="{StaticResource FontSizeCaption}"
+                                               Foreground="{DynamicResource SubtleText}" />
+                                    <Slider Minimum="0" Maximum="1"
+                                            TickFrequency="0.05" IsSnapToTickEnabled="True"
+                                            Value="{Binding SelectedKnotBlend, Mode=TwoWay}" />
+                                    <TextBlock Text="{loc:Loc map.knotSharpness}" FontSize="{StaticResource FontSizeCaption}"
+                                               Foreground="{DynamicResource SubtleText}" />
+                                    <Slider Minimum="0" Maximum="1"
+                                            TickFrequency="0.05" IsSnapToTickEnabled="True"
+                                            Value="{Binding SelectedKnotSharpness, Mode=TwoWay}" />
+                                    <Grid ColumnDefinitions="Auto,*">
+                                        <TextBlock Grid.Column="0" Text="{loc:Loc map.splineMarking}"
+                                                   FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
+                                                   Margin="0,0,8,0"
+                                                   Foreground="{DynamicResource SubtleText}" />
+                                        <Button Grid.Column="1"
+                                                HorizontalAlignment="Stretch"
+                                                HorizontalContentAlignment="Left"
+                                                Padding="5,2" FontSize="{StaticResource FontSizeCaption}"
+                                                Content="{Binding SelectedKnotMarkingDisplay}">
+                                            <Button.Flyout>
+                                                <MenuFlyout>
+                                                    <MenuItem Header="{loc:Loc map.markKnotInherit}" Tag="" Click="OnKnotMarkingStyleClick" />
+                                                    <MenuItem Header="{loc:Loc map.markNone}" Tag="none" Click="OnKnotMarkingStyleClick" />
+                                                    <MenuItem Header="{loc:Loc map.markSingle}" Tag="single" Click="OnKnotMarkingStyleClick" />
+                                                    <MenuItem Header="{loc:Loc map.markDashed}" Tag="dashed" Click="OnKnotMarkingStyleClick" />
+                                                    <MenuItem Header="{loc:Loc map.markDouble}" Tag="double" Click="OnKnotMarkingStyleClick" />
+                                                    <MenuItem Header="{loc:Loc map.markSolidDashed}" Tag="solid-dashed" Click="OnKnotMarkingStyleClick" />
+                                                </MenuFlyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Grid ColumnDefinitions="*,*" ColumnSpacing="{StaticResource SpacingTighter}">
+                                <Button Grid.Column="0" Content="{loc:Loc map.shapeForward}"
+                                        Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding MoveSelectedSplineForwardCommand}" />
+                                <Button Grid.Column="1" Content="{loc:Loc map.shapeBackward}"
+                                        Padding="6,3" FontSize="{StaticResource FontSizeCaption}"
+                                        HorizontalAlignment="Stretch"
+                                        Command="{Binding MoveSelectedSplineBackwardCommand}" />
+                            </Grid>
+                            <Button Content="{loc:Loc map.splineDelete}"
+                                    Padding="8,4" FontSize="{StaticResource FontSizeBodySmall}"
+                                    HorizontalAlignment="Stretch"
+                                    Command="{Binding DeleteSelectedSplineCommand}" />
+                        </StackPanel>
+                    </ScrollViewer>
                 </Border>
 
                 <!-- Properties section (bottom, only when a node is selected) -->
@@ -304,25 +900,25 @@
                         Padding="12,10"
                         MaxHeight="340">
                     <ScrollViewer AllowAutoHide="False" Padding="0,0,10,0">
-                        <StackPanel Spacing="8" DataContext="{Binding SelectedNode}">
+                        <StackPanel Spacing="{StaticResource SpacingMedium}" DataContext="{Binding SelectedNode}">
                             <TextBlock Text="{loc:Loc map.properties}"
                                        FontWeight="SemiBold"
-                                       FontSize="12" />
+                                       FontSize="{StaticResource FontSizeBody}" />
                             <TextBlock Text="{Binding Name}"
-                                       FontSize="11"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
                                        Foreground="{DynamicResource SubtleText}"
                                        TextTrimming="CharacterEllipsis" />
 
                             <!-- Opacity: compact percentage field (Affinity-style) -->
                             <Grid ColumnDefinitions="Auto,Auto">
                                 <TextBlock Grid.Column="0" Text="{loc:Loc map.propOpacity}"
-                                           FontSize="10" VerticalAlignment="Center"
+                                           FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center"
                                            Margin="0,0,8,0"
                                            Foreground="{DynamicResource SubtleText}" />
                                 <NumericUpDown Grid.Column="1"
                                                Value="{Binding Opacity, Converter={x:Static vm:MapConverters.OpacityToPercent}, Mode=OneWay}"
                                                Minimum="0" Maximum="100" Increment="5"
-                                               FormatString="0'%'" FontSize="11"
+                                               FormatString="0'%'" FontSize="{StaticResource FontSizeBodySmall}"
                                                Classes="compactNud"
                                                Foreground="{DynamicResource NormalText}"
                                                ValueChanged="OnPropOpacityChanged" />
@@ -330,25 +926,25 @@
 
                             <!-- Zoom range -->
                             <TextBlock Text="{loc:Loc map.layerZoomRangeCaption}"
-                                       FontSize="10"
+                                       FontSize="{StaticResource FontSizeCaption}"
                                        Foreground="{DynamicResource SubtleText}"
                                        TextWrapping="Wrap" />
                             <Grid ColumnDefinitions="Auto,*,Auto,*">
                                 <TextBlock Grid.Column="0" Text="{loc:Loc map.layerZoomFrom}"
-                                           FontSize="10" VerticalAlignment="Center" Margin="0,0,4,0" />
+                                           FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center" Margin="0,0,4,0" />
                                 <NumericUpDown Grid.Column="1"
                                                Value="{Binding MinZoom, Mode=OneWay}"
                                                Minimum="0" Maximum="10" Increment="0.1"
-                                               FormatString="0.0" FontSize="11"
+                                               FormatString="0.0" FontSize="{StaticResource FontSizeBodySmall}"
                                                Classes="compactNud"
                                                Foreground="{DynamicResource NormalText}"
                                                ValueChanged="OnPropMinZoomChanged" />
                                 <TextBlock Grid.Column="2" Text="{loc:Loc map.layerZoomTo}"
-                                           FontSize="10" VerticalAlignment="Center" Margin="6,0,4,0" />
+                                           FontSize="{StaticResource FontSizeCaption}" VerticalAlignment="Center" Margin="6,0,4,0" />
                                 <NumericUpDown Grid.Column="3"
                                                Value="{Binding MaxZoom, Mode=OneWay}"
                                                Minimum="0" Maximum="10" Increment="0.1"
-                                               FormatString="0.0" FontSize="11"
+                                               FormatString="0.0" FontSize="{StaticResource FontSizeBodySmall}"
                                                Classes="compactNud"
                                                Foreground="{DynamicResource NormalText}"
                                                ValueChanged="OnPropMaxZoomChanged" />
@@ -359,16 +955,16 @@
                                       IsChecked="{Binding IsConnectedSet, Mode=OneWay}"
                                       ToolTip.Tip="{loc:Loc map.floorModeTooltip}"
                                       IsVisible="{Binding HasChildren}"
-                                      FontSize="11"
+                                      FontSize="{StaticResource FontSizeBodySmall}"
                                       Click="OnPropConnectedSetClick" />
-                            <StackPanel Spacing="2"
+                            <StackPanel Spacing="{StaticResource SpacingTightest}"
                                         IsVisible="{Binding IsConnectedSet}">
-                                <TextBlock Text="{loc:Loc map.activeFloor}" FontSize="10"
+                                <TextBlock Text="{loc:Loc map.activeFloor}" FontSize="{StaticResource FontSizeCaption}"
                                            Foreground="{DynamicResource SubtleText}" />
                                 <ComboBox ItemsSource="{Binding Children}"
                                           SelectedValue="{Binding ActiveMemberLayerId, Mode=OneWay}"
                                           SelectedValueBinding="{Binding NodeId}"
-                                          FontSize="11"
+                                          FontSize="{StaticResource FontSizeBodySmall}"
                                           HorizontalAlignment="Stretch"
                                           SelectionChanged="OnPropActiveMemberChanged">
                                     <ComboBox.ItemTemplate>
@@ -380,7 +976,7 @@
                             </StackPanel>
 
                             <!-- Images on this node -->
-                            <TextBlock Text="{loc:Loc map.propImages}" FontSize="10"
+                            <TextBlock Text="{loc:Loc map.propImages}" FontSize="{StaticResource FontSizeCaption}"
                                        Foreground="{DynamicResource SubtleText}"
                                        Margin="0,4,0,0"
                                        IsVisible="{Binding Images.Count}" />
@@ -394,35 +990,35 @@
                                             <StackPanel Spacing="3">
                                                 <Grid ColumnDefinitions="*,Auto">
                                                     <TextBlock Grid.Column="0" Text="{Binding DisplayName}"
-                                                               FontSize="10"
+                                                               FontSize="{StaticResource FontSizeCaption}"
                                                                TextTrimming="CharacterEllipsis"
                                                                VerticalAlignment="Center" />
                                                     <ToggleButton Grid.Column="1"
                                                                   Content="{loc:Loc map.isolate}"
                                                                   IsChecked="{Binding IsIsolated, Mode=OneWay}"
                                                                   ToolTip.Tip="{loc:Loc map.isolateTooltip}"
-                                                                  FontSize="9" Padding="4,2"
+                                                                  FontSize="{StaticResource FontSizeTiny}" Padding="4,2"
                                                                   MinHeight="0"
                                                                   Tag="{Binding}"
                                                                   Click="OnPropImageIsolateClick" />
                                                 </Grid>
                                                 <Grid ColumnDefinitions="Auto,*,Auto,*">
                                                     <TextBlock Grid.Column="0" Text="{loc:Loc map.layerZoomFrom}"
-                                                               FontSize="9" VerticalAlignment="Center" Margin="0,0,3,0" />
+                                                               FontSize="{StaticResource FontSizeTiny}" VerticalAlignment="Center" Margin="0,0,3,0" />
                                                     <NumericUpDown Grid.Column="1"
                                                                    Value="{Binding MinZoom, Mode=OneWay}"
                                                                    Minimum="0" Maximum="10" Increment="0.1"
-                                                                   FormatString="0.0" FontSize="10"
+                                                                   FormatString="0.0" FontSize="{StaticResource FontSizeCaption}"
                                                                    Classes="compactNud"
                                                                    Foreground="{DynamicResource NormalText}"
                                                                    Tag="{Binding}"
                                                                    ValueChanged="OnPropImageMinZoomChanged" />
                                                     <TextBlock Grid.Column="2" Text="{loc:Loc map.layerZoomTo}"
-                                                               FontSize="9" VerticalAlignment="Center" Margin="5,0,3,0" />
+                                                               FontSize="{StaticResource FontSizeTiny}" VerticalAlignment="Center" Margin="5,0,3,0" />
                                                     <NumericUpDown Grid.Column="3"
                                                                    Value="{Binding MaxZoom, Mode=OneWay}"
                                                                    Minimum="0" Maximum="10" Increment="0.1"
-                                                                   FormatString="0.0" FontSize="10"
+                                                                   FormatString="0.0" FontSize="{StaticResource FontSizeCaption}"
                                                                    Classes="compactNud"
                                                                    Foreground="{DynamicResource NormalText}"
                                                                    Tag="{Binding}"
@@ -433,6 +1029,46 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
+
+                            <!-- Splines on this node -->
+                            <TextBlock Text="{loc:Loc map.propSplines}" FontSize="{StaticResource FontSizeCaption}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       Margin="0,4,0,0"
+                                       IsVisible="{Binding Splines.Count}" />
+                            <ItemsControl ItemsSource="{Binding Splines}"
+                                          ItemTemplate="{StaticResource LayerElementRowTemplate}" />
+
+                            <!-- Pins on this node -->
+                            <TextBlock Text="{loc:Loc map.propPins}" FontSize="{StaticResource FontSizeCaption}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       Margin="0,4,0,0"
+                                       IsVisible="{Binding Pins.Count}" />
+                            <ItemsControl ItemsSource="{Binding Pins}"
+                                          ItemTemplate="{StaticResource LayerElementRowTemplate}" />
+
+                            <!-- Labels on this node -->
+                            <TextBlock Text="{loc:Loc map.propLabels}" FontSize="{StaticResource FontSizeCaption}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       Margin="0,4,0,0"
+                                       IsVisible="{Binding Labels.Count}" />
+                            <ItemsControl ItemsSource="{Binding Labels}"
+                                          ItemTemplate="{StaticResource LayerElementRowTemplate}" />
+
+                            <!-- Terrain shapes on this node -->
+                            <TextBlock Text="{loc:Loc map.propShapes}" FontSize="{StaticResource FontSizeCaption}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       Margin="0,4,0,0"
+                                       IsVisible="{Binding Shapes.Count}" />
+                            <ItemsControl ItemsSource="{Binding Shapes}"
+                                          ItemTemplate="{StaticResource LayerElementRowTemplate}" />
+
+                            <!-- Buildings on this node -->
+                            <TextBlock Text="{loc:Loc map.propBuildings}" FontSize="{StaticResource FontSizeCaption}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       Margin="0,4,0,0"
+                                       IsVisible="{Binding Buildings.Count}" />
+                            <ItemsControl ItemsSource="{Binding Buildings}"
+                                          ItemTemplate="{StaticResource LayerElementRowTemplate}" />
                         </StackPanel>
                     </ScrollViewer>
                 </Border>
@@ -483,13 +1119,13 @@
                                         <Panel Grid.Column="2" Tag="{Binding}"
                                                DoubleTapped="OnNodeNameDoubleTapped">
                                             <TextBlock Text="{Binding Name}"
-                                                       FontSize="12"
+                                                       FontSize="{StaticResource FontSizeBody}"
                                                        VerticalAlignment="Center"
                                                        Margin="4,0,0,0"
                                                        TextTrimming="CharacterEllipsis"
                                                        IsVisible="{Binding !IsRenaming}" />
-                                            <TextBox Text="{Binding Name}"
-                                                     FontSize="12"
+                                            <TextBox Text="{Binding Name, Mode=OneWay}"
+                                                     FontSize="{StaticResource FontSizeBody}"
                                                      Padding="2,0"
                                                      MinHeight="0"
                                                      Tag="{Binding}"
@@ -523,7 +1159,7 @@
                                         <Button Grid.Column="5"
                                                 Classes="rowIconBtn"
                                                 Content="×"
-                                                FontSize="13"
+                                                FontSize="{StaticResource FontSizeBodyLarge}"
                                                 Tag="{Binding}"
                                                 Click="OnNodeDelete"
                                                 ToolTip.Tip="{loc:Loc map.layerDelete}" />

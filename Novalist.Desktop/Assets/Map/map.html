@@ -16,6 +16,8 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
     position: fixed; inset: 0; cursor: default; overflow: hidden;
 }
 #stage.dragging { cursor: grabbing; }
+/* 3D view canvas — hidden until Map3D.enter(); swaps in place with #stage. */
+#stage3d { position: fixed; inset: 0; display: none; outline: none; }
 #world {
     position: absolute; left: 0; top: 0;
     transform-origin: 0 0;
@@ -108,6 +110,124 @@ body.mode-view .nv-image { pointer-events: none; }
 }
 #nv-clip-toolbar button.primary { background: var(--accent); color: #fff; }
 #nv-clip-toolbar button.secondary { background: #444; color: #fff; }
+.nv-spline-line {
+    position: absolute;
+    height: 0;
+    border-top: 1px dashed #6fd0ff;
+    transform-origin: 0 0;
+    pointer-events: none;
+}
+/* Terrain shapes: one <svg> per shape inside #world, path authored in world
+   units, scaled by the current zoom via transform (no rebuild on zoom). */
+.nv-terrain {
+    position: absolute;
+    left: 0; top: 0;
+    overflow: visible;
+    transform-origin: 0 0;
+    pointer-events: none;
+}
+.nv-terrain path { pointer-events: auto; }
+.nv-building {
+    position: absolute;
+    left: 0; top: 0;
+    overflow: visible;
+    transform-origin: 0 0;
+    pointer-events: none;
+}
+.nv-building polygon, .nv-building path { pointer-events: auto; }
+.nv-bld-rot-handle {
+    background: #ffae42 !important;
+    border-color: #1c1a18 !important;
+    border-radius: 50%;
+    width: 12px; height: 12px;
+    cursor: grab;
+}
+.nv-floor-selector {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(28,26,24,0.85);
+    border: 1px solid #d8a24a;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 11px;
+    pointer-events: auto;
+    z-index: 8;
+    user-select: none;
+}
+.nv-floor-selector button {
+    background: none; border: none; color: #fff;
+    cursor: pointer; padding: 1px 6px; font-size: 11px; line-height: 1.2;
+}
+.nv-floor-selector button:hover { background: #d8a24a; color: #1c1a18; }
+.nv-floor-selector .lbl { padding: 1px 4px; font-weight: 600; }
+.nv-terrain-line {
+    position: absolute;
+    height: 0;
+    border-top: 1px dashed #7bd88f;
+    transform-origin: 0 0;
+    pointer-events: none;
+}
+.nv-terrain-handle {
+    background: #7bd88f !important;
+    border-color: #11301a !important;
+    cursor: move;
+}
+.nv-terrain-handle-sel {
+    background: #ffae42 !important;
+    border-color: #1c1a18 !important;
+    width: 14px; height: 14px;
+}
+.nv-spline-handle {
+    background: #6fd0ff !important;
+    border-color: #0a2230 !important;
+    cursor: move;
+}
+.nv-spline-handle-sel {
+    background: #ffae42 !important;
+    border-color: #1c1a18 !important;
+    width: 14px; height: 14px;
+}
+.nv-spline-width-handle {
+    background: #2a2a3a !important;
+    border-color: #6fd0ff !important;
+    border-radius: 50%;
+    width: 8px; height: 8px;
+    cursor: ns-resize;
+}
+.nv-spline-rot-handle {
+    background: #ffae42 !important;
+    border-color: #1c1a18 !important;
+    border-radius: 50%;
+    width: 11px; height: 11px;
+    cursor: crosshair;
+}
+.nv-edit-toolbar {
+    position: fixed;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    background: #2a2a3a;
+    border: 1px solid #6fd0ff;
+    border-radius: 4px;
+    padding: 8px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 4px 14px rgba(0,0,0,.5);
+}
+.nv-edit-toolbar .hint { color: #aaa; font-size: 11px; }
+.nv-edit-toolbar button {
+    padding: 6px 14px;
+    cursor: pointer;
+    border: none;
+    border-radius: 3px;
+    font-size: 12px;
+}
+.nv-edit-toolbar button.primary { background: var(--accent); color: #fff; }
 .nv-ctx-menu {
     position: fixed;
     background: #2a2a3a;
@@ -156,6 +276,55 @@ body.mode-view .nv-image { pointer-events: none; }
     white-space: nowrap;
     pointer-events: none;
 }
+/* Free-standing text annotations. Like pins they live in a screen-space
+   overlay, but the font size scales with zoom so a region name stays glued to
+   its area. A dark halo keeps the text readable over any map background. */
+#label-overlay {
+    position: absolute; inset: 0;
+    pointer-events: none;
+}
+/* Map border: the visible outline frame. Clipping itself is done with
+   clip-path on #world / the overlays; this SVG only draws the stroke. */
+#border-outline {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    overflow: visible;
+}
+.nv-border-handle {
+    background: #d8a24a !important;
+    border-color: #2a1c08 !important;
+    cursor: move;
+}
+.nv-border-line {
+    position: absolute;
+    height: 0;
+    border-top: 1px dashed #d8a24a;
+    transform-origin: 0 0;
+    pointer-events: none;
+}
+.nv-label {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    cursor: move;
+    color: #fff;
+    font-weight: 600;
+    white-space: pre-wrap;
+    text-shadow: 0 0 3px #000, 0 0 3px #000, 0 1px 2px #000;
+    user-select: none;
+    line-height: 1.2;
+}
+.nv-label.selected {
+    outline: 1px dashed var(--accent);
+    outline-offset: 3px;
+}
+.nv-label.editing {
+    cursor: text;
+    user-select: text;
+    outline: 1px solid var(--accent);
+    outline-offset: 3px;
+    min-width: 1ch;
+}
 #hud {
     position: fixed; left: 12px; top: 12px;
     background: rgba(0,0,0,0.55);
@@ -172,14 +341,28 @@ body.mode-view .nv-image { pointer-events: none; }
     <div id="world"></div>
     <div id="image-handles"></div>
     <div id="pin-overlay"></div>
+    <div id="label-overlay"></div>
+    <svg id="border-outline"></svg>
 </div>
+<canvas id="stage3d"></canvas>
 <div id="hud">Map</div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./three.webgpu.min.js",
+    "three/webgpu": "./three.webgpu.min.js",
+    "three/tsl": "./three.tsl.min.js"
+  }
+}
+</script>
 <script>
 'use strict';
 
 const stage = document.getElementById('stage');
 const world = document.getElementById('world');
 const pinOverlay = document.getElementById('pin-overlay');
+const labelOverlay = document.getElementById('label-overlay');
+const borderOutline = document.getElementById('border-outline');
 const handlesOverlay = document.getElementById('image-handles');
 const hud = document.getElementById('hud');
 
@@ -187,11 +370,364 @@ let mapData = { groups: [], pins: [] };
 let mode = 'edit';
 let pan = { x: 0, y: 0 };
 let zoom = 1;
-let selected = null; // { kind:'image'|'pin', id, layerId? }
+let selected = null; // { kind:'image'|'pin'|'label', id, layerId? }
 let imageBaseUrl = '';
 let activeLayerId = '';
 let clipEdit = null; // { layerId, imageId, points: [{x,y} in natural-pixel coords] }
-let toolMode = 'select'; // 'select' | 'add-pin'
+let toolMode = 'select'; // 'select' | 'add-pin' | 'add-label' | 'spline'
+
+// ── Spline (roads & rivers) ─────────────────────────────────────────────
+// SVG layer drawn inside #world. #world only translates by pan, so spline
+// geometry is authored in world*zoom coords and rebuilt on zoom change.
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const splineSvg = document.createElementNS(SVG_NS, 'svg');
+splineSvg.setAttribute('id', 'spline-svg');
+splineSvg.style.cssText = 'position:absolute;left:0;top:0;overflow:visible;pointer-events:none;';
+
+// Delegated spline interaction: ONE set of listeners on the SVG instead of
+// three per fill quad — with many splines that is thousands of listeners saved.
+// e.target is the hit <path>; its data-spline-id says which spline.
+splineSvg.addEventListener('mousedown', e => {
+    const id = e.target && e.target.dataset && e.target.dataset.splineId;
+    if (!id || id === '__draft__' || e.button !== 0) return;
+    if (mode !== 'edit' || toolMode === 'add-pin' || toolMode === 'add-label'
+        || toolMode === 'spline' || toolMode === 'terrain' || toolMode === 'border') return;
+    e.stopPropagation();
+    selectSpline(id);
+});
+splineSvg.addEventListener('dblclick', e => {
+    const id = e.target && e.target.dataset && e.target.dataset.splineId;
+    if (!id || id === '__draft__') return;
+    if (mode !== 'edit' || toolMode !== 'select') return;
+    const sp = findSpline(id);
+    if (!sp || !sp.points || sp.points.length < 2) return;
+    e.stopPropagation(); e.preventDefault();
+    const wx = (e.clientX - pan.x) / zoom, wy = (e.clientY - pan.y) / zoom;
+    const N = sp.points.length, segCount = sp.closed ? N : N - 1;
+    let bestSeg = 0, bestD = Infinity;
+    for (let i = 0; i < segCount; i++) {
+        const a = sp.points[i], b = sp.points[(i + 1) % N];
+        const d = distToSegment(wx, wy, a.x, a.y, b.x, b.y);
+        if (d < bestD) { bestD = d; bestSeg = i; }
+    }
+    insertSplineKnot(id, bestSeg, wx, wy);
+});
+splineSvg.addEventListener('contextmenu', e => {
+    const id = e.target && e.target.dataset && e.target.dataset.splineId;
+    if (!id || id === '__draft__' || mode !== 'edit') return;
+    e.preventDefault(); e.stopPropagation();
+    const sp = findSpline(id);
+    if (sp) showSplineContextMenu(e, sp);
+});
+
+// Visual profiles. casing.extra = world units added each side beyond the road
+// edge. bands = fill polygons (from/to are fractions of half-width, -1..1).
+// markings = stroked lines at an offset fraction; width/dash are screen pixels.
+// Terrain type presets — seed the fill colour at creation; the colour is then
+// stored per-shape and independently editable.
+const TERRAIN_PRESETS = {
+    grass:    '#8db360',
+    forest:   '#4a7c3a',
+    concrete: '#9a9a98',
+    sand:     '#e3d2a0',
+    hills:    '#a6b56a',
+    mountain: '#8a7f70',
+    water:    '#5b86b3',
+};
+
+const SPLINE_PROFILES = {
+    road: {
+        motorway: { defaultWidth: 44, casing: { color: '#3f3413', extra: 5 },
+            bands: [{ from: -1, to: 1, color: '#F7C45F' }],
+            markings: [{ offset: 0, color: '#ffffff', width: 2, dash: [16, 12] },
+                       { offset: -0.93, color: '#ffffff', width: 1.5 },
+                       { offset: 0.93, color: '#ffffff', width: 1.5 }] },
+        primary: { defaultWidth: 32, casing: { color: '#6b5a1a', extra: 4 },
+            bands: [{ from: -1, to: 1, color: '#FFF2AF' }],
+            markings: [{ offset: 0, color: '#e0b000', width: 1.8 },
+                       { offset: -0.9, color: '#ffffff', width: 1.3 },
+                       { offset: 0.9, color: '#ffffff', width: 1.3 }] },
+        secondary: { defaultWidth: 24, casing: { color: '#7a7a7a', extra: 3 },
+            bands: [{ from: -1, to: 1, color: '#FFFFFF' }],
+            markings: [{ offset: 0, color: '#cfcfcf', width: 1.4, dash: [10, 10] }] },
+        residential: { defaultWidth: 16, casing: { color: '#8a8a8a', extra: 2 },
+            bands: [{ from: -1, to: 1, color: '#FFFFFF' }], markings: [] },
+        service: { defaultWidth: 9, casing: { color: '#6e6e6e', extra: 1 },
+            bands: [{ from: -1, to: 1, color: '#cfcfcf' }], markings: [] },
+        pedestrian: { defaultWidth: 14, casing: { color: '#9a8d7a', extra: 1 },
+            bands: [{ from: -1, to: 1, color: '#d8cbb4' }], markings: [] },
+        trail: { defaultWidth: 12, casing: { color: '#d8cdb0', extra: 0 },
+            bands: [{ from: -1, to: 1, color: '#d8cdb0' }],
+            // A single dashed centre marking = the dotted footpath look.
+            markings: [{ offset: 0, color: '#7a5c3a', width: 5, dash: [4, 10] }] },
+        track: { defaultWidth: 26, casing: { color: '#3a2f22', extra: 1 },
+            bands: [{ from: -1, to: 1, color: '#b9ad97' }], // ballast
+            // Cross-ties: a thick dashed marking → rectangles `width` wide
+            // (perpendicular) and `dash[0]` long, spaced by `dash[1]`. Then the
+            // two rails on top. Tie offset is slightly off 0 so it counts as an
+            // edge marking (drawn before / under the rails, not a centreline).
+            markings: [{ offset: 0.001, color: '#5a4632', width: 30, dash: [4, 9] },
+                       { offset: -0.55, color: '#4b4b4b', width: 2.2 },
+                       { offset: 0.55, color: '#4b4b4b', width: 2.2 }] },
+    },
+    river: {
+        brook: { defaultWidth: 8, casing: { color: '#80A7C2', extra: 1.5 },
+            bands: [{ from: -1, to: 1, color: '#AADAFF' }], markings: [] },
+        stream: { defaultWidth: 16, casing: { color: '#80A7C2', extra: 2 },
+            bands: [{ from: -1, to: 1, color: '#AADAFF' }], markings: [] },
+        river: { defaultWidth: 38, casing: { color: '#6f9ab8', extra: 3 },
+            bands: [{ from: -1, to: 1, color: '#81B3D5' }], markings: [] },
+        canal: { defaultWidth: 22, casing: { color: '#5d7d92', extra: 2 },
+            bands: [{ from: -1, to: 1, color: '#81B3D5' }], markings: [], straight: true },
+        estuary: { defaultWidth: 84, casing: { color: '#7a8b76', extra: 4 },
+            bands: [{ from: -1, to: 1, color: '#9fb8c9' }], markings: [] },
+    },
+};
+
+function splineProfile(kind, preset) {
+    // "custom:<id>" → a user-authored profile from mapData.customProfiles,
+    // normalised into the builtin profile shape the renderer expects.
+    if (preset && preset.indexOf('custom:') === 0) {
+        const id = preset.slice(7);
+        const cp = (mapData.customProfiles || []).find(p => p.id === id);
+        if (cp) return {
+            defaultWidth: cp.defaultWidth || 24,
+            casing: { color: cp.casingColor || '#3f3413', extra: cp.casingExtra == null ? 3 : cp.casingExtra },
+            bands: (cp.bands && cp.bands.length) ? cp.bands : [{ from: -1, to: 1, color: '#cccccc' }],
+            markings: cp.markings || [],
+            straight: !!cp.straight,
+        };
+    }
+    const table = SPLINE_PROFILES[kind] || SPLINE_PROFILES.road;
+    return table[preset] || Object.values(table)[0];
+}
+
+function findSpline(splineId) {
+    let found = null;
+    walkNodes(mapData.layers, n => {
+        if (!found) found = (n.splines || []).find(s => s.id === splineId);
+    });
+    return found || null;
+}
+
+function findSplineOwner(splineId) {
+    let owner = null;
+    walkNodes(mapData.layers, n => {
+        if (!owner && (n.splines || []).some(s => s.id === splineId)) owner = n;
+    });
+    return owner;
+}
+
+// Centripetal Catmull-Rom: returns densely-sampled {x,y,w,seg,t} points.
+// seg = lower knot index of the segment this sample belongs to; t = fraction
+// (0..1) within that knot-segment — used for per-knot type cross-fading.
+function sampleSpline(points, straight, closed) {
+    if (!points || points.length === 0) return [];
+    if (points.length === 1)
+        return [{ x: points[0].x, y: points[0].y, w: points[0].width || 24, seg: 0, t: 0 }];
+    const n = points.length;
+    const loop = !!closed && n >= 3;        // Catmull-Rom wrap needs 3+ knots
+    const out = [];
+    if (straight || n === 2) {
+        const wrap = !!closed && n >= 2;
+        const segs = wrap ? n : n - 1;
+        for (let i = 0; i < segs; i++) {
+            const a = points[i], b = points[(i + 1) % n];
+            const steps = 12;
+            for (let s = 0; s < steps; s++) {
+                const t = s / steps;
+                out.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t,
+                           w: (a.width || 24) + ((b.width || 24) - (a.width || 24)) * t,
+                           seg: i, t });
+            }
+        }
+        const endIdx = wrap ? 0 : n - 1;
+        const end = points[endIdx];
+        out.push({ x: end.x, y: end.y, w: end.width || 24, seg: segs - 1, t: 1 });
+        return out;
+    }
+    // Hermite spline with per-knot tangents. With sharpness 0 and no angle
+    // override the tangents reduce to the centripetal Catmull-Rom tangents, so
+    // this matches the previous behaviour exactly.
+    const m = knotTangents(points, loop);
+    const segs = loop ? n : n - 1;
+    for (let i = 0; i < segs; i++) {
+        const p1 = points[i];
+        const j = loop ? (i + 1) % n : i + 1;
+        const p2 = points[j];
+        const m1 = m[i], m2 = m[j];
+        const w1 = p1.width || 24, w2 = p2.width || 24;
+        const steps = 18;
+        for (let s = 0; s < steps; s++) {
+            const t = s / steps, t2 = t * t, t3 = t2 * t;
+            const h00 = 2 * t3 - 3 * t2 + 1, h10 = t3 - 2 * t2 + t;
+            const h01 = -2 * t3 + 3 * t2, h11 = t3 - t2;
+            const x = h00 * p1.x + h10 * m1.x + h01 * p2.x + h11 * m2.x;
+            const y = h00 * p1.y + h10 * m1.y + h01 * p2.y + h11 * m2.y;
+            out.push({ x, y, w: w1 + (w2 - w1) * t, seg: i, t });
+        }
+    }
+    const endIdx = loop ? 0 : n - 1;
+    const end = points[endIdx];
+    out.push({ x: end.x, y: end.y, w: end.width || 24, seg: segs - 1, t: 1 });
+    return out;
+}
+
+// Per-knot Hermite tangents. Base = centripetal-style cardinal tangent
+// 0.5*(next-prev). An optional per-knot `angle` (radians) forces the tangent
+// direction; `sharpness` (0..1) scales the magnitude toward zero — at 1 the
+// knot becomes a hard corner (straight in, straight out).
+function knotTangents(points, closed) {
+    const n = points.length;
+    const m = [];
+    for (let i = 0; i < n; i++) {
+        const knot = points[i];
+        const prev = closed ? points[(i - 1 + n) % n] : points[Math.max(0, i - 1)];
+        const next = closed ? points[(i + 1) % n] : points[Math.min(n - 1, i + 1)];
+        let tx = 0.5 * (next.x - prev.x), ty = 0.5 * (next.y - prev.y);
+        if (knot.angle != null) {
+            let mag = Math.hypot(tx, ty);
+            if (mag < 1e-3) {
+                const dn = Math.hypot(next.x - knot.x, next.y - knot.y);
+                const dp = Math.hypot(knot.x - prev.x, knot.y - prev.y);
+                mag = 0.5 * (Math.max(dn, dp) || 24);
+            }
+            tx = Math.cos(knot.angle) * mag;
+            ty = Math.sin(knot.angle) * mag;
+        }
+        const sharp = knot.sharpness || 0;
+        m.push({ x: tx * (1 - sharp), y: ty * (1 - sharp) });
+    }
+    return m;
+}
+
+// Linear-interpolate two #rrggbb colours.
+function lerpColor(a, b, t) {
+    const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+    const ar = (pa >> 16) & 255, ag = (pa >> 8) & 255, ab = pa & 255;
+    const br = (pb >> 16) & 255, bg = (pb >> 8) & 255, bb = pb & 255;
+    const r = Math.round(ar + (br - ar) * t);
+    const g = Math.round(ag + (bg - ag) * t);
+    const bl = Math.round(ab + (bb - ab) * t);
+    return '#' + ((1 << 24) | (r << 16) | (g << 8) | bl).toString(16).slice(1);
+}
+
+// Resolve the profile for one knot, honouring its optional type override.
+function knotProfile(spline, knotIdx) {
+    const knot = spline.points[Math.max(0, Math.min(spline.points.length - 1, knotIdx))];
+    return splineProfile(spline.kind, (knot && knot.typeOverride) || spline.preset);
+}
+
+// Remap the raw segment fraction by the spline's blend factor:
+// b=1 → linear (full smooth), b=0 → hard step at the midpoint,
+// in between → the transition is compressed into the middle `b` of the segment.
+function blendT(t, b) {
+    if (b >= 1) return t;
+    if (b <= 0) return t < 0.5 ? 0 : 1;
+    return Math.max(0, Math.min(1, (t - 0.5) / b + 0.5));
+}
+
+// Blended visual at a sample: cross-fades casing + fill colours between the
+// two knots bounding the sample's segment (so a spline can morph type-to-type).
+// A segment's blend softness is the MIN of its two knots' factors — so dialling
+// one knot's slider down hardens both segments touching it.
+function knotBlendFactor(knot) {
+    return (knot && knot.blendFactor != null) ? knot.blendFactor : 1;
+}
+// Cross-fade context at a sample: the two bounding knots' profiles + the
+// blend-remapped fraction. Pass-level code lerps casing / bands from this.
+function sampleBlend(spline, sample) {
+    const N = spline.points.length;
+    const segB = spline.closed ? (sample.seg + 1) % N : sample.seg + 1;
+    const pA = knotProfile(spline, sample.seg);
+    const pB = knotProfile(spline, segB);
+    const bf = Math.min(knotBlendFactor(spline.points[sample.seg]),
+                        knotBlendFactor(spline.points[segB]));
+    return { pA, pB, t: blendT(sample.t, bf) };
+}
+function sampleVisual(spline, sample) {
+    const { pA, pB, t } = sampleBlend(spline, sample);
+    return {
+        casingColor: lerpColor(pA.casing.color, pB.casing.color, t),
+        casingExtra: pA.casing.extra + (pB.casing.extra - pA.casing.extra) * t,
+    };
+}
+
+// Quad path between two samples at a given half-width fraction (+ extra world units).
+function segQuad(s0, n0, s1, n1, frac, extra) {
+    const o0 = (s0.w / 2) * frac + extra;
+    const o1 = (s1.w / 2) * frac + extra;
+    const l0x = (s0.x + n0.x * o0) * zoom, l0y = (s0.y + n0.y * o0) * zoom;
+    const l1x = (s1.x + n1.x * o1) * zoom, l1y = (s1.y + n1.y * o1) * zoom;
+    const r0x = (s0.x - n0.x * o0) * zoom, r0y = (s0.y - n0.y * o0) * zoom;
+    const r1x = (s1.x - n1.x * o1) * zoom, r1y = (s1.y - n1.y * o1) * zoom;
+    return `M${l0x.toFixed(1)},${l0y.toFixed(1)} L${l1x.toFixed(1)},${l1y.toFixed(1)} ` +
+           `L${r1x.toFixed(1)},${r1y.toFixed(1)} L${r0x.toFixed(1)},${r0y.toFixed(1)} Z`;
+}
+
+// Quad spanning two arbitrary half-width fractions (a band's from→to edges).
+function segQuadBand(s0, n0, s1, n1, from, to) {
+    const a0 = (s0.w / 2) * from, b0 = (s0.w / 2) * to;
+    const a1 = (s1.w / 2) * from, b1 = (s1.w / 2) * to;
+    const ax0 = (s0.x + n0.x * a0) * zoom, ay0 = (s0.y + n0.y * a0) * zoom;
+    const bx0 = (s0.x + n0.x * b0) * zoom, by0 = (s0.y + n0.y * b0) * zoom;
+    const ax1 = (s1.x + n1.x * a1) * zoom, ay1 = (s1.y + n1.y * a1) * zoom;
+    const bx1 = (s1.x + n1.x * b1) * zoom, by1 = (s1.y + n1.y * b1) * zoom;
+    return `M${ax0.toFixed(1)},${ay0.toFixed(1)} L${ax1.toFixed(1)},${ay1.toFixed(1)} ` +
+           `L${bx1.toFixed(1)},${by1.toFixed(1)} L${bx0.toFixed(1)},${by0.toFixed(1)} Z`;
+}
+
+// Per-sample unit normals (perpendicular to the tangent).
+// When closed, the sample list's last entry duplicates the first, so the
+// cyclic neighbour lookup spans length-1 to skip that duplicate.
+function sampleNormals(samples, closed) {
+    const normals = [];
+    const m = samples.length;
+    const cyc = closed ? m - 1 : m;
+    for (let i = 0; i < m; i++) {
+        let pi, ni;
+        if (closed) {
+            pi = ((i - 1) % cyc + cyc) % cyc;
+            ni = (i + 1) % cyc;
+        } else {
+            pi = Math.max(0, i - 1);
+            ni = Math.min(m - 1, i + 1);
+        }
+        const prev = samples[pi], next = samples[ni];
+        let tx = next.x - prev.x, ty = next.y - prev.y;
+        const len = Math.hypot(tx, ty) || 1;
+        tx /= len; ty /= len;
+        normals.push({ x: -ty, y: tx }); // rotate tangent 90°
+    }
+    return normals;
+}
+
+// Build an SVG path 'd' for a band polygon between two half-width fractions.
+function bandPath(samples, normals, fromFrac, toFrac, extra) {
+    const left = [], right = [];
+    for (let i = 0; i < samples.length; i++) {
+        const s = samples[i], nrm = normals[i];
+        const half = s.w / 2;
+        const outer = half * toFrac + (toFrac >= 0 ? extra : -extra);
+        const inner = half * fromFrac + (fromFrac >= 0 ? extra : -extra);
+        left.push([(s.x + nrm.x * outer) * zoom, (s.y + nrm.y * outer) * zoom]);
+        right.push([(s.x + nrm.x * inner) * zoom, (s.y + nrm.y * inner) * zoom]);
+    }
+    let d = 'M' + left.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L');
+    d += ' L' + right.reverse().map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L');
+    return d + ' Z';
+}
+
+// Build an SVG path 'd' for a marking line at an offset fraction of half-width.
+function markingPath(samples, normals, offsetFrac) {
+    const pts = [];
+    for (let i = 0; i < samples.length; i++) {
+        const s = samples[i], nrm = normals[i];
+        const o = (s.w / 2) * offsetFrac;
+        pts.push([(s.x + nrm.x * o) * zoom, (s.y + nrm.y * o) * zoom]);
+    }
+    return 'M' + pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' L');
+}
 
 function sendMessage(msg) {
     try {
@@ -218,13 +754,34 @@ function applyTransform() {
     world.style.transform = `translate(${pan.x}px, ${pan.y}px)`;
     hud.textContent = `${mapData.name || 'Map'} — zoom ${zoom.toFixed(2)}`;
     repositionPins();
-    updateLayerVisibility();
+    repositionLabels();
     if (zoom !== lastZoomApplied) {
         lastZoomApplied = zoom;
         applyZoomToAllImages();
+        applyZoomToAllTerrain(); // terrain + building <svg> paths are world-unit, scaled by zoom
+        refreshBuildingsForZoom(); // roof ↔ floor-plan switch at planMinZoom
+        renderSplines(); // spline geometry is authored in world*zoom coords
     }
+    // Must run AFTER renderSplines — that wipes + rebuilds the spline SVG, so
+    // the layer hide / opacity cascade has to be re-applied to the fresh nodes.
+    updateLayerVisibility();
+    refreshBorder(); // clip-path + outline track pan / zoom
+    renderFloorSelectors(); // inline floor controls track pan / zoom
+    renderFloorAnnotations(); // active-floor labels / pins re-evaluated for the new zoom
     updateImageHandles();
     if (clipEdit) renderClipEditor();
+    if (splineDraft || splineEdit) renderSplineEditor();
+    if (terrainDraft || terrainEdit) renderTerrainEditor();
+    if (borderDraft || borderEdit) renderBorderEditor();
+    renderBuildingEditor(); // building rotation handle — after updateImageHandles (it clears the overlay)
+}
+
+// Terrain shape + building <svg>s carry world-unit geometry; the current zoom
+// is applied as a CSS scale (mirrors how images encode their own zoom).
+function applyZoomToAllTerrain() {
+    Array.from(world.querySelectorAll('.nv-terrain, .nv-building')).forEach(el => {
+        el.style.transform = `scale(${zoom})`;
+    });
 }
 
 function applyZoomToAllImages() {
@@ -244,7 +801,9 @@ function applyZoomToAllImages() {
 // images[] may live on any node. Group behaviors (isConnectedSet) only matter
 // when a node has children.
 
-let isolatedImageId = null; // non-persisted: when set, only this image renders
+// Non-persisted isolate state: when set, ONLY this one element renders.
+let isolatedKind = null;   // 'image' | 'spline' | 'pin' | 'label'
+let isolatedId = null;
 
 function walkNodes(nodes, cb, parents) {
     parents = parents || [];
@@ -295,13 +854,30 @@ function computeNodeState() {
     return state;
 }
 
+// Resolve a map element object by kind + id (for zoom-range / isolate checks).
+function elementById(kind, id) {
+    if (kind === 'spline') return findSpline(id);
+    if (kind === 'pin') return findPinById(id);
+    if (kind === 'label') return findLabelById(id);
+    if (kind === 'shape') return findShape(id);
+    if (kind === 'building') return findBuilding(id);
+    return null;
+}
+
 function updateLayerVisibility() {
     const state = computeNodeState();
     Array.from(world.querySelectorAll('.nv-image')).forEach(el => {
         const lid = el.dataset.layerId;
         const st = state.get(lid);
-        let show = st ? st.visible : true;
-        if (show && isolatedImageId && el.dataset.imageId !== isolatedImageId) show = false;
+        let show;
+        if (isolatedId) {
+            // Isolate: show ONLY the isolated element, nothing else.
+            show = isolatedKind === 'image' && el.dataset.imageId === isolatedId;
+            el.style.display = show ? '' : 'none';
+            if (show) el.style.opacity = 1;
+            return;
+        }
+        show = st ? st.visible : true;
         if (show) {
             const node = findLayer(lid);
             const img = node && (node.images || []).find(i => i.id === el.dataset.imageId);
@@ -313,7 +889,331 @@ function updateLayerVisibility() {
         el.style.display = show ? '' : 'none';
         if (show && st) el.style.opacity = st.opacity;
     });
+    // Spline parts, pins and labels follow their owning layer's visibility +
+    // opacity cascade plus their own per-element zoom range. An element with no
+    // layerId (legacy / unassigned) ignores the layer cascade. While anything
+    // is isolated, only the isolated element renders.
+    function cascade(els, kind, idAttr) {
+        for (const el of els) {
+            // Floor-scoped labels / pins are owned by renderFloorAnnotations —
+            // it only creates them when their building/floor should show, so the
+            // layer + isolate cascade must leave them alone.
+            if (el.dataset.floorBld) continue;
+            const elId = el.dataset[idAttr];
+            if (isolatedId) {
+                const match = isolatedKind === kind && elId === isolatedId;
+                el.style.display = match ? '' : 'none';
+                if (match) el.style.opacity = 1;
+                continue;
+            }
+            const lid = el.dataset.layerId;
+            let show = true, op = '';
+            if (lid) {
+                const st = state.get(lid);
+                show = st ? st.visible : true;
+                op = (show && st) ? st.opacity : '';
+            }
+            if (show) {
+                const obj = elementById(kind, elId);
+                if (obj) {
+                    if (obj.minZoom != null && obj.minZoom > 0 && zoom < obj.minZoom) show = false;
+                    if (obj.maxZoom != null && obj.maxZoom > 0 && zoom > obj.maxZoom) show = false;
+                }
+            }
+            el.style.display = show ? '' : 'none';
+            // Only set an inline opacity when the layer is actually dimmed.
+            // Setting opacity (even 1) on every per-segment spline quad makes
+            // the browser composite each quad on its own → the anti-aliased
+            // edges between adjacent quads stop blending and show as faint
+            // seam lines. Leaving it unset lets the whole SVG raster in one pass.
+            if (show) el.style.opacity = (op !== '' && op < 1) ? op : '';
+        }
+    }
+    cascade(splineSvg.querySelectorAll('.nv-spline-part'), 'spline', 'splineId');
+    cascade(pinOverlay.querySelectorAll('.nv-pin-host'), 'pin', 'pinId');
+    cascade(labelOverlay.querySelectorAll('.nv-label'), 'label', 'labelId');
+    cascade(world.querySelectorAll('.nv-terrain'), 'shape', 'shapeId');
+    cascade(world.querySelectorAll('.nv-building'), 'building', 'buildingId');
 }
+
+function renderSplines() {
+    splineSvg.innerHTML = '';
+    const casingG = document.createElementNS(SVG_NS, 'g');
+    const fillG = document.createElementNS(SVG_NS, 'g');
+    const markG = document.createElementNS(SVG_NS, 'g');
+    const items = [];
+    walkNodes(mapData.layers, node => {
+        for (const sp of node.splines || []) items.push({ node, sp });
+    });
+    // Live preview of the in-progress draft.
+    if (splineDraft && splineDraft.points.length >= 2) {
+        items.push({ node: { id: '__draft__' }, sp: {
+            id: '__draft__', kind: splineDraft.kind, preset: splineDraft.preset,
+            points: splineDraft.points, closed: false,
+        } });
+    }
+    function makePath(d, layerId, splineId) {
+        const p = document.createElementNS(SVG_NS, 'path');
+        p.setAttribute('d', d);
+        p.classList.add('nv-spline-part');
+        p.dataset.layerId = layerId;
+        p.dataset.splineId = splineId;
+        return p;
+    }
+    // Paint a per-segment quad. The quad is also stroked in its own fill colour
+    // so the ~1px anti-aliased gap between abutting quads (which otherwise shows
+    // as faint perpendicular seam lines) is covered.
+    function seamFill(p, color) {
+        p.setAttribute('fill', color);
+        p.setAttribute('stroke', color);
+        p.setAttribute('stroke-width', '1');
+        p.setAttribute('stroke-linejoin', 'round');
+    }
+    function makeCircle(cx, cy, r, fill, layerId, splineId) {
+        const c = document.createElementNS(SVG_NS, 'circle');
+        c.setAttribute('cx', cx.toFixed(1));
+        c.setAttribute('cy', cy.toFixed(1));
+        c.setAttribute('r', Math.max(0, r).toFixed(1));
+        c.setAttribute('fill', fill);
+        c.classList.add('nv-spline-part');
+        c.dataset.layerId = layerId;
+        c.dataset.splineId = splineId;
+        return c;
+    }
+    function hit(p, splineId) {
+        // Make a part clickable (delegated listeners on splineSvg do the rest).
+        if (splineId !== '__draft__') { p.style.pointerEvents = 'auto'; p.style.cursor = 'pointer'; }
+        return p;
+    }
+    // A spline with no per-knot type override has ONE uniform profile along its
+    // whole length → its casing and each fill band can be a single polygon
+    // instead of one quad per sample (~150 paths → ~3). Big node-count win.
+    function splineUniform(sp) {
+        return !(sp.points || []).some(p => p.typeOverride);
+    }
+    // Cache geometry once per spline.
+    for (const it of items) {
+        const baseProf = splineProfile(it.sp.kind, it.sp.preset);
+        it.prof = baseProf;
+        it.uniform = splineUniform(it.sp);
+        it.samples = sampleSpline(it.sp.points, baseProf.straight, it.sp.closed);
+        it.normals = it.samples.length >= 2 ? sampleNormals(it.samples, it.sp.closed) : null;
+    }
+    // Pass 1: casings. Drawn first → overlapping splines merge. Uniform splines
+    // emit one polygon; only splines with a per-knot type override fall back to
+    // per-segment quads (needed for the casing-colour cross-fade).
+    for (const { node, sp, prof, uniform, samples, normals } of items) {
+        if (!normals) continue;
+        if (uniform) {
+            const p = makePath(bandPath(samples, normals, -1, 1, prof.casing.extra), node.id, sp.id);
+            p.setAttribute('fill', sp.casingColor || prof.casing.color);
+            casingG.appendChild(p);
+        } else {
+            for (let i = 0; i < samples.length - 1; i++) {
+                const v = sampleVisual(sp, samples[i]);
+                const p = makePath(segQuad(samples[i], normals[i], samples[i + 1], normals[i + 1],
+                    1, v.casingExtra), node.id, sp.id);
+                seamFill(p, sp.casingColor || v.casingColor);
+                casingG.appendChild(p);
+            }
+        }
+        // Junction caps: round the casing ends of an open spline so a road/river
+        // stub doesn't terminate in a hard square edge.
+        if (!sp.closed && samples.length >= 2) {
+            for (const s of [samples[0], samples[samples.length - 1]]) {
+                const v = sampleVisual(sp, s);
+                const r = (s.w / 2 + v.casingExtra) * zoom;
+                casingG.appendChild(makeCircle(s.x * zoom, s.y * zoom, r,
+                    sp.casingColor || v.casingColor, node.id, sp.id));
+            }
+        }
+    }
+    // Pass 2: fill bands. Uniform splines emit one polygon per band; splines
+    // with a per-knot type override fall back to per-segment quads so the
+    // per-knot colour cross-fade still works.
+    for (const { node, sp, prof, uniform, samples, normals } of items) {
+        if (!normals) continue;
+        // Closed rivers are bodies of water — fill the enclosed area, not just
+        // the width-band ring. (Closed roads stay rings: roundabouts.)
+        if (sp.closed && sp.kind === 'river' && samples.length >= 3) {
+            let d = 'M';
+            for (let i = 0; i < samples.length; i++)
+                d += (i ? ' L' : '') + (samples[i].x * zoom).toFixed(1) + ',' + (samples[i].y * zoom).toFixed(1);
+            d += ' Z';
+            const prof0 = knotProfile(sp, 0);
+            const surf = (prof0.bands || []).find(b => b.from <= 0 && b.to >= 0) || (prof0.bands || [])[0];
+            const interior = makePath(d, node.id, sp.id);
+            interior.setAttribute('fill', sp.fillColor || (surf ? surf.color : '#3b6ea5'));
+            fillG.appendChild(hit(interior, sp.id));
+        }
+        if (uniform) {
+            for (const ba of prof.bands) {
+                const p = makePath(bandPath(samples, normals, ba.from, ba.to, 0), node.id, sp.id);
+                p.setAttribute('fill', sp.fillColor || ba.color);
+                fillG.appendChild(hit(p, sp.id));
+            }
+        } else {
+            for (let i = 0; i < samples.length - 1; i++) {
+                const { pA, pB, t } = sampleBlend(sp, samples[i]);
+                const bands = pA.bands;
+                for (let bi = 0; bi < bands.length; bi++) {
+                    const ba = bands[bi];
+                    const bb = pB.bands[Math.min(bi, pB.bands.length - 1)] || ba;
+                    const color = sp.fillColor || lerpColor(ba.color, bb.color, t);
+                    const p = makePath(segQuadBand(samples[i], normals[i],
+                        samples[i + 1], normals[i + 1], ba.from, ba.to), node.id, sp.id);
+                    seamFill(p, color);
+                    fillG.appendChild(hit(p, sp.id));
+                }
+            }
+        }
+        // Round the fill surface at open-spline ends to match the casing cap.
+        if (!sp.closed && samples.length >= 2) {
+            const ends = [
+                { s: samples[0], prof: knotProfile(sp, 0) },
+                { s: samples[samples.length - 1], prof: knotProfile(sp, sp.points.length - 1) },
+            ];
+            for (const { s, prof } of ends) {
+                const bands = prof.bands || [];
+                const surface = bands.find(b => b.from <= 0 && b.to >= 0) || bands[0];
+                if (!surface) continue;
+                const ext = Math.max(Math.abs(surface.from), Math.abs(surface.to));
+                const r = (s.w / 2) * ext * zoom;
+                fillG.appendChild(makeCircle(s.x * zoom, s.y * zoom, r,
+                    sp.fillColor || surface.color, node.id, sp.id));
+            }
+        }
+    }
+    // Pass 3: lane markings.
+    //  - Edge ("fog") lines come straight from the preset, drawn over the whole
+    //    spline (they don't vary per knot).
+    //  - The centerline is per-knot ( points[i].markingStyle || sp.markingStyle ).
+    //    Across a segment where the two knots' styles differ, the centerline
+    //    cross-fades using the same blend factor as the type blend.
+    function emitMarking(mk, ss, sn, layerId, splineId, opacity, colorOverride) {
+        const p = makePath(markingPath(ss, sn, mk.offset), layerId, splineId);
+        p.setAttribute('fill', 'none');
+        p.setAttribute('stroke', colorOverride || mk.color);
+        p.setAttribute('stroke-width', mk.width);
+        if (mk.dash) p.setAttribute('stroke-dasharray', mk.dash.join(' '));
+        if (opacity != null && opacity < 1) p.setAttribute('opacity', opacity.toFixed(3));
+        markG.appendChild(p);
+    }
+    for (const { node, sp, prof, samples, normals } of items) {
+        if (!normals) continue;
+        const mColor = sp.markingColor || null;
+        for (const mk of presetEdgeMarkings(prof)) {
+            emitMarking(mk, samples, normals, node.id, sp.id, 1, mColor);
+        }
+        // Fast path: no per-knot centerline override → one centre marking over
+        // the whole spline instead of one per knot-segment.
+        if (!sp.points.some(p => p.markingStyle)) {
+            for (const mk of centerMarkingsForStyle(prof, sp.markingStyle || ''))
+                emitMarking(mk, samples, normals, node.id, sp.id, 1, mColor);
+            continue;
+        }
+        const N = sp.points.length;
+        const segCount = sp.closed ? N : N - 1;
+        for (let seg = 0; seg < segCount; seg++) {
+            const nextIdx = (seg + 1) % N;
+            const styleA = sp.points[seg].markingStyle || sp.markingStyle || '';
+            const styleB = sp.points[nextIdx].markingStyle || sp.markingStyle || '';
+            const marksA = centerMarkingsForStyle(prof, styleA);
+            const marksB = centerMarkingsForStyle(prof, styleB);
+            // Samples in this knot-segment, plus the first sample of the next so
+            // the line is continuous across the knot.
+            const segSamples = [], segNormals = [];
+            for (let i = 0; i < samples.length; i++) {
+                if (samples[i].seg === seg) { segSamples.push(samples[i]); segNormals.push(normals[i]); }
+                else if (samples[i].seg === seg + 1 && segSamples.length) {
+                    segSamples.push(samples[i]); segNormals.push(normals[i]); break;
+                }
+            }
+            if (segSamples.length < 2) continue;
+            if (styleA === styleB) {
+                for (const mk of marksA) emitMarking(mk, segSamples, segNormals, node.id, sp.id, 1, mColor);
+                continue;
+            }
+            // Styles differ → cross-fade. Split the segment into sub-spans and
+            // step the opacity between the two marking sets per blendT().
+            const bf = Math.min(knotBlendFactor(sp.points[seg]), knotBlendFactor(sp.points[nextIdx]));
+            const SUB = 8;
+            const n = segSamples.length;
+            for (let k = 0; k < SUB; k++) {
+                const i0 = Math.floor(k / SUB * (n - 1));
+                const i1 = Math.floor((k + 1) / SUB * (n - 1)) + 1;
+                const ss = segSamples.slice(i0, i1);
+                const sn = segNormals.slice(i0, i1);
+                if (ss.length < 2) continue;
+                const bt = blendT((k + 0.5) / SUB, bf);
+                for (const mk of marksA) emitMarking(mk, ss, sn, node.id, sp.id, 1 - bt, mColor);
+                for (const mk of marksB) emitMarking(mk, ss, sn, node.id, sp.id, bt, mColor);
+            }
+        }
+    }
+    splineSvg.appendChild(casingG);
+    splineSvg.appendChild(fillG);
+    splineSvg.appendChild(markG);
+}
+
+// Edge (offset != 0) markings from the preset — never restyled.
+function presetEdgeMarkings(prof) {
+    return (prof.markings || []).filter(m => m.offset !== 0);
+}
+
+// Centerline marking set for a style: "" = the preset's own offset-0 markings,
+// else a generated style. Used per knot-segment.
+function centerMarkingsForStyle(prof, style) {
+    const base = prof.markings || [];
+    const centerSrc = base.find(m => m.offset === 0);
+    if (!style) return base.filter(m => m.offset === 0);
+    const col = centerSrc ? centerSrc.color : '#ffffff';
+    const gap = 0.045; // half-width fraction between paired lines
+    if (style === 'none') return [];
+    if (style === 'single') return [{ offset: 0, color: col, width: 1.8 }];
+    if (style === 'dashed') return [{ offset: 0, color: col, width: 1.6, dash: [12, 10] }];
+    if (style === 'double') return [
+        { offset: -gap, color: col, width: 1.5 },
+        { offset: gap, color: col, width: 1.5 }];
+    if (style === 'solid-dashed') return [
+        { offset: -gap, color: col, width: 1.5 },
+        { offset: gap, color: col, width: 1.5, dash: [12, 10] }];
+    return base.filter(m => m.offset === 0);
+}
+
+window.setSplineMarkingStyle = (splineId, style) => {
+    const sp = findSpline(splineId);
+    if (!sp) return;
+    if (style) sp.markingStyle = style;
+    else delete sp.markingStyle;
+    renderSplines();
+    sendMessage({ type: 'mapChanged' });
+};
+
+// Per-spline part colour overrides. Empty string clears an override (revert to
+// the preset). All three are set together from the properties-panel pickers.
+window.setSplineColors = (splineId, casing, fill, marking) => {
+    const sp = findSpline(splineId);
+    if (!sp) return;
+    const cleared = !casing && !fill && !marking;
+    if (casing) sp.casingColor = casing; else delete sp.casingColor;
+    if (fill) sp.fillColor = fill; else delete sp.fillColor;
+    if (marking) sp.markingColor = marking; else delete sp.markingColor;
+    renderSplines();
+    // Reset (all empty) → re-emit so the host's colour pickers snap to the preset.
+    if (cleared && splineEdit && splineEdit.splineId === splineId) emitSplineSelection();
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.setKnotMarkingStyle = (splineId, knotIdx, style) => {
+    const sp = findSpline(splineId);
+    if (!sp || !sp.points[knotIdx]) return;
+    if (style) sp.points[knotIdx].markingStyle = style;
+    else delete sp.points[knotIdx].markingStyle;
+    renderSplines();
+    if (splineEdit && splineEdit.splineId === splineId) emitSplineSelection();
+    sendMessage({ type: 'mapChanged' });
+};
 
 // Place-pin mode short-circuits ALL element interactions: any left-click drops a pin,
 // even on top of images or other pins. Returns true if the click was consumed.
@@ -328,6 +1228,29 @@ function tryPlacePin(e) {
     return true;
 }
 
+// Label tool: any left-click drops a new (empty) text label right where you
+// clicked and immediately puts it into inline-edit mode so you can type. The
+// tool is one-shot — it returns to the select tool after placing.
+function tryPlaceLabel(e) {
+    if (toolMode !== 'add-label' || mode !== 'edit') return false;
+    if (e.button !== 0) return false;
+    e.stopPropagation();
+    e.preventDefault();
+    const wx = (e.clientX - pan.x) / zoom;
+    const wy = (e.clientY - pan.y) / zoom;
+    const lbl = { id: 'label-' + Date.now(), x: wx, y: wy,
+                  text: '', fontSize: 18, fontFamily: '', align: 'center', color: '#ffffff',
+                  layerId: activeLayerId || '' };
+    mapData.labels = mapData.labels || [];
+    mapData.labels.push(lbl);
+    const el = renderLabel(lbl);
+    toolMode = 'select';
+    stage.style.cursor = 'default';
+    sendMessage({ type: 'cancelLabelPlace' }); // host clears IsLabelPlaceMode
+    beginLabelEdit(lbl, el);
+    return true;
+}
+
 function repositionPins() {
     const hosts = pinOverlay.querySelectorAll('.nv-pin-host');
     hosts.forEach(host => {
@@ -338,11 +1261,24 @@ function repositionPins() {
     });
 }
 
+function repositionLabels() {
+    labelOverlay.querySelectorAll('.nv-label').forEach(el => {
+        const x = parseFloat(el.dataset.worldX) || 0;
+        const y = parseFloat(el.dataset.worldY) || 0;
+        const fs = parseFloat(el.dataset.fontSize) || 18;
+        el.style.left = (pan.x + x * zoom) + 'px';
+        el.style.top  = (pan.y + y * zoom) + 'px';
+        el.style.fontSize = (fs * zoom) + 'px';
+    });
+}
+
 function setMapData(json) {
     try { mapData = JSON.parse(json) || { layers: [], pins: [] }; }
     catch (e) { mapData = { layers: [], pins: [] }; log('setMapData parse error: ' + e.message); }
     if (!mapData.layers) mapData.layers = [];
     if (!mapData.pins) mapData.pins = [];
+    if (!mapData.labels) mapData.labels = [];
+    if (!mapData.customProfiles) mapData.customProfiles = [];
     const rect = stage.getBoundingClientRect();
     pan.x = mapData.initialView?.centerX || (rect.width / 2);
     pan.y = mapData.initialView?.centerY || (rect.height / 2);
@@ -368,13 +1304,22 @@ function setMode(m) {
 function render() {
     world.innerHTML = '';
     pinOverlay.innerHTML = '';
-    // Depth-first walk: images render in tree order so deeper / later nodes
-    // paint on top. updateLayerVisibility() (via applyTransform) handles the
-    // hidden / connected-set / zoom-range / isolate cascade afterwards.
+    labelOverlay.innerHTML = '';
+    // Depth-first walk: terrain shapes then images render in tree order so
+    // deeper / later nodes paint on top. updateLayerVisibility() (via
+    // applyTransform) handles the hidden / connected-set / zoom-range / isolate
+    // cascade afterwards.
     walkNodes(mapData.layers, node => {
+        for (const shape of node.shapes || []) renderTerrainShape(node, shape);
         for (const img of node.images || []) renderImage(node, img);
+        for (const b of node.buildings || []) renderBuilding(node, b);
     });
+    renderSplines();
+    world.appendChild(splineSvg); // re-attach after innerHTML wipe; sits above images
     for (const pin of mapData.pins || []) renderPin(pin);
+    for (const lbl of mapData.labels || []) renderLabel(lbl);
+    renderFloorAnnotations(); // active-floor labels / pins for plan-showing buildings
+    lastZoomApplied = -1; // force renderSplines() coords refresh on next applyTransform
     applyTransform();
 }
 
@@ -441,7 +1386,12 @@ function renderImage(layer, img) {
             startPan(e);
             return;
         }
+        if (trySplinePoint(e)) return;
         if (tryPlacePin(e)) return;
+        if (tryPlaceLabel(e)) return;
+        if (tryPlaceTerrainPoint(e)) return;
+        if (tryPlaceBorderPoint(e)) return;
+        if (tryPlaceBuilding(e)) return;
         if (mode !== 'edit') return;
         // Locked layer = left-click just clears selection; pan via middle button only.
         if (layer.locked) {
@@ -517,12 +1467,43 @@ function deleteImage(layerId, imageId) {
 let ctxMenuLabels = { move: 'Move to layer…', clip: 'Edit clip mask', delete: 'Delete' };
 window.setContextMenuLabels = (m, c, d) => { ctxMenuLabels = { move: m || ctxMenuLabels.move, clip: c || ctxMenuLabels.clip, delete: d || ctxMenuLabels.delete }; };
 
+// Localised strings for the JS-drawn context menus (knot menu, label menu).
+// Host pushes the translated set via setMapStrings once the WebView is ready.
+let mapStrings = {
+    knotDelete: 'Delete knot', knotClearOverride: 'Clear type override',
+    knotTypePrefix: 'Type: ', labelEditText: 'Edit text', ctxDelete: 'Delete',
+    clipHint: 'Drag points · Double-click image to add · Right-click point to remove · Esc to cancel',
+    clipDone: 'Done', clipClear: 'Clear', clipCancel: 'Cancel',
+    splineEditHint: 'Drag knots to move · drag outer dot for width · right-click knot to remove · Esc / Enter to finish',
+    splineEditDone: 'Done',
+    widthHandleTip: 'Drag to resize width here',
+    ctxEdit: 'Edit…', moveToLayer: 'Move to layer…',
+    knotAddBefore: 'Add knot before', knotAddAfter: 'Add knot after',
+    knotClearDirection: 'Clear direction override', splineDelete: 'Delete spline',
+    rotHandleTip: 'Drag to set the spline direction through this knot',
+    shapeDelete: 'Delete shape',
+    terrainEditHint: 'Drag vertices to move · double-click the shape to add a vertex · right-click a vertex to remove · Esc / Done to finish',
+    buildingDelete: 'Delete building',
+    bldRotateTip: 'Drag to rotate the building (Shift = 15° steps)',
+    fpWall: 'Wall', fpDoor: 'Door', fpWindow: 'Window', fpStairs: 'Stairs',
+    fpLabel: 'Label', fpPin: 'Pin',
+    fpFlipSide: 'Flip swing side',
+    fpHint: 'Wall: click points to chain walls (Enter/Esc ends). Door/Window: click a wall or the outline. Stairs: click start then end. Right-click an element to edit or remove it.',
+};
+window.setMapStrings = (json) => {
+    try { Object.assign(mapStrings, JSON.parse(json) || {}); } catch (e) {}
+};
+
 function renderPin(pin) {
     const host = document.createElement('div');
     host.className = 'nv-pin-host' + (selected?.kind === 'pin' && selected.id === pin.id ? ' selected' : '');
     host.dataset.pinId = pin.id;
     host.dataset.worldX = pin.x;
     host.dataset.worldY = pin.y;
+    host.dataset.layerId = pin.layerId || '';
+    // Initial screen position (repositionPins() keeps it in sync afterwards).
+    host.style.left = (pan.x + pin.x * zoom) + 'px';
+    host.style.top = (pan.y + pin.y * zoom) + 'px';
 
     if (pin.label) {
         const lbl = document.createElement('div');
@@ -542,7 +1523,12 @@ function renderPin(pin) {
             startPan(e);
             return;
         }
+        if (trySplinePoint(e)) return;
         if (tryPlacePin(e)) return;
+        if (tryPlaceLabel(e)) return;
+        if (tryPlaceTerrainPoint(e)) return;
+        if (tryPlaceBorderPoint(e)) return;
+        if (tryPlaceBuilding(e)) return;
         e.stopPropagation();
         if (mode === 'view') {
             sendMessage({ type: 'pinClick', pinId: pin.id, entityId: pin.entityId || '', entityType: pin.entityType || '' });
@@ -554,18 +1540,49 @@ function renderPin(pin) {
         startPinDrag(e, pin, host);
     });
     host.addEventListener('contextmenu', (e) => {
-        e.preventDefault();
+        e.preventDefault(); e.stopPropagation();
         if (mode !== 'edit') return;
-        sendMessage({
-            type: 'pinContext',
-            pinId: pin.id,
-            label: pin.label || '',
-            entityId: pin.entityId || '',
-            entityType: pin.entityType || '',
-            color: pin.color || '',
-        });
+        showSimpleContextMenu(e, [
+            [mapStrings.ctxEdit, () => sendMessage({
+                type: 'pinContext', pinId: pin.id, label: pin.label || '',
+                entityId: pin.entityId || '', entityType: pin.entityType || '',
+                color: pin.color || '',
+            })],
+            [mapStrings.moveToLayer, () => sendMessage({
+                type: 'requestMoveToLayer', kind: 'pin', id: pin.id,
+                currentLayerId: pin.layerId || '',
+            })],
+            null,
+            [mapStrings.ctxDelete, () => deletePin(pin.id)],
+        ]);
     });
     pinOverlay.appendChild(host);
+}
+
+// Generic JS context menu. `items` is an array of [label, action] pairs;
+// a null entry renders a separator.
+function showSimpleContextMenu(ev, items) {
+    closeContextMenu();
+    const menu = document.createElement('div');
+    menu.className = 'nv-ctx-menu';
+    menu.style.left = ev.clientX + 'px';
+    menu.style.top = ev.clientY + 'px';
+    for (const entry of items) {
+        if (!entry) {
+            const sep = document.createElement('div');
+            sep.style.cssText = 'height:1px;background:#555;margin:4px 0;';
+            menu.appendChild(sep);
+            continue;
+        }
+        const [label, action] = entry;
+        const it = document.createElement('div');
+        it.textContent = label;
+        it.addEventListener('mousedown', e => e.stopPropagation());
+        it.addEventListener('click', () => { closeContextMenu(); action(); });
+        menu.appendChild(it);
+    }
+    document.body.appendChild(menu);
+    setTimeout(() => window.addEventListener('mousedown', closeContextMenu, { once: true }), 0);
 }
 
 function selectImage(layerId, imageId) {
@@ -590,7 +1607,7 @@ function selectImage(layerId, imageId) {
 function updateImageHandles() {
     handlesOverlay.innerHTML = '';
     if (mode !== 'edit' || !selected || selected.kind !== 'image') return;
-    if (toolMode === 'add-pin') return;
+    if (toolMode !== 'select') return; // pin-place / spline tools suppress image handles
     const layer = findLayer(selected.layerId);
     if (!layer || layer.locked || layer.hidden) return;
     const img = (layer.images || []).find(i => i.id === selected.id);
@@ -747,6 +1764,212 @@ function startPinDrag(ev, pin, host) {
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
 }
+
+// ── Text labels ─────────────────────────────────────────────────────────
+let labelEditing = null;   // { id } while a label is being typed into
+
+function applyLabelStyle(el, lbl) {
+    el.style.fontFamily = lbl.fontFamily || '';
+    el.style.textAlign = lbl.align || 'center';
+    el.style.color = lbl.color || '#ffffff';
+}
+
+function renderLabel(lbl) {
+    const el = document.createElement('div');
+    el.className = 'nv-label' + (selected?.kind === 'label' && selected.id === lbl.id ? ' selected' : '');
+    el.dataset.labelId = lbl.id;
+    el.dataset.worldX = lbl.x;
+    el.dataset.worldY = lbl.y;
+    el.dataset.fontSize = lbl.fontSize || 18;
+    el.dataset.layerId = lbl.layerId || '';
+    el.textContent = lbl.text || '';
+    el.style.left = (pan.x + lbl.x * zoom) + 'px';
+    el.style.top  = (pan.y + lbl.y * zoom) + 'px';
+    el.style.fontSize = ((lbl.fontSize || 18) * zoom) + 'px';
+    applyLabelStyle(el, lbl);
+    el.addEventListener('mousedown', (e) => {
+        if (el.isContentEditable) { e.stopPropagation(); return; } // typing — leave caret alone
+        if (e.button === 1) { e.preventDefault(); e.stopPropagation(); startPan(e); return; }
+        if (trySplinePoint(e)) return;
+        if (tryPlacePin(e)) return;
+        if (tryPlaceLabel(e)) return;
+        if (tryPlaceTerrainPoint(e)) return;
+        if (tryPlaceBorderPoint(e)) return;
+        if (tryPlaceBuilding(e)) return;
+        e.stopPropagation();
+        if (mode !== 'edit' || e.button === 2) return;
+        selectLabel(lbl);
+        startLabelDrag(e, lbl, el);
+    });
+    el.addEventListener('dblclick', (e) => {
+        if (mode !== 'edit') return;
+        e.stopPropagation(); e.preventDefault();
+        beginLabelEdit(lbl, el);
+    });
+    el.addEventListener('contextmenu', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (mode !== 'edit' || el.isContentEditable) return;
+        showLabelContextMenu(e, lbl);
+    });
+    labelOverlay.appendChild(el);
+    return el;
+}
+
+function selectLabel(lbl) {
+    selected = { kind: 'label', id: lbl.id };
+    labelOverlay.querySelectorAll('.nv-label.selected').forEach(n => n.classList.remove('selected'));
+    const el = labelOverlay.querySelector(`.nv-label[data-label-id="${lbl.id}"]`);
+    if (el) el.classList.add('selected');
+    sendMessage({ type: 'labelSelected', labelId: lbl.id,
+        fontSize: lbl.fontSize || 18, fontFamily: lbl.fontFamily || '',
+        align: lbl.align || 'center', color: lbl.color || '#ffffff' });
+}
+
+function startLabelDrag(ev, lbl, el) {
+    const start = { x: ev.clientX, y: ev.clientY, px: lbl.x, py: lbl.y };
+    function move(e) {
+        lbl.x = start.px + (e.clientX - start.x) / zoom;
+        lbl.y = start.py + (e.clientY - start.y) / zoom;
+        el.dataset.worldX = lbl.x;
+        el.dataset.worldY = lbl.y;
+        el.style.left = (pan.x + lbl.x * zoom) + 'px';
+        el.style.top  = (pan.y + lbl.y * zoom) + 'px';
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+// Inline editing: the label div becomes contentEditable. Enter commits,
+// Ctrl/Shift+Enter inserts a line break, Esc cancels. An empty label on
+// commit is deleted.
+function beginLabelEdit(lbl, el) {
+    el = el || labelOverlay.querySelector(`.nv-label[data-label-id="${lbl.id}"]`);
+    if (!el || labelEditing) return;
+    labelEditing = { id: lbl.id };
+    const prevText = lbl.text || '';
+    let cancelled = false;
+    selectLabel(lbl);
+    el.contentEditable = 'plaintext-only';
+    el.spellcheck = false;
+    el.classList.add('editing');
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    function key(e) {
+        e.stopPropagation();
+        if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey) {
+            e.preventDefault();
+            el.blur();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelled = true;
+            el.textContent = prevText;
+            el.blur();
+        }
+        // Ctrl/Shift+Enter falls through → browser inserts a newline
+    }
+    function done() {
+        el.removeEventListener('keydown', key);
+        el.removeEventListener('blur', done);
+        el.contentEditable = 'false';
+        el.classList.remove('editing');
+        const editId = labelEditing.id;
+        labelEditing = null;
+        const target = findLabelById(editId);
+        if (!target) return;
+        if (!cancelled) target.text = (el.innerText || '').replace(/\n$/, '');
+        if (!target.text.trim()) { deleteLabel(editId); return; }
+        el.textContent = target.text;
+        if (!cancelled) sendMessage({ type: 'mapChanged' });
+    }
+    el.addEventListener('keydown', key);
+    el.addEventListener('blur', done);
+}
+
+function showLabelContextMenu(ev, lbl) {
+    showSimpleContextMenu(ev, [
+        [mapStrings.labelEditText, () => beginLabelEdit(lbl)],
+        [mapStrings.moveToLayer, () => sendMessage({
+            type: 'requestMoveToLayer', kind: 'label', id: lbl.id,
+            currentLayerId: lbl.layerId || '',
+        })],
+        null,
+        [mapStrings.ctxDelete, () => deleteLabel(lbl.id)],
+    ]);
+}
+
+window.setLabelFontSize = (labelId, size) => {
+    const lbl = findLabelById(labelId);
+    if (!lbl) return;
+    lbl.fontSize = Math.max(4, Math.min(400, size));
+    const el = labelOverlay.querySelector(`.nv-label[data-label-id="${labelId}"]`);
+    if (el) { el.dataset.fontSize = lbl.fontSize; el.style.fontSize = (lbl.fontSize * zoom) + 'px'; }
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.setLabelFontFamily = (labelId, family) => {
+    const lbl = findLabelById(labelId);
+    if (!lbl) return;
+    lbl.fontFamily = family || '';
+    const el = labelOverlay.querySelector(`.nv-label[data-label-id="${labelId}"]`);
+    if (el) applyLabelStyle(el, lbl);
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.setLabelAlign = (labelId, align) => {
+    const lbl = findLabelById(labelId);
+    if (!lbl) return;
+    lbl.align = align || 'center';
+    const el = labelOverlay.querySelector(`.nv-label[data-label-id="${labelId}"]`);
+    if (el) applyLabelStyle(el, lbl);
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.setLabelColor = (labelId, color) => {
+    const lbl = findLabelById(labelId);
+    if (!lbl) return;
+    lbl.color = color || '#ffffff';
+    const el = labelOverlay.querySelector(`.nv-label[data-label-id="${labelId}"]`);
+    if (el) applyLabelStyle(el, lbl);
+    sendMessage({ type: 'mapChanged' });
+};
+
+// Remove a label by id from the top-level list or any building floor.
+function removeLabelById(labelId) {
+    const before = (mapData.labels || []).length;
+    mapData.labels = (mapData.labels || []).filter(l => l.id !== labelId);
+    if (mapData.labels.length !== before) return true;
+    let removed = false;
+    walkNodes(mapData.layers, n => {
+        for (const b of n.buildings || [])
+            for (const fl of b.floors || [])
+                if (fl.labels) {
+                    const n0 = fl.labels.length;
+                    fl.labels = fl.labels.filter(l => l.id !== labelId);
+                    if (fl.labels.length !== n0) removed = true;
+                }
+    });
+    return removed;
+}
+
+function deleteLabel(labelId) {
+    removeLabelById(labelId);
+    if (selected?.kind === 'label' && selected.id === labelId) {
+        selected = null;
+        sendMessage({ type: 'labelDeselected' });
+    }
+    render();
+    sendMessage({ type: 'mapChanged' });
+}
+window.deleteLabel = deleteLabel;
 
 // ── Clip-mask editing ───────────────────────────────────────────────────
 function enterClipEdit(layerId, imageId) {
@@ -905,20 +2128,20 @@ function showClipToolbar() {
         tb.id = 'nv-clip-toolbar';
         const hint = document.createElement('span');
         hint.className = 'hint';
-        hint.textContent = 'Drag points · Double-click image to add · Right-click point to remove · Esc to cancel';
+        hint.textContent = mapStrings.clipHint;
         const done = document.createElement('button');
         done.className = 'primary';
-        done.textContent = 'Done';
+        done.textContent = mapStrings.clipDone;
         done.addEventListener('click', () => exitClipEdit(true));
         const reset = document.createElement('button');
         reset.className = 'secondary';
-        reset.textContent = 'Clear';
+        reset.textContent = mapStrings.clipClear;
         reset.addEventListener('click', () => {
             if (clipEdit) { clipEdit.points = []; renderClipEditor(); }
         });
         const cancel = document.createElement('button');
         cancel.className = 'secondary';
-        cancel.textContent = 'Cancel';
+        cancel.textContent = mapStrings.clipCancel;
         cancel.addEventListener('click', () => exitClipEdit(false));
         tb.appendChild(hint);
         tb.appendChild(reset);
@@ -939,16 +2162,2490 @@ window.toggleClipEditOnSelected = () => {
     enterClipEdit(selected.layerId, selected.id);
 };
 
+// ── Terrain shapes ──────────────────────────────────────────────────────
+let terrainDraft = null;   // { type, layerId, points:[{x,y}] } while drawing
+let terrainEdit = null;    // { shapeId, selVert } while editing a committed shape
+let terrainDraftType = 'grass';
+
+function terrainColor(type) { return TERRAIN_PRESETS[type] || TERRAIN_PRESETS.grass; }
+
+function findShape(shapeId) {
+    let f = null;
+    walkNodes(mapData.layers, n => { if (!f) f = (n.shapes || []).find(s => s.id === shapeId); });
+    return f || null;
+}
+function findShapeOwner(shapeId) {
+    let o = null;
+    walkNodes(mapData.layers, n => { if (!o && (n.shapes || []).some(s => s.id === shapeId)) o = n; });
+    return o;
+}
+
+function distToSegment(px, py, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay;
+    const len2 = dx * dx + dy * dy;
+    let t = len2 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
+}
+
+// SVG path 'd' for a shape's closed polygon, authored in WORLD units.
+function shapePathD(points, smooth) {
+    if (!points || points.length < 2) return '';
+    if (!smooth || points.length < 3)
+        return 'M' + points.map(p => p.x.toFixed(2) + ',' + p.y.toFixed(2)).join(' L') + ' Z';
+    // Closed Catmull-Rom → cubic Bézier segments.
+    const n = points.length;
+    let d = 'M' + points[0].x.toFixed(2) + ',' + points[0].y.toFixed(2);
+    for (let i = 0; i < n; i++) {
+        const p0 = points[(i - 1 + n) % n], p1 = points[i];
+        const p2 = points[(i + 1) % n], p3 = points[(i + 2) % n];
+        const c1x = p1.x + (p2.x - p0.x) / 6, c1y = p1.y + (p2.y - p0.y) / 6;
+        const c2x = p2.x - (p3.x - p1.x) / 6, c2y = p2.y - (p3.y - p1.y) / 6;
+        d += ' C' + c1x.toFixed(2) + ',' + c1y.toFixed(2) + ' '
+                  + c2x.toFixed(2) + ',' + c2y.toFixed(2) + ' '
+                  + p2.x.toFixed(2) + ',' + p2.y.toFixed(2);
+    }
+    return d + ' Z';
+}
+
+// Build (but don't append) the <svg> for one shape. Geometry is world-unit;
+// the current zoom is applied as a CSS scale by applyZoomToAllTerrain().
+function buildShapeSvg(node, shape) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'nv-terrain');
+    svg.dataset.layerId = node.id || '';
+    svg.dataset.shapeId = shape.id;
+    svg.style.transform = `scale(${zoom})`;
+    const path = document.createElementNS(SVG_NS, 'path');
+    path.setAttribute('d', shapePathD(shape.points, shape.smooth !== false));
+    path.setAttribute('fill', shape.color || terrainColor(shape.type));
+    const blur = shape.blendStrength || 0;
+    if (blur > 0) {
+        const fid = 'feather-' + shape.id;
+        const defs = document.createElementNS(SVG_NS, 'defs');
+        const filter = document.createElementNS(SVG_NS, 'filter');
+        filter.setAttribute('id', fid);
+        filter.setAttribute('x', '-50%'); filter.setAttribute('y', '-50%');
+        filter.setAttribute('width', '200%'); filter.setAttribute('height', '200%');
+        const fe = document.createElementNS(SVG_NS, 'feGaussianBlur');
+        fe.setAttribute('in', 'SourceGraphic');
+        fe.setAttribute('stdDeviation', (blur / 2).toFixed(2));
+        filter.appendChild(fe);
+        defs.appendChild(filter);
+        svg.appendChild(defs);
+        path.setAttribute('filter', `url(#${fid})`);
+    }
+    if (shape.id !== '__terrainDraft__') {
+        path.style.cursor = 'pointer';
+        path.addEventListener('mousedown', e => {
+            if (e.button !== 0) return; // middle/right bubble (pan / context menu)
+            if (mode !== 'edit' || toolMode !== 'select') return;
+            e.stopPropagation();
+            selectShape(shape.id);
+        });
+        path.addEventListener('dblclick', e => {
+            if (mode !== 'edit' || toolMode !== 'select') return;
+            e.stopPropagation(); e.preventDefault();
+            insertTerrainVertexAt(shape.id, (e.clientX - pan.x) / zoom, (e.clientY - pan.y) / zoom);
+        });
+        path.addEventListener('contextmenu', e => {
+            if (mode !== 'edit') return;
+            e.preventDefault(); e.stopPropagation();
+            showShapeContextMenu(e, shape);
+        });
+    }
+    svg.appendChild(path);
+    return svg;
+}
+
+function renderTerrainShape(node, shape) {
+    if (!shape.points || shape.points.length < 3) return;
+    world.appendChild(buildShapeSvg(node, shape));
+}
+
+function rebuildShapeSvgById(shapeId) {
+    const owner = findShapeOwner(shapeId), sh = findShape(shapeId);
+    if (!owner || !sh) return;
+    const old = world.querySelector(`.nv-terrain[data-shape-id="${shapeId}"]`);
+    const fresh = buildShapeSvg(owner, sh);
+    if (old) old.replaceWith(fresh); else world.appendChild(fresh);
+}
+
+window.setTerrainDraftType = (type) => {
+    terrainDraftType = TERRAIN_PRESETS[type] ? type : 'grass';
+    log('terrainDraftType = ' + terrainDraftType);
+};
+
+// Terrain tool: each left-click drops a polygon vertex, consuming the click so
+// images / splines / pins underneath are not touched (like the spline tool).
+function tryPlaceTerrainPoint(e) {
+    if (toolMode !== 'terrain' || mode !== 'edit') return false;
+    if (e.button !== 0) return false;
+    e.stopPropagation(); e.preventDefault();
+    const wx = (e.clientX - pan.x) / zoom;
+    const wy = (e.clientY - pan.y) / zoom;
+    if (!terrainDraft) terrainDraft = { type: terrainDraftType, layerId: activeLayerId, points: [] };
+    terrainDraft.points.push({ x: wx, y: wy });
+    renderTerrainDraft();
+    renderTerrainEditor();
+    return true;
+}
+
+function renderTerrainDraft() {
+    const old = world.querySelector('.nv-terrain[data-shape-id="__terrainDraft__"]');
+    if (old) old.remove();
+    if (!terrainDraft || terrainDraft.points.length < 2) return;
+    const svg = buildShapeSvg({ id: '__terrainDraft__' }, {
+        id: '__terrainDraft__', type: terrainDraft.type,
+        color: terrainColor(terrainDraft.type), smooth: true,
+        blendStrength: 0, points: terrainDraft.points,
+    });
+    svg.style.opacity = '0.6';
+    world.appendChild(svg);
+}
+
+function commitTerrainDraft() {
+    if (!terrainDraft) return;
+    if (terrainDraft.points.length < 3) {
+        terrainDraft = null; render(); renderTerrainEditor(); return;
+    }
+    const layer = findLayer(activeLayerId) || findLayer(terrainDraft.layerId) || firstLeafNode();
+    if (layer) {
+        layer.shapes = layer.shapes || [];
+        layer.shapes.push({
+            id: 'shape-' + Date.now(),
+            type: terrainDraft.type,
+            color: terrainColor(terrainDraft.type),
+            smooth: true,
+            blendStrength: 0,
+            points: terrainDraft.points.map(p => ({ x: p.x, y: p.y })),
+        });
+    }
+    terrainDraft = null;
+    render();
+    renderTerrainEditor();
+    sendMessage({ type: 'mapChanged' });
+    // One shape per tool activation — exit the tool, like the spline tool does.
+    toolMode = 'select';
+    stage.style.cursor = 'default';
+    sendMessage({ type: 'cancelTerrainMode' });
+}
+
+function cancelTerrainDraft() {
+    terrainDraft = null;
+    const old = world.querySelector('.nv-terrain[data-shape-id="__terrainDraft__"]');
+    if (old) old.remove();
+    renderTerrainEditor();
+}
+
+function shapeSelectionPayload(sh) {
+    return {
+        type: 'shapeSelected', shapeId: sh.id,
+        shapeType: sh.type || 'grass',
+        color: sh.color || terrainColor(sh.type),
+        smooth: sh.smooth !== false,
+        blend: sh.blendStrength || 0,
+    };
+}
+function emitShapeSelection() {
+    if (!terrainEdit) return;
+    const sh = findShape(terrainEdit.shapeId);
+    if (sh) sendMessage(shapeSelectionPayload(sh));
+}
+function selectShape(shapeId) {
+    terrainEdit = { shapeId, selVert: -1 };
+    renderTerrainEditor();
+    showTerrainToolbar();
+    emitShapeSelection();
+}
+function exitShapeEdit() {
+    terrainEdit = null;
+    renderTerrainEditor();
+    hideTerrainToolbar();
+    sendMessage({ type: 'shapeDeselected' });
+}
+
+function showTerrainToolbar() {
+    let tb = document.getElementById('nv-terrain-toolbar');
+    if (!tb) {
+        tb = document.createElement('div');
+        tb.id = 'nv-terrain-toolbar';
+        tb.className = 'nv-edit-toolbar';
+        const hint = document.createElement('span');
+        hint.className = 'hint';
+        hint.textContent = mapStrings.terrainEditHint;
+        const done = document.createElement('button');
+        done.className = 'primary';
+        done.textContent = mapStrings.splineEditDone;
+        done.addEventListener('click', exitShapeEdit);
+        tb.appendChild(hint); tb.appendChild(done);
+        document.body.appendChild(tb);
+    }
+    tb.style.display = 'flex';
+}
+function hideTerrainToolbar() {
+    const tb = document.getElementById('nv-terrain-toolbar');
+    if (tb) tb.style.display = 'none';
+}
+
+// Draws vertex handles + edge guide lines for the terrain draft or the shape
+// being edited.
+function renderTerrainEditor() {
+    Array.from(handlesOverlay.querySelectorAll('.nv-terrain-handle, .nv-terrain-line')).forEach(n => n.remove());
+    let points = null, shapeId = null;
+    if (terrainDraft) { points = terrainDraft.points; }
+    else if (terrainEdit) {
+        const sh = findShape(terrainEdit.shapeId);
+        if (sh) { points = sh.points; shapeId = sh.id; }
+    }
+    if (!points) return;
+    const segs = points.length >= 3 ? points.length : points.length - 1;
+    for (let i = 0; i < segs; i++) {
+        const a = points[i], b = points[(i + 1) % points.length];
+        const x1 = pan.x + a.x * zoom, y1 = pan.y + a.y * zoom;
+        const x2 = pan.x + b.x * zoom, y2 = pan.y + b.y * zoom;
+        const line = document.createElement('div');
+        line.className = 'nv-terrain-line';
+        line.style.left = x1 + 'px';
+        line.style.top = y1 + 'px';
+        line.style.width = Math.hypot(x2 - x1, y2 - y1) + 'px';
+        line.style.transform = `rotate(${Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI}deg)`;
+        handlesOverlay.appendChild(line);
+    }
+    const selVert = terrainEdit && terrainEdit.selVert != null ? terrainEdit.selVert : -1;
+    points.forEach((p, idx) => {
+        const sx = pan.x + p.x * zoom, sy = pan.y + p.y * zoom;
+        const h = document.createElement('div');
+        h.className = 'nv-handle nv-terrain-handle' + (idx === selVert ? ' nv-terrain-handle-sel' : '');
+        h.style.left = sx + 'px';
+        h.style.top = sy + 'px';
+        h.dataset.idx = idx;
+        h.addEventListener('mousedown', e => {
+            if (shapeId && terrainEdit) terrainEdit.selVert = idx;
+            startTerrainVertexDrag(e, points, idx, shapeId);
+        });
+        h.addEventListener('contextmenu', e => {
+            e.preventDefault(); e.stopPropagation();
+            if (points.length > 3) {
+                points.splice(idx, 1);
+                if (shapeId) { rebuildShapeSvgById(shapeId); sendMessage({ type: 'mapChanged' }); }
+                else renderTerrainDraft();
+                renderTerrainEditor();
+            }
+        });
+        handlesOverlay.appendChild(h);
+    });
+}
+
+function startTerrainVertexDrag(ev, points, idx, shapeId) {
+    ev.stopPropagation(); ev.preventDefault();
+    function move(e) {
+        points[idx].x = (e.clientX - pan.x) / zoom;
+        points[idx].y = (e.clientY - pan.y) / zoom;
+        if (shapeId) rebuildShapeSvgById(shapeId);
+        else renderTerrainDraft();
+        renderTerrainEditor();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        if (shapeId) sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+// Double-clicking a shape inserts a vertex on the nearest polygon edge.
+function insertTerrainVertexAt(shapeId, wx, wy) {
+    const sh = findShape(shapeId);
+    if (!sh || sh.points.length < 3) return;
+    const pts = sh.points, n = pts.length;
+    let bestSeg = 0, bestD = Infinity;
+    for (let i = 0; i < n; i++) {
+        const a = pts[i], b = pts[(i + 1) % n];
+        const d = distToSegment(wx, wy, a.x, a.y, b.x, b.y);
+        if (d < bestD) { bestD = d; bestSeg = i; }
+    }
+    pts.splice(bestSeg + 1, 0, { x: wx, y: wy });
+    selectShape(shapeId);
+    if (terrainEdit) terrainEdit.selVert = bestSeg + 1;
+    rebuildShapeSvgById(shapeId);
+    renderTerrainEditor();
+    emitShapeSelection();
+    sendMessage({ type: 'mapChanged' });
+}
+
+function showShapeContextMenu(ev, sh) {
+    const owner = findShapeOwner(sh.id);
+    showSimpleContextMenu(ev, [
+        [mapStrings.moveToLayer, () => sendMessage({
+            type: 'requestMoveToLayer', kind: 'shape', id: sh.id,
+            currentLayerId: owner ? owner.id : '',
+        })],
+        null,
+        [mapStrings.shapeDelete, () => window.deleteShape(sh.id)],
+    ]);
+}
+
+window.setShapeType = (id, type) => {
+    const sh = findShape(id);
+    if (!sh) return;
+    sh.type = TERRAIN_PRESETS[type] ? type : 'grass';
+    sh.color = terrainColor(sh.type); // type re-seeds the colour
+    rebuildShapeSvgById(id);
+    if (terrainEdit && terrainEdit.shapeId === id) emitShapeSelection();
+    sendMessage({ type: 'mapChanged' });
+};
+window.setShapeColor = (id, hex) => {
+    const sh = findShape(id);
+    if (!sh) return;
+    sh.color = hex || terrainColor(sh.type);
+    rebuildShapeSvgById(id);
+    sendMessage({ type: 'mapChanged' });
+};
+window.setShapeSmooth = (id, smooth) => {
+    const sh = findShape(id);
+    if (!sh) return;
+    sh.smooth = !!smooth;
+    rebuildShapeSvgById(id);
+    sendMessage({ type: 'mapChanged' });
+};
+window.setShapeBlend = (id, strength) => {
+    const sh = findShape(id);
+    if (!sh) return;
+    sh.blendStrength = Math.max(0, strength);
+    rebuildShapeSvgById(id);
+    sendMessage({ type: 'mapChanged' });
+};
+// Reorder a shape within its layer's z-stack. dir > 0 = forward (toward the
+// top), dir < 0 = backward. Shapes render in node.shapes array order.
+window.moveShapeZ = (id, dir) => {
+    const owner = findShapeOwner(id);
+    if (!owner || !owner.shapes) return;
+    const i = owner.shapes.findIndex(s => s.id === id);
+    if (i < 0) return;
+    const j = i + (dir > 0 ? 1 : -1);
+    if (j < 0 || j >= owner.shapes.length) return;
+    const tmp = owner.shapes[i];
+    owner.shapes[i] = owner.shapes[j];
+    owner.shapes[j] = tmp;
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.deleteShape = (id) => {
+    const owner = findShapeOwner(id);
+    if (!owner) return;
+    owner.shapes = (owner.shapes || []).filter(s => s.id !== id);
+    if (terrainEdit && terrainEdit.shapeId === id) {
+        terrainEdit = null;
+        hideTerrainToolbar();
+        renderTerrainEditor();
+        sendMessage({ type: 'shapeDeselected' });
+    }
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+
+// ── Map border (clip boundary) ──────────────────────────────────────────
+let borderDraft = null;   // { points:[{x,y}] } while drawing
+let borderEdit = false;   // editing the committed border's vertices
+
+// Hide everything outside the border polygon via clip-path. #world is
+// translated by pan only (its local coords are world*zoom); the pin/label
+// overlays are screen-space (pan + world*zoom).
+function applyBorderClip() {
+    const b = mapData.border;
+    if (!b || !b.points || b.points.length < 3) {
+        world.style.clipPath = '';
+        pinOverlay.style.clipPath = '';
+        labelOverlay.style.clipPath = '';
+        return;
+    }
+    const wp = b.points.map(p => (p.x * zoom).toFixed(1) + 'px ' + (p.y * zoom).toFixed(1) + 'px').join(',');
+    const sp = b.points.map(p => (pan.x + p.x * zoom).toFixed(1) + 'px ' + (pan.y + p.y * zoom).toFixed(1) + 'px').join(',');
+    world.style.clipPath = `polygon(${wp})`;
+    pinOverlay.style.clipPath = `polygon(${sp})`;
+    labelOverlay.style.clipPath = `polygon(${sp})`;
+}
+
+function renderBorderOutline() {
+    borderOutline.innerHTML = '';
+    const b = mapData.border;
+    const pts = borderDraft ? borderDraft.points : (b && b.points);
+    if (!pts || pts.length < 2) return;
+    const poly = document.createElementNS(SVG_NS, 'polygon');
+    poly.setAttribute('points', pts.map(p =>
+        (pan.x + p.x * zoom).toFixed(1) + ',' + (pan.y + p.y * zoom).toFixed(1)).join(' '));
+    poly.setAttribute('fill', 'none');
+    poly.setAttribute('stroke', (b && b.outlineColor) || '#1c1a18');
+    poly.setAttribute('stroke-width', (((b && b.outlineWidth) || 4) * zoom).toFixed(2));
+    poly.setAttribute('stroke-linejoin', 'round');
+    if (borderDraft) poly.setAttribute('stroke-dasharray', '8 6');
+    // Clickable (for double-click insert) only while editing the committed border.
+    poly.style.pointerEvents = borderEdit ? 'stroke' : 'none';
+    if (borderEdit) {
+        poly.addEventListener('dblclick', e => {
+            if (mode !== 'edit') return;
+            e.stopPropagation();
+            insertBorderVertexAt((e.clientX - pan.x) / zoom, (e.clientY - pan.y) / zoom);
+        });
+    }
+    borderOutline.appendChild(poly);
+}
+
+function refreshBorder() {
+    applyBorderClip();
+    renderBorderOutline();
+}
+
+function tryPlaceBorderPoint(e) {
+    if (toolMode !== 'border' || mode !== 'edit') return false;
+    if (e.button !== 0) return false;
+    e.stopPropagation(); e.preventDefault();
+    if (!borderDraft) borderDraft = { points: [] };
+    borderDraft.points.push({ x: (e.clientX - pan.x) / zoom, y: (e.clientY - pan.y) / zoom });
+    renderBorderOutline();
+    renderBorderEditor();
+    return true;
+}
+
+function commitBorderDraft() {
+    if (!borderDraft) return;
+    if (borderDraft.points.length < 3) {
+        borderDraft = null; refreshBorder(); renderBorderEditor(); return;
+    }
+    const prev = mapData.border;
+    mapData.border = {
+        points: borderDraft.points.map(p => ({ x: p.x, y: p.y })),
+        outlineColor: (prev && prev.outlineColor) || '#1c1a18',
+        outlineWidth: (prev && prev.outlineWidth) || 4,
+    };
+    borderDraft = null;
+    refreshBorder();
+    renderBorderEditor();
+    sendMessage({ type: 'mapChanged' });
+    toolMode = 'select';
+    stage.style.cursor = 'default';
+}
+
+function cancelBorderDraft() {
+    borderDraft = null;
+    refreshBorder();
+    renderBorderEditor();
+}
+
+function borderSelectionPayload() {
+    const b = mapData.border;
+    return {
+        type: 'borderSelected',
+        outlineColor: (b && b.outlineColor) || '#1c1a18',
+        outlineWidth: (b && b.outlineWidth) || 4,
+    };
+}
+function enterBorderEdit() {
+    if (!mapData.border) return;
+    borderEdit = true;
+    refreshBorder();
+    renderBorderEditor();
+    showBorderToolbar();
+    sendMessage(borderSelectionPayload());
+}
+function exitBorderEdit() {
+    borderEdit = false;
+    refreshBorder();
+    renderBorderEditor();
+    hideBorderToolbar();
+    sendMessage({ type: 'borderDeselected' });
+}
+
+function showBorderToolbar() {
+    let tb = document.getElementById('nv-border-toolbar');
+    if (!tb) {
+        tb = document.createElement('div');
+        tb.id = 'nv-border-toolbar';
+        tb.className = 'nv-edit-toolbar';
+        const hint = document.createElement('span');
+        hint.className = 'hint';
+        hint.textContent = mapStrings.borderEditHint;
+        const done = document.createElement('button');
+        done.className = 'primary';
+        done.textContent = mapStrings.splineEditDone;
+        done.addEventListener('click', exitBorderEdit);
+        tb.appendChild(hint); tb.appendChild(done);
+        document.body.appendChild(tb);
+    }
+    tb.style.display = 'flex';
+}
+function hideBorderToolbar() {
+    const tb = document.getElementById('nv-border-toolbar');
+    if (tb) tb.style.display = 'none';
+}
+
+function renderBorderEditor() {
+    Array.from(handlesOverlay.querySelectorAll('.nv-border-handle, .nv-border-line')).forEach(n => n.remove());
+    let points = null, committed = false;
+    if (borderDraft) points = borderDraft.points;
+    else if (borderEdit && mapData.border) { points = mapData.border.points; committed = true; }
+    if (!points) return;
+    const segs = points.length >= 3 ? points.length : points.length - 1;
+    for (let i = 0; i < segs; i++) {
+        const a = points[i], b = points[(i + 1) % points.length];
+        const x1 = pan.x + a.x * zoom, y1 = pan.y + a.y * zoom;
+        const x2 = pan.x + b.x * zoom, y2 = pan.y + b.y * zoom;
+        const line = document.createElement('div');
+        line.className = 'nv-border-line';
+        line.style.left = x1 + 'px';
+        line.style.top = y1 + 'px';
+        line.style.width = Math.hypot(x2 - x1, y2 - y1) + 'px';
+        line.style.transform = `rotate(${Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI}deg)`;
+        handlesOverlay.appendChild(line);
+    }
+    points.forEach((p, idx) => {
+        const sx = pan.x + p.x * zoom, sy = pan.y + p.y * zoom;
+        const h = document.createElement('div');
+        h.className = 'nv-handle nv-border-handle';
+        h.style.left = sx + 'px';
+        h.style.top = sy + 'px';
+        h.addEventListener('mousedown', e => startBorderVertexDrag(e, points, idx, committed));
+        h.addEventListener('contextmenu', e => {
+            e.preventDefault(); e.stopPropagation();
+            if (points.length > 3) {
+                points.splice(idx, 1);
+                refreshBorder();
+                renderBorderEditor();
+                if (committed) sendMessage({ type: 'mapChanged' });
+            }
+        });
+        handlesOverlay.appendChild(h);
+    });
+}
+
+function startBorderVertexDrag(ev, points, idx, committed) {
+    ev.stopPropagation(); ev.preventDefault();
+    function move(e) {
+        points[idx].x = (e.clientX - pan.x) / zoom;
+        points[idx].y = (e.clientY - pan.y) / zoom;
+        refreshBorder();
+        renderBorderEditor();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        if (committed) sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+// Double-clicking the border outline inserts a vertex on the nearest edge.
+function insertBorderVertexAt(wx, wy) {
+    const b = mapData.border;
+    if (!b || b.points.length < 3) return;
+    const pts = b.points, n = pts.length;
+    let bestSeg = 0, bestD = Infinity;
+    for (let i = 0; i < n; i++) {
+        const a = pts[i], c = pts[(i + 1) % n];
+        const d = distToSegment(wx, wy, a.x, a.y, c.x, c.y);
+        if (d < bestD) { bestD = d; bestSeg = i; }
+    }
+    pts.splice(bestSeg + 1, 0, { x: wx, y: wy });
+    refreshBorder();
+    renderBorderEditor();
+    sendMessage({ type: 'mapChanged' });
+}
+
+window.setBorderOutline = (color, width) => {
+    if (!mapData.border) return;
+    mapData.border.outlineColor = color || '#1c1a18';
+    mapData.border.outlineWidth = width > 0 ? width : 4;
+    renderBorderOutline();
+    sendMessage({ type: 'mapChanged' });
+};
+window.clearBorder = () => {
+    mapData.border = null;
+    borderEdit = false;
+    hideBorderToolbar();
+    refreshBorder();
+    renderBorderEditor();
+    sendMessage({ type: 'borderDeselected' });
+    sendMessage({ type: 'mapChanged' });
+};
+
+// ── Buildings ───────────────────────────────────────────────────────────
+const BUILDING_TYPES = {
+    rowHome:      { roofColor: '#b06a4a', outline: '#5e3826' },
+    singleFamily: { roofColor: '#c08552', outline: '#6e4626' },
+    school:       { roofColor: '#9a8f73', outline: '#534b39' },
+    police:       { roofColor: '#6f7d92', outline: '#3b4452' },
+    fireStation:  { roofColor: '#a8443a', outline: '#5e231e' },
+    hall:         { roofColor: '#8a7fa0', outline: '#473f57' },
+    playground:   { roofColor: '#d6c060', outline: '#7a6c2e' },
+    trainStation: { roofColor: '#7a6d5a', outline: '#3f382d' },
+};
+function buildingTypeDef(type) { return BUILDING_TYPES[type] || BUILDING_TYPES.singleFamily; }
+
+// Tiny seeded RNG (mulberry32) — drives the per-type footprint generators.
+function mulberry32(seed) {
+    let a = seed >>> 0;
+    return function () {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+}
+function rectPoly(w, h) {
+    return [{ x: -w / 2, y: -h / 2 }, { x: w / 2, y: -h / 2 },
+            { x: w / 2, y: h / 2 }, { x: -w / 2, y: h / 2 }];
+}
+
+// Per-type random footprint generator → polygon centred on the origin.
+function generateFootprint(type, rng) {
+    const jit = (base, amt) => base + (rng() - 0.5) * 2 * amt;
+    if (type === 'rowHome') return rectPoly(jit(11, 2), jit(22, 4));
+    if (type === 'singleFamily') {
+        const w = jit(18, 3), h = jit(15, 3);
+        const TL = { x: -w / 2, y: -h / 2 }, TR = { x: w / 2, y: -h / 2 };
+        const BR = { x: w / 2, y: h / 2 }, BL = { x: -w / 2, y: h / 2 };
+        if (rng() > 0.4) { // garage / wing bump
+            const gw = jit(7, 1.5), gh = jit(8, 2);
+            if (rng() > 0.5) // bump on the right, between TR and BR
+                return [TL, TR, { x: w / 2, y: h / 2 - gh },
+                        { x: w / 2 + gw, y: h / 2 - gh }, { x: w / 2 + gw, y: h / 2 }, BR, BL];
+            // bump on the left, between BL and TL
+            return [TL, TR, BR, BL, { x: -w / 2 - gw, y: h / 2 },
+                    { x: -w / 2 - gw, y: h / 2 - gh }, { x: -w / 2, y: h / 2 - gh }];
+        }
+        return [TL, TR, BR, BL];
+    }
+    if (type === 'school') {
+        const w = jit(42, 6), h = jit(24, 4), ww = jit(14, 3), wh = jit(16, 3);
+        const poly = rectPoly(w, h);
+        poly.splice(2, 0, { x: w / 2, y: h / 2 - wh },
+            { x: w / 2 + ww, y: h / 2 - wh }, { x: w / 2 + ww, y: h / 2 });
+        return poly;
+    }
+    if (type === 'police') return rectPoly(jit(22, 3), jit(18, 3));
+    if (type === 'fireStation') {
+        const w = jit(26, 3), h = jit(18, 2);
+        const poly = rectPoly(w, h);
+        poly.splice(2, 0, { x: w / 2, y: h / 2 - 4 },
+            { x: w / 2 + 6, y: h / 2 - 4 }, { x: w / 2 + 6, y: h / 2 });
+        return poly;
+    }
+    if (type === 'hall') return rectPoly(jit(34, 5), jit(22, 4));
+    if (type === 'playground') {
+        const n = 8, rad = jit(16, 3), out = [];
+        for (let i = 0; i < n; i++) {
+            const ang = (i / n) * Math.PI * 2, r = rad * jit(1, 0.25);
+            out.push({ x: Math.cos(ang) * r, y: Math.sin(ang) * r });
+        }
+        return out;
+    }
+    if (type === 'trainStation') return rectPoly(jit(46, 6), jit(14, 2));
+    return rectPoly(jit(18, 3), jit(15, 3));
+}
+
+let buildingDraft = null;       // { type, footprint, rotation, x, y } — placement preview
+let buildingEdit = null;        // { buildingId } — selected building
+let buildingDraftType = 'singleFamily';
+let buildingScale = 1;          // global placement-size multiplier (host toolbar)
+let floorPlanEdit = null;       // { buildingId } — editing a building's floor plan
+let floorPlanTool = 'select';   // 'select' | 'wall'
+let wallDraft = null;           // { points:[{x,y}] } — wall chain being drawn
+let stairDraft = null;          // { start:{x,y}, cursor:{x,y} } — stairs being drawn
+let floorPlanPrevIso = null;    // isolate state to restore when floor-plan edit ends
+
+window.setBuildingScale = (s) => {
+    buildingScale = s > 0 ? s : 1;
+    if (toolMode === 'building') rollBuildingDraft();
+};
+
+function findBuilding(id) {
+    let f = null;
+    walkNodes(mapData.layers, n => { if (!f) f = (n.buildings || []).find(b => b.id === id); });
+    return f || null;
+}
+function findBuildingOwner(id) {
+    let o = null;
+    walkNodes(mapData.layers, n => { if (!o && (n.buildings || []).some(b => b.id === id)) o = n; });
+    return o;
+}
+
+// Labels / pins can be top-level OR scoped to a building floor. These resolve
+// an id from either place so the shared editors work on both.
+function findLabelById(id) {
+    let f = (mapData.labels || []).find(l => l.id === id);
+    if (f) return f;
+    walkNodes(mapData.layers, n => {
+        for (const b of n.buildings || [])
+            for (const fl of b.floors || [])
+                if (!f) f = (fl.labels || []).find(l => l.id === id);
+    });
+    return f || null;
+}
+function findPinById(id) {
+    let f = (mapData.pins || []).find(p => p.id === id);
+    if (f) return f;
+    walkNodes(mapData.layers, n => {
+        for (const b of n.buildings || [])
+            for (const fl of b.floors || [])
+                if (!f) f = (fl.pins || []).find(p => p.id === id);
+    });
+    return f || null;
+}
+// Re-render every plan-showing building's active-floor labels + pins into the
+// shared overlays (tagged data-floor-bld so they can be cleared / refreshed).
+function renderFloorAnnotations() {
+    // Keep a label that is mid-edit on screen — removing it would blur the
+    // contentEditable and commit (then delete) an empty label.
+    const keepId = labelEditing ? labelEditing.id : null;
+    labelOverlay.querySelectorAll('.nv-label[data-floor-bld]').forEach(n => {
+        if (n.dataset.labelId !== keepId) n.remove();
+    });
+    pinOverlay.querySelectorAll('.nv-pin-host[data-floor-bld]').forEach(n => n.remove());
+    const state = computeNodeState();
+    walkNodes(mapData.layers, node => {
+        const st = state.get(node.id);
+        if (st && !st.visible) return;
+        for (const b of node.buildings || []) {
+            if (!buildingShowsPlan(b)) continue;
+            if (isolatedId && !(isolatedKind === 'building' && isolatedId === b.id)) continue;
+            const fl = (b.floors || [])[b.activeFloor || 0];
+            if (!fl) continue;
+            for (const lbl of fl.labels || []) {
+                if (lbl.id === keepId) continue; // already on screen, being edited
+                const el = renderLabel(lbl);
+                if (el) el.dataset.floorBld = b.id;
+            }
+            for (const pin of fl.pins || []) {
+                renderPin(pin);
+                const host = pinOverlay.querySelector(`.nv-pin-host[data-pin-id="${pin.id}"]`);
+                if (host) host.dataset.floorBld = b.id;
+            }
+        }
+    });
+}
+
+window.setBuildingDraftType = (type) => {
+    buildingDraftType = BUILDING_TYPES[type] ? type : 'singleFamily';
+    if (toolMode === 'building') rollBuildingDraft();
+};
+
+// Roll a fresh random footprint for the placement preview, keeping the cursor
+// position. Bound to the re-roll hotkey + the type picker.
+function rollBuildingDraft() {
+    const rng = mulberry32((Math.random() * 0xffffffff) >>> 0);
+    const prev = buildingDraft || {};
+    let fp = generateFootprint(buildingDraftType, rng);
+    if (buildingScale !== 1)
+        fp = fp.map(p => ({ x: p.x * buildingScale, y: p.y * buildingScale }));
+    buildingDraft = {
+        type: buildingDraftType,
+        footprint: fp,
+        rotation: 0,
+        x: prev.x || 0, y: prev.y || 0,
+    };
+    renderBuildingDraft();
+}
+
+// Footprint in absolute world coords (rotation + translation applied).
+function buildingWorldPoints(b) {
+    const rad = (b.rotation || 0) * Math.PI / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+    const ox = b.x || 0, oy = b.y || 0;
+    return (b.footprint || []).map(p => ({
+        x: ox + p.x * cos - p.y * sin,
+        y: oy + p.x * sin + p.y * cos,
+    }));
+}
+
+// Snap the placement preview parallel + offset to the nearest road (any layer).
+// Shift on the move event suppresses it (free placement), like knot snapping.
+function attachBuildingToRoads(b, wx, wy, shift) {
+    b.rotation = 0;
+    if (shift) { b.x = wx; b.y = wy; return; }
+    let best = null, bestD = 90 / zoom;
+    walkNodes(mapData.layers, node => {
+        for (const sp of node.splines || []) {
+            if (sp.kind !== 'road' || !sp.points || sp.points.length < 2) continue;
+            const prof = splineProfile(sp.kind, sp.preset);
+            const samples = sampleSpline(sp.points, prof.straight, sp.closed);
+            for (let i = 0; i < samples.length - 1; i++) {
+                const a = samples[i], c = samples[i + 1];
+                const d = distToSegment(wx, wy, a.x, a.y, c.x, c.y);
+                if (d < bestD) { bestD = d; best = { a, c }; }
+            }
+        }
+    });
+    if (!best) { b.x = wx; b.y = wy; return; }
+    const dx = best.c.x - best.a.x, dy = best.c.y - best.a.y;
+    const len2 = dx * dx + dy * dy || 1;
+    let t = ((wx - best.a.x) * dx + (wy - best.a.y) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    const nx = best.a.x + t * dx, ny = best.a.y + t * dy;
+    const tl = Math.hypot(dx, dy) || 1, tnx = dx / tl, tny = dy / tl;
+    let normX = -tny, normY = tnx;
+    if ((wx - nx) * normX + (wy - ny) * normY < 0) { normX = -normX; normY = -normY; }
+    const halfW = ((best.a.w || 24) + (best.c.w || 24)) / 4;
+    b.rotation = Math.atan2(tny, tnx) * 180 / Math.PI + 90; // front faces the road
+    // Project the rotated footprint onto the road normal: the most-negative
+    // projection is the vertex reaching furthest toward the road. Offset the
+    // building so that vertex sits `margin` past the road edge → no overlap.
+    const rad = b.rotation * Math.PI / 180, cos = Math.cos(rad), sin = Math.sin(rad);
+    let minProj = 1e9;
+    for (const p of b.footprint) {
+        const rx = p.x * cos - p.y * sin, ry = p.x * sin + p.y * cos;
+        const proj = rx * normX + ry * normY;
+        if (proj < minProj) minProj = proj;
+    }
+    const margin = 2;
+    const dist = halfW + margin - minProj;
+    b.x = nx + normX * dist;
+    b.y = ny + normY * dist;
+}
+
+function polyCentroid(pts) {
+    let cx = 0, cy = 0;
+    for (const p of pts) { cx += p.x; cy += p.y; }
+    return { x: cx / pts.length, y: cy / pts.length };
+}
+// Ridge axis = direction of the longest footprint edge.
+function footprintRidgeDir(pts) {
+    let bx = 1, by = 0, bl = -1;
+    for (let i = 0; i < pts.length; i++) {
+        const a = pts[i], b = pts[(i + 1) % pts.length];
+        const dx = b.x - a.x, dy = b.y - a.y, l = dx * dx + dy * dy;
+        if (l > bl) { bl = l; bx = dx; by = dy; }
+    }
+    const l = Math.hypot(bx, by) || 1;
+    return { x: bx / l, y: by / l };
+}
+// Lighten (f > 0) or darken (f < 0) a #rrggbb colour by fraction |f|.
+function shadeRoof(hex, f) {
+    return f >= 0 ? lerpColor(hex, '#ffffff', f) : lerpColor(hex, '#000000', -f);
+}
+
+// Clip a polygon to one half-plane of the line through p0 along dir. keepPos =
+// keep the +normal side. Sutherland-Hodgman against a single edge.
+function clipPolyHalf(poly, p0, dir, keepPos) {
+    const nx = -dir.y, ny = dir.x;
+    const sgn = keepPos ? 1 : -1;
+    const side = q => ((q.x - p0.x) * nx + (q.y - p0.y) * ny) * sgn;
+    const out = [];
+    const n = poly.length;
+    for (let i = 0; i < n; i++) {
+        const a = poly[i], b = poly[(i + 1) % n];
+        const sa = side(a), sb = side(b);
+        if (sa >= 0) out.push(a);
+        if ((sa >= 0) !== (sb >= 0)) {
+            const t = sa / (sa - sb);
+            out.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
+        }
+    }
+    return out;
+}
+
+// Roof geometry for the roof view: two shaded eave planes (the footprint split
+// along the ridge centre-line, so they always clip exactly to the footprint —
+// no spill on rotated / irregular shapes), plus the ridge line and, for hips,
+// hip lines fanning to the corners. flat = nothing.
+// Returns { faces: [{pts, shade}], lines: [{x1,y1,x2,y2}] }.
+function buildRoof(b, footprint) {
+    const kind = (b.roof && b.roof.kind) || 'gable';
+    if (kind === 'flat' || footprint.length < 3) return { faces: [], lines: [] };
+    const c = polyCentroid(footprint);
+    const d = footprintRidgeDir(footprint);
+    const nx = -d.y, ny = d.x;
+    let aLo = 1e9, aHi = -1e9, pSpan = 0;
+    for (const q of footprint) {
+        const px = q.x - c.x, py = q.y - c.y;
+        const a = px * d.x + py * d.y;
+        aLo = Math.min(aLo, a); aHi = Math.max(aHi, a);
+    }
+    let pLo = 1e9, pHi = -1e9;
+    for (const q of footprint) {
+        const p = (q.x - c.x) * nx + (q.y - c.y) * ny;
+        pLo = Math.min(pLo, p); pHi = Math.max(pHi, p);
+    }
+    pSpan = pHi - pLo;
+    const aSpan = aHi - aLo;
+    // Ridge runs the full along-axis for a gable; a hip pulls the ends in.
+    const e = kind === 'hip' ? Math.min(pSpan * 0.5, aSpan * 0.42) : 0;
+    const W = (a, p) => ({ x: c.x + d.x * a + nx * p, y: c.y + d.y * a + ny * p });
+    const rS = W(aLo + e, 0), rE = W(aHi - e, 0);
+    // Two eave planes = footprint clipped by the ridge centre-line.
+    const planePos = clipPolyHalf(footprint, c, d, true);
+    const planeNeg = clipPolyHalf(footprint, c, d, false);
+    const lx = -0.55, ly = -0.84; // fixed light, upper-left, world space
+    // Pitch drives the slope-shading contrast (top-down can't show true 3D
+    // steepness): shallow roof = nearly flat-looking, steep roof = strong faces.
+    const pitch = (b.roof && b.roof.pitch != null) ? b.roof.pitch : 0.5;
+    const contrast = 0.06 + 0.30 * Math.max(0, Math.min(1, pitch));
+    const shadeOf = (sx, sy) => {
+        const sl = Math.hypot(sx, sy) || 1;
+        return contrast * ((sx / sl) * lx + (sy / sl) * ly);
+    };
+    const faces = [];
+    if (planePos.length >= 3) faces.push({ pts: planePos, shade: shadeOf(nx, ny) });
+    if (planeNeg.length >= 3) faces.push({ pts: planeNeg, shade: shadeOf(-nx, -ny) });
+    const lines = [{ x1: rS.x, y1: rS.y, x2: rE.x, y2: rE.y }];
+    if (kind === 'hip') {
+        for (const en of [rS, rE]) {
+            const near = footprint.slice().sort((p, q) =>
+                Math.hypot(p.x - en.x, p.y - en.y) - Math.hypot(q.x - en.x, q.y - en.y));
+            for (const v of near.slice(0, 2))
+                lines.push({ x1: en.x, y1: en.y, x2: v.x, y2: v.y });
+        }
+    }
+    return { faces, lines };
+}
+
+// Naive inward polygon inset (miter offset) — used for upper-floor outlines.
+function insetPolygon(pts, dist) {
+    const n = pts.length;
+    if (dist <= 0 || n < 3) return pts.map(p => ({ x: p.x, y: p.y }));
+    let area = 0;
+    for (let i = 0; i < n; i++) { const a = pts[i], b = pts[(i + 1) % n]; area += a.x * b.y - b.x * a.y; }
+    const sign = area > 0 ? 1 : -1;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+        const prev = pts[(i - 1 + n) % n], cur = pts[i], next = pts[(i + 1) % n];
+        let e1x = cur.x - prev.x, e1y = cur.y - prev.y, e2x = next.x - cur.x, e2y = next.y - cur.y;
+        const l1 = Math.hypot(e1x, e1y) || 1, l2 = Math.hypot(e2x, e2y) || 1;
+        e1x /= l1; e1y /= l1; e2x /= l2; e2y /= l2;
+        const n1x = e1y * sign, n1y = -e1x * sign, n2x = e2y * sign, n2y = -e2x * sign;
+        let bx = n1x + n2x, by = n1y + n2y;
+        const bl = Math.hypot(bx, by) || 1; bx /= bl; by /= bl;
+        let dot = bx * n1x + by * n1y;
+        if (Math.abs(dot) < 0.25) dot = dot < 0 ? -0.25 : 0.25; // clamp sharp miters
+        const s = dist / dot;
+        out.push({ x: cur.x + bx * s, y: cur.y + by * s });
+    }
+    return out;
+}
+// Upper floors lose usable area to the roof slope. Returns null (no shrink) or
+// { kind, amt } where amt is a fraction in [0, 0.8].
+function roofShrink(roof, floorIdx) {
+    if (floorIdx <= 0 || !roof || roof.kind === 'flat') return null;
+    const amt = Math.min(0.8, (roof.pitch || 0) * floorIdx * 0.22);
+    if (amt <= 0) return null;
+    return { kind: roof.kind === 'hip' ? 'hip' : 'gable', amt };
+}
+function buildingFloorOutline(b, floorIdx) {
+    const fp = b.footprint || [];
+    const sh = roofShrink(b.roof, floorIdx);
+    if (!sh || fp.length < 3) return fp.map(p => ({ x: p.x, y: p.y }));
+    const c = polyCentroid(fp);
+    if (sh.kind === 'hip') {
+        // Hip: all sides slope inward → uniform inset.
+        let r = 0;
+        for (const p of fp) r += Math.hypot(p.x - c.x, p.y - c.y);
+        r /= fp.length;
+        return insetPolygon(fp, r * sh.amt);
+    }
+    // Gable: only the eave sides slope → squeeze perpendicular to the ridge
+    // axis; the gable ends (along the ridge) keep their extent.
+    const d = footprintRidgeDir(fp);
+    const nx = -d.y, ny = d.x;
+    return fp.map(p => {
+        const px = p.x - c.x, py = p.y - c.y;
+        const along = px * d.x + py * d.y;
+        const perp = (px * nx + py * ny) * (1 - sh.amt);
+        return { x: c.x + d.x * along + nx * perp, y: c.y + d.y * along + ny * perp };
+    });
+}
+function buildingShowsPlan(b) {
+    if ((b.floorCount || 0) < 1) return false;
+    // The building being floor-plan-edited always shows its plan, regardless of
+    // zoom — otherwise its floor poly (and the wall/label/pin click targets)
+    // would not exist when editing zoomed out.
+    if (floorPlanEdit && floorPlanEdit.buildingId === b.id) return true;
+    return zoom >= (b.planMinZoom != null ? b.planMinZoom : 4);
+}
+
+function buildBuildingSvg(node, b) {
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'nv-building');
+    svg.dataset.layerId = node.id || '';
+    svg.dataset.buildingId = b.id;
+    svg.style.transform = `scale(${zoom})`;
+    const def = buildingTypeDef(b.type);
+    const isDraft = b.id === '__buildingDraft__';
+    const sel = !isDraft && buildingEdit && buildingEdit.buildingId === b.id;
+    const planEditing = !isDraft && floorPlanEdit && floorPlanEdit.buildingId === b.id;
+    const pts = isDraft ? buildingWorldPoints(b) : (b.footprint || []);
+    if (pts.length < 3) return svg;
+    svg.dataset.planShown = (!isDraft && buildingShowsPlan(b)) ? '1' : '0';
+    if (svg.dataset.planShown === '1') {
+        buildFloorPlanInto(svg, b, def, sel || planEditing);
+        return svg;
+    }
+    // Roof view.
+    const poly = document.createElementNS(SVG_NS, 'polygon');
+    poly.setAttribute('points', pts.map(p => p.x.toFixed(2) + ',' + p.y.toFixed(2)).join(' '));
+    poly.setAttribute('fill', def.roofColor);
+    poly.setAttribute('stroke', sel ? '#ffae42' : def.outline);
+    poly.setAttribute('stroke-width', sel ? 2.2 : 1);
+    poly.setAttribute('stroke-linejoin', 'round');
+    if (!isDraft) {
+        poly.style.cursor = 'pointer';
+        poly.addEventListener('mousedown', e => {
+            if (e.button !== 0) return; // middle/right bubble (pan / context menu)
+            if (mode !== 'edit' || toolMode !== 'select') return;
+            e.stopPropagation();
+            selectBuilding(b.id);
+        });
+        poly.addEventListener('contextmenu', e => {
+            if (mode !== 'edit') return;
+            e.preventDefault(); e.stopPropagation();
+            showBuildingContextMenu(e, b);
+        });
+    }
+    svg.appendChild(poly);
+    if (b.type !== 'playground') {
+        const roof = buildRoof(b, pts);
+        // Shaded slope planes (decorative — hit-testing stays on the footprint).
+        for (const f of roof.faces) {
+            const fp = document.createElementNS(SVG_NS, 'polygon');
+            fp.setAttribute('points', f.pts.map(p => p.x.toFixed(2) + ',' + p.y.toFixed(2)).join(' '));
+            fp.setAttribute('fill', shadeRoof(def.roofColor, f.shade));
+            fp.setAttribute('stroke', def.outline);
+            fp.setAttribute('stroke-width', '0.4');
+            fp.setAttribute('stroke-linejoin', 'round');
+            fp.style.pointerEvents = 'none';
+            svg.appendChild(fp);
+        }
+        for (const r of roof.lines) {
+            const ln = document.createElementNS(SVG_NS, 'line');
+            ln.setAttribute('x1', r.x1.toFixed(2)); ln.setAttribute('y1', r.y1.toFixed(2));
+            ln.setAttribute('x2', r.x2.toFixed(2)); ln.setAttribute('y2', r.y2.toFixed(2));
+            ln.setAttribute('stroke', def.outline);
+            ln.setAttribute('stroke-width', '0.8');
+            ln.setAttribute('opacity', '0.7');
+            ln.style.pointerEvents = 'none';
+            svg.appendChild(ln);
+        }
+    }
+    return svg;
+}
+
+// Draw one staircase glyph. opts.ghost = faint, dashed, non-interactive (used as
+// a vertical-alignment guide showing adjacent floors' stairs).
+function drawStairInto(st, opts) {
+    opts = opts || {};
+    const g = document.createElementNS(SVG_NS, 'g');
+    g.setAttribute('transform', `translate(${st.x} ${st.y}) rotate(${st.rotation || 0})`);
+    const W = st.width || 10, Ln = st.length || 18;
+    const rect = document.createElementNS(SVG_NS, 'rect');
+    rect.setAttribute('x', -W / 2); rect.setAttribute('y', -Ln / 2);
+    rect.setAttribute('width', W); rect.setAttribute('height', Ln);
+    rect.setAttribute('fill', opts.ghost ? 'none' : '#e6dcc6');
+    rect.setAttribute('stroke', '#3a342c');
+    rect.setAttribute('stroke-width', '0.8');
+    if (opts.ghost) rect.setAttribute('stroke-dasharray', '2 2');
+    g.appendChild(rect);
+    for (let k = 1; k < 6; k++) {
+        const y = -Ln / 2 + Ln * k / 6;
+        const tl = document.createElementNS(SVG_NS, 'line');
+        tl.setAttribute('x1', -W / 2); tl.setAttribute('y1', y);
+        tl.setAttribute('x2', W / 2); tl.setAttribute('y2', y);
+        tl.setAttribute('stroke', '#3a342c'); tl.setAttribute('stroke-width', '0.5');
+        g.appendChild(tl);
+    }
+    const dir = st.direction === 'down' ? -1 : 1;
+    const arrow = document.createElementNS(SVG_NS, 'path');
+    arrow.setAttribute('d', `M 0 ${dir * Ln * 0.3} L ${-W / 4} ${-dir * Ln * 0.05} L ${W / 4} ${-dir * Ln * 0.05} Z`);
+    arrow.setAttribute('fill', '#3a342c'); arrow.setAttribute('opacity', '0.6');
+    g.appendChild(arrow);
+    if (opts.ghost) {
+        g.setAttribute('opacity', '0.28');
+        g.style.pointerEvents = 'none';
+    }
+    return g;
+}
+
+// Floor-plan view: usable outline + walls (+ the wall draft while editing).
+function buildFloorPlanInto(svg, b, def, highlight) {
+    const fi = b.activeFloor || 0;
+    // ghost of the full footprint behind an inset upper floor, for context.
+    if (fi > 0) {
+        const ghost = document.createElementNS(SVG_NS, 'polygon');
+        ghost.setAttribute('points', (b.footprint || []).map(p => p.x.toFixed(2) + ',' + p.y.toFixed(2)).join(' '));
+        ghost.setAttribute('fill', 'none');
+        ghost.setAttribute('stroke', def.outline);
+        ghost.setAttribute('stroke-width', '0.6');
+        ghost.setAttribute('stroke-dasharray', '3 3');
+        ghost.setAttribute('opacity', '0.5');
+        svg.appendChild(ghost);
+    }
+    const outline = buildingFloorOutline(b, fi);
+    const poly = document.createElementNS(SVG_NS, 'polygon');
+    poly.setAttribute('points', outline.map(p => p.x.toFixed(2) + ',' + p.y.toFixed(2)).join(' '));
+    poly.setAttribute('fill', '#f4efe6');
+    poly.setAttribute('stroke', highlight ? '#ffae42' : def.outline);
+    poly.setAttribute('stroke-width', highlight ? 2 : 1.2);
+    poly.setAttribute('stroke-linejoin', 'round');
+    poly.style.cursor = 'pointer';
+    poly.addEventListener('mousedown', e => onBuildingPlanMouseDown(e, b));
+    poly.addEventListener('contextmenu', e => {
+        if (mode !== 'edit') return;
+        e.preventDefault(); e.stopPropagation();
+        showBuildingContextMenu(e, b);
+    });
+    svg.appendChild(poly);
+    const floor = (b.floors || [])[fi] || {};
+    const editingThis = floorPlanEdit && floorPlanEdit.buildingId === b.id;
+    (floor.walls || []).forEach((w, wi) => {
+        const ln = document.createElementNS(SVG_NS, 'line');
+        ln.setAttribute('x1', w.x1.toFixed(2)); ln.setAttribute('y1', w.y1.toFixed(2));
+        ln.setAttribute('x2', w.x2.toFixed(2)); ln.setAttribute('y2', w.y2.toFixed(2));
+        ln.setAttribute('stroke', '#3a342c');
+        ln.setAttribute('stroke-width', w.thickness || 3);
+        ln.setAttribute('stroke-linecap', 'round');
+        ln.style.pointerEvents = 'stroke';
+        ln.addEventListener('mousedown', e => onWallMouseDown(e, b, wi, w));
+        ln.addEventListener('contextmenu', e => {
+            if (mode !== 'edit' || !editingThis) return;
+            e.preventDefault(); e.stopPropagation();
+            deleteWall(b.id, fi, wi);
+        });
+        svg.appendChild(ln);
+    });
+    // Openings (doors / windows) anchored on walls OR on the floor outline.
+    (floor.openings || []).forEach((op, oi) => {
+        const w = openingSegment(b, fi, op);
+        if (!w) return;
+        const dx = w.x2 - w.x1, dy = w.y2 - w.y1, L = Math.hypot(dx, dy) || 1;
+        const ux = dx / L, uy = dy / L;
+        const sn = op.flip ? -1 : 1;
+        const nx = -uy * sn, ny = ux * sn;
+        const half = (op.width || 8) / 2;
+        const cx = w.x1 + ux * (L * op.t), cy = w.y1 + uy * (L * op.t);
+        const ax = cx - ux * half, ay = cy - uy * half;
+        const bx = cx + ux * half, by = cy + uy * half;
+        const gap = document.createElementNS(SVG_NS, 'line');
+        gap.setAttribute('x1', ax); gap.setAttribute('y1', ay);
+        gap.setAttribute('x2', bx); gap.setAttribute('y2', by);
+        gap.setAttribute('stroke', '#f4efe6');
+        gap.setAttribute('stroke-width', (w.thickness || 3) + 1.5);
+        gap.setAttribute('stroke-linecap', 'butt');
+        gap.style.pointerEvents = 'stroke';
+        gap.addEventListener('contextmenu', e => {
+            if (mode !== 'edit' || !editingThis) return;
+            e.preventDefault(); e.stopPropagation();
+            const items = [];
+            if (op.kind === 'door')
+                items.push([mapStrings.fpFlipSide, () => flipOpening(b.id, fi, oi)]);
+            items.push([mapStrings.ctxDelete, () => deleteOpening(b.id, fi, oi)]);
+            showSimpleContextMenu(e, items);
+        });
+        svg.appendChild(gap);
+        if (op.kind === 'window') {
+            const g = document.createElementNS(SVG_NS, 'line');
+            g.setAttribute('x1', ax); g.setAttribute('y1', ay);
+            g.setAttribute('x2', bx); g.setAttribute('y2', by);
+            g.setAttribute('stroke', '#6f9ab8');
+            g.setAttribute('stroke-width', '1');
+            svg.appendChild(g);
+        } else {
+            const leaf = document.createElementNS(SVG_NS, 'line');
+            leaf.setAttribute('x1', ax); leaf.setAttribute('y1', ay);
+            leaf.setAttribute('x2', ax + nx * op.width); leaf.setAttribute('y2', ay + ny * op.width);
+            leaf.setAttribute('stroke', '#3a342c'); leaf.setAttribute('stroke-width', '1');
+            svg.appendChild(leaf);
+            const arc = document.createElementNS(SVG_NS, 'path');
+            const sweep = op.flip ? 0 : 1;
+            arc.setAttribute('d', `M ${bx} ${by} A ${op.width} ${op.width} 0 0 ${sweep} ${ax + nx * op.width} ${ay + ny * op.width}`);
+            arc.setAttribute('fill', 'none');
+            arc.setAttribute('stroke', '#3a342c');
+            arc.setAttribute('stroke-width', '0.6');
+            arc.setAttribute('opacity', '0.6');
+            svg.appendChild(arc);
+        }
+    });
+    // Stair ghosts from the floors directly above / below — a vertical-alignment
+    // guide so staircases can be lined up across floors. Edit mode only.
+    if (editingThis) {
+        [fi - 1, fi + 1].forEach(adj => {
+            const af = (b.floors || [])[adj];
+            if (!af) return;
+            (af.stairs || []).forEach(st => svg.appendChild(drawStairInto(st, { ghost: true })));
+        });
+    }
+    // Stairs.
+    (floor.stairs || []).forEach((st, si) => {
+        const g = drawStairInto(st, {});
+        g.style.cursor = 'pointer';
+        g.addEventListener('contextmenu', e => {
+            if (mode !== 'edit' || !editingThis) return;
+            e.preventDefault(); e.stopPropagation();
+            deleteStair(b.id, fi, si);
+        });
+        svg.appendChild(g);
+    });
+    // Stair draft preview (start → cursor).
+    if (editingThis && floorPlanTool === 'stairs' && stairDraft && stairDraft.cursor) {
+        const s = stairDraft.start, c = stairDraft.cursor;
+        const dx = c.x - s.x, dy = c.y - s.y, len = Math.hypot(dx, dy);
+        if (len > 1) {
+            const g = document.createElementNS(SVG_NS, 'g');
+            g.setAttribute('transform',
+                `translate(${(s.x + c.x) / 2} ${(s.y + c.y) / 2}) rotate(${Math.atan2(dy, dx) * 180 / Math.PI - 90})`);
+            const rect = document.createElementNS(SVG_NS, 'rect');
+            rect.setAttribute('x', -5); rect.setAttribute('y', -len / 2);
+            rect.setAttribute('width', 10); rect.setAttribute('height', len);
+            rect.setAttribute('fill', 'rgba(255,174,66,0.3)');
+            rect.setAttribute('stroke', '#ffae42');
+            rect.setAttribute('stroke-width', '1');
+            rect.setAttribute('stroke-dasharray', '3 2');
+            g.appendChild(rect);
+            svg.appendChild(g);
+        }
+    }
+    // Wall draft chain preview.
+    if (editingThis && wallDraft && wallDraft.points.length) {
+        const dp = wallDraft.points;
+        for (let i = 0; i < dp.length - 1; i++) {
+            const ln = document.createElementNS(SVG_NS, 'line');
+            ln.setAttribute('x1', dp[i].x.toFixed(2)); ln.setAttribute('y1', dp[i].y.toFixed(2));
+            ln.setAttribute('x2', dp[i + 1].x.toFixed(2)); ln.setAttribute('y2', dp[i + 1].y.toFixed(2));
+            ln.setAttribute('stroke', '#ffae42');
+            ln.setAttribute('stroke-width', '3');
+            ln.setAttribute('stroke-linecap', 'round');
+            svg.appendChild(ln);
+        }
+    }
+}
+
+function onWallMouseDown(e, b, wi, w) {
+    if (e.button !== 0) return;
+    if (mode !== 'edit') return;
+    const editingThis = floorPlanEdit && floorPlanEdit.buildingId === b.id;
+    if (editingThis && (floorPlanTool === 'door' || floorPlanTool === 'window')) {
+        e.stopPropagation();
+        const wx = (e.clientX - pan.x) / zoom, wy = (e.clientY - pan.y) / zoom;
+        const dx = w.x2 - w.x1, dy = w.y2 - w.y1, L2 = dx * dx + dy * dy || 1;
+        let t = ((wx - w.x1) * dx + (wy - w.y1) * dy) / L2;
+        t = Math.max(0, Math.min(1, t));
+        const fi = b.activeFloor || 0;
+        b.floors = b.floors || [];
+        while (b.floors.length <= fi) b.floors.push({});
+        b.floors[fi].openings = b.floors[fi].openings || [];
+        b.floors[fi].openings.push({ wallIndex: wi, t: t, width: 8, kind: floorPlanTool });
+        rebuildBuildingSvg(b.id);
+        sendMessage({ type: 'mapChanged' });
+        return;
+    }
+    // Any other floor-plan tool (wall / stairs / label / pin / select) — a wall
+    // click behaves like a floor click so tools still work near walls.
+    if (editingThis) { onBuildingPlanMouseDown(e, b); return; }
+    if (toolMode === 'select') { e.stopPropagation(); selectBuilding(b.id); }
+}
+
+function deleteWall(id, fi, wi) {
+    const b = findBuilding(id);
+    const fl = b && (b.floors || [])[fi];
+    if (!fl || !fl.walls) return;
+    fl.walls.splice(wi, 1);
+    fl.openings = (fl.openings || []).filter(o => o.wallIndex !== wi)
+        .map(o => o.wallIndex > wi ? Object.assign({}, o, { wallIndex: o.wallIndex - 1 }) : o);
+    rebuildBuildingSvg(id);
+    sendMessage({ type: 'mapChanged' });
+}
+function deleteOpening(id, fi, oi) {
+    const b = findBuilding(id);
+    const fl = b && (b.floors || [])[fi];
+    if (!fl || !fl.openings) return;
+    fl.openings.splice(oi, 1);
+    rebuildBuildingSvg(id);
+    sendMessage({ type: 'mapChanged' });
+}
+function deleteStair(id, fi, si) {
+    const b = findBuilding(id);
+    const fl = b && (b.floors || [])[fi];
+    if (!fl || !fl.stairs) return;
+    fl.stairs.splice(si, 1);
+    rebuildBuildingSvg(id);
+    sendMessage({ type: 'mapChanged' });
+}
+// Commit a drawn staircase from stairDraft.start to (ex,ey).
+function commitStairDraft(b, ex, ey) {
+    if (!stairDraft) return;
+    const s = stairDraft.start;
+    const dx = ex - s.x, dy = ey - s.y, len = Math.hypot(dx, dy);
+    stairDraft = null;
+    if (len < 2) { rebuildBuildingSvg(b.id); return; } // too short → cancel
+    const fi = b.activeFloor || 0;
+    b.floors = b.floors || [];
+    while (b.floors.length <= fi) b.floors.push({});
+    b.floors[fi].stairs = b.floors[fi].stairs || [];
+    // Rotation: the stair rect's long axis is local +Y, so rotation = runAngle - 90.
+    b.floors[fi].stairs.push({
+        x: (s.x + ex) / 2, y: (s.y + ey) / 2,
+        width: 10, length: len,
+        rotation: Math.atan2(dy, dx) * 180 / Math.PI - 90,
+        direction: 'up',
+    });
+    rebuildBuildingSvg(b.id);
+    sendMessage({ type: 'mapChanged' });
+}
+function flipOpening(id, fi, oi) {
+    const b = findBuilding(id);
+    const fl = b && (b.floors || [])[fi];
+    if (!fl || !fl.openings || !fl.openings[oi]) return;
+    fl.openings[oi].flip = !fl.openings[oi].flip;
+    rebuildBuildingSvg(id);
+    sendMessage({ type: 'mapChanged' });
+}
+
+// Resolve an opening's host segment: an interior wall (wallIndex >= 0) or an
+// edge of the floor's outer outline (wallIndex < 0 → edge -wallIndex-1).
+function openingSegment(b, fi, op) {
+    const fl = (b.floors || [])[fi] || {};
+    if (op.wallIndex >= 0) {
+        const w = (fl.walls || [])[op.wallIndex];
+        return w ? { x1: w.x1, y1: w.y1, x2: w.x2, y2: w.y2, thickness: w.thickness || 3 } : null;
+    }
+    const outline = buildingFloorOutline(b, fi);
+    if (outline.length < 3) return null;
+    const ei = (-op.wallIndex - 1) % outline.length;
+    const a = outline[ei], c = outline[(ei + 1) % outline.length];
+    return (a && c) ? { x1: a.x, y1: a.y, x2: c.x, y2: c.y, thickness: 1.6 } : null;
+}
+function nearestOutlineEdge(outline, wx, wy) {
+    let bestI = 0, bestD = Infinity, bestT = 0.5;
+    const n = outline.length;
+    for (let i = 0; i < n; i++) {
+        const a = outline[i], c = outline[(i + 1) % n];
+        const dx = c.x - a.x, dy = c.y - a.y, L2 = dx * dx + dy * dy || 1;
+        let t = ((wx - a.x) * dx + (wy - a.y) * dy) / L2;
+        t = Math.max(0, Math.min(1, t));
+        const d = Math.hypot(wx - (a.x + t * dx), wy - (a.y + t * dy));
+        if (d < bestD) { bestD = d; bestI = i; bestT = t; }
+    }
+    return { edge: bestI, t: bestT };
+}
+
+function onBuildingPlanMouseDown(e, b) {
+    if (e.button !== 0) return; // middle/right bubble
+    if (mode !== 'edit' || toolMode !== 'select') return;
+    e.stopPropagation();
+    // preventDefault stops the browser's default mousedown focus shift — without
+    // it, focusing a freshly-placed label here is immediately overridden (the
+    // poly steals focus) and the empty label blurs + auto-deletes.
+    e.preventDefault();
+    if (floorPlanEdit && floorPlanEdit.buildingId === b.id) {
+        const wx = (e.clientX - pan.x) / zoom, wy = (e.clientY - pan.y) / zoom;
+        if (floorPlanTool === 'wall') {
+            if (!wallDraft) wallDraft = { points: [] };
+            wallDraft.points.push({ x: wx, y: wy });
+            rebuildBuildingSvg(b.id);
+            return;
+        }
+        if (floorPlanTool === 'stairs') {
+            // Two-click draw: first click = start, second = end (defines run
+            // direction + length).
+            if (!stairDraft) {
+                stairDraft = { start: { x: wx, y: wy }, cursor: { x: wx, y: wy } };
+                rebuildBuildingSvg(b.id);
+                return;
+            }
+            commitStairDraft(b, wx, wy);
+            return;
+        }
+        // Door / window clicked on the floor body → anchor to the nearest
+        // outer-outline edge (so outer walls get openings too).
+        if (floorPlanTool === 'door' || floorPlanTool === 'window') {
+            const fi = b.activeFloor || 0;
+            const outline = buildingFloorOutline(b, fi);
+            if (outline.length >= 3) {
+                const ne = nearestOutlineEdge(outline, wx, wy);
+                b.floors = b.floors || [];
+                while (b.floors.length <= fi) b.floors.push({});
+                b.floors[fi].openings = b.floors[fi].openings || [];
+                b.floors[fi].openings.push({ wallIndex: -ne.edge - 1, t: ne.t, width: 8, kind: floorPlanTool });
+                rebuildBuildingSvg(b.id);
+                sendMessage({ type: 'mapChanged' });
+            }
+            return;
+        }
+        // Floor-scoped label / pin — shown only while this floor is active.
+        if (floorPlanTool === 'flabel') {
+            const fi = b.activeFloor || 0;
+            b.floors = b.floors || [];
+            while (b.floors.length <= fi) b.floors.push({});
+            b.floors[fi].labels = b.floors[fi].labels || [];
+            const lbl = { id: 'label-' + Date.now(), x: wx, y: wy, text: '',
+                          fontSize: 8, fontFamily: '', align: 'center', color: '#1c1a18' };
+            b.floors[fi].labels.push(lbl);
+            renderFloorAnnotations();
+            // No mapChanged here — beginLabelEdit's commit sends it. A premature
+            // mapChanged round-trips a render() that wipes the editable label.
+            beginLabelEdit(lbl, labelOverlay.querySelector(`.nv-label[data-label-id="${lbl.id}"]`));
+            return;
+        }
+        if (floorPlanTool === 'fpin') {
+            const fi = b.activeFloor || 0;
+            b.floors = b.floors || [];
+            while (b.floors.length <= fi) b.floors.push({});
+            b.floors[fi].pins = b.floors[fi].pins || [];
+            b.floors[fi].pins.push({ id: 'pin-' + Date.now(), x: wx, y: wy, style: 'dot',
+                                     label: '', entityType: '', entityId: '', color: null });
+            renderFloorAnnotations();
+            sendMessage({ type: 'mapChanged' });
+            return;
+        }
+    }
+    selectBuilding(b.id);
+}
+
+function renderBuilding(node, b) {
+    if (!b.footprint || b.footprint.length < 3) return;
+    world.appendChild(buildBuildingSvg(node, b));
+}
+
+function rebuildBuildingSvg(id) {
+    const owner = findBuildingOwner(id), b = findBuilding(id);
+    if (!owner || !b) return;
+    const old = world.querySelector(`.nv-building[data-building-id="${id}"]`);
+    const fresh = buildBuildingSvg(owner, b);
+    if (old) old.replaceWith(fresh); else world.appendChild(fresh);
+}
+
+function renderBuildingDraft() {
+    const old = world.querySelector('.nv-building[data-building-id="__buildingDraft__"]');
+    if (old) old.remove();
+    if (!buildingDraft) return;
+    const svg = buildBuildingSvg({ id: '__buildingDraft__' }, {
+        id: '__buildingDraft__', type: buildingDraft.type,
+        footprint: buildingDraft.footprint, rotation: buildingDraft.rotation,
+        x: buildingDraft.x, y: buildingDraft.y, roof: { kind: 'gable' },
+    });
+    svg.style.opacity = '0.6';
+    world.appendChild(svg);
+}
+
+// Placement: every left-click drops a building; the tool stays active and rolls
+// the next preview (multi-place). Esc exits.
+function tryPlaceBuilding(e) {
+    if (toolMode !== 'building' || mode !== 'edit') return false;
+    if (e.button !== 0) return false;
+    e.stopPropagation(); e.preventDefault();
+    if (!buildingDraft) rollBuildingDraft();
+    attachBuildingToRoads(buildingDraft, (e.clientX - pan.x) / zoom, (e.clientY - pan.y) / zoom, e.shiftKey);
+    const layer = findLayer(activeLayerId) || firstLeafNode();
+    if (layer) {
+        layer.buildings = layer.buildings || [];
+        layer.buildings.push({
+            id: 'building-' + Date.now(),
+            type: buildingDraft.type,
+            // bake rotation + translation into the stored footprint (rotation 0).
+            footprint: buildingWorldPoints(buildingDraft),
+            rotation: 0,
+            roof: { kind: buildingDraft.type === 'hall' || buildingDraft.type === 'trainStation' ? 'flat' : 'gable', pitch: 0.5 },
+            floorCount: buildingDraft.type === 'playground' ? 0 : 1,
+            activeFloor: 0,
+            planMinZoom: 4,
+            floors: [],
+        });
+    }
+    render();
+    sendMessage({ type: 'mapChanged' });
+    rollBuildingDraft(); // ready the next placement
+    return true;
+}
+
+function buildingSelectionPayload(b) {
+    return {
+        type: 'buildingSelected', buildingId: b.id,
+        buildingType: b.type || 'singleFamily',
+        roofKind: (b.roof && b.roof.kind) || 'gable',
+        roofPitch: (b.roof && b.roof.pitch) != null ? b.roof.pitch : 0.5,
+        floorCount: b.floorCount || 0,
+        planMinZoom: b.planMinZoom != null ? b.planMinZoom : 4,
+    };
+}
+function selectBuilding(id) {
+    buildingEdit = { buildingId: id };
+    rebuildBuildingSvg(id);
+    renderBuildingEditor();
+    const b = findBuilding(id);
+    if (b) sendMessage(buildingSelectionPayload(b));
+}
+function exitBuildingEdit() {
+    const prev = buildingEdit;
+    buildingEdit = null;
+    if (prev) rebuildBuildingSvg(prev.buildingId);
+    renderBuildingEditor();
+    sendMessage({ type: 'buildingDeselected' });
+}
+
+// Rotation handle for the selected building. Sits above its topmost footprint
+// point. Hidden while floor-plan editing that building.
+function renderBuildingEditor() {
+    Array.from(handlesOverlay.querySelectorAll('.nv-bld-rot-handle')).forEach(n => n.remove());
+    if (!buildingEdit) return;
+    if (floorPlanEdit && floorPlanEdit.buildingId === buildingEdit.buildingId) return;
+    const b = findBuilding(buildingEdit.buildingId);
+    if (!b || !b.footprint || b.footprint.length < 3) return;
+    let topY = 1e9, topX = 0;
+    for (const p of b.footprint) if (p.y < topY) { topY = p.y; topX = p.x; }
+    const h = document.createElement('div');
+    h.className = 'nv-handle nv-bld-rot-handle';
+    h.style.left = (pan.x + topX * zoom) + 'px';
+    h.style.top = (pan.y + topY * zoom - 26) + 'px';
+    h.title = mapStrings.bldRotateTip || '';
+    h.addEventListener('mousedown', e => startBuildingRotate(e, b));
+    handlesOverlay.appendChild(h);
+}
+
+function startBuildingRotate(ev, b) {
+    ev.stopPropagation(); ev.preventDefault();
+    const c = polyCentroid(b.footprint);
+    const cx = pan.x + c.x * zoom, cy = pan.y + c.y * zoom;
+    let last = Math.atan2(ev.clientY - cy, ev.clientX - cx);
+    function move(e) {
+        let a = Math.atan2(e.clientY - cy, e.clientX - cx);
+        let delta = a - last;
+        if (e.shiftKey) {
+            delta = Math.round(delta / (Math.PI / 12)) * (Math.PI / 12); // 15° steps
+            if (delta === 0) return;
+        }
+        last += delta;
+        rotateBuildingGeometry(b, c, delta);
+        rebuildBuildingSvg(b.id);
+        renderFloorSelectors();
+        renderFloorAnnotations();
+        renderBuildingEditor();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+// Rotate footprint + every floor's contents (walls, stairs, labels, pins) around
+// the footprint centroid. Openings store a parametric t along walls / outline
+// edges, so they follow automatically.
+function rotateBuildingGeometry(b, c, delta) {
+    const cos = Math.cos(delta), sin = Math.sin(delta);
+    const rot = (x, y) => {
+        const dx = x - c.x, dy = y - c.y;
+        return { x: c.x + dx * cos - dy * sin, y: c.y + dx * sin + dy * cos };
+    };
+    (b.footprint || []).forEach(p => { const r = rot(p.x, p.y); p.x = r.x; p.y = r.y; });
+    const degDelta = delta * 180 / Math.PI;
+    (b.floors || []).forEach(fl => {
+        (fl.walls || []).forEach(w => {
+            const a = rot(w.x1, w.y1), d = rot(w.x2, w.y2);
+            w.x1 = a.x; w.y1 = a.y; w.x2 = d.x; w.y2 = d.y;
+        });
+        (fl.stairs || []).forEach(s => {
+            const r = rot(s.x, s.y); s.x = r.x; s.y = r.y;
+            s.rotation = (s.rotation || 0) + degDelta;
+        });
+        (fl.labels || []).forEach(l => { const r = rot(l.x, l.y); l.x = r.x; l.y = r.y; });
+        (fl.pins || []).forEach(p => { const r = rot(p.x, p.y); p.x = r.x; p.y = r.y; });
+    });
+}
+
+function showBuildingContextMenu(ev, b) {
+    const owner = findBuildingOwner(b.id);
+    showSimpleContextMenu(ev, [
+        [mapStrings.moveToLayer, () => sendMessage({
+            type: 'requestMoveToLayer', kind: 'building', id: b.id,
+            currentLayerId: owner ? owner.id : '',
+        })],
+        null,
+        [mapStrings.buildingDelete, () => window.deleteBuilding(b.id)],
+    ]);
+}
+
+window.setBuildingType = (id, type) => {
+    const b = findBuilding(id);
+    if (!b || !BUILDING_TYPES[type]) return;
+    b.type = type;
+    rebuildBuildingSvg(id);
+    if (buildingEdit && buildingEdit.buildingId === id) sendMessage(buildingSelectionPayload(b));
+    sendMessage({ type: 'mapChanged' });
+};
+window.setBuildingRoof = (id, kind, pitch) => {
+    const b = findBuilding(id);
+    if (!b) return;
+    b.roof = b.roof || {};
+    b.roof.kind = kind || 'gable';
+    b.roof.pitch = pitch > 0 ? pitch : 0;
+    rebuildBuildingSvg(id);
+    sendMessage({ type: 'mapChanged' });
+};
+window.setBuildingFloors = (id, count) => {
+    const b = findBuilding(id);
+    if (!b) return;
+    b.floorCount = Math.max(0, Math.round(count));
+    b.floors = b.floors || [];
+    while (b.floors.length < b.floorCount) b.floors.push({});
+    if (b.floors.length > b.floorCount) b.floors.length = b.floorCount;
+    if (b.activeFloor >= b.floorCount) b.activeFloor = Math.max(0, b.floorCount - 1);
+    if (floorPlanEdit && floorPlanEdit.buildingId === id && b.floorCount < 1) exitFloorPlanEdit();
+    rebuildBuildingSvg(id);
+    renderFloorSelectors();
+    sendMessage({ type: 'mapChanged' });
+};
+window.setBuildingPlanZoom = (id, z) => {
+    const b = findBuilding(id);
+    if (!b) return;
+    b.planMinZoom = z > 0 ? z : 0;
+    rebuildBuildingSvg(id);
+    renderFloorSelectors();
+    sendMessage({ type: 'mapChanged' });
+};
+window.moveBuildingZ = (id, dir) => {
+    const owner = findBuildingOwner(id);
+    if (!owner || !owner.buildings) return;
+    const i = owner.buildings.findIndex(b => b.id === id);
+    if (i < 0) return;
+    const j = i + (dir > 0 ? 1 : -1);
+    if (j < 0 || j >= owner.buildings.length) return;
+    const tmp = owner.buildings[i];
+    owner.buildings[i] = owner.buildings[j];
+    owner.buildings[j] = tmp;
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+window.deleteBuilding = (id) => {
+    const owner = findBuildingOwner(id);
+    if (!owner) return;
+    owner.buildings = (owner.buildings || []).filter(b => b.id !== id);
+    if (buildingEdit && buildingEdit.buildingId === id) {
+        buildingEdit = null;
+        sendMessage({ type: 'buildingDeselected' });
+    }
+    if (floorPlanEdit && floorPlanEdit.buildingId === id) {
+        floorPlanEdit = null; wallDraft = null; stairDraft = null; hideFloorPlanToolbar();
+        if (floorPlanPrevIso) {
+            isolatedKind = floorPlanPrevIso.kind;
+            isolatedId = floorPlanPrevIso.id;
+            floorPlanPrevIso = null;
+        } else { isolatedKind = null; isolatedId = null; }
+    }
+    render();
+    renderFloorSelectors();
+    renderBuildingEditor();
+    sendMessage({ type: 'mapChanged' });
+};
+
+// ── Floor plans ─────────────────────────────────────────────────────────
+function setBuildingActiveFloor(id, floor) {
+    const b = findBuilding(id);
+    if (!b) return;
+    if (floorPlanEdit && floorPlanEdit.buildingId === id) { wallDraft = null; stairDraft = null; }
+    b.activeFloor = Math.max(0, Math.min((b.floorCount || 1) - 1, floor));
+    rebuildBuildingSvg(id);
+    renderFloorAnnotations(); // swap the visible floor's labels / pins
+    renderFloorSelectors();
+    sendMessage({ type: 'mapChanged' });
+}
+window.setBuildingActiveFloor = setBuildingActiveFloor;
+
+// Inline per-building floor selectors (screen-space, on top of the stage).
+// Shown for every building whose floor plan is currently visible.
+function renderFloorSelectors() {
+    Array.from(stage.querySelectorAll('.nv-floor-selector')).forEach(n => n.remove());
+    walkNodes(mapData.layers, node => {
+        for (const b of node.buildings || []) {
+            if ((b.floorCount || 0) < 1 || !buildingShowsPlan(b)) continue;
+            const el = world.querySelector(`.nv-building[data-building-id="${b.id}"]`);
+            if (el && el.style.display === 'none') continue;
+            let top = (b.footprint || [])[0];
+            if (!top) continue;
+            for (const p of b.footprint) if (p.y < top.y) top = p;
+            const sel = document.createElement('div');
+            sel.className = 'nv-floor-selector';
+            sel.style.left = (pan.x + top.x * zoom) + 'px';
+            sel.style.top = (pan.y + top.y * zoom - 16) + 'px';
+            const up = document.createElement('button'); up.textContent = '▲';
+            const lbl = document.createElement('div'); lbl.className = 'lbl';
+            lbl.textContent = ((b.activeFloor || 0) + 1) + '/' + b.floorCount;
+            const down = document.createElement('button'); down.textContent = '▼';
+            up.addEventListener('click', e => { e.stopPropagation(); setBuildingActiveFloor(b.id, (b.activeFloor || 0) + 1); });
+            down.addEventListener('click', e => { e.stopPropagation(); setBuildingActiveFloor(b.id, (b.activeFloor || 0) - 1); });
+            sel.addEventListener('mousedown', e => e.stopPropagation());
+            sel.appendChild(up); sel.appendChild(lbl); sel.appendChild(down);
+            stage.appendChild(sel);
+        }
+    });
+}
+
+// Rebuild buildings whose roof ↔ plan state changed at the new zoom.
+function refreshBuildingsForZoom() {
+    walkNodes(mapData.layers, node => {
+        for (const b of node.buildings || []) {
+            const el = world.querySelector(`.nv-building[data-building-id="${b.id}"]`);
+            if (!el) continue;
+            const want = (buildingShowsPlan(b)) ? '1' : '0';
+            if (el.dataset.planShown !== want) rebuildBuildingSvg(b.id);
+        }
+    });
+}
+
+function enterFloorPlanEdit(id) {
+    const b = findBuilding(id);
+    if (!b || (b.floorCount || 0) < 1) return;
+    floorPlanEdit = { buildingId: id };
+    floorPlanTool = 'select';
+    wallDraft = null;
+    // Isolate the building being edited — hide every other layer / element so
+    // nothing gets in the way. Stash the previous isolate state to restore.
+    floorPlanPrevIso = { kind: isolatedKind, id: isolatedId };
+    isolatedKind = 'building';
+    isolatedId = id;
+    showFloorPlanToolbar();
+    rebuildBuildingSvg(id);
+    updateLayerVisibility();
+    renderFloorSelectors();
+    renderBuildingEditor(); // hide the rotation handle while floor-plan editing
+}
+function exitFloorPlanEdit() {
+    commitWallDraft();
+    const prev = floorPlanEdit;
+    floorPlanEdit = null;
+    floorPlanTool = 'select';
+    wallDraft = null;
+    stairDraft = null;
+    if (floorPlanPrevIso) {
+        isolatedKind = floorPlanPrevIso.kind;
+        isolatedId = floorPlanPrevIso.id;
+        floorPlanPrevIso = null;
+    } else { isolatedKind = null; isolatedId = null; }
+    hideFloorPlanToolbar();
+    if (prev) rebuildBuildingSvg(prev.buildingId);
+    updateLayerVisibility();
+    renderFloorSelectors();
+    renderBuildingEditor(); // restore the rotation handle
+}
+// Commit the in-progress wall chain onto the active floor.
+function commitWallDraft() {
+    if (!floorPlanEdit || !wallDraft || wallDraft.points.length < 2) { wallDraft = null; return; }
+    const b = findBuilding(floorPlanEdit.buildingId);
+    if (b) {
+        const fi = b.activeFloor || 0;
+        b.floors = b.floors || [];
+        while (b.floors.length <= fi) b.floors.push({});
+        const fl = b.floors[fi];
+        fl.walls = fl.walls || [];
+        for (let i = 0; i < wallDraft.points.length - 1; i++) {
+            const a = wallDraft.points[i], c = wallDraft.points[i + 1];
+            fl.walls.push({ x1: a.x, y1: a.y, x2: c.x, y2: c.y, thickness: 3 });
+        }
+        wallDraft = null;
+        rebuildBuildingSvg(b.id);
+        sendMessage({ type: 'mapChanged' });
+        return;
+    }
+    wallDraft = null;
+}
+
+function showFloorPlanToolbar() {
+    let tb = document.getElementById('nv-floorplan-toolbar');
+    if (!tb) {
+        tb = document.createElement('div');
+        tb.id = 'nv-floorplan-toolbar';
+        tb.className = 'nv-edit-toolbar';
+        const tools = [['wall', 'fpWall'], ['door', 'fpDoor'], ['window', 'fpWindow'],
+                       ['stairs', 'fpStairs'], ['flabel', 'fpLabel'], ['fpin', 'fpPin']];
+        for (const [tool, key] of tools) {
+            const btn = document.createElement('button');
+            btn.dataset.fpTool = tool;
+            btn.textContent = mapStrings[key];
+            btn.addEventListener('click', () => {
+                if (floorPlanTool === 'wall' && tool !== 'wall') commitWallDraft();
+                floorPlanTool = (floorPlanTool === tool) ? 'select' : tool;
+                if (floorPlanTool !== 'wall') commitWallDraft();
+                stairDraft = null; // dropping a half-drawn staircase on tool switch
+                updateFloorPlanToolbar();
+            });
+            tb.appendChild(btn);
+        }
+        const hint = document.createElement('span');
+        hint.className = 'hint';
+        hint.textContent = mapStrings.fpHint;
+        const done = document.createElement('button');
+        done.className = 'primary';
+        done.textContent = mapStrings.splineEditDone;
+        done.addEventListener('click', exitFloorPlanEdit);
+        tb.appendChild(hint); tb.appendChild(done);
+        document.body.appendChild(tb);
+    }
+    tb.style.display = 'flex';
+    updateFloorPlanToolbar();
+}
+function updateFloorPlanToolbar() {
+    const tb = document.getElementById('nv-floorplan-toolbar');
+    if (!tb) return;
+    tb.querySelectorAll('button[data-fp-tool]').forEach(btn => {
+        btn.className = (btn.dataset.fpTool === floorPlanTool) ? 'primary' : 'secondary';
+    });
+}
+function hideFloorPlanToolbar() {
+    const tb = document.getElementById('nv-floorplan-toolbar');
+    if (tb) tb.style.display = 'none';
+}
+
+window.editBuildingPlan = (id) => enterFloorPlanEdit(id);
+
+// ── Spline editing ──────────────────────────────────────────────────────
+let splineDraft = null;   // { kind, preset, layerId, points:[{x,y,width}] } while drawing
+let splineEdit = null;    // { splineId } while editing a committed spline
+let splineDraftType = { kind: 'road', preset: 'residential' };
+
+window.setSplineDraftType = (kind, preset) => {
+    splineDraftType = { kind: kind || 'road', preset: preset || 'residential' };
+    log('splineDraftType = ' + splineDraftType.kind + '/' + splineDraftType.preset);
+};
+
+function splineDefaultWidth() {
+    const prof = splineProfile(splineDraftType.kind, splineDraftType.preset);
+    return prof.defaultWidth || 24;
+}
+
+// Place-spline mode: each left-click drops a knot. Returns true if consumed.
+function trySplinePoint(e) {
+    if (toolMode !== 'spline' || mode !== 'edit') return false;
+    if (e.button !== 0) return false;
+    e.stopPropagation(); e.preventDefault();
+    const wx = (e.clientX - pan.x) / zoom;
+    const wy = (e.clientY - pan.y) / zoom;
+    if (!splineDraft) {
+        splineDraft = {
+            kind: splineDraftType.kind, preset: splineDraftType.preset,
+            layerId: activeLayerId, points: [],
+        };
+    }
+    splineDraft.points.push({ x: wx, y: wy, width: splineDefaultWidth() });
+    renderSplines();        // live preview (renderSplines draws the draft too)
+    renderSplineEditor();
+    return true;
+}
+
+function commitSplineDraft() {
+    if (!splineDraft) return;
+    if (splineDraft.points.length < 2) { splineDraft = null; renderSplines(); renderSplineEditor(); return; }
+    // Bind to the currently-active layer (resolved at commit time, not draft start,
+    // so changing the active layer mid-draw still lands the spline correctly).
+    const layer = findLayer(activeLayerId) || findLayer(splineDraft.layerId) || firstLeafNode();
+    if (layer) {
+        layer.splines = layer.splines || [];
+        layer.splines.push({
+            id: 'spline-' + Date.now(),
+            kind: splineDraft.kind,
+            preset: splineDraft.preset,
+            closed: false,
+            points: splineDraft.points.map(p => ({ x: p.x, y: p.y, width: p.width })),
+        });
+    }
+    splineDraft = null;
+    render();
+    sendMessage({ type: 'mapChanged' });
+    renderSplineEditor();
+    // Committing a spline also exits the spline tool (one spline per activation).
+    toolMode = 'select';
+    stage.style.cursor = 'default';
+    sendMessage({ type: 'cancelSplineMode' });
+}
+
+function cancelSplineDraft() {
+    splineDraft = null;
+    renderSplines();
+    renderSplineEditor();
+}
+
+function splineSelectionPayload(sp, selKnot) {
+    const k = sp.points[selKnot] || {};
+    const prof = splineProfile(sp.kind, sp.preset);
+    const centerMk = (prof.markings || []).find(m => m.offset === 0)
+                   || (prof.markings || [])[0];
+    return {
+        type: 'splineSelected', splineId: sp.id, kind: sp.kind, preset: sp.preset,
+        closed: !!sp.closed,
+        markingStyle: sp.markingStyle || '',
+        // Effective part colours (override if set, else the preset's) — the
+        // properties-panel colour pickers always need a concrete colour.
+        casingColor: sp.casingColor || prof.casing.color,
+        fillColor: sp.fillColor || prof.bands[0].color,
+        markingColor: sp.markingColor || (centerMk ? centerMk.color : '#ffffff'),
+        knotCount: (sp.points || []).length,
+        selectedKnot: selKnot,
+        knotType: k.typeOverride || '',
+        knotBlend: k.blendFactor == null ? 1 : k.blendFactor,
+        knotMarking: k.markingStyle || '',
+        knotSharpness: k.sharpness || 0,
+    };
+}
+
+function emitSplineSelection() {
+    if (!splineEdit) return;
+    const sp = findSpline(splineEdit.splineId);
+    if (sp) sendMessage(splineSelectionPayload(sp, splineEdit.selKnot || 0));
+}
+
+function selectSpline(splineId) {
+    splineEdit = { splineId, selKnot: 0 };
+    renderSplineEditor();
+    showSplineToolbar();
+    emitSplineSelection();
+}
+
+function exitSplineEdit() {
+    splineEdit = null;
+    renderSplineEditor();
+    hideSplineToolbar();
+    sendMessage({ type: 'splineDeselected' });
+}
+
+window.setSplinePreset = (splineId, kind, preset) => {
+    const sp = findSpline(splineId);
+    if (!sp) return;
+    sp.kind = kind || sp.kind;
+    sp.preset = preset || sp.preset;
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.setSplineClosed = (splineId, closed) => {
+    const sp = findSpline(splineId);
+    if (!sp) return;
+    if (closed) sp.closed = true; else delete sp.closed;
+    renderSplines();
+    if (splineEdit && splineEdit.splineId === splineId) renderSplineEditor();
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.setKnotBlend = (splineId, knotIdx, factor) => {
+    const sp = findSpline(splineId);
+    if (!sp || !sp.points[knotIdx]) return;
+    sp.points[knotIdx].blendFactor = Math.max(0, Math.min(1, factor));
+    renderSplines();
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.setKnotType = (splineId, knotIdx, preset) => {
+    const sp = findSpline(splineId);
+    if (!sp || !sp.points[knotIdx]) return;
+    if (preset) sp.points[knotIdx].typeOverride = preset;
+    else delete sp.points[knotIdx].typeOverride;
+    renderSplines();
+    if (splineEdit && splineEdit.splineId === splineId) {
+        renderSplineEditor();
+        emitSplineSelection();
+    }
+    sendMessage({ type: 'mapChanged' });
+};
+
+// Host asks to focus a specific knot (e.g. via a future knot list); we mostly
+// drive selKnot from clicking handles in the editor.
+window.selectSplineKnot = (splineId, knotIdx) => {
+    if (!splineEdit || splineEdit.splineId !== splineId) return;
+    splineEdit.selKnot = knotIdx;
+    renderSplineEditor();
+    emitSplineSelection();
+};
+
+window.deleteSpline = (splineId) => {
+    const owner = findSplineOwner(splineId);
+    if (!owner) return;
+    owner.splines = (owner.splines || []).filter(s => s.id !== splineId);
+    if (splineEdit && splineEdit.splineId === splineId) {
+        splineEdit = null;
+        hideSplineToolbar();
+        renderSplineEditor();
+        sendMessage({ type: 'splineDeselected' });
+    }
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+
+// Reorder a spline within its layer's z-stack. dir > 0 = forward, dir < 0 = back.
+window.moveSplineZ = (splineId, dir) => {
+    const owner = findSplineOwner(splineId);
+    if (!owner || !owner.splines) return;
+    const i = owner.splines.findIndex(s => s.id === splineId);
+    if (i < 0) return;
+    const j = i + (dir > 0 ? 1 : -1);
+    if (j < 0 || j >= owner.splines.length) return;
+    const tmp = owner.splines[i];
+    owner.splines[i] = owner.splines[j];
+    owner.splines[j] = tmp;
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.setKnotSharpness = (splineId, knotIdx, val) => {
+    const sp = findSpline(splineId);
+    if (!sp || !sp.points[knotIdx]) return;
+    sp.points[knotIdx].sharpness = Math.max(0, Math.min(1, val));
+    renderSplines();
+    renderSplineEditor();
+    sendMessage({ type: 'mapChanged' });
+};
+
+// Insert a knot into segment `seg` (between knots seg and seg+1) at a world point.
+function insertSplineKnot(splineId, seg, wx, wy) {
+    const sp = findSpline(splineId);
+    if (!sp || !sp.points) return;
+    const n = sp.points.length;
+    const a = sp.points[seg] || sp.points[0];
+    const b = sp.points[(seg + 1) % n] || a;
+    const w = ((a.width || 24) + (b.width || 24)) / 2;
+    sp.points.splice(seg + 1, 0, { x: wx, y: wy, width: w });
+    selectSpline(splineId);
+    if (splineEdit) splineEdit.selKnot = seg + 1;
+    renderSplines();
+    renderSplineEditor();
+    emitSplineSelection();
+    sendMessage({ type: 'mapChanged' });
+}
+
+// Add a knot adjacent to knot `idx`. Mid-spline → midpoint of the neighbouring
+// segment; at an end → extrapolated outward, so the spline grows.
+function addAdjacentKnot(points, idx, after) {
+    const n = points.length;
+    const here = points[idx];
+    if (after) {
+        if (idx < n - 1) {
+            const nx = points[idx + 1];
+            points.splice(idx + 1, 0, { x: (here.x + nx.x) / 2, y: (here.y + nx.y) / 2,
+                width: ((here.width || 24) + (nx.width || 24)) / 2 });
+        } else {
+            const prev = points[idx - 1] || here;
+            points.push({ x: here.x + (here.x - prev.x), y: here.y + (here.y - prev.y),
+                width: here.width || 24 });
+        }
+    } else {
+        if (idx > 0) {
+            const pv = points[idx - 1];
+            points.splice(idx, 0, { x: (here.x + pv.x) / 2, y: (here.y + pv.y) / 2,
+                width: ((here.width || 24) + (pv.width || 24)) / 2 });
+        } else {
+            const nx = points[idx + 1] || here;
+            points.unshift({ x: here.x - (nx.x - here.x), y: here.y - (nx.y - here.y),
+                width: here.width || 24 });
+        }
+    }
+}
+
+function showSplineContextMenu(ev, sp) {
+    const owner = findSplineOwner(sp.id);
+    showSimpleContextMenu(ev, [
+        [mapStrings.moveToLayer, () => sendMessage({
+            type: 'requestMoveToLayer', kind: 'spline', id: sp.id,
+            currentLayerId: owner ? owner.id : '',
+        })],
+        null,
+        [mapStrings.splineDelete, () => window.deleteSpline(sp.id)],
+    ]);
+}
+
+// Move a pin / label / spline to a different layer node.
+window.moveMapElementToLayer = (kind, id, targetLayerId) => {
+    const target = findLayer(targetLayerId);
+    if (!target) return;
+    if (kind === 'pin') {
+        const pin = (mapData.pins || []).find(p => p.id === id);
+        if (pin) pin.layerId = targetLayerId;
+    } else if (kind === 'label') {
+        const lbl = (mapData.labels || []).find(l => l.id === id);
+        if (lbl) lbl.layerId = targetLayerId;
+    } else if (kind === 'spline') {
+        const owner = findSplineOwner(id);
+        if (owner && owner !== target) {
+            const sp = (owner.splines || []).find(s => s.id === id);
+            if (sp) {
+                owner.splines = owner.splines.filter(s => s.id !== id);
+                target.splines = target.splines || [];
+                target.splines.push(sp);
+            }
+        }
+    } else if (kind === 'shape') {
+        const owner = findShapeOwner(id);
+        if (owner && owner !== target) {
+            const sh = (owner.shapes || []).find(s => s.id === id);
+            if (sh) {
+                owner.shapes = owner.shapes.filter(s => s.id !== id);
+                target.shapes = target.shapes || [];
+                target.shapes.push(sh);
+            }
+        }
+    } else if (kind === 'building') {
+        const owner = findBuildingOwner(id);
+        if (owner && owner !== target) {
+            const bld = (owner.buildings || []).find(b => b.id === id);
+            if (bld) {
+                owner.buildings = owner.buildings.filter(b => b.id !== id);
+                target.buildings = target.buildings || [];
+                target.buildings.push(bld);
+            }
+        }
+    }
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+
+// Draws point + width handles for the active draft or the spline being edited.
+function renderSplineEditor() {
+    Array.from(handlesOverlay.querySelectorAll('.nv-spline-handle, .nv-spline-width-handle, .nv-spline-rot-handle, .nv-spline-line')).forEach(n => n.remove());
+    let points = null, splineId = null, splineKind = 'road', isClosed = false;
+    if (splineDraft) { points = splineDraft.points; splineKind = splineDraft.kind; }
+    else if (splineEdit) {
+        const sp = findSpline(splineEdit.splineId);
+        if (sp) { points = sp.points; splineId = sp.id; splineKind = sp.kind; isClosed = !!sp.closed; }
+    }
+    if (!points) return;
+
+    // Knot-to-knot guide line. Closed splines also draw the wrap segment.
+    const guideSegs = (isClosed && points.length > 2) ? points.length : points.length - 1;
+    for (let i = 0; i < guideSegs; i++) {
+        const a = points[i], b = points[(i + 1) % points.length];
+        const x1 = pan.x + a.x * zoom, y1 = pan.y + a.y * zoom;
+        const x2 = pan.x + b.x * zoom, y2 = pan.y + b.y * zoom;
+        const line = document.createElement('div');
+        line.className = 'nv-spline-line';
+        const len = Math.hypot(x2 - x1, y2 - y1);
+        const ang = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+        line.style.left = x1 + 'px';
+        line.style.top = y1 + 'px';
+        line.style.width = len + 'px';
+        line.style.transform = `rotate(${ang}deg)`;
+        handlesOverlay.appendChild(line);
+    }
+    const selKnot = splineEdit ? (splineEdit.selKnot || 0) : -1;
+    points.forEach((p, idx) => {
+        const sx = pan.x + p.x * zoom, sy = pan.y + p.y * zoom;
+        // Move handle.
+        const h = document.createElement('div');
+        h.className = 'nv-handle nv-spline-handle' + (idx === selKnot ? ' nv-spline-handle-sel' : '');
+        h.style.left = sx + 'px';
+        h.style.top = sy + 'px';
+        h.dataset.idx = idx;
+        h.addEventListener('mousedown', e => {
+            // Clicking a knot on a committed spline focuses it for the properties panel.
+            if (splineId && splineEdit && splineEdit.selKnot !== idx) {
+                splineEdit.selKnot = idx;
+                emitSplineSelection();
+            }
+            startSplinePointDrag(e, points, idx, splineId);
+        });
+        h.addEventListener('contextmenu', e => {
+            e.preventDefault(); e.stopPropagation();
+            showKnotContextMenu(e, points, idx, splineId, splineKind);
+        });
+        handlesOverlay.appendChild(h);
+        // Width handle: offset perpendicular by half-width.
+        const wh = document.createElement('div');
+        wh.className = 'nv-handle nv-spline-width-handle';
+        wh.style.left = sx + 'px';
+        wh.style.top = (sy - (p.width / 2) * zoom) + 'px';
+        wh.dataset.idx = idx;
+        wh.title = mapStrings.widthHandleTip;
+        wh.addEventListener('mousedown', e => startSplineWidthDrag(e, points, idx, sx, sy, splineId));
+        handlesOverlay.appendChild(wh);
+        // Rotation handle: only on the focused knot. Sits along the knot's
+        // current tangent direction; drag to override the spline's direction
+        // through this knot (works for endpoints too).
+        if (idx === selKnot) {
+            const tans = knotTangents(points, isClosed);
+            let dx = tans[idx].x, dy = tans[idx].y;
+            if (Math.hypot(dx, dy) < 1e-3) {
+                const nb = points[(idx + 1) % points.length] || p;
+                dx = nb.x - p.x; dy = nb.y - p.y;
+            }
+            const dl = Math.hypot(dx, dy) || 1;
+            const rh = document.createElement('div');
+            rh.className = 'nv-handle nv-spline-rot-handle';
+            rh.style.left = (sx + (dx / dl) * 30) + 'px';
+            rh.style.top = (sy + (dy / dl) * 30) + 'px';
+            rh.title = mapStrings.rotHandleTip;
+            rh.addEventListener('mousedown', e => startSplineKnotRotate(e, points, idx, sx, sy, splineId));
+            handlesOverlay.appendChild(rh);
+        }
+    });
+}
+
+function startSplineKnotRotate(ev, points, idx, sx, sy, splineId) {
+    ev.stopPropagation(); ev.preventDefault();
+    function move(e) {
+        let a = Math.atan2(e.clientY - sy, e.clientX - sx);
+        if (e.shiftKey) a = Math.round(a / (Math.PI / 12)) * (Math.PI / 12); // 15° snap
+        points[idx].angle = a;
+        renderSplines();
+        renderSplineEditor();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        if (splineId) sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+// Right-click a knot: delete it, or set / clear a per-knot type override so the
+// spline can blend into a different road/river type along its length.
+function showKnotContextMenu(ev, points, idx, splineId, splineKind) {
+    closeContextMenu();
+    const menu = document.createElement('div');
+    menu.className = 'nv-ctx-menu';
+    menu.style.left = ev.clientX + 'px';
+    menu.style.top = ev.clientY + 'px';
+    function commit() {
+        if (splineId) { renderSplines(); sendMessage({ type: 'mapChanged' }); }
+        else renderSplines();
+        renderSplineEditor();
+    }
+    function item(label, action, disabled) {
+        const it = document.createElement('div');
+        it.textContent = label;
+        if (disabled) it.style.opacity = '0.4';
+        it.addEventListener('mousedown', e => e.stopPropagation());
+        it.addEventListener('click', () => {
+            closeContextMenu();
+            if (!disabled) action();
+        });
+        return it;
+    }
+    menu.appendChild(item(mapStrings.knotAddBefore, () => {
+        addAdjacentKnot(points, idx, false); commit();
+    }));
+    menu.appendChild(item(mapStrings.knotAddAfter, () => {
+        addAdjacentKnot(points, idx, true); commit();
+    }));
+    menu.appendChild(item(mapStrings.knotDelete, () => {
+        if (points.length > 2) { points.splice(idx, 1); commit(); }
+    }, points.length <= 2));
+    const sep = document.createElement('div');
+    sep.style.cssText = 'height:1px;background:#555;margin:4px 0;';
+    menu.appendChild(sep);
+    menu.appendChild(item(mapStrings.knotClearDirection, () => {
+        delete points[idx].angle;
+        commit();
+    }, points[idx].angle == null));
+    const sep2 = document.createElement('div');
+    sep2.style.cssText = 'height:1px;background:#555;margin:4px 0;';
+    menu.appendChild(sep2);
+    const presets = SPLINE_PROFILES[splineKind] || SPLINE_PROFILES.road;
+    for (const key of Object.keys(presets)) {
+        const active = points[idx].typeOverride === key;
+        menu.appendChild(item((active ? '● ' : '   ') + mapStrings.knotTypePrefix + key, () => {
+            points[idx].typeOverride = key;
+            commit();
+        }));
+    }
+    menu.appendChild(item(mapStrings.knotClearOverride, () => {
+        delete points[idx].typeOverride;
+        commit();
+    }, !points[idx].typeOverride));
+    document.body.appendChild(menu);
+    setTimeout(() => window.addEventListener('mousedown', closeContextMenu, { once: true }), 0);
+}
+
+function startSplinePointDrag(ev, points, idx, splineId) {
+    ev.stopPropagation(); ev.preventDefault();
+    // Junction snapping: when dragging an end knot of a committed open spline,
+    // snap onto the nearest knot of any *other* spline (end or interior — so
+    // T-junctions work, not just end-to-end). Hold Shift to drag freely.
+    const sp = splineId ? findSpline(splineId) : null;
+    const canSnap = !!sp && !sp.closed && (idx === 0 || idx === points.length - 1);
+    const snapTargets = [];
+    if (canSnap) {
+        walkNodes(mapData.layers, node => {
+            for (const s of node.splines || []) {
+                if (s.id === splineId || !s.points) continue;
+                for (const pt of s.points) snapTargets.push(pt);
+            }
+        });
+    }
+    // Visualise the candidate snap points for the duration of the drag.
+    // renderSplineEditor() only clears its own handle classes, so these dots
+    // survive the per-frame re-render and are torn down in up().
+    const snapDots = [];
+    for (const tgt of snapTargets) {
+        const dot = document.createElement('div');
+        dot.className = 'nv-snap-point';
+        dot.style.cssText =
+            'position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;' +
+            'border-radius:50%;background:rgba(80,170,255,0.35);' +
+            'border:1.5px solid #4aa3ff;pointer-events:none;z-index:9;';
+        dot.style.left = (pan.x + tgt.x * zoom) + 'px';
+        dot.style.top = (pan.y + tgt.y * zoom) + 'px';
+        handlesOverlay.appendChild(dot);
+        snapDots.push({ tgt, dot });
+    }
+    function move(e) {
+        let wx = (e.clientX - pan.x) / zoom;
+        let wy = (e.clientY - pan.y) / zoom;
+        let best = null;
+        if (canSnap && !e.shiftKey && snapTargets.length) {
+            const thresh = 14 / zoom;       // screen-constant catch radius
+            let bestD = thresh;
+            for (const tgt of snapTargets) {
+                const d = Math.hypot(tgt.x - wx, tgt.y - wy);
+                if (d < bestD) { bestD = d; best = tgt; }
+            }
+            if (best) { wx = best.x; wy = best.y; }
+        }
+        // Highlight the dot we'd snap to.
+        for (const { tgt, dot } of snapDots) {
+            const on = tgt === best;
+            dot.style.background = on ? '#4aa3ff' : 'rgba(80,170,255,0.35)';
+            dot.style.transform = on ? 'scale(1.5)' : 'scale(1)';
+        }
+        points[idx].x = wx;
+        points[idx].y = wy;
+        renderSplines();
+        renderSplineEditor();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        for (const { dot } of snapDots) dot.remove();
+        if (splineId) sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+function startSplineWidthDrag(ev, points, idx, sx, sy, splineId) {
+    ev.stopPropagation(); ev.preventDefault();
+    function move(e) {
+        // Distance from the knot in screen space → world-unit full width.
+        const dist = Math.hypot(e.clientX - sx, e.clientY - sy);
+        points[idx].width = Math.max(2, (dist * 2) / zoom);
+        renderSplines();
+        renderSplineEditor();
+    }
+    function up() {
+        window.removeEventListener('mousemove', move);
+        window.removeEventListener('mouseup', up);
+        if (splineId) sendMessage({ type: 'mapChanged' });
+    }
+    window.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', up);
+}
+
+function showSplineToolbar() {
+    let tb = document.getElementById('nv-spline-toolbar');
+    if (!tb) {
+        tb = document.createElement('div');
+        tb.id = 'nv-spline-toolbar';
+        tb.className = 'nv-edit-toolbar';
+        const hint = document.createElement('span');
+        hint.className = 'hint';
+        hint.textContent = mapStrings.splineEditHint;
+        const done = document.createElement('button');
+        done.className = 'primary';
+        done.textContent = mapStrings.splineEditDone;
+        done.addEventListener('click', exitSplineEdit);
+        tb.appendChild(hint);
+        tb.appendChild(done);
+        document.body.appendChild(tb);
+    }
+    tb.style.display = 'flex';
+}
+function hideSplineToolbar() {
+    const tb = document.getElementById('nv-spline-toolbar');
+    if (tb) tb.style.display = 'none';
+}
+
+window.toggleSplineEditOnSelected = () => {
+    if (splineEdit) { exitSplineEdit(); return; }
+};
+
 window.addEventListener('keydown', (e) => {
     if (clipEdit) {
         if (e.key === 'Escape') exitClipEdit(false);
         else if (e.key === 'Enter') exitClipEdit(true);
         return;
     }
+    if (splineDraft) {
+        if (e.key === 'Escape') cancelSplineDraft();
+        else if (e.key === 'Enter') commitSplineDraft();
+        return;
+    }
+    if (splineEdit) {
+        if (e.key === 'Escape' || e.key === 'Enter') exitSplineEdit();
+        return;
+    }
+    if (terrainDraft) {
+        if (e.key === 'Escape') cancelTerrainDraft();
+        else if (e.key === 'Enter') commitTerrainDraft();
+        return;
+    }
+    if (terrainEdit) {
+        if (e.key === 'Escape' || e.key === 'Enter') exitShapeEdit();
+        return;
+    }
+    if (e.key === 'Escape' && toolMode === 'terrain') {
+        toolMode = 'select';
+        stage.style.cursor = 'default';
+        sendMessage({ type: 'cancelTerrainMode' });
+        return;
+    }
+    if (borderDraft) {
+        if (e.key === 'Escape') cancelBorderDraft();
+        else if (e.key === 'Enter') commitBorderDraft();
+        return;
+    }
+    if (borderEdit) {
+        if (e.key === 'Escape' || e.key === 'Enter') exitBorderEdit();
+        return;
+    }
+    if (e.key === 'Escape' && toolMode === 'border') {
+        toolMode = 'select';
+        stage.style.cursor = 'default';
+        return;
+    }
+    if (toolMode === 'building') {
+        if (e.key === 'Escape') {
+            buildingDraft = null;
+            const dr = world.querySelector('.nv-building[data-building-id="__buildingDraft__"]');
+            if (dr) dr.remove();
+            toolMode = 'select';
+            stage.style.cursor = 'default';
+            sendMessage({ type: 'cancelBuildingMode' });
+        } else if (e.key === 'r' || e.key === 'R') {
+            rollBuildingDraft();
+        }
+        return;
+    }
+    if (floorPlanEdit) {
+        if (e.key === 'Escape') {
+            if (stairDraft) { stairDraft = null; rebuildBuildingSvg(floorPlanEdit.buildingId); return; }
+            if (wallDraft) commitWallDraft(); else exitFloorPlanEdit();
+            return;
+        }
+        if (e.key === 'Enter') { commitWallDraft(); return; }
+    }
+    if (buildingEdit && e.key === 'Escape') { exitBuildingEdit(); return; }
     if (e.key === 'Escape' && toolMode === 'add-pin') {
         sendMessage({ type: 'cancelPinPlace' });
         toolMode = 'select';
         stage.style.cursor = 'default';
+        return;
+    }
+    if (e.key === 'Escape' && toolMode === 'add-label') {
+        sendMessage({ type: 'cancelLabelPlace' });
+        toolMode = 'select';
+        stage.style.cursor = 'default';
+        return;
+    }
+    if (e.key === 'Escape' && toolMode === 'spline') {
+        toolMode = 'select';
+        stage.style.cursor = 'default';
+        sendMessage({ type: 'cancelSplineMode' });
         return;
     }
     if ((e.key === 'Delete' || e.key === 'Backspace') && selected && mode === 'edit') {
@@ -972,20 +4669,47 @@ stage.addEventListener('mousedown', (e) => {
         startPan(e);
         return;
     }
+    if (trySplinePoint(e)) return;
     if (tryPlacePin(e)) return;
+    if (tryPlaceLabel(e)) return;
+    if (tryPlaceTerrainPoint(e)) return;
+    if (tryPlaceBorderPoint(e)) return;
+    if (tryPlaceBuilding(e)) return;
     if (e.target !== stage && e.target !== world) return;
     if (e.button !== 0) return;
     // Left-click on empty stage just clears selection. Pan requires middle button.
+    const wasLabel = selected?.kind === 'label';
     selected = null;
     Array.from(world.querySelectorAll('.selected')).forEach(el => el.classList.remove('selected'));
+    labelOverlay.querySelectorAll('.nv-label.selected').forEach(el => el.classList.remove('selected'));
     updateImageHandles();
+    if (wasLabel) sendMessage({ type: 'labelDeselected' });
+    if (buildingEdit) exitBuildingEdit();
     sendMessage({ type: 'selectionCleared' });
+});
+// Building placement preview follows the cursor (with road attachment).
+stage.addEventListener('mousemove', (e) => {
+    if (toolMode === 'building' && buildingDraft) {
+        attachBuildingToRoads(buildingDraft, (e.clientX - pan.x) / zoom, (e.clientY - pan.y) / zoom, e.shiftKey);
+        renderBuildingDraft();
+        return;
+    }
+    // Stair draw preview tracks the cursor between the start and end clicks.
+    if (floorPlanEdit && floorPlanTool === 'stairs' && stairDraft) {
+        stairDraft.cursor = { x: (e.clientX - pan.x) / zoom, y: (e.clientY - pan.y) / zoom };
+        rebuildBuildingSvg(floorPlanEdit.buildingId);
+    }
 });
 // Suppress middle-click auto-scroll cursor inside the stage.
 stage.addEventListener('auxclick', (e) => { if (e.button === 1) e.preventDefault(); });
-// Suppress native browser context menu on empty map area (no element handles it).
+// Never show the native WebView context menu anywhere in the map. Element-level
+// handlers (image / pin / label / knot) still run first and draw their own
+// custom menus; this document-level catch-all just guarantees the native menu
+// is suppressed on every surface, including ones with no handler.
+document.addEventListener('contextmenu', (e) => e.preventDefault());
 stage.addEventListener('contextmenu', (e) => {
-    if (e.target === stage || e.target === world || e.target === pinOverlay || e.target === handlesOverlay)
+    if (e.target === stage || e.target === world || e.target === pinOverlay
+        || e.target === labelOverlay || e.target === handlesOverlay)
         e.preventDefault();
 });
 window.addEventListener('mousemove', (e) => {
@@ -1112,15 +4836,36 @@ window.addImageToMap = (relPath, w, h) => {
     sendMessage({ type: 'mapChanged' });
 };
 window.setToolMode = (m) => {
-    toolMode = (m === 'add-pin') ? 'add-pin' : 'select';
-    stage.style.cursor = toolMode === 'add-pin' ? 'crosshair' : 'default';
-    if (toolMode === 'add-pin') {
-        // Drop existing selection so handles don't intercept clicks and the user
-        // gets a clean canvas to drop the pin on.
+    const want = (m === 'add-pin' || m === 'add-label' || m === 'spline'
+        || m === 'terrain' || m === 'border' || m === 'building') ? m : 'select';
+    // 'border' with a border already present = edit its vertices, not draw a new one.
+    if (want === 'border' && mapData.border) {
+        toolMode = 'select';
+        stage.style.cursor = 'default';
+        if (splineDraft) commitSplineDraft();
+        if (terrainDraft) commitTerrainDraft();
+        enterBorderEdit();
+        log('toolMode = select (border edit)');
+        return;
+    }
+    toolMode = want;
+    stage.style.cursor = (toolMode === 'select') ? 'default' : 'crosshair';
+    if (toolMode !== 'select') {
+        // Drop existing selection so handles don't intercept clicks.
         selected = null;
         Array.from(world.querySelectorAll('.selected')).forEach(n => n.classList.remove('selected'));
         updateImageHandles();
         if (clipEdit) exitClipEdit(false);
+    }
+    if (toolMode !== 'spline' && splineDraft) commitSplineDraft();
+    if (toolMode !== 'terrain' && terrainDraft) commitTerrainDraft();
+    if (toolMode !== 'border' && borderDraft) commitBorderDraft();
+    if (toolMode === 'building') {
+        rollBuildingDraft();
+    } else if (buildingDraft) {
+        buildingDraft = null;
+        const dr = world.querySelector('.nv-building[data-building-id="__buildingDraft__"]');
+        if (dr) dr.remove();
     }
     log('toolMode = ' + toolMode);
 };
@@ -1135,6 +4880,7 @@ window.addPinAtPoint = (wx, wy, label, entityType, entityId, color) => {
         entityType: entityType || '',
         entityId: entityId || '',
         color: color || null,
+        layerId: activeLayerId || '',
     });
     render();
     sendMessage({ type: 'mapChanged' });
@@ -1152,6 +4898,7 @@ window.addPinAtCenter = (label, entityType, entityId, color) => {
         entityType: entityType || '',
         entityId: entityId || '',
         color: color || null,
+        layerId: activeLayerId || '',
     });
     render();
     sendMessage({ type: 'mapChanged' });
@@ -1167,15 +4914,28 @@ window.updateImageZoomRange = (imageId, minZoom, maxZoom) => {
     sendMessage({ type: 'mapChanged' });
 };
 
-// Isolate mode: view-only toggle so the user can see exactly which image
+// Isolate mode: view-only toggle so the user can see exactly which element
 // they're editing. Not persisted — getMapData never writes it.
-window.setIsolatedImage = (imageId) => {
-    isolatedImageId = imageId || null;
+window.setIsolatedElement = (kind, id) => {
+    if (id) { isolatedKind = kind || 'image'; isolatedId = id; }
+    else { isolatedKind = null; isolatedId = null; }
     updateLayerVisibility();
+};
+window.setIsolatedImage = (imageId) => window.setIsolatedElement('image', imageId);
+
+// Per-element visible-zoom range for splines / pins / labels (images keep
+// their own updateImageZoomRange). 0 on either side = no limit on that side.
+window.setElementZoomRange = (kind, id, minZoom, maxZoom) => {
+    const obj = elementById(kind, id);
+    if (!obj) return;
+    obj.minZoom = minZoom > 0 ? minZoom : null;
+    obj.maxZoom = maxZoom > 0 ? maxZoom : null;
+    updateLayerVisibility();
+    sendMessage({ type: 'mapChanged' });
 };
 
 window.updatePinColor = (pinId, color) => {
-    const pin = (mapData.pins || []).find(p => p.id === pinId);
+    const pin = findPinById(pinId);
     if (!pin) return;
     pin.color = color || null;
     const host = pinOverlay.querySelector(`.nv-pin-host[data-pin-id="${pinId}"]`);
@@ -1187,7 +4947,7 @@ window.updatePinColor = (pinId, color) => {
 };
 
 window.updatePin = (pinId, label, entityType, entityId, color) => {
-    const pin = (mapData.pins || []).find(p => p.id === pinId);
+    const pin = findPinById(pinId);
     if (!pin) return;
     pin.label = label || '';
     pin.entityType = entityType || '';
@@ -1210,9 +4970,25 @@ window.moveImageToLayer = (sourceLayerId, imageId, targetLayerId) => {
     sendMessage({ type: 'mapChanged' });
 };
 
+// Remove a pin by id from the top-level list or any building floor.
+function removePinById(pinId) {
+    const before = (mapData.pins || []).length;
+    mapData.pins = (mapData.pins || []).filter(p => p.id !== pinId);
+    if (mapData.pins.length !== before) return true;
+    let removed = false;
+    walkNodes(mapData.layers, n => {
+        for (const b of n.buildings || [])
+            for (const fl of b.floors || [])
+                if (fl.pins) {
+                    const n0 = fl.pins.length;
+                    fl.pins = fl.pins.filter(p => p.id !== pinId);
+                    if (fl.pins.length !== n0) removed = true;
+                }
+    });
+    return removed;
+}
 window.deletePin = (pinId) => {
-    if (!mapData.pins) return;
-    mapData.pins = mapData.pins.filter(p => p.id !== pinId);
+    removePinById(pinId);
     if (selected?.kind === 'pin' && selected.id === pinId) selected = null;
     render();
     sendMessage({ type: 'mapChanged' });
@@ -1223,7 +4999,7 @@ window.deleteSelected = () => {
         const node = findLayer(selected.layerId) || findImageNode(selected.id);
         if (node) node.images = (node.images || []).filter(i => i.id !== selected.id);
     } else if (selected.kind === 'pin') {
-        mapData.pins = (mapData.pins || []).filter(p => p.id !== selected.id);
+        removePinById(selected.id);
     }
     selected = null;
     render();
@@ -1232,5 +5008,6 @@ window.deleteSelected = () => {
 
 sendMessage({ type: 'ready' });
 </script>
+<script type="module" src="map3d.js"></script>
 </body>
 </html>

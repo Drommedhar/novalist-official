@@ -13,7 +13,7 @@
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,20,0,0">
                 <Button Content="{loc:Loc dialog.clear}"
                         Padding="16,8"
@@ -27,9 +27,9 @@
                         Click="OnOk" />
             </StackPanel>
 
-            <StackPanel Spacing="10">
+            <StackPanel Spacing="{StaticResource SpacingNormal}">
                 <TextBlock x:Name="PromptText"
-                           FontSize="14"
+                           FontSize="{StaticResource FontSizeTitleSmall}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
                 <CalendarDatePicker x:Name="DatePicker"

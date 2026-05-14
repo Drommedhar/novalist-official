@@ -16,13 +16,13 @@
                     BorderBrush="{DynamicResource CardBorder}"
                     BorderThickness="0,0,0,1"
                     Background="{DynamicResource ExplorerBackground}">
-                <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="6">
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto" ColumnSpacing="{StaticResource SpacingSmall}">
                     <Button Grid.Column="0" Content="{loc:Loc calendar.today}" Command="{Binding TodayCommand}" Padding="10,4" />
                     <Button Grid.Column="1" Content="&lt;" Command="{Binding PreviousWeekCommand}" Padding="10,4" />
                     <Button Grid.Column="2" Content="&gt;" Command="{Binding NextWeekCommand}" Padding="10,4" />
                     <TextBlock Grid.Column="3"
                                Text="{Binding RangeLabel}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"
                                Margin="12,0,0,0"
@@ -69,10 +69,10 @@
                             <Border BorderBrush="{DynamicResource ExplorerBorder}"
                                     BorderThickness="0,0,1,1"
                                     Padding="8,4">
-                                <StackPanel Spacing="2">
+                                <StackPanel Spacing="{StaticResource SpacingTightest}">
                                     <TextBlock Text="{Binding DayLabel}"
                                                FontWeight="SemiBold"
-                                               FontSize="12" />
+                                               FontSize="{StaticResource FontSizeBody}" />
                                     <ItemsControl ItemsSource="{Binding AllDayEvents}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate x:DataType="vm:CalendarSceneEvent">
@@ -82,7 +82,7 @@
                                                         HorizontalContentAlignment="Left"
                                                         Background="{DynamicResource AccentBrush}"
                                                         Foreground="{DynamicResource AccentForeground}"
-                                                        FontSize="11"
+                                                        FontSize="{StaticResource FontSizeBodySmall}"
                                                         Command="{Binding OpenCommand}"
                                                         ToolTip.Tip="{Binding Tooltip}">
                                                     <StackPanel Spacing="1">
@@ -92,7 +92,7 @@
                                                                    IsVisible="{Binding HasNote}"
                                                                    FontStyle="Italic"
                                                                    Opacity="0.85"
-                                                                   FontSize="10"
+                                                                   FontSize="{StaticResource FontSizeCaption}"
                                                                    TextTrimming="CharacterEllipsis" />
                                                     </StackPanel>
                                                 </Button>
@@ -119,7 +119,7 @@
                                         BorderThickness="0,0,1,1"
                                         Padding="6,2">
                                     <TextBlock Text="{Binding}"
-                                               FontSize="11"
+                                               FontSize="{StaticResource FontSizeBodySmall}"
                                                Opacity="0.6" />
                                 </Border>
                             </DataTemplate>
@@ -189,22 +189,22 @@
                                                         Foreground="{DynamicResource AccentForeground}"
                                                         BorderThickness="0"
                                                         CornerRadius="3"
-                                                        FontSize="11"
+                                                        FontSize="{StaticResource FontSizeBodySmall}"
                                                         Command="{Binding Event.OpenCommand}"
                                                         ToolTip.Tip="{Binding Event.Tooltip}">
-                                                    <StackPanel Spacing="2">
+                                                    <StackPanel Spacing="{StaticResource SpacingTightest}">
                                                         <TextBlock Text="{Binding Event.Title}"
                                                                    FontWeight="SemiBold"
                                                                    TextTrimming="CharacterEllipsis" />
                                                         <TextBlock Text="{Binding Event.ChapterTitle}"
                                                                    Opacity="0.85"
-                                                                   FontSize="10"
+                                                                   FontSize="{StaticResource FontSizeCaption}"
                                                                    TextTrimming="CharacterEllipsis" />
                                                         <TextBlock Text="{Binding Event.Note}"
                                                                    IsVisible="{Binding Event.HasNote}"
                                                                    Opacity="0.7"
                                                                    FontStyle="Italic"
-                                                                   FontSize="10"
+                                                                   FontSize="{StaticResource FontSizeCaption}"
                                                                    TextWrapping="Wrap" />
                                                     </StackPanel>
                                                 </Button>
@@ -222,13 +222,13 @@
             <Grid RowDefinitions="Auto,*"
                   IsVisible="{Binding IsMonthView}">
                 <UniformGrid Grid.Row="0" Columns="7" Background="{DynamicResource ExplorerBackground}">
-                    <TextBlock Text="Mon" FontSize="11" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Tue" FontSize="11" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Wed" FontSize="11" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Thu" FontSize="11" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Fri" FontSize="11" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Sat" FontSize="11" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Sun" FontSize="11" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Mon" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Tue" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Wed" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Thu" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Fri" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Sat" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="Sun" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
                 </UniformGrid>
                 <ItemsControl Grid.Row="1" ItemsSource="{Binding MonthDays}">
                     <ItemsControl.ItemsPanel>
@@ -249,9 +249,9 @@
                                     DragDrop.AllowDrop="True"
                                     Tag="{Binding}"
                                     Command="{Binding JumpCommand}">
-                                <StackPanel Spacing="2">
+                                <StackPanel Spacing="{StaticResource SpacingTightest}">
                                     <TextBlock Text="{Binding DayNumber}"
-                                               FontSize="12"
+                                               FontSize="{StaticResource FontSizeBody}"
                                                FontWeight="SemiBold"
                                                HorizontalAlignment="Right" />
                                     <ItemsControl ItemsSource="{Binding VisibleEvents}">
@@ -265,7 +265,7 @@
                                                         PointerPressed="OnMonthEventPointerPressed">
                                                     <TextBlock Text="{Binding Title}"
                                                                Foreground="{DynamicResource AccentForeground}"
-                                                               FontSize="10"
+                                                               FontSize="{StaticResource FontSizeCaption}"
                                                                TextTrimming="CharacterEllipsis"
                                                                ToolTip.Tip="{Binding Tooltip}" />
                                                 </Border>
@@ -273,7 +273,7 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                     <TextBlock Text="{Binding OverflowLabel}"
-                                               FontSize="10"
+                                               FontSize="{StaticResource FontSizeCaption}"
                                                Opacity="0.7"
                                                IsVisible="{Binding HasOverflow}" />
                                 </StackPanel>
@@ -296,7 +296,7 @@
                                 Background="{DynamicResource ExplorerBackground}"
                                 BorderBrush="{DynamicResource CardBorder}"
                                 BorderThickness="1"
-                                CornerRadius="4">
+                                CornerRadius="{StaticResource RadiusSmall}">
                             <DockPanel>
                                 <Button DockPanel.Dock="Top"
                                         Padding="10,6"
@@ -309,12 +309,12 @@
                                     <Grid ColumnDefinitions="*,Auto">
                                         <TextBlock Grid.Column="0"
                                                    Text="{Binding Label}"
-                                                   FontSize="13"
+                                                   FontSize="{StaticResource FontSizeBodyLarge}"
                                                    FontWeight="SemiBold"
                                                    Foreground="{DynamicResource NormalText}" />
                                         <TextBlock Grid.Column="1"
                                                    Text="{Binding EventCountLabel}"
-                                                   FontSize="11"
+                                                   FontSize="{StaticResource FontSizeBodySmall}"
                                                    Opacity="0.7"
                                                    Foreground="{DynamicResource SubtleText}" />
                                     </Grid>
@@ -329,7 +329,7 @@
                                                         HorizontalContentAlignment="Left"
                                                         Background="{DynamicResource AccentBrush}"
                                                         Foreground="{DynamicResource AccentForeground}"
-                                                        FontSize="11"
+                                                        FontSize="{StaticResource FontSizeBodySmall}"
                                                         Command="{Binding OpenCommand}"
                                                         ToolTip.Tip="{Binding Tooltip}">
                                                     <TextBlock Text="{Binding Title}"

@@ -13,7 +13,7 @@
                     BorderBrush="{DynamicResource ExplorerBorder}"
                     BorderThickness="0,0,0,1">
                 <TextBlock Text="{loc:Loc footnotes.panelTitle}"
-                           FontSize="11"
+                           FontSize="{StaticResource FontSizeBodySmall}"
                            FontWeight="Bold"
                            LetterSpacing="1"
                            Foreground="{DynamicResource SubtleText}" />
@@ -21,7 +21,7 @@
 
             <TextBlock DockPanel.Dock="Top"
                        Padding="14,12"
-                       FontSize="12"
+                       FontSize="{StaticResource FontSizeBody}"
                        Foreground="{DynamicResource SubtleText}"
                        Text="{loc:Loc footnotes.empty}"
                        IsVisible="{Binding !HasFootnotes}" />
@@ -31,15 +31,15 @@
                     <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="vm:FootnoteItem">
                             <Border Background="{DynamicResource CardBackground}"
-                                    CornerRadius="4"
+                                    CornerRadius="{StaticResource RadiusSmall}"
                                     Padding="8,6"
                                     Margin="0,3">
                                 <DockPanel>
-                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6">
+                                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                                         <Button Background="Transparent"
                                                 BorderThickness="0"
                                                 Padding="2,1"
-                                                FontSize="11"
+                                                FontSize="{StaticResource FontSizeBodySmall}"
                                                 Command="{Binding JumpCommand}"
                                                 ToolTip.Tip="{loc:Loc footnotes.jump}">
                                             <TextBlock>
@@ -51,7 +51,7 @@
                                                 Content="×"
                                                 Background="Transparent"
                                                 BorderThickness="0"
-                                                FontSize="13"
+                                                FontSize="{StaticResource FontSizeBodyLarge}"
                                                 Padding="6,1"
                                                 HorizontalAlignment="Right"
                                                 Command="{Binding DeleteCommand}"
@@ -60,7 +60,7 @@
                                     <TextBox Text="{Binding Text, Mode=TwoWay}"
                                              AcceptsReturn="True"
                                              TextWrapping="Wrap"
-                                             FontSize="12"
+                                             FontSize="{StaticResource FontSizeBody}"
                                              MinHeight="36"
                                              Margin="0,4,0,0" />
                                 </DockPanel>

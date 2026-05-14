@@ -19,7 +19,7 @@
                     BorderThickness="0,0,0,1"
                     Padding="14,8">
                 <TextBlock Text="{loc:Loc sceneNotes.synopsisTitle}"
-                           FontSize="11"
+                           FontSize="{StaticResource FontSizeBodySmall}"
                            FontWeight="Bold"
                            LetterSpacing="1"
                            Foreground="{DynamicResource SubtleText}" />
@@ -36,7 +36,7 @@
                      BorderThickness="0"
                      Background="Transparent"
                      Foreground="{DynamicResource NormalText}"
-                     FontSize="12.5"
+                     FontSize="{StaticResource FontSizeBody}"
                      IsVisible="{Binding IsSceneOpen}" />
 
             <Border Grid.Row="2"
@@ -45,7 +45,7 @@
                     BorderThickness="0,1,0,1"
                     Padding="14,8">
                 <TextBlock Text="{loc:Loc sceneNotes.title}"
-                           FontSize="11"
+                           FontSize="{StaticResource FontSizeBodySmall}"
                            FontWeight="Bold"
                            LetterSpacing="1"
                            Foreground="{DynamicResource SubtleText}" />
@@ -61,13 +61,13 @@
                      BorderThickness="0"
                      Background="Transparent"
                      Foreground="{DynamicResource NormalText}"
-                     FontSize="12.5"
+                     FontSize="{StaticResource FontSizeBody}"
                      IsVisible="{Binding IsSceneOpen}" />
 
             <TextBlock Grid.Row="3"
                        Text="{loc:Loc sceneNotes.empty}"
                        Padding="14,12"
-                       FontSize="12"
+                       FontSize="{StaticResource FontSizeBody}"
                        Foreground="{DynamicResource SubtleText}"
                        IsVisible="{Binding IsSceneOpen, Converter={x:Static BoolConverters.Not}}" />
 

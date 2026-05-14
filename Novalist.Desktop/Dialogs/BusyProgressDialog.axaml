@@ -7,16 +7,16 @@
              Width="420"
              Focusable="True">
     <Border Background="Transparent" Padding="0">
-        <StackPanel Spacing="12" Margin="20">
+        <StackPanel Spacing="{StaticResource SpacingLarge}" Margin="20">
             <TextBlock Text="{Binding Title}"
-                       FontSize="15"
+                       FontSize="{StaticResource FontSizeTitleSmall}"
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource NormalText}"
                        TextWrapping="Wrap" />
 
             <TextBlock Text="{Binding Status}"
                        IsVisible="{Binding HasStatus}"
-                       FontSize="12"
+                       FontSize="{StaticResource FontSizeBody}"
                        Foreground="{DynamicResource SubtleText}"
                        TextWrapping="Wrap" />
 
@@ -32,7 +32,7 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="x:String">
                         <TextBlock Text="{Binding}"
-                                   FontSize="11"
+                                   FontSize="{StaticResource FontSizeBodySmall}"
                                    Opacity="0.75"
                                    Foreground="{DynamicResource SubtleText}"
                                    TextWrapping="Wrap"
@@ -43,7 +43,7 @@
 
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         IsVisible="{Binding AllowCancel}">
                 <Button Content="{Binding CancelLabel}"
                         Padding="14,6"

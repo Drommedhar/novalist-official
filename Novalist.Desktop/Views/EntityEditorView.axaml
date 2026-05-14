@@ -22,7 +22,7 @@
             <Border IsVisible="{Binding !IsOpen}"
                     IsHitTestVisible="False">
                 <TextBlock Text="{loc:Loc entityEditor.emptyState}"
-                           FontSize="16"
+                           FontSize="{StaticResource FontSizeTitle}"
                            Foreground="{DynamicResource SubtleText}"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center" />
@@ -32,11 +32,11 @@
             <ScrollViewer IsVisible="{Binding IsOpen}"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="32,24" Spacing="20" MaxWidth="900">
+                <StackPanel Margin="32,24" Spacing="{StaticResource SpacingXXL}" MaxWidth="900">
 
                     <!-- Header -->
                     <DockPanel>
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}">
                             <Button Content="{loc:Loc wizard.runInterview}"
                                     Command="{Binding RunCharacterInterviewCommand}"
                                     Classes="ribbonButton" Padding="12,6"
@@ -55,7 +55,7 @@
                                     Classes="ribbonButton" Padding="12,6" />
                         </StackPanel>
                         <TextBlock Text="{Binding Title}"
-                                   FontSize="22" FontWeight="Bold"
+                                   FontSize="{StaticResource FontSizeDisplaySmall}" FontWeight="Bold"
                                    Foreground="{DynamicResource NormalText}"
                                    VerticalAlignment="Center" />
                     </DockPanel>
@@ -65,7 +65,7 @@
                     <!-- Override mode banner -->
                     <Border IsVisible="{Binding IsOverrideMode}"
                             Background="#332196F3" BorderBrush="#5592C8"
-                            BorderThickness="1" CornerRadius="4"
+                            BorderThickness="1" CornerRadius="{StaticResource RadiusSmall}"
                             Padding="12,8" Margin="0,4">
                         <DockPanel>
                             <Button DockPanel.Dock="Right"
@@ -73,7 +73,7 @@
                                     Classes="ribbonButton" Padding="12,6"
                                     x:Name="StopOverrideButton" />
                             <TextBlock Text="{Binding OverrideScopeDisplay}"
-                                       FontSize="12" FontWeight="SemiBold"
+                                       FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
                                        Foreground="{DynamicResource NormalText}"
                                        VerticalAlignment="Center"
                                        TextTrimming="CharacterEllipsis" />
@@ -81,9 +81,9 @@
                     </Border>
 
                     <!-- ═══ ALIASES (shared, all entity types) ═══ -->
-                    <StackPanel Spacing="6" IsVisible="{Binding !IsOverrideMode}">
+                    <StackPanel Spacing="{StaticResource SpacingSmall}" IsVisible="{Binding !IsOverrideMode}">
                         <TextBlock Text="{loc:Loc entityEditor.aliases}"
-                                   FontSize="11" FontWeight="SemiBold"
+                                   FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}"
                                    LetterSpacing="1" />
                         <ItemsControl ItemsSource="{Binding Aliases}">
@@ -100,7 +100,7 @@
                                             CornerRadius="11"
                                             Padding="8,3"
                                             Margin="0,0,6,6">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                                             <TextBlock Text="{Binding}"
                                                        VerticalAlignment="Center"
                                                        Foreground="{DynamicResource NormalText}" />
@@ -132,11 +132,11 @@
                             IsVisible="{Binding !IsOverrideMode}" />
 
                     <!-- ═══ CHARACTER FIELDS ═══ -->
-                    <StackPanel Spacing="16"
+                    <StackPanel Spacing="{StaticResource SpacingXL}"
                                 IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}">
 
                         <!-- Section: Basic Info -->
-                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
 
                         <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto,8,Auto,8,Auto">
@@ -159,7 +159,7 @@
                         <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4" />
 
                         <!-- Section: Physical Attributes -->
-                        <TextBlock Text="{loc:Loc entityEditor.physicalAttributes}" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="{loc:Loc entityEditor.physicalAttributes}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
 
                         <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto,8,Auto,8,Auto">
@@ -178,8 +178,8 @@
                         <!-- Section: Relationships -->
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="{loc:Loc entityEditor.addRelationship}" x:Name="AddRelBtn"
-                                    Classes="ribbonButton" Padding="8,4" FontSize="11" />
-                            <TextBlock Text="{loc:Loc entityEditor.relationships}" FontSize="11" FontWeight="SemiBold"
+                                    Classes="ribbonButton" Padding="8,4" FontSize="{StaticResource FontSizeBodySmall}" />
+                            <TextBlock Text="{loc:Loc entityEditor.relationships}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                        Foreground="{DynamicResource SubtleText}" LetterSpacing="1"
                                        VerticalAlignment="Center" />
                         </DockPanel>
@@ -211,7 +211,7 @@
                                             </Popup>
                                         </Grid>
 
-                                        <StackPanel Grid.Column="2" Spacing="6">
+                                        <StackPanel Grid.Column="2" Spacing="{StaticResource SpacingSmall}">
                                             <ItemsControl ItemsSource="{Binding Targets}"
                                                           IsVisible="{Binding HasTargets}">
                                                 <ItemsControl.ItemsPanel>
@@ -224,17 +224,17 @@
                                                         <Border Background="{DynamicResource CardBackground}"
                                                                 BorderBrush="{DynamicResource RibbonGroupBorder}"
                                                                 BorderThickness="1"
-                                                                CornerRadius="999"
+                                                                CornerRadius="{StaticResource RadiusPill}"
                                                                 Padding="8,4"
                                                                 Margin="0,0,6,6">
-                                                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                                                                 <TextBlock Text="{Binding Name}"
                                                                            VerticalAlignment="Center" />
                                                                 <Button Content="✕"
                                                                         Classes="relationshipBadgeRemove"
                                                                         Padding="0"
                                                                         MinWidth="16"
-                                                                        FontSize="10"
+                                                                        FontSize="{StaticResource FontSizeCaption}"
                                                                         Tag="{Binding}"
                                                                         ToolTip.Tip="{loc:Loc entityEditor.removeCharacterTooltip}"
                                                                         Click="OnRemoveRelationshipTargetClicked" />
@@ -271,14 +271,14 @@
                                                         Content="+"
                                                         Classes="ribbonButton"
                                                         Padding="8,4"
-                                                        FontSize="11"
+                                                        FontSize="{StaticResource FontSizeBodySmall}"
                                                         Tag="{Binding}"
                                                         Click="OnAddRelationshipTargetClicked" />
                                             </Grid>
                                         </StackPanel>
 
                                         <Button Grid.Column="3" Content="{loc:Loc entityEditor.removeRelationship}" Classes="relationshipRowRemove"
-                                            Padding="8,4" Margin="4,0,0,0" FontSize="11"
+                                            Padding="8,4" Margin="4,0,0,0" FontSize="{StaticResource FontSizeBodySmall}"
                                             VerticalAlignment="Top"
                                                 Tag="{Binding}"
                                             ToolTip.Tip="{loc:Loc entity.removeRelationship}"
@@ -290,9 +290,9 @@
                     </StackPanel>
 
                     <!-- ═══ LOCATION FIELDS ═══ -->
-                    <StackPanel Spacing="16"
+                    <StackPanel Spacing="{StaticResource SpacingXL}"
                                 IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Location}}">
-                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
                         <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto,8,Auto">
                             <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Name}" Watermark="{loc:Loc entityEditor.name}" />
@@ -324,9 +324,9 @@
                     </StackPanel>
 
                     <!-- ═══ ITEM FIELDS ═══ -->
-                    <StackPanel Spacing="16"
+                    <StackPanel Spacing="{StaticResource SpacingXL}"
                                 IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Item}}">
-                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
                         <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto,8,Auto">
                             <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Name}" Watermark="{loc:Loc entityEditor.name}" />
@@ -340,9 +340,9 @@
                     </StackPanel>
 
                     <!-- ═══ LORE FIELDS ═══ -->
-                    <StackPanel Spacing="16"
+                    <StackPanel Spacing="{StaticResource SpacingXL}"
                                 IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Lore}}">
-                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
                         <Grid ColumnDefinitions="*,16,*" RowDefinitions="Auto,8,Auto">
                             <TextBox Grid.Row="0" Grid.Column="0" Text="{Binding Name}" Watermark="{loc:Loc entityEditor.name}" />
@@ -357,9 +357,9 @@
                     </StackPanel>
 
                     <!-- ═══ CUSTOM ENTITY FIELDS ═══ -->
-                    <StackPanel Spacing="16"
+                    <StackPanel Spacing="{StaticResource SpacingXL}"
                                 IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Custom}}">
-                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="{loc:Loc entityEditor.basicInfo}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
 
                         <!-- Name field -->
@@ -372,7 +372,7 @@
                                     <Grid ColumnDefinitions="Auto,16,*" Margin="0,0,0,6">
                                         <TextBlock Grid.Column="0" Text="{Binding Key}"
                                                    VerticalAlignment="Center"
-                                                   Foreground="{DynamicResource NormalText}" FontSize="12"
+                                                   Foreground="{DynamicResource NormalText}" FontSize="{StaticResource FontSizeBody}"
                                                    MinWidth="120" />
                                         <!-- String / Int / Timespan -->
                                         <TextBox Grid.Column="2" Text="{Binding Value}" Watermark="{Binding Key}"
@@ -423,11 +423,11 @@
                             IsVisible="{Binding IsOpen}" />
 
                     <!-- ═══ IMAGES (shared) ═══ -->
-                    <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}" IsVisible="{Binding IsOpen}">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="{loc:Loc entityEditor.addImage}" x:Name="AddImgBtn"
-                                    Classes="ribbonButton" Padding="8,4" FontSize="11" />
-                            <TextBlock Text="{loc:Loc entityEditor.images}" FontSize="11" FontWeight="SemiBold"
+                                    Classes="ribbonButton" Padding="8,4" FontSize="{StaticResource FontSizeBodySmall}" />
+                            <TextBlock Text="{loc:Loc entityEditor.images}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                        Foreground="{DynamicResource SubtleText}" LetterSpacing="1"
                                        VerticalAlignment="Center" />
                         </DockPanel>
@@ -435,14 +435,14 @@
                         <ItemsControl ItemsSource="{Binding Images}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <StackPanel Spacing="8" />
+                                    <StackPanel Spacing="{StaticResource SpacingMedium}" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate x:DataType="m:EntityImage">
                                     <Border Background="{DynamicResource CardBackground}"
                                             BorderBrush="{DynamicResource CardBorder}"
-                                            BorderThickness="1" CornerRadius="6"
+                                            BorderThickness="1" CornerRadius="{StaticResource RadiusMedium}"
                                             Padding="10">
                                         <Grid ColumnDefinitions="72,12,*,Auto">
                                             <!-- Image thumbnail -->
@@ -454,7 +454,7 @@
                                                     Tag="{Binding}"
                                                     ToolTip.Tip="{loc:Loc entityEditor.chooseImageTooltip}"
                                                     Click="OnSelectProjectImageClicked">
-                                                <Border CornerRadius="4"
+                                                <Border CornerRadius="{StaticResource RadiusSmall}"
                                                         ClipToBounds="True"
                                                         Background="{DynamicResource ExplorerBackground}"
                                                         BorderBrush="{DynamicResource CardBorder}"
@@ -471,7 +471,7 @@
                                             <!-- Remove button -->
                                             <Button Grid.Column="3" Content="✕"
                                                     Classes="ribbonButton"
-                                                    Padding="8,4" FontSize="12"
+                                                    Padding="8,4" FontSize="{StaticResource FontSizeBody}"
                                                     VerticalAlignment="Center"
                                                     Tag="{Binding}"
                                                     x:Name="RemImgBtn"
@@ -487,11 +487,11 @@
                             IsVisible="{Binding IsOpen}" />
 
                     <!-- ═══ CUSTOM PROPERTIES (shared) ═══ -->
-                    <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}" IsVisible="{Binding IsOpen}">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="{loc:Loc entityEditor.addProperty}" x:Name="AddPropBtn"
-                                    Classes="ribbonButton" Padding="8,4" FontSize="11" />
-                            <TextBlock Text="{loc:Loc entityEditor.customProperties}" FontSize="11" FontWeight="SemiBold"
+                                    Classes="ribbonButton" Padding="8,4" FontSize="{StaticResource FontSizeBodySmall}" />
+                            <TextBlock Text="{loc:Loc entityEditor.customProperties}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                        Foreground="{DynamicResource SubtleText}" LetterSpacing="1"
                                        VerticalAlignment="Center" />
                         </DockPanel>
@@ -514,7 +514,7 @@
                                         <ComboBox Grid.Column="2" ItemsSource="{Binding EnumOptions}" SelectedItem="{Binding Value}"
                                                   IsVisible="{Binding IsEnumType}" HorizontalAlignment="Stretch" />
                                         <Button Grid.Column="3" Content="✕" Classes="ribbonButton"
-                                                Padding="6,4" Margin="4,0,0,0" FontSize="11"
+                                                Padding="6,4" Margin="4,0,0,0" FontSize="{StaticResource FontSizeBodySmall}"
                                                 Tag="{Binding}"
                                                 x:Name="RemPropBtn" />
                                     </Grid>
@@ -527,11 +527,11 @@
                             IsVisible="{Binding IsOpen}" />
 
                     <!-- ═══ SECTIONS (shared) ═══ -->
-                    <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}" IsVisible="{Binding IsOpen}">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Content="{loc:Loc entityEditor.addSection}" x:Name="AddSecBtn"
-                                    Classes="ribbonButton" Padding="8,4" FontSize="11" />
-                            <TextBlock Text="{loc:Loc entityEditor.sections}" FontSize="11" FontWeight="SemiBold"
+                                    Classes="ribbonButton" Padding="8,4" FontSize="{StaticResource FontSizeBodySmall}" />
+                            <TextBlock Text="{loc:Loc entityEditor.sections}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                        Foreground="{DynamicResource SubtleText}" LetterSpacing="1"
                                        VerticalAlignment="Center" />
                         </DockPanel>
@@ -541,12 +541,12 @@
                                 <DataTemplate x:DataType="vm:ObservableSection">
                                     <Border Background="{DynamicResource CardBackground}"
                                             BorderBrush="{DynamicResource CardBorder}"
-                                            BorderThickness="1" CornerRadius="6"
+                                            BorderThickness="1" CornerRadius="{StaticResource RadiusMedium}"
                                             Padding="12" Margin="0,0,0,8">
-                                        <StackPanel Spacing="6">
+                                        <StackPanel Spacing="{StaticResource SpacingSmall}">
                                             <DockPanel>
                                                 <Button DockPanel.Dock="Right" Content="✕" Classes="ribbonButton"
-                                                        Padding="6,4" FontSize="11"
+                                                        Padding="6,4" FontSize="{StaticResource FontSizeBodySmall}"
                                                         Tag="{Binding}"
                                                         x:Name="RemSecBtn" />
                                                 <TextBox Text="{Binding Title}" Watermark="{loc:Loc entityEditor.sectionTitle}"
@@ -563,10 +563,10 @@
                     </StackPanel>
 
                     <!-- ═══ CHAPTER OVERRIDES (characters only) ═══ -->
-                    <StackPanel Spacing="8"
+                    <StackPanel Spacing="{StaticResource SpacingMedium}"
                                 IsVisible="{Binding EntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}">
                         <Border Height="1" Background="{DynamicResource RibbonGroupBorder}" Margin="0,4" />
-                        <TextBlock Text="{loc:Loc entityEditor.chapterOverrides}" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock Text="{loc:Loc entityEditor.chapterOverrides}" FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource SubtleText}" LetterSpacing="1" />
 
                         <!-- Override scope selector -->
@@ -598,7 +598,7 @@
                                     Content="{loc:Loc entityEditor.editOverride}"
                                     Command="{Binding EditOrCreateOverrideCommand}"
                                     IsEnabled="{Binding SelectedOverrideChapter, Converter={x:Static ObjectConverters.IsNotNull}}"
-                                    Classes="ribbonButton" Padding="8,6" FontSize="12"
+                                    Classes="ribbonButton" Padding="8,6" FontSize="{StaticResource FontSizeBody}"
                                     HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
                         </Grid>
 
@@ -608,10 +608,10 @@
                                 <DataTemplate x:DataType="vm:OverrideListItemViewModel">
                                     <Border Background="{DynamicResource CardBackground}"
                                             BorderBrush="{DynamicResource CardBorder}"
-                                            BorderThickness="1" CornerRadius="4"
+                                            BorderThickness="1" CornerRadius="{StaticResource RadiusSmall}"
                                             Padding="8,6" Margin="0,0,0,4">
                                         <DockPanel>
-                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
+                                            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                                                 <Button Classes="ribbonButton" Padding="6,4"
                                                         Tag="{Binding}"
                                                         x:Name="EditOverrideBtn">
@@ -625,7 +625,7 @@
                                                 </Button>
                                             </StackPanel>
                                             <TextBlock Text="{Binding DisplayLabel}"
-                                                       FontSize="12"
+                                                       FontSize="{StaticResource FontSizeBody}"
                                                        Foreground="{DynamicResource NormalText}"
                                                        VerticalAlignment="Center"
                                                        TextTrimming="CharacterEllipsis" />
@@ -636,7 +636,7 @@
                         </ItemsControl>
 
                         <TextBlock Text="{loc:Loc entityEditor.noOverrides}"
-                                   FontSize="11" Foreground="{DynamicResource SubtleText}"
+                                   FontSize="{StaticResource FontSizeBodySmall}" Foreground="{DynamicResource SubtleText}"
                                    FontStyle="Italic"
                                    IsVisible="{Binding !OverrideItems.Count}" />
                     </StackPanel>

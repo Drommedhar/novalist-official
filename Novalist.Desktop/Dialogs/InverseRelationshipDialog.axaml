@@ -13,7 +13,7 @@
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,16,0,0">
                 <Button x:Name="CancelButton"
                         Content="{loc:Loc dialog.cancel}"
@@ -25,7 +25,7 @@
                         Click="OnOk"
                         IsDefault="True" />
             </StackPanel>
-            <StackPanel Spacing="10">
+            <StackPanel Spacing="{StaticResource SpacingNormal}">
                 <TextBlock x:Name="DescriptionText"
                            TextWrapping="Wrap"
                            Foreground="{DynamicResource NormalText}"

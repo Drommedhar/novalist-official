@@ -11,7 +11,7 @@
             <TextBox DockPanel.Dock="Top"
                      x:Name="QueryBox"
                      Watermark="{loc:Loc commandPalette.placeholder}"
-                     FontSize="14"
+                     FontSize="{StaticResource FontSizeTitleSmall}"
                      Margin="0,0,0,10"
                      KeyDown="OnQueryKeyDown" />
 
@@ -23,8 +23,8 @@
                     <DataTemplate DataType="dlg:CommandPaletteItem">
                         <Grid ColumnDefinitions="*,Auto" Margin="2,2">
                             <StackPanel Grid.Column="0" Spacing="1">
-                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12.5" />
-                                <TextBlock Text="{Binding Category}" FontSize="10.5" Opacity="0.6" />
+                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" />
+                                <TextBlock Text="{Binding Category}" FontSize="{StaticResource FontSizeCaption}" Opacity="0.6" />
                             </StackPanel>
                             <Border Grid.Column="1"
                                     Background="{DynamicResource CardBackground}"
@@ -36,7 +36,7 @@
                                     IsVisible="{Binding HasGesture}">
                                 <TextBlock Text="{Binding Gesture}"
                                            FontFamily="Consolas, Menlo, monospace"
-                                           FontSize="10.5"
+                                           FontSize="{StaticResource FontSizeCaption}"
                                            Opacity="0.85" />
                             </Border>
                         </Grid>

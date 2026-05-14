@@ -13,37 +13,37 @@
                         IsVisible="False"
                         Foreground="#E05252"
                         Click="OnDelete" />
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}">
                     <Button Content="{loc:Loc dialog.cancel}" Padding="16,8" Click="OnCancel" />
                 </StackPanel>
                 <Button Grid.Column="3" Content="{loc:Loc dialog.ok}" Padding="16,8" Classes="primary" Click="OnOk" IsDefault="True" Margin="8,0,0,0" />
             </Grid>
 
-            <StackPanel Spacing="10">
+            <StackPanel Spacing="{StaticResource SpacingNormal}">
                 <TextBlock Text="{loc:Loc map.pinTitle}"
-                           FontSize="14" FontWeight="SemiBold"
+                           FontSize="{StaticResource FontSizeTitleSmall}" FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
 
                 <TextBlock Text="{loc:Loc map.pinLabel}"
-                           FontSize="11" Foreground="{DynamicResource SubtleText}" />
+                           FontSize="{StaticResource FontSizeBodySmall}" Foreground="{DynamicResource SubtleText}" />
                 <TextBox x:Name="LabelInput"
                          Watermark="{loc:Loc map.pinLabelWatermark}"
                          MaxLength="120" />
 
                 <TextBlock Text="{loc:Loc map.pinEntity}"
-                           FontSize="11" Foreground="{DynamicResource SubtleText}" />
+                           FontSize="{StaticResource FontSizeBodySmall}" Foreground="{DynamicResource SubtleText}" />
                 <AutoCompleteBox x:Name="EntityInput"
                                  Watermark="{loc:Loc map.pinEntityWatermark}"
                                  MinimumPrefixLength="0"
                                  FilterMode="ContainsOrdinal"
                                  HorizontalAlignment="Stretch" />
                 <TextBlock Text="{loc:Loc map.pinEntityHint}"
-                           FontSize="10"
+                           FontSize="{StaticResource FontSizeCaption}"
                            Foreground="{DynamicResource SubtleText}"
                            TextWrapping="Wrap" />
 
                 <TextBlock Text="{loc:Loc map.pinColor}"
-                           FontSize="11" Foreground="{DynamicResource SubtleText}"
+                           FontSize="{StaticResource FontSizeBodySmall}" Foreground="{DynamicResource SubtleText}"
                            Margin="0,6,0,0" />
                 <ColorPicker x:Name="ColorInput"
                              HorizontalAlignment="Left"

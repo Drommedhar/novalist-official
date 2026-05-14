@@ -15,63 +15,63 @@
             <StackPanel MaxWidth="860"
                         HorizontalAlignment="Center"
                         Margin="32,24"
-                        Spacing="20">
+                        Spacing="{StaticResource SpacingXXL}">
 
                 <!-- Header -->
                 <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel Grid.Column="0" Spacing="4">
+                    <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{loc:Loc git.title}"
-                                   FontSize="24"
+                                   FontSize="{StaticResource FontSizeDisplay}"
                                    FontWeight="Bold"
                                    Foreground="{DynamicResource NormalText}" />
-                        <StackPanel Orientation="Horizontal" Spacing="8"
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}"
                                     IsVisible="{Binding IsGitRepo}">
-                            <TextBlock Text="⎇" FontSize="14"
+                            <TextBlock Text="⎇" FontSize="{StaticResource FontSizeTitleSmall}"
                                        Foreground="{DynamicResource SubtleText}" />
                             <TextBlock Text="{Binding BranchName}"
-                                       FontSize="14"
+                                       FontSize="{StaticResource FontSizeTitleSmall}"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource NormalText}" />
                             <TextBlock Text="{Binding SyncDisplay}"
-                                       FontSize="13"
+                                       FontSize="{StaticResource FontSizeBodyLarge}"
                                        Foreground="{DynamicResource DimText}"
                                        IsVisible="{Binding HasRemote}"
                                        Margin="8,0,0,0" />
                         </StackPanel>
                     </StackPanel>
 
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}"
                                 VerticalAlignment="Top"
                                 IsVisible="{Binding IsGitRepo}">
                         <Button Content="{loc:Loc git.refresh}"
                                 Command="{Binding RefreshCommand}"
                                 Classes="ribbonButtonSmall"
-                                Padding="12,6" FontSize="11" />
+                                Padding="12,6" FontSize="{StaticResource FontSizeBodySmall}" />
                         <Button Content="{loc:Loc git.pull}"
                                 Command="{Binding PullCommand}"
                                 Classes="ribbonButtonSmall"
-                                Padding="12,6" FontSize="11"
+                                Padding="12,6" FontSize="{StaticResource FontSizeBodySmall}"
                                 IsVisible="{Binding HasRemote}" />
                         <Button Content="{loc:Loc git.push}"
                                 Command="{Binding PushCommand}"
                                 Classes="ribbonButtonSmall"
-                                Padding="12,6" FontSize="11"
+                                Padding="12,6" FontSize="{StaticResource FontSizeBodySmall}"
                                 IsVisible="{Binding HasRemote}" />
                     </StackPanel>
                 </Grid>
 
                 <!-- Git not installed message -->
                 <Border Padding="16"
-                        CornerRadius="8"
+                        CornerRadius="{StaticResource RadiusLarge}"
                         Background="{DynamicResource ExplorerBackground}"
                         IsVisible="{Binding IsGitInstalled, Converter={x:Static BoolConverters.Not}}">
-                    <StackPanel Spacing="8">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}">
                         <TextBlock Text="{loc:Loc git.notInstalled}"
-                                   FontSize="14"
+                                   FontSize="{StaticResource FontSizeTitleSmall}"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource NormalText}" />
                         <TextBlock Text="{loc:Loc git.notInstalledHint}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource DimText}" />
                     </StackPanel>
@@ -79,83 +79,83 @@
 
                 <!-- Not a git repo message -->
                 <Border Padding="16"
-                        CornerRadius="8"
+                        CornerRadius="{StaticResource RadiusLarge}"
                         Background="{DynamicResource ExplorerBackground}"
                         IsVisible="{Binding !IsGitRepo}">
-                    <StackPanel Spacing="8"
+                    <StackPanel Spacing="{StaticResource SpacingMedium}"
                                 IsVisible="{Binding IsGitInstalled}">
                         <TextBlock Text="{loc:Loc git.notARepo}"
-                                   FontSize="14"
+                                   FontSize="{StaticResource FontSizeTitleSmall}"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource NormalText}" />
                         <TextBlock Text="{loc:Loc git.notARepoHint}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    TextWrapping="Wrap"
                                    Foreground="{DynamicResource DimText}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Loading indicator -->
-                <StackPanel Orientation="Horizontal" Spacing="8"
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}"
                             IsVisible="{Binding IsLoading}">
                     <TextBlock Text="{loc:Loc git.loading}"
-                               FontSize="12"
+                               FontSize="{StaticResource FontSizeBody}"
                                Foreground="{DynamicResource SubtleText}" />
                 </StackPanel>
 
                 <!-- Status message -->
                 <TextBlock Text="{Binding StatusMessage}"
-                           FontSize="12"
+                           FontSize="{StaticResource FontSizeBody}"
                            TextWrapping="Wrap"
                            IsVisible="{Binding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                            Foreground="{DynamicResource DimText}" />
 
                 <!-- Main git content (only when in a repo) -->
-                <StackPanel Spacing="16"
+                <StackPanel Spacing="{StaticResource SpacingXL}"
                             IsVisible="{Binding IsGitRepo}">
 
                     <!-- No changes message -->
                     <Border Padding="16"
-                            CornerRadius="8"
+                            CornerRadius="{StaticResource RadiusLarge}"
                             Background="{DynamicResource ExplorerBackground}"
                             IsVisible="{Binding !HasChanges}">
                         <TextBlock Text="{loc:Loc git.noChanges}"
-                                   FontSize="13"
+                                   FontSize="{StaticResource FontSizeBodyLarge}"
                                    Foreground="{DynamicResource DimText}" />
                     </Border>
 
                     <!-- Changed files section -->
-                    <StackPanel Spacing="8"
+                    <StackPanel Spacing="{StaticResource SpacingMedium}"
                                 IsVisible="{Binding HasChanges}">
 
                         <!-- Section header with actions -->
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBlock Grid.Column="0"
                                        Text="{loc:Loc git.changedFiles}"
-                                       FontSize="15"
+                                       FontSize="{StaticResource FontSizeTitleSmall}"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource NormalText}" />
-                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                                 <Button Content="{loc:Loc git.stageAll}"
                                         Command="{Binding StageAllCommand}"
                                         Classes="ribbonButtonSmall"
-                                        Padding="8,4" FontSize="10" />
+                                        Padding="8,4" FontSize="{StaticResource FontSizeCaption}" />
                                 <Button Content="{loc:Loc git.unstageAll}"
                                         Command="{Binding UnstageAllCommand}"
                                         Classes="ribbonButtonSmall"
-                                        Padding="8,4" FontSize="10" />
+                                        Padding="8,4" FontSize="{StaticResource FontSizeCaption}" />
                             </StackPanel>
                         </Grid>
 
                         <!-- File list -->
-                        <Border CornerRadius="6"
+                        <Border CornerRadius="{StaticResource RadiusMedium}"
                                 Background="{DynamicResource ExplorerBackground}"
                                 Padding="4">
                             <ItemsControl ItemsSource="{Binding ChangedFiles}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:GitFileItemViewModel">
                                         <Border Padding="8,5"
-                                                CornerRadius="4"
+                                                CornerRadius="{StaticResource RadiusSmall}"
                                                 Margin="2,1">
                                             <Grid ColumnDefinitions="Auto,Auto,*,Auto">
                                                 <!-- Checkbox for staging -->
@@ -167,7 +167,7 @@
                                                 <!-- Status badge -->
                                                 <TextBlock Grid.Column="1"
                                                            Text="{Binding StatusLabel}"
-                                                           FontSize="12"
+                                                           FontSize="{StaticResource FontSizeBody}"
                                                            FontWeight="Bold"
                                                            FontFamily="Consolas,monospace"
                                                            Width="20"
@@ -179,13 +179,13 @@
                                                 <!-- File path -->
                                                 <StackPanel Grid.Column="2"
                                                             VerticalAlignment="Center"
-                                                            Spacing="0">
+                                                            Spacing="{StaticResource SpacingNone}">
                                                     <TextBlock Text="{Binding FileName}"
-                                                               FontSize="12"
+                                                               FontSize="{StaticResource FontSizeBody}"
                                                                Foreground="{DynamicResource NormalText}"
                                                                TextTrimming="CharacterEllipsis" />
                                                     <TextBlock Text="{Binding Directory}"
-                                                               FontSize="10"
+                                                               FontSize="{StaticResource FontSizeCaption}"
                                                                Foreground="{DynamicResource SubtleText}"
                                                                TextTrimming="CharacterEllipsis"
                                                                IsVisible="{Binding Directory, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -198,12 +198,12 @@
                         </Border>
 
                         <!-- Commit section -->
-                        <Border CornerRadius="6"
+                        <Border CornerRadius="{StaticResource RadiusMedium}"
                                 Background="{DynamicResource ExplorerBackground}"
                                 Padding="12">
-                            <StackPanel Spacing="8">
+                            <StackPanel Spacing="{StaticResource SpacingMedium}">
                                 <TextBlock Text="{loc:Loc git.commitMessage}"
-                                           FontSize="12"
+                                           FontSize="{StaticResource FontSizeBody}"
                                            FontWeight="SemiBold"
                                            Foreground="{DynamicResource NormalText}" />
                                 <TextBox Text="{Binding CommitMessage}"
@@ -212,21 +212,21 @@
                                          MinHeight="60"
                                          MaxHeight="120"
                                          TextWrapping="Wrap"
-                                         FontSize="12" />
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                         FontSize="{StaticResource FontSizeBody}" />
+                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}">
                                     <Button Content="{loc:Loc git.commitStaged}"
                                             Command="{Binding CommitSelectedCommand}"
                                             Classes="ribbonButtonSmall"
-                                            Padding="12,6" FontSize="11"
+                                            Padding="12,6" FontSize="{StaticResource FontSizeBodySmall}"
                                             IsEnabled="{Binding HasStagedChanges}" />
                                     <Button Content="{loc:Loc git.commitAll}"
                                             Command="{Binding CommitAllCommand}"
                                             Classes="ribbonButtonSmall"
-                                            Padding="12,6" FontSize="11" />
+                                            Padding="12,6" FontSize="{StaticResource FontSizeBodySmall}" />
                                     <Button Content="{loc:Loc git.discardUnstaged}"
                                             Command="{Binding DiscardSelectedCommand}"
                                             Classes="ribbonButtonSmall"
-                                            Padding="12,6" FontSize="11" />
+                                            Padding="12,6" FontSize="{StaticResource FontSizeBodySmall}" />
                                 </StackPanel>
                             </StackPanel>
                         </Border>

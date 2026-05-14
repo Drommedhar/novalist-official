@@ -63,7 +63,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **In-world Calendar** — full Gregorian or fully custom calendar (custom month names, days per month, weekday names, year label) with Week, Month, and Year views.
 - **Relationships graph** — auto-clustered force-directed graph of characters with family detection in English and German.
 - **Manuscript view** — read the whole book end-to-end, switch to Corkboard for index-card planning, or Outliner for a sortable scene table.
-- **Maps** — interactive layered map view: multi-layer image stacks with per-layer opacity, lock, zoom-range visibility, and floor-stack mode; per-image rotate, resize, polygon clip mask; entity-linked colour pins with screen-space rendering at any zoom.
+- **Maps** — interactive layered map view: recursive layer tree with drag-and-drop nesting, per-layer opacity / lock / zoom-range / floor-stack mode; per-image rotate, resize, polygon clip mask; entity-linked colour pins; text labels; road & river spline tool with typed profiles (casing, fill, lane markings) and per-point width; terrain shapes (grass, forest, sand, …) with feathered, blendable edges and z-ordering; typed buildings (homes, schools, stations, …) with procedurally-generated footprints that snap to roads and optional multi-floor interior plans (walls, doors, windows, stairs); a freeform clip border that frames the whole map; and a one-click **3D view** — a GPU-rendered, free-fly walkthrough of the whole map with extruded buildings, sloped roofs, interiors, terrain and roads.
 - **Dashboard** — totals, status breakdown, chapter pacing, echo phrases, daily / project word goals with deadlines.
 
 ### Research & assets

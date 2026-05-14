@@ -15,7 +15,7 @@
     </UserControl.Resources>
 
     <Border Background="{DynamicResource CardBackground}"
-            CornerRadius="10"
+            CornerRadius="{StaticResource RadiusXLarge}"
             Width="540"
             MaxHeight="420"
             IsVisible="{Binding IsOpen}">
@@ -24,7 +24,7 @@
                 <DockPanel Margin="14,12,14,10">
                     <StackPanel DockPanel.Dock="Right"
                                 Orientation="Horizontal"
-                                Spacing="2">
+                                Spacing="{StaticResource SpacingTightest}">
                         <Button Command="{Binding OpenEntityCommand}"
                                 Classes="focusPeekAction"
                                 Content="↗"
@@ -40,7 +40,7 @@
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal"
-                                Spacing="8">
+                                Spacing="{StaticResource SpacingMedium}">
                         <TextBlock Text="{Binding Title}"
                                    Classes="focusPeekName"
                                    VerticalAlignment="Center" />
@@ -58,12 +58,12 @@
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Auto">
                 <StackPanel Classes="focusPeekMain"
-                            Spacing="10">
+                            Spacing="{StaticResource SpacingNormal}">
                     <Grid Classes="focusPeekBody"
                           ColumnDefinitions="Auto,12,*">
                         <StackPanel Grid.Column="0"
                                     Classes="focusPeekImageArea"
-                                    Spacing="6"
+                                    Spacing="{StaticResource SpacingSmall}"
                                     IsVisible="{Binding HasImage}">
                             <ComboBox ItemsSource="{Binding Images}"
                                       SelectedItem="{Binding SelectedImage}"
@@ -79,7 +79,7 @@
 
                         <StackPanel Grid.Column="2"
                                     Classes="focusPeekDetails"
-                                    Spacing="8">
+                                    Spacing="{StaticResource SpacingMedium}">
                             <ItemsControl ItemsSource="{Binding Pills}"
                                           IsVisible="{Binding HasPills}">
                                 <ItemsControl.ItemsPanel>
@@ -111,7 +111,7 @@
 
                             <Border Classes="focusPeekSectionLine"
                                     IsVisible="{Binding HasRelationships}">
-                                <StackPanel Spacing="6">
+                                <StackPanel Spacing="{StaticResource SpacingSmall}">
                                     <TextBlock Text="{loc:Loc focusPeek.relationships}"
                                                Classes="focusPeekSectionCaption" />
                                     <ItemsControl ItemsSource="{Binding Relationships}">
@@ -125,15 +125,15 @@
                                                         <ItemsControl.ItemsPanel>
                                                             <ItemsPanelTemplate>
                                                                 <StackPanel Orientation="Horizontal"
-                                                                            Spacing="0" />
+                                                                            Spacing="{StaticResource SpacingNone}" />
                                                             </ItemsPanelTemplate>
                                                         </ItemsControl.ItemsPanel>
                                                         <ItemsControl.ItemTemplate>
                                                             <DataTemplate x:DataType="vm:FocusPeekRelationshipTarget">
                                                                 <StackPanel Orientation="Horizontal"
-                                                                            Spacing="0">
+                                                                            Spacing="{StaticResource SpacingNone}">
                                                                     <TextBlock Text=", "
-                                                                               FontSize="11"
+                                                                               FontSize="{StaticResource FontSizeBodySmall}"
                                                                                Foreground="{DynamicResource NormalText}"
                                                                                VerticalAlignment="Center"
                                                                                IsVisible="{Binding ShowSeparator}" />
@@ -154,7 +154,7 @@
 
                             <Border Classes="focusPeekSectionLine"
                                     IsVisible="{Binding HasAppearanceProperties}">
-                                <StackPanel Spacing="6">
+                                <StackPanel Spacing="{StaticResource SpacingSmall}">
                                     <TextBlock Text="{loc:Loc focusPeek.appearance}"
                                                Classes="focusPeekSectionCaption" />
                                     <ItemsControl ItemsSource="{Binding AppearanceProperties}">
@@ -210,7 +210,7 @@
 
                     <Border Classes="focusPeekSectionLine"
                             IsVisible="{Binding HasSections}">
-                        <StackPanel Spacing="8">
+                        <StackPanel Spacing="{StaticResource SpacingMedium}">
                             <DockPanel>
                                 <TextBlock Text="{loc:Loc focusPeek.sections}"
                                            Classes="focusPeekSectionCaption" />
@@ -230,7 +230,7 @@
                     </Border>
 
                     <Border Classes="focusPeekSectionLine">
-                        <StackPanel Spacing="2">
+                        <StackPanel Spacing="{StaticResource SpacingTightest}">
                             <TextBlock Text="{loc:Loc focusPeek.aiFocus}"
                                        Classes="focusPeekSectionCaption" />
                             <TextBlock Text="{Binding AiStubText}"
@@ -241,20 +241,20 @@
                                           IsVisible="{Binding HasAiFindings}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="vm:FocusPeekAiFindingItem">
-                                        <StackPanel Spacing="2" Margin="0,4,0,0">
-                                            <StackPanel Orientation="Horizontal" Spacing="4">
-                                                <TextBlock Text="{Binding TypeIcon}" FontSize="11" />
+                                        <StackPanel Spacing="{StaticResource SpacingTightest}" Margin="0,4,0,0">
+                                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
+                                                <TextBlock Text="{Binding TypeIcon}" FontSize="{StaticResource FontSizeBodySmall}" />
                                                 <TextBlock Text="{Binding Title}"
-                                                           FontSize="11" FontWeight="SemiBold"
+                                                           FontSize="{StaticResource FontSizeBodySmall}" FontWeight="SemiBold"
                                                            TextWrapping="Wrap"
                                                            Foreground="{DynamicResource PrimaryText}" />
                                             </StackPanel>
                                             <TextBlock Text="{Binding Description}"
-                                                       FontSize="10.5" TextWrapping="Wrap"
+                                                       FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap"
                                                        Foreground="{DynamicResource SubtleText}"
                                                        Margin="18,0,0,0" />
                                             <TextBlock Text="{Binding Excerpt}"
-                                                       FontSize="10" FontStyle="Italic"
+                                                       FontSize="{StaticResource FontSizeCaption}" FontStyle="Italic"
                                                        TextWrapping="Wrap"
                                                        Foreground="{DynamicResource DimText}"
                                                        Margin="18,0,0,0"

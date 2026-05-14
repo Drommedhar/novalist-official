@@ -21,7 +21,7 @@
                 <ItemsControl ItemsSource="{Binding OpenScenes}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" Spacing="0" />
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingNone}" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
@@ -44,7 +44,7 @@
                                             Padding="12,8"
                                             Command="{Binding $parent[UserControl].((vm:EditorViewModel)DataContext).ActivateTabFromUiCommand}"
                                             CommandParameter="{Binding}">
-                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                                             <TextBlock Text="{Binding DisplayTitle}" Classes="editorTabText" />
                                             <Border Classes="editorTabDirtyDot" IsVisible="{Binding IsDirty}" />
                                         </StackPanel>
@@ -93,9 +93,9 @@
                     IsHitTestVisible="False">
                 <StackPanel VerticalAlignment="Center"
                             HorizontalAlignment="Center"
-                            Spacing="8">
+                            Spacing="{StaticResource SpacingMedium}">
                     <TextBlock Text="{loc:Loc editor.emptyState}"
-                               FontSize="16"
+                               FontSize="{StaticResource FontSizeTitle}"
                                Foreground="{DynamicResource SubtleText}"
                                HorizontalAlignment="Center" />
                 </StackPanel>

@@ -9,36 +9,36 @@
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,16,0,0">
                 <Button Content="{loc:Loc dialog.cancel}" Click="OnCancel" Padding="14,6" />
                 <Button Content="{loc:Loc dialog.save}" Click="OnOk" Classes="primary" IsDefault="True" Padding="14,6" />
             </StackPanel>
 
-            <StackPanel Spacing="10">
+            <StackPanel Spacing="{StaticResource SpacingNormal}">
                 <TextBlock x:Name="TitleText"
-                           FontSize="15"
+                           FontSize="{StaticResource FontSizeTitleSmall}"
                            FontWeight="SemiBold"
                            Text="{loc:Loc smartList.editTitle}"
                            Foreground="{DynamicResource NormalText}" />
 
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{loc:Loc smartList.name}" FontSize="11" Opacity="0.7" />
+                    <TextBlock Text="{loc:Loc smartList.name}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.7" />
                     <TextBox x:Name="NameBox" />
                 </StackPanel>
 
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{loc:Loc smartList.chapterStatus}" FontSize="11" Opacity="0.7" />
+                    <TextBlock Text="{loc:Loc smartList.chapterStatus}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.7" />
                     <ComboBox x:Name="StatusBox" HorizontalAlignment="Stretch" />
                 </StackPanel>
 
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{loc:Loc smartList.povContains}" FontSize="11" Opacity="0.7" />
+                    <TextBlock Text="{loc:Loc smartList.povContains}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.7" />
                     <TextBox x:Name="PovBox" Watermark="e.g. Liam" />
                 </StackPanel>
 
                 <StackPanel Spacing="3">
-                    <TextBlock Text="{loc:Loc smartList.tag}" FontSize="11" Opacity="0.7" />
+                    <TextBlock Text="{loc:Loc smartList.tag}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.7" />
                     <TextBox x:Name="TagBox" />
                 </StackPanel>
             </StackPanel>

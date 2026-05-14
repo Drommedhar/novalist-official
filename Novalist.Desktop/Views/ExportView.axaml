@@ -15,17 +15,17 @@
             <StackPanel MaxWidth="640"
                         HorizontalAlignment="Center"
                         Margin="32,24"
-                        Spacing="20">
+                        Spacing="{StaticResource SpacingXXL}">
 
                 <!-- Header -->
                 <TextBlock Text="{loc:Loc export.header}"
-                           FontSize="24"
+                           FontSize="{StaticResource FontSizeDisplay}"
                            FontWeight="Bold"
                            Foreground="{DynamicResource NormalText}" />
 
                 <!-- No chapters message -->
                 <TextBlock Text="{loc:Loc export.noChapters}"
-                           FontSize="13"
+                           FontSize="{StaticResource FontSizeBodyLarge}"
                            Foreground="{DynamicResource SubtleText}"
                            IsVisible="{Binding !Chapters.Count}" />
 
@@ -33,17 +33,17 @@
                 <Border Background="{DynamicResource ExplorerBackground}"
                         BorderBrush="{DynamicResource CardBorder}"
                         BorderThickness="1"
-                        CornerRadius="6"
+                        CornerRadius="{StaticResource RadiusMedium}"
                         Padding="16"
                         IsVisible="{Binding Chapters.Count}">
                     <StackPanel Spacing="14">
                         <TextBlock Text="{loc:Loc export.options}"
-                                   FontSize="14"
+                                   FontSize="{StaticResource FontSizeTitleSmall}"
                                    FontWeight="SemiBold"
                                    Foreground="{DynamicResource NormalText}" />
 
                         <!-- Title -->
-                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="{StaticResource SpacingLarge}">
                             <TextBlock Grid.Column="0"
                                        Text="{loc:Loc export.title}"
                                        VerticalAlignment="Center"
@@ -54,7 +54,7 @@
                         </Grid>
 
                         <!-- Author -->
-                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="{StaticResource SpacingLarge}">
                             <TextBlock Grid.Column="0"
                                        Text="{loc:Loc export.author}"
                                        VerticalAlignment="Center"
@@ -65,7 +65,7 @@
                         </Grid>
 
                         <!-- Format -->
-                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="{StaticResource SpacingLarge}">
                             <TextBlock Grid.Column="0"
                                        Text="{loc:Loc export.format}"
                                        VerticalAlignment="Center"
@@ -77,7 +77,7 @@
                         </Grid>
 
                         <!-- Compile preset -->
-                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="{StaticResource SpacingLarge}">
                             <TextBlock Grid.Column="0"
                                        Text="{loc:Loc export.preset}"
                                        VerticalAlignment="Center"
@@ -89,9 +89,9 @@
                                       HorizontalAlignment="Stretch">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <StackPanel Spacing="2">
-                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12.5" />
-                                            <TextBlock Text="{Binding Description}" FontSize="10.5" Opacity="0.7" />
+                                        <StackPanel Spacing="{StaticResource SpacingTightest}">
+                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="{StaticResource FontSizeBody}" />
+                                            <TextBlock Text="{Binding Description}" FontSize="{StaticResource FontSizeCaption}" Opacity="0.7" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
@@ -99,7 +99,7 @@
                         </Grid>
 
                         <!-- Include Title Page -->
-                        <Grid ColumnDefinitions="120,*" ColumnSpacing="12">
+                        <Grid ColumnDefinitions="120,*" ColumnSpacing="{StaticResource SpacingLarge}">
                             <TextBlock Grid.Column="0"
                                        Text="{loc:Loc export.includeTitlePage}"
                                        VerticalAlignment="Center"
@@ -116,20 +116,20 @@
                 <Border Background="{DynamicResource ExplorerBackground}"
                         BorderBrush="{DynamicResource CardBorder}"
                         BorderThickness="1"
-                        CornerRadius="6"
+                        CornerRadius="{StaticResource RadiusMedium}"
                         Padding="16"
                         IsVisible="{Binding ChaptersVisible}">
-                    <StackPanel Spacing="10">
-                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <StackPanel Spacing="{StaticResource SpacingNormal}">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpacingMedium}">
                             <TextBlock Grid.Column="0"
                                        Text="{loc:Loc export.selectChapters}"
-                                       FontSize="14"
+                                       FontSize="{StaticResource FontSizeTitleSmall}"
                                        FontWeight="SemiBold"
                                        Foreground="{DynamicResource NormalText}"
                                        VerticalAlignment="Center" />
                             <StackPanel Grid.Column="1"
                                         Orientation="Horizontal"
-                                        Spacing="6">
+                                        Spacing="{StaticResource SpacingSmall}">
                                 <Button Content="{loc:Loc export.selectAll}"
                                         Command="{Binding SelectAllCommand}"
                                         Classes="exportSelectBtn" />
@@ -157,25 +157,25 @@
                 </Border>
 
                 <!-- Export Button + Status -->
-                <StackPanel Spacing="10">
+                <StackPanel Spacing="{StaticResource SpacingNormal}">
                     <Button Content="{Binding ExportButtonText}"
                             Command="{Binding ExportCommand}"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
                             Classes="accent"
-                            FontSize="14"
+                            FontSize="{StaticResource FontSizeTitleSmall}"
                             Padding="16,10"
                             IsEnabled="{Binding !IsExporting}" />
 
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBlock Grid.Column="0"
                                    Text="{Binding StatusMessage}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource SubtleText}"
                                    VerticalAlignment="Center" />
                         <TextBlock Grid.Column="1"
                                    Text="{Binding SelectedCountText}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource SubtleText}"
                                    VerticalAlignment="Center" />
                     </Grid>

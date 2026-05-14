@@ -13,7 +13,7 @@
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,20,0,0">
                 <Button Content="{loc:Loc dialog.cancel}"
                         Padding="16,8"
@@ -24,9 +24,9 @@
                         Click="OnOk" />
             </StackPanel>
 
-            <StackPanel Spacing="10">
+            <StackPanel Spacing="{StaticResource SpacingNormal}">
                 <TextBlock Text="{loc:Loc dialog.sceneName}"
-                           FontSize="14"
+                           FontSize="{StaticResource FontSizeTitleSmall}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
                 <TextBox x:Name="TitleBox"
@@ -35,7 +35,7 @@
 
                 <TextBlock Text="{loc:Loc dialog.chapter}"
                            Margin="0,6,0,0"
-                           FontSize="12"
+                           FontSize="{StaticResource FontSizeBody}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
                 <ComboBox x:Name="ChapterBox"
@@ -44,7 +44,7 @@
 
                 <TextBlock Text="{loc:Loc dialog.dateOptional}"
                            Margin="0,6,0,0"
-                           FontSize="12"
+                           FontSize="{StaticResource FontSizeBody}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
                 <CalendarDatePicker x:Name="DatePicker"

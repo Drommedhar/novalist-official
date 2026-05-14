@@ -10,20 +10,20 @@
         Focusable="True">
     <Border Background="Transparent" Padding="20">
         <DockPanel>
-            <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,12">
+            <StackPanel DockPanel.Dock="Top" Spacing="{StaticResource SpacingNormal}" Margin="0,0,0,12">
                 <TextBlock Text="{loc:Loc findReplace.title}"
-                           FontSize="16"
+                           FontSize="{StaticResource FontSizeTitle}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
 
-                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" RowSpacing="6" ColumnSpacing="8">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" RowSpacing="{StaticResource SpacingSmall}" ColumnSpacing="{StaticResource SpacingMedium}">
                     <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Loc findReplace.find}" VerticalAlignment="Center" />
                     <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Pattern, Mode=TwoWay}" />
                     <TextBlock Grid.Row="1" Grid.Column="0" Text="{loc:Loc findReplace.replace}" VerticalAlignment="Center" />
                     <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Replacement, Mode=TwoWay}" />
                 </Grid>
 
-                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpacingMedium}">
                     <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="14">
                         <CheckBox Content="{loc:Loc findReplace.matchCase}" IsChecked="{Binding MatchCase, Mode=TwoWay}" />
                         <CheckBox Content="{loc:Loc findReplace.wholeWord}" IsChecked="{Binding WholeWord, Mode=TwoWay}" />
@@ -36,8 +36,8 @@
                 </Grid>
             </StackPanel>
 
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
-                <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,12,0" Opacity="0.8" FontSize="11" />
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="{StaticResource SpacingMedium}" Margin="0,12,0,0">
+                <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" Margin="0,0,12,0" Opacity="0.8" FontSize="{StaticResource FontSizeBodySmall}" />
                 <Button Content="{loc:Loc findReplace.find}" Command="{Binding FindCommand}" Padding="14,6" />
                 <Button Content="{loc:Loc findReplace.replaceAll}" Command="{Binding ReplaceAllCommand}" Classes="primary" Padding="14,6" />
                 <Button Content="{loc:Loc dialog.close}" Click="OnClose" Padding="14,6" />
@@ -50,13 +50,13 @@
                          DoubleTapped="OnResultDoubleTapped">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="models:FindMatch">
-                            <StackPanel Spacing="2" Margin="6,4">
+                            <StackPanel Spacing="{StaticResource SpacingTightest}" Margin="6,4">
                                 <TextBlock>
                                     <Run Text="{Binding ChapterTitle}" FontWeight="SemiBold" />
                                     <Run Text=" → " />
                                     <Run Text="{Binding SceneTitle}" />
                                 </TextBlock>
-                                <TextBlock FontSize="11" FontFamily="Consolas, Menlo, monospace">
+                                <TextBlock FontSize="{StaticResource FontSizeBodySmall}" FontFamily="Consolas, Menlo, monospace">
                                     <Run Text="{Binding Before}" Foreground="{DynamicResource SubtleText}" />
                                     <Run Text="{Binding MatchedText}" FontWeight="Bold" />
                                     <Run Text="{Binding After}" Foreground="{DynamicResource SubtleText}" />

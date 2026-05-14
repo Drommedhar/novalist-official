@@ -8,20 +8,20 @@
         Focusable="True">
     <Border Background="Transparent" Padding="20">
         <DockPanel>
-            <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Top" Spacing="{StaticResource SpacingSmall}" Margin="0,0,0,10">
                 <TextBlock Text="{loc:Loc snapshots.compareTitle}"
-                           FontSize="16"
+                           FontSize="{StaticResource FontSizeTitle}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
                 <TextBlock x:Name="HeaderText"
-                           FontSize="11"
+                           FontSize="{StaticResource FontSizeBodySmall}"
                            Foreground="{DynamicResource SubtleText}" />
             </StackPanel>
 
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,12,0,0">
                 <Button Content="{loc:Loc snapshots.compareSelectAll}"
                         Padding="12,6"
@@ -44,13 +44,13 @@
                 <TextBlock Grid.Row="0" Grid.Column="1"
                            Text="{loc:Loc snapshots.compareLeft}"
                            FontWeight="SemiBold"
-                           FontSize="12"
+                           FontSize="{StaticResource FontSizeBody}"
                            Margin="6,4"
                            Foreground="{DynamicResource SubtleText}" />
                 <TextBlock Grid.Row="0" Grid.Column="2"
                            Text="{loc:Loc snapshots.compareRight}"
                            FontWeight="SemiBold"
-                           FontSize="12"
+                           FontSize="{StaticResource FontSizeBody}"
                            Margin="6,4"
                            Foreground="{DynamicResource SubtleText}" />
 

@@ -14,7 +14,7 @@
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Grid.Column="0"
                                Text="{loc:Loc plotGrid.title}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                VerticalAlignment="Center"
                                Foreground="{DynamicResource NormalText}" />
@@ -29,7 +29,7 @@
             <Border IsVisible="{Binding !HasContent}"
                     Padding="40">
                 <TextBlock Text="{loc:Loc plotGrid.empty}"
-                           FontSize="13"
+                           FontSize="{StaticResource FontSizeBodyLarge}"
                            Foreground="{DynamicResource SubtleText}"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center" />
@@ -38,7 +38,7 @@
             <ScrollViewer IsVisible="{Binding HasContent}"
                           HorizontalScrollBarVisibility="Auto"
                           VerticalScrollBarVisibility="Auto">
-                <StackPanel Spacing="0">
+                <StackPanel Spacing="{StaticResource SpacingNone}">
                     <!-- Header row: 180px label gutter + scene columns -->
                     <Grid ColumnDefinitions="180,*">
                         <Border Grid.Column="0"
@@ -58,13 +58,13 @@
                                             BorderBrush="{DynamicResource ExplorerBorder}"
                                             BorderThickness="0,0,1,1"
                                             Background="{DynamicResource ExplorerBackground}">
-                                        <StackPanel Spacing="2">
+                                        <StackPanel Spacing="{StaticResource SpacingTightest}">
                                             <TextBlock Text="{Binding ChapterTitle}"
-                                                       FontSize="10"
+                                                       FontSize="{StaticResource FontSizeCaption}"
                                                        Opacity="0.6"
                                                        TextTrimming="CharacterEllipsis" />
                                             <TextBlock Text="{Binding SceneTitle}"
-                                                       FontSize="11.5"
+                                                       FontSize="{StaticResource FontSizeBodySmall}"
                                                        FontWeight="SemiBold"
                                                        TextTrimming="CharacterEllipsis" />
                                         </StackPanel>
@@ -98,7 +98,7 @@
                                                  FontWeight="SemiBold"
                                                  BorderThickness="0"
                                                  Background="Transparent"
-                                                 FontSize="12.5" />
+                                                 FontSize="{StaticResource FontSizeBody}" />
                                     </Border>
 
                                     <ItemsControl Grid.Column="1" ItemsSource="{Binding Cells}">

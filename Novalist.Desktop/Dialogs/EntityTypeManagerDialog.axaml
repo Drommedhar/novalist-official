@@ -20,7 +20,7 @@
                     BorderBrush="{DynamicResource BorderDefault}">
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Right"
-                            Spacing="8">
+                            Spacing="{StaticResource SpacingMedium}">
                     <Button Content="{loc:Loc dialog.cancel}"
                             Padding="16,8"
                             Click="OnCancel" />
@@ -34,29 +34,29 @@
             <!-- Scrollable content -->
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           Padding="24,20">
-                <StackPanel Spacing="16">
+                <StackPanel Spacing="{StaticResource SpacingXL}">
                     <!-- Display Name -->
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{loc:Loc entityTypeManager.displayName}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource DimText}" />
                         <TextBox Text="{Binding DisplayName}"
                                  Watermark="{loc:Loc entityTypeManager.displayNameWatermark}" />
                     </StackPanel>
 
                     <!-- Display Name Plural -->
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{loc:Loc entityTypeManager.pluralName}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource DimText}" />
                         <TextBox Text="{Binding DisplayNamePlural}"
                                  Watermark="{loc:Loc entityTypeManager.pluralNameWatermark}" />
                     </StackPanel>
 
                     <!-- Icon -->
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{loc:Loc entityTypeManager.icon}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource DimText}" />
                         <TextBox Text="{Binding Icon}"
                                  MaxLength="4"
@@ -66,7 +66,7 @@
 
                     <!-- Fields section -->
                     <TextBlock Text="{loc:Loc entityTypeManager.fields}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource NormalText}"
                                Margin="0,8,0,0" />
@@ -74,13 +74,13 @@
                     <ItemsControl ItemsSource="{Binding Fields}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:EntityTypeFieldRowViewModel">
-                                <StackPanel Spacing="4" Margin="0,4">
+                                <StackPanel Spacing="{StaticResource SpacingTighter}" Margin="0,4">
                                     <DockPanel>
                                         <Button DockPanel.Dock="Right"
                                                 Command="{Binding RemoveCommand}"
                                                 Content="&#xE711;"
                                                 FontFamily="{StaticResource SymbolThemeFontFamily}"
-                                                FontSize="12"
+                                                FontSize="{StaticResource FontSizeBody}"
                                                 Padding="6"
                                                 Margin="4,0,0,0"
                                                 Background="Transparent"
@@ -121,7 +121,7 @@
 
                     <!-- Features section -->
                     <TextBlock Text="{loc:Loc entityTypeManager.features}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource NormalText}"
                                Margin="0,8,0,0" />

@@ -86,7 +86,7 @@
                         Classes="appBarButton appBarBookPicker"
                         Command="{Binding ToggleBookPickerCommand}"
                         ToolTip.Tip="{loc:Loc book.pickerTooltip}">
-                    <StackPanel Orientation="Horizontal" Spacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{Binding ActiveBook.Name, FallbackValue=''}"
                                    VerticalAlignment="Center"
                                    MaxWidth="200"
@@ -96,11 +96,11 @@
                                 VerticalAlignment="Center" />
                         <TextBlock Text="{Binding ActiveDraftName, FallbackValue=''}"
                                    VerticalAlignment="Center"
-                                   FontSize="11"
+                                   FontSize="{StaticResource FontSizeBodySmall}"
                                    Opacity="0.75"
                                    MaxWidth="140"
                                    TextTrimming="CharacterEllipsis" />
-                        <TextBlock Text="▾" VerticalAlignment="Center" FontSize="10" Opacity="0.6" />
+                        <TextBlock Text="▾" VerticalAlignment="Center" FontSize="{StaticResource FontSizeCaption}" Opacity="0.6" />
                     </StackPanel>
                 </Button>
                 <!-- Draft picker (Flyout) -->
@@ -111,13 +111,13 @@
                         HorizontalAlignment="Left"
                         ToolTip.Tip="{loc:Loc draft.pickerTooltip}"
                         IsVisible="{Binding IsProjectLoaded}">
-                    <StackPanel Orientation="Horizontal" Spacing="4">
-                        <TextBlock Text="{loc:Loc draft.label}" FontSize="11" Opacity="0.7" VerticalAlignment="Center" />
-                        <TextBlock Text="▾" VerticalAlignment="Center" FontSize="10" Opacity="0.6" />
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
+                        <TextBlock Text="{loc:Loc draft.label}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.7" VerticalAlignment="Center" />
+                        <TextBlock Text="▾" VerticalAlignment="Center" FontSize="{StaticResource FontSizeCaption}" Opacity="0.6" />
                     </StackPanel>
                     <Button.Flyout>
                         <Flyout Placement="Bottom">
-                            <StackPanel MinWidth="220" Spacing="4">
+                            <StackPanel MinWidth="220" Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{loc:Loc draft.listTitle}" Classes="statusPopupTitle" />
                                 <ItemsControl ItemsSource="{Binding ActiveBookDrafts}">
                                     <ItemsControl.ItemTemplate>
@@ -157,11 +157,11 @@
                         Classes="appBarButton"
                         Command="{Binding Explorer.CreateChapterCommand}"
                         ToolTip.Tip="{loc:Loc ribbon.chapterTooltip}">
-                    <StackPanel Orientation="Horizontal" Spacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                         <Viewbox Classes="panelToggleIcon">
                             <Canvas Width="24" Height="24"><Path Classes="panelToggleIcon" Data="{StaticResource IconBook}"/></Canvas>
                         </Viewbox>
-                        <TextBlock Text="{loc:Loc ribbon.chapter}" VerticalAlignment="Center" FontSize="11" />
+                        <TextBlock Text="{loc:Loc ribbon.chapter}" VerticalAlignment="Center" FontSize="{StaticResource FontSizeBodySmall}" />
                     </StackPanel>
                 </Button>
                 <!-- +Scene -->
@@ -169,11 +169,11 @@
                         Classes="appBarButton"
                         Command="{Binding Explorer.CreateSceneCommand}"
                         ToolTip.Tip="{loc:Loc ribbon.sceneTooltip}">
-                    <StackPanel Orientation="Horizontal" Spacing="4">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                         <Viewbox Classes="panelToggleIcon">
                             <Canvas Width="24" Height="24"><Path Classes="panelToggleIcon" Data="{StaticResource IconFileText}"/></Canvas>
                         </Viewbox>
-                        <TextBlock Text="{loc:Loc ribbon.scene}" VerticalAlignment="Center" FontSize="11" />
+                        <TextBlock Text="{loc:Loc ribbon.scene}" VerticalAlignment="Center" FontSize="{StaticResource FontSizeBodySmall}" />
                     </StackPanel>
                 </Button>
                 <!-- Gap (column 6 = 4px) -->
@@ -213,7 +213,7 @@
                         Command="{Binding OpenSnapshotsCommand}"
                         ToolTip.Tip="{loc:Loc ribbon.snapshotsTooltip}">
                     <TextBlock Text="{loc:Loc ribbon.snapshots}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Center"
                                Padding="6,0" />
@@ -228,13 +228,13 @@
                 BorderThickness="0,1,0,0"
                 Padding="10,4"
                 IsVisible="{Binding IsProjectLoaded}">
-            <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="12">
+            <Grid ColumnDefinitions="*,Auto,*" ColumnSpacing="{StaticResource SpacingLarge}">
                 <StackPanel Grid.Column="0"
                             Orientation="Horizontal"
-                            Spacing="10"
+                            Spacing="{StaticResource SpacingNormal}"
                             VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal"
-                                Spacing="10"
+                                Spacing="{StaticResource SpacingNormal}"
                                 IsVisible="{Binding Editor.IsDocumentOpen}">
                         <TextBlock Text="{Binding Editor.WordCount, StringFormat='{}{0:N0} words'}"
                                    Classes="statusMetric"
@@ -253,7 +253,7 @@
                                 IsVisible="{Binding Editor.HasReadability}"
                                 ToolTip.Tip="{Binding Editor.ReadabilityLevelLabel}">
                             <TextBlock Text="{Binding Editor.ReadabilityDisplay}"
-                                       FontSize="10"
+                                       FontSize="{StaticResource FontSizeCaption}"
                                        FontWeight="SemiBold"
                                        HorizontalAlignment="Center"
                                        Foreground="White" />
@@ -270,7 +270,7 @@
                         Command="{Binding ToggleProjectOverviewCommand}"
                         IsEnabled="{Binding HasProjectOverview}">
                     <StackPanel Orientation="Horizontal"
-                                Spacing="10"
+                                Spacing="{StaticResource SpacingNormal}"
                                 VerticalAlignment="Center">
                         <TextBlock Text="{Binding ProjectTotalWordsDisplay}"
                                    Classes="statusMetric"
@@ -292,7 +292,7 @@
 
                 <StackPanel Grid.Column="2"
                             Orientation="Horizontal"
-                            Spacing="10"
+                            Spacing="{StaticResource SpacingNormal}"
                             VerticalAlignment="Center"
                             HorizontalAlignment="Right"
                             ToolTip.Tip="{Binding GoalTooltip}">
@@ -300,7 +300,7 @@
                     <ItemsControl ItemsSource="{Binding ExtensionStatusBarItems}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <StackPanel Orientation="Horizontal" Spacing="10" />
+                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingNormal}" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
@@ -319,13 +319,13 @@
                     </ItemsControl>
                     <!-- Git status -->
                     <StackPanel Orientation="Horizontal"
-                                Spacing="6"
+                                Spacing="{StaticResource SpacingSmall}"
                                 IsVisible="{Binding IsInGitRepo}"
                                 Margin="0,0,8,0">
                         <Button Classes="statusOverviewButton"
                                 Command="{Binding ShowGitCommand}"
                                 Padding="4,2">
-                            <StackPanel Orientation="Horizontal" Spacing="4">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                                 <TextBlock Text="{Binding GitBranchDisplay}"
                                            Classes="statusMetric"
                                            Foreground="{DynamicResource NormalText}" />
@@ -373,7 +373,7 @@
                 <Border Grid.Column="0" Classes="activityBar">
                     <Grid RowDefinitions="*,Auto">
                         <!-- Top: project-scoped views -->
-                        <StackPanel Grid.Row="0" Spacing="0" Margin="0,4,0,0">
+                        <StackPanel Grid.Row="0" Spacing="{StaticResource SpacingNone}" Margin="0,4,0,0">
                             <Button Classes="activityBarButton"
                                     Classes.active="{Binding ActiveContentView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Dashboard}"
                                     Command="{Binding ShowDashboardCommand}"
@@ -485,7 +485,7 @@
                                                               Data="{Binding IconPath, Converter={x:Static conv:StringToGeometryConverter.Instance}}" />
                                                     </Canvas>
                                                 </Viewbox>
-                                                <TextBlock Text="{Binding Icon}" FontSize="16"
+                                                <TextBlock Text="{Binding Icon}" FontSize="{StaticResource FontSizeTitle}"
                                                            HorizontalAlignment="Center" VerticalAlignment="Center"
                                                            IsVisible="{Binding IconPath, Converter={x:Static StringConverters.IsNullOrEmpty}}" />
                                             </Panel>
@@ -495,7 +495,7 @@
                             </ItemsControl>
                         </StackPanel>
                         <!-- Bottom: always-present -->
-                        <StackPanel Grid.Row="1" Spacing="0" Margin="0,0,0,4">
+                        <StackPanel Grid.Row="1" Spacing="{StaticResource SpacingNone}" Margin="0,0,0,4">
                             <Button Classes="activityBarButton"
                                     Classes.active="{Binding ActiveActivityView, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Extensions}"
                                     Command="{Binding ShowActivityViewCommand}"
@@ -530,19 +530,19 @@
                         <Button Grid.Column="0" Content="{loc:Loc sidebar.chapters}"
                                 x:Name="SidebarChaptersTab"
                                 Click="OnSidebarTabClick" Tag="Chapters"
-                                Classes="explorerTab" Padding="10,6" FontSize="11"
+                                Classes="explorerTab" Padding="10,6" FontSize="{StaticResource FontSizeBodySmall}"
                                 Classes.active="{Binding ActiveSidebarTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Chapters}"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
                         <Button Grid.Column="1" Content="{loc:Loc sidebar.entities}"
                                 x:Name="SidebarEntitiesTab"
                                 Click="OnSidebarTabClick" Tag="Entities"
-                                Classes="explorerTab" Padding="10,6" FontSize="11"
+                                Classes="explorerTab" Padding="10,6" FontSize="{StaticResource FontSizeBodySmall}"
                                 Classes.active="{Binding ActiveSidebarTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Entities}"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
                         <Button Grid.Column="2" Content="{loc:Loc sidebar.smartLists}"
                                 x:Name="SidebarSmartListsTab"
                                 Click="OnSidebarTabClick" Tag="SmartLists"
-                                Classes="explorerTab" Padding="10,6" FontSize="11"
+                                Classes="explorerTab" Padding="10,6" FontSize="{StaticResource FontSizeBodySmall}"
                                 Classes.active="{Binding ActiveSidebarTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=SmartLists}"
                                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
                         <!-- Extension sidebar tabs -->
@@ -557,7 +557,7 @@
                                     <Button Content="{Binding Label}"
                                             Click="OnExtensionSidebarTabClick"
                                             Tag="{Binding Id}"
-                                            Classes="explorerTab" Padding="10,6" FontSize="11"
+                                            Classes="explorerTab" Padding="10,6" FontSize="{StaticResource FontSizeBodySmall}"
                                             ToolTip.Tip="{Binding Tooltip}" />
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -608,7 +608,7 @@
                         <ItemsControl ItemsSource="{Binding ContentTabs}">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
-                                    <StackPanel Orientation="Horizontal" Spacing="0" />
+                                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingNone}" />
                                 </ItemsPanelTemplate>
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
@@ -632,7 +632,7 @@
                                                     Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SetActiveContentViewCommand}"
                                                     CommandParameter="{Binding ActivationKey}"
                                                     ToolTip.Tip="{Binding Tooltip}">
-                                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingMedium}">
                                                     <Border Classes="editorTabBadge"
                                                             IsVisible="{Binding Badge, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                                                         <TextBlock Text="{Binding Badge}" Classes="editorTabBadgeText" />
@@ -802,11 +802,11 @@
                                     <StackPanel Orientation="Horizontal">
                                         <Button Content="{loc:Loc context.tab}"
                                                 Click="OnContextTabClick" Tag="Context"
-                                                Classes="explorerTab" Padding="10,6" FontSize="11"
+                                                Classes="explorerTab" Padding="10,6" FontSize="{StaticResource FontSizeBodySmall}"
                                                 Classes.active="{Binding IsContextTabActive}" />
                                         <Button Content="{loc:Loc footnotes.tab}"
                                                 Click="OnContextTabClick" Tag="Footnotes"
-                                                Classes="explorerTab" Padding="10,6" FontSize="11"
+                                                Classes="explorerTab" Padding="10,6" FontSize="{StaticResource FontSizeBodySmall}"
                                                 Classes.active="{Binding IsFootnotesTabActive}" />
                                         <ItemsControl ItemsSource="{Binding ExtensionContextTabs}">
                                             <ItemsControl.ItemsPanel>
@@ -819,7 +819,7 @@
                                                     <Button Content="{Binding Label}"
                                                             Click="OnContextExtTabClick"
                                                             Tag="{Binding Id}"
-                                                            Classes="explorerTab" Padding="10,6" FontSize="11"
+                                                            Classes="explorerTab" Padding="10,6" FontSize="{StaticResource FontSizeBodySmall}"
                                                             Classes.active="{Binding IsActive}"
                                                             ToolTip.Tip="{Binding Tooltip}" />
                                                 </DataTemplate>
@@ -850,7 +850,7 @@
                     Focusable="True"
                     Background="Transparent"
                     PointerPressed="OnProjectOverviewOverlayPressed">
-                <Border CornerRadius="8"
+                <Border CornerRadius="{StaticResource RadiusLarge}"
                         Width="460"
                         MinWidth="300"
                         MaxWidth="460"
@@ -862,13 +862,13 @@
                     <Border Background="Transparent"
                             Padding="10,12"
                             PointerPressed="OnProjectOverviewPopupPressed">
-                    <StackPanel Spacing="8">
+                    <StackPanel Spacing="{StaticResource SpacingMedium}">
                         <DockPanel>
                             <Button DockPanel.Dock="Right"
                                     Content="{loc:Loc project.renameProject}"
                                     Command="{Binding RenameProjectCommand}"
                                     Padding="8,2"
-                                    FontSize="11"
+                                    FontSize="{StaticResource FontSizeBodySmall}"
                                     VerticalAlignment="Center" />
                             <TextBlock Text="{Binding ProjectName}"
                                        Classes="statusPopupTitle"
@@ -877,7 +877,7 @@
                         </DockPanel>
 
                         <Grid ColumnDefinitions="*,Auto,Auto"
-                              ColumnSpacing="8"
+                              ColumnSpacing="{StaticResource SpacingMedium}"
                               Margin="0,0,0,2">
                             <TextBlock Grid.Column="0"
                                        Text="{loc:Loc overview.chapterColumn}"
@@ -905,14 +905,14 @@
                                             <StackPanel>
                                                 <Border Classes="statusPopupRow">
                                                     <Grid ColumnDefinitions="*,Auto,Auto"
-                                                          ColumnSpacing="8">
+                                                          ColumnSpacing="{StaticResource SpacingMedium}">
                                                         <TextBlock Grid.Column="0"
                                                                    Text="{Binding Name}"
                                                                    Classes="statusPopupName" />
 
                                                         <StackPanel Grid.Column="1"
                                                                     Orientation="Horizontal"
-                                                                    Spacing="0"
+                                                                    Spacing="{StaticResource SpacingNone}"
                                                                     VerticalAlignment="Center">
                                                             <TextBlock Text="{Binding WordCountDisplay}"
                                                                        Classes="statusPopupWords" />
@@ -924,14 +924,14 @@
 
                                                         <StackPanel Grid.Column="2"
                                                                     Orientation="Horizontal"
-                                                                    Spacing="0"
+                                                                    Spacing="{StaticResource SpacingNone}"
                                                                     VerticalAlignment="Center">
                                                             <Border Classes="statusPopupReadabilityBadge"
                                                                     Background="{Binding ReadabilityColor}"
                                                                     IsVisible="{Binding HasReadability}">
                                                                 <TextBlock Text="{Binding ReadabilityDisplay}"
                                                                            HorizontalAlignment="Center"
-                                                                           FontSize="10"
+                                                                           FontSize="{StaticResource FontSizeCaption}"
                                                                            FontWeight="SemiBold"
                                                                            Foreground="White" />
                                                             </Border>
@@ -950,7 +950,7 @@
                                                         <DataTemplate x:DataType="vm:StatusBarSceneOverviewItem">
                                                             <Border Classes="statusPopupRow">
                                                                 <Grid ColumnDefinitions="*,Auto,Auto"
-                                                                      ColumnSpacing="8">
+                                                                      ColumnSpacing="{StaticResource SpacingMedium}">
                                                                     <TextBlock Grid.Column="0"
                                                                                Text="{Binding Name}"
                                                                                Margin="16,0,0,0"
@@ -958,7 +958,7 @@
 
                                                                     <StackPanel Grid.Column="1"
                                                                                 Orientation="Horizontal"
-                                                                                Spacing="0"
+                                                                                Spacing="{StaticResource SpacingNone}"
                                                                                 VerticalAlignment="Center">
                                                                         <TextBlock Text="{Binding WordCountDisplay}"
                                                                                    Classes="statusPopupSceneWords" />
@@ -993,7 +993,7 @@
                     Focusable="True"
                     Background="{DynamicResource OverlayScrim}"
                     PointerPressed="OnBookPickerOverlayPressed">
-                <Border CornerRadius="8"
+                <Border CornerRadius="{StaticResource RadiusLarge}"
                         MinWidth="420"
                         MaxWidth="780"
                         MaxHeight="560"
@@ -1043,7 +1043,7 @@
                                                     BorderBrush="{DynamicResource CardBorder}"
                                                     BorderThickness="1"
                                                     Classes.active="{Binding IsActive}"
-                                                    CornerRadius="8"
+                                                    CornerRadius="{StaticResource RadiusLarge}"
                                                     Width="160"
                                                     ClipToBounds="True">
                                                 <Border.Styles>
@@ -1070,10 +1070,10 @@
                                                             </Viewbox>
                                                         </Border>
                                                     </Panel>
-                                                    <StackPanel Spacing="2" Margin="10,8,10,10">
+                                                    <StackPanel Spacing="{StaticResource SpacingTightest}" Margin="10,8,10,10">
                                                         <TextBlock Text="{Binding Name}"
                                                                    FontWeight="SemiBold"
-                                                                   FontSize="13"
+                                                                   FontSize="{StaticResource FontSizeBodyLarge}"
                                                                    Foreground="{DynamicResource NormalText}"
                                                                    TextTrimming="CharacterEllipsis"
                                                                    MaxLines="1" />
@@ -1108,7 +1108,7 @@
             IsVisible="False"
             Focusable="True"
             ZIndex="200">
-        <Border CornerRadius="8"
+        <Border CornerRadius="{StaticResource RadiusLarge}"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 Background="{DynamicResource CardBackground}">
@@ -1132,7 +1132,7 @@
                 <DockPanel Margin="0,8">
                     <TextBlock DockPanel.Dock="Bottom"
                                Text="{Binding AppVersion}"
-                               FontSize="11"
+                               FontSize="{StaticResource FontSizeBodySmall}"
                                Opacity="0.45"
                                HorizontalAlignment="Center"
                                Margin="0,12,0,8" />
@@ -1141,7 +1141,7 @@
                         <Button Classes="startMenuItem"
                                 Command="{Binding OpenProjectFromMenuCommand}"
                                 ToolTip.Tip="{loc:Loc startMenu.openProjectTooltip}">
-                            <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingLarge}">
                                 <Viewbox Width="16" Height="16" VerticalAlignment="Center">
                                     <Canvas Width="24" Height="24">
                                         <Path Classes="ribbonIcon" Data="{StaticResource IconFolderOpen}" />
@@ -1172,7 +1172,7 @@
                                     </ItemsControl>
                                 </MenuFlyout>
                             </Button.Flyout>
-                            <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingLarge}">
                                 <Viewbox Width="16" Height="16" VerticalAlignment="Center">
                                     <Canvas Width="24" Height="24">
                                         <Path Classes="ribbonIcon" Data="{StaticResource IconFolder}" />
@@ -1189,7 +1189,7 @@
                         <Button Classes="startMenuItem"
                                 Command="{Binding ToggleSettingsCommand}"
                                 ToolTip.Tip="{loc:Loc ribbon.settingsTooltip}">
-                            <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingLarge}">
                                 <Viewbox Width="16" Height="16" VerticalAlignment="Center">
                                     <Canvas Width="24" Height="24">
                                         <Path Classes="ribbonIcon" Data="{StaticResource IconSettings}" />
@@ -1201,7 +1201,7 @@
                         <Button Classes="startMenuItem"
                                 Command="{Binding ToggleExtensionsCommand}"
                                 ToolTip.Tip="{loc:Loc extensions.tooltip}">
-                            <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingLarge}">
                                 <Viewbox Width="16" Height="16" VerticalAlignment="Center">
                                     <Canvas Width="24" Height="24">
                                         <Path Classes="ribbonIcon" Data="{StaticResource IconPlug}" />
@@ -1218,7 +1218,7 @@
                         <Button Classes="startMenuItem"
                                 Command="{Binding CloseProjectCommand}"
                                 ToolTip.Tip="{loc:Loc startMenu.closeProjectTooltip}">
-                            <StackPanel Orientation="Horizontal" Spacing="12">
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingLarge}">
                                 <Viewbox Width="16" Height="16" VerticalAlignment="Center">
                                     <Canvas Width="24" Height="24">
                                         <Path Classes="ribbonIcon" Data="{StaticResource IconBookOpen}" />
@@ -1240,7 +1240,7 @@
                   ZIndex="300">
         <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-                <StackPanel Orientation="Vertical" Spacing="8" />
+                <StackPanel Orientation="Vertical" Spacing="{StaticResource SpacingMedium}" />
             </ItemsPanelTemplate>
         </ItemsControl.ItemsPanel>
         <ItemsControl.ItemTemplate>
@@ -1252,14 +1252,14 @@
                         Background="Transparent"
                         BorderThickness="0">
                     <Border Padding="16,10"
-                            CornerRadius="8"
+                            CornerRadius="{StaticResource RadiusLarge}"
                             Background="{DynamicResource CardBackground}"
                             BorderBrush="{Binding Severity, Converter={x:Static conv:ToastSeverityToBrushConverter.Instance}}"
                             BorderThickness="3,1,1,1"
                             BoxShadow="0 4 12 0 #40000000">
                         <TextBlock Text="{Binding Message}"
                                    Foreground="{DynamicResource NormalText}"
-                                   FontSize="13" />
+                                   FontSize="{StaticResource FontSizeBodyLarge}" />
                     </Border>
                 </Button>
             </DataTemplate>

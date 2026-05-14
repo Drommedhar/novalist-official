@@ -14,7 +14,7 @@
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,16,0,0">
                 <Button x:Name="CancelButton"
                         Content="{loc:Loc dialog.cancel}"
@@ -27,23 +27,23 @@
                         IsDefault="True" />
             </StackPanel>
 
-            <StackPanel Spacing="12">
+            <StackPanel Spacing="{StaticResource SpacingLarge}">
                 <TextBlock Text="{loc:Loc import.title}"
-                           FontSize="16"
+                           FontSize="{StaticResource FontSizeTitle}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
 
                 <TextBlock Text="{loc:Loc import.description}"
-                           FontSize="12"
+                           FontSize="{StaticResource FontSizeBody}"
                            Foreground="{DynamicResource SubtleText}"
                            TextWrapping="Wrap" />
 
                 <!-- Configuration Panel -->
-                <StackPanel x:Name="ConfigPanel" Spacing="8">
+                <StackPanel x:Name="ConfigPanel" Spacing="{StaticResource SpacingMedium}">
                     <!-- Vault Folder -->
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{loc:Loc import.vaultFolder}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource DimText}" />
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBox Grid.Column="0"
@@ -58,9 +58,9 @@
                     </StackPanel>
 
                     <!-- Plugin Project Selector (visible only when multiple projects detected) -->
-                    <StackPanel x:Name="ProjectSelectorPanel" Spacing="4" IsVisible="False">
+                    <StackPanel x:Name="ProjectSelectorPanel" Spacing="{StaticResource SpacingTighter}" IsVisible="False">
                         <TextBlock Text="{loc:Loc import.selectProject}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource DimText}" />
                         <ComboBox x:Name="ProjectComboBox"
                                   HorizontalAlignment="Stretch"
@@ -68,9 +68,9 @@
                     </StackPanel>
 
                     <!-- Project Name -->
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{loc:Loc welcome.projectName}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource DimText}" />
                         <TextBox x:Name="ProjectNameBox"
                                  Watermark="{loc:Loc welcome.projectNamePlaceholder}"
@@ -78,9 +78,9 @@
                     </StackPanel>
 
                     <!-- Book Name -->
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{loc:Loc welcome.bookName}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource DimText}" />
                         <TextBox x:Name="BookNameBox"
                                  Watermark="{loc:Loc welcome.bookNamePlaceholder}"
@@ -88,9 +88,9 @@
                     </StackPanel>
 
                     <!-- Output Location -->
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{loc:Loc import.outputLocation}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource DimText}" />
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBox Grid.Column="0"
@@ -106,18 +106,18 @@
                 </StackPanel>
 
                 <!-- Progress Panel -->
-                <StackPanel x:Name="ProgressPanel" Spacing="8" IsVisible="False">
+                <StackPanel x:Name="ProgressPanel" Spacing="{StaticResource SpacingMedium}" IsVisible="False">
                     <ProgressBar x:Name="ProgressBar"
                                  IsIndeterminate="True"
                                  Height="4" />
                     <TextBlock x:Name="ProgressText"
-                               FontSize="12"
+                               FontSize="{StaticResource FontSizeBody}"
                                Foreground="{DynamicResource SubtleText}" />
                 </StackPanel>
 
                 <!-- Error Message -->
                 <TextBlock x:Name="ErrorText"
-                           FontSize="12"
+                           FontSize="{StaticResource FontSizeBody}"
                            Foreground="#E05252"
                            TextWrapping="Wrap"
                            IsVisible="False" />

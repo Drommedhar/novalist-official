@@ -13,7 +13,7 @@
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,16,0,0">
                 <Button Content="{loc:Loc dialog.cancel}"
                         Padding="16,8"
@@ -23,19 +23,19 @@
                         Click="OnOk"
                         IsDefault="True" />
             </StackPanel>
-            <StackPanel Spacing="12">
+            <StackPanel Spacing="{StaticResource SpacingLarge}">
                 <TextBlock x:Name="PromptText"
-                           FontSize="14"
+                           FontSize="{StaticResource FontSizeTitleSmall}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
                 <TextBox x:Name="InputBox"
                          Watermark="{loc:Loc dialog.enterNameWatermark}"
                          MaxLength="200" />
                 <StackPanel x:Name="TemplatePanel"
-                            Spacing="4"
+                            Spacing="{StaticResource SpacingTighter}"
                             IsVisible="False">
                     <TextBlock x:Name="TemplateLabel"
-                               FontSize="12"
+                               FontSize="{StaticResource FontSizeBody}"
                                Foreground="{DynamicResource DimText}" />
                     <ComboBox x:Name="TemplateComboBox"
                               HorizontalAlignment="Stretch" />

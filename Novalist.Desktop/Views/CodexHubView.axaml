@@ -23,11 +23,11 @@
                          IsVisible="{Binding IsLoading}"
                          Height="2"
                          Margin="0,0,0,0"
-                         CornerRadius="0" />
+                         CornerRadius="{StaticResource RadiusNone}" />
 
             <!-- Header -->
             <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto" Margin="0,0,0,16">
-                <StackPanel Grid.Column="0" Spacing="4">
+                <StackPanel Grid.Column="0" Spacing="{StaticResource SpacingTighter}">
                     <TextBlock Text="{loc:Loc codexHub.title}"
                                FontSize="{DynamicResource FontSizeTitle}"
                                FontWeight="{DynamicResource FontWeightTitle}"
@@ -36,19 +36,19 @@
                                FontSize="{DynamicResource FontSizeBodySmall}"
                                Foreground="{DynamicResource SubtleText}" />
                 </StackPanel>
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}" VerticalAlignment="Center">
                     <ComboBox SelectedIndex="{Binding SortModeIndex, Mode=TwoWay}"
                               MinWidth="160"
-                              FontSize="12">
+                              FontSize="{StaticResource FontSizeBody}">
                         <ComboBoxItem Content="{loc:Loc codexHub.sortName}" />
                         <ComboBoxItem Content="{loc:Loc codexHub.sortNameDesc}" />
                     </ComboBox>
                     <Button Command="{Binding ManageEntityTypesCommand}"
-                            FontSize="12">
+                            FontSize="{StaticResource FontSizeBody}">
                         <TextBlock Text="{loc:Loc codexHub.manageTypes}" />
                     </Button>
                     <Button Command="{Binding OpenTemplatesCommand}"
-                            FontSize="12">
+                            FontSize="{StaticResource FontSizeBody}">
                         <TextBlock Text="{loc:Loc codexHub.templates}" />
                     </Button>
                 </StackPanel>
@@ -59,24 +59,24 @@
                      Text="{Binding SearchQuery, Mode=TwoWay}"
                      Watermark="{loc:Loc codexHub.searchPlaceholder}"
                      Padding="10,8"
-                     FontSize="13"
+                     FontSize="{StaticResource FontSizeBodyLarge}"
                      Margin="0,0,0,12" />
 
             <!-- Filter pills -->
             <StackPanel DockPanel.Dock="Top"
                         Orientation="Horizontal"
-                        Spacing="4"
+                        Spacing="{StaticResource SpacingTighter}"
                         Margin="0,0,0,20">
                 <Button Command="{Binding SetTabCommand}" CommandParameter="All"
                         Classes="codexFilterPill"
                         Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=All}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <TextBlock Text="{loc:Loc codexHub.all}" />
                         <Border Background="#30808080"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding TotalCount}"
-                                       FontSize="10"
+                                       FontSize="{StaticResource FontSizeCaption}"
                                        HorizontalAlignment="Center" />
                         </Border>
                     </StackPanel>
@@ -85,14 +85,14 @@
                 <Button Command="{Binding SetTabCommand}" CommandParameter="Character"
                         Classes="codexFilterPill"
                         Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Character}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconUser}"/></Canvas></Viewbox>
                         <TextBlock Text="{loc:Loc codexHub.characters}" />
                         <Border Background="#30808080"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding CharacterCount}"
-                                       FontSize="10"
+                                       FontSize="{StaticResource FontSizeCaption}"
                                        HorizontalAlignment="Center" />
                         </Border>
                     </StackPanel>
@@ -101,14 +101,14 @@
                 <Button Command="{Binding SetTabCommand}" CommandParameter="Location"
                         Classes="codexFilterPill"
                         Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Location}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconMapPin}"/></Canvas></Viewbox>
                         <TextBlock Text="{loc:Loc codexHub.locations}" />
                         <Border Background="#30808080"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding LocationCount}"
-                                       FontSize="10"
+                                       FontSize="{StaticResource FontSizeCaption}"
                                        HorizontalAlignment="Center" />
                         </Border>
                     </StackPanel>
@@ -117,14 +117,14 @@
                 <Button Command="{Binding SetTabCommand}" CommandParameter="Item"
                         Classes="codexFilterPill"
                         Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Item}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconSword}"/></Canvas></Viewbox>
                         <TextBlock Text="{loc:Loc codexHub.items}" />
                         <Border Background="#30808080"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding ItemCount}"
-                                       FontSize="10"
+                                       FontSize="{StaticResource FontSizeCaption}"
                                        HorizontalAlignment="Center" />
                         </Border>
                     </StackPanel>
@@ -133,14 +133,14 @@
                 <Button Command="{Binding SetTabCommand}" CommandParameter="Lore"
                         Classes="codexFilterPill"
                         Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Lore}">
-                    <StackPanel Orientation="Horizontal" Spacing="6">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
                         <TextBlock Text="{loc:Loc codexHub.lore}" />
                         <Border Background="#30808080"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding LoreCount}"
-                                       FontSize="10"
+                                       FontSize="{StaticResource FontSizeCaption}"
                                        HorizontalAlignment="Center" />
                         </Border>
                     </StackPanel>
@@ -149,19 +149,19 @@
                 <ComboBox ItemsSource="{Binding CustomTabs}"
                           SelectedItem="{Binding SelectedCustomTab}"
                           Padding="10,5"
-                          FontSize="12"
+                          FontSize="{StaticResource FontSizeBody}"
                           MinWidth="140"
                           IsVisible="{Binding CustomTabs.Count}">
                     <ComboBox.ItemTemplate>
                         <DataTemplate x:DataType="vm:CodexCustomTab">
-                            <StackPanel Orientation="Horizontal" Spacing="6">
-                                <TextBlock Text="{Binding Icon}" FontSize="13" VerticalAlignment="Center" />
-                                <TextBlock Text="{Binding DisplayName}" FontSize="12" VerticalAlignment="Center" />
+                            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
+                                <TextBlock Text="{Binding Icon}" FontSize="{StaticResource FontSizeBodyLarge}" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding DisplayName}" FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center" />
                                 <Border Background="#30808080"
                                         CornerRadius="{DynamicResource RadiusPill}"
                                         Padding="5,1" MinWidth="20" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Count}"
-                                               FontSize="10"
+                                               FontSize="{StaticResource FontSizeCaption}"
                                                HorizontalAlignment="Center" />
                                 </Border>
                             </StackPanel>
@@ -208,7 +208,7 @@
                                                               Foreground="{DynamicResource SubtleText}"
                                                               IsVisible="{Binding !IsEmoji}" />
                                                     <TextBlock Text="{Binding Icon}"
-                                                               FontSize="24"
+                                                               FontSize="{StaticResource FontSizeDisplay}"
                                                                IsVisible="{Binding IsEmoji}" />
                                                 </Panel>
                                             </Panel>
@@ -220,7 +220,7 @@
                                             <Grid ColumnDefinitions="*,Auto">
                                                 <TextBlock Grid.Column="0"
                                                            Text="{Binding Name}"
-                                                           FontSize="13"
+                                                           FontSize="{StaticResource FontSizeBodyLarge}"
                                                            FontWeight="SemiBold"
                                                            Foreground="{DynamicResource NormalText}"
                                                            TextTrimming="CharacterEllipsis" />
@@ -232,13 +232,13 @@
                                                         VerticalAlignment="Center"
                                                         Margin="6,0,0,0">
                                                     <TextBlock Text="WB"
-                                                               FontSize="9"
+                                                               FontSize="{StaticResource FontSizeTiny}"
                                                                FontWeight="Bold"
                                                                Foreground="White" />
                                                 </Border>
                                             </Grid>
                                             <TextBlock Text="{Binding Subtitle}"
-                                                       FontSize="11"
+                                                       FontSize="{StaticResource FontSizeBodySmall}"
                                                        Foreground="{DynamicResource SubtleText}"
                                                        TextTrimming="CharacterEllipsis"
                                                        IsVisible="{Binding Subtitle, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />

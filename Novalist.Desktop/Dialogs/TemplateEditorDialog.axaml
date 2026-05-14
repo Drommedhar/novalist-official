@@ -20,7 +20,7 @@
                     BorderBrush="{DynamicResource BorderDefault}">
                 <StackPanel Orientation="Horizontal"
                             HorizontalAlignment="Right"
-                            Spacing="8">
+                            Spacing="{StaticResource SpacingMedium}">
                     <Button Content="{loc:Loc dialog.cancel}"
                             Padding="16,8"
                             Click="OnCancel" />
@@ -34,11 +34,11 @@
             <!-- Scrollable content -->
             <ScrollViewer VerticalScrollBarVisibility="Auto"
                           Padding="24,20">
-                <StackPanel Spacing="16">
+                <StackPanel Spacing="{StaticResource SpacingXL}">
                     <!-- Template name -->
-                    <StackPanel Spacing="4">
+                    <StackPanel Spacing="{StaticResource SpacingTighter}">
                         <TextBlock Text="{loc:Loc template.templateName}"
-                                   FontSize="12"
+                                   FontSize="{StaticResource FontSizeBody}"
                                    Foreground="{DynamicResource DimText}" />
                         <TextBox Text="{Binding TemplateName}"
                                  IsReadOnly="{Binding IsBuiltIn}"
@@ -47,7 +47,7 @@
 
                     <!-- Known fields section -->
                     <TextBlock Text="{loc:Loc template.fields}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource NormalText}"
                                Margin="0,8,0,0" />
@@ -55,7 +55,7 @@
                     <ItemsControl ItemsSource="{Binding KnownFields}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:KnownFieldRowViewModel">
-                                <StackPanel Spacing="4" Margin="0,2">
+                                <StackPanel Spacing="{StaticResource SpacingTighter}" Margin="0,2">
                                     <DockPanel>
                                         <ToggleSwitch DockPanel.Dock="Left"
                                                       IsChecked="{Binding IsActive}"
@@ -78,19 +78,19 @@
                     </ItemsControl>
 
                     <!-- Age mode (character only, visible when Age field is active) -->
-                    <StackPanel IsVisible="{Binding ShowAgeMode}" Spacing="4">
-                        <StackPanel Spacing="4">
+                    <StackPanel IsVisible="{Binding ShowAgeMode}" Spacing="{StaticResource SpacingTighter}">
+                        <StackPanel Spacing="{StaticResource SpacingTighter}">
                             <TextBlock Text="{loc:Loc template.ageMode}"
-                                       FontSize="12"
+                                       FontSize="{StaticResource FontSizeBody}"
                                        Foreground="{DynamicResource DimText}" />
                             <ComboBox ItemsSource="{Binding AgeModes}"
                                       SelectedIndex="{Binding AgeModeIndex}"
                                       HorizontalAlignment="Stretch" />
                         </StackPanel>
-                        <StackPanel Spacing="4"
+                        <StackPanel Spacing="{StaticResource SpacingTighter}"
                                     IsVisible="{Binding ShowAgeOptions}">
                             <TextBlock Text="{loc:Loc template.intervalUnit}"
-                                       FontSize="12"
+                                       FontSize="{StaticResource FontSizeBody}"
                                        Foreground="{DynamicResource DimText}" />
                             <ComboBox ItemsSource="{Binding IntervalUnits}"
                                       SelectedIndex="{Binding AgeIntervalUnitIndex}"
@@ -100,7 +100,7 @@
 
                     <!-- Custom fields -->
                     <TextBlock Text="{loc:Loc template.customFields}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource NormalText}"
                                Margin="0,8,0,0" />
@@ -113,7 +113,7 @@
                                             Command="{Binding RemoveCommand}"
                                             Content="&#xE711;"
                                             FontFamily="{StaticResource SymbolThemeFontFamily}"
-                                            FontSize="12"
+                                            FontSize="{StaticResource FontSizeBody}"
                                             Padding="6"
                                             Margin="4,0,0,0"
                                             Background="Transparent"
@@ -137,12 +137,12 @@
 
                     <!-- Options section -->
                     <TextBlock Text="{loc:Loc template.options}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource NormalText}"
                                Margin="0,8,0,0" />
 
-                    <StackPanel IsVisible="{Binding IsCharacterTemplate}" Spacing="4">
+                    <StackPanel IsVisible="{Binding IsCharacterTemplate}" Spacing="{StaticResource SpacingTighter}">
                         <DockPanel>
                             <ToggleSwitch IsChecked="{Binding IncludeRelationships}"
                                           OnContent=""
@@ -172,7 +172,7 @@
 
                     <!-- Custom properties section -->
                     <TextBlock Text="{loc:Loc template.defaultCustomProperties}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource NormalText}"
                                Margin="0,8,0,0" />
@@ -180,13 +180,13 @@
                     <ItemsControl ItemsSource="{Binding PropertyDefs}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:CustomPropertyDefRowViewModel">
-                                <StackPanel Spacing="4" Margin="0,4">
+                                <StackPanel Spacing="{StaticResource SpacingTighter}" Margin="0,4">
                                     <DockPanel>
                                         <Button DockPanel.Dock="Right"
                                                 Command="{Binding RemoveCommand}"
                                                 Content="&#xE711;"
                                                 FontFamily="{StaticResource SymbolThemeFontFamily}"
-                                                FontSize="12"
+                                                FontSize="{StaticResource FontSizeBody}"
                                                 Padding="6"
                                                 Margin="4,0,0,0"
                                                 Background="Transparent"
@@ -210,9 +210,9 @@
                                     <TextBox Text="{Binding EnumOptionsText}"
                                              IsVisible="{Binding ShowEnumOptions}"
                                              Watermark="{loc:Loc template.enumOptionsHint}" />
-                                    <StackPanel IsVisible="{Binding ShowIntervalUnit}" Spacing="4">
+                                    <StackPanel IsVisible="{Binding ShowIntervalUnit}" Spacing="{StaticResource SpacingTighter}">
                                         <TextBlock Text="{loc:Loc template.intervalUnit}"
-                                                   FontSize="12"
+                                                   FontSize="{StaticResource FontSizeBody}"
                                                    Foreground="{DynamicResource DimText}" />
                                         <ComboBox ItemsSource="{Binding IntervalUnits}"
                                                   SelectedIndex="{Binding IntervalUnitIndex}"
@@ -230,7 +230,7 @@
 
                     <!-- Sections -->
                     <TextBlock Text="{loc:Loc template.sections}"
-                               FontSize="14"
+                               FontSize="{StaticResource FontSizeTitleSmall}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource NormalText}"
                                Margin="0,8,0,0" />
@@ -240,16 +240,16 @@
                             <DataTemplate x:DataType="vm:SectionRowViewModel">
                                 <Border BorderBrush="{DynamicResource BorderDefault}"
                                         BorderThickness="1"
-                                        CornerRadius="4"
+                                        CornerRadius="{StaticResource RadiusSmall}"
                                         Padding="8"
                                         Margin="0,4">
-                                    <StackPanel Spacing="6">
+                                    <StackPanel Spacing="{StaticResource SpacingSmall}">
                                         <DockPanel>
                                             <Button DockPanel.Dock="Right"
                                                     Command="{Binding RemoveCommand}"
                                                     Content="&#xE711;"
                                                     FontFamily="{StaticResource SymbolThemeFontFamily}"
-                                                    FontSize="12"
+                                                    FontSize="{StaticResource FontSizeBody}"
                                                     Padding="6"
                                                     Margin="4,0,0,0"
                                                     Background="Transparent"

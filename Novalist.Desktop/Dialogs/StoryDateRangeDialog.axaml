@@ -12,22 +12,22 @@
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
                         HorizontalAlignment="Right"
-                        Spacing="8"
+                        Spacing="{StaticResource SpacingMedium}"
                         Margin="0,20,0,0">
                 <Button Content="{loc:Loc dialog.clear}" Padding="16,8" Click="OnClear" />
                 <Button Content="{loc:Loc dialog.cancel}" Padding="16,8" Click="OnCancel" />
                 <Button Content="{loc:Loc dialog.ok}" Classes="primary" IsDefault="True" Click="OnOk" />
             </StackPanel>
 
-            <StackPanel Spacing="10">
+            <StackPanel Spacing="{StaticResource SpacingNormal}">
                 <TextBlock x:Name="PromptText"
-                           FontSize="14"
+                           FontSize="{StaticResource FontSizeTitleSmall}"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource NormalText}" />
 
-                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="4">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Loc dialog.dateStart}" FontSize="11" Opacity="0.7" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{loc:Loc dialog.dateEnd}" FontSize="11" Opacity="0.7" />
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="{StaticResource SpacingMedium}" RowSpacing="{StaticResource SpacingTighter}">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Loc dialog.dateStart}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.7" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{loc:Loc dialog.dateEnd}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.7" />
                     <CalendarDatePicker Grid.Row="1" Grid.Column="0" x:Name="StartDate"
                                         HorizontalAlignment="Stretch"
                                         Watermark="{loc:Loc dialog.dateWatermark}" />
@@ -36,9 +36,9 @@
                                         Watermark="{loc:Loc dialog.dateEndWatermark}" />
                 </Grid>
 
-                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="4">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Loc dialog.timeStart}" FontSize="11" Opacity="0.7" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{loc:Loc dialog.timeEnd}" FontSize="11" Opacity="0.7" />
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="{StaticResource SpacingMedium}" RowSpacing="{StaticResource SpacingTighter}">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{loc:Loc dialog.timeStart}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.7" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{loc:Loc dialog.timeEnd}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.7" />
                     <TimePicker Grid.Row="1" Grid.Column="0" x:Name="StartTime"
                                 HorizontalAlignment="Left"
                                 MinuteIncrement="5"

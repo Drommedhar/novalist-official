@@ -19,7 +19,7 @@
                     Background="{DynamicResource ExplorerBackground}">
                 <Grid ColumnDefinitions="*,Auto">
                     <!-- Left: Title + Stats -->
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="{StaticResource SpacingXL}" VerticalAlignment="Center">
                         <TextBlock Text="{loc:Loc manuscript.title}"
                                    FontSize="{DynamicResource FontSizeTitleSmall}"
                                    FontWeight="SemiBold"
@@ -30,55 +30,55 @@
                     </StackPanel>
 
                     <!-- Right: View mode + Filter controls -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12">
-                        <StackPanel Orientation="Horizontal" Spacing="4">
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpacingLarge}">
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                             <Button Content="{loc:Loc manuscript.viewModeManuscript}"
                                     Command="{Binding SetViewModeCommand}"
                                     CommandParameter="Manuscript"
                                     Classes="ribbonToggleLarge"
                                     Classes.active="{Binding IsManuscriptMode}"
-                                    Padding="10,5" FontSize="11" />
+                                    Padding="10,5" FontSize="{StaticResource FontSizeBodySmall}" />
                             <Button Content="{loc:Loc manuscript.viewModeCorkboard}"
                                     Command="{Binding SetViewModeCommand}"
                                     CommandParameter="Corkboard"
                                     Classes="ribbonToggleLarge"
                                     Classes.active="{Binding IsCorkboardMode}"
-                                    Padding="10,5" FontSize="11" />
+                                    Padding="10,5" FontSize="{StaticResource FontSizeBodySmall}" />
                             <Button Content="{loc:Loc manuscript.viewModeOutliner}"
                                     Command="{Binding SetViewModeCommand}"
                                     CommandParameter="Outliner"
                                     Classes="ribbonToggleLarge"
                                     Classes.active="{Binding IsOutlinerMode}"
-                                    Padding="10,5" FontSize="11" />
+                                    Padding="10,5" FontSize="{StaticResource FontSizeBodySmall}" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                         <Button Content="{loc:Loc manuscript.filterAll}"
                                 Command="{Binding SetFilterCommand}"
                                 CommandParameter="All"
                                 Classes="ribbonToggleLarge"
                                 Classes.active="{Binding FilterStatus, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=All}"
-                                Padding="10,5" FontSize="11" />
+                                Padding="10,5" FontSize="{StaticResource FontSizeBodySmall}" />
 
                         <Button Content="{loc:Loc manuscript.filterOutline}"
                                 Command="{Binding SetFilterCommand}"
                                 CommandParameter="Outline"
                                 Classes="ribbonToggleLarge"
                                 Classes.active="{Binding FilterStatus, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Outline}"
-                                Padding="10,5" FontSize="11" />
+                                Padding="10,5" FontSize="{StaticResource FontSizeBodySmall}" />
 
                         <Button Content="{loc:Loc manuscript.filterDraft}"
                                 Command="{Binding SetFilterCommand}"
                                 CommandParameter="FirstDraft"
                                 Classes="ribbonToggleLarge"
                                 Classes.active="{Binding FilterStatus, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=FirstDraft}"
-                                Padding="10,5" FontSize="11" />
+                                Padding="10,5" FontSize="{StaticResource FontSizeBodySmall}" />
 
                         <Button Content="{loc:Loc manuscript.filterFinal}"
                                 Command="{Binding SetFilterCommand}"
                                 CommandParameter="Final"
                                 Classes="ribbonToggleLarge"
                                 Classes.active="{Binding FilterStatus, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=Final}"
-                                Padding="10,5" FontSize="11" />
+                                Padding="10,5" FontSize="{StaticResource FontSizeBodySmall}" />
                         </StackPanel>
                     </StackPanel>
                 </Grid>
@@ -88,7 +88,7 @@
             <Border IsVisible="{Binding !HasContent}"
                     Padding="40">
                 <TextBlock Text="{loc:Loc manuscript.empty}"
-                           FontSize="14"
+                           FontSize="{StaticResource FontSizeTitleSmall}"
                            Foreground="{DynamicResource SubtleText}"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center" />
@@ -108,7 +108,7 @@
                             <DataTemplate DataType="vm:ManuscriptSection">
                                 <StackPanel Margin="0,0,0,18">
                                     <TextBlock Text="{Binding ChapterTitle}"
-                                               FontSize="14"
+                                               FontSize="{StaticResource FontSizeTitleSmall}"
                                                FontWeight="SemiBold"
                                                Margin="0,0,0,8"
                                                Foreground="{DynamicResource NormalText}" />
@@ -125,18 +125,18 @@
                                                         Background="{DynamicResource ExplorerBackground}"
                                                         BorderBrush="{DynamicResource CardBorder}"
                                                         BorderThickness="1"
-                                                        CornerRadius="4"
+                                                        CornerRadius="{StaticResource RadiusSmall}"
                                                         Padding="10">
                                                     <DockPanel>
                                                         <TextBlock DockPanel.Dock="Top"
                                                                    Text="{Binding Title}"
                                                                    FontWeight="SemiBold"
-                                                                   FontSize="12.5"
+                                                                   FontSize="{StaticResource FontSizeBody}"
                                                                    TextWrapping="NoWrap"
                                                                    TextTrimming="CharacterEllipsis"
                                                                    Foreground="{DynamicResource NormalText}" />
                                                         <TextBlock DockPanel.Dock="Bottom"
-                                                                   FontSize="10.5"
+                                                                   FontSize="{StaticResource FontSizeCaption}"
                                                                    Margin="0,4,0,0"
                                                                    Foreground="{DynamicResource SubtleText}">
                                                             <Run Text="{Binding WordCount}" />
@@ -150,7 +150,7 @@
                                                                  BorderThickness="0"
                                                                  Background="Transparent"
                                                                  Padding="0,4,0,0"
-                                                                 FontSize="11.5"
+                                                                 FontSize="{StaticResource FontSizeBodySmall}"
                                                                  Foreground="{DynamicResource NormalText}" />
                                                     </DockPanel>
                                                 </Border>

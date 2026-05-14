@@ -74,7 +74,7 @@
                                                   IsVisible="{Binding IsUserSource}" />
                                     </ContextMenu>
                                 </Button.ContextMenu>
-                                <TextBlock Text="{Binding Icon}" FontSize="14" />
+                                <TextBlock Text="{Binding Icon}" FontSize="{StaticResource FontSizeTitleSmall}" />
                             </Button>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -85,7 +85,7 @@
                         Classes="explorerTab"
                         ToolTip.Tip="{loc:Loc entityPanel.newEntityType}"
                         Padding="8,4">
-                    <TextBlock Text="+" FontSize="14" FontWeight="Bold" />
+                    <TextBlock Text="+" FontSize="{StaticResource FontSizeTitleSmall}" FontWeight="Bold" />
                 </Button>
             </StackPanel>
             </ScrollViewer>
@@ -93,10 +93,10 @@
             <!-- Create button -->
             <Border DockPanel.Dock="Top" Margin="8,0,8,4">
                 <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
-                        Classes="ribbonButton" Padding="6,4" FontSize="12"
+                        Classes="ribbonButton" Padding="6,4" FontSize="{StaticResource FontSizeBody}"
                         x:Name="CreateButton">
                     <Button.Content>
-                        <StackPanel Orientation="Horizontal" Spacing="4">
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}">
                             <TextBlock Text="+" FontWeight="Bold" />
                             <TextBlock Text="{loc:Loc entityPanel.new}" />
                         </StackPanel>
@@ -107,16 +107,16 @@
             <!-- Character grouping toggle -->
             <Border DockPanel.Dock="Top" Margin="8,0,8,6"
                     IsVisible="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}">
-                <StackPanel Spacing="4">
+                <StackPanel Spacing="{StaticResource SpacingTighter}">
                     <TextBlock Text="{loc:Loc entityPanel.groupBy}"
                                Margin="2,0,0,0"
-                               FontSize="10"
+                               FontSize="{StaticResource FontSizeCaption}"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}" />
                     <Border Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"
                             BorderThickness="1"
-                            CornerRadius="6"
+                            CornerRadius="{StaticResource RadiusMedium}"
                             Padding="2">
                         <Grid ColumnDefinitions="*,*">
                             <Button Grid.Column="0" Content="{loc:Loc entityPanel.role}"
@@ -150,14 +150,14 @@
                                         Background="{DynamicResource CardBackground}"
                                         BorderBrush="{DynamicResource CardBorder}"
                                         BorderThickness="1"
-                                        CornerRadius="4"
+                                        CornerRadius="{StaticResource RadiusSmall}"
                                         Tag="{Binding}"
                                         DragDrop.AllowDrop="True"
                                         DragDrop.DragOver="OnCharacterGroupDragOver"
                                         DragDrop.DragLeave="OnDragLeave"
                                         DragDrop.Drop="OnCharacterGroupDrop">
                                     <TextBlock Text="{Binding Title}"
-                                               FontSize="11"
+                                               FontSize="{StaticResource FontSizeBodySmall}"
                                                FontWeight="SemiBold"
                                                Foreground="{DynamicResource DimText}" />
                                 </Border>
@@ -169,7 +169,7 @@
                                                     Width="260"
                                                     Margin="0,1"
                                                     Background="{Binding IsSelected, Converter={StaticResource BoolToSelectedBrush}}"
-                                                    CornerRadius="4"
+                                                    CornerRadius="{StaticResource RadiusSmall}"
                                                     Padding="8,6"
                                                     PointerPressed="OnCharacterPointerPressed"
                                                     PointerMoved="OnCharacterPointerMoved">
@@ -191,7 +191,7 @@
                                                 </Border.ContextMenu>
                                                 <Grid ColumnDefinitions="*,Auto,Auto">
                                                     <TextBlock Text="{Binding DisplayName}"
-                                                               FontSize="12"
+                                                               FontSize="{StaticResource FontSizeBody}"
                                                                Foreground="{DynamicResource NormalText}"
                                                                TextTrimming="CharacterEllipsis"
                                                                VerticalAlignment="Center" />
@@ -203,18 +203,18 @@
                                                             IsVisible="{Binding IsWorldBible}"
                                                             ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                                         <TextBlock Text="{loc:Loc book.wbBadge}"
-                                                                   FontSize="9"
+                                                                   FontSize="{StaticResource FontSizeTiny}"
                                                                    Foreground="White"
                                                                    VerticalAlignment="Center" />
                                                     </Border>
                                                     <Border Grid.Column="2"
                                                             Margin="4,0,0,0"
                                                             Padding="6,2"
-                                                            CornerRadius="4"
+                                                            CornerRadius="{StaticResource RadiusSmall}"
                                                             Background="{Binding GenderBadgeBackground}"
                                                             IsVisible="{Binding HasGender}">
                                                         <TextBlock Text="{Binding Gender}"
-                                                                   FontSize="10"
+                                                                   FontSize="{StaticResource FontSizeCaption}"
                                                                    Foreground="{DynamicResource NormalText}"
                                                                    VerticalAlignment="Center" />
                                                     </Border>
@@ -279,7 +279,7 @@
                             <Grid ColumnDefinitions="*,Auto,Auto">
                                 <TextBlock Grid.Column="0"
                                            Text="{Binding Location.Name}"
-                                           FontSize="12"
+                                           FontSize="{StaticResource FontSizeBody}"
                                            Foreground="{DynamicResource NormalText}"
                                            TextTrimming="CharacterEllipsis"
                                            VerticalAlignment="Center" />
@@ -291,13 +291,13 @@
                                         IsVisible="{Binding IsWorldBible}"
                                         ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                     <TextBlock Text="{loc:Loc book.wbBadge}"
-                                               FontSize="9"
+                                               FontSize="{StaticResource FontSizeTiny}"
                                                Foreground="White"
                                                VerticalAlignment="Center" />
                                 </Border>
                                 <TextBlock Grid.Column="2"
                                            Text="{Binding Location.Type}"
-                                           FontSize="10"
+                                           FontSize="{StaticResource FontSizeCaption}"
                                            Foreground="{DynamicResource SubtleText}"
                                            VerticalAlignment="Center"
                                            Margin="8,0,0,0" />
@@ -334,7 +334,7 @@
                                 </Button.ContextMenu>
                                 <DockPanel>
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding Type}"
-                                               FontSize="10" Foreground="{DynamicResource SubtleText}"
+                                               FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource SubtleText}"
                                                VerticalAlignment="Center" Margin="8,0,0,0" />
                                     <Border DockPanel.Dock="Right"
                                             Margin="4,0,0,0"
@@ -344,11 +344,11 @@
                                             IsVisible="{Binding IsWorldBible}"
                                             ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                         <TextBlock Text="{loc:Loc book.wbBadge}"
-                                                   FontSize="9"
+                                                   FontSize="{StaticResource FontSizeTiny}"
                                                    Foreground="White"
                                                    VerticalAlignment="Center" />
                                     </Border>
-                                    <TextBlock Text="{Binding Name}" FontSize="12"
+                                    <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSizeBody}"
                                                Foreground="{DynamicResource NormalText}" />
                                 </DockPanel>
                             </Button>
@@ -384,7 +384,7 @@
                                 </Button.ContextMenu>
                                 <DockPanel>
                                     <TextBlock DockPanel.Dock="Right" Text="{Binding Category}"
-                                               FontSize="10" Foreground="{DynamicResource SubtleText}"
+                                               FontSize="{StaticResource FontSizeCaption}" Foreground="{DynamicResource SubtleText}"
                                                VerticalAlignment="Center" Margin="8,0,0,0" />
                                     <Border DockPanel.Dock="Right"
                                             Margin="4,0,0,0"
@@ -394,11 +394,11 @@
                                             IsVisible="{Binding IsWorldBible}"
                                             ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                         <TextBlock Text="{loc:Loc book.wbBadge}"
-                                                   FontSize="9"
+                                                   FontSize="{StaticResource FontSizeTiny}"
                                                    Foreground="White"
                                                    VerticalAlignment="Center" />
                                     </Border>
-                                    <TextBlock Text="{Binding Name}" FontSize="12"
+                                    <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSizeBody}"
                                                Foreground="{DynamicResource NormalText}" />
                                 </DockPanel>
                             </Button>
@@ -442,11 +442,11 @@
                                             IsVisible="{Binding IsWorldBible}"
                                             ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                         <TextBlock Text="{loc:Loc book.wbBadge}"
-                                                   FontSize="9"
+                                                   FontSize="{StaticResource FontSizeTiny}"
                                                    Foreground="White"
                                                    VerticalAlignment="Center" />
                                     </Border>
-                                    <TextBlock Text="{Binding Name}" FontSize="12"
+                                    <TextBlock Text="{Binding Name}" FontSize="{StaticResource FontSizeBody}"
                                                Foreground="{DynamicResource NormalText}" />
                                 </DockPanel>
                             </Button>
