@@ -152,6 +152,7 @@ Click the **building tool** in the tool rail and pick a type from the menu. A pr
 
 - Press **R** to re-roll — each building type generates a random fitting footprint, so no two are identical.
 - Move near a road and the building **snaps** parallel and offset to the road edge (any layer's roads). Hold **Shift** to place freely.
+- **Rotate before placing:** hold the **right mouse button** (or just hold **Shift**) and scroll the **mouse wheel** — the preview rotates in 5° steps, or 15° steps with **Shift** held during the wheel. The rotation adds on top of the road-snap angle when snapped, or replaces it when free-placing.
 - **Left-click** drops the building; the tool stays active so you can keep placing. **Esc** exits.
 
 New buildings land on the active layer. Select a building (edit mode, building tool off) → a **Building** properties panel appears at the bottom of the layer panel:
@@ -295,11 +296,14 @@ The **3D** toggle in the map toolbar flips the editor between the flat 2D map an
 
 - **Buildings** stand up: walls extruded to `floor count x floor height`, with a real sloped roof on top (gable, hip, or flat) shaded by the roof pitch. Fly inside to see the interior — per-floor slabs, interior walls, doors and windows, and stairs (with stairwell holes cut through the ceilings). Floor labels and pins show as billboards.
 - **Terrain** shapes lie flat on the ground in their colours; **roads** render as flat ribbons following their curves; **base map images** become textured ground under everything.
+- **Grass** terrain shapes get a procedural sprinkling of instanced blades on top of the flat fill. Blades pick their colour from the shape's fill, vary in yaw, scale and tint, and sway in a continuous wind shader — so a grass region reads as a living meadow without any per-blade authoring.
 - **Rivers and closed water bodies** use a live water shader — flowing ripples that reflect and refract the surrounding scene, tinted by the spline's fill colour. The bed is faked in the shader: the water darkens and the refracted scene shifts with a depth-based parallax toward the interior, so it reads as a recessed basin (deepest along a river's centreline, toward the middle of a lake) with no carved terrain.
 - **Pins** show as upright markers with their label; **labels** as camera-facing text.
 - Hidden layers and Isolate are respected; per-layer opacity and zoom ranges are ignored in 3D.
 
 The 3D view needs **WebGPU**, which a current system WebView2 runtime provides. If WebGPU is unavailable, the 3D view shows a short message instead of rendering — update the WebView2 runtime, or keep working in the 2D map.
+
+When you switch to 3D the editor first shows a **loading overlay** (progress bar + status text) while the renderer warms up, tree GLB + canopy textures load, and the grass/tree instance buffers are filled. The WebView is hidden until the scene is ready so you never see a half-built frame; the overlay then dismisses itself.
 
 **Camera** — click the view to capture the mouse, then fly freely: `W` / `A` / `S` / `D` to move, `Q` / `E` down / up, mouse to look, `Shift` to move faster, `Esc` to release the mouse. There is no collision — fly straight through walls to inspect interiors.
 

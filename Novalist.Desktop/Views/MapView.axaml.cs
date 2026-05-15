@@ -244,7 +244,52 @@ public partial class MapView : UserControl
         _vm.AddImageRequested = (relPath, w, h) =>
             ExecuteScript($"addImageToMap('{EscapeJs(relPath)}', {w.ToString(System.Globalization.CultureInfo.InvariantCulture)}, {h.ToString(System.Globalization.CultureInfo.InvariantCulture)})");
         _vm.RequestMapJsonFromViewAsync = RequestMapJsonAsync;
-        _vm.PushToggle3D = on => ExecuteScript(on ? "Map3D.enter()" : "Map3D.exit()");
+        _vm.PushToggle3D = on =>
+        {
+            if (on)
+            {
+                // Start the loading overlay BEFORE the WebView is asked to
+                // build, and hide the WebView so the user doesn't see a
+                // black canvas while assets load.
+                _vm.Is3DLoading = true;
+                _vm.Loading3DProgress = 0.0;
+                _vm.Loading3DStatus = Localization.Loc.T("map.loading3DInitialising");
+                if (_webView != null) _webView.IsVisible = false;
+            }
+            else
+            {
+                // Exiting back to 2D — make sure the overlay is dismissed.
+                _vm.Is3DLoading = false;
+            }
+            ExecuteScript(on ? "Map3D.enter()" : "Map3D.exit()");
+        };
+    }
+
+    // Steps map3d.js emits during enter(). Each one bumps progress + updates
+    // the loading overlay's status text. Order MUST match the JS sequence in
+    // map3d.js Map3D.enter().
+    private void UpdateLoadingFromStep(string? step)
+    {
+        if (_vm == null) return;
+        switch (step)
+        {
+            case "before-build":
+                _vm.Loading3DProgress = 0.10;
+                _vm.Loading3DStatus = Localization.Loc.T("map.loading3DAssets");
+                break;
+            case "after-tree-assets":
+                _vm.Loading3DProgress = 0.55;
+                _vm.Loading3DStatus = Localization.Loc.T("map.loading3DScene");
+                break;
+            case "after-build":
+                _vm.Loading3DProgress = 0.85;
+                _vm.Loading3DStatus = Localization.Loc.T("map.loading3DCamera");
+                break;
+            case "after-frame":
+                _vm.Loading3DProgress = 0.95;
+                _vm.Loading3DStatus = Localization.Loc.T("map.loading3DAlmost");
+                break;
+        }
     }
 
     private void OnNavCompleted(object? sender, WebViewNavigationCompletedEventArgs e)
@@ -480,6 +525,52 @@ public partial class MapView : UserControl
                 case "log":
                     var txt = doc.RootElement.TryGetProperty("text", out var tp) ? tp.GetString() : null;
                     Console.Error.WriteLine($"[MapJS] {txt}");
+                    break;
+                case "map3dStep":
+                    var step = doc.RootElement.TryGetProperty("step", out var sp) ? sp.GetString() : null;
+                    Console.Error.WriteLine($"[Map3D] step={step}");
+                    UpdateLoadingFromStep(step);
+                    break;
+                case "map3dLoading":
+                    Console.Error.WriteLine("[Map3D] loading");
+                    if (_vm != null)
+                    {
+                        _vm.Is3DLoading = true;
+                        _vm.Loading3DProgress = 0.05;
+                        _vm.Loading3DStatus = "Loading 3D view…";
+                    }
+                    if (_webView != null) _webView.IsVisible = false;
+                    break;
+                case "map3dEntered":
+                    Console.Error.WriteLine("[Map3D] entered");
+                    if (_vm != null)
+                    {
+                        _vm.Loading3DProgress = 1.0;
+                        _vm.Loading3DStatus = Localization.Loc.T("map.loading3DReady");
+                        _vm.Is3DLoading = false;
+                    }
+                    if (_webView != null) _webView.IsVisible = true;
+                    break;
+                case "map3dExited":
+                    if (_vm != null) _vm.Is3DLoading = false;
+                    if (_webView != null) _webView.IsVisible = true;
+                    break;
+                case "map3dError":
+                    var errMsg = doc.RootElement.TryGetProperty("message", out var em)
+                        ? em.GetString() ?? "(unknown)"
+                        : "(unknown)";
+                    Console.Error.WriteLine($"[Map3D] ERROR: {errMsg}");
+                    Toast.Show?.Invoke(
+                        Localization.Loc.T("map.loading3DError", errMsg),
+                        ToastSeverity.Error);
+                    if (_vm != null)
+                    {
+                        _vm.Is3DLoading = false;
+                        // Flip back to 2D — setter triggers PushToggle3D(false),
+                        // which calls Map3D.exit() so the JS side tears down too.
+                        _vm.Is3DMode = false;
+                    }
+                    if (_webView != null) _webView.IsVisible = true;
                     break;
             }
         }

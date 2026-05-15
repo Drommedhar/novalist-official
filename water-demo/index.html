@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Water shader demo</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #1c2530; overflow: hidden;
+    font-family: "Segoe UI", system-ui, sans-serif; color: #e8e8e8; }
+  canvas { display: block; width: 100%; height: 100%; }
+  #hud {
+    position: fixed; top: 8px; left: 8px; padding: 8px 10px;
+    background: rgba(0, 0, 0, 0.55); border-radius: 6px; font-size: 12px;
+    line-height: 1.45; pointer-events: none;
+  }
+  #hud b { color: #9ec7e0; }
+  #err {
+    position: fixed; bottom: 8px; left: 8px; right: 8px; padding: 10px;
+    background: #5a1b1b; border-radius: 6px; font-size: 12px; display: none;
+    white-space: pre-wrap; max-height: 40vh; overflow: auto;
+  }
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<div id="hud">
+  <b>Water shader demo</b><br>
+  drag = orbit / wheel = zoom / shift+drag = pan<br>
+  cubes cast shadows on the water — caustics under them should dim.
+</div>
+<div id="err"></div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "../Novalist.Desktop/Assets/Map/three.webgpu.min.js",
+    "three/webgpu": "../Novalist.Desktop/Assets/Map/three.webgpu.min.js",
+    "three/tsl": "../Novalist.Desktop/Assets/Map/three.tsl.min.js"
+  }
+}
+</script>
+<script>
+// Surface fatal errors on screen so they aren't hidden behind DevTools.
+window.addEventListener('error', function (e) {
+  const el = document.getElementById('err');
+  el.textContent = '[error] ' + (e.message || e.error || e);
+  el.style.display = 'block';
+});
+window.addEventListener('unhandledrejection', function (e) {
+  const el = document.getElementById('err');
+  el.textContent = '[unhandled] ' + (e.reason && e.reason.stack || e.reason);
+  el.style.display = 'block';
+});
+</script>
+<script type="module" src="main.js"></script>
+</body>
+</html>

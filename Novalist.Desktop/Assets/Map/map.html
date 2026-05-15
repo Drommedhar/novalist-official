@@ -334,6 +334,19 @@ body.mode-view .nv-image { pointer-events: none; }
     border-radius: 4px;
     pointer-events: none;
 }
+#hud3d {
+    position: fixed; left: 12px; top: 12px;
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    font-family: ui-monospace, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    line-height: 1.35;
+    padding: 6px 10px;
+    border-radius: 4px;
+    pointer-events: none;
+    white-space: pre;
+    display: none;
+}
 </style>
 </head>
 <body class="mode-edit">
@@ -346,12 +359,14 @@ body.mode-view .nv-image { pointer-events: none; }
 </div>
 <canvas id="stage3d"></canvas>
 <div id="hud">Map</div>
+<div id="hud3d"></div>
 <script type="importmap">
 {
   "imports": {
     "three": "./three.webgpu.min.js",
     "three/webgpu": "./three.webgpu.min.js",
-    "three/tsl": "./three.tsl.min.js"
+    "three/tsl": "./three.tsl.min.js",
+    "lil-gui": "./lil-gui.module.min.js"
   }
 }
 </script>
@@ -744,7 +759,11 @@ function log(msg) {
     sendMessage({ type: 'log', text: String(msg) });
 }
 
-window.addEventListener('error', e => log('window.error: ' + e.message + ' @ ' + e.filename + ':' + e.lineno));
+window.addEventListener('error', e => log('window.error: ' + e.message + ' @ ' + e.filename + ':' + e.lineno + (e.error && e.error.stack ? '\n' + e.error.stack : '')));
+window.addEventListener('unhandledrejection', e => {
+    const r = e && e.reason;
+    log('unhandledrejection: ' + (r && r.stack ? r.stack : (r && r.message ? r.message : String(r))));
+});
 
 let lastZoomApplied = -1;
 function applyTransform() {
@@ -2851,6 +2870,12 @@ let buildingDraft = null;       // { type, footprint, rotation, x, y } — place
 let buildingEdit = null;        // { buildingId } — selected building
 let buildingDraftType = 'singleFamily';
 let buildingScale = 1;          // global placement-size multiplier (host toolbar)
+// Manual rotation offset applied to the placement preview, in degrees. Driven
+// by mouse-wheel while the right mouse button is held during building
+// placement (see stage wheel handler). Added on top of the road snap angle
+// when snapping; replaces the angle entirely when free-placing (shift held).
+let buildingDraftRotation = 0;
+let buildingRotatingRMB = false; // true while RMB is held during placement
 let floorPlanEdit = null;       // { buildingId } — editing a building's floor plan
 let floorPlanTool = 'select';   // 'select' | 'wall'
 let wallDraft = null;           // { points:[{x,y}] } — wall chain being drawn
@@ -2934,7 +2959,8 @@ window.setBuildingDraftType = (type) => {
 };
 
 // Roll a fresh random footprint for the placement preview, keeping the cursor
-// position. Bound to the re-roll hotkey + the type picker.
+// position. Bound to the re-roll hotkey + the type picker. Resets the manual
+// rotation so each new draft starts road-aligned (or 0°).
 function rollBuildingDraft() {
     const rng = mulberry32((Math.random() * 0xffffffff) >>> 0);
     const prev = buildingDraft || {};
@@ -2947,6 +2973,7 @@ function rollBuildingDraft() {
         rotation: 0,
         x: prev.x || 0, y: prev.y || 0,
     };
+    buildingDraftRotation = 0;
     renderBuildingDraft();
 }
 
@@ -2965,7 +2992,11 @@ function buildingWorldPoints(b) {
 // Shift on the move event suppresses it (free placement), like knot snapping.
 function attachBuildingToRoads(b, wx, wy, shift) {
     b.rotation = 0;
-    if (shift) { b.x = wx; b.y = wy; return; }
+    if (shift) {
+        b.x = wx; b.y = wy;
+        b.rotation = buildingDraftRotation; // free placement → user angle
+        return;
+    }
     let best = null, bestD = 90 / zoom;
     walkNodes(mapData.layers, node => {
         for (const sp of node.splines || []) {
@@ -2979,7 +3010,12 @@ function attachBuildingToRoads(b, wx, wy, shift) {
             }
         }
     });
-    if (!best) { b.x = wx; b.y = wy; return; }
+    if (!best) {
+        // No road in range → free placement with user-controlled rotation.
+        b.x = wx; b.y = wy;
+        b.rotation = buildingDraftRotation;
+        return;
+    }
     const dx = best.c.x - best.a.x, dy = best.c.y - best.a.y;
     const len2 = dx * dx + dy * dy || 1;
     let t = ((wx - best.a.x) * dx + (wy - best.a.y) * dy) / len2;
@@ -2989,7 +3025,8 @@ function attachBuildingToRoads(b, wx, wy, shift) {
     let normX = -tny, normY = tnx;
     if ((wx - nx) * normX + (wy - ny) * normY < 0) { normX = -normX; normY = -normY; }
     const halfW = ((best.a.w || 24) + (best.c.w || 24)) / 4;
-    b.rotation = Math.atan2(tny, tnx) * 180 / Math.PI + 90; // front faces the road
+    // Front faces the road, plus the user's wheel-driven offset.
+    b.rotation = Math.atan2(tny, tnx) * 180 / Math.PI + 90 + buildingDraftRotation;
     // Project the rotated footprint onto the road normal: the most-negative
     // projection is the vertex reaching furthest toward the road. Offset the
     // building so that vertex sits `margin` past the road edge → no overlap.
@@ -4728,6 +4765,22 @@ window.addEventListener('mouseup', () => {
 });
 stage.addEventListener('wheel', (e) => {
     e.preventDefault();
+    // Building placement: when the right mouse button is held OR Shift is
+    // held, the wheel rotates the placement preview instead of zooming. 15°
+    // step with Shift (snap), otherwise 5°.
+    if (toolMode === 'building' && buildingDraft
+            && (buildingRotatingRMB || e.shiftKey)) {
+        const dir = e.deltaY < 0 ? 1 : -1;
+        const step = e.shiftKey ? 15 : 5;
+        buildingDraftRotation = (buildingDraftRotation + dir * step) % 360;
+        // Re-attach + re-render at the current cursor world position so the
+        // preview reflects the new angle immediately.
+        const wx = (e.clientX - pan.x) / zoom;
+        const wy = (e.clientY - pan.y) / zoom;
+        attachBuildingToRoads(buildingDraft, wx, wy, e.shiftKey);
+        renderBuildingDraft();
+        return;
+    }
     const factor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
     const wx = (e.clientX - pan.x) / zoom;
     const wy = (e.clientY - pan.y) / zoom;
@@ -4738,6 +4791,19 @@ stage.addEventListener('wheel', (e) => {
     mapData.initialView = { centerX: pan.x, centerY: pan.y, zoom: zoom };
     sendMessage({ type: 'viewChanged', centerX: pan.x, centerY: pan.y, zoom: zoom });
 }, { passive: false });
+
+// Track RMB hold while placing a building so the wheel handler knows when
+// to rotate vs zoom. Released on mouseup OR if focus leaves the window.
+stage.addEventListener('mousedown', (e) => {
+    if (e.button === 2 && toolMode === 'building' && buildingDraft) {
+        buildingRotatingRMB = true;
+        e.preventDefault();
+    }
+});
+window.addEventListener('mouseup', (e) => {
+    if (e.button === 2) buildingRotatingRMB = false;
+});
+window.addEventListener('blur', () => { buildingRotatingRMB = false; });
 
 // Host API
 window.setMapData = setMapData;

@@ -393,6 +393,31 @@
                                Foreground="{DynamicResource SubtleText}"
                                FontSize="{StaticResource FontSizeTitleSmall}" />
                 </Border>
+                <!-- 3D loading overlay. Shown over the WebView while assets
+                     load + scene builds, hidden once Map3D.enter() reports
+                     ready. Sits last in Grid.Children so it's on top. -->
+                <Border x:Name="Loading3DOverlay"
+                        Background="{DynamicResource EditorBackground}"
+                        IsVisible="{Binding Is3DLoading}">
+                    <StackPanel HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Spacing="{StaticResource SpacingMedium}">
+                        <TextBlock Text="{loc:Loc map.loading3DTitle}"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource PrimaryText}"
+                                   FontSize="{StaticResource FontSizeTitle}"
+                                   FontWeight="{StaticResource FontWeightTitle}" />
+                        <TextBlock Text="{Binding Loading3DStatus}"
+                                   HorizontalAlignment="Center"
+                                   Foreground="{DynamicResource SubtleText}"
+                                   FontSize="{StaticResource FontSizeBody}" />
+                        <ProgressBar Width="320"
+                                     Minimum="0"
+                                     Maximum="1"
+                                     Value="{Binding Loading3DProgress}"
+                                     IsIndeterminate="False" />
+                    </StackPanel>
+                </Border>
             </Grid>
         </DockPanel>
 

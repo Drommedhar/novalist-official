@@ -67,6 +67,18 @@ public partial class MapViewModel : ObservableObject
     [ObservableProperty]
     private bool _is3DMode;
 
+    /// <summary>True while the 3D view is initialising — WebView is hidden, loading overlay shown.</summary>
+    [ObservableProperty]
+    private bool _is3DLoading;
+
+    /// <summary>Human-readable description of the current 3D load step.</summary>
+    [ObservableProperty]
+    private string _loading3DStatus = "Preparing 3D view…";
+
+    /// <summary>0..1 progress through the 3D load sequence.</summary>
+    [ObservableProperty]
+    private double _loading3DProgress;
+
     /// <summary>Host-supplied: enter/exit the WebView 3D view.</summary>
     public Action<bool>? PushToggle3D { get; set; }
 

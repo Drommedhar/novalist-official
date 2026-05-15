@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(dotnet build *)",
+      "Bash(grep *)",
       "Bash(Get-ChildItem -Path \"j:\\\\git\\\\novalist-official\\\\Novalist.Desktop\\\\Views\\\\\" -Filter \"*.axaml\" -Recurse | Select-Object -ExpandProperty FullName)",
       "Bash(grep -r \"#[A-Fa-f0-9]\\\\{6,8\\\\}\" ./Novalist.Desktop --include=\"*.axaml\")",
       "Bash(grep -rn '#[A-Fa-f0-9]\\\\{6,8\\\\}' ./Novalist.Desktop/Views --include=\"*.axaml\")",

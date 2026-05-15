@@ -78,6 +78,11 @@ class WaterNode extends TempNode {
 		this.scale2 = uniform( options.scale2 !== undefined ? options.scale2 : 1.7 );
 		// Ripple-distortion applied to the reflection vs the refraction.
 		this._reflectDistort = options.reflectDistort !== undefined ? options.reflectDistort : 1;
+		// When true, the refraction sampler is replaced with the flat water
+		// colour so the surface output reads as pure reflection-on-opaque
+		// (no underlying landscape bleed). Host wrapper layers its own depth
+		// tint underneath for the actual water body colour.
+		this._reflectionOnly = options.reflectionOnly === true;
 		this.flowConfig = uniform( new Vector3() );
 
 		this.updateBeforeType = NodeUpdateType.RENDER;
@@ -186,8 +191,21 @@ class WaterNode extends TempNode {
 			// down (0 = calm reflection, 1 = upstream behaviour).
 			reflectionSampler.uvNode = reflectionSampler.uvNode.add( offset.mul( this._reflectDistort ) );
 
-			const refractorUV = screenUV.add( offset );
-			const refractionSampler = viewportSharedTexture( viewportSafeUV( refractorUV ) );
+			let refractionSampler;
+			if ( this._reflectionOnly ) {
+
+				// Reflection-only mode: refraction "samples" pure water colour
+				// instead of the screen behind. The host wrapper supplies the
+				// real water tint underneath; this output is reflection layered
+				// on top by fresnel.
+				refractionSampler = vec4( this.color, 1.0 );
+
+			} else {
+
+				const refractorUV = screenUV.add( offset );
+				refractionSampler = viewportSharedTexture( viewportSafeUV( refractorUV ) );
+
+			}
 
 			// calculate final uv coords
 
