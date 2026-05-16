@@ -8,6 +8,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Platform;
+using Novalist.Desktop.Utilities;
 using Novalist.Sdk.Models;
 
 namespace Novalist.Desktop.Services;
@@ -25,6 +26,20 @@ public sealed class ThemeService
 
     public IReadOnlyList<ThemeInfo> AvailableThemes => _availableThemes;
     public string ActiveThemeName { get; private set; } = "Default";
+
+    /// <summary>
+    /// Fires whenever the active theme dictionary changes — either a full
+    /// <see cref="ApplyTheme"/> swap or an <see cref="ApplyAccentColor"/>
+    /// override. WebView-bridged views (EditorView, ManuscriptView, MapView)
+    /// subscribe to this to push the new palette into their embedded HTML.
+    /// </summary>
+    public event Action? ThemeChanged;
+
+    private void RaiseThemeChanged()
+    {
+        try { ThemeChanged?.Invoke(); }
+        catch (Exception ex) { Log.Error("ThemeChanged handler threw", ex); }
+    }
 
     public ThemeService()
     {
@@ -140,9 +155,9 @@ public sealed class ThemeService
         var mergedDicts = app.Resources.MergedDictionaries;
 
         // Debug: log what's in MergedDictionaries
-        Console.Error.WriteLine($"[ThemeService] ApplyTheme({themeName}), MergedDictionaries count: {mergedDicts.Count}");
+        Log.Debug($"[ThemeService] ApplyTheme({themeName}), MergedDictionaries count: {mergedDicts.Count}");
         foreach (var d in mergedDicts)
-            Console.Error.WriteLine($"[ThemeService]   Entry: {d.GetType().FullName}, IsResourceInclude={d is ResourceInclude}, Source={(d as ResourceInclude)?.Source}");
+            Log.Debug($"[ThemeService]   Entry: {d.GetType().FullName}, IsResourceInclude={d is ResourceInclude}, Source={(d as ResourceInclude)?.Source}");
 
         // Lazily capture the original theme dictionary from App.axaml on first call
         if (_originalInclude == null)
@@ -156,7 +171,7 @@ public sealed class ThemeService
                 .FirstOrDefault(d => d != _activeOverride && d != _accentOverride
                     && d.ContainsKey("RibbonBackground"));
         }
-        Console.Error.WriteLine($"[ThemeService] _originalInclude is {(_originalInclude == null ? "NULL" : "found (" + _originalInclude.GetType().Name + ")")}");
+        Log.Debug($"[ThemeService] _originalInclude is {(_originalInclude == null ? "NULL" : "found (" + _originalInclude.GetType().Name + ")")}");
 
 
         // Remove previous override
@@ -179,6 +194,7 @@ public sealed class ThemeService
             if (_originalInclude != null && !mergedDicts.Contains(_originalInclude))
                 mergedDicts.Add(_originalInclude);
             ActiveThemeName = "Default";
+            RaiseThemeChanged();
             return;
         }
 
@@ -198,15 +214,16 @@ public sealed class ThemeService
                 mergedDicts.Add(overrideDict);
                 _activeOverride = overrideDict;
                 ActiveThemeName = themeName;
-                Console.Error.WriteLine($"[ThemeService] Successfully applied built-in theme '{themeName}', overrideDict has {overrideDict.Count} entries");
+                Log.Debug($"[ThemeService] Successfully applied built-in theme '{themeName}', overrideDict has {overrideDict.Count} entries");
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"[ThemeService] Failed to load built-in theme '{themeName}': {ex}");
+                Log.Error($"[ThemeService] Failed to load built-in theme '{themeName}'", ex);
                 if (_originalInclude != null && !mergedDicts.Contains(_originalInclude))
                     mergedDicts.Add(_originalInclude);
                 ActiveThemeName = "Default";
             }
+            RaiseThemeChanged();
             return;
         }
 
@@ -232,6 +249,7 @@ public sealed class ThemeService
                 mergedDicts.Add(_originalInclude);
             ActiveThemeName = "Default";
         }
+        RaiseThemeChanged();
     }
 
     /// <summary>
@@ -270,6 +288,7 @@ public sealed class ThemeService
 
         mergedDicts.Add(dict);
         _accentOverride = dict;
+        RaiseThemeChanged();
     }
 
     private static Color LightenColor(Color c, double amount)

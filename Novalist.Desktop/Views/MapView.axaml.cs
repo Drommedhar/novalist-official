@@ -113,7 +113,7 @@ public partial class MapView : UserControl
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[MapView] WebView create failed: {ex}");
+            Log.Debug($"[MapView] WebView create failed: {ex}");
             _webView = null;
         }
     }
@@ -276,6 +276,12 @@ public partial class MapView : UserControl
             }
             ExecuteScript(on ? "Map3D.enter()" : "Map3D.exit()");
         };
+
+        // If the WebView's "ready" event already fired before the host wired
+        // PushEntityOptions onto the VM, the initial push was a no-op. Re-push
+        // now so the entity picker has its options populated.
+        if (_webViewReady)
+            _ = PushEntityOptionsAsync();
     }
 
     // Steps map3d.js emits during enter(). Each one bumps progress + updates
@@ -478,6 +484,7 @@ public partial class MapView : UserControl
             pinLabelWatermark = Localization.Loc.T("map.pinLabelWatermark"),
             pinEntity = Localization.Loc.T("map.pinEntity"),
             pinEntityWatermark = Localization.Loc.T("map.pinEntityWatermark"),
+            pinEntityNoResults = Localization.Loc.T("map.pinEntityNoResults"),
             pinColor = Localization.Loc.T("map.pinColor"),
             labelFontSize = Localization.Loc.T("map.labelFontSize"),
             labelColor = Localization.Loc.T("map.labelColor"),
@@ -518,7 +525,7 @@ public partial class MapView : UserControl
     {
         if (_vm == null) return;
         var bookRoot = App.ProjectService.ActiveBookRoot;
-        if (bookRoot == null) { Console.Error.WriteLine("[MapView] PushImageBaseUrl: bookRoot is null"); return; }
+        if (bookRoot == null) { Log.Debug("[MapView] PushImageBaseUrl: bookRoot is null"); return; }
         // Image paths are stored relative to the book root (e.g. "Images/foo.png"),
         // matching the convention used by EntityService.GetProjectImages.
         // On macOS the page origin is http://127.0.0.1:<port> (see
@@ -533,8 +540,8 @@ public partial class MapView : UserControl
 
     private void PushMapJson(string json)
     {
-        if (!_webViewReady) { _pendingMapJson = json; Console.Error.WriteLine("[MapView] PushMapJson queued (webview not ready)"); return; }
-        Console.Error.WriteLine($"[MapView] PushMapJson length={json?.Length ?? 0}");
+        if (!_webViewReady) { _pendingMapJson = json; Log.Debug("[MapView] PushMapJson queued (webview not ready)"); return; }
+        Log.Debug($"[MapView] PushMapJson length={json?.Length ?? 0}");
         PushImageBaseUrl();
         ExecuteScript($"setMapData({JsonSerializer.Serialize(json)})");
     }
@@ -565,7 +572,7 @@ public partial class MapView : UserControl
             switch (type)
             {
                 case "ready":
-                    Console.Error.WriteLine("[MapView] JS ready");
+                    Log.Debug("[MapView] JS ready");
                     _webViewReady = true;
                     PushImageBaseUrl();
                     PushContextMenuLabels();
@@ -574,7 +581,7 @@ public partial class MapView : UserControl
                     if (_pendingMode != null) { var p = _pendingMode; _pendingMode = null; PushMode(p); }
                     break;
                 case "mapChanged":
-                    Console.Error.WriteLine("[MapView] JS mapChanged");
+                    Log.Debug("[MapView] JS mapChanged");
                     _ = HandleMapChangedAsync();
                     break;
                 case "pinClick":
@@ -613,7 +620,7 @@ public partial class MapView : UserControl
                     _vm?.SetSelectedPin(null, null);
                     break;
                 case "toast":
-                    Console.Error.WriteLine("[MapView] toast: " + (doc.RootElement.TryGetProperty("text", out var tt) ? tt.GetString() : ""));
+                    Log.Debug("[MapView] toast: " + (doc.RootElement.TryGetProperty("text", out var tt) ? tt.GetString() : ""));
                     break;
                 case "buildingSelected":
                     var bId = doc.RootElement.TryGetProperty("buildingId", out var bid) ? bid.GetString() : null;
@@ -703,15 +710,15 @@ public partial class MapView : UserControl
                     break;
                 case "log":
                     var txt = doc.RootElement.TryGetProperty("text", out var tp) ? tp.GetString() : null;
-                    Console.Error.WriteLine($"[MapJS] {txt}");
+                    Log.Debug($"[MapJS] {txt}");
                     break;
                 case "map3dStep":
                     var step = doc.RootElement.TryGetProperty("step", out var sp) ? sp.GetString() : null;
-                    Console.Error.WriteLine($"[Map3D] step={step}");
+                    Log.Debug($"[Map3D] step={step}");
                     UpdateLoadingFromStep(step);
                     break;
                 case "map3dLoading":
-                    Console.Error.WriteLine("[Map3D] loading");
+                    Log.Debug("[Map3D] loading");
                     if (_vm != null)
                     {
                         _vm.Is3DLoading = true;
@@ -721,7 +728,7 @@ public partial class MapView : UserControl
                     if (_webView != null) _webView.IsVisible = false;
                     break;
                 case "map3dEntered":
-                    Console.Error.WriteLine("[Map3D] entered");
+                    Log.Debug("[Map3D] entered");
                     if (_vm != null)
                     {
                         _vm.Loading3DProgress = 1.0;
@@ -738,7 +745,7 @@ public partial class MapView : UserControl
                     var errMsg = doc.RootElement.TryGetProperty("message", out var em)
                         ? em.GetString() ?? "(unknown)"
                         : "(unknown)";
-                    Console.Error.WriteLine($"[Map3D] ERROR: {errMsg}");
+                    Log.Debug($"[Map3D] ERROR: {errMsg}");
                     Toast.Show?.Invoke(
                         Localization.Loc.T("map.loading3DError", errMsg),
                         ToastSeverity.Error);
@@ -755,7 +762,7 @@ public partial class MapView : UserControl
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[MapView] OnWebMessageReceived parse error: {ex}");
+            Log.Debug($"[MapView] OnWebMessageReceived parse error: {ex}");
         }
     }
 

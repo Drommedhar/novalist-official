@@ -15,5 +15,10 @@
     <Product>Novalist</Product>
     <Company>Novalist</Company>
     <Copyright>Copyright © Novalist contributors</Copyright>
+
+    <!-- Surface warnings in CI; locally devs see warnings without failing the build. -->
+    <TreatWarningsAsErrors Condition="'$(ContinuousIntegrationBuild)' == 'true'">true</TreatWarningsAsErrors>
+    <!-- Warnings we intentionally tolerate (Avalonia deprecations covered separately). -->
+    <NoWarn>$(NoWarn);AVLN5001;AVLN3001;CS8618</NoWarn>
   </PropertyGroup>
 </Project>

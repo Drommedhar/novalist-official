@@ -103,7 +103,7 @@ public partial class EditorView : UserControl
         catch (Exception ex)
         {
             _webView = null;
-            Console.Error.WriteLine($"[WebViewCreate] {ex}");
+            Log.Debug($"[WebViewCreate] {ex}");
             ShowFallbackMessage();
         }
     }
@@ -136,6 +136,8 @@ public partial class EditorView : UserControl
         if (App.ExtensionManager?.Host is { } host)
             host.InlineActionContributorsChanged += OnInlineActionContributorsChanged;
 
+        App.ThemeService.ThemeChanged += OnThemeChanged;
+
         if (DataContext is EditorViewModel vm)
             AttachToViewModel(vm);
     }
@@ -147,8 +149,14 @@ public partial class EditorView : UserControl
             _webView.SizeChanged -= OnEditorSizeChanged;
         if (App.ExtensionManager?.Host is { } host)
             host.InlineActionContributorsChanged -= OnInlineActionContributorsChanged;
+        App.ThemeService.ThemeChanged -= OnThemeChanged;
         DetachFromViewModel();
         base.OnDetachedFromVisualTree(e);
+    }
+
+    private void OnThemeChanged()
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(ApplyTheme);
     }
 
     private void OnInlineActionContributorsChanged()
@@ -247,12 +255,12 @@ public partial class EditorView : UserControl
         var editorPath = ResolveEditorHtmlPath();
         if (editorPath != null)
         {
-            Console.WriteLine($"[Editor] Resolved editor.html at: {editorPath}");
+            Log.Debug($"[Editor] Resolved editor.html at: {editorPath}");
             if (OperatingSystem.IsMacOS())
             {
                 // WKWebView blocks file:// URL navigation; load as HTML string instead
                 var html = File.ReadAllText(editorPath);
-                Console.WriteLine($"[Editor] Loaded HTML via HtmlContent ({html.Length} chars)");
+                Log.Debug($"[Editor] Loaded HTML via HtmlContent ({html.Length} chars)");
                 _webView.NavigateToString(html);
             }
             else
@@ -262,28 +270,28 @@ public partial class EditorView : UserControl
         }
         else
         {
-            Console.WriteLine("[Editor] Using bare fallback HTML (no editor.html found)");
+            Log.Debug("[Editor] Using bare fallback HTML (no editor.html found)");
             _webView.NavigateToString("<html><body><div contenteditable='true' id='editor'></div></body></html>");
         }
     }
 
     private static string? ResolveEditorHtmlPath()
     {
-        Console.WriteLine($"[Editor] AppContext.BaseDirectory = {AppContext.BaseDirectory}");
+        Log.Debug($"[Editor] AppContext.BaseDirectory = {AppContext.BaseDirectory}");
 
         var basePath = Path.Combine(AppContext.BaseDirectory, "Assets", "Editor", "editor.html");
-        Console.WriteLine($"[Editor] Checking: {basePath} -> {File.Exists(basePath)}");
+        Log.Debug($"[Editor] Checking: {basePath} -> {File.Exists(basePath)}");
         if (File.Exists(basePath))
             return basePath;
 
         // macOS .app bundle: directories land in Contents/Resources/ instead of Contents/MacOS/
         var macBundlePath = Path.GetFullPath(
             Path.Combine(AppContext.BaseDirectory, "..", "Resources", "Assets", "Editor", "editor.html"));
-        Console.WriteLine($"[Editor] Checking macOS bundle: {macBundlePath} -> {File.Exists(macBundlePath)}");
+        Log.Debug($"[Editor] Checking macOS bundle: {macBundlePath} -> {File.Exists(macBundlePath)}");
         if (File.Exists(macBundlePath))
             return macBundlePath;
 
-        Console.WriteLine("[Editor] WARNING: editor.html not found at any known location!");
+        Log.Debug("[Editor] WARNING: editor.html not found at any known location!");
         return null;
     }
 
@@ -695,24 +703,14 @@ public partial class EditorView : UserControl
 
     private void ApplyTheme()
     {
-        string bg = "#1e1e2e", fg = "#cdd6f4", selBg = "#45475a";
-        string pageBg = "#f5efe6", pageFg = "#1c1a18";
-
-        if (App.Current?.TryGetResource("EditorBackground", App.Current.ActualThemeVariant, out var bgRes) == true
-            && bgRes is ISolidColorBrush bgBrush)
-            bg = FormatColor(bgBrush.Color);
-
-        if (App.Current?.TryGetResource("NormalText", App.Current.ActualThemeVariant, out var fgRes) == true
-            && fgRes is ISolidColorBrush fgBrush)
-            fg = FormatColor(fgBrush.Color);
-
-        if (App.Current?.TryGetResource("EditorPageBackground", App.Current.ActualThemeVariant, out var pageBgRes) == true
-            && pageBgRes is ISolidColorBrush pageBgBrush)
-            pageBg = FormatColor(pageBgBrush.Color);
-
-        if (App.Current?.TryGetResource("EditorPageForeground", App.Current.ActualThemeVariant, out var pageFgRes) == true
-            && pageFgRes is ISolidColorBrush pageFgBrush)
-            pageFg = FormatColor(pageFgBrush.Color);
+        // Pull palette from the active theme dictionary; ThemeColors helper
+        // returns the brush's hex value or a safe fallback if the key is
+        // somehow missing (defensive — should never happen with shipped themes).
+        var bg     = ThemeColors.Resolve("EditorBackground",        "#1E1E2E");
+        var fg     = ThemeColors.Resolve("NormalText",              "#CDD6F4");
+        var selBg  = ThemeColors.Resolve("EditorSelectionBackground", "#3A4252");
+        var pageBg = ThemeColors.Resolve("EditorPageBackground",    "#1F2127");
+        var pageFg = ThemeColors.Resolve("EditorPageForeground",    "#E6EDF3");
 
         ExecuteScript($"setTheme('{bg}','{fg}','{fg}','{selBg}','{pageBg}','{pageFg}')");
     }

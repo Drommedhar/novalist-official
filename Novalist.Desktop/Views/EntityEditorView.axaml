@@ -46,10 +46,10 @@
                             <Button x:Name="DeleteButton"
                                     Classes="ribbonButton" Padding="8,6"
                                     ToolTip.Tip="{loc:Loc entityEditor.delete}"
-                                    Foreground="#E05252">
+                                    Foreground="{DynamicResource DangerBrush}">
                                 <PathIcon Data="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6z"
                                           Width="14" Height="14"
-                                          Foreground="#E05252" />
+                                          Foreground="{DynamicResource DangerBrush}" />
                             </Button>
                             <Button Content="{loc:Loc entityEditor.close}" x:Name="CloseButton"
                                     Classes="ribbonButton" Padding="12,6" />
@@ -64,7 +64,7 @@
 
                     <!-- Override mode banner -->
                     <Border IsVisible="{Binding IsOverrideMode}"
-                            Background="#332196F3" BorderBrush="#5592C8"
+                            Background="{DynamicResource InfoBackground}" BorderBrush="{DynamicResource InfoBorder}"
                             BorderThickness="1" CornerRadius="{StaticResource RadiusSmall}"
                             Padding="12,8" Margin="0,4">
                         <DockPanel>
@@ -618,10 +618,10 @@
                                                     <PathIcon Data="{StaticResource IconPencil}" Width="11" Height="11" Foreground="{DynamicResource NormalText}" />
                                                 </Button>
                                                 <Button Classes="ribbonButton" Padding="6,4"
-                                                        Foreground="#E05252"
+                                                        Foreground="{DynamicResource DangerBrush}"
                                                         Tag="{Binding}"
                                                         x:Name="RemoveOverrideBtn">
-                                                    <PathIcon Data="{StaticResource IconTrash}" Width="11" Height="11" Foreground="#E05252" />
+                                                    <PathIcon Data="{StaticResource IconTrash}" Width="11" Height="11" Foreground="{DynamicResource DangerBrush}" />
                                                 </Button>
                                             </StackPanel>
                                             <TextBlock Text="{Binding DisplayLabel}"

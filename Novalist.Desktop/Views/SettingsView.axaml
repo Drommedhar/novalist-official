@@ -27,7 +27,9 @@
                             Classes="ribbonButton"
                             FontSize="{StaticResource FontSizeTitleSmall}"
                             Padding="6,2"
-                            VerticalAlignment="Center" />
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="{loc:Loc dialog.close}"
+                            ToolTip.Tip="{loc:Loc dialog.close}" />
                     <TextBlock Text="{loc:Loc settings.title}"
                                FontSize="{StaticResource FontSizeTitle}"
                                FontWeight="SemiBold"
@@ -434,7 +436,7 @@
                                        TextWrapping="Wrap" />
                         </StackPanel>
                         <TextBox Text="{Binding ProjectDeadline}"
-                                 Watermark="YYYY-MM-DD"
+                                 Watermark="{loc:Loc common.dateWatermarkIso}"
                                  MinWidth="140"
                                  HorizontalAlignment="Right" />
                     </DockPanel>
@@ -528,7 +530,7 @@
                                        Foreground="{DynamicResource NormalText}"
                                        FontSize="{StaticResource FontSizeBodyLarge}"
                                        TextWrapping="Wrap"
-                                       FontFamily="Cascadia Mono, Consolas, monospace" />
+                                       FontFamily="{DynamicResource MonoFontFamily}" />
                         </StackPanel>
                     </Border>
 

@@ -68,13 +68,20 @@ public partial class SnapshotsDialog : UserControl
 
     private async void OnTakeSnapshot(object? sender, RoutedEventArgs e)
     {
-        if (_snapshotService == null || _scene == null || _chapter == null)
-            return;
+        try
+        {
+            if (_snapshotService == null || _scene == null || _chapter == null)
+                return;
 
-        var label = LabelBox.Text ?? string.Empty;
-        await _snapshotService.TakeAsync(_chapter, _scene, label);
-        LabelBox.Text = string.Empty;
-        await ReloadAsync();
+            var label = LabelBox.Text ?? string.Empty;
+            await _snapshotService.TakeAsync(_chapter, _scene, label);
+            LabelBox.Text = string.Empty;
+            await ReloadAsync();
+        }
+        catch (Exception ex)
+        {
+            Utilities.Log.Error("OnTakeSnapshot failed", ex);
+        }
     }
 
     private void ClearAllConfirms()
@@ -105,14 +112,21 @@ public partial class SnapshotsDialog : UserControl
 
     private async void OnConfirmRestore(object? sender, RoutedEventArgs e)
     {
-        var row = RowFrom(sender);
-        if (row == null || _snapshotService == null || _scene == null || _chapter == null)
-            return;
+        try
+        {
+            var row = RowFrom(sender);
+            if (row == null || _snapshotService == null || _scene == null || _chapter == null)
+                return;
 
-        row.IsConfirmingRestore = false;
-        await _snapshotService.RestoreAsync(_chapter, _scene, row.Snapshot.Id);
-        _onRestored?.Invoke();
-        await ReloadAsync();
+            row.IsConfirmingRestore = false;
+            await _snapshotService.RestoreAsync(_chapter, _scene, row.Snapshot.Id);
+            _onRestored?.Invoke();
+            await ReloadAsync();
+        }
+        catch (Exception ex)
+        {
+            Utilities.Log.Error("OnConfirmRestore failed", ex);
+        }
     }
 
     private void OnDeleteItem(object? sender, RoutedEventArgs e)
@@ -131,22 +145,36 @@ public partial class SnapshotsDialog : UserControl
 
     private async void OnConfirmDelete(object? sender, RoutedEventArgs e)
     {
-        var row = RowFrom(sender);
-        if (row == null || _snapshotService == null || _scene == null)
-            return;
+        try
+        {
+            var row = RowFrom(sender);
+            if (row == null || _snapshotService == null || _scene == null)
+                return;
 
-        row.IsConfirmingDelete = false;
-        await _snapshotService.DeleteAsync(_scene, row.Snapshot.Id);
-        await ReloadAsync();
+            row.IsConfirmingDelete = false;
+            await _snapshotService.DeleteAsync(_scene, row.Snapshot.Id);
+            await ReloadAsync();
+        }
+        catch (Exception ex)
+        {
+            Utilities.Log.Error("OnConfirmDelete failed", ex);
+        }
     }
 
     private async void OnCompareItem(object? sender, RoutedEventArgs e)
     {
-        var row = RowFrom(sender);
-        if (row == null || _onCompare == null)
-            return;
+        try
+        {
+            var row = RowFrom(sender);
+            if (row == null || _onCompare == null)
+                return;
 
-        await _onCompare.Invoke(row.Snapshot);
+            await _onCompare.Invoke(row.Snapshot);
+        }
+        catch (Exception ex)
+        {
+            Utilities.Log.Error("OnCompareItem failed", ex);
+        }
     }
 
     private void OnClose(object? sender, RoutedEventArgs e)

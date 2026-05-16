@@ -66,7 +66,7 @@ public static class BookWidthCalculator
         var totalWidth = editorContentWidth + 48; // 24px padding on each side
 
         var result = Math.Max(totalWidth, MinEditorWidth);
-        Console.WriteLine($"[BookWidth] Calculate: format={settings.BookPageFormat}, blockIn={textBlockInches:F2}, blockPx={textBlockPx:F1}, bookFont={settings.BookFontFamily}@{settings.BookFontSize}, editorFont={settings.EditorFontFamily}@{settings.EditorFontSize}, bookAvg={bookAvgChar:F2}, editorAvg={editorAvgChar:F2}, cpl={charsPerLine:F1}, result={result:F1}");
+        Log.Debug($"[BookWidth] Calculate: format={settings.BookPageFormat}, blockIn={textBlockInches:F2}, blockPx={textBlockPx:F1}, bookFont={settings.BookFontFamily}@{settings.BookFontSize}, editorFont={settings.EditorFontFamily}@{settings.EditorFontSize}, bookAvg={bookAvgChar:F2}, editorAvg={editorAvgChar:F2}, cpl={charsPerLine:F1}, result={result:F1}");
         return result;
     }
 

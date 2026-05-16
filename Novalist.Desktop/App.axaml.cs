@@ -80,9 +80,10 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Initialize localization with default language before any UI is created
+            // Initialize localization with the saved language BEFORE any UI is
+            // created so the splash window picks up the correct strings.
             var localesDir = GetLocalesDirectory();
-            Loc.Instance.Initialize(localesDir, "en");
+            Loc.Instance.Initialize(localesDir, ReadLanguageFromSettings());
 
             // Prevent the app from quitting when we swap MainWindow from splash to
             // the real window. On macOS, closing the splash while it is the active
@@ -134,13 +135,14 @@ public partial class App : Application
 
             await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(async () =>
             {
-                splash.SetStatus("Applying settings...");
+                splash.SetStatus(Loc.T("splash.applyingSettings"));
                 var lang = SettingsService.Settings.Language;
-                if (!string.Equals(lang, "en", StringComparison.Ordinal))
+                if (!string.IsNullOrWhiteSpace(lang)
+                    && !string.Equals(lang, "en", StringComparison.OrdinalIgnoreCase))
                     Loc.Instance.CurrentLanguage = lang;
 
                 // Initialize extension system
-                splash.SetStatus("Loading extensions...");
+                splash.SetStatus(Loc.T("splash.loadingExtensions"));
                 var hostServices = new HostServices(FileService, ProjectService, EntityService, SettingsService);
                 ExtensionManager = new ExtensionManager(SettingsService, hostServices);
                 hostServices.ExtensionManager = ExtensionManager;
@@ -160,20 +162,45 @@ public partial class App : Application
                     hostServices.RaiseLanguageChanged(Loc.Instance.CurrentLanguage);
 
                 // Register built-in and extension themes, then apply saved theme
-                splash.SetStatus("Applying theme...");
+                splash.SetStatus(Loc.T("splash.applyingTheme"));
                 ThemeService.RegisterBuiltInTheme("Discord",
                     "avares://Novalist.Desktop/Assets/Themes/DiscordTheme.axaml",
                     "#5865F2");
+                ThemeService.RegisterBuiltInTheme("Catppuccin Mocha",
+                    "avares://Novalist.Desktop/Assets/Themes/CatppuccinTheme.axaml",
+                    "#89B4FA");
                 ThemeService.RegisterFolderThemes(Path.Combine(AppContext.BaseDirectory, "Assets", "Themes"));
                 ThemeService.RegisterExtensionThemes(ExtensionManager.ThemeOverrides, ExtensionManager);
                 var savedTheme = SettingsService.Settings.Theme;
                 if (!string.IsNullOrEmpty(savedTheme) && savedTheme != "system")
-                    ThemeService.ApplyTheme(savedTheme);
+                {
+                    try
+                    {
+                        ThemeService.ApplyTheme(savedTheme);
+                    }
+                    catch (Exception ex)
+                    {
+                        Program.LogCrash($"ApplyTheme('{savedTheme}') failed; reverting to default.", ex);
+                        SettingsService.Settings.Theme = "system";
+                        _ = SettingsService.SaveAsync();
+                    }
+                }
 
                 // Apply saved accent color override (if any)
                 var savedAccent = SettingsService.Settings.AccentColor;
                 if (!string.IsNullOrEmpty(savedAccent))
-                    ThemeService.ApplyAccentColor(savedAccent);
+                {
+                    try
+                    {
+                        ThemeService.ApplyAccentColor(savedAccent);
+                    }
+                    catch (Exception ex)
+                    {
+                        Program.LogCrash($"ApplyAccentColor('{savedAccent}') failed; reverting.", ex);
+                        SettingsService.Settings.AccentColor = string.Empty;
+                        _ = SettingsService.SaveAsync();
+                    }
+                }
 
                 // Check for app updates in splash screen
                 if (SettingsService.Settings.CheckForUpdates)

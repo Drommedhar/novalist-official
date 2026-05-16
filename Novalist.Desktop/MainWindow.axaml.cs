@@ -13,6 +13,7 @@ using Avalonia.Platform.Storage;
 using Novalist.Core.Services;
 using Novalist.Desktop.Dialogs;
 using Novalist.Desktop.Localization;
+using Novalist.Desktop.Utilities;
 using Novalist.Core.Models;
 using Novalist.Desktop.ViewModels;
 using Novalist.Desktop.Views;
@@ -747,7 +748,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[Map] PickImageForMapAsync failed: {ex}");
+            Log.Debug($"[Map] PickImageForMapAsync failed: {ex}");
             return null;
         }
     }
@@ -908,8 +909,8 @@ public partial class MainWindow : Window
         if (source == Dialogs.AddImageSourceChoice.Url)
         {
             var url = await ShowInputDialogAsync(
-                Localization.Loc.T("dialog.fromUrl"),
-                Localization.Loc.T("dialog.fromUrlPrompt"),
+                Loc.T("dialog.fromUrl"),
+                Loc.T("dialog.fromUrlPrompt"),
                 string.Empty);
             if (string.IsNullOrWhiteSpace(url)) return null;
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri)) return null;
@@ -1349,7 +1350,7 @@ public partial class MainWindow : Window
                 {
                     var folders = await StorageProvider.OpenFolderPickerAsync(new Avalonia.Platform.Storage.FolderPickerOpenOptions
                     {
-                        Title = Localization.Loc.T("import.selectFolder"),
+                        Title = Loc.T("import.selectFolder"),
                         AllowMultiple = false
                     });
                     return folders.Count > 0 ? folders[0].Path.LocalPath : null;

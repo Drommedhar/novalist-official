@@ -7,6 +7,7 @@ using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Platform;
 using Novalist.Desktop.Services;
+using Novalist.Desktop.Utilities;
 using Novalist.Desktop.ViewModels;
 
 namespace Novalist.Desktop.Views;
@@ -76,7 +77,7 @@ public partial class ExtensionsView : UserControl
         catch (Exception ex)
         {
             _readmeWebView = null;
-            Console.Error.WriteLine($"[ExtensionsView] WebView init failed: {ex.Message}");
+            Log.Debug($"[ExtensionsView] WebView init failed: {ex.Message}");
         }
     }
 

@@ -9,6 +9,7 @@ namespace Novalist.Desktop.Localization;
 /// Markup extension for localized strings.
 /// Usage: <code>{loc:Loc ribbon.home}</code>
 /// Creates a binding that automatically refreshes when the UI language changes.
+/// Uses a WeakReference to the target so the markup never roots the visual tree.
 /// </summary>
 public sealed class LocExtension : MarkupExtension
 {
@@ -25,11 +26,26 @@ public sealed class LocExtension : MarkupExtension
         var target = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
         if (target?.TargetObject is AvaloniaObject ao && target.TargetProperty is AvaloniaProperty ap)
         {
-            // Set the initial value
             UpdateValue(ao, ap);
 
-            // Subscribe to language changes
-            Loc.Instance.LanguageChanged += () => UpdateValue(ao, ap);
+            // Hold the target via a WeakReference so the LanguageChanged
+            // subscription never roots the visual tree. When the target is
+            // collected, the handler unsubscribes itself the next time it fires.
+            var weakTarget = new WeakReference<AvaloniaObject>(ao);
+            var weakProp = ap;
+            Action? handler = null;
+            handler = () =>
+            {
+                if (weakTarget.TryGetTarget(out var liveTarget))
+                {
+                    UpdateValue(liveTarget, weakProp);
+                }
+                else if (handler != null)
+                {
+                    Loc.Instance.LanguageChanged -= handler;
+                }
+            };
+            Loc.Instance.LanguageChanged += handler;
         }
 
         return FormatValue(Loc.T(Key));

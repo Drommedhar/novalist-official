@@ -90,7 +90,7 @@ public partial class ManuscriptView : UserControl
         catch (Exception ex)
         {
             _webView = null;
-            Console.Error.WriteLine($"[ManuscriptWebView] {ex}");
+            Log.Debug($"[ManuscriptWebView] {ex}");
         }
     }
 
@@ -128,6 +128,7 @@ public partial class ManuscriptView : UserControl
     {
         base.OnAttachedToVisualTree(e);
         DataContextChanged += OnDataContextChanged;
+        App.ThemeService.ThemeChanged += OnThemeChanged;
         if (DataContext is ManuscriptViewModel vm)
             AttachToViewModel(vm);
     }
@@ -135,8 +136,14 @@ public partial class ManuscriptView : UserControl
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         DataContextChanged -= OnDataContextChanged;
+        App.ThemeService.ThemeChanged -= OnThemeChanged;
         DetachFromViewModel();
         base.OnDetachedFromVisualTree(e);
+    }
+
+    private void OnThemeChanged()
+    {
+        Avalonia.Threading.Dispatcher.UIThread.Post(ApplyTheme);
     }
 
     private void OnDataContextChanged(object? sender, EventArgs e)
@@ -329,27 +336,12 @@ public partial class ManuscriptView : UserControl
     {
         if (!_webViewReady || _webView == null) return;
 
-        string bg = "#1e1e2e", fg = "#cdd6f4", selBg = "#45475a", accent = "#89b4fa", subtle = "#6c7086", divider = "#313244";
-
-        if (App.Current?.TryGetResource("EditorBackground", App.Current.ActualThemeVariant, out var bgRes) == true
-            && bgRes is ISolidColorBrush bgBrush)
-            bg = FormatColor(bgBrush.Color);
-
-        if (App.Current?.TryGetResource("NormalText", App.Current.ActualThemeVariant, out var fgRes) == true
-            && fgRes is ISolidColorBrush fgBrush)
-            fg = FormatColor(fgBrush.Color);
-
-        if (App.Current?.TryGetResource("AccentBrush", App.Current.ActualThemeVariant, out var accentRes) == true
-            && accentRes is ISolidColorBrush accentBrush)
-            accent = FormatColor(accentBrush.Color);
-
-        if (App.Current?.TryGetResource("SubtleText", App.Current.ActualThemeVariant, out var subtleRes) == true
-            && subtleRes is ISolidColorBrush subtleBrush)
-            subtle = FormatColor(subtleBrush.Color);
-
-        if (App.Current?.TryGetResource("CardBorder", App.Current.ActualThemeVariant, out var divRes) == true
-            && divRes is ISolidColorBrush divBrush)
-            divider = FormatColor(divBrush.Color);
+        var bg      = ThemeColors.Resolve("EditorBackground",        "#1E1E2E");
+        var fg      = ThemeColors.Resolve("NormalText",              "#CDD6F4");
+        var selBg   = ThemeColors.Resolve("EditorSelectionBackground", "#3A4252");
+        var accent  = ThemeColors.Resolve("AccentBrush",             "#0E8BDF");
+        var subtle  = ThemeColors.Resolve("SubtleText",              "#848B91");
+        var divider = ThemeColors.Resolve("EditorDivider",           "#333333");
 
         ExecuteScript($"setTheme('{bg}','{fg}','{fg}','{selBg}','{accent}','{subtle}','{divider}')");
     }

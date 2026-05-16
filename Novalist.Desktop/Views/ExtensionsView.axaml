@@ -8,7 +8,7 @@
              d:DesignWidth="1200" d:DesignHeight="800"
              x:Class="Novalist.Desktop.Views.ExtensionsView"
              x:DataType="svc:ExtensionsViewModel">
-    <Border Background="#C0000000" x:Name="Backdrop" PointerPressed="OnBackdropPressed">
+    <Border Background="{DynamicResource OverlayScrim}" x:Name="Backdrop" PointerPressed="OnBackdropPressed">
         <Border CornerRadius="12"
                 PointerPressed="OnPanelPressed"
                 HorizontalAlignment="Stretch"
@@ -25,12 +25,15 @@
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="{StaticResource SpacingTighter}"
                                 HorizontalAlignment="Right" VerticalAlignment="Center">
                         <Button ToolTip.Tip="{loc:Loc extensions.openFolder}"
+                                AutomationProperties.Name="{loc:Loc extensions.openFolder}"
                                 Command="{Binding OpenExtensionsFolderCommand}"
                                 Classes="ribbonButtonSmall">
                             <PathIcon Data="{StaticResource IconFolderOpen}" Width="14" Height="14" Foreground="{DynamicResource NormalText}" />
                         </Button>
                         <Button Content="✕"
                                 x:Name="CloseButton"
+                                AutomationProperties.Name="{loc:Loc dialog.close}"
+                                ToolTip.Tip="{loc:Loc dialog.close}"
                                 Classes="ribbonButton"
                                 FontSize="{StaticResource FontSizeTitleSmall}"
                                 Padding="6,2" />
@@ -47,7 +50,7 @@
                         <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                             <TextBlock Text="{loc:Loc extensions.tabInstalled}" VerticalAlignment="Center" />
                             <Border IsVisible="{Binding UpdateCount}"
-                                    Background="#3388FF"
+                                    Background="{DynamicResource ExtensionUpdateBadge}"
                                     CornerRadius="{StaticResource RadiusLarge}"
                                     Padding="5,1"
                                     VerticalAlignment="Center">
@@ -150,12 +153,12 @@
                                                 <TextBlock IsVisible="{Binding NeedsRestart}"
                                                            Text="{loc:Loc extensions.restart}"
                                                            FontSize="{StaticResource FontSizeBodySmall}"
-                                                           Foreground="#FFB74D"
+                                                           Foreground="{DynamicResource WarningBrush}"
                                                            Margin="0,4,0,0" />
 
                                                 <!-- Error -->
                                                 <TextBlock IsVisible="{Binding HasError}"
-                                                           Foreground="#FF6B6B"
+                                                           Foreground="{DynamicResource DangerBrush}"
                                                            FontSize="{StaticResource FontSizeBodySmall}"
                                                            TextWrapping="Wrap"
                                                            Margin="0,4,0,0">
@@ -213,7 +216,7 @@
                                         HorizontalAlignment="Center"
                                         Spacing="{StaticResource SpacingMedium}">
                                 <TextBlock Text="{Binding ErrorMessage}"
-                                           Foreground="#FF6B6B"
+                                           Foreground="{DynamicResource DangerBrush}"
                                            TextWrapping="Wrap"
                                            HorizontalAlignment="Center" />
                                 <Button Content="{loc:Loc extensions.store.retry}"
@@ -261,7 +264,7 @@
                                                         <TextBlock Text="✓"
                                                                    IsVisible="{Binding IsInstalled}"
                                                                    FontSize="{StaticResource FontSizeTitle}"
-                                                                   Foreground="#4CAF50"
+                                                                   Foreground="{DynamicResource ExtensionInstalledBrush}"
                                                                    HorizontalAlignment="Center" />
                                                     </StackPanel>
 
@@ -327,7 +330,7 @@
                                                         <!-- Install error -->
                                                         <TextBlock IsVisible="{Binding InstallError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                                                                    Text="{Binding InstallError}"
-                                                                   Foreground="#FF6B6B"
+                                                                   Foreground="{DynamicResource DangerBrush}"
                                                                    FontSize="{StaticResource FontSizeBodySmall}"
                                                                    TextWrapping="Wrap"
                                                                    Margin="0,2,0,0" />

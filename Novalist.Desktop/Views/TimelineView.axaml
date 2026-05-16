@@ -382,7 +382,7 @@
 
                 <!-- ═══ Jump-to-date Flyout ═══ -->
                 <Border IsVisible="{Binding IsJumpFlyoutOpen}"
-                        Background="#66000000">
+                        Background="{DynamicResource OverlayMedium}">
                     <Border Classes="nlvCard"
                             MaxWidth="320"
                             HorizontalAlignment="Center"
@@ -393,7 +393,7 @@
                                        FontSize="{StaticResource FontSizeBodyLarge}"
                                        FontWeight="SemiBold" />
                             <TextBox Text="{Binding JumpDateInput}"
-                                     Watermark="YYYY-MM-DD" />
+                                     Watermark="{loc:Loc common.dateWatermarkIso}" />
                             <StackPanel Orientation="Horizontal"
                                         HorizontalAlignment="Right"
                                         Spacing="{StaticResource SpacingMedium}">
@@ -409,7 +409,7 @@
 
                 <!-- ═══ Add/Edit Form Overlay (modern dialog style) ═══ -->
                 <Border IsVisible="{Binding IsFormOpen}"
-                        Background="#66000000">
+                        Background="{DynamicResource OverlayMedium}">
                     <!-- Use NlvCard for form container -->
                     <Border Classes="nlvCard"
                             MaxWidth="460"
@@ -432,7 +432,7 @@
                                            FontSize="{StaticResource FontSizeBodySmall}" FontWeight="Medium"
                                            Foreground="{DynamicResource SubtleText}" />
                                 <TextBox Text="{Binding FormDate}"
-                                         Watermark="YYYY-MM-DD" />
+                                         Watermark="{loc:Loc common.dateWatermarkIso}" />
                             </StackPanel>
 
                             <!-- Category -->

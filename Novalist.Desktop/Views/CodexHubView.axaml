@@ -72,7 +72,7 @@
                         Classes.active="{Binding ActiveTab, Converter={x:Static ObjectConverters.Equal}, ConverterParameter=All}">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <TextBlock Text="{loc:Loc codexHub.all}" />
-                        <Border Background="#30808080"
+                        <Border Background="{DynamicResource BadgeNeutralBackground}"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding TotalCount}"
@@ -88,7 +88,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconUser}"/></Canvas></Viewbox>
                         <TextBlock Text="{loc:Loc codexHub.characters}" />
-                        <Border Background="#30808080"
+                        <Border Background="{DynamicResource BadgeNeutralBackground}"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding CharacterCount}"
@@ -104,7 +104,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconMapPin}"/></Canvas></Viewbox>
                         <TextBlock Text="{loc:Loc codexHub.locations}" />
-                        <Border Background="#30808080"
+                        <Border Background="{DynamicResource BadgeNeutralBackground}"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding LocationCount}"
@@ -120,7 +120,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconSword}"/></Canvas></Viewbox>
                         <TextBlock Text="{loc:Loc codexHub.items}" />
-                        <Border Background="#30808080"
+                        <Border Background="{DynamicResource BadgeNeutralBackground}"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding ItemCount}"
@@ -136,7 +136,7 @@
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                         <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
                         <TextBlock Text="{loc:Loc codexHub.lore}" />
-                        <Border Background="#30808080"
+                        <Border Background="{DynamicResource BadgeNeutralBackground}"
                                 CornerRadius="{DynamicResource RadiusPill}"
                                 Padding="5,1" MinWidth="20">
                             <TextBlock Text="{Binding LoreCount}"
@@ -157,7 +157,7 @@
                             <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpacingSmall}">
                                 <TextBlock Text="{Binding Icon}" FontSize="{StaticResource FontSizeBodyLarge}" VerticalAlignment="Center" />
                                 <TextBlock Text="{Binding DisplayName}" FontSize="{StaticResource FontSizeBody}" VerticalAlignment="Center" />
-                                <Border Background="#30808080"
+                                <Border Background="{DynamicResource BadgeNeutralBackground}"
                                         CornerRadius="{DynamicResource RadiusPill}"
                                         Padding="5,1" MinWidth="20" VerticalAlignment="Center">
                                     <TextBlock Text="{Binding Count}"
@@ -231,10 +231,10 @@
                                                         IsVisible="{Binding IsWorldBible}"
                                                         VerticalAlignment="Center"
                                                         Margin="6,0,0,0">
-                                                    <TextBlock Text="WB"
+                                                    <TextBlock Text="{loc:Loc common.wbBadge}"
                                                                FontSize="{StaticResource FontSizeTiny}"
                                                                FontWeight="Bold"
-                                                               Foreground="White" />
+                                                               Foreground="{DynamicResource BadgeWBForeground}" />
                                                 </Border>
                                             </Grid>
                                             <TextBlock Text="{Binding Subtitle}"

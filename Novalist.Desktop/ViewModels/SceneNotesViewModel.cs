@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Desktop.Utilities;
 
 namespace Novalist.Desktop.ViewModels;
 
@@ -45,11 +46,18 @@ public partial class SceneNotesViewModel : ObservableObject
 
     private async void OnCommentTextEdited(SceneCommentItem item)
     {
-        if (_editor?.CurrentScene == null) return;
-        var stored = _editor.CurrentScene.Comments?.FirstOrDefault(c => c.Id == item.Id);
-        if (stored == null) return;
-        stored.Text = item.Text;
-        await _projectService.SaveScenesAsync();
+        try
+        {
+            if (_editor?.CurrentScene == null) return;
+            var stored = _editor.CurrentScene.Comments?.FirstOrDefault(c => c.Id == item.Id);
+            if (stored == null) return;
+            stored.Text = item.Text;
+            await _projectService.SaveScenesAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("SceneNotesViewModel.OnCommentTextEdited failed", ex);
+        }
     }
 
     public SceneNotesViewModel(IProjectService projectService)

@@ -1422,8 +1422,33 @@
             <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}" />
         </Style>
         <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#1177BB" />
+            <Setter Property="Background" Value="{DynamicResource AccentBrushHover}" />
             <Setter Property="Foreground" Value="{DynamicResource AccentForeground}" />
+        </Style>
+
+        <!-- Danger button (red destructive action — replaces ConfirmDialog's
+             ad-hoc red foreground; consumers add Classes="danger" to a button
+             to express "this deletes things"). -->
+        <Style Selector="Button.danger">
+            <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Padding" Value="16,8" />
+            <Setter Property="CornerRadius" Value="{DynamicResource RadiusMedium}" />
+        </Style>
+        <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{DynamicResource TreeItemHover}" />
+        </Style>
+
+        <!-- Dialog button-row: standard layout for any dialog's bottom action
+             strip. Use as: <StackPanel Classes="dialogButtonRow"> ... </StackPanel> -->
+        <Style Selector="StackPanel.dialogButtonRow">
+            <Setter Property="Orientation" Value="Horizontal" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="Spacing" Value="{DynamicResource SpacingMedium}" />
+            <Setter Property="Margin" Value="0,12,0,0" />
+        </Style>
+        <Style Selector="StackPanel.dialogButtonRow > Button">
+            <Setter Property="Padding" Value="16,8" />
         </Style>
 
         <!-- ── Timeline styles ── -->

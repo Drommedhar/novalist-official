@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Desktop.Utilities;
 
 namespace Novalist.Desktop.ViewModels;
 
@@ -87,12 +88,19 @@ public partial class FootnotesPanelViewModel : ObservableObject
 
     private async void OnTextEdited(FootnoteItem item)
     {
-        if (_editor?.CurrentScene?.Footnotes == null) return;
-        var stored = _editor.CurrentScene.Footnotes.FirstOrDefault(f => f.Id == item.Id);
-        if (stored == null) return;
-        stored.Text = item.Text;
-        await _projectService.SaveScenesAsync();
-        _editor.SyncCommentsAction?.Invoke();
+        try
+        {
+            if (_editor?.CurrentScene?.Footnotes == null) return;
+            var stored = _editor.CurrentScene.Footnotes.FirstOrDefault(f => f.Id == item.Id);
+            if (stored == null) return;
+            stored.Text = item.Text;
+            await _projectService.SaveScenesAsync();
+            _editor.SyncCommentsAction?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("FootnotesPanelViewModel.OnTextEdited failed", ex);
+        }
     }
 
     private void OnJumpRequested(FootnoteItem item)
@@ -102,13 +110,20 @@ public partial class FootnotesPanelViewModel : ObservableObject
 
     private async void OnDeleteRequested(FootnoteItem item)
     {
-        if (_editor?.CurrentScene?.Footnotes == null) return;
-        _editor.CurrentScene.Footnotes.RemoveAll(f => f.Id == item.Id);
-        _editor.RemoveFootnoteAction?.Invoke(item.Id);
-        Footnotes.Remove(item);
-        HasFootnotes = Footnotes.Count > 0;
-        await _projectService.SaveScenesAsync();
-        _editor.SyncCommentsAction?.Invoke();
+        try
+        {
+            if (_editor?.CurrentScene?.Footnotes == null) return;
+            _editor.CurrentScene.Footnotes.RemoveAll(f => f.Id == item.Id);
+            _editor.RemoveFootnoteAction?.Invoke(item.Id);
+            Footnotes.Remove(item);
+            HasFootnotes = Footnotes.Count > 0;
+            await _projectService.SaveScenesAsync();
+            _editor.SyncCommentsAction?.Invoke();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("FootnotesPanelViewModel.OnDeleteRequested failed", ex);
+        }
     }
 }
 

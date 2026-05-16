@@ -162,6 +162,55 @@ body.mode-view .nv-image { pointer-events: none; }
     background: transparent; color: #fff; border: none; outline: none;
     font-size: 12px; padding: 2px 0;
 }
+#nv-bottom-bar .bb-field input.bb-input-invalid {
+    border-bottom: 1px solid #e05252;
+    background: rgba(224, 82, 82, 0.08);
+}
+
+/* Entity picker popover — opens ABOVE the bottom-bar input so it doesn't
+   get clipped by the bar's bottom edge. */
+.bb-entity-pop {
+    position: fixed;
+    z-index: 10000;
+    max-height: 260px;
+    overflow-y: auto;
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border: 1px solid #45475a;
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+    font-size: 12px;
+    padding: 4px 0;
+}
+.bb-entity-pop-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.bb-entity-pop-row:hover,
+.bb-entity-pop-row.active {
+    background: #45475a;
+}
+.bb-entity-pop-name {
+    color: #cdd6f4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.bb-entity-pop-type {
+    color: #7f849c;
+    font-size: 10px;
+    text-transform: lowercase;
+    flex-shrink: 0;
+}
+.bb-entity-pop-empty {
+    padding: 8px 10px;
+    color: #7f849c;
+    font-style: italic;
+}
 #nv-bottom-bar .bb-field input[type=number] { width: 60px; }
 #nv-bottom-bar .bb-field input[type=text]   { width: 130px; }
 #nv-bottom-bar .bb-field input[type=color] {
@@ -2139,24 +2188,143 @@ function bbText(value, onChange, label, placeholder) {
     return bbField(label, i);
 }
 function bbEntityPicker(id, type, onChange, label) {
-    // <input list="bb-entities">; shared datalist populated by setEntityOptions.
-    let dl = document.getElementById('bb-entities');
-    if (!dl) {
-        dl = document.createElement('datalist');
-        dl.id = 'bb-entities';
-        document.body.appendChild(dl);
-    }
+    // Native <datalist> doesn't reliably render inside WebView2's chrome-less
+    // surface (and would open *below* the input, getting clipped by the bottom
+    // bar). Custom popover dropdown positioned ABOVE the input instead.
     const i = document.createElement('input');
     i.type = 'text';
-    i.setAttribute('list', 'bb-entities');
+    i.autocomplete = 'off';
+    i.spellcheck = false;
     i.placeholder = mapStrings.pinEntityWatermark || '';
-    // Show current display name if id resolves; otherwise raw text user typed.
     const cur = (entityOptions || []).find(o => o.id === id);
     i.value = cur ? cur.name : (id || '');
+
+    const resolveExact = (value) => {
+        const opts = entityOptions || [];
+        const v = (value || '').trim();
+        if (!v) return null;
+        return opts.find(o => o.name.toLowerCase() === v.toLowerCase()) || null;
+    };
+
+    // ── popover ──
+    let pop = null;
+    let activeIndex = -1;
+    let filtered = [];
+
+    const closePop = () => {
+        if (pop) { pop.remove(); pop = null; }
+        activeIndex = -1;
+        window.removeEventListener('mousedown', onDocMouseDown, true);
+        window.removeEventListener('wheel', closePop, true);
+        window.removeEventListener('resize', closePop);
+    };
+
+    const onDocMouseDown = (e) => {
+        if (pop && (pop.contains(e.target) || i.contains(e.target))) return;
+        closePop();
+    };
+
+    const buildList = () => {
+        const q = i.value.trim().toLowerCase();
+        const opts = entityOptions || [];
+        filtered = q
+            ? opts.filter(o => o.name.toLowerCase().includes(q))
+            : opts.slice();
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        return filtered.slice(0, 50);
+    };
+
+    const renderPop = () => {
+        const items = buildList();
+        if (!pop) {
+            pop = document.createElement('div');
+            pop.className = 'bb-entity-pop';
+            document.body.appendChild(pop);
+        }
+        pop.replaceChildren();
+        if (items.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'bb-entity-pop-empty';
+            empty.textContent = mapStrings.pinEntityNoResults || 'No matches';
+            pop.appendChild(empty);
+        } else {
+            items.forEach((o, idx) => {
+                const row = document.createElement('div');
+                row.className = 'bb-entity-pop-row';
+                if (idx === activeIndex) row.classList.add('active');
+                const name = document.createElement('span');
+                name.className = 'bb-entity-pop-name';
+                name.textContent = o.name;
+                const kind = document.createElement('span');
+                kind.className = 'bb-entity-pop-type';
+                kind.textContent = o.type;
+                row.appendChild(name);
+                row.appendChild(kind);
+                row.addEventListener('mousedown', (ev) => {
+                    ev.preventDefault();
+                    pick(o);
+                });
+                pop.appendChild(row);
+            });
+        }
+        // Position above the input.
+        const r = i.getBoundingClientRect();
+        pop.style.left = r.left + 'px';
+        pop.style.minWidth = Math.max(r.width, 220) + 'px';
+        // Render first to measure, then place.
+        pop.style.top = '0px';
+        const ph = pop.getBoundingClientRect().height;
+        pop.style.top = Math.max(8, r.top - ph - 4) + 'px';
+
+        window.addEventListener('mousedown', onDocMouseDown, true);
+        window.addEventListener('wheel', closePop, true);
+        window.addEventListener('resize', closePop);
+    };
+
+    const pick = (o) => {
+        i.value = o.name;
+        i.classList.remove('bb-input-invalid');
+        onChange(o.id, o.type);
+        closePop();
+    };
+
+    i.addEventListener('focus', renderPop);
+    i.addEventListener('input', () => {
+        activeIndex = -1;
+        renderPop();
+        if (!i.value.trim() || resolveExact(i.value))
+            i.classList.remove('bb-input-invalid');
+    });
+    i.addEventListener('keydown', (e) => {
+        if (!pop) return;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            activeIndex = Math.min((filtered.length || 1) - 1, activeIndex + 1);
+            renderPop();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            activeIndex = Math.max(0, activeIndex - 1);
+            renderPop();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (activeIndex >= 0 && filtered[activeIndex])
+                pick(filtered[activeIndex]);
+            else {
+                const exact = resolveExact(i.value);
+                if (exact) pick(exact);
+                else i.classList.add('bb-input-invalid');
+            }
+        } else if (e.key === 'Escape') {
+            closePop();
+        }
+    });
     i.addEventListener('change', () => {
-        const picked = (entityOptions || []).find(o => o.name === i.value);
-        if (picked) onChange(picked.id, picked.type);
-        else onChange('', '');
+        // Blur commit — only succeed on exact match, otherwise flag invalid.
+        const v = i.value.trim();
+        if (!v) { onChange('', ''); i.classList.remove('bb-input-invalid'); return; }
+        const exact = resolveExact(v);
+        if (exact) { i.value = exact.name; onChange(exact.id, exact.type); i.classList.remove('bb-input-invalid'); }
+        else { i.classList.add('bb-input-invalid'); }
     });
     return bbField(label, i);
 }

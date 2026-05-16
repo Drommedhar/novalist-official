@@ -27,21 +27,25 @@
             <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
                 <Button Command="{Binding SetEntityTypeCommand}" CommandParameter="Character"
                 Classes="explorerTab" ToolTip.Tip="{loc:Loc entityPanel.charactersTooltip}" Padding="8,4"
+                AutomationProperties.Name="{loc:Loc entityPanel.charactersTooltip}"
                 Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Character}}">
                     <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconUser}"/></Canvas></Viewbox>
                 </Button>
                 <Button Command="{Binding SetEntityTypeCommand}" CommandParameter="Location"
                 Classes="explorerTab" ToolTip.Tip="{loc:Loc entityPanel.locationsTooltip}" Padding="8,4"
+                AutomationProperties.Name="{loc:Loc entityPanel.locationsTooltip}"
                 Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Location}}">
                     <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconMapPin}"/></Canvas></Viewbox>
                 </Button>
                 <Button Command="{Binding SetEntityTypeCommand}" CommandParameter="Item"
                 Classes="explorerTab" ToolTip.Tip="{loc:Loc entityPanel.itemsTooltip}" Padding="8,4"
+                AutomationProperties.Name="{loc:Loc entityPanel.itemsTooltip}"
                 Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Item}}">
                     <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconSword}"/></Canvas></Viewbox>
                 </Button>
                 <Button Command="{Binding SetEntityTypeCommand}" CommandParameter="Lore"
                 Classes="explorerTab" ToolTip.Tip="{loc:Loc entityPanel.loreTooltip}" Padding="8,4"
+                AutomationProperties.Name="{loc:Loc entityPanel.loreTooltip}"
                 Classes.active="{Binding ActiveEntityType, Converter={x:Static ObjectConverters.Equal}, ConverterParameter={x:Static m:EntityType.Lore}}">
                     <Viewbox Classes="inlineIcon"><Canvas Width="24" Height="24"><Path Classes="inlineIcon" Data="{StaticResource IconScroll}"/></Canvas></Viewbox>
                 </Button>
@@ -84,6 +88,7 @@
                 <Button Command="{Binding CreateEntityTypeCommand}"
                         Classes="explorerTab"
                         ToolTip.Tip="{loc:Loc entityPanel.newEntityType}"
+                        AutomationProperties.Name="{loc:Loc entityPanel.newEntityType}"
                         Padding="8,4">
                     <TextBlock Text="+" FontSize="{StaticResource FontSizeTitleSmall}" FontWeight="Bold" />
                 </Button>
@@ -199,7 +204,7 @@
                                                             Margin="4,0,0,0"
                                                             Padding="4,1"
                                                             CornerRadius="3"
-                                                            Background="#2E7D8C"
+                                                            Background="{DynamicResource BadgeWBBackground}"
                                                             IsVisible="{Binding IsWorldBible}"
                                                             ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                                         <TextBlock Text="{loc:Loc book.wbBadge}"
@@ -287,7 +292,7 @@
                                         Margin="4,0,0,0"
                                         Padding="4,1"
                                         CornerRadius="3"
-                                        Background="#2E7D8C"
+                                        Background="{DynamicResource BadgeWBBackground}"
                                         IsVisible="{Binding IsWorldBible}"
                                         ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                     <TextBlock Text="{loc:Loc book.wbBadge}"
@@ -340,7 +345,7 @@
                                             Margin="4,0,0,0"
                                             Padding="4,1"
                                             CornerRadius="3"
-                                            Background="#2E7D8C"
+                                            Background="{DynamicResource BadgeWBBackground}"
                                             IsVisible="{Binding IsWorldBible}"
                                             ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                         <TextBlock Text="{loc:Loc book.wbBadge}"
@@ -390,7 +395,7 @@
                                             Margin="4,0,0,0"
                                             Padding="4,1"
                                             CornerRadius="3"
-                                            Background="#2E7D8C"
+                                            Background="{DynamicResource BadgeWBBackground}"
                                             IsVisible="{Binding IsWorldBible}"
                                             ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                         <TextBlock Text="{loc:Loc book.wbBadge}"
@@ -438,7 +443,7 @@
                                             Margin="4,0,0,0"
                                             Padding="4,1"
                                             CornerRadius="3"
-                                            Background="#2E7D8C"
+                                            Background="{DynamicResource BadgeWBBackground}"
                                             IsVisible="{Binding IsWorldBible}"
                                             ToolTip.Tip="{loc:Loc book.wbBadgeTooltip}">
                                         <TextBlock Text="{loc:Loc book.wbBadge}"

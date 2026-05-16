@@ -256,6 +256,18 @@ public partial class SnapshotCompareDialog : UserControl
 
     private async void OnApplySelected(object? sender, RoutedEventArgs e)
     {
+        try
+        {
+            await ApplySelectedInnerAsync();
+        }
+        catch (Exception ex)
+        {
+            Utilities.Log.Error("OnApplySelected failed", ex);
+        }
+    }
+
+    private async Task ApplySelectedInnerAsync()
+    {
         // Per-row decision: each row independently picks left (snapshot) or
         // right (current). Equal rows always emit their text. Left-only checked
         // = re-insert snapshot line. Right-only checked = drop the current

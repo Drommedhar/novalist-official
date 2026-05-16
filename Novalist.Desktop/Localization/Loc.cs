@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using Novalist.Desktop.Utilities;
 
 namespace Novalist.Desktop.Localization;
 
@@ -48,13 +49,13 @@ public sealed class Loc : INotifyPropertyChanged
         get => _currentLanguage;
         set
         {
-            Console.Error.WriteLine($"[Loc] CurrentLanguage setter: '{_currentLanguage}' -> '{value}'");
+            Log.Debug($"[Loc] CurrentLanguage setter: '{_currentLanguage}' -> '{value}'");
             if (string.Equals(_currentLanguage, value, StringComparison.Ordinal))
                 return;
 
             _currentLanguage = value;
             LoadLanguage(value);
-            Console.Error.WriteLine($"[Loc] Language switched, strings={_strings.Count}, subscribers={PropertyChanged?.GetInvocationList().Length ?? 0}, langChanged={LanguageChanged?.GetInvocationList().Length ?? 0}");
+            Log.Debug($"[Loc] Language switched, strings={_strings.Count}, subscribers={PropertyChanged?.GetInvocationList().Length ?? 0}, langChanged={LanguageChanged?.GetInvocationList().Length ?? 0}");
             // Notify all bindings to refresh
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentLanguage)));
@@ -75,12 +76,12 @@ public sealed class Loc : INotifyPropertyChanged
         _localesDirectory = localesDirectory;
         Debug.WriteLine($"[Loc] Initialize: dir={localesDirectory}, lang={language}, exists={Directory.Exists(localesDirectory)}");
         var enPath = Path.Combine(localesDirectory, "en.json");
-        Console.Error.WriteLine($"[Loc] Initialize: dir={localesDirectory}, lang={language}, dir_exists={Directory.Exists(localesDirectory)}, en_exists={File.Exists(enPath)}");
+        Log.Debug($"[Loc] Initialize: dir={localesDirectory}, lang={language}, dir_exists={Directory.Exists(localesDirectory)}, en_exists={File.Exists(enPath)}");
         _fallback = LoadFile(enPath);
-        Console.Error.WriteLine($"[Loc] Fallback loaded: {_fallback.Count} keys");
+        Log.Debug($"[Loc] Fallback loaded: {_fallback.Count} keys");
         _currentLanguage = language;
         LoadLanguage(language);
-        Console.Error.WriteLine($"[Loc] Active strings: {_strings.Count} keys");
+        Log.Debug($"[Loc] Active strings: {_strings.Count} keys");
     }
 
     /// <summary>

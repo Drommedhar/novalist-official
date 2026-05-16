@@ -8,6 +8,7 @@ using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Novalist.Core;
 using Novalist.Core.Services;
+using Novalist.Desktop.Localization;
 
 namespace Novalist.Desktop;
 
@@ -33,7 +34,7 @@ public partial class SplashWindow : Window
     /// </summary>
     public async Task<bool> CheckForAppUpdateAsync()
     {
-        SetStatus("Checking for updates...");
+        SetStatus(Loc.T("splash.checkingForUpdates"));
 
         try
         {
@@ -48,7 +49,7 @@ public partial class SplashWindow : Window
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
                 var versionText = this.FindControl<TextBlock>("UpdateVersionText")!;
-                versionText.Text = $"A new version is available: {update.Version} (current: {VersionInfo.Version})";
+                versionText.Text = Loc.T("splash.versionInfo", update.Version, VersionInfo.Version);
 
                 var progressBar = this.FindControl<ProgressBar>("ProgressBar")!;
                 progressBar.IsVisible = false;
@@ -56,7 +57,7 @@ public partial class SplashWindow : Window
                 var updatePanel = this.FindControl<Border>("UpdatePanel")!;
                 updatePanel.IsVisible = true;
 
-                SetStatus("Update available");
+                SetStatus(Loc.T("splash.updateAvailable"));
 
                 // Grow window to make room for the update buttons
                 Height = 480;
@@ -89,27 +90,27 @@ public partial class SplashWindow : Window
         progressBar.Minimum = 0;
         progressBar.Maximum = 100;
 
-        SetStatus("Downloading update...");
+        SetStatus(Loc.T("splash.downloadingUpdate"));
 
         var progress = new Progress<double>(p =>
         {
             Dispatcher.UIThread.Post(() =>
             {
                 progressBar.Value = p * 100;
-                SetStatus($"Downloading update... {(int)(p * 100)}%");
+                SetStatus(Loc.T("splash.downloadingUpdateProgress", (int)(p * 100)));
             });
         });
 
         try
         {
             var installerPath = await _updateService.DownloadUpdateAsync(_pendingUpdate, progress);
-            SetStatus("Launching installer...");
+            SetStatus(Loc.T("splash.launchingInstaller"));
             _updateService.LaunchInstaller(installerPath);
             _updateDecisionTcs?.TrySetResult(true);
         }
         catch (Exception ex)
         {
-            SetStatus($"Update failed: {ex.Message}");
+            SetStatus(Loc.T("splash.updateFailed", ex.Message));
             updateNowBtn.IsEnabled = true;
             updateLaterBtn.IsEnabled = true;
         }
@@ -136,7 +137,7 @@ public partial class SplashWindow : Window
         IExtensionGalleryService galleryService,
         Services.ExtensionManager extensionManager)
     {
-        SetStatus("Checking for extension updates...");
+        SetStatus(Loc.T("splash.checkingExtensionUpdates"));
 
         try
         {
@@ -144,11 +145,11 @@ public partial class SplashWindow : Window
             if (updates.Count == 0)
                 return false;
 
-            SetStatus($"Updating {updates.Count} extension(s)...");
+            SetStatus(Loc.T("splash.updatingExtensions", updates.Count));
 
             foreach (var update in updates)
             {
-                SetStatus($"Updating {update.ExtensionId}...");
+                SetStatus(Loc.T("splash.updatingExtension", update.ExtensionId));
                 await extensionManager.DisableExtensionAsync(update.ExtensionId);
                 var zipPath = await galleryService.DownloadExtensionZipAsync(update.Release);
                 await galleryService.InstallExtensionAsync(zipPath, update.Entry, update.Release);

@@ -79,6 +79,7 @@
                                         <Button DockPanel.Dock="Right"
                                                 Command="{Binding RemoveCommand}"
                                                 Content="&#xE711;"
+                                                AutomationProperties.Name="{loc:Loc entityTypeManager.removeField}"
                                                 FontFamily="{StaticResource SymbolThemeFontFamily}"
                                                 FontSize="{StaticResource FontSizeBody}"
                                                 Padding="6"

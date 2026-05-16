@@ -17,6 +17,7 @@ using Novalist.Core.Services;
 using Novalist.Core.Utilities;
 using Novalist.Desktop.Localization;
 using Novalist.Desktop.Services;
+using Novalist.Desktop.Utilities;
 using Novalist.Sdk.Models;
 
 namespace Novalist.Desktop.ViewModels;
@@ -1527,24 +1528,31 @@ public partial class MainWindowViewModel : ObservableObject
 
     private async void OnEntitySaved(IEntityData? entity)
     {
-        if (EntityPanel == null) return;
-
-        // Auto-rewrite mention spans whose data-mention-source != "manual"
-        // to reflect the entity's new display text after rename.
-        if (entity != null)
+        try
         {
-            var displayText = GetEntityDisplayText(entity);
-            if (!string.IsNullOrEmpty(displayText))
-                _ = _projectService.SyncMentionDisplayTextAsync(entity.Id, displayText);
-        }
+            if (EntityPanel == null) return;
 
-        await EntityPanel.LoadAllAsync();
-        if (Editor != null)
-            await Editor.RefreshFocusPeekAsync();
-        if (ContextSidebar != null)
-            await ContextSidebar.RefreshEntityDataAsync();
-        await RefreshStatusBarAsync();
-        _ = RefreshGitStatusAsync();
+            // Auto-rewrite mention spans whose data-mention-source != "manual"
+            // to reflect the entity's new display text after rename.
+            if (entity != null)
+            {
+                var displayText = GetEntityDisplayText(entity);
+                if (!string.IsNullOrEmpty(displayText))
+                    _ = _projectService.SyncMentionDisplayTextAsync(entity.Id, displayText);
+            }
+
+            await EntityPanel.LoadAllAsync();
+            if (Editor != null)
+                await Editor.RefreshFocusPeekAsync();
+            if (ContextSidebar != null)
+                await ContextSidebar.RefreshEntityDataAsync();
+            await RefreshStatusBarAsync();
+            _ = RefreshGitStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("MainWindowViewModel.OnEntitySaved failed", ex);
+        }
     }
 
     private static async Task LoadAndMigrateWordHistoryAsync()
@@ -1637,51 +1645,72 @@ public partial class MainWindowViewModel : ObservableObject
 
     private async void OnRestoreArchivedSceneFromEditor(SceneData scene)
     {
-        if (Editor == null) return;
-        var origin = scene.OriginChapterGuid;
-        var chapters = _projectService.GetChaptersOrdered();
-        if (chapters.Count == 0) return;
-        var targetGuid = !string.IsNullOrEmpty(origin)
-            && chapters.Any(c => string.Equals(c.Guid, origin, StringComparison.OrdinalIgnoreCase))
-                ? origin
-                : chapters[0].Guid;
+        try
+        {
+            if (Editor == null) return;
+            var origin = scene.OriginChapterGuid;
+            var chapters = _projectService.GetChaptersOrdered();
+            if (chapters.Count == 0) return;
+            var targetGuid = !string.IsNullOrEmpty(origin)
+                && chapters.Any(c => string.Equals(c.Guid, origin, StringComparison.OrdinalIgnoreCase))
+                    ? origin
+                    : chapters[0].Guid;
 
-        // Close the tab showing the archived scene so the file move is safe.
-        var openTab = Editor.OpenScenes.FirstOrDefault(t => t.Scene.Id == scene.Id);
-        if (openTab != null)
-            await Editor.CloseTabAsync(openTab);
+            // Close the tab showing the archived scene so the file move is safe.
+            var openTab = Editor.OpenScenes.FirstOrDefault(t => t.Scene.Id == scene.Id);
+            if (openTab != null)
+                await Editor.CloseTabAsync(openTab);
 
-        await _projectService.RestoreArchivedSceneAsync(scene.Id, targetGuid!, null);
+            await _projectService.RestoreArchivedSceneAsync(scene.Id, targetGuid!, null);
 
-        Explorer?.Refresh();
-        await RefreshStatusBarAsync();
-        _ = RefreshGitStatusAsync();
+            Explorer?.Refresh();
+            await RefreshStatusBarAsync();
+            _ = RefreshGitStatusAsync();
 
-        // Re-open the restored scene.
-        var chapter = chapters.FirstOrDefault(c => string.Equals(c.Guid, targetGuid, StringComparison.OrdinalIgnoreCase));
-        var restored = _projectService.GetScenesForChapter(targetGuid!).FirstOrDefault(s => s.Id == scene.Id);
-        if (chapter != null && restored != null)
-            OnSceneOpenRequested(chapter, restored);
+            // Re-open the restored scene.
+            var chapter = chapters.FirstOrDefault(c => string.Equals(c.Guid, targetGuid, StringComparison.OrdinalIgnoreCase));
+            var restored = _projectService.GetScenesForChapter(targetGuid!).FirstOrDefault(s => s.Id == scene.Id);
+            if (chapter != null && restored != null)
+                OnSceneOpenRequested(chapter, restored);
+        }
+        catch (Exception ex)
+        {
+            Log.Error("OnRestoreArchivedSceneFromEditor failed", ex);
+        }
     }
 
     private async void OnEntityDeleted()
     {
-        if (EntityPanel == null) return;
-        await EntityPanel.LoadAllAsync();
-        if (EntityEditor?.IsOpen != true)
-            ActiveContentView = GetFallbackView("Entity");
-        if (Editor != null)
-            await Editor.RefreshFocusPeekAsync();
-        if (ContextSidebar != null)
-            await ContextSidebar.RefreshEntityDataAsync();
-        await RefreshStatusBarAsync();
+        try
+        {
+            if (EntityPanel == null) return;
+            await EntityPanel.LoadAllAsync();
+            if (EntityEditor?.IsOpen != true)
+                ActiveContentView = GetFallbackView("Entity");
+            if (Editor != null)
+                await Editor.RefreshFocusPeekAsync();
+            if (ContextSidebar != null)
+                await ContextSidebar.RefreshEntityDataAsync();
+            await RefreshStatusBarAsync();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("OnEntityDeleted failed", ex);
+        }
     }
 
     private async void OnProjectChanged()
     {
-        await RefreshStatusBarAsync();
-        ContextSidebar?.RefreshContext();
-        Calendar?.Refresh();
+        try
+        {
+            await RefreshStatusBarAsync();
+            ContextSidebar?.RefreshContext();
+            Calendar?.Refresh();
+        }
+        catch (Exception ex)
+        {
+            Log.Error("OnProjectChanged failed", ex);
+        }
     }
 
     private void OnEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)

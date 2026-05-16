@@ -112,7 +112,8 @@
                             Spacing="{StaticResource SpacingNormal}"
                             Margin="0,12,0,0">
                     <Border Background="#33E74C3C"
-                            BorderBrush="#E74C3C"
+                            BorderBrush="{DynamicResource DangerBrush}"
+                            x:Name="ValidationBanner"
                             BorderThickness="1"
                             CornerRadius="{StaticResource RadiusSmall}"
                             Padding="10,6"
@@ -242,6 +243,8 @@
                                                             Content="×"
                                                             Padding="6,2"
                                                             Margin="6,0,0,0"
+                                                            AutomationProperties.Name="{loc:Loc dialog.delete}"
+                                                            ToolTip.Tip="{loc:Loc dialog.delete}"
                                                             Command="{Binding $parent[ItemsControl].((vm:WizardDialogViewModel)DataContext).RemoveEntityListEntryCommand}"
                                                             CommandParameter="{Binding}" />
                                                     <ItemsControl ItemsSource="{Binding Cells}">

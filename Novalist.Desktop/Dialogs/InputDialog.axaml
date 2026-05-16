@@ -10,14 +10,10 @@
     <Border Background="Transparent"
             Padding="24">
         <DockPanel>
-            <StackPanel DockPanel.Dock="Bottom"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right"
-                        Spacing="{StaticResource SpacingMedium}"
-                        Margin="0,16,0,0">
+            <StackPanel DockPanel.Dock="Bottom" Classes="dialogButtonRow">
                 <Button x:Name="CancelButton"
                         Content="{loc:Loc dialog.cancel}"
-                        Padding="16,8"
+                        IsCancel="True"
                         Click="OnCancel" />
                 <Button x:Name="OkButton"
                         Content="{loc:Loc dialog.ok}"

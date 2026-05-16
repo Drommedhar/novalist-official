@@ -174,7 +174,7 @@
 
         <!-- Preview Overlay -->
         <Border IsVisible="{Binding IsPreviewOpen}"
-                Background="#DD000000"
+                Background="{DynamicResource OverlayHeavy}"
                 PointerPressed="OnPreviewOverlayPressed">
             <StackPanel HorizontalAlignment="Center"
                         VerticalAlignment="Center"

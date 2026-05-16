@@ -1,0 +1,117 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+      Catppuccin Mocha
+      Palette: https://github.com/catppuccin/catppuccin
+      Mapped onto Novalist's semantic brush surface.
+    -->
+
+    <!-- Core surfaces -->
+    <SolidColorBrush x:Key="RibbonBackground" Color="#181825" />
+    <SolidColorBrush x:Key="RibbonBorder" Color="#11111B" />
+    <SolidColorBrush x:Key="RibbonGroupBorder" Color="#313244" />
+    <SolidColorBrush x:Key="ActivityBarBackground" Color="#11111B" />
+
+    <!-- Status bar -->
+    <SolidColorBrush x:Key="StatusBarBackground" Color="#89B4FA" />
+    <SolidColorBrush x:Key="StatusBarForeground" Color="#1E1E2E" />
+    <SolidColorBrush x:Key="StatusBarSecondaryForeground" Color="#313244" />
+    <SolidColorBrush x:Key="StatusBarHoverBackground" Color="#74A0F0" />
+
+    <!-- Explorer / side panels -->
+    <SolidColorBrush x:Key="ExplorerBackground" Color="#181825" />
+    <SolidColorBrush x:Key="ExplorerBorder" Color="#11111B" />
+    <SolidColorBrush x:Key="SidebarBackground" Color="#181825" />
+    <SolidColorBrush x:Key="BorderDefault" Color="#313244" />
+    <SolidColorBrush x:Key="ListBoxItemSelectedBackground" Color="#45475A" />
+
+    <!-- Editor & welcome -->
+    <SolidColorBrush x:Key="EditorBackground" Color="#1E1E2E" />
+    <SolidColorBrush x:Key="WelcomeBackground" Color="#1E1E2E" />
+    <SolidColorBrush x:Key="EditorPageBackground" Color="#1E1E2E" />
+    <SolidColorBrush x:Key="EditorPageForeground" Color="#CDD6F4" />
+    <SolidColorBrush x:Key="EditorSelectionBackground" Color="#45475A" />
+    <SolidColorBrush x:Key="EditorDivider" Color="#313244" />
+
+    <!-- Cards / elevated surfaces -->
+    <SolidColorBrush x:Key="CardBackground" Color="#181825" />
+    <SolidColorBrush x:Key="CardBorder" Color="#313244" />
+
+    <!-- Accent (Mocha Blue) -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#89B4FA" />
+    <SolidColorBrush x:Key="AccentBrushHover" Color="#74A0F0" />
+    <SolidColorBrush x:Key="AccentForeground" Color="#1E1E2E" />
+
+    <!-- Text hierarchy -->
+    <SolidColorBrush x:Key="NormalText" Color="#CDD6F4" />
+    <SolidColorBrush x:Key="DimText" Color="#A6ADC8" />
+    <SolidColorBrush x:Key="SubtleText" Color="#6C7086" />
+
+    <!-- Semantic colors -->
+    <SolidColorBrush x:Key="SuccessBrush" Color="#A6E3A1" />
+    <SolidColorBrush x:Key="WarningBrush" Color="#F9E2AF" />
+    <SolidColorBrush x:Key="DangerBrush" Color="#F38BA8" />
+
+    <!-- Tree / list interaction -->
+    <SolidColorBrush x:Key="TreeItemHover" Color="#313244" />
+    <SolidColorBrush x:Key="TreeItemSelected" Color="#45475A" />
+
+    <!-- Tabs & editor chrome -->
+    <SolidColorBrush x:Key="TabStripBackground" Color="#181825" />
+    <SolidColorBrush x:Key="EditorTabInactiveBackground" Color="#181825" />
+    <SolidColorBrush x:Key="EditorTabActiveBackground" Color="#1E1E2E" />
+    <SolidColorBrush x:Key="EditorTabHoverBackground" Color="#313244" />
+    <SolidColorBrush x:Key="EditorTabBorder" Color="#11111B" />
+    <SolidColorBrush x:Key="EditorTabMutedForeground" Color="#7F849C" />
+    <SolidColorBrush x:Key="EditorTabBadgeBackground" Color="#313244" />
+    <SolidColorBrush x:Key="EditorTabCloseGlyph" Color="#BAC2DE" />
+    <SolidColorBrush x:Key="EditorTabCloseHoverBackground" Color="#45475A" />
+
+    <!-- Overlay scrim (modal backdrops) -->
+    <SolidColorBrush x:Key="OverlayScrim" Color="#A011111B" />
+    <SolidColorBrush x:Key="OverlayHeavy" Color="#E011111B" />
+    <SolidColorBrush x:Key="OverlayMedium" Color="#80181825" />
+
+    <!-- Focus ring -->
+    <SolidColorBrush x:Key="FocusRingBrush" Color="#9989B4FA" />
+
+    <!-- Elevation -->
+    <BoxShadows x:Key="ElevationLow">0 1 3 0 #4011111B</BoxShadows>
+    <BoxShadows x:Key="ElevationMedium">0 4 12 0 #6011111B</BoxShadows>
+    <BoxShadows x:Key="ElevationHigh">0 8 24 0 #8011111B</BoxShadows>
+
+    <!-- Chapter status colors (Catppuccin pastels) -->
+    <SolidColorBrush x:Key="StatusOutline" Color="#6C7086" />
+    <SolidColorBrush x:Key="StatusFirstDraft" Color="#FAB387" />
+    <SolidColorBrush x:Key="StatusRevised" Color="#89B4FA" />
+    <SolidColorBrush x:Key="StatusEdited" Color="#A6E3A1" />
+    <SolidColorBrush x:Key="StatusFinal" Color="#94E2D5" />
+
+    <!-- Info banner -->
+    <SolidColorBrush x:Key="InfoBackground" Color="#3389B4FA" />
+    <SolidColorBrush x:Key="InfoBorder" Color="#89B4FA" />
+
+    <!-- Git status -->
+    <SolidColorBrush x:Key="GitDirty" Color="#F9E2AF" />
+    <SolidColorBrush x:Key="GitClean" Color="#A6E3A1" />
+
+    <!-- Favorite / star -->
+    <SolidColorBrush x:Key="FavoriteBrush" Color="#F9E2AF" />
+
+    <!-- World Bible badge -->
+    <SolidColorBrush x:Key="BadgeWBBackground" Color="#94E2D5" />
+    <SolidColorBrush x:Key="BadgeWBForeground" Color="#1E1E2E" />
+
+    <!-- Generic pill badge -->
+    <SolidColorBrush x:Key="BadgeNeutralBackground" Color="#45475A" />
+    <SolidColorBrush x:Key="BadgeNeutralForeground" Color="#CDD6F4" />
+
+    <!-- Extension store status -->
+    <SolidColorBrush x:Key="ExtensionInstalledBrush" Color="#A6E3A1" />
+    <SolidColorBrush x:Key="ExtensionUpdateBadge" Color="#89B4FA" />
+
+    <!-- Editor caret / code mono -->
+    <FontFamily x:Key="MonoFontFamily">JetBrainsMono Nerd Font, Cascadia Mono, Consolas, monospace</FontFamily>
+
+</ResourceDictionary>

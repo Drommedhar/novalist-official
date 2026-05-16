@@ -110,10 +110,17 @@ public partial class ImportPluginDialog : UserControl
 
     private async void OnBrowseOutput(object? sender, RoutedEventArgs e)
     {
-        if (BrowseFolder == null) return;
-        var folder = await BrowseFolder();
-        if (!string.IsNullOrEmpty(folder))
-            OutputPathBox.Text = folder;
+        try
+        {
+            if (BrowseFolder == null) return;
+            var folder = await BrowseFolder();
+            if (!string.IsNullOrEmpty(folder))
+                OutputPathBox.Text = folder;
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex.Message);
+        }
     }
 
     private async void OnImport(object? sender, RoutedEventArgs e)

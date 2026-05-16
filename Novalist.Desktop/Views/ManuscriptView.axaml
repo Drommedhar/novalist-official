@@ -200,7 +200,7 @@
                                              Padding="6,4"
                                              BorderThickness="0"
                                              Background="Transparent"
-                                             Watermark="POV" />
+                                             Watermark="{loc:Loc common.povWatermark}" />
                                     <TextBlock Grid.Column="4"
                                                Text="{Binding WordCount}"
                                                Padding="6,4"

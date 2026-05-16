@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text.Json;
+using Novalist.Desktop.Utilities;
 using Novalist.Sdk.Services;
 
 namespace Novalist.Desktop.Services;
@@ -73,7 +74,7 @@ public sealed class ExtensionLocalizationService : IExtensionLocalization
             return value;
         if (_fallback.TryGetValue(key, out var fallback))
             return fallback;
-        Debug.WriteLine($"[ExtLoc] MISSING key: '{key}'");
+        Log.Debug($"[ExtLoc] MISSING key: '{key}'");
         return key;
     }
 

@@ -9,6 +9,7 @@ using Novalist.Core;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Novalist.Desktop.Localization;
+using Novalist.Desktop.Utilities;
 using Novalist.Sdk.Hooks;
 using Novalist.Sdk.Models;
 using Novalist.Sdk.Services;
@@ -135,7 +136,7 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
 
     public void ActivateContentView(string viewKey)
     {
-        System.Diagnostics.Debug.WriteLine($"[ExtCtxMenu] ActivateContentView called with '{viewKey}', handler null? {ContentViewActivated is null}");
+        Log.Debug($"[ExtCtxMenu] ActivateContentView called with '{viewKey}', handler null? {ContentViewActivated is null}");
         var displayName = ExtensionManager?.ContentViews
             .FirstOrDefault(v => v.ViewKey == viewKey)?.DisplayName ?? viewKey;
         ContentViewActivated?.Invoke(viewKey, displayName);
@@ -165,7 +166,7 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
             if (!_inlineActionContributors.Contains(contributor))
                 _inlineActionContributors.Add(contributor);
         }
-        System.Diagnostics.Debug.WriteLine($"[InlineActions] HostServices register contributor {contributor.GetType().Name}. Total: {_inlineActionContributors.Count}. Listeners: {(InlineActionContributorsChanged?.GetInvocationList().Length ?? 0)}");
+        Log.Debug($"[InlineActions] HostServices register contributor {contributor.GetType().Name}. Total: {_inlineActionContributors.Count}. Listeners: {(InlineActionContributorsChanged?.GetInvocationList().Length ?? 0)}");
         InlineActionContributorsChanged?.Invoke();
     }
 
@@ -263,7 +264,7 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
             ChapterTitle = chapterTitle, WordCount = wordCount
         };
         _currentScene = info;
-        System.Diagnostics.Debug.WriteLine($"[HostServices] RaiseSceneOpened id={id} title={title} subscribers={SceneOpened?.GetInvocationList().Length ?? 0}");
+        Log.Debug($"[HostServices] RaiseSceneOpened id={id} title={title} subscribers={SceneOpened?.GetInvocationList().Length ?? 0}");
         SceneOpened?.Invoke(info);
     }
 

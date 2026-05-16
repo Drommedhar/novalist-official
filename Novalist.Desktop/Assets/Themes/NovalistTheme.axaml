@@ -18,6 +18,9 @@
     <!-- Explorer / side panels -->
     <SolidColorBrush x:Key="ExplorerBackground" Color="#1E1E1E" />
     <SolidColorBrush x:Key="ExplorerBorder" Color="#303030" />
+    <SolidColorBrush x:Key="SidebarBackground" Color="#1E1E1E" />
+    <SolidColorBrush x:Key="BorderDefault" Color="#333333" />
+    <SolidColorBrush x:Key="ListBoxItemSelectedBackground" Color="#2E353D" />
 
     <!-- Editor & welcome -->
     <SolidColorBrush x:Key="EditorBackground" Color="#181818" />
@@ -26,6 +29,8 @@
     <!-- Page-view paper surface — themed; matches the dark card aesthetic. -->
     <SolidColorBrush x:Key="EditorPageBackground" Color="#1F2127" />
     <SolidColorBrush x:Key="EditorPageForeground" Color="#E6EDF3" />
+    <SolidColorBrush x:Key="EditorSelectionBackground" Color="#3A4252" />
+    <SolidColorBrush x:Key="EditorDivider" Color="#333333" />
 
     <!-- Cards / elevated surfaces -->
     <SolidColorBrush x:Key="CardBackground" Color="#252526" />
@@ -78,5 +83,35 @@
     <SolidColorBrush x:Key="StatusRevised" Color="#89B4FA" />
     <SolidColorBrush x:Key="StatusEdited" Color="#A6E3A1" />
     <SolidColorBrush x:Key="StatusFinal" Color="#94E2D5" />
+
+    <!-- Info banner (matches the editor's blue info strip) -->
+    <SolidColorBrush x:Key="InfoBackground" Color="#332196F3" />
+    <SolidColorBrush x:Key="InfoBorder" Color="#5592C8" />
+
+    <!-- Git status -->
+    <SolidColorBrush x:Key="GitDirty" Color="#E5C07B" />
+    <SolidColorBrush x:Key="GitClean" Color="#98C379" />
+
+    <!-- Favorite / star -->
+    <SolidColorBrush x:Key="FavoriteBrush" Color="#E5C07B" />
+
+    <!-- World Bible badge -->
+    <SolidColorBrush x:Key="BadgeWBBackground" Color="#2E7D8C" />
+    <SolidColorBrush x:Key="BadgeWBForeground" Color="#FFFFFF" />
+
+    <!-- Generic pill badge for codex / entity panel cards -->
+    <SolidColorBrush x:Key="BadgeNeutralBackground" Color="#30808080" />
+    <SolidColorBrush x:Key="BadgeNeutralForeground" Color="#FFFFFF" />
+
+    <!-- Translucent overlays used by image gallery / map flyouts -->
+    <SolidColorBrush x:Key="OverlayHeavy" Color="#DD000000" />
+    <SolidColorBrush x:Key="OverlayMedium" Color="#66000000" />
+
+    <!-- Extension store status -->
+    <SolidColorBrush x:Key="ExtensionInstalledBrush" Color="#4CAF50" />
+    <SolidColorBrush x:Key="ExtensionUpdateBadge" Color="#3388FF" />
+
+    <!-- Editor caret / code mono -->
+    <FontFamily x:Key="MonoFontFamily">Cascadia Mono, Consolas, monospace</FontFamily>
 
 </ResourceDictionary>

@@ -68,7 +68,7 @@
                 <!-- Error message -->
                 <TextBlock x:Name="ErrorText"
                            FontSize="{StaticResource FontSizeBody}"
-                           Foreground="#E05252"
+                           Foreground="{DynamicResource DangerBrush}"
                            TextWrapping="Wrap"
                            IsVisible="False" />
             </StackPanel>

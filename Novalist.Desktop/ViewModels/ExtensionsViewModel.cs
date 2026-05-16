@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Desktop.Utilities;
 using Novalist.Sdk.Hooks;
 
 namespace Novalist.Desktop.Services;
@@ -55,8 +56,15 @@ public partial class ExtensionsViewModel : ObservableObject
 
     private async void OnStoreExtensionInstalled(object? sender, string extensionId)
     {
-        await _manager.DiscoverAndEnableAsync(extensionId);
-        Refresh();
+        try
+        {
+            await _manager.DiscoverAndEnableAsync(extensionId);
+            Refresh();
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"OnStoreExtensionInstalled('{extensionId}') failed", ex);
+        }
     }
 
     partial void OnSelectedTabChanged(int value)
@@ -197,14 +205,21 @@ public partial class ExtensionItemViewModel : ObservableObject
     {
         if (_suppressEnabledHandler) return;
 
-        if (value)
-            await _manager.EnableExtensionAsync(Id);
-        else
-            await _manager.DisableExtensionAsync(Id);
+        try
+        {
+            if (value)
+                await _manager.EnableExtensionAsync(Id);
+            else
+                await _manager.DisableExtensionAsync(Id);
 
-        OnPropertyChanged(nameof(IsLoaded));
-        OnPropertyChanged(nameof(HasError));
-        OnPropertyChanged(nameof(ErrorMessage));
+            OnPropertyChanged(nameof(IsLoaded));
+            OnPropertyChanged(nameof(HasError));
+            OnPropertyChanged(nameof(ErrorMessage));
+        }
+        catch (Exception ex)
+        {
+            Log.Error($"OnIsEnabledChanged({value}) for extension '{Id}' failed", ex);
+        }
     }
 
     [RelayCommand]

@@ -83,7 +83,7 @@
                                     <PathIcon DockPanel.Dock="Right"
                                                Data="{StaticResource IconAlertTriangle}"
                                                Width="14" Height="14"
-                                               Foreground="#E53E3E"
+                                               Foreground="{DynamicResource DangerBrush}"
                                                IsVisible="{Binding HasConflict}"
                                                ToolTip.Tip="{Binding ConflictDescription}"
                                                Margin="4,0" />

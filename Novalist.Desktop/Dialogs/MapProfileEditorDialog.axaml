@@ -121,6 +121,8 @@
                                                 <ColorPicker Grid.Column="4" Color="{Binding Color, Mode=TwoWay}"
                                                              IsAlphaEnabled="False" Margin="8,0,0,0" />
                                                 <Button Grid.Column="6" Content="×" Padding="6,2" FontSize="{StaticResource FontSizeBody}"
+                                                        ToolTip.Tip="{loc:Loc dialog.delete}"
+                                                        AutomationProperties.Name="{loc:Loc dialog.delete}"
                                                         Tag="{Binding}" Click="OnDeleteBand" />
                                             </Grid>
                                         </DataTemplate>
@@ -167,6 +169,8 @@
                                                 <TextBox Grid.Column="6" Text="{Binding Dash, Mode=TwoWay}"
                                                          Watermark="12,10" FontSize="{StaticResource FontSizeBody}" Width="70" />
                                                 <Button Grid.Column="8" Content="×" Padding="6,2" FontSize="{StaticResource FontSizeBody}"
+                                                        ToolTip.Tip="{loc:Loc dialog.delete}"
+                                                        AutomationProperties.Name="{loc:Loc dialog.delete}"
                                                         Tag="{Binding}" Click="OnDeleteMarking" />
                                             </Grid>
                                         </DataTemplate>

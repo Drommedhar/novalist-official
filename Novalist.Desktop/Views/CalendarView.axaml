@@ -222,13 +222,13 @@
             <Grid RowDefinitions="Auto,*"
                   IsVisible="{Binding IsMonthView}">
                 <UniformGrid Grid.Row="0" Columns="7" Background="{DynamicResource ExplorerBackground}">
-                    <TextBlock Text="Mon" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Tue" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Wed" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Thu" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Fri" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Sat" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
-                    <TextBlock Text="Sun" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="{loc:Loc calendar.weekdayMon}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="{loc:Loc calendar.weekdayTue}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="{loc:Loc calendar.weekdayWed}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="{loc:Loc calendar.weekdayThu}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="{loc:Loc calendar.weekdayFri}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="{loc:Loc calendar.weekdaySat}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
+                    <TextBlock Text="{loc:Loc calendar.weekdaySun}" FontSize="{StaticResource FontSizeBodySmall}" Opacity="0.6" Padding="6,4" />
                 </UniformGrid>
                 <ItemsControl Grid.Row="1" ItemsSource="{Binding MonthDays}">
                     <ItemsControl.ItemsPanel>

@@ -27,7 +27,7 @@ internal static class WebViewSnapshotter
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"[WebViewSnapshotter] {ex}");
+            Log.Debug($"[WebViewSnapshotter] {ex}");
         }
         return null;
     }
@@ -313,7 +313,7 @@ internal static class WebViewSnapshotter
         var bitsPerPixel = (int)msgSend_Long(rep, sel_registerName("bitsPerPixel"));
         var samplesPerPixel = (int)msgSend_Long(rep, sel_registerName("samplesPerPixel"));
         var bitmapData = msgSend_IntPtr(rep, sel_registerName("bitmapData"));
-        Console.WriteLine($"[WebViewSnapshotter.macOS] bounds={bounds.Width}x{bounds.Height} dip, " +
+        Log.Debug($"[WebViewSnapshotter.macOS] bounds={bounds.Width}x{bounds.Height} dip, " +
                           $"contentH={contentH}, rect=({rect.Origin.X},{rect.Origin.Y},{rect.Size.Width},{rect.Size.Height}), " +
                           $"px={pxW}x{pxH}, bytesPerRow={bytesPerRow}, bpp={bitsPerPixel}, spp={samplesPerPixel}");
         if (pxW <= 0 || pxH <= 0 || bitmapData == IntPtr.Zero) return null;
