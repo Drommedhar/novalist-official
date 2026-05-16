@@ -40,7 +40,9 @@
       "Bash(\"C:/Users/domin/AppData/Local/Programs/Python/Python311/python.exe\" /tmp/fix.py)",
       "Bash(xargs grep -l \"scene.*explorer\\\\|outline.*tree\" -i)",
       "Bash(xargs grep -l \"context.*sidebar\\\\|scene.*properties\" -i)",
-      "Bash(xargs grep -l \"class SceneData\\\\|class ChapterData\")"
+      "Bash(xargs grep -l \"class SceneData\\\\|class ChapterData\")",
+      "Bash(find ~/.nuget/packages -iname \"*nativewebview*\" -o -iname \"*avaloniawebview*\" -o -iname \"*Avalonia.Labs*\" 2>/dev/null | head -10)",
+      "Read(//Users/dominikgoblirsch/.nuget/packages/**)"
     ],
     "additionalDirectories": [
       "C:\\Users\\domin\\.claude\\plans"

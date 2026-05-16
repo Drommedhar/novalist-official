@@ -11,6 +11,7 @@ using Avalonia.Reactive;
 using Avalonia.Threading;
 using Novalist.Core.Models;
 using Avalonia.Platform;
+using Novalist.Desktop.Services;
 using Novalist.Desktop.Utilities;
 using Novalist.Desktop.ViewModels;
 
@@ -139,7 +140,17 @@ public partial class MapView : UserControl
         var path = ResolveMapHtmlPath();
         if (path == null) return;
         if (OperatingSystem.IsMacOS())
-            _webView.NavigateToString(File.ReadAllText(path));
+        {
+            // WKWebView blocks file:// navigation and gives NavigateToString an
+            // http://localhost origin, which breaks map.html's importmap +
+            // <script type="module" src="map3d.js"> AND blocks file:// images
+            // referenced by setImageBaseUrl. Serve Assets/Map/ and the book
+            // root from a loopback HttpListener instead so the page loads with
+            // a consistent origin.
+            var assetsRoot = Path.GetDirectoryName(path)!;
+            MapAssetServer.EnsureStarted(assetsRoot, () => App.ProjectService.ActiveBookRoot);
+            _webView.Source = new Uri(MapAssetServer.BaseUrl + "map.html");
+        }
         else
             _webView.Source = new Uri(path);
     }
@@ -510,7 +521,12 @@ public partial class MapView : UserControl
         if (bookRoot == null) { Console.Error.WriteLine("[MapView] PushImageBaseUrl: bookRoot is null"); return; }
         // Image paths are stored relative to the book root (e.g. "Images/foo.png"),
         // matching the convention used by EntityService.GetProjectImages.
-        var uri = new Uri(bookRoot + Path.DirectorySeparatorChar).AbsoluteUri;
+        // On macOS the page origin is http://127.0.0.1:<port> (see
+        // NavigateToMapPage) — file:// URLs would be blocked by WKWebView's
+        // CORS, so route images through the same loopback server.
+        var uri = OperatingSystem.IsMacOS()
+            ? MapAssetServer.BookBaseUrl
+            : new Uri(bookRoot + Path.DirectorySeparatorChar).AbsoluteUri;
         Console.Error.WriteLine($"[MapView] setImageBaseUrl => {uri}");
         ExecuteScript($"setImageBaseUrl('{EscapeJs(uri)}')");
     }
