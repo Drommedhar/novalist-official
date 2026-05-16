@@ -31,7 +31,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 9. [Templates](07-templates.md) — entity templates, project templates, story-structure templates, default values.
 10. [Plot Grid & Plotlines](08-plot-grid.md) — track which scenes belong to which threads.
 11. [Relationships graph](14-relationships.md) — auto-clustered family/social graph of your characters.
-12. [Calendar & in-world dates](13-calendar.md) — Gregorian and fully custom calendars, scene placement, story date ranges.
+12. [Calendar & in-world dates](13-calendar.md) — Gregorian calendar, scene placement, story date ranges.
 13. [Timeline](12-timeline.md) — chronological event view across acts, chapters, scenes, and manual events.
 14. [Maps](29-maps.md) — interactive map view with layered images, polygon clip masks, entity-linked pins, floor stacks.
 

@@ -1,6 +1,8 @@
 # Calendar & in-world dates
 
-Novalist can run on either the standard Gregorian calendar or a fully custom calendar with your own month names, day counts per month, weekday names, and year label. This means a fantasy or sci-fi novel with its own calendar system can have its in-world dates respected throughout: in scenes, on the Timeline, in date pickers, in formatted output.
+Novalist runs on the standard Gregorian calendar today. Chapters, scenes, acts, and timeline events can carry structured dates that show up on the Calendar view, the Timeline, and in tooltips and exports.
+
+> **Note:** A custom-calendar data model (custom month names, days per month, weekday names, year label) exists internally and can be set via a project's JSON, but there is no in-app editor for it yet. The Calendar view, date pickers, and Timeline labels currently assume Gregorian. A custom-calendar editor is planned.
 
 ## What "story dates" are
 
@@ -19,32 +21,6 @@ Story date ranges live on:
 - Timeline manual events
 
 When a date range is present it takes precedence over the simpler free-text `Date` field on the same item.
-
-## Configuring the calendar
-
-Open the book editor or the calendar configuration screen. The **in-world calendar** has two types:
-
-### Gregorian
-
-The default. Dates use the standard `YYYY-MM-DD` format with the local Gregorian month and weekday names. Pickers behave like a normal date picker. Year arithmetic works as expected.
-
-### Custom
-
-Configure:
-
-- **Year label** — e.g. "AC" for "After Conjunction", "AR" for "After Reckoning", or whatever your world uses.
-- **Month names** — an ordered list of month names. As few or as many as your calendar has.
-- **Days per month** — one integer per month. Can vary (e.g. 28, 30, 31).
-- **Weekday names** — an ordered list of weekday names. Typically 5–8 depending on your world.
-- **Derived year length** — sum of the days-per-month list (read-only).
-
-Once set, the calendar:
-
-- Drives date pickers everywhere (chapter date, scene date, timeline events, story-date-range dialog).
-- Drives the **Calendar view** (described below).
-- Drives the Timeline's axis labels at the lower zoom levels.
-
-You can switch a project from Gregorian to custom or vice versa. Existing dates are stored as strings and re-interpreted on read, so a switch may leave dates looking strange — fix them as needed.
 
 ## The Calendar view
 
@@ -94,7 +70,7 @@ There are two ways to put a date on a chapter or scene:
 1. **Simple Date field** — a free-text string. Useful if your calendar is informal ("Day 3", "Spring"). Stored as `Date`.
 2. **Structured date range** — opens the **Story Date Range dialog** with calendar-aware controls. Stored as `DateRange`.
 
-Open the dialog from the chapter or scene right-click menu (**Set date range**). The dialog asks for start, optional end, optional start/end times, and an optional note. If the active calendar is custom, the dialog's month and weekday pickers reflect your custom names.
+Open the dialog from the chapter or scene right-click menu (**Set date range**). The dialog asks for start, optional end, optional start/end times, and an optional note.
 
 ## Where calendar dates show up
 
@@ -107,7 +83,6 @@ Open the dialog from the chapter or scene right-click menu (**Set date range**).
 ## Tips
 
 - **Even if dates don't matter, give chapters relative dates.** "Day 1", "Day 5", "Two weeks later" is enough to drive the timeline.
-- **Start with Gregorian; switch later if needed.** A custom calendar is a worldbuilding commitment. Don't reach for it on day one of a project unless you already know you need it.
 - **For travel-heavy stories use the Week view.** Multi-day journeys plotted hour by hour quickly reveal whether the travel time is plausible.
 
 ## Where to go next

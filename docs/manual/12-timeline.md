@@ -89,6 +89,6 @@ Press **Save** and the event appears on the timeline. Manual events are stored o
 
 ## Where to go next
 
-- [Calendar](13-calendar.md) — Gregorian and fully custom calendar systems.
+- [Calendar](13-calendar.md) — the Gregorian calendar view.
 - [Chapters & Scenes](04-chapters-and-scenes.md) — set dates and date ranges on chapters and scenes.
 - [Plot Grid](08-plot-grid.md) — orthogonal view (plotlines × scenes).
