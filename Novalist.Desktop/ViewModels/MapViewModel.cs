@@ -352,10 +352,9 @@ public partial class MapViewModel : ObservableObject
     public Action<string, double, double>? AddImageRequested { get; set; }
     public Func<string, string, string, Task<string?>>? ShowInputDialog { get; set; }
     public Func<Task<(string RelativePath, double Width, double Height)?>>? PickImageRequested { get; set; }
-    public Func<Task<(string Label, string EntityId, string EntityType, string Color)?>>? PromptPinDetailsRequested { get; set; }
-    public Func<string, string, string, string, string, Task<(string Label, string EntityId, string EntityType, string Color, bool Delete)?>>? RequestPinEditDialog { get; set; }
     public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
-    public Func<List<(string Id, string Name)>, string, Task<string?>>? PromptLayerPicker { get; set; }
+    /// <summary>Host-supplied: serialise the entity catalog and forward to the WebView via setEntityOptions.</summary>
+    public Func<System.Action<string>, Task>? PushEntityOptions { get; set; }
     public Action<string, string>? PushUpdatePinColor { get; set; }
     public Action<string, double, double>? PushUpdateImageZoomRange { get; set; }
     /// <summary>Host-supplied: isolate a single image in the view (empty = clear).</summary>
@@ -794,7 +793,11 @@ public partial class MapViewModel : ObservableObject
         OnPropertyChanged(nameof(HasSelectedBuilding));
     }
 
-    partial void OnSelectedBuildingIdChanged(string? value) => OnPropertyChanged(nameof(HasSelectedBuilding));
+    partial void OnSelectedBuildingIdChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasSelectedBuilding));
+        EditSelectedBuildingPlanCommand.NotifyCanExecuteChanged();
+    }
 
     partial void OnSelectedBuildingRoofPitchChanged(double value)
     {
@@ -850,11 +853,21 @@ public partial class MapViewModel : ObservableObject
         if (!string.IsNullOrEmpty(SelectedBuildingId)) PushMoveBuildingZ?.Invoke(SelectedBuildingId!, -1);
     }
 
-    [RelayCommand]
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(EditSelectedBuildingPlanCommand))]
+    private bool isFloorPlanEditActive;
+
+    private bool CanEditSelectedBuildingPlan()
+        => !string.IsNullOrEmpty(SelectedBuildingId) && !IsFloorPlanEditActive;
+
+    [RelayCommand(CanExecute = nameof(CanEditSelectedBuildingPlan))]
     private void EditSelectedBuildingPlan()
     {
         if (!string.IsNullOrEmpty(SelectedBuildingId)) PushEditBuildingPlan?.Invoke(SelectedBuildingId!);
     }
+
+    public void OnFloorPlanEditEntered() => IsFloorPlanEditActive = true;
+    public void OnFloorPlanEditExited()  => IsFloorPlanEditActive = false;
 
     /// <summary>Called when the WebView reports an image was selected on the map.
     /// Selects the owning layer node in the panel so the Properties section follows.</summary>
@@ -877,24 +890,8 @@ public partial class MapViewModel : ObservableObject
 
     public bool HasMap => ActiveMap != null;
 
-    public Task<(string Label, string EntityId, string EntityType, string Color)?> PromptPinDetailsAsync()
-        => PromptPinDetailsRequested != null
-            ? PromptPinDetailsRequested.Invoke()
-            : Task.FromResult<(string, string, string, string)?>(("Pin", string.Empty, string.Empty, string.Empty));
-
-    public Task<(string Label, string EntityId, string EntityType, string Color, bool Delete)?> RequestPinEditAsync(
-        string pinId, string label, string entityId, string entityType, string color)
-        => RequestPinEditDialog != null
-            ? RequestPinEditDialog.Invoke(pinId, label, entityId, entityType, color)
-            : Task.FromResult<(string, string, string, string, bool)?>(null);
-
-    public Task<string?> PromptMoveImageToLayerAsync(string currentLayerId)
-    {
-        if (ActiveMap == null || PromptLayerPicker == null) return Task.FromResult<string?>(null);
-        var options = new List<(string Id, string Name)>();
-        WalkNodes(ActiveMap.Layers, (n, depth) => options.Add((n.Id, new string(' ', depth * 2) + n.Name)));
-        return PromptLayerPicker.Invoke(options, currentLayerId);
-    }
+    // Pin / layer-picker prompts removed — both flows now live inline in the
+    // WebView bottom bar (MapPinDialog + LayerPickerDialog deleted).
 
     public async Task UpdateInitialViewAsync(double centerX, double centerY, double zoom)
     {

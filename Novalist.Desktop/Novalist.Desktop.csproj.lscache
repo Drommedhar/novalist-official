@@ -1,0 +1,496 @@
+version=1
+
+# This file caches language service data to improve the performance of C# Dev Kit.
+# It is not intended for manual editing. It can safely be deleted and will be
+# regenerated automatically. For more information, see https://aka.ms/lscache
+#
+# To control where cache files are stored, use the following VS Code setting:
+#   "dotnet.projectsystem.cacheInProjectFolder": true
+
+[project]
+language=C#
+primary
+lastDtbSucceeded
+
+[properties]
+AssemblyName=Novalist.Desktop
+CommandLineArgsForDesignTimeEvaluation=-langversion:12.0 -define:TRACE
+CompilerGeneratedFilesOutputPath=
+MaxSupportedLangVersion=12.0
+ProjectAssetsFile=<PATH>obj/project.assets.json
+RootNamespace=Novalist.Desktop
+RunAnalyzers=
+RunAnalyzersDuringLiveAnalysis=
+SolutionPath=<PATH>../Novalist.slnx
+TargetFrameworkIdentifier=.NETCoreApp
+TargetPath=<PATH>bin/Debug/net8.0/Novalist.Desktop.dll
+TargetRefPath=<PATH>obj/Debug/net8.0/ref/Novalist.Desktop.dll
+TemporaryDependencyNodeTargetIdentifier=net8.0
+
+[commandLineArguments]
+/noconfig
+/unsafe-
+/checked-
+/nowarn:1701,1702,1701,1702,8002
+/fullpaths
+/nostdlib+
+/errorreport:prompt
+/warn:8
+/define:TRACE;DEBUG;NET;NET8_0;NETCOREAPP;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP1_0_OR_GREATER;NETCOREAPP1_1_OR_GREATER;NETCOREAPP2_0_OR_GREATER;NETCOREAPP2_1_OR_GREATER;NETCOREAPP2_2_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER
+/highentropyva+
+/nullable:enable
+/debug+
+/debug:portable
+/filealign:512
+/optimize-
+/out:obj\Debug\net8.0\Novalist.Desktop.dll
+/refout:obj\Debug\net8.0\refint\Novalist.Desktop.dll
+/target:winexe
+/warnaserror-
+/utf8output
+/win32icon:novalist.ico
+/win32manifest:app.manifest
+/deterministic+
+/langversion:12.0
+/warnaserror+:NU1605,SYSLIB0011
+
+[sourceFiles]
+App.axaml.cs
+Converters/
+ ColorStringToBrushConverter.cs
+ ExplorerConverters.cs
+ ImagePathConverter.cs
+ MultiplyConverter.cs
+ SceneRowBackgroundConverter.cs
+ StoreConverters.cs
+ StringToGeometryConverter.cs
+ ToastSeverityToBrushConverter.cs
+Dialogs/
+ AddImageSourceChoice.cs
+ AddImageSourceDialog.axaml.cs
+ AutoCompleteInputDialog.axaml.cs
+ BusyProgressDialog.axaml.cs
+ ChapterDialog.axaml.cs
+ CommandPaletteDialog.axaml.cs
+ ConfirmDialog.axaml.cs
+ DatePickerDialog.axaml.cs
+ EntityCreationDialog.axaml.cs
+ EntityTypeManagerDialog.axaml.cs
+ FindReplaceDialog.axaml.cs
+ ImportPluginDialog.axaml.cs
+ InputDialog.axaml.cs
+ InverseRelationshipDialog.axaml.cs
+ LayerPickerDialog.axaml.cs
+ MapPinDialog.axaml.cs
+ MapProfileEditorDialog.axaml.cs
+ ProjectImageOption.cs
+ ProjectImagePickerDialog.axaml.cs
+ SceneDialog.axaml.cs
+ SmartListEditorDialog.axaml.cs
+ SnapshotCompareDialog.axaml.cs
+ SnapshotsDialog.axaml.cs
+ StoryDateRangeDialog.axaml.cs
+ TemplateEditorDialog.axaml.cs
+ UpdateDialog.axaml.cs
+ WizardDialog.axaml.cs
+Editor/
+ AutoReplacementExtension.cs
+ DialogueCorrectionExtension.cs
+ EditorExtensionManager.cs
+ FocusPeekExtension.cs
+ GrammarCheckExtension.cs
+ IEditorExtension.cs
+ SdkEditorExtensionBridge.cs
+Localization/
+ AgeComputation.cs
+ Loc.cs
+ LocExtension.cs
+ LocFormatters.cs
+ RelationshipRoles.cs
+MainWindow.axaml.cs
+obj/Debug/net8.0/
+ .NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+ Novalist.Desktop.AssemblyInfo.cs
+Program.cs
+Services/
+ ExtensionLoadContext.cs
+ ExtensionLoader.cs
+ ExtensionLocalizationService.cs
+ ExtensionManager.cs
+ HostServices.cs
+ HotkeyManager.cs
+ HotkeyService.cs
+ IHotkeyService.cs
+ ThemeService.cs
+ WizardRunner.cs
+ Wizards/
+  CharacterInterviewMapper.cs
+  EntityWizardMapper.cs
+  ProjectWizardMapper.cs
+SplashWindow.axaml.cs
+Utilities/
+ BookWidthCalculator.cs
+ WebViewKeyMapper.cs
+ WebViewSnapshotter.cs
+ViewModels/
+ BusyProgressDialogViewModel.cs
+ CalendarViewModel.cs
+ CodexHubViewModel.cs
+ ContextSidebarViewModel.cs
+ DashboardViewModel.cs
+ EditorTabDescriptor.cs
+ EditorViewModel.cs
+ EntityEditorViewModel.cs
+ EntityPanelViewModel.cs
+ EntityTypeManagerViewModel.cs
+ ExplorerViewModel.cs
+ ExportViewModel.cs
+ ExtensionStoreViewModel.cs
+ ExtensionsViewModel.cs
+ FindReplaceViewModel.cs
+ FocusPeekViewModel.cs
+ FootnotesPanelViewModel.cs
+ GitViewModel.cs
+ HotkeySettingsViewModel.cs
+ ImageGalleryViewModel.cs
+ MainWindowViewModel.cs
+ ManuscriptViewModel.cs
+ MapConverters.cs
+ MapViewModel.cs
+ PlotGridViewModel.cs
+ RelationshipsGraphViewModel.cs
+ ResearchViewModel.cs
+ SceneNotesViewModel.cs
+ SettingsViewModel.cs
+ SmartListItemViewModel.cs
+ TemplateEditorViewModel.cs
+ TimelineViewModel.cs
+ Toast.cs
+ ToastNotification.cs
+ WelcomeViewModel.cs
+ WizardDialogViewModel.cs
+Views/
+ CalendarView.axaml.cs
+ CodexHubView.axaml.cs
+ ContextSidebarView.axaml.cs
+ DashboardView.axaml.cs
+ EditorView.axaml.cs
+ EntityEditorView.axaml.cs
+ EntityPanelView.axaml.cs
+ ExplorerView.axaml.cs
+ ExportView.axaml.cs
+ ExtensionsView.axaml.cs
+ FocusPeekCardView.axaml.cs
+ FootnotesPanelView.axaml.cs
+ GitView.axaml.cs
+ HotkeySettingsView.axaml.cs
+ ImageGalleryView.axaml.cs
+ ManuscriptView.axaml.cs
+ MapView.axaml.cs
+ PlotGridView.axaml.cs
+ RelationshipsGraphView.axaml.cs
+ ResearchView.axaml.cs
+ SceneNotesView.axaml.cs
+ SettingsView.axaml.cs
+ SmartListsPanelView.axaml.cs
+ TimelineView.axaml.cs
+ WelcomeView.axaml.cs
+
+[metadataReferences]
+../
+ Novalist.Core/obj/Debug/net8.0/ref/Novalist.Core.dll
+ Novalist.Sdk/obj/Debug/net8.0/ref/Novalist.Sdk.dll
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.27/ref/net8.0/
+ Microsoft.CSharp.dll
+ Microsoft.VisualBasic.Core.dll
+ Microsoft.VisualBasic.dll
+ Microsoft.Win32.Primitives.dll
+ Microsoft.Win32.Registry.dll
+ mscorlib.dll
+ netstandard.dll
+ System.AppContext.dll
+ System.Buffers.dll
+ System.Collections.Concurrent.dll
+ System.Collections.dll
+ System.Collections.Immutable.dll
+ System.Collections.NonGeneric.dll
+ System.Collections.Specialized.dll
+ System.ComponentModel.Annotations.dll
+ System.ComponentModel.DataAnnotations.dll
+ System.ComponentModel.dll
+ System.ComponentModel.EventBasedAsync.dll
+ System.ComponentModel.Primitives.dll
+ System.ComponentModel.TypeConverter.dll
+ System.Configuration.dll
+ System.Console.dll
+ System.Core.dll
+ System.Data.Common.dll
+ System.Data.DataSetExtensions.dll
+ System.Data.dll
+ System.Diagnostics.Contracts.dll
+ System.Diagnostics.Debug.dll
+ System.Diagnostics.DiagnosticSource.dll
+ System.Diagnostics.FileVersionInfo.dll
+ System.Diagnostics.Process.dll
+ System.Diagnostics.StackTrace.dll
+ System.Diagnostics.TextWriterTraceListener.dll
+ System.Diagnostics.Tools.dll
+ System.Diagnostics.TraceSource.dll
+ System.Diagnostics.Tracing.dll
+ System.dll
+ System.Drawing.dll
+ System.Drawing.Primitives.dll
+ System.Dynamic.Runtime.dll
+ System.Formats.Asn1.dll
+ System.Formats.Tar.dll
+ System.Globalization.Calendars.dll
+ System.Globalization.dll
+ System.Globalization.Extensions.dll
+ System.IO.Compression.Brotli.dll
+ System.IO.Compression.dll
+ System.IO.Compression.FileSystem.dll
+ System.IO.Compression.ZipFile.dll
+ System.IO.dll
+ System.IO.FileSystem.AccessControl.dll
+ System.IO.FileSystem.dll
+ System.IO.FileSystem.DriveInfo.dll
+ System.IO.FileSystem.Primitives.dll
+ System.IO.FileSystem.Watcher.dll
+ System.IO.IsolatedStorage.dll
+ System.IO.MemoryMappedFiles.dll
+ System.IO.Pipes.AccessControl.dll
+ System.IO.Pipes.dll
+ System.IO.UnmanagedMemoryStream.dll
+ System.Linq.dll
+ System.Linq.Expressions.dll
+ System.Linq.Parallel.dll
+ System.Linq.Queryable.dll
+ System.Memory.dll
+ System.Net.dll
+ System.Net.Http.dll
+ System.Net.Http.Json.dll
+ System.Net.HttpListener.dll
+ System.Net.Mail.dll
+ System.Net.NameResolution.dll
+ System.Net.NetworkInformation.dll
+ System.Net.Ping.dll
+ System.Net.Primitives.dll
+ System.Net.Quic.dll
+ System.Net.Requests.dll
+ System.Net.Security.dll
+ System.Net.ServicePoint.dll
+ System.Net.Sockets.dll
+ System.Net.WebClient.dll
+ System.Net.WebHeaderCollection.dll
+ System.Net.WebProxy.dll
+ System.Net.WebSockets.Client.dll
+ System.Net.WebSockets.dll
+ System.Numerics.dll
+ System.Numerics.Vectors.dll
+ System.ObjectModel.dll
+ System.Reflection.DispatchProxy.dll
+ System.Reflection.dll
+ System.Reflection.Emit.dll
+ System.Reflection.Emit.ILGeneration.dll
+ System.Reflection.Emit.Lightweight.dll
+ System.Reflection.Extensions.dll
+ System.Reflection.Metadata.dll
+ System.Reflection.Primitives.dll
+ System.Reflection.TypeExtensions.dll
+ System.Resources.Reader.dll
+ System.Resources.ResourceManager.dll
+ System.Resources.Writer.dll
+ System.Runtime.CompilerServices.Unsafe.dll
+ System.Runtime.CompilerServices.VisualC.dll
+ System.Runtime.dll
+ System.Runtime.Extensions.dll
+ System.Runtime.Handles.dll
+ System.Runtime.InteropServices.dll
+ System.Runtime.InteropServices.JavaScript.dll
+ System.Runtime.InteropServices.RuntimeInformation.dll
+ System.Runtime.Intrinsics.dll
+ System.Runtime.Loader.dll
+ System.Runtime.Numerics.dll
+ System.Runtime.Serialization.dll
+ System.Runtime.Serialization.Formatters.dll
+ System.Runtime.Serialization.Json.dll
+ System.Runtime.Serialization.Primitives.dll
+ System.Runtime.Serialization.Xml.dll
+ System.Security.AccessControl.dll
+ System.Security.Claims.dll
+ System.Security.Cryptography.Algorithms.dll
+ System.Security.Cryptography.Cng.dll
+ System.Security.Cryptography.Csp.dll
+ System.Security.Cryptography.dll
+ System.Security.Cryptography.Encoding.dll
+ System.Security.Cryptography.OpenSsl.dll
+ System.Security.Cryptography.Primitives.dll
+ System.Security.Cryptography.X509Certificates.dll
+ System.Security.dll
+ System.Security.Principal.dll
+ System.Security.Principal.Windows.dll
+ System.Security.SecureString.dll
+ System.ServiceModel.Web.dll
+ System.ServiceProcess.dll
+ System.Text.Encoding.CodePages.dll
+ System.Text.Encoding.dll
+ System.Text.Encoding.Extensions.dll
+ System.Text.Encodings.Web.dll
+ System.Text.Json.dll
+ System.Text.RegularExpressions.dll
+ System.Threading.Channels.dll
+ System.Threading.dll
+ System.Threading.Overlapped.dll
+ System.Threading.Tasks.Dataflow.dll
+ System.Threading.Tasks.dll
+ System.Threading.Tasks.Extensions.dll
+ System.Threading.Tasks.Parallel.dll
+ System.Threading.Thread.dll
+ System.Threading.ThreadPool.dll
+ System.Threading.Timer.dll
+ System.Transactions.dll
+ System.Transactions.Local.dll
+ System.ValueTuple.dll
+ System.Web.dll
+ System.Web.HttpUtility.dll
+ System.Windows.dll
+ System.Xml.dll
+ System.Xml.Linq.dll
+ System.Xml.ReaderWriter.dll
+ System.Xml.Serialization.dll
+ System.Xml.XDocument.dll
+ System.Xml.XmlDocument.dll
+ System.Xml.XmlSerializer.dll
+ System.Xml.XPath.dll
+ System.Xml.XPath.XDocument.dll
+ WindowsBase.dll
+<NUGET>/
+ avalonia.controls.colorpicker/12.0.1/lib/net8.0/Avalonia.Controls.ColorPicker.dll
+ avalonia.controls.webview/12.0.0/lib/net8.0/Avalonia.Controls.WebView.dll
+ avalonia.desktop/12.0.1/lib/net8.0/Avalonia.Desktop.dll
+ avalonia.fonts.inter/12.0.1/lib/net8.0/Avalonia.Fonts.Inter.dll
+ avalonia.freedesktop.atspi/12.0.1/lib/net8.0/Avalonia.FreeDesktop.AtSpi.dll
+ avalonia.freedesktop/12.0.1/lib/net8.0/Avalonia.FreeDesktop.dll
+ avalonia.harfbuzz/12.0.1/lib/net8.0/Avalonia.HarfBuzz.dll
+ avalonia.markup.xaml.loader/12.0.1/lib/net8.0/Avalonia.Markup.Xaml.Loader.dll
+ avalonia.native/12.0.1/lib/net8.0/Avalonia.Native.dll
+ avalonia.remote.protocol/12.0.1/lib/net8.0/Avalonia.Remote.Protocol.dll
+ avalonia.skia/12.0.1/lib/net8.0/Avalonia.Skia.dll
+ avalonia.themes.fluent/12.0.1/lib/net8.0/Avalonia.Themes.Fluent.dll
+ avalonia.win32/12.0.1/lib/net8.0/
+  Avalonia.Win32.Automation.dll
+  Avalonia.Win32.dll
+ avalonia.x11/12.0.1/lib/net8.0/Avalonia.X11.dll
+ avalonia/12.0.1/ref/net8.0/
+  Avalonia.Base.dll
+  Avalonia.Controls.dll
+  Avalonia.DesignerSupport.dll
+  Avalonia.Dialogs.dll
+  Avalonia.dll
+  Avalonia.Markup.dll
+  Avalonia.Markup.Xaml.dll
+  Avalonia.Metal.dll
+  Avalonia.MicroCom.dll
+  Avalonia.OpenGL.dll
+  Avalonia.Vulkan.dll
+ avaloniaui.diagnosticssupport/2.2.1/lib/net8.0/AvaloniaUI.DiagnosticsSupport.Avalonia.dll
+ communitytoolkit.mvvm/8.4.2/lib/net8.0/CommunityToolkit.Mvvm.dll
+ harfbuzzsharp/8.3.1.3/lib/net8.0/HarfBuzzSharp.dll
+ markdig/1.1.3/lib/net8.0/Markdig.dll
+ microcom.runtime/0.11.4/lib/net5.0/MicroCom.Runtime.dll
+ microsoft.extensions.dependencyinjection.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+ microsoft.extensions.logging.abstractions/8.0.0/lib/net8.0/Microsoft.Extensions.Logging.Abstractions.dll
+ microsoft.io.recyclablememorystream/3.0.1/lib/net6.0/Microsoft.IO.RecyclableMemoryStream.dll
+ pdfsharpcore/1.3.67/lib/net8.0/PdfSharpCore.dll
+ sharpziplib/1.4.2/lib/net6.0/ICSharpCode.SharpZipLib.dll
+ sixlabors.fonts/1.0.0-beta17/lib/netcoreapp3.1/SixLabors.Fonts.dll
+ sixlabors.imagesharp/1.0.4/lib/netcoreapp3.1/SixLabors.ImageSharp.dll
+ skiasharp/3.119.3-preview.1.1/ref/net8.0/SkiaSharp.dll
+ system.io.pipelines/8.0.0/lib/net8.0/System.IO.Pipelines.dll
+ tmds.dbus.protocol/0.92.0/lib/net8.0/Tmds.DBus.Protocol.dll
+
+[analyzerReferences]
+<DOTNET>/packs/Microsoft.NETCore.App.Ref/8.0.27/analyzers/dotnet/cs/
+ Microsoft.Interop.ComInterfaceGenerator.dll
+ Microsoft.Interop.JavaScript.JSImportGenerator.dll
+ Microsoft.Interop.LibraryImportGenerator.dll
+ Microsoft.Interop.SourceGeneration.dll
+ System.Text.Json.SourceGeneration.dll
+ System.Text.RegularExpressions.Generator.dll
+<DOTNET>/sdk/10.0.204/Sdks/Microsoft.NET.Sdk/analyzers/
+ Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+ Microsoft.CodeAnalysis.NetAnalyzers.dll
+<NUGET>/avalonia/12.0.1/analyzers/dotnet/cs/
+ Avalonia.Analyzers.CodeFixes.CSharp.dll
+ Avalonia.Analyzers.CSharp.dll
+ Avalonia.Analyzers.VisualBasic.dll
+ Avalonia.Generators.dll
+<NUGET>/communitytoolkit.mvvm/8.4.2/analyzers/dotnet/roslyn5.0/cs/
+ CommunityToolkit.Mvvm.CodeFixers.dll
+ CommunityToolkit.Mvvm.SourceGenerators.dll
+<NUGET>/microsoft.extensions.logging.abstractions/8.0.0/analyzers/dotnet/roslyn4.4/cs/Microsoft.Extensions.Logging.Generators.dll
+
+[analyzerConfigFiles]
+<DOTNET>/sdk/10.0.204/Sdks/Microsoft.NET.Sdk/analyzers/build/config/analysislevel_8_default.globalconfig
+obj/Debug/net8.0/Novalist.Desktop.GeneratedMSBuildEditorConfig.editorconfig
+
+[additionalFiles]
+App.axaml
+Assets/Themes/
+ DesignTokens.axaml
+ DiscordTheme.axaml
+ NovalistTheme.axaml
+Dialogs/
+ AddImageSourceDialog.axaml
+ AutoCompleteInputDialog.axaml
+ BusyProgressDialog.axaml
+ ChapterDialog.axaml
+ CommandPaletteDialog.axaml
+ ConfirmDialog.axaml
+ DatePickerDialog.axaml
+ EntityCreationDialog.axaml
+ EntityTypeManagerDialog.axaml
+ FindReplaceDialog.axaml
+ ImportPluginDialog.axaml
+ InputDialog.axaml
+ InverseRelationshipDialog.axaml
+ LayerPickerDialog.axaml
+ MapPinDialog.axaml
+ MapProfileEditorDialog.axaml
+ ProjectImagePickerDialog.axaml
+ SceneDialog.axaml
+ SmartListEditorDialog.axaml
+ SnapshotCompareDialog.axaml
+ SnapshotsDialog.axaml
+ StoryDateRangeDialog.axaml
+ TemplateEditorDialog.axaml
+ UpdateDialog.axaml
+ WizardDialog.axaml
+MainWindow.axaml
+SplashWindow.axaml
+Views/
+ CalendarView.axaml
+ CodexHubView.axaml
+ ContextSidebarView.axaml
+ DashboardView.axaml
+ EditorView.axaml
+ EntityEditorView.axaml
+ EntityPanelView.axaml
+ ExplorerView.axaml
+ ExportView.axaml
+ ExtensionsView.axaml
+ FocusPeekCardView.axaml
+ FootnotesPanelView.axaml
+ GitView.axaml
+ HotkeySettingsView.axaml
+ ImageGalleryView.axaml
+ ManuscriptView.axaml
+ MapView.axaml
+ PlotGridView.axaml
+ RelationshipsGraphView.axaml
+ ResearchView.axaml
+ SceneNotesView.axaml
+ SettingsView.axaml
+ SmartListsPanelView.axaml
+ TimelineView.axaml
+ WelcomeView.axaml

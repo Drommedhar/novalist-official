@@ -628,11 +628,9 @@ public partial class MainWindow : Window
         if (maps == null) return;
         maps.ShowInputDialog = ShowInputDialogAsync;
         maps.PickImageRequested = PickImageForMapAsync;
-        maps.PromptPinDetailsRequested = PromptPinDetailsAsync;
-        maps.RequestPinEditDialog = RequestPinEditAsync;
         maps.ShowConfirmDialog = ShowConfirmDialogAsync;
-        maps.PromptLayerPicker = PromptLayerPickerAsync;
         maps.ManageProfilesRequested = ManageMapProfilesAsync;
+        maps.PushEntityOptions = PushEntityOptionsToMapAsync;
     }
 
     private async Task<List<Novalist.Core.Models.MapProfile>?> ManageMapProfilesAsync(
@@ -643,58 +641,38 @@ public partial class MainWindow : Window
         return dialog.Result;
     }
 
-    private async Task<string?> PromptLayerPickerAsync(List<(string Id, string Name)> options, string currentLayerId)
+    private async Task PushEntityOptionsToMapAsync(System.Action<string> push)
     {
-        if (options.Count == 0) return null;
-        var dialog = new Dialogs.LayerPickerDialog(options, currentLayerId);
-        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
-        return dialog.ResultLayerId;
+        var list = await BuildEntityOptionsAsync();
+        var payload = list.Select(o => new { id = o.Id, name = o.Name, type = o.Type }).ToList();
+        push(System.Text.Json.JsonSerializer.Serialize(payload));
     }
 
+    private record EntityOption(string Id, string Name, string Type);
 
-    private async Task<(string Label, string EntityId, string EntityType, string Color)?> PromptPinDetailsAsync()
+    private async Task<List<EntityOption>> BuildEntityOptionsAsync()
     {
-        var opts = await BuildEntityOptionsAsync();
-        var dialog = new Dialogs.MapPinDialog(opts);
-        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
-        if (dialog.ResultLabel == null) return null;
-        return (dialog.ResultLabel, dialog.ResultEntityId ?? string.Empty, dialog.ResultEntityType ?? string.Empty, dialog.ResultColor ?? string.Empty);
-    }
-
-    private async Task<(string Label, string EntityId, string EntityType, string Color, bool Delete)?> RequestPinEditAsync(
-        string pinId, string label, string entityId, string entityType, string color)
-    {
-        var opts = await BuildEntityOptionsAsync();
-        var dialog = new Dialogs.MapPinDialog(opts, label, entityId, color, allowDelete: true);
-        await ShowDialogOverlayAsync(dialog, dialog.DialogClosed);
-        if (dialog.ResultDelete) return (string.Empty, string.Empty, string.Empty, string.Empty, true);
-        if (dialog.ResultLabel == null) return null;
-        return (dialog.ResultLabel, dialog.ResultEntityId ?? string.Empty, dialog.ResultEntityType ?? string.Empty, dialog.ResultColor ?? string.Empty, false);
-    }
-
-    private async Task<List<Dialogs.EntityOption>> BuildEntityOptionsAsync()
-    {
-        var list = new List<Dialogs.EntityOption>();
+        var list = new List<EntityOption>();
         try
         {
             var chars = await App.EntityService.LoadCharactersAsync();
             foreach (var c in chars)
-                list.Add(new Dialogs.EntityOption(c.Id, c.DisplayName, "character"));
+                list.Add(new EntityOption(c.Id, c.DisplayName, "character"));
             var locs = await App.EntityService.LoadLocationsAsync();
             foreach (var l in locs)
-                list.Add(new Dialogs.EntityOption(l.Id, l.Name, "location"));
+                list.Add(new EntityOption(l.Id, l.Name, "location"));
             var items = await App.EntityService.LoadItemsAsync();
             foreach (var i in items)
-                list.Add(new Dialogs.EntityOption(i.Id, i.Name, "item"));
+                list.Add(new EntityOption(i.Id, i.Name, "item"));
             var lore = await App.EntityService.LoadLoreAsync();
             foreach (var lr in lore)
-                list.Add(new Dialogs.EntityOption(lr.Id, lr.Name, "lore"));
+                list.Add(new EntityOption(lr.Id, lr.Name, "lore"));
             var types = App.ProjectService.CurrentProject?.CustomEntityTypes ?? new();
             foreach (var t in types)
             {
                 var customs = await App.EntityService.LoadCustomEntitiesAsync(t.TypeKey);
                 foreach (var ce in customs)
-                    list.Add(new Dialogs.EntityOption(ce.Id, ce.Name, $"custom:{t.TypeKey}"));
+                    list.Add(new EntityOption(ce.Id, ce.Name, $"custom:{t.TypeKey}"));
             }
         }
         catch { }

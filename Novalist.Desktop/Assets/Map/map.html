@@ -16,6 +16,38 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
     position: fixed; inset: 0; cursor: default; overflow: hidden;
 }
 #stage.dragging { cursor: grabbing; }
+/* Cursor + hover affordances driven by tool mode (body class set by applyToolModeClass). */
+body.tool-add-pin   #stage,
+body.tool-add-label #stage,
+body.tool-spline    #stage,
+body.tool-terrain   #stage,
+body.tool-border    #stage,
+body.tool-building  #stage { cursor: crosshair; }
+/* Hover affordance — JS-debounced (.nv-hovered class applied after the cursor
+   rests on an element for ~600ms). CSS-only :hover caused per-path flicker on
+   multi-segment SVGs (splines, terrain, buildings) and constant churn when
+   sweeping across the map. The transition gives a gentle fade in / out. */
+body.tool-select.mode-edit .nv-terrain path,
+body.tool-select.mode-edit .nv-building polygon,
+body.tool-select.mode-edit .nv-building path,
+body.tool-select.mode-edit #spline-svg path[data-spline-id],
+body.tool-select.mode-edit .nv-image,
+body.tool-select.mode-edit .nv-pin-marker,
+body.tool-select.mode-edit .nv-label { cursor: pointer; }
+.nv-terrain path, .nv-building polygon, .nv-building path,
+#spline-svg path[data-spline-id] {
+    transition: filter 280ms ease;
+}
+.nv-image, .nv-pin-marker, .nv-label {
+    transition: outline-color 280ms ease, box-shadow 280ms ease;
+}
+.nv-terrain.nv-hovered path,
+.nv-building.nv-hovered polygon,
+.nv-building.nv-hovered path,
+#spline-svg path[data-spline-id].nv-hovered { filter: brightness(1.2); }
+.nv-pin-host.nv-hovered .nv-pin-marker { outline: 2px solid var(--accent); outline-offset: 2px; }
+.nv-label.nv-hovered                   { outline: 1px dashed var(--accent); outline-offset: 3px; }
+.nv-image.nv-hovered                   { outline: 2px solid var(--accent); }
 /* 3D view canvas — hidden until Map3D.enter(); swaps in place with #stage. */
 #stage3d { position: fixed; inset: 0; display: none; outline: none; }
 #world {
@@ -35,7 +67,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
        zoom-in until intrinsic resolution is exceeded. */
 }
 body.mode-view .nv-image { pointer-events: none; }
-.nv-image.selected { outline: 2px solid var(--accent); }
+.nv-image.selected { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* Pins live in a screen-space overlay (NOT scaled with #world) so the marker
    stays crisp + constant-size at any zoom level. The host element is anchored
    at the pin's world point projected to screen coords. */
@@ -85,31 +117,77 @@ body.mode-view .nv-image { pointer-events: none; }
     border-color: #1c1a18 !important;
     cursor: move;
 }
-#nv-clip-toolbar {
+/* Unified persistent bottom bar — replaces five per-mode toolbars. Always
+   visible, full width. Contents driven by renderBottomBar() based on current
+   selection / draft state. */
+#nv-bottom-bar {
     position: fixed;
-    left: 50%;
-    bottom: 20px;
-    transform: translateX(-50%);
+    left: 0; right: 0; bottom: 0;
     background: #2a2a3a;
-    border: 1px solid #ff9c42;
-    border-radius: 4px;
-    padding: 8px 14px;
+    border-top: 1px solid #3a3a4a;
+    padding: 8px 16px;
     display: flex;
-    gap: 10px;
     align-items: center;
-    z-index: 1000;
-    box-shadow: 0 4px 14px rgba(0,0,0,.5);
-}
-#nv-clip-toolbar .hint { color: #aaa; font-size: 11px; }
-#nv-clip-toolbar button {
-    padding: 6px 14px;
-    cursor: pointer;
-    border: none;
-    border-radius: 3px;
+    gap: 16px;
+    z-index: 900;
+    box-shadow: 0 -2px 12px rgba(0,0,0,.4);
+    min-height: 44px;
     font-size: 12px;
+    color: #cdd6f4;
 }
-#nv-clip-toolbar button.primary { background: var(--accent); color: #fff; }
-#nv-clip-toolbar button.secondary { background: #444; color: #fff; }
+#nv-bottom-bar .bb-left   { flex: 0 0 auto; font-weight: 600; }
+#nv-bottom-bar .bb-center { flex: 1 1 auto; display: flex; gap: 10px; align-items: center; color: #aaa; }
+#nv-bottom-bar .bb-right  { flex: 0 0 auto; display: flex; gap: 8px; align-items: center; }
+#nv-bottom-bar .bb-hint   { color: #888; font-style: italic; }
+#nv-bottom-bar .bb-kbd    { color: #6fd0ff; font-family: ui-monospace, Consolas, monospace; }
+#nv-bottom-bar button {
+    padding: 6px 14px; border: none; border-radius: 3px;
+    cursor: pointer; font-size: 12px; background: #444; color: #fff;
+}
+#nv-bottom-bar button:hover:not(:disabled) { filter: brightness(1.15); }
+#nv-bottom-bar button.primary  { background: var(--accent); }
+#nv-bottom-bar button.danger   { background: #b34a4a; }
+#nv-bottom-bar button.active   { background: var(--accent); outline: 2px solid #fff3; }
+#nv-bottom-bar button:disabled { opacity: 0.4; cursor: not-allowed; }
+#nv-bottom-bar .bb-field {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #1e1e2e; border: 1px solid #444; border-radius: 3px;
+    padding: 2px 6px;
+}
+#nv-bottom-bar .bb-flabel {
+    color: #888; font-size: 11px;
+}
+#nv-bottom-bar .bb-field input[type=text],
+#nv-bottom-bar .bb-field input[type=number] {
+    background: transparent; color: #fff; border: none; outline: none;
+    font-size: 12px; padding: 2px 0;
+}
+#nv-bottom-bar .bb-field input[type=number] { width: 60px; }
+#nv-bottom-bar .bb-field input[type=text]   { width: 130px; }
+#nv-bottom-bar .bb-field input[type=color] {
+    background: transparent; border: none; cursor: pointer;
+    width: 22px; height: 22px; padding: 0;
+}
+#nv-bottom-bar .bb-field input[type=range] { vertical-align: middle; width: 100px; }
+#nv-bottom-bar .bb-field select {
+    background: #1e1e2e; color: #fff; border: 1px solid #444; border-radius: 3px;
+    font-size: 12px; padding: 3px 6px; outline: none;
+}
+#nv-bottom-bar .bb-field input[type=checkbox] { margin: 0; }
+#nv-bottom-bar .bb-toggle {
+    display: inline-flex; border: 1px solid #444; border-radius: 3px; overflow: hidden;
+}
+#nv-bottom-bar .bb-toggle button {
+    padding: 4px 10px; border-radius: 0; background: #1e1e2e;
+}
+#nv-bottom-bar .bb-toggle button.active { background: var(--accent); }
+.bb-popover {
+    position: fixed; z-index: 950;
+    background: #2a2a3a; border: 1px solid #6fd0ff; border-radius: 4px;
+    padding: 10px 14px; box-shadow: 0 4px 14px rgba(0,0,0,.5);
+    display: flex; flex-direction: column; gap: 8px;
+    min-width: 200px;
+}
 .nv-spline-line {
     position: absolute;
     height: 0;
@@ -204,30 +282,7 @@ body.mode-view .nv-image { pointer-events: none; }
     width: 11px; height: 11px;
     cursor: crosshair;
 }
-.nv-edit-toolbar {
-    position: fixed;
-    left: 50%;
-    bottom: 20px;
-    transform: translateX(-50%);
-    background: #2a2a3a;
-    border: 1px solid #6fd0ff;
-    border-radius: 4px;
-    padding: 8px 14px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    z-index: 1000;
-    box-shadow: 0 4px 14px rgba(0,0,0,.5);
-}
-.nv-edit-toolbar .hint { color: #aaa; font-size: 11px; }
-.nv-edit-toolbar button {
-    padding: 6px 14px;
-    cursor: pointer;
-    border: none;
-    border-radius: 3px;
-    font-size: 12px;
-}
-.nv-edit-toolbar button.primary { background: var(--accent); color: #fff; }
+/* .nv-edit-toolbar removed — replaced by #nv-bottom-bar above. */
 .nv-ctx-menu {
     position: fixed;
     background: #2a2a3a;
@@ -315,8 +370,8 @@ body.mode-view .nv-image { pointer-events: none; }
     line-height: 1.2;
 }
 .nv-label.selected {
-    outline: 1px dashed var(--accent);
-    outline-offset: 3px;
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
 }
 .nv-label.editing {
     cursor: text;
@@ -360,6 +415,11 @@ body.mode-view .nv-image { pointer-events: none; }
 <canvas id="stage3d"></canvas>
 <div id="hud">Map</div>
 <div id="hud3d"></div>
+<div id="nv-bottom-bar">
+    <div class="bb-left"></div>
+    <div class="bb-center"></div>
+    <div class="bb-right"></div>
+</div>
 <script type="importmap">
 {
   "imports": {
@@ -405,8 +465,7 @@ splineSvg.style.cssText = 'position:absolute;left:0;top:0;overflow:visible;point
 splineSvg.addEventListener('mousedown', e => {
     const id = e.target && e.target.dataset && e.target.dataset.splineId;
     if (!id || id === '__draft__' || e.button !== 0) return;
-    if (mode !== 'edit' || toolMode === 'add-pin' || toolMode === 'add-label'
-        || toolMode === 'spline' || toolMode === 'terrain' || toolMode === 'border') return;
+    if (mode !== 'edit' || toolMode !== 'select') return;
     e.stopPropagation();
     selectSpline(id);
 });
@@ -771,7 +830,7 @@ function applyTransform() {
     // so the browser re-rasterizes the image at the current zoom (no GPU bitmap
     // stretch from a cached world-scale layer = sharper zoom-in).
     world.style.transform = `translate(${pan.x}px, ${pan.y}px)`;
-    hud.textContent = `${mapData.name || 'Map'} — zoom ${zoom.toFixed(2)}`;
+    updateHud();
     repositionPins();
     repositionLabels();
     if (zoom !== lastZoomApplied) {
@@ -1234,6 +1293,13 @@ window.setKnotMarkingStyle = (splineId, knotIdx, style) => {
     sendMessage({ type: 'mapChanged' });
 };
 
+// Single-channel colour setters used by the bottom-bar pickers; each rebuilds
+// via setSplineColors so override semantics stay consistent.
+window.setSplineCasingColor  = (id, hex) => { const sp = findSpline(id); if (sp) window.setSplineColors(id, hex || '', sp.fillColor || '', sp.markingColor || ''); };
+window.setSplineFillColor    = (id, hex) => { const sp = findSpline(id); if (sp) window.setSplineColors(id, sp.casingColor || '', hex || '', sp.markingColor || ''); };
+window.setSplineMarkingColor = (id, hex) => { const sp = findSpline(id); if (sp) window.setSplineColors(id, sp.casingColor || '', sp.fillColor || '', hex || ''); };
+window.resetSplineColors     = (id) => window.setSplineColors(id, '', '', '');
+
 // Place-pin mode short-circuits ALL element interactions: any left-click drops a pin,
 // even on top of images or other pins. Returns true if the click was consumed.
 function tryPlacePin(e) {
@@ -1292,6 +1358,7 @@ function repositionLabels() {
 }
 
 function setMapData(json) {
+    closeContextMenu();
     try { mapData = JSON.parse(json) || { layers: [], pins: [] }; }
     catch (e) { mapData = { layers: [], pins: [] }; log('setMapData parse error: ' + e.message); }
     if (!mapData.layers) mapData.layers = [];
@@ -1340,6 +1407,8 @@ function render() {
     renderFloorAnnotations(); // active-floor labels / pins for plan-showing buildings
     lastZoomApplied = -1; // force renderSplines() coords refresh on next applyTransform
     applyTransform();
+    // Keep the bottom-bar's gating in sync with the latest data after any rebuild.
+    if (typeof renderBottomBar === 'function') renderBottomBar();
 }
 
 function applyImageTransform(el, img) {
@@ -1411,14 +1480,12 @@ function renderImage(layer, img) {
         if (tryPlaceTerrainPoint(e)) return;
         if (tryPlaceBorderPoint(e)) return;
         if (tryPlaceBuilding(e)) return;
-        if (mode !== 'edit') return;
+        if (mode !== 'edit' || toolMode !== 'select') return;
         // Locked layer = left-click just clears selection; pan via middle button only.
         if (layer.locked) {
             if (e.button === 0) {
                 e.stopPropagation();
-                selected = null;
-                Array.from(world.querySelectorAll('.selected')).forEach(n => n.classList.remove('selected'));
-                updateImageHandles();
+                clearSelection();
             }
             return;
         }
@@ -1459,18 +1526,46 @@ function showImageContextMenu(ev, layer, img) {
         return it;
     }
     const labels = ctxMenuLabels;
-    menu.appendChild(item(labels.move, () => {
-        sendMessage({ type: 'imageContext', imageId: img.id, layerId: layer.id });
-    }));
     menu.appendChild(item(labels.clip, () => enterClipEdit(layer.id, img.id)));
     menu.appendChild(item(labels.delete, () => deleteImage(layer.id, img.id)));
-    document.body.appendChild(menu);
-    setTimeout(() => window.addEventListener('mousedown', closeContextMenu, { once: true }), 0);
+    openContextMenu(menu);
 }
 
+// Single owner of the active menu DOM + listeners. Capture-phase listeners so
+// element handlers calling e.stopPropagation() can't block the close.
+let activeContextMenu = null;
+function openContextMenu(menuEl) {
+    closeContextMenu();
+    document.body.appendChild(menuEl);
+    activeContextMenu = menuEl;
+    // Defer one tick so the right-click's own mousedown doesn't close us immediately.
+    setTimeout(() => {
+        if (!activeContextMenu) return;
+        window.addEventListener('mousedown', onCtxMouseDown, true);
+        window.addEventListener('wheel', closeContextMenu, { passive: true });
+        window.addEventListener('blur', closeContextMenu);
+        window.addEventListener('keydown', onCtxKeyDown, true);
+    }, 0);
+}
+function onCtxMouseDown(e) {
+    if (activeContextMenu && activeContextMenu.contains(e.target)) return;
+    closeContextMenu();
+}
+function onCtxKeyDown(e) {
+    if (e.key === 'Escape') { e.stopPropagation(); closeContextMenu(); }
+}
 function closeContextMenu() {
-    const m = document.querySelector('.nv-ctx-menu');
-    if (m) m.remove();
+    window.removeEventListener('mousedown', onCtxMouseDown, true);
+    window.removeEventListener('wheel', closeContextMenu);
+    window.removeEventListener('blur', closeContextMenu);
+    window.removeEventListener('keydown', onCtxKeyDown, true);
+    if (activeContextMenu) {
+        activeContextMenu.remove();
+        activeContextMenu = null;
+    }
+    // Defensive: clean up any stray menu that bypassed openContextMenu.
+    const stray = document.querySelector('.nv-ctx-menu');
+    if (stray) stray.remove();
 }
 
 function deleteImage(layerId, imageId) {
@@ -1508,9 +1603,47 @@ let mapStrings = {
     fpLabel: 'Label', fpPin: 'Pin',
     fpFlipSide: 'Flip swing side',
     fpHint: 'Wall: click points to chain walls (Enter/Esc ends). Door/Window: click a wall or the outline. Stairs: click start then end. Right-click an element to edit or remove it.',
+    fpNoFloorsWarn: 'Building has no floors. Add a floor first.',
+    cancel: 'Cancel',
+    borderEditHint: 'Drag vertices to move · right-click vertex to remove · double-click edge to insert.',
+    bbIdle: 'Map editor',
+    bbIdleHint: 'Click an element to edit. Use the ribbon to add new ones.',
+    bbClipLabel: 'Edit clip mask',
+    bbFloorPlanLabel: 'Floor plan',
+    bbSplineLabel: 'Spline', bbTerrainLabel: 'Terrain shape',
+    bbBorderLabel: 'Border', bbBuildingLabel: 'Building',
+    bbPinLabel: 'Pin', bbLabelSelLabel: 'Text label', bbImageLabel: 'Image',
+    bbSplineDraft: 'Drawing spline', bbTerrainDraft: 'Drawing terrain', bbBorderDraft: 'Drawing border',
+    bbBuildingPlace: 'Place buildings',
+    bbBuildingHint: 'Click to place. Shift = free angle. Right-drag + wheel = rotate.',
+    bbBuildingEditHint: 'Drag handle to rotate. Use side panel for properties.',
+    bbEditFloorPlan: 'Edit floor plan',
+    bbSelectedHint: 'Drag to move. Right-click for options. Delete to remove.',
+    bbClickToAddPoints: 'Click to add points.',
+    kbdEscCancelEnterCommit: 'Esc cancel · Enter commit',
+    kbdBuildingPlace: 'R re-roll · Esc exit',
+    kbdFinishDelete: 'Esc / Enter finish · Delete remove',
+    kbdFinish: 'Esc / Enter finish',
+    kbdEscDeselect: 'Esc deselect',
+    kbdDeleteRemoveEscDeselect: 'Delete remove · Esc deselect',
+    hudMap: 'Map', hudZoom: 'zoom', hudLayer: 'Layer',
+    hudSplineDraft: 'Spline draft', hudTerrainDraft: 'Terrain draft',
+    hudBorderDraft: 'Border draft', hudWallDraft: 'Wall draft',
+    hudKnots: 'knots', hudVerts: 'verts', hudPts: 'pts',
 };
 window.setMapStrings = (json) => {
-    try { Object.assign(mapStrings, JSON.parse(json) || {}); } catch (e) {}
+    try {
+        const obj = JSON.parse(json) || {};
+        Object.assign(mapStrings, obj);
+        // Optional embedded JSON arrays for bottom-bar enum selects.
+        if (typeof obj.buildingTypesJson === 'string') { try { BB_BUILDING_TYPES = JSON.parse(obj.buildingTypesJson) || BB_BUILDING_TYPES; } catch (e) {} }
+        if (typeof obj.roofKindsJson    === 'string') { try { BB_ROOF_KINDS     = JSON.parse(obj.roofKindsJson)    || BB_ROOF_KINDS;     } catch (e) {} }
+        if (typeof obj.terrainTypesJson === 'string') { try { BB_TERRAIN_TYPES  = JSON.parse(obj.terrainTypesJson) || BB_TERRAIN_TYPES;  } catch (e) {} }
+        if (typeof obj.splinePresetsJson === 'string'){ try { BB_SPLINE_PRESETS = JSON.parse(obj.splinePresetsJson)|| BB_SPLINE_PRESETS; } catch (e) {} }
+        if (typeof obj.markingStylesJson === 'string'){ try { BB_MARKING_STYLES = JSON.parse(obj.markingStylesJson)|| BB_MARKING_STYLES; } catch (e) {} }
+        if (typeof obj.knotTypesJson    === 'string') { try { BB_KNOT_TYPES     = JSON.parse(obj.knotTypesJson)    || BB_KNOT_TYPES;     } catch (e) {} }
+    } catch (e) {}
+    renderBottomBar();
 };
 
 function renderPin(pin) {
@@ -1554,24 +1687,14 @@ function renderPin(pin) {
             return;
         }
         if (e.button === 2) return; // right-click handled below
-        selected = { kind: 'pin', id: pin.id };
-        sendMessage({ type: 'pinSelected', pinId: pin.id, color: pin.color || '' });
+        if (toolMode !== 'select') return;
+        selectPin(pin, host);
         startPinDrag(e, pin, host);
     });
     host.addEventListener('contextmenu', (e) => {
         e.preventDefault(); e.stopPropagation();
         if (mode !== 'edit') return;
         showSimpleContextMenu(e, [
-            [mapStrings.ctxEdit, () => sendMessage({
-                type: 'pinContext', pinId: pin.id, label: pin.label || '',
-                entityId: pin.entityId || '', entityType: pin.entityType || '',
-                color: pin.color || '',
-            })],
-            [mapStrings.moveToLayer, () => sendMessage({
-                type: 'requestMoveToLayer', kind: 'pin', id: pin.id,
-                currentLayerId: pin.layerId || '',
-            })],
-            null,
             [mapStrings.ctxDelete, () => deletePin(pin.id)],
         ]);
     });
@@ -1596,15 +1719,15 @@ function showSimpleContextMenu(ev, items) {
         const [label, action] = entry;
         const it = document.createElement('div');
         it.textContent = label;
-        it.addEventListener('mousedown', e => e.stopPropagation());
         it.addEventListener('click', () => { closeContextMenu(); action(); });
         menu.appendChild(it);
     }
-    document.body.appendChild(menu);
-    setTimeout(() => window.addEventListener('mousedown', closeContextMenu, { once: true }), 0);
+    openContextMenu(menu);
 }
 
 function selectImage(layerId, imageId) {
+    if (selected?.kind === 'image' && selected.id === imageId && selected.layerId === layerId) return;
+    clearSelection();
     selected = { kind: 'image', id: imageId, layerId: layerId };
     Array.from(world.querySelectorAll('.nv-image')).forEach(el => {
         el.classList.toggle('selected', el.dataset.imageId === imageId && el.dataset.layerId === layerId);
@@ -1621,6 +1744,7 @@ function selectImage(layerId, imageId) {
             maxZoom: img.maxZoom == null ? 0 : img.maxZoom,
         });
     }
+    renderBottomBar();
 }
 
 function updateImageHandles() {
@@ -1817,11 +1941,12 @@ function renderLabel(lbl) {
         if (tryPlaceBuilding(e)) return;
         e.stopPropagation();
         if (mode !== 'edit' || e.button === 2) return;
+        if (toolMode !== 'select') return;
         selectLabel(lbl);
         startLabelDrag(e, lbl, el);
     });
     el.addEventListener('dblclick', (e) => {
-        if (mode !== 'edit') return;
+        if (mode !== 'edit' || toolMode !== 'select') return;
         e.stopPropagation(); e.preventDefault();
         beginLabelEdit(lbl, el);
     });
@@ -1835,13 +1960,566 @@ function renderLabel(lbl) {
 }
 
 function selectLabel(lbl) {
+    if (selected?.kind === 'label' && selected.id === lbl.id) return;
+    clearSelection();
     selected = { kind: 'label', id: lbl.id };
-    labelOverlay.querySelectorAll('.nv-label.selected').forEach(n => n.classList.remove('selected'));
     const el = labelOverlay.querySelector(`.nv-label[data-label-id="${lbl.id}"]`);
     if (el) el.classList.add('selected');
     sendMessage({ type: 'labelSelected', labelId: lbl.id,
         fontSize: lbl.fontSize || 18, fontFamily: lbl.fontFamily || '',
         align: lbl.align || 'center', color: lbl.color || '#ffffff' });
+    renderBottomBar();
+}
+
+function selectPin(pin, host) {
+    if (selected?.kind === 'pin' && selected.id === pin.id) return;
+    clearSelection();
+    selected = { kind: 'pin', id: pin.id };
+    if (host) host.classList.add('selected');
+    sendMessage({ type: 'pinSelected', pinId: pin.id, color: pin.color || '' });
+    renderBottomBar();
+}
+
+// Single source of truth for "drop whatever is selected". Every selectX() and
+// enterX() calls this first so only one element is ever selected at a time and
+// only one bottom-bar mode is ever rendered.
+function clearSelection() {
+    // floorPlanEdit is a submode of buildingEdit — leave it alone here; it has
+    // its own explicit exit gate.
+    if (buildingEdit && !floorPlanEdit) exitBuildingEdit();
+    if (splineEdit)  exitSplineEdit();
+    if (terrainEdit) exitShapeEdit();
+    if (borderEdit)  exitBorderEdit();
+    if (clipEdit)    exitClipEdit(false);
+    if (selected) {
+        const wasLabel = selected.kind === 'label';
+        const wasPin   = selected.kind === 'pin';
+        selected = null;
+        if (wasLabel) sendMessage({ type: 'labelDeselected' });
+        if (wasPin)   sendMessage({ type: 'pinDeselected' });
+    }
+    Array.from(world.querySelectorAll('.selected')).forEach(n => n.classList.remove('selected'));
+    Array.from(labelOverlay.querySelectorAll('.selected')).forEach(n => n.classList.remove('selected'));
+    Array.from(pinOverlay.querySelectorAll('.selected')).forEach(n => n.classList.remove('selected'));
+    updateImageHandles();
+    renderBottomBar();
+}
+
+// ── Bottom bar — single persistent context-aware UI surface ────────────
+// Replaces five per-mode toolbars. Always visible, full width. Contents
+// rebuilt every call from current selection / draft / tool state.
+const bb = {
+    el:     document.getElementById('nv-bottom-bar'),
+    left:   document.querySelector('#nv-bottom-bar .bb-left'),
+    center: document.querySelector('#nv-bottom-bar .bb-center'),
+    right:  document.querySelector('#nv-bottom-bar .bb-right'),
+};
+const MODE_ACCENT = {
+    spline:    '#6fd0ff',
+    terrain:   '#7bd88f',
+    border:    '#d8a24a',
+    clip:      '#ff9c42',
+    floorplan: '#d8a24a',
+    building:  '#ffae42',
+    pin:       'var(--pin)',
+    label:     '#cdd6f4',
+    image:     '#cdd6f4',
+    idle:      '#3a3a4a',
+};
+function bbButton(label, fn, opts) {
+    opts = opts || {};
+    const b = document.createElement('button');
+    b.textContent = label;
+    if (opts.primary) b.classList.add('primary');
+    if (opts.danger)  b.classList.add('danger');
+    if (opts.active)  b.classList.add('active');
+    if (opts.disabled) b.disabled = true;
+    if (fn) b.addEventListener('click', fn);
+    return b;
+}
+function bbHint(text) {
+    const s = document.createElement('span');
+    s.className = 'bb-hint';
+    s.textContent = text || '';
+    return s;
+}
+function bbKbd(text) {
+    const s = document.createElement('span');
+    s.className = 'bb-kbd';
+    s.textContent = text;
+    return s;
+}
+function bbField(label, child) {
+    const wrap = document.createElement('span');
+    wrap.className = 'bb-field';
+    if (label) { const l = document.createElement('span'); l.className = 'bb-flabel'; l.textContent = label; wrap.appendChild(l); }
+    wrap.appendChild(child);
+    return wrap;
+}
+function bbColor(hex, onChange, label) {
+    const i = document.createElement('input');
+    i.type = 'color'; i.value = hex || '#000000';
+    i.addEventListener('input', () => onChange(i.value));
+    return bbField(label, i);
+}
+function bbNumber(value, min, max, step, onChange, label) {
+    const i = document.createElement('input');
+    i.type = 'number'; i.min = min; i.max = max; i.step = step; i.value = value;
+    i.addEventListener('change', () => { const v = parseFloat(i.value); if (!isNaN(v)) onChange(v); });
+    return bbField(label, i);
+}
+function bbSlider(value, min, max, step, onChange, label) {
+    const wrap = document.createElement('span');
+    wrap.className = 'bb-field';
+    if (label) { const l = document.createElement('span'); l.className = 'bb-flabel'; l.textContent = label; wrap.appendChild(l); }
+    const i = document.createElement('input');
+    i.type = 'range'; i.min = min; i.max = max; i.step = step; i.value = value;
+    const out = document.createElement('span');
+    out.className = 'bb-flabel'; out.textContent = (+value).toFixed(step < 1 ? 2 : 0);
+    i.addEventListener('input', () => {
+        const v = parseFloat(i.value);
+        out.textContent = v.toFixed(step < 1 ? 2 : 0);
+        onChange(v);
+    });
+    wrap.appendChild(i); wrap.appendChild(out);
+    return wrap;
+}
+function bbCheckbox(label, checked, onChange) {
+    const wrap = document.createElement('label');
+    wrap.className = 'bb-field';
+    wrap.style.cursor = 'pointer';
+    const i = document.createElement('input');
+    i.type = 'checkbox'; i.checked = !!checked;
+    i.addEventListener('change', () => onChange(i.checked));
+    const txt = document.createElement('span');
+    txt.className = 'bb-flabel'; txt.textContent = label || '';
+    wrap.appendChild(i); wrap.appendChild(txt);
+    return wrap;
+}
+function bbSelect(value, options, onChange, label) {
+    // options: array of [value, label] OR plain strings
+    const sel = document.createElement('select');
+    for (const opt of (options || [])) {
+        const o = document.createElement('option');
+        if (Array.isArray(opt)) { o.value = opt[0]; o.textContent = opt[1]; }
+        else                    { o.value = opt;    o.textContent = opt; }
+        if (o.value === (value || '')) o.selected = true;
+        sel.appendChild(o);
+    }
+    sel.addEventListener('change', () => onChange(sel.value));
+    return bbField(label, sel);
+}
+function bbToggleGroup(value, options, onChange) {
+    const wrap = document.createElement('span');
+    wrap.className = 'bb-toggle';
+    for (const [v, lbl] of options) {
+        const b = document.createElement('button');
+        b.textContent = lbl;
+        if (v === value) b.classList.add('active');
+        b.addEventListener('click', () => onChange(v));
+        wrap.appendChild(b);
+    }
+    return wrap;
+}
+function bbText(value, onChange, label, placeholder) {
+    const i = document.createElement('input');
+    i.type = 'text'; i.value = value || ''; if (placeholder) i.placeholder = placeholder;
+    let timer = null;
+    i.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => onChange(i.value), 400);
+    });
+    i.addEventListener('blur', () => { clearTimeout(timer); onChange(i.value); });
+    return bbField(label, i);
+}
+function bbEntityPicker(id, type, onChange, label) {
+    // <input list="bb-entities">; shared datalist populated by setEntityOptions.
+    let dl = document.getElementById('bb-entities');
+    if (!dl) {
+        dl = document.createElement('datalist');
+        dl.id = 'bb-entities';
+        document.body.appendChild(dl);
+    }
+    const i = document.createElement('input');
+    i.type = 'text';
+    i.setAttribute('list', 'bb-entities');
+    i.placeholder = mapStrings.pinEntityWatermark || '';
+    // Show current display name if id resolves; otherwise raw text user typed.
+    const cur = (entityOptions || []).find(o => o.id === id);
+    i.value = cur ? cur.name : (id || '');
+    i.addEventListener('change', () => {
+        const picked = (entityOptions || []).find(o => o.name === i.value);
+        if (picked) onChange(picked.id, picked.type);
+        else onChange('', '');
+    });
+    return bbField(label, i);
+}
+function bbPopover(label, populate) {
+    const btn = document.createElement('button');
+    btn.textContent = label;
+    btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const existing = document.querySelector('.bb-popover');
+        if (existing) { existing.remove(); return; }
+        const pop = document.createElement('div');
+        pop.className = 'bb-popover';
+        populate(pop);
+        document.body.appendChild(pop);
+        const r = btn.getBoundingClientRect();
+        const pr = pop.getBoundingClientRect();
+        pop.style.left = Math.max(8, Math.min(window.innerWidth - pr.width - 8, r.left)) + 'px';
+        pop.style.top = (r.top - pr.height - 6) + 'px';
+        const close = ev => {
+            if (pop.contains(ev.target) || btn.contains(ev.target)) return;
+            pop.remove();
+            window.removeEventListener('mousedown', close, true);
+            window.removeEventListener('wheel', closeAny);
+            window.removeEventListener('blur', closeAny);
+        };
+        const closeAny = () => {
+            pop.remove();
+            window.removeEventListener('mousedown', close, true);
+            window.removeEventListener('wheel', closeAny);
+            window.removeEventListener('blur', closeAny);
+        };
+        setTimeout(() => {
+            window.addEventListener('mousedown', close, true);
+            window.addEventListener('wheel', closeAny, { passive: true });
+            window.addEventListener('blur', closeAny);
+        }, 0);
+    });
+    return btn;
+}
+
+// Entity choices pushed once from the host via setEntityOptions.
+let entityOptions = [];   // [{ id, type, name }, ...]
+window.setEntityOptions = (json) => {
+    try { entityOptions = JSON.parse(json) || []; } catch (e) { entityOptions = []; }
+    const dl = document.getElementById('bb-entities');
+    if (dl) {
+        dl.replaceChildren();
+        for (const o of entityOptions) {
+            const opt = document.createElement('option');
+            opt.value = o.name;
+            dl.appendChild(opt);
+        }
+    }
+    renderBottomBar();
+};
+// Layer options derived live from mapData on every render. No host push needed.
+function layerSelectOptions() {
+    const out = [];
+    walkNodes(mapData.layers, n => { out.push([n.id, n.name || n.id]); });
+    return out;
+}
+const layerOptions = []; // legacy, kept so length checks still work
+Object.defineProperty(window, '__layerCount', {
+    get() { return layerSelectOptions().length; }
+});
+function bbLayerSelect(kind, elementId, currentLayerId) {
+    const opts = layerSelectOptions();
+    if (opts.length < 2) return null; // hide if only one (or zero) layers
+    return bbSelect(currentLayerId || '', opts,
+                    v => window.moveMapElementToLayer(kind, elementId, v),
+                    mapStrings.bbLayer || 'Layer');
+}
+
+// Bottom-bar select option arrays — pushed by host as JSON in setMapStrings.
+// Each entry: [value, localizedLabel]. Prefixed BB_ to avoid clashing with
+// existing BUILDING_TYPES (the renderer's per-type style table).
+let BB_BUILDING_TYPES = [['singleFamily','Single family'], ['rowHome','Row home'],
+    ['school','School'], ['police','Police'], ['fireStation','Fire station'],
+    ['hall','Hall'], ['playground','Playground'], ['trainStation','Train station']];
+let BB_ROOF_KINDS = [['gable','Gable'], ['hip','Hip'], ['flat','Flat']];
+let BB_TERRAIN_TYPES = [['grass','Grass'], ['forest','Forest'], ['concrete','Concrete'],
+    ['sand','Sand'], ['hills','Hills'], ['mountain','Mountain'], ['water','Water']];
+let BB_SPLINE_PRESETS = [
+    ['road:motorway','Motorway'], ['road:primary','Primary'], ['road:secondary','Secondary'],
+    ['road:residential','Residential'], ['road:service','Service'], ['road:pedestrian','Pedestrian'],
+    ['road:trail','Trail'], ['road:track','Track'],
+    ['river:brook','Brook'], ['river:stream','Stream'], ['river:river','River'],
+    ['river:canal','Canal'], ['river:estuary','Estuary'],
+];
+let BB_MARKING_STYLES = [['','Default'], ['none','None'], ['single','Single'],
+    ['dashed','Dashed'], ['double','Double'], ['solid-dashed','Solid + dashed']];
+let BB_KNOT_TYPES = [['','Inherit'],
+    ['motorway','Motorway'], ['primary','Primary'], ['secondary','Secondary'],
+    ['residential','Residential'], ['service','Service'], ['pedestrian','Pedestrian'],
+    ['trail','Trail'], ['track','Track'],
+    ['brook','Brook'], ['stream','Stream'], ['river','River'], ['canal','Canal'], ['estuary','Estuary']];
+const NO_ROOF_TYPES   = new Set(['playground']);
+const FLAT_ROOF_TYPES = new Set(['trainStation']);
+const NO_FLOORS_TYPES = new Set(['playground']);
+const SHAPE_BLEND_TYPES = new Set(['grass', 'forest', 'hills', 'mountain', 'sand']);
+var renderBottomBar = function () {
+    if (!bb.el) return;
+    bb.left.textContent = '';
+    bb.center.replaceChildren();
+    bb.right.replaceChildren();
+    bb.el.style.borderTopColor = MODE_ACCENT.idle;
+    // Priority: explicit modal sub-states first, then selections, then drafts, then idle.
+    if (clipEdit)        return renderClipBar();
+    if (floorPlanEdit)   return renderFloorPlanBar();
+    if (splineDraft)     return renderDraftBar('spline', commitSplineDraft, cancelSplineDraft);
+    if (terrainDraft)    return renderDraftBar('terrain', commitTerrainDraft, cancelTerrainDraft);
+    if (borderDraft)     return renderDraftBar('border', commitBorderDraft, cancelBorderDraft);
+    if (buildingDraft && toolMode === 'building') return renderBuildingDraftBar();
+    if (splineEdit)      return renderSplineEditBar();
+    if (terrainEdit)     return renderTerrainEditBar();
+    if (borderEdit)      return renderBorderEditBar();
+    if (buildingEdit)    return renderBuildingEditBar();
+    if (selected)        return renderSelectedBar();
+    return renderIdleBar();
+};
+function renderIdleBar() {
+    bb.left.textContent = mapStrings.bbIdle || 'Map editor';
+    bb.center.appendChild(bbHint(mapStrings.bbIdleHint || 'Click an element to edit. Use the ribbon to add new ones.'));
+}
+function renderClipBar() {
+    bb.el.style.borderTopColor = MODE_ACCENT.clip;
+    bb.left.textContent = mapStrings.bbClipLabel || 'Edit clip mask';
+    bb.center.appendChild(bbHint(mapStrings.clipHint));
+    bb.center.appendChild(bbKbd(mapStrings.kbdEscCancelEnterCommit || 'Esc cancel · Enter commit'));
+    bb.right.appendChild(bbButton(mapStrings.clipClear,  () => { if (clipEdit) { clipEdit.points = []; renderClipEditor(); } }, { danger: true }));
+    bb.right.appendChild(bbButton(mapStrings.clipCancel, () => exitClipEdit(false)));
+    bb.right.appendChild(bbButton(mapStrings.clipDone,   () => exitClipEdit(true), { primary: true }));
+}
+function renderFloorPlanBar() {
+    bb.el.style.borderTopColor = MODE_ACCENT.floorplan;
+    bb.left.textContent = mapStrings.bbFloorPlanLabel || 'Floor plan';
+    const tools = [['wall', 'fpWall'], ['door', 'fpDoor'], ['window', 'fpWindow'],
+                   ['stairs', 'fpStairs'], ['flabel', 'fpLabel'], ['fpin', 'fpPin']];
+    for (const [tool, key] of tools) {
+        bb.center.appendChild(bbButton(mapStrings[key], () => setFloorPlanTool(tool),
+                                       { active: floorPlanTool === tool }));
+    }
+    bb.center.appendChild(bbHint(mapStrings.fpHint));
+    bb.right.appendChild(bbKbd(mapStrings.kbdEscCancelEnterCommit || 'Esc cancel · Enter commit'));
+    bb.right.appendChild(bbButton(mapStrings.splineEditDone, exitFloorPlanEdit, { primary: true }));
+}
+function renderDraftBar(kind, commit, cancel) {
+    bb.el.style.borderTopColor = MODE_ACCENT[kind];
+    bb.left.textContent = (mapStrings['bb' + kind[0].toUpperCase() + kind.slice(1) + 'Draft']) || (kind + ' draft');
+    bb.center.appendChild(bbHint(mapStrings[kind + 'EditHint'] || mapStrings.bbClickToAddPoints || 'Click to add points.'));
+    bb.right.appendChild(bbKbd(mapStrings.kbdEscCancelEnterCommit || 'Esc cancel · Enter commit'));
+    bb.right.appendChild(bbButton(mapStrings.cancel || 'Cancel', cancel));
+    bb.right.appendChild(bbButton(mapStrings.splineEditDone, commit, { primary: true }));
+}
+function renderBuildingDraftBar() {
+    bb.el.style.borderTopColor = MODE_ACCENT.building;
+    bb.left.textContent = mapStrings.bbBuildingPlace || 'Place buildings';
+    bb.center.appendChild(bbHint(mapStrings.bbBuildingHint || 'Click to place. Shift = free angle. Right-drag + wheel = rotate.'));
+    bb.right.appendChild(bbKbd(mapStrings.kbdBuildingPlace || 'R re-roll · Esc exit'));
+}
+function renderSplineEditBar() {
+    bb.el.style.borderTopColor = MODE_ACCENT.spline;
+    bb.left.textContent = mapStrings.bbSplineLabel || 'Spline';
+    const sp = splineEdit && findSpline(splineEdit.splineId);
+    if (!sp) return;
+    const isRoad = sp.kind === 'road';
+    const hasOverrides = !!(sp.casingColor || sp.fillColor || sp.markingColor);
+    const prof = splineProfile(sp.kind, sp.preset);
+
+    bb.center.appendChild(bbSelect(`${sp.kind}:${sp.preset}`, BB_SPLINE_PRESETS,
+        v => { const i = v.indexOf(':'); window.setSplinePreset(sp.id, v.slice(0, i), v.slice(i + 1)); },
+        mapStrings.splineType));
+    bb.center.appendChild(bbCheckbox(mapStrings.splineClosed, !!sp.closed,
+        v => window.setSplineClosed(sp.id, v)));
+    if (isRoad) {
+        bb.center.appendChild(bbSelect(sp.markingStyle || '', BB_MARKING_STYLES,
+            v => window.setSplineMarkingStyle(sp.id, v), mapStrings.splineMarking));
+    }
+    if (isRoad) {
+        bb.center.appendChild(bbPopover(mapStrings.bbColors || 'Colors', pop => {
+            pop.appendChild(bbColor(sp.casingColor  || prof.casing.color,
+                hex => window.setSplineCasingColor(sp.id, hex), mapStrings.colorCasing));
+            pop.appendChild(bbColor(sp.fillColor    || prof.bands[0].color,
+                hex => window.setSplineFillColor(sp.id, hex), mapStrings.colorFill));
+            pop.appendChild(bbColor(sp.markingColor || '#ffffff',
+                hex => window.setSplineMarkingColor(sp.id, hex), mapStrings.colorMarking));
+            if (hasOverrides) pop.appendChild(bbButton(mapStrings.colorReset, () => window.resetSplineColors(sp.id)));
+        }));
+    } else {
+        bb.center.appendChild(bbColor(sp.fillColor || prof.bands[0].color,
+            hex => window.setSplineFillColor(sp.id, hex), mapStrings.colorFill));
+        if (hasOverrides) bb.center.appendChild(bbButton(mapStrings.colorReset, () => window.resetSplineColors(sp.id)));
+    }
+    if (splineEdit.selKnot != null && splineEdit.selKnot >= 0) {
+        bb.center.appendChild(bbPopover(`${mapStrings.bbKnot || 'Knot'} ${splineEdit.selKnot + 1}`,
+            pop => renderKnotInspector(pop, sp, splineEdit.selKnot)));
+    }
+    const ls = bbLayerSelect('spline', sp.id, findSplineOwner(sp.id)?.id || '');
+    if (ls) bb.center.appendChild(ls);
+
+    bb.right.appendChild(bbKbd(mapStrings.kbdFinishDelete || 'Esc / Enter finish · Delete remove'));
+    bb.right.appendChild(bbButton(mapStrings.shapeForward,  () => window.moveSplineZ(sp.id, +1)));
+    bb.right.appendChild(bbButton(mapStrings.shapeBackward, () => window.moveSplineZ(sp.id, -1)));
+    bb.right.appendChild(bbButton(mapStrings.splineDelete,  () => window.deleteSpline(sp.id), { danger: true }));
+    bb.right.appendChild(bbButton(mapStrings.splineEditDone, exitSplineEdit, { primary: true }));
+}
+function renderKnotInspector(pop, sp, idx) {
+    const p = sp.points[idx] || {};
+    pop.appendChild(bbSelect(p.typeOverride || '', BB_KNOT_TYPES,
+        v => window.setKnotType(sp.id, idx, v || ''), mapStrings.splineType));
+    if ((sp.points || []).length >= 2) {
+        pop.appendChild(bbSlider(p.blendFactor == null ? 1 : p.blendFactor, 0, 1, 0.05,
+            v => window.setKnotBlend(sp.id, idx, v), mapStrings.splineBlend));
+    }
+    if ((sp.points || []).length >= 3) {
+        pop.appendChild(bbSlider(p.sharpness || 0, 0, 1, 0.05,
+            v => window.setKnotSharpness(sp.id, idx, v), mapStrings.knotSharpness));
+    }
+    if (sp.kind === 'road') {
+        pop.appendChild(bbSelect(p.markingStyle || '', BB_MARKING_STYLES,
+            v => window.setKnotMarkingStyle(sp.id, idx, v), mapStrings.splineMarking));
+    }
+}
+function renderTerrainEditBar() {
+    bb.el.style.borderTopColor = MODE_ACCENT.terrain;
+    bb.left.textContent = mapStrings.bbTerrainLabel || 'Terrain shape';
+    const sh = terrainEdit && findShape(terrainEdit.shapeId);
+    if (!sh) return;
+    bb.center.appendChild(bbSelect(sh.type || 'grass', BB_TERRAIN_TYPES,
+        v => window.setShapeType(sh.id, v), mapStrings.shapeType));
+    bb.center.appendChild(bbColor(sh.color || terrainColor(sh.type),
+        hex => window.setShapeColor(sh.id, hex), mapStrings.shapeColor));
+    if ((sh.points || []).length >= 3) {
+        bb.center.appendChild(bbCheckbox(mapStrings.shapeSmooth, sh.smooth !== false,
+            v => window.setShapeSmooth(sh.id, v)));
+    }
+    if (SHAPE_BLEND_TYPES.has(sh.type)) {
+        bb.center.appendChild(bbSlider(sh.blendStrength || 0, 0, 120, 4,
+            v => window.setShapeBlend(sh.id, v), mapStrings.shapeBlend));
+    }
+    const ls = bbLayerSelect('shape', sh.id, findShapeOwner(sh.id)?.id);
+    if (ls) bb.center.appendChild(ls);
+    bb.right.appendChild(bbKbd(mapStrings.kbdFinish || 'Esc / Enter finish'));
+    bb.right.appendChild(bbButton(mapStrings.shapeForward,  () => window.moveShapeZ(sh.id, +1)));
+    bb.right.appendChild(bbButton(mapStrings.shapeBackward, () => window.moveShapeZ(sh.id, -1)));
+    bb.right.appendChild(bbButton(mapStrings.shapeDelete, () => window.deleteShape(sh.id), { danger: true }));
+    bb.right.appendChild(bbButton(mapStrings.splineEditDone, exitShapeEdit, { primary: true }));
+}
+function renderBorderEditBar() {
+    bb.el.style.borderTopColor = MODE_ACCENT.border;
+    bb.left.textContent = mapStrings.bbBorderLabel || 'Border';
+    const b = mapData.border;
+    if (b) {
+        bb.center.appendChild(bbColor(b.outlineColor || '#1c1a18',
+            hex => window.setBorderOutline(hex, b.outlineWidth || 4),
+            mapStrings.borderOutlineColor));
+        bb.center.appendChild(bbNumber(b.outlineWidth || 4, 0, 40, 1,
+            v => window.setBorderOutline(b.outlineColor || '#1c1a18', v),
+            mapStrings.borderOutlineWidth));
+    }
+    bb.center.appendChild(bbHint(mapStrings.borderEditHint || ''));
+    bb.right.appendChild(bbKbd(mapStrings.kbdFinish || 'Esc / Enter finish'));
+    bb.right.appendChild(bbButton(mapStrings.borderClear || 'Clear', () => window.clearBorder(), { danger: true }));
+    bb.right.appendChild(bbButton(mapStrings.splineEditDone, exitBorderEdit, { primary: true }));
+}
+function renderBuildingEditBar() {
+    bb.el.style.borderTopColor = MODE_ACCENT.building;
+    bb.left.textContent = mapStrings.bbBuildingLabel || 'Building';
+    const b = buildingEdit && findBuilding(buildingEdit.buildingId);
+    if (!b) return;
+    const hasRoof   = !NO_ROOF_TYPES.has(b.type);
+    const hasFloors = !NO_FLOORS_TYPES.has(b.type);
+    const roofKind  = (b.roof && b.roof.kind) || 'gable';
+    const flatOnly  = FLAT_ROOF_TYPES.has(b.type);
+
+    bb.center.appendChild(bbSelect(b.type || 'singleFamily', BB_BUILDING_TYPES,
+        v => window.setBuildingType(b.id, v), mapStrings.buildingType));
+    if (hasRoof && !flatOnly) {
+        bb.center.appendChild(bbSelect(roofKind, BB_ROOF_KINDS,
+            v => window.setBuildingRoof(b.id, v, (b.roof && b.roof.pitch) != null ? b.roof.pitch : 0.5),
+            mapStrings.buildingRoof));
+    }
+    if (hasFloors) {
+        bb.center.appendChild(bbNumber(b.floorCount || 0, 0, 20, 1,
+            v => window.setBuildingFloors(b.id, v), mapStrings.buildingFloors));
+    }
+    const popItems = [];
+    if (hasRoof && roofKind !== 'flat' && !flatOnly) {
+        popItems.push(pop => pop.appendChild(bbSlider((b.roof && b.roof.pitch) != null ? b.roof.pitch : 0.5, 0, 1, 0.05,
+            v => window.setBuildingRoof(b.id, roofKind, v), mapStrings.roofPitch)));
+    }
+    if (hasFloors && (b.floorCount || 0) >= 1) {
+        popItems.push(pop => pop.appendChild(bbNumber(b.planMinZoom != null ? b.planMinZoom : 4, 1, 20, 0.5,
+            v => window.setBuildingPlanZoom(b.id, v), mapStrings.buildingPlanZoom)));
+    }
+    popItems.push(pop => {
+        pop.appendChild(bbButton(mapStrings.shapeForward,  () => window.moveBuildingZ(b.id, +1)));
+        pop.appendChild(bbButton(mapStrings.shapeBackward, () => window.moveBuildingZ(b.id, -1)));
+    });
+    bb.center.appendChild(bbPopover(mapStrings.bbMore || 'More…',
+        pop => popItems.forEach(fn => fn(pop))));
+    const ls = bbLayerSelect('building', b.id, findBuildingOwner(b.id)?.id);
+    if (ls) bb.center.appendChild(ls);
+
+    bb.right.appendChild(bbKbd(mapStrings.kbdEscDeselect || 'Esc deselect'));
+    if ((b.floorCount || 0) >= 1) {
+        bb.right.appendChild(bbButton(mapStrings.bbEditFloorPlan || 'Edit floor plan',
+            () => enterFloorPlanEdit(b.id)));
+    }
+    bb.right.appendChild(bbButton(mapStrings.buildingDelete,
+        () => window.deleteBuilding(b.id), { danger: true }));
+}
+function renderSelectedBar() {
+    const kind = selected.kind;
+    bb.el.style.borderTopColor = MODE_ACCENT[kind] || MODE_ACCENT.idle;
+    bb.left.textContent = ({ pin: mapStrings.bbPinLabel || 'Pin',
+                             label: mapStrings.bbLabelSelLabel || 'Text label',
+                             image: mapStrings.bbImageLabel || 'Image' })[kind] || kind;
+    if (kind === 'pin') {
+        const pin = findPinById(selected.id);
+        if (pin) {
+            bb.center.appendChild(bbText(pin.label || '',
+                v => window.setPinLabel(selected.id, v),
+                mapStrings.pinLabel, mapStrings.pinLabelWatermark));
+            bb.center.appendChild(bbEntityPicker(pin.entityId || '', pin.entityType || '',
+                (id, type) => window.setPinEntity(selected.id, id, type),
+                mapStrings.pinEntity));
+            bb.center.appendChild(bbColor(pin.color || '#f9c46a',
+                hex => window.setPinColor(selected.id, hex),
+                mapStrings.pinColor));
+            const ls = bbLayerSelect('pin', pin.id, pin.layerId || '');
+            if (ls) bb.center.appendChild(ls);
+        }
+    } else if (kind === 'label') {
+        const lbl = findLabelById(selected.id);
+        if (lbl) {
+            bb.center.appendChild(bbNumber(lbl.fontSize || 18, 4, 400, 2,
+                v => window.setLabelFontSize(selected.id, v), mapStrings.labelFontSize));
+            bb.center.appendChild(bbColor(lbl.color || '#ffffff',
+                hex => window.setLabelColor(selected.id, hex), mapStrings.labelColor));
+            bb.center.appendChild(bbToggleGroup(lbl.align || 'center',
+                [['left', mapStrings.alignLeft || 'L'],
+                 ['center', mapStrings.alignCenter || 'C'],
+                 ['right', mapStrings.alignRight || 'R']],
+                v => window.setLabelAlign(selected.id, v)));
+            const ls = bbLayerSelect('label', lbl.id, lbl.layerId || '');
+            if (ls) bb.center.appendChild(ls);
+        }
+    } else if (kind === 'image') {
+        const img = findImageById(selected.id);
+        if (img) {
+            bb.center.appendChild(bbNumber(img.minZoom || 0, 0, 100, 0.1,
+                v => window.setElementZoomRange('image', selected.id, v, img.maxZoom || 0),
+                mapStrings.imageMinZoom || 'Min zoom'));
+            bb.center.appendChild(bbNumber(img.maxZoom || 0, 0, 100, 0.1,
+                v => window.setElementZoomRange('image', selected.id, img.minZoom || 0, v),
+                mapStrings.imageMaxZoom || 'Max zoom'));
+            bb.center.appendChild(bbButton(mapStrings.clip || 'Edit clip',
+                () => enterClipEdit(selected.layerId, selected.id)));
+            if (img.clipPolygon && img.clipPolygon.length >= 3) {
+                bb.center.appendChild(bbButton(mapStrings.clipClear || 'Clear clip',
+                    () => window.setImageClip(selected.id, null), { danger: true }));
+            }
+            const ls = bbLayerSelect('image', img.id, selected.layerId || '');
+            if (ls) bb.center.appendChild(ls);
+        }
+    }
+    bb.right.appendChild(bbKbd(mapStrings.kbdDeleteRemoveEscDeselect || 'Delete remove · Esc deselect'));
+    bb.right.appendChild(bbButton(mapStrings.ctxDelete, window.deleteSelected, { danger: true }));
 }
 
 function startLabelDrag(ev, lbl, el) {
@@ -1916,10 +2594,6 @@ function beginLabelEdit(lbl, el) {
 function showLabelContextMenu(ev, lbl) {
     showSimpleContextMenu(ev, [
         [mapStrings.labelEditText, () => beginLabelEdit(lbl)],
-        [mapStrings.moveToLayer, () => sendMessage({
-            type: 'requestMoveToLayer', kind: 'label', id: lbl.id,
-            currentLayerId: lbl.layerId || '',
-        })],
         null,
         [mapStrings.ctxDelete, () => deleteLabel(lbl.id)],
     ]);
@@ -2005,17 +2679,20 @@ function enterClipEdit(layerId, imageId) {
         // Seed with full-image rectangle so user starts from a sensible default.
         points = [{ x: 0, y: 0 }, { x: natW, y: 0 }, { x: natW, y: natH }, { x: 0, y: natH }];
     }
+    clearSelection();
+    if (splineDraft) commitSplineDraft();
+    if (terrainDraft) commitTerrainDraft();
+    if (borderDraft) commitBorderDraft();
     clipEdit = { layerId, imageId, points };
     selected = { kind: 'image', id: imageId, layerId };
-    showClipToolbar();
     renderClipEditor();
+    renderBottomBar();
 }
 
 function exitClipEdit(commit) {
     if (!clipEdit) return;
     const { layerId, imageId, points } = clipEdit;
     clipEdit = null;
-    hideClipToolbar();
     Array.from(handlesOverlay.querySelectorAll('.nv-clip-handle, .nv-clip-line')).forEach(n => n.remove());
     if (commit) {
         const layer = findLayer(layerId);
@@ -2036,6 +2713,7 @@ function exitClipEdit(commit) {
         }
     }
     updateImageHandles();
+    renderBottomBar();
 }
 
 // Map a natural-pixel coord (within the image) to screen coords, accounting for
@@ -2140,40 +2818,7 @@ function startClipPointDrag(ev, idx, img, el) {
     window.addEventListener('mouseup', up);
 }
 
-function showClipToolbar() {
-    let tb = document.getElementById('nv-clip-toolbar');
-    if (!tb) {
-        tb = document.createElement('div');
-        tb.id = 'nv-clip-toolbar';
-        const hint = document.createElement('span');
-        hint.className = 'hint';
-        hint.textContent = mapStrings.clipHint;
-        const done = document.createElement('button');
-        done.className = 'primary';
-        done.textContent = mapStrings.clipDone;
-        done.addEventListener('click', () => exitClipEdit(true));
-        const reset = document.createElement('button');
-        reset.className = 'secondary';
-        reset.textContent = mapStrings.clipClear;
-        reset.addEventListener('click', () => {
-            if (clipEdit) { clipEdit.points = []; renderClipEditor(); }
-        });
-        const cancel = document.createElement('button');
-        cancel.className = 'secondary';
-        cancel.textContent = mapStrings.clipCancel;
-        cancel.addEventListener('click', () => exitClipEdit(false));
-        tb.appendChild(hint);
-        tb.appendChild(reset);
-        tb.appendChild(cancel);
-        tb.appendChild(done);
-        document.body.appendChild(tb);
-    }
-    tb.style.display = 'flex';
-}
-function hideClipToolbar() {
-    const tb = document.getElementById('nv-clip-toolbar');
-    if (tb) tb.style.display = 'none';
-}
+// (showClipToolbar / hideClipToolbar removed — bottom bar driven by renderBottomBar)
 
 window.toggleClipEditOnSelected = () => {
     if (clipEdit) { exitClipEdit(false); return; }
@@ -2372,40 +3017,22 @@ function emitShapeSelection() {
     if (sh) sendMessage(shapeSelectionPayload(sh));
 }
 function selectShape(shapeId) {
+    if (terrainEdit && terrainEdit.shapeId === shapeId) return;
+    clearSelection();
     terrainEdit = { shapeId, selVert: -1 };
     renderTerrainEditor();
-    showTerrainToolbar();
     emitShapeSelection();
+    renderBottomBar();
 }
 function exitShapeEdit() {
+    if (!terrainEdit) return;
     terrainEdit = null;
     renderTerrainEditor();
-    hideTerrainToolbar();
     sendMessage({ type: 'shapeDeselected' });
+    renderBottomBar();
 }
 
-function showTerrainToolbar() {
-    let tb = document.getElementById('nv-terrain-toolbar');
-    if (!tb) {
-        tb = document.createElement('div');
-        tb.id = 'nv-terrain-toolbar';
-        tb.className = 'nv-edit-toolbar';
-        const hint = document.createElement('span');
-        hint.className = 'hint';
-        hint.textContent = mapStrings.terrainEditHint;
-        const done = document.createElement('button');
-        done.className = 'primary';
-        done.textContent = mapStrings.splineEditDone;
-        done.addEventListener('click', exitShapeEdit);
-        tb.appendChild(hint); tb.appendChild(done);
-        document.body.appendChild(tb);
-    }
-    tb.style.display = 'flex';
-}
-function hideTerrainToolbar() {
-    const tb = document.getElementById('nv-terrain-toolbar');
-    if (tb) tb.style.display = 'none';
-}
+// (showTerrainToolbar / hideTerrainToolbar removed — bottom bar driven by renderBottomBar)
 
 // Draws vertex handles + edge guide lines for the terrain draft or the shape
 // being edited.
@@ -2495,13 +3122,7 @@ function insertTerrainVertexAt(shapeId, wx, wy) {
 }
 
 function showShapeContextMenu(ev, sh) {
-    const owner = findShapeOwner(sh.id);
     showSimpleContextMenu(ev, [
-        [mapStrings.moveToLayer, () => sendMessage({
-            type: 'requestMoveToLayer', kind: 'shape', id: sh.id,
-            currentLayerId: owner ? owner.id : '',
-        })],
-        null,
         [mapStrings.shapeDelete, () => window.deleteShape(sh.id)],
     ]);
 }
@@ -2558,12 +3179,12 @@ window.deleteShape = (id) => {
     owner.shapes = (owner.shapes || []).filter(s => s.id !== id);
     if (terrainEdit && terrainEdit.shapeId === id) {
         terrainEdit = null;
-        hideTerrainToolbar();
         renderTerrainEditor();
         sendMessage({ type: 'shapeDeselected' });
     }
     render();
     sendMessage({ type: 'mapChanged' });
+    renderBottomBar();
 };
 
 // ── Map border (clip boundary) ──────────────────────────────────────────
@@ -2645,7 +3266,9 @@ function commitBorderDraft() {
     renderBorderEditor();
     sendMessage({ type: 'mapChanged' });
     toolMode = 'select';
-    stage.style.cursor = 'default';
+    applyToolModeClass();
+    sendMessage({ type: 'cancelBorderMode' });
+    renderBottomBar();
 }
 
 function cancelBorderDraft() {
@@ -2664,42 +3287,26 @@ function borderSelectionPayload() {
 }
 function enterBorderEdit() {
     if (!mapData.border) return;
+    if (borderEdit) return;
+    clearSelection();
+    if (splineDraft) commitSplineDraft();
+    if (terrainDraft) commitTerrainDraft();
     borderEdit = true;
     refreshBorder();
     renderBorderEditor();
-    showBorderToolbar();
     sendMessage(borderSelectionPayload());
+    renderBottomBar();
 }
 function exitBorderEdit() {
+    if (!borderEdit) return;
     borderEdit = false;
     refreshBorder();
     renderBorderEditor();
-    hideBorderToolbar();
     sendMessage({ type: 'borderDeselected' });
+    renderBottomBar();
 }
 
-function showBorderToolbar() {
-    let tb = document.getElementById('nv-border-toolbar');
-    if (!tb) {
-        tb = document.createElement('div');
-        tb.id = 'nv-border-toolbar';
-        tb.className = 'nv-edit-toolbar';
-        const hint = document.createElement('span');
-        hint.className = 'hint';
-        hint.textContent = mapStrings.borderEditHint;
-        const done = document.createElement('button');
-        done.className = 'primary';
-        done.textContent = mapStrings.splineEditDone;
-        done.addEventListener('click', exitBorderEdit);
-        tb.appendChild(hint); tb.appendChild(done);
-        document.body.appendChild(tb);
-    }
-    tb.style.display = 'flex';
-}
-function hideBorderToolbar() {
-    const tb = document.getElementById('nv-border-toolbar');
-    if (tb) tb.style.display = 'none';
-}
+// (showBorderToolbar / hideBorderToolbar removed — bottom bar driven by renderBottomBar)
 
 function renderBorderEditor() {
     Array.from(handlesOverlay.querySelectorAll('.nv-border-handle, .nv-border-line')).forEach(n => n.remove());
@@ -2784,11 +3391,11 @@ window.setBorderOutline = (color, width) => {
 window.clearBorder = () => {
     mapData.border = null;
     borderEdit = false;
-    hideBorderToolbar();
     refreshBorder();
     renderBorderEditor();
     sendMessage({ type: 'borderDeselected' });
     sendMessage({ type: 'mapChanged' });
+    renderBottomBar();
 };
 
 // ── Buildings ───────────────────────────────────────────────────────────
@@ -3705,18 +4312,23 @@ function buildingSelectionPayload(b) {
     };
 }
 function selectBuilding(id) {
+    if (buildingEdit && buildingEdit.buildingId === id) return;
+    clearSelection();
     buildingEdit = { buildingId: id };
     rebuildBuildingSvg(id);
     renderBuildingEditor();
     const b = findBuilding(id);
     if (b) sendMessage(buildingSelectionPayload(b));
+    renderBottomBar();
 }
 function exitBuildingEdit() {
+    if (!buildingEdit) return;
     const prev = buildingEdit;
     buildingEdit = null;
     if (prev) rebuildBuildingSvg(prev.buildingId);
     renderBuildingEditor();
     sendMessage({ type: 'buildingDeselected' });
+    renderBottomBar();
 }
 
 // Rotation handle for the selected building. Sits above its topmost footprint
@@ -3792,13 +4404,7 @@ function rotateBuildingGeometry(b, c, delta) {
 }
 
 function showBuildingContextMenu(ev, b) {
-    const owner = findBuildingOwner(b.id);
     showSimpleContextMenu(ev, [
-        [mapStrings.moveToLayer, () => sendMessage({
-            type: 'requestMoveToLayer', kind: 'building', id: b.id,
-            currentLayerId: owner ? owner.id : '',
-        })],
-        null,
         [mapStrings.buildingDelete, () => window.deleteBuilding(b.id)],
     ]);
 }
@@ -3863,24 +4469,29 @@ window.deleteBuilding = (id) => {
         sendMessage({ type: 'buildingDeselected' });
     }
     if (floorPlanEdit && floorPlanEdit.buildingId === id) {
-        floorPlanEdit = null; wallDraft = null; stairDraft = null; hideFloorPlanToolbar();
+        floorPlanEdit = null; wallDraft = null; stairDraft = null;
         if (floorPlanPrevIso) {
             isolatedKind = floorPlanPrevIso.kind;
             isolatedId = floorPlanPrevIso.id;
             floorPlanPrevIso = null;
         } else { isolatedKind = null; isolatedId = null; }
+        sendMessage({ type: 'floorPlanEditExited' });
     }
     render();
     renderFloorSelectors();
     renderBuildingEditor();
     sendMessage({ type: 'mapChanged' });
+    renderBottomBar();
 };
 
 // ── Floor plans ─────────────────────────────────────────────────────────
 function setBuildingActiveFloor(id, floor) {
     const b = findBuilding(id);
     if (!b) return;
-    if (floorPlanEdit && floorPlanEdit.buildingId === id) { wallDraft = null; stairDraft = null; }
+    if (floorPlanEdit && floorPlanEdit.buildingId === id) {
+        if (wallDraft) commitWallDraft();
+        stairDraft = null;
+    }
     b.activeFloor = Math.max(0, Math.min((b.floorCount || 1) - 1, floor));
     rebuildBuildingSvg(id);
     renderFloorAnnotations(); // swap the visible floor's labels / pins
@@ -3893,6 +4504,9 @@ window.setBuildingActiveFloor = setBuildingActiveFloor;
 // Shown for every building whose floor plan is currently visible.
 function renderFloorSelectors() {
     Array.from(stage.querySelectorAll('.nv-floor-selector')).forEach(n => n.remove());
+    // Reserve bottom-bar height so the selector never falls behind the permanent bar.
+    const bbHeight = (bb && bb.el) ? bb.el.offsetHeight : 0;
+    const viewBottom = window.innerHeight - bbHeight - 8;
     walkNodes(mapData.layers, node => {
         for (const b of node.buildings || []) {
             if ((b.floorCount || 0) < 1 || !buildingShowsPlan(b)) continue;
@@ -3903,8 +4517,11 @@ function renderFloorSelectors() {
             for (const p of b.footprint) if (p.y < top.y) top = p;
             const sel = document.createElement('div');
             sel.className = 'nv-floor-selector';
-            sel.style.left = (pan.x + top.x * zoom) + 'px';
-            sel.style.top = (pan.y + top.y * zoom - 16) + 'px';
+            const sx = pan.x + top.x * zoom;
+            let sy = pan.y + top.y * zoom - 16;
+            if (sy > viewBottom) sy = viewBottom;
+            sel.style.left = sx + 'px';
+            sel.style.top = sy + 'px';
             const up = document.createElement('button'); up.textContent = '▲';
             const lbl = document.createElement('div'); lbl.className = 'lbl';
             lbl.textContent = ((b.activeFloor || 0) + 1) + '/' + b.floorCount;
@@ -3932,7 +4549,21 @@ function refreshBuildingsForZoom() {
 
 function enterFloorPlanEdit(id) {
     const b = findBuilding(id);
-    if (!b || (b.floorCount || 0) < 1) return;
+    if (!b) return;
+    if ((b.floorCount || 0) < 1) {
+        sendMessage({ type: 'toast', level: 'warn',
+                      text: mapStrings.fpNoFloorsWarn || 'Building has no floors. Add a floor first.' });
+        return;
+    }
+    // Idempotent: same building = no-op; different building = exit cleanly first.
+    if (floorPlanEdit) {
+        if (floorPlanEdit.buildingId === id) return;
+        exitFloorPlanEdit();
+    }
+    // Commit any draft geometry so it doesn't vanish behind the isolation.
+    if (splineDraft) commitSplineDraft();
+    if (terrainDraft) commitTerrainDraft();
+    if (borderDraft) commitBorderDraft();
     floorPlanEdit = { buildingId: id };
     floorPlanTool = 'select';
     wallDraft = null;
@@ -3941,13 +4572,15 @@ function enterFloorPlanEdit(id) {
     floorPlanPrevIso = { kind: isolatedKind, id: isolatedId };
     isolatedKind = 'building';
     isolatedId = id;
-    showFloorPlanToolbar();
     rebuildBuildingSvg(id);
     updateLayerVisibility();
     renderFloorSelectors();
     renderBuildingEditor(); // hide the rotation handle while floor-plan editing
+    sendMessage({ type: 'floorPlanEditEntered', buildingId: id });
+    renderBottomBar();
 }
 function exitFloorPlanEdit() {
+    if (!floorPlanEdit) return;
     commitWallDraft();
     const prev = floorPlanEdit;
     floorPlanEdit = null;
@@ -3959,11 +4592,12 @@ function exitFloorPlanEdit() {
         isolatedId = floorPlanPrevIso.id;
         floorPlanPrevIso = null;
     } else { isolatedKind = null; isolatedId = null; }
-    hideFloorPlanToolbar();
     if (prev) rebuildBuildingSvg(prev.buildingId);
     updateLayerVisibility();
     renderFloorSelectors();
     renderBuildingEditor(); // restore the rotation handle
+    sendMessage({ type: 'floorPlanEditExited' });
+    renderBottomBar();
 }
 // Commit the in-progress wall chain onto the active floor.
 function commitWallDraft() {
@@ -3987,50 +4621,14 @@ function commitWallDraft() {
     wallDraft = null;
 }
 
-function showFloorPlanToolbar() {
-    let tb = document.getElementById('nv-floorplan-toolbar');
-    if (!tb) {
-        tb = document.createElement('div');
-        tb.id = 'nv-floorplan-toolbar';
-        tb.className = 'nv-edit-toolbar';
-        const tools = [['wall', 'fpWall'], ['door', 'fpDoor'], ['window', 'fpWindow'],
-                       ['stairs', 'fpStairs'], ['flabel', 'fpLabel'], ['fpin', 'fpPin']];
-        for (const [tool, key] of tools) {
-            const btn = document.createElement('button');
-            btn.dataset.fpTool = tool;
-            btn.textContent = mapStrings[key];
-            btn.addEventListener('click', () => {
-                if (floorPlanTool === 'wall' && tool !== 'wall') commitWallDraft();
-                floorPlanTool = (floorPlanTool === tool) ? 'select' : tool;
-                if (floorPlanTool !== 'wall') commitWallDraft();
-                stairDraft = null; // dropping a half-drawn staircase on tool switch
-                updateFloorPlanToolbar();
-            });
-            tb.appendChild(btn);
-        }
-        const hint = document.createElement('span');
-        hint.className = 'hint';
-        hint.textContent = mapStrings.fpHint;
-        const done = document.createElement('button');
-        done.className = 'primary';
-        done.textContent = mapStrings.splineEditDone;
-        done.addEventListener('click', exitFloorPlanEdit);
-        tb.appendChild(hint); tb.appendChild(done);
-        document.body.appendChild(tb);
-    }
-    tb.style.display = 'flex';
-    updateFloorPlanToolbar();
-}
-function updateFloorPlanToolbar() {
-    const tb = document.getElementById('nv-floorplan-toolbar');
-    if (!tb) return;
-    tb.querySelectorAll('button[data-fp-tool]').forEach(btn => {
-        btn.className = (btn.dataset.fpTool === floorPlanTool) ? 'primary' : 'secondary';
-    });
-}
-function hideFloorPlanToolbar() {
-    const tb = document.getElementById('nv-floorplan-toolbar');
-    if (tb) tb.style.display = 'none';
+// (showFloorPlanToolbar / updateFloorPlanToolbar / hideFloorPlanToolbar removed
+//  — bottom bar driven by renderBottomBar)
+function setFloorPlanTool(tool) {
+    if (floorPlanTool === 'wall' && tool !== 'wall') commitWallDraft();
+    floorPlanTool = (floorPlanTool === tool) ? 'select' : tool;
+    if (floorPlanTool !== 'wall') commitWallDraft();
+    stairDraft = null;
+    renderBottomBar();
 }
 
 window.editBuildingPlan = (id) => enterFloorPlanEdit(id);
@@ -4131,17 +4729,20 @@ function emitSplineSelection() {
 }
 
 function selectSpline(splineId) {
+    if (splineEdit && splineEdit.splineId === splineId) return;
+    clearSelection();
     splineEdit = { splineId, selKnot: 0 };
     renderSplineEditor();
-    showSplineToolbar();
     emitSplineSelection();
+    renderBottomBar();
 }
 
 function exitSplineEdit() {
+    if (!splineEdit) return;
     splineEdit = null;
     renderSplineEditor();
-    hideSplineToolbar();
     sendMessage({ type: 'splineDeselected' });
+    renderBottomBar();
 }
 
 window.setSplinePreset = (splineId, kind, preset) => {
@@ -4198,12 +4799,12 @@ window.deleteSpline = (splineId) => {
     owner.splines = (owner.splines || []).filter(s => s.id !== splineId);
     if (splineEdit && splineEdit.splineId === splineId) {
         splineEdit = null;
-        hideSplineToolbar();
         renderSplineEditor();
         sendMessage({ type: 'splineDeselected' });
     }
     render();
     sendMessage({ type: 'mapChanged' });
+    renderBottomBar();
 };
 
 // Reorder a spline within its layer's z-stack. dir > 0 = forward, dir < 0 = back.
@@ -4276,13 +4877,7 @@ function addAdjacentKnot(points, idx, after) {
 }
 
 function showSplineContextMenu(ev, sp) {
-    const owner = findSplineOwner(sp.id);
     showSimpleContextMenu(ev, [
-        [mapStrings.moveToLayer, () => sendMessage({
-            type: 'requestMoveToLayer', kind: 'spline', id: sp.id,
-            currentLayerId: owner ? owner.id : '',
-        })],
-        null,
         [mapStrings.splineDelete, () => window.deleteSpline(sp.id)],
     ]);
 }
@@ -4485,8 +5080,7 @@ function showKnotContextMenu(ev, points, idx, splineId, splineKind) {
         delete points[idx].typeOverride;
         commit();
     }, !points[idx].typeOverride));
-    document.body.appendChild(menu);
-    setTimeout(() => window.addEventListener('mousedown', closeContextMenu, { once: true }), 0);
+    openContextMenu(menu);
 }
 
 function startSplinePointDrag(ev, points, idx, splineId) {
@@ -4573,29 +5167,7 @@ function startSplineWidthDrag(ev, points, idx, sx, sy, splineId) {
     window.addEventListener('mouseup', up);
 }
 
-function showSplineToolbar() {
-    let tb = document.getElementById('nv-spline-toolbar');
-    if (!tb) {
-        tb = document.createElement('div');
-        tb.id = 'nv-spline-toolbar';
-        tb.className = 'nv-edit-toolbar';
-        const hint = document.createElement('span');
-        hint.className = 'hint';
-        hint.textContent = mapStrings.splineEditHint;
-        const done = document.createElement('button');
-        done.className = 'primary';
-        done.textContent = mapStrings.splineEditDone;
-        done.addEventListener('click', exitSplineEdit);
-        tb.appendChild(hint);
-        tb.appendChild(done);
-        document.body.appendChild(tb);
-    }
-    tb.style.display = 'flex';
-}
-function hideSplineToolbar() {
-    const tb = document.getElementById('nv-spline-toolbar');
-    if (tb) tb.style.display = 'none';
-}
+// (showSplineToolbar / hideSplineToolbar removed — bottom bar driven by renderBottomBar)
 
 window.toggleSplineEditOnSelected = () => {
     if (splineEdit) { exitSplineEdit(); return; }
@@ -4715,17 +5287,12 @@ stage.addEventListener('mousedown', (e) => {
     if (e.target !== stage && e.target !== world) return;
     if (e.button !== 0) return;
     // Left-click on empty stage just clears selection. Pan requires middle button.
-    const wasLabel = selected?.kind === 'label';
-    selected = null;
-    Array.from(world.querySelectorAll('.selected')).forEach(el => el.classList.remove('selected'));
-    labelOverlay.querySelectorAll('.nv-label.selected').forEach(el => el.classList.remove('selected'));
-    updateImageHandles();
-    if (wasLabel) sendMessage({ type: 'labelDeselected' });
-    if (buildingEdit) exitBuildingEdit();
+    clearSelection();
     sendMessage({ type: 'selectionCleared' });
 });
 // Building placement preview follows the cursor (with road attachment).
 stage.addEventListener('mousemove', (e) => {
+    bbHoverTrack(e);
     if (toolMode === 'building' && buildingDraft) {
         attachBuildingToRoads(buildingDraft, (e.clientX - pan.x) / zoom, (e.clientY - pan.y) / zoom, e.shiftKey);
         renderBuildingDraft();
@@ -4750,6 +5317,9 @@ stage.addEventListener('contextmenu', (e) => {
         e.preventDefault();
 });
 window.addEventListener('mousemove', (e) => {
+    lastCursorWorld.x = (e.clientX - pan.x) / zoom;
+    lastCursorWorld.y = (e.clientY - pan.y) / zoom;
+    updateHud();
     if (!panStart) return;
     pan.x = e.clientX - panStart.x;
     pan.y = e.clientY - panStart.y;
@@ -4915,13 +5485,9 @@ window.setToolMode = (m) => {
         return;
     }
     toolMode = want;
-    stage.style.cursor = (toolMode === 'select') ? 'default' : 'crosshair';
+    applyToolModeClass();
     if (toolMode !== 'select') {
-        // Drop existing selection so handles don't intercept clicks.
-        selected = null;
-        Array.from(world.querySelectorAll('.selected')).forEach(n => n.classList.remove('selected'));
-        updateImageHandles();
-        if (clipEdit) exitClipEdit(false);
+        clearSelection();
     }
     if (toolMode !== 'spline' && splineDraft) commitSplineDraft();
     if (toolMode !== 'terrain' && terrainDraft) commitTerrainDraft();
@@ -4933,15 +5499,116 @@ window.setToolMode = (m) => {
         const dr = world.querySelector('.nv-building[data-building-id="__buildingDraft__"]');
         if (dr) dr.remove();
     }
+    closeContextMenu();
+    renderBottomBar();
     log('toolMode = ' + toolMode);
 };
 
-window.addPinAtPoint = (wx, wy, label, entityType, entityId, color) => {
+// HUD: map name, zoom, cursor world coords, active layer, draft summary.
+let lastCursorWorld = { x: 0, y: 0 };
+function updateHud() {
+    if (!hud) return;
+    const parts = [];
+    parts.push(mapData.name || mapStrings.hudMap || 'Map');
+    parts.push(`${mapStrings.hudZoom || 'zoom'} ${zoom.toFixed(2)}`);
+    parts.push(`(${lastCursorWorld.x.toFixed(0)}, ${lastCursorWorld.y.toFixed(0)})`);
+    const layer = findLayer(activeLayerId);
+    if (layer) parts.push(`${mapStrings.hudLayer || 'Layer'}: ${layer.name || layer.id}`);
+    if (splineDraft)   parts.push(`${mapStrings.hudSplineDraft  || 'Spline draft'}: ${splineDraft.points.length} ${mapStrings.hudKnots || 'knots'}`);
+    if (terrainDraft)  parts.push(`${mapStrings.hudTerrainDraft || 'Terrain draft'}: ${terrainDraft.points.length} ${mapStrings.hudVerts || 'verts'}`);
+    if (borderDraft)   parts.push(`${mapStrings.hudBorderDraft  || 'Border draft'}: ${borderDraft.points.length} ${mapStrings.hudVerts || 'verts'}`);
+    if (wallDraft)     parts.push(`${mapStrings.hudWallDraft    || 'Wall draft'}: ${wallDraft.points.length} ${mapStrings.hudPts || 'pts'}`);
+    hud.textContent = parts.join(' · ');
+}
+
+// Reflect current toolMode in body class so CSS can drive cursor + hover affordances.
+function applyToolModeClass() {
+    const cls = document.body.classList;
+    ['tool-select', 'tool-add-pin', 'tool-add-label', 'tool-spline',
+     'tool-terrain', 'tool-border', 'tool-building'].forEach(c => cls.remove(c));
+    cls.add('tool-' + toolMode);
+}
+
+// ── Hover highlight ────────────────────────────────────────────────────
+// CSS :hover on multi-path SVGs (splines, terrain, buildings) flickered as
+// the cursor crossed internal segments. JS replacement: track the hovered
+// element identity, wait 600ms before applying the highlight class, fade via
+// CSS transition. Clears immediately when the cursor leaves the element.
+const BB_HOVER_DELAY_MS = 50;
+let bbHoverTimer = null;
+let bbHoverCurrent = null; // 'kind:id'
+
+function bbHoverIdentify(target) {
+    if (!target || !target.closest) return null;
+    let n;
+    if ((n = target.closest('[data-spline-id]')) && n.dataset.splineId !== '__draft__')
+        return { kind: 'spline', id: n.dataset.splineId };
+    if ((n = target.closest('.nv-terrain[data-shape-id]')) && n.dataset.shapeId !== '__terrainDraft__')
+        return { kind: 'shape', id: n.dataset.shapeId };
+    if ((n = target.closest('.nv-building[data-building-id]')) && n.dataset.buildingId !== '__buildingDraft__')
+        return { kind: 'building', id: n.dataset.buildingId };
+    if ((n = target.closest('.nv-pin-host[data-pin-id]')))
+        return { kind: 'pin', id: n.dataset.pinId };
+    if ((n = target.closest('.nv-label[data-label-id]')))
+        return { kind: 'label', id: n.dataset.labelId };
+    if ((n = target.closest('.nv-image[data-image-id]')))
+        return { kind: 'image', id: n.dataset.imageId };
+    return null;
+}
+
+function bbApplyHover(kind, id) {
+    bbClearHoverClass();
+    if (kind === 'spline') {
+        document.querySelectorAll(`#spline-svg path[data-spline-id="${id}"]`)
+                .forEach(n => n.classList.add('nv-hovered'));
+        return;
+    }
+    let sel = null;
+    if (kind === 'shape')    sel = `.nv-terrain[data-shape-id="${id}"]`;
+    if (kind === 'building') sel = `.nv-building[data-building-id="${id}"]`;
+    if (kind === 'pin')      sel = `.nv-pin-host[data-pin-id="${id}"]`;
+    if (kind === 'label')    sel = `.nv-label[data-label-id="${id}"]`;
+    if (kind === 'image')    sel = `.nv-image[data-image-id="${id}"]`;
+    if (sel) {
+        const el = document.querySelector(sel);
+        if (el) el.classList.add('nv-hovered');
+    }
+}
+function bbClearHoverClass() {
+    document.querySelectorAll('.nv-hovered').forEach(n => n.classList.remove('nv-hovered'));
+}
+function bbHoverReset() {
+    clearTimeout(bbHoverTimer);
+    bbHoverTimer = null;
+    bbHoverCurrent = null;
+    bbClearHoverClass();
+}
+
+function bbHoverTrack(e) {
+    if (mode !== 'edit' || toolMode !== 'select') {
+        if (bbHoverCurrent || bbHoverTimer) bbHoverReset();
+        return;
+    }
+    const found = bbHoverIdentify(e.target);
+    const key = found ? `${found.kind}:${found.id}` : null;
+    if (key === bbHoverCurrent) return;
+    clearTimeout(bbHoverTimer);
+    bbClearHoverClass();
+    bbHoverCurrent = key;
+    if (found) {
+        bbHoverTimer = setTimeout(() => bbApplyHover(found.kind, found.id), BB_HOVER_DELAY_MS);
+    } else {
+        bbHoverTimer = null;
+    }
+}
+window.addEventListener('blur', bbHoverReset);
+stage.addEventListener('mouseleave', bbHoverReset);
+
+function _createPin(wx, wy, label, entityType, entityId, color) {
     mapData.pins = mapData.pins || [];
+    const id = 'pin-' + Date.now();
     mapData.pins.push({
-        id: 'pin-' + Date.now(),
-        x: wx, y: wy,
-        style: 'dot',
+        id, x: wx, y: wy, style: 'dot',
         label: label || '',
         entityType: entityType || '',
         entityId: entityId || '',
@@ -4950,24 +5617,19 @@ window.addPinAtPoint = (wx, wy, label, entityType, entityId, color) => {
     });
     render();
     sendMessage({ type: 'mapChanged' });
-};
-
+    // Auto-select so the bottom-bar editor shows immediately.
+    const pin = findPinById(id);
+    const host = pinOverlay.querySelector(`.nv-pin-host[data-pin-id="${id}"]`);
+    if (pin) selectPin(pin, host);
+    return id;
+}
+window.addPinAtPoint = (wx, wy, label, entityType, entityId, color) =>
+    _createPin(wx, wy, label, entityType, entityId, color);
 window.addPinAtCenter = (label, entityType, entityId, color) => {
     const stageRect = stage.getBoundingClientRect();
     const cx = (stageRect.width / 2 - pan.x) / zoom;
     const cy = (stageRect.height / 2 - pan.y) / zoom;
-    mapData.pins.push({
-        id: 'pin-' + Date.now(),
-        x: cx, y: cy,
-        style: 'dot',
-        label: label || '',
-        entityType: entityType || '',
-        entityId: entityId || '',
-        color: color || null,
-        layerId: activeLayerId || '',
-    });
-    render();
-    sendMessage({ type: 'mapChanged' });
+    return _createPin(cx, cy, label, entityType, entityId, color);
 };
 window.updateImageZoomRange = (imageId, minZoom, maxZoom) => {
     const node = findImageNode(imageId);
@@ -5022,6 +5684,49 @@ window.updatePin = (pinId, label, entityType, entityId, color) => {
     render();
     sendMessage({ type: 'mapChanged' });
 };
+// Single-field pin setters used by the bottom-bar editors.
+window.setPinLabel = (pinId, label) => {
+    const pin = findPinById(pinId);
+    if (!pin) return;
+    pin.label = label || '';
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+window.setPinEntity = (pinId, entityId, entityType) => {
+    const pin = findPinById(pinId);
+    if (!pin) return;
+    pin.entityId = entityId || '';
+    pin.entityType = entityType || '';
+    render();
+    sendMessage({ type: 'mapChanged' });
+};
+window.setPinColor = window.updatePinColor; // alias
+
+// Image clip: drop / replace the polygon directly (skip clip-edit overlay).
+window.setImageClip = (imageId, polygon) => {
+    let img = null, ownerLayer = null;
+    walkNodes(mapData.layers, n => {
+        if (img) return;
+        const f = (n.images || []).find(i => i.id === imageId);
+        if (f) { img = f; ownerLayer = n; }
+    });
+    if (!img) return;
+    if (polygon && polygon.length >= 3) img.clipPolygon = polygon.map(p => ({ x: p.x, y: p.y }));
+    else img.clipPolygon = null;
+    const el = world.querySelector(`.nv-image[data-image-id="${imageId}"]`);
+    if (el) applyClipPath(el, img);
+    sendMessage({ type: 'mapChanged' });
+};
+function findImageById(imageId) {
+    let f = null;
+    walkNodes(mapData.layers, n => { if (!f) f = (n.images || []).find(i => i.id === imageId); });
+    return f || null;
+}
+function findImageNodeId(imageId) {
+    let o = null;
+    walkNodes(mapData.layers, n => { if (!o && (n.images || []).some(i => i.id === imageId)) o = n; });
+    return o ? o.id : '';
+}
 window.moveImageToLayer = (sourceLayerId, imageId, targetLayerId) => {
     const src = findLayer(sourceLayerId);
     const dst = findLayer(targetLayerId);
@@ -5066,12 +5771,18 @@ window.deleteSelected = () => {
         if (node) node.images = (node.images || []).filter(i => i.id !== selected.id);
     } else if (selected.kind === 'pin') {
         removePinById(selected.id);
+    } else if (selected.kind === 'label') {
+        deleteLabel(selected.id);
+        return; // deleteLabel handles render + mapChanged
     }
     selected = null;
     render();
     sendMessage({ type: 'mapChanged' });
+    renderBottomBar();
 };
 
+applyToolModeClass();
+renderBottomBar();
 sendMessage({ type: 'ready' });
 </script>
 <script type="module" src="map3d.js"></script>

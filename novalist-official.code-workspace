@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../novalist-aiassistant"
+		},
+		{
+			"path": "../The-Silent-Shadows"
+		}
+	],
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"dotnet build": true
+		}
+	}
+}

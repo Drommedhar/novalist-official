@@ -310,6 +310,13 @@ public partial class MapView : UserControl
         PushMapStrings();
     }
 
+    private async Task PushEntityOptionsAsync()
+    {
+        if (_vm?.PushEntityOptions == null) return;
+        await _vm.PushEntityOptions.Invoke(json =>
+            ExecuteScript($"setEntityOptions({System.Text.Json.JsonSerializer.Serialize(json)})"));
+    }
+
     // Localised strings for the JS-drawn context menus (knot + label menus).
     private void PushMapStrings()
     {
@@ -346,6 +353,150 @@ public partial class MapView : UserControl
             fpPin = Localization.Loc.T("map.fpPin"),
             fpFlipSide = Localization.Loc.T("map.fpFlipSide"),
             fpHint = Localization.Loc.T("map.fpHint"),
+            fpNoFloorsWarn = Localization.Loc.T("map.fpNoFloorsWarn"),
+            cancel = Localization.Loc.T("map.cancel"),
+            borderEditHint = Localization.Loc.T("map.borderEditHint"),
+            bbIdle = Localization.Loc.T("map.bbIdle"),
+            bbIdleHint = Localization.Loc.T("map.bbIdleHint"),
+            bbClipLabel = Localization.Loc.T("map.bbClipLabel"),
+            bbFloorPlanLabel = Localization.Loc.T("map.bbFloorPlanLabel"),
+            bbSplineLabel = Localization.Loc.T("map.bbSplineLabel"),
+            bbTerrainLabel = Localization.Loc.T("map.bbTerrainLabel"),
+            bbBorderLabel = Localization.Loc.T("map.bbBorderLabel"),
+            bbBuildingLabel = Localization.Loc.T("map.bbBuildingLabel"),
+            bbPinLabel = Localization.Loc.T("map.bbPinLabel"),
+            bbLabelSelLabel = Localization.Loc.T("map.bbLabelSelLabel"),
+            bbImageLabel = Localization.Loc.T("map.bbImageLabel"),
+            bbSplineDraft = Localization.Loc.T("map.bbSplineDraft"),
+            bbTerrainDraft = Localization.Loc.T("map.bbTerrainDraft"),
+            bbBorderDraft = Localization.Loc.T("map.bbBorderDraft"),
+            bbBuildingPlace = Localization.Loc.T("map.bbBuildingPlace"),
+            bbBuildingHint = Localization.Loc.T("map.bbBuildingHint"),
+            bbBuildingEditHint = Localization.Loc.T("map.bbBuildingEditHint"),
+            bbEditFloorPlan = Localization.Loc.T("map.bbEditFloorPlan"),
+            bbSelectedHint = Localization.Loc.T("map.bbSelectedHint"),
+            bbClickToAddPoints = Localization.Loc.T("map.bbClickToAddPoints"),
+            kbdEscCancelEnterCommit = Localization.Loc.T("map.kbdEscCancelEnterCommit"),
+            kbdBuildingPlace = Localization.Loc.T("map.kbdBuildingPlace"),
+            kbdFinishDelete = Localization.Loc.T("map.kbdFinishDelete"),
+            kbdFinish = Localization.Loc.T("map.kbdFinish"),
+            kbdEscDeselect = Localization.Loc.T("map.kbdEscDeselect"),
+            kbdDeleteRemoveEscDeselect = Localization.Loc.T("map.kbdDeleteRemoveEscDeselect"),
+            hudMap = Localization.Loc.T("map.hudMap"),
+            hudZoom = Localization.Loc.T("map.hudZoom"),
+            hudLayer = Localization.Loc.T("map.hudLayer"),
+            hudSplineDraft = Localization.Loc.T("map.hudSplineDraft"),
+            hudTerrainDraft = Localization.Loc.T("map.hudTerrainDraft"),
+            hudBorderDraft = Localization.Loc.T("map.hudBorderDraft"),
+            hudWallDraft = Localization.Loc.T("map.hudWallDraft"),
+            hudKnots = Localization.Loc.T("map.hudKnots"),
+            hudVerts = Localization.Loc.T("map.hudVerts"),
+            hudPts = Localization.Loc.T("map.hudPts"),
+            bbLayer = Localization.Loc.T("map.bbLayer"),
+            bbMore = Localization.Loc.T("map.bbMore"),
+            bbColors = Localization.Loc.T("map.bbColors"),
+            bbKnot = Localization.Loc.T("map.bbKnot"),
+            // Bottom-bar selects need pre-localized [value, label] pairs.
+            buildingTypesJson = JsonSerializer.Serialize(new[] {
+                new[] { "singleFamily", Localization.Loc.T("map.bldSingleFamily") },
+                new[] { "rowHome",      Localization.Loc.T("map.bldRowHome") },
+                new[] { "school",       Localization.Loc.T("map.bldSchool") },
+                new[] { "police",       Localization.Loc.T("map.bldPolice") },
+                new[] { "fireStation",  Localization.Loc.T("map.bldFireStation") },
+                new[] { "hall",         Localization.Loc.T("map.bldHall") },
+                new[] { "playground",   Localization.Loc.T("map.bldPlayground") },
+                new[] { "trainStation", Localization.Loc.T("map.bldTrainStation") },
+            }),
+            roofKindsJson = JsonSerializer.Serialize(new[] {
+                new[] { "gable", Localization.Loc.T("map.roofGable") },
+                new[] { "hip",   Localization.Loc.T("map.roofHip") },
+                new[] { "flat",  Localization.Loc.T("map.roofFlat") },
+            }),
+            terrainTypesJson = JsonSerializer.Serialize(new[] {
+                new[] { "grass",    Localization.Loc.T("map.terrainGrass") },
+                new[] { "forest",   Localization.Loc.T("map.terrainForest") },
+                new[] { "concrete", Localization.Loc.T("map.terrainConcrete") },
+                new[] { "sand",     Localization.Loc.T("map.terrainSand") },
+                new[] { "hills",    Localization.Loc.T("map.terrainHills") },
+                new[] { "mountain", Localization.Loc.T("map.terrainMountain") },
+                new[] { "water",    Localization.Loc.T("map.terrainWater") },
+            }),
+            splinePresetsJson = JsonSerializer.Serialize(new[] {
+                new[] { "road:motorway",    Localization.Loc.T("map.roadMotorway") },
+                new[] { "road:primary",     Localization.Loc.T("map.roadPrimary") },
+                new[] { "road:secondary",   Localization.Loc.T("map.roadSecondary") },
+                new[] { "road:residential", Localization.Loc.T("map.roadResidential") },
+                new[] { "road:service",     Localization.Loc.T("map.roadService") },
+                new[] { "road:pedestrian",  Localization.Loc.T("map.roadPedestrian") },
+                new[] { "road:trail",       Localization.Loc.T("map.roadTrail") },
+                new[] { "road:track",       Localization.Loc.T("map.roadTrack") },
+                new[] { "river:brook",      Localization.Loc.T("map.riverBrook") },
+                new[] { "river:stream",     Localization.Loc.T("map.riverStream") },
+                new[] { "river:river",      Localization.Loc.T("map.riverRiver") },
+                new[] { "river:canal",      Localization.Loc.T("map.riverCanal") },
+                new[] { "river:estuary",    Localization.Loc.T("map.riverEstuary") },
+            }),
+            markingStylesJson = JsonSerializer.Serialize(new[] {
+                new[] { "",             Localization.Loc.T("map.markPresetDefault") },
+                new[] { "none",         Localization.Loc.T("map.markNone") },
+                new[] { "single",       Localization.Loc.T("map.markSingle") },
+                new[] { "dashed",       Localization.Loc.T("map.markDashed") },
+                new[] { "double",       Localization.Loc.T("map.markDouble") },
+                new[] { "solid-dashed", Localization.Loc.T("map.markSolidDashed") },
+            }),
+            knotTypesJson = JsonSerializer.Serialize(new[] {
+                new[] { "",             Localization.Loc.T("map.knotClearType") },
+                new[] { "motorway",     Localization.Loc.T("map.roadMotorway") },
+                new[] { "primary",      Localization.Loc.T("map.roadPrimary") },
+                new[] { "secondary",    Localization.Loc.T("map.roadSecondary") },
+                new[] { "residential",  Localization.Loc.T("map.roadResidential") },
+                new[] { "service",      Localization.Loc.T("map.roadService") },
+                new[] { "pedestrian",   Localization.Loc.T("map.roadPedestrian") },
+                new[] { "trail",        Localization.Loc.T("map.roadTrail") },
+                new[] { "track",        Localization.Loc.T("map.roadTrack") },
+                new[] { "brook",        Localization.Loc.T("map.riverBrook") },
+                new[] { "stream",       Localization.Loc.T("map.riverStream") },
+                new[] { "river",        Localization.Loc.T("map.riverRiver") },
+                new[] { "canal",        Localization.Loc.T("map.riverCanal") },
+                new[] { "estuary",      Localization.Loc.T("map.riverEstuary") },
+            }),
+            // Selected-element bottom-bar labels.
+            pinLabel = Localization.Loc.T("map.pinLabel"),
+            pinLabelWatermark = Localization.Loc.T("map.pinLabelWatermark"),
+            pinEntity = Localization.Loc.T("map.pinEntity"),
+            pinEntityWatermark = Localization.Loc.T("map.pinEntityWatermark"),
+            pinColor = Localization.Loc.T("map.pinColor"),
+            labelFontSize = Localization.Loc.T("map.labelFontSize"),
+            labelColor = Localization.Loc.T("map.labelColor"),
+            alignLeft = Localization.Loc.T("map.alignLeft"),
+            alignCenter = Localization.Loc.T("map.alignCenter"),
+            alignRight = Localization.Loc.T("map.alignRight"),
+            shapeType = Localization.Loc.T("map.shapeType"),
+            shapeColor = Localization.Loc.T("map.shapeColor"),
+            shapeSmooth = Localization.Loc.T("map.shapeSmooth"),
+            shapeBlend = Localization.Loc.T("map.shapeBlend"),
+            shapeForward = Localization.Loc.T("map.shapeForward"),
+            shapeBackward = Localization.Loc.T("map.shapeBackward"),
+            buildingType = Localization.Loc.T("map.buildingType"),
+            buildingRoof = Localization.Loc.T("map.buildingRoof"),
+            buildingFloors = Localization.Loc.T("map.buildingFloors"),
+            buildingPlanZoom = Localization.Loc.T("map.buildingPlanZoom"),
+            roofPitch = Localization.Loc.T("map.roofPitch"),
+            splineType = Localization.Loc.T("map.splineType"),
+            splineClosed = Localization.Loc.T("map.splineClosed"),
+            splineMarking = Localization.Loc.T("map.splineMarking"),
+            splineBlend = Localization.Loc.T("map.splineBlend"),
+            knotSharpness = Localization.Loc.T("map.knotSharpness"),
+            colorCasing = Localization.Loc.T("map.colorCasing"),
+            colorFill = Localization.Loc.T("map.colorFill"),
+            colorMarking = Localization.Loc.T("map.colorMarking"),
+            colorReset = Localization.Loc.T("map.colorReset"),
+            borderOutlineColor = Localization.Loc.T("map.borderOutlineColor"),
+            borderOutlineWidth = Localization.Loc.T("map.borderOutlineWidth"),
+            borderClear = Localization.Loc.T("map.borderClear"),
+            clip = Localization.Loc.T("map.imageMenuClip"),
+            imageMinZoom = Localization.Loc.T("map.imageMinZoom"),
+            imageMaxZoom = Localization.Loc.T("map.imageMaxZoom"),
         });
         ExecuteScript($"setMapStrings({JsonSerializer.Serialize(json)})");
     }
@@ -400,6 +551,7 @@ public partial class MapView : UserControl
                     _webViewReady = true;
                     PushImageBaseUrl();
                     PushContextMenuLabels();
+                    _ = PushEntityOptionsAsync();
                     if (_pendingMapJson != null) { var p = _pendingMapJson; _pendingMapJson = null; PushMapJson(p); }
                     if (_pendingMode != null) { var p = _pendingMode; _pendingMode = null; PushMode(p); }
                     break;
@@ -429,6 +581,21 @@ public partial class MapView : UserControl
                     break;
                 case "cancelBuildingMode":
                     if (_vm != null) _vm.IsBuildingMode = false;
+                    break;
+                case "cancelBorderMode":
+                    // No VM flag for border tool mode; JS sends this after commit. No-op.
+                    break;
+                case "floorPlanEditEntered":
+                    _vm?.OnFloorPlanEditEntered();
+                    break;
+                case "floorPlanEditExited":
+                    _vm?.OnFloorPlanEditExited();
+                    break;
+                case "pinDeselected":
+                    _vm?.SetSelectedPin(null, null);
+                    break;
+                case "toast":
+                    Console.Error.WriteLine("[MapView] toast: " + (doc.RootElement.TryGetProperty("text", out var tt) ? tt.GetString() : ""));
                     break;
                 case "buildingSelected":
                     var bId = doc.RootElement.TryGetProperty("buildingId", out var bid) ? bid.GetString() : null;
@@ -493,9 +660,7 @@ public partial class MapView : UserControl
                     _vm?.SetSelectedSpline(null, "road", string.Empty, -1, string.Empty, 1.0,
                         string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, 0);
                     break;
-                case "requestMoveToLayer":
-                    _ = HandleRequestMoveToLayerAsync(doc.RootElement);
-                    break;
+                // requestMoveToLayer removed — inline bottom-bar layer select.
                 case "pinSelected":
                     var pid = doc.RootElement.TryGetProperty("pinId", out var pp) ? pp.GetString() : null;
                     var pcolor = doc.RootElement.TryGetProperty("color", out var cc) ? cc.GetString() : null;
@@ -508,12 +673,8 @@ public partial class MapView : UserControl
                 case "selectionCleared":
                     _vm?.SetSelectedPin(null, null);
                     break;
-                case "pinContext":
-                    _ = HandlePinContextAsync(doc.RootElement);
-                    break;
-                case "imageContext":
-                    _ = HandleImageContextAsync(doc.RootElement);
-                    break;
+                // pinContext removed — pin properties are edited inline in the bottom bar.
+                // imageContext removed — image properties + layer move are inline.
                 case "mapJson":
                     var js = doc.RootElement.TryGetProperty("json", out var jp) ? jp.GetString() : null;
                     _pendingJsonResponse?.TrySetResult(js);
@@ -595,51 +756,9 @@ public partial class MapView : UserControl
         return _vm.UpdateInitialViewAsync(cx, cy, z);
     }
 
-    // Right-click → Move to layer for a pin / label / spline. Reuses the layer
-    // picker dialog; the WebView applies the move via moveMapElementToLayer.
-    private async Task HandleRequestMoveToLayerAsync(JsonElement root)
-    {
-        if (_vm == null) return;
-        var kind = root.TryGetProperty("kind", out var kp) ? kp.GetString() ?? "" : "";
-        var id = root.TryGetProperty("id", out var ip) ? ip.GetString() ?? "" : "";
-        var currentLayerId = root.TryGetProperty("currentLayerId", out var cp) ? cp.GetString() ?? "" : "";
-        if (string.IsNullOrEmpty(kind) || string.IsNullOrEmpty(id)) return;
-        var target = await _vm.PromptMoveImageToLayerAsync(currentLayerId);
-        if (string.IsNullOrEmpty(target) || target == currentLayerId) return;
-        ExecuteScript($"moveMapElementToLayer('{EscapeJs(kind)}','{EscapeJs(id)}','{EscapeJs(target)}')");
-    }
-
-    private async Task HandleImageContextAsync(JsonElement root)
-    {
-        if (_vm == null) return;
-        var imageId = root.GetProperty("imageId").GetString() ?? string.Empty;
-        var layerId = root.GetProperty("layerId").GetString() ?? string.Empty;
-        if (string.IsNullOrEmpty(imageId) || string.IsNullOrEmpty(layerId)) return;
-        var targetLayerId = await _vm.PromptMoveImageToLayerAsync(layerId);
-        if (string.IsNullOrEmpty(targetLayerId) || targetLayerId == layerId) return;
-        ExecuteScript($"moveImageToLayer('{EscapeJs(layerId)}','{EscapeJs(imageId)}','{EscapeJs(targetLayerId)}')");
-    }
-
-    private async Task HandlePinContextAsync(JsonElement root)
-    {
-        if (_vm == null) return;
-        var pinId = root.GetProperty("pinId").GetString() ?? string.Empty;
-        var label = root.TryGetProperty("label", out var lp) ? lp.GetString() ?? string.Empty : string.Empty;
-        var entityId = root.TryGetProperty("entityId", out var eid) ? eid.GetString() ?? string.Empty : string.Empty;
-        var entityType = root.TryGetProperty("entityType", out var et) ? et.GetString() ?? string.Empty : string.Empty;
-        var color = root.TryGetProperty("color", out var cp) ? cp.GetString() ?? string.Empty : string.Empty;
-
-        var result = await _vm.RequestPinEditAsync(pinId, label, entityId, entityType, color);
-        if (result == null) return; // cancelled
-        if (result.Value.Delete)
-        {
-            ExecuteScript($"deletePin('{EscapeJs(pinId)}')");
-        }
-        else
-        {
-            ExecuteScript($"updatePin('{EscapeJs(pinId)}','{EscapeJs(result.Value.Label)}','{EscapeJs(result.Value.EntityType)}','{EscapeJs(result.Value.EntityId)}','{EscapeJs(result.Value.Color)}')");
-        }
-    }
+    // HandleRequestMoveToLayerAsync / HandleImageContextAsync / HandlePinContextAsync
+    // removed — every element now exposes layer move + properties inline in the bottom
+    // bar (no LayerPickerDialog, no MapPinDialog).
 
     private void OpenEntityByIdAsync(string entityId)
     {
@@ -686,31 +805,25 @@ public partial class MapView : UserControl
         return null;
     }
 
-    private async void OnAddPinClick(object? sender, RoutedEventArgs e)
+    private void OnAddPinClick(object? sender, RoutedEventArgs e)
     {
         if (_vm == null) return;
-        var label = await _vm.PromptPinDetailsAsync();
-        if (label == null) return; // cancelled
-        var (text, entityId, entityType, color) = label.Value;
-        ExecuteScript($"addPinAtCenter('{EscapeJs(text)}', '{EscapeJs(entityType)}', '{EscapeJs(entityId)}', '{EscapeJs(color)}')");
+        // Place an empty pin at the viewport center; user fills fields in the bottom bar.
+        ExecuteScript("addPinAtCenter('', '', '', '')");
     }
 
-    private async Task HandlePlacePinAtAsync(JsonElement root)
+    private Task HandlePlacePinAtAsync(JsonElement root)
     {
-        if (_vm == null) return;
+        if (_vm == null) return Task.CompletedTask;
         var x = root.TryGetProperty("x", out var xp) ? xp.GetDouble() : 0;
         var y = root.TryGetProperty("y", out var yp) ? yp.GetDouble() : 0;
-        var details = await _vm.PromptPinDetailsAsync();
-        if (details == null)
-        {
-            _vm.IsPinPlaceMode = false;
-            return;
-        }
-        var (text, entityId, entityType, color) = details.Value;
         var xs = x.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var ys = y.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        ExecuteScript($"addPinAtPoint({xs}, {ys}, '{EscapeJs(text)}', '{EscapeJs(entityType)}', '{EscapeJs(entityId)}', '{EscapeJs(color)}')");
+        // Drop an empty pin and immediately auto-select it so the bottom bar
+        // shows its inline editor.
+        ExecuteScript($"addPinAtPoint({xs}, {ys}, '', '', '', '')");
         _vm.IsPinPlaceMode = false;
+        return Task.CompletedTask;
     }
 
     private void OnDeleteSelectedClick(object? sender, RoutedEventArgs e)
