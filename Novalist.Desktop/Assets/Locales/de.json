@@ -569,6 +569,7 @@
     "relationships": "BEZIEHUNGEN",
     "appearance": "AUSSEHEN",
     "activeOverride": "AKTIVE ÜBERSCHREIBUNG",
+    "mapPins": "AUF KARTEN",
     "sections": "ABSCHNITTE",
     "aiFocus": "KI-FOKUS",
     "aiStub": "Keine KI-Ergebnisse im Cache. Führe zuerst eine Kapitelanalyse durch.",

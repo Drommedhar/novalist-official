@@ -23,7 +23,9 @@ public sealed class FocusPeekExtension : IEditorExtension
     private readonly FocusPeekViewModel _viewModel;
     private readonly IProjectService _projectService;
     private readonly IEntityService _entityService;
+    private readonly IMapService _mapService;
     private readonly Action<EntityType, object> _openEntity;
+    private readonly Func<string, string, Task> _navigateToPin;
 
     private EditorDocumentContext? _context;
     private CancellationTokenSource? _peekCts;
@@ -31,6 +33,9 @@ public sealed class FocusPeekExtension : IEditorExtension
     private List<LocationData> _locations = [];
     private string? _lastAlias;
     private FocusPeekEntityReference? _currentReference;
+    /// <summary>Maps entityId → all map pins referencing that entity. Rebuilt
+    /// alongside the entity-alias index whenever the project changes.</summary>
+    private Dictionary<string, List<MapPinIndexEntry>> _pinIndex = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Fired after <see cref="RefreshEntityIndexAsync"/> rebuilds the
     /// entity-alias index so the host can re-push to the editor WebView.</summary>
@@ -43,18 +48,24 @@ public sealed class FocusPeekExtension : IEditorExtension
         FocusPeekViewModel viewModel,
         IProjectService projectService,
         IEntityService entityService,
-        Action<EntityType, object> openEntity)
+        IMapService mapService,
+        Action<EntityType, object> openEntity,
+        Func<string, string, Task> navigateToPin)
     {
         _viewModel = viewModel;
         _projectService = projectService;
         _entityService = entityService;
+        _mapService = mapService;
         _openEntity = openEntity;
+        _navigateToPin = navigateToPin;
 
         _viewModel.CloseRequested = HandleCloseRequested;
         _viewModel.TogglePinRequested = HandleTogglePinRequested;
         _viewModel.OpenRequested = HandleOpenRequested;
         _viewModel.PointerExitedRequested = HandleCardPointerExited;
     }
+
+    private sealed record MapPinIndexEntry(string MapId, string MapName, string PinId, string PinLabel);
 
     public string Name => "Focus Peek";
     public int Priority => 50;
@@ -364,7 +375,47 @@ public sealed class FocusPeekExtension : IEditorExtension
             .Where(pair => pair.Value.Count == 1 && !string.IsNullOrWhiteSpace(pair.Key))
             .ToDictionary(pair => pair.Key, pair => pair.Value[0], StringComparer.OrdinalIgnoreCase);
 
+        await RefreshMapPinIndexAsync();
+
         EntityIndexChanged?.Invoke();
+    }
+
+    /// <summary>Scans every map in the active book and indexes pins by EntityId
+    /// so a peek card can show "linked on N maps" and jump to the pin.</summary>
+    private async Task RefreshMapPinIndexAsync()
+    {
+        var fresh = new Dictionary<string, List<MapPinIndexEntry>>(StringComparer.OrdinalIgnoreCase);
+        var book = _projectService.ActiveBook;
+        if (book == null) { _pinIndex = fresh; return; }
+        foreach (var mapRef in book.Maps)
+        {
+            MapData? map;
+            try { map = await _mapService.LoadMapAsync(mapRef.Id); }
+            catch { continue; }
+            if (map == null) continue;
+            foreach (var pin in map.Pins)
+            {
+                if (string.IsNullOrEmpty(pin.EntityId)) continue;
+                if (!fresh.TryGetValue(pin.EntityId, out var list))
+                {
+                    list = new List<MapPinIndexEntry>();
+                    fresh[pin.EntityId] = list;
+                }
+                list.Add(new MapPinIndexEntry(mapRef.Id, mapRef.Name ?? map.Name, pin.Id, pin.Label ?? string.Empty));
+            }
+        }
+        _pinIndex = fresh;
+    }
+
+    /// <summary>Builds the per-entity map-pin list for the peek card.</summary>
+    private IReadOnlyList<FocusPeekMapPinItem> GetMapPinsForEntity(string entityId)
+    {
+        if (string.IsNullOrEmpty(entityId) || !_pinIndex.TryGetValue(entityId, out var entries))
+            return [];
+        return entries
+            .Select(e => new FocusPeekMapPinItem(e.MapId, e.MapName, e.PinId, e.PinLabel,
+                (mapId, pinId) => _navigateToPin(mapId, pinId)))
+            .ToList();
     }
 
     private Point CalculatePosition(double x, double y)
@@ -403,6 +454,11 @@ public sealed class FocusPeekExtension : IEditorExtension
         var aiFindings = GetCachedAiFindings(entityName);
         if (aiFindings.Count > 0)
             displayData.AiFindings = aiFindings;
+
+        var entityId = GetEntityId(entityReference.Entity);
+        var pins = GetMapPinsForEntity(entityId);
+        if (pins.Count > 0)
+            displayData.MapPins = pins;
 
         return displayData;
     }

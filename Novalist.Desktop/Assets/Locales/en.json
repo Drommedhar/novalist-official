@@ -661,6 +661,7 @@
     "relationships": "RELATIONSHIPS",
     "appearance": "APPEARANCE",
     "activeOverride": "ACTIVE OVERRIDE",
+    "mapPins": "ON MAPS",
     "sections": "SECTIONS",
     "aiFocus": "AI FOCUS",
     "aiStub": "No AI findings cached. Run chapter analysis first.",

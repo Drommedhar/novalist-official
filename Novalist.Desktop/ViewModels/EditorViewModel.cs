@@ -112,6 +112,7 @@ public partial class EditorViewModel : ObservableObject
     }
 
     public event Action<EntityType, object>? FocusPeekEntityOpenRequested;
+    public event Func<string, string, Task>? FocusPeekPinNavigateRequested;
     public event Action<ChapterData, SceneData>? SceneSaved;
 
     // ── Formatting state (updated by EditorView) ────────────────────
@@ -291,7 +292,8 @@ public partial class EditorViewModel : ObservableObject
         GrammarCheck.CustomApiUrl = settingsService.Settings.GrammarCheckApiUrl;
         ExtensionManager.Register(GrammarCheck);
 
-        _focusPeekExtension = new FocusPeekExtension(FocusPeek, _projectService, _entityService, HandleFocusPeekOpenRequested);
+        _focusPeekExtension = new FocusPeekExtension(FocusPeek, _projectService, _entityService, App.MapService,
+            HandleFocusPeekOpenRequested, HandleFocusPeekPinNavigate);
         ExtensionManager.Register(_focusPeekExtension);
 
         // Persist comment edits made in the margin gutter back to the scene file.
@@ -733,6 +735,12 @@ public partial class EditorViewModel : ObservableObject
     private void HandleFocusPeekOpenRequested(EntityType type, object entity)
     {
         FocusPeekEntityOpenRequested?.Invoke(type, entity);
+    }
+
+    private Task HandleFocusPeekPinNavigate(string mapId, string pinId)
+    {
+        var handler = FocusPeekPinNavigateRequested;
+        return handler == null ? Task.CompletedTask : handler.Invoke(mapId, pinId);
     }
 
     private static string StripHtmlForStats(string content)

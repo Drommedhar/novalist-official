@@ -205,6 +205,29 @@
                                            TextWrapping="Wrap"
                                            Classes="focusPeekDescription" />
                             </Border>
+
+                            <Border Classes="focusPeekSectionLine"
+                                    IsVisible="{Binding HasMapPins}">
+                                <StackPanel Spacing="{StaticResource SpacingSmall}">
+                                    <TextBlock Text="{loc:Loc focusPeek.mapPins}"
+                                               Classes="focusPeekSectionCaption" />
+                                    <ItemsControl ItemsSource="{Binding MapPins}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate x:DataType="vm:FocusPeekMapPinItem">
+                                                <Button Command="{Binding NavigateCommand}"
+                                                        Content="{Binding DisplayText}"
+                                                        Classes="focusPeekLinkButton"
+                                                        Margin="0,0,6,4" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
                         </StackPanel>
                     </Grid>
 

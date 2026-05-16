@@ -349,6 +349,8 @@ public partial class MapViewModel : ObservableObject
     public Action<string>? PushMapJsonRequested { get; set; }
     public Func<Task<string?>>? RequestMapJsonFromViewAsync { get; set; }
     public Action<string>? PushModeRequested { get; set; }
+    /// <summary>Host-supplied: tell the WebView to pan + zoom to a pin and flash it.</summary>
+    public Action<string>? PushFocusOnPin { get; set; }
     public Action<string, double, double>? AddImageRequested { get; set; }
     public Func<string, string, string, Task<string?>>? ShowInputDialog { get; set; }
     public Func<Task<(string RelativePath, double Width, double Height)?>>? PickImageRequested { get; set; }

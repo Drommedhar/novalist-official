@@ -160,12 +160,14 @@ public partial class MapView : UserControl
         {
             _vm.PushMapJsonRequested = null;
             _vm.PushModeRequested = null;
+            _vm.PushFocusOnPin = null;
             _vm.AddImageRequested = null;
         }
         _vm = DataContext as MapViewModel;
         if (_vm == null) return;
         _vm.PushMapJsonRequested = PushMapJson;
         _vm.PushModeRequested = PushMode;
+        _vm.PushFocusOnPin = pinId => ExecuteScript($"focusOnPin('{EscapeJs(pinId)}')");
         _vm.PushActiveLayerRequested = layerId => ExecuteScript($"setActiveLayer('{EscapeJs(layerId)}')");
         _vm.PushToolModeRequested = mode =>
         {

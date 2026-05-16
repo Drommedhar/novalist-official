@@ -1201,6 +1201,7 @@ public partial class MainWindowViewModel : ObservableObject
         {
             Editor.PropertyChanged -= OnEditorPropertyChanged;
             Editor.FocusPeekEntityOpenRequested -= OnFocusPeekEntityOpenRequested;
+            Editor.FocusPeekPinNavigateRequested -= OnFocusPeekPinNavigateRequestedAsync;
         }
 
         if (EntityEditor != null)
@@ -1212,6 +1213,7 @@ public partial class MainWindowViewModel : ObservableObject
         Editor = new EditorViewModel(_projectService, _settingsService, _entityService);
         Editor.PropertyChanged += OnEditorPropertyChanged;
         Editor.FocusPeekEntityOpenRequested += OnFocusPeekEntityOpenRequested;
+        Editor.FocusPeekPinNavigateRequested += OnFocusPeekPinNavigateRequestedAsync;
         Editor.SceneSaved += OnSceneSavedForActivity;
         Editor.RestoreArchivedSceneRequested += OnRestoreArchivedSceneFromEditor;
         ActiveEditor = Editor;
@@ -1506,6 +1508,21 @@ public partial class MainWindowViewModel : ObservableObject
     private void OnFocusPeekEntityOpenRequested(EntityType type, object entity)
     {
         OnEntityOpenRequested(type, entity);
+    }
+
+    private async Task OnFocusPeekPinNavigateRequestedAsync(string mapId, string pinId)
+    {
+        if (string.IsNullOrEmpty(mapId) || string.IsNullOrEmpty(pinId) || Maps == null) return;
+        // Switch to the Maps view; open the requested map; flip to view mode;
+        // tell the WebView to centre + flash the pin.
+        ActiveContentView = "Maps";
+        IsMapsOpen = true;
+        var mapRef = Maps.Maps?.FirstOrDefault(m => string.Equals(m.Id, mapId, StringComparison.OrdinalIgnoreCase));
+        if (mapRef != null) Maps.SelectedMap = mapRef;
+        Maps.IsEditMode = false;
+        // Wait briefly for the WebView to load + render the map before pushing focus.
+        await Task.Delay(150);
+        Maps.PushFocusOnPin?.Invoke(pinId);
     }
 
     private async void OnEntitySaved(IEntityData? entity)

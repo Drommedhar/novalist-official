@@ -57,6 +57,7 @@ public partial class FocusPeekViewModel : ObservableObject
     public ObservableCollection<FocusPeekSectionItem> Sections { get; } = [];
     public ObservableCollection<FocusPeekImageItem> Images { get; } = [];
     public ObservableCollection<FocusPeekAiFindingItem> AiFindings { get; } = [];
+    public ObservableCollection<FocusPeekMapPinItem> MapPins { get; } = [];
 
     public EntityType CurrentEntityType { get; private set; }
     public object? CurrentEntity { get; private set; }
@@ -77,6 +78,7 @@ public partial class FocusPeekViewModel : ObservableObject
     public bool HasChapterInfo => !string.IsNullOrWhiteSpace(ChapterInfo);
     public bool HasSections => Sections.Count > 0;
     public bool HasAiFindings => AiFindings.Count > 0;
+    public bool HasMapPins => MapPins.Count > 0;
     public bool ShowAiStub => !HasAiFindings;
     public bool HasSelectedSectionContent => !string.IsNullOrWhiteSpace(SelectedSectionContent);
     public string SelectedImagePath => SelectedImage?.Path ?? string.Empty;
@@ -113,6 +115,7 @@ public partial class FocusPeekViewModel : ObservableObject
         ReplaceCollection(Sections, data.Sections);
         ReplaceCollection(Images, data.Images);
         ReplaceCollection(AiFindings, data.AiFindings);
+        ReplaceCollection(MapPins, data.MapPins);
 
         SelectedImage = Images.Count > 0 ? Images[0] : null;
         SelectedSection = Sections.Count > 0 ? Sections[0] : null;
@@ -135,6 +138,7 @@ public partial class FocusPeekViewModel : ObservableObject
         Sections.Clear();
         Images.Clear();
         AiFindings.Clear();
+        MapPins.Clear();
         SelectedImage = null;
         SelectedSection = null;
         Description = string.Empty;
@@ -193,6 +197,7 @@ public partial class FocusPeekViewModel : ObservableObject
         OnPropertyChanged(nameof(HasChapterInfo));
         OnPropertyChanged(nameof(HasSections));
         OnPropertyChanged(nameof(HasAiFindings));
+        OnPropertyChanged(nameof(HasMapPins));
         OnPropertyChanged(nameof(ShowAiStub));
         OnPropertyChanged(nameof(HasSelectedSectionContent));
         OnPropertyChanged(nameof(SelectedImagePath));
@@ -223,6 +228,29 @@ public sealed class FocusPeekDisplayData
     public IReadOnlyList<FocusPeekSectionItem> Sections { get; init; } = [];
     public IReadOnlyList<FocusPeekImageItem> Images { get; init; } = [];
     public IReadOnlyList<FocusPeekAiFindingItem> AiFindings { get; set; } = [];
+    public IReadOnlyList<FocusPeekMapPinItem> MapPins { get; set; } = [];
+}
+
+public sealed class FocusPeekMapPinItem
+{
+    public FocusPeekMapPinItem(string mapId, string mapName, string pinId, string pinLabel, Func<string, string, Task> navigateAsync)
+    {
+        MapId = mapId;
+        MapName = mapName;
+        PinId = pinId;
+        PinLabel = pinLabel;
+        NavigateCommand = new AsyncRelayCommand(() => navigateAsync(MapId, PinId));
+    }
+
+    public string MapId { get; }
+    public string MapName { get; }
+    public string PinId { get; }
+    public string PinLabel { get; }
+    /// <summary>Shown in the peek button — "Pin label · Map name" when both set, else whichever exists.</summary>
+    public string DisplayText =>
+        string.IsNullOrWhiteSpace(PinLabel) ? MapName
+        : (string.IsNullOrWhiteSpace(MapName) ? PinLabel : $"{PinLabel} · {MapName}");
+    public IAsyncRelayCommand NavigateCommand { get; }
 }
 
 public sealed class FocusPeekPillItem

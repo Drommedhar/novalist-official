@@ -113,16 +113,18 @@ public partial class ProjectService : IProjectService
             throw new InvalidOperationException("Project has no books.");
 
         // Multi-draft migration: pre-multi-draft books need their chapter tree
-        // moved under Drafts/default/.
+        // moved under Drafts/default/. Books that already have a Drafts entry
+        // but never had their files moved (interrupted migration, half-finished
+        // upgrade) get the same fix-up applied.
         foreach (var book in metadata.Books)
         {
+            var prevActive = ActiveBook;
+            ActiveBook = book;
             if (book.Drafts.Count == 0)
-            {
-                var prevActive = ActiveBook;
-                ActiveBook = book;
                 await MigrateToMultiDraftAsync(book);
-                ActiveBook = prevActive;
-            }
+            else
+                await FixupLegacyDraftLayoutAsync(book);
+            ActiveBook = prevActive;
         }
 
         // Load the active draft's chapters/acts from draft.json (if present).
@@ -1164,23 +1166,10 @@ public partial class ProjectService : IProjectService
         var draftRoot = _fileService.CombinePath(bookRoot, "Drafts", defaultDraft.FolderName);
         await _fileService.CreateDirectoryAsync(draftRoot);
 
-        // Move Chapters folder.
-        var oldChapters = _fileService.CombinePath(bookRoot, book.ChapterFolder);
-        var newChapters = _fileService.CombinePath(draftRoot, book.ChapterFolder);
-        if (await _fileService.DirectoryExistsAsync(oldChapters) && !await _fileService.DirectoryExistsAsync(newChapters))
-            Directory.Move(oldChapters, newChapters);
-
-        // Move Snapshots folder.
-        var oldSnaps = _fileService.CombinePath(bookRoot, book.SnapshotFolder);
-        var newSnaps = _fileService.CombinePath(draftRoot, book.SnapshotFolder);
-        if (await _fileService.DirectoryExistsAsync(oldSnaps) && !await _fileService.DirectoryExistsAsync(newSnaps))
-            Directory.Move(oldSnaps, newSnaps);
-
-        // Move scenes.json from .book/ to draft root.
-        var oldScenes = _fileService.CombinePath(bookRoot, ".book", "scenes.json");
-        var newScenes = _fileService.CombinePath(draftRoot, "scenes.json");
-        if (await _fileService.ExistsAsync(oldScenes) && !await _fileService.ExistsAsync(newScenes))
-            await _fileService.MoveFileAsync(oldScenes, newScenes);
+        // Move chapter / snapshot folders + scenes.json. Delegated to the
+        // fixup so partially-migrated layouts (e.g. an earlier interrupted run
+        // left an empty Drafts/default/Chapters folder) still merge correctly.
+        await FixupLegacyDraftLayoutAsync(book);
 
         // Flush chapters + acts into draft.json, then clear them on BookData
         // so project.json doesn't duplicate the data.
@@ -1196,6 +1185,68 @@ public partial class ProjectService : IProjectService
         // still serialize them empty after migration (legacy fields stay for
         // older readers). Subsequent saves go to draft.json.
         await SaveProjectAsync();
+    }
+
+    /// <summary>
+    /// Safety-net for half-migrated projects: a book already has a draft entry
+    /// (so MigrateToMultiDraftAsync skips it) but the chapter / snapshot folders
+    /// still live at the legacy book-root location and the draft folder is
+    /// missing them. Moves the legacy folders into the active draft so scene
+    /// loads + manuscript reads find the files.
+    /// </summary>
+    private async Task FixupLegacyDraftLayoutAsync(BookData book)
+    {
+        if (book.Drafts.Count == 0 || ProjectRoot == null) return;
+        var bookRoot = _fileService.CombinePath(ProjectRoot, book.FolderName);
+        // Legacy files belong to the migration-target draft, not the currently-
+        // active one. Prefer the "draft-default" record left by MigrateToMulti-
+        // DraftAsync; otherwise the first draft (insertion order).
+        var draft = book.Drafts.FirstOrDefault(d => d.Id == "draft-default") ?? book.Drafts[0];
+        var draftRoot = _fileService.CombinePath(bookRoot, "Drafts", draft.FolderName);
+        await _fileService.CreateDirectoryAsync(draftRoot);
+
+        // Chapters: move every legacy chapter folder into the draft if the
+        // matching draft folder doesn't already have it.
+        var oldChapters = _fileService.CombinePath(bookRoot, book.ChapterFolder);
+        var newChapters = _fileService.CombinePath(draftRoot, book.ChapterFolder);
+        if (await _fileService.DirectoryExistsAsync(oldChapters))
+        {
+            await _fileService.CreateDirectoryAsync(newChapters);
+            foreach (var sub in Directory.GetDirectories(oldChapters))
+            {
+                var name = Path.GetFileName(sub);
+                var target = _fileService.CombinePath(newChapters, name);
+                if (Directory.Exists(target))
+                {
+                    // Target chapter folder exists — only merge in if it has no
+                    // scene files (i.e. an empty stub from a half-finished prior
+                    // migration). If it already has scenes, leave both intact.
+                    if (Directory.EnumerateFileSystemEntries(target).Any()) continue;
+                    foreach (var file in Directory.EnumerateFiles(sub))
+                        File.Move(file, _fileService.CombinePath(target, Path.GetFileName(file)));
+                    try { Directory.Delete(sub); } catch { /* leave empty */ }
+                }
+                else
+                {
+                    Directory.Move(sub, target);
+                }
+            }
+            // Drop the legacy chapters folder if it's now empty.
+            try { if (!Directory.EnumerateFileSystemEntries(oldChapters).Any()) Directory.Delete(oldChapters); }
+            catch { /* fine — leave the empty folder if something is holding it */ }
+        }
+
+        // Snapshots: same pattern.
+        var oldSnaps = _fileService.CombinePath(bookRoot, book.SnapshotFolder);
+        var newSnaps = _fileService.CombinePath(draftRoot, book.SnapshotFolder);
+        if (await _fileService.DirectoryExistsAsync(oldSnaps) && !await _fileService.DirectoryExistsAsync(newSnaps))
+            Directory.Move(oldSnaps, newSnaps);
+
+        // scenes.json: legacy under .book/, draft expects it at draft root.
+        var oldScenes = _fileService.CombinePath(bookRoot, ".book", "scenes.json");
+        var newScenes = _fileService.CombinePath(draftRoot, "scenes.json");
+        if (await _fileService.ExistsAsync(oldScenes) && !await _fileService.ExistsAsync(newScenes))
+            await _fileService.MoveFileAsync(oldScenes, newScenes);
     }
 
     private async Task LoadActiveDraftDataAsync()

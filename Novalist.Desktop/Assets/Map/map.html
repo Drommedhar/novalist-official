@@ -318,6 +318,12 @@ body.mode-view .nv-image { pointer-events: none; }
     outline: 2px solid var(--accent);
     outline-offset: 2px;
 }
+@keyframes nv-pin-flash {
+    0%   { filter: drop-shadow(0 0 0 var(--accent)); }
+    25%  { filter: drop-shadow(0 0 14px var(--accent)) brightness(1.6); }
+    100% { filter: drop-shadow(0 0 0 var(--accent)); }
+}
+.nv-pin-host.nv-pin-flash .nv-pin-marker { animation: nv-pin-flash 1.4s ease-out 2; }
 .nv-pin-label {
     position: absolute;
     left: 50%; bottom: 100%;
@@ -5432,6 +5438,27 @@ window.resetView = () => {
     applyTransform();
     mapData.initialView = { centerX: pan.x, centerY: pan.y, zoom };
     sendMessage({ type: 'viewChanged', centerX: pan.x, centerY: pan.y, zoom });
+};
+
+// Pan / zoom so a pin lands at viewport centre, then flash it. Called by the
+// host when navigating from FocusPeek → "linked map pin".
+window.focusOnPin = (pinId) => {
+    const pin = findPinById(pinId);
+    if (!pin) return;
+    const rect = stage.getBoundingClientRect();
+    const targetZoom = Math.max(1, Math.min(4, zoom < 1.5 ? 1.8 : zoom));
+    zoom = targetZoom;
+    pan.x = rect.width  / 2 - pin.x * zoom;
+    pan.y = rect.height / 2 - pin.y * zoom;
+    lastZoomApplied = -1;
+    applyTransform();
+    sendMessage({ type: 'viewChanged', centerX: pan.x, centerY: pan.y, zoom });
+    const host = pinOverlay.querySelector(`.nv-pin-host[data-pin-id="${pinId}"]`);
+    if (host) {
+        host.classList.remove('nv-pin-flash');
+        void host.offsetWidth; // force reflow so animation can restart
+        host.classList.add('nv-pin-flash');
+    }
 };
 
 function firstLeafNode() {
