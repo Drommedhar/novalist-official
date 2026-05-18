@@ -10,7 +10,11 @@
       "cwd": "${workspaceFolder}/Novalist.Desktop",
       "stopAtEntry": false,
       "console": "internalConsole",
-      "justMyCode": true
+      "justMyCode": true,
+      "env": {
+        "GDK_BACKEND": "x11",
+        "WEBKIT_DISABLE_DMABUF_RENDERER": "1"
+      }
     }
   ]
 }

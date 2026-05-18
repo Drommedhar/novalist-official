@@ -1,0 +1,150 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Novalist.Desktop.WebKitInstallWindow"
+        Title="Novalist — WebKitGTK required"
+        Width="640" Height="520"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        WindowDecorations="None"
+        Background="Transparent"
+        TransparencyLevelHint="Transparent">
+
+    <Panel>
+        <Border Background="#E6181818"
+                CornerRadius="16"
+                Margin="16"
+                Padding="28,24,28,20"
+                BoxShadow="0 8 32 0 #60000000">
+            <DockPanel>
+                <!-- Title -->
+                <TextBlock DockPanel.Dock="Top"
+                           Text="WebKitGTK is required"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Foreground="#FFFFFF"
+                           Margin="0,0,0,12" />
+
+                <!-- Intro view -->
+                <StackPanel x:Name="IntroView"
+                            DockPanel.Dock="Top"
+                            Spacing="14">
+                    <TextBlock Text="Novalist uses WebKitGTK to render the editor, manuscript view, map, and extension readmes. Your system doesn't have it installed yet."
+                               FontSize="13"
+                               Foreground="#CCCCCC"
+                               TextWrapping="Wrap" />
+
+                    <Border Background="#10FFFFFF"
+                            CornerRadius="8"
+                            Padding="14,10">
+                        <StackPanel Spacing="6">
+                            <TextBlock x:Name="DistroLabel"
+                                       Text="Detected: Linux"
+                                       FontSize="12"
+                                       Foreground="#999999" />
+                            <TextBlock x:Name="PackageLabel"
+                                       Text="Package: libwebkit2gtk-4.1.so.0"
+                                       FontSize="12"
+                                       Foreground="#999999" />
+                            <TextBlock Text="Command:"
+                                       FontSize="12"
+                                       Foreground="#999999"
+                                       Margin="0,4,0,0" />
+                            <Border Background="#202020"
+                                    CornerRadius="4"
+                                    Padding="10,8">
+                                <SelectableTextBlock x:Name="CommandText"
+                                                     FontFamily="Consolas, 'JetBrains Mono', monospace"
+                                                     FontSize="12"
+                                                     Foreground="#E0E0E0"
+                                                     TextWrapping="Wrap" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock x:Name="NotSupportedHint"
+                               IsVisible="False"
+                               Text="We couldn't recognise your distribution. Install the WebKitGTK 4.1 package using your package manager, then relaunch Novalist."
+                               FontSize="12"
+                               Foreground="#FF9966"
+                               TextWrapping="Wrap" />
+                </StackPanel>
+
+                <!-- Progress view -->
+                <DockPanel x:Name="ProgressView"
+                           IsVisible="False">
+                    <TextBlock DockPanel.Dock="Top"
+                               x:Name="ProgressStatus"
+                               Text="Installing…"
+                               FontSize="13"
+                               Foreground="#CCCCCC"
+                               Margin="0,0,0,8" />
+                    <ProgressBar DockPanel.Dock="Top"
+                                 x:Name="ProgressBar"
+                                 IsIndeterminate="True"
+                                 Height="2"
+                                 Foreground="#007ACC"
+                                 Background="#30FFFFFF"
+                                 Margin="0,0,0,10" />
+                    <Border Background="#0F0F0F"
+                            CornerRadius="4"
+                            Padding="10,8">
+                        <ScrollViewer x:Name="LogScroll"
+                                      HorizontalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Auto">
+                            <SelectableTextBlock x:Name="LogText"
+                                                 FontFamily="Consolas, 'JetBrains Mono', monospace"
+                                                 FontSize="11"
+                                                 Foreground="#A0A0A0"
+                                                 TextWrapping="NoWrap" />
+                        </ScrollViewer>
+                    </Border>
+                </DockPanel>
+
+                <!-- Buttons (bottom) -->
+                <StackPanel DockPanel.Dock="Bottom"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="8"
+                            Margin="0,16,0,0">
+                    <Button x:Name="CopyButton"
+                            Content="Copy command"
+                            Click="OnCopyCommand"
+                            Padding="14,7"
+                            FontSize="12"
+                            Background="#25FFFFFF"
+                            Foreground="#BBBBBB"
+                            CornerRadius="6" />
+                    <Button x:Name="QuitButton"
+                            Content="Quit"
+                            Click="OnQuit"
+                            Padding="14,7"
+                            FontSize="12"
+                            Background="#25FFFFFF"
+                            Foreground="#BBBBBB"
+                            CornerRadius="6" />
+                    <Button x:Name="InstallButton"
+                            Content="Install (pkexec)"
+                            Click="OnInstall"
+                            Padding="16,7"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Background="#007ACC"
+                            Foreground="White"
+                            CornerRadius="6"
+                            IsDefault="True" />
+                    <Button x:Name="RestartButton"
+                            IsVisible="False"
+                            Content="Restart Novalist"
+                            Click="OnRestart"
+                            Padding="16,7"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Background="#007ACC"
+                            Foreground="White"
+                            CornerRadius="6"
+                            IsDefault="True" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Panel>
+</Window>

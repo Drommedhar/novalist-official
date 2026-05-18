@@ -21,6 +21,13 @@ class Program
             && !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DISPLAY")))
         {
             Environment.SetEnvironmentVariable("GDK_BACKEND", "x11");
+
+            // WebKitGTK 2.42+ defaults to a DMA-BUF compositor that needs a
+            // working GBM device. Under XWayland (and in many VMs/containers)
+            // GBM buffer allocation fails ("Failed to create GBM buffer …
+            // Invalid argument") and the WebView renders as a blank surface
+            // with no error. Force the software fallback renderer.
+            Environment.SetEnvironmentVariable("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         }
 
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>

@@ -99,28 +99,65 @@ public partial class App : Application
                 e.Handled = true;
             };
 
-            // Show splash screen immediately while we initialize
-            var splash = new SplashWindow();
-            desktop.MainWindow = splash;
-            splash.Show();
-
-            var mainVm = new MainWindowViewModel(ProjectService, SettingsService, EntityService, GitService);
-            var mainWindow = new MainWindow
-            {
-                DataContext = mainVm,
-                IsVisible = false
-            };
-
-            // Run async startup; surface any failure instead of letting it terminate the process.
-            _ = RunStartupAsync(desktop, splash, mainWindow, mainVm);
-
             desktop.ShutdownRequested += (_, _) =>
             {
                 ExtensionManager?.ShutdownAll();
             };
+
+            // On Linux, webkit2gtk-4.1 has to be installed on the host or the
+            // first WebView instantiation triggers a fatal GLib abort that we
+            // can't catch. Run the install wizard before constructing the
+            // main window (which creates WebView-hosting views in its ctor).
+            if (OperatingSystem.IsLinux() && !LinuxDependencyService.IsWebKitInstalled())
+            {
+                _ = RunWebKitGateAsync(desktop);
+                base.OnFrameworkInitializationCompleted();
+                return;
+            }
+
+            StartNormal(desktop);
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static void StartNormal(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        // Show splash screen immediately while we initialize
+        var splash = new SplashWindow();
+        desktop.MainWindow = splash;
+        splash.Show();
+
+        var mainVm = new MainWindowViewModel(ProjectService, SettingsService, EntityService, GitService);
+        var mainWindow = new MainWindow
+        {
+            DataContext = mainVm,
+            IsVisible = false
+        };
+
+        // Run async startup; surface any failure instead of letting it terminate the process.
+        _ = RunStartupAsync(desktop, splash, mainWindow, mainVm);
+    }
+
+    private static async Task RunWebKitGateAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    {
+        var info = LinuxDependencyService.Detect();
+        var window = new WebKitInstallWindow(info);
+        desktop.MainWindow = window;
+        window.Show();
+
+        var outcome = await window.Outcome;
+
+        if (outcome == WebKitInstallOutcome.Installed)
+        {
+            // The user installed and clicked Restart. Re-exec via the AppImage
+            // (or process path) so the newly-installed libs are picked up.
+            SplashWindow.RestartApp();
+            return;
+        }
+
+        // User chose Quit — exit cleanly.
+        desktop.Shutdown();
     }
 
     private static async Task RunStartupAsync(

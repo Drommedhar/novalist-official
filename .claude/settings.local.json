@@ -53,7 +53,10 @@
       "Bash(curl -s \"https://packages.ubuntu.com/noble/libfuse2t64\" -o /tmp/p1.html)",
       "Read(//tmp/**)",
       "Bash(curl -s \"https://packages.ubuntu.com/noble/libfuse2\" -o /tmp/p2.html)",
-      "Bash(dotnet publish *)"
+      "Bash(dotnet publish *)",
+      "Bash(sed -n '785,790p' Novalist.Desktop/ViewModels/MainWindowViewModel.cs)",
+      "Bash(sed -n '850,860p' Novalist.Desktop/ViewModels/MainWindowViewModel.cs)",
+      "Bash(sed -n '173,180p' Novalist.Desktop/SplashWindow.axaml.cs)"
     ],
     "additionalDirectories": [
       "C:\\Users\\domin\\.claude\\plans"
