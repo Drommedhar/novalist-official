@@ -108,9 +108,13 @@ public partial class App : Application
             // first WebView instantiation triggers a fatal GLib abort that we
             // can't catch. Run the install wizard before constructing the
             // main window (which creates WebView-hosting views in its ctor).
-            if (OperatingSystem.IsLinux() && !LinuxDependencyService.IsWebKitInstalled())
+            // Set NOVALIST_FORCE_WEBKIT_WIZARD=1 to preview the wizard even
+            // when webkit2gtk is already installed.
+            var forceWizard = Environment.GetEnvironmentVariable("NOVALIST_FORCE_WEBKIT_WIZARD") == "1";
+            if (OperatingSystem.IsLinux()
+                && (forceWizard || !LinuxDependencyService.IsWebKitInstalled()))
             {
-                _ = RunWebKitGateAsync(desktop);
+                _ = RunWebKitGateAsync(desktop, forceWizard);
                 base.OnFrameworkInitializationCompleted();
                 return;
             }
@@ -139,9 +143,15 @@ public partial class App : Application
         _ = RunStartupAsync(desktop, splash, mainWindow, mainVm);
     }
 
-    private static async Task RunWebKitGateAsync(IClassicDesktopStyleApplicationLifetime desktop)
+    private static async Task RunWebKitGateAsync(IClassicDesktopStyleApplicationLifetime desktop, bool forced = false)
     {
         var info = LinuxDependencyService.Detect();
+        if (forced)
+        {
+            // Override the detected state so the wizard's "missing" UI shows
+            // even though the package is actually installed.
+            info = info with { WebKitInstalled = false };
+        }
         var window = new WebKitInstallWindow(info);
         desktop.MainWindow = window;
         window.Show();

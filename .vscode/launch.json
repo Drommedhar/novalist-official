@@ -13,7 +13,8 @@
       "justMyCode": true,
       "env": {
         "GDK_BACKEND": "x11",
-        "WEBKIT_DISABLE_DMABUF_RENDERER": "1"
+        "WEBKIT_DISABLE_DMABUF_RENDERER": "1",
+        "NOVALIST_FORCE_WEBKIT_WIZARD": "0"
       }
     }
   ]

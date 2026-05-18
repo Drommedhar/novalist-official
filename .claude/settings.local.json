@@ -56,10 +56,39 @@
       "Bash(dotnet publish *)",
       "Bash(sed -n '785,790p' Novalist.Desktop/ViewModels/MainWindowViewModel.cs)",
       "Bash(sed -n '850,860p' Novalist.Desktop/ViewModels/MainWindowViewModel.cs)",
-      "Bash(sed -n '173,180p' Novalist.Desktop/SplashWindow.axaml.cs)"
+      "Bash(sed -n '173,180p' Novalist.Desktop/SplashWindow.axaml.cs)",
+      "Bash(echo \"=== Latest commits with the fixes ===\"; git log --oneline -10; echo \"\"; echo \"=== Find AppImages on disk ===\"; find ~ -maxdepth 4 -iname \"*novalist*.AppImage\" -o -iname \"Novalist*.AppImage\" 2>/dev/null | head -10)",
+      "Read(//home/drommedhar/**)",
+      "Bash(git fetch *)",
+      "Bash(./Novalist-x86_64.AppImage --appimage-extract usr/bin/Assets/Editor)",
+      "Bash(rm -rf squashfs-root)",
+      "Bash(~/Downloads/Novalist-x86_64.AppImage --appimage-extract)",
+      "Bash(ldd /tmp/squashfs-root/usr/bin/Novalist.Desktop)",
+      "Bash(chmod +x /home/drommedhar/Git-projects/novalist-official/tools/build-appimage.sh)",
+      "Bash(/home/drommedhar/Git-projects/novalist-official/tools/build-appimage.sh)",
+      "Bash(dotnet-monitor --help)",
+      "Bash(curl -s \"https://api.nuget.org/v3-flatcontainer/avalonia.controls.webview/index.json\")",
+      "Bash(python3 -c \"import sys,json; v=json.load\\(sys.stdin\\).get\\('versions',[]\\); print\\('Available:'\\); [print\\(' ',x\\) for x in v[-15:]]\")",
+      "Bash(curl -s \"https://api.nuget.org/v3-flatcontainer/avalonia/index.json\")",
+      "Bash(python3 -c \"import sys,json; v=json.load\\(sys.stdin\\).get\\('versions',[]\\); [print\\(x\\) for x in v if not '-' in x][-10:]\")",
+      "Bash(python3 -c \"import sys,json; v=json.load\\(sys.stdin\\).get\\('versions',[]\\); [print\\(x\\) for x in v]\")",
+      "Bash(curl -s \"https://api.nuget.org/v3/registration5-gz-semver2/avalonia.controls.webview/index.json\")",
+      "Bash(python3 -c \"import sys,gzip,json; data=sys.stdin.buffer.read\\(\\); print\\(json.loads\\(data.decode\\(\\) if data[:2]!=b'\\\\\\\\x1f\\\\\\\\x8b' else gzip.decompress\\(data\\).decode\\(\\)\\)['items'][-1]['upper']\\)\")",
+      "Bash(curl -s \"https://api.github.com/repos/AvaloniaUI/Avalonia/releases/tags/12.0.2\")",
+      "Bash(python3 -c \"import sys,json; r=json.load\\(sys.stdin\\); print\\(r.get\\('body',''\\)[:3000]\\)\")",
+      "Bash(curl -s \"https://api.github.com/repos/AvaloniaUI/Avalonia/releases/tags/12.0.3\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://github.com/AvaloniaUI/Avalonia.Controls.WebView\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://github.com/AvaloniaUI/Avalonia.Controls.WebView/issues\")",
+      "Bash(unzip -l /home/drommedhar/Git-projects/novalist-official/dist/avalonia-webview-xwayland-sizing-bug.zip)",
+      "Bash(command -v bsdtar 7z python3)",
+      "Bash(7z a *)",
+      "Bash(7z l *)",
+      "Bash(chmod +x /home/drommedhar/Git-projects/novalist-official/docs/avalonia-webview-bug-report/repro/run.sh)"
     ],
     "additionalDirectories": [
-      "C:\\Users\\domin\\.claude\\plans"
+      "C:\\Users\\domin\\.claude\\plans",
+      "/home/drommedhar/Git-projects/novalist-official",
+      "/tmp/squashfs-root"
     ]
   },
   "hooks": {

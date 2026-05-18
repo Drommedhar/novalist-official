@@ -24,6 +24,54 @@
                            Foreground="#FFFFFF"
                            Margin="0,0,0,12" />
 
+                <!-- Buttons (bottom) — declared before the fill content so
+                     DockPanel reserves the bottom strip first; otherwise the
+                     content takes the whole row and the buttons get pushed
+                     off to the right. -->
+                <StackPanel DockPanel.Dock="Bottom"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Spacing="8"
+                            Margin="0,16,0,0">
+                    <Button x:Name="CopyButton"
+                            Content="Copy command"
+                            Click="OnCopyCommand"
+                            Padding="14,7"
+                            FontSize="12"
+                            Background="#25FFFFFF"
+                            Foreground="#BBBBBB"
+                            CornerRadius="6" />
+                    <Button x:Name="QuitButton"
+                            Content="Quit"
+                            Click="OnQuit"
+                            Padding="14,7"
+                            FontSize="12"
+                            Background="#25FFFFFF"
+                            Foreground="#BBBBBB"
+                            CornerRadius="6" />
+                    <Button x:Name="InstallButton"
+                            Content="Install (pkexec)"
+                            Click="OnInstall"
+                            Padding="16,7"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Background="#007ACC"
+                            Foreground="White"
+                            CornerRadius="6"
+                            IsDefault="True" />
+                    <Button x:Name="RestartButton"
+                            IsVisible="False"
+                            Content="Restart Novalist"
+                            Click="OnRestart"
+                            Padding="16,7"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Background="#007ACC"
+                            Foreground="White"
+                            CornerRadius="6"
+                            IsDefault="True" />
+                </StackPanel>
+
                 <!-- Intro view -->
                 <StackPanel x:Name="IntroView"
                             DockPanel.Dock="Top"
@@ -100,50 +148,6 @@
                     </Border>
                 </DockPanel>
 
-                <!-- Buttons (bottom) -->
-                <StackPanel DockPanel.Dock="Bottom"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Right"
-                            Spacing="8"
-                            Margin="0,16,0,0">
-                    <Button x:Name="CopyButton"
-                            Content="Copy command"
-                            Click="OnCopyCommand"
-                            Padding="14,7"
-                            FontSize="12"
-                            Background="#25FFFFFF"
-                            Foreground="#BBBBBB"
-                            CornerRadius="6" />
-                    <Button x:Name="QuitButton"
-                            Content="Quit"
-                            Click="OnQuit"
-                            Padding="14,7"
-                            FontSize="12"
-                            Background="#25FFFFFF"
-                            Foreground="#BBBBBB"
-                            CornerRadius="6" />
-                    <Button x:Name="InstallButton"
-                            Content="Install (pkexec)"
-                            Click="OnInstall"
-                            Padding="16,7"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Background="#007ACC"
-                            Foreground="White"
-                            CornerRadius="6"
-                            IsDefault="True" />
-                    <Button x:Name="RestartButton"
-                            IsVisible="False"
-                            Content="Restart Novalist"
-                            Click="OnRestart"
-                            Padding="16,7"
-                            FontSize="12"
-                            FontWeight="SemiBold"
-                            Background="#007ACC"
-                            Foreground="White"
-                            CornerRadius="6"
-                            IsDefault="True" />
-                </StackPanel>
             </DockPanel>
         </Border>
     </Panel>
