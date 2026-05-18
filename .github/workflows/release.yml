@@ -301,9 +301,12 @@ jobs:
           HERE="$(dirname "$(readlink -f "${0}")")"
           export WEBKIT_EXEC_PATH="${HERE}/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1"
           export WEBKIT_INJECTED_BUNDLE_PATH="${HERE}/usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/injected-bundle"
-          # Disable WebKit's sandbox — bubblewrap inside AppImage is unreliable
-          # across host kernels and user-namespace policies.
-          export WEBKIT_FORCE_SANDBOX=0
+          # Disable WebKit's sandbox. The sandbox uses bubblewrap, which would
+          # need to be bundled along with a sandbox-mount config that maps our
+          # AppDir paths in; without that, WEBKIT_EXEC_PATH is ignored inside
+          # the sandbox and the child processes can't be spawned. WEBKIT_FORCE_SANDBOX
+          # was the old name; WebKitGTK 2.42+ requires the longer variable.
+          export WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1
           export WEBKIT_DISABLE_COMPOSITING_MODE=1
           exec "${HERE}/AppRun.linuxdeploy" "$@"
           EOF
