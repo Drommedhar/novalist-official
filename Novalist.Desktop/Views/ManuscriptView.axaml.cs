@@ -75,6 +75,8 @@ public partial class ManuscriptView : UserControl
             _webView = new NativeWebView();
             ManuscriptHost.Children.Insert(0, _webView);
 
+            NativeWebViewSizeFix.Attach(_webView, ManuscriptHost);
+
             _webView.EnvironmentRequested += (_, e) =>
             {
                 if (e is WindowsWebView2EnvironmentRequestedEventArgs w)

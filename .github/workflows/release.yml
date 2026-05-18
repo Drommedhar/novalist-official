@@ -267,6 +267,12 @@ jobs:
           # WebKitGTK 2.42+ DMA-BUF renderer fails GBM allocation under
           # XWayland / VMs / containers and silently renders a blank surface.
           export WEBKIT_DISABLE_DMABUF_RENDERER=1
+          # WebKit runs the WebProcess inside a bubblewrap sandbox by default.
+          # The sandbox's filesystem namespace doesn't see the AppImage's FUSE
+          # mount (/tmp/.mount_*) so file:// navigation to our bundled HTML
+          # silently fails. Disabling the sandbox is safe here because the
+          # only content we load is our own bundled editor pages.
+          export WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1
           exec "${HERE}/usr/bin/Novalist.Desktop" "$@"
           EOF
           chmod +x "${appdir}/AppRun"

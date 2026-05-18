@@ -30,6 +30,14 @@ class Program
             Environment.SetEnvironmentVariable("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
         }
 
+        if (Environment.GetEnvironmentVariable("NOVALIST_VERBOSE") == "1")
+        {
+            Console.Error.WriteLine($"[env] GDK_BACKEND={Environment.GetEnvironmentVariable("GDK_BACKEND")}");
+            Console.Error.WriteLine($"[env] WEBKIT_DISABLE_DMABUF_RENDERER={Environment.GetEnvironmentVariable("WEBKIT_DISABLE_DMABUF_RENDERER")}");
+            Console.Error.WriteLine($"[env] WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS={Environment.GetEnvironmentVariable("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS")}");
+            Console.Error.WriteLine($"[env] APPIMAGE={Environment.GetEnvironmentVariable("APPIMAGE")}");
+        }
+
         AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             LogCrash("AppDomain.UnhandledException", e.ExceptionObject as Exception);
         TaskScheduler.UnobservedTaskException += (_, e) =>

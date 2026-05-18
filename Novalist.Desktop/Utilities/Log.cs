@@ -4,20 +4,27 @@ using System.Diagnostics;
 namespace Novalist.Desktop.Utilities;
 
 /// <summary>
-/// Lightweight log facade. All sites that previously called
-/// <c>Console.WriteLine</c> / <c>Debug.WriteLine</c> / <c>Console.Error.WriteLine</c>
-/// route here so the implementation can change later without churn.
+/// Lightweight log facade. Debug/Info go to the trace listener (visible in
+/// a debugger) and additionally to stderr when NOVALIST_VERBOSE=1. Without
+/// that flag, Release builds stay quiet — Debug.WriteLine is a no-op there
+/// because of [Conditional("DEBUG")], so prior to this gate, every Log.Debug
+/// call simply vanished in shipped binaries.
 /// </summary>
 public static class Log
 {
+    private static readonly bool _verbose =
+        Environment.GetEnvironmentVariable("NOVALIST_VERBOSE") == "1";
+
     public static void Debug(string message)
     {
         System.Diagnostics.Debug.WriteLine(message);
+        if (_verbose) Console.Error.WriteLine(message);
     }
 
     public static void Info(string message)
     {
         System.Diagnostics.Debug.WriteLine($"[INFO] {message}");
+        if (_verbose) Console.Error.WriteLine($"[INFO] {message}");
     }
 
     public static void Warn(string message)

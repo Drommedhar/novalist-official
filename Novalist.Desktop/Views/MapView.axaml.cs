@@ -106,6 +106,9 @@ public partial class MapView : UserControl
         {
             _webView = new NativeWebView();
             MapHost.Children.Insert(0, _webView);
+
+            NativeWebViewSizeFix.Attach(_webView, MapHost);
+
             _webView.EnvironmentRequested += OnEnvironmentRequested;
             _webView.NavigationCompleted += OnNavCompleted;
             _webView.WebMessageReceived += OnWebMessageReceived;

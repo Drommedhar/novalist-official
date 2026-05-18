@@ -73,6 +73,8 @@ public partial class ExtensionsView : UserControl
                         "Novalist", "WebView2", "default");
             };
             ReadmeWebViewHost.Children.Add(_readmeWebView);
+
+            NativeWebViewSizeFix.Attach(_readmeWebView, ReadmeWebViewHost);
         }
         catch (Exception ex)
         {

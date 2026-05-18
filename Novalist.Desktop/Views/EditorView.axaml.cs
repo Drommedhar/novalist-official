@@ -92,6 +92,8 @@ public partial class EditorView : UserControl
             EditorHost.Children.Insert(0, _webView);
             FocusPeekPopup.PlacementTarget = _webView;
 
+            NativeWebViewSizeFix.Attach(_webView, EditorHost);
+
             _webView.EnvironmentRequested += OnEnvironmentRequested;
             _webView.AdapterCreated += OnAdapterCreated;
             _webView.NavigationStarted += OnNavigationStarted;
@@ -297,10 +299,12 @@ public partial class EditorView : UserControl
 
     private void OnNavigationStarted(object? sender, WebViewNavigationStartingEventArgs e)
     {
+        Log.Debug($"[Editor] NavigationStarted");
     }
 
     private void OnNavigationCompleted(object? sender, WebViewNavigationCompletedEventArgs e)
     {
+        Log.Debug($"[Editor] NavigationCompleted success={e.IsSuccess}");
         _webViewReady = true;
         ApplyEditorSettings();
         PushContextMenuLabels();
@@ -321,6 +325,7 @@ public partial class EditorView : UserControl
 
     internal void SetContent(string content)
     {
+        Log.Debug($"[Editor] SetContent ready={_webViewReady} len={content?.Length ?? 0}");
         if (!_webViewReady)
         {
             _pendingContent = content;
@@ -331,6 +336,7 @@ public partial class EditorView : UserControl
 
     private async void SetContentInWebView(string content)
     {
+        Log.Debug($"[Editor] SetContentInWebView len={content?.Length ?? 0}");
         _loadingContentFromViewModel = true;
         // JSON-escape large HTML off UI thread
         var escaped = await Task.Run(() => JsonEncodedText.Encode(content).ToString()).ConfigureAwait(true);
@@ -712,6 +718,7 @@ public partial class EditorView : UserControl
         var pageBg = ThemeColors.Resolve("EditorPageBackground",    "#1F2127");
         var pageFg = ThemeColors.Resolve("EditorPageForeground",    "#E6EDF3");
 
+        Log.Debug($"[Editor] ApplyTheme bg={bg} fg={fg} selBg={selBg} pageBg={pageBg} pageFg={pageFg}");
         ExecuteScript($"setTheme('{bg}','{fg}','{fg}','{selBg}','{pageBg}','{pageFg}')");
     }
 
