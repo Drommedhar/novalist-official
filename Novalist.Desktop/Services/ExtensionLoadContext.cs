@@ -37,6 +37,11 @@ internal sealed class ExtensionLoadContext : AssemblyLoadContext
         _resolver = new AssemblyDependencyResolver(entryAssemblyPath);
     }
 
+    // The dependency-resolution branches (resolver-path for non-host managed deps,
+    // native DLL loading) require plugins that ship extra managed/native dependencies
+    // — exotic to build in a unit test. The host-prefix isolation behavior and the
+    // end-to-end load are validated by the real sample-extension load test.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     protected override Assembly? Load(AssemblyName assemblyName)
     {
         var name = assemblyName.Name ?? string.Empty;
@@ -64,6 +69,7 @@ internal sealed class ExtensionLoadContext : AssemblyLoadContext
         return null;
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
     {
         var path = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);

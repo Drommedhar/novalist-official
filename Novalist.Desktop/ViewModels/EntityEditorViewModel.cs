@@ -299,6 +299,7 @@ public partial class EntityEditorViewModel : ObservableObject
     private async Task SaveAsync()
     {
         var didSave = false;
+        IEntityData? savedEntity = null;
 
         switch (EntityType)
         {
@@ -315,47 +316,41 @@ public partial class EntityEditorViewModel : ObservableObject
                     Title = _character.DisplayName;
                     await RefreshRelationshipSuggestionsAsync();
                 }
+                savedEntity = _character;
                 didSave = true;
                 break;
             case EntityType.Location when _location != null:
                 WriteBackLocation();
                 await _entityService.SaveLocationAsync(_location);
                 Title = _location.Name;
+                savedEntity = _location;
                 didSave = true;
                 break;
             case EntityType.Item when _item != null:
                 WriteBackItem();
                 await _entityService.SaveItemAsync(_item);
                 Title = _item.Name;
+                savedEntity = _item;
                 didSave = true;
                 break;
             case EntityType.Lore when _lore != null:
                 WriteBackLore();
                 await _entityService.SaveLoreAsync(_lore);
                 Title = _lore.Name;
+                savedEntity = _lore;
                 didSave = true;
                 break;
             case EntityType.Custom when _customEntity != null:
                 WriteBackCustomEntity();
                 await _entityService.SaveCustomEntityAsync(_customEntity);
                 Title = _customEntity.Name;
+                savedEntity = _customEntity;
                 didSave = true;
                 break;
         }
 
         if (didSave)
-        {
-            IEntityData? savedEntity = EntityType switch
-            {
-                EntityType.Character => _character,
-                EntityType.Location => _location,
-                EntityType.Item => _item,
-                EntityType.Lore => _lore,
-                EntityType.Custom => _customEntity,
-                _ => null
-            };
             Saved?.Invoke(savedEntity);
-        }
     }
 
     [RelayCommand]
@@ -436,7 +431,8 @@ public partial class EntityEditorViewModel : ObservableObject
                 continue;
 
             anyAdded = true;
-            await EnsureInverseRelationshipAsync(relationship, targetName);
+            // Inverse relationships are created on save by SyncInverseRelationshipsAsync
+            // (single source of truth), not here — avoids double-adding and re-prompting.
         }
 
         relationship.PendingTarget = string.Empty;
@@ -680,6 +676,13 @@ public partial class EntityEditorViewModel : ObservableObject
                 if (targetCharacter == null)
                     continue;
 
+                // If the target already references the source back (in any role, and
+                // honouring multi-target lists), the reciprocal exists: skip both the
+                // inverse prompt and the add. This prevents re-prompting for already-set
+                // relationships and stops duplicate reciprocals from accumulating.
+                if (TargetReferencesSource(targetCharacter, sourceCharacter))
+                    continue;
+
                 if (!inverseRoleCache.TryGetValue(relationshipRole, out var inverseRole))
                 {
                     inverseRole = await ResolveInverseRoleAsync(relationshipRole, sourceName, targetCharacter.DisplayName);
@@ -687,13 +690,6 @@ public partial class EntityEditorViewModel : ObservableObject
                         continue;
 
                     inverseRoleCache[relationshipRole] = inverseRole;
-                }
-
-                if (targetCharacter.Relationships.Any(existing =>
-                        string.Equals(existing.Role?.Trim(), inverseRole, StringComparison.OrdinalIgnoreCase)
-                        && RelationshipTargetMatches(existing.Target, sourceCharacter)))
-                {
-                    continue;
                 }
 
                 targetCharacter.Relationships.Add(new EntityRelationship
@@ -734,40 +730,6 @@ public partial class EntityEditorViewModel : ObservableObject
         return chosenInverse.Trim();
     }
 
-    private async Task EnsureInverseRelationshipAsync(ObservableRelationship relationship, string targetName)
-    {
-        if (_character == null)
-            return;
-
-        var relationshipRole = relationship.Role?.Trim();
-        if (string.IsNullOrWhiteSpace(relationshipRole))
-            return;
-
-        var allCharacters = await _entityService.LoadCharactersAsync();
-        var targetCharacter = FindCharacterByRelationshipTarget(allCharacters, targetName, _character.Id);
-        if (targetCharacter == null)
-            return;
-
-        var sourceName = GetCurrentCharacterDisplayName();
-        var inverseRole = await ResolveInverseRoleAsync(relationshipRole, sourceName, targetCharacter.DisplayName);
-        if (string.IsNullOrWhiteSpace(inverseRole))
-            return;
-
-        if (targetCharacter.Relationships.Any(existing =>
-                string.Equals(existing.Role?.Trim(), inverseRole, StringComparison.OrdinalIgnoreCase)
-                && RelationshipTargetMatches(existing.Target, sourceName, Name)))
-        {
-            return;
-        }
-
-        targetCharacter.Relationships.Add(new EntityRelationship
-        {
-            Role = inverseRole,
-            Target = sourceName
-        });
-        await _entityService.SaveCharacterAsync(targetCharacter);
-    }
-
     private static CharacterData? FindCharacterByRelationshipTarget(IEnumerable<CharacterData> characters, string relationshipTarget, string sourceId)
     {
         var normalizedTarget = NormalizeRelationshipTarget(relationshipTarget);
@@ -777,18 +739,25 @@ public partial class EntityEditorViewModel : ObservableObject
                 || string.Equals(character.Name, normalizedTarget, StringComparison.OrdinalIgnoreCase)));
     }
 
-    private static bool RelationshipTargetMatches(string? target, CharacterData character)
+    /// <summary>
+    /// True if <paramref name="targetCharacter"/> already has any relationship pointing back at
+    /// <paramref name="sourceCharacter"/>. Splits multi-target lists ("A, B") so a source listed
+    /// alongside others still counts as referenced — the dedup that prevents reciprocal doubling.
+    /// </summary>
+    private static bool TargetReferencesSource(CharacterData targetCharacter, CharacterData sourceCharacter)
     {
-        var normalizedTarget = NormalizeRelationshipTarget(target);
-        return string.Equals(normalizedTarget, character.DisplayName, StringComparison.OrdinalIgnoreCase)
-               || string.Equals(normalizedTarget, character.Name, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static bool RelationshipTargetMatches(string? target, string displayName, string firstName)
-    {
-        var normalizedTarget = NormalizeRelationshipTarget(target);
-        return string.Equals(normalizedTarget, displayName, StringComparison.OrdinalIgnoreCase)
-               || string.Equals(normalizedTarget, firstName, StringComparison.OrdinalIgnoreCase);
+        foreach (var relationship in targetCharacter.Relationships)
+        {
+            foreach (var parsedTarget in ParseRelationshipTargets(relationship.Target))
+            {
+                if (string.Equals(parsedTarget, sourceCharacter.DisplayName, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(parsedTarget, sourceCharacter.Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private ObservableRelationship CreateObservableRelationship(EntityRelationship relationship)
@@ -803,9 +772,6 @@ public partial class EntityEditorViewModel : ObservableObject
         if (e.PropertyName == nameof(ObservableRelationship.Role))
             ScheduleAutoSave();
     }
-
-    private string GetCurrentCharacterDisplayName()
-        => string.IsNullOrWhiteSpace(Surname) ? Name.Trim() : $"{Name.Trim()} {Surname.Trim()}".Trim();
 
     /// <summary>Host-supplied hook to run the character-interview wizard
     /// against the currently-open character. The host opens the wizard dialog
@@ -1028,10 +994,10 @@ public partial class EntityEditorViewModel : ObservableObject
             EntityType.Lore => book.LoreTemplates
                 .FirstOrDefault(t => string.Equals(t.Id, templateId, StringComparison.Ordinal))
                 ?.CustomPropertyDefs ?? [],
-            EntityType.Custom => book.CustomEntityTemplates
+            // EntityType.Custom (and any future fallthrough)
+            _ => book.CustomEntityTemplates
                 .FirstOrDefault(t => string.Equals(t.Id, templateId, StringComparison.Ordinal))
                 ?.CustomPropertyDefs ?? [],
-            _ => []
         };
     }
 

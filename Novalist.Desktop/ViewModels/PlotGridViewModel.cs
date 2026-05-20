@@ -156,7 +156,13 @@ public partial class PlotGridRow : ObservableObject
     {
         if (Plotline.Name == value) return;
         Plotline.Name = value;
-        _ = _service.UpdateAsync(Plotline);
+        _ = SaveAndNotifyAsync();
+    }
+
+    private async Task SaveAndNotifyAsync()
+    {
+        await _service.UpdateAsync(Plotline);
+        _onDirty();
     }
 }
 

@@ -13,13 +13,10 @@ public partial class HotkeySettingsView : UserControl
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
-        if (DataContext is HotkeySettingsViewModel vm && vm.IsRecording)
+        if (DataContext is HotkeySettingsViewModel vm && vm.IsRecording && vm.HandleRecordingKeyDown(e))
         {
-            if (vm.HandleRecordingKeyDown(e))
-            {
-                e.Handled = true;
-                return;
-            }
+            e.Handled = true;
+            return;
         }
 
         base.OnKeyDown(e);

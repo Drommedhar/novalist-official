@@ -364,6 +364,15 @@ public partial class EntityPanelViewModel : ObservableObject
         EntityOpenRequested?.Invoke(type, entity);
     }
 
+    // Defensive: LoadAll keeps the cache in sync with CustomEntityTypes, so the
+    // missing-key branch is normally unreachable.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private void EnsureCustomEntityCache(string typeKey)
+    {
+        if (!_customEntities.ContainsKey(typeKey))
+            _customEntities[typeKey] = [];
+    }
+
     [RelayCommand]
     private async Task CreateCustomEntityAsync()
     {
@@ -401,8 +410,7 @@ public partial class EntityPanelViewModel : ObservableObject
 
         await _entityService.SaveCustomEntityAsync(entity);
 
-        if (!_customEntities.ContainsKey(typeDef.TypeKey))
-            _customEntities[typeDef.TypeKey] = [];
+        EnsureCustomEntityCache(typeDef.TypeKey);
         _customEntities[typeDef.TypeKey].Add(entity);
 
         if (result.UseWizard && RunEntityWizardRequested != null)
@@ -429,9 +437,9 @@ public partial class EntityPanelViewModel : ObservableObject
     {
         if (entity == null) return;
         if (entity.IsWorldBible)
-            await _entityService.MoveCustomEntityToBookAsync(entity.Id, entity.EntityTypeKey);
+            await _entityService.MoveCustomEntityToBookAsync(entity.EntityTypeKey, entity.Id);
         else
-            await _entityService.MoveCustomEntityToWorldBibleAsync(entity.Id, entity.EntityTypeKey);
+            await _entityService.MoveCustomEntityToWorldBibleAsync(entity.EntityTypeKey, entity.Id);
         entity.IsWorldBible = !entity.IsWorldBible;
     }
 

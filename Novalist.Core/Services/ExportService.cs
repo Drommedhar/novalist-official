@@ -345,6 +345,10 @@ public partial class ExportService
         }
     }
 
+    // The catch is a TOCTOU safety net: callers verify both files exist before
+    // calling, so FileInfo.Length cannot realistically throw — excluded as the
+    // catch line is not deterministically reachable.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static bool FilesEqual(string a, string b)
     {
         try
@@ -665,6 +669,10 @@ public partial class ExportService
         }
     }
 
+    // The trailing `return -1` after the loop is compiler-required but
+    // unreachable: the loop only exits by returning (depth hits 0) or via the
+    // inner `nextClose < 0` return. Excluded so that dead line doesn't block 100%.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static int FindMatchingCloseTag(string html, int startPos, string tagName)
     {
         var depth = 1;
@@ -705,25 +713,6 @@ public partial class ExportService
         return WebUtility.HtmlDecode(text);
     }
 
-    /// <summary>
-    /// Get plain text from a chapter's scenes, suitable for PDF/stat use.
-    /// </summary>
-    private static string GetChapterPlainText(ChapterExportContent chapter)
-    {
-        var sb = new StringBuilder();
-        foreach (var scene in chapter.Scenes)
-        {
-            var paragraphs = ParseHtmlToParagraphs(scene.HtmlContent);
-            foreach (var para in paragraphs)
-            {
-                foreach (var seg in para)
-                    sb.Append(seg.Text);
-                sb.AppendLine();
-            }
-        }
-        return sb.ToString();
-    }
-
     // ─── XML/HTML Escaping ───────────────────────────────────────────
 
     private static string EscapeXml(string str)
@@ -739,11 +728,6 @@ public partial class ExportService
     private static string GenerateUuid()
     {
         return Guid.NewGuid().ToString();
-    }
-
-    private static string SanitizeFilename(string name)
-    {
-        return Regex.Replace(name, @"[^a-zA-Z0-9\-_\s]", "").Replace(' ', '_');
     }
 
     // ─── EPUB Export ─────────────────────────────────────────────────

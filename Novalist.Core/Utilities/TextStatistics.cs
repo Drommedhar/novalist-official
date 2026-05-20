@@ -205,9 +205,7 @@ public static partial class TextStatistics
 
     private static double CalculateAri(int wordCount, int sentenceCount, int charCount)
     {
-        if (wordCount == 0 || sentenceCount == 0)
-            return 0;
-
+        // Callers (CalculateReadability) guarantee wordCount and sentenceCount are non-zero.
         return 4.71 * (charCount / (double)wordCount) + 0.5 * (wordCount / (double)sentenceCount) - 21.43;
     }
 
@@ -303,14 +301,11 @@ public static partial class TextStatistics
 
     private static int CountGenericSyllables(string word)
     {
-        var count = CountVowelGroups(
+        // CountVowelGroups always returns at least 1, so this is the syllable estimate.
+        return CountVowelGroups(
             word,
             "aeiouy\u00E0\u00E1\u00E2\u00E3\u00E4\u00E5\u00E6\u00E8\u00E9\u00EA\u00EB\u00EC\u00ED\u00EE\u00EF\u00F2\u00F3\u00F4\u00F5\u00F6\u00F8\u00F9\u00FA\u00FB\u00FC\u00FD\u00FF\u03B1\u03B5\u03B7\u03B9\u03BF\u03C5\u03C9\u0430\u0435\u0451\u0438\u043E\u0443\u044B\u044D\u044E\u044F",
             Array.Empty<string>());
-        if (count > 0)
-            return count;
-
-        return Math.Max(1, (int)Math.Round(word.Length / 2.5));
     }
 
     [GeneratedRegex("%%[\\s\\S]*?%%|<!--[\\s\\S]*?-->", RegexOptions.CultureInvariant)]

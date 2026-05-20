@@ -138,7 +138,8 @@ public partial class GitViewModel : ObservableObject
         }
 
         IsLoading = false;
-        await RefreshAsync();
+        if (error == null)
+            await RefreshAsync();
     }
 
     [RelayCommand]
@@ -165,7 +166,8 @@ public partial class GitViewModel : ObservableObject
         }
 
         IsLoading = false;
-        await RefreshAsync();
+        if (error == null)
+            await RefreshAsync();
     }
 
     [RelayCommand]
@@ -192,7 +194,8 @@ public partial class GitViewModel : ObservableObject
         }
 
         IsLoading = false;
-        await RefreshAsync();
+        if (error == null)
+            await RefreshAsync();
     }
 
     [RelayCommand]
@@ -219,7 +222,8 @@ public partial class GitViewModel : ObservableObject
         }
 
         IsLoading = false;
-        await RefreshAsync();
+        if (error == null)
+            await RefreshAsync();
     }
 
     [RelayCommand]
@@ -243,7 +247,8 @@ public partial class GitViewModel : ObservableObject
         }
 
         IsLoading = false;
-        await RefreshAsync();
+        if (error == null)
+            await RefreshAsync();
     }
 
     [RelayCommand]

@@ -9,6 +9,14 @@ public interface IEntityService
     Task SaveCharacterAsync(CharacterData character);
     Task DeleteCharacterAsync(string id, bool isWorldBible = false);
 
+    /// <summary>
+    /// One-shot data repair: collapses duplicated relationship rows in every loaded
+    /// character so each role appears once (its targets merged, de-duplicated). Saves
+    /// only the characters that actually changed. Returns the number of files rewritten.
+    /// Called on project load to clean up files affected by the historical doubling bug.
+    /// </summary>
+    Task<int> MigrateRelationshipDuplicatesAsync();
+
     // Locations
     Task<List<LocationData>> LoadLocationsAsync();
     Task SaveLocationAsync(LocationData location);

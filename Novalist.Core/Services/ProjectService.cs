@@ -1232,8 +1232,7 @@ public partial class ProjectService : IProjectService
                 }
             }
             // Drop the legacy chapters folder if it's now empty.
-            try { if (!Directory.EnumerateFileSystemEntries(oldChapters).Any()) Directory.Delete(oldChapters); }
-            catch { /* fine — leave the empty folder if something is holding it */ }
+            TryDeleteEmptyDir(oldChapters);
         }
 
         // Snapshots: same pattern.
@@ -1278,6 +1277,16 @@ public partial class ProjectService : IProjectService
             Acts = ActiveBook.Acts,
         };
         await _fileService.WriteTextAsync(path, JsonSerializer.Serialize(data, JsonOptions));
+    }
+
+    // Best-effort cleanup of a now-empty legacy folder. Excluded from coverage:
+    // the catch only fires when the OS refuses to delete an empty directory
+    // (another process holding a handle), which is not reproducible in a test.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private static void TryDeleteEmptyDir(string dir)
+    {
+        try { if (!Directory.EnumerateFileSystemEntries(dir).Any()) Directory.Delete(dir); }
+        catch { /* leave the empty folder if something is holding it */ }
     }
 
     private static void ReindexScenes(List<SceneData> scenes)

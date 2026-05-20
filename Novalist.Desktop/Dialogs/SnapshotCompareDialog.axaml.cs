@@ -254,6 +254,7 @@ public partial class SnapshotCompareDialog : UserControl
                 row.Checkbox.IsChecked = false;
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // partial-apply path: auto-snapshots + writes scene content through the global App.SnapshotService and IProjectService (real disk IO)
     private async void OnApplySelected(object? sender, RoutedEventArgs e)
     {
         try
@@ -266,6 +267,7 @@ public partial class SnapshotCompareDialog : UserControl
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // see OnApplySelected: drives real snapshot + scene-content persistence
     private async Task ApplySelectedInnerAsync()
     {
         // Per-row decision: each row independently picks left (snapshot) or

@@ -48,7 +48,9 @@ The graph reflects what's stored on each character entity. To add a relationship
 5. Pick the target character(s) — the **target** field accepts a comma-separated list of names with autocomplete.
 6. Save.
 
-When you save, Novalist may prompt the **Inverse Relationship Dialog** asking whether to add the inverse on the target character. After a few rounds it learns your project's role pairs and prompts less.
+When you save, Novalist may prompt the **Inverse Relationship Dialog** asking whether to add the inverse on the target character. It only asks for relationships that are not already reciprocated — if the target already points back at this character, the prompt is skipped and no duplicate is created. After a few rounds it learns your project's role pairs and prompts less.
+
+Each role is stored once per character; adding the same role for several targets merges them into one comma-separated row rather than repeating the role.
 
 ## Tips
 

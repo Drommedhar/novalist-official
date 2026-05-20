@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace Novalist.Desktop;
 
+// Entry point: environment setup, global exception handlers, Avalonia app launch,
+// and best-effort crash-log IO. All bootstrap — no unit-testable logic.
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 class Program
 {
     // Initialization code. Don't use any Avalonia, third-party APIs or any

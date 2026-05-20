@@ -32,7 +32,25 @@ public sealed class UpdateService : IUpdateService
 {
     private const string ReleasesApiUrl = "https://api.github.com/repos/Drommedhar/novalist-official/releases/latest";
 
-    private static readonly HttpClient Http = CreateHttpClient();
+    private static readonly HttpClient SharedHttp = CreateHttpClient();
+
+    private readonly HttpClient _http;
+    private readonly string _downloadDir;
+
+    // OS-detection seams so the per-platform asset selection is unit-testable
+    // from any host OS (defaults delegate to the real runtime).
+    internal static Func<OSPlatform, bool> IsOsPlatform { get; set; } = RuntimeInformation.IsOSPlatform;
+    internal static Func<Architecture> OsArchitecture { get; set; } = () => RuntimeInformation.OSArchitecture;
+
+    /// <param name="http">HTTP client; defaults to a shared client with the update User-Agent.</param>
+    /// <param name="downloadDir">Download target; defaults to %LocalAppData%/Novalist/Updates.</param>
+    public UpdateService(HttpClient? http = null, string? downloadDir = null)
+    {
+        _http = http ?? SharedHttp;
+        _downloadDir = downloadDir ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Novalist", "Updates");
+    }
 
     private static HttpClient CreateHttpClient()
     {
@@ -44,7 +62,7 @@ public sealed class UpdateService : IUpdateService
 
     public async Task<UpdateInfo?> CheckForUpdateAsync(CancellationToken ct = default)
     {
-        var release = await Http.GetFromJsonAsync<GitHubRelease>(ReleasesApiUrl, ct);
+        var release = await _http.GetFromJsonAsync<GitHubRelease>(ReleasesApiUrl, ct);
         if (release is null || string.IsNullOrEmpty(release.TagName))
             return null;
 
@@ -72,12 +90,9 @@ public sealed class UpdateService : IUpdateService
 
     public async Task<string> DownloadUpdateAsync(UpdateInfo update, IProgress<double>? progress = null, CancellationToken ct = default)
     {
-        var downloadDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Novalist", "Updates");
-        Directory.CreateDirectory(downloadDir);
+        Directory.CreateDirectory(_downloadDir);
 
-        var filePath = Path.Combine(downloadDir, update.AssetName);
+        var filePath = Path.Combine(_downloadDir, update.AssetName);
 
         // If already downloaded with correct size, skip
         if (File.Exists(filePath))
@@ -92,7 +107,7 @@ public sealed class UpdateService : IUpdateService
             File.Delete(filePath);
         }
 
-        using var response = await Http.GetAsync(update.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, ct);
+        using var response = await _http.GetAsync(update.DownloadUrl, HttpCompletionOption.ResponseHeadersRead, ct);
         response.EnsureSuccessStatusCode();
 
         var totalBytes = response.Content.Headers.ContentLength ?? update.AssetSize;
@@ -114,6 +129,10 @@ public sealed class UpdateService : IUpdateService
         return filePath;
     }
 
+    // Installer launch is OS-specific, side-effecting (spawns the installer),
+    // and physically exercises a different branch per platform — excluded from
+    // coverage by explicit decision rather than abstracting real process launch.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public void LaunchInstaller(string installerPath)
     {
         if (!File.Exists(installerPath))
@@ -141,6 +160,7 @@ public sealed class UpdateService : IUpdateService
         System.Diagnostics.Process.Start(psi);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.Runtime.Versioning.SupportedOSPlatform("linux")]
     private static void LaunchLinuxAppImageUpdate(string newAppImagePath)
     {
@@ -198,6 +218,7 @@ public sealed class UpdateService : IUpdateService
         });
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [System.Runtime.Versioning.SupportedOSPlatform("linux")]
     private static void TrySetExecutable(string path)
     {
@@ -211,6 +232,7 @@ public sealed class UpdateService : IUpdateService
         catch { /* best effort */ }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static void OpenFolder(string folder)
     {
         if (string.IsNullOrEmpty(folder)) return;
@@ -226,6 +248,7 @@ public sealed class UpdateService : IUpdateService
         catch { /* best effort */ }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static string BashQuote(string s) =>
         "'" + s.Replace("'", "'\\''") + "'";
 
@@ -234,14 +257,14 @@ public sealed class UpdateService : IUpdateService
         if (release.Assets is null || release.Assets.Length == 0)
             return null;
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        if (IsOsPlatform(OSPlatform.Windows))
             return release.Assets.FirstOrDefault(a =>
                 a.Name != null && a.Name.Contains("windows", StringComparison.OrdinalIgnoreCase) &&
                 a.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        if (IsOsPlatform(OSPlatform.OSX))
         {
-            var archSuffix = RuntimeInformation.OSArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+            var archSuffix = OsArchitecture() == Architecture.Arm64 ? "arm64" : "x64";
             var macAssets = release.Assets.Where(a =>
                 a.Name != null && a.Name.Contains("macos", StringComparison.OrdinalIgnoreCase) &&
                 a.Name.EndsWith(".dmg", StringComparison.OrdinalIgnoreCase)).ToArray();
@@ -250,7 +273,7 @@ public sealed class UpdateService : IUpdateService
                 ?? macAssets.FirstOrDefault();
         }
 
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        if (IsOsPlatform(OSPlatform.Linux))
             return release.Assets.FirstOrDefault(a =>
                 a.Name != null && a.Name.EndsWith(".AppImage", StringComparison.OrdinalIgnoreCase));
 

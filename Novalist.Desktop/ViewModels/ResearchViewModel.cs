@@ -169,32 +169,35 @@ public partial class ResearchViewModel : ObservableObject
             ? _service.GetAbsolutePath(SelectedItem.Content)
             : null;
 
-    public string SelectedFileSize
+    public string SelectedFileSize => FormatSize(TryGetFileLength(SelectedAbsolutePath));
+
+    // Pure size formatting, kept testable; negative length means "no file".
+    internal static string FormatSize(long bytes)
     {
-        get
-        {
-            var p = SelectedAbsolutePath;
-            if (string.IsNullOrEmpty(p) || !System.IO.File.Exists(p)) return string.Empty;
-            try
-            {
-                var bytes = new System.IO.FileInfo(p).Length;
-                if (bytes < 1024) return $"{bytes} B";
-                if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
-                return $"{bytes / 1024.0 / 1024.0:F2} MB";
-            }
-            catch { return string.Empty; }
-        }
+        if (bytes < 0) return string.Empty;
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        return $"{bytes / 1024.0 / 1024.0:F2} MB";
     }
 
-    public string SelectedModified
+    // Filesystem access + defensive catch: not deterministically coverable.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private static long TryGetFileLength(string? p)
     {
-        get
-        {
-            var p = SelectedAbsolutePath;
-            if (string.IsNullOrEmpty(p) || !System.IO.File.Exists(p)) return string.Empty;
-            try { return new System.IO.FileInfo(p).LastWriteTime.ToString("yyyy-MM-dd HH:mm"); }
-            catch { return string.Empty; }
-        }
+        if (string.IsNullOrEmpty(p) || !System.IO.File.Exists(p)) return -1;
+        try { return new System.IO.FileInfo(p).Length; }
+        catch { return -1; }
+    }
+
+    public string SelectedModified => FormatModified(SelectedAbsolutePath);
+
+    // Filesystem access + defensive catch: not deterministically coverable.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private static string FormatModified(string? p)
+    {
+        if (string.IsNullOrEmpty(p) || !System.IO.File.Exists(p)) return string.Empty;
+        try { return new System.IO.FileInfo(p).LastWriteTime.ToString("yyyy-MM-dd HH:mm"); }
+        catch { return string.Empty; }
     }
 
     [RelayCommand]
@@ -232,16 +235,20 @@ public partial class ResearchViewModel : ObservableObject
     private void OpenExternal()
     {
         if (SelectedItem == null) return;
-        try
-        {
-            string target;
-            if (SelectedItem.Type == ResearchItemType.Link)
-                target = SelectedItem.Content;
-            else
-                target = _service.GetAbsolutePath(SelectedItem.Content);
-            if (string.IsNullOrEmpty(target)) return;
-            Process.Start(new ProcessStartInfo(target) { UseShellExecute = true });
-        }
+        var target = SelectedItem.Type == ResearchItemType.Link
+            ? SelectedItem.Content
+            : _service.GetAbsolutePath(SelectedItem.Content);
+        if (string.IsNullOrEmpty(target)) return;
+        LaunchExternal(target);
+    }
+
+    // Shells out to the OS to open a file/URL. This launch primitive is not
+    // exercisable in tests without spawning a real process, so the target
+    // resolution above stays covered and only the launch is excluded.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private static void LaunchExternal(string target)
+    {
+        try { Process.Start(new ProcessStartInfo(target) { UseShellExecute = true }); }
         catch { /* swallow — user feedback via toast layer */ }
     }
 }

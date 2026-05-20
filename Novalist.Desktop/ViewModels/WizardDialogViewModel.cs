@@ -583,6 +583,9 @@ public partial class WizardDialogViewModel : ObservableObject
         RefreshSidebar();
     }
 
+    // Final "—" fallthrough is unreachable: a non-empty answer always matches one
+    // of the typed branches, and an empty one is caught by the IsEmpty guard.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static string SummarizeAnswer(WizardStep step, WizardResult result)
     {
         if (!result.Answers.TryGetValue(step.Id, out var v)) return "—";

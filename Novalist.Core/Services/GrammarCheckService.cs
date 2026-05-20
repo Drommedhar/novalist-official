@@ -9,9 +9,13 @@ namespace Novalist.Core.Services;
 /// </summary>
 public sealed class GrammarCheckService
 {
-    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(30) };
+    private static readonly HttpClient SharedHttp = new() { Timeout = TimeSpan.FromSeconds(30) };
 
+    private readonly HttpClient _http;
     private string _apiUrl = "https://api.languagetool.org/v2/check";
+
+    /// <param name="http">HTTP client to use; defaults to a shared long-lived client. Tests inject a fake-handler client.</param>
+    public GrammarCheckService(HttpClient? http = null) => _http = http ?? SharedHttp;
 
     /// <summary>
     /// Gets or sets the LanguageTool API endpoint URL.
@@ -47,7 +51,7 @@ public sealed class GrammarCheckService
         HttpResponseMessage response;
         try
         {
-            response = await Http.PostAsync(_apiUrl, content, cancellationToken).ConfigureAwait(false);
+            response = await _http.PostAsync(_apiUrl, content, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
         {

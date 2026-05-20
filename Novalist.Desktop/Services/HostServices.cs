@@ -107,9 +107,17 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         if (factory == null)
             return new NoopBusyProgress();
 
-        if (Dispatcher.UIThread.CheckAccess())
-            return factory(options);
+        return Dispatcher.UIThread.CheckAccess()
+            ? factory(options)
+            : InvokeFactoryOnUI(factory, options);
+    }
 
+    // Cross-thread marshal of the factory call. Excluded: the blocking Post+Wait
+    // across threads deadlocks under the headless single-thread test model; the
+    // testable dispatch (no-factory / on-UI-thread) stays in ShowBusyProgress.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private static IBusyProgress InvokeFactoryOnUI(Func<BusyProgressOptions, IBusyProgress> factory, BusyProgressOptions options)
+    {
         IBusyProgress? handle = null;
         var done = new System.Threading.ManualResetEventSlim();
         Dispatcher.UIThread.Post(() =>

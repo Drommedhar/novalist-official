@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Novalist.Desktop.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" />
     <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
   </ItemGroup>

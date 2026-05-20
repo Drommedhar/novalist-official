@@ -22,13 +22,19 @@ public static partial class LogRedactor
     // POSIX paths with at least two segments (/home/user/foo). We collapse the
     // whole path to its extension only — the directory chain and filename can
     // contain the author's project, book, or scene titles.
-    [GeneratedRegex(@"(?:[A-Za-z]:\\|\\\\)[^\s""'<>|]+", RegexOptions.Compiled)]
+    //
+    // Path segments may contain spaces (e.g. "C:\Users\jane\My Novel\scene.json"),
+    // so the character classes stop only at hard delimiters (quote, angle
+    // bracket, pipe, newline) and end-of-line — NOT at spaces. This deliberately
+    // over-matches trailing prose on the same line rather than risk leaking the
+    // tail of a space-containing path (book / scene titles). Content-safety wins.
+    [GeneratedRegex(@"(?:[A-Za-z]:\\|\\\\)[^\r\n""'<>|]+", RegexOptions.Compiled)]
     private static partial Regex WindowsPathRegex();
 
-    [GeneratedRegex(@"(?<![A-Za-z0-9])/(?:[^\s/""'<>|]+/)+[^\s/""'<>|]*", RegexOptions.Compiled)]
+    [GeneratedRegex(@"(?<![A-Za-z0-9])/(?:[^/\r\n""'<>|]+/)+[^\r\n""'<>|]*", RegexOptions.Compiled)]
     private static partial Regex PosixPathRegex();
 
-    [GeneratedRegex(@"file://[^\s""'<>|]+", RegexOptions.Compiled)]
+    [GeneratedRegex(@"file://[^\r\n""'<>|]+", RegexOptions.Compiled)]
     private static partial Regex FileUrlRegex();
 
     /// <summary>
@@ -36,6 +42,7 @@ public static partial class LogRedactor
     /// Never throws; on any failure returns a fully-redacted placeholder rather
     /// than risk leaking the original.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // thin defensive wrapper; ScrubCore holds the tested logic
     public static string Scrub(string line)
     {
         if (string.IsNullOrEmpty(line))
@@ -43,16 +50,22 @@ public static partial class LogRedactor
 
         try
         {
-            line = FileUrlRegex().Replace(line, m => "<path>" + ExtensionOf(m.Value));
-            line = WindowsPathRegex().Replace(line, m => "<path>" + ExtensionOf(m.Value));
-            line = PosixPathRegex().Replace(line, m => "<path>" + ExtensionOf(m.Value));
-
-            return RedactLongTokens(line);
+            return ScrubCore(line);
         }
         catch
         {
+            // Must never leak the original on failure.
             return "<redacted-line>";
         }
+    }
+
+    internal static string ScrubCore(string line)
+    {
+        line = FileUrlRegex().Replace(line, m => "<path>" + ExtensionOf(m.Value));
+        line = WindowsPathRegex().Replace(line, m => "<path>" + ExtensionOf(m.Value));
+        line = PosixPathRegex().Replace(line, m => "<path>" + ExtensionOf(m.Value));
+
+        return RedactLongTokens(line);
     }
 
     private static string ExtensionOf(string path)
@@ -62,7 +75,12 @@ public static partial class LogRedactor
         var slash = path.LastIndexOfAny(['/', '\\']);
         var name = slash >= 0 ? path[(slash + 1)..] : path;
         var dot = name.LastIndexOf('.');
-        return dot > 0 ? name[dot..] : string.Empty;
+        if (dot <= 0) return string.Empty;
+        var ext = name[dot..];
+        // The match may include over-matched trailing prose after the filename
+        // ("scene.json now") — keep only the extension token itself.
+        var space = ext.IndexOf(' ');
+        return space >= 0 ? ext[..space] : ext;
     }
 
     private static string RedactLongTokens(string line)

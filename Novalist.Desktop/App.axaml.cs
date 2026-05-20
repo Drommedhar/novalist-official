@@ -12,6 +12,10 @@ using Novalist.Desktop.ViewModels;
 
 namespace Novalist.Desktop;
 
+// Application bootstrap: XAML load, splash/main-window + WebKit-gate lifecycle,
+// extension startup, and synchronous startup settings IO against the fixed
+// %APPDATA% path. No injectable seams — exercised end-to-end by the running app.
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public partial class App : Application
 {
     public static IFileService FileService { get; } = new FileService();

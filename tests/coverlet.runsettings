@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <DeterministicReport>true</DeterministicReport>
+          <!-- Exclude auto-generated source only (Avalonia XAML compiler, source generators).
+               These are not hand-written and not part of "our code" for the 100% target.
+               NOTE: do NOT exclude CompilerGeneratedAttribute here — it is emitted on async
+               state machines and lambda closures, so excluding it drops real async/lambda
+               coverage and silently overstates the result. GeneratedCodeAttribute is only on
+               true tool-generated code (XAML, source generators) and is safe to exclude. -->
+          <ExcludeByFile>**/*.g.cs,**/*.g.i.cs,**/*.axaml.cs.g.cs,**/*.AvaloniaResources.cs</ExcludeByFile>
+          <!-- The Avalonia XAML compiler injects compiled-markup types directly into the IL
+               (no .g.cs, so ExcludeByFile cannot reach them); exclude by type name:
+                 *XamlClosure*                  — per-view data-template / compiled-binding trampolines
+                 CompiledAvaloniaXaml.!Avalonia* — the merged resource-dictionary blob (themes,
+                                                    App.axaml resources, DesignTokens) — pure markup,
+                                                    only "run" when that theme is applied.
+               Same category as the generated source above: XAML markup, not hand-written code. -->
+          <Exclude>[Novalist.Desktop]*XamlClosure*,[Novalist.Desktop]CompiledAvaloniaXaml*</Exclude>
+          <ExcludeByAttribute>GeneratedCodeAttribute</ExcludeByAttribute>
+          <SkipAutoProps>true</SkipAutoProps>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

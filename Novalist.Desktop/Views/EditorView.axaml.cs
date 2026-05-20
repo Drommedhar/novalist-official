@@ -15,6 +15,7 @@ using Novalist.Desktop.ViewModels;
 
 namespace Novalist.Desktop.Views;
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // hosts a native WebView2 (scene editor); cannot instantiate headless. Logic lives in EditorViewModel, tested via IEditorContext.
 public partial class EditorView : UserControl
 {
     private EditorViewModel? _vm;

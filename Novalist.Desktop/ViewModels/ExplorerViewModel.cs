@@ -812,6 +812,7 @@ public partial class ExplorerViewModel : ObservableObject
         return null;
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // host-dialog forwarder with no current caller
     private async Task<string?> RequestOptionalInput(string title, string prompt, string defaultValue)
     {
         if (ShowOptionalInputDialog != null)
@@ -819,6 +820,7 @@ public partial class ExplorerViewModel : ObservableObject
         return null;
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // host-dialog forwarder with no current caller
     private async Task<string?> RequestDateInput(string title, string prompt, string currentDate)
     {
         if (ShowDatePickerDialog != null)

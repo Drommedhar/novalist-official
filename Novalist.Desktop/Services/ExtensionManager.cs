@@ -17,7 +17,7 @@ namespace Novalist.Desktop.Services;
 /// </summary>
 public sealed class ExtensionManager
 {
-    private readonly ExtensionLoader _loader = new();
+    private readonly ExtensionLoader _loader;
     private readonly ISettingsService _settingsService;
     private readonly HostServices _hostServices;
 
@@ -39,10 +39,17 @@ public sealed class ExtensionManager
     public List<HotkeyDescriptor> HotkeyBindings { get; } = [];
     public List<PropertyTypeDescriptor> PropertyTypes { get; } = [];
 
-    public ExtensionManager(ISettingsService settingsService, HostServices hostServices)
+    // Per-extension "un-collect" actions capturing the exact hook instances added.
+    // Hook contributors may return fresh instances on each GetXxx() call, so
+    // removal must target the originally-collected references, not a second call.
+    private readonly Dictionary<ExtensionInfo, List<Action>> _hookUndo = new();
+
+    /// <param name="loader">Extension loader; defaults to one scanning %APPDATA%/Novalist/Extensions. Tests inject one pointing at a temp dir.</param>
+    public ExtensionManager(ISettingsService settingsService, HostServices hostServices, ExtensionLoader? loader = null)
     {
         _settingsService = settingsService;
         _hostServices = hostServices;
+        _loader = loader ?? new ExtensionLoader();
     }
 
     /// <summary>
@@ -84,16 +91,14 @@ public sealed class ExtensionManager
     /// </summary>
     private void InitializeExtension(ExtensionInfo info)
     {
-        if (info.Instance == null)
-            return;
-
+        // Only ever called after a successful LoadExtension, so Instance is set.
         try
         {
             // Register locale folder so GetLocalization() works during Initialize
             var localesDir = System.IO.Path.Combine(info.FolderPath, "Locales");
             _hostServices.RegisterExtensionLocales(info.Manifest.Id, localesDir);
 
-            info.Instance.Initialize(_hostServices);
+            info.Instance!.Initialize(_hostServices);
             CollectHooks(info);
         }
         catch (Exception ex)
@@ -109,154 +114,98 @@ public sealed class ExtensionManager
     /// </summary>
     private void CollectHooks(ExtensionInfo info)
     {
-        var instance = info.Instance;
-        if (instance == null)
-            return;
+        // Called only from InitializeExtension after a successful load.
+        var instance = info.Instance!;
+
+        var undo = new List<Action>();
+
+        // Helper: add the collected items to a target list and record the matching
+        // removal of those exact references.
+        void AddList<T>(List<T> target, IReadOnlyList<T> items)
+        {
+            target.AddRange(items);
+            undo.Add(() => { foreach (var i in items) target.Remove(i); });
+        }
 
         if (instance is IRibbonContributor ribbon)
-            RibbonItems.AddRange(ribbon.GetRibbonItems());
+            AddList(RibbonItems, ribbon.GetRibbonItems());
 
         if (instance is ISidebarContributor sidebar)
-            SidebarPanels.AddRange(sidebar.GetSidebarPanels());
+            AddList(SidebarPanels, sidebar.GetSidebarPanels());
 
         if (instance is IStatusBarContributor statusBar)
-            StatusBarItems.AddRange(statusBar.GetStatusBarItems());
+            AddList(StatusBarItems, statusBar.GetStatusBarItems());
 
         if (instance is IContextMenuContributor contextMenu)
-            ContextMenuItems.AddRange(contextMenu.GetContextMenuItems());
+            AddList(ContextMenuItems, contextMenu.GetContextMenuItems());
 
         if (instance is IContentViewContributor contentView)
-            ContentViews.AddRange(contentView.GetContentViews());
+            AddList(ContentViews, contentView.GetContentViews());
 
         if (instance is ISettingsContributor settings)
-            SettingsPages.AddRange(settings.GetSettingsPages());
+            AddList(SettingsPages, settings.GetSettingsPages());
 
         if (instance is IEntityTypeContributor entityType)
-            EntityTypes.AddRange(entityType.GetEntityTypes());
+            AddList(EntityTypes, entityType.GetEntityTypes());
 
         if (instance is IExportFormatContributor exportFormat)
-            ExportFormats.AddRange(exportFormat.GetExportFormats());
+            AddList(ExportFormats, exportFormat.GetExportFormats());
 
         if (instance is IAiHook aiHook)
+        {
             AiHooks.Add(aiHook);
+            undo.Add(() => AiHooks.Remove(aiHook));
+        }
 
         if (instance is IGrammarCheckContributor grammarCheck)
+        {
             GrammarCheckContributors.Add(grammarCheck);
+            undo.Add(() => GrammarCheckContributors.Remove(grammarCheck));
+        }
 
         if (instance is IThemeContributor theme)
-            ThemeOverrides.AddRange(theme.GetThemeOverrides());
+            AddList(ThemeOverrides, theme.GetThemeOverrides());
 
         if (instance is IHotkeyContributor hotkey)
         {
             var bindings = hotkey.GetHotkeyBindings();
             HotkeyBindings.AddRange(bindings);
             App.HotkeyService.RegisterRange(bindings);
+            undo.Add(() =>
+            {
+                foreach (var b in bindings)
+                {
+                    HotkeyBindings.Remove(b);
+                    App.HotkeyService.Unregister(b.ActionId);
+                }
+            });
         }
 
         if (instance is IEditorExtension editorExt)
+        {
             _hostServices.RegisterEditorExtension(editorExt);
+            undo.Add(() => _hostServices.UnregisterEditorExtension(editorExt));
+        }
 
         if (instance is IPropertyTypeContributor propertyType)
-            PropertyTypes.AddRange(propertyType.GetPropertyTypes());
+            AddList(PropertyTypes, propertyType.GetPropertyTypes());
+
+        _hookUndo[info] = undo;
     }
 
     /// <summary>
-    /// Removes hooks contributed by a specific extension.
+    /// Removes the hooks contributed by a specific extension, targeting the exact
+    /// instances captured during <see cref="CollectHooks"/>.
     /// </summary>
     private void RemoveHooks(ExtensionInfo info)
     {
-        var instance = info.Instance;
-        if (instance == null)
+        if (!_hookUndo.TryGetValue(info, out var undo))
             return;
 
-        if (instance is IRibbonContributor ribbon)
-        {
-            var items = ribbon.GetRibbonItems();
-            foreach (var item in items)
-                RibbonItems.Remove(item);
-        }
+        foreach (var revert in undo)
+            revert();
 
-        if (instance is ISidebarContributor sidebar)
-        {
-            var panels = sidebar.GetSidebarPanels();
-            foreach (var panel in panels)
-                SidebarPanels.Remove(panel);
-        }
-
-        if (instance is IStatusBarContributor statusBar)
-        {
-            var items = statusBar.GetStatusBarItems();
-            foreach (var item in items)
-                StatusBarItems.Remove(item);
-        }
-
-        if (instance is IContextMenuContributor contextMenu)
-        {
-            var items = contextMenu.GetContextMenuItems();
-            foreach (var item in items)
-                ContextMenuItems.Remove(item);
-        }
-
-        if (instance is IContentViewContributor contentView)
-        {
-            var views = contentView.GetContentViews();
-            foreach (var view in views)
-                ContentViews.Remove(view);
-        }
-
-        if (instance is ISettingsContributor settings)
-        {
-            var pages = settings.GetSettingsPages();
-            foreach (var page in pages)
-                SettingsPages.Remove(page);
-        }
-
-        if (instance is IEntityTypeContributor entityType)
-        {
-            var types = entityType.GetEntityTypes();
-            foreach (var t in types)
-                EntityTypes.Remove(t);
-        }
-
-        if (instance is IExportFormatContributor exportFormat)
-        {
-            var formats = exportFormat.GetExportFormats();
-            foreach (var f in formats)
-                ExportFormats.Remove(f);
-        }
-
-        if (instance is IAiHook aiHook)
-            AiHooks.Remove(aiHook);
-
-        if (instance is IGrammarCheckContributor grammarCheck)
-            GrammarCheckContributors.Remove(grammarCheck);
-
-        if (instance is IThemeContributor theme)
-        {
-            var overrides = theme.GetThemeOverrides();
-            foreach (var o in overrides)
-                ThemeOverrides.Remove(o);
-        }
-
-        if (instance is IHotkeyContributor hotkey)
-        {
-            var bindings = hotkey.GetHotkeyBindings();
-            foreach (var b in bindings)
-            {
-                HotkeyBindings.Remove(b);
-                App.HotkeyService.Unregister(b.ActionId);
-            }
-        }
-
-        if (instance is IEditorExtension editorExt)
-            _hostServices.UnregisterEditorExtension(editorExt);
-
-        if (instance is IPropertyTypeContributor propertyType)
-        {
-            var types = propertyType.GetPropertyTypes();
-            foreach (var t in types)
-                PropertyTypes.Remove(t);
-        }
+        _hookUndo.Remove(info);
     }
 
     /// <summary>

@@ -15,7 +15,7 @@ using Novalist.Desktop.Utilities;
 
 namespace Novalist.Desktop.ViewModels;
 
-public partial class EditorViewModel : ObservableObject
+public partial class EditorViewModel : ObservableObject, IFootnoteEditorContext
 {
     private readonly IProjectService _projectService;
     private readonly ISettingsService _settingsService;
@@ -748,11 +748,13 @@ public partial class EditorViewModel : ObservableObject
         RestoreArchivedSceneRequested?.Invoke(_scene);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // forwarder fired only via FocusPeek hover+open UI interaction
     private void HandleFocusPeekOpenRequested(EntityType type, object entity)
     {
         FocusPeekEntityOpenRequested?.Invoke(type, entity);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // forwarder fired only via FocusPeek pinned-map navigation
     private Task HandleFocusPeekPinNavigate(string mapId, string pinId)
     {
         var handler = FocusPeekPinNavigateRequested;

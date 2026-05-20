@@ -17,6 +17,7 @@ using Novalist.Desktop.ViewModels;
 
 namespace Novalist.Desktop.Views;
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // hosts a native WebView2 (interactive map); cannot instantiate headless. Logic lives in MapViewModel.
 public partial class MapView : UserControl
 {
     private MapViewModel? _vm;

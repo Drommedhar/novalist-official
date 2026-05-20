@@ -909,7 +909,7 @@ public class PluginImportService
         return lookup;
     }
 
-    private static void ResolveWikilinkReferences(
+    internal static void ResolveWikilinkReferences(
         List<CharacterData> characters,
         List<LocationData> locations,
         Dictionary<string, string> entityNameToId)
@@ -1010,7 +1010,7 @@ public class PluginImportService
 
     // ── Utilities ───────────────────────────────────────────────────
 
-    private static string StripWikilink(string value)
+    internal static string StripWikilink(string value)
     {
         if (string.IsNullOrEmpty(value)) return value;
         // Remove ![[...]] embeds and [[...]] wikilinks
@@ -1115,7 +1115,7 @@ public class PluginImportService
         }
     }
 
-    private static string ConvertMarkdownToHtml(string markdown)
+    internal static string ConvertMarkdownToHtml(string markdown)
     {
         if (string.IsNullOrWhiteSpace(markdown))
             return "<html><head></head><body><p></p></body></html>";
@@ -1134,7 +1134,7 @@ public class PluginImportService
     /// Converts Markdig HTML output to the subset supported by AvRichTextBox:
     /// only &lt;p&gt; elements with &lt;span style="..."&gt; for formatting.
     /// </summary>
-    private static string SanitizeHtmlForRichTextBox(string html)
+    internal static string SanitizeHtmlForRichTextBox(string html)
     {
         // Convert <strong>...</strong> to <span style="font-weight:bold">...</span>
         html = Regex.Replace(html, @"<strong>(.*?)</strong>", @"<span style=""font-weight:bold"">$1</span>", RegexOptions.Singleline);
@@ -1188,13 +1188,13 @@ public class PluginImportService
         return html.Trim();
     }
 
-    private static string NonEmpty(string value, string fallback)
+    internal static string NonEmpty(string value, string fallback)
         => string.IsNullOrEmpty(value) ? fallback : value;
 
-    private static string? NullIfEmpty(string value)
+    internal static string? NullIfEmpty(string value)
         => string.IsNullOrEmpty(value) ? null : value;
 
-    private static ChapterStatus MapChapterStatus(string? status) => status?.ToLowerInvariant() switch
+    internal static ChapterStatus MapChapterStatus(string? status) => status?.ToLowerInvariant() switch
     {
         "first-draft" => ChapterStatus.FirstDraft,
         "revised" => ChapterStatus.Revised,
@@ -1203,13 +1203,13 @@ public class PluginImportService
         _ => ChapterStatus.Outline
     };
 
-    private static int CountWords(string text)
+    internal static int CountWords(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return 0;
         return text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
     }
 
-    private static string SanitizeFileName(string name)
+    internal static string SanitizeFileName(string name)
     {
         var invalid = Path.GetInvalidFileNameChars();
         var sanitized = new string(name.Where(c => !invalid.Contains(c)).ToArray());

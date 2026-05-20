@@ -959,6 +959,9 @@ public partial class SettingsViewModel : ObservableObject
 
     // ── Diagnostics ─────────────────────────────────────────────────
 
+    // Spawns the OS file manager / shell — excluded from coverage (would open a
+    // real window during tests).
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [RelayCommand]
     private void OpenLogFolder()
     {
@@ -970,6 +973,7 @@ public partial class SettingsViewModel : ObservableObject
         catch (Exception ex) { Log.Error("OpenLogFolder failed.", ex); }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [RelayCommand]
     private void OpenCurrentLog()
     {
@@ -985,12 +989,14 @@ public partial class SettingsViewModel : ObservableObject
     }
 
     [RelayCommand]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // real-IO defensive catch
     private void ClearLogs()
     {
         try { Log.ClearLogFiles(); }
         catch (Exception ex) { Log.Error("ClearLogs failed.", ex); }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static void OpenInShell(string path)
     {
         Process.Start(new ProcessStartInfo

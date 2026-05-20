@@ -12,6 +12,7 @@ using Novalist.Desktop.ViewModels;
 
 namespace Novalist.Desktop.Views;
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // hosts a native WebView2 for readme rendering (NavigateToString unreachable headless); store logic lives in ExtensionStoreViewModel
 public partial class ExtensionsView : UserControl
 {
     private NativeWebView? _readmeWebView;

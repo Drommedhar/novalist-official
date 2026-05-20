@@ -1,14 +1,19 @@
-using System.Diagnostics;
 using Novalist.Core.Models;
 
 namespace Novalist.Core.Services;
 
 public class GitService : IGitService
 {
+    private readonly IProcessRunner _processRunner;
     private string? _projectRoot;
     private string? _repoRoot;
     private bool _isGitInstalled;
     private Dictionary<string, GitFileEntry> _statusCache = new(StringComparer.OrdinalIgnoreCase);
+
+    public GitService(IProcessRunner? processRunner = null)
+    {
+        _processRunner = processRunner ?? new ProcessRunner();
+    }
 
     public bool IsGitRepo => _repoRoot != null;
     public bool IsGitInstalled => _isGitInstalled;
@@ -242,7 +247,7 @@ public class GitService : IGitService
         _ => GitFileStatus.Unmodified
     };
 
-    private static async Task<bool> CheckGitInstalledAsync()
+    private async Task<bool> CheckGitInstalledAsync()
     {
         try
         {
@@ -255,37 +260,7 @@ public class GitService : IGitService
         }
     }
 
-    private static async Task<(int ExitCode, string Output, string Error)> RunGitAsync(
+    private Task<(int ExitCode, string Output, string Error)> RunGitAsync(
         string? workingDirectory, params string[] args)
-    {
-        var psi = new ProcessStartInfo
-        {
-            FileName = "git",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-            StandardOutputEncoding = System.Text.Encoding.UTF8,
-            StandardErrorEncoding = System.Text.Encoding.UTF8
-        };
-
-        if (!string.IsNullOrEmpty(workingDirectory))
-            psi.WorkingDirectory = workingDirectory;
-
-        foreach (var arg in args)
-            psi.ArgumentList.Add(arg);
-
-        using var process = Process.Start(psi);
-        if (process == null)
-            return (-1, string.Empty, "Failed to start git process");
-
-        var outputTask = process.StandardOutput.ReadToEndAsync();
-        var errorTask = process.StandardError.ReadToEndAsync();
-
-        await process.WaitForExitAsync();
-        var output = await outputTask;
-        var error = await errorTask;
-
-        return (process.ExitCode, output, error);
-    }
+        => _processRunner.RunAsync("git", workingDirectory, args);
 }

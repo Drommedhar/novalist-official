@@ -46,6 +46,7 @@ public partial class ImportPluginDialog : UserControl
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // folder picker + real PluginImportService vault detection (file IO); async-void UI continuation
     private async void OnBrowseVault(object? sender, RoutedEventArgs e)
     {
         if (BrowseFolder == null) return;
@@ -108,6 +109,7 @@ public partial class ImportPluginDialog : UserControl
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // folder picker (file dialog); async-void UI continuation
     private async void OnBrowseOutput(object? sender, RoutedEventArgs e)
     {
         try
@@ -123,38 +125,57 @@ public partial class ImportPluginDialog : UserControl
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // thin wiring: validates then hands off to the real import (interop); logic lives in TryBuildImportRequest
     private async void OnImport(object? sender, RoutedEventArgs e)
     {
         if (_importing) return;
+        if (!TryBuildImportRequest(out var vaultPath, out var projectName, out var bookName, out var outputPath))
+            return;
+        await RunImportAsync(vaultPath!, projectName!, bookName!, outputPath!);
+    }
 
-        // Validate inputs
-        var vaultPath = VaultPathBox.Text?.Trim();
-        var projectName = ProjectNameBox.Text?.Trim();
-        var bookName = BookNameBox.Text?.Trim();
-        var outputPath = OutputPathBox.Text?.Trim();
+    /// <summary>
+    /// Reads + validates the import form. Returns false (after surfacing an error)
+    /// when a required field is missing; on success the out values are the trimmed
+    /// inputs with <paramref name="bookName"/> defaulted to the project name.
+    /// </summary>
+    private bool TryBuildImportRequest(out string? vaultPath, out string? projectName, out string? bookName, out string? outputPath)
+    {
+        vaultPath = VaultPathBox.Text?.Trim();
+        projectName = ProjectNameBox.Text?.Trim();
+        bookName = BookNameBox.Text?.Trim();
+        outputPath = OutputPathBox.Text?.Trim();
 
         if (string.IsNullOrEmpty(vaultPath) || _detectionResult == null || _detectionResult.Projects.Count == 0)
         {
             ShowError(Localization.Loc.T("import.selectVaultFirst"));
-            return;
+            return false;
         }
 
         if (string.IsNullOrEmpty(projectName))
         {
             ShowError(Localization.Loc.T("import.projectNameRequired"));
-            return;
+            return false;
         }
 
         if (string.IsNullOrEmpty(outputPath))
         {
             ShowError(Localization.Loc.T("import.outputRequired"));
-            return;
+            return false;
         }
 
         if (string.IsNullOrEmpty(bookName))
             bookName = projectName;
 
-        var selectedProject = _detectionResult.Projects.Count > 1
+        return true;
+    }
+
+    // Post-validation import execution. Excluded: instantiates the real
+    // PluginImportService and imports an Obsidian vault to disk (file IO).
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private async Task RunImportAsync(string vaultPath, string projectName, string bookName, string outputPath)
+    {
+        var selectedProject = _detectionResult!.Projects.Count > 1
             ? ProjectComboBox.SelectedItem as PluginProjectInfo ?? _detectionResult.Projects[0]
             : _detectionResult.Projects[0];
 

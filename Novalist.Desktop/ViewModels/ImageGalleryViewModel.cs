@@ -92,7 +92,16 @@ public partial class ImageGalleryViewModel : ObservableObject
         _allImages = items;
         ApplyFilter();
 
-        // Lazy-decode thumbnails off UI thread, marshal back per-item
+        StartThumbnailLoad(items);
+    }
+
+    // Off-UI-thread decode + per-item marshal back to the dispatcher. This is a
+    // cross-thread UI-thread-marshal primitive that cannot be exercised under the
+    // headless test harness without yielding off the dispatcher-owner thread, so
+    // it is isolated here and excluded from coverage (see ImageGalleryViewModelTests).
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private void StartThumbnailLoad(ImageGalleryItem[] items)
+    {
         _ = Task.Run(() =>
         {
             foreach (var item in items)

@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  DOTNET_VERSION: 8.0.x
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+
+jobs:
+  test:
+    name: Tests & 100% coverage
+    # Matches the dev environment where the headless Avalonia suite is known green.
+    runs-on: windows-latest
+    permissions:
+      contents: write   # push the coverage badge JSON to the `badges` branch
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore novalist-official.sln
+
+      - name: Build
+        run: dotnet build novalist-official.sln -c Debug --no-restore
+
+      # Each project's coverage is checked against ITS OWN assembly. The Desktop
+      # run also touches Core/Sdk, but Check-Coverage.ps1 filters by package name.
+      - name: Test Novalist.Sdk
+        run: >-
+          dotnet test tests/Novalist.Sdk.Tests/Novalist.Sdk.Tests.csproj
+          -c Debug --no-build
+          --settings tests/coverlet.runsettings
+          --results-directory artifacts/coverage/sdk
+
+      - name: Test Novalist.Core
+        run: >-
+          dotnet test tests/Novalist.Core.Tests/Novalist.Core.Tests.csproj
+          -c Debug --no-build
+          --settings tests/coverlet.runsettings
+          --results-directory artifacts/coverage/core
+
+      - name: Test Novalist.Desktop
+        run: >-
+          dotnet test tests/Novalist.Desktop.Tests/Novalist.Desktop.Tests.csproj
+          -c Debug --no-build
+          --settings tests/coverlet.runsettings
+          --results-directory artifacts/coverage/desktop
+
+      # Measure only (never fails) so the badge can be published with the real number
+      # — including when coverage has dropped below the threshold — before we fail the build.
+      - name: Measure coverage
+        id: coverage
+        shell: pwsh
+        run: |
+          $sdk     = ./eng/Check-Coverage.ps1 -NoFail -CoberturaGlob 'artifacts/coverage/sdk/**/coverage.cobertura.xml'     -Package 'Novalist.Sdk'
+          $core    = ./eng/Check-Coverage.ps1 -NoFail -CoberturaGlob 'artifacts/coverage/core/**/coverage.cobertura.xml'    -Package 'Novalist.Core'
+          $desktop = ./eng/Check-Coverage.ps1 -NoFail -CoberturaGlob 'artifacts/coverage/desktop/**/coverage.cobertura.xml' -Package 'Novalist.Desktop'
+          # Each script emits "<Package>=<rate>" as its last stdout line.
+          $rows = @($sdk, $core, $desktop) | ForEach-Object { ($_ | Select-Object -Last 1) }
+          "## Coverage (line)`n`n| Assembly | Coverage |`n| --- | --- |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          $rates = @()
+          foreach ($r in $rows) {
+            $name, $rate = $r -split '='
+            "| $name | $rate% |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+            $rates += [double]$rate
+          }
+          $overall = ($rates | Measure-Object -Minimum).Minimum   # lowest assembly rate
+          "coverage=$overall" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      # Publish the measured number BEFORE enforcing, so a drop below 100% still
+      # updates the badge (the build then fails on the next step).
+      - name: Publish coverage badge
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.coverage.outputs.coverage != ''
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./eng/Publish-CoverageBadge.ps1 -Coverage '${{ steps.coverage.outputs.coverage }}' -Repository '${{ github.repository }}'
+
+      - name: Enforce 100% line coverage
+        if: always() && steps.coverage.outputs.coverage != ''
+        shell: pwsh
+        run: |
+          $overall = [double]'${{ steps.coverage.outputs.coverage }}'
+          if ($overall -lt 100) { throw "Coverage $overall% is below the required 100%." }
+          Write-Host "Coverage gate passed: $overall%"
+
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-cobertura
+          path: artifacts/coverage/**/coverage.cobertura.xml
+          if-no-files-found: warn

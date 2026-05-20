@@ -7,7 +7,7 @@ namespace Novalist.Core;
 /// </summary>
 public static class VersionInfo
 {
-    private static readonly Lazy<string> _version = new(ReadVersion);
+    private static readonly Lazy<string> _version = new(() => ReadVersion(typeof(VersionInfo).Assembly));
 
     /// <summary>
     /// Semantic version string (e.g. "1.2.0" or "0.0.1-dev").
@@ -43,10 +43,9 @@ public static class VersionInfo
         return true; // equal
     }
 
-    private static string ReadVersion()
+    internal static string ReadVersion(Assembly assembly)
     {
-        var attr = typeof(VersionInfo).Assembly
-            .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+        var attr = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
 
         if (attr?.InformationalVersion is { Length: > 0 } ver)
         {
@@ -55,7 +54,7 @@ public static class VersionInfo
             return plusIndex >= 0 ? ver[..plusIndex] : ver;
         }
 
-        return typeof(VersionInfo).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
+        return assembly.GetName().Version?.ToString(3) ?? "0.0.0";
     }
 
     private static int[] ParseVersionParts(string version)

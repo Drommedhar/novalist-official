@@ -157,6 +157,7 @@ public partial class RelationshipsGraphView : UserControl
 
     // ── Pan ──────────────────────────────────────────────────────
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // reads e.GetCurrentPoint / e.Pointer — pointer args not constructible outside the input pipeline
     private void OnViewportPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (_pan == null || _viewport == null) return;
@@ -169,6 +170,7 @@ public partial class RelationshipsGraphView : UserControl
         e.Pointer.Capture(_viewport);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // reads e.GetPosition — pointer args not constructible outside the input pipeline
     private void OnViewportPointerMoved(object? sender, PointerEventArgs e)
     {
         if (!_isPanning || _pan == null || _viewport == null) return;
@@ -177,6 +179,7 @@ public partial class RelationshipsGraphView : UserControl
         _pan.Y = _panStartY + (cur.Y - _panStart.Y);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // reads e.Pointer — pointer args not constructible outside the input pipeline
     private void OnViewportPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         if (!_isPanning) return;
@@ -186,6 +189,7 @@ public partial class RelationshipsGraphView : UserControl
 
     // ── Zoom ─────────────────────────────────────────────────────
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // reads e.Delta / e.GetPosition — pointer args not constructible outside the input pipeline
     private void OnViewportPointerWheel(object? sender, PointerWheelEventArgs e)
     {
         if (_zoom == null || _pan == null || _viewport == null) return;

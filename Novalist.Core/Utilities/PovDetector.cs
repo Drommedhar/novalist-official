@@ -27,9 +27,6 @@ public static class PovDetector
             var maxCount = 0;
             foreach (var alias in aliases)
             {
-                if (string.IsNullOrWhiteSpace(alias))
-                    continue;
-
                 var pattern = new Regex(
                     $@"(?<![\p{{L}}\p{{N}}]){Regex.Escape(alias)}(?![\p{{L}}\p{{N}}])",
                     RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);

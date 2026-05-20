@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- xUnit1031: blocking on tasks in tests. Deliberate — some async bodies are wrapped in
+         Task.Run(...).GetAwaiter().GetResult() to contain real yields. -->
+    <NoWarn>$(NoWarn);xUnit1031</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Official headless UI-thread test support: provides [AvaloniaFact]/[AvaloniaTheory],
+         which run each test on the dispatcher thread (requires xUnit v3). -->
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="12.0.3" />
+  </ItemGroup>
+
+  <!-- [AvaloniaFact]/[AvaloniaTheory] available without per-file usings. -->
+  <ItemGroup>
+    <Using Include="Avalonia.Headless.XUnit" />
+  </ItemGroup>
+
+  <!-- Serialize test collections: the headless session dispatches one test at a time. -->
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Novalist.Desktop\Novalist.Desktop.csproj" />
+    <!-- Real sample extension, used to exercise ExtensionLoader / ExtensionLoadContext
+         against an actual on-disk plugin assembly. -->
+    <ProjectReference Include="..\..\Novalist.Sdk.Example\Novalist.Sdk.Example.csproj" />
+    <!-- Test-only extension that throws on demand, for host error-path coverage. -->
+    <ProjectReference Include="..\Novalist.TestExtension\Novalist.TestExtension.csproj" />
+  </ItemGroup>
+
+</Project>

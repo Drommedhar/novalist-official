@@ -14,7 +14,7 @@ namespace Novalist.Desktop.ViewModels;
 public partial class FootnotesPanelViewModel : ObservableObject
 {
     private readonly IProjectService _projectService;
-    private EditorViewModel? _editor;
+    private IFootnoteEditorContext? _editor;
     private string? _currentSceneId;
 
     [ObservableProperty]
@@ -30,7 +30,7 @@ public partial class FootnotesPanelViewModel : ObservableObject
         _projectService = projectService;
     }
 
-    public void AttachEditor(EditorViewModel? editor)
+    public void AttachEditor(IFootnoteEditorContext? editor)
     {
         if (_editor != null)
         {
@@ -51,7 +51,7 @@ public partial class FootnotesPanelViewModel : ObservableObject
 
     private void OnEditorPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is nameof(EditorViewModel.CurrentScene) or nameof(EditorViewModel.IsDocumentOpen))
+        if (e.PropertyName is nameof(IEditorContext.CurrentScene) or nameof(IEditorContext.IsDocumentOpen))
             Sync();
     }
 

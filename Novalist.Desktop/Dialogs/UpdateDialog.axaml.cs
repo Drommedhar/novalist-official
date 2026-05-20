@@ -49,6 +49,7 @@ public partial class UpdateDialog : UserControl
             DialogClosed.TrySetResult();
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // downloads + launches the installer and shuts the app down via the classic desktop lifetime; requires a real updater + lifetime
     private async void OnDownload(object? sender, RoutedEventArgs e)
     {
         if (_downloading)

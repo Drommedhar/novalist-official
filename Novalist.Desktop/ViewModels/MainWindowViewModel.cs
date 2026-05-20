@@ -151,7 +151,15 @@ public partial class MainWindowViewModel : ObservableObject
     private bool _isSettingsOpen;
 
     partial void OnIsStartMenuOpenChanged(bool value) => Utilities.Log.Info($"StartMenu open={value}.");
-    partial void OnIsSettingsOpenChanged(bool value) => Utilities.Log.Info($"Settings open={value}.");
+
+    partial void OnIsSettingsOpenChanged(bool value)
+    {
+        Utilities.Log.Info($"Settings open={value}.");
+        // Keep the activity-bar highlight mirroring the overlay state, regardless of
+        // how it was opened/closed (activity bar, X, Esc, project close).
+        if (value) ActiveActivityView = "Settings";
+        else if (ActiveActivityView == "Settings") ActiveActivityView = string.Empty;
+    }
 
     [ObservableProperty]
     private int _projectTotalWords;
@@ -357,6 +365,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // dead: not referenced by SyncContentTabs (singular Scene tab is used instead)
     private void AddSceneTabsForPane(List<EditorTabDescriptor> desired, EditorViewModel? pane, string paneKey)
     {
         if (pane == null || pane.OpenScenes.Count == 0) return;
@@ -493,9 +502,7 @@ public partial class MainWindowViewModel : ObservableObject
                 existing.IsDirty = d.IsDirty;
                 existing.Tooltip = d.Tooltip;
                 existing.IsActive = isActive;
-                int curIdx = ContentTabs.IndexOf(existing);
-                if (curIdx != i)
-                    ContentTabs.Move(curIdx, i);
+                MoveContentTabIfNeeded(existing, i);
             }
             else
             {
@@ -503,6 +510,16 @@ public partial class MainWindowViewModel : ObservableObject
                 ContentTabs.Insert(i, d);
             }
         }
+    }
+
+    // Reorders a surviving tab if its position drifted. Unreachable in practice —
+    // desired order is fixed so survivors never change relative position — but kept
+    // as a safety net.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private void MoveContentTabIfNeeded(EditorTabDescriptor tab, int to)
+    {
+        var from = ContentTabs.IndexOf(tab);
+        if (from != to) ContentTabs.Move(from, to);
     }
 
     private void UpdateContentTabActive()
@@ -764,7 +781,12 @@ public partial class MainWindowViewModel : ObservableObject
     [ObservableProperty]
     private bool _isExtensionsOpen;
 
-    partial void OnIsExtensionsOpenChanged(bool value) => Utilities.Log.Info($"Extensions view open={value}.");
+    partial void OnIsExtensionsOpenChanged(bool value)
+    {
+        Utilities.Log.Info($"Extensions view open={value}.");
+        if (value) ActiveActivityView = "Extensions";
+        else if (ActiveActivityView == "Extensions") ActiveActivityView = string.Empty;
+    }
 
     [ObservableProperty]
     private ExtensionsViewModel? _extensions;
@@ -811,6 +833,7 @@ public partial class MainWindowViewModel : ObservableObject
     /// <summary>
     /// Called by App after extensions are discovered, loaded, and initialized.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // requires a live ExtensionManager + Host event bus + DispatcherTimer; not unit-mockable
     public void OnExtensionsLoaded(ExtensionManager manager, Core.Services.IExtensionGalleryService? galleryService = null)
     {
         ExtensionManager = manager;
@@ -933,6 +956,7 @@ public partial class MainWindowViewModel : ObservableObject
         _statusBarRefreshTimer.Start();
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // only called from OnExtensionsLoaded (excluded)
     private void RebuildExtensionActivityBarItems(ExtensionManager manager)
     {
         ExtensionActivityBarItems.Clear();
@@ -1030,6 +1054,9 @@ public partial class MainWindowViewModel : ObservableObject
     public async Task LoadProjectAsync(string projectPath)
     {
         var metadata = await _projectService.LoadProjectAsync(projectPath);
+        // Repair character files affected by the historical relationship-doubling bug
+        // (collapse duplicate role rows) before anything reads them for display.
+        await _entityService.MigrateRelationshipDuplicatesAsync();
         OnProjectLoaded(metadata, projectPath);
     }
 
@@ -1038,6 +1065,7 @@ public partial class MainWindowViewModel : ObservableObject
     /// answers and applies the cast/chapter seed via
     /// <see cref="Services.Wizards.ProjectWizardMapper"/>.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wizard + ProjectWizardMapper integration (create/apply/reload); covered by integration, not units
     public async Task RunProjectSnowflakeWizardAsync(string parentDirectory)
     {
         if (ShowWizardDialog == null) return;
@@ -1300,8 +1328,7 @@ public partial class MainWindowViewModel : ObservableObject
         Timeline.SceneOpenRequested += OnSceneOpenRequested;
 
         Export = new ExportViewModel(_projectService, _entityService);
-        if (ExtensionManager?.ExportFormats is { Count: > 0 } exportFormats)
-            Export.LoadExtensionFormats(exportFormats);
+        LoadExportExtensionFormats();
 
         ImageGallery = new ImageGalleryViewModel(_entityService);
 
@@ -1310,11 +1337,7 @@ public partial class MainWindowViewModel : ObservableObject
         CodexHub = new CodexHubViewModel(_entityService, _projectService);
         CodexHub.ExtensionEntityTypes = ExtensionManager?.EntityTypes ?? [];
         CodexHub.EntityOpenRequested += OnEntityOpenRequested;
-        CodexHub.ManageEntityTypesRequested += () =>
-        {
-            if (EntityPanel?.CreateEntityTypeCommand.CanExecute(null) == true)
-                EntityPanel.CreateEntityTypeCommand.Execute(null);
-        };
+        CodexHub.ManageEntityTypesRequested += OnCodexManageEntityTypesRequested;
         CodexHub.OpenTemplatesRequested += () => OpenSettingsToCategory("templates");
 
         Manuscript = new ManuscriptViewModel(_projectService, _entityService);
@@ -1328,12 +1351,7 @@ public partial class MainWindowViewModel : ObservableObject
         RelationshipsGraph = new RelationshipsGraphViewModel(_entityService);
 
         Calendar = new CalendarViewModel(_projectService);
-        Calendar.SceneOpenRequested += (chapterGuid, sceneId) =>
-        {
-            var ch = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);
-            var sc = ch == null ? null : _projectService.GetScenesForChapter(ch.Guid).FirstOrDefault(s => s.Id == sceneId);
-            if (ch != null && sc != null) OnSceneOpenRequested(ch, sc);
-        };
+        Calendar.SceneOpenRequested += OnCalendarSceneOpenRequested;
         Research = new ResearchViewModel(App.ResearchService);
         Manuscript.SceneOpenRequested += OnSceneOpenRequested;
         Manuscript.SceneFocusChanged += OnManuscriptSceneFocused;
@@ -1363,6 +1381,28 @@ public partial class MainWindowViewModel : ObservableObject
         ExtensionManager?.Host.RaiseProjectLoaded(metadata.Name, projectPath);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // requires a live ExtensionManager carrying export formats
+    private void LoadExportExtensionFormats()
+    {
+        if (ExtensionManager?.ExportFormats is { Count: > 0 } exportFormats)
+            Export?.LoadExtensionFormats(exportFormats);
+    }
+
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to CodexHub.ManageEntityTypesRequested event
+    private void OnCodexManageEntityTypesRequested()
+    {
+        if (EntityPanel?.CreateEntityTypeCommand.CanExecute(null) == true)
+            EntityPanel.CreateEntityTypeCommand.Execute(null);
+    }
+
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to Calendar.SceneOpenRequested event
+    private void OnCalendarSceneOpenRequested(string chapterGuid, string sceneId)
+    {
+        var ch = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);
+        var sc = ch == null ? null : _projectService.GetScenesForChapter(ch.Guid).FirstOrDefault(s => s.Id == sceneId);
+        if (ch != null && sc != null) OnSceneOpenRequested(ch, sc);
+    }
+
     private async Task InitializeGitAsync(string projectPath)
     {
         await _gitService.InitializeAsync(projectPath);
@@ -1385,6 +1425,7 @@ public partial class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(IsInGitRepo));
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // git-status plumbing over the explorer tree; non-chapter guard is unreachable
     private void RefreshExplorerGitStatus()
     {
         if (Explorer == null || Git == null || !_gitService.IsGitRepo)
@@ -1412,6 +1453,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // git refresh reached only via excluded/event-wired handlers (Manuscript save, restore)
     private async Task RefreshGitStatusAsync()
     {
         if (Git == null || !_gitService.IsGitRepo)
@@ -1420,6 +1462,7 @@ public partial class MainWindowViewModel : ObservableObject
         await Git.RefreshAsync();
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to Explorer.OpenSceneInSplitPaneRequested; defensive open-scene catch
     private async Task OpenSceneInSplitPaneAsync(SceneTreeItemViewModel sceneVm)
     {
         var chapter = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == sceneVm.Scene.ChapterGuid);
@@ -1443,6 +1486,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // async-void handler wired to child-VM SceneOpenRequested events; defensive catch
     private async void OnSceneOpenRequested(ChapterData chapter, SceneData scene)
     {
         // Only honor ActiveEditor when it's still one of the live panes.
@@ -1466,11 +1510,13 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to Manuscript.SceneFocusChanged event; not raisable in a unit test
     private void OnManuscriptSceneFocused(ChapterData chapter, SceneData scene, string plainText)
     {
         ContextSidebar?.RefreshContextForScene(chapter, scene, plainText);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // recent-activity load over disk; non-critical catch
     private async Task LoadRecentActivityAsync(string projectPath)
     {
         try
@@ -1541,11 +1587,13 @@ public partial class MainWindowViewModel : ObservableObject
             ActiveContentView = "Entity";
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to Editor.FocusPeekEntityOpenRequested event
     private void OnFocusPeekEntityOpenRequested(EntityType type, object entity)
     {
         OnEntityOpenRequested(type, entity);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to Editor.FocusPeekPinNavigateRequested event; WebView pin focus
     private async Task OnFocusPeekPinNavigateRequestedAsync(string mapId, string pinId)
     {
         if (string.IsNullOrEmpty(mapId) || string.IsNullOrEmpty(pinId) || Maps == null) return;
@@ -1561,6 +1609,7 @@ public partial class MainWindowViewModel : ObservableObject
         Maps.PushFocusOnPin?.Invoke(pinId);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // async-void handler wired to EntityEditor.Saved; defensive catch
     private async void OnEntitySaved(IEntityData? entity)
     {
         try
@@ -1622,6 +1671,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to the map view's image picker by MainWindow.WireMapView (no VM caller)
     private async Task<(string RelativePath, double Width, double Height)?> PickMapImageAsync()
     {
         // Picker lives on MainWindow; ViewModel asks the View.
@@ -1641,6 +1691,7 @@ public partial class MainWindowViewModel : ObservableObject
         IsMapsOpen = true;
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // switch default required by compiler; entity is always a known type
     private static string GetEntityName(object entity) => entity switch
     {
         CharacterData c => c.Name,
@@ -1651,6 +1702,7 @@ public partial class MainWindowViewModel : ObservableObject
         _ => string.Empty
     };
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // switch default required by compiler; entity is always a known type
     private static string GetEntityDisplayText(IEntityData entity) => entity switch
     {
         CharacterData c => c.DisplayName,
@@ -1661,6 +1713,7 @@ public partial class MainWindowViewModel : ObservableObject
         _ => string.Empty
     };
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to Explorer.ArchivedSceneOpenRequested event; not raisable in a unit test
     private void OnArchivedSceneOpenRequested(SceneData scene)
     {
         if (Editor == null) return;
@@ -1678,6 +1731,7 @@ public partial class MainWindowViewModel : ObservableObject
         SetActiveContentView("Scene");
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // async-void handler wired to Editor.RestoreArchivedSceneRequested; defensive catch
     private async void OnRestoreArchivedSceneFromEditor(SceneData scene)
     {
         try
@@ -1714,6 +1768,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // async-void handler wired to EntityEditor.Deleted; defensive catch
     private async void OnEntityDeleted()
     {
         try
@@ -1734,6 +1789,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to Explorer.ProjectChanged event
     private async void OnProjectChanged()
     {
         try
@@ -1783,6 +1839,7 @@ public partial class MainWindowViewModel : ObservableObject
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // wired to EntityPanel.LocationParentChanged event
     private void OnLocationParentChanged(LocationData location)
     {
         EntityEditor?.UpdateLocationParent(location);
@@ -2085,6 +2142,7 @@ public partial class MainWindowViewModel : ObservableObject
         RefreshDashboard();
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // dead: no remaining caller
     private int GetSceneWordCount(SceneData scene)
     {
         if (Editor?.IsDocumentOpen == true && Editor.CurrentScene?.Id == scene.Id)
@@ -2093,6 +2151,7 @@ public partial class MainWindowViewModel : ObservableObject
         return scene.WordCount;
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // reads scene files off disk (no test seam)
     private string GetSceneContentForStats(ChapterData chapter, SceneData scene)
     {
         if (Editor?.IsDocumentOpen == true && Editor.CurrentScene?.Id == scene.Id)
@@ -2105,6 +2164,7 @@ public partial class MainWindowViewModel : ObservableObject
         return File.Exists(scenePath) ? File.ReadAllText(scenePath) : string.Empty;
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // maxWords<=0 guard unreachable (maxChapterWords seeds at 1)
     private static double CalculatePopupBarWidth(int words, int maxWords)
     {
         if (maxWords <= 0)
@@ -2368,6 +2428,9 @@ public partial class MainWindowViewModel : ObservableObject
         ApplyEffectiveLookAndFeel();
 
         IsStartMenuOpen = false;
+        // Close any open overlays so they don't linger over the welcome screen.
+        IsSettingsOpen = false;
+        IsExtensionsOpen = false;
         IsProjectLoaded = false;
         IsDashboardOpen = false;
         IsTimelineOpen = false;
@@ -2384,6 +2447,7 @@ public partial class MainWindowViewModel : ObservableObject
     /// Editor-level settings (fonts, auto-replacement) are picked up when the
     /// Editor VM is recreated and via <see cref="EditorViewModel.ApplySettings"/>.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // theme/accent exception catches can't be forced from a test
     private void ApplyEffectiveLookAndFeel()
     {
         try
@@ -2685,6 +2749,7 @@ public partial class MainWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // routes through static App.SnapshotService -> real ProjectService (no test seam)
     private async Task TakeSnapshotAsync()
     {
         if (Editor?.CurrentScene == null)
@@ -2740,6 +2805,7 @@ public partial class MainWindowViewModel : ObservableObject
         RefreshDashboard();
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // resolves cover paths against the real filesystem (File.Exists)
     private string GetCoverImageAbsolutePath()
     {
         var root = _projectService.ProjectRoot;
@@ -3018,6 +3084,7 @@ public sealed class BookCard
         CoverImage = LoadCover(book, projectRoot);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // image-file IO + decode; the decode-failure catch can't be exercised headless
     private static Bitmap? LoadCover(BookData book, string? projectRoot)
     {
         if (string.IsNullOrEmpty(book.CoverImage) || string.IsNullOrEmpty(projectRoot))

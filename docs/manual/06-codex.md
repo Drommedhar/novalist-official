@@ -174,15 +174,17 @@ Click an entity to open it in a tab. The entity editor is split into:
 - **Built-in fields** — laid out as a form.
 - **Custom properties** — key-value editor with type-aware controls (date pickers for dates, dropdowns for enums, entity selectors for EntityRef, etc.).
 - **Sections** — markdown-edited blocks you can add, rename, reorder, delete.
-- **Relationships** — list of incoming and outgoing relationships, with inline edit. When you add a relationship Novalist remembers the role pair (e.g. "Father" ↔ "Son") and prompts to set the inverse on the target. See **Inverse relationships** below.
+- **Relationships** — list of incoming and outgoing relationships, with inline edit. Each role appears once per character; adding the same role to several people merges them into a single row ("Friend → Alice, Bob"). On save Novalist remembers the role pair (e.g. "Father" ↔ "Son") and offers to set the inverse on the target. See **Inverse relationships** below.
 - **Images** — gallery with reorder, captions, set-primary.
 - **Chapter overrides** (characters only).
 
 ### Inverse relationships
 
-When you add a relationship from character A to character B with role "Father", Novalist learns the pair and asks via the **Inverse Relationship Dialog** whether you also want to add the inverse "Son/Daughter" on character B. After a few uses Novalist will remember which role goes with which inverse for your project.
+When you save a character that has a relationship to character B with role "Father", Novalist learns the pair and asks via the **Inverse Relationship Dialog** whether you also want to add the inverse "Son/Daughter" on character B. After a few uses Novalist will remember which role goes with which inverse for your project.
 
-The mapping is stored in `AppSettings.RelationshipPairs` and grows as you use it.
+The prompt only appears for relationships that are not yet reciprocated: if character B already references the source back (in any role), Novalist skips the dialog and adds nothing — so you are never re-asked about relationships that are already set, and reciprocals are never duplicated.
+
+The mapping is stored in `AppSettings.RelationshipPairs` and grows as you use it. When a project is opened, Novalist runs a one-time repair that collapses any duplicate relationship rows left by older versions (each role merged back to a single entry).
 
 ### Adding images
 

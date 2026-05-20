@@ -12,6 +12,7 @@ using Novalist.Desktop.ViewModels;
 
 namespace Novalist.Desktop.Views;
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // ctor creates a native WebView2 (manuscript preview); cannot instantiate headless. Logic lives in ManuscriptViewModel.
 public partial class ManuscriptView : UserControl
 {
     private ManuscriptViewModel? _vm;

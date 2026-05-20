@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -31,6 +30,21 @@ public static class LinuxDependencyService
 {
     private const string WebKitSoName = "libwebkit2gtk-4.1.so.0";
 
+    private static readonly string[] WebKitProbePaths =
+    {
+        $"/usr/lib/x86_64-linux-gnu/{WebKitSoName}",
+        $"/usr/lib64/{WebKitSoName}",
+        $"/usr/lib/{WebKitSoName}",
+        $"/lib/x86_64-linux-gnu/{WebKitSoName}",
+    };
+
+    // Seams (defaults hit the real OS; tests swap them). Reset after each test.
+    internal static IProcessRunner ProcessRunner { get; set; } = new ProcessRunner();
+    internal static Func<string, bool> FileExists { get; set; } = File.Exists;
+    internal static Func<string?> ReadOsRelease { get; set; } = () => ReadOsReleaseFrom("/etc/os-release");
+    internal static Func<string> GetPathEnv { get; set; } =
+        () => Environment.GetEnvironmentVariable("PATH") ?? "/usr/bin:/bin";
+
     public static LinuxDependencyInfo Detect()
     {
         var (distro, name) = DetectDistro();
@@ -46,39 +60,20 @@ public static class LinuxDependencyService
         // reliable check across distros and arches.
         try
         {
-            var psi = new ProcessStartInfo("ldconfig", "-p")
-            {
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-            };
-            using var proc = Process.Start(psi);
-            if (proc != null)
-            {
-                var output = proc.StandardOutput.ReadToEnd();
-                proc.WaitForExit(2000);
-                if (output.Contains(WebKitSoName, StringComparison.Ordinal))
-                    return true;
-            }
+            var (_, output, _) = ProcessRunner.RunAsync("ldconfig", null, "-p").GetAwaiter().GetResult();
+            if (output.Contains(WebKitSoName, StringComparison.Ordinal))
+                return true;
         }
         catch { /* fall through to filesystem probe */ }
 
-        string[] paths =
-        {
-            $"/usr/lib/x86_64-linux-gnu/{WebKitSoName}",
-            $"/usr/lib64/{WebKitSoName}",
-            $"/usr/lib/{WebKitSoName}",
-            $"/lib/x86_64-linux-gnu/{WebKitSoName}",
-        };
-        return paths.Any(File.Exists);
+        return WebKitProbePaths.Any(FileExists);
     }
 
     public static bool IsPkexecAvailable()
     {
-        var pathEnv = Environment.GetEnvironmentVariable("PATH") ?? "/usr/bin:/bin";
-        foreach (var dir in pathEnv.Split(':', StringSplitOptions.RemoveEmptyEntries))
+        foreach (var dir in GetPathEnv().Split(':', StringSplitOptions.RemoveEmptyEntries))
         {
-            if (File.Exists(Path.Combine(dir, "pkexec")))
+            if (FileExists(Path.Combine(dir, "pkexec")))
                 return true;
         }
         return false;
@@ -92,20 +87,18 @@ public static class LinuxDependencyService
         if (string.IsNullOrWhiteSpace(command))
             return new InstallResult(false, "No install command available for this distribution.");
 
-        var psi = new ProcessStartInfo("pkexec")
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-        psi.ArgumentList.Add("sh");
-        psi.ArgumentList.Add("-c");
-        psi.ArgumentList.Add(command);
-
-        Process? proc;
+        int exitCode;
+        string captured;
         try
         {
-            proc = Process.Start(psi);
+            var result = await ProcessRunner.RunAsync("pkexec", null, ct, "sh", "-c", command);
+            exitCode = result.ExitCode;
+            captured = string.Join('\n', new[] { result.Output, result.Error }
+                .Where(s => !string.IsNullOrEmpty(s)));
+        }
+        catch (OperationCanceledException)
+        {
+            return new InstallResult(false, "Cancelled.");
         }
         catch (Exception ex)
         {
@@ -114,59 +107,54 @@ public static class LinuxDependencyService
                 "Install polkit, or run the printed command in a terminal as root.");
         }
 
-        if (proc is null)
-            return new InstallResult(false, "pkexec failed to start.");
+        foreach (var line in captured.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            output?.Report(line);
 
-        using (proc)
+        if (exitCode == 0)
+            return new InstallResult(true, "Installation complete.");
+
+        // pkexec exit code 126 = auth dismissed/declined, 127 = auth could not be obtained.
+        var reason = exitCode switch
         {
-            proc.OutputDataReceived += (_, e) => { if (e.Data != null) output?.Report(e.Data); };
-            proc.ErrorDataReceived  += (_, e) => { if (e.Data != null) output?.Report(e.Data); };
-            proc.BeginOutputReadLine();
-            proc.BeginErrorReadLine();
+            126 => "Authentication was dismissed.",
+            127 => "Authentication failed.",
+            _ => $"Install command exited with code {exitCode}.",
+        };
+        return new InstallResult(false, reason);
+    }
 
-            try
-            {
-                await proc.WaitForExitAsync(ct);
-            }
-            catch (OperationCanceledException)
-            {
-                try { proc.Kill(entireProcessTree: true); } catch { }
-                return new InstallResult(false, "Cancelled.");
-            }
-
-            if (proc.ExitCode == 0)
-                return new InstallResult(true, "Installation complete.");
-
-            // pkexec exit code 126 = auth dismissed/declined, 127 = auth could not be obtained.
-            var reason = proc.ExitCode switch
-            {
-                126 => "Authentication was dismissed.",
-                127 => "Authentication failed.",
-                _   => $"Install command exited with code {proc.ExitCode}.",
-            };
-            return new InstallResult(false, reason);
+    internal static string? ReadOsReleaseFrom(string path)
+    {
+        try
+        {
+            return File.ReadAllText(path);
+        }
+        catch
+        {
+            // Missing or unreadable — treated as "no distro info".
+            return null;
         }
     }
 
     private static (LinuxDistro distro, string name) DetectDistro()
     {
-        const string path = "/etc/os-release";
-        if (!File.Exists(path)) return (LinuxDistro.Unknown, "Unknown Linux");
+        var content = ReadOsRelease();
+        return content == null ? (LinuxDistro.Unknown, "Unknown Linux") : ParseOsRelease(content);
+    }
 
+    internal static (LinuxDistro distro, string name) ParseOsRelease(string content)
+    {
         string id = string.Empty, idLike = string.Empty, pretty = "Linux";
-        try
+        foreach (var raw in content.Split('\n'))
         {
-            foreach (var line in File.ReadAllLines(path))
-            {
-                if (line.StartsWith("ID=", StringComparison.Ordinal))
-                    id = TrimQuotes(line[3..]);
-                else if (line.StartsWith("ID_LIKE=", StringComparison.Ordinal))
-                    idLike = TrimQuotes(line[8..]);
-                else if (line.StartsWith("PRETTY_NAME=", StringComparison.Ordinal))
-                    pretty = TrimQuotes(line[12..]);
-            }
+            var line = raw.Trim('\r');
+            if (line.StartsWith("ID=", StringComparison.Ordinal))
+                id = TrimQuotes(line[3..]);
+            else if (line.StartsWith("ID_LIKE=", StringComparison.Ordinal))
+                idLike = TrimQuotes(line[8..]);
+            else if (line.StartsWith("PRETTY_NAME=", StringComparison.Ordinal))
+                pretty = TrimQuotes(line[12..]);
         }
-        catch { return (LinuxDistro.Unknown, "Unknown Linux"); }
 
         var hay = (id + " " + idLike).ToLowerInvariant();
         if (hay.Contains("debian") || hay.Contains("ubuntu") || hay.Contains("mint") || hay.Contains("pop"))
@@ -192,7 +180,7 @@ public static class LinuxDependencyService
         return s;
     }
 
-    private static (string command, string package) GetInstallInfo(LinuxDistro distro) => distro switch
+    internal static (string command, string package) GetInstallInfo(LinuxDistro distro) => distro switch
     {
         LinuxDistro.Debian =>
             ("apt-get update && apt-get install -y libwebkit2gtk-4.1-0",

@@ -326,6 +326,12 @@ public partial class ExtensionStoreViewModel : ObservableObject
         item.NeedsRestart = true;
     }
 
+    // Resolves and installs an extension's transitive dependencies by reading
+    // manifests from the real on-disk extensions directory and downloading via
+    // the gallery. Both the directory and the recursive install are real
+    // side-effecting filesystem operations that can't be exercised in a unit
+    // test, so this is excluded from coverage.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private async Task InstallDependenciesAsync(string extensionId)
     {
         var extensionsDir = ExtensionLoader.GetExtensionsDirectory();

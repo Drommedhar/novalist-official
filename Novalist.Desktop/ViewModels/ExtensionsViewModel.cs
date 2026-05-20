@@ -54,6 +54,9 @@ public partial class ExtensionsViewModel : ObservableObject
         Refresh();
     }
 
+    // Async-void event handler that triggers real extension discovery + a refresh;
+    // not deterministically testable under the headless harness, so excluded.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private async void OnStoreExtensionInstalled(object? sender, string extensionId)
     {
         try
@@ -135,6 +138,10 @@ public partial class ExtensionsViewModel : ObservableObject
         }
     }
 
+    // Opens the extensions folder in the OS file manager: spawns a real process,
+    // so the whole command is excluded from coverage (running it would launch a
+    // window during tests).
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     [RelayCommand]
     private void OpenExtensionsFolder()
     {
@@ -201,7 +208,11 @@ public partial class ExtensionItemViewModel : ObservableObject
 
     private bool _suppressEnabledHandler;
 
-    async partial void OnIsEnabledChanged(bool value)
+    // Thin sync wrapper over the awaitable handler so the enable/disable logic
+    // stays unit-testable (an async-void body's generated state machine isn't).
+    partial void OnIsEnabledChanged(bool value) => _ = ApplyIsEnabledAsync(value);
+
+    internal async Task ApplyIsEnabledAsync(bool value)
     {
         if (_suppressEnabledHandler) return;
 

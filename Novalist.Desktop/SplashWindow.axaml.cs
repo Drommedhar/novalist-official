@@ -13,6 +13,7 @@ using Novalist.Desktop.Localization;
 
 namespace Novalist.Desktop;
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // startup splash: app/extension update checks (network), installer download/launch + process restart/shutdown — process & network interop, not unit-testable
 public partial class SplashWindow : Window
 {
     private UpdateInfo? _pendingUpdate;

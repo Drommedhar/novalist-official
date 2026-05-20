@@ -1,0 +1,28 @@
+Summary
+  Generated on: 5/20/2026 - 4:48:52 PM
+  Coverage date: 5/20/2026 - 4:48:52 PM
+  Parser: Cobertura
+  Assemblies: 1
+  Classes: 6
+  Files: 5
+  Line coverage: 100%
+  Covered lines: 14
+  Uncovered lines: 0
+  Coverable lines: 14
+  Total lines: 197
+  Branch coverage: 100% (34 of 34)
+  Covered branches: 34
+  Total branches: 34
+  Method coverage: 100% (11 of 11)
+  Full method coverage: 100% (11 of 11)
+  Covered methods: 11
+  Fully covered methods: 11
+  Total methods: 11
+
+Novalist.Sdk                                  100%
+  Novalist.Sdk.Hooks.IAiHook                  100%
+  Novalist.Sdk.Hooks.IEditorExtension         100%
+  Novalist.Sdk.Models.HotkeyDescriptor        100%
+  Novalist.Sdk.Models.StatusBarItem           100%
+  Novalist.Sdk.Models.Wizards.WizardAnswer    100%
+  Novalist.Sdk.Models.Wizards.WizardResult    100%

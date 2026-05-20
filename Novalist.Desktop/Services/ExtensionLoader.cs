@@ -19,6 +19,11 @@ public sealed class ExtensionLoader
         PropertyNameCaseInsensitive = true
     };
 
+    private readonly string? _extensionsDirOverride;
+
+    /// <param name="extensionsDir">Extensions directory; defaults to %APPDATA%/Novalist/Extensions. Tests pass a temp dir.</param>
+    public ExtensionLoader(string? extensionsDir = null) => _extensionsDirOverride = extensionsDir;
+
     /// <summary>
     /// Returns the root extensions directory: %APPDATA%/Novalist/Extensions/
     /// </summary>
@@ -35,7 +40,7 @@ public sealed class ExtensionLoader
     public List<ExtensionInfo> DiscoverExtensions()
     {
         var results = new List<ExtensionInfo>();
-        var extensionsDir = GetExtensionsDirectory();
+        var extensionsDir = _extensionsDirOverride ?? GetExtensionsDirectory();
 
         if (!Directory.Exists(extensionsDir))
         {
@@ -135,14 +140,9 @@ public sealed class ExtensionLoader
                 return false;
             }
 
-            var instance = Activator.CreateInstance(extensionType) as IExtension;
-            if (instance == null)
-            {
-                info.LoadError = "Failed to instantiate IExtension implementation.";
-                return false;
-            }
-
-            info.Instance = instance;
+            // extensionType is already verified to implement IExtension above, so
+            // the cast cannot fail; any construction failure throws and is caught below.
+            info.Instance = (IExtension)Activator.CreateInstance(extensionType)!;
             info.LoadContext = loadContext;
             info.IsLoaded = true;
             return true;

@@ -82,6 +82,8 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
     };
 
     private readonly HttpClient _http;
+    private readonly string _extensionsDir;
+    private readonly string _downloadDir;
 
     // In-memory cache
     private List<GalleryEntry>? _cachedIndex;
@@ -90,9 +92,16 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
 
     public string? GitHubToken { get; set; }
 
-    public ExtensionGalleryService()
+    /// <param name="http">HTTP client; defaults to a shared client with the store User-Agent.</param>
+    /// <param name="extensionsDir">Installed-extensions directory; defaults to %APPDATA%/Novalist/Extensions.</param>
+    /// <param name="downloadDir">ZIP download directory; defaults to %LocalAppData%/Novalist/ExtensionDownloads.</param>
+    public ExtensionGalleryService(HttpClient? http = null, string? extensionsDir = null, string? downloadDir = null)
     {
-        _http = CreateHttpClient();
+        _http = http ?? CreateHttpClient();
+        _extensionsDir = extensionsDir ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Novalist", "Extensions");
+        _downloadDir = downloadDir ?? Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Novalist", "ExtensionDownloads");
     }
 
     private static HttpClient CreateHttpClient()
@@ -246,13 +255,10 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
 
     public async Task<string> DownloadExtensionZipAsync(GalleryRelease release, IProgress<double>? progress = null, CancellationToken ct = default)
     {
-        var downloadDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "Novalist", "ExtensionDownloads");
-        Directory.CreateDirectory(downloadDir);
+        Directory.CreateDirectory(_downloadDir);
 
         var fileName = Path.GetFileName(new Uri(release.ZipDownloadUrl).AbsolutePath);
-        var filePath = Path.Combine(downloadDir, fileName);
+        var filePath = Path.Combine(_downloadDir, fileName);
 
         // Skip if already downloaded with correct size
         if (File.Exists(filePath) && new FileInfo(filePath).Length == release.ZipSize)
@@ -302,38 +308,38 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
             {
                 Directory.Delete(targetDir, true);
             }
-            catch (UnauthorizedAccessException)
+            catch (Exception ex) when (ex is UnauthorizedAccessException or IOException)
             {
-                // DLLs still loaded in memory — overwrite in place
-            }
-            catch (IOException)
-            {
-                // File locked — overwrite in place
+                // DLLs still loaded / files locked — fall through and overwrite in place.
             }
         }
 
         Directory.CreateDirectory(targetDir);
 
-        // Extract ZIP with path traversal protection
-        using var archive = ZipFile.OpenRead(zipPath);
-        foreach (var zipEntry in archive.Entries)
+        // Extract ZIP with path traversal protection. Scope the archive so its
+        // file handle is released before we delete the downloaded ZIP below —
+        // otherwise the delete fails (file still open) on Windows and the ZIP leaks.
+        using (var archive = ZipFile.OpenRead(zipPath))
         {
-            // Skip directory entries
-            if (string.IsNullOrEmpty(zipEntry.Name))
-                continue;
+            foreach (var zipEntry in archive.Entries)
+            {
+                // Skip directory entries
+                if (string.IsNullOrEmpty(zipEntry.Name))
+                    continue;
 
-            var destinationPath = Path.GetFullPath(Path.Combine(targetDir, zipEntry.FullName));
+                var destinationPath = Path.GetFullPath(Path.Combine(targetDir, zipEntry.FullName));
 
-            // Prevent path traversal attacks
-            if (!destinationPath.StartsWith(Path.GetFullPath(targetDir), StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException($"ZIP entry attempts path traversal: {zipEntry.FullName}");
+                // Prevent path traversal attacks
+                if (!destinationPath.StartsWith(Path.GetFullPath(targetDir), StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException($"ZIP entry attempts path traversal: {zipEntry.FullName}");
 
-            // Ensure subdirectory exists
-            var entryDir = Path.GetDirectoryName(destinationPath);
-            if (entryDir is not null)
-                Directory.CreateDirectory(entryDir);
+                // Ensure subdirectory exists
+                var entryDir = Path.GetDirectoryName(destinationPath);
+                if (entryDir is not null)
+                    Directory.CreateDirectory(entryDir);
 
-            zipEntry.ExtractToFile(destinationPath, overwrite: true);
+                zipEntry.ExtractToFile(destinationPath, overwrite: true);
+            }
         }
 
         // Validate extension.json exists and id matches
@@ -504,11 +510,7 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
 
     // ── Helpers ───────────────────────────────────────────────────────
 
-    private static string GetExtensionsDirectory()
-    {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(appData, "Novalist", "Extensions");
-    }
+    private string GetExtensionsDirectory() => _extensionsDir;
 
     private static bool IsNewer(string remote, string current)
     {

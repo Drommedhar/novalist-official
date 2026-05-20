@@ -42,6 +42,79 @@ public class EntityService : IEntityService
     public Task DeleteCharacterAsync(string id, bool isWorldBible = false)
         => DeleteEntityAsync(isWorldBible ? Project.CharacterFolder : Book.CharacterFolder, id, isWorldBible);
 
+    public async Task<int> MigrateRelationshipDuplicatesAsync()
+    {
+        var characters = await LoadCharactersAsync();
+        var changed = 0;
+        foreach (var character in characters)
+        {
+            if (DeduplicateCharacterRelationships(character))
+            {
+                await SaveCharacterAsync(character);
+                changed++;
+            }
+        }
+        return changed;
+    }
+
+    /// <summary>
+    /// Collapses a character's relationships so each role appears exactly once, with its
+    /// targets merged and de-duplicated (case-insensitive, first-seen order, multi-target
+    /// "A, B" lists split). Mutates <paramref name="character"/> in place; returns whether
+    /// anything changed. Pure (no IO) so it is unit-testable on its own.
+    /// </summary>
+    public static bool DeduplicateCharacterRelationships(CharacterData character)
+    {
+        var roleOrder = new List<string>();
+        var targetsByRole = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        var seenByRole = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var relationship in character.Relationships)
+        {
+            var role = (relationship.Role ?? string.Empty).Trim();
+            if (!targetsByRole.TryGetValue(role, out var targets))
+            {
+                targets = [];
+                targetsByRole[role] = targets;
+                seenByRole[role] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                roleOrder.Add(role);
+            }
+
+            var seen = seenByRole[role];
+            foreach (var target in (relationship.Target ?? string.Empty)
+                         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (seen.Add(target))
+                    targets.Add(target);
+            }
+        }
+
+        var rebuilt = roleOrder
+            .Select(role => new EntityRelationship { Role = role, Target = string.Join(", ", targetsByRole[role]) })
+            .ToList();
+
+        if (RelationshipsEqual(character.Relationships, rebuilt))
+            return false;
+
+        character.Relationships = rebuilt;
+        return true;
+    }
+
+    private static bool RelationshipsEqual(List<EntityRelationship> a, List<EntityRelationship> b)
+    {
+        if (a.Count != b.Count)
+            return false;
+        for (var i = 0; i < a.Count; i++)
+        {
+            if (!string.Equals(a[i].Role ?? string.Empty, b[i].Role ?? string.Empty, StringComparison.Ordinal)
+                || !string.Equals(a[i].Target ?? string.Empty, b[i].Target ?? string.Empty, StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // ── Locations ───────────────────────────────────────────────────
 
     public async Task<List<LocationData>> LoadLocationsAsync()
@@ -280,8 +353,17 @@ public class EntityService : IEntityService
         {
             foreach (var file in Directory.GetFiles(bookDir, "*.json"))
             {
-                var json = await File.ReadAllTextAsync(file);
-                var entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
+                T? entity;
+                try
+                {
+                    var json = await File.ReadAllTextAsync(file);
+                    entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
+                }
+                catch
+                {
+                    // Skip a corrupt/unreadable entity file rather than failing the whole load.
+                    continue;
+                }
                 if (entity != null)
                 {
                     entity.IsWorldBible = false;
@@ -299,8 +381,17 @@ public class EntityService : IEntityService
                 var bookIds = new HashSet<string>(result.Select(e => e.Id), StringComparer.Ordinal);
                 foreach (var file in Directory.GetFiles(wbDir, "*.json"))
                 {
-                    var json = await File.ReadAllTextAsync(file);
-                    var entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
+                    T? entity;
+                    try
+                    {
+                        var json = await File.ReadAllTextAsync(file);
+                        entity = JsonSerializer.Deserialize<T>(json, JsonOptions);
+                    }
+                    catch
+                    {
+                        // Skip a corrupt/unreadable entity file.
+                        continue;
+                    }
                     if (entity != null && !bookIds.Contains(entity.Id))
                     {
                         entity.IsWorldBible = true;

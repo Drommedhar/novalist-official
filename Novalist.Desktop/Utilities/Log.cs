@@ -19,17 +19,23 @@ namespace Novalist.Desktop.Utilities;
 /// </summary>
 public static class Log
 {
-    private static readonly bool _verbose =
+    // Internal seams for tests: route the sink to a temp dir and toggle verbose
+    // output without depending on a process-start environment variable.
+    internal static bool Verbose { get; set; } =
         Environment.GetEnvironmentVariable("NOVALIST_VERBOSE") == "1";
+
+    internal static LogFileSink? SinkOverride { get; set; }
 
     private static LogFileSink? _sink;
     private static volatile bool _fileEnabled;
+
+    private static LogFileSink Sink => SinkOverride ?? (_sink ??= new LogFileSink());
 
     /// <summary>Directory where diagnostic logs live (whether or not enabled).</summary>
     public static string LogDirectory => LogFileSink.DefaultDirectory;
 
     /// <summary>Path of the current day's diagnostic log file.</summary>
-    public static string CurrentLogPath => (_sink ??= new LogFileSink()).CurrentLogPath;
+    public static string CurrentLogPath => Sink.CurrentLogPath;
 
     /// <summary>
     /// Turns the diagnostic file sink on or off. Live — no restart required.
@@ -37,23 +43,23 @@ public static class Log
     public static void EnableFileLogging(bool enabled)
     {
         if (enabled)
-            _sink ??= new LogFileSink();
+            _ = Sink;
         _fileEnabled = enabled;
     }
 
     /// <summary>Deletes all diagnostic log files.</summary>
-    public static void ClearLogFiles() => (_sink ??= new LogFileSink()).Clear();
+    public static void ClearLogFiles() => Sink.Clear();
 
     private static void ToFile(string line)
     {
         if (_fileEnabled)
-            _sink?.Write(LogRedactor.Scrub(line));
+            Sink.Write(LogRedactor.Scrub(line));
     }
 
     public static void Debug(string message)
     {
         System.Diagnostics.Debug.WriteLine(message);
-        if (_verbose) Console.Error.WriteLine(message);
+        if (Verbose) Console.Error.WriteLine(message);
         ToFile(message);
     }
 
@@ -61,7 +67,7 @@ public static class Log
     {
         var line = $"[INFO] {message}";
         System.Diagnostics.Debug.WriteLine(line);
-        if (_verbose) Console.Error.WriteLine(line);
+        if (Verbose) Console.Error.WriteLine(line);
         ToFile(line);
     }
 

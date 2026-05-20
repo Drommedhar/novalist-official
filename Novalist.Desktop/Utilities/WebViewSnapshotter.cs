@@ -14,6 +14,7 @@ namespace Novalist.Desktop.Utilities;
 /// the native HWND/NSView while overlays/dialogs are open, avoiding the
 /// jarring blank flash caused by simply toggling IsVisible.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // native HWND/NSView bitmap capture via P/Invoke; needs a real WebView, not unit-testable
 internal static class WebViewSnapshotter
 {
     public static Bitmap? Capture(Control webView)

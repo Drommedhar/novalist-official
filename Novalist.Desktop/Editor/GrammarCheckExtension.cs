@@ -17,7 +17,7 @@ namespace Novalist.Desktop.Editor;
 /// </summary>
 public sealed class GrammarCheckExtension : IEditorExtension
 {
-    private readonly GrammarCheckService _service = new();
+    private readonly GrammarCheckService _service;
     private CancellationTokenSource? _cts;
     private bool _enabled;
     private string _language = "en";
@@ -26,6 +26,10 @@ public sealed class GrammarCheckExtension : IEditorExtension
 
     public string Name => "GrammarCheck";
     public int Priority => 200;
+
+    /// <summary>Default ctor uses the shared HTTP client; the optional overload lets
+    /// tests inject a <see cref="GrammarCheckService"/> backed by a fake transport.</summary>
+    public GrammarCheckExtension(GrammarCheckService? service = null) => _service = service ?? new GrammarCheckService();
 
     public bool Enabled
     {

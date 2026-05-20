@@ -57,6 +57,13 @@ internal static class MapAssetServer
         finally { probe.Stop(); }
     }
 
+    // The accept loop and per-request handler are the live HTTP-serving plumbing
+    // for the macOS map WebView. Their error branches (listener shutdown,
+    // request-handling failures) require a failing live server to hit; the
+    // testable routing/security/mime logic lives in ResolveRequestPath / SafeJoin
+    // / ContentTypeFor (covered). End-to-end behavior is still validated by the
+    // MapAssetServer HTTP test.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static async Task AcceptLoop()
     {
         var listener = _listener;
@@ -70,6 +77,7 @@ internal static class MapAssetServer
         }
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static void HandleRequest(HttpListenerContext ctx)
     {
         try
@@ -115,7 +123,7 @@ internal static class MapAssetServer
         return SafeJoin(_assetsRoot!, rel);
     }
 
-    private static string? SafeJoin(string root, string rel)
+    internal static string? SafeJoin(string root, string rel)
     {
         var rootFull = Path.GetFullPath(root + Path.DirectorySeparatorChar);
         var combined = Path.GetFullPath(Path.Combine(rootFull, rel));

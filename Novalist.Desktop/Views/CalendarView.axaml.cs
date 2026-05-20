@@ -21,6 +21,7 @@ public partial class CalendarView : UserControl
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // initiates a native drag-drop loop (DragDrop.DoDragDropAsync) — not drivable headless
     private async void OnMonthEventPointerPressed(object? sender, PointerPressedEventArgs e)
     {
         if (sender is not Control control) return;
@@ -32,6 +33,7 @@ public partial class CalendarView : UserControl
         await DragDrop.DoDragDropAsync(e, transfer, DragDropEffects.Move);
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // DragEventArgs is not constructible outside the drag pipeline
     private void OnMonthDayDragOver(object? sender, DragEventArgs e)
     {
         if (e.DataTransfer?.Contains(SceneDragFormat) == true)
@@ -40,6 +42,7 @@ public partial class CalendarView : UserControl
             e.DragEffects = DragDropEffects.None;
     }
 
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // DragEventArgs is not constructible outside the drag pipeline; awaits a real reschedule
     private async void OnMonthDayDrop(object? sender, DragEventArgs e)
     {
         if (DataContext is not CalendarViewModel vm) return;

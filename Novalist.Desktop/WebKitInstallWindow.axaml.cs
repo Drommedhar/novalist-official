@@ -15,6 +15,7 @@ public enum WebKitInstallOutcome
     Installed,
 }
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // Linux WebKitGTK dependency installer: pkexec process launch + platform-gated (LinuxDependencyService) UI; not unit-testable on CI
 public partial class WebKitInstallWindow : Window
 {
     private readonly LinuxDependencyInfo _info;

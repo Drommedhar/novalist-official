@@ -21,6 +21,7 @@ using Novalist.Sdk.Models;
 
 namespace Novalist.Desktop;
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // native top-level window: WebView2 airspace orchestration (snapshot-hide) + dialog-overlay hosting + native HWND; not driveable headless. Logic lives in MainWindowViewModel.
 public partial class MainWindow : Window
 {
     private bool _isDialogOpen;

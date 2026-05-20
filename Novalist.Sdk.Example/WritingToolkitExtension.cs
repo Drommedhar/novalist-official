@@ -24,7 +24,10 @@ public sealed class WritingToolkitExtension :
     IStatusBarContributor,
     IContextMenuContributor,
     IContentViewContributor,
-    IEntityTypeContributor
+    IEntityTypeContributor,
+    IGrammarCheckContributor,
+    IHotkeyContributor,
+    IPropertyTypeContributor
 {
     private IHostServices _host = null!;
     private IExtensionLocalization _loc = null!;
@@ -320,6 +323,58 @@ public sealed class WritingToolkitExtension :
                 IncludeRelationships = true,
                 IncludeSections = true
             }
+        }
+    ];
+
+    // ── IGrammarCheckContributor ────────────────────────────────────
+
+    public string GrammarCheckName => "Writing Toolkit Style Check";
+
+    public bool IsGrammarCheckEnabled => true;
+
+    public Task<GrammarCheckResult> CheckAsync(string plainText, string language, CancellationToken cancellationToken = default)
+    {
+        // Example: flags the cliché "very unique". A real contributor would do
+        // more; this keeps the sample dependency-free and deterministic.
+        var issues = new List<GrammarIssue>();
+        var idx = plainText.IndexOf("very unique", StringComparison.OrdinalIgnoreCase);
+        if (idx >= 0)
+        {
+            issues.Add(new GrammarIssue
+            {
+                Offset = idx,
+                Length = "very unique".Length,
+                Message = _loc.T("grammar.veryUnique"),
+                Type = GrammarIssueType.Style,
+                Replacements = ["unique"]
+            });
+        }
+        return Task.FromResult(new GrammarCheckResult { Issues = issues });
+    }
+
+    // ── IHotkeyContributor ──────────────────────────────────────────
+
+    public IReadOnlyList<HotkeyDescriptor> GetHotkeyBindings() =>
+    [
+        new HotkeyDescriptor
+        {
+            ActionId = "ext.writingtoolkit.wordfreq",
+            DisplayName = _loc.T("hotkey.wordFreq"),
+            Category = _loc.T("group.writingToolkit"),
+            DefaultGesture = "Ctrl+Shift+W",
+            OnExecute = () => _host.ActivateContentView("ext.wordfreq")
+        }
+    ];
+
+    // ── IPropertyTypeContributor ────────────────────────────────────
+
+    public IReadOnlyList<PropertyTypeDescriptor> GetPropertyTypes() =>
+    [
+        new PropertyTypeDescriptor
+        {
+            TypeKey = "ext.writingtoolkit.wordcount",
+            DisplayName = _loc.T("propertyType.wordCount"),
+            DefaultValue = "0"
         }
     ];
 }

@@ -25,6 +25,7 @@ namespace Novalist.Desktop.Utilities;
 ///
 /// Filed upstream: see docs/avalonia-webview-bug-report/.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] // native WebKitGTK widget sizing via P/Invoke; requires a real native WebView
 internal static class NativeWebViewSizeFix
 {
     public static void Attach(NativeWebView webView, Control host)

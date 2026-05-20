@@ -4,6 +4,15 @@
 
 <h3 align="center">A desktop novel-writing application for authors who want to stay organized.</h3>
 
+<p align="center">
+  <a href="https://github.com/Drommedhar/novalist-official/actions/workflows/ci.yml">
+    <img src="https://github.com/Drommedhar/novalist-official/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
+  <!-- Live: CI publishes coverage.json to the `badges` branch (eng/Publish-CoverageBadge.ps1).
+       Gated at 100% by eng/Check-Coverage.ps1, so the build fails below that. -->
+  <img src="https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Drommedhar/novalist-official/badges/coverage.json" alt="Coverage" />
+</p>
+
 ---
 
 > **Disclaimer**

@@ -19,10 +19,14 @@ public class SettingsService : ISettingsService
 
     public void SetActiveOverrides(SettingsOverrides? overrides) => _activeOverrides = overrides;
 
-    public SettingsService()
+    /// <param name="settingsDirectory">
+    /// Directory the settings.json lives in. Defaults to
+    /// <c>%APPDATA%/Novalist</c>; tests pass a temp directory.
+    /// </param>
+    public SettingsService(string? settingsDirectory = null)
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        var novalistDir = Path.Combine(appData, "Novalist");
+        var novalistDir = settingsDirectory
+            ?? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Novalist");
         Directory.CreateDirectory(novalistDir);
         _settingsPath = Path.Combine(novalistDir, "settings.json");
 

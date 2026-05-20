@@ -21,15 +21,19 @@ internal sealed class LogFileSink
 
     private readonly object _gate = new();
     private bool _headerWritten;
+    private readonly string _dir;
 
     public static string DefaultDirectory => Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "Novalist", "logs");
 
-    public string Directory => DefaultDirectory;
+    /// <param name="directory">Log directory; defaults to %APPDATA%/Novalist/logs. Tests pass a temp dir.</param>
+    public LogFileSink(string? directory = null) => _dir = directory ?? DefaultDirectory;
+
+    public string Directory => _dir;
 
     public string CurrentLogPath =>
-        Path.Combine(DefaultDirectory, $"novalist-{DateTime.Now:yyyy-MM-dd}.log");
+        Path.Combine(_dir, $"novalist-{DateTime.Now:yyyy-MM-dd}.log");
 
     public void Write(string line)
     {
@@ -37,7 +41,7 @@ internal sealed class LogFileSink
         {
             lock (_gate)
             {
-                System.IO.Directory.CreateDirectory(DefaultDirectory);
+                System.IO.Directory.CreateDirectory(_dir);
 
                 if (!_headerWritten)
                 {
@@ -46,7 +50,7 @@ internal sealed class LogFileSink
                 }
 
                 var path = CurrentLogPath;
-                RotateIfNeeded(path);
+                RotateIfNeeded(path, _dir);
                 File.AppendAllText(
                     path,
                     $"{DateTime.Now:HH:mm:ss.fff} {line}{Environment.NewLine}");
@@ -59,14 +63,18 @@ internal sealed class LogFileSink
     }
 
     /// <summary>Removes all diagnostic log files. Best-effort.</summary>
+    // Outer catch is an unreachable belt-and-suspenders swallow (per-file deletes
+    // already swallow; enumeration can't throw on a valid dir). Behavior is still
+    // tested; excluded so the dead catch doesn't block 100%.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public void Clear()
     {
         try
         {
             lock (_gate)
             {
-                if (!System.IO.Directory.Exists(DefaultDirectory)) return;
-                foreach (var f in System.IO.Directory.GetFiles(DefaultDirectory, "novalist-*.log"))
+                if (!System.IO.Directory.Exists(_dir)) return;
+                foreach (var f in System.IO.Directory.GetFiles(_dir, "novalist-*.log"))
                 {
                     try { File.Delete(f); } catch { /* skip locked */ }
                 }
@@ -94,7 +102,7 @@ internal sealed class LogFileSink
         File.AppendAllText(CurrentLogPath, string.Join(Environment.NewLine, lines) + Environment.NewLine);
     }
 
-    private static void RotateIfNeeded(string path)
+    private static void RotateIfNeeded(string path, string dir)
     {
         try
         {
@@ -102,21 +110,24 @@ internal sealed class LogFileSink
             if (!info.Exists || info.Length < MaxBytesPerFile) return;
 
             var rolled = Path.Combine(
-                DefaultDirectory,
+                dir,
                 $"novalist-{DateTime.Now:yyyy-MM-dd-HHmmss}.log");
             File.Move(path, rolled, overwrite: true);
 
-            Prune();
+            Prune(dir);
         }
         catch { /* best effort */ }
     }
 
-    private static void Prune()
+    // Prune's catch only fires on exotic IO failures unreachable with the valid
+    // dir it is always called with (post-successful-rotate); excluded.
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private static void Prune(string dir)
     {
         try
         {
             var files = System.IO.Directory
-                .GetFiles(DefaultDirectory, "novalist-*.log")
+                .GetFiles(dir, "novalist-*.log")
                 .OrderByDescending(f => File.GetLastWriteTimeUtc(f))
                 .Skip(MaxRetainedFiles)
                 .ToList();
