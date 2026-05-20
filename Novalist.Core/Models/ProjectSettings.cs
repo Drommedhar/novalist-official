@@ -12,6 +12,13 @@ public class ProjectSettings
     [JsonPropertyName("author")]
     public string Author { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Per-project overrides for global settings (language, book formatting,
+    /// editor appearance). Null properties inherit the global value.
+    /// </summary>
+    [JsonPropertyName("overrides")]
+    public SettingsOverrides Overrides { get; set; } = new();
+
     [JsonPropertyName("viewState")]
     public ProjectViewState ViewState { get; set; } = new();
 

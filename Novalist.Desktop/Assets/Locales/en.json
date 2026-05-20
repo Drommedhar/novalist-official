@@ -297,6 +297,8 @@
     "accentColor": "Accent Color",
     "accentColorDesc": "Primary highlight color used throughout the interface.",
     "accentColorReset": "Reset",
+    "scopeProjectOverride": "Override for this project",
+    "scopeProjectHint": "When on, this section's values are saved with the project (in its .novalist folder) and override your global settings. Open a project to enable.",
     "writingGoals": "WRITING GOALS",
     "goalsDesc": "These goals drive the status bar progress indicators for the active project.",
     "dailyWordGoal": "Daily Word Goal",

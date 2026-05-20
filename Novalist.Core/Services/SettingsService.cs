@@ -14,12 +14,19 @@ public class SettingsService : ISettingsService
 
     public AppSettings Settings { get; private set; } = new();
 
+    private SettingsOverrides? _activeOverrides;
+    public IEffectiveSettings Effective { get; }
+
+    public void SetActiveOverrides(SettingsOverrides? overrides) => _activeOverrides = overrides;
+
     public SettingsService()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         var novalistDir = Path.Combine(appData, "Novalist");
         Directory.CreateDirectory(novalistDir);
         _settingsPath = Path.Combine(novalistDir, "settings.json");
+
+        Effective = new EffectiveSettings(() => Settings, () => _activeOverrides);
     }
 
     public async Task LoadAsync()

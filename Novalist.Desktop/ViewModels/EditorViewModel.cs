@@ -229,39 +229,53 @@ public partial class EditorViewModel : ObservableObject
         IsAlignJustify = alignment == Avalonia.Media.TextAlignment.Justify;
     }
 
-    /// <summary>Font family from settings.</summary>
-    public string EditorFontFamily => _settingsService.Settings.EditorFontFamily;
+    /// <summary>Font family from settings (project override or global).</summary>
+    public string EditorFontFamily => _settingsService.Effective.EditorFontFamily;
 
-    /// <summary>Font size from settings.</summary>
-    public double EditorFontSize => _settingsService.Settings.EditorFontSize;
+    /// <summary>Font size from settings (project override or global).</summary>
+    public double EditorFontSize => _settingsService.Effective.EditorFontSize;
 
     /// <summary>Whether book-style paragraph spacing is enabled.</summary>
-    public bool BookParagraphSpacingEnabled => _settingsService.Settings.EnableBookParagraphSpacing;
+    public bool BookParagraphSpacingEnabled => _settingsService.Effective.EnableBookParagraphSpacing;
 
     /// <summary>Whether book-width mode is enabled.</summary>
-    public bool BookWidthEnabled => _settingsService.Settings.EnableBookWidth;
+    public bool BookWidthEnabled => _settingsService.Effective.EnableBookWidth;
 
     /// <summary>Calculated editor max width in pixels when book-width mode is active.</summary>
-    public double BookEditorWidth => BookWidthCalculator.Calculate(_settingsService.Settings);
+    public double BookEditorWidth => BookWidthCalculator.Calculate(_settingsService.Effective);
 
     /// <summary>Whether typewriter scroll is enabled.</summary>
-    public bool TypewriterScrollEnabled => _settingsService.Settings.TypewriterScrollEnabled;
+    public bool TypewriterScrollEnabled => _settingsService.Effective.TypewriterScrollEnabled;
 
     /// <summary>Vertical anchor for typewriter scroll: "top" | "middle" | "bottom".</summary>
-    public string TypewriterScrollAnchor => _settingsService.Settings.TypewriterScrollAnchor ?? "middle";
+    public string TypewriterScrollAnchor => _settingsService.Effective.TypewriterScrollAnchor ?? "middle";
 
     /// <summary>True when the currently active scene is archived. The view
     /// shows a banner offering Restore; saves are short-circuited.</summary>
     public bool IsCurrentSceneArchived => _scene?.ArchivedAt.HasValue == true;
 
     /// <summary>Whether page view (visual paper-page rendering) is enabled.</summary>
-    public bool PageViewEnabled => _settingsService.Settings.PageViewEnabled;
+    public bool PageViewEnabled => _settingsService.Effective.PageViewEnabled;
 
-    /// <summary>Update the editor font size and persist to settings.</summary>
+    /// <summary>
+    /// Update the editor font size and persist. Writes to the active project's
+    /// override when the editor section is already project-scoped, otherwise to
+    /// global, so an in-editor resize matches what the editor currently shows.
+    /// </summary>
     public void SetFontSize(double size)
     {
-        _settingsService.Settings.EditorFontSize = Math.Clamp(size, 8, 36);
-        _ = _settingsService.SaveAsync();
+        var clamped = Math.Clamp(size, 8, 36);
+        var ov = _projectService.IsProjectLoaded ? _projectService.ProjectSettings.Overrides : null;
+        if (ov?.EditorFontSize != null)
+        {
+            ov.EditorFontSize = clamped;
+            _ = _projectService.SaveProjectSettingsAsync();
+        }
+        else
+        {
+            _settingsService.Settings.EditorFontSize = clamped;
+            _ = _settingsService.SaveAsync();
+        }
         OnPropertyChanged(nameof(EditorFontSize));
         OnPropertyChanged(nameof(BookEditorWidth));
     }
@@ -277,19 +291,19 @@ public partial class EditorViewModel : ObservableObject
         _settingsService = settingsService;
         _entityService = entityService;
 
-        // Configure auto-replacement from settings
-        AutoReplacement.Pairs = settingsService.Settings.AutoReplacements;
+        // Configure auto-replacement from settings (project override or global)
+        AutoReplacement.Pairs = settingsService.Effective.AutoReplacements;
         ExtensionManager.Register(AutoReplacement);
 
         // Configure dialogue correction from settings
-        DialogueCorrection.Enabled = settingsService.Settings.DialogueCorrectionEnabled;
-        DialogueCorrection.Language = settingsService.Settings.AutoReplacementLanguage;
+        DialogueCorrection.Enabled = settingsService.Effective.DialogueCorrectionEnabled;
+        DialogueCorrection.Language = settingsService.Effective.AutoReplacementLanguage;
         ExtensionManager.Register(DialogueCorrection);
 
         // Configure grammar check from settings
-        GrammarCheck.Enabled = settingsService.Settings.GrammarCheckEnabled;
-        GrammarCheck.Language = settingsService.Settings.Language;
-        GrammarCheck.CustomApiUrl = settingsService.Settings.GrammarCheckApiUrl;
+        GrammarCheck.Enabled = settingsService.Effective.GrammarCheckEnabled;
+        GrammarCheck.Language = settingsService.Effective.Language;
+        GrammarCheck.CustomApiUrl = settingsService.Effective.GrammarCheckApiUrl;
         ExtensionManager.Register(GrammarCheck);
 
         _focusPeekExtension = new FocusPeekExtension(FocusPeek, _projectService, _entityService, App.MapService,
@@ -320,12 +334,12 @@ public partial class EditorViewModel : ObservableObject
     /// </summary>
     public void ApplySettings()
     {
-        AutoReplacement.Pairs = _settingsService.Settings.AutoReplacements;
-        DialogueCorrection.Enabled = _settingsService.Settings.DialogueCorrectionEnabled;
-        DialogueCorrection.Language = _settingsService.Settings.AutoReplacementLanguage;
-        GrammarCheck.Enabled = _settingsService.Settings.GrammarCheckEnabled;
-        GrammarCheck.Language = _settingsService.Settings.Language;
-        GrammarCheck.CustomApiUrl = _settingsService.Settings.GrammarCheckApiUrl;
+        AutoReplacement.Pairs = _settingsService.Effective.AutoReplacements;
+        DialogueCorrection.Enabled = _settingsService.Effective.DialogueCorrectionEnabled;
+        DialogueCorrection.Language = _settingsService.Effective.AutoReplacementLanguage;
+        GrammarCheck.Enabled = _settingsService.Effective.GrammarCheckEnabled;
+        GrammarCheck.Language = _settingsService.Effective.Language;
+        GrammarCheck.CustomApiUrl = _settingsService.Effective.GrammarCheckApiUrl;
         OnPropertyChanged(nameof(EditorFontFamily));
         OnPropertyChanged(nameof(EditorFontSize));
         OnPropertyChanged(nameof(BookParagraphSpacingEnabled));
@@ -674,7 +688,7 @@ public partial class EditorViewModel : ObservableObject
 
     private void UpdateStats(string text)
     {
-        var statistics = TextStatistics.Calculate(text, _settingsService.Settings.AutoReplacementLanguage);
+        var statistics = TextStatistics.Calculate(text, _settingsService.Effective.AutoReplacementLanguage);
 
         CharacterCount = statistics.CharacterCount;
         CharacterCountWithoutSpaces = statistics.CharacterCountWithoutSpaces;

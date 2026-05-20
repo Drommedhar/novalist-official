@@ -96,6 +96,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Command Palette** (`Ctrl+Shift+P`) — every action by name.
 - **Localization** — drop-in JSON locale files; English and German ship in the box.
 - **Theme** — system / light / dark with a custom accent color.
+- **Global or per-project settings** — appearance, editor, and writing-assistance settings default to global but can be overridden per project (e.g. an English book and a German book each with their own language, quotes, and theme); project overrides live in `.novalist/` and sync via git.
 - **Book preview** — render the editor as a printed page with configurable trim size and book font.
 
 ### Extension system

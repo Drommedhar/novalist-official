@@ -6,7 +6,9 @@ Novalist's interface is fully localizable. The two languages shipping in the box
 
 **Settings → Appearance → Language**. The dropdown lists every locale found in the locales folder. Switching is immediate; no restart needed.
 
-The chosen language is stored in `AppSettings.Language` and applies to:
+By default the language is global. If you want a specific book to use a different interface language, open that project and tick **Override for this project** at the top of the Appearance section — the language (and the rest of Appearance) is then stored with the project and applied whenever you open it. See [Settings](23-settings.md) for how global vs project scope works.
+
+The chosen language is stored in `AppSettings.Language` (or the project's `.novalist/settings.json` override) and applies to:
 
 - Every label, menu, button, tooltip, and dialog in the UI.
 - Date pickers, where the language affects month and weekday names (for Gregorian calendars).

@@ -4,6 +4,19 @@ Settings is where you configure Novalist's appearance, the editor, writing assis
 
 Settings are stored in your user app-data folder and apply to every project you open. A subset (templates, calendar, project name) are per-project; those appear next to their per-project counterparts.
 
+## Global vs project settings
+
+The **Appearance**, **Editor**, and **Writing Assistance** sections each have an **Override for this project** checkbox at the top. It is enabled only while a project is open.
+
+- **Off (default)** — that section uses your global settings, shared by every project.
+- **On** — the section's values are saved with the project, in its `.novalist/settings.json` file, and override the global values whenever this project is open. Because they live inside the project folder, the overrides travel with the project through git and across devices.
+
+Overrides are resolved per setting: a project only stores the keys for the sections you switch to project scope; anything left global keeps inheriting the global value. Switching a section back to global clears that section's overrides and the values revert to your global settings immediately.
+
+This lets you, for example, keep one book in English with English quotation marks and another in German with German quotes and a German interface, without changing your global defaults. Switching projects re-applies the effective theme, accent color, and interface language for the project you open.
+
+Other sections have a fixed scope: hotkeys, updates, and diagnostics are always global; writing goals, templates, author, and calendar are always per-project. Only Appearance, Editor, and Writing Assistance offer the global/project switch.
+
 ## Opening Settings
 
 - Click the **gear** icon in the activity bar.

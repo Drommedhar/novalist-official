@@ -203,6 +203,8 @@
     "accentColor": "Akzentfarbe",
     "accentColorDesc": "Primäre Hervorhebungsfarbe der Benutzeroberfläche.",
     "accentColorReset": "Zurücksetzen",
+    "scopeProjectOverride": "Für dieses Projekt überschreiben",
+    "scopeProjectHint": "Wenn aktiviert, werden die Werte dieses Abschnitts mit dem Projekt (im Ordner .novalist) gespeichert und überschreiben die globalen Einstellungen. Zum Aktivieren ein Projekt öffnen.",
     "writingGoals": "SCHREIBZIELE",
     "goalsDesc": "Diese Ziele steuern die Fortschrittsanzeigen in der Statusleiste für das aktive Projekt.",
     "dailyWordGoal": "Tägliches Wortziel",

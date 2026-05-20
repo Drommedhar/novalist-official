@@ -1,11 +1,14 @@
 using System.Text.Json.Serialization;
+using Novalist.Core.Services;
 
 namespace Novalist.Core.Models;
 
 /// <summary>
 /// Application-level settings stored in the user's app data directory.
+/// Implements <see cref="IEffectiveSettings"/> by returning its own (global)
+/// values, so it can stand in wherever a resolved settings view is expected.
 /// </summary>
-public class AppSettings
+public class AppSettings : IEffectiveSettings
 {
     [JsonPropertyName("language")]
     public string Language { get; set; } = "en";

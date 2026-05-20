@@ -1436,7 +1436,7 @@ public partial class MainWindow : Window
             _ = vm.RefreshStatusBarAsync();
 
             // Reinitialize WebView if the UI language changed
-            var newLang = App.SettingsService.Settings.Language;
+            var newLang = App.SettingsService.Effective.Language;
             if (!string.Equals(_webViewLanguage, newLang, StringComparison.Ordinal))
             {
                 _webViewLanguage = newLang;

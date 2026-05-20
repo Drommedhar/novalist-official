@@ -1213,6 +1213,13 @@ public partial class MainWindowViewModel : ObservableObject
     {
         // Counts only — never project/book names or paths.
         Utilities.Log.Info($"Project loaded: books={metadata.Books?.Count ?? 0}.");
+
+        // Activate this project's per-key setting overrides before anything that
+        // reads effective settings (the Editor is recreated below). Then re-apply
+        // theme / accent / UI language so the look-and-feel reflects the override.
+        _settingsService.SetActiveOverrides(_projectService.ProjectSettings.Overrides);
+        ApplyEffectiveLookAndFeel();
+
         IsProjectLoaded = true;
         ProjectName = metadata.Name;
 
@@ -1969,7 +1976,7 @@ public partial class MainWindowViewModel : ObservableObject
 
         // Snapshot data needed off UI
         var chapters = _projectService.GetChaptersOrdered();
-        var lang = _settingsService.Settings.AutoReplacementLanguage;
+        var lang = _settingsService.Effective.AutoReplacementLanguage;
         var activeSceneId = Editor?.IsDocumentOpen == true ? Editor.CurrentScene?.Id : null;
         var activeContent = Editor?.IsDocumentOpen == true ? Editor.Content : null;
         var activeWordCount = Editor?.IsDocumentOpen == true ? Editor.WordCount : 0;
@@ -2355,6 +2362,11 @@ public partial class MainWindowViewModel : ObservableObject
     private void CloseProject()
     {
         Utilities.Log.Info("Project closed.");
+
+        // Drop per-project overrides and revert look-and-feel to pure global.
+        _settingsService.SetActiveOverrides(null);
+        ApplyEffectiveLookAndFeel();
+
         IsStartMenuOpen = false;
         IsProjectLoaded = false;
         IsDashboardOpen = false;
@@ -2363,6 +2375,39 @@ public partial class MainWindowViewModel : ObservableObject
         IsManuscriptOpen = false;
         Title = $"{Loc.T("app.title")} {VersionInfo.Version}";
         StatusText = string.Empty;
+    }
+
+    /// <summary>
+    /// Re-applies theme, accent color and UI language from effective settings
+    /// (project override or global). Called on project open/close so switching
+    /// projects repaints the app to that project's effective look-and-feel.
+    /// Editor-level settings (fonts, auto-replacement) are picked up when the
+    /// Editor VM is recreated and via <see cref="EditorViewModel.ApplySettings"/>.
+    /// </summary>
+    private void ApplyEffectiveLookAndFeel()
+    {
+        try
+        {
+            var theme = _settingsService.Effective.Theme;
+            App.ThemeService.ApplyTheme(string.IsNullOrEmpty(theme) || theme == "system" ? "Default" : theme);
+        }
+        catch (Exception ex)
+        {
+            Utilities.Log.Warn($"ApplyEffectiveLookAndFeel: theme apply failed ({ex.GetType().Name}).");
+        }
+
+        try
+        {
+            // Empty/null reverts the accent to the active theme's default.
+            App.ThemeService.ApplyAccentColor(_settingsService.Effective.AccentColor);
+        }
+        catch (Exception ex)
+        {
+            Utilities.Log.Warn($"ApplyEffectiveLookAndFeel: accent apply failed ({ex.GetType().Name}).");
+        }
+
+        var lang = _settingsService.Effective.Language;
+        Loc.Instance.CurrentLanguage = string.IsNullOrWhiteSpace(lang) ? "en" : lang;
     }
 
     [RelayCommand]

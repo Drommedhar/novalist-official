@@ -100,6 +100,12 @@
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
 
+                    <CheckBox IsChecked="{Binding AppearanceScopeProject}"
+                              IsEnabled="{Binding CanUseProjectScope}"
+                              Content="{loc:Loc settings.scopeProjectOverride}"
+                              ToolTip.Tip="{loc:Loc settings.scopeProjectHint}"
+                              FontSize="{StaticResource FontSizeBodySmall}" />
+
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="200">
                             <TextBlock Text="{loc:Loc settings.uiLanguage}"
@@ -163,6 +169,12 @@
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
+
+                    <CheckBox IsChecked="{Binding EditorScopeProject}"
+                              IsEnabled="{Binding CanUseProjectScope}"
+                              Content="{loc:Loc settings.scopeProjectOverride}"
+                              ToolTip.Tip="{loc:Loc settings.scopeProjectHint}"
+                              FontSize="{StaticResource FontSizeBodySmall}" />
 
                     <!-- Font Family -->
                     <DockPanel>
@@ -467,6 +479,12 @@
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource SubtleText}"
                                LetterSpacing="1" />
+
+                    <CheckBox IsChecked="{Binding WritingScopeProject}"
+                              IsEnabled="{Binding CanUseProjectScope}"
+                              Content="{loc:Loc settings.scopeProjectOverride}"
+                              ToolTip.Tip="{loc:Loc settings.scopeProjectHint}"
+                              FontSize="{StaticResource FontSizeBodySmall}" />
 
                     <!-- Language -->
                     <DockPanel>

@@ -250,27 +250,205 @@ public partial class SettingsViewModel : ObservableObject
     public event Action? CloseRequested;
     public event Action? SettingsChanged;
 
+    // ── Setting scope (Global vs This project) ──────────────────────
+    // One toggle per Settings category that contains overridable settings.
+    // Hotkeys, updates, diagnostics, templates and word goals are not scoped.
+
+    [ObservableProperty] private bool _appearanceScopeProject;
+    [ObservableProperty] private bool _editorScopeProject;
+    [ObservableProperty] private bool _writingScopeProject;
+
+    /// <summary>True when a project is open, so per-project scope is available.</summary>
+    public bool CanUseProjectScope => _projectService.IsProjectLoaded;
+
+    /// <summary>The active project's overrides, or null when no project is open.</summary>
+    private SettingsOverrides? ActiveOverrides =>
+        _projectService.IsProjectLoaded ? _projectService.ProjectSettings.Overrides : null;
+
+    /// <summary>Suppresses scoped persistence while reloading VM values from effective settings.</summary>
+    private bool _suppressScopedWrite;
+
+    /// <summary>
+    /// Writes a setting to the active project's override when the section is
+    /// project-scoped (and a project is open), otherwise to global. Persists to
+    /// the matching file and raises <see cref="SettingsChanged"/>.
+    /// </summary>
+    private void WriteScoped(bool projectScope, Action<AppSettings> applyGlobal, Action<SettingsOverrides> applyOverride)
+    {
+        if (_suppressScopedWrite) return;
+
+        var ov = ActiveOverrides;
+        if (projectScope && ov != null)
+        {
+            applyOverride(ov);
+            SaveProjectSettingsAndNotify();
+        }
+        else
+        {
+            applyGlobal(Settings);
+            SaveAndNotify();
+        }
+    }
+
+    private void WriteAppearance(Action<AppSettings> g, Action<SettingsOverrides> o) => WriteScoped(AppearanceScopeProject, g, o);
+    private void WriteEditor(Action<AppSettings> g, Action<SettingsOverrides> o) => WriteScoped(EditorScopeProject, g, o);
+    private void WriteWriting(Action<AppSettings> g, Action<SettingsOverrides> o) => WriteScoped(WritingScopeProject, g, o);
+
+    partial void OnAppearanceScopeProjectChanged(bool value)
+    {
+        var ov = ActiveOverrides;
+        if (ov == null) return;
+        var eff = _settingsService.Effective;
+        if (value)
+        {
+            ov.Language = eff.Language;
+            ov.Theme = eff.Theme;
+            ov.AccentColor = eff.AccentColor;
+        }
+        else
+        {
+            ov.ClearAppearance();
+        }
+        SaveProjectSettingsAndNotify();
+        ReloadAppearanceFromEffective();
+    }
+
+    partial void OnEditorScopeProjectChanged(bool value)
+    {
+        var ov = ActiveOverrides;
+        if (ov == null) return;
+        var eff = _settingsService.Effective;
+        if (value)
+        {
+            ov.EditorFontFamily = eff.EditorFontFamily;
+            ov.EditorFontSize = eff.EditorFontSize;
+            ov.TypewriterScrollEnabled = eff.TypewriterScrollEnabled;
+            ov.TypewriterScrollAnchor = eff.TypewriterScrollAnchor;
+            ov.PageViewEnabled = eff.PageViewEnabled;
+            ov.EnableBookParagraphSpacing = eff.EnableBookParagraphSpacing;
+            ov.EnableBookWidth = eff.EnableBookWidth;
+            ov.BookPageFormat = eff.BookPageFormat;
+            ov.BookTextBlockWidth = eff.BookTextBlockWidth;
+            ov.BookFontFamily = eff.BookFontFamily;
+            ov.BookFontSize = eff.BookFontSize;
+        }
+        else
+        {
+            ov.ClearEditor();
+        }
+        SaveProjectSettingsAndNotify();
+        ReloadEditorFromEffective();
+    }
+
+    partial void OnWritingScopeProjectChanged(bool value)
+    {
+        var ov = ActiveOverrides;
+        if (ov == null) return;
+        var eff = _settingsService.Effective;
+        if (value)
+        {
+            ov.AutoReplacementLanguage = eff.AutoReplacementLanguage;
+            ov.AutoReplacements = eff.AutoReplacements;
+            ov.DialogueCorrectionEnabled = eff.DialogueCorrectionEnabled;
+            ov.GrammarCheckEnabled = eff.GrammarCheckEnabled;
+            ov.GrammarCheckApiUrl = eff.GrammarCheckApiUrl;
+        }
+        else
+        {
+            ov.ClearWriting();
+        }
+        SaveProjectSettingsAndNotify();
+        ReloadWritingFromEffective();
+    }
+
+    private void ReloadAppearanceFromEffective()
+    {
+        var eff = _settingsService.Effective;
+        _suppressScopedWrite = true;
+
+        SelectedUiLanguage = AvailableUiLanguages.FirstOrDefault(i => string.Equals(i.Code, eff.Language, StringComparison.Ordinal))
+            ?? SelectedUiLanguage;
+        Loc.Instance.CurrentLanguage = eff.Language;
+
+        var theme = string.IsNullOrEmpty(eff.Theme) ? "Default" : eff.Theme;
+        try { App.ThemeService.ApplyTheme(theme == "system" ? "Default" : theme); } catch { /* invalid theme name */ }
+        SelectedTheme = AvailableThemes.FirstOrDefault(t => t.Name == App.ThemeService.ActiveThemeName) ?? SelectedTheme;
+
+        App.ThemeService.ApplyAccentColor(eff.AccentColor);
+        var accentHex = eff.AccentColor ?? App.ThemeService.GetActiveThemeDefaultAccentColor() ?? "#007ACC";
+        AccentColor = Color.TryParse(accentHex, out var c) ? c : Color.Parse("#007ACC");
+
+        _suppressScopedWrite = false;
+    }
+
+    private void ReloadEditorFromEffective()
+    {
+        var eff = _settingsService.Effective;
+        _suppressScopedWrite = true;
+
+        EditorFontFamily = eff.EditorFontFamily;
+        EditorFontSize = eff.EditorFontSize;
+        TypewriterScrollEnabled = eff.TypewriterScrollEnabled;
+        var anchor = eff.TypewriterScrollAnchor ?? "middle";
+        TypewriterAnchorTop = anchor == "top";
+        TypewriterAnchorMiddle = anchor == "middle";
+        TypewriterAnchorBottom = anchor == "bottom";
+        PageViewEnabled = eff.PageViewEnabled;
+        EnableBookParagraphSpacing = eff.EnableBookParagraphSpacing;
+        EnableBookWidth = eff.EnableBookWidth;
+        SelectedPageFormat = AvailablePageFormats.FirstOrDefault(f => string.Equals(f.Code, eff.BookPageFormat, StringComparison.Ordinal))
+            ?? SelectedPageFormat;
+        BookTextBlockWidth = eff.BookTextBlockWidth;
+        BookFontFamily = eff.BookFontFamily;
+        BookFontSize = eff.BookFontSize;
+
+        _suppressScopedWrite = false;
+        UpdateBookWidthPreview();
+    }
+
+    private void ReloadWritingFromEffective()
+    {
+        var eff = _settingsService.Effective;
+        _suppressScopedWrite = true;
+
+        SelectedLanguage = eff.AutoReplacementLanguage;
+        DialogueCorrectionEnabled = eff.DialogueCorrectionEnabled;
+        GrammarCheckEnabled = eff.GrammarCheckEnabled;
+
+        _suppressScopedWrite = false;
+        UpdatePreview();
+    }
+
     public SettingsViewModel(ISettingsService settingsService, IProjectService projectService)
     {
         _settingsService = settingsService;
         _projectService = projectService;
 
-        _editorFontFamily = Settings.EditorFontFamily;
-        _editorFontSize = Settings.EditorFontSize;
-        _enableBookParagraphSpacing = Settings.EnableBookParagraphSpacing;
-        _enableBookWidth = Settings.EnableBookWidth;
-        _bookTextBlockWidth = Settings.BookTextBlockWidth;
-        _bookFontFamily = Settings.BookFontFamily;
-        _bookFontSize = Settings.BookFontSize;
-        _selectedLanguage = Settings.AutoReplacementLanguage;
-        _dialogueCorrectionEnabled = Settings.DialogueCorrectionEnabled;
-        _grammarCheckEnabled = Settings.GrammarCheckEnabled;
-        _typewriterScrollEnabled = Settings.TypewriterScrollEnabled;
-        var twAnchor = Settings.TypewriterScrollAnchor ?? "middle";
+        var eff = _settingsService.Effective;
+
+        // Initial scope toggles reflect whether the active project already
+        // overrides each section.
+        var ov = ActiveOverrides;
+        _appearanceScopeProject = ov?.HasAppearanceOverride == true;
+        _editorScopeProject = ov?.HasEditorOverride == true;
+        _writingScopeProject = ov?.HasWritingOverride == true;
+
+        _editorFontFamily = eff.EditorFontFamily;
+        _editorFontSize = eff.EditorFontSize;
+        _enableBookParagraphSpacing = eff.EnableBookParagraphSpacing;
+        _enableBookWidth = eff.EnableBookWidth;
+        _bookTextBlockWidth = eff.BookTextBlockWidth;
+        _bookFontFamily = eff.BookFontFamily;
+        _bookFontSize = eff.BookFontSize;
+        _selectedLanguage = eff.AutoReplacementLanguage;
+        _dialogueCorrectionEnabled = eff.DialogueCorrectionEnabled;
+        _grammarCheckEnabled = eff.GrammarCheckEnabled;
+        _typewriterScrollEnabled = eff.TypewriterScrollEnabled;
+        var twAnchor = eff.TypewriterScrollAnchor ?? "middle";
         _typewriterAnchorTop = twAnchor == "top";
         _typewriterAnchorMiddle = twAnchor == "middle";
         _typewriterAnchorBottom = twAnchor == "bottom";
-        _pageViewEnabled = Settings.PageViewEnabled;
+        _pageViewEnabled = eff.PageViewEnabled;
         _dailyWordGoal = ActiveProjectGoals?.DailyGoal ?? 1000;
         _projectWordGoal = ActiveProjectGoals?.ProjectGoal ?? 50000;
         _projectDeadline = ActiveProjectGoals?.Deadline ?? string.Empty;
@@ -280,19 +458,19 @@ public partial class SettingsViewModel : ObservableObject
             .Select(code => new UiLanguageItem(code, Loc.Instance.GetLanguageDisplayName(code)))
             .ToList();
 
-        _selectedUiLanguage = AvailableUiLanguages.FirstOrDefault(item => string.Equals(item.Code, Settings.Language, StringComparison.Ordinal))
+        _selectedUiLanguage = AvailableUiLanguages.FirstOrDefault(item => string.Equals(item.Code, eff.Language, StringComparison.Ordinal))
             ?? AvailableUiLanguages.First();
 
         _selectedTheme = AvailableThemes.FirstOrDefault(t => t.Name == App.ThemeService.ActiveThemeName)
             ?? AvailableThemes[0];
 
-        // Resolve accent color: user override → theme default → fallback blue
-        var accentHex = Settings.AccentColor
+        // Resolve accent color: effective override → theme default → fallback blue
+        var accentHex = eff.AccentColor
             ?? App.ThemeService.GetActiveThemeDefaultAccentColor()
             ?? "#007ACC";
         _accentColor = Color.TryParse(accentHex, out var parsed) ? parsed : Color.Parse("#007ACC");
 
-        _selectedPageFormat = AvailablePageFormats.FirstOrDefault(f => string.Equals(f.Code, Settings.BookPageFormat, StringComparison.Ordinal))
+        _selectedPageFormat = AvailablePageFormats.FirstOrDefault(f => string.Equals(f.Code, eff.BookPageFormat, StringComparison.Ordinal))
             ?? AvailablePageFormats.First();
 
         UpdatePreview();
@@ -335,81 +513,74 @@ public partial class SettingsViewModel : ObservableObject
 
     partial void OnEditorFontFamilyChanged(string value)
     {
-        Settings.EditorFontFamily = value;
-        SaveAndNotify();
+        WriteEditor(s => s.EditorFontFamily = value, o => o.EditorFontFamily = value);
     }
 
     partial void OnEditorFontSizeChanged(double value)
     {
-        Settings.EditorFontSize = Math.Clamp(value, 8, 36);
-        SaveAndNotify();
+        var clamped = Math.Clamp(value, 8, 36);
+        WriteEditor(s => s.EditorFontSize = clamped, o => o.EditorFontSize = clamped);
     }
 
     partial void OnEnableBookParagraphSpacingChanged(bool value)
     {
-        Settings.EnableBookParagraphSpacing = value;
-        SaveAndNotify();
+        WriteEditor(s => s.EnableBookParagraphSpacing = value, o => o.EnableBookParagraphSpacing = value);
     }
 
     partial void OnEnableBookWidthChanged(bool value)
     {
-        Settings.EnableBookWidth = value;
-        SaveAndNotify();
+        WriteEditor(s => s.EnableBookWidth = value, o => o.EnableBookWidth = value);
     }
 
     partial void OnSelectedPageFormatChanged(PageFormatItem value)
     {
-        Settings.BookPageFormat = value?.Code ?? "USTrade6x9";
+        var code = value?.Code ?? "USTrade6x9";
         OnPropertyChanged(nameof(IsCustomPageFormat));
+        WriteEditor(s => s.BookPageFormat = code, o => o.BookPageFormat = code);
         UpdateBookWidthPreview();
-        SaveAndNotify();
     }
 
     partial void OnBookTextBlockWidthChanged(double? value)
     {
-        Settings.BookTextBlockWidth = value;
+        WriteEditor(s => s.BookTextBlockWidth = value, o => o.BookTextBlockWidth = value);
         UpdateBookWidthPreview();
-        SaveAndNotify();
     }
 
     partial void OnBookFontFamilyChanged(string value)
     {
-        Settings.BookFontFamily = value;
+        WriteEditor(s => s.BookFontFamily = value, o => o.BookFontFamily = value);
         UpdateBookWidthPreview();
-        SaveAndNotify();
     }
 
     partial void OnBookFontSizeChanged(double value)
     {
-        Settings.BookFontSize = Math.Clamp(value, 6, 24);
+        var clamped = Math.Clamp(value, 6, 24);
+        WriteEditor(s => s.BookFontSize = clamped, o => o.BookFontSize = clamped);
         UpdateBookWidthPreview();
-        SaveAndNotify();
     }
 
     partial void OnSelectedLanguageChanged(string value)
     {
-        Settings.AutoReplacementLanguage = value;
-        Settings.AutoReplacements = AutoReplacementDefaults.GetPreset(value);
+        var preset = AutoReplacementDefaults.GetPreset(value);
         UpdatePreview();
-        SaveAndNotify();
+        WriteWriting(
+            s => { s.AutoReplacementLanguage = value; s.AutoReplacements = preset; },
+            o => { o.AutoReplacementLanguage = value; o.AutoReplacements = preset; });
     }
 
     partial void OnDialogueCorrectionEnabledChanged(bool value)
     {
-        Settings.DialogueCorrectionEnabled = value;
-        SaveAndNotify();
+        WriteWriting(s => s.DialogueCorrectionEnabled = value, o => o.DialogueCorrectionEnabled = value);
     }
 
     partial void OnGrammarCheckEnabledChanged(bool value)
     {
-        Settings.GrammarCheckEnabled = value;
-        SaveAndNotify();
+        WriteWriting(s => s.GrammarCheckEnabled = value, o => o.GrammarCheckEnabled = value);
     }
 
     partial void OnTypewriterScrollEnabledChanged(bool value)
     {
-        Settings.TypewriterScrollEnabled = value;
-        SaveAndNotify();
+        WriteEditor(s => s.TypewriterScrollEnabled = value, o => o.TypewriterScrollEnabled = value);
     }
 
     partial void OnTypewriterAnchorTopChanged(bool value)
@@ -429,55 +600,50 @@ public partial class SettingsViewModel : ObservableObject
 
     private void ApplyTypewriterAnchor(string anchor)
     {
-        if (Settings.TypewriterScrollAnchor == anchor) return;
-        Settings.TypewriterScrollAnchor = anchor;
-        SaveAndNotify();
+        if (_settingsService.Effective.TypewriterScrollAnchor == anchor) return;
+        WriteEditor(s => s.TypewriterScrollAnchor = anchor, o => o.TypewriterScrollAnchor = anchor);
     }
 
     partial void OnPageViewEnabledChanged(bool value)
     {
-        Settings.PageViewEnabled = value;
-        SaveAndNotify();
+        WriteEditor(s => s.PageViewEnabled = value, o => o.PageViewEnabled = value);
     }
 
     partial void OnSelectedUiLanguageChanged(UiLanguageItem value)
     {
-        Settings.Language = value.Code;
         Loc.Instance.CurrentLanguage = value.Code;
-        SaveAndNotify();
+        WriteAppearance(s => s.Language = value.Code, o => o.Language = value.Code);
     }
 
     partial void OnSelectedThemeChanged(ThemeInfo value)
     {
         App.ThemeService.ApplyTheme(value.Name);
-        Settings.Theme = value.Name;
 
         // When switching themes, reset accent to the theme's default
         var themeAccent = value.Source?.AccentColor;
-        Settings.AccentColor = null;
         var fallback = themeAccent ?? "#007ACC";
         AccentColor = Color.TryParse(fallback, out var c) ? c : Color.Parse("#007ACC");
         App.ThemeService.ApplyAccentColor(null);
 
-        SaveAndNotify();
+        WriteAppearance(
+            s => { s.Theme = value.Name; s.AccentColor = null; },
+            o => { o.Theme = value.Name; o.AccentColor = null; });
     }
 
     partial void OnAccentColorChanged(Color value)
     {
         var hex = $"#{value.R:X2}{value.G:X2}{value.B:X2}";
-        Settings.AccentColor = hex;
         App.ThemeService.ApplyAccentColor(hex);
-        SaveAndNotify();
+        WriteAppearance(s => s.AccentColor = hex, o => o.AccentColor = hex);
     }
 
     [RelayCommand]
     private void ResetAccentColor()
     {
-        Settings.AccentColor = null;
         var themeDefault = App.ThemeService.GetActiveThemeDefaultAccentColor() ?? "#007ACC";
         AccentColor = Color.TryParse(themeDefault, out var c) ? c : Color.Parse("#007ACC");
         App.ThemeService.ApplyAccentColor(null);
-        SaveAndNotify();
+        WriteAppearance(s => s.AccentColor = null, o => o.AccentColor = null);
     }
 
     partial void OnDailyWordGoalChanged(int value)
@@ -850,7 +1016,7 @@ public partial class SettingsViewModel : ObservableObject
 
     private void UpdateBookWidthPreview()
     {
-        var chars = BookWidthCalculator.EstimateCharsPerLine(Settings);
+        var chars = BookWidthCalculator.EstimateCharsPerLine(_settingsService.Effective);
         BookWidthCharsPerLine = $"≈ {chars} characters per line";
     }
 

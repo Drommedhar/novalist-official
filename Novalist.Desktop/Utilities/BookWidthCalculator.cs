@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 using Avalonia.Media;
-using Novalist.Core.Models;
+using Novalist.Core.Services;
 
 namespace Novalist.Desktop.Utilities;
 
@@ -49,7 +49,7 @@ public static class BookWidthCalculator
         return text.Width / MeasureSample.Length;
     }
 
-    public static double Calculate(AppSettings settings)
+    public static double Calculate(IEffectiveSettings settings)
     {
         var textBlockInches = GetTextBlockWidthInches(settings.BookPageFormat, settings.BookTextBlockWidth);
         var textBlockPx = textBlockInches * LogicalDpi;
@@ -70,7 +70,7 @@ public static class BookWidthCalculator
         return result;
     }
 
-    public static int EstimateCharsPerLine(AppSettings settings)
+    public static int EstimateCharsPerLine(IEffectiveSettings settings)
     {
         var textBlockInches = GetTextBlockWidthInches(settings.BookPageFormat, settings.BookTextBlockWidth);
         var textBlockPx = textBlockInches * LogicalDpi;
