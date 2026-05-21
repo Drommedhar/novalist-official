@@ -385,9 +385,14 @@ public class DialogsBatch2Tests
         Assert.True(d.IsClosed);
         d.Dispose(); // already closed -> early return
 
-        // off-thread Dispose hits the Post branch
+        // off-thread Dispose hits the Post branch. Use a dedicated thread
+        // (not Task.Run) so CheckAccess() is reliably false: a threadpool
+        // thread can coincide with the headless dispatcher thread, which made
+        // this test flaky and left line 86 occasionally uncovered.
         var d2 = new BusyProgressDialog();
-        Task.Run(() => d2.Dispose()).GetAwaiter().GetResult();
+        var t = new Thread(() => d2.Dispose());
+        t.Start();
+        t.Join();
         DialogHost.RunJobs();
         Assert.True(d2.DialogClosed.Task.IsCompleted);
     }
