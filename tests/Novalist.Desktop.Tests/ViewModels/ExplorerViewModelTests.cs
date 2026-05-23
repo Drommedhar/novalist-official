@@ -73,6 +73,56 @@ public class ExplorerViewModelTests
     }
 
     [Fact]
+    public void Refresh_NonContiguousActs_CollapseUnderSingleHeader()
+    {
+        // Chapters in order: Act I, Act II, Act I, none. The Act-I header must
+        // appear once with both its chapters grouped beneath it, not twice.
+        var h = Build(x =>
+        {
+            x.Chapters =
+            [
+                Chap("c1", "A", 1, act: "Act I"),
+                Chap("c2", "B", 2, act: "Act II"),
+                Chap("c3", "C", 3, act: "Act I"),
+                Chap("c4", "D", 4),
+            ];
+        });
+        var headers = h.Vm.ExplorerItems.OfType<ActHeaderViewModel>().ToList();
+        Assert.Equal(2, headers.Count);
+        Assert.Equal(new[] { "Act I", "Act II" }, headers.Select(a => a.ActName));
+
+        // Layout order: no-act first, then Act I (in first-appearance order),
+        // then Act II. Validates that the un-acted chapter is at the top and
+        // each act group is contiguous.
+        var items = h.Vm.ExplorerItems.ToList();
+        Assert.IsType<ChapterTreeItemViewModel>(items[0]); // c4 (no act)
+        Assert.Equal("c4", ((ChapterTreeItemViewModel)items[0]).Chapter.Guid);
+        Assert.IsType<ActHeaderViewModel>(items[1]);
+        Assert.Equal("Act I", ((ActHeaderViewModel)items[1]).ActName);
+        Assert.Equal("c1", ((ChapterTreeItemViewModel)items[2]).Chapter.Guid);
+        Assert.Equal("c3", ((ChapterTreeItemViewModel)items[3]).Chapter.Guid);
+        Assert.IsType<ActHeaderViewModel>(items[4]);
+        Assert.Equal("Act II", ((ActHeaderViewModel)items[4]).ActName);
+        Assert.Equal("c2", ((ChapterTreeItemViewModel)items[5]).Chapter.Guid);
+    }
+
+    [Fact]
+    public void Refresh_ActWithTrailingWhitespace_GroupsWithTrimmedTwin()
+    {
+        // Two chapters share the same act except one stored with trailing
+        // whitespace. Trim + case-insensitive grouping collapses them.
+        var h = Build(x =>
+        {
+            x.Chapters =
+            [
+                Chap("c1", "A", 1, act: "Act I "),
+                Chap("c2", "B", 2, act: "act i"),
+            ];
+        });
+        Assert.Single(h.Vm.ExplorerItems.OfType<ActHeaderViewModel>());
+    }
+
+    [Fact]
     public void Refresh_FavoritesAndSearchFilter()
     {
         var h = Build(x =>

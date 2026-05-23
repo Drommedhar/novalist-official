@@ -159,21 +159,18 @@ public partial class ExplorerViewModel : ObservableObject
         var query = (SearchQuery ?? string.Empty).Trim();
         var hasQuery = !string.IsNullOrEmpty(query);
 
-        // Group by act: chapters with an act are grouped under act headers,
-        // chapters without an act appear at the top level.
-        string? currentAct = null;
+        // Group by act. Chapters with no act render at the top in chapter
+        // order; each act renders once with its chapters (in chapter order)
+        // grouped under it. Act ordering follows first-appearance in chapter
+        // order so the layout still tracks the book's natural flow, but
+        // non-contiguous chapters that share an act collapse under one
+        // header instead of producing duplicate headers.
+        var actOrder = new List<string>();
+        var byAct = new Dictionary<string, List<ChapterTreeItemViewModel>>(StringComparer.OrdinalIgnoreCase);
+        var noAct = new List<ChapterTreeItemViewModel>();
+
         foreach (var chapter in chapters)
         {
-            var act = string.IsNullOrWhiteSpace(chapter.Act) ? null : chapter.Act;
-
-            // Insert act header when the act changes
-            if (act != currentAct)
-            {
-                if (act != null)
-                    ExplorerItems.Add(new ActHeaderViewModel(act));
-                currentAct = act;
-            }
-
             var chapterTitleMatches = !hasQuery
                 || (chapter.Title?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false);
 
@@ -214,7 +211,32 @@ public partial class ExplorerViewModel : ObservableObject
                 chapterVm.IsExpanded = true;
             }
 
+            var act = string.IsNullOrWhiteSpace(chapter.Act) ? null : chapter.Act!.Trim();
+            if (act == null)
+            {
+                noAct.Add(chapterVm);
+            }
+            else
+            {
+                if (!byAct.TryGetValue(act, out var list))
+                {
+                    list = new List<ChapterTreeItemViewModel>();
+                    byAct[act] = list;
+                    // Track first-seen casing for the visible header label.
+                    actOrder.Add(act);
+                }
+                list.Add(chapterVm);
+            }
+        }
+
+        foreach (var chapterVm in noAct)
             ExplorerItems.Add(chapterVm);
+
+        foreach (var actName in actOrder)
+        {
+            ExplorerItems.Add(new ActHeaderViewModel(actName));
+            foreach (var chapterVm in byAct[actName])
+                ExplorerItems.Add(chapterVm);
         }
 
         RefreshArchived();
