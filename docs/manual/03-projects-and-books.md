@@ -97,7 +97,7 @@ The filesystem is the source of truth for your manuscript structure. You can add
 How identity is kept so nothing gets lost when you rearrange files:
 
 - **Scene files** carry a one-line HTML comment at the very top, e.g. `<!--nv v=1 id=… -->`. This is the scene's durable id. It lets Novalist recognise a scene after you move it to another chapter folder or rename the file. The comment is stripped before editing, word count, and export — you never see it in the editor, and it does not affect your text.
-- **Chapter folders** contain a hidden `.nvchapter.json` marker holding the chapter's identity and metadata. Because identity lives in the marker, you can rename the chapter folder freely (the `NN -` number prefix is only a display hint and is never renumbered behind your back).
+- **Chapter folders** contain a hidden `.nvchapter.json` marker that pins the chapter's durable identity (its `guid`). Novalist also stamps the chapter's current metadata (title, act, order, status, date) into the marker on every save so the file is readable, but identity is the only field the reconciler actually re-reads — see "What Novalist does not detect" below. You can rename the chapter folder freely (the `NN -` number prefix is only a display hint and is never renumbered behind your back).
 - **`.nvindex.json`** in each draft folder is a rebuildable fingerprint cache used to detect moves. It is safe to delete; Novalist rebuilds it.
 - **`acts.json`** holds act metadata, split out of `draft.json`.
 
@@ -109,10 +109,25 @@ What Novalist detects and reconciles:
 | Move a scene file to another chapter folder | Recognised as the same scene, moved (by id, or by content if it had no id yet) |
 | Rename a scene file | Same scene, new file name |
 | Rename a chapter folder | Same chapter — identity preserved by the marker |
-| Add a new chapter folder | New chapter |
+| Add a new chapter folder | New chapter (appended at the end of the book; reorder it inside Novalist) |
 | Delete a scene file or chapter folder | Removed from the manuscript |
+| Edit the body of a `.novalist` file | Picked up the next time the scene is opened (or live, if it isn't open in the editor) |
 
-Two ways it runs:
+What Novalist does **not** detect — for these you must use the app:
+
+| You do this | Why it doesn't reconcile |
+|---|---|
+| Edit a scene's title, date, date range, notes, synopsis, label colour, favourite, or POV/conflict/emotion overrides | Per-scene metadata lives in `scenes.json`. There is no per-scene marker file. Edit it from the [Scene dialog](04-chapters-and-scenes.md) or the Context sidebar, or edit `scenes.json` directly (treat as advanced — Novalist does not validate the schema). |
+| Edit a chapter's title, act, status, date, date range, or favourite | Chapter metadata lives in both `.nvchapter.json` and `draft.json`. The reconciler currently treats the cached `draft.json` value as authoritative for these fields — editing the marker in a text editor does **not** propagate. Use the chapter's right-click menu in the Explorer. |
+| Reorder chapters by changing the `NN -` folder prefix | The number prefix is cosmetic — Novalist never renumbers behind your back, and equally never reads the prefix as a reorder signal. Drag chapters in the Explorer to reorder. |
+| Reorder scenes by renaming `scene-NN.novalist` files | Same reason — the `NN` is cosmetic. Drag scenes in the Explorer to reorder. |
+| Add a new act, rename an act, change an act's date range | Acts live in `acts.json` and on chapter records. Use **Right-click chapter → Set act…** or the Plot Grid. |
+| Edit project / book / draft names or folder layout fields | These live in `project.json` (root `.novalist/project.json`). Renaming the project folder itself is supported by re-opening the moved project; renaming or restructuring inside the project tree is not auto-migrated. |
+| Add or rename codex entities by editing JSON in `Characters/`, `Locations/`, etc. | Codex entities are not part of the manuscript reconciler. The app reads them on open but doesn't reconcile schema-level edits. |
+
+If you want a chapter's act to follow a chapter move, change the act inside Novalist after moving the folder — the act value carried along with the moved chapter is whatever was last set in `draft.json`, not what its new neighbours have. The Explorer groups chapters by act in first-appearance order, so a chapter whose act doesn't match its neighbours will appear under its own act's header in the tree rather than between those neighbours; reassign the act in Novalist if you want it back at its visual position.
+
+Two ways reconciliation runs:
 
 - **On load** — when you open a project, Novalist scans the active draft and applies any external changes made while it was closed.
 - **Live** — while the app is open, Novalist watches the active draft folder and reconciles changes shortly after they happen, so moving a file in Explorer updates the manuscript without a restart. If a file you have open in the editor changes on disk, Novalist asks before discarding unsaved edits. Live watching can be turned off in [Settings](23-settings.md) (for example on flaky network drives); load-time reconciliation still runs.
