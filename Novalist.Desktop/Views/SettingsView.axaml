@@ -550,6 +550,23 @@
                                       HorizontalAlignment="Right" />
                     </DockPanel>
 
+                    <!-- Grammar Check API URL (self-hosted LanguageTool) -->
+                    <DockPanel IsEnabled="{Binding GrammarCheckEnabled}">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
+                            <TextBlock Text="{loc:Loc settings.grammarCheckApiUrl}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
+                            <TextBlock Text="{loc:Loc settings.grammarCheckApiUrlDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <TextBox Text="{Binding GrammarCheckApiUrl}"
+                                 PlaceholderText="https://api.languagetool.org/v2/check"
+                                 HorizontalAlignment="Stretch"
+                                 MinWidth="320" />
+                    </DockPanel>
+
                     <!-- Preview -->
                     <Border Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"

@@ -2212,8 +2212,10 @@ function setGrammarCheckEnabled(enabled) {
 function setGrammarIssues(issuesJson) {
     try {
         const raw = JSON.parse(issuesJson);
-        // Filter out issues that target known entity names
-        const plainText = editor.innerText || '';
+        // Filter out issues that target known entity names. Must use the same
+        // plain-text builder that produced the offsets LanguageTool returned,
+        // otherwise substring() reads from the wrong position.
+        const { plainText } = buildGrammarPlainTextMap();
         grammarIssues = raw.filter(issue => {
             const flaggedText = plainText.substring(issue.offset, issue.offset + issue.length);
             return !isKnownEntity(flaggedText);
@@ -2244,6 +2246,56 @@ function clearGrammarHighlights() {
     editor.normalize();
 }
 
+function buildGrammarPlainTextMap() {
+    // Build the plain text we hand to LanguageTool together with a per-text-node
+    // offset map, in lock-step. We must not use editor.innerText for this: it
+    // collapses whitespace and trims block boundaries, which drifts the offsets
+    // returned by LanguageTool away from the actual text-node positions we need
+    // for highlighting and replacement. By concatenating textContent ourselves
+    // with explicit '\n' separators between blocks, the offsets LanguageTool
+    // returns map exactly onto positions in textNodes[].
+    const textNodes = [];
+    const parts = [];
+    let pos = 0;
+    let prevBlockEnd = null;
+
+    function walk(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const t = node.textContent;
+            textNodes.push({ node, start: pos, end: pos + t.length });
+            parts.push(t);
+            pos += t.length;
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const tag = node.tagName;
+            const isBlock = tag === 'P' || tag === 'DIV' || tag === 'BR'
+                         || tag === 'H1' || tag === 'H2' || tag === 'H3'
+                         || tag === 'H4' || tag === 'H5' || tag === 'H6';
+
+            if (isBlock && prevBlockEnd !== null && pos > 0) {
+                parts.push('\n');
+                pos++;
+            }
+
+            if (tag === 'BR') {
+                parts.push('\n');
+                pos++;
+                prevBlockEnd = pos;
+            } else {
+                const children = node.childNodes;
+                for (let i = 0; i < children.length; i++) {
+                    walk(children[i]);
+                }
+                if (isBlock) prevBlockEnd = pos;
+            }
+        }
+    }
+
+    for (let i = 0; i < editor.childNodes.length; i++) {
+        walk(editor.childNodes[i]);
+    }
+    return { plainText: parts.join(''), textNodes };
+}
+
 function applyGrammarHighlights() {
     // Save caret position
     const sel = window.getSelection();
@@ -2262,46 +2314,9 @@ function applyGrammarHighlights() {
 
     if (!grammarIssues || grammarIssues.length === 0) return;
 
-    // Build a map of text nodes to innerText offsets.
-    // innerText inserts \n between block elements (p, div, br), but those
-    // newlines don't exist as text nodes. We must account for them so offsets
-    // from LanguageTool (which analyzed innerText) line up with actual DOM nodes.
-    const textNodes = [];
-    let innerTextOffset = 0;
-    let prevBlockEnd = null;
-
-    function walkNode(node) {
-        if (node.nodeType === Node.TEXT_NODE) {
-            const len = node.textContent.length;
-            textNodes.push({ node, start: innerTextOffset, end: innerTextOffset + len });
-            innerTextOffset += len;
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            const tag = node.tagName;
-            const isBlock = tag === 'P' || tag === 'DIV' || tag === 'BR'
-                         || tag === 'H1' || tag === 'H2' || tag === 'H3'
-                         || tag === 'H4' || tag === 'H5' || tag === 'H6';
-
-            // Block-level elements produce a \n in innerText between siblings
-            if (isBlock && prevBlockEnd !== null && innerTextOffset > 0) {
-                innerTextOffset++; // account for the \n between blocks
-            }
-
-            if (tag === 'BR') {
-                innerTextOffset++; // <br> produces a \n
-                prevBlockEnd = innerTextOffset;
-            } else {
-                const children = node.childNodes;
-                for (let i = 0; i < children.length; i++) {
-                    walkNode(children[i]);
-                }
-                if (isBlock) prevBlockEnd = innerTextOffset;
-            }
-        }
-    }
-
-    for (let i = 0; i < editor.childNodes.length; i++) {
-        walkNode(editor.childNodes[i]);
-    }
+    // Use the same plain-text builder that fed LanguageTool so issue offsets
+    // align exactly with text-node positions.
+    const { textNodes } = buildGrammarPlainTextMap();
 
     // Sort issues by offset descending so we can apply from the end
     const sorted = [...grammarIssues].sort((a, b) => b.offset - a.offset);
@@ -2309,31 +2324,40 @@ function applyGrammarHighlights() {
     for (const issue of sorted) {
         const issueStart = issue.offset;
         const issueEnd = issue.offset + issue.length;
+        const issueIdx = grammarIssues.indexOf(issue);
 
-        // Find the text nodes that contain this range
+        // Collect every text-node fragment overlapping the issue's range.
+        // An issue can straddle multiple text nodes when an inline highlight
+        // (entity mention, comment anchor, etc.) splits the underlying word;
+        // wrapping only the first fragment would leave the rest of the word
+        // outside the .grammar-issue span and survive a later replacement.
+        const fragments = [];
         for (let i = 0; i < textNodes.length; i++) {
             const tn = textNodes[i];
             if (tn.end <= issueStart || tn.start >= issueEnd) continue;
-
-            // Calculate local offsets within this text node
             const localStart = Math.max(0, issueStart - tn.start);
             const localEnd = Math.min(tn.node.textContent.length, issueEnd - tn.start);
-
-            // Only wrap within a single text node for simplicity
             if (localStart < localEnd) {
-                const textNode = tn.node;
-                const range = document.createRange();
-                range.setStart(textNode, localStart);
-                range.setEnd(textNode, localEnd);
+                fragments.push({ node: tn.node, start: localStart, end: localEnd });
+            }
+        }
 
-                const span = document.createElement('span');
-                span.className = 'grammar-issue';
-                span.setAttribute('data-issue-type', issue.type || 'grammar');
-                span.setAttribute('data-issue-index', grammarIssues.indexOf(issue));
+        // Wrap each fragment in its own span sharing the same data-issue-index.
+        // applyGrammarSuggestion collapses all such spans into a single
+        // replacement text node, so the whole issue range gets replaced.
+        for (const f of fragments) {
+            const range = document.createRange();
+            range.setStart(f.node, f.start);
+            range.setEnd(f.node, f.end);
+            const span = document.createElement('span');
+            span.className = 'grammar-issue';
+            span.setAttribute('data-issue-type', issue.type || 'grammar');
+            span.setAttribute('data-issue-index', issueIdx);
+            try {
                 range.surroundContents(span);
-
-                // We only handle the first text node hit per issue
-                break;
+            } catch (_) {
+                // surroundContents throws if the range crosses element boundaries
+                // mid-fragment; skip silently and let the recheck reconcile.
             }
         }
     }
@@ -2378,28 +2402,44 @@ function hideGrammarPopup() {
 }
 
 function applyGrammarSuggestion(issueIndex, replacement) {
-    const span = editor.querySelector('[data-issue-index="' + issueIndex + '"]');
-    if (!span) return;
+    const spans = editor.querySelectorAll('[data-issue-index="' + issueIndex + '"]');
+    if (spans.length === 0) return;
 
-    // Replace the span content with the suggestion text
-    const textNode = document.createTextNode(replacement);
-    span.parentNode.replaceChild(textNode, span);
-    editor.normalize();
+    // Route the replacement through execCommand so the change lands on the
+    // contentEditable undo stack and Ctrl+Z reverts it like a normal edit.
+    // selectNode targets the wrapping span itself, so insertText/delete replace
+    // the entire element (including its .grammar-issue wrapper) atomically.
+    // Use preventScroll on focus + snapshot/restore wrapper scrollTop so the
+    // viewport doesn't jump to the top when focus moves into the editor.
+    const savedScrollTop = wrapper.scrollTop;
+    editor.focus({ preventScroll: true });
+    const sel = window.getSelection();
 
-    // Remove the issue from the list
+    const firstRange = document.createRange();
+    firstRange.selectNode(spans[0]);
+    sel.removeAllRanges();
+    sel.addRange(firstRange);
+    document.execCommand('insertText', false, replacement);
+
+    // Drop any remaining fragments (rare: issue range was split by an inline
+    // highlight). Each delete is its own undo step.
+    for (let i = 1; i < spans.length; i++) {
+        const s = spans[i];
+        if (!s.parentNode) continue;
+        const r = document.createRange();
+        r.selectNode(s);
+        sel.removeAllRanges();
+        sel.addRange(r);
+        document.execCommand('delete', false);
+    }
+
+    if (wrapper.scrollTop !== savedScrollTop) {
+        wrapper.scrollTop = savedScrollTop;
+    }
+
+    // Remove the issue from the list. The input event fired by execCommand
+    // takes care of the contentChanged notification and the grammar recheck.
     grammarIssues.splice(issueIndex, 1);
-
-    // Notify content changed
-    const html = editor.innerHTML;
-    lastHtml = html;
-    sendMessage({
-        type: 'contentChanged',
-        html: html,
-        plainText: editor.innerText || ''
-    });
-
-    // Request a recheck
-    requestGrammarCheck();
 }
 
 function requestGrammarCheck() {
@@ -2407,9 +2447,12 @@ function requestGrammarCheck() {
     if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
     grammarCheckTimer = setTimeout(() => {
         grammarCheckTimer = null;
+        // Use buildGrammarPlainTextMap so the text we send and the offsets we
+        // get back stay aligned with our highlight-positioning logic.
+        const { plainText } = buildGrammarPlainTextMap();
         sendMessage({
             type: 'grammarCheckRequest',
-            plainText: editor.innerText || ''
+            plainText: plainText
         });
     }, 1500);
 }

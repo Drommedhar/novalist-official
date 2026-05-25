@@ -225,6 +225,8 @@
     "dialogueCorrectionDesc": "Korrigiert automatisch die Komma- und Punkt-Platzierung bei Anführungszeichen im Dialog, basierend auf der gewählten Anführungszeichen-Sprache.",
     "grammarCheck": "Grammatik- & Rechtschreibprüfung",
     "grammarCheckDesc": "Prüft Ihren Text auf Grammatik-, Rechtschreib- und Stilfehler mithilfe von LanguageTool. Erfordert eine Internetverbindung (oder einen selbst gehosteten LanguageTool-Server).",
+    "grammarCheckApiUrl": "LanguageTool-API-URL",
+    "grammarCheckApiUrlDesc": "Endpunkt für Grammatikprüfungen. Leer lassen, um die kostenlose öffentliche API zu verwenden. Verweisen Sie auf einen selbst gehosteten LanguageTool-Server (z. B. http://localhost:8081/v2/check), damit Ihr Text lokal bleibt.",
     "preview": "Vorschau",
     "templates": "VORLAGEN",
     "characterTemplates": "Charakter-Vorlagen",

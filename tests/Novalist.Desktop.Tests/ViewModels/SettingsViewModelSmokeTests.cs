@@ -206,6 +206,11 @@ public class SettingsViewModelTests
         Assert.True(h.App.DialogueCorrectionEnabled);
         h.Vm.GrammarCheckEnabled = true;
         Assert.True(h.App.GrammarCheckEnabled);
+
+        h.Vm.GrammarCheckApiUrl = "http://localhost:8081/v2/check";
+        Assert.Equal("http://localhost:8081/v2/check", h.App.GrammarCheckApiUrl);
+        h.Vm.GrammarCheckApiUrl = "   ";
+        Assert.Null(h.App.GrammarCheckApiUrl);
     }
 
     // ── Appearance: language / theme / accent ───────────────────────

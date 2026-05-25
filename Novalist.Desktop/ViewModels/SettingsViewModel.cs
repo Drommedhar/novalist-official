@@ -192,6 +192,9 @@ public partial class SettingsViewModel : ObservableObject
     private bool _grammarCheckEnabled;
 
     [ObservableProperty]
+    private string _grammarCheckApiUrl = string.Empty;
+
+    [ObservableProperty]
     private bool _typewriterScrollEnabled;
 
     [ObservableProperty]
@@ -417,6 +420,7 @@ public partial class SettingsViewModel : ObservableObject
         SelectedLanguage = eff.AutoReplacementLanguage;
         DialogueCorrectionEnabled = eff.DialogueCorrectionEnabled;
         GrammarCheckEnabled = eff.GrammarCheckEnabled;
+        GrammarCheckApiUrl = eff.GrammarCheckApiUrl ?? string.Empty;
 
         _suppressScopedWrite = false;
         UpdatePreview();
@@ -446,6 +450,7 @@ public partial class SettingsViewModel : ObservableObject
         _selectedLanguage = eff.AutoReplacementLanguage;
         _dialogueCorrectionEnabled = eff.DialogueCorrectionEnabled;
         _grammarCheckEnabled = eff.GrammarCheckEnabled;
+        _grammarCheckApiUrl = eff.GrammarCheckApiUrl ?? string.Empty;
         _typewriterScrollEnabled = eff.TypewriterScrollEnabled;
         var twAnchor = eff.TypewriterScrollAnchor ?? "middle";
         _typewriterAnchorTop = twAnchor == "top";
@@ -580,6 +585,12 @@ public partial class SettingsViewModel : ObservableObject
     partial void OnGrammarCheckEnabledChanged(bool value)
     {
         WriteWriting(s => s.GrammarCheckEnabled = value, o => o.GrammarCheckEnabled = value);
+    }
+
+    partial void OnGrammarCheckApiUrlChanged(string value)
+    {
+        var normalized = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        WriteWriting(s => s.GrammarCheckApiUrl = normalized, o => o.GrammarCheckApiUrl = normalized);
     }
 
     partial void OnTypewriterScrollEnabledChanged(bool value)

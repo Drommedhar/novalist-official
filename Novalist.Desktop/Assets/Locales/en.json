@@ -319,6 +319,8 @@
     "dialogueCorrectionDesc": "Automatically corrects comma and period placement around quotation marks in dialogue, based on the selected quote style language.",
     "grammarCheck": "Grammar & Spelling Check",
     "grammarCheckDesc": "Checks your text for grammar, spelling, and style issues using LanguageTool. Requires an internet connection (or a self-hosted LanguageTool server).",
+    "grammarCheckApiUrl": "LanguageTool API URL",
+    "grammarCheckApiUrlDesc": "Endpoint used for grammar checks. Leave blank to use the free public API. Point at a self-hosted LanguageTool server (for example http://localhost:8081/v2/check) to keep your text local.",
     "preview": "Preview",
     "templates": "TEMPLATES",
     "characterTemplates": "Character Templates",
