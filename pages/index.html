@@ -1,0 +1,1568 @@
+<!doctype html>
+<!--
+  Novalist website — single static file, designed to live inside the repo.
+
+  Deploy on GitHub Pages from the /pages folder:
+    1. Save this file as  pages/index.html  on the main branch.
+    2. Add the workflow  .github/workflows/site.yml  (provided with this file).
+    3. Repo Settings → Pages → Source: "GitHub Actions".
+    4. Push — the site goes live at  https://drommedhar.github.io/novalist-official/
+
+  Everything on this page — versions, download links, file sizes, features,
+  the full user manual, changelog, stars, license, support links — is fetched
+  live from the GitHub API and raw.githubusercontent.com. The repository is
+  the single source of truth. All URLs are absolute, so the page works at any
+  path or custom domain.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Novalist — the novel-writing app for organized authors</title>
+<meta name="description" content="Novalist is a free, offline-first desktop app for writing novels: manuscript, worldbuilding, plotting, timelines, maps, export and Git in one window. Windows, macOS and Linux.">
+<link rel="canonical" href="https://drommedhar.github.io/novalist-official/">
+
+<meta property="og:url" content="https://drommedhar.github.io/novalist-official/">
+<meta property="og:title" content="Novalist — the novel-writing app for organized authors">
+<meta property="og:description" content="Manuscript, worldbuilding, plotting, timelines, maps, export and Git — one offline-first app, your files in plain folders.">
+<meta property="og:image" content="https://raw.githubusercontent.com/Drommedhar/novalist-official/main/Novalist.Desktop/splash.png">
+<meta property="og:type" content="website">
+
+<link rel="icon" href="https://raw.githubusercontent.com/Drommedhar/novalist-official/main/Novalist.Desktop/novalist.ico">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.5/purify.min.js"></script>
+
+<style>
+/* ============================================================
+   Tokens — ink, parchment, moonlight and gold, from the splash
+   ============================================================ */
+:root{
+  --ink:      #0f1219;
+  --ink-2:    #141826;
+  --panel:    #171c2b;
+  --panel-2:  #1b2133;
+  --line:     rgba(237,230,211,.10);
+  --line-soft:rgba(237,230,211,.055);
+  --text:     #ece5d2;
+  --mut:      #a8a193;
+  --faint:    #756f62;
+
+  --gold:    #d2a74f;
+  --gold-2:  #ecc97c;
+  --silver:  #aeb8c8;
+  --copper:  #c98963;
+
+  --font-display:"Fraunces",Georgia,serif;
+  --font-body:"Newsreader",Georgia,serif;
+  --font-mono:"Courier Prime",ui-monospace,monospace;
+
+  --r-sm:6px; --r-md:12px; --r-lg:18px;
+  --maxw:1120px;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--ink);color:var(--text);
+  font-family:var(--font-body);font-size:17.5px;line-height:1.65;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+}
+img{max-width:100%;height:auto}
+a{color:var(--text)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:4px}
+::selection{background:var(--gold);color:#171206}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--panel);padding:8px 14px;border-radius:8px;z-index:100}
+.skip:focus{left:8px}
+
+/* ============================================================
+   Nav
+   ============================================================ */
+.nav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(15,18,25,.82);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line-soft);
+}
+.nav-in{display:flex;align-items:center;gap:28px;height:64px}
+.brand{
+  display:flex;align-items:baseline;gap:10px;text-decoration:none;
+  font-family:var(--font-display);font-weight:600;font-size:22px;letter-spacing:.01em;
+}
+.brand .quill{color:var(--gold);font-size:18px}
+.nav-links{display:flex;gap:26px}
+.nav-links a{color:var(--mut);text-decoration:none;font-size:15.5px;transition:color .15s}
+.nav-links a:hover{color:var(--gold-2)}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.star-pill{
+  display:inline-flex;align-items:center;gap:7px;
+  font-family:var(--font-mono);font-size:13px;color:var(--mut);
+  text-decoration:none;border:1px solid var(--line);border-radius:99px;
+  padding:6px 13px;transition:border-color .15s,color .15s;
+}
+.star-pill:hover{border-color:var(--gold);color:var(--text)}
+.star-pill svg{width:13px;height:13px;fill:var(--gold)}
+.nav-dl{
+  font-size:14.5px;font-weight:600;text-decoration:none;color:#171206;
+  background:linear-gradient(180deg,var(--gold-2),var(--gold));
+  border-radius:99px;padding:8px 17px;font-family:var(--font-body);
+}
+.nav-dl:hover{filter:brightness(1.07)}
+
+/* ============================================================
+   Hero — a night sky for the splash artwork
+   ============================================================ */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line-soft);
+  background:radial-gradient(110% 80% at 50% 0%, #161b2c 0%, var(--ink) 62%);
+}
+.stars,.stars-2{position:absolute;inset:0;pointer-events:none;background-repeat:repeat}
+.stars{
+  background-image:
+    radial-gradient(1px 1px at 22px 34px, rgba(236,229,210,.75), transparent),
+    radial-gradient(1px 1px at 130px 90px, rgba(236,229,210,.5), transparent),
+    radial-gradient(1.5px 1.5px at 210px 40px, rgba(210,167,79,.6), transparent),
+    radial-gradient(1px 1px at 70px 160px, rgba(236,229,210,.4), transparent),
+    radial-gradient(1px 1px at 260px 140px, rgba(174,184,200,.5), transparent);
+  background-size:300px 220px;opacity:.55;
+}
+.stars-2{
+  background-image:
+    radial-gradient(1px 1px at 60px 60px, rgba(236,229,210,.8), transparent),
+    radial-gradient(1.5px 1.5px at 180px 130px, rgba(210,167,79,.7), transparent),
+    radial-gradient(1px 1px at 280px 70px, rgba(236,229,210,.55), transparent);
+  background-size:340px 260px;opacity:.4;
+  animation:twinkle 6.5s ease-in-out infinite alternate;
+}
+@keyframes twinkle{from{opacity:.15}to{opacity:.65}}
+.hero-in{
+  position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:64px 24px 92px;
+}
+.splash{width:min(380px,68vw);margin-bottom:8px;
+  filter:drop-shadow(0 18px 60px rgba(210,167,79,.18));
+  animation:float 7s ease-in-out infinite alternate;
+}
+@keyframes float{from{transform:translateY(-5px)}to{transform:translateY(6px)}}
+h1{
+  font-family:var(--font-display);font-weight:600;
+  font-size:clamp(36px,5.6vw,62px);line-height:1.08;letter-spacing:-.01em;
+  margin:10px 0 18px;max-width:18ch;
+}
+h1 em{font-style:italic;color:var(--gold-2)}
+.tagline{max-width:62ch;color:var(--mut);font-size:19px;margin:0 0 36px}
+.tagline strong{color:var(--text);font-weight:600}
+
+.cta-row{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;align-items:center}
+.btn{
+  display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  text-decoration:none;border-radius:var(--r-md);
+  padding:14px 30px;font-weight:600;font-size:17px;line-height:1.3;
+  transition:transform .12s,filter .15s,border-color .15s;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#171206}
+.btn-primary:hover{filter:brightness(1.07)}
+.btn-primary small{font-family:var(--font-mono);font-weight:400;font-size:11.5px;opacity:.8;margin-top:2px}
+.btn-ghost{border:1px solid var(--line);color:var(--text);padding:15px 26px;font-size:16px}
+.btn-ghost:hover{border-color:var(--gold)}
+.alt-arch{font-size:14px;color:var(--faint);margin-top:14px}
+.alt-arch a{color:var(--mut)}
+.alt-arch a:hover{color:var(--gold-2)}
+
+.hero-chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:34px}
+.chip{
+  font-family:var(--font-mono);font-size:12.5px;color:var(--mut);
+  border:1px solid var(--line);border-radius:99px;padding:5px 14px;
+  text-decoration:none;display:inline-flex;align-items:center;gap:8px;
+}
+a.chip:hover{border-color:var(--gold);color:var(--text)}
+.chip .dot{width:6px;height:6px;border-radius:99px;background:var(--gold)}
+
+/* ============================================================
+   Screenshot + about
+   ============================================================ */
+.showcase{padding:78px 0 0}
+.shot-frame{
+  border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;
+  box-shadow:0 30px 80px -30px rgba(0,0,0,.7),0 0 0 1px rgba(210,167,79,.08);
+  background:var(--ink-2);
+}
+.shot-frame img{display:block;width:100%}
+.shot-cap{
+  text-align:center;font-family:var(--font-mono);font-size:12px;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin:16px 0 0;
+}
+.about{max-width:72ch;margin:54px auto 0;font-size:19px;line-height:1.75;color:#d8d1bf}
+.about p:first-child::first-letter{
+  font-family:var(--font-display);font-weight:600;color:var(--gold-2);
+  font-size:3.4em;float:left;line-height:.85;padding:4px 10px 0 0;
+}
+.about a{color:var(--gold-2)}
+
+/* ============================================================
+   Spec strip
+   ============================================================ */
+.specs{border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);margin-top:78px}
+.specs-in{display:grid;grid-template-columns:repeat(4,1fr)}
+.spec{padding:32px 26px;border-left:1px solid var(--line-soft)}
+.spec:first-child{border-left:0}
+.spec h3{font-family:var(--font-display);font-size:18px;font-weight:600;margin:0 0 7px;color:var(--gold-2)}
+.spec p{margin:0;font-size:15px;color:var(--mut);line-height:1.6}
+
+/* ============================================================
+   Sections — centered labels echoing the splash lockup
+   ============================================================ */
+section{padding:96px 0}
+.sec-head{text-align:center;margin-bottom:48px}
+.sec-label{
+  display:flex;align-items:center;justify-content:center;gap:18px;
+  font-family:var(--font-body);font-size:13px;font-weight:600;
+  letter-spacing:.34em;text-transform:uppercase;color:var(--gold);
+  margin:0 auto 18px;
+}
+.sec-label::before,.sec-label::after{
+  content:"";height:1px;width:54px;
+  background:linear-gradient(90deg,transparent,var(--gold));
+}
+.sec-label::after{background:linear-gradient(90deg,var(--gold),transparent)}
+h2{
+  font-family:var(--font-display);font-weight:600;
+  font-size:clamp(30px,3.8vw,44px);letter-spacing:-.01em;line-height:1.12;
+  margin:0 0 14px;
+}
+.sec-sub{color:var(--mut);max-width:64ch;margin:0 auto;font-size:17px}
+.sec-sub a{color:var(--mut)}
+.sec-sub a:hover{color:var(--gold-2)}
+
+.note{
+  border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--panel);color:var(--mut);font-size:15px;
+  padding:16px 20px;margin:8px 0;
+}
+.note a{color:var(--gold-2)}
+
+.skel{position:relative;overflow:hidden;background:var(--panel);border-radius:var(--r-md);min-height:120px}
+.skel::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 30%,rgba(236,229,210,.05) 50%,transparent 70%);
+  animation:shimmer 1.4s infinite;
+}
+@keyframes shimmer{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+/* ============================================================
+   Features — from the README
+   ============================================================ */
+.feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;text-align:left}
+.fcard{
+  border:1px solid var(--line);border-radius:var(--r-lg);
+  background:linear-gradient(180deg,var(--panel) 0%,var(--ink-2) 100%);
+  overflow:hidden;display:flex;flex-direction:column;position:relative;
+}
+.fcard::before{content:"";position:absolute;top:0;left:24px;right:24px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.55}
+.fcard-head{
+  padding:20px 26px 0;
+  font-family:var(--font-display);font-weight:600;font-size:21px;letter-spacing:.005em;
+}
+.fcard-body{padding:12px 26px 8px;font-size:16px;color:#cdc6b4}
+.fcard-body.clamped{
+  max-height:300px;overflow:hidden;
+  -webkit-mask-image:linear-gradient(#000 70%,transparent);
+  mask-image:linear-gradient(#000 70%,transparent);
+}
+.fcard-body p{margin:0 0 12px}
+.fcard-body ul{margin:0 0 12px;padding-left:2px;list-style:none}
+.fcard-body li{padding-left:22px;position:relative;margin-bottom:9px;line-height:1.6}
+.fcard-body li::before{content:"❧";position:absolute;left:0;top:0;color:var(--gold);font-size:13px;opacity:.8}
+.fcard-body li li::before{content:"·";color:var(--faint)}
+.fcard-body ul ul{margin-top:9px}
+.fcard-body strong{color:var(--text);font-weight:600}
+.fcard-body code{font-family:var(--font-mono);font-size:.85em;background:rgba(236,229,210,.08);padding:1px 6px;border-radius:5px}
+.fcard-body a{color:var(--gold-2)}
+.fcard-more{
+  align-self:flex-start;margin:4px 26px 22px;
+  background:none;border:1px solid var(--line);color:var(--mut);
+  font-family:var(--font-body);font-size:13.5px;letter-spacing:.04em;
+  border-radius:99px;padding:6px 16px;cursor:pointer;
+}
+.fcard-more:hover{color:var(--gold-2);border-color:var(--gold)}
+
+/* ============================================================
+   Manual — sidebar + reader
+   ============================================================ */
+#manual{background:var(--ink-2);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+.manual-wrap{display:grid;grid-template-columns:280px minmax(0,1fr);gap:46px;text-align:left}
+.mnav{position:sticky;top:84px;align-self:start;max-height:calc(100vh - 110px);overflow:auto;padding-right:6px}
+.mnav summary{display:none}
+.mnav-filter{
+  width:100%;background:var(--panel);border:1px solid var(--line);border-radius:9px;
+  color:var(--text);font-family:var(--font-body);font-size:15px;
+  padding:9px 13px;margin-bottom:18px;
+}
+.mnav-filter::placeholder{color:var(--faint)}
+.mnav-group{margin-bottom:20px}
+.mnav-group h4{
+  font-family:var(--font-body);font-size:12px;font-weight:600;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--gold);margin:0 0 8px;
+}
+.mnav a{
+  display:block;color:var(--mut);text-decoration:none;font-size:15.5px;
+  padding:5px 10px;border-left:2px solid transparent;border-radius:0 7px 7px 0;
+  line-height:1.4;
+}
+.mnav a:hover{color:var(--text);background:rgba(236,229,210,.035)}
+.mnav a.active{color:var(--gold-2);border-left-color:var(--gold);background:rgba(210,167,79,.07)}
+.mnav .hidden{display:none}
+
+.mhead{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:8px}
+.mhead .m-gh{margin-left:auto;font-size:14px;color:var(--faint);text-decoration:none;font-family:var(--font-mono)}
+.mhead .m-gh:hover{color:var(--gold-2)}
+
+.m-article{font-size:17.5px;line-height:1.78;color:#ded7c5;max-width:74ch}
+.m-article h1{font-family:var(--font-display);font-weight:600;font-size:34px;line-height:1.15;margin:6px 0 20px;color:var(--text)}
+.m-article h2{
+  font-family:var(--font-display);font-weight:600;font-size:25px;margin:42px 0 14px;color:var(--text);
+  padding-bottom:8px;border-bottom:1px solid var(--line-soft);
+}
+.m-article h3{font-family:var(--font-display);font-weight:600;font-size:20px;margin:32px 0 10px;color:var(--gold-2)}
+.m-article h4{font-family:var(--font-body);font-weight:600;font-size:17px;margin:26px 0 8px}
+.m-article p{margin:0 0 16px}
+.m-article a{color:var(--gold-2);text-decoration-color:rgba(210,167,79,.4)}
+.m-article ul,.m-article ol{margin:0 0 16px;padding-left:26px}
+.m-article li{margin-bottom:7px}
+.m-article code{font-family:var(--font-mono);font-size:.86em;background:rgba(236,229,210,.08);padding:1.5px 7px;border-radius:5px;color:var(--text)}
+.m-article pre{
+  background:var(--ink);border:1px solid var(--line-soft);border-radius:10px;
+  padding:16px 20px;overflow-x:auto;margin:0 0 18px;
+}
+.m-article pre code{background:none;padding:0;font-size:14px;line-height:1.6}
+.m-article blockquote{
+  margin:0 0 18px;padding:4px 0 4px 20px;border-left:2px solid var(--gold);
+  color:var(--mut);font-style:italic;
+}
+.m-article table{border-collapse:collapse;width:100%;margin:0 0 20px;font-size:15.5px}
+.m-article th{
+  text-align:left;font-family:var(--font-body);font-weight:600;font-size:12.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
+  padding:9px 14px;border-bottom:1px solid var(--line);
+}
+.m-article td{padding:9px 14px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.m-article img{border:1px solid var(--line);border-radius:10px;margin:6px 0 14px}
+.m-article hr{border:0;text-align:center;margin:34px 0}
+.m-article hr::after{content:"✦ ✦ ✦";color:var(--gold);letter-spacing:1em;font-size:11px}
+.m-pager{
+  display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;
+  margin-top:46px;padding-top:22px;border-top:1px solid var(--line-soft);max-width:74ch;
+}
+.m-pager a{
+  text-decoration:none;color:var(--mut);font-size:16px;max-width:46%;
+}
+.m-pager a:hover{color:var(--gold-2)}
+.m-pager .dir{
+  display:block;font-family:var(--font-body);font-size:11.5px;font-weight:600;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:3px;
+}
+.m-pager .next{margin-left:auto;text-align:right}
+
+/* ============================================================
+   Download
+   ============================================================ */
+.dl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;text-align:left}
+.dl-card{
+  border:1px solid var(--line);border-radius:var(--r-lg);
+  background:var(--panel);padding:26px 24px 22px;
+  display:flex;flex-direction:column;gap:6px;position:relative;
+}
+.dl-card.detected{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 16px 50px -22px var(--gold)}
+.dl-detected{
+  position:absolute;top:-11px;right:14px;
+  font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#171206;border-radius:99px;padding:3px 11px;
+}
+.ftype{
+  align-self:flex-start;
+  font-family:var(--font-mono);font-size:11.5px;font-weight:700;letter-spacing:.1em;
+  color:var(--gold);border:1px solid rgba(210,167,79,.55);border-radius:7px;
+  padding:4px 9px;margin-bottom:12px;
+}
+.dl-card h3{font-family:var(--font-display);font-size:21px;font-weight:600;margin:0}
+.dl-arch{font-family:var(--font-mono);font-size:12px;color:var(--faint)}
+.dl-file{font-family:var(--font-mono);font-size:12px;color:var(--mut);word-break:break-all;margin-top:8px}
+.dl-meta{font-family:var(--font-mono);font-size:12px;color:var(--faint);margin-bottom:12px}
+.dl-hint{font-size:13.5px;color:var(--faint);line-height:1.55;margin-bottom:16px}
+.dl-btn{
+  margin-top:auto;text-align:center;text-decoration:none;font-weight:600;font-size:15px;
+  border:1px solid var(--gold);color:var(--text);border-radius:10px;padding:11px 10px;
+  transition:background .15s,color .15s;
+}
+.dl-btn:hover{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#171206}
+.dl-foot{margin-top:30px;display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;font-size:15px;color:var(--mut);justify-content:center}
+.dl-foot a{color:var(--mut)}
+.dl-foot a:hover{color:var(--gold-2)}
+details.src{
+  margin-top:36px;border:1px solid var(--line);border-radius:var(--r-md);
+  background:var(--panel);text-align:left;
+}
+details.src summary{
+  cursor:pointer;padding:15px 22px;font-weight:600;font-size:16px;list-style:none;
+  display:flex;align-items:center;gap:10px;
+}
+details.src summary::before{content:"›";font-family:var(--font-mono);color:var(--faint);transition:transform .15s}
+details.src[open] summary::before{transform:rotate(90deg)}
+details.src .src-body{padding:0 22px 20px;color:var(--mut);font-size:15px}
+details.src pre{
+  background:var(--ink);border:1px solid var(--line-soft);border-radius:10px;
+  padding:14px 18px;overflow-x:auto;font-family:var(--font-mono);font-size:13.5px;color:#cdc6b4;
+}
+details.src a{color:var(--gold-2)}
+
+/* ============================================================
+   Changelog
+   ============================================================ */
+.release{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--panel);margin-bottom:16px;overflow:hidden;text-align:left}
+.release summary{
+  list-style:none;cursor:pointer;display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:18px 24px;
+}
+.release summary::-webkit-details-marker{display:none}
+.release summary:hover{background:rgba(236,229,210,.025)}
+.rel-tag{font-family:var(--font-mono);font-weight:700;font-size:16px}
+.rel-latest{
+  font-family:var(--font-body);font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#171206;border-radius:99px;padding:3px 11px;
+}
+.rel-pre{
+  font-family:var(--font-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  border:1px solid var(--line);color:var(--faint);border-radius:99px;padding:3px 10px;
+}
+.rel-date{font-family:var(--font-mono);font-size:13px;color:var(--faint)}
+.rel-gh{margin-left:auto;font-size:13.5px;color:var(--faint);text-decoration:none}
+.rel-gh:hover{color:var(--gold-2)}
+.rel-caret{font-family:var(--font-mono);color:var(--faint);transition:transform .15s}
+details[open] .rel-caret{transform:rotate(90deg)}
+.rel-body{padding:4px 28px 24px;border-top:1px solid var(--line-soft);font-size:16px;color:#cdc6b4}
+.rel-body h3,.rel-body h2{
+  display:inline-block;font-family:var(--font-body);font-size:12px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;border-radius:99px;
+  padding:4px 14px;margin:20px 0 12px;border:1px solid var(--line);color:var(--mut);
+}
+.rel-body h3[data-kind="added"]{color:var(--gold-2);border-color:var(--gold)}
+.rel-body h3[data-kind="changed"]{color:var(--silver);border-color:var(--silver)}
+.rel-body h3[data-kind="fixed"]{color:var(--copper);border-color:var(--copper)}
+.rel-body h3[data-kind="removed"],.rel-body h3[data-kind="security"],.rel-body h3[data-kind="deprecated"]{color:var(--mut);border-color:var(--mut)}
+.rel-body ul{margin:0 0 14px;padding-left:2px;list-style:none}
+.rel-body li{padding-left:18px;position:relative;margin-bottom:8px;line-height:1.6}
+.rel-body li::before{content:"–";position:absolute;left:0;color:var(--faint)}
+.rel-body strong{color:var(--text);font-weight:600}
+.rel-body code{font-family:var(--font-mono);font-size:.85em;background:rgba(236,229,210,.08);padding:1.5px 6px;border-radius:5px}
+.rel-body a{color:var(--gold-2);word-break:break-word}
+.rel-body p{margin:14px 0}
+.changelog-foot{margin-top:26px;font-size:15px;text-align:center}
+.changelog-foot a{color:var(--mut)}
+.changelog-foot a:hover{color:var(--gold-2)}
+
+/* ============================================================
+   Footer
+   ============================================================ */
+footer{border-top:1px solid var(--line-soft);padding:56px 0 62px;background:var(--ink-2)}
+.foot-in{display:flex;flex-wrap:wrap;gap:36px;justify-content:space-between;align-items:flex-start}
+.foot-brand{font-family:var(--font-display);font-weight:600;font-size:21px;display:flex;align-items:baseline;gap:9px}
+.foot-brand .quill{color:var(--gold);font-size:16px}
+.foot-col{font-size:15px;color:var(--mut);max-width:46ch;line-height:1.7}
+.foot-col p{margin:10px 0 0}
+.foot-links{display:flex;flex-direction:column;gap:9px;font-size:15px}
+.foot-links a{color:var(--mut);text-decoration:none}
+.foot-links a:hover{color:var(--gold-2)}
+.foot-links .fl-head{
+  font-family:var(--font-body);font-size:11.5px;font-weight:600;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--gold);margin-bottom:3px;
+}
+.support-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.support-row a{
+  font-size:14px;font-weight:600;text-decoration:none;color:var(--text);
+  border:1px solid var(--line);border-radius:99px;padding:7px 16px;
+}
+.support-row a:hover{border-color:var(--gold)}
+.foot-truth{
+  margin-top:42px;padding-top:22px;border-top:1px solid var(--line-soft);
+  font-family:var(--font-mono);font-size:12px;color:var(--faint);
+  display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;
+}
+.foot-truth a{color:var(--faint)}
+
+/* ============================================================
+   Responsive + motion
+   ============================================================ */
+@media (max-width:1020px){
+  .feat-grid{grid-template-columns:1fr}
+  .dl-grid{grid-template-columns:1fr 1fr}
+  .specs-in{grid-template-columns:1fr 1fr}
+  .spec:nth-child(odd){border-left:0}
+  .spec{border-top:1px solid var(--line-soft)}
+  .spec:nth-child(-n+2){border-top:0}
+  .manual-wrap{grid-template-columns:1fr;gap:26px}
+  .mnav{position:static;max-height:none;border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel);padding:6px 16px 14px}
+  .mnav summary{
+    display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;
+    padding:10px 0;font-weight:600;font-size:16px;
+  }
+  .mnav summary::-webkit-details-marker{display:none}
+  .mnav summary::after{content:"▾";color:var(--gold);margin-left:auto}
+}
+@media (max-width:720px){
+  .nav-links{display:none}
+  .nav-dl{display:none}
+  section{padding:70px 0}
+  .hero-in{padding:48px 20px 70px}
+  .dl-grid{grid-template-columns:1fr}
+  .specs-in{grid-template-columns:1fr}
+  .spec{border-left:0;border-top:1px solid var(--line-soft)}
+  .spec:first-child{border-top:0}
+  .rel-gh{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .splash,.stars-2{animation:none}
+  .skel::after{animation:none}
+  *{transition:none !important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!-- ================= NAV ================= -->
+<nav class="nav" aria-label="Main">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><span class="quill">❦</span>Novalist</a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#manual">Manual</a>
+      <a href="#download">Download</a>
+      <a href="#changelog">Changelog</a>
+    </div>
+    <div class="nav-right">
+      <a class="star-pill" id="navStars" href="https://github.com/Drommedhar/novalist-official" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 .8l2.1 4.4 4.8.6-3.5 3.3.9 4.7L8 11.5l-4.3 2.3.9-4.7L1.1 5.8l4.8-.6z"/></svg>
+        <span id="navStarCount">GitHub</span>
+      </a>
+      <a class="nav-dl" href="#download">Download</a>
+    </div>
+  </div>
+</nav>
+
+<main id="main">
+
+<!-- ================= HERO ================= -->
+<header class="hero" id="top">
+  <div class="stars" aria-hidden="true"></div>
+  <div class="stars-2" aria-hidden="true"></div>
+  <div class="hero-in">
+    <img class="splash" src="https://raw.githubusercontent.com/Drommedhar/novalist-official/main/Novalist.Desktop/splash.png"
+         alt="Novalist — an open book with a quill and inkwell under a crescent moon" fetchpriority="high">
+    <h1>Where your <em>whole novel</em> comes together.</h1>
+    <p class="tagline" id="tagline">
+      <strong>Novalist</strong> is a free, offline-first desktop app for writing novels —
+      manuscript, worldbuilding, plotting, timelines, maps, export and version control
+      in one window, with your project stored as plain files in a folder that stays yours.
+    </p>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" id="btnPrimary" href="#download">
+        <span id="btnPrimaryLabel">Download Novalist</span>
+        <small id="btnPrimaryMeta">latest release</small>
+      </a>
+      <a class="btn btn-ghost" href="#manual">Read the manual</a>
+    </div>
+    <p class="alt-arch" id="altArch" hidden></p>
+
+    <div class="hero-chips">
+      <a class="chip" id="chipVersion" href="#changelog" hidden><span class="dot"></span><span id="chipVersionText"></span></a>
+      <span class="chip">Windows · macOS · Linux</span>
+      <span class="chip" id="chipLicense">MIT licensed</span>
+      <span class="chip">Offline-first — your files</span>
+    </div>
+  </div>
+</header>
+
+<!-- ================= SHOWCASE + ABOUT ================= -->
+<div class="showcase">
+  <div class="wrap">
+    <figure style="margin:0">
+      <div class="shot-frame">
+        <img src="https://raw.githubusercontent.com/Drommedhar/novalist-official/main/docs/images/main.jpg"
+             alt="The Novalist main window: chapter explorer, ribbon, and project dashboard" loading="lazy">
+      </div>
+      <figcaption class="shot-cap">— The project dashboard —</figcaption>
+    </figure>
+    <div class="about" id="aboutProse">
+      <p>Novalist is an offline-first desktop application for writing novels. It handles the
+      full scope of a writing project — manuscript editing, worldbuilding, plotting, timelines,
+      exporting, and version control — in a single, self-contained tool. It runs on Windows,
+      macOS, and Linux.</p>
+    </div>
+  </div>
+
+  <div class="specs">
+    <div class="wrap specs-in">
+      <div class="spec">
+        <h3>Offline-first</h3>
+        <p>A project is a folder of plain files — scenes as HTML, metadata as JSON. Back it up, sync it, open it in any editor.</p>
+      </div>
+      <div class="spec">
+        <h3>Cross-platform</h3>
+        <p>One app for Windows, macOS and Linux, built on .NET 8 and Avalonia.</p>
+      </div>
+      <div class="spec">
+        <h3>The full craft</h3>
+        <p>Manuscript, codex, plot grid, timeline, maps, research, export and Git — without leaving the window.</p>
+      </div>
+      <div class="spec">
+        <h3>Open &amp; extensible</h3>
+        <p>MIT licensed, with a complete extension SDK for views, exports, themes and more.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= FEATURES ================= -->
+<section id="features" style="scroll-margin-top:70px">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-label">Features</p>
+      <h2>Every tool a novelist needs.</h2>
+      <p class="sec-sub">Loaded straight from the
+        <a href="https://github.com/Drommedhar/novalist-official#features" target="_blank" rel="noopener">project README</a> —
+        this list updates the moment the repository does.</p>
+    </div>
+    <div class="feat-grid" id="featGrid">
+      <div class="skel" style="min-height:280px"></div>
+      <div class="skel" style="min-height:280px"></div>
+      <div class="skel" style="min-height:280px"></div>
+      <div class="skel" style="min-height:280px"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MANUAL ================= -->
+<section id="manual" style="scroll-margin-top:70px">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-label">The Manual</p>
+      <h2>Read the book about the app.</h2>
+      <p class="sec-sub" id="manualSub">The complete user manual, served straight from
+        <a href="https://github.com/Drommedhar/novalist-official/tree/main/docs/manual" target="_blank" rel="noopener">docs/manual</a>
+        in the repository — every chapter, always current.</p>
+    </div>
+
+    <div class="manual-wrap">
+      <details class="mnav" id="mnav" open>
+        <summary>Chapters</summary>
+        <input class="mnav-filter" id="mnavFilter" type="search" placeholder="Filter chapters…" aria-label="Filter manual chapters">
+        <nav id="mnavList" aria-label="Manual chapters">
+          <div class="skel" style="min-height:200px"></div>
+        </nav>
+      </details>
+
+      <div>
+        <div class="mhead">
+          <a class="m-gh" id="mGhLink" href="https://github.com/Drommedhar/novalist-official/blob/main/docs/manual/README.md" target="_blank" rel="noopener">view on GitHub ↗</a>
+        </div>
+        <article class="m-article" id="mArticle">
+          <div class="skel" style="min-height:340px"></div>
+        </article>
+        <nav class="m-pager" id="mPager" aria-label="Manual chapter navigation"></nav>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DOWNLOAD ================= -->
+<section id="download" style="scroll-margin-top:70px">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-label">Download</p>
+      <h2>Begin your draft.</h2>
+      <p class="sec-sub" id="dlSub">Installers are built per release for all three platforms and published on GitHub.</p>
+    </div>
+
+    <div class="dl-grid" id="dlGrid">
+      <div class="skel" style="min-height:260px"></div>
+      <div class="skel" style="min-height:260px"></div>
+      <div class="skel" style="min-height:260px"></div>
+      <div class="skel" style="min-height:260px"></div>
+    </div>
+
+    <div class="dl-foot">
+      <span>Need an older build?</span>
+      <a href="https://github.com/Drommedhar/novalist-official/releases" target="_blank" rel="noopener">Browse all releases ↗</a>
+      <a href="https://github.com/Drommedhar/novalist-official/issues" target="_blank" rel="noopener">Report a problem ↗</a>
+    </div>
+
+    <details class="src">
+      <summary>Prefer to build from source?</summary>
+      <div class="src-body">
+        <p>Novalist builds with the <strong>.NET 8 SDK</strong>:</p>
+        <pre>git clone https://github.com/Drommedhar/novalist-official.git
+cd novalist-official
+dotnet run --project Novalist.Desktop/Novalist.Desktop.csproj -c Release</pre>
+        <p>Full instructions live in the <a href="https://github.com/Drommedhar/novalist-official#building" target="_blank" rel="noopener">README</a>.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ================= CHANGELOG ================= -->
+<section id="changelog" style="scroll-margin-top:70px">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-label">Changelog</p>
+      <h2>The story so far.</h2>
+      <p class="sec-sub">Release notes, loaded live from GitHub. The newest version is expanded; open any other release to read its notes.</p>
+    </div>
+    <div id="changelogList">
+      <div class="skel" style="min-height:90px;margin-bottom:14px"></div>
+      <div class="skel" style="min-height:64px;margin-bottom:14px"></div>
+      <div class="skel" style="min-height:64px"></div>
+    </div>
+    <p class="changelog-foot">
+      <a href="https://github.com/Drommedhar/novalist-official/releases" target="_blank" rel="noopener">View the full release history on GitHub ↗</a>
+    </p>
+  </div>
+</section>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-in">
+      <div>
+        <div class="foot-brand"><span class="quill">❦</span>Novalist</div>
+        <div class="foot-col">
+          <p id="footLicense">Released under the MIT License. Originally built by its author to write a book —
+            shared so it can help with yours.</p>
+          <div class="support-row" id="supportRow" hidden></div>
+        </div>
+      </div>
+      <div class="foot-links">
+        <span class="fl-head">Project</span>
+        <a href="https://github.com/Drommedhar/novalist-official" target="_blank" rel="noopener">Source on GitHub</a>
+        <a href="https://github.com/Drommedhar/novalist-official/releases" target="_blank" rel="noopener">Releases</a>
+        <a href="https://github.com/Drommedhar/novalist-official/issues" target="_blank" rel="noopener">Issues</a>
+        <a id="footCommunity" href="https://www.reddit.com/r/novalist/" target="_blank" rel="noopener">Community</a>
+        <a href="https://github.com/Drommedhar/novalist-official/blob/main/LICENSE" target="_blank" rel="noopener">License</a>
+        <a href="https://github.com/Drommedhar/novalist-official/blob/main/docs/extension-guide.md" target="_blank" rel="noopener">Extension guide</a>
+      </div>
+      <div class="foot-links">
+        <span class="fl-head">This page</span>
+        <a href="#features">Features</a>
+        <a href="#manual">Manual</a>
+        <a href="#download">Download</a>
+        <a href="#changelog">Changelog</a>
+      </div>
+    </div>
+    <div class="foot-truth">
+      <span>Versions, downloads, features, the manual and release notes on this page are loaded live from the
+        <a href="https://github.com/Drommedhar/novalist-official" target="_blank" rel="noopener">GitHub repository</a> — it is the single source of truth.</span>
+      <span id="footUpdated"></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ==========================================================================
+   Novalist site — all dynamic data comes from GitHub.
+     - REST API  : repo metadata + releases (versions, notes, assets, sizes)
+     - raw files : README.md (tagline, about, features, support links),
+                   docs/manual/* (the full user manual), images
+   The manual is a hash-routed reader: #manual/05-editor.md opens a chapter,
+   #manual/22-context-sidebar.md:comments deep-links to a heading. Chapters
+   are fetched lazily and cached. Everything degrades to GitHub links if the
+   network or the API rate limit gets in the way.
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  var OWNER = 'Drommedhar';
+  var NAME  = 'novalist-official';
+  var BRANCH = 'main';
+
+  var REPO_URL = 'https://github.com/' + OWNER + '/' + NAME;
+  var API      = 'https://api.github.com/repos/' + OWNER + '/' + NAME;
+  var RAW      = 'https://raw.githubusercontent.com/' + OWNER + '/' + NAME + '/' + BRANCH;
+  var MANUAL_DIR = 'docs/manual';
+  var MANUAL_BASE = RAW + '/' + MANUAL_DIR + '/';
+  var MANUAL_GH   = REPO_URL + '/blob/' + BRANCH + '/' + MANUAL_DIR + '/';
+
+  var CACHE_KEY = 'novalist_site_cache_v1';
+  var PAGE_CACHE_PREFIX = 'novalist_manual_v1:';
+  var CACHE_TTL = 10 * 60 * 1000;
+
+  var PLATFORMS = [
+    {
+      key: 'windows', name: 'Windows', arch: 'x64', ftype: '.EXE',
+      hint: 'Installer — set up in a minute, updates in place.',
+      match: function (n) { return /\.exe$/i.test(n); }
+    },
+    {
+      key: 'mac-arm', name: 'macOS', arch: 'Apple Silicon', ftype: '.DMG',
+      hint: 'Drag to Applications. If Gatekeeper objects: right-click → Open.',
+      match: function (n) { return /\.dmg$/i.test(n) && /(arm64|aarch64)/i.test(n); }
+    },
+    {
+      key: 'mac-x64', name: 'macOS', arch: 'Intel', ftype: '.DMG',
+      hint: 'Drag to Applications. If Gatekeeper objects: right-click → Open.',
+      match: function (n) { return /\.dmg$/i.test(n) && !/(arm64|aarch64)/i.test(n); }
+    },
+    {
+      key: 'linux', name: 'Linux', arch: 'x86_64', ftype: 'AppImage',
+      hint: 'chmod +x, then run. No install needed.',
+      match: function (n) { return /\.appimage$/i.test(n); }
+    }
+  ];
+
+  /* ---------------------------------------------------------------- utils */
+  function $(id) { return document.getElementById(id); }
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function fmtBytes(b) {
+    if (!b && b !== 0) return '';
+    if (b < 1024 * 1024) return Math.round(b / 1024) + ' KB';
+    return (b / (1024 * 1024)).toFixed(1).replace(/\.0$/, '') + ' MB';
+  }
+
+  function fmtDate(iso) {
+    try {
+      return new Date(iso).toLocaleDateString(undefined,
+        { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (e) { return iso || ''; }
+  }
+
+  function relDate(iso) {
+    var d = (Date.now() - new Date(iso).getTime()) / 86400000;
+    if (d < 1) return 'today';
+    if (d < 2) return 'yesterday';
+    if (d < 30) return Math.floor(d) + ' days ago';
+    if (d < 365) return Math.floor(d / 30) + ' months ago';
+    return Math.floor(d / 365) + ' years ago';
+  }
+
+  function fmtCount(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+    return String(n);
+  }
+
+  function md(src) {
+    if (!src) return '';
+    if (!window.marked || !window.DOMPurify) {
+      var p = el('p'); p.textContent = src; return p.outerHTML;
+    }
+    var html = window.marked.parse(src, { mangle: false, headerIds: false, gfm: true });
+    return window.DOMPurify.sanitize(html, { ADD_ATTR: ['target', 'rel'] });
+  }
+
+  function externalize(root) {
+    root.querySelectorAll('a[href^="http"]').forEach(function (a) {
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+    });
+  }
+
+  /* GitHub-style heading slugs (ASCII flavour — manual is English). */
+  function slugify(text) {
+    return text.toLowerCase().trim()
+      .replace(/[^\w\- ]+/g, '')
+      .replace(/\s+/g, '-');
+  }
+
+  /* ------------------------------------------------------- README parsing */
+  function extractTagline(readme) {
+    var head = readme.split(/\n## /)[0];
+    var m = head.match(/^###\s+(.+?)\s*$/m) ||
+            head.match(/<h3[^>]*>([\s\S]+?)<\/h3>/i);
+    return m ? m[1].replace(/<[^>]+>/g, '').trim() : null;
+  }
+
+  function extractSection(readme, heading) {
+    var re = new RegExp('\\n##\\s+' + heading + '[^\\n]*\\n([\\s\\S]*?)(?=\\n##\\s|$)', 'i');
+    var m = readme.match(re);
+    return m ? m[1].trim() : null;
+  }
+
+  function extractFeatures(readme) {
+    var sec = extractSection(readme, 'Features');
+    if (!sec) return null;
+    var parts = ('\n' + sec).split(/\n###\s+/).slice(1);
+    if (!parts.length) return null;
+    return parts.map(function (p) {
+      var nl = p.indexOf('\n');
+      return {
+        title: (nl === -1 ? p : p.slice(0, nl)).trim(),
+        body:  (nl === -1 ? '' : p.slice(nl + 1)).trim()
+      };
+    });
+  }
+
+  function extractSupportLinks(readme) {
+    var sec = extractSection(readme, 'Support');
+    if (!sec) return [];
+    var links = [], re = /\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)/g, x;
+    while ((x = re.exec(sec))) {
+      var label = x[1].replace(/<[^>]+>/g, '').trim();
+      if (!label) {
+        if (/paypal/i.test(x[2])) label = 'Donate via PayPal';
+        else if (/ko-?fi/i.test(x[2])) label = 'Buy me a coffee';
+        else label = 'Support';
+      }
+      links.push({ label: label, url: x[2] });
+    }
+    var seen = {};
+    return links.filter(function (l) {
+      if (seen[l.url]) return false; seen[l.url] = 1; return true;
+    });
+  }
+
+  /* ------------------------------------------------- manual TOC parsing */
+  /* docs/manual/README.md holds a "## Table of contents" with ### groups
+     and numbered [Title](file.md) — description items. */
+  function parseManualToc(text) {
+    var m = text.match(/\n##\s+Table of contents\s*\n([\s\S]*?)(?=\n##\s|$)/i);
+    if (!m) return null;
+    var groups = [], current = null;
+    m[1].split('\n').forEach(function (line) {
+      var g = line.match(/^###\s+(.+?)\s*$/);
+      if (g) {
+        current = { name: g[1].trim(), items: [] };
+        groups.push(current);
+        return;
+      }
+      var it = line.match(/^\s*\d+\.\s+\[(.+?)\]\(([^)#\s]+\.md)\)\s*(?:[—–-]\s*(.*))?$/);
+      if (it) {
+        if (!current) { current = { name: '', items: [] }; groups.push(current); }
+        current.items.push({
+          title: it[1].trim(),
+          file: it[2].trim(),
+          desc: (it[3] || '').replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').trim()
+        });
+      }
+    });
+    groups = groups.filter(function (g) { return g.items.length; });
+    return groups.length ? groups : null;
+  }
+
+  function flattenToc(groups) {
+    var flat = [];
+    (groups || []).forEach(function (g) {
+      g.items.forEach(function (i) { flat.push(i); });
+    });
+    return flat;
+  }
+
+  /* ----------------------------------------------- manual link rewriting */
+  /* Decide what a link inside a manual page should become. Returns
+     {type:'route', hash} | {type:'external', url} | {type:'anchor', frag}. */
+  function resolveManualHref(href, currentFile) {
+    if (!href) return { type: 'external', url: '#' };
+    if (/^(https?:|mailto:)/i.test(href)) return { type: 'external', url: href };
+    if (href.charAt(0) === '#') return { type: 'anchor', frag: href.slice(1) };
+
+    var base = 'https://x/' + MANUAL_DIR + '/' + (currentFile || '');
+    var u;
+    try { u = new URL(href, base); } catch (e) { return { type: 'external', url: href }; }
+    var path = u.pathname.replace(/^\//, ''); // e.g. docs/manual/05-editor.md
+    var frag = u.hash ? u.hash.slice(1) : '';
+
+    if (path.indexOf(MANUAL_DIR + '/') === 0 && /\.md$/i.test(path)) {
+      var file = path.slice(MANUAL_DIR.length + 1);
+      return { type: 'route', hash: '#manual/' + file + (frag ? ':' + frag : '') };
+    }
+    /* outside the manual folder: send to GitHub (renders .md nicely) */
+    return { type: 'external', url: REPO_URL + '/blob/' + BRANCH + '/' + path + (frag ? '#' + frag : '') };
+  }
+
+  function resolveManualSrc(src, currentFile) {
+    if (!src) return src;
+    if (/^(https?:|data:)/i.test(src)) return src;
+    var base = 'https://x/' + MANUAL_DIR + '/' + (currentFile || '');
+    try {
+      var u = new URL(src, base);
+      return RAW + u.pathname;
+    } catch (e) { return src; }
+  }
+
+  /* ------------------------------------------------------------- fetching */
+  function getJSON(url) {
+    return fetch(url, { headers: { Accept: 'application/vnd.github+json' } })
+      .then(function (r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      });
+  }
+
+  function getText(url) {
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    });
+  }
+
+  function cacheGet(key) {
+    try {
+      var c = JSON.parse(sessionStorage.getItem(key));
+      if (c && Date.now() - c.t < CACHE_TTL) return c.v;
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+
+  function cacheSet(key, v) {
+    try { sessionStorage.setItem(key, JSON.stringify({ t: Date.now(), v: v })); }
+    catch (e) { /* full/blocked — fine */ }
+  }
+
+  function getManualPage(file) {
+    var key = PAGE_CACHE_PREFIX + file;
+    var hit = cacheGet(key);
+    if (hit) return Promise.resolve(hit);
+    return getText(MANUAL_BASE + file).then(function (t) {
+      cacheSet(key, t); return t;
+    });
+  }
+
+  /* --------------------------------------------------------- OS detection */
+  function detectPlatformKey() {
+    var ua = navigator.userAgent || '';
+    if (/Android/i.test(ua)) return null;
+    if (/iPhone|iPad|iPod/i.test(ua)) return null;
+    if (/Win/i.test(ua)) return 'windows';
+    if (/Mac/i.test(ua)) return 'mac-arm';
+    if (/Linux|X11/i.test(ua)) return 'linux';
+    return null;
+  }
+
+  function refineMacArch(cb) {
+    if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+      navigator.userAgentData.getHighEntropyValues(['architecture'])
+        .then(function (v) {
+          if (v && v.architecture) {
+            cb(/arm/i.test(v.architecture) ? 'mac-arm' : 'mac-x64');
+          }
+        })
+        .catch(function () { /* keep default */ });
+    }
+  }
+
+  /* ------------------------------------------------------------ rendering */
+  function pickLatest(releases) {
+    for (var i = 0; i < releases.length; i++) {
+      if (!releases[i].draft && !releases[i].prerelease) return releases[i];
+    }
+    return releases[0] || null;
+  }
+
+  function assetFor(release, platform) {
+    if (!release || !release.assets) return null;
+    for (var i = 0; i < release.assets.length; i++) {
+      if (platform.match(release.assets[i].name)) return release.assets[i];
+    }
+    return null;
+  }
+
+  function renderHero(repo, latest, detectedKey) {
+    if (repo && typeof repo.stargazers_count === 'number') {
+      $('navStarCount').textContent = fmtCount(repo.stargazers_count);
+    }
+    if (repo && repo.license && repo.license.spdx_id && repo.license.spdx_id !== 'NOASSERTION') {
+      $('chipLicense').textContent = repo.license.spdx_id + ' licensed';
+    }
+    if (repo && repo.homepage) {
+      $('footCommunity').href = repo.homepage;
+    }
+    if (!latest) return;
+
+    var chip = $('chipVersion');
+    $('chipVersionText').textContent =
+      latest.tag_name + ' · released ' + relDate(latest.published_at);
+    chip.hidden = false;
+
+    var plat = PLATFORMS.filter(function (p) { return p.key === detectedKey; })[0];
+    var asset = plat ? assetFor(latest, plat) : null;
+    var btn = $('btnPrimary');
+
+    if (plat && asset) {
+      btn.href = asset.browser_download_url;
+      $('btnPrimaryLabel').textContent =
+        'Download for ' + plat.name + (plat.key.indexOf('mac') === 0 ? ' (' + plat.arch + ')' : '');
+      $('btnPrimaryMeta').textContent =
+        latest.tag_name + ' · ' + fmtBytes(asset.size) + ' · free';
+
+      if (detectedKey === 'mac-arm' || detectedKey === 'mac-x64') {
+        var otherKey = detectedKey === 'mac-arm' ? 'mac-x64' : 'mac-arm';
+        var other = PLATFORMS.filter(function (p) { return p.key === otherKey; })[0];
+        var otherAsset = assetFor(latest, other);
+        if (otherAsset) {
+          var alt = $('altArch');
+          alt.innerHTML = '';
+          alt.appendChild(document.createTextNode(other.arch + ' Mac? '));
+          var a = el('a', null, 'Get the ' + other.arch + ' build');
+          a.href = otherAsset.browser_download_url;
+          alt.appendChild(a);
+          alt.hidden = false;
+        }
+      }
+    } else {
+      btn.href = '#download';
+      $('btnPrimaryLabel').textContent = 'Download Novalist';
+      $('btnPrimaryMeta').textContent = latest.tag_name + ' · choose your platform below';
+    }
+  }
+
+  function renderDownloads(latest, releases, detectedKey) {
+    var grid = $('dlGrid');
+    grid.innerHTML = '';
+
+    PLATFORMS.forEach(function (p) {
+      var asset = assetFor(latest, p);
+      var card = el('div', 'dl-card');
+
+      if (p.key === detectedKey) {
+        card.classList.add('detected');
+        card.appendChild(el('span', 'dl-detected', 'Your system'));
+      }
+
+      card.appendChild(el('span', 'ftype', p.ftype));
+      card.appendChild(el('h3', null, p.name));
+      card.appendChild(el('span', 'dl-arch', p.arch));
+
+      if (asset) {
+        card.appendChild(el('div', 'dl-file', asset.name));
+        card.appendChild(el('div', 'dl-meta',
+          (latest ? latest.tag_name + ' · ' : '') + fmtBytes(asset.size)));
+      } else {
+        card.appendChild(el('div', 'dl-meta', latest ? latest.tag_name : 'latest release'));
+      }
+      card.appendChild(el('p', 'dl-hint', p.hint));
+
+      var btn = el('a', 'dl-btn', asset ? 'Download' : 'Get from GitHub');
+      btn.href = asset ? asset.browser_download_url : REPO_URL + '/releases/latest';
+      if (!asset) { btn.target = '_blank'; btn.rel = 'noopener'; }
+      card.appendChild(btn);
+      grid.appendChild(card);
+    });
+
+    if (latest) {
+      var total = 0;
+      (releases || []).forEach(function (r) {
+        (r.assets || []).forEach(function (a) { total += a.download_count || 0; });
+      });
+      var sub = 'Latest release ' + latest.tag_name + ' — published ' + fmtDate(latest.published_at);
+      if (total > 0) sub += ' · ' + fmtCount(total) + ' downloads to date';
+      sub += '. Built and published automatically from GitHub.';
+      $('dlSub').textContent = sub;
+    }
+  }
+
+  function renderFeatures(readme) {
+    var grid = $('featGrid');
+    var feats = readme ? extractFeatures(readme) : null;
+
+    grid.innerHTML = '';
+    if (!feats) {
+      var note = el('div', 'note');
+      note.innerHTML = 'Couldn\u2019t load the feature list right now \u2014 read it in the ' +
+        '<a href="' + REPO_URL + '#features" target="_blank" rel="noopener">README on GitHub</a>.';
+      grid.appendChild(note);
+      return;
+    }
+
+    feats.forEach(function (f) {
+      var card = el('div', 'fcard');
+      card.appendChild(el('div', 'fcard-head', f.title));
+
+      var body = el('div', 'fcard-body');
+      body.innerHTML = md(f.body);
+      externalize(body);
+      card.appendChild(body);
+
+      requestAnimationFrame(function () {
+        if (body.scrollHeight > 350) {
+          body.classList.add('clamped');
+          var more = el('button', 'fcard-more', 'Read everything');
+          more.setAttribute('aria-expanded', 'false');
+          more.addEventListener('click', function () {
+            var open = body.classList.toggle('clamped') === false;
+            more.textContent = open ? 'Show less' : 'Read everything';
+            more.setAttribute('aria-expanded', String(open));
+          });
+          card.appendChild(more);
+        }
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  function renderAbout(readme) {
+    if (!readme) return;
+    var sec = extractSection(readme, 'What is Novalist');
+    if (!sec) return;
+    var box = $('aboutProse');
+    box.innerHTML = md(sec);
+    externalize(box);
+
+    var tag = extractTagline(readme);
+    if (tag) {
+      var p = $('tagline');
+      p.innerHTML = '';
+      p.appendChild(el('strong', null, 'Novalist'));
+      p.appendChild(document.createTextNode(
+        ' \u2014 ' + tag.replace(/^A\s+/i, 'a ').replace(/\.$/, '') +
+        '. Free, open source, and offline-first: your project is a plain folder of files that stays yours.'));
+    }
+
+    var support = extractSupportLinks(readme);
+    if (support.length) {
+      var row = $('supportRow');
+      row.innerHTML = '';
+      support.forEach(function (l) {
+        var a = el('a', null, l.label);
+        a.href = l.url; a.target = '_blank'; a.rel = 'noopener';
+        row.appendChild(a);
+      });
+      row.hidden = false;
+    }
+  }
+
+  function renderChangelog(releases) {
+    var list = $('changelogList');
+    list.innerHTML = '';
+
+    if (!releases || !releases.length) {
+      var note = el('div', 'note');
+      note.innerHTML = 'Couldn\u2019t load release notes right now \u2014 see the ' +
+        '<a href="' + REPO_URL + '/releases" target="_blank" rel="noopener">releases page on GitHub</a>.';
+      list.appendChild(note);
+      return;
+    }
+
+    var latest = pickLatest(releases);
+
+    releases.filter(function (r) { return !r.draft; }).forEach(function (r) {
+      var d = el('details', 'release');
+      if (latest && r.id === latest.id) d.open = true;
+
+      var s = el('summary');
+      s.appendChild(el('span', 'rel-caret', '›'));
+      s.appendChild(el('span', 'rel-tag', r.tag_name || r.name || ''));
+      if (latest && r.id === latest.id) s.appendChild(el('span', 'rel-latest', 'Latest'));
+      if (r.prerelease) s.appendChild(el('span', 'rel-pre', 'Pre-release'));
+      s.appendChild(el('span', 'rel-date',
+        fmtDate(r.published_at) + ' · ' + relDate(r.published_at)));
+      var gh = el('a', 'rel-gh', 'View on GitHub ↗');
+      gh.href = r.html_url; gh.target = '_blank'; gh.rel = 'noopener';
+      gh.addEventListener('click', function (e) { e.stopPropagation(); });
+      s.appendChild(gh);
+      d.appendChild(s);
+
+      var body = el('div', 'rel-body');
+      body.innerHTML = r.body && r.body.trim() ? md(r.body) : '<p>No notes for this release.</p>';
+      externalize(body);
+
+      body.querySelectorAll('h3, h2').forEach(function (h) {
+        var k = h.textContent.trim().toLowerCase();
+        if (['added', 'changed', 'fixed', 'removed', 'security', 'deprecated'].indexOf(k) !== -1) {
+          if (h.tagName === 'H2') {
+            var h3 = el('h3'); h3.textContent = h.textContent; h.replaceWith(h3); h = h3;
+          }
+          h.setAttribute('data-kind', k);
+        }
+      });
+
+      d.appendChild(body);
+      list.appendChild(d);
+    });
+  }
+
+  /* ------------------------------------------------------------- manual */
+  var manual = {
+    toc: null,        // grouped TOC
+    flat: [],         // flat chapter list, reading order
+    readme: null,     // manual README text
+    current: null     // current file or null = welcome page
+  };
+
+  function renderManualNav() {
+    var nav = $('mnavList');
+    nav.innerHTML = '';
+
+    var intro = el('a', null, 'Manual home');
+    intro.href = '#manual';
+    intro.dataset.file = '';
+    nav.appendChild(intro);
+
+    manual.toc.forEach(function (g) {
+      var box = el('div', 'mnav-group');
+      if (g.name) box.appendChild(el('h4', null, g.name));
+      g.items.forEach(function (it) {
+        var a = el('a', null, it.title);
+        a.href = '#manual/' + it.file;
+        a.dataset.file = it.file;
+        a.dataset.filter = (it.title + ' ' + it.desc).toLowerCase();
+        if (it.desc) a.title = it.desc;
+        box.appendChild(a);
+      });
+      nav.appendChild(box);
+    });
+
+    markActiveNav();
+  }
+
+  function markActiveNav() {
+    var nav = $('mnavList');
+    nav.querySelectorAll('a').forEach(function (a) {
+      a.classList.toggle('active', (a.dataset.file || '') === (manual.current || ''));
+    });
+  }
+
+  function filterManualNav(q) {
+    q = q.trim().toLowerCase();
+    var nav = $('mnavList');
+    nav.querySelectorAll('.mnav-group').forEach(function (g) {
+      var any = false;
+      g.querySelectorAll('a').forEach(function (a) {
+        var hit = !q || (a.dataset.filter || '').indexOf(q) !== -1;
+        a.classList.toggle('hidden', !hit);
+        if (hit) any = true;
+      });
+      g.classList.toggle('hidden', !any);
+    });
+  }
+
+  /* Render a markdown manual page: rewrite links/images, add heading ids. */
+  function renderManualMarkdown(text, file) {
+    var art = $('mArticle');
+    art.innerHTML = md(text);
+
+    /* heading anchors (prefixed to avoid clashing with page section ids) */
+    var used = {};
+    art.querySelectorAll('h1,h2,h3,h4').forEach(function (h) {
+      var s = slugify(h.textContent);
+      if (used[s]) { used[s]++; s = s + '-' + used[s]; } else { used[s] = 1; }
+      h.id = 'm-' + s;
+    });
+
+    /* links */
+    art.querySelectorAll('a[href]').forEach(function (a) {
+      var r = resolveManualHref(a.getAttribute('href'), file);
+      if (r.type === 'route') {
+        a.href = r.hash;
+      } else if (r.type === 'anchor') {
+        a.href = '#m-' + r.frag;
+      } else {
+        a.href = r.url;
+        a.target = '_blank'; a.rel = 'noopener noreferrer';
+      }
+    });
+
+    /* images */
+    art.querySelectorAll('img[src]').forEach(function (img) {
+      img.src = resolveManualSrc(img.getAttribute('src'), file);
+      img.loading = 'lazy';
+    });
+  }
+
+  function renderManualPager() {
+    var pager = $('mPager');
+    pager.innerHTML = '';
+    if (!manual.current || !manual.flat.length) return;
+
+    var idx = -1;
+    manual.flat.forEach(function (it, i) { if (it.file === manual.current) idx = i; });
+    if (idx === -1) return;
+
+    if (idx > 0) {
+      var prev = manual.flat[idx - 1];
+      var a = el('a', 'prev');
+      a.href = '#manual/' + prev.file;
+      a.appendChild(el('span', 'dir', '← Previous'));
+      a.appendChild(document.createTextNode(prev.title));
+      pager.appendChild(a);
+    }
+    if (idx < manual.flat.length - 1) {
+      var next = manual.flat[idx + 1];
+      var b = el('a', 'next');
+      b.href = '#manual/' + next.file;
+      b.appendChild(el('span', 'dir', 'Next →'));
+      b.appendChild(document.createTextNode(next.title));
+      pager.appendChild(b);
+    }
+  }
+
+  function manualError() {
+    $('mArticle').innerHTML =
+      '<div class="note">Couldn\u2019t load this manual page right now \u2014 read it directly in ' +
+      '<a href="' + MANUAL_GH + (manual.current || 'README.md') +
+      '" target="_blank" rel="noopener">docs/manual on GitHub</a>.</div>';
+    $('mPager').innerHTML = '';
+  }
+
+  function openManual(file, anchor, scroll) {
+    manual.current = file || null;
+    markActiveNav();
+    $('mGhLink').href = MANUAL_GH + (file || 'README.md');
+
+    var load = file ? getManualPage(file)
+                    : Promise.resolve(manual.readme);
+
+    load.then(function (text) {
+      if (text == null) throw new Error('no content');
+      renderManualMarkdown(text, file || 'README.md');
+      renderManualPager();
+      if (anchor) {
+        var t = document.getElementById('m-' + anchor);
+        if (t) { t.scrollIntoView(); return; }
+      }
+      if (scroll) $('manual').scrollIntoView();
+    }).catch(manualError);
+
+    /* collapse the mobile chapter list after choosing */
+    if (window.matchMedia('(max-width:1020px)').matches && file) {
+      $('mnav').open = false;
+    }
+  }
+
+  function routeFromHash(scroll) {
+    var h = decodeURIComponent(location.hash || '');
+    if (h.indexOf('#manual') !== 0) return false;
+    var rest = h.slice('#manual'.length).replace(/^\//, '');
+    if (!rest) { openManual(null, null, scroll); return true; }
+    var parts = rest.split(':');
+    openManual(parts[0], parts[1] || null, scroll);
+    return true;
+  }
+
+  function bootManual() {
+    return getManualPage('README.md').then(function (text) {
+      manual.readme = text;
+      manual.toc = parseManualToc(text) || [];
+      manual.flat = flattenToc(manual.toc);
+      renderManualNav();
+      $('manualSub').textContent =
+        manual.flat.length + ' chapters, served straight from the repository \u2014 always current.';
+      if (!routeFromHash(false)) openManual(null, null, false);
+      $('mnavFilter').addEventListener('input', function () {
+        filterManualNav(this.value);
+      });
+    }).catch(function () {
+      $('mnavList').innerHTML = '';
+      $('mArticle').innerHTML =
+        '<div class="note">Couldn\u2019t load the manual right now \u2014 it lives in ' +
+        '<a href="' + MANUAL_GH + 'README.md" target="_blank" rel="noopener">docs/manual on GitHub</a>.</div>';
+    });
+  }
+
+  /* ----------------------------------------------------------------- boot */
+  function renderApiFailure() {
+    $('btnPrimary').href = '#download';
+    $('btnPrimaryMeta').textContent = 'choose your platform below';
+
+    var grid = $('dlGrid');
+    grid.innerHTML = '';
+    PLATFORMS.forEach(function (p) {
+      var card = el('div', 'dl-card');
+      card.appendChild(el('span', 'ftype', p.ftype));
+      card.appendChild(el('h3', null, p.name));
+      card.appendChild(el('span', 'dl-arch', p.arch));
+      card.appendChild(el('p', 'dl-hint', p.hint));
+      var btn = el('a', 'dl-btn', 'Get from GitHub');
+      btn.href = REPO_URL + '/releases/latest';
+      btn.target = '_blank'; btn.rel = 'noopener';
+      card.appendChild(btn);
+      grid.appendChild(card);
+    });
+    $('dlSub').textContent =
+      'GitHub\u2019s API didn\u2019t respond just now (it rate-limits busy networks) \u2014 the buttons below take you straight to the latest release.';
+
+    renderChangelog(null);
+  }
+
+  function boot() {
+    var detectedKey = detectPlatformKey();
+    var state = { repo: null, releases: null, readme: null };
+
+    function paintAll() {
+      var latest = state.releases ? pickLatest(state.releases) : null;
+      renderHero(state.repo, latest, detectedKey);
+      if (state.releases) {
+        renderDownloads(latest, state.releases, detectedKey);
+        renderChangelog(state.releases);
+      }
+      renderFeatures(state.readme);
+      renderAbout(state.readme);
+      $('footUpdated').textContent = 'Data refreshed ' + new Date().toLocaleTimeString();
+    }
+
+    if (detectedKey === 'mac-arm' || detectedKey === 'mac-x64') {
+      refineMacArch(function (realKey) {
+        if (realKey !== detectedKey) {
+          detectedKey = realKey;
+          if (state.releases) paintAll();
+        }
+      });
+    }
+
+    window.addEventListener('hashchange', function () { routeFromHash(true); });
+    bootManual();
+
+    var cached = cacheGet(CACHE_KEY);
+    if (cached) {
+      state = cached;
+      paintAll();
+      return;
+    }
+
+    var apiOK = true;
+    var pRepo = getJSON(API).then(function (r) { state.repo = r; })
+      .catch(function () { apiOK = false; });
+    var pRel = getJSON(API + '/releases?per_page=50')
+      .then(function (r) { state.releases = r; })
+      .catch(function () { apiOK = false; });
+    var pReadme = getText(RAW + '/README.md')
+      .then(function (t) { state.readme = t; })
+      .catch(function () { state.readme = null; });
+
+    Promise.all([pRepo, pRel, pReadme]).then(function () {
+      if (!apiOK && !state.releases) {
+        renderApiFailure();
+        renderFeatures(state.readme);
+        renderAbout(state.readme);
+        return;
+      }
+      paintAll();
+      cacheSet(CACHE_KEY, state);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+</body>
+</html>
