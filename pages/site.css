@@ -52,11 +52,11 @@ a{color:var(--text)}
 }
 .nav-in{display:flex;align-items:center;gap:28px;height:64px}
 .brand{
-  display:flex;align-items:baseline;gap:10px;text-decoration:none;
+  display:flex;align-items:center;gap:10px;text-decoration:none;
   font-family:var(--font-display);font-weight:600;font-size:22px;letter-spacing:.01em;
 }
-.brand .quill{color:var(--gold);font-size:18px}
-.nav-links{display:flex;gap:26px}
+.brand img{display:block;border-radius:6px}
+.nav-links{display:flex;align-items:center;gap:26px}
 .nav-links a{color:var(--mut);text-decoration:none;font-size:15.5px;transition:color .15s}
 .nav-links a:hover{color:var(--gold-2)}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
@@ -437,8 +437,8 @@ details[open] .rel-caret{transform:rotate(90deg)}
    ============================================================ */
 footer{border-top:1px solid var(--line-soft);padding:56px 0 62px;background:var(--ink-2)}
 .foot-in{display:flex;flex-wrap:wrap;gap:36px;justify-content:space-between;align-items:flex-start}
-.foot-brand{font-family:var(--font-display);font-weight:600;font-size:21px;display:flex;align-items:baseline;gap:9px}
-.foot-brand .quill{color:var(--gold);font-size:16px}
+.foot-brand{font-family:var(--font-display);font-weight:600;font-size:21px;display:flex;align-items:center;gap:9px}
+.foot-brand img{display:block;border-radius:6px}
 .foot-col{font-size:15px;color:var(--mut);max-width:46ch;line-height:1.7}
 .foot-col p{margin:10px 0 0}
 .foot-links{display:flex;flex-direction:column;gap:9px;font-size:15px}
