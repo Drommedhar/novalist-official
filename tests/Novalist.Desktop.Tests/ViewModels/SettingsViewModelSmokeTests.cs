@@ -568,4 +568,51 @@ public class SettingsViewModelTests
         Assert.Equal(Loc.T("settings.grammarCheckCredentialsInvalid"), h.Vm.GrammarCheckCredentialsStatus);
         listener.Stop();
     }
+
+    [AvaloniaFact]
+    public async Task ValidateCredentials_ExceptionInSetter_EntersCatchBlock()
+    {
+        using var listener = new System.Net.HttpListener();
+        int port = GetFreePort();
+        listener.Prefixes.Add($"http://localhost:{port}/");
+        listener.Start();
+
+        var listenTask = Task.Run(async () =>
+        {
+            try
+            {
+                var context = await listener.GetContextAsync();
+                var resp = context.Response;
+                resp.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                byte[] buf = System.Text.Encoding.UTF8.GetBytes("{}");
+                resp.ContentLength64 = buf.Length;
+                await resp.OutputStream.WriteAsync(buf, 0, buf.Length);
+                resp.Close();
+            }
+            catch { }
+        });
+
+        var h = Build();
+        h.Vm.GrammarCheckApiUrl = $"http://localhost:{port}/v2/check";
+
+        bool shouldThrow = true;
+        h.Vm.PropertyChanged += (sender, args) =>
+        {
+            if (args.PropertyName == nameof(h.Vm.GrammarCheckCredentialsValid) && shouldThrow)
+            {
+                shouldThrow = false;
+                throw new InvalidOperationException("Simulated exception in property changed handler");
+            }
+        };
+
+        h.Vm.GrammarCheckApiKey = "valid-key";
+        h.Vm.GrammarCheckUsername = "valid-user";
+
+        await Task.WhenAny(listenTask, Task.Delay(2000));
+        await Task.Delay(200);
+
+        Assert.False(h.Vm.GrammarCheckCredentialsValid);
+        Assert.Equal(Loc.T("settings.grammarCheckCredentialsInvalid"), h.Vm.GrammarCheckCredentialsStatus);
+        listener.Stop();
+    }
 }
