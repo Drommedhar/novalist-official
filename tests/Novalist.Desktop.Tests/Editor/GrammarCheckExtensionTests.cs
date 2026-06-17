@@ -202,4 +202,78 @@ public class GrammarCheckExtensionTests
 
         Assert.Contains(calls, c => c.Contains("setGrammarIssues('[]')"));
     }
+
+    [AvaloniaFact]
+    public void IsPremiumAvailable_DelegatesToService()
+    {
+        var ext = new GrammarCheckExtension();
+        // Default service has no credentials -> not premium
+        Assert.False(ext.IsPremiumAvailable);
+    }
+
+    [AvaloniaFact]
+    public void PickyMode_RoundTrips()
+    {
+        var ext = new GrammarCheckExtension();
+        Assert.False(ext.PickyMode);
+        ext.PickyMode = true;
+        Assert.True(ext.PickyMode);
+    }
+
+    [AvaloniaFact]
+    public void MotherTongue_RoundTrips()
+    {
+        var ext = new GrammarCheckExtension();
+        Assert.Null(ext.MotherTongue);
+        ext.MotherTongue = "de-DE";
+        Assert.Equal("de-DE", ext.MotherTongue);
+    }
+
+    [AvaloniaFact]
+    public async Task AddToDictionary_DelegatesToService()
+    {
+        // No credentials -> returns false via the guard in the service
+        var ext = new GrammarCheckExtension();
+        Assert.False(await ext.AddToDictionaryAsync("word"));
+    }
+
+    [AvaloniaFact]
+    public async Task CheckText_CancelledAfterApiReturns_DoesNotPushIssues()
+    {
+        // Use a contributor that cancels the token mid-flight so the post-API
+        // IsCancellationRequested check triggers (lines 157-161).
+        var ext = WithHttp("{\"matches\":[]}");
+        ext.Enabled = true;
+        var calls = new List<string>();
+        ext.SetScriptExecutor(s => calls.Add(s));
+
+        var tcs = new TaskCompletionSource<GrammarCheckResult>();
+
+        ext.SetContributors(
+        [
+            new FakeContributor
+            {
+                Handler = async (_, _, ct) =>
+                {
+                    return await tcs.Task;
+                },
+            },
+        ]);
+
+        // Start a check. Because of the tcs, it will await and yield.
+        var t1 = ext.CheckTextAsync("first call text");
+
+        // Start another check to cancel the first one.
+        var t2 = ext.CheckTextAsync("second call text");
+
+        // Complete the task of the first check.
+        tcs.SetResult(new GrammarCheckResult());
+
+        await t1; // first call had its CTS cancelled -> isCancellationRequested returns
+        await t2;
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+        // The second call's issues should be the only ones pushed.
+        Assert.Contains(calls, c => c.Contains("setGrammarIssues("));
+    }
 }

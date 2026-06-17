@@ -452,5 +452,120 @@ public class SettingsViewModelTests
         var ext = new ExtensionSettingsPageVM("cat", new Avalonia.Controls.Border());
         Assert.Equal("cat", ext.Category);
         Assert.NotNull(ext.View);
+
+        // MotherTongueItem equality + GetHashCode
+        var mt1 = new MotherTongueItem("de", "German");
+        var mt2 = new MotherTongueItem("de", "Deutsch");
+        Assert.Equal("German", mt1.ToString());
+        Assert.True(mt1.Equals(mt2));
+        Assert.Equal(mt1.GetHashCode(), mt2.GetHashCode());
+        Assert.False(mt1.Equals(new MotherTongueItem("fr", "French")));
+        Assert.False(mt1.Equals(null));
+    }
+
+    // ── Grammar credential validation ───────────────────────────────
+    [AvaloniaFact]
+    public async Task ValidateCredentials_EmptyKey_SetsNotValidated()
+    {
+        var h = Build();
+        // Setting an empty key triggers OnGrammarCheckApiKeyChanged -> ValidateCredentialsAsync
+        // with null/empty apiKey -> the early-return branch (lines 677-681).
+        h.Vm.GrammarCheckApiKey = "  ";
+        await Task.Yield(); // let the fire-and-forget complete
+        Assert.False(h.Vm.GrammarCheckCredentialsValid);
+    }
+
+    [AvaloniaFact]
+    public async Task ValidateCredentials_WithCredentials_AttemptsValidation()
+    {
+        var h = Build();
+        // Providing both key and username triggers the try block in ValidateCredentialsAsync.
+        // The service will fail (no real network) and the catch block will fire (lines 696-700).
+        h.Vm.GrammarCheckApiKey = "test-key";
+        h.Vm.GrammarCheckUsername = "user@example.com";
+        // Allow the fire-and-forget Task to complete (it will throw/catch internally).
+        await Task.Delay(200);
+        Assert.False(h.Vm.GrammarCheckCredentialsValid);
+    }
+
+    private static int GetFreePort()
+    {
+        var l = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        l.Start();
+        var port = ((System.Net.IPEndPoint)l.LocalEndpoint).Port;
+        l.Stop();
+        return port;
+    }
+
+    [AvaloniaFact]
+    public async Task ValidateCredentials_SuccessResponse_SetsValid()
+    {
+        using var listener = new System.Net.HttpListener();
+        int port = GetFreePort();
+        listener.Prefixes.Add($"http://localhost:{port}/");
+        listener.Start();
+
+        var listenTask = Task.Run(async () =>
+        {
+            try
+            {
+                var context = await listener.GetContextAsync();
+                var resp = context.Response;
+                resp.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                byte[] buf = System.Text.Encoding.UTF8.GetBytes("{}");
+                resp.ContentLength64 = buf.Length;
+                await resp.OutputStream.WriteAsync(buf, 0, buf.Length);
+                resp.Close();
+            }
+            catch { }
+        });
+
+        var h = Build();
+        h.Vm.GrammarCheckApiUrl = $"http://localhost:{port}/v2/check";
+        h.Vm.GrammarCheckApiKey = "valid-key";
+        h.Vm.GrammarCheckUsername = "valid-user";
+
+        await Task.WhenAny(listenTask, Task.Delay(2000));
+        await Task.Delay(200); // Wait for VM properties to update
+
+        Assert.True(h.Vm.GrammarCheckCredentialsValid);
+        Assert.Equal(Loc.T("settings.grammarCheckCredentialsValid"), h.Vm.GrammarCheckCredentialsStatus);
+        listener.Stop();
+    }
+
+    [AvaloniaFact]
+    public async Task ValidateCredentials_FailureResponse_SetsInvalid()
+    {
+        using var listener = new System.Net.HttpListener();
+        int port = GetFreePort();
+        listener.Prefixes.Add($"http://localhost:{port}/");
+        listener.Start();
+
+        var listenTask = Task.Run(async () =>
+        {
+            try
+            {
+                var context = await listener.GetContextAsync();
+                var resp = context.Response;
+                resp.StatusCode = (int)System.Net.HttpStatusCode.Unauthorized;
+                byte[] buf = System.Text.Encoding.UTF8.GetBytes("Unauthorized");
+                resp.ContentLength64 = buf.Length;
+                await resp.OutputStream.WriteAsync(buf, 0, buf.Length);
+                resp.Close();
+            }
+            catch { }
+        });
+
+        var h = Build();
+        h.Vm.GrammarCheckApiUrl = $"http://localhost:{port}/v2/check";
+        h.Vm.GrammarCheckApiKey = "invalid-key";
+        h.Vm.GrammarCheckUsername = "invalid-user";
+
+        await Task.WhenAny(listenTask, Task.Delay(2000));
+        await Task.Delay(200); // Wait for VM properties to update
+
+        Assert.False(h.Vm.GrammarCheckCredentialsValid);
+        Assert.Equal(Loc.T("settings.grammarCheckCredentialsInvalid"), h.Vm.GrammarCheckCredentialsStatus);
+        listener.Stop();
     }
 }

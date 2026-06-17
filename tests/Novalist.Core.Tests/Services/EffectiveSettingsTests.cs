@@ -28,7 +28,11 @@ public class EffectiveSettingsTests
             AutoReplacementLanguage = "en",
             DialogueCorrectionEnabled = true,
             GrammarCheckEnabled = true,
-            GrammarCheckApiUrl = "http://g"
+            GrammarCheckApiUrl = "http://g",
+            GrammarCheckApiKey = "key-g",
+            GrammarCheckUsername = "user-g",
+            GrammarCheckPickyMode = true,
+            GrammarCheckMotherTongue = "de"
         };
         var sut = new EffectiveSettings(() => global, () => null);
 
@@ -51,6 +55,10 @@ public class EffectiveSettingsTests
         Assert.True(sut.DialogueCorrectionEnabled);
         Assert.True(sut.GrammarCheckEnabled);
         Assert.Equal("http://g", sut.GrammarCheckApiUrl);
+        Assert.Equal("key-g", sut.GrammarCheckApiKey);
+        Assert.Equal("user-g", sut.GrammarCheckUsername);
+        Assert.True(sut.GrammarCheckPickyMode);
+        Assert.Equal("de", sut.GrammarCheckMotherTongue);
     }
 
     [Fact]
@@ -77,7 +85,11 @@ public class EffectiveSettingsTests
             AutoReplacements = new List<AutoReplacementPair> { new() { Start = "x" } },
             DialogueCorrectionEnabled = false,
             GrammarCheckEnabled = false,
-            GrammarCheckApiUrl = "http://o"
+            GrammarCheckApiUrl = "http://o",
+            GrammarCheckApiKey = "key-o",
+            GrammarCheckUsername = "user-o",
+            GrammarCheckPickyMode = true,
+            GrammarCheckMotherTongue = "fr"
         };
         var sut = new EffectiveSettings(() => global, () => ovr);
 
@@ -100,5 +112,9 @@ public class EffectiveSettingsTests
         Assert.False(sut.DialogueCorrectionEnabled);
         Assert.False(sut.GrammarCheckEnabled);
         Assert.Equal("http://o", sut.GrammarCheckApiUrl);
+        Assert.Equal("key-o", sut.GrammarCheckApiKey);
+        Assert.Equal("user-o", sut.GrammarCheckUsername);
+        Assert.True(sut.GrammarCheckPickyMode);
+        Assert.Equal("fr", sut.GrammarCheckMotherTongue);
     }
 }

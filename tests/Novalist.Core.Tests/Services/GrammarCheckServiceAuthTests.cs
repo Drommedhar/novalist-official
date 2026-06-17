@@ -213,4 +213,71 @@ public class GrammarCheckServiceAuthTests
         Assert.Contains("apiKey=my-key", capturedContent ?? string.Empty);
         Assert.Contains("username=user%40mail.com", capturedContent ?? string.Empty);
     }
+
+    [Fact]
+    public async Task AddToDictionaryAsync_EmptyCredentials_ReturnsFalse()
+    {
+        var svc = new GrammarCheckService();
+        Assert.False(await svc.AddToDictionaryAsync("word"));
+
+        svc.ApiKey = "k";
+        Assert.False(await svc.AddToDictionaryAsync("word")); // no username
+
+        svc.ApiKey = null;
+        svc.Username = "u";
+        Assert.False(await svc.AddToDictionaryAsync("word")); // no key
+
+        svc.ApiKey = "k";
+        svc.Username = "u";
+        Assert.False(await svc.AddToDictionaryAsync("  ")); // blank word
+    }
+
+    [Fact]
+    public async Task AddToDictionaryAsync_CustomUrlNotEndingInCheck_FallsBackToDefault()
+    {
+        HttpRequestMessage? captured = null;
+        var handler = new FakeHttpMessageHandler(req =>
+        {
+            captured = req;
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        });
+
+        var http = new HttpClient(handler);
+        var svc = new GrammarCheckService(http)
+        {
+            ApiKey = "k",
+            Username = "u",
+            ApiUrl = "https://custom.example/v2/api"  // does NOT end in /check
+        };
+
+        await svc.AddToDictionaryAsync("testword");
+
+        Assert.NotNull(captured);
+        // Falls back to the hardcoded plus API words/add endpoint
+        Assert.Equal("https://api.languagetoolplus.com/v2/words/add", captured.RequestUri!.AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task AddToDictionaryAsync_HttpException_ReturnsFalse()
+    {
+        var svc = new GrammarCheckService(new HttpClient(FakeHttpMessageHandler.Throwing(new HttpRequestException("down"))))
+        {
+            ApiKey = "k",
+            Username = "u"
+        };
+        Assert.False(await svc.AddToDictionaryAsync("word"));
+    }
+
+    [Fact]
+    public async Task ValidateCredentialsAsync_HttpException_ReturnsFalse()
+    {
+        var svc = new GrammarCheckService(new HttpClient(FakeHttpMessageHandler.Throwing(new HttpRequestException("fail"))))
+        {
+            ApiKey = "k",
+            Username = "u"
+        };
+        Assert.False(await svc.ValidateCredentialsAsync());
+        Assert.False(svc.IsPremiumAvailable);
+    }
 }
+
