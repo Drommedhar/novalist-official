@@ -72,6 +72,27 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("grammarCheckApiUrl")]
     public string? GrammarCheckApiUrl { get; set; }
 
+    /// <summary>
+    /// Optional LanguageTool Cloud API key (premium). When set and non-empty,
+    /// the app will include it in requests to enable premium checks.
+    /// </summary>
+    [JsonPropertyName("grammarCheckApiKey")]
+    public string? GrammarCheckApiKey { get; set; }
+
+    /// <summary>
+    /// Optional LanguageTool Cloud username (email) (premium). When set and non-empty,
+    /// the app will include it in requests to enable premium checks.
+    /// </summary>
+    [JsonPropertyName("grammarCheckUsername")]
+    public string? GrammarCheckUsername { get; set; }
+
+    [JsonPropertyName("grammarCheckPickyMode")]
+    public bool GrammarCheckPickyMode { get; set; }
+
+    [JsonPropertyName("grammarCheckMotherTongue")]
+    public string? GrammarCheckMotherTongue { get; set; }
+
+
     [JsonPropertyName("windowWidth")]
     public double WindowWidth { get; set; } = 1400;
 

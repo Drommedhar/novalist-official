@@ -195,6 +195,26 @@ public partial class SettingsViewModel : ObservableObject
     private string _grammarCheckApiUrl = string.Empty;
 
     [ObservableProperty]
+    private string _grammarCheckApiKey = string.Empty;
+
+    [ObservableProperty]
+    private string _grammarCheckUsername = string.Empty;
+
+    [ObservableProperty]
+    private bool _grammarCheckPickyMode;
+
+    [ObservableProperty]
+    private MotherTongueItem? _selectedMotherTongue;
+
+    public List<MotherTongueItem> AvailableMotherTongues { get; }
+
+    [ObservableProperty]
+    private bool _grammarCheckCredentialsValid;
+
+    [ObservableProperty]
+    private string _grammarCheckCredentialsStatus = "Not validated";
+
+    [ObservableProperty]
     private bool _typewriterScrollEnabled;
 
     [ObservableProperty]
@@ -358,6 +378,10 @@ public partial class SettingsViewModel : ObservableObject
             ov.DialogueCorrectionEnabled = eff.DialogueCorrectionEnabled;
             ov.GrammarCheckEnabled = eff.GrammarCheckEnabled;
             ov.GrammarCheckApiUrl = eff.GrammarCheckApiUrl;
+            ov.GrammarCheckApiKey = eff.GrammarCheckApiKey;
+            ov.GrammarCheckUsername = eff.GrammarCheckUsername;
+            ov.GrammarCheckPickyMode = eff.GrammarCheckPickyMode;
+            ov.GrammarCheckMotherTongue = eff.GrammarCheckMotherTongue;
         }
         else
         {
@@ -421,9 +445,15 @@ public partial class SettingsViewModel : ObservableObject
         DialogueCorrectionEnabled = eff.DialogueCorrectionEnabled;
         GrammarCheckEnabled = eff.GrammarCheckEnabled;
         GrammarCheckApiUrl = eff.GrammarCheckApiUrl ?? string.Empty;
+        GrammarCheckUsername = eff.GrammarCheckUsername ?? string.Empty;
+        GrammarCheckApiKey = eff.GrammarCheckApiKey ?? string.Empty;
+        GrammarCheckPickyMode = eff.GrammarCheckPickyMode;
+        var mt = eff.GrammarCheckMotherTongue ?? string.Empty;
+        SelectedMotherTongue = AvailableMotherTongues.FirstOrDefault(t => t.Code == mt) ?? AvailableMotherTongues[0];
 
         _suppressScopedWrite = false;
         UpdatePreview();
+        _ = ValidateCredentialsAsync(GrammarCheckApiKey, GrammarCheckUsername);
     }
 
     public SettingsViewModel(ISettingsService settingsService, IProjectService projectService)
@@ -451,6 +481,9 @@ public partial class SettingsViewModel : ObservableObject
         _dialogueCorrectionEnabled = eff.DialogueCorrectionEnabled;
         _grammarCheckEnabled = eff.GrammarCheckEnabled;
         _grammarCheckApiUrl = eff.GrammarCheckApiUrl ?? string.Empty;
+        _grammarCheckApiKey = eff.GrammarCheckApiKey ?? string.Empty;
+        _grammarCheckUsername = eff.GrammarCheckUsername ?? string.Empty;
+        _ = ValidateCredentialsAsync(_grammarCheckApiKey, _grammarCheckUsername);
         _typewriterScrollEnabled = eff.TypewriterScrollEnabled;
         var twAnchor = eff.TypewriterScrollAnchor ?? "middle";
         _typewriterAnchorTop = twAnchor == "top";
@@ -466,6 +499,26 @@ public partial class SettingsViewModel : ObservableObject
         AvailableUiLanguages = Loc.Instance.GetAvailableLanguages()
             .Select(code => new UiLanguageItem(code, Loc.Instance.GetLanguageDisplayName(code)))
             .ToList();
+
+        AvailableMotherTongues =
+        [
+            new("", Loc.T("settings.grammarCheckMotherTongueNone") ?? "None"),
+            new("en", "English"),
+            new("de", "Deutsch"),
+            new("fr", "Français"),
+            new("es", "Español"),
+            new("it", "Italiano"),
+            new("pt", "Português"),
+            new("nl", "Nederlands"),
+            new("pl", "Polski"),
+            new("ru", "Русский"),
+            new("zh", "中文"),
+            new("ja", "日本語")
+        ];
+
+        _grammarCheckPickyMode = eff.GrammarCheckPickyMode;
+        var mt = eff.GrammarCheckMotherTongue ?? string.Empty;
+        _selectedMotherTongue = AvailableMotherTongues.FirstOrDefault(t => t.Code == mt) ?? AvailableMotherTongues[0];
 
         _selectedUiLanguage = AvailableUiLanguages.FirstOrDefault(item => string.Equals(item.Code, eff.Language, StringComparison.Ordinal))
             ?? AvailableUiLanguages.First();
@@ -591,6 +644,60 @@ public partial class SettingsViewModel : ObservableObject
     {
         var normalized = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         WriteWriting(s => s.GrammarCheckApiUrl = normalized, o => o.GrammarCheckApiUrl = normalized);
+    }
+
+    partial void OnGrammarCheckApiKeyChanged(string value)
+    {
+        var normalized = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        WriteWriting(s => s.GrammarCheckApiKey = normalized, o => o.GrammarCheckApiKey = normalized);
+        _ = ValidateCredentialsAsync(normalized, GrammarCheckUsername);
+    }
+
+    partial void OnGrammarCheckUsernameChanged(string value)
+    {
+        var normalized = string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+        WriteWriting(s => s.GrammarCheckUsername = normalized, o => o.GrammarCheckUsername = normalized);
+        _ = ValidateCredentialsAsync(GrammarCheckApiKey, normalized);
+    }
+
+    partial void OnGrammarCheckPickyModeChanged(bool value)
+    {
+        WriteWriting(s => s.GrammarCheckPickyMode = value, o => o.GrammarCheckPickyMode = value);
+    }
+
+    partial void OnSelectedMotherTongueChanged(MotherTongueItem? value)
+    {
+        var code = value?.Code;
+        var normalized = string.IsNullOrEmpty(code) ? null : code;
+        WriteWriting(s => s.GrammarCheckMotherTongue = normalized, o => o.GrammarCheckMotherTongue = normalized);
+    }
+
+    private async Task ValidateCredentialsAsync(string? apiKey, string? username)
+    {
+        if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(username))
+        {
+            GrammarCheckCredentialsValid = false;
+            GrammarCheckCredentialsStatus = Loc.T("settings.grammarCheckCredentialsNotValidated");
+            return;
+        }
+
+        try
+        {
+            var svc = new Novalist.Core.Services.GrammarCheckService();
+            svc.ApiKey = apiKey.Trim();
+            svc.Username = username.Trim();
+            svc.ApiUrl = GrammarCheckApiUrl;
+            var ok = await svc.ValidateCredentialsAsync();
+            GrammarCheckCredentialsValid = ok;
+            GrammarCheckCredentialsStatus = ok
+                ? Loc.T("settings.grammarCheckCredentialsValid")
+                : Loc.T("settings.grammarCheckCredentialsInvalid");
+        }
+        catch
+        {
+            GrammarCheckCredentialsValid = false;
+            GrammarCheckCredentialsStatus = Loc.T("settings.grammarCheckCredentialsInvalid");
+        }
     }
 
     partial void OnTypewriterScrollEnabledChanged(bool value)
@@ -1018,6 +1125,20 @@ public partial class SettingsViewModel : ObservableObject
         catch (Exception ex) { Log.Error("ClearLogs failed.", ex); }
     }
 
+    [RelayCommand]
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    private void OpenLanguageToolAccessTokensPage()
+    {
+        try
+        {
+            OpenInShell("https://languagetool.org/editor/settings/access-tokens");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Failed to open LanguageTool Access Tokens page.", ex);
+        }
+    }
+
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static void OpenInShell(string path)
     {
@@ -1103,6 +1224,17 @@ public sealed class UiLanguageItem(string code, string displayName)
     public override string ToString() => DisplayName;
 
     public override bool Equals(object? obj) => obj is UiLanguageItem other && string.Equals(Code, other.Code, StringComparison.Ordinal);
+    public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Code);
+}
+
+public sealed class MotherTongueItem(string code, string displayName)
+{
+    public string Code { get; } = code;
+    public string DisplayName { get; } = displayName;
+
+    public override string ToString() => DisplayName;
+
+    public override bool Equals(object? obj) => obj is MotherTongueItem other && string.Equals(Code, other.Code, StringComparison.Ordinal);
     public override int GetHashCode() => StringComparer.Ordinal.GetHashCode(Code);
 }
 

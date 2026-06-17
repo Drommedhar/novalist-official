@@ -3,7 +3,7 @@
   <PropertyGroup>
     <!-- xUnit1031: blocking on tasks in tests. Deliberate — some async bodies are wrapped in
          Task.Run(...).GetAwaiter().GetResult() to contain real yields. -->
-    <NoWarn>$(NoWarn);xUnit1031</NoWarn>
+    <NoWarn>$(NoWarn);xUnit1031;xUnit1051</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

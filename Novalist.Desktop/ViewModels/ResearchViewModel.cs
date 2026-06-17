@@ -176,8 +176,8 @@ public partial class ResearchViewModel : ObservableObject
     {
         if (bytes < 0) return string.Empty;
         if (bytes < 1024) return $"{bytes} B";
-        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
-        return $"{bytes / 1024.0 / 1024.0:F2} MB";
+        if (bytes < 1024 * 1024) return (bytes / 1024.0).ToString("F1", System.Globalization.CultureInfo.InvariantCulture) + " KB";
+        return (bytes / 1024.0 / 1024.0).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + " MB";
     }
 
     // Filesystem access + defensive catch: not deterministically coverable.

@@ -399,6 +399,9 @@ public partial class EditorView : UserControl
 
             switch (type)
             {
+                case "jsLog":
+                    System.Diagnostics.Debug.WriteLine($"[EditorJS] {root.GetProperty("message").GetString()}");
+                    break;
                 case "ready":
                     OnEditorReady();
                     break;
@@ -500,6 +503,13 @@ public partial class EditorView : UserControl
                     var selected = root.GetProperty("selectedText").GetString() ?? string.Empty;
                     if (!string.IsNullOrEmpty(actionId) && !string.IsNullOrEmpty(selected) && _vm != null)
                         _ = ExecuteInlineActionAsync(actionId, selected);
+                    break;
+                }
+                case "addToDictionary":
+                {
+                    var word = root.GetProperty("word").GetString() ?? string.Empty;
+                    if (!string.IsNullOrEmpty(word) && _vm != null)
+                        _ = AddWordToDictionaryAsync(word);
                     break;
                 }
             }
@@ -804,7 +814,8 @@ public partial class EditorView : UserControl
                  + $"\"paste\":\"{EscapeForJsonValue(loc["editor.contextMenu.paste"])}\","
                  + $"\"selectAll\":\"{EscapeForJsonValue(loc["editor.contextMenu.selectAll"])}\","
                  + $"\"addComment\":\"{EscapeForJsonValue(loc["editor.contextMenu.addComment"])}\","
-                 + $"\"addFootnote\":\"{EscapeForJsonValue(loc["editor.contextMenu.addFootnote"])}\"}}";
+                 + $"\"addFootnote\":\"{EscapeForJsonValue(loc["editor.contextMenu.addFootnote"])}\","
+                 + $"\"addToDictionary\":\"{EscapeForJsonValue(loc["editor.contextMenu.addToDictionary"])}\"}}";
         ExecuteScript($"setContextMenuLabels('{EscapeForSingleQuoteJs(json)}')");
     }
 
@@ -885,6 +896,17 @@ public partial class EditorView : UserControl
         if (_vm == null) return;
         var plainText = root.GetProperty("plainText").GetString() ?? string.Empty;
         _ = _vm.GrammarCheck.CheckTextAsync(plainText);
+    }
+
+    private async Task AddWordToDictionaryAsync(string word)
+    {
+        if (_vm == null) return;
+        var ok = await _vm.GrammarCheck.AddToDictionaryAsync(word);
+        if (ok)
+        {
+            var plainText = GetPlainText();
+            _ = _vm.GrammarCheck.CheckTextAsync(plainText);
+        }
     }
 
     // ── ViewModel Property Change Handling ──────────────────────────

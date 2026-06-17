@@ -425,11 +425,148 @@ body.page-view .nv-page ::selection {
     background: color-mix(in srgb, var(--page-fg) 22%, transparent 78%);
 }
 body.page-view.typewriter-on #editor { padding-top: 70vh; }
+
+/* Grammar Check Status Bar */
+.grammar-status-bar {
+    position: fixed;
+    bottom: 16px;
+    right: 24px;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: color-mix(in srgb, var(--bg) 85%, white 15%);
+    border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent 85%);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    font-family: var(--font-family);
+    font-size: 0.75rem;
+    color: var(--fg);
+    user-select: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+}
+.grammar-status-bar.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.status-throbber {
+    display: none;
+    width: 14px;
+    height: 14px;
+    margin-right: 2px;
+}
+.status-throbber.active {
+    display: block;
+}
+.status-throbber svg.spinner {
+    animation: rotate 2s linear infinite;
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+.status-throbber circle.path {
+    stroke: var(--fg);
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+    100% { transform: rotate(360deg); }
+}
+@keyframes dash {
+    0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+    50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+    100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+}
+.status-check-done {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #a6e3a1; /* green */
+    width: 14px;
+    height: 14px;
+    margin-right: 2px;
+}
+.status-check-done.active {
+    display: flex;
+}
+.status-divider {
+    width: 1px;
+    height: 12px;
+    background: color-mix(in srgb, var(--fg) 20%, transparent 85%);
+}
+.status-item {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 12px;
+    transition: background 0.2s, transform 0.1s;
+}
+.status-item.active {
+    display: flex;
+}
+.status-item:hover {
+    background: color-mix(in srgb, var(--fg) 10%, transparent 90%);
+}
+.status-item:active {
+    transform: scale(0.95);
+}
+.status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+}
+.grammar-icon svg {
+    color: #89b4fa; /* blue */
+}
+.spelling-icon svg {
+    color: #f38ba8; /* red */
+}
+.status-count {
+    font-weight: 600;
+}
 </style>
 </head>
 <body>
 <div id="editor-wrapper">
     <div id="editor" contenteditable="true" spellcheck="false"></div>
+</div>
+<div id="grammar-status-bar" class="grammar-status-bar">
+    <div class="status-throbber" id="status-throbber">
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+    </div>
+    <div class="status-check-done" id="status-check-done" title="Check completed: no issues found">
+        <svg viewBox="0 0 24 24" width="14" height="14">
+            <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item" id="status-grammar-count-container" title="Grammar & style issues (Click to find next)">
+        <span class="status-icon grammar-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14">
+                <path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+            </svg>
+        </span>
+        <span class="status-count" id="status-grammar-count">0</span>
+    </div>
+    <div class="status-item" id="status-punctuation-count-container" title="Spelling & typography issues (Click to find next)">
+        <span class="status-icon spelling-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14">
+                <path fill="currentColor" d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/>
+            </svg>
+        </span>
+        <span class="status-count" id="status-punctuation-count">0</span>
+    </div>
 </div>
 <div id="grammar-popup">
     <div class="gp-message"></div>
@@ -2078,6 +2215,12 @@ document.addEventListener('contextmenu', (e) => {
                     html += '<div class="cm-suggestion" data-issue-index="' + index + '" data-replacement="' + escapeHtml(rep) + '">' + escapeHtml(rep) + '</div>';
                 }
             }
+            if (issue.type === 'spelling') {
+                const word = issueSpan.textContent || '';
+                if (word.trim().length > 0) {
+                    html += '<div class="cm-item" data-action="addToDictionary" data-word="' + escapeHtml(word.trim()) + '"><span>' + escapeHtml(contextMenuLabels.addToDictionary || 'Add to Dictionary') + '</span></div>';
+                }
+            }
             html += '<div class="cm-separator"></div>';
         }
     }
@@ -2170,6 +2313,11 @@ contextMenu.addEventListener('click', (e) => {
         case 'addFootnote':
             sendMessage({ type: 'requestAddFootnote' });
             break;
+        case 'addToDictionary': {
+            const word = item.getAttribute('data-word');
+            sendMessage({ type: 'addToDictionary', word: word });
+            break;
+        }
     }
     hideContextMenu();
 });
@@ -2192,12 +2340,19 @@ wrapper.addEventListener('scroll', hideContextMenu);
 
 // ── Grammar Check ───────────────────────────────────────────────
 
+function logToHost(msg) {
+    sendMessage({ type: 'jsLog', message: msg });
+}
+
 let grammarIssues = [];
 let grammarCheckTimer = null;
 let grammarEnabled = false;
+let grammarChecking = false;
 const grammarPopup = document.getElementById('grammar-popup');
+const grammarStatusBar = document.getElementById('grammar-status-bar');
 
 function setGrammarCheckEnabled(enabled) {
+    logToHost("setGrammarCheckEnabled: enabled=" + enabled);
     grammarEnabled = enabled;
     if (!enabled) {
         clearGrammarHighlights();
@@ -2207,9 +2362,11 @@ function setGrammarCheckEnabled(enabled) {
         // Trigger an initial check if there's content
         requestGrammarCheck();
     }
+    updateGrammarStatusBar();
 }
 
 function setGrammarIssues(issuesJson) {
+    logToHost("setGrammarIssues called: raw issues length = " + (issuesJson ? issuesJson.length : 0));
     try {
         const raw = JSON.parse(issuesJson);
         // Filter out issues that target known entity names. Must use the same
@@ -2220,10 +2377,14 @@ function setGrammarIssues(issuesJson) {
             const flaggedText = plainText.substring(issue.offset, issue.offset + issue.length);
             return !isKnownEntity(flaggedText);
         });
-    } catch (_) {
+        logToHost("setGrammarIssues: filtered issues count = " + grammarIssues.length);
+    } catch (ex) {
+        logToHost("setGrammarIssues exception: " + ex);
         grammarIssues = [];
     }
+    grammarChecking = false;
     applyGrammarHighlights();
+    updateGrammarStatusBar();
 }
 
 function isKnownEntity(text) {
@@ -2391,6 +2552,24 @@ function showGrammarPopup(issueIndex, x, y) {
         }
     }
 
+    if (issue.type === 'spelling') {
+        const spans = editor.querySelectorAll('[data-issue-index="' + issueIndex + '"]');
+        if (spans.length > 0) {
+            const word = spans[0].textContent || '';
+            if (word.trim().length > 0) {
+                const addBtn = document.createElement('span');
+                addBtn.className = 'gp-suggestion';
+                addBtn.textContent = '+ Dictionary';
+                addBtn.style.opacity = '0.7';
+                addBtn.addEventListener('click', () => {
+                    sendMessage({ type: 'addToDictionary', word: word.trim() });
+                    hideGrammarPopup();
+                });
+                sugEl.appendChild(addBtn);
+            }
+        }
+    }
+
     // Position popup
     grammarPopup.style.left = Math.min(x, window.innerWidth - 340) + 'px';
     grammarPopup.style.top = (y + 20) + 'px';
@@ -2440,22 +2619,111 @@ function applyGrammarSuggestion(issueIndex, replacement) {
     // Remove the issue from the list. The input event fired by execCommand
     // takes care of the contentChanged notification and the grammar recheck.
     grammarIssues.splice(issueIndex, 1);
+    updateGrammarStatusBar();
 }
 
 function requestGrammarCheck() {
+    logToHost("requestGrammarCheck called: grammarEnabled=" + grammarEnabled + ", grammarChecking=" + grammarChecking);
     if (!grammarEnabled) return;
+    if (grammarChecking) {
+        grammarChecking = false;
+        updateGrammarStatusBar();
+    }
     if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
     grammarCheckTimer = setTimeout(() => {
         grammarCheckTimer = null;
         // Use buildGrammarPlainTextMap so the text we send and the offsets we
         // get back stay aligned with our highlight-positioning logic.
         const { plainText } = buildGrammarPlainTextMap();
+        grammarChecking = true;
+        logToHost("requestGrammarCheck timer fired: grammarChecking set to true, sending request. Plain text len=" + plainText.length);
+        updateGrammarStatusBar();
         sendMessage({
             type: 'grammarCheckRequest',
             plainText: plainText
         });
     }, 1500);
 }
+
+function updateGrammarStatusBar() {
+    if (!grammarStatusBar) return;
+    logToHost("updateGrammarStatusBar: grammarEnabled=" + grammarEnabled + ", grammarChecking=" + grammarChecking + ", issues count=" + grammarIssues.length);
+
+    if (!grammarEnabled) {
+        grammarStatusBar.classList.remove('visible');
+        return;
+    }
+
+    grammarStatusBar.classList.add('visible');
+
+    const throbber = document.getElementById('status-throbber');
+    const doneIcon = document.getElementById('status-check-done');
+    const grammarItem = document.getElementById('status-grammar-count-container');
+    const punctuationItem = document.getElementById('status-punctuation-count-container');
+    const grammarCountSpan = document.getElementById('status-grammar-count');
+    const punctuationCountSpan = document.getElementById('status-punctuation-count');
+
+    // Throbber state
+    if (grammarChecking) {
+        throbber.classList.add('active');
+        doneIcon.classList.remove('active');
+    } else {
+        throbber.classList.remove('active');
+    }
+
+    // Compute counts
+    const grammarCount = grammarIssues.filter(i => i.type === 'grammar').length;
+    const punctuationCount = grammarIssues.filter(i => i.type === 'spelling' || i.type === 'style').length;
+
+    // Show checkmark done only when not checking and counts are 0
+    if (!grammarChecking && grammarCount === 0 && punctuationCount === 0) {
+        doneIcon.classList.add('active');
+    } else {
+        doneIcon.classList.remove('active');
+    }
+
+    // Update grammar count item
+    if (grammarCount > 0) {
+        grammarCountSpan.textContent = grammarCount;
+        grammarItem.classList.add('active');
+    } else {
+        grammarItem.classList.remove('active');
+    }
+
+    // Update punctuation/spelling count item
+    if (punctuationCount > 0) {
+        punctuationCountSpan.textContent = punctuationCount;
+        punctuationItem.classList.add('active');
+    } else {
+        punctuationItem.classList.remove('active');
+    }
+}
+
+function scrollToNextIssue(type) {
+    const selector = type === 'grammar'
+        ? '.grammar-issue[data-issue-type="grammar"]'
+        : '.grammar-issue[data-issue-type="spelling"], .grammar-issue[data-issue-type="style"]';
+    const firstIssue = editor.querySelector(selector);
+    if (firstIssue) {
+        firstIssue.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Wait briefly for scroll to finish, then open popup
+        setTimeout(() => {
+            const index = parseInt(firstIssue.getAttribute('data-issue-index'), 10);
+            const rect = firstIssue.getBoundingClientRect();
+            showGrammarPopup(index, rect.left, rect.bottom);
+        }, 150);
+    }
+}
+
+// Hook up status bar event listeners
+document.getElementById('status-grammar-count-container').addEventListener('click', (e) => {
+    scrollToNextIssue('grammar');
+    e.stopPropagation();
+});
+document.getElementById('status-punctuation-count-container').addEventListener('click', (e) => {
+    scrollToNextIssue('punctuation');
+    e.stopPropagation();
+});
 
 // Grammar issue click/hover handler
 editor.addEventListener('click', (e) => {

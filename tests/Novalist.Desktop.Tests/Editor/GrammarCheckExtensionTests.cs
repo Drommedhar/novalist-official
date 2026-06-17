@@ -63,6 +63,18 @@ public class GrammarCheckExtensionTests
         Assert.Equal("https://lt.local/v2/check", ext.CustomApiUrl);
         ext.CustomApiUrl = null; // resets to default
         Assert.Null(ext.CustomApiUrl);
+
+        Assert.Null(ext.CustomApiKey);
+        ext.CustomApiKey = "k";
+        Assert.Equal("k", ext.CustomApiKey);
+        ext.CustomApiKey = null;
+        Assert.Null(ext.CustomApiKey);
+
+        Assert.Null(ext.CustomUsername);
+        ext.CustomUsername = "u";
+        Assert.Equal("u", ext.CustomUsername);
+        ext.CustomUsername = null;
+        Assert.Null(ext.CustomUsername);
     }
 
     [AvaloniaFact]
@@ -168,5 +180,26 @@ public class GrammarCheckExtensionTests
         await ext.CheckTextAsync("text");
         Avalonia.Threading.Dispatcher.UIThread.RunJobs();
         Assert.DoesNotContain(calls, c => c.Contains("setGrammarIssues("));
+    }
+
+    private sealed class ThrowingHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+            => throw new Exception("generic failure");
+    }
+
+    [AvaloniaFact]
+    public async Task CheckText_ServiceThrowsGenericException_ResetsWebViewIssues()
+    {
+        var svc = new GrammarCheckService(new HttpClient(new ThrowingHandler()));
+        var ext = new GrammarCheckExtension(svc);
+        ext.Enabled = true;
+        var calls = new List<string>();
+        ext.SetScriptExecutor(s => calls.Add(s));
+
+        await ext.CheckTextAsync("some text");
+        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+
+        Assert.Contains(calls, c => c.Contains("setGrammarIssues('[]')"));
     }
 }

@@ -16,6 +16,21 @@
         "WEBKIT_DISABLE_DMABUF_RENDERER": "1",
         "NOVALIST_FORCE_WEBKIT_WIZARD": "0"
       }
+    },
+    {
+      "name": "Launch Novalist Standalone (Release)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build Novalist Standalone (Release)",
+      "program": "${workspaceFolder}/Novalist.Desktop/bin/Release/net8.0/Novalist.Desktop.dll",
+      "cwd": "${workspaceFolder}/Novalist.Desktop",
+      "stopAtEntry": false,
+      "justMyCode": false,
+      "env": {
+        "GDK_BACKEND": "x11",
+        "WEBKIT_DISABLE_DMABUF_RENDERER": "1",
+        "NOVALIST_FORCE_WEBKIT_WIZARD": "0"
+      }
     }
   ]
 }

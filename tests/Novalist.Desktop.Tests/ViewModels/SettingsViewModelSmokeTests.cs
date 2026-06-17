@@ -211,6 +211,16 @@ public class SettingsViewModelTests
         Assert.Equal("http://localhost:8081/v2/check", h.App.GrammarCheckApiUrl);
         h.Vm.GrammarCheckApiUrl = "   ";
         Assert.Null(h.App.GrammarCheckApiUrl);
+
+        h.Vm.GrammarCheckApiKey = "test-key";
+        Assert.Equal("test-key", h.App.GrammarCheckApiKey);
+        h.Vm.GrammarCheckApiKey = "   ";
+        Assert.Null(h.App.GrammarCheckApiKey);
+
+        h.Vm.GrammarCheckUsername = "test-user";
+        Assert.Equal("test-user", h.App.GrammarCheckUsername);
+        h.Vm.GrammarCheckUsername = "   ";
+        Assert.Null(h.App.GrammarCheckUsername);
     }
 
     // ── Appearance: language / theme / accent ───────────────────────

@@ -321,6 +321,20 @@
     "grammarCheckDesc": "Checks your text for grammar, spelling, and style issues using LanguageTool. Requires an internet connection (or a self-hosted LanguageTool server).",
     "grammarCheckApiUrl": "LanguageTool API URL",
     "grammarCheckApiUrlDesc": "Endpoint used for grammar checks. Leave blank to use the free public API. Point at a self-hosted LanguageTool server (for example http://localhost:8081/v2/check) to keep your text local.",
+    "grammarCheckUsername": "LanguageTool Email Address",
+    "grammarCheckUsernameDesc": "The email address associated with your LanguageTool Premium account. Leave blank for the free public API.",
+    "grammarCheckUsernamePlaceholder": "e.g., mail@example.com",
+    "grammarCheckApiKey": "LanguageTool Cloud API Key",
+    "grammarCheckApiKeyDesc": "Your LanguageTool access token for Premium features. Stored in settings; do not share.",
+    "grammarCheckGetApiKey": "Get API Key...",
+    "grammarCheckCredentialsValid": "✓ Premium account credentials validated",
+    "grammarCheckCredentialsInvalid": "✗ Invalid email, API key, or server unreachable",
+    "grammarCheckCredentialsNotValidated": "Credentials not validated",
+    "grammarCheckPickyMode": "Advanced Style Check (Picky Mode)",
+    "grammarCheckPickyModeDesc": "Enables additional creative writing style, tone, and formatting rules.",
+    "grammarCheckMotherTongue": "Native Language (Mother Tongue)",
+    "grammarCheckMotherTongueDesc": "Enables LanguageTool's false-friends rules to check for native language interference (e.g. Germanisms).",
+    "grammarCheckMotherTongueNone": "None",
     "preview": "Preview",
     "templates": "TEMPLATES",
     "characterTemplates": "Character Templates",
@@ -1106,7 +1120,8 @@
     "contextMenu.paste": "Paste",
     "contextMenu.selectAll": "Select All",
     "contextMenu.addComment": "Add comment",
-    "contextMenu.addFootnote": "Add footnote"
+    "contextMenu.addFootnote": "Add footnote",
+    "contextMenu.addToDictionary": "Add to Dictionary"
   },
   "section": {
     "newSection": "New Section"

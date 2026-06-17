@@ -44,4 +44,8 @@ public sealed class EffectiveSettings : IEffectiveSettings
     public bool DialogueCorrectionEnabled => O?.DialogueCorrectionEnabled ?? G.DialogueCorrectionEnabled;
     public bool GrammarCheckEnabled => O?.GrammarCheckEnabled ?? G.GrammarCheckEnabled;
     public string? GrammarCheckApiUrl => O?.GrammarCheckApiUrl ?? G.GrammarCheckApiUrl;
+    public string? GrammarCheckApiKey => O?.GrammarCheckApiKey ?? G.GrammarCheckApiKey;
+    public string? GrammarCheckUsername => O?.GrammarCheckUsername ?? G.GrammarCheckUsername;
+    public bool GrammarCheckPickyMode => O?.GrammarCheckPickyMode ?? G.GrammarCheckPickyMode;
+    public string? GrammarCheckMotherTongue => O?.GrammarCheckMotherTongue ?? G.GrammarCheckMotherTongue;
 }

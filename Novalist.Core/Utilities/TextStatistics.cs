@@ -64,10 +64,10 @@ public static partial class TextStatistics
     public static string FormatCompactCount(int count)
     {
         if (count >= 1_000_000)
-            return $"{count / 1_000_000d:0.0}M";
+            return (count / 1_000_000d).ToString("0.0", CultureInfo.InvariantCulture) + "M";
 
         if (count >= 1_000)
-            return $"{count / 1_000d:0.0}k";
+            return (count / 1_000d).ToString("0.0", CultureInfo.InvariantCulture) + "k";
 
         return count.ToString("N0", CultureInfo.InvariantCulture);
     }

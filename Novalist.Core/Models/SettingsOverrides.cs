@@ -38,6 +38,22 @@ public class SettingsOverrides
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? GrammarCheckApiUrl { get; set; }
 
+    [JsonPropertyName("grammarCheckApiKey")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? GrammarCheckApiKey { get; set; }
+
+    [JsonPropertyName("grammarCheckUsername")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? GrammarCheckUsername { get; set; }
+
+    [JsonPropertyName("grammarCheckPickyMode")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? GrammarCheckPickyMode { get; set; }
+
+    [JsonPropertyName("grammarCheckMotherTongue")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? GrammarCheckMotherTongue { get; set; }
+
     // ── Book formatting ─────────────────────────────────────────────
     [JsonPropertyName("enableBookParagraphSpacing")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -113,7 +129,8 @@ public class SettingsOverrides
     public bool HasWritingOverride =>
         AutoReplacementLanguage != null || AutoReplacements != null
         || DialogueCorrectionEnabled != null || GrammarCheckEnabled != null
-        || GrammarCheckApiUrl != null;
+        || GrammarCheckApiUrl != null || GrammarCheckApiKey != null || GrammarCheckUsername != null
+        || GrammarCheckPickyMode != null || GrammarCheckMotherTongue != null;
 
     /// <summary>Clears every Appearance override (revert section to global).</summary>
     public void ClearAppearance()
@@ -147,5 +164,9 @@ public class SettingsOverrides
         DialogueCorrectionEnabled = null;
         GrammarCheckEnabled = null;
         GrammarCheckApiUrl = null;
+        GrammarCheckApiKey = null;
+        GrammarCheckUsername = null;
+        GrammarCheckPickyMode = null;
+        GrammarCheckMotherTongue = null;
     }
 }

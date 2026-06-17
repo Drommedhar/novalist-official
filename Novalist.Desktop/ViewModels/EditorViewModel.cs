@@ -300,6 +300,10 @@ public partial class EditorViewModel : ObservableObject, IFootnoteEditorContext
         GrammarCheck.Enabled = settingsService.Effective.GrammarCheckEnabled;
         GrammarCheck.Language = settingsService.Effective.Language;
         GrammarCheck.CustomApiUrl = settingsService.Effective.GrammarCheckApiUrl;
+        GrammarCheck.CustomApiKey = settingsService.Effective.GrammarCheckApiKey;
+        GrammarCheck.CustomUsername = settingsService.Effective.GrammarCheckUsername;
+        GrammarCheck.PickyMode = settingsService.Effective.GrammarCheckPickyMode;
+        GrammarCheck.MotherTongue = settingsService.Effective.GrammarCheckMotherTongue;
         ExtensionManager.Register(GrammarCheck);
 
         _focusPeekExtension = new FocusPeekExtension(FocusPeek, _projectService, _entityService, App.MapService,
@@ -336,6 +340,10 @@ public partial class EditorViewModel : ObservableObject, IFootnoteEditorContext
         GrammarCheck.Enabled = _settingsService.Effective.GrammarCheckEnabled;
         GrammarCheck.Language = _settingsService.Effective.Language;
         GrammarCheck.CustomApiUrl = _settingsService.Effective.GrammarCheckApiUrl;
+        GrammarCheck.CustomApiKey = _settingsService.Effective.GrammarCheckApiKey;
+        GrammarCheck.CustomUsername = _settingsService.Effective.GrammarCheckUsername;
+        GrammarCheck.PickyMode = _settingsService.Effective.GrammarCheckPickyMode;
+        GrammarCheck.MotherTongue = _settingsService.Effective.GrammarCheckMotherTongue;
         OnPropertyChanged(nameof(EditorFontFamily));
         OnPropertyChanged(nameof(EditorFontSize));
         OnPropertyChanged(nameof(BookParagraphSpacingEnabled));

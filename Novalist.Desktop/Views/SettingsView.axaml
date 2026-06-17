@@ -567,6 +567,83 @@
                                  MinWidth="320" />
                     </DockPanel>
 
+                    <!-- Grammar Check Username/Email -->
+                    <DockPanel IsEnabled="{Binding GrammarCheckEnabled}">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
+                            <TextBlock Text="{loc:Loc settings.grammarCheckUsername}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
+                            <TextBlock Text="{loc:Loc settings.grammarCheckUsernameDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <TextBox Text="{Binding GrammarCheckUsername}"
+                                 Watermark="{loc:Loc settings.grammarCheckUsernamePlaceholder}"
+                                 HorizontalAlignment="Stretch"
+                                 MinWidth="320" />
+                    </DockPanel>
+
+                    <!-- Grammar Check API Key -->
+                    <DockPanel IsEnabled="{Binding GrammarCheckEnabled}">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
+                            <TextBlock Text="{loc:Loc settings.grammarCheckApiKey}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
+                            <TextBlock Text="{loc:Loc settings.grammarCheckApiKeyDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
+                                       TextWrapping="Wrap" />
+                            <Button Content="{loc:Loc settings.grammarCheckGetApiKey}"
+                                    Command="{Binding OpenLanguageToolAccessTokensPageCommand}"
+                                    Margin="0,8,0,0"
+                                    Padding="10,4"
+                                    FontSize="{StaticResource FontSizeBodySmall}"
+                                    HorizontalAlignment="Left" />
+                        </StackPanel>
+                        <StackPanel Spacing="4" HorizontalAlignment="Stretch" MinWidth="320">
+                            <TextBox Text="{Binding GrammarCheckApiKey}"
+                                     PasswordChar="*"
+                                     HorizontalAlignment="Stretch" />
+                            <TextBlock Text="{Binding GrammarCheckCredentialsStatus}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DockPanel>
+
+                    <!-- Grammar Check Picky Mode -->
+                    <DockPanel IsEnabled="{Binding GrammarCheckEnabled}">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
+                            <TextBlock Text="{loc:Loc settings.grammarCheckPickyMode}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
+                            <TextBlock Text="{loc:Loc settings.grammarCheckPickyModeDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ToggleSwitch IsChecked="{Binding GrammarCheckPickyMode}"
+                                      HorizontalAlignment="Right" />
+                    </DockPanel>
+
+                    <!-- Grammar Check Mother Tongue -->
+                    <DockPanel IsEnabled="{Binding GrammarCheckEnabled}">
+                        <StackPanel DockPanel.Dock="Left" Spacing="{StaticResource SpacingTightest}" Width="300">
+                            <TextBlock Text="{loc:Loc settings.grammarCheckMotherTongue}"
+                                       Foreground="{DynamicResource NormalText}"
+                                       FontSize="{StaticResource FontSizeBodyLarge}" />
+                            <TextBlock Text="{loc:Loc settings.grammarCheckMotherTongueDesc}"
+                                       Foreground="{DynamicResource SubtleText}"
+                                       FontSize="{StaticResource FontSizeBodySmall}"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ComboBox ItemsSource="{Binding AvailableMotherTongues}"
+                                  SelectedItem="{Binding SelectedMotherTongue}"
+                                  MinWidth="200"
+                                  HorizontalAlignment="Right" />
+                    </DockPanel>
+
                     <!-- Preview -->
                     <Border Background="{DynamicResource CardBackground}"
                             BorderBrush="{DynamicResource CardBorder}"

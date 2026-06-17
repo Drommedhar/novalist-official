@@ -374,7 +374,7 @@ public class FilesystemMigratorTests
         var fs = await MigrateStandardAsync();
         // The 03 gap must remain; no renumber of 04/05 to close it.
         Assert.True(fs.Files.ContainsKey(P(DraftRoot, "Chapters", "04 - Aftermath", ".nvchapter.json")));
-        Assert.False(fs.Files.Keys.Any(k => k.Contains("03 - ")));
+        Assert.DoesNotContain(fs.Files.Keys, k => k.Contains("03 - "));
     }
 
     [Fact]

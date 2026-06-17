@@ -33,4 +33,8 @@ public interface IEffectiveSettings
     bool DialogueCorrectionEnabled { get; }
     bool GrammarCheckEnabled { get; }
     string? GrammarCheckApiUrl { get; }
+    string? GrammarCheckApiKey { get; }
+    string? GrammarCheckUsername { get; }
+    bool GrammarCheckPickyMode { get; }
+    string? GrammarCheckMotherTongue { get; }
 }

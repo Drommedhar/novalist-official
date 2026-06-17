@@ -227,6 +227,20 @@
     "grammarCheckDesc": "Prüft Ihren Text auf Grammatik-, Rechtschreib- und Stilfehler mithilfe von LanguageTool. Erfordert eine Internetverbindung (oder einen selbst gehosteten LanguageTool-Server).",
     "grammarCheckApiUrl": "LanguageTool-API-URL",
     "grammarCheckApiUrlDesc": "Endpunkt für Grammatikprüfungen. Leer lassen, um die kostenlose öffentliche API zu verwenden. Verweisen Sie auf einen selbst gehosteten LanguageTool-Server (z. B. http://localhost:8081/v2/check), damit Ihr Text lokal bleibt.",
+    "grammarCheckUsername": "LanguageTool-E-Mail-Adresse",
+    "grammarCheckUsernameDesc": "Die mit Ihrem LanguageTool Premium-Konto verknüpfte E-Mail-Adresse. Für die kostenlose öffentliche API leer lassen.",
+    "grammarCheckUsernamePlaceholder": "z. B. mail@example.com",
+    "grammarCheckApiKey": "LanguageTool-Cloud-API-Key",
+    "grammarCheckApiKeyDesc": "Ihr LanguageTool-Zugriffstoken für Premium-Funktionen. Wird in den Einstellungen gespeichert; nicht teilen.",
+    "grammarCheckGetApiKey": "API-Key abrufen...",
+    "grammarCheckCredentialsValid": "✓ Premium-Kontodaten erfolgreich validiert",
+    "grammarCheckCredentialsInvalid": "✗ Ungültige E-Mail-Adresse, API-Key oder Server nicht erreichbar",
+    "grammarCheckCredentialsNotValidated": "Zugangsdaten nicht validiert",
+    "grammarCheckPickyMode": "Erweiterte Stilprüfung (Picky-Modus)",
+    "grammarCheckPickyModeDesc": "Aktiviert zusätzliche Stil-, Ton- und Formatierungsregeln für kreatives Schreiben.",
+    "grammarCheckMotherTongue": "Muttersprache",
+    "grammarCheckMotherTongueDesc": "Aktiviert LanguageTool-Regeln zur Erkennung von muttersprachlichen Einflüssen und 'falschen Freunden' (z.B. Germanismen).",
+    "grammarCheckMotherTongueNone": "Keine",
     "preview": "Vorschau",
     "templates": "VORLAGEN",
     "characterTemplates": "Charakter-Vorlagen",
@@ -629,7 +643,8 @@
     "contextMenu.paste": "Einfügen",
     "contextMenu.selectAll": "Alles auswählen",
     "contextMenu.addComment": "Kommentar hinzufügen",
-    "contextMenu.addFootnote": "Fußnote hinzufügen"
+    "contextMenu.addFootnote": "Fußnote hinzufügen",
+    "contextMenu.addToDictionary": "Wort zum Wörterbuch hinzufügen"
   },
   "section": {
     "newSection": "Neuer Abschnitt"
