@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, FolderOpen } from 'lucide-react'
+import { BookOpen, FolderOpen, Import } from 'lucide-react'
+import { ImportPluginDialog } from './ImportPluginDialog'
 
 interface StartScreenProps {
   recentProjects: { name: string; path: string }[]
@@ -13,6 +15,7 @@ export function StartScreen({
   onPickProject
 }: StartScreenProps): React.JSX.Element {
   const { t } = useTranslation()
+  const [importOpen, setImportOpen] = useState(false)
 
   return (
     <div className="start-screen">
@@ -23,6 +26,19 @@ export function StartScreen({
           <FolderOpen size={16} strokeWidth={1.75} />
           {t('welcome.browseFolder')}
         </button>
+        <button className="start-open" onClick={() => setImportOpen(true)}>
+          <Import size={16} strokeWidth={1.75} />
+          {t('welcome.importPlugin')}
+        </button>
+        {importOpen && (
+          <ImportPluginDialog
+            onClose={() => setImportOpen(false)}
+            onImported={(projectPath) => {
+              setImportOpen(false)
+              onOpenPath(projectPath)
+            }}
+          />
+        )}
         <div className="start-recents">
           <div className="start-recents-label">{t('welcome.recentProjects')}</div>
           {recentProjects.length === 0 && (
