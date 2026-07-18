@@ -11,6 +11,7 @@ import { CalendarView } from '../views/calendar/CalendarView'
 import { RelationshipsView } from '../views/relationships/RelationshipsView'
 import { GalleryView } from '../views/library/GalleryView'
 import { ResearchView } from '../views/library/ResearchView'
+import { ExportView } from '../views/export/ExportView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -100,6 +101,14 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         <ResearchView />
+      </main>
+    )
+  }
+
+  if (mainView === 'export') {
+    return (
+      <main className="main-area">
+        <ExportView />
       </main>
     )
   }

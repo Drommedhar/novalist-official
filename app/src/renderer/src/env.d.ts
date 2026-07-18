@@ -11,6 +11,7 @@ interface Window {
     platform: NodeJS.Platform
     requestBackendPort(): void
     pickFolder(title: string): Promise<string | null>
+    saveFile(defaultName: string): Promise<string | null>
     setProjectRoot(root: string | null): void
   }
 }

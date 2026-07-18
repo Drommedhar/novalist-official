@@ -1579,3 +1579,39 @@
 .research-content {
   font-family: inherit;
 }
+
+/* ===== Export ===== */
+.export-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  max-width: 480px;
+}
+
+.export-toggle {
+  margin-top: var(--nl-space-md);
+}
+
+.export-chapters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-md);
+}
+
+.export-run {
+  margin-top: var(--nl-space-lg);
+  justify-content: center;
+}
+
+.export-run:disabled {
+  opacity: 0.55;
+}
+
+.export-result {
+  user-select: text;
+}
