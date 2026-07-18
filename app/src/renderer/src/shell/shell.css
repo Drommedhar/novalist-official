@@ -807,6 +807,18 @@
   flex-wrap: wrap;
 }
 
+.wizard-help {
+  margin: 0;
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+}
+
+.wizard-choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tight);
+}
+
 /* ===== Dashboard ===== */
 .dashboard {
   display: flex;

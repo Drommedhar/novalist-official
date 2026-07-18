@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Settings2, Trash2 } from 'lucide-react'
+import { MessageCircleQuestion, Plus, Settings2, Trash2 } from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
 import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { EntityListsEditor } from './EntityListsEditor'
 import { CustomTypeManager, type CustomTypeDefinition } from './CustomTypeManager'
+import { WizardDialog } from './WizardDialog'
+import {
+  buildGuidedSteps,
+  buildInterviewSteps,
+  INTERVIEW_SECTIONS,
+  type WizardStepDef
+} from './wizards'
 import { EntityImages } from './EntityImages'
 import { CustomPropsEditor } from './CustomPropsEditor'
 import { OverridesEditor } from './OverridesEditor'
@@ -37,6 +44,12 @@ export function CodexView(): React.JSX.Element {
   const [pending, setPending] = useState<'create' | 'delete' | null>(null)
   const [templates, setTemplates] = useState<{ id: string; name: string }[]>([])
   const [templateId, setTemplateId] = useState<string>('')
+  const [useWizard, setUseWizard] = useState(false)
+  const [wizard, setWizard] = useState<{
+    title: string
+    steps: WizardStepDef[]
+    apply: (answers: Record<string, string>) => Promise<void>
+  } | null>(null)
 
   useEffect(() => {
     void refresh()
@@ -47,6 +60,61 @@ export function CodexView(): React.JSX.Element {
   }, [refresh])
 
   const selected = entities.find((e) => e.id === selectedId)
+
+  /** Pours guided-wizard answers into the just-created entity. A character's
+   * description becomes a "Description" section; everything else is a scalar
+   * (or, for custom types, a Fields entry). */
+  const applyGuided = async (answers: Record<string, string>): Promise<void> => {
+    const { entityType: type, selectedId: id, selectedRecord } = useCodexStore.getState()
+    if (!id) return
+    for (const [key, v] of Object.entries(answers)) {
+      if (!v.trim()) continue
+      if (type === 'character' && key === 'description') continue
+      await updateField(key, v.trim())
+    }
+    const description = (answers.description ?? '').trim()
+    if (type === 'character' && description) {
+      const sections = [
+        ...((selectedRecord?.sections as { title: string; content: string }[]) ?? []),
+        { title: 'Description', content: description }
+      ]
+      await rpc.request('entities/updateLists', [type, id, null, sections, null])
+    }
+    await useCodexStore.getState().select(id)
+    await refresh()
+  }
+
+  /** Replace-or-append the seven interview sections on the open character. */
+  const applyInterview = async (answers: Record<string, string>): Promise<void> => {
+    const { selectedId: id, selectedRecord } = useCodexStore.getState()
+    if (!id) return
+    const sections = [
+      ...((selectedRecord?.sections as { title: string; content: string }[]) ?? [])
+    ]
+    for (const [stepId, title] of INTERVIEW_SECTIONS) {
+      const v = (answers[stepId] ?? '').trim()
+      if (!v) continue
+      const existing = sections.find((s) => s.title.toLowerCase() === title.toLowerCase())
+      if (existing) existing.content = v
+      else sections.push({ title, content: v })
+    }
+    await rpc.request('entities/updateLists', ['character', id, null, sections, null])
+    await useCodexStore.getState().select(id)
+  }
+
+  const startCreate = async (name: string): Promise<void> => {
+    await create(name, templateId || null)
+    if (!useWizard) return
+    const customDef = customTypes.find((d) => d.typeKey === entityType)
+    const steps = buildGuidedSteps(entityType, customDef, t)
+    if (steps.length > 0) {
+      setWizard({
+        title: customDef ? customDef.displayName : t(`wizard.entity.${entityType}.displayName`),
+        steps,
+        apply: applyGuided
+      })
+    }
+  }
 
   return (
     <div className="codex">
@@ -119,6 +187,20 @@ export function CodexView(): React.JSX.Element {
           {record ? (
             <>
               <div className="codex-detail-actions">
+                {entityType === 'character' && (
+                  <button
+                    className="dialog-button"
+                    onClick={() =>
+                      setWizard({
+                        title: t('wizard.interview.displayName'),
+                        steps: buildInterviewSteps(t),
+                        apply: applyInterview
+                      })
+                    }
+                  >
+                    <MessageCircleQuestion size={13} strokeWidth={2} /> {t('wizard.runInterview')}
+                  </button>
+                )}
                 <button
                   className="dialog-button danger"
                   onClick={() => setPending('delete')}
@@ -170,7 +252,7 @@ export function CodexView(): React.JSX.Element {
                   const name = (e.target as HTMLInputElement).value.trim()
                   if (name) {
                     setPending(null)
-                    void create(name, templateId || null)
+                    void startCreate(name)
                   }
                 }
               }}
@@ -189,6 +271,14 @@ export function CodexView(): React.JSX.Element {
                 ))}
               </select>
             )}
+            <label className="type-manager-check">
+              <input
+                type="checkbox"
+                checked={useWizard}
+                onChange={(e) => setUseWizard(e.target.checked)}
+              />
+              {t('wizard.useWizard')}
+            </label>
             <div className="dialog-actions">
               <button className="dialog-button" onClick={() => setPending(null)}>
                 {t('dialog.cancel')}
@@ -200,7 +290,7 @@ export function CodexView(): React.JSX.Element {
                   const name = input?.value.trim()
                   if (name) {
                     setPending(null)
-                    void create(name, templateId || null)
+                    void startCreate(name)
                   }
                 }}
               >
@@ -209,6 +299,18 @@ export function CodexView(): React.JSX.Element {
             </div>
           </div>
         </div>
+      )}
+      {wizard && (
+        <WizardDialog
+          title={wizard.title}
+          steps={wizard.steps}
+          onFinish={(answers) => {
+            const apply = wizard.apply
+            setWizard(null)
+            void apply(answers)
+          }}
+          onClose={() => setWizard(null)}
+        />
       )}
       {typeManagerOpen && (
         <CustomTypeManager

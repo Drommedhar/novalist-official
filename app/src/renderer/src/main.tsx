@@ -6,11 +6,12 @@ import './styles/base.css'
 import { AppShell } from './shell/AppShell'
 import { useProjectStore } from './stores/projectStore'
 import { useShellStore } from './stores/shellStore'
+import { useCodexStore } from './stores/codexStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { rpc } from './rpc/client'
 
 // Store/RPC access for end-to-end tests (Playwright drives the real app through these).
-window.novalistStores = { project: useProjectStore, shell: useShellStore }
+window.novalistStores = { project: useProjectStore, shell: useShellStore, codex: useCodexStore }
 window.novalistRpc = rpc
 
 const root = document.documentElement

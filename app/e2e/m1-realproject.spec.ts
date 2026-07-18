@@ -94,6 +94,32 @@ test('real project renders binder and scene content', async () => {
     timeout: 10_000
   })
 
+  // Guided creation wizard: create a character with the wizard checkbox on,
+  // answer the surname step, skip the rest, and verify the answer persisted.
+  await page.locator('.codex-tab').first().click()
+  await page.locator('.codex-list .binder-rail-item').click()
+  await page.locator('#codex-create-name').fill('Wizardborn')
+  await page.locator('.dialog-card .type-manager-check input').check()
+  await page.locator('.dialog-card .dialog-actions .dialog-button.primary').click()
+  const wizardCard = page.locator('.dialog-card', { hasText: '1/6' })
+  await expect(wizardCard).toBeVisible({ timeout: 10_000 })
+  await page.locator('.dialog-card .dialog-input').fill('Frostmantel')
+  await page.locator('.dialog-card .dialog-button.primary').click()
+  for (let i = 0; i < 4; i += 1) {
+    await page.locator('.dialog-card .dialog-button', { hasText: /^(Skip|Überspringen)$/ }).click()
+  }
+  await page.locator('.dialog-card .inspector-textarea').fill('Born in the e2e harness.')
+  await page.locator('.dialog-card .dialog-button.primary').click()
+  await page.locator('.codex-row', { hasText: 'Wizardborn' }).click()
+  await expect
+    .poll(async () => {
+      return page.evaluate(() => {
+        const record = window.novalistStores.codex.getState().selectedRecord
+        return record ? (record as { surname?: string }).surname : null
+      })
+    }, { timeout: 10_000 })
+    .toBe('Frostmantel')
+
   // Dashboard: real totals appear.
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
   await expect(page.locator('.dashboard-title')).toBeVisible({ timeout: 15_000 })

@@ -64,9 +64,9 @@ still building and gated in CI.
 
 ## Remaining gaps (not yet at parity)
 
-- Entity creation wizard (interview flow), custom entity type manager,
-  template editor, custom entity types in the codex tabs (creation
-  from existing templates shipped).
+- Entity creation wizard (interview flow) and template editor (creation
+  from existing templates shipped; custom entity types with full CRUD,
+  tabs, and the type manager dialog shipped).
 - Timeline structure templates and character/location filters
   (source filter shipped; outline export shipped).
 - Import plugin flow.

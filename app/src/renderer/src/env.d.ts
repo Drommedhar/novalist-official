@@ -4,6 +4,7 @@ interface Window {
   novalistStores: {
     project: typeof import('./stores/projectStore').useProjectStore
     shell: typeof import('./stores/shellStore').useShellStore
+    codex: typeof import('./stores/codexStore').useCodexStore
   }
   novalistRpc: import('./rpc/client').RpcClient
   novalist: {
