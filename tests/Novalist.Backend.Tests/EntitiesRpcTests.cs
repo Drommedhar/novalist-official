@@ -200,6 +200,27 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Annotations_RoundTripAndClear()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        var scenes = new ScenesRpc(_workspace);
+
+        await scenes.SetAnnotationsAsync(chapter.Guid, scene.Id,
+            [new SceneCommentDto("c1", "cold wind", "Too clichéd?", false)],
+            [new SceneFootnoteDto("f1", 1, "Historical note.")]);
+
+        var annotations = scenes.GetAnnotations(chapter.Guid, scene.Id);
+        Assert.Equal("Too clichéd?", annotations.Comments.Single().Text);
+        Assert.Equal(1, annotations.Footnotes.Single().Number);
+
+        await scenes.SetAnnotationsAsync(chapter.Guid, scene.Id, [], []);
+        var cleared = scenes.GetAnnotations(chapter.Guid, scene.Id);
+        Assert.Empty(cleared.Comments);
+        Assert.Empty(cleared.Footnotes);
+    }
+
+    [Fact]
     public async Task SetSynopsisAndNotes_PersistAndClearWhenEmpty()
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("C");

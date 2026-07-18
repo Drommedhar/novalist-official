@@ -34,6 +34,19 @@ const DEFAULT_FORMATTING: FormattingState = {
   alignment: 'left'
 }
 
+interface SceneComment {
+  id: string
+  anchorText: string
+  text: string
+  resolved: boolean
+}
+
+interface SceneFootnote {
+  id: string
+  number: number
+  text: string
+}
+
 /**
  * Hosts editor.html (carried over from the Avalonia app unchanged apart from
  * the parent-frame transport branch) and wires the ready handshake, theme,
@@ -47,6 +60,45 @@ export function EditorFrame(): React.JSX.Element {
   const sceneHtml = useProjectStore((s) => s.openSceneHtml)
   const loadingRef = useRef(false)
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
+  const annotationsRef = useRef<{ comments: SceneComment[]; footnotes: SceneFootnote[] }>({
+    comments: [],
+    footnotes: []
+  })
+
+  const pushAnnotations = (editor: EditorWindow): void => {
+    editor.setCommentsData(
+      annotationsRef.current.comments.map((c) => ({
+        id: c.id,
+        anchorText: c.anchorText,
+        text: c.text
+      }))
+    )
+    editor.setFootnotesData(
+      annotationsRef.current.footnotes.map((f) => ({ id: f.id, text: f.text }))
+    )
+  }
+
+  const loadAnnotations = async (editor: EditorWindow | null): Promise<void> => {
+    const state = useProjectStore.getState()
+    if (!state.openChapterGuid || !state.openSceneId) return
+    const annotations = await rpc.request<{ comments: SceneComment[]; footnotes: SceneFootnote[] }>(
+      'scenes/getAnnotations',
+      [state.openChapterGuid, state.openSceneId]
+    )
+    annotationsRef.current = annotations
+    if (editor) pushAnnotations(editor)
+  }
+
+  const persistAnnotations = (): void => {
+    const state = useProjectStore.getState()
+    if (!state.openChapterGuid || !state.openSceneId) return
+    void rpc.request('scenes/setAnnotations', [
+      state.openChapterGuid,
+      state.openSceneId,
+      annotationsRef.current.comments,
+      annotationsRef.current.footnotes
+    ])
+  }
 
   // Push content whenever the open scene changes and the editor is live.
   useEffect(() => {
@@ -55,6 +107,8 @@ export function EditorFrame(): React.JSX.Element {
     loadingRef.current = true
     editor.setContent(sceneHtml)
     loadingRef.current = false
+    void loadAnnotations(editor)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openSceneId, sceneHtml])
 
   useEffect(() => {
@@ -78,6 +132,7 @@ export function EditorFrame(): React.JSX.Element {
             live.setContent(state.openSceneHtml)
             loadingRef.current = false
           }
+          void loadAnnotations(live)
           const settings = useSettingsStore.getState()
           if (settings.view) {
             pushEditorSettings(live, true)
@@ -106,6 +161,51 @@ export function EditorFrame(): React.JSX.Element {
               // Offline or endpoint unavailable: clear underlines quietly.
               editorRef.current?.setGrammarIssues('[]')
             })
+          break
+        }
+        case 'requestAddComment': {
+          editorRef.current?.addCommentToSelection(crypto.randomUUID())
+          break
+        }
+        case 'commentAdded': {
+          annotationsRef.current.comments.push({
+            id: String(message.commentId),
+            anchorText: String(message.anchorText ?? ''),
+            text: '',
+            resolved: false
+          })
+          persistAnnotations()
+          if (editorRef.current) pushAnnotations(editorRef.current)
+          break
+        }
+        case 'commentTextChanged': {
+          const comment = annotationsRef.current.comments.find(
+            (c) => c.id === String(message.commentId)
+          )
+          if (comment) {
+            comment.text = String(message.text ?? '')
+            persistAnnotations()
+          }
+          break
+        }
+        case 'commentDeleted': {
+          annotationsRef.current.comments = annotationsRef.current.comments.filter(
+            (c) => c.id !== String(message.commentId)
+          )
+          persistAnnotations()
+          break
+        }
+        case 'requestAddFootnote': {
+          editorRef.current?.insertFootnoteAtSelection(crypto.randomUUID())
+          break
+        }
+        case 'footnoteInserted': {
+          annotationsRef.current.footnotes.push({
+            id: String(message.footnoteId),
+            number: Number(message.number ?? annotationsRef.current.footnotes.length + 1),
+            text: ''
+          })
+          persistAnnotations()
           break
         }
         case 'addToDictionary': {

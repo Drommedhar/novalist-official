@@ -29,6 +29,12 @@ export interface EditorWindow extends Window {
   setContextMenuLabels(labelsJson: string): void
   setGrammarCheckEnabled(enabled: boolean): void
   setGrammarIssues(issuesJson: string): void
+  addCommentToSelection(id: string): void
+  removeCommentById(id: string): void
+  scrollToCommentById(id: string): void
+  insertFootnoteAtSelection(id: string): void
+  removeFootnoteById(id: string): void
+  scrollToFootnoteById(id: string): void
   toggleBold(): void
   toggleItalic(): void
   toggleUnderline(): void

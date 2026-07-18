@@ -27,6 +27,47 @@ public sealed class ScenesRpc
         return new SceneMetaDto(scene.Id, scene.Synopsis, scene.Notes);
     }
 
+    [JsonRpcMethod("scenes/getAnnotations")]
+    public SceneAnnotationsDto GetAnnotations(string chapterGuid, string sceneId)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        return new SceneAnnotationsDto(
+            (scene.Comments ?? [])
+                .Select(c => new SceneCommentDto(c.Id, c.AnchorText, c.Text, c.Resolved))
+                .ToArray(),
+            (scene.Footnotes ?? [])
+                .Select(f => new SceneFootnoteDto(f.Id, f.Number, f.Text))
+                .ToArray());
+    }
+
+    [JsonRpcMethod("scenes/setAnnotations")]
+    public async Task SetAnnotationsAsync(
+        string chapterGuid,
+        string sceneId,
+        SceneCommentDto[] comments,
+        SceneFootnoteDto[] footnotes)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        scene.Comments = comments.Length == 0
+            ? null
+            : comments.Select(c => new Novalist.Core.Models.SceneComment
+            {
+                Id = c.Id,
+                AnchorText = c.AnchorText,
+                Text = c.Text,
+                Resolved = c.Resolved
+            }).ToList();
+        scene.Footnotes = footnotes.Length == 0
+            ? null
+            : footnotes.Select(f => new Novalist.Core.Models.SceneFootnote
+            {
+                Id = f.Id,
+                Number = f.Number,
+                Text = f.Text
+            }).ToList();
+        await _workspace.Projects.SaveScenesAsync();
+    }
+
     [JsonRpcMethod("scenes/write")]
     public async Task<SceneWriteResultDto> WriteAsync(
         string chapterGuid,
@@ -42,5 +83,13 @@ public sealed class ScenesRpc
 public sealed record SceneContentDto(string SceneId, string Html);
 
 public sealed record SceneMetaDto(string SceneId, string? Synopsis, string? Notes);
+
+public sealed record SceneAnnotationsDto(
+    IReadOnlyList<SceneCommentDto> Comments,
+    IReadOnlyList<SceneFootnoteDto> Footnotes);
+
+public sealed record SceneCommentDto(string Id, string AnchorText, string Text, bool Resolved);
+
+public sealed record SceneFootnoteDto(string Id, int Number, string Text);
 
 public sealed record SceneWriteResultDto(string SceneId, int WordCount);
