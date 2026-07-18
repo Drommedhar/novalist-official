@@ -530,7 +530,9 @@
     "noOverrides": "Keine Überschreibungen definiert.",
     "editingOverride": "Überschreibung bearbeiten: {0}",
     "unknownScope": "Unbekannter Bereich",
-    "targetNames": "Namen (durch Komma getrennt)"
+    "targetNames": "Namen (durch Komma getrennt)",
+    "fromGallery": "Aus Galerie",
+    "importImage": "Datei importieren"
   },
   "context": {
     "title": "NOVALIST KONTEXT",

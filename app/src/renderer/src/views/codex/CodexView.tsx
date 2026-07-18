@@ -5,6 +5,7 @@ import { useCodexStore, type EntityType } from '../../stores/codexStore'
 import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { EntityListsEditor } from './EntityListsEditor'
+import { EntityImages } from './EntityImages'
 
 const TYPES: { type: EntityType; key: string }[] = [
   { type: 'character', key: 'codexHub.characters' },
@@ -112,6 +113,7 @@ export function CodexView(): React.JSX.Element {
                     </div>
                   ))}
               </dl>
+              <EntityImages />
               <EntityListsEditor />
             </>
           ) : (

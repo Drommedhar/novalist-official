@@ -147,6 +147,54 @@ public sealed class EntitiesRpc
         return JsonSerializer.SerializeToElement(entity, JsonOptions);
     }
 
+    [JsonRpcMethod("entities/addImage")]
+    public async Task<JsonElement> AddImageAsync(
+        string type, string id, string path, bool import)
+    {
+        var relative = import ? await _entities.ImportImageAsync(path) : path;
+        var name = Path.GetFileNameWithoutExtension(relative);
+        return await MutateImagesAsync(type, id, images =>
+            images.Add(new EntityImage { Name = name, Path = relative }));
+    }
+
+    [JsonRpcMethod("entities/removeImage")]
+    public Task<JsonElement> RemoveImageAsync(string type, string id, string path) =>
+        MutateImagesAsync(type, id, images =>
+            images.RemoveAll(i => i.Path == path));
+
+    private async Task<JsonElement> MutateImagesAsync(
+        string type, string id, Action<List<EntityImage>> mutate)
+    {
+        object entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        } ?? throw Unknown(id);
+
+        var images = (List<EntityImage>)entity.GetType().GetProperty("Images")!.GetValue(entity)!;
+        mutate(images);
+
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+        return JsonSerializer.SerializeToElement(entity, JsonOptions);
+    }
+
     [JsonRpcMethod("entities/create")]
     public async Task<JsonElement> CreateAsync(string type, string name)
     {

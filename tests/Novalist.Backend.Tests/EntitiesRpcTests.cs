@@ -112,6 +112,42 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Images_AddFromGalleryAndImport_ThenRemove()
+    {
+        var created = await _rpc.CreateAsync("character", "Mira");
+        var id = created.GetProperty("id").GetString()!;
+
+        var source = Path.Combine(_root, "portrait.png");
+        File.WriteAllBytes(source, [137, 80, 78, 71]);
+        var imported = await _rpc.AddImageAsync("character", id, source, import: true);
+        var importedPath = imported.GetProperty("images")[0].GetProperty("path").GetString()!;
+        Assert.NotEqual(source, importedPath);
+
+        var addedExisting = await _rpc.AddImageAsync("character", id, importedPath, import: false);
+        Assert.Equal(2, addedExisting.GetProperty("images").GetArrayLength());
+
+        var removed = await _rpc.RemoveImageAsync("character", id, importedPath);
+        Assert.Equal(0, removed.GetProperty("images").GetArrayLength());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.AddImageAsync("dragon", id, source, false));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.RemoveImageAsync("character", "missing", "x"));
+    }
+
+    [Fact]
+    public async Task Images_MutateOnAllTypes()
+    {
+        foreach (var type in new[] { "location", "item", "lore" })
+        {
+            var created = await _rpc.CreateAsync(type, "Thing");
+            var id = created.GetProperty("id").GetString()!;
+            var updated = await _rpc.AddImageAsync(type, id, "Images/x.png", import: false);
+            Assert.Equal(1, updated.GetProperty("images").GetArrayLength());
+        }
+    }
+
+    [Fact]
     public async Task UpdateLists_AliasesSectionsRelationships_Persist()
     {
         var created = await _rpc.CreateAsync("character", "Mira");

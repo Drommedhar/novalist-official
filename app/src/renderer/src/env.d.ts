@@ -12,6 +12,7 @@ interface Window {
     requestBackendPort(): void
     pickFolder(title: string): Promise<string | null>
     saveFile(defaultName: string): Promise<string | null>
+    pickFile(title: string): Promise<string | null>
     setProjectRoot(root: string | null): void
     registerExtensionRoots(roots: Record<string, string>): void
   }

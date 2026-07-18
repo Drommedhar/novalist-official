@@ -630,7 +630,9 @@
     "noOverrides": "No overrides defined.",
     "editingOverride": "Editing override: {0}",
     "unknownScope": "Unknown scope",
-    "targetNames": "Names (comma-separated)"
+    "targetNames": "Names (comma-separated)",
+    "fromGallery": "From gallery",
+    "importImage": "Import file"
   },
   "context": {
     "title": "NOVALIST CONTEXT",

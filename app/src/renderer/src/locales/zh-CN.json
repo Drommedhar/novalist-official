@@ -672,7 +672,9 @@
     "noOverrides": "未定义任何覆盖设置。",
     "editingOverride": "正在编辑覆盖设置：{0}",
     "unknownScope": "未知范围",
-    "targetNames": "名称（用逗号分隔）"
+    "targetNames": "名称（用逗号分隔）",
+    "fromGallery": "从图库选择",
+    "importImage": "导入文件"
   },
   "context": {
     "title": "NOVALIST 上下文",

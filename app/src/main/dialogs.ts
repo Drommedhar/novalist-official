@@ -11,6 +11,16 @@ export function registerDialogHandlers(): void {
     return result.canceled ? null : result.filePaths[0]
   })
 
+  ipcMain.handle('novalist:pick-file', async (event, title: string) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const result = await dialog.showOpenDialog(win!, {
+      title,
+      properties: ['openFile'],
+      filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'gif'] }]
+    })
+    return result.canceled ? null : result.filePaths[0]
+  })
+
   ipcMain.handle('novalist:save-file', async (event, defaultName: string) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     const result = await dialog.showSaveDialog(win!, { defaultPath: defaultName })

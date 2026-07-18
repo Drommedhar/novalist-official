@@ -20,6 +20,9 @@ contextBridge.exposeInMainWorld('novalist', {
   saveFile(defaultName: string): Promise<string | null> {
     return ipcRenderer.invoke('novalist:save-file', defaultName)
   },
+  pickFile(title: string): Promise<string | null> {
+    return ipcRenderer.invoke('novalist:pick-file', title)
+  },
   setProjectRoot(root: string | null): void {
     ipcRenderer.send('novalist:set-project-root', root)
   },
