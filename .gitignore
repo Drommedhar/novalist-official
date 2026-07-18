@@ -60,3 +60,6 @@ docs/plans
 app/node_modules/
 app/out/
 app/dist/
+
+app/dist-backend/
+app/dist/

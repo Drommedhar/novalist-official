@@ -8,7 +8,9 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json"
+    "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json",
+    "package": "npm run build && npm run backend:publish && electron-builder --config electron-builder.yml",
+    "backend:publish": "dotnet publish ../Novalist.Backend/Novalist.Backend.csproj -c Release -r $npm_config_rid --self-contained -p:PublishSingleFile=true -o dist-backend"
   },
   "dependencies": {
     "electron-liquid-glass": "^1.1.1",
@@ -25,6 +27,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.0",
     "electron": "^38.8.6",
+    "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
     "typescript": "^7.0.2",
     "vite": "^7.0.2"

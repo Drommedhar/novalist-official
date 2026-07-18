@@ -1,0 +1,31 @@
+appId: com.novalist.app
+productName: Novalist
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: dist-backend
+    to: backend
+asarUnpack:
+  - '**/*.node'
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.productivity
+  identity: null
+win:
+  target:
+    - nsis
+linux:
+  target:
+    - AppImage
+  category: Office
+npmRebuild: true
+publish:
+  provider: github
+  owner: dominikgoblirsch
+  repo: novalist-official
