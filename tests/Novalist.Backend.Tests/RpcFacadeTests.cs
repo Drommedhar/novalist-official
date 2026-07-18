@@ -71,6 +71,34 @@ public sealed class RpcFacadeTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Reorder_ChaptersAndScenes_AndMoveBetweenChapters()
+    {
+        await InvokeAsync<ProjectStateDto>("project/create", _root, "OrderNovel", "Book");
+        await InvokeAsync<ProjectStateDto>("project/createChapter", "One");
+        var state = await InvokeAsync<ProjectStateDto>("project/createChapter", "Two");
+        var one = state.Chapters.Single(c => c.Title == "One");
+        var two = state.Chapters.Single(c => c.Title == "Two");
+
+        var reordered = await InvokeAsync<ProjectStateDto>("project/reorderChapter", two.Guid, 0);
+        Assert.Equal("Two", reordered.Chapters.First().Title);
+
+        await InvokeAsync<ProjectStateDto>("project/createScene", one.Guid, "A");
+        var withScenes = await InvokeAsync<ProjectStateDto>("project/createScene", one.Guid, "B");
+        var scenesOfOne = withScenes.Chapters.Single(c => c.Guid == one.Guid).Scenes;
+        var sceneA = scenesOfOne.Single(s => s.Title == "A");
+        var lastOrder = scenesOfOne.Max(s => s.Order);
+
+        var sceneReordered = await InvokeAsync<ProjectStateDto>(
+            "project/reorderScene", one.Guid, sceneA.Id, lastOrder);
+        Assert.Equal("A", sceneReordered.Chapters.Single(c => c.Guid == one.Guid).Scenes.Last().Title);
+
+        var moved = await InvokeAsync<ProjectStateDto>(
+            "project/moveScenes", new[] { sceneA.Id }, two.Guid, 0);
+        Assert.Contains(moved.Chapters.Single(c => c.Guid == two.Guid).Scenes, s => s.Title == "A");
+        Assert.DoesNotContain(moved.Chapters.Single(c => c.Guid == one.Guid).Scenes, s => s.Title == "A");
+    }
+
+    [Fact]
     public async Task BooksAndDrafts_SwitchCreate_OverTheWire()
     {
         await InvokeAsync<ProjectStateDto>("project/create", _root, "MultiBook", "Book One");

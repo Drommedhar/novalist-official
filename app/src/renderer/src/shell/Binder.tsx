@@ -72,6 +72,32 @@ export function Binder(): React.JSX.Element {
   const openScene = useProjectStore((s) => s.openScene)
   const store = useProjectStore
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const [drag, setDrag] = useState<
+    | { kind: 'chapter'; chapterGuid: string }
+    | { kind: 'scene'; chapterGuid: string; sceneId: string }
+    | null
+  >(null)
+
+  const onChapterDrop = (target: { guid: string; order: number }): void => {
+    if (!drag) return
+    if (drag.kind === 'chapter' && drag.chapterGuid !== target.guid) {
+      void store.getState().reorderChapter(drag.chapterGuid, target.order)
+    } else if (drag.kind === 'scene' && drag.chapterGuid !== target.guid) {
+      void store.getState().moveScenes([drag.sceneId], target.guid, 0)
+    }
+    setDrag(null)
+  }
+
+  const onSceneDrop = (chapterGuid: string, target: { id: string; order: number }, index: number): void => {
+    if (!drag || drag.kind !== 'scene') return
+    if (drag.sceneId === target.id) { setDrag(null); return }
+    if (drag.chapterGuid === chapterGuid) {
+      void store.getState().reorderScene(chapterGuid, drag.sceneId, target.order)
+    } else {
+      void store.getState().moveScenes([drag.sceneId], chapterGuid, index)
+    }
+    setDrag(null)
+  }
   const [menu, setMenu] = useState<MenuState | null>(null)
   const [pending, setPending] = useState<PendingAction | null>(null)
 
@@ -155,6 +181,10 @@ export function Binder(): React.JSX.Element {
             )}
             <div
               className="binder-chapter-row"
+              draggable
+              onDragStart={() => setDrag({ kind: 'chapter', chapterGuid: chapter.guid })}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => onChapterDrop({ guid: chapter.guid, order: chapter.order })}
               onContextMenu={(e) => {
                 e.preventDefault()
                 setMenu({ x: e.clientX, y: e.clientY, chapterGuid: chapter.guid, sceneId: null })
@@ -182,10 +212,16 @@ export function Binder(): React.JSX.Element {
               <span className="binder-chapter-title">{chapter.title}</span>
             </div>
             {!collapsed[chapter.guid] &&
-              chapter.scenes.map((scene) => (
+              chapter.scenes.map((scene, sceneIndex) => (
                 <button
                   key={scene.id}
                   className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}`}
+                  draggable
+                  onDragStart={() =>
+                    setDrag({ kind: 'scene', chapterGuid: chapter.guid, sceneId: scene.id })
+                  }
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => onSceneDrop(chapter.guid, { id: scene.id, order: scene.order }, sceneIndex)}
                   onClick={() => void openScene(chapter.guid, scene.id)}
                   onContextMenu={(e) => {
                     e.preventDefault()

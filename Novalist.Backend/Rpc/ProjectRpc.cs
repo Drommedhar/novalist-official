@@ -71,6 +71,28 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 
+    [JsonRpcMethod("project/reorderChapter")]
+    public async Task<ProjectStateDto> ReorderChapterAsync(string chapterGuid, int newOrder)
+    {
+        await _workspace.Projects.ReorderChapterAsync(chapterGuid, newOrder);
+        return _workspace.BuildState();
+    }
+
+    [JsonRpcMethod("project/reorderScene")]
+    public async Task<ProjectStateDto> ReorderSceneAsync(string chapterGuid, string sceneId, int newOrder)
+    {
+        await _workspace.Projects.ReorderSceneAsync(chapterGuid, sceneId, newOrder);
+        return _workspace.BuildState();
+    }
+
+    [JsonRpcMethod("project/moveScenes")]
+    public async Task<ProjectStateDto> MoveScenesAsync(
+        string[] sceneIds, string targetChapterGuid, int targetIndex)
+    {
+        await _workspace.Projects.MoveScenesAsync(sceneIds, targetChapterGuid, targetIndex);
+        return _workspace.BuildState();
+    }
+
     [JsonRpcMethod("project/switchBook")]
     public async Task<ProjectStateDto> SwitchBookAsync(string bookId)
     {

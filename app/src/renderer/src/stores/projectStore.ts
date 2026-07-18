@@ -73,6 +73,9 @@ interface ProjectState {
   deleteChapter(chapterGuid: string): Promise<void>
   deleteScene(chapterGuid: string, sceneId: string): Promise<void>
   setChapterStatus(chapterGuid: string, status: string): Promise<void>
+  reorderChapter(chapterGuid: string, newOrder: number): Promise<void>
+  reorderScene(chapterGuid: string, sceneId: string, newOrder: number): Promise<void>
+  moveScenes(sceneIds: string[], targetChapterGuid: string, targetIndex: number): Promise<void>
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -214,6 +217,28 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   setChapterStatus: async (chapterGuid, status) => {
     get().applyState(
       await rpc.request<ProjectStateDto>('project/setChapterStatus', [chapterGuid, status])
+    )
+  },
+
+  reorderChapter: async (chapterGuid, newOrder) => {
+    get().applyState(
+      await rpc.request<ProjectStateDto>('project/reorderChapter', [chapterGuid, newOrder])
+    )
+  },
+
+  reorderScene: async (chapterGuid, sceneId, newOrder) => {
+    get().applyState(
+      await rpc.request<ProjectStateDto>('project/reorderScene', [chapterGuid, sceneId, newOrder])
+    )
+  },
+
+  moveScenes: async (sceneIds, targetChapterGuid, targetIndex) => {
+    get().applyState(
+      await rpc.request<ProjectStateDto>('project/moveScenes', [
+        sceneIds,
+        targetChapterGuid,
+        targetIndex
+      ])
     )
   }
 }))
