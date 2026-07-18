@@ -1809,3 +1809,16 @@
 .entity-gallery-pick { padding: 0; border-radius: var(--nl-radius-md); overflow: hidden; }
 .entity-gallery-pick img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; }
 .entity-gallery-pick:hover { outline: 2px solid var(--nl-accent); }
+
+.dashboard-card-title-btn {
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  font-weight: inherit;
+}
+
+.dashboard-card-title-btn:hover {
+  color: var(--nl-accent);
+  text-decoration: underline;
+}

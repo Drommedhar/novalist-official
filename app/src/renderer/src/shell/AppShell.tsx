@@ -26,6 +26,7 @@ async function hydrate(): Promise<void> {
 
 export function AppShell(): React.JSX.Element {
   const binderVisible = useShellStore((s) => s.binderVisible)
+  const focusMode = useShellStore((s) => s.focusMode)
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
   const isLoaded = useProjectStore((s) => s.isLoaded)
   const recentProjects = useProjectStore((s) => s.recentProjects)
@@ -48,9 +49,9 @@ export function AppShell(): React.JSX.Element {
       <div className="shell-body">
         {isLoaded ? (
           <>
-            {binderVisible && <Binder />}
+            {binderVisible && !focusMode && <Binder />}
             <MainArea />
-            {inspectorVisible && <Inspector />}
+            {inspectorVisible && !focusMode && <Inspector />}
           </>
         ) : (
           <StartScreen

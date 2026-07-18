@@ -39,6 +39,7 @@ interface ShellState {
   binderVisible: boolean
   inspectorVisible: boolean
   backendVersion: string | null
+  focusMode: boolean
   findReplaceOpen: boolean
   commandPaletteOpen: boolean
   setMainView(view: MainView): void
@@ -47,6 +48,7 @@ interface ShellState {
   toggleBinder(): void
   toggleInspector(): void
   setBackendVersion(version: string | null): void
+  toggleFocusMode(): void
   setFindReplaceOpen(open: boolean): void
   setCommandPaletteOpen(open: boolean): void
 }
@@ -58,11 +60,13 @@ export const useShellStore = create<ShellState>((set) => ({
   binderVisible: true,
   inspectorVisible: true,
   backendVersion: null,
+  focusMode: false,
   findReplaceOpen: false,
   commandPaletteOpen: false,
   setMainView: (mainView) => set({ mainView, extView: null }),
   setExtView: (extView) => set({ extView }),
   setBinderTab: (binderTab) => set({ binderTab }),
+  toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   setFindReplaceOpen: (findReplaceOpen) => set({ findReplaceOpen }),
   setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
   toggleBinder: () => set((s) => ({ binderVisible: !s.binderVisible })),

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
+import { InputDialog } from '../../shell/InputDialog'
 import { useShellStore } from '../../stores/shellStore'
 
 interface DashboardDto {
@@ -34,6 +35,7 @@ export function DashboardView(): React.JSX.Element {
   const mainView = useShellStore((s) => s.mainView)
   const [data, setData] = useState<DashboardDto | null>(null)
   const [range, setRange] = useState(30)
+  const [editingGoal, setEditingGoal] = useState<'daily' | 'project' | null>(null)
 
   useEffect(() => {
     if (mainView !== 'dashboard') return
@@ -69,7 +71,11 @@ export function DashboardView(): React.JSX.Element {
 
       <div className="dashboard-columns">
         <div className="dashboard-card">
-          <div className="dashboard-card-title">{t('dashboard.dailyProgress')}</div>
+          <div className="dashboard-card-title">
+            <button className="dashboard-card-title-btn" onClick={() => setEditingGoal('daily')}>
+              {t('dashboard.dailyProgress')}
+            </button>
+          </div>
           <div className="dashboard-goal-row">
             <span>
               {data.dailyGoalCurrent.toLocaleString()} / {data.dailyGoalTarget.toLocaleString()}
@@ -106,7 +112,11 @@ export function DashboardView(): React.JSX.Element {
         </div>
 
         <div className="dashboard-card">
-          <div className="dashboard-card-title">{t('dashboard.goalTracking')}</div>
+          <div className="dashboard-card-title">
+            <button className="dashboard-card-title-btn" onClick={() => setEditingGoal('project')}>
+              {t('dashboard.goalTracking')}
+            </button>
+          </div>
           <div className="dashboard-goal-row">
             <span>
               {data.totalWords.toLocaleString()} / {data.projectGoalTarget.toLocaleString()}
@@ -179,6 +189,26 @@ export function DashboardView(): React.JSX.Element {
             ))}
           </div>
         </div>
+      )}
+      {editingGoal && (
+        <InputDialog
+          title={editingGoal === 'daily' ? t('settings.dailyWordGoal') : t('settings.projectWordGoal')}
+          placeholder={String(editingGoal === 'daily' ? data.dailyGoalTarget : data.projectGoalTarget)}
+          onCancel={() => setEditingGoal(null)}
+          onSubmit={(value) => {
+            const parsed = Number(value)
+            const which = editingGoal
+            setEditingGoal(null)
+            if (!Number.isFinite(parsed) || parsed < 0) return
+            void rpc
+              .request('dashboard/setGoals', [
+                which === 'daily' ? parsed : data.dailyGoalTarget,
+                which === 'project' ? parsed : data.projectGoalTarget,
+                data.deadline
+              ])
+              .then(() => rpc.request<DashboardDto>('dashboard/get', [range]).then(setData))
+          }}
+        />
       )}
     </div>
   )

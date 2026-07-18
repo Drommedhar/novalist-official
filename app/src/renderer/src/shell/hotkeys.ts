@@ -68,6 +68,12 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
       run: () => shell().setFindReplaceOpen(true)
     },
     {
+      actionId: 'app.view.focus',
+      gesture: 'Alt+F',
+      labelKey: 'menu.focusMode',
+      run: () => shell().toggleFocusMode()
+    },
+    {
       actionId: 'app.commandPalette',
       gesture: 'Ctrl+Shift+P',
       labelKey: 'commandPalette.placeholder',
