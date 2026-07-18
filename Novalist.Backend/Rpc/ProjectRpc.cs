@@ -138,6 +138,15 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 
+    [JsonRpcMethod("project/setChapterAct")]
+    public async Task<ProjectStateDto> SetChapterActAsync(string chapterGuid, string act)
+    {
+        var chapter = _workspace.ResolveChapter(chapterGuid);
+        chapter.Act = act;
+        await _workspace.Projects.SaveScenesAsync();
+        return _workspace.BuildState();
+    }
+
     [JsonRpcMethod("project/setChapterStatus")]
     public async Task<ProjectStateDto> SetChapterStatusAsync(string chapterGuid, string status)
     {

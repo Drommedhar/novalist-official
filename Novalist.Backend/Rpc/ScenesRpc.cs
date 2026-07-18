@@ -27,6 +27,25 @@ public sealed class ScenesRpc
         return new SceneMetaDto(scene.Id, scene.Synopsis, scene.Notes);
     }
 
+    [JsonRpcMethod("scenes/archive")]
+    public async Task ArchiveAsync(string chapterGuid, string sceneId)
+    {
+        await _workspace.Projects.ArchiveSceneAsync(chapterGuid, sceneId);
+    }
+
+    [JsonRpcMethod("scenes/archived")]
+    public ArchivedSceneDto[] GetArchived() =>
+        _workspace.Projects.GetArchivedScenes()
+            .Select(s => new ArchivedSceneDto(
+                s.Id, s.Title, s.WordCount, s.ArchivedAt?.ToString("o")))
+            .ToArray();
+
+    [JsonRpcMethod("scenes/restoreArchived")]
+    public async Task RestoreArchivedAsync(string sceneId, string targetChapterGuid)
+    {
+        await _workspace.Projects.RestoreArchivedSceneAsync(sceneId, targetChapterGuid, null);
+    }
+
     [JsonRpcMethod("scenes/getAnnotations")]
     public SceneAnnotationsDto GetAnnotations(string chapterGuid, string sceneId)
     {
@@ -83,6 +102,8 @@ public sealed class ScenesRpc
 public sealed record SceneContentDto(string SceneId, string Html);
 
 public sealed record SceneMetaDto(string SceneId, string? Synopsis, string? Notes);
+
+public sealed record ArchivedSceneDto(string Id, string Title, int WordCount, string? ArchivedAt);
 
 public sealed record SceneAnnotationsDto(
     IReadOnlyList<SceneCommentDto> Comments,

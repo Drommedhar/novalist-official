@@ -151,6 +151,10 @@ public sealed class RpcFacadeTests : IAsyncDisposable
             "project/setChapterStatus", chapter.Guid, "FirstDraft");
         Assert.Equal("FirstDraft", statusSet.Chapters.Single().Status);
 
+        var actSet = await InvokeAsync<ProjectStateDto>(
+            "project/setChapterAct", chapter.Guid, "Act I");
+        Assert.Equal("Act I", actSet.Chapters.Single().Act);
+
         var sceneDeleted = await InvokeAsync<ProjectStateDto>(
             "project/deleteScene", chapter.Guid, scene.Id);
         Assert.Empty(sceneDeleted.Chapters.Single().Scenes);

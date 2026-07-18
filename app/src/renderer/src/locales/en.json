@@ -532,7 +532,8 @@
     "cycleStatusTooltip": "Click to cycle chapter status",
     "confirmDeleteChapter": "Delete chapter \"{{name}}\" and all its scenes?",
     "confirmDeleteScene": "Delete scene \"{{name}}\"?",
-    "deleteTitle": "Confirm delete"
+    "deleteTitle": "Confirm delete",
+    "archiveEmpty": "No archived scenes."
   },
   "entityPanel": {
     "charactersTooltip": "Characters",

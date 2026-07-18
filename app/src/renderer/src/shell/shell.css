@@ -1867,3 +1867,18 @@
 
 .overrides-scope { color: var(--nl-accent); text-align: left; }
 .overrides-scope:hover { text-decoration: underline; }
+
+.binder-archived {
+  border-top: 1px solid var(--nl-border-subtle);
+  margin-top: var(--nl-space-md);
+  padding-top: var(--nl-space-tighter);
+}
+
+.binder-archived-toggle {
+  width: 100%;
+  text-align: left;
+}
+
+.binder-archived-toggle:hover {
+  color: var(--nl-text);
+}

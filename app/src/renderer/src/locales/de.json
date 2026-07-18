@@ -432,7 +432,8 @@
     "cycleStatusTooltip": "Klicken, um den Kapitelstatus zu wechseln",
     "confirmDeleteChapter": "Kapitel \"{{name}}\" mit allen Szenen löschen?",
     "confirmDeleteScene": "Szene \"{{name}}\" löschen?",
-    "deleteTitle": "Löschen bestätigen"
+    "deleteTitle": "Löschen bestätigen",
+    "archiveEmpty": "Keine archivierten Szenen."
   },
   "entityPanel": {
     "charactersTooltip": "Charaktere",

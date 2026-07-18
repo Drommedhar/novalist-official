@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useShellStore, viewGroups, type MainView } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
+import { rpc } from '../rpc/client'
 import { useExtensionsStore } from '../stores/extensionsStore'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
 import { InputDialog } from './InputDialog'
@@ -56,6 +57,13 @@ type PendingAction =
   | { kind: 'renameScene'; chapterGuid: string; sceneId: string; current: string }
   | { kind: 'deleteChapter'; chapterGuid: string; title: string }
   | { kind: 'deleteScene'; chapterGuid: string; sceneId: string; title: string }
+  | { kind: 'setAct'; chapterGuid: string; current: string }
+
+interface ArchivedScene {
+  id: string
+  title: string
+  wordCount: number
+}
 
 export function Binder(): React.JSX.Element {
   const { t } = useTranslation()
@@ -99,6 +107,11 @@ export function Binder(): React.JSX.Element {
     setDrag(null)
   }
   const [menu, setMenu] = useState<MenuState | null>(null)
+  const [archived, setArchived] = useState<ArchivedScene[] | null>(null)
+
+  const loadArchived = async (): Promise<void> => {
+    setArchived(await rpc.request<ArchivedScene[]>('scenes/archived'))
+  }
   const [pending, setPending] = useState<PendingAction | null>(null)
 
   const menuItems = (): ContextMenuItem[] => {
@@ -109,6 +122,20 @@ export function Binder(): React.JSX.Element {
       const scene = chapter.scenes.find((s) => s.id === menu.sceneId)
       if (!scene) return []
       return [
+        {
+          label: t('explorer.contextArchive'),
+          onClick: () => {
+            void rpc
+              .request('scenes/archive', [chapter.guid, scene.id])
+              .then(async () => {
+                const state = await rpc.request<import('../stores/projectStore').ProjectStateDto>(
+                  'project/getState'
+                )
+                store.getState().applyState(state)
+                if (archived !== null) void loadArchived()
+              })
+          }
+        },
         {
           label: t('explorer.renameScene'),
           onClick: () =>
@@ -133,6 +160,11 @@ export function Binder(): React.JSX.Element {
       ]
     }
     return [
+      {
+        label: t('explorer.renameAct'),
+        onClick: () =>
+          setPending({ kind: 'setAct', chapterGuid: chapter.guid, current: chapter.act })
+      },
       {
         label: t('explorer.renameChapter'),
         onClick: () =>
@@ -241,6 +273,42 @@ export function Binder(): React.JSX.Element {
               ))}
           </div>
         ))}
+        {binderTab === 'chapters' && (
+          <div className="binder-archived">
+            <button
+              className="binder-group-label binder-archived-toggle"
+              onClick={() => (archived === null ? void loadArchived() : setArchived(null))}
+            >
+              {t('explorer.archive')}
+            </button>
+            {archived?.map((scene) => (
+              <div key={scene.id} className="binder-scene-row">
+                <span className="binder-scene-title">{scene.title}</span>
+                <button
+                  className="snapshot-restore"
+                  onClick={() => {
+                    const target = chapters[0]?.guid
+                    if (!target) return
+                    void rpc
+                      .request('scenes/restoreArchived', [scene.id, target])
+                      .then(async () => {
+                        const state = await rpc.request<
+                          import('../stores/projectStore').ProjectStateDto
+                        >('project/getState')
+                        store.getState().applyState(state)
+                        void loadArchived()
+                      })
+                  }}
+                >
+                  {t('snapshots.restore')}
+                </button>
+              </div>
+            ))}
+            {archived !== null && archived.length === 0 && (
+              <div className="binder-placeholder">{t('explorer.archiveEmpty')}</div>
+            )}
+          </div>
+        )}
       </div>
       <div className="binder-rail">
         {extViews.length > 0 && (
@@ -303,6 +371,23 @@ export function Binder(): React.JSX.Element {
           onSubmit={(title) => {
             setPending(null)
             void store.getState().renameScene(pending.chapterGuid, pending.sceneId, title)
+          }}
+        />
+      )}
+      {pending?.kind === 'setAct' && (
+        <InputDialog
+          title={t('explorer.renameAct')}
+          placeholder={pending.current}
+          onCancel={() => setPending(null)}
+          onSubmit={(act) => {
+            const chapterGuid = pending.chapterGuid
+            setPending(null)
+            void rpc
+              .request<import('../stores/projectStore').ProjectStateDto>('project/setChapterAct', [
+                chapterGuid,
+                act
+              ])
+              .then((state) => store.getState().applyState(state))
           }}
         />
       )}

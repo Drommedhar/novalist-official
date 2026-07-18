@@ -326,6 +326,27 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ArchiveAndRestore_Scene_RoundTrip()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Doomed");
+        await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, "<p>kept text</p>", "kept text");
+        var scenes = new ScenesRpc(_workspace);
+
+        await scenes.ArchiveAsync(chapter.Guid, scene.Id);
+        var archived = scenes.GetArchived();
+        Assert.Single(archived, s => s.Title == "Doomed");
+        Assert.DoesNotContain(
+            _workspace.BuildState().Chapters.Single(c => c.Guid == chapter.Guid).Scenes,
+            s => s.Id == scene.Id);
+
+        await scenes.RestoreArchivedAsync(scene.Id, chapter.Guid);
+        Assert.Empty(scenes.GetArchived());
+        var restored = await scenes.ReadAsync(chapter.Guid, scene.Id);
+        Assert.Contains("kept text", restored.Html);
+    }
+
+    [Fact]
     public async Task Annotations_RoundTripAndClear()
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("C");

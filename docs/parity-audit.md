@@ -22,8 +22,9 @@ still building and gated in CI.
   highlighting with hover cards (names pushed from the codex).
 - Binder: chapter/scene tree with act headers, status dots with click
   cycling, rename/delete context menus, drag-and-drop chapter/scene
-  reorder and cross-chapter scene moves, smart lists tab with rule
-  editor and evaluation.
+  reorder and cross-chapter scene moves, scene archiving with a
+  restore browser, act assignment from the chapter menu, smart lists
+  tab with rule editor and evaluation.
 - Planning views: Dashboard (totals, goals with editing, streak/history
   chart, status breakdown, pacing, echo phrases — algorithm ported
   verbatim), Manuscript (manuscript-editor.html verbatim plus native
@@ -62,8 +63,6 @@ still building and gated in CI.
 
 - Entity creation templates/wizard flow, custom entity type manager,
   template editor, custom entity types in the codex tabs.
-- Archived scenes browser; acts management (create/rename act as an
-  operation, headers render already).
 - Split editor (two scenes side by side); book preview page mode toggle
   from the toolbar (page view works via settings).
 - Timeline structure templates, outline export, character/location
