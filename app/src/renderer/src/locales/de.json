@@ -87,7 +87,9 @@
     "povContains": "POV enthält",
     "tag": "Tag",
     "confirmDeleteTitle": "Smart-Liste löschen?",
-    "confirmDelete": "\"{0}\" löschen? Kann nicht rückgängig gemacht werden."
+    "confirmDelete": "\"{0}\" löschen? Kann nicht rückgängig gemacht werden.",
+    "noMatches": "Keine passenden Szenen.",
+    "anyStatus": "Beliebiger Status"
   },
   "findReplace": {
     "title": "Suchen und Ersetzen",

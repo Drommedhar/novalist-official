@@ -179,7 +179,9 @@
     "povContains": "POV contains",
     "tag": "Tag",
     "confirmDeleteTitle": "Delete smart list?",
-    "confirmDelete": "Delete \"{0}\"? This cannot be undone."
+    "confirmDelete": "Delete \"{0}\"? This cannot be undone.",
+    "noMatches": "No matching scenes.",
+    "anyStatus": "Any status"
   },
   "findReplace": {
     "title": "Find and Replace",

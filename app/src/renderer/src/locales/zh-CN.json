@@ -221,7 +221,9 @@
     "povContains": "视角包含",
     "tag": "标签",
     "confirmDeleteTitle": "删除智能列表？",
-    "confirmDelete": "确定要删除“{0}”吗？此操作无法撤销。"
+    "confirmDelete": "确定要删除“{0}”吗？此操作无法撤销。",
+    "noMatches": "没有匹配的场景。",
+    "anyStatus": "任意状态"
   },
   "findReplace": {
     "title": "查找与替换",

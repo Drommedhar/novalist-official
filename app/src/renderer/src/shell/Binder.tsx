@@ -21,6 +21,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
 import { InputDialog } from './InputDialog'
 import { ConfirmDialog } from './ConfirmDialog'
+import { SmartListsPanel } from './SmartListsPanel'
 
 const viewIcons: Record<MainView, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
   write: NotebookPen,
@@ -57,6 +58,8 @@ export function Binder(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
   const setMainView = useShellStore((s) => s.setMainView)
+  const binderTab = useShellStore((s) => s.binderTab)
+  const setBinderTab = useShellStore((s) => s.setBinderTab)
   const chapters = useProjectStore((s) => s.chapters)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const openScene = useProjectStore((s) => s.openScene)
@@ -118,11 +121,27 @@ export function Binder(): React.JSX.Element {
 
   return (
     <nav className="binder">
+      <div className="binder-tabs">
+        <button
+          className={`binder-tab${binderTab === 'chapters' ? ' active' : ''}`}
+          onClick={() => setBinderTab('chapters')}
+        >
+          {t('shell.chapters')}
+        </button>
+        <button
+          className={`binder-tab${binderTab === 'smartLists' ? ' active' : ''}`}
+          onClick={() => setBinderTab('smartLists')}
+        >
+          {t('smartList.section')}
+        </button>
+      </div>
       <div className="binder-tree">
-        {chapters.length === 0 && (
+        {binderTab === 'smartLists' && <SmartListsPanel />}
+        {binderTab === 'chapters' && chapters.length === 0 && (
           <div className="binder-placeholder">{t('shell.binderEmpty')}</div>
         )}
-        {chapters.map((chapter) => (
+        {binderTab === 'chapters' &&
+          chapters.map((chapter) => (
           <div key={chapter.guid} className="binder-chapter">
             <div
               className="binder-chapter-row"
