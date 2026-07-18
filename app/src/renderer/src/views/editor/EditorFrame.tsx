@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { listenToEditor, editorWindow, pushEditorTheme, type EditorWindow } from './editorBridge'
 import { EditorToolbar, type FormattingState } from './EditorToolbar'
 import { useProjectStore } from '../../stores/projectStore'
+import { rpc } from '../../rpc/client'
 import { useSettingsStore } from '../../stores/settingsStore'
 
 function pushEditorSettings(editor: EditorWindow, initial = false): void {
@@ -20,6 +21,9 @@ function pushEditorSettings(editor: EditorWindow, initial = false): void {
   }
   if (!initial || eff.enableBookParagraphSpacing) {
     editor.setBookParagraphSpacing(eff.enableBookParagraphSpacing)
+  }
+  if (!initial || eff.grammarCheckEnabled) {
+    editor.setGrammarCheckEnabled(eff.grammarCheckEnabled)
   }
 }
 
@@ -89,6 +93,23 @@ export function EditorFrame(): React.JSX.Element {
           useProjectStore
             .getState()
             .onEditorContentChanged(String(message.html ?? ''), String(message.plainText ?? ''))
+          break
+        }
+        case 'grammarCheckRequest': {
+          if (!editor) return
+          void rpc
+            .request<unknown[]>('grammar/check', [String(message.plainText ?? '')])
+            .then((issues) => {
+              editorRef.current?.setGrammarIssues(JSON.stringify(issues))
+            })
+            .catch(() => {
+              // Offline or endpoint unavailable: clear underlines quietly.
+              editorRef.current?.setGrammarIssues('[]')
+            })
+          break
+        }
+        case 'addToDictionary': {
+          void rpc.request<boolean>('grammar/addToDictionary', [String(message.word ?? '')])
           break
         }
         case 'formattingChanged': {
