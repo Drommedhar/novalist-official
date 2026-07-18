@@ -40,6 +40,7 @@ export function TimelineView(): React.JSX.Element {
   const mainView = useShellStore((s) => s.mainView)
   const [data, setData] = useState<TimelineDto | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
+  const [sourceFilter, setSourceFilter] = useState('all')
 
   useEffect(() => {
     if (mainView !== 'timeline') return
@@ -76,6 +77,17 @@ export function TimelineView(): React.JSX.Element {
           {t('timeline.addEvent')}
         </button>
         <div className="toolbar-spacer" />
+        <select
+          className="dialog-input findreplace-scope"
+          value={sourceFilter}
+          onChange={(e) => setSourceFilter(e.target.value)}
+        >
+          {['all', 'act', 'chapter', 'scene', 'manual'].map((s) => (
+            <option key={s} value={s}>
+              {s === 'all' ? t('timeline.filterSource') : t(`timeline.source${s.charAt(0).toUpperCase()}${s.slice(1)}`)}
+            </option>
+          ))}
+        </select>
         <button
           className="toolbar-button toolbar-action"
           onClick={() =>
@@ -102,7 +114,9 @@ export function TimelineView(): React.JSX.Element {
         {data.groups.map((group) => (
           <div key={group.key} className="timeline-group">
             <div className="timeline-group-label">{group.label}</div>
-            {group.events.map((event) => (
+            {group.events
+              .filter((event) => sourceFilter === 'all' || event.source === sourceFilter)
+              .map((event) => (
               <div
                 key={event.id}
                 className={`timeline-event source-${event.source}`}

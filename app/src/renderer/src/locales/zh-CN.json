@@ -1399,7 +1399,7 @@
     "zoomDay": "日",
     "filterCharacter": "按角色筛选...",
     "filterLocation": "按地点筛选...",
-    "filterSource": "按来源筛选...",
+    "filterSource": "全部来源",
     "addEvent": "添加事件",
     "exportOutline": "导出大纲",
     "prev": "上一个",
@@ -1425,7 +1425,11 @@
     "chapterEvent": "章节",
     "sceneEvent": "场景",
     "actEvent": "幕",
-    "manualEvent": "手动"
+    "manualEvent": "手动",
+    "sourceAct": "幕",
+    "sourceChapter": "章节",
+    "sourceScene": "场景",
+    "sourceManual": "事件"
   },
   "export": {
     "header": "导出小说",

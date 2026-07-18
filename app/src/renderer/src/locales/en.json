@@ -1357,7 +1357,7 @@
     "zoomDay": "Day",
     "filterCharacter": "Filter by character…",
     "filterLocation": "Filter by location…",
-    "filterSource": "Filter by source…",
+    "filterSource": "All sources",
     "addEvent": "Add Event",
     "exportOutline": "Export Outline",
     "prev": "Previous",
@@ -1383,7 +1383,11 @@
     "chapterEvent": "Chapter",
     "sceneEvent": "Scene",
     "actEvent": "Act",
-    "manualEvent": "Manual"
+    "manualEvent": "Manual",
+    "sourceAct": "Acts",
+    "sourceChapter": "Chapters",
+    "sourceScene": "Scenes",
+    "sourceManual": "Events"
   },
   "export": {
     "header": "Export Novel",

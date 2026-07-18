@@ -980,7 +980,7 @@
     "zoomDay": "Tag",
     "filterCharacter": "Nach Charakter filtern…",
     "filterLocation": "Nach Ort filtern…",
-    "filterSource": "Nach Quelle filtern…",
+    "filterSource": "Alle Quellen",
     "addEvent": "Ereignis hinzufügen",
     "exportOutline": "Outline exportieren",
     "prev": "Zurück",
@@ -1006,7 +1006,11 @@
     "chapterEvent": "Kapitel",
     "sceneEvent": "Szene",
     "actEvent": "Akt",
-    "manualEvent": "Manuell"
+    "manualEvent": "Manuell",
+    "sourceAct": "Akte",
+    "sourceChapter": "Kapitel",
+    "sourceScene": "Szenen",
+    "sourceManual": "Ereignisse"
   },
   "export": {
     "header": "Roman exportieren",

@@ -20,15 +20,16 @@ still building and gated in CI.
   check round-trip (LanguageTool with credentials/picky/mother-tongue),
   scene snapshots with restore, focus mode (Alt+F).
 - Binder: chapter/scene tree with act headers, status dots with click
-  cycling, rename/delete context menus, drag-free reorder still pending
-  (see gaps), smart lists tab with rule editor and evaluation.
+  cycling, rename/delete context menus, drag-and-drop chapter/scene
+  reorder and cross-chapter scene moves, smart lists tab with rule
+  editor and evaluation.
 - Planning views: Dashboard (totals, goals with editing, streak/history
   chart, status breakdown, pacing, echo phrases — algorithm ported
   verbatim), Manuscript (manuscript-editor.html verbatim plus native
   corkboard and outliner with synopsis/POV editing), Timeline (acts,
   dated chapters/scenes, manual events with editor, zoom/mode persisted),
   Plot Grid (plotline CRUD, cell toggling), Calendar (week/month/year via
-  StoryDateResolver), Relationships (family-cluster layout from
+  StoryDateResolver, drag-to-reschedule), Relationships (family-cluster layout from
   locale-driven role keywords, search/world-bible filters).
 - Codex: four entity types, list with portraits, scalar field editing,
   aliases, sections, relationships, image management (gallery pick and
@@ -56,8 +57,6 @@ still building and gated in CI.
 
 ## Remaining gaps (not yet at parity)
 
-- Binder drag-and-drop reorder of chapters/scenes (reorder RPCs exist in
-  Core; UI pending) and scene move between chapters.
 - Character per-act/chapter/scene override editing UI (data preserved and
   round-tripped; no dedicated editor yet).
 - Entity creation templates/wizard flow, custom entity type manager,
@@ -69,9 +68,9 @@ still building and gated in CI.
 - Context sidebar entity mentions/hover cards from the editor
   (entityHover events are emitted by editor.html; not yet surfaced).
 - Timeline structure templates, outline export, character/location
-  filters; calendar drag rescheduling (reschedule RPC exists).
-- Import plugin flow, project rename UI, update notifications
-  (electron-updater configured for Win/Linux; notify flow pending).
+  filters.
+- Import plugin flow; update notifications (electron-updater configured
+  for Win/Linux; notify flow pending).
 - Manual (docs/manual/) still documents the Avalonia shell; needs the
   page-by-page rewrite once the new shell becomes the released app.
 - Avalonia retirement (M9): blocked on the gaps above by design.
