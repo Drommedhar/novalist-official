@@ -38,6 +38,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new SystemRpc(RequestShutdown), targetOptions);
         rpc.AddLocalRpcTarget(new ProjectRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ScenesRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new EntitiesRpc(_workspace), targetOptions);
         rpc.StartListening();
         _rpc = rpc;
         return rpc;

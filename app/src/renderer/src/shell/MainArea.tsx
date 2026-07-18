@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { EditorFrame } from '../views/editor/EditorFrame'
+import { CodexView } from '../views/codex/CodexView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -19,6 +20,14 @@ export function MainArea(): React.JSX.Element {
             <p>{t('shell.binderEmpty')}</p>
           </div>
         )}
+      </main>
+    )
+  }
+
+  if (mainView === 'codex') {
+    return (
+      <main className="main-area">
+        <CodexView />
       </main>
     )
   }

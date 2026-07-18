@@ -20,6 +20,13 @@ public sealed class ScenesRpc
         return new SceneContentDto(sceneId, html);
     }
 
+    [JsonRpcMethod("scenes/getMeta")]
+    public SceneMetaDto GetMeta(string chapterGuid, string sceneId)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        return new SceneMetaDto(scene.Id, scene.Synopsis, scene.Notes);
+    }
+
     [JsonRpcMethod("scenes/write")]
     public async Task<SceneWriteResultDto> WriteAsync(
         string chapterGuid,
@@ -33,5 +40,7 @@ public sealed class ScenesRpc
 }
 
 public sealed record SceneContentDto(string SceneId, string Html);
+
+public sealed record SceneMetaDto(string SceneId, string? Synopsis, string? Notes);
 
 public sealed record SceneWriteResultDto(string SceneId, int WordCount);

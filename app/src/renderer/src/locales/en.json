@@ -1486,7 +1486,9 @@
     "manageTypes": "Manage types",
     "templates": "Templates",
     "sortName": "Sort: Name (A–Z)",
-    "sortNameDesc": "Sort: Name (Z–A)"
+    "sortNameDesc": "Sort: Name (Z–A)",
+    "emptyHint": "No entries of this type yet.",
+    "selectHint": "Select an entry to see its details."
   },
   "manuscript": {
     "title": "Manuscript",
@@ -1557,6 +1559,7 @@
       "gallery": "Gallery",
       "export": "Export",
       "git": "Git"
-    }
+    },
+    "words": "words"
   }
 }

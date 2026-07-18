@@ -1528,7 +1528,9 @@
     "manageTypes": "管理类型",
     "templates": "模板",
     "sortName": "排序：名称 (A–Z)",
-    "sortNameDesc": "排序：名称 (Z–A)"
+    "sortNameDesc": "排序：名称 (Z–A)",
+    "emptyHint": "此类型暂无条目。",
+    "selectHint": "选择一个条目以查看详情。"
   },
   "manuscript": {
     "title": "书稿",
@@ -1599,6 +1601,7 @@
       "gallery": "图库",
       "export": "导出",
       "git": "Git"
-    }
+    },
+    "words": "字"
   }
 }

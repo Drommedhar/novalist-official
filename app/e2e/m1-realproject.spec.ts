@@ -55,5 +55,26 @@ test('real project renders binder and scene content', async () => {
     .poll(async () => ((await editor.innerText()) ?? '').trim().length, { timeout: 15_000 })
     .toBeGreaterThan(50)
 
+  // Inspector: write a synopsis, blur, and confirm it persisted over RPC.
+  const synopsis = page.locator('#inspector-synopsis')
+  await synopsis.fill('Verification synopsis from e2e')
+  await synopsis.blur()
+  await expect
+    .poll(async () => {
+      return page.evaluate(async () => {
+        const store = window.novalistStores.project.getState()
+        const meta = (await window.novalistRpc.request('scenes/getMeta', [
+          store.openChapterGuid,
+          store.openSceneId
+        ])) as { synopsis: string | null }
+        return meta.synopsis
+      })
+    })
+    .toBe('Verification synopsis from e2e')
+
+  // Codex: real characters render in the list.
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
+  await expect.poll(() => page.locator('.codex-row').count(), { timeout: 15_000 }).toBeGreaterThan(0)
+
   await app.close()
 })
