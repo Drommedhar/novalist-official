@@ -38,6 +38,14 @@ public sealed class ExportRpcTests : IDisposable
             _rpc.Formats());
     }
 
+    [Fact]
+    public async Task TimelineOutline_ProducesFile()
+    {
+        var output = Path.Combine(_root, "outline.md");
+        var result = await _rpc.TimelineOutlineAsync(output);
+        Assert.True(result.Success);
+    }
+
     [Theory]
     [InlineData("Markdown", ".md")]
     [InlineData("Epub", ".epub")]

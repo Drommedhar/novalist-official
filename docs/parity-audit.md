@@ -63,10 +63,9 @@ still building and gated in CI.
 
 - Entity creation templates/wizard flow, custom entity type manager,
   template editor, custom entity types in the codex tabs.
-- Split editor (two scenes side by side); book preview page mode toggle
-  from the toolbar (page view works via settings).
-- Timeline structure templates, outline export, character/location
-  filters.
+- Split editor (two scenes side by side).
+- Timeline structure templates and character/location filters
+  (source filter shipped; outline export shipped).
 - Import plugin flow; update notifications (electron-updater configured
   for Win/Linux; notify flow pending).
 - Manual (docs/manual/) still documents the Avalonia shell; needs the

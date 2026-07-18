@@ -1,4 +1,5 @@
-import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, Italic, Underline } from 'lucide-react'
+import { AlignCenter, AlignJustify, AlignLeft, AlignRight, Bold, BookOpen, Italic, Underline } from 'lucide-react'
+import { useSettingsStore } from '../../stores/settingsStore'
 import type { EditorWindow } from './editorBridge'
 
 export interface FormattingState {
@@ -35,6 +36,8 @@ export function EditorToolbar({ formatting, editor }: EditorToolbarProps): React
     { key: 'justify', active: formatting.alignment === 'justify', icon: AlignJustify, run: (e) => e.alignJustify() }
   ]
 
+  const pageView = useSettingsStore((s) => s.view?.effective.pageViewEnabled ?? false)
+
   return (
     <div className="editor-toolbar">
       {buttons.map(({ key, active, icon: Icon, run: cmd }) => (
@@ -46,6 +49,13 @@ export function EditorToolbar({ formatting, editor }: EditorToolbarProps): React
           <Icon size={15} strokeWidth={1.75} />
         </button>
       ))}
+      <span className="toolbar-spacer" />
+      <button
+        className={`editor-toolbar-button${pageView ? ' active' : ''}`}
+        onClick={() => void useSettingsStore.getState().update('global', { pageViewEnabled: !pageView })}
+      >
+        <BookOpen size={15} strokeWidth={1.75} />
+      </button>
     </div>
   )
 }

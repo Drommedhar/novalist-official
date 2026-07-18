@@ -16,6 +16,15 @@ public sealed class ExportRpc
     [JsonRpcMethod("export/formats")]
     public string[] Formats() => Enum.GetNames<ExportFormat>();
 
+    [JsonRpcMethod("export/timelineOutline")]
+    public async Task<ExportResultDto> TimelineOutlineAsync(string outputPath)
+    {
+        var service = new ExportService(_workspace.Projects, new EntityService(_workspace.Projects));
+        await service.ExportTimelineOutlineAsync(outputPath);
+        var info = new FileInfo(outputPath);
+        return new ExportResultDto(outputPath, info.Exists, info.Exists ? info.Length : 0);
+    }
+
     [JsonRpcMethod("export/run")]
     public async Task<ExportResultDto> RunAsync(
         string format,
