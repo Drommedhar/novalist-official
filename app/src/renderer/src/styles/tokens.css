@@ -1,0 +1,145 @@
+/*
+ * Novalist design tokens. Three tiers:
+ *  1. sizing/typography scales (ported 1:1 from DesignTokens.axaml)
+ *  2. semantic color tokens per theme ([data-theme])
+ *  3. material layer ([data-material]) - translucent chrome under native
+ *     glass/vibrancy on macOS; opaque elsewhere. Editor surface is always opaque.
+ * This file is the public styling contract for themes and extensions.
+ */
+
+:root {
+  /* Spacing scale */
+  --nl-space-none: 0px;
+  --nl-space-tightest: 2px;
+  --nl-space-tighter: 4px;
+  --nl-space-sm: 6px;
+  --nl-space-md: 8px;
+  --nl-space-normal: 10px;
+  --nl-space-lg: 12px;
+  --nl-space-xl: 16px;
+  --nl-space-xxl: 20px;
+
+  /* Corner radius scale */
+  --nl-radius-none: 0px;
+  --nl-radius-sm: 4px;
+  --nl-radius-md: 6px;
+  --nl-radius-lg: 8px;
+  --nl-radius-xl: 10px;
+  --nl-radius-pill: 999px;
+
+  /* Typography scale */
+  --nl-font-tiny: 9px;
+  --nl-font-caption: 10px;
+  --nl-font-body-sm: 11px;
+  --nl-font-body: 12px;
+  --nl-font-body-lg: 13px;
+  --nl-font-title-sm: 14px;
+  --nl-font-title: 16px;
+  --nl-font-display-sm: 18px;
+  --nl-font-display: 26px;
+  --nl-font-display-lg: 32px;
+  --nl-weight-title: 600;
+  --nl-font-family:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  --nl-font-mono: 'Cascadia Mono', ui-monospace, Consolas, monospace;
+
+  /* Elevation */
+  --nl-elevation-low: 0 1px 3px 0 rgb(0 0 0 / 0.13);
+  --nl-elevation-md: 0 4px 12px 0 rgb(0 0 0 / 0.25);
+  --nl-elevation-high: 0 8px 24px 0 rgb(0 0 0 / 0.31);
+}
+
+/* ===== Dark theme (default; ported from NovalistTheme.axaml) ===== */
+:root,
+:root[data-theme='dark'] {
+  --nl-base: 24 24 24; /* raw rgb for alpha composition in the material layer */
+  --nl-surface-window: #181818;
+  --nl-surface-sidebar: #1e1e1e;
+  --nl-surface-toolbar: #252526;
+  --nl-surface-inspector: #1e1e1e;
+  --nl-surface-editor: #181818;
+  --nl-surface-card: #252526;
+  --nl-surface-overlay: rgb(0 0 0 / 0.5);
+  --nl-surface-hover: #262a30;
+  --nl-surface-selected: #2e353d;
+
+  --nl-text: #e6edf3;
+  --nl-text-dim: #b9bac5;
+  --nl-text-subtle: #848b91;
+
+  --nl-accent: #0e8bdf;
+  --nl-accent-hover: #2d9ee6;
+  --nl-accent-ink: #ffffff;
+  --nl-focus-ring: rgb(14 139 223 / 0.6);
+
+  --nl-border: #333333;
+  --nl-border-subtle: #303030;
+
+  --nl-success: #1db954;
+  --nl-warning: #f5a623;
+  --nl-danger: #e74c3c;
+
+  --nl-status-outline: #6c7086;
+  --nl-status-first-draft: #fab387;
+  --nl-status-revised: #89b4fa;
+  --nl-status-edited: #a6e3a1;
+  --nl-status-final: #94e2d5;
+
+  --nl-git-dirty: #e5c07b;
+  --nl-git-clean: #98c379;
+  --nl-favorite: #e5c07b;
+}
+
+/* ===== Light theme ===== */
+:root[data-theme='light'] {
+  --nl-base: 247 246 243;
+  --nl-surface-window: #f7f6f3;
+  --nl-surface-sidebar: #efeeea;
+  --nl-surface-toolbar: #f2f1ed;
+  --nl-surface-inspector: #efeeea;
+  --nl-surface-editor: #fdfdfb;
+  --nl-surface-card: #ffffff;
+  --nl-surface-overlay: rgb(40 38 34 / 0.35);
+  --nl-surface-hover: #e6e4de;
+  --nl-surface-selected: #dcdad2;
+
+  --nl-text: #23262b;
+  --nl-text-dim: #5c6470;
+  --nl-text-subtle: #8a919c;
+
+  --nl-accent: #0b6fb8;
+  --nl-accent-hover: #0e8bdf;
+  --nl-accent-ink: #ffffff;
+  --nl-focus-ring: rgb(11 111 184 / 0.5);
+
+  --nl-border: #dddbd4;
+  --nl-border-subtle: #e5e3dc;
+
+  --nl-success: #178a44;
+  --nl-warning: #b87a2e;
+  --nl-danger: #c0392b;
+
+  --nl-status-outline: #8a8fa8;
+  --nl-status-first-draft: #c97f3d;
+  --nl-status-revised: #4d78c9;
+  --nl-status-edited: #4d9e47;
+  --nl-status-final: #2e9688;
+
+  --nl-git-dirty: #b8860b;
+  --nl-git-clean: #4d9e47;
+  --nl-favorite: #b8860b;
+
+  --nl-elevation-low: 0 1px 3px 0 rgb(40 38 34 / 0.1);
+  --nl-elevation-md: 0 4px 12px 0 rgb(40 38 34 / 0.15);
+  --nl-elevation-high: 0 8px 24px 0 rgb(40 38 34 / 0.2);
+}
+
+/* ===== Material layer: chrome goes translucent under native blur ===== */
+:root[data-material='vibrancy'],
+:root[data-material='glass'] {
+  --nl-surface-window: transparent;
+  --nl-surface-sidebar: rgb(var(--nl-base) / 0.55);
+  --nl-surface-toolbar: rgb(var(--nl-base) / 0.4);
+  --nl-surface-inspector: rgb(var(--nl-base) / 0.55);
+  /* --nl-surface-editor deliberately untouched: text always sits on opaque ground */
+}
