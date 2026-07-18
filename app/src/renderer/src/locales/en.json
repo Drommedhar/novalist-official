@@ -58,7 +58,11 @@
     "contentWatermark": "Notes / URL / file path",
     "empty": "No research item selected. Add one or pick from the list.",
     "confirmDeleteTitle": "Delete research item?",
-    "confirmDelete": "Delete \"{0}\"?"
+    "confirmDelete": "Delete \"{0}\"?",
+    "typeNote": "Note",
+    "typeLink": "Link",
+    "typeFile": "File",
+    "typeImage": "Image"
   },
   "plotGrid": {
     "title": "Plot Grid",

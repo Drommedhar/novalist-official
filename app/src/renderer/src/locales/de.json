@@ -58,7 +58,11 @@
     "contentWatermark": "Notiz / URL / Dateipfad",
     "empty": "Kein Recherche-Eintrag ausgewählt. Lege einen an oder wähle aus der Liste.",
     "confirmDeleteTitle": "Recherche-Eintrag löschen?",
-    "confirmDelete": "\"{0}\" löschen?"
+    "confirmDelete": "\"{0}\" löschen?",
+    "typeNote": "Notiz",
+    "typeLink": "Link",
+    "typeFile": "Datei",
+    "typeImage": "Bild"
   },
   "plotGrid": {
     "title": "Plot-Raster",

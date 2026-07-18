@@ -58,7 +58,11 @@
     "contentWatermark": "笔记 / URL / 文件路径",
     "empty": "未选择任何资料。请添加一项或从列表中选择。",
     "confirmDeleteTitle": "删除此资料？",
-    "confirmDelete": "确定要删除“{0}”吗？"
+    "confirmDelete": "确定要删除“{0}”吗？",
+    "typeNote": "笔记",
+    "typeLink": "链接",
+    "typeFile": "文件",
+    "typeImage": "图片"
   },
   "plotGrid": {
     "title": "剧情网格",

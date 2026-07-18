@@ -9,6 +9,8 @@ import { PlotGridView } from '../views/plotgrid/PlotGridView'
 import { TimelineView } from '../views/timeline/TimelineView'
 import { CalendarView } from '../views/calendar/CalendarView'
 import { RelationshipsView } from '../views/relationships/RelationshipsView'
+import { GalleryView } from '../views/library/GalleryView'
+import { ResearchView } from '../views/library/ResearchView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -82,6 +84,22 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         <RelationshipsView />
+      </main>
+    )
+  }
+
+  if (mainView === 'gallery') {
+    return (
+      <main className="main-area">
+        <GalleryView />
+      </main>
+    )
+  }
+
+  if (mainView === 'research') {
+    return (
+      <main className="main-area">
+        <ResearchView />
       </main>
     )
   }
