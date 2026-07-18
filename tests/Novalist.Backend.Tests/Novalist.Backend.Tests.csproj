@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);xUnit1051;xUnit2012</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Novalist.Backend\Novalist.Backend.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Nerdbank.Streams" Version="2.13.16" />
+  </ItemGroup>
+
+</Project>
