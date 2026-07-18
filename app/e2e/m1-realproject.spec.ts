@@ -116,5 +116,15 @@ test('real project renders binder and scene content', async () => {
     .poll(() => page.locator('.relationships-node').count(), { timeout: 15_000 })
     .toBeGreaterThan(0)
 
+  // SDK v2: the deployed AiAssistant contributes a webview panel; opening it
+  // exercises manifest discovery, the novalist-ext protocol, and the
+  // postMessage-to-controller bridge end to end.
+  const aiChatItem = page.locator('.binder-rail-item', { hasText: 'AI Chat' })
+  if ((await aiChatItem.count()) > 0) {
+    await aiChatItem.click()
+    const chatFrame = page.frameLocator('iframe[src^="novalist-ext://com.novalist.ai/"]')
+    await expect(chatFrame.locator('#composer')).toBeVisible({ timeout: 15_000 })
+  }
+
   await app.close()
 })
