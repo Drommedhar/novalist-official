@@ -660,7 +660,8 @@
     "stopOverride": "完成",
     "noOverrides": "未定义任何覆盖设置。",
     "editingOverride": "正在编辑覆盖设置：{0}",
-    "unknownScope": "未知范围"
+    "unknownScope": "未知范围",
+    "targetNames": "名称（用逗号分隔）"
   },
   "context": {
     "title": "NOVALIST 上下文",

@@ -92,6 +92,61 @@ public sealed class EntitiesRpc
         return JsonSerializer.SerializeToElement(entity, JsonOptions);
     }
 
+    [JsonRpcMethod("entities/updateLists")]
+    public async Task<JsonElement> UpdateListsAsync(
+        string type,
+        string id,
+        string[]? aliases,
+        EntitySectionDto[]? sections,
+        RelationshipRowDto[]? relationships)
+    {
+        object entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        } ?? throw Unknown(id);
+
+        if (aliases != null)
+        {
+            var target = (List<string>)entity.GetType().GetProperty("Aliases")!.GetValue(entity)!;
+            target.Clear();
+            target.AddRange(aliases.Where(a => !string.IsNullOrWhiteSpace(a)));
+        }
+        if (sections != null)
+        {
+            var target = (List<EntitySection>)entity.GetType().GetProperty("Sections")!.GetValue(entity)!;
+            target.Clear();
+            target.AddRange(sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }));
+        }
+        if (relationships != null && entity is CharacterData character)
+        {
+            character.Relationships = relationships
+                .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
+                .Select(r => new EntityRelationship { Role = r.Role, Target = r.Target })
+                .ToList();
+        }
+
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+        return JsonSerializer.SerializeToElement(entity, JsonOptions);
+    }
+
     [JsonRpcMethod("entities/create")]
     public async Task<JsonElement> CreateAsync(string type, string name)
     {
@@ -171,6 +226,10 @@ public sealed class EntitiesRpc
         string id, string name, string detail, bool isWorldBible, EntityImage? image) =>
         new(id, name, detail, isWorldBible, image?.Path);
 }
+
+public sealed record EntitySectionDto(string Title, string Content);
+
+public sealed record RelationshipRowDto(string Role, string Target);
 
 public sealed record EntitySummaryDto(
     string Id,

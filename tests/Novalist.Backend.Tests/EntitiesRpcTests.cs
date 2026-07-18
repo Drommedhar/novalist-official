@@ -112,6 +112,48 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task UpdateLists_AliasesSectionsRelationships_Persist()
+    {
+        var created = await _rpc.CreateAsync("character", "Mira");
+        var id = created.GetProperty("id").GetString()!;
+
+        var updated = await _rpc.UpdateListsAsync(
+            "character",
+            id,
+            ["Die Klinge", "", "Nordwind"],
+            [new EntitySectionDto("Backstory", "Born in the ice.")],
+            [new RelationshipRowDto("Mutter", "Lena Frost"), new RelationshipRowDto("", "")]);
+
+        var aliases = updated.GetProperty("aliases").EnumerateArray().Select(a => a.GetString()).ToArray();
+        Assert.Equal(new[] { "Die Klinge", "Nordwind" }, aliases);
+        Assert.Equal("Backstory", updated.GetProperty("sections")[0].GetProperty("title").GetString());
+        Assert.Single(updated.GetProperty("relationships").EnumerateArray());
+
+        var location = await _rpc.CreateAsync("location", "Eiswall");
+        var locationUpdated = await _rpc.UpdateListsAsync(
+            "location", location.GetProperty("id").GetString()!, ["Wall"], null, null);
+        Assert.Equal("Wall", locationUpdated.GetProperty("aliases")[0].GetString());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.UpdateListsAsync("dragon", "x", null, null, null));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.UpdateListsAsync("item", "missing", null, null, null));
+    }
+
+    [Fact]
+    public async Task UpdateLists_ItemAndLore_SectionsPersist()
+    {
+        foreach (var type in new[] { "item", "lore" })
+        {
+            var created = await _rpc.CreateAsync(type, "Thing");
+            var updated = await _rpc.UpdateListsAsync(
+                type, created.GetProperty("id").GetString()!, null,
+                [new EntitySectionDto("Notes", "Old")], null);
+            Assert.Equal("Notes", updated.GetProperty("sections")[0].GetProperty("title").GetString());
+        }
+    }
+
+    [Fact]
     public async Task CreateUpdateDelete_UnknownType_Throws()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.CreateAsync("dragon", "x"));

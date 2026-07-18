@@ -618,7 +618,8 @@
     "stopOverride": "Done",
     "noOverrides": "No overrides defined.",
     "editingOverride": "Editing override: {0}",
-    "unknownScope": "Unknown scope"
+    "unknownScope": "Unknown scope",
+    "targetNames": "Names (comma-separated)"
   },
   "context": {
     "title": "NOVALIST CONTEXT",

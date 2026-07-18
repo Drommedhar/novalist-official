@@ -4,6 +4,7 @@ import { Plus, Trash2 } from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
 import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
+import { EntityListsEditor } from './EntityListsEditor'
 
 const TYPES: { type: EntityType; key: string }[] = [
   { type: 'character', key: 'codexHub.characters' },
@@ -111,6 +112,7 @@ export function CodexView(): React.JSX.Element {
                     </div>
                   ))}
               </dl>
+              <EntityListsEditor />
             </>
           ) : (
             <p className="codex-empty">{t('codexHub.selectHint')}</p>

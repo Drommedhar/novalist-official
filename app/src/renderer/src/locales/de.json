@@ -518,7 +518,8 @@
     "stopOverride": "Fertig",
     "noOverrides": "Keine Überschreibungen definiert.",
     "editingOverride": "Überschreibung bearbeiten: {0}",
-    "unknownScope": "Unbekannter Bereich"
+    "unknownScope": "Unbekannter Bereich",
+    "targetNames": "Namen (durch Komma getrennt)"
   },
   "context": {
     "title": "NOVALIST KONTEXT",
