@@ -3,6 +3,8 @@ import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { EditorFrame } from '../views/editor/EditorFrame'
 import { CodexView } from '../views/codex/CodexView'
+import { DashboardView } from '../views/dashboard/DashboardView'
+import { ManuscriptView } from '../views/manuscript/ManuscriptView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -28,6 +30,22 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         <CodexView />
+      </main>
+    )
+  }
+
+  if (mainView === 'dashboard') {
+    return (
+      <main className="main-area">
+        <DashboardView />
+      </main>
+    )
+  }
+
+  if (mainView === 'manuscript') {
+    return (
+      <main className="main-area">
+        <ManuscriptView />
       </main>
     )
   }

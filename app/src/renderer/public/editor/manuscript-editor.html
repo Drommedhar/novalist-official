@@ -149,6 +149,9 @@ function sendMessage(msg) {
             window.chrome.webview.postMessage(json);
         } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.webview) {
             window.webkit.messageHandlers.webview.postMessage(json);
+        } else if (window.parent && window.parent !== window) {
+            // Electron shell: same-origin iframe; parent bridges to the backend.
+            window.parent.postMessage({ novalistManuscript: json }, '*');
         }
     } catch (_) {}
 }

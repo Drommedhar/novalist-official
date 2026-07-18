@@ -1311,7 +1311,9 @@
     "avgSceneWords": "Avg Scene Words",
     "echoFinder": "ECHO FINDER",
     "echoDescription": "Frequently repeated phrases across your manuscript. Consider varying your language where counts are high.",
-    "recentActivity": "RECENT ACTIVITY"
+    "recentActivity": "RECENT ACTIVITY",
+    "avgChapter": "Average per chapter",
+    "streakDays": "Streak: {{count}} days"
   },
   "import": {
     "title": "Import from Obsidian Plugin",

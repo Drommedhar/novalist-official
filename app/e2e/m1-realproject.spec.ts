@@ -76,5 +76,19 @@ test('real project renders binder and scene content', async () => {
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await expect.poll(() => page.locator('.codex-row').count(), { timeout: 15_000 }).toBeGreaterThan(0)
 
+  // Dashboard: real totals appear.
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
+  await expect(page.locator('.dashboard-title')).toBeVisible({ timeout: 15_000 })
+  const wordsMetric = await page.locator('.dashboard-metric-value').first().innerText()
+  expect(Number(wordsMetric.replace(/[^0-9]/g, ''))).toBeGreaterThan(1000)
+
+  // Manuscript: corkboard cards and outliner rows render from real scenes.
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))
+  await expect(page.locator('.editor-frame')).toBeVisible({ timeout: 15_000 })
+  await page.locator('.manuscript-modes button').nth(1).click()
+  await expect.poll(() => page.locator('.corkboard-card').count(), { timeout: 15_000 }).toBeGreaterThan(5)
+  await page.locator('.manuscript-modes button').nth(2).click()
+  await expect.poll(() => page.locator('.outliner-row').count(), { timeout: 15_000 }).toBeGreaterThan(5)
+
   await app.close()
 })

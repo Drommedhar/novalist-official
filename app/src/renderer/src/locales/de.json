@@ -934,7 +934,9 @@
     "avgSceneWords": "Ø Wörter pro Szene",
     "echoFinder": "ECHO-FINDER",
     "echoDescription": "Häufig wiederholte Phrasen in Ihrem Manuskript. Erwägen Sie, Ihre Sprache zu variieren, wenn die Anzahl hoch ist.",
-    "recentActivity": "LETZTE AKTIVITÄT"
+    "recentActivity": "LETZTE AKTIVITÄT",
+    "avgChapter": "Durchschnitt pro Kapitel",
+    "streakDays": "Serie: {{count}} Tage"
   },
   "import": {
     "title": "Aus Obsidian-Plugin importieren",
