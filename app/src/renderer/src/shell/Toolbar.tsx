@@ -5,13 +5,16 @@ import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { InputDialog } from './InputDialog'
 
-type PendingDialog = 'chapter' | 'scene' | null
+type PendingDialog = 'chapter' | 'scene' | 'book' | 'draft' | null
 
 export function Toolbar(): React.JSX.Element {
   const { t } = useTranslation()
   const toggleBinder = useShellStore((s) => s.toggleBinder)
   const toggleInspector = useShellStore((s) => s.toggleInspector)
   const projectName = useProjectStore((s) => s.projectName)
+  const books = useProjectStore((s) => s.books)
+  const activeBookId = useProjectStore((s) => s.activeBookId)
+  const drafts = useProjectStore((s) => s.drafts)
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const createChapter = useProjectStore((s) => s.createChapter)
@@ -27,6 +30,40 @@ export function Toolbar(): React.JSX.Element {
         <PanelLeft size={16} strokeWidth={1.75} />
       </button>
       <div className="toolbar-book">{projectName ?? 'Novalist'}</div>
+      {books.length > 0 && (
+        <select
+          className="toolbar-select"
+          value={activeBookId ?? ''}
+          onChange={(e) => {
+            if (e.target.value === '__new__') setDialog('book')
+            else void useProjectStore.getState().switchBook(e.target.value)
+          }}
+        >
+          {books.map((book) => (
+            <option key={book.id} value={book.id}>
+              {book.name}
+            </option>
+          ))}
+          <option value="__new__">{t('book.addBook')}</option>
+        </select>
+      )}
+      {drafts.length > 0 && (
+        <select
+          className="toolbar-select"
+          value={drafts.find((d) => d.isActive)?.id ?? ''}
+          onChange={(e) => {
+            if (e.target.value === '__new__') setDialog('draft')
+            else void useProjectStore.getState().switchDraft(e.target.value)
+          }}
+        >
+          {drafts.map((draft) => (
+            <option key={draft.id} value={draft.id}>
+              {draft.name}
+            </option>
+          ))}
+          <option value="__new__">{t('draft.add')}</option>
+        </select>
+      )}
       <button className="toolbar-button toolbar-action" onClick={() => setDialog('chapter')}>
         <Plus size={14} strokeWidth={2} />
         {t('shell.newChapter')}
@@ -54,6 +91,26 @@ export function Toolbar(): React.JSX.Element {
       >
         <PanelRight size={16} strokeWidth={1.75} />
       </button>
+      {dialog === 'book' && (
+        <InputDialog
+          title={t('book.addBookTitle')}
+          onCancel={() => setDialog(null)}
+          onSubmit={(name) => {
+            setDialog(null)
+            void useProjectStore.getState().createBook(name)
+          }}
+        />
+      )}
+      {dialog === 'draft' && (
+        <InputDialog
+          title={t('draft.newTitle')}
+          onCancel={() => setDialog(null)}
+          onSubmit={(name) => {
+            setDialog(null)
+            void useProjectStore.getState().createDraft(name)
+          }}
+        />
+      )}
       {dialog === 'chapter' && (
         <InputDialog
           title={t('dialog.chapterName')}

@@ -71,6 +71,31 @@ public sealed class RpcFacadeTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task BooksAndDrafts_SwitchCreate_OverTheWire()
+    {
+        await InvokeAsync<ProjectStateDto>("project/create", _root, "MultiBook", "Book One");
+        var withBook = await InvokeAsync<ProjectStateDto>("project/createBook", "Book Two");
+        Assert.Equal(2, withBook.Books.Count);
+
+        var bookTwo = withBook.Books.Single(b => b.Name == "Book Two");
+        var switched = await InvokeAsync<ProjectStateDto>("project/switchBook", bookTwo.Id);
+        Assert.Equal(bookTwo.Id, switched.ActiveBookId);
+
+        var drafts = await InvokeAsync<DraftDto[]>("project/drafts");
+        Assert.Single(drafts);
+        Assert.True(drafts[0].IsActive);
+
+        var created = await InvokeAsync<DraftDto[]>(
+            "project/createDraft", "Second draft", drafts[0].Id);
+        Assert.Equal(2, created.Length);
+
+        var newDraft = created.Single(d => d.Name == "Second draft");
+        await InvokeAsync<ProjectStateDto>("project/switchDraft", newDraft.Id);
+        var after = await InvokeAsync<DraftDto[]>("project/drafts");
+        Assert.True(after.Single(d => d.Id == newDraft.Id).IsActive);
+    }
+
+    [Fact]
     public async Task StructureEdits_RenameStatusDelete_OverTheWire()
     {
         await InvokeAsync<ProjectStateDto>("project/create", _root, "EditNovel", "Book");

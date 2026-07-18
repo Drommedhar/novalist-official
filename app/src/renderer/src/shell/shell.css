@@ -1778,3 +1778,20 @@
   flex-direction: column;
   height: 100%;
 }
+
+.toolbar-select {
+  -webkit-app-region: no-drag;
+  font: inherit;
+  font-size: var(--nl-font-body);
+  color: var(--nl-text-dim);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-sm);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  max-width: 160px;
+}
+
+.toolbar-select:hover {
+  border-color: var(--nl-border);
+  color: var(--nl-text);
+}

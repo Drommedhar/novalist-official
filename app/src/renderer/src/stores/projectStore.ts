@@ -45,6 +45,9 @@ interface ProjectState {
   isLoaded: boolean
   projectName: string | null
   projectPath: string | null
+  activeBookId: string | null
+  books: { id: string; name: string }[]
+  drafts: { id: string; name: string; isActive: boolean }[]
   chapters: ChapterDto[]
   recentProjects: RecentProjectDto[]
   openChapterGuid: string | null
@@ -60,6 +63,11 @@ interface ProjectState {
   flushPendingSave(): Promise<void>
   createChapter(title: string): Promise<void>
   createScene(chapterGuid: string, title: string): Promise<void>
+  switchBook(bookId: string): Promise<void>
+  createBook(name: string): Promise<void>
+  loadDrafts(): Promise<void>
+  createDraft(name: string): Promise<void>
+  switchDraft(draftId: string): Promise<void>
   renameChapter(chapterGuid: string, title: string): Promise<void>
   renameScene(chapterGuid: string, sceneId: string, title: string): Promise<void>
   deleteChapter(chapterGuid: string): Promise<void>
@@ -71,6 +79,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   isLoaded: false,
   projectName: null,
   projectPath: null,
+  activeBookId: null,
+  books: [],
+  drafts: [],
   chapters: [],
   recentProjects: [],
   openChapterGuid: null,
@@ -83,9 +94,37 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       isLoaded: state.isLoaded,
       projectName: state.projectName,
       projectPath: state.projectPath,
+      activeBookId: state.activeBookId,
+      books: state.books,
       chapters: state.chapters
     })
     window.novalist.setProjectRoot(state.projectPath)
+    if (state.isLoaded) void get().loadDrafts()
+  },
+
+  switchBook: async (bookId) => {
+    await get().flushPendingSave()
+    set({ openChapterGuid: null, openSceneId: null, openSceneHtml: null, isDirty: false })
+    get().applyState(await rpc.request<ProjectStateDto>('project/switchBook', [bookId]))
+  },
+
+  createBook: async (name) => {
+    get().applyState(await rpc.request<ProjectStateDto>('project/createBook', [name]))
+  },
+
+  loadDrafts: async () => {
+    set({ drafts: await rpc.request<{ id: string; name: string; isActive: boolean }[]>('project/drafts') })
+  },
+
+  createDraft: async (name) => {
+    const active = get().drafts.find((d) => d.isActive)
+    set({ drafts: await rpc.request<{ id: string; name: string; isActive: boolean }[]>('project/createDraft', [name, active?.id ?? null]) })
+  },
+
+  switchDraft: async (draftId) => {
+    await get().flushPendingSave()
+    set({ openChapterGuid: null, openSceneId: null, openSceneHtml: null, isDirty: false })
+    get().applyState(await rpc.request<ProjectStateDto>('project/switchDraft', [draftId]))
   },
 
   loadRecents: async () => {

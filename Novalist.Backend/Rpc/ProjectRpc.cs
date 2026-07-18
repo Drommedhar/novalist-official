@@ -71,6 +71,44 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 
+    [JsonRpcMethod("project/switchBook")]
+    public async Task<ProjectStateDto> SwitchBookAsync(string bookId)
+    {
+        await _workspace.Projects.SwitchBookAsync(bookId);
+        return _workspace.BuildState();
+    }
+
+    [JsonRpcMethod("project/createBook")]
+    public async Task<ProjectStateDto> CreateBookAsync(string name)
+    {
+        await _workspace.Projects.CreateBookAsync(name);
+        return _workspace.BuildState();
+    }
+
+    [JsonRpcMethod("project/drafts")]
+    public DraftDto[] GetDrafts()
+    {
+        var book = _workspace.Projects.ActiveBook
+            ?? throw new InvalidOperationException("No project open.");
+        return book.Drafts
+            .Select(d => new DraftDto(d.Id, d.Name, d.Id == book.ActiveDraftId))
+            .ToArray();
+    }
+
+    [JsonRpcMethod("project/createDraft")]
+    public async Task<DraftDto[]> CreateDraftAsync(string name, string? cloneFromDraftId)
+    {
+        await _workspace.Projects.CreateDraftAsync(name, cloneFromDraftId);
+        return GetDrafts();
+    }
+
+    [JsonRpcMethod("project/switchDraft")]
+    public async Task<ProjectStateDto> SwitchDraftAsync(string draftId)
+    {
+        await _workspace.Projects.SwitchDraftAsync(draftId);
+        return _workspace.BuildState();
+    }
+
     [JsonRpcMethod("project/setChapterStatus")]
     public async Task<ProjectStateDto> SetChapterStatusAsync(string chapterGuid, string status)
     {
@@ -80,3 +118,5 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 }
+
+public sealed record DraftDto(string Id, string Name, bool IsActive);
