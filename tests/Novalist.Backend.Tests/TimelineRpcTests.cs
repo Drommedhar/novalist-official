@@ -101,4 +101,26 @@ public sealed class TimelineRpcTests : IDisposable
         Assert.Equal(expectedKey, key);
         Assert.Equal(expectedLabel, TimelineRpc.GroupLabel(key, zoom));
     }
+
+    [Fact]
+    public void StructureTemplates_ListsBundledStructures()
+    {
+        var templates = _rpc.GetStructureTemplates();
+        Assert.Equal(4, templates.Length);
+        Assert.Contains(templates, t => t.Id == "save-the-cat" && t.DisplayName == "Save the Cat");
+    }
+
+    [Fact]
+    public async Task ApplyStructureTemplate_AppendsBeatsAsManualEvents()
+    {
+        var result = await _rpc.ApplyStructureTemplateAsync("seven-point");
+        var manual = result.Groups.SelectMany(g => g.Events).Where(e => e.IsManual).ToArray();
+        Assert.Equal(7, manual.Length);
+        Assert.Contains(manual, e => e.Title == "Hook");
+        Assert.Equal(7, _workspace.Projects.ProjectSettings.Timeline.ManualEvents.Count);
+
+        var unchanged = await _rpc.ApplyStructureTemplateAsync("no-such-structure");
+        Assert.Equal(7, unchanged.Groups.SelectMany(g => g.Events).Count(e => e.IsManual));
+    }
 }
+

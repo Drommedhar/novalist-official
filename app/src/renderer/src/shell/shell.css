@@ -830,6 +830,13 @@
   flex: 0 0 160px;
 }
 
+.timeline-event-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-tightest);
+}
+
 /* ===== Dashboard ===== */
 .dashboard {
   display: flex;

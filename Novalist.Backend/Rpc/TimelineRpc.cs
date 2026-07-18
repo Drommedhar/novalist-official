@@ -118,6 +118,37 @@ public sealed class TimelineRpc
         return Get();
     }
 
+    [JsonRpcMethod("timeline/structureTemplates")]
+    public StructureTemplateDto[] GetStructureTemplates() =>
+        StoryStructureTemplates.All
+            .Select(t => new StructureTemplateDto(t.Id, t.DisplayName, t.Description))
+            .ToArray();
+
+    // Ported from TimelineViewModel.ApplyStructureTemplateAsync: appends the
+    // template's beats as manual events; unknown ids are a no-op.
+    [JsonRpcMethod("timeline/applyStructureTemplate")]
+    public async Task<TimelineDto> ApplyStructureTemplateAsync(string templateId)
+    {
+        var template = StoryStructureTemplates.GetById(templateId);
+        if (template == null) return Get();
+
+        var timeline = _workspace.Projects.ProjectSettings.Timeline;
+        var nextOrder = timeline.ManualEvents.Count;
+        foreach (var beat in template.Beats)
+        {
+            timeline.ManualEvents.Add(new TimelineManualEvent
+            {
+                Id = $"evt-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}-{Guid.NewGuid().ToString()[..7]}",
+                Title = beat.Title,
+                Description = beat.Description,
+                CategoryId = beat.CategoryId,
+                Order = nextOrder++
+            });
+        }
+        await _workspace.Projects.SaveProjectSettingsAsync();
+        return Get();
+    }
+
     private static string? Iso(DateTime? date) => date?.ToString("yyyy-MM-dd");
 
     // Ported verbatim from TimelineViewModel so grouping matches the Avalonia app.
@@ -163,6 +194,8 @@ public sealed class TimelineRpc
         };
     }
 }
+
+public sealed record StructureTemplateDto(string Id, string DisplayName, string Description);
 
 public sealed record TimelineDto(
     string ViewMode,

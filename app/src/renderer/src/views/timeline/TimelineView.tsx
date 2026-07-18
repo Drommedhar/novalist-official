@@ -41,10 +41,21 @@ export function TimelineView(): React.JSX.Element {
   const [data, setData] = useState<TimelineDto | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const [sourceFilter, setSourceFilter] = useState('all')
+  const [characterFilter, setCharacterFilter] = useState('')
+  const [locationFilter, setLocationFilter] = useState('')
+  const [structures, setStructures] = useState<
+    { id: string; displayName: string; description: string }[]
+  >([])
 
   useEffect(() => {
     if (mainView !== 'timeline') return
     void rpc.request<TimelineDto>('timeline/get').then(setData)
+    void rpc
+      .request<{ id: string; displayName: string; description: string }[]>(
+        'timeline/structureTemplates'
+      )
+      .then(setStructures)
+      .catch(() => setStructures([]))
   }, [mainView])
 
   if (!data) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
@@ -69,6 +80,14 @@ export function TimelineView(): React.JSX.Element {
 
   const manualId = (event: TimelineEventDto): string => event.id.replace(/^manual-/, '')
 
+  const allEvents = data.groups.flatMap((g) => g.events)
+  const availableCharacters = [...new Set(allEvents.flatMap((e) => e.characters))].sort()
+  const availableLocations = [...new Set(allEvents.flatMap((e) => e.locations))].sort()
+  const matchesFilters = (event: TimelineEventDto): boolean =>
+    (sourceFilter === 'all' || event.source === sourceFilter) &&
+    (!characterFilter || event.characters.includes(characterFilter)) &&
+    (!locationFilter || event.locations.includes(locationFilter))
+
   return (
     <div className="timeline">
       <div className="timeline-toolbar">
@@ -88,7 +107,52 @@ export function TimelineView(): React.JSX.Element {
           <FileDown size={14} strokeWidth={2} />
           {t('timeline.exportOutline')}
         </button>
+        <select
+          className="dialog-input findreplace-scope"
+          value=""
+          aria-label={t('timeline.applyStructure')}
+          onChange={(e) => {
+            const id = e.target.value
+            if (!id) return
+            void rpc.request<TimelineDto>('timeline/applyStructureTemplate', [id]).then(setData)
+          }}
+        >
+          <option value="">{t('timeline.applyStructure')}</option>
+          {structures.map((s) => (
+            <option key={s.id} value={s.id} title={s.description}>
+              {s.displayName}
+            </option>
+          ))}
+        </select>
         <div className="toolbar-spacer" />
+        {availableCharacters.length > 0 && (
+          <select
+            className="dialog-input findreplace-scope"
+            value={characterFilter}
+            onChange={(e) => setCharacterFilter(e.target.value)}
+          >
+            <option value="">{t('timeline.filterCharacter')}</option>
+            {availableCharacters.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        )}
+        {availableLocations.length > 0 && (
+          <select
+            className="dialog-input findreplace-scope"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+          >
+            <option value="">{t('timeline.filterLocation')}</option>
+            {availableLocations.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        )}
         <select
           className="dialog-input findreplace-scope"
           value={sourceFilter}
@@ -126,9 +190,7 @@ export function TimelineView(): React.JSX.Element {
         {data.groups.map((group) => (
           <div key={group.key} className="timeline-group">
             <div className="timeline-group-label">{group.label}</div>
-            {group.events
-              .filter((event) => sourceFilter === 'all' || event.source === sourceFilter)
-              .map((event) => (
+            {group.events.filter(matchesFilters).map((event) => (
               <div
                 key={event.id}
                 className={`timeline-event source-${event.source}`}
@@ -150,6 +212,20 @@ export function TimelineView(): React.JSX.Element {
                   {event.dateStr && <div className="timeline-event-date">{event.dateStr}</div>}
                   {event.description && (
                     <div className="timeline-event-desc">{event.description}</div>
+                  )}
+                  {(event.characters.length > 0 || event.locations.length > 0) && (
+                    <div className="timeline-event-chips">
+                      {event.characters.map((name) => (
+                        <span key={`c-${name}`} className="entity-chip">
+                          {name}
+                        </span>
+                      ))}
+                      {event.locations.map((name) => (
+                        <span key={`l-${name}`} className="entity-chip">
+                          {name}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>

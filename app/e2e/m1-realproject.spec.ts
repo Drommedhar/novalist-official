@@ -151,6 +151,16 @@ test('real project renders binder and scene content', async () => {
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('timeline'))
   await expect(page.locator('.timeline-toolbar')).toBeVisible({ timeout: 15_000 })
 
+  // Structure templates: applying Save the Cat appends its 15 manual beats.
+  const beforeManual = await page.locator('.timeline-event.source-manual').count()
+  await page
+    .locator('.timeline-toolbar select')
+    .first()
+    .selectOption('save-the-cat')
+  await expect
+    .poll(() => page.locator('.timeline-event.source-manual').count(), { timeout: 10_000 })
+    .toBe(beforeManual + 15)
+
   // Plot grid: table or empty hint renders without error.
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('plotGrid'))
   await expect(page.locator('.plotgrid-toolbar')).toBeVisible({ timeout: 15_000 })
