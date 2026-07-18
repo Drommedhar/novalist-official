@@ -196,7 +196,13 @@
     "replaceAll": "Replace All",
     "matchCase": "Match case",
     "wholeWord": "Whole word",
-    "regex": "Regex"
+    "regex": "Regex",
+    "noMatches": "No matches found.",
+    "replacedCount": "Replaced {{count}} occurrences.",
+    "scopeCurrentScene": "Current scene",
+    "scopeCurrentChapter": "Current chapter",
+    "scopeActiveBook": "Active book",
+    "scopeProject": "Whole project"
   },
   "app": {
     "title": "Novalist",

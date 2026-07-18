@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PanelLeft, PanelRight, Plus } from 'lucide-react'
+import { PanelLeft, PanelRight, Plus, Search } from 'lucide-react'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { InputDialog } from './InputDialog'
+import { FindReplaceDialog } from './FindReplaceDialog'
 
-type PendingDialog = 'chapter' | 'scene' | null
+type PendingDialog = 'chapter' | 'scene' | 'find' | null
 
 export function Toolbar(): React.JSX.Element {
   const { t } = useTranslation()
@@ -42,6 +43,13 @@ export function Toolbar(): React.JSX.Element {
       <div className="toolbar-spacer" />
       <button
         className="toolbar-button"
+        title={t('findReplace.title')}
+        onClick={() => setDialog('find')}
+      >
+        <Search size={15} strokeWidth={1.75} />
+      </button>
+      <button
+        className="toolbar-button"
         title={t('shell.toggleInspector')}
         onClick={toggleInspector}
       >
@@ -58,6 +66,7 @@ export function Toolbar(): React.JSX.Element {
           }}
         />
       )}
+      {dialog === 'find' && <FindReplaceDialog onClose={() => setDialog(null)} />}
       {dialog === 'scene' && targetChapter !== null && (
         <InputDialog
           title={t('shell.newScene')}

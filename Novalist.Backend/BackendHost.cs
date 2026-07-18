@@ -49,6 +49,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new LibraryRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ExportRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new GitRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new SearchRpc(_workspace), targetOptions);
         rpc.StartListening();
         _rpc = rpc;
         return rpc;

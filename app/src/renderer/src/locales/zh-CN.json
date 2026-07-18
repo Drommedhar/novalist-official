@@ -238,7 +238,13 @@
     "replaceAll": "全部替换",
     "matchCase": "区分大小写",
     "wholeWord": "全字匹配",
-    "regex": "正则表达式"
+    "regex": "正则表达式",
+    "noMatches": "未找到匹配项。",
+    "replacedCount": "已替换 {{count}} 处。",
+    "scopeCurrentScene": "当前场景",
+    "scopeCurrentChapter": "当前章节",
+    "scopeActiveBook": "当前书籍",
+    "scopeProject": "整个项目"
   },
   "app": {
     "title": "Novalist",

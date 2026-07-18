@@ -102,7 +102,13 @@
     "replaceAll": "Alle ersetzen",
     "matchCase": "Groß-/Kleinschreibung",
     "wholeWord": "Ganzes Wort",
-    "regex": "Regex"
+    "regex": "Regex",
+    "noMatches": "Keine Treffer gefunden.",
+    "replacedCount": "{{count}} Vorkommen ersetzt.",
+    "scopeCurrentScene": "Aktuelle Szene",
+    "scopeCurrentChapter": "Aktuelles Kapitel",
+    "scopeActiveBook": "Aktives Buch",
+    "scopeProject": "Gesamtes Projekt"
   },
   "app": {
     "title": "Novalist",

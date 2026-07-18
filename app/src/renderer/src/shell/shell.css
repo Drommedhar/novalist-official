@@ -1658,3 +1658,55 @@
 .git-message {
   margin-top: var(--nl-space-md);
 }
+
+/* ===== Find/replace ===== */
+.findreplace-card {
+  width: min(560px, 90vw);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.findreplace-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-lg);
+  align-items: center;
+}
+
+.findreplace-scope {
+  width: auto;
+}
+
+.findreplace-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  border-top: 1px solid var(--nl-border);
+  padding-top: var(--nl-space-md);
+}
+
+.findreplace-result {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-sm);
+  border-radius: var(--nl-radius-sm);
+  text-align: left;
+}
+
+.findreplace-result:hover {
+  background: var(--nl-surface-hover);
+}
+
+.findreplace-snippet {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+}
+
+.findreplace-snippet mark {
+  background: var(--nl-warning);
+  color: #000000;
+  border-radius: 2px;
+  padding: 0 2px;
+}
