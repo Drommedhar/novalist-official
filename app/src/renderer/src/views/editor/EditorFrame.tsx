@@ -64,6 +64,36 @@ export function EditorFrame(): React.JSX.Element {
     comments: [],
     footnotes: []
   })
+  const entityIndexRef = useRef<
+    Map<string, { id: string; name: string; detail: string; imagePath: string | null; type: string }>
+  >(new Map())
+  const [hoverCard, setHoverCard] = useState<{
+    x: number
+    y: number
+    name: string
+    detail: string
+    imagePath: string | null
+  } | null>(null)
+
+  const pushEntityNames = async (editor: EditorWindow): Promise<void> => {
+    const index = new Map<
+      string,
+      { id: string; name: string; detail: string; imagePath: string | null; type: string }
+    >()
+    const names: { name: string; entityId: string; entityType: string; isAlias: boolean }[] = []
+    for (const type of ['character', 'location', 'item', 'lore']) {
+      const list = await rpc.request<
+        { id: string; name: string; detail: string; imagePath: string | null }[]
+      >('entities/list', [type])
+      for (const entity of list) {
+        index.set(entity.id, { ...entity, type })
+        index.set(entity.name.toLowerCase(), { ...entity, type })
+        names.push({ name: entity.name, entityId: entity.id, entityType: type, isAlias: false })
+      }
+    }
+    entityIndexRef.current = index
+    editor.setEntityNames(JSON.stringify(names))
+  }
 
   const pushAnnotations = (editor: EditorWindow): void => {
     editor.setCommentsData(
@@ -133,6 +163,7 @@ export function EditorFrame(): React.JSX.Element {
             loadingRef.current = false
           }
           void loadAnnotations(live)
+          void pushEntityNames(live)
           const settings = useSettingsStore.getState()
           if (settings.view) {
             pushEditorSettings(live, true)
@@ -208,6 +239,39 @@ export function EditorFrame(): React.JSX.Element {
           persistAnnotations()
           break
         }
+        case 'entityMentionHover': {
+          const hit = entityIndexRef.current.get(String(message.entityId))
+          if (hit && iframeRef.current) {
+            const rect = iframeRef.current.getBoundingClientRect()
+            setHoverCard({
+              x: rect.left + Number(message.x ?? 0),
+              y: rect.top + Number(message.y ?? 0),
+              name: hit.name,
+              detail: hit.detail,
+              imagePath: hit.imagePath
+            })
+          }
+          break
+        }
+        case 'entityHover': {
+          const hit = entityIndexRef.current.get(String(message.alias ?? '').toLowerCase())
+          if (hit && iframeRef.current) {
+            const rect = iframeRef.current.getBoundingClientRect()
+            setHoverCard({
+              x: rect.left + Number(message.x ?? 0),
+              y: rect.top + Number(message.y ?? 0),
+              name: hit.name,
+              detail: hit.detail,
+              imagePath: hit.imagePath
+            })
+          }
+          break
+        }
+        case 'entityExit':
+        case 'pointerPressed': {
+          setHoverCard(null)
+          break
+        }
         case 'addToDictionary': {
           void rpc.request<boolean>('grammar/addToDictionary', [String(message.word ?? '')])
           break
@@ -264,6 +328,23 @@ export function EditorFrame(): React.JSX.Element {
         title="editor"
         sandbox="allow-scripts allow-same-origin"
       />
+      {hoverCard && (
+        <div
+          className="entity-hover-card"
+          style={{
+            left: Math.min(hoverCard.x, window.innerWidth - 260),
+            top: Math.min(hoverCard.y + 18, window.innerHeight - 120)
+          }}
+        >
+          {hoverCard.imagePath && (
+            <img src={`novalist-project:///${encodeURI(hoverCard.imagePath)}`} alt="" />
+          )}
+          <div>
+            <div className="entity-hover-name">{hoverCard.name}</div>
+            {hoverCard.detail && <div className="entity-hover-detail">{hoverCard.detail}</div>}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

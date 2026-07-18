@@ -1831,3 +1831,36 @@
   color: var(--nl-text-subtle);
   padding: var(--nl-space-md) var(--nl-space-sm) var(--nl-space-tightest);
 }
+
+/* ===== Entity hover card ===== */
+.entity-hover-card {
+  position: fixed;
+  z-index: 250;
+  display: flex;
+  gap: var(--nl-space-md);
+  align-items: center;
+  max-width: 240px;
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  box-shadow: var(--nl-elevation-md);
+  padding: var(--nl-space-md);
+  pointer-events: none;
+}
+
+.entity-hover-card img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: var(--nl-radius-md);
+}
+
+.entity-hover-name {
+  font-weight: var(--nl-weight-title);
+  font-size: var(--nl-font-body);
+}
+
+.entity-hover-detail {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+}

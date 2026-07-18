@@ -18,7 +18,8 @@ still building and gated in CI.
   page), 2-second autosave parity, formatting toolbar, split-second scene
   switching, comments and footnotes persisted to the manifest, grammar
   check round-trip (LanguageTool with credentials/picky/mother-tongue),
-  scene snapshots with restore, focus mode (Alt+F).
+  scene snapshots with restore, focus mode (Alt+F), entity-mention
+  highlighting with hover cards (names pushed from the codex).
 - Binder: chapter/scene tree with act headers, status dots with click
   cycling, rename/delete context menus, drag-and-drop chapter/scene
   reorder and cross-chapter scene moves, smart lists tab with rule
@@ -65,8 +66,6 @@ still building and gated in CI.
   operation, headers render already).
 - Split editor (two scenes side by side); book preview page mode toggle
   from the toolbar (page view works via settings).
-- Context sidebar entity mentions/hover cards from the editor
-  (entityHover events are emitted by editor.html; not yet surfaced).
 - Timeline structure templates, outline export, character/location
   filters.
 - Import plugin flow; update notifications (electron-updater configured
