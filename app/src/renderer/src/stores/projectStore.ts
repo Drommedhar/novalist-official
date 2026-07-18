@@ -60,6 +60,11 @@ interface ProjectState {
   flushPendingSave(): Promise<void>
   createChapter(title: string): Promise<void>
   createScene(chapterGuid: string, title: string): Promise<void>
+  renameChapter(chapterGuid: string, title: string): Promise<void>
+  renameScene(chapterGuid: string, sceneId: string, title: string): Promise<void>
+  deleteChapter(chapterGuid: string): Promise<void>
+  deleteScene(chapterGuid: string, sceneId: string): Promise<void>
+  setChapterStatus(chapterGuid: string, status: string): Promise<void>
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -137,6 +142,40 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   createScene: async (chapterGuid, title) => {
     const state = await rpc.request<ProjectStateDto>('project/createScene', [chapterGuid, title])
     get().applyState(state)
+  },
+
+  renameChapter: async (chapterGuid, title) => {
+    get().applyState(
+      await rpc.request<ProjectStateDto>('project/renameChapter', [chapterGuid, title])
+    )
+  },
+
+  renameScene: async (chapterGuid, sceneId, title) => {
+    get().applyState(
+      await rpc.request<ProjectStateDto>('project/renameScene', [chapterGuid, sceneId, title])
+    )
+  },
+
+  deleteChapter: async (chapterGuid) => {
+    if (get().openChapterGuid === chapterGuid) {
+      set({ openChapterGuid: null, openSceneId: null, openSceneHtml: null, isDirty: false })
+    }
+    get().applyState(await rpc.request<ProjectStateDto>('project/deleteChapter', [chapterGuid]))
+  },
+
+  deleteScene: async (chapterGuid, sceneId) => {
+    if (get().openSceneId === sceneId) {
+      set({ openChapterGuid: null, openSceneId: null, openSceneHtml: null, isDirty: false })
+    }
+    get().applyState(
+      await rpc.request<ProjectStateDto>('project/deleteScene', [chapterGuid, sceneId])
+    )
+  },
+
+  setChapterStatus: async (chapterGuid, status) => {
+    get().applyState(
+      await rpc.request<ProjectStateDto>('project/setChapterStatus', [chapterGuid, status])
+    )
   }
 }))
 

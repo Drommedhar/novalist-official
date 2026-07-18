@@ -69,4 +69,32 @@ public sealed class RpcFacadeTests : IAsyncDisposable
         var recents = await InvokeAsync<RecentProjectDto[]>("project/recent");
         Assert.Contains(recents, r => r.Name == "WireNovel");
     }
+
+    [Fact]
+    public async Task StructureEdits_RenameStatusDelete_OverTheWire()
+    {
+        await InvokeAsync<ProjectStateDto>("project/create", _root, "EditNovel", "Book");
+        var s1 = await InvokeAsync<ProjectStateDto>("project/createChapter", "Old Title");
+        var chapter = s1.Chapters.Single();
+        await InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Old Scene");
+
+        var renamed = await InvokeAsync<ProjectStateDto>("project/renameChapter", chapter.Guid, "New Title");
+        Assert.Equal("New Title", renamed.Chapters.Single().Title);
+
+        var scene = renamed.Chapters.Single().Scenes.Single();
+        var sceneRenamed = await InvokeAsync<ProjectStateDto>(
+            "project/renameScene", chapter.Guid, scene.Id, "New Scene");
+        Assert.Equal("New Scene", sceneRenamed.Chapters.Single().Scenes.Single().Title);
+
+        var statusSet = await InvokeAsync<ProjectStateDto>(
+            "project/setChapterStatus", chapter.Guid, "FirstDraft");
+        Assert.Equal("FirstDraft", statusSet.Chapters.Single().Status);
+
+        var sceneDeleted = await InvokeAsync<ProjectStateDto>(
+            "project/deleteScene", chapter.Guid, scene.Id);
+        Assert.Empty(sceneDeleted.Chapters.Single().Scenes);
+
+        var chapterDeleted = await InvokeAsync<ProjectStateDto>("project/deleteChapter", chapter.Guid);
+        Assert.Empty(chapterDeleted.Chapters);
+    }
 }

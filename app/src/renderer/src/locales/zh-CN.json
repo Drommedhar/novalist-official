@@ -555,7 +555,10 @@
     "contextDeleteAct": "删除幕",
     "contextSetAct": "设置幕",
     "contextRemoveFromAct": "从幕中移除",
-    "cycleStatusTooltip": "点击循环切换章节状态"
+    "cycleStatusTooltip": "点击循环切换章节状态",
+    "confirmDeleteChapter": "删除章节\"{{name}}\"及其所有场景？",
+    "confirmDeleteScene": "删除场景\"{{name}}\"？",
+    "deleteTitle": "确认删除"
   },
   "entityPanel": {
     "charactersTooltip": "角色",

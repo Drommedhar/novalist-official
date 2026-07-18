@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   BookOpen,
   CalendarDays,
   ChartNoAxesGantt,
+  ChevronRight,
   FileText,
   FolderGit2,
   Grid3x3,
@@ -14,10 +16,11 @@ import {
   NotebookPen,
   Send
 } from 'lucide-react'
-import { ChevronRight } from 'lucide-react'
-import { useState } from 'react'
 import { useShellStore, viewGroups, type MainView } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
+import { ContextMenu, type ContextMenuItem } from './ContextMenu'
+import { InputDialog } from './InputDialog'
+import { ConfirmDialog } from './ConfirmDialog'
 
 const viewIcons: Record<MainView, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
   write: NotebookPen,
@@ -35,15 +38,83 @@ const viewIcons: Record<MainView, React.ComponentType<{ size?: number; strokeWid
   git: FolderGit2
 }
 
+const STATUS_CYCLE = ['Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']
+
+interface MenuState {
+  x: number
+  y: number
+  chapterGuid: string
+  sceneId: string | null
+}
+
+type PendingAction =
+  | { kind: 'renameChapter'; chapterGuid: string; current: string }
+  | { kind: 'renameScene'; chapterGuid: string; sceneId: string; current: string }
+  | { kind: 'deleteChapter'; chapterGuid: string; title: string }
+  | { kind: 'deleteScene'; chapterGuid: string; sceneId: string; title: string }
+
 export function Binder(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
   const setMainView = useShellStore((s) => s.setMainView)
-
   const chapters = useProjectStore((s) => s.chapters)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const openScene = useProjectStore((s) => s.openScene)
+  const store = useProjectStore
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const [menu, setMenu] = useState<MenuState | null>(null)
+  const [pending, setPending] = useState<PendingAction | null>(null)
+
+  const menuItems = (): ContextMenuItem[] => {
+    if (!menu) return []
+    const chapter = chapters.find((c) => c.guid === menu.chapterGuid)
+    if (!chapter) return []
+    if (menu.sceneId) {
+      const scene = chapter.scenes.find((s) => s.id === menu.sceneId)
+      if (!scene) return []
+      return [
+        {
+          label: t('explorer.renameScene'),
+          onClick: () =>
+            setPending({
+              kind: 'renameScene',
+              chapterGuid: chapter.guid,
+              sceneId: scene.id,
+              current: scene.title
+            })
+        },
+        {
+          label: t('explorer.contextDelete'),
+          danger: true,
+          onClick: () =>
+            setPending({
+              kind: 'deleteScene',
+              chapterGuid: chapter.guid,
+              sceneId: scene.id,
+              title: scene.title
+            })
+        }
+      ]
+    }
+    return [
+      {
+        label: t('explorer.renameChapter'),
+        onClick: () =>
+          setPending({ kind: 'renameChapter', chapterGuid: chapter.guid, current: chapter.title })
+      },
+      {
+        label: t('explorer.contextDelete'),
+        danger: true,
+        onClick: () =>
+          setPending({ kind: 'deleteChapter', chapterGuid: chapter.guid, title: chapter.title })
+      }
+    ]
+  }
+
+  const cycleStatus = (chapterGuid: string, current: string): void => {
+    const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current) + 1) % STATUS_CYCLE.length]
+    void store.getState().setChapterStatus(chapterGuid, next)
+  }
 
   return (
     <nav className="binder">
@@ -53,30 +124,49 @@ export function Binder(): React.JSX.Element {
         )}
         {chapters.map((chapter) => (
           <div key={chapter.guid} className="binder-chapter">
-            <button
+            <div
               className="binder-chapter-row"
-              onClick={() =>
-                setCollapsed((c) => ({ ...c, [chapter.guid]: !c[chapter.guid] }))
-              }
+              onContextMenu={(e) => {
+                e.preventDefault()
+                setMenu({ x: e.clientX, y: e.clientY, chapterGuid: chapter.guid, sceneId: null })
+              }}
             >
-              <ChevronRight
-                size={13}
-                strokeWidth={2}
-                className={`binder-chevron${collapsed[chapter.guid] ? '' : ' open'}`}
-              />
-              <span
+              <button
+                className="binder-expand"
+                aria-label={chapter.title}
+                onClick={() =>
+                  setCollapsed((c) => ({ ...c, [chapter.guid]: !c[chapter.guid] }))
+                }
+              >
+                <ChevronRight
+                  size={13}
+                  strokeWidth={2}
+                  className={`binder-chevron${collapsed[chapter.guid] ? '' : ' open'}`}
+                />
+              </button>
+              <button
                 className="binder-status-dot"
                 data-status={chapter.status}
-                aria-hidden="true"
+                title={t('explorer.cycleStatusTooltip')}
+                onClick={() => cycleStatus(chapter.guid, chapter.status)}
               />
               <span className="binder-chapter-title">{chapter.title}</span>
-            </button>
+            </div>
             {!collapsed[chapter.guid] &&
               chapter.scenes.map((scene) => (
                 <button
                   key={scene.id}
                   className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}`}
                   onClick={() => void openScene(chapter.guid, scene.id)}
+                  onContextMenu={(e) => {
+                    e.preventDefault()
+                    setMenu({
+                      x: e.clientX,
+                      y: e.clientY,
+                      chapterGuid: chapter.guid,
+                      sceneId: scene.id
+                    })
+                  }}
                 >
                   <span className="binder-scene-title">{scene.title}</span>
                   <span className="binder-scene-words">
@@ -107,6 +197,51 @@ export function Binder(): React.JSX.Element {
           </div>
         ))}
       </div>
+      {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems()} onClose={() => setMenu(null)} />}
+      {pending?.kind === 'renameChapter' && (
+        <InputDialog
+          title={t('explorer.renameChapterPrompt')}
+          placeholder={pending.current}
+          onCancel={() => setPending(null)}
+          onSubmit={(title) => {
+            setPending(null)
+            void store.getState().renameChapter(pending.chapterGuid, title)
+          }}
+        />
+      )}
+      {pending?.kind === 'renameScene' && (
+        <InputDialog
+          title={t('explorer.renameScenePrompt')}
+          placeholder={pending.current}
+          onCancel={() => setPending(null)}
+          onSubmit={(title) => {
+            setPending(null)
+            void store.getState().renameScene(pending.chapterGuid, pending.sceneId, title)
+          }}
+        />
+      )}
+      {pending?.kind === 'deleteChapter' && (
+        <ConfirmDialog
+          title={t('explorer.deleteTitle')}
+          message={t('explorer.confirmDeleteChapter', { name: pending.title })}
+          onCancel={() => setPending(null)}
+          onConfirm={() => {
+            setPending(null)
+            void store.getState().deleteChapter(pending.chapterGuid)
+          }}
+        />
+      )}
+      {pending?.kind === 'deleteScene' && (
+        <ConfirmDialog
+          title={t('explorer.deleteTitle')}
+          message={t('explorer.confirmDeleteScene', { name: pending.title })}
+          onCancel={() => setPending(null)}
+          onConfirm={() => {
+            setPending(null)
+            void store.getState().deleteScene(pending.chapterGuid, pending.sceneId)
+          }}
+        />
+      )}
     </nav>
   )
 }

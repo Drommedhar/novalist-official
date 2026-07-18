@@ -513,7 +513,10 @@
     "contextDeleteAct": "Delete Act",
     "contextSetAct": "Set Act",
     "contextRemoveFromAct": "Remove from Act",
-    "cycleStatusTooltip": "Click to cycle chapter status"
+    "cycleStatusTooltip": "Click to cycle chapter status",
+    "confirmDeleteChapter": "Delete chapter \"{{name}}\" and all its scenes?",
+    "confirmDeleteScene": "Delete scene \"{{name}}\"?",
+    "deleteTitle": "Confirm delete"
   },
   "entityPanel": {
     "charactersTooltip": "Characters",

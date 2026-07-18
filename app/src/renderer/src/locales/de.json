@@ -415,7 +415,10 @@
     "contextDeleteAct": "Akt löschen",
     "contextSetAct": "Akt zuweisen",
     "contextRemoveFromAct": "Aus Akt entfernen",
-    "cycleStatusTooltip": "Klicken, um den Kapitelstatus zu wechseln"
+    "cycleStatusTooltip": "Klicken, um den Kapitelstatus zu wechseln",
+    "confirmDeleteChapter": "Kapitel \"{{name}}\" mit allen Szenen löschen?",
+    "confirmDeleteScene": "Szene \"{{name}}\" löschen?",
+    "deleteTitle": "Löschen bestätigen"
   },
   "entityPanel": {
     "charactersTooltip": "Charaktere",

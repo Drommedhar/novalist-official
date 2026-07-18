@@ -87,11 +87,16 @@ public sealed partial class Workspace
             .ToArray();
     }
 
-    public (ChapterData chapter, SceneData scene) ResolveScene(string chapterGuid, string sceneId)
+    public ChapterData ResolveChapter(string chapterGuid)
     {
         var book = Projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
-        var chapter = book.Chapters.FirstOrDefault(c => c.Guid == chapterGuid)
+        return book.Chapters.FirstOrDefault(c => c.Guid == chapterGuid)
             ?? throw new InvalidOperationException("Unknown chapter.");
+    }
+
+    public (ChapterData chapter, SceneData scene) ResolveScene(string chapterGuid, string sceneId)
+    {
+        var chapter = ResolveChapter(chapterGuid);
         var scene = Projects.ScenesManifest?.Chapters.GetValueOrDefault(chapterGuid)?.FirstOrDefault(s => s.Id == sceneId)
             ?? throw new InvalidOperationException("Unknown scene.");
         return (chapter, scene);

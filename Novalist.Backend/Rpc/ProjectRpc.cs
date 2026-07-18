@@ -42,4 +42,41 @@ public sealed class ProjectRpc
         await _workspace.Projects.CreateSceneAsync(chapterGuid, title);
         return _workspace.BuildState();
     }
+
+    [JsonRpcMethod("project/renameChapter")]
+    public async Task<ProjectStateDto> RenameChapterAsync(string chapterGuid, string newTitle)
+    {
+        await _workspace.Projects.RenameChapterAsync(chapterGuid, newTitle);
+        return _workspace.BuildState();
+    }
+
+    [JsonRpcMethod("project/renameScene")]
+    public async Task<ProjectStateDto> RenameSceneAsync(string chapterGuid, string sceneId, string newTitle)
+    {
+        await _workspace.Projects.RenameSceneAsync(chapterGuid, sceneId, newTitle);
+        return _workspace.BuildState();
+    }
+
+    [JsonRpcMethod("project/deleteChapter")]
+    public async Task<ProjectStateDto> DeleteChapterAsync(string chapterGuid)
+    {
+        await _workspace.Projects.DeleteChapterAsync(chapterGuid);
+        return _workspace.BuildState();
+    }
+
+    [JsonRpcMethod("project/deleteScene")]
+    public async Task<ProjectStateDto> DeleteSceneAsync(string chapterGuid, string sceneId)
+    {
+        await _workspace.Projects.DeleteSceneAsync(chapterGuid, sceneId);
+        return _workspace.BuildState();
+    }
+
+    [JsonRpcMethod("project/setChapterStatus")]
+    public async Task<ProjectStateDto> SetChapterStatusAsync(string chapterGuid, string status)
+    {
+        var chapter = _workspace.ResolveChapter(chapterGuid);
+        chapter.Status = Enum.Parse<Novalist.Core.Models.ChapterStatus>(status);
+        await _workspace.Projects.SaveScenesAsync();
+        return _workspace.BuildState();
+    }
 }
