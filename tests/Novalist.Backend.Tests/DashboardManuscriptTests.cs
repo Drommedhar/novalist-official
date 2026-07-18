@@ -1,0 +1,143 @@
+using Novalist.Backend;
+using Novalist.Backend.Rpc;
+using Xunit;
+
+namespace Novalist.Backend.Tests;
+
+public sealed class DashboardManuscriptTests : IDisposable
+{
+    private readonly string _root;
+    private readonly Workspace _workspace;
+
+    public DashboardManuscriptTests()
+    {
+        _root = Path.Combine(Path.GetTempPath(), "nl-dash-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(_root);
+        _workspace = new Workspace(Path.Combine(_root, "settings"));
+        _workspace.Projects.CreateProjectAsync(_root, "DashNovel", "Book").GetAwaiter().GetResult();
+        _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!).GetAwaiter().GetResult();
+    }
+
+    public void Dispose()
+    {
+        try { Directory.Delete(_root, true); } catch (IOException) { }
+    }
+
+    private async Task<(string chapterGuid, string sceneId)> SeedSceneAsync(string html, string plain)
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C" + Guid.NewGuid().ToString("N")[..4]);
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, html, plain);
+        return (chapter.Guid, scene.Id);
+    }
+
+    [Fact]
+    public async Task Dashboard_EmptyProject_ReportsZeroes()
+    {
+        var dto = await new DashboardRpc(_workspace).GetAsync(1);
+        Assert.Equal(0, dto.TotalWords);
+        Assert.Equal(0, dto.AverageChapterWords);
+        Assert.Equal(0, dto.MaxChapterWords);
+        Assert.Empty(dto.ChapterPacing);
+    }
+
+    [Fact]
+    public async Task Dashboard_ComputesTotalsGoalsAndHistory()
+    {
+        await SeedSceneAsync("<p>alpha beta gamma delta</p>", "alpha beta gamma delta");
+        await SeedSceneAsync("<p>one two three</p>", "one two three");
+
+        var dto = await new DashboardRpc(_workspace).GetAsync(7);
+
+        Assert.Equal("DashNovel", dto.ProjectName);
+        Assert.Equal(7, dto.TotalWords);
+        Assert.Equal(2, dto.ChapterCount);
+        Assert.Equal(2, dto.SceneCount);
+        Assert.Equal(1000, dto.DailyGoalTarget);
+        Assert.Equal(50000, dto.ProjectGoalTarget);
+        Assert.Equal(7, dto.WordHistory.Count);
+        Assert.True(dto.TodayWords >= 7);
+        Assert.Equal(2, dto.StatusBreakdown.Single(s => s.Status == "Outline").Count);
+        Assert.Equal(2, dto.ChapterPacing.Count);
+        Assert.True(dto.MaxChapterWords >= 4);
+    }
+
+    [Fact]
+    public async Task Dashboard_SetGoals_PersistsAndAffectsPercents()
+    {
+        await SeedSceneAsync("<p>one two three four five</p>", "one two three four five");
+        var rpc = new DashboardRpc(_workspace);
+
+        await rpc.SetGoalsAsync(5, 10, "2027-01-01");
+        var dto = await rpc.GetAsync(1);
+
+        Assert.Equal(5, dto.DailyGoalTarget);
+        Assert.Equal(10, dto.ProjectGoalTarget);
+        Assert.Equal("2027-01-01", dto.Deadline);
+        Assert.Equal(50, dto.ProjectGoalPercent);
+
+        await rpc.SetGoalsAsync(0, 0, "  ");
+        var cleared = await rpc.GetAsync(1);
+        Assert.Null(cleared.Deadline);
+        Assert.Equal(0, cleared.DailyGoalPercent);
+        Assert.Equal(0, cleared.ProjectGoalPercent);
+    }
+
+    [Fact]
+    public async Task Dashboard_SurfacesEchoPhrases_FromSceneText()
+    {
+        var repeated = string.Concat(Enumerable.Repeat("cold wind howled tonight. ", 6));
+        await SeedSceneAsync($"<p>{repeated}</p>", repeated);
+
+        var dto = await new DashboardRpc(_workspace).GetAsync(1);
+
+        Assert.Contains(dto.EchoPhrases, e => e.Phrase == "cold wind howled" && e.Count >= 5);
+    }
+
+    [Fact]
+    public void EchoPhrases_FindRepeatsAndSkipStopPhrases()
+    {
+        var text = string.Concat(Enumerable.Repeat("the cold wind howled tonight. ", 6));
+        var echoes = DashboardRpc.FindEchoPhrases(text, 3, 5);
+
+        Assert.Contains(echoes, e => e.Phrase == "cold wind howled" && e.Count >= 5);
+        Assert.Empty(DashboardRpc.FindEchoPhrases("", 3, 5));
+        Assert.Empty(DashboardRpc.FindEchoPhrases("one two", 3, 5));
+        Assert.True(DashboardRpc.IsStopPhrase("the of and"));
+        Assert.False(DashboardRpc.IsStopPhrase("cold wind howled"));
+    }
+
+    [Fact]
+    public async Task Manuscript_GroupsFiltersAndCarriesContent()
+    {
+        var (chapterGuid, sceneId) = await SeedSceneAsync("<p>Es war kalt</p>", "Es war kalt");
+        var manuscript = new ManuscriptRpc(_workspace);
+
+        var all = await manuscript.GetAsync("All");
+        var section = all.Single(s => s.ChapterGuid == chapterGuid);
+        Assert.Contains("Es war kalt", section.Scenes.Single(s => s.SceneId == sceneId).Html);
+        Assert.Equal("Outline", section.Status);
+
+        Assert.Empty(await manuscript.GetAsync("Final"));
+        var byStatus = await manuscript.GetAsync("Outline");
+        Assert.NotEmpty(byStatus);
+    }
+
+    [Fact]
+    public async Task SetPov_SetsAndClearsOverrides()
+    {
+        var (chapterGuid, sceneId) = await SeedSceneAsync("<p>x</p>", "x");
+        var manuscript = new ManuscriptRpc(_workspace);
+
+        await manuscript.SetPovAsync(chapterGuid, sceneId, "Mira");
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        Assert.Equal("Mira", scene.AnalysisOverrides?.Pov);
+
+        await manuscript.SetPovAsync(chapterGuid, sceneId, " ");
+        var (_, cleared) = _workspace.ResolveScene(chapterGuid, sceneId);
+        Assert.Null(cleared.AnalysisOverrides);
+
+        await manuscript.SetPovAsync(chapterGuid, sceneId, "");
+        Assert.Null(_workspace.ResolveScene(chapterGuid, sceneId).scene.AnalysisOverrides);
+    }
+}
