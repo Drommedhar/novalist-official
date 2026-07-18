@@ -1,7 +1,7 @@
 import { app, BrowserWindow, MessageChannelMain, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
 import { BackendProcess } from './backend-process'
-import { detectMaterial, materialWindowOptions } from './glass'
+import { attachLiquidGlass, detectMaterial, materialWindowOptions } from './glass'
 import { registerDialogHandlers } from './dialogs'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
 
@@ -28,6 +28,9 @@ function createWindow(): BrowserWindow {
   })
 
   win.once('ready-to-show', () => win.show())
+  if (material === 'glass') {
+    win.webContents.once('did-finish-load', () => attachLiquidGlass(win))
+  }
   win.webContents.setWindowOpenHandler(({ url }) => {
     void shell.openExternal(url)
     return { action: 'deny' }

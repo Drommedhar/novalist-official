@@ -41,10 +41,37 @@ interface SettingsState {
   clearSection(section: 'appearance' | 'editor' | 'writing'): Promise<void>
 }
 
+const THEME_SLUGS: Record<string, string> = {
+  Discord: 'discord',
+  'Catppuccin Mocha': 'catppuccin-mocha'
+}
+
+/** Applies the selected theme: named themes pin their palette; Default/system
+ * follows the OS light/dark preference. Accent overrides the token directly. */
+export function applyThemeTokens(theme: string, accentColor: string | null): void {
+  const root = document.documentElement
+  const slug = THEME_SLUGS[theme]
+  if (slug) {
+    root.dataset.theme = slug
+  } else {
+    root.dataset.theme = window.matchMedia('(prefers-color-scheme: light)').matches
+      ? 'light'
+      : 'dark'
+  }
+  if (accentColor) {
+    root.style.setProperty('--nl-accent', accentColor)
+    root.style.setProperty('--nl-accent-hover', accentColor)
+  } else {
+    root.style.removeProperty('--nl-accent')
+    root.style.removeProperty('--nl-accent-hover')
+  }
+}
+
 function applySideEffects(view: SettingsView): void {
   if (i18next.language !== view.effective.language) {
     void i18next.changeLanguage(view.effective.language)
   }
+  applyThemeTokens(view.effective.theme, view.effective.accentColor)
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({

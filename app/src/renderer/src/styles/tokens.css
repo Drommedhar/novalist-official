@@ -143,3 +143,52 @@
   --nl-surface-inspector: rgb(var(--nl-base) / 0.55);
   /* --nl-surface-editor deliberately untouched: text always sits on opaque ground */
 }
+
+/* ===== Migrated color themes (ported from the Avalonia theme files) ===== */
+:root[data-theme='discord'] {
+  --nl-base: 43 45 49;
+  --nl-surface-window: #313338;
+  --nl-surface-sidebar: #2b2d31;
+  --nl-surface-toolbar: #2b2d31;
+  --nl-surface-inspector: #2b2d31;
+  --nl-surface-editor: #313338;
+  --nl-surface-card: #2b2d31;
+  --nl-surface-hover: #35373c;
+  --nl-surface-selected: #3f4147;
+  --nl-text: #f2f3f5;
+  --nl-text-dim: #b5bac1;
+  --nl-text-subtle: #949ba4;
+  --nl-accent: #5865f2;
+  --nl-accent-hover: #4752c4;
+  --nl-accent-ink: #ffffff;
+  --nl-focus-ring: rgb(88 101 242 / 0.6);
+  --nl-border: #3f4147;
+  --nl-border-subtle: #1e1f22;
+  --nl-success: #57f287;
+  --nl-warning: #faa61a;
+  --nl-danger: #ed4245;
+}
+
+:root[data-theme='catppuccin-mocha'] {
+  --nl-base: 24 24 37;
+  --nl-surface-window: #1e1e2e;
+  --nl-surface-sidebar: #181825;
+  --nl-surface-toolbar: #181825;
+  --nl-surface-inspector: #181825;
+  --nl-surface-editor: #1e1e2e;
+  --nl-surface-card: #181825;
+  --nl-surface-hover: #313244;
+  --nl-surface-selected: #45475a;
+  --nl-text: #cdd6f4;
+  --nl-text-dim: #a6adc8;
+  --nl-text-subtle: #6c7086;
+  --nl-accent: #89b4fa;
+  --nl-accent-hover: #74a0f0;
+  --nl-accent-ink: #11111b;
+  --nl-focus-ring: rgb(137 180 250 / 0.6);
+  --nl-border: #313244;
+  --nl-border-subtle: #11111b;
+  --nl-success: #a6e3a1;
+  --nl-warning: #f9e2af;
+  --nl-danger: #f38ba8;
+}

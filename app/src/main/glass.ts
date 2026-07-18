@@ -17,11 +17,25 @@ export function detectMaterial(platform: NodeJS.Platform, osVersion: string): Ma
 /** Window options that let the native material show through behind the renderer. */
 export function materialWindowOptions(material: Material): BrowserWindowConstructorOptions {
   if (material === 'opaque') return {}
+  if (material === 'glass') {
+    // NSGlassEffectView is attached post-load; vibrancy must stay off or it
+    // overrides the glass and renders as plain blur.
+    return { transparent: true, titleBarStyle: 'hiddenInset' }
+  }
   return {
-    // Liquid Glass attachment happens post-create (electron-liquid-glass, M6);
-    // until then macOS 26 also runs on the vibrancy path.
     vibrancy: 'sidebar',
     backgroundColor: '#00000000',
     titleBarStyle: 'hiddenInset'
   }
+}
+
+/** Attaches the native Liquid Glass view on macOS 26+; safe no-op elsewhere. */
+export function attachLiquidGlass(win: import('electron').BrowserWindow): void {
+  void import('electron-liquid-glass')
+    .then(({ default: liquidGlass }) => {
+      liquidGlass.addView(win.getNativeWindowHandle(), {})
+    })
+    .catch((error: unknown) => {
+      console.error('[glass] liquid glass unavailable:', error)
+    })
 }

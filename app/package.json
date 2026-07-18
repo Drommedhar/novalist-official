@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json"
   },
   "dependencies": {
+    "electron-liquid-glass": "^1.1.1",
     "i18next": "^26.3.6",
     "lucide-react": "^1.25.0",
     "react": "^19.2.7",
