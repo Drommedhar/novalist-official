@@ -29,6 +29,7 @@ public sealed partial class Workspace
         await Settings.LoadAsync();
         var metadata = await Projects.LoadProjectAsync(projectDirectory);
         await Projects.ReconcileActiveDraftAsync();
+        Settings.SetActiveOverrides(Projects.ProjectSettings.Overrides);
         Settings.AddRecentProject(metadata.Name, projectDirectory);
         await Settings.SaveAsync();
         return BuildState();
