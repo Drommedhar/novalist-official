@@ -90,5 +90,23 @@ test('real project renders binder and scene content', async () => {
   await page.locator('.manuscript-modes button').nth(2).click()
   await expect.poll(() => page.locator('.outliner-row').count(), { timeout: 15_000 }).toBeGreaterThan(5)
 
+  // Timeline: groups render from real chapter/scene dates (or the empty hint).
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('timeline'))
+  await expect(page.locator('.timeline-toolbar')).toBeVisible({ timeout: 15_000 })
+
+  // Plot grid: table or empty hint renders without error.
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('plotGrid'))
+  await expect(page.locator('.plotgrid-toolbar')).toBeVisible({ timeout: 15_000 })
+
+  // Calendar: toolbar with mode buttons renders.
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('calendar'))
+  await expect(page.locator('.calendar .timeline-toolbar')).toBeVisible({ timeout: 15_000 })
+
+  // Relationships: real characters produce graph nodes.
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('relationships'))
+  await expect
+    .poll(() => page.locator('.relationships-node').count(), { timeout: 15_000 })
+    .toBeGreaterThan(0)
+
   await app.close()
 })

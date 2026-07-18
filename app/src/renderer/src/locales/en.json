@@ -150,7 +150,9 @@
       "half-sister",
       "brother-in-law",
       "sister-in-law"
-    ]
+    ],
+    "emptyHint": "No connected characters yet. Add relationships in the Codex to build the graph.",
+    "familyPrefix": "Family {{name}}"
   },
   "calendar": {
     "title": "Calendar",

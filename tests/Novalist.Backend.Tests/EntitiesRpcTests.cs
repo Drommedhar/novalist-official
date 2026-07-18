@@ -90,6 +90,27 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task RelationshipsGraph_CarriesEdgesAndDisplayNames()
+    {
+        await Entities.SaveCharacterAsync(new CharacterData
+        {
+            Name = "Mira",
+            Surname = "Frost",
+            Group = "Nordwacht",
+            Relationships = [new EntityRelationship { Role = "Mutter", Target = "Lena Frost" }]
+        });
+        await Entities.SaveCharacterAsync(new CharacterData { Name = "Lena", Surname = "Frost" });
+
+        var graph = await new RelationshipsRpc(_workspace).GetGraphAsync();
+
+        var mira = graph.Single(c => c.DisplayName == "Mira Frost");
+        Assert.Equal("Nordwacht", mira.Group);
+        Assert.Equal("Mutter", mira.Relationships.Single().Role);
+        Assert.Equal("Lena Frost", mira.Relationships.Single().Target);
+        Assert.Contains(graph, c => c.DisplayName == "Lena Frost" && c.Relationships.Count == 0);
+    }
+
+    [Fact]
     public async Task GetMeta_ReturnsSynopsisAndNotes()
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("C");

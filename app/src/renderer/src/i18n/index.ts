@@ -9,9 +9,25 @@ const localeModules = import.meta.glob<{ default: Record<string, unknown> }>(
 )
 
 const resources: Record<string, { translation: Record<string, string> }> = {}
+/** Unflattened locale JSON per language, for consumers that need arrays
+ * (e.g. relationship role keywords aggregated across all languages). */
+export const rawLocales: Record<string, Record<string, unknown>> = {}
 for (const [path, module] of Object.entries(localeModules)) {
   const lang = path.replace(/^.*\//, '').replace(/\.json$/, '')
   resources[lang] = { translation: flatten(module.default) }
+  rawLocales[lang] = module.default
+}
+
+/** Union of a relationships.* keyword array across every bundled language,
+ * mirroring the Avalonia RelationshipRoles aggregator. */
+export function relationshipRoleKeywords(kind: string): Set<string> {
+  const keywords = new Set<string>()
+  for (const locale of Object.values(rawLocales)) {
+    const section = locale['relationships'] as Record<string, unknown> | undefined
+    const list = section?.[kind]
+    if (Array.isArray(list)) for (const word of list) keywords.add(String(word).toLowerCase())
+  }
+  return keywords
 }
 
 /** Locale JSON nests by namespace; flatten to the dotted keys the app uses. */

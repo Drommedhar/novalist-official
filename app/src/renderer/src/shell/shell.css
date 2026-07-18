@@ -1377,6 +1377,78 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ===== Relationships ===== */
+.relationships {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.relationships-search {
+  max-width: 220px;
+}
+
+.relationships-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body-sm);
+}
+
+.relationships-viewport {
+  flex: 1;
+  overflow: hidden;
+  cursor: grab;
+  position: relative;
+}
+
+.relationships-viewport:active {
+  cursor: grabbing;
+}
+
+.relationships-canvas {
+  user-select: none;
+}
+
+.relationships-familybox {
+  fill: rgb(from var(--nl-accent) r g b / 0.05);
+  stroke: var(--nl-border);
+}
+
+.relationships-familylabel {
+  fill: var(--nl-text-subtle);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.relationships-edge {
+  stroke: var(--nl-text-subtle);
+  stroke-width: 1.2;
+}
+
+.relationships-edge.family {
+  stroke: var(--nl-border);
+}
+
+.relationships-edgelabel {
+  fill: var(--nl-text-subtle);
+  font-size: 9px;
+  text-anchor: middle;
+}
+
+.relationships-node {
+  fill: var(--nl-surface-card);
+  stroke: var(--nl-border);
+}
+
+.relationships-nodelabel {
+  fill: var(--nl-text);
+  font-size: 11px;
+  text-anchor: middle;
+}
+
 /* ===== Status bar ===== */
 .status-bar {
   display: flex;

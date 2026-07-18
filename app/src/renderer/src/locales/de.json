@@ -863,7 +863,9 @@
       "halbschwester",
       "schwager",
       "schwägerin"
-    ]
+    ],
+    "emptyHint": "Noch keine verbundenen Figuren. Füge im Codex Beziehungen hinzu, um den Graphen aufzubauen.",
+    "familyPrefix": "Familie {{name}}"
   },
   "calendar": {
     "title": "Kalender",
