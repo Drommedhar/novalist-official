@@ -1582,10 +1582,12 @@
       "research": "Research",
       "gallery": "Gallery",
       "export": "Export",
-      "git": "Git"
+      "git": "Git",
+      "settings": "Settings"
     },
     "words": "words",
     "chapters": "chapters",
-    "scenes": "scenes"
+    "scenes": "scenes",
+    "groupApp": "Application"
   }
 }

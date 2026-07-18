@@ -3,6 +3,25 @@ import { useTranslation } from 'react-i18next'
 import { listenToEditor, editorWindow, pushEditorTheme, type EditorWindow } from './editorBridge'
 import { EditorToolbar, type FormattingState } from './EditorToolbar'
 import { useProjectStore } from '../../stores/projectStore'
+import { useSettingsStore } from '../../stores/settingsStore'
+
+function pushEditorSettings(editor: EditorWindow, initial = false): void {
+  const view = useSettingsStore.getState().view
+  if (!view) return
+  const eff = view.effective
+  editor.setFont(eff.editorFontFamily, eff.editorFontSize)
+  // On the initial push, disabled toggles match editor.html's startup state;
+  // skipping them avoids DOM rebuilds that would drop the caret mid-typing.
+  if (!initial || eff.typewriterScrollEnabled) {
+    editor.setTypewriterScroll(eff.typewriterScrollEnabled, eff.typewriterScrollAnchor)
+  }
+  if (!initial || eff.pageViewEnabled) {
+    editor.setPageView(eff.pageViewEnabled)
+  }
+  if (!initial || eff.enableBookParagraphSpacing) {
+    editor.setBookParagraphSpacing(eff.enableBookParagraphSpacing)
+  }
+}
 
 const DEFAULT_FORMATTING: FormattingState = {
   bold: false,
@@ -47,11 +66,21 @@ export function EditorFrame(): React.JSX.Element {
           editorRef.current = live
           pushEditorTheme(live)
           live.setLanguage(i18n.language.startsWith('de') ? 'de' : 'en')
+          // Content loads synchronously so typing can never race a deferred
+          // setContent; the settings push is made non-destructive instead.
           const state = useProjectStore.getState()
           if (state.openSceneHtml !== null) {
             loadingRef.current = true
             live.setContent(state.openSceneHtml)
             loadingRef.current = false
+          }
+          const settings = useSettingsStore.getState()
+          if (settings.view) {
+            pushEditorSettings(live, true)
+          } else {
+            void settings.load().then(() => {
+              if (editorRef.current) pushEditorSettings(editorRef.current, true)
+            })
           }
           break
         }
@@ -82,9 +111,24 @@ export function EditorFrame(): React.JSX.Element {
     })
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 
+    // Live-apply settings changes (font, typewriter, page view) to the editor.
+    const unsubscribeSettings = useSettingsStore.subscribe(() => {
+      if (editorRef.current) pushEditorSettings(editorRef.current)
+    })
+
+    // If the effect re-runs after the iframe already booted (e.g. a language
+    // change re-created this closure), re-acquire the live editor window —
+    // 'ready' only fires once per page load.
+    const existing = editorWindow(iframe)
+    if (existing && typeof existing.setContent === 'function') {
+      editorRef.current = existing
+      existing.setLanguage(i18n.language.startsWith('de') ? 'de' : 'en')
+    }
+
     return () => {
       dispose()
       observer.disconnect()
+      unsubscribeSettings()
       editorRef.current = null
     }
   }, [i18n.language])

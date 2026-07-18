@@ -1624,10 +1624,12 @@
       "research": "资料",
       "gallery": "图库",
       "export": "导出",
-      "git": "Git"
+      "git": "Git",
+      "settings": "设置"
     },
     "words": "字",
     "chapters": "章",
-    "scenes": "场景"
+    "scenes": "场景",
+    "groupApp": "应用"
   }
 }

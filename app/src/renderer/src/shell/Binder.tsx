@@ -14,7 +14,8 @@ import {
   Map,
   Network,
   NotebookPen,
-  Send
+  Send,
+  Settings
 } from 'lucide-react'
 import { useShellStore, viewGroups, type MainView } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
@@ -36,7 +37,8 @@ const viewIcons: Record<MainView, React.ComponentType<{ size?: number; strokeWid
   research: FileText,
   gallery: Images,
   export: Send,
-  git: FolderGit2
+  git: FolderGit2,
+  settings: Settings
 }
 
 const STATUS_CYCLE = ['Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']

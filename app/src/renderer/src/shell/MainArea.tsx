@@ -13,6 +13,7 @@ import { GalleryView } from '../views/library/GalleryView'
 import { ResearchView } from '../views/library/ResearchView'
 import { ExportView } from '../views/export/ExportView'
 import { GitView } from '../views/git/GitView'
+import { SettingsView } from '../views/settings/SettingsView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -118,6 +119,14 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         <GitView />
+      </main>
+    )
+  }
+
+  if (mainView === 'settings') {
+    return (
+      <main className="main-area">
+        <SettingsView />
       </main>
     )
   }
