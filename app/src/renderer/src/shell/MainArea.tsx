@@ -12,6 +12,7 @@ import { RelationshipsView } from '../views/relationships/RelationshipsView'
 import { GalleryView } from '../views/library/GalleryView'
 import { ResearchView } from '../views/library/ResearchView'
 import { ExportView } from '../views/export/ExportView'
+import { GitView } from '../views/git/GitView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -109,6 +110,14 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         <ExportView />
+      </main>
+    )
+  }
+
+  if (mainView === 'git') {
+    return (
+      <main className="main-area">
+        <GitView />
       </main>
     )
   }

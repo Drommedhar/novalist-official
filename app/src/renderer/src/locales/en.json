@@ -1436,7 +1436,8 @@
     "discardUnstaged": "Discard Unstaged",
     "commitSuccess": "Changes committed successfully.",
     "pushSuccess": "Pushed to remote.",
-    "pullSuccess": "Pulled from remote."
+    "pullSuccess": "Pulled from remote.",
+    "confirmDiscard": "Discard changes in {{count}} files? This cannot be undone."
   },
   "toast": {
     "saved": "Saved",

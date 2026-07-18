@@ -1615,3 +1615,46 @@
 .export-result {
   user-select: text;
 }
+
+/* ===== Git ===== */
+.git-file {
+  padding: var(--nl-space-tightest) 0;
+}
+
+.git-file-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--nl-radius-sm);
+  font-size: var(--nl-font-tiny);
+  font-weight: var(--nl-weight-title);
+  background: var(--nl-surface-hover);
+  color: var(--nl-text-dim);
+}
+
+.git-file-status[data-status='Modified'] {
+  color: var(--nl-git-dirty);
+}
+
+.git-file-status[data-status='Added'],
+.git-file-status[data-status='Untracked'] {
+  color: var(--nl-success);
+}
+
+.git-file-status[data-status='Deleted'] {
+  color: var(--nl-danger);
+}
+
+.git-file-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+}
+
+.git-message {
+  margin-top: var(--nl-space-md);
+}

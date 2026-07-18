@@ -1478,7 +1478,8 @@
     "discardUnstaged": "放弃未暂存的更改",
     "commitSuccess": "更改已成功提交。",
     "pushSuccess": "已推送到远程仓库。",
-    "pullSuccess": "已从远程仓库拉取。"
+    "pullSuccess": "已从远程仓库拉取。",
+    "confirmDiscard": "丢弃 {{count}} 个文件的更改？此操作无法撤销。"
   },
   "toast": {
     "saved": "已保存",

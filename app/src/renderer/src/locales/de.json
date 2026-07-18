@@ -1059,7 +1059,8 @@
     "discardUnstaged": "Nicht-vorgemerkte verwerfen",
     "commitSuccess": "Änderungen erfolgreich committet.",
     "pushSuccess": "Zum Remote gepusht.",
-    "pullSuccess": "Vom Remote gepullt."
+    "pullSuccess": "Vom Remote gepullt.",
+    "confirmDiscard": "Änderungen in {{count}} Dateien verwerfen? Das kann nicht rückgängig gemacht werden."
   },
   "toast": {
     "saved": "Gespeichert",
