@@ -112,6 +112,67 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task CustomProps_SetTypedAndRemove_WithTemplateDefs()
+    {
+        var book = _workspace.Projects.ActiveBook!;
+        book.CharacterTemplates.Add(new CharacterTemplate
+        {
+            Id = "tpl1",
+            Name = "Hero",
+            CustomPropertyDefs =
+            [
+                new CustomPropertyDefinition
+                {
+                    Key = "Allegiance",
+                    Type = CustomPropertyType.Enum,
+                    EnumOptions = ["North", "South"]
+                }
+            ]
+        });
+        var created = await _rpc.CreateAsync("character", "Mira");
+        var id = created.GetProperty("id").GetString()!;
+        await _rpc.UpdateAsync("character", id, new Dictionary<string, string> { ["templateId"] = "tpl1" });
+
+        var props = await _rpc.SetCustomPropAsync("character", id, "Allegiance", "North");
+        var allegiance = props.Single();
+        Assert.Equal("Enum", allegiance.PropType);
+        Assert.Contains("South", allegiance.EnumOptions);
+
+        var untyped = await _rpc.SetCustomPropAsync("character", id, "Motto", "Winter endures");
+        Assert.Equal("String", untyped.Single(p => p.Key == "Motto").PropType);
+
+        var removed = await _rpc.SetCustomPropAsync("character", id, "Motto", null);
+        Assert.DoesNotContain(removed, p => p.Key == "Motto");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.GetCustomPropsAsync("dragon", id));
+    }
+
+    [Fact]
+    public async Task CustomProps_OtherTypes_ResolveTemplateDefs()
+    {
+        var book = _workspace.Projects.ActiveBook!;
+        book.LocationTemplates.Add(new LocationTemplate { Id = "lt", Name = "L" });
+        book.ItemTemplates.Add(new ItemTemplate { Id = "it", Name = "I" });
+        book.LoreTemplates.Add(new LoreTemplate { Id = "lo", Name = "O" });
+        var templateIds = new Dictionary<string, string>
+        {
+            ["location"] = "lt",
+            ["item"] = "it",
+            ["lore"] = "lo"
+        };
+
+        foreach (var (type, templateId) in templateIds)
+        {
+            var created = await _rpc.CreateAsync(type, "Thing");
+            var id = created.GetProperty("id").GetString()!;
+            await _rpc.UpdateAsync(type, id, new Dictionary<string, string> { ["templateId"] = templateId });
+            var props = await _rpc.SetCustomPropAsync(type, id, "Origin", "Old");
+            Assert.Equal("String", props.Single().PropType);
+        }
+    }
+
+    [Fact]
     public async Task Images_AddFromGalleryAndImport_ThenRemove()
     {
         var created = await _rpc.CreateAsync("character", "Mira");

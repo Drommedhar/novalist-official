@@ -6,6 +6,7 @@ import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { EntityListsEditor } from './EntityListsEditor'
 import { EntityImages } from './EntityImages'
+import { CustomPropsEditor } from './CustomPropsEditor'
 
 const TYPES: { type: EntityType; key: string }[] = [
   { type: 'character', key: 'codexHub.characters' },
@@ -114,6 +115,7 @@ export function CodexView(): React.JSX.Element {
                   ))}
               </dl>
               <EntityImages />
+              <CustomPropsEditor />
               <EntityListsEditor />
             </>
           ) : (

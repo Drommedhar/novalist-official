@@ -147,6 +147,84 @@ public sealed class EntitiesRpc
         return JsonSerializer.SerializeToElement(entity, JsonOptions);
     }
 
+    [JsonRpcMethod("entities/customProps")]
+    public async Task<CustomPropDto[]> GetCustomPropsAsync(string type, string id)
+    {
+        var (entity, templateId) = await LoadWithTemplateAsync(type, id);
+        var props = (Dictionary<string, string>)entity.GetType()
+            .GetProperty("CustomProperties")!.GetValue(entity)!;
+        var defs = ResolvePropertyDefs(type, templateId);
+        return props
+            .Select(kv =>
+            {
+                var def = defs.FirstOrDefault(d => d.Key == kv.Key);
+                return new CustomPropDto(
+                    kv.Key,
+                    kv.Value,
+                    (def?.Type ?? CustomPropertyType.String).ToString(),
+                    def?.EnumOptions?.ToArray() ?? []);
+            })
+            .ToArray();
+    }
+
+    [JsonRpcMethod("entities/setCustomProp")]
+    public async Task<CustomPropDto[]> SetCustomPropAsync(string type, string id, string key, string? value)
+    {
+        var (entity, _) = await LoadWithTemplateAsync(type, id);
+        var props = (Dictionary<string, string>)entity.GetType()
+            .GetProperty("CustomProperties")!.GetValue(entity)!;
+        if (value == null) props.Remove(key);
+        else props[key] = value;
+        await SaveEntityAsync(entity);
+        return await GetCustomPropsAsync(type, id);
+    }
+
+    private async Task<(object Entity, string? TemplateId)> LoadWithTemplateAsync(string type, string id)
+    {
+        object entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        } ?? throw Unknown(id);
+        var templateId = entity.GetType().GetProperty("TemplateId")?.GetValue(entity) as string;
+        return (entity, templateId);
+    }
+
+    private List<CustomPropertyDefinition> ResolvePropertyDefs(string type, string? templateId)
+    {
+        var book = _workspace.Projects.ActiveBook;
+        if (book == null || templateId == null) return [];
+        return type switch
+        {
+            "character" => book.CharacterTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
+            "location" => book.LocationTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
+            "item" => book.ItemTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
+            _ => book.LoreTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? []
+        };
+    }
+
+    private async Task SaveEntityAsync(object entity)
+    {
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+    }
+
     [JsonRpcMethod("entities/addImage")]
     public async Task<JsonElement> AddImageAsync(
         string type, string id, string path, bool import)
@@ -274,6 +352,8 @@ public sealed class EntitiesRpc
         string id, string name, string detail, bool isWorldBible, EntityImage? image) =>
         new(id, name, detail, isWorldBible, image?.Path);
 }
+
+public sealed record CustomPropDto(string Key, string Value, string PropType, IReadOnlyList<string> EnumOptions);
 
 public sealed record EntitySectionDto(string Title, string Content);
 
