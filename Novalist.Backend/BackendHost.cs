@@ -44,6 +44,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new PlotRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SmartListsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new TimelineRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new CalendarRpc(_workspace), targetOptions);
         rpc.StartListening();
         _rpc = rpc;
         return rpc;

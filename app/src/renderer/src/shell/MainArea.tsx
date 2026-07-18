@@ -7,6 +7,7 @@ import { DashboardView } from '../views/dashboard/DashboardView'
 import { ManuscriptView } from '../views/manuscript/ManuscriptView'
 import { PlotGridView } from '../views/plotgrid/PlotGridView'
 import { TimelineView } from '../views/timeline/TimelineView'
+import { CalendarView } from '../views/calendar/CalendarView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -64,6 +65,14 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         <TimelineView />
+      </main>
+    )
+  }
+
+  if (mainView === 'calendar') {
+    return (
+      <main className="main-area">
+        <CalendarView />
       </main>
     )
   }
