@@ -13,6 +13,12 @@ contextBridge.exposeInMainWorld('novalist', {
   platform: process.platform,
   requestBackendPort(): void {
     ipcRenderer.send('novalist:request-backend-port')
+  },
+  pickFolder(title: string): Promise<string | null> {
+    return ipcRenderer.invoke('novalist:pick-folder', title)
+  },
+  setProjectRoot(root: string | null): void {
+    ipcRenderer.send('novalist:set-project-root', root)
   }
 })
 

@@ -22,6 +22,11 @@ export class BackendProcess {
     const child = spawn(exe, [], { stdio: ['pipe', 'pipe', 'pipe'] })
     this.child = child
 
+    child.on('error', (error) => {
+      console.error(`[backend] failed to start ${exe}:`, error.message)
+      this.child = null
+    })
+
     child.stdout.on('data', (chunk: Buffer) => {
       this.port?.postMessage(chunk)
     })
@@ -67,6 +72,7 @@ function resolveBackendPath(): string {
     return join(process.resourcesPath, 'backend', name)
   }
   // Dev: the debug build produced by `dotnet build` at the repo root.
+  // __dirname is app/out/main, so the repo root is three levels up.
   const name = process.platform === 'win32' ? 'Novalist.Backend.exe' : 'Novalist.Backend'
-  return join(app.getAppPath(), '..', 'Novalist.Backend', 'bin', 'Debug', 'net8.0', name)
+  return join(__dirname, '..', '..', '..', 'Novalist.Backend', 'bin', 'Debug', 'net8.0', name)
 }

@@ -2,9 +2,13 @@ import { app, BrowserWindow, MessageChannelMain, ipcMain, shell } from 'electron
 import { join } from 'node:path'
 import { BackendProcess } from './backend-process'
 import { detectMaterial, materialWindowOptions } from './glass'
+import { registerDialogHandlers } from './dialogs'
+import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
 
 const material = detectMaterial(process.platform, process.getSystemVersion())
 const backend = new BackendProcess()
+
+registerProtocolSchemes()
 
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
@@ -45,6 +49,8 @@ ipcMain.on('novalist:request-backend-port', (event) => {
 })
 
 void app.whenReady().then(() => {
+  registerDialogHandlers()
+  registerProtocolHandlers()
   backend.start()
   createWindow()
 

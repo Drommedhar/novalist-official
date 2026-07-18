@@ -14,7 +14,8 @@ internal class Program
         var stdin = Console.OpenStandardInput();
         BackendHost.GuardStandardOutput();
 
-        using var host = new BackendHost();
+        using var host = new BackendHost(
+            Environment.GetEnvironmentVariable("NOVALIST_SETTINGS_DIR"));
         await host.RunAsync(stdout, stdin);
         return 0;
     }

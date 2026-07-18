@@ -13,7 +13,13 @@ public sealed class BackendHost : IDisposable
 {
     private readonly TaskCompletionSource _shutdownRequested =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
+    private readonly Workspace _workspace;
     private JsonRpc? _rpc;
+
+    public BackendHost(string? settingsDirectory = null)
+    {
+        _workspace = new Workspace(settingsDirectory);
+    }
 
     /// <summary>Reroutes Console.Out to stderr so stray writes cannot corrupt RPC framing.</summary>
     public static void GuardStandardOutput()
@@ -28,7 +34,10 @@ public sealed class BackendHost : IDisposable
         formatter.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         var handler = new HeaderDelimitedMessageHandler(sending, receiving, formatter);
         var rpc = new JsonRpc(handler);
-        rpc.AddLocalRpcTarget(new SystemRpc(RequestShutdown), new JsonRpcTargetOptions { DisposeOnDisconnect = false });
+        var targetOptions = new JsonRpcTargetOptions { DisposeOnDisconnect = false };
+        rpc.AddLocalRpcTarget(new SystemRpc(RequestShutdown), targetOptions);
+        rpc.AddLocalRpcTarget(new ProjectRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new ScenesRpc(_workspace), targetOptions);
         rpc.StartListening();
         _rpc = rpc;
         return rpc;

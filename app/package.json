@@ -19,10 +19,11 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.0",
-    "electron": "^43.1.1",
+    "electron": "^38.8.6",
     "electron-vite": "^5.0.0",
     "typescript": "^7.0.2",
     "vite": "^7.0.2"

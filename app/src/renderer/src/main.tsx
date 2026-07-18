@@ -4,6 +4,13 @@ import './i18n'
 import './styles/tokens.css'
 import './styles/base.css'
 import { AppShell } from './shell/AppShell'
+import { useProjectStore } from './stores/projectStore'
+import { useShellStore } from './stores/shellStore'
+import { rpc } from './rpc/client'
+
+// Store/RPC access for end-to-end tests (Playwright drives the real app through these).
+window.novalistStores = { project: useProjectStore, shell: useShellStore }
+window.novalistRpc = rpc
 
 const root = document.documentElement
 root.dataset.material = window.novalist.material
