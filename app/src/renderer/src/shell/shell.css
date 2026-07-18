@@ -1154,6 +1154,111 @@
   border-color: var(--nl-accent);
 }
 
+/* ===== Timeline ===== */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.timeline-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-md) var(--nl-space-normal);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.timeline-body {
+  flex: 1;
+  overflow: auto;
+  padding: var(--nl-space-xl);
+}
+
+.timeline-body.horizontal {
+  display: flex;
+  gap: var(--nl-space-xl);
+}
+
+.timeline-body.horizontal .timeline-group {
+  min-width: 280px;
+}
+
+.timeline-group {
+  margin-bottom: var(--nl-space-xl);
+}
+
+.timeline-group-label {
+  font-size: var(--nl-font-title-sm);
+  font-weight: var(--nl-weight-title);
+  margin-bottom: var(--nl-space-md);
+  position: sticky;
+  top: 0;
+  background: var(--nl-surface-editor);
+  padding: var(--nl-space-tighter) 0;
+}
+
+.timeline-event {
+  display: flex;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-radius: var(--nl-radius-md);
+  margin-bottom: var(--nl-space-tighter);
+}
+
+.timeline-event[role='button'] {
+  cursor: pointer;
+}
+
+.timeline-event[role='button']:hover {
+  background: var(--nl-surface-hover);
+}
+
+.timeline-event-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--nl-radius-pill);
+  margin-top: 5px;
+  flex-shrink: 0;
+  background: var(--nl-text-subtle);
+}
+
+.timeline-event.source-act .timeline-event-dot {
+  background: var(--nl-status-revised);
+}
+.timeline-event.source-chapter .timeline-event-dot {
+  background: var(--nl-accent);
+}
+.timeline-event.source-scene .timeline-event-dot {
+  background: var(--nl-success);
+}
+.timeline-event.source-manual .timeline-event-dot {
+  background: var(--nl-warning);
+}
+
+.timeline-event.source-act .timeline-event-title {
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.timeline-event-title {
+  font-size: var(--nl-font-body);
+}
+
+.timeline-event-date {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-event-desc {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body-sm);
+  margin-top: var(--nl-space-tightest);
+}
+
 /* ===== Status bar ===== */
 .status-bar {
   display: flex;

@@ -6,6 +6,7 @@ import { CodexView } from '../views/codex/CodexView'
 import { DashboardView } from '../views/dashboard/DashboardView'
 import { ManuscriptView } from '../views/manuscript/ManuscriptView'
 import { PlotGridView } from '../views/plotgrid/PlotGridView'
+import { TimelineView } from '../views/timeline/TimelineView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -55,6 +56,14 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         <PlotGridView />
+      </main>
+    )
+  }
+
+  if (mainView === 'timeline') {
+    return (
+      <main className="main-area">
+        <TimelineView />
       </main>
     )
   }
