@@ -71,6 +71,13 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 
+    [JsonRpcMethod("project/rename")]
+    public async Task<ProjectStateDto> RenameAsync(string newName)
+    {
+        await _workspace.Projects.RenameProjectAsync(newName);
+        return _workspace.BuildState();
+    }
+
     [JsonRpcMethod("project/reorderChapter")]
     public async Task<ProjectStateDto> ReorderChapterAsync(string chapterGuid, int newOrder)
     {

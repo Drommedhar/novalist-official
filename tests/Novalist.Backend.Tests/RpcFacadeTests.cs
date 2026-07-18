@@ -71,6 +71,14 @@ public sealed class RpcFacadeTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task RenameProject_ChangesName()
+    {
+        await InvokeAsync<ProjectStateDto>("project/create", _root, "OldName", "Book");
+        var renamed = await InvokeAsync<ProjectStateDto>("project/rename", "NewName");
+        Assert.Equal("NewName", renamed.ProjectName);
+    }
+
+    [Fact]
     public async Task Reorder_ChaptersAndScenes_AndMoveBetweenChapters()
     {
         await InvokeAsync<ProjectStateDto>("project/create", _root, "OrderNovel", "Book");

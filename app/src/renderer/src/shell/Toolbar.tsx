@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PanelLeft, PanelRight, Plus, Search } from 'lucide-react'
 import { useShellStore } from '../stores/shellStore'
+import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { InputDialog } from './InputDialog'
 
-type PendingDialog = 'chapter' | 'scene' | 'book' | 'draft' | null
+type PendingDialog = 'chapter' | 'scene' | 'book' | 'draft' | 'renameProject' | null
 
 export function Toolbar(): React.JSX.Element {
   const { t } = useTranslation()
@@ -29,7 +30,13 @@ export function Toolbar(): React.JSX.Element {
       <button className="toolbar-button" title={t('shell.toggleBinder')} onClick={toggleBinder}>
         <PanelLeft size={16} strokeWidth={1.75} />
       </button>
-      <div className="toolbar-book">{projectName ?? 'Novalist'}</div>
+      <button
+        className="toolbar-book"
+        title={t('explorer.contextRename')}
+        onDoubleClick={() => projectName && setDialog('renameProject')}
+      >
+        {projectName ?? 'Novalist'}
+      </button>
       {books.length > 0 && (
         <select
           className="toolbar-select"
@@ -91,6 +98,23 @@ export function Toolbar(): React.JSX.Element {
       >
         <PanelRight size={16} strokeWidth={1.75} />
       </button>
+      {dialog === 'renameProject' && (
+        <InputDialog
+          title={t('explorer.contextRename')}
+          placeholder={projectName ?? ''}
+          onCancel={() => setDialog(null)}
+          onSubmit={(name) => {
+            setDialog(null)
+            void (async () => {
+              const state = await rpc.request<import('../stores/projectStore').ProjectStateDto>(
+                'project/rename',
+                [name]
+              )
+              useProjectStore.getState().applyState(state)
+            })()
+          }}
+        />
+      )}
       {dialog === 'book' && (
         <InputDialog
           title={t('book.addBookTitle')}
