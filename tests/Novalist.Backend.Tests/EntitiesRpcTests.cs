@@ -112,6 +112,47 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task CustomEntityTypes_FullCrud()
+    {
+        await new Novalist.Core.Services.EntityService(_workspace.Projects)
+            .SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
+            {
+                TypeKey = "faction",
+                DisplayName = "Faction",
+                DisplayNamePlural = "Factions",
+                DefaultFields =
+                    [new CustomEntityFieldDefinition { Key = "Motto", DefaultValue = "None" }]
+            });
+
+        var types = _rpc.GetCustomTypes();
+        Assert.Single(types, t => t.TypeKey == "faction");
+
+        var created = await _rpc.CreateAsync("faction", "Nordwacht");
+        var id = created.GetProperty("id").GetString()!;
+        Assert.Equal("None", created.GetProperty("fields").GetProperty("Motto").GetString());
+
+        var list = await _rpc.ListAsync("faction");
+        Assert.Single(list, e => e.Name == "Nordwacht");
+
+        var updated = await _rpc.UpdateAsync("faction", id, new Dictionary<string, string>
+        {
+            ["name"] = "Suedwacht",
+            ["Motto"] = "Endure"
+        });
+        Assert.Equal("Suedwacht", updated.GetProperty("name").GetString());
+        Assert.Equal("Endure", updated.GetProperty("fields").GetProperty("Motto").GetString());
+
+        var fetched = await _rpc.GetAsync("faction", id);
+        Assert.Equal("Suedwacht", fetched.GetProperty("name").GetString());
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.GetAsync("faction", "missing"));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.UpdateAsync("faction", "missing", new Dictionary<string, string>()));
+
+        await _rpc.DeleteAsync("faction", id, isWorldBible: false);
+        Assert.Empty(await _rpc.ListAsync("faction"));
+    }
+
+    [Fact]
     public async Task CreateWithTemplate_AppliesFieldsPropsAndSections()
     {
         var book = _workspace.Projects.ActiveBook!;

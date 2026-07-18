@@ -21,6 +21,9 @@ const HIDDEN_FIELDS = new Set(['id', 'isWorldBible', 'images', 'relationships', 
 
 export function CodexView(): React.JSX.Element {
   const { t } = useTranslation()
+  const [customTypes, setCustomTypes] = useState<
+    { typeKey: string; displayNamePlural: string }[]
+  >([])
   const entityType = useCodexStore((s) => s.entityType)
   const entities = useCodexStore((s) => s.entities)
   const selectedId = useCodexStore((s) => s.selectedId)
@@ -37,6 +40,10 @@ export function CodexView(): React.JSX.Element {
 
   useEffect(() => {
     void refresh()
+    void rpc
+      .request<{ typeKey: string; displayNamePlural: string }[]>('entities/customTypes')
+      .then(setCustomTypes)
+      .catch(() => setCustomTypes([]))
   }, [refresh])
 
   const selected = entities.find((e) => e.id === selectedId)
@@ -51,6 +58,15 @@ export function CodexView(): React.JSX.Element {
             onClick={() => void setType(type)}
           >
             {t(key)}
+          </button>
+        ))}
+        {customTypes.map((custom) => (
+          <button
+            key={custom.typeKey}
+            className={`codex-tab${entityType === custom.typeKey ? ' active' : ''}`}
+            onClick={() => void setType(custom.typeKey)}
+          >
+            {custom.displayNamePlural}
           </button>
         ))}
       </div>

@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 
-export type EntityType = 'character' | 'location' | 'item' | 'lore'
+export type EntityType = string
 
 export interface EntitySummary {
   id: string

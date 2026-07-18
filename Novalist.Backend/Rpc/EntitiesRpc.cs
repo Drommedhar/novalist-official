@@ -17,9 +17,29 @@ public sealed class EntitiesRpc
         _entities = new EntityService(workspace.Projects);
     }
 
+    [JsonRpcMethod("entities/customTypes")]
+    public CustomTypeDto[] GetCustomTypes() =>
+        _entities.GetCustomEntityTypes()
+            .Select(d => new CustomTypeDto(d.TypeKey, d.DisplayName, d.DisplayNamePlural))
+            .ToArray();
+
+    private bool IsCustomType(string type) =>
+        _entities.GetCustomEntityTypes().Any(d => d.TypeKey == type);
+
     [JsonRpcMethod("entities/list")]
     public async Task<EntitySummaryDto[]> ListAsync(string type)
     {
+        if (IsCustomType(type))
+        {
+            return (await _entities.LoadCustomEntitiesAsync(type))
+                .Select(c => Summary(
+                    c.Id,
+                    c.Name,
+                    c.Fields.Values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty,
+                    c.IsWorldBible,
+                    c.Images.FirstOrDefault()))
+                .ToArray();
+        }
         return type switch
         {
             "character" => (await _entities.LoadCharactersAsync())
@@ -41,6 +61,12 @@ public sealed class EntitiesRpc
     [JsonRpcMethod("entities/get")]
     public async Task<JsonElement> GetAsync(string type, string id)
     {
+        if (IsCustomType(type))
+        {
+            var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
+                ?? throw Unknown(id);
+            return JsonSerializer.SerializeToElement(custom, JsonOptions);
+        }
         object? entity = type switch
         {
             "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id),
@@ -55,6 +81,18 @@ public sealed class EntitiesRpc
     [JsonRpcMethod("entities/update")]
     public async Task<JsonElement> UpdateAsync(string type, string id, Dictionary<string, string> fields)
     {
+        if (IsCustomType(type))
+        {
+            var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
+                ?? throw Unknown(id);
+            foreach (var (key, value) in fields)
+            {
+                if (key == "name") custom.Name = value;
+                else custom.Fields[key] = value;
+            }
+            await _entities.SaveCustomEntityAsync(custom);
+            return JsonSerializer.SerializeToElement(custom, JsonOptions);
+        }
         object entity = type switch
         {
             "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
@@ -334,6 +372,17 @@ public sealed class EntitiesRpc
     [JsonRpcMethod("entities/create")]
     public async Task<JsonElement> CreateAsync(string type, string name, string? templateId = null)
     {
+        if (IsCustomType(type))
+        {
+            var definition = _entities.GetCustomEntityTypes().First(d => d.TypeKey == type);
+            var custom = new CustomEntityData { EntityTypeKey = type, Name = name };
+            foreach (var field in definition.DefaultFields)
+            {
+                custom.Fields.TryAdd(field.Key, field.DefaultValue);
+            }
+            await _entities.SaveCustomEntityAsync(custom);
+            return JsonSerializer.SerializeToElement(custom, JsonOptions);
+        }
         object entity = type switch
         {
             "character" => new CharacterData { Name = name },
@@ -367,6 +416,11 @@ public sealed class EntitiesRpc
     [JsonRpcMethod("entities/delete")]
     public async Task DeleteAsync(string type, string id, bool isWorldBible)
     {
+        if (IsCustomType(type))
+        {
+            await _entities.DeleteCustomEntityAsync(type, id, isWorldBible);
+            return;
+        }
         switch (type)
         {
             case "character":
@@ -466,6 +520,8 @@ public sealed class EntitiesRpc
 }
 
 public sealed record EntityTemplateDto(string Id, string Name);
+
+public sealed record CustomTypeDto(string TypeKey, string DisplayName, string DisplayNamePlural);
 
 public sealed record CustomPropDto(string Key, string Value, string PropType, IReadOnlyList<string> EnumOptions);
 
