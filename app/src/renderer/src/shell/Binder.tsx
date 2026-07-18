@@ -148,8 +148,11 @@ export function Binder(): React.JSX.Element {
           <div className="binder-placeholder">{t('shell.binderEmpty')}</div>
         )}
         {binderTab === 'chapters' &&
-          chapters.map((chapter) => (
+          chapters.map((chapter, index) => (
           <div key={chapter.guid} className="binder-chapter">
+            {chapter.act && chapters[index - 1]?.act !== chapter.act && (
+              <div className="binder-act">{chapter.act}</div>
+            )}
             <div
               className="binder-chapter-row"
               onContextMenu={(e) => {

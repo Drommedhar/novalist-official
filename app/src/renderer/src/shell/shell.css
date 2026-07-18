@@ -1822,3 +1822,12 @@
   color: var(--nl-accent);
   text-decoration: underline;
 }
+
+.binder-act {
+  font-size: var(--nl-font-tiny);
+  font-weight: var(--nl-weight-title);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nl-text-subtle);
+  padding: var(--nl-space-md) var(--nl-space-sm) var(--nl-space-tightest);
+}
