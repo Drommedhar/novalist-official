@@ -5,6 +5,7 @@ import { EditorFrame } from '../views/editor/EditorFrame'
 import { CodexView } from '../views/codex/CodexView'
 import { DashboardView } from '../views/dashboard/DashboardView'
 import { ManuscriptView } from '../views/manuscript/ManuscriptView'
+import { PlotGridView } from '../views/plotgrid/PlotGridView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -46,6 +47,14 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         <ManuscriptView />
+      </main>
+    )
+  }
+
+  if (mainView === 'plotGrid') {
+    return (
+      <main className="main-area">
+        <PlotGridView />
       </main>
     )
   }

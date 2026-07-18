@@ -71,7 +71,8 @@
     "renameTitle": "重命名剧情线",
     "renamePrompt": "新名称",
     "confirmDeleteTitle": "删除剧情线？",
-    "confirmDelete": "确定要删除“{0}”吗？其关联的场景分配也将被移除。"
+    "confirmDelete": "确定要删除“{0}”吗？其关联的场景分配也将被移除。",
+    "emptyHint": "暂无情节线。添加一条以跟踪故事线中的场景。"
   },
   "comments": {
     "noSelection": "请先在场景中选择一些文本。"

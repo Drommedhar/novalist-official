@@ -71,7 +71,8 @@
     "renameTitle": "Rename plotline",
     "renamePrompt": "New name",
     "confirmDeleteTitle": "Delete plotline?",
-    "confirmDelete": "Delete \"{0}\"? Scene assignments will be removed."
+    "confirmDelete": "Delete \"{0}\"? Scene assignments will be removed.",
+    "emptyHint": "No plotlines yet. Add one to start tracking scenes across your story arcs."
   },
   "comments": {
     "noSelection": "Select some text in the scene first."

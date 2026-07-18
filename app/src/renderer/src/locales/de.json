@@ -71,7 +71,8 @@
     "renameTitle": "Plotstrang umbenennen",
     "renamePrompt": "Neuer Name",
     "confirmDeleteTitle": "Plotstrang löschen?",
-    "confirmDelete": "\"{0}\" löschen? Szenenzuweisungen werden entfernt."
+    "confirmDelete": "\"{0}\" löschen? Szenenzuweisungen werden entfernt.",
+    "emptyHint": "Noch keine Plotlinien. Lege eine an, um Szenen über deine Handlungsbögen zu verfolgen."
   },
   "smartList": {
     "section": "Smart-Listen",

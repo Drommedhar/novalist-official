@@ -41,6 +41,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new EntitiesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new DashboardRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ManuscriptRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new PlotRpc(_workspace), targetOptions);
         rpc.StartListening();
         _rpc = rpc;
         return rpc;

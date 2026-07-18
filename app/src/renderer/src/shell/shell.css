@@ -1054,6 +1054,82 @@
   background: var(--nl-surface-window);
 }
 
+/* ===== Plot grid ===== */
+.plotgrid {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.plotgrid-toolbar {
+  display: flex;
+  padding: var(--nl-space-md) var(--nl-space-normal);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.plotgrid-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: var(--nl-space-lg);
+}
+
+.plotgrid-table {
+  border-collapse: collapse;
+}
+
+.plotgrid-scene {
+  max-width: 90px;
+  padding: var(--nl-space-sm) var(--nl-space-tighter);
+  font-size: var(--nl-font-caption);
+  font-weight: normal;
+  color: var(--nl-text-subtle);
+  vertical-align: bottom;
+}
+
+.plotgrid-scene span {
+  display: inline-block;
+  max-width: 84px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  max-height: 110px;
+}
+
+.plotgrid-rowlabel {
+  position: sticky;
+  left: 0;
+  background: var(--nl-surface-window);
+  text-align: left;
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-title);
+  padding: var(--nl-space-sm) var(--nl-space-lg) var(--nl-space-sm) var(--nl-space-sm);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.plotgrid-color {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--nl-radius-pill);
+  margin-right: var(--nl-space-sm);
+}
+
+.plotgrid-cell {
+  width: 22px;
+  height: 22px;
+  margin: 2px;
+  border-radius: var(--nl-radius-sm);
+  border: 1px solid var(--nl-border);
+  background: var(--nl-surface-card);
+}
+
+.plotgrid-cell:hover {
+  border-color: var(--nl-accent);
+}
+
 /* ===== Status bar ===== */
 .status-bar {
   display: flex;
