@@ -57,8 +57,10 @@ still building and gated in CI.
   Story Analysis) ported as webviews wrapping the original ViewModels,
   loading from the deployed extension end to end.
 - Packaging: electron-builder DMG with the self-contained backend
-  bundled; the packaged app verified booting by e2e. CI runs the backend
-  coverage gate and the web e2e suite.
+  bundled; the packaged app verified booting by e2e; update checks via
+  electron-updater with an in-app banner (auto-download off on the
+  unsigned macOS build). CI runs the backend coverage gate and the web
+  e2e suite.
 
 ## Remaining gaps (not yet at parity)
 
@@ -66,8 +68,7 @@ still building and gated in CI.
   template editor, custom entity types in the codex tabs.
 - Timeline structure templates and character/location filters
   (source filter shipped; outline export shipped).
-- Import plugin flow; update notifications (electron-updater configured
-  for Win/Linux; notify flow pending).
+- Import plugin flow.
 - Manual (docs/manual/) still documents the Avalonia shell; needs the
   page-by-page rewrite once the new shell becomes the released app.
 - Avalonia retirement (M9): blocked on the gaps above by design.

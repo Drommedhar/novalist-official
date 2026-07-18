@@ -31,6 +31,10 @@ contextBridge.exposeInMainWorld('novalist', {
   }
 })
 
+ipcRenderer.on('novalist:update-available', (_event, version: string) => {
+  window.postMessage({ novalist: 'update-available', version }, '*')
+})
+
 ipcRenderer.on('novalist:backend-port', (event) => {
   window.postMessage({ novalist: 'backend-port' }, '*', event.ports)
 })

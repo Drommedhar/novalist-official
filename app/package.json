@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "electron-liquid-glass": "^1.1.1",
+    "electron-updater": "^6.8.9",
     "i18next": "^26.3.6",
     "lucide-react": "^1.25.0",
     "react": "^19.2.7",

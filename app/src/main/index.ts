@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { BackendProcess } from './backend-process'
 import { attachLiquidGlass, detectMaterial, materialWindowOptions } from './glass'
 import { registerDialogHandlers } from './dialogs'
+import { checkForUpdates } from './updater'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
 
 const material = detectMaterial(process.platform, process.getSystemVersion())
@@ -28,6 +29,9 @@ function createWindow(): BrowserWindow {
   })
 
   win.once('ready-to-show', () => win.show())
+  if (app.isPackaged) {
+    win.webContents.once('did-finish-load', () => checkForUpdates(win))
+  }
   if (material === 'glass') {
     win.webContents.once('did-finish-load', () => attachLiquidGlass(win))
   }

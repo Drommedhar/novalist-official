@@ -1897,3 +1897,14 @@
 .split-editors > *:last-child {
   border-right: none;
 }
+
+.update-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-sm) var(--nl-space-normal);
+  background: var(--nl-accent);
+  color: var(--nl-accent-ink);
+  font-size: var(--nl-font-body-sm);
+}

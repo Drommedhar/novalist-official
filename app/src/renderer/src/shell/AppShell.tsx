@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Binder } from './Binder'
 import { CommandPalette } from './CommandPalette'
 import { FindReplaceDialog } from './FindReplaceDialog'
@@ -25,6 +26,7 @@ async function hydrate(): Promise<void> {
 }
 
 export function AppShell(): React.JSX.Element {
+  const { t } = useTranslation()
   const binderVisible = useShellStore((s) => s.binderVisible)
   const focusMode = useShellStore((s) => s.focusMode)
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
@@ -42,6 +44,16 @@ export function AppShell(): React.JSX.Element {
   }, [])
 
   useEffect(() => installHotkeys(hotkeys), [hotkeys])
+
+  const [updateVersion, setUpdateVersion] = useState<string | null>(null)
+  useEffect(() => {
+    const onMessage = (event: MessageEvent): void => {
+      const data = event.data as { novalist?: string; version?: string }
+      if (data?.novalist === 'update-available' && data.version) setUpdateVersion(data.version)
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [])
 
   return (
     <div className="shell">
@@ -61,6 +73,12 @@ export function AppShell(): React.JSX.Element {
           />
         )}
       </div>
+      {updateVersion && (
+        <div className="update-banner">
+          {t('update.available', { 0: updateVersion })}
+          <button onClick={() => setUpdateVersion(null)}>{t('dialog.close')}</button>
+        </div>
+      )}
       <StatusBar />
       {findReplaceOpen && (
         <FindReplaceDialog onClose={() => useShellStore.getState().setFindReplaceOpen(false)} />
