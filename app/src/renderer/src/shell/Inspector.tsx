@@ -1,7 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Camera, History } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
+import { InputDialog } from './InputDialog'
+
+interface SnapshotDto {
+  id: string
+  label: string
+  takenAt: string
+  wordCount: number
+}
 
 /**
  * Right-hand inspector: synopsis and notes for the open scene, saved on blur.
@@ -18,6 +27,8 @@ export function Inspector(): React.JSX.Element {
   )
   const [synopsis, setSynopsis] = useState('')
   const [notes, setNotes] = useState('')
+  const [snapshots, setSnapshots] = useState<SnapshotDto[]>([])
+  const [labelPrompt, setLabelPrompt] = useState(false)
 
   useEffect(() => {
     setSynopsis(scene?.synopsis ?? '')
@@ -28,6 +39,10 @@ export function Inspector(): React.JSX.Element {
         .request<{ notes?: string | null }>('scenes/getMeta', [openChapterGuid, openSceneId])
         .then((meta) => setNotes(meta.notes ?? ''))
         .catch(() => setNotes(''))
+      void rpc
+        .request<SnapshotDto[]>('snapshots/list', [openChapterGuid, openSceneId])
+        .then(setSnapshots)
+        .catch(() => setSnapshots([]))
     }
   }, [openChapterGuid, openSceneId, scene?.synopsis])
 
@@ -72,6 +87,48 @@ export function Inspector(): React.JSX.Element {
         onChange={(e) => setNotes(e.target.value)}
         onBlur={() => void rpc.request('scenes/setNotes', [openChapterGuid, openSceneId, notes])}
       />
+      <label className="inspector-label">
+        <History size={12} strokeWidth={2} /> {t('snapshots.title')}
+      </label>
+      <button className="binder-rail-item" onClick={() => setLabelPrompt(true)}>
+        <Camera size={13} strokeWidth={2} />
+        {t('snapshots.take')}
+      </button>
+      {snapshots.map((snapshot) => (
+        <div key={snapshot.id} className="snapshot-row">
+          <span className="binder-scene-title">
+            {snapshot.label || snapshot.takenAt.slice(0, 10)}
+          </span>
+          <span className="binder-scene-words">{snapshot.wordCount.toLocaleString()}</span>
+          <button
+            className="snapshot-restore"
+            onClick={() =>
+              void rpc
+                .request<boolean>('snapshots/restore', [openChapterGuid, openSceneId, snapshot.id])
+                .then(async (restored) => {
+                  if (restored) {
+                    await useProjectStore.getState().openScene(openChapterGuid, openSceneId)
+                  }
+                })
+            }
+          >
+            {t('snapshots.restore')}
+          </button>
+        </div>
+      ))}
+      {labelPrompt && (
+        <InputDialog
+          title={t('snapshots.take')}
+          placeholder={t('snapshots.labelWatermark')}
+          onCancel={() => setLabelPrompt(false)}
+          onSubmit={(label) => {
+            setLabelPrompt(false)
+            void rpc
+              .request<SnapshotDto[]>('snapshots/take', [openChapterGuid, openSceneId, label])
+              .then(setSnapshots)
+          }}
+        />
+      )}
     </aside>
   )
 }

@@ -1749,3 +1749,25 @@
   border-radius: var(--nl-radius-sm);
   padding: 1px var(--nl-space-sm);
 }
+
+/* ===== Snapshots ===== */
+.snapshot-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  font-size: var(--nl-font-body-sm);
+}
+
+.snapshot-row .binder-scene-title {
+  flex: 1;
+}
+
+.snapshot-restore {
+  color: var(--nl-accent);
+  font-size: var(--nl-font-caption);
+}
+
+.snapshot-restore:hover {
+  text-decoration: underline;
+}

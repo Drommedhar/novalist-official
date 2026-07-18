@@ -111,6 +111,33 @@ public sealed class WorkspaceTests : IDisposable
         Assert.Empty(state.Chapters.Single(c => c.Guid == chapter.Guid).Scenes);
     }
 
+    [Fact]
+    public async Task Snapshots_TakeListLoadRestoreDelete_FullFlow()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var chapter = await workspace.Projects.CreateChapterAsync("C");
+        var scene = await workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await workspace.WriteSceneAsync(chapter.Guid, scene.Id, "<p>version one</p>", "version one");
+        var rpc = new Novalist.Backend.Rpc.SnapshotsRpc(workspace);
+
+        var afterTake = await rpc.TakeAsync(chapter.Guid, scene.Id, "before rewrite");
+        Assert.Single(afterTake, s => s.Label == "before rewrite");
+
+        await workspace.WriteSceneAsync(chapter.Guid, scene.Id, "<p>version two</p>", "version two");
+        var content = await rpc.LoadAsync(chapter.Guid, scene.Id, afterTake[0].Id);
+        Assert.Contains("version one", content);
+
+        Assert.True(await rpc.RestoreAsync(chapter.Guid, scene.Id, afterTake[0].Id));
+        var restored = await workspace.Projects.ReadSceneContentAsync(
+            workspace.ResolveChapter(chapter.Guid),
+            workspace.ResolveScene(chapter.Guid, scene.Id).scene);
+        Assert.Contains("version one", restored);
+
+        var afterDelete = await rpc.DeleteAsync(chapter.Guid, scene.Id, afterTake[0].Id);
+        Assert.DoesNotContain(afterDelete, s => s.Id == afterTake[0].Id);
+        Assert.Null(await rpc.LoadAsync(chapter.Guid, scene.Id, "missing"));
+    }
+
     [Theory]
     [InlineData("", 0)]
     [InlineData("   ", 0)]
