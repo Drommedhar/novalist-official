@@ -44,6 +44,14 @@ export function CalendarView(): React.JSX.Element {
   const [anchor, setAnchor] = useState<Date>(new Date())
   const [events, setEvents] = useState<CalendarEventDto[]>([])
   const [anchorLoaded, setAnchorLoaded] = useState(false)
+  const [dragging, setDragging] = useState<CalendarEventDto | null>(null)
+
+  const reschedule = async (target: string): Promise<void> => {
+    if (!dragging) return
+    await rpc.request('calendar/reschedule', [dragging.chapterGuid, dragging.sceneId, target])
+    setDragging(null)
+    await load()
+  }
 
   const load = useCallback(async (): Promise<void> => {
     let from: Date
@@ -139,12 +147,17 @@ export function CalendarView(): React.JSX.Element {
             const day = addDays(startOfWeek(anchor), i)
             const key = iso(day)
             return (
-              <div key={key} className="calendar-day-col">
+              <div
+                key={key}
+                className="calendar-day-col"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => void reschedule(key)}
+              >
                 <div className="calendar-day-head">
                   {day.toLocaleString(i18n.language, { weekday: 'short' })} {day.getDate()}
                 </div>
                 {(byDate.get(key) ?? []).map((event) => (
-                  <EventChip key={`${event.sceneId}-${key}`} event={event} />
+                  <EventChip key={`${event.sceneId}-${key}`} event={event} onDragStart={setDragging} />
                 ))}
               </div>
             )
@@ -160,10 +173,15 @@ export function CalendarView(): React.JSX.Element {
             const dayEvents = byDate.get(key) ?? []
             const inMonth = day.getMonth() === anchor.getMonth()
             return (
-              <div key={key} className={`calendar-cell${inMonth ? '' : ' outside'}`}>
+              <div
+                key={key}
+                className={`calendar-cell${inMonth ? '' : ' outside'}`}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => void reschedule(key)}
+              >
                 <div className="calendar-cell-date">{day.getDate()}</div>
                 {dayEvents.slice(0, 3).map((event) => (
-                  <EventChip key={`${event.sceneId}-${key}`} event={event} compact />
+                  <EventChip key={`${event.sceneId}-${key}`} event={event} compact onDragStart={setDragging} />
                 ))}
                 {dayEvents.length > 3 && (
                   <div className="calendar-overflow">+{dayEvents.length - 3}</div>
@@ -200,10 +218,12 @@ export function CalendarView(): React.JSX.Element {
 
 function EventChip({
   event,
-  compact
+  compact,
+  onDragStart
 }: {
   event: CalendarEventDto
   compact?: boolean
+  onDragStart?(event: CalendarEventDto): void
 }): React.JSX.Element {
   const time = event.allDay
     ? ''
@@ -213,6 +233,8 @@ function EventChip({
   return (
     <button
       className={`calendar-event${compact ? ' compact' : ''}`}
+      draggable={Boolean(onDragStart)}
+      onDragStart={() => onDragStart?.(event)}
       title={`${event.chapterTitle} - ${event.title}${event.synopsis ? `\n${event.synopsis}` : ''}`}
       onClick={() => void useProjectStore.getState().openScene(event.chapterGuid, event.sceneId)}
     >
