@@ -237,7 +237,7 @@ public sealed class EntitiesRpcTests : IDisposable
         Assert.Empty(_rpc.GetTemplates("location"));
         Assert.Empty(_rpc.GetTemplates("item"));
         Assert.Empty(_rpc.GetTemplates("lore"));
-        Assert.Throws<InvalidOperationException>(() => _rpc.GetTemplates("dragon"));
+        Assert.Empty(_rpc.GetTemplates("dragon"));
 
         var created = await _rpc.CreateAsync("character", "Mira", "hero");
         Assert.Equal("Protagonist", created.GetProperty("role").GetString());

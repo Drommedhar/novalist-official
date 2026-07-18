@@ -54,6 +54,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new SettingsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new MapsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new GrammarRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new TemplatesRpc(_workspace), targetOptions);
         var extensionsRpc = new ExtensionsRpc(_workspace);
         rpc.AddLocalRpcTarget(extensionsRpc, targetOptions);
         Extensions.HostNotifications.Error = message =>

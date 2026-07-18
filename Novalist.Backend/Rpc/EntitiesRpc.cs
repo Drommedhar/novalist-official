@@ -424,7 +424,10 @@ public sealed class EntitiesRpc
             "location" => book.LocationTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
             "item" => book.ItemTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
             "lore" => book.LoreTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
-            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+            _ => book.CustomEntityTemplates
+                .Where(t => t.EntityTypeKey == type)
+                .Select(t => new EntityTemplateDto(t.Id, t.Name))
+                .ToArray()
         };
     }
 
@@ -438,6 +441,10 @@ public sealed class EntitiesRpc
             foreach (var field in definition.DefaultFields)
             {
                 custom.Fields.TryAdd(field.Key, field.DefaultValue);
+            }
+            if (templateId != null)
+            {
+                ApplyCustomEntityTemplate(custom, templateId);
             }
             await _entities.SaveCustomEntityAsync(custom);
             return JsonSerializer.SerializeToElement(custom, JsonOptions);
@@ -513,6 +520,31 @@ public sealed class EntitiesRpc
         var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
         scene.Notes = notes.Length == 0 ? null : notes;
         await _workspace.Projects.SaveScenesAsync();
+    }
+
+    private void ApplyCustomEntityTemplate(CustomEntityData entity, string templateId)
+    {
+        var book = _workspace.Projects.ActiveBook;
+        var template = book?.CustomEntityTemplates.FirstOrDefault(t =>
+            t.Id == templateId && t.EntityTypeKey == entity.EntityTypeKey);
+        if (template == null) return;
+
+        entity.TemplateId = template.Id;
+        foreach (var field in template.Fields)
+        {
+            if (!string.IsNullOrWhiteSpace(field.DefaultValue))
+                entity.Fields[field.Key] = field.DefaultValue;
+        }
+        foreach (var def in template.CustomPropertyDefs)
+        {
+            if (!entity.CustomProperties.ContainsKey(def.Key))
+                entity.CustomProperties[def.Key] = def.DefaultValue;
+        }
+        foreach (var section in template.Sections)
+        {
+            if (!entity.Sections.Any(s => string.Equals(s.Title, section.Title, StringComparison.OrdinalIgnoreCase)))
+                entity.Sections.Add(new EntitySection { Title = section.Title, Content = section.DefaultContent });
+        }
     }
 
     private static readonly JsonSerializerOptions JsonOptions =

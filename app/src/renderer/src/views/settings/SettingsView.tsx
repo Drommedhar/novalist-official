@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { availableLanguages } from '../../i18n'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useShellStore } from '../../stores/shellStore'
+import { useProjectStore } from '../../stores/projectStore'
+import { TemplatesCard } from './TemplatesCard'
 
 const THEMES = ['Default', 'Discord', 'Catppuccin Mocha']
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
@@ -16,6 +18,7 @@ export function SettingsView(): React.JSX.Element {
   const load = useSettingsStore((s) => s.load)
   const update = useSettingsStore((s) => s.update)
   const clearSection = useSettingsStore((s) => s.clearSection)
+  const isLoaded = useProjectStore((s) => s.isLoaded)
   const [appearanceScope, setAppearanceScope] = useState<Scope>('global')
   const [editorScope, setEditorScope] = useState<Scope>('global')
   const [writingScope, setWritingScope] = useState<Scope>('global')
@@ -222,6 +225,8 @@ export function SettingsView(): React.JSX.Element {
           {t('settings.grammarCheck')}
         </label>
       </div>
+
+      {isLoaded && <TemplatesCard />}
 
       <div className="dashboard-card export-card">
         <div className="dashboard-card-title">{t('settings.diagnostics')}</div>

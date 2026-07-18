@@ -819,6 +819,17 @@
   gap: var(--nl-space-tight);
 }
 
+.template-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tight);
+  margin-top: var(--nl-space-md);
+}
+
+.template-known-name {
+  flex: 0 0 160px;
+}
+
 /* ===== Dashboard ===== */
 .dashboard {
   display: flex;

@@ -120,6 +120,19 @@ test('real project renders binder and scene content', async () => {
     }, { timeout: 10_000 })
     .toBe('Frostmantel')
 
+  // Template editor: create a character template in Settings, verify it lists.
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('settings'))
+  const templatesCard = page.locator('.templates-card')
+  await expect(templatesCard).toBeVisible({ timeout: 15_000 })
+  await templatesCard.locator('.template-group').first().locator('.binder-rail-item').click()
+  const templateDialog = page.locator('.dialog-overlay .dialog-card')
+  await expect(templateDialog).toBeVisible({ timeout: 10_000 })
+  await templateDialog.locator('input.dialog-input').first().fill('E2E Template')
+  await templateDialog.locator('.dialog-actions .dialog-button.primary').click()
+  await expect(
+    templatesCard.locator('.type-manager-row', { hasText: 'E2E Template' })
+  ).toBeVisible({ timeout: 10_000 })
+
   // Dashboard: real totals appear.
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
   await expect(page.locator('.dashboard-title')).toBeVisible({ timeout: 15_000 })
