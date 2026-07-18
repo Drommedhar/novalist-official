@@ -39,7 +39,7 @@ export interface RecentProjectDto {
 // Matches the Avalonia EditorViewModel.AutoSaveDelayMs default.
 const AUTOSAVE_DELAY_MS = 2000
 
-let autosaveTimer: ReturnType<typeof setTimeout> | null = null
+const autosaveTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 interface ProjectState {
   isLoaded: boolean
@@ -53,13 +53,19 @@ interface ProjectState {
   openChapterGuid: string | null
   openSceneId: string | null
   openSceneHtml: string | null
+  splitChapterGuid: string | null
+  splitSceneId: string | null
+  splitSceneHtml: string | null
   isDirty: boolean
   applyState(state: ProjectStateDto): void
   loadRecents(): Promise<void>
   openProject(path: string): Promise<void>
   pickAndOpenProject(): Promise<void>
   openScene(chapterGuid: string, sceneId: string): Promise<void>
+  openSceneInSplit(chapterGuid: string, sceneId: string): Promise<void>
+  closeSplit(): void
   onEditorContentChanged(html: string, plainText: string): void
+  onSplitContentChanged(html: string, plainText: string): void
   flushPendingSave(): Promise<void>
   createChapter(title: string): Promise<void>
   createScene(chapterGuid: string, title: string): Promise<void>
@@ -90,6 +96,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   openChapterGuid: null,
   openSceneId: null,
   openSceneHtml: null,
+  splitChapterGuid: null,
+  splitSceneId: null,
+  splitSceneHtml: null,
   isDirty: false,
 
   applyState: (state) => {
@@ -155,22 +164,35 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     useShellStore.getState().setMainView('write')
   },
 
+  openSceneInSplit: async (chapterGuid, sceneId) => {
+    const content = await rpc.request<{ sceneId: string; html: string }>('scenes/read', [
+      chapterGuid,
+      sceneId
+    ])
+    set({ splitChapterGuid: chapterGuid, splitSceneId: sceneId, splitSceneHtml: content.html })
+    useShellStore.getState().setMainView('write')
+  },
+
+  closeSplit: () => set({ splitChapterGuid: null, splitSceneId: null, splitSceneHtml: null }),
+
   onEditorContentChanged: (html, plainText) => {
     const { openChapterGuid, openSceneId } = get()
     if (!openChapterGuid || !openSceneId) return
     set({ openSceneHtml: html, isDirty: true })
-    if (autosaveTimer) clearTimeout(autosaveTimer)
-    autosaveTimer = setTimeout(() => {
-      void saveScene(openChapterGuid, openSceneId, html, plainText)
-    }, AUTOSAVE_DELAY_MS)
+    scheduleSave('primary', openChapterGuid, openSceneId, html, plainText)
+  },
+
+  onSplitContentChanged: (html, plainText) => {
+    const { splitChapterGuid, splitSceneId } = get()
+    if (!splitChapterGuid || !splitSceneId) return
+    set({ splitSceneHtml: html })
+    scheduleSave('split', splitChapterGuid, splitSceneId, html, plainText)
   },
 
   flushPendingSave: async () => {
     const { isDirty, openChapterGuid, openSceneId, openSceneHtml } = get()
-    if (autosaveTimer) {
-      clearTimeout(autosaveTimer)
-      autosaveTimer = null
-    }
+    for (const timer of autosaveTimers.values()) clearTimeout(timer)
+    autosaveTimers.clear()
     if (isDirty && openChapterGuid && openSceneId && openSceneHtml !== null) {
       await saveScene(openChapterGuid, openSceneId, openSceneHtml, '')
     }
@@ -242,6 +264,24 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     )
   }
 }))
+
+function scheduleSave(
+  pane: string,
+  chapterGuid: string,
+  sceneId: string,
+  html: string,
+  plainText: string
+): void {
+  const existing = autosaveTimers.get(pane)
+  if (existing) clearTimeout(existing)
+  autosaveTimers.set(
+    pane,
+    setTimeout(() => {
+      autosaveTimers.delete(pane)
+      void saveScene(chapterGuid, sceneId, html, plainText)
+    }, AUTOSAVE_DELAY_MS)
+  )
+}
 
 async function saveScene(
   chapterGuid: string,

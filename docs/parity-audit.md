@@ -19,7 +19,8 @@ still building and gated in CI.
   switching, comments and footnotes persisted to the manifest, grammar
   check round-trip (LanguageTool with credentials/picky/mother-tongue),
   scene snapshots with restore, focus mode (Alt+F), entity-mention
-  highlighting with hover cards (names pushed from the codex).
+  highlighting with hover cards (names pushed from the codex), split
+  editor (open a second scene side by side from the binder menu).
 - Binder: chapter/scene tree with act headers, status dots with click
   cycling, rename/delete context menus, drag-and-drop chapter/scene
   reorder and cross-chapter scene moves, scene archiving with a
@@ -63,7 +64,6 @@ still building and gated in CI.
 
 - Entity creation templates/wizard flow, custom entity type manager,
   template editor, custom entity types in the codex tabs.
-- Split editor (two scenes side by side).
 - Timeline structure templates and character/location filters
   (source filter shipped; outline export shipped).
 - Import plugin flow; update notifications (electron-updater configured

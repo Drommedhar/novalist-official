@@ -24,6 +24,7 @@ export function MainArea(): React.JSX.Element {
   const extView = useShellStore((s) => s.extView)
   const extViews = useExtensionsStore((s) => s.views)
   const openSceneId = useProjectStore((s) => s.openSceneId)
+  const splitSceneId = useProjectStore((s) => s.splitSceneId)
 
   if (extView) {
     const view = extViews.find(
@@ -42,7 +43,14 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         {openSceneId ? (
-          <EditorFrame />
+          splitSceneId ? (
+            <div className="split-editors">
+              <EditorFrame pane="primary" />
+              <EditorFrame pane="split" />
+            </div>
+          ) : (
+            <EditorFrame />
+          )
         ) : (
           <div className="main-placeholder">
             <h1>{t('shell.view.write')}</h1>

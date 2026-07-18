@@ -52,12 +52,12 @@ interface SceneFootnote {
  * the parent-frame transport branch) and wires the ready handshake, theme,
  * content push, and autosave round-trip.
  */
-export function EditorFrame(): React.JSX.Element {
+export function EditorFrame({ pane = 'primary' }: { pane?: 'primary' | 'split' }): React.JSX.Element {
   const { i18n } = useTranslation()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const editorRef = useRef<EditorWindow | null>(null)
-  const openSceneId = useProjectStore((s) => s.openSceneId)
-  const sceneHtml = useProjectStore((s) => s.openSceneHtml)
+  const openSceneId = useProjectStore((s) => (pane === 'split' ? s.splitSceneId : s.openSceneId))
+  const sceneHtml = useProjectStore((s) => (pane === 'split' ? s.splitSceneHtml : s.openSceneHtml))
   const loadingRef = useRef(false)
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
   const annotationsRef = useRef<{ comments: SceneComment[]; footnotes: SceneFootnote[] }>({
@@ -108,23 +108,30 @@ export function EditorFrame(): React.JSX.Element {
     )
   }
 
-  const loadAnnotations = async (editor: EditorWindow | null): Promise<void> => {
+  const paneIds = (): { chapterGuid: string | null; sceneId: string | null } => {
     const state = useProjectStore.getState()
-    if (!state.openChapterGuid || !state.openSceneId) return
+    return pane === 'split'
+      ? { chapterGuid: state.splitChapterGuid, sceneId: state.splitSceneId }
+      : { chapterGuid: state.openChapterGuid, sceneId: state.openSceneId }
+  }
+
+  const loadAnnotations = async (editor: EditorWindow | null): Promise<void> => {
+    const { chapterGuid, sceneId } = paneIds()
+    if (!chapterGuid || !sceneId) return
     const annotations = await rpc.request<{ comments: SceneComment[]; footnotes: SceneFootnote[] }>(
       'scenes/getAnnotations',
-      [state.openChapterGuid, state.openSceneId]
+      [chapterGuid, sceneId]
     )
     annotationsRef.current = annotations
     if (editor) pushAnnotations(editor)
   }
 
   const persistAnnotations = (): void => {
-    const state = useProjectStore.getState()
-    if (!state.openChapterGuid || !state.openSceneId) return
+    const { chapterGuid, sceneId } = paneIds()
+    if (!chapterGuid || !sceneId) return
     void rpc.request('scenes/setAnnotations', [
-      state.openChapterGuid,
-      state.openSceneId,
+      chapterGuid,
+      sceneId,
       annotationsRef.current.comments,
       annotationsRef.current.footnotes
     ])
@@ -157,9 +164,10 @@ export function EditorFrame(): React.JSX.Element {
           // Content loads synchronously so typing can never race a deferred
           // setContent; the settings push is made non-destructive instead.
           const state = useProjectStore.getState()
-          if (state.openSceneHtml !== null) {
+          const initialHtml = pane === 'split' ? state.splitSceneHtml : state.openSceneHtml
+          if (initialHtml !== null) {
             loadingRef.current = true
-            live.setContent(state.openSceneHtml)
+            live.setContent(initialHtml)
             loadingRef.current = false
           }
           void loadAnnotations(live)
@@ -178,7 +186,10 @@ export function EditorFrame(): React.JSX.Element {
           if (loadingRef.current || !editor) return
           useProjectStore
             .getState()
-            .onEditorContentChanged(String(message.html ?? ''), String(message.plainText ?? ''))
+            [pane === 'split' ? 'onSplitContentChanged' : 'onEditorContentChanged'](
+              String(message.html ?? ''),
+              String(message.plainText ?? '')
+            )
           break
         }
         case 'grammarCheckRequest': {

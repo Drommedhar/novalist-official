@@ -137,6 +137,10 @@ export function Binder(): React.JSX.Element {
           }
         },
         {
+          label: t('menu.toggleSplitEditor'),
+          onClick: () => void store.getState().openSceneInSplit(chapter.guid, scene.id)
+        },
+        {
           label: t('explorer.renameScene'),
           onClick: () =>
             setPending({
