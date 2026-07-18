@@ -265,6 +265,38 @@
   flex-shrink: 0;
 }
 
+/* ===== Editor pane ===== */
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.editor-toolbar {
+  display: flex;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter) var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border);
+  background: var(--nl-surface-toolbar);
+}
+
+.editor-toolbar-button {
+  display: inline-flex;
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-dim);
+}
+
+.editor-toolbar-button:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.editor-toolbar-button.active {
+  background: var(--nl-surface-selected);
+  color: var(--nl-accent);
+}
+
 /* ===== Editor frame ===== */
 .editor-frame {
   display: block;

@@ -1563,6 +1563,8 @@
       "export": "Export",
       "git": "Git"
     },
-    "words": "words"
+    "words": "words",
+    "chapters": "chapters",
+    "scenes": "scenes"
   }
 }

@@ -1605,6 +1605,8 @@
       "export": "导出",
       "git": "Git"
     },
-    "words": "字"
+    "words": "字",
+    "chapters": "章",
+    "scenes": "场景"
   }
 }

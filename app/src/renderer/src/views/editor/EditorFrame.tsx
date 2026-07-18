@@ -1,7 +1,15 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { listenToEditor, editorWindow, pushEditorTheme, type EditorWindow } from './editorBridge'
+import { EditorToolbar, type FormattingState } from './EditorToolbar'
 import { useProjectStore } from '../../stores/projectStore'
+
+const DEFAULT_FORMATTING: FormattingState = {
+  bold: false,
+  italic: false,
+  underline: false,
+  alignment: 'left'
+}
 
 /**
  * Hosts editor.html (carried over from the Avalonia app unchanged apart from
@@ -15,6 +23,7 @@ export function EditorFrame(): React.JSX.Element {
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const sceneHtml = useProjectStore((s) => s.openSceneHtml)
   const loadingRef = useRef(false)
+  const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
 
   // Push content whenever the open scene changes and the editor is live.
   useEffect(() => {
@@ -53,6 +62,15 @@ export function EditorFrame(): React.JSX.Element {
             .onEditorContentChanged(String(message.html ?? ''), String(message.plainText ?? ''))
           break
         }
+        case 'formattingChanged': {
+          setFormatting({
+            bold: Boolean(message.bold),
+            italic: Boolean(message.italic),
+            underline: Boolean(message.underline),
+            alignment: (message.alignment as FormattingState['alignment']) ?? 'left'
+          })
+          break
+        }
         default:
           break
       }
@@ -72,12 +90,15 @@ export function EditorFrame(): React.JSX.Element {
   }, [i18n.language])
 
   return (
-    <iframe
-      ref={iframeRef}
-      className="editor-frame"
-      src="./editor/editor.html"
-      title="editor"
-      sandbox="allow-scripts allow-same-origin"
-    />
+    <div className="editor-pane">
+      <EditorToolbar formatting={formatting} editor={() => editorRef.current} />
+      <iframe
+        ref={iframeRef}
+        className="editor-frame"
+        src="./editor/editor.html"
+        title="editor"
+        sandbox="allow-scripts allow-same-origin"
+      />
+    </div>
   )
 }
