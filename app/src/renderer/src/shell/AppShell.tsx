@@ -1,5 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Binder } from './Binder'
+import { CommandPalette } from './CommandPalette'
+import { FindReplaceDialog } from './FindReplaceDialog'
+import { buildDefaultHotkeys, installHotkeys } from './hotkeys'
 import { Inspector } from './Inspector'
 import { Toolbar } from './Toolbar'
 import { StatusBar } from './StatusBar'
@@ -26,11 +29,16 @@ export function AppShell(): React.JSX.Element {
   const recentProjects = useProjectStore((s) => s.recentProjects)
   const openProject = useProjectStore((s) => s.openProject)
   const pickAndOpenProject = useProjectStore((s) => s.pickAndOpenProject)
+  const findReplaceOpen = useShellStore((s) => s.findReplaceOpen)
+  const commandPaletteOpen = useShellStore((s) => s.commandPaletteOpen)
+  const hotkeys = useMemo(() => buildDefaultHotkeys(), [])
 
   useEffect(() => {
     rpc.onReconnected(() => void hydrate())
     void rpc.connect().then(hydrate)
   }, [])
+
+  useEffect(() => installHotkeys(hotkeys), [hotkeys])
 
   return (
     <div className="shell">
@@ -51,6 +59,15 @@ export function AppShell(): React.JSX.Element {
         )}
       </div>
       <StatusBar />
+      {findReplaceOpen && (
+        <FindReplaceDialog onClose={() => useShellStore.getState().setFindReplaceOpen(false)} />
+      )}
+      {commandPaletteOpen && (
+        <CommandPalette
+          actions={hotkeys}
+          onClose={() => useShellStore.getState().setCommandPaletteOpen(false)}
+        />
+      )}
     </div>
   )
 }

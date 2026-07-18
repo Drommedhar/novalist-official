@@ -102,6 +102,14 @@ test('real project renders binder and scene content', async () => {
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('calendar'))
   await expect(page.locator('.calendar .timeline-toolbar')).toBeVisible({ timeout: 15_000 })
 
+  // Hotkeys + command palette: Ctrl+Shift+P opens the palette; running the
+  // Timeline command switches the main view.
+  await page.keyboard.press('ControlOrMeta+Shift+P')
+  await expect(page.locator('.palette-card')).toBeVisible({ timeout: 10_000 })
+  await page.keyboard.type('Timeline')
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.timeline-toolbar')).toBeVisible({ timeout: 10_000 })
+
   // Relationships: real characters produce graph nodes.
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('relationships'))
   await expect

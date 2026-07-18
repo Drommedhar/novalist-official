@@ -40,7 +40,8 @@
     "commandPalette": "Befehlspalette..."
   },
   "commandPalette": {
-    "placeholder": "Befehlsname eingeben..."
+    "placeholder": "Befehlsname eingeben...",
+    "noResults": "Keine passenden Befehle."
   },
   "research": {
     "title": "Recherche",

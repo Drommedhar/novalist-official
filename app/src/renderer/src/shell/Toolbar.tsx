@@ -4,9 +4,8 @@ import { PanelLeft, PanelRight, Plus, Search } from 'lucide-react'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { InputDialog } from './InputDialog'
-import { FindReplaceDialog } from './FindReplaceDialog'
 
-type PendingDialog = 'chapter' | 'scene' | 'find' | null
+type PendingDialog = 'chapter' | 'scene' | null
 
 export function Toolbar(): React.JSX.Element {
   const { t } = useTranslation()
@@ -44,7 +43,7 @@ export function Toolbar(): React.JSX.Element {
       <button
         className="toolbar-button"
         title={t('findReplace.title')}
-        onClick={() => setDialog('find')}
+        onClick={() => useShellStore.getState().setFindReplaceOpen(true)}
       >
         <Search size={15} strokeWidth={1.75} />
       </button>
@@ -66,7 +65,6 @@ export function Toolbar(): React.JSX.Element {
           }}
         />
       )}
-      {dialog === 'find' && <FindReplaceDialog onClose={() => setDialog(null)} />}
       {dialog === 'scene' && targetChapter !== null && (
         <InputDialog
           title={t('shell.newScene')}

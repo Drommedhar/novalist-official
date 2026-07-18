@@ -40,7 +40,8 @@
     "commandPalette": "Command Palette..."
   },
   "commandPalette": {
-    "placeholder": "Type a command name..."
+    "placeholder": "Type a command name...",
+    "noResults": "No matching commands."
   },
   "research": {
     "title": "Research",

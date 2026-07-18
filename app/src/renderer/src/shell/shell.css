@@ -1710,3 +1710,42 @@
   border-radius: 2px;
   padding: 0 2px;
 }
+
+/* ===== Command palette ===== */
+.palette-overlay {
+  align-items: flex-start;
+  padding-top: 12vh;
+}
+
+.palette-card {
+  width: min(480px, 90vw);
+}
+
+.palette-results {
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.palette-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--nl-space-sm) var(--nl-space-normal);
+  border-radius: var(--nl-radius-sm);
+  font-size: var(--nl-font-body);
+}
+
+.palette-item.active {
+  background: var(--nl-surface-selected);
+}
+
+.palette-item kbd {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-sm);
+  padding: 1px var(--nl-space-sm);
+}

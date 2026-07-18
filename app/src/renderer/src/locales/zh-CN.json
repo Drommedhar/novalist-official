@@ -40,7 +40,8 @@
     "commandPalette": "命令面板..."
   },
   "commandPalette": {
-    "placeholder": "输入命令名称..."
+    "placeholder": "输入命令名称...",
+    "noResults": "没有匹配的命令。"
   },
   "research": {
     "title": "资料",

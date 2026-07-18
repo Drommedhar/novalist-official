@@ -31,11 +31,15 @@ interface ShellState {
   binderVisible: boolean
   inspectorVisible: boolean
   backendVersion: string | null
+  findReplaceOpen: boolean
+  commandPaletteOpen: boolean
   setMainView(view: MainView): void
   setBinderTab(tab: BinderTab): void
   toggleBinder(): void
   toggleInspector(): void
   setBackendVersion(version: string | null): void
+  setFindReplaceOpen(open: boolean): void
+  setCommandPaletteOpen(open: boolean): void
 }
 
 export const useShellStore = create<ShellState>((set) => ({
@@ -44,8 +48,12 @@ export const useShellStore = create<ShellState>((set) => ({
   binderVisible: true,
   inspectorVisible: true,
   backendVersion: null,
+  findReplaceOpen: false,
+  commandPaletteOpen: false,
   setMainView: (mainView) => set({ mainView }),
   setBinderTab: (binderTab) => set({ binderTab }),
+  setFindReplaceOpen: (findReplaceOpen) => set({ findReplaceOpen }),
+  setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
   toggleBinder: () => set((s) => ({ binderVisible: !s.binderVisible })),
   toggleInspector: () => set((s) => ({ inspectorVisible: !s.inspectorVisible })),
   setBackendVersion: (backendVersion) => set({ backendVersion })
