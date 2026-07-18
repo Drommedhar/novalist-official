@@ -11,6 +11,7 @@ import { StartScreen } from './StartScreen'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
+import { useExtensionsStore } from '../stores/extensionsStore'
 import type { PingResult } from '../rpc/contract'
 import './shell.css'
 
@@ -20,6 +21,7 @@ async function hydrate(): Promise<void> {
   const state = await rpc.request<ProjectStateDto>('project/getState')
   useProjectStore.getState().applyState(state)
   await useProjectStore.getState().loadRecents()
+  await useExtensionsStore.getState().load()
 }
 
 export function AppShell(): React.JSX.Element {

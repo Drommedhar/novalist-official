@@ -15,11 +15,28 @@ import { ExportView } from '../views/export/ExportView'
 import { GitView } from '../views/git/GitView'
 import { SettingsView } from '../views/settings/SettingsView'
 import { MapsView } from '../views/maps/MapsView'
+import { ExtensionWebView } from '../views/extensions/ExtensionWebView'
+import { useExtensionsStore } from '../stores/extensionsStore'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
+  const extView = useShellStore((s) => s.extView)
+  const extViews = useExtensionsStore((s) => s.views)
   const openSceneId = useProjectStore((s) => s.openSceneId)
+
+  if (extView) {
+    const view = extViews.find(
+      (v) => v.extensionId === extView.extensionId && v.key === extView.key
+    )
+    if (view) {
+      return (
+        <main className="main-area">
+          <ExtensionWebView view={view} />
+        </main>
+      )
+    }
+  }
 
   if (mainView === 'write') {
     return (

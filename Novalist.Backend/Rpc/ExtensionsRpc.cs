@@ -1,3 +1,4 @@
+using Novalist.Sdk.Hooks;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
@@ -35,6 +36,48 @@ public sealed class ExtensionsRpc
                 e.LoadError))
             .ToArray();
 
+    private readonly Dictionary<string, IWebViewController> _controllers = new();
+
+    /// <summary>Sink for controller-initiated pushes; wired to a JSON-RPC
+    /// notification by the backend host.</summary>
+    public static Action<string, string, string>? WebviewPosted { get; set; }
+
+    [JsonRpcMethod("extensions/views")]
+    public WebViewInfoDto[] Views() =>
+        _workspace.ExtensionsHost.Extensions
+            .Where(e => e.IsEnabled && e.Manifest.Contributes != null)
+            .SelectMany(e => e.Manifest.Contributes!.Views.Select(v => new WebViewInfoDto(
+                e.Manifest.Id,
+                v.Key,
+                v.Title,
+                v.IconPath,
+                v.Placement,
+                $"{e.Manifest.Id}/{v.Entry}",
+                e.FolderPath)))
+            .ToArray();
+
+    [JsonRpcMethod("extensions/webviewMessage")]
+    public async Task<string?> WebviewMessageAsync(string extensionId, string viewKey, string json)
+    {
+        var controller = GetController(extensionId, viewKey);
+        return controller == null ? null : await controller.OnMessageAsync(json);
+    }
+
+    private IWebViewController? GetController(string extensionId, string viewKey)
+    {
+        var cacheKey = $"{extensionId}|{viewKey}";
+        if (_controllers.TryGetValue(cacheKey, out var cached)) return cached;
+
+        var extension = _workspace.ExtensionsHost.Extensions
+            .FirstOrDefault(e => e.Manifest.Id == extensionId && e.IsEnabled);
+        if (extension?.Instance is not IWebViewContributor contributor) return null;
+        var controller = contributor.CreateController(viewKey);
+        if (controller == null) return null;
+        controller.MessagePosted += payload => WebviewPosted?.Invoke(extensionId, viewKey, payload);
+        _controllers[cacheKey] = controller;
+        return controller;
+    }
+
     [JsonRpcMethod("extensions/contributions")]
     public ExtensionContributionsDto Contributions()
     {
@@ -63,3 +106,12 @@ public sealed record ExtensionContributionsDto(
     IReadOnlyList<ExtensionHotkeyDto> Hotkeys);
 
 public sealed record ExtensionHotkeyDto(string ActionId, string DisplayName, string DefaultGesture);
+
+public sealed record WebViewInfoDto(
+    string ExtensionId,
+    string Key,
+    string Title,
+    string IconPath,
+    string Placement,
+    string Entry,
+    string FolderPath);

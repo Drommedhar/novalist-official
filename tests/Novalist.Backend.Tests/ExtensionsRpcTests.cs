@@ -46,6 +46,78 @@ public sealed class ExtensionsRpcTests : IDisposable
         Assert.True(contributions.AiHookCount >= 0);
     }
 
+    private sealed class StubWebExtension : Novalist.Sdk.IExtension, Novalist.Sdk.Hooks.IWebViewContributor
+    {
+        public sealed class Controller : Novalist.Sdk.Hooks.IWebViewController
+        {
+            public event Action<string>? MessagePosted;
+            public Task<string?> OnMessageAsync(string json)
+            {
+                MessagePosted?.Invoke("""{"type":"pushed"}""");
+                return Task.FromResult<string?>(json == "null-reply" ? null : $"echo:{json}");
+            }
+        }
+
+        public string Id => "com.test.stub";
+        public string DisplayName => "Stub";
+        public string Description => "Stub extension";
+        public string Version => "1.0.0";
+        public string Author => "Tests";
+        public void Initialize(Novalist.Sdk.Services.IHostServices host) { }
+        public void Shutdown() { }
+        public Novalist.Sdk.Hooks.IWebViewController? CreateController(string viewKey) =>
+            viewKey == "stub.view" ? new Controller() : null;
+    }
+
+    [Fact]
+    public async Task Views_And_WebviewMessages_RouteToControllers()
+    {
+        var manifest = new Novalist.Sdk.ExtensionManifest
+        {
+            Id = "com.test.stub",
+            Name = "Stub",
+            Version = "1.0.0",
+            Contributes = new Novalist.Sdk.WebContributions
+            {
+                Views =
+                [
+                    new Novalist.Sdk.WebViewContribution
+                    {
+                        Key = "stub.view",
+                        Title = "Stub View",
+                        Placement = "main",
+                        Entry = "web/index.html"
+                    }
+                ]
+            }
+        };
+        _workspace.ExtensionsHost.Extensions.Add(new ExtensionInfo
+        {
+            Manifest = manifest,
+            FolderPath = _root,
+            Instance = new StubWebExtension(),
+            IsEnabled = true,
+            IsLoaded = true
+        });
+        var rpc = new ExtensionsRpc(_workspace);
+
+        var views = rpc.Views();
+        Assert.Single(views);
+        Assert.Equal("com.test.stub/web/index.html", views[0].Entry);
+
+        string? pushedJson = null;
+        ExtensionsRpc.WebviewPosted = (id, key, json) => pushedJson = $"{id}|{key}|{json}";
+        var reply = await rpc.WebviewMessageAsync("com.test.stub", "stub.view", "hello");
+        Assert.Equal("echo:hello", reply);
+        Assert.Contains("pushed", pushedJson);
+
+        // Cached controller path + null replies + unknown view/extension.
+        Assert.Null(await rpc.WebviewMessageAsync("com.test.stub", "stub.view", "null-reply"));
+        Assert.Null(await rpc.WebviewMessageAsync("com.test.stub", "other.view", "x"));
+        Assert.Null(await rpc.WebviewMessageAsync("com.missing", "stub.view", "x"));
+        ExtensionsRpc.WebviewPosted = null;
+    }
+
     [Fact]
     public void Shims_LogLocAndNotifications_Work()
     {

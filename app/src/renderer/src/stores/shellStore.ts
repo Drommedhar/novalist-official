@@ -27,8 +27,14 @@ export const viewGroups: { key: string; views: MainView[] }[] = [
 
 export type BinderTab = 'chapters' | 'smartLists'
 
+export interface ActiveExtView {
+  extensionId: string
+  key: string
+}
+
 interface ShellState {
   mainView: MainView
+  extView: ActiveExtView | null
   binderTab: BinderTab
   binderVisible: boolean
   inspectorVisible: boolean
@@ -36,6 +42,7 @@ interface ShellState {
   findReplaceOpen: boolean
   commandPaletteOpen: boolean
   setMainView(view: MainView): void
+  setExtView(view: ActiveExtView | null): void
   setBinderTab(tab: BinderTab): void
   toggleBinder(): void
   toggleInspector(): void
@@ -46,13 +53,15 @@ interface ShellState {
 
 export const useShellStore = create<ShellState>((set) => ({
   mainView: 'write',
+  extView: null,
   binderTab: 'chapters',
   binderVisible: true,
   inspectorVisible: true,
   backendVersion: null,
   findReplaceOpen: false,
   commandPaletteOpen: false,
-  setMainView: (mainView) => set({ mainView }),
+  setMainView: (mainView) => set({ mainView, extView: null }),
+  setExtView: (extView) => set({ extView }),
   setBinderTab: (binderTab) => set({ binderTab }),
   setFindReplaceOpen: (findReplaceOpen) => set({ findReplaceOpen }),
   setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),

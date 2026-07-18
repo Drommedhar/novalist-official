@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useShellStore, viewGroups, type MainView } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useExtensionsStore } from '../stores/extensionsStore'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
 import { InputDialog } from './InputDialog'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -61,6 +62,10 @@ export function Binder(): React.JSX.Element {
   const mainView = useShellStore((s) => s.mainView)
   const setMainView = useShellStore((s) => s.setMainView)
   const binderTab = useShellStore((s) => s.binderTab)
+  const extView = useShellStore((s) => s.extView)
+  const setExtView = useShellStore((s) => s.setExtView)
+  const allExtViews = useExtensionsStore((s) => s.views)
+  const extViews = allExtViews.filter((v) => v.placement === 'main')
   const setBinderTab = useShellStore((s) => s.setBinderTab)
   const chapters = useProjectStore((s) => s.chapters)
   const openSceneId = useProjectStore((s) => s.openSceneId)
@@ -199,6 +204,27 @@ export function Binder(): React.JSX.Element {
         ))}
       </div>
       <div className="binder-rail">
+        {extViews.length > 0 && (
+          <div className="binder-group">
+            <div className="binder-group-label">{t('extensions.title')}</div>
+            {extViews.map((view) => (
+              <button
+                key={`${view.extensionId}|${view.key}`}
+                className={`binder-rail-item${
+                  extView?.key === view.key && extView.extensionId === view.extensionId
+                    ? ' active'
+                    : ''
+                }`}
+                onClick={() => setExtView({ extensionId: view.extensionId, key: view.key })}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+                  <path d={view.iconPath || 'M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'} />
+                </svg>
+                {view.title}
+              </button>
+            ))}
+          </div>
+        )}
         {viewGroups.map((group) => (
           <div key={group.key} className="binder-group">
             <div className="binder-group-label">{t(group.key)}</div>

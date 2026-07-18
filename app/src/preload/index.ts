@@ -22,6 +22,9 @@ contextBridge.exposeInMainWorld('novalist', {
   },
   setProjectRoot(root: string | null): void {
     ipcRenderer.send('novalist:set-project-root', root)
+  },
+  registerExtensionRoots(roots: Record<string, string>): void {
+    ipcRenderer.send('novalist:register-ext-roots', roots)
   }
 })
 

@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url'
 import { join, normalize } from 'node:path'
 
 let projectRoot: string | null = null
+const extensionRoots = new Map<string, string>()
 
 /**
  * novalist-project:// serves read-only files from the active project folder so
@@ -14,6 +15,10 @@ export function registerProtocolSchemes(): void {
     {
       scheme: 'novalist-project',
       privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true }
+    },
+    {
+      scheme: 'novalist-ext',
+      privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true }
     }
   ])
 }
@@ -21,6 +26,27 @@ export function registerProtocolSchemes(): void {
 export function registerProtocolHandlers(): void {
   ipcMain.on('novalist:set-project-root', (_event, root: string | null) => {
     projectRoot = root
+  })
+
+  ipcMain.on(
+    'novalist:register-ext-roots',
+    (_event, roots: Record<string, string>) => {
+      extensionRoots.clear()
+      for (const [id, root] of Object.entries(roots)) extensionRoots.set(id, root)
+    }
+  )
+
+  protocol.handle('novalist-ext', (request) => {
+    const url = new URL(request.url)
+    // novalist-ext://{extensionId}/{path}: host carries the extension id.
+    const root = extensionRoots.get(url.hostname)
+    if (!root) return new Response('unknown extension', { status: 404 })
+    const relative = decodeURIComponent(url.pathname)
+    const resolved = normalize(join(root, relative))
+    if (!resolved.startsWith(normalize(root))) {
+      return new Response('forbidden', { status: 403 })
+    }
+    return net.fetch(pathToFileURL(resolved).toString())
   })
 
   protocol.handle('novalist-project', (request) => {
