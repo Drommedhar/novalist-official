@@ -59,6 +59,13 @@ jobs:
           --settings tests/coverlet.runsettings
           --results-directory artifacts/coverage/desktop
 
+      - name: Test Novalist.Backend
+        run: >-
+          dotnet test tests/Novalist.Backend.Tests/Novalist.Backend.Tests.csproj
+          -c Debug --no-build
+          --settings tests/coverlet.runsettings
+          --results-directory artifacts/coverage/backend
+
       # Measure only (never fails) so the badge can be published with the real number
       # — including when coverage has dropped below the threshold — before we fail the build.
       - name: Measure coverage
@@ -68,8 +75,9 @@ jobs:
           $sdk     = ./eng/Check-Coverage.ps1 -NoFail -CoberturaGlob 'artifacts/coverage/sdk/**/coverage.cobertura.xml'     -Package 'Novalist.Sdk'
           $core    = ./eng/Check-Coverage.ps1 -NoFail -CoberturaGlob 'artifacts/coverage/core/**/coverage.cobertura.xml'    -Package 'Novalist.Core'
           $desktop = ./eng/Check-Coverage.ps1 -NoFail -CoberturaGlob 'artifacts/coverage/desktop/**/coverage.cobertura.xml' -Package 'Novalist.Desktop'
+          $backend = ./eng/Check-Coverage.ps1 -NoFail -CoberturaGlob 'artifacts/coverage/backend/**/coverage.cobertura.xml' -Package 'Novalist.Backend'
           # Each script emits "<Package>=<rate>" as its last stdout line.
-          $rows = @($sdk, $core, $desktop) | ForEach-Object { ($_ | Select-Object -Last 1) }
+          $rows = @($sdk, $core, $desktop, $backend) | ForEach-Object { ($_ | Select-Object -Last 1) }
           "## Coverage (line)`n`n| Assembly | Coverage |`n| --- | --- |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
           $rates = @()
           foreach ($r in $rows) {
@@ -104,3 +112,39 @@ jobs:
           name: coverage-cobertura
           path: artifacts/coverage/**/coverage.cobertura.xml
           if-no-files-found: warn
+
+  web:
+    name: Electron app (typecheck, build, e2e)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build backend
+        run: dotnet build Novalist.Backend/Novalist.Backend.csproj -c Debug
+
+      - name: Install app dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Typecheck
+        working-directory: app
+        run: npm run typecheck
+
+      - name: Build renderer
+        working-directory: app
+        run: npm run build
+
+      - name: E2E (Playwright against the real app)
+        working-directory: app
+        run: xvfb-run --auto-servernum npx playwright test
