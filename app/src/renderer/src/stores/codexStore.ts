@@ -20,7 +20,7 @@ interface CodexState {
   refresh(): Promise<void>
   select(id: string): Promise<void>
   updateField(key: string, value: string): Promise<void>
-  create(name: string): Promise<void>
+  create(name: string, templateId?: string | null): Promise<void>
   remove(id: string, isWorldBible: boolean): Promise<void>
 }
 
@@ -60,10 +60,11 @@ export const useCodexStore = create<CodexState>((set, get) => ({
     await get().refresh()
   },
 
-  create: async (name) => {
+  create: async (name, templateId = null) => {
     const record = await rpc.request<Record<string, unknown>>('entities/create', [
       get().entityType,
-      name
+      name,
+      templateId
     ])
     await get().refresh()
     set({ selectedId: String(record.id), selectedRecord: record })

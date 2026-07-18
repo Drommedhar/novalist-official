@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
-import { InputDialog } from '../../shell/InputDialog'
+import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { EntityListsEditor } from './EntityListsEditor'
 import { EntityImages } from './EntityImages'
@@ -32,6 +32,8 @@ export function CodexView(): React.JSX.Element {
   const create = useCodexStore((s) => s.create)
   const remove = useCodexStore((s) => s.remove)
   const [pending, setPending] = useState<'create' | 'delete' | null>(null)
+  const [templates, setTemplates] = useState<{ id: string; name: string }[]>([])
+  const [templateId, setTemplateId] = useState<string>('')
 
   useEffect(() => {
     void refresh()
@@ -79,7 +81,17 @@ export function CodexView(): React.JSX.Element {
             </button>
           ))}
           {entities.length === 0 && <p className="codex-empty">{t('codexHub.emptyHint')}</p>}
-          <button className="binder-rail-item" onClick={() => setPending('create')}>
+          <button
+            className="binder-rail-item"
+            onClick={() => {
+              setTemplateId('')
+              void rpc
+                .request<{ id: string; name: string }[]>('entities/templates', [entityType])
+                .then(setTemplates)
+                .catch(() => setTemplates([]))
+              setPending('create')
+            }}
+          >
             <Plus size={14} strokeWidth={2} />
             {t('codexHub.newEntry')}
           </button>
@@ -126,14 +138,58 @@ export function CodexView(): React.JSX.Element {
         </div>
       </div>
       {pending === 'create' && (
-        <InputDialog
-          title={t('codexHub.newEntry')}
-          onCancel={() => setPending(null)}
-          onSubmit={(name) => {
-            setPending(null)
-            void create(name)
-          }}
-        />
+        <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && setPending(null)}>
+          <div className="dialog-card" role="dialog" aria-label={t('codexHub.newEntry')}>
+            <div className="dialog-title">{t('codexHub.newEntry')}</div>
+            <input
+              id="codex-create-name"
+              className="dialog-input"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setPending(null)
+                if (e.key === 'Enter') {
+                  const name = (e.target as HTMLInputElement).value.trim()
+                  if (name) {
+                    setPending(null)
+                    void create(name, templateId || null)
+                  }
+                }
+              }}
+            />
+            {templates.length > 0 && (
+              <select
+                className="dialog-input"
+                value={templateId}
+                onChange={(e) => setTemplateId(e.target.value)}
+              >
+                <option value="">{t('welcome.template')}</option>
+                {templates.map((tpl) => (
+                  <option key={tpl.id} value={tpl.id}>
+                    {tpl.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            <div className="dialog-actions">
+              <button className="dialog-button" onClick={() => setPending(null)}>
+                {t('dialog.cancel')}
+              </button>
+              <button
+                className="dialog-button primary"
+                onClick={() => {
+                  const input = document.getElementById('codex-create-name') as HTMLInputElement | null
+                  const name = input?.value.trim()
+                  if (name) {
+                    setPending(null)
+                    void create(name, templateId || null)
+                  }
+                }}
+              >
+                {t('dialog.ok')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {pending === 'delete' && selected && (
         <ConfirmDialog

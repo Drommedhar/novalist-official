@@ -112,6 +112,45 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task CreateWithTemplate_AppliesFieldsPropsAndSections()
+    {
+        var book = _workspace.Projects.ActiveBook!;
+        book.CharacterTemplates.Add(new CharacterTemplate
+        {
+            Id = "hero",
+            Name = "Hero",
+            Fields = [new TemplateField { Key = "role", DefaultValue = "Protagonist" }],
+            CustomPropertyDefs =
+                [new CustomPropertyDefinition { Key = "Allegiance", DefaultValue = "North" }],
+            Sections = [new TemplateSection { Title = "Backstory", DefaultContent = "Unknown." }]
+        });
+
+        var templates = _rpc.GetTemplates("character");
+        Assert.Single(templates, t => t.Name == "Hero");
+        Assert.Empty(_rpc.GetTemplates("location"));
+        Assert.Empty(_rpc.GetTemplates("item"));
+        Assert.Empty(_rpc.GetTemplates("lore"));
+        Assert.Throws<InvalidOperationException>(() => _rpc.GetTemplates("dragon"));
+
+        var created = await _rpc.CreateAsync("character", "Mira", "hero");
+        Assert.Equal("Protagonist", created.GetProperty("role").GetString());
+        Assert.Equal("hero", created.GetProperty("templateId").GetString());
+        Assert.Equal("North", created.GetProperty("customProperties").GetProperty("Allegiance").GetString());
+        Assert.Equal("Backstory", created.GetProperty("sections")[0].GetProperty("title").GetString());
+
+        // Unknown template id: entity still created, only TemplateId set.
+        var plain = await _rpc.CreateAsync("character", "Solo", "missing");
+        Assert.Equal("missing", plain.GetProperty("templateId").GetString());
+
+        // Every type's template-lookup arm executes.
+        foreach (var type in new[] { "location", "item", "lore" })
+        {
+            var typed = await _rpc.CreateAsync(type, "Templated", "any-id");
+            Assert.Equal("any-id", typed.GetProperty("templateId").GetString());
+        }
+    }
+
+    [Fact]
     public async Task Overrides_SetDiffAndRemove()
     {
         var created = await _rpc.CreateAsync("character", "Mira");

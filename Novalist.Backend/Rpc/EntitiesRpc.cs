@@ -316,8 +316,23 @@ public sealed class EntitiesRpc
         return JsonSerializer.SerializeToElement(entity, JsonOptions);
     }
 
+    [JsonRpcMethod("entities/templates")]
+    public EntityTemplateDto[] GetTemplates(string type)
+    {
+        var book = _workspace.Projects.ActiveBook
+            ?? throw new InvalidOperationException("No project open.");
+        return type switch
+        {
+            "character" => book.CharacterTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
+            "location" => book.LocationTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
+            "item" => book.ItemTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
+            "lore" => book.LoreTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        };
+    }
+
     [JsonRpcMethod("entities/create")]
-    public async Task<JsonElement> CreateAsync(string type, string name)
+    public async Task<JsonElement> CreateAsync(string type, string name, string? templateId = null)
     {
         object entity = type switch
         {
@@ -327,6 +342,10 @@ public sealed class EntitiesRpc
             "lore" => new LoreData { Name = name },
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
+        if (templateId != null)
+        {
+            ApplyTemplate(entity, type, templateId);
+        }
         switch (entity)
         {
             case CharacterData c:
@@ -386,6 +405,56 @@ public sealed class EntitiesRpc
     private static readonly JsonSerializerOptions JsonOptions =
         new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
+    /// <summary>Applies a book template: known fields by name, custom-property
+    /// defaults without overwriting, and section seeds - mirroring the
+    /// Avalonia EntityPanelViewModel.Apply*Template behavior.</summary>
+    private void ApplyTemplate(object entity, string type, string templateId)
+    {
+        var defs = ResolvePropertyDefs(type, templateId);
+        entity.GetType().GetProperty("TemplateId")?.SetValue(entity, templateId);
+
+        var book = _workspace.Projects.ActiveBook!;
+        (List<TemplateField> Fields, List<TemplateSection> Sections) parts = type switch
+        {
+            "character" => Pick(book.CharacterTemplates.FirstOrDefault(t => t.Id == templateId)),
+            "location" => Pick(book.LocationTemplates.FirstOrDefault(t => t.Id == templateId)),
+            "item" => Pick(book.ItemTemplates.FirstOrDefault(t => t.Id == templateId)),
+            _ => Pick(book.LoreTemplates.FirstOrDefault(t => t.Id == templateId))
+        };
+
+        foreach (var field in parts.Fields)
+        {
+            var property = entity.GetType().GetProperty(
+                char.ToUpperInvariant(field.Key[0]) + field.Key[1..]);
+            if (property?.CanWrite == true && property.PropertyType == typeof(string))
+            {
+                property.SetValue(entity, field.DefaultValue);
+            }
+        }
+
+        var props = (Dictionary<string, string>)entity.GetType()
+            .GetProperty("CustomProperties")!.GetValue(entity)!;
+        foreach (var def in defs)
+        {
+            props.TryAdd(def.Key, def.DefaultValue);
+        }
+
+        var sections = (List<EntitySection>)entity.GetType()
+            .GetProperty("Sections")!.GetValue(entity)!;
+        foreach (var section in parts.Sections)
+        {
+            if (sections.All(s => s.Title != section.Title))
+            {
+                sections.Add(new EntitySection { Title = section.Title, Content = section.DefaultContent });
+            }
+        }
+    }
+
+    private static (List<TemplateField>, List<TemplateSection>) Pick(object? template) =>
+        template == null
+            ? ([], [])
+            : (((dynamic)template).Fields, ((dynamic)template).Sections);
+
     private static InvalidOperationException Unknown(string id) => new($"Unknown entity '{id}'.");
 
     private static string Compose(string name, string surname) =>
@@ -395,6 +464,8 @@ public sealed class EntitiesRpc
         string id, string name, string detail, bool isWorldBible, EntityImage? image) =>
         new(id, name, detail, isWorldBible, image?.Path);
 }
+
+public sealed record EntityTemplateDto(string Id, string Name);
 
 public sealed record CustomPropDto(string Key, string Value, string PropType, IReadOnlyList<string> EnumOptions);
 
