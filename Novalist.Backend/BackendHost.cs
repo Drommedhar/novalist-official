@@ -52,6 +52,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new SearchRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SnapshotsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SettingsRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new MapsRpc(_workspace), targetOptions);
         rpc.StartListening();
         _rpc = rpc;
         return rpc;

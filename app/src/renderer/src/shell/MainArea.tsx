@@ -14,6 +14,7 @@ import { ResearchView } from '../views/library/ResearchView'
 import { ExportView } from '../views/export/ExportView'
 import { GitView } from '../views/git/GitView'
 import { SettingsView } from '../views/settings/SettingsView'
+import { MapsView } from '../views/maps/MapsView'
 
 export function MainArea(): React.JSX.Element {
   const { t } = useTranslation()
@@ -131,10 +132,18 @@ export function MainArea(): React.JSX.Element {
     )
   }
 
+  if (mainView === 'maps') {
+    return (
+      <main className="main-area">
+        <MapsView />
+      </main>
+    )
+  }
+
   return (
     <main className="main-area">
       <div className="main-placeholder">
-        <h1>{t(`shell.view.${mainView}`)}</h1>
+        <h1>{t(`shell.view.${String(mainView)}`)}</h1>
         <p>{t('shell.viewPending')}</p>
       </div>
     </main>

@@ -1771,3 +1771,10 @@
 .snapshot-restore:hover {
   text-decoration: underline;
 }
+
+/* ===== Maps ===== */
+.mapsview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
