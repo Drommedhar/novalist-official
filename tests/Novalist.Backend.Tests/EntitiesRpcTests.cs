@@ -112,6 +112,35 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Overrides_SetDiffAndRemove()
+    {
+        var created = await _rpc.CreateAsync("character", "Mira");
+        var id = created.GetProperty("id").GetString()!;
+
+        var withOverride = await _rpc.SetOverrideAsync(id, "ch-1", "Scene One",
+            new Dictionary<string, string> { ["role"] = "Deserter", ["eyeColor"] = "" });
+        var over = withOverride.GetProperty("chapterOverrides")[0];
+        Assert.Equal("Deserter", over.GetProperty("role").GetString());
+        Assert.Equal(JsonValueKind.Null,
+            over.TryGetProperty("eyeColor", out var eye) ? eye.ValueKind : JsonValueKind.Null);
+
+        // Updating the same scope reuses the entry rather than duplicating.
+        var updated = await _rpc.SetOverrideAsync(id, "ch-1", "Scene One",
+            new Dictionary<string, string> { ["role"] = "Captain" });
+        Assert.Equal(1, updated.GetProperty("chapterOverrides").GetArrayLength());
+        Assert.Equal("Captain",
+            updated.GetProperty("chapterOverrides")[0].GetProperty("role").GetString());
+
+        var removed = await _rpc.RemoveOverrideAsync(id, "ch-1", "Scene One");
+        Assert.Equal(0, removed.GetProperty("chapterOverrides").GetArrayLength());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetOverrideAsync("missing", "ch-1", null, new Dictionary<string, string>()));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.RemoveOverrideAsync("missing", "ch-1", null));
+    }
+
+    [Fact]
     public async Task CustomProps_SetTypedAndRemove_WithTemplateDefs()
     {
         var book = _workspace.Projects.ActiveBook!;

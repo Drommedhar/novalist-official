@@ -632,7 +632,9 @@
     "unknownScope": "Unknown scope",
     "targetNames": "Names (comma-separated)",
     "fromGallery": "From gallery",
-    "importImage": "Import file"
+    "importImage": "Import file",
+    "addOverride": "Add override",
+    "wholeChapter": "Whole chapter"
   },
   "context": {
     "title": "NOVALIST CONTEXT",

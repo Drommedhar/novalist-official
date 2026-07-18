@@ -34,7 +34,9 @@ still building and gated in CI.
   locale-driven role keywords, search/world-bible filters).
 - Codex: four entity types, list with portraits, scalar field editing,
   aliases, sections, relationships, image management (gallery pick and
-  file import), typed custom properties resolved from templates.
+  file import), typed custom properties resolved from templates,
+  per-chapter/scene character overrides with diff storage (blank =
+  inherit, matching the Avalonia null-field model).
 - Research and gallery; Export in all seven formats (files verified
   non-empty per format in tests); Git (status, commit, push/pull,
   discard); Find/replace across scenes with snapshot-guarded replace.
@@ -58,8 +60,6 @@ still building and gated in CI.
 
 ## Remaining gaps (not yet at parity)
 
-- Character per-act/chapter/scene override editing UI (data preserved and
-  round-tripped; no dedicated editor yet).
 - Entity creation templates/wizard flow, custom entity type manager,
   template editor, custom entity types in the codex tabs.
 - Archived scenes browser; acts management (create/rename act as an

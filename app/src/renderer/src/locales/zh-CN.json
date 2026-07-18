@@ -674,7 +674,9 @@
     "unknownScope": "未知范围",
     "targetNames": "名称（用逗号分隔）",
     "fromGallery": "从图库选择",
-    "importImage": "导入文件"
+    "importImage": "导入文件",
+    "addOverride": "添加覆盖",
+    "wholeChapter": "整章"
   },
   "context": {
     "title": "NOVALIST 上下文",

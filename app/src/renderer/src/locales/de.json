@@ -532,7 +532,9 @@
     "unknownScope": "Unbekannter Bereich",
     "targetNames": "Namen (durch Komma getrennt)",
     "fromGallery": "Aus Galerie",
-    "importImage": "Datei importieren"
+    "importImage": "Datei importieren",
+    "addOverride": "Override hinzufügen",
+    "wholeChapter": "Ganzes Kapitel"
   },
   "context": {
     "title": "NOVALIST KONTEXT",

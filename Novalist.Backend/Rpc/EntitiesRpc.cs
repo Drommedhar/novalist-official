@@ -147,6 +147,49 @@ public sealed class EntitiesRpc
         return JsonSerializer.SerializeToElement(entity, JsonOptions);
     }
 
+    [JsonRpcMethod("entities/setOverride")]
+    public async Task<JsonElement> SetOverrideAsync(
+        string characterId,
+        string chapterGuid,
+        string? sceneTitle,
+        Dictionary<string, string> fields)
+    {
+        var character = (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == characterId)
+            ?? throw Unknown(characterId);
+        var overrides = character.ChapterOverrides;
+        var existing = overrides.FirstOrDefault(o =>
+            o.Chapter == chapterGuid && (o.Scene ?? string.Empty) == (sceneTitle ?? string.Empty));
+        if (existing == null)
+        {
+            existing = new CharacterOverride { Chapter = chapterGuid, Scene = sceneTitle };
+            overrides.Add(existing);
+        }
+        foreach (var (key, value) in fields)
+        {
+            var property = typeof(CharacterOverride).GetProperty(
+                char.ToUpperInvariant(key[0]) + key[1..]);
+            if (property?.CanWrite == true && property.PropertyType == typeof(string))
+            {
+                // Empty means inherit the base value (stored as null, the diff model).
+                property.SetValue(existing, string.IsNullOrEmpty(value) ? null : value);
+            }
+        }
+        await _entities.SaveCharacterAsync(character);
+        return JsonSerializer.SerializeToElement(character, JsonOptions);
+    }
+
+    [JsonRpcMethod("entities/removeOverride")]
+    public async Task<JsonElement> RemoveOverrideAsync(
+        string characterId, string chapterGuid, string? sceneTitle)
+    {
+        var character = (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == characterId)
+            ?? throw Unknown(characterId);
+        character.ChapterOverrides.RemoveAll(o =>
+            o.Chapter == chapterGuid && (o.Scene ?? string.Empty) == (sceneTitle ?? string.Empty));
+        await _entities.SaveCharacterAsync(character);
+        return JsonSerializer.SerializeToElement(character, JsonOptions);
+    }
+
     [JsonRpcMethod("entities/customProps")]
     public async Task<CustomPropDto[]> GetCustomPropsAsync(string type, string id)
     {

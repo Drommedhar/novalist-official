@@ -1864,3 +1864,6 @@
   color: var(--nl-text-subtle);
   font-size: var(--nl-font-body-sm);
 }
+
+.overrides-scope { color: var(--nl-accent); text-align: left; }
+.overrides-scope:hover { text-decoration: underline; }
