@@ -1540,7 +1540,8 @@
     "sortName": "排序：名称 (A–Z)",
     "sortNameDesc": "排序：名称 (Z–A)",
     "emptyHint": "此类型暂无条目。",
-    "selectHint": "选择一个条目以查看详情。"
+    "selectHint": "选择一个条目以查看详情。",
+    "newEntry": "新建条目"
   },
   "manuscript": {
     "title": "书稿",

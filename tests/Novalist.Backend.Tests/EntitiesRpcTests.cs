@@ -90,6 +90,39 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task CreateUpdateDelete_AllTypes_RoundTrip()
+    {
+        foreach (var type in new[] { "character", "location", "item", "lore" })
+        {
+            var created = await _rpc.CreateAsync(type, $"New {type}");
+            var id = created.GetProperty("id").GetString()!;
+            Assert.Equal($"New {type}", created.GetProperty("name").GetString());
+
+            var updated = await _rpc.UpdateAsync(type, id, new Dictionary<string, string>
+            {
+                ["name"] = $"Renamed {type}",
+                ["notAProperty"] = "ignored"
+            });
+            Assert.Equal($"Renamed {type}", updated.GetProperty("name").GetString());
+            Assert.Contains(await _rpc.ListAsync(type), e => e.Name.StartsWith("Renamed"));
+
+            await _rpc.DeleteAsync(type, id, isWorldBible: false);
+            Assert.DoesNotContain(await _rpc.ListAsync(type), e => e.Id == id);
+        }
+    }
+
+    [Fact]
+    public async Task CreateUpdateDelete_UnknownType_Throws()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.CreateAsync("dragon", "x"));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.UpdateAsync("dragon", "x", new Dictionary<string, string>()));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.DeleteAsync("dragon", "x", false));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.UpdateAsync("character", "missing", new Dictionary<string, string>()));
+    }
+
+    [Fact]
     public async Task RelationshipsGraph_CarriesEdgesAndDisplayNames()
     {
         await Entities.SaveCharacterAsync(new CharacterData

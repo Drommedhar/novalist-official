@@ -1117,7 +1117,8 @@
     "sortName": "Sortieren: Name (A–Z)",
     "sortNameDesc": "Sortieren: Name (Z–A)",
     "emptyHint": "Noch keine Einträge dieses Typs.",
-    "selectHint": "Wähle einen Eintrag, um Details zu sehen."
+    "selectHint": "Wähle einen Eintrag, um Details zu sehen.",
+    "newEntry": "Neuer Eintrag"
   },
   "manuscript": {
     "title": "Manuskript",

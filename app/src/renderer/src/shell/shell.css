@@ -1461,3 +1461,5 @@
   font-size: var(--nl-font-body-sm);
   color: var(--nl-text-dim);
 }
+.codex-detail-actions { display: flex; justify-content: flex-end; margin-bottom: var(--nl-space-md); }
+.codex-field-input { width: 100%; }

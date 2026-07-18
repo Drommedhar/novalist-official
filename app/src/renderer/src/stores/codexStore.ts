@@ -19,6 +19,9 @@ interface CodexState {
   setType(type: EntityType): Promise<void>
   refresh(): Promise<void>
   select(id: string): Promise<void>
+  updateField(key: string, value: string): Promise<void>
+  create(name: string): Promise<void>
+  remove(id: string, isWorldBible: boolean): Promise<void>
 }
 
 export const useCodexStore = create<CodexState>((set, get) => ({
@@ -43,5 +46,32 @@ export const useCodexStore = create<CodexState>((set, get) => ({
       id
     ])
     set({ selectedId: id, selectedRecord: record })
+  },
+
+  updateField: async (key, value) => {
+    const { entityType, selectedId } = get()
+    if (!selectedId) return
+    const record = await rpc.request<Record<string, unknown>>('entities/update', [
+      entityType,
+      selectedId,
+      { [key]: value }
+    ])
+    set({ selectedRecord: record })
+    await get().refresh()
+  },
+
+  create: async (name) => {
+    const record = await rpc.request<Record<string, unknown>>('entities/create', [
+      get().entityType,
+      name
+    ])
+    await get().refresh()
+    set({ selectedId: String(record.id), selectedRecord: record })
+  },
+
+  remove: async (id, isWorldBible) => {
+    await rpc.request('entities/delete', [get().entityType, id, isWorldBible])
+    if (get().selectedId === id) set({ selectedId: null, selectedRecord: null })
+    await get().refresh()
   }
 }))

@@ -1,6 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Plus, Trash2 } from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
+import { InputDialog } from '../../shell/InputDialog'
+import { ConfirmDialog } from '../../shell/ConfirmDialog'
 
 const TYPES: { type: EntityType; key: string }[] = [
   { type: 'character', key: 'codexHub.characters' },
@@ -21,10 +24,16 @@ export function CodexView(): React.JSX.Element {
   const setType = useCodexStore((s) => s.setType)
   const refresh = useCodexStore((s) => s.refresh)
   const select = useCodexStore((s) => s.select)
+  const updateField = useCodexStore((s) => s.updateField)
+  const create = useCodexStore((s) => s.create)
+  const remove = useCodexStore((s) => s.remove)
+  const [pending, setPending] = useState<'create' | 'delete' | null>(null)
 
   useEffect(() => {
     void refresh()
   }, [refresh])
+
+  const selected = entities.find((e) => e.id === selectedId)
 
   return (
     <div className="codex">
@@ -66,29 +75,69 @@ export function CodexView(): React.JSX.Element {
             </button>
           ))}
           {entities.length === 0 && <p className="codex-empty">{t('codexHub.emptyHint')}</p>}
+          <button className="binder-rail-item" onClick={() => setPending('create')}>
+            <Plus size={14} strokeWidth={2} />
+            {t('codexHub.newEntry')}
+          </button>
         </div>
         <div className="codex-detail">
           {record ? (
-            <dl className="codex-fields">
-              {Object.entries(record)
-                .filter(
-                  ([key, value]) =>
-                    !HIDDEN_FIELDS.has(key) &&
-                    typeof value === 'string' &&
-                    value.trim().length > 0
-                )
-                .map(([key, value]) => (
-                  <div key={key} className="codex-field">
-                    <dt>{key}</dt>
-                    <dd>{String(value)}</dd>
-                  </div>
-                ))}
-            </dl>
+            <>
+              <div className="codex-detail-actions">
+                <button
+                  className="dialog-button danger"
+                  onClick={() => setPending('delete')}
+                >
+                  <Trash2 size={13} strokeWidth={2} /> {t('explorer.contextDelete')}
+                </button>
+              </div>
+              <dl className="codex-fields">
+                {Object.entries(record)
+                  .filter(
+                    ([key, value]) => !HIDDEN_FIELDS.has(key) && typeof value === 'string'
+                  )
+                  .map(([key, value]) => (
+                    <div key={`${selectedId}-${key}`} className="codex-field">
+                      <dt>{key}</dt>
+                      <dd>
+                        <input
+                          className="outliner-input codex-field-input"
+                          defaultValue={String(value)}
+                          onBlur={(e) => {
+                            if (e.target.value !== value) void updateField(key, e.target.value)
+                          }}
+                        />
+                      </dd>
+                    </div>
+                  ))}
+              </dl>
+            </>
           ) : (
             <p className="codex-empty">{t('codexHub.selectHint')}</p>
           )}
         </div>
       </div>
+      {pending === 'create' && (
+        <InputDialog
+          title={t('codexHub.newEntry')}
+          onCancel={() => setPending(null)}
+          onSubmit={(name) => {
+            setPending(null)
+            void create(name)
+          }}
+        />
+      )}
+      {pending === 'delete' && selected && (
+        <ConfirmDialog
+          title={t('explorer.deleteTitle')}
+          message={selected.name}
+          onCancel={() => setPending(null)}
+          onConfirm={() => {
+            setPending(null)
+            void remove(selected.id, selected.isWorldBible)
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -52,6 +52,97 @@ public sealed class EntitiesRpc
         return JsonSerializer.SerializeToElement(entity ?? throw Unknown(id), JsonOptions);
     }
 
+    [JsonRpcMethod("entities/update")]
+    public async Task<JsonElement> UpdateAsync(string type, string id, Dictionary<string, string> fields)
+    {
+        object entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        } ?? throw Unknown(id);
+
+        foreach (var (key, value) in fields)
+        {
+            var property = entity.GetType().GetProperty(
+                char.ToUpperInvariant(key[0]) + key[1..]);
+            if (property?.CanWrite == true && property.PropertyType == typeof(string))
+            {
+                property.SetValue(entity, value);
+            }
+        }
+
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+        return JsonSerializer.SerializeToElement(entity, JsonOptions);
+    }
+
+    [JsonRpcMethod("entities/create")]
+    public async Task<JsonElement> CreateAsync(string type, string name)
+    {
+        object entity = type switch
+        {
+            "character" => new CharacterData { Name = name },
+            "location" => new LocationData { Name = name },
+            "item" => new ItemData { Name = name },
+            "lore" => new LoreData { Name = name },
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        };
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+        return JsonSerializer.SerializeToElement(entity, JsonOptions);
+    }
+
+    [JsonRpcMethod("entities/delete")]
+    public async Task DeleteAsync(string type, string id, bool isWorldBible)
+    {
+        switch (type)
+        {
+            case "character":
+                await _entities.DeleteCharacterAsync(id, isWorldBible);
+                break;
+            case "location":
+                await _entities.DeleteLocationAsync(id, isWorldBible);
+                break;
+            case "item":
+                await _entities.DeleteItemAsync(id, isWorldBible);
+                break;
+            case "lore":
+                await _entities.DeleteLoreAsync(id, isWorldBible);
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown entity type '{type}'.");
+        }
+    }
+
     [JsonRpcMethod("scenes/setSynopsis")]
     public async Task SetSynopsisAsync(string chapterGuid, string sceneId, string synopsis)
     {

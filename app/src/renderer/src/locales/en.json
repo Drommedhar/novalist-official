@@ -1498,7 +1498,8 @@
     "sortName": "Sort: Name (A–Z)",
     "sortNameDesc": "Sort: Name (Z–A)",
     "emptyHint": "No entries of this type yet.",
-    "selectHint": "Select an entry to see its details."
+    "selectHint": "Select an entry to see its details.",
+    "newEntry": "New entry"
   },
   "manuscript": {
     "title": "Manuscript",
