@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Settings2, Trash2 } from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
 import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { EntityListsEditor } from './EntityListsEditor'
+import { CustomTypeManager, type CustomTypeDefinition } from './CustomTypeManager'
 import { EntityImages } from './EntityImages'
 import { CustomPropsEditor } from './CustomPropsEditor'
 import { OverridesEditor } from './OverridesEditor'
@@ -21,9 +22,8 @@ const HIDDEN_FIELDS = new Set(['id', 'isWorldBible', 'images', 'relationships', 
 
 export function CodexView(): React.JSX.Element {
   const { t } = useTranslation()
-  const [customTypes, setCustomTypes] = useState<
-    { typeKey: string; displayNamePlural: string }[]
-  >([])
+  const [customTypes, setCustomTypes] = useState<CustomTypeDefinition[]>([])
+  const [typeManagerOpen, setTypeManagerOpen] = useState(false)
   const entityType = useCodexStore((s) => s.entityType)
   const entities = useCodexStore((s) => s.entities)
   const selectedId = useCodexStore((s) => s.selectedId)
@@ -41,7 +41,7 @@ export function CodexView(): React.JSX.Element {
   useEffect(() => {
     void refresh()
     void rpc
-      .request<{ typeKey: string; displayNamePlural: string }[]>('entities/customTypes')
+      .request<CustomTypeDefinition[]>('entities/customTypes')
       .then(setCustomTypes)
       .catch(() => setCustomTypes([]))
   }, [refresh])
@@ -69,6 +69,9 @@ export function CodexView(): React.JSX.Element {
             {custom.displayNamePlural}
           </button>
         ))}
+        <button className="codex-tab codex-tab-manage" onClick={() => setTypeManagerOpen(true)}>
+          <Settings2 size={13} strokeWidth={2} /> {t('codexHub.manageTypes')}
+        </button>
       </div>
       <div className="codex-body">
         <div className="codex-list">
@@ -206,6 +209,21 @@ export function CodexView(): React.JSX.Element {
             </div>
           </div>
         </div>
+      )}
+      {typeManagerOpen && (
+        <CustomTypeManager
+          types={customTypes}
+          onChanged={(updated) => {
+            setCustomTypes(updated)
+            if (
+              !['character', 'location', 'item', 'lore'].includes(entityType) &&
+              !updated.some((d) => d.typeKey === entityType)
+            ) {
+              void setType('character')
+            }
+          }}
+          onClose={() => setTypeManagerOpen(false)}
+        />
       )}
       {pending === 'delete' && selected && (
         <ConfirmDialog

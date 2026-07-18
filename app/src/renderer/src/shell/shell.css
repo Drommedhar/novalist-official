@@ -730,6 +730,83 @@
   border-radius: var(--nl-radius-sm);
 }
 
+/* ===== Custom entity type manager ===== */
+
+.codex-tab-manage {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tight);
+  margin-left: auto;
+}
+
+.type-manager-card {
+  width: min(560px, 92vw);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.type-manager-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.type-manager-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tight);
+}
+
+.type-manager-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tight);
+  padding: var(--nl-space-tight) var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+.type-manager-name {
+  flex: 1;
+  min-width: 0;
+}
+
+.type-manager-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tight);
+}
+
+.type-manager-field {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tight);
+}
+
+.type-manager-field .dialog-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.type-manager-field .type-manager-type {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.type-manager-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tight);
+  font-size: var(--nl-font-body-sm);
+  white-space: nowrap;
+}
+
+.type-manager-features {
+  display: flex;
+  gap: var(--nl-space-lg);
+  flex-wrap: wrap;
+}
+
 /* ===== Dashboard ===== */
 .dashboard {
   display: flex;

@@ -18,10 +18,69 @@ public sealed class EntitiesRpc
     }
 
     [JsonRpcMethod("entities/customTypes")]
-    public CustomTypeDto[] GetCustomTypes() =>
-        _entities.GetCustomEntityTypes()
-            .Select(d => new CustomTypeDto(d.TypeKey, d.DisplayName, d.DisplayNamePlural))
-            .ToArray();
+    public CustomEntityTypeDefinition[] GetCustomTypes() =>
+        _entities.GetCustomEntityTypes().ToArray();
+
+    [JsonRpcMethod("entities/saveCustomType")]
+    public async Task<CustomEntityTypeDefinition[]> SaveCustomTypeAsync(CustomTypeSpecDto spec)
+    {
+        var isEditing = !string.IsNullOrWhiteSpace(spec.TypeKey);
+        if (isEditing)
+        {
+            var existing = _entities.GetCustomEntityTypes().FirstOrDefault(d => d.TypeKey == spec.TypeKey);
+            if (existing is { IsUserSource: false })
+                throw new InvalidOperationException($"Custom type is not editable: {spec.TypeKey}");
+        }
+        var key = isEditing ? spec.TypeKey! : GenerateTypeKey(spec.DisplayName);
+        var name = spec.DisplayName.Trim();
+        await _entities.SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
+        {
+            TypeKey = key,
+            DisplayName = name,
+            DisplayNamePlural = string.IsNullOrWhiteSpace(spec.DisplayNamePlural) ? name + "s" : spec.DisplayNamePlural.Trim(),
+            Icon = string.Empty,
+            FolderName = key,
+            Source = "user",
+            DefaultFields = (spec.Fields ?? []).Select(f => new CustomEntityFieldDefinition
+            {
+                Key = string.IsNullOrWhiteSpace(f.Key)
+                    ? f.DisplayName.Replace(" ", "", StringComparison.Ordinal)
+                    : f.Key,
+                DisplayName = f.DisplayName,
+                Type = Enum.Parse<CustomPropertyType>(f.Type, ignoreCase: true),
+                DefaultValue = f.DefaultValue ?? string.Empty,
+                EnumOptions = f.EnumOptions is { Length: > 0 } ? [.. f.EnumOptions] : null,
+                Required = f.Required
+            }).ToList(),
+            Features = new CustomEntityFeatures
+            {
+                IncludeImages = spec.IncludeImages,
+                IncludeRelationships = spec.IncludeRelationships,
+                IncludeSections = spec.IncludeSections
+            }
+        });
+        return GetCustomTypes();
+    }
+
+    [JsonRpcMethod("entities/deleteCustomType")]
+    public async Task<CustomEntityTypeDefinition[]> DeleteCustomTypeAsync(string typeKey)
+    {
+        var definition = _entities.GetCustomEntityTypes().FirstOrDefault(d => d.TypeKey == typeKey)
+            ?? throw new InvalidOperationException($"Unknown custom type: {typeKey}");
+        if (!definition.IsUserSource)
+            throw new InvalidOperationException($"Custom type is not deletable: {typeKey}");
+        await _entities.DeleteCustomEntityTypeAsync(typeKey);
+        return GetCustomTypes();
+    }
+
+    private static string GenerateTypeKey(string displayName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+            return "custom_" + Guid.NewGuid().ToString("N")[..8];
+        return string.Concat(displayName.Trim().ToLowerInvariant()
+            .Select(c => char.IsLetterOrDigit(c) ? c : '_'))
+            .Trim('_');
+    }
 
     private bool IsCustomType(string type) =>
         _entities.GetCustomEntityTypes().Any(d => d.TypeKey == type);
@@ -521,7 +580,22 @@ public sealed class EntitiesRpc
 
 public sealed record EntityTemplateDto(string Id, string Name);
 
-public sealed record CustomTypeDto(string TypeKey, string DisplayName, string DisplayNamePlural);
+public sealed record CustomTypeSpecDto(
+    string? TypeKey,
+    string DisplayName,
+    string? DisplayNamePlural,
+    CustomFieldSpecDto[]? Fields,
+    bool IncludeImages,
+    bool IncludeRelationships,
+    bool IncludeSections);
+
+public sealed record CustomFieldSpecDto(
+    string? Key,
+    string DisplayName,
+    string Type,
+    string? DefaultValue,
+    string[]? EnumOptions,
+    bool Required);
 
 public sealed record CustomPropDto(string Key, string Value, string PropType, IReadOnlyList<string> EnumOptions);
 

@@ -112,6 +112,72 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveCustomType_GeneratesKeyPluralAndFields()
+    {
+        var types = await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            TypeKey: null,
+            DisplayName: " Magic System ",
+            DisplayNamePlural: null,
+            Fields:
+            [
+                new CustomFieldSpecDto(null, "Power Level", "Int", "1", null, Required: true),
+                new CustomFieldSpecDto("Rarity", "Rarity", "Enum", null, ["Common", "Rare"], Required: false)
+            ],
+            IncludeImages: true,
+            IncludeRelationships: false,
+            IncludeSections: true));
+
+        var def = Assert.Single(types);
+        Assert.Equal("magic_system", def.TypeKey);
+        Assert.Equal("Magic System", def.DisplayName);
+        Assert.Equal("Magic Systems", def.DisplayNamePlural);
+        Assert.Equal("magic_system", def.FolderName);
+        Assert.True(def.IsUserSource);
+        Assert.Equal("PowerLevel", def.DefaultFields[0].Key);
+        Assert.True(def.DefaultFields[0].Required);
+        Assert.Equal(["Common", "Rare"], def.DefaultFields[1].EnumOptions!);
+        Assert.True(def.Features.IncludeImages);
+        Assert.False(def.Features.IncludeRelationships);
+
+        var edited = await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            "magic_system", "Arcana", "Arcana", Fields: null,
+            IncludeImages: false, IncludeRelationships: true, IncludeSections: false));
+        var editedDef = Assert.Single(edited);
+        Assert.Equal("magic_system", editedDef.TypeKey);
+        Assert.Equal("Arcana", editedDef.DisplayName);
+        Assert.Empty(editedDef.DefaultFields);
+
+        var afterDelete = await _rpc.DeleteCustomTypeAsync("magic_system");
+        Assert.Empty(afterDelete);
+    }
+
+    [Fact]
+    public async Task SaveCustomType_BlankNameFallsBackToGeneratedKey()
+    {
+        var types = await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            null, "  ", null, null, true, true, true));
+        Assert.StartsWith("custom_", Assert.Single(types).TypeKey);
+    }
+
+    [Fact]
+    public async Task CustomTypes_ExtensionSourceIsProtected()
+    {
+        await new Novalist.Core.Services.EntityService(_workspace.Projects)
+            .SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
+            {
+                TypeKey = "ext_type",
+                DisplayName = "Ext",
+                DisplayNamePlural = "Exts",
+                Source = "ext.some-extension"
+            });
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.SaveCustomTypeAsync(
+            new CustomTypeSpecDto("ext_type", "Ext", null, null, true, true, true)));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.DeleteCustomTypeAsync("ext_type"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.DeleteCustomTypeAsync("nope"));
+    }
+
+    [Fact]
     public async Task CustomEntityTypes_FullCrud()
     {
         await new Novalist.Core.Services.EntityService(_workspace.Projects)

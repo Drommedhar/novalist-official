@@ -76,6 +76,24 @@ test('real project renders binder and scene content', async () => {
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await expect.poll(() => page.locator('.codex-row').count(), { timeout: 15_000 }).toBeGreaterThan(0)
 
+  // Custom entity types: create a type through the manager dialog, then an
+  // entity of that type through its new codex tab.
+  await page.locator('.codex-tab-manage').click()
+  await page.locator('.type-manager-card .dialog-button.primary').click()
+  await page.locator('.type-manager-card .dialog-input').first().fill('Faction')
+  await page.locator('.type-manager-card .dialog-actions .dialog-button.primary').click()
+  await expect(page.locator('.type-manager-row', { hasText: 'Faction' })).toBeVisible({
+    timeout: 10_000
+  })
+  await page.locator('.type-manager-card .binder-expand').first().click()
+  await page.locator('.codex-tab', { hasText: 'Factions' }).click()
+  await page.locator('.codex-list .binder-rail-item').click()
+  await page.locator('#codex-create-name').fill('Nordwacht')
+  await page.keyboard.press('Enter')
+  await expect(page.locator('.codex-row', { hasText: 'Nordwacht' })).toBeVisible({
+    timeout: 10_000
+  })
+
   // Dashboard: real totals appear.
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
   await expect(page.locator('.dashboard-title')).toBeVisible({ timeout: 15_000 })
