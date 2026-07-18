@@ -6,6 +6,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Novalist.Backend\Novalist.Backend.csproj" />
+    <ProjectReference Include="..\Novalist.TestExtension\Novalist.TestExtension.csproj" />
+    <ProjectReference Include="..\..\Novalist.Sdk.Example\Novalist.Sdk.Example.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Nerdbank.Streams" Version="2.13.16" />

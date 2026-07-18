@@ -24,6 +24,27 @@ public sealed partial class Workspace
     public SettingsService Settings { get; }
     public WordHistoryService WordHistory { get; }
 
+    private Extensions.ExtensionManager? _extensions;
+    private Extensions.HostServices? _hostServices;
+
+    /// <summary>Test seam: overrides the extension discovery directory.</summary>
+    public Extensions.ExtensionLoader? ExtensionsLoaderOverride { get; set; }
+
+    /// <summary>The headless extension host, created on first use.</summary>
+    public Extensions.ExtensionManager ExtensionsHost
+    {
+        get
+        {
+            if (_extensions == null)
+            {
+                _hostServices = new Extensions.HostServices(
+                    FileService, Projects, new EntityService(Projects), Settings);
+                _extensions = new Extensions.ExtensionManager(Settings, _hostServices, ExtensionsLoaderOverride);
+            }
+            return _extensions;
+        }
+    }
+
     public async Task<ProjectStateDto> OpenProjectAsync(string projectDirectory)
     {
         await Settings.LoadAsync();
