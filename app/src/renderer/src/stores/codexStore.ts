@@ -9,6 +9,9 @@ export interface EntitySummary {
   detail: string
   isWorldBible: boolean
   imagePath: string | null
+  group: string | null
+  gender: string | null
+  parent: string | null
 }
 
 interface CodexState {
@@ -22,6 +25,7 @@ interface CodexState {
   updateField(key: string, value: string): Promise<void>
   create(name: string, templateId?: string | null): Promise<void>
   remove(id: string, isWorldBible: boolean): Promise<void>
+  moveWorldBible(id: string, toWorldBible: boolean): Promise<void>
 }
 
 export const useCodexStore = create<CodexState>((set, get) => ({
@@ -74,5 +78,14 @@ export const useCodexStore = create<CodexState>((set, get) => ({
     await rpc.request('entities/delete', [get().entityType, id, isWorldBible])
     if (get().selectedId === id) set({ selectedId: null, selectedRecord: null })
     await get().refresh()
+  },
+
+  moveWorldBible: async (id, toWorldBible) => {
+    await rpc.request(toWorldBible ? 'entities/moveToWorldBible' : 'entities/moveToBook', [
+      get().entityType,
+      id
+    ])
+    await get().refresh()
+    if (get().selectedId === id) await get().select(id)
   }
 }))

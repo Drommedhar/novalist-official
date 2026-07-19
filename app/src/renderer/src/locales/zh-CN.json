@@ -608,7 +608,9 @@
     "editType": "编辑类型",
     "deleteType": "删除类型",
     "newEntityType": "新建实体类型",
-    "deleteTypeConfirm": "删除实体类型 '{0}' 及其所有实体吗？"
+    "deleteTypeConfirm": "删除实体类型 '{0}' 及其所有实体吗？",
+    "groupByRole": "按角色",
+    "groupByGroup": "按群组"
   },
   "entity": {
     "removeRelationship": "移除关系"
@@ -1564,7 +1566,9 @@
     "sortNameDesc": "排序：名称 (Z–A)",
     "emptyHint": "此类型暂无条目。",
     "selectHint": "选择一个条目以查看详情。",
-    "newEntry": "新建条目"
+    "newEntry": "新建条目",
+    "search": "搜索条目...",
+    "ungrouped": "未分组"
   },
   "manuscript": {
     "title": "书稿",

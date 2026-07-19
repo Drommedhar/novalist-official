@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MessageCircleQuestion, Plus, Settings2, Trash2 } from 'lucide-react'
+import { MessageCircleQuestion, Settings2, Trash2 } from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
 import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
@@ -16,6 +16,8 @@ import {
 import { EntityImages } from './EntityImages'
 import { CustomPropsEditor } from './CustomPropsEditor'
 import { OverridesEditor } from './OverridesEditor'
+import { CodexNav } from './CodexNav'
+import type { EntitySummary } from '../../stores/codexStore'
 
 const TYPES: { type: EntityType; key: string }[] = [
   { type: 'character', key: 'codexHub.characters' },
@@ -41,7 +43,10 @@ export function CodexView(): React.JSX.Element {
   const updateField = useCodexStore((s) => s.updateField)
   const create = useCodexStore((s) => s.create)
   const remove = useCodexStore((s) => s.remove)
-  const [pending, setPending] = useState<'create' | 'delete' | null>(null)
+  const moveWorldBible = useCodexStore((s) => s.moveWorldBible)
+  const [pending, setPending] = useState<
+    { kind: 'create' } | { kind: 'delete'; entity: EntitySummary } | null
+  >(null)
   const [templates, setTemplates] = useState<{ id: string; name: string }[]>([])
   const [templateId, setTemplateId] = useState<string>('')
   const [useWizard, setUseWizard] = useState(false)
@@ -60,6 +65,15 @@ export function CodexView(): React.JSX.Element {
   }, [refresh])
 
   const selected = entities.find((e) => e.id === selectedId)
+
+  const openCreate = (): void => {
+    setTemplateId('')
+    void rpc
+      .request<{ id: string; name: string }[]>('entities/templates', [entityType])
+      .then(setTemplates)
+      .catch(() => setTemplates([]))
+    setPending({ kind: 'create' })
+  }
 
   /** Pours guided-wizard answers into the just-created entity. A character's
    * description becomes a "Description" section; everything else is a scalar
@@ -142,47 +156,15 @@ export function CodexView(): React.JSX.Element {
         </button>
       </div>
       <div className="codex-body">
-        <div className="codex-list">
-          {entities.map((entity) => (
-            <button
-              key={entity.id}
-              className={`codex-row${selectedId === entity.id ? ' active' : ''}`}
-              onClick={() => void select(entity.id)}
-            >
-              {entity.imagePath ? (
-                <img
-                  className="codex-thumb"
-                  src={`novalist-project://nl/${encodeURI(entity.imagePath)}`}
-                  alt=""
-                />
-              ) : (
-                <span className="codex-thumb codex-thumb-empty" aria-hidden="true">
-                  {entity.name.slice(0, 1).toUpperCase()}
-                </span>
-              )}
-              <span className="codex-row-text">
-                <span className="codex-row-name">{entity.name}</span>
-                {entity.detail && <span className="codex-row-detail">{entity.detail}</span>}
-              </span>
-              {entity.isWorldBible && <span className="codex-wb">{t('common.wbBadge')}</span>}
-            </button>
-          ))}
-          {entities.length === 0 && <p className="codex-empty">{t('codexHub.emptyHint')}</p>}
-          <button
-            className="binder-rail-item"
-            onClick={() => {
-              setTemplateId('')
-              void rpc
-                .request<{ id: string; name: string }[]>('entities/templates', [entityType])
-                .then(setTemplates)
-                .catch(() => setTemplates([]))
-              setPending('create')
-            }}
-          >
-            <Plus size={14} strokeWidth={2} />
-            {t('codexHub.newEntry')}
-          </button>
-        </div>
+        <CodexNav
+          entityType={entityType}
+          entities={entities}
+          selectedId={selectedId}
+          onSelect={(id) => void select(id)}
+          onCreate={openCreate}
+          onMove={(id, toWorldBible) => void moveWorldBible(id, toWorldBible)}
+          onDelete={(entity) => setPending({ kind: 'delete', entity })}
+        />
         <div className="codex-detail">
           {record ? (
             <>
@@ -203,7 +185,7 @@ export function CodexView(): React.JSX.Element {
                 )}
                 <button
                   className="dialog-button danger"
-                  onClick={() => setPending('delete')}
+                  onClick={() => selected && setPending({ kind: 'delete', entity: selected })}
                 >
                   <Trash2 size={13} strokeWidth={2} /> {t('explorer.contextDelete')}
                 </button>
@@ -238,7 +220,7 @@ export function CodexView(): React.JSX.Element {
           )}
         </div>
       </div>
-      {pending === 'create' && (
+      {pending?.kind === 'create' && (
         <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && setPending(null)}>
           <div className="dialog-card" role="dialog" aria-label={t('codexHub.newEntry')}>
             <div className="dialog-title">{t('codexHub.newEntry')}</div>
@@ -327,14 +309,15 @@ export function CodexView(): React.JSX.Element {
           onClose={() => setTypeManagerOpen(false)}
         />
       )}
-      {pending === 'delete' && selected && (
+      {pending?.kind === 'delete' && (
         <ConfirmDialog
           title={t('explorer.deleteTitle')}
-          message={selected.name}
+          message={pending.entity.name}
           onCancel={() => setPending(null)}
           onConfirm={() => {
+            const entity = pending.entity
             setPending(null)
-            void remove(selected.id, selected.isWorldBible)
+            void remove(entity.id, entity.isWorldBible)
           }}
         />
       )}

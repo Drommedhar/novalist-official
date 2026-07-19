@@ -566,7 +566,9 @@
     "editType": "Edit Type",
     "deleteType": "Delete Type",
     "newEntityType": "New Entity Type",
-    "deleteTypeConfirm": "Delete entity type '{0}' and all its entities?"
+    "deleteTypeConfirm": "Delete entity type '{0}' and all its entities?",
+    "groupByRole": "By Role",
+    "groupByGroup": "By Group"
   },
   "entity": {
     "removeRelationship": "Remove relationship"
@@ -1522,7 +1524,9 @@
     "sortNameDesc": "Sort: Name (Z–A)",
     "emptyHint": "No entries of this type yet.",
     "selectHint": "Select an entry to see its details.",
-    "newEntry": "New entry"
+    "newEntry": "New entry",
+    "search": "Search entities...",
+    "ungrouped": "Ungrouped"
   },
   "manuscript": {
     "title": "Manuscript",

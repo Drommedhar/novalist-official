@@ -467,7 +467,9 @@
     "editType": "Typ bearbeiten",
     "deleteType": "Typ löschen",
     "newEntityType": "Neuer Entitätstyp",
-    "deleteTypeConfirm": "Entitätstyp '{0}' und alle zugehörigen Entitäten löschen?"
+    "deleteTypeConfirm": "Entitätstyp '{0}' und alle zugehörigen Entitäten löschen?",
+    "groupByRole": "Nach Rolle",
+    "groupByGroup": "Nach Gruppe"
   },
   "entity": {
     "removeRelationship": "Beziehung entfernen"
@@ -1142,7 +1144,9 @@
     "sortNameDesc": "Sortieren: Name (Z–A)",
     "emptyHint": "Noch keine Einträge dieses Typs.",
     "selectHint": "Wähle einen Eintrag, um Details zu sehen.",
-    "newEntry": "Neuer Eintrag"
+    "newEntry": "Neuer Eintrag",
+    "search": "Entitäten suchen...",
+    "ungrouped": "Ohne Gruppe"
   },
   "manuscript": {
     "title": "Manuskript",

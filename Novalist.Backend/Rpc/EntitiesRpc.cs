@@ -102,10 +102,10 @@ public sealed class EntitiesRpc
         return type switch
         {
             "character" => (await _entities.LoadCharactersAsync())
-                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault()))
+                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), group: c.Group, gender: c.Gender))
                 .ToArray(),
             "location" => (await _entities.LoadLocationsAsync())
-                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault()))
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), parent: l.Parent))
                 .ToArray(),
             "item" => (await _entities.LoadItemsAsync())
                 .Select(i => Summary(i.Id, i.Name, i.Description, i.IsWorldBible, i.Images.FirstOrDefault()))
@@ -116,6 +116,29 @@ public sealed class EntitiesRpc
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
     }
+
+    [JsonRpcMethod("entities/moveToWorldBible")]
+    public async Task MoveToWorldBibleAsync(string type, string id)
+    {
+        if (IsCustomType(type)) await _entities.MoveCustomEntityToWorldBibleAsync(type, id);
+        else await _entities.MoveEntityToWorldBibleAsync(ParseType(type), id);
+    }
+
+    [JsonRpcMethod("entities/moveToBook")]
+    public async Task MoveToBookAsync(string type, string id)
+    {
+        if (IsCustomType(type)) await _entities.MoveCustomEntityToBookAsync(type, id);
+        else await _entities.MoveEntityToBookAsync(ParseType(type), id);
+    }
+
+    private static EntityType ParseType(string type) => type switch
+    {
+        "character" => EntityType.Character,
+        "location" => EntityType.Location,
+        "item" => EntityType.Item,
+        "lore" => EntityType.Lore,
+        _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+    };
 
     [JsonRpcMethod("entities/get")]
     public async Task<JsonElement> GetAsync(string type, string id)
@@ -606,9 +629,14 @@ public sealed class EntitiesRpc
         surname.Length == 0 ? name : $"{name} {surname}";
 
     private EntitySummaryDto Summary(
-        string id, string name, string detail, bool isWorldBible, EntityImage? image) =>
+        string id, string name, string detail, bool isWorldBible, EntityImage? image,
+        string? group = null, string? gender = null, string? parent = null) =>
         new(id, name, detail, isWorldBible,
-            image == null ? null : _entities.ResolveProjectRelativeImage(image.Path));
+            image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
+            NullIfEmpty(group), NullIfEmpty(gender), NullIfEmpty(parent));
+
+    private static string? NullIfEmpty(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
 
     /// <summary>
     /// Serializes an entity and annotates each image with a <c>url</c> field
@@ -664,4 +692,7 @@ public sealed record EntitySummaryDto(
     string Name,
     string Detail,
     bool IsWorldBible,
-    string? ImagePath);
+    string? ImagePath,
+    string? Group = null,
+    string? Gender = null,
+    string? Parent = null);

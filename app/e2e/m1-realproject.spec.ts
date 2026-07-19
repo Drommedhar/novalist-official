@@ -87,6 +87,28 @@ test('real project renders binder and scene content', async () => {
     })
     .toBeGreaterThan(0)
 
+  // Entity navigation: characters group into role/group sections with headers.
+  await expect
+    .poll(() => page.locator('.codex-group-head').count(), { timeout: 10_000 })
+    .toBeGreaterThan(0)
+
+  // Search filters the navigation list.
+  await page.locator('.codex-search').fill('zzz-no-such-entity')
+  await expect.poll(() => page.locator('.codex-row').count(), { timeout: 5_000 }).toBe(0)
+  await page.locator('.codex-search').fill('')
+  await expect.poll(() => page.locator('.codex-row').count(), { timeout: 5_000 }).toBeGreaterThan(0)
+
+  // Locations render as a parent/child tree (real project has nested locations).
+  await page.evaluate(() => window.novalistStores.codex.getState().setType('location'))
+  await expect.poll(() => page.locator('.codex-row').count(), { timeout: 10_000 }).toBeGreaterThan(0)
+  const indented = await page.evaluate(() =>
+    Array.from(document.querySelectorAll<HTMLElement>('.codex-row')).some(
+      (el) => (el.style.paddingLeft ?? '') !== ''
+    )
+  )
+  expect(indented).toBe(true)
+  await page.evaluate(() => window.novalistStores.codex.getState().setType('character'))
+
   // Custom entity types: create a type through the manager dialog, then an
   // entity of that type through its new codex tab.
   await page.locator('.codex-tab-manage').click()

@@ -54,6 +54,56 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task List_EnrichesGroupGenderAndParent()
+    {
+        await Entities.SaveCharacterAsync(new CharacterData
+        {
+            Name = "Mira", Role = "Hero", Group = "Guild", Gender = "Female"
+        });
+        await Entities.SaveLocationAsync(new LocationData { Name = "Keep", Parent = "Realm" });
+
+        var mira = (await _rpc.ListAsync("character")).Single(e => e.Name == "Mira");
+        Assert.Equal("Guild", mira.Group);
+        Assert.Equal("Female", mira.Gender);
+
+        var keep = (await _rpc.ListAsync("location")).Single(e => e.Name == "Keep");
+        Assert.Equal("Realm", keep.Parent);
+
+        // Empty enrichment fields collapse to null.
+        await Entities.SaveItemAsync(new ItemData { Name = "Plain" });
+        var plain = (await _rpc.ListAsync("item")).Single(e => e.Name == "Plain");
+        Assert.Null(plain.Group);
+        Assert.Null(plain.Parent);
+    }
+
+    [Fact]
+    public async Task MoveToWorldBibleAndBack()
+    {
+        var created = await _rpc.CreateAsync("character", "Wanderer");
+        var id = created.GetProperty("id").GetString()!;
+        Assert.DoesNotContain(await _rpc.ListAsync("character"), e => e.Id == id && e.IsWorldBible);
+
+        await _rpc.MoveToWorldBibleAsync("character", id);
+        Assert.Contains(await _rpc.ListAsync("character"), e => e.Id == id && e.IsWorldBible);
+
+        await _rpc.MoveToBookAsync("character", id);
+        Assert.Contains(await _rpc.ListAsync("character"), e => e.Id == id && !e.IsWorldBible);
+
+        // Every built-in type parses and round-trips through the world bible.
+        foreach (var type in new[] { "location", "item", "lore" })
+        {
+            var madeId = (await _rpc.CreateAsync(type, $"WB-{type}")).GetProperty("id").GetString()!;
+            await _rpc.MoveToWorldBibleAsync(type, madeId);
+            Assert.Contains(await _rpc.ListAsync(type), e => e.Id == madeId && e.IsWorldBible);
+            await _rpc.MoveToBookAsync(type, madeId);
+            Assert.Contains(await _rpc.ListAsync(type), e => e.Id == madeId && !e.IsWorldBible);
+        }
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.MoveToWorldBibleAsync("dragon", id));
+    }
+
+    [Fact]
     public async Task List_LocationsItemsLore_UseDescriptions()
     {
         await Entities.SaveLocationAsync(new LocationData { Name = "Eiswall", Description = "A wall of ice" });
