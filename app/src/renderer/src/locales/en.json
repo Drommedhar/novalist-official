@@ -98,7 +98,7 @@
   },
   "relationships": {
     "title": "Relationships",
-    "hint": "Drag nodes to rearrange. Click an edge for details.",
+    "hint": "Search, filter, and drag to pan; scroll to zoom.",
     "search": "Search entities…",
     "filterGroup": "All groups",
     "filterRole": "All roles",

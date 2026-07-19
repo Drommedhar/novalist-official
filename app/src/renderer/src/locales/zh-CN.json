@@ -98,7 +98,7 @@
   },
   "relationships": {
     "title": "关系",
-    "hint": "拖动节点以重新排列。点击连线可查看详情。",
+    "hint": "搜索、筛选，拖动平移；滚动缩放。",
     "search": "搜索实体...",
     "filterGroup": "所有分组",
     "filterRole": "所有身份",

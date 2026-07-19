@@ -26,6 +26,15 @@ public sealed class MapsRpcTests : IDisposable
     }
 
     [Fact]
+    public void ImageBase_IsActiveBookFolder_AndEmptyWhenNoProject()
+    {
+        // With a project open, the base is the book folder relative to the root.
+        Assert.Equal("Book", _rpc.ImageBase());
+        // With no project open, it collapses to empty.
+        Assert.Equal(string.Empty, new MapsRpc(new Workspace()).ImageBase());
+    }
+
+    [Fact]
     public async Task CreateLoadSaveRenameDelete_FullFlow()
     {
         Assert.Empty(_rpc.List());

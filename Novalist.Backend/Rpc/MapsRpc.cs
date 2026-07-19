@@ -27,6 +27,19 @@ public sealed class MapsRpc
         return book.Maps.Select(m => new MapRefDto(m.Id, m.Name)).ToArray();
     }
 
+    /// <summary>
+    /// Project-root-relative path of the active book (e.g. "Frostschwur"), so
+    /// the renderer can prefix map image paths (which are book-root-relative)
+    /// for the project-rooted novalist-project:// protocol. Empty when unknown.
+    /// </summary>
+    [JsonRpcMethod("maps/imageBase")]
+    public string ImageBase()
+    {
+        var projects = _workspace.Projects;
+        if (projects.ProjectRoot == null || projects.ActiveBookRoot == null) return string.Empty;
+        return Path.GetRelativePath(projects.ProjectRoot, projects.ActiveBookRoot).Replace('\\', '/');
+    }
+
     [JsonRpcMethod("maps/create")]
     public async Task<MapLoadDto> CreateAsync(string name)
     {

@@ -847,7 +847,7 @@
   },
   "relationships": {
     "title": "Beziehungen",
-    "hint": "Knoten zum Umordnen ziehen. Auf eine Kante klicken für Details.",
+    "hint": "Suchen, filtern und zum Verschieben ziehen; scrollen zum Zoomen.",
     "search": "Entitäten suchen…",
     "filterGroup": "Alle Gruppen",
     "filterRole": "Alle Rollen",

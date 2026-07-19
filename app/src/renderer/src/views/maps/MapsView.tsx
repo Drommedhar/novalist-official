@@ -165,7 +165,10 @@ export function MapsView(): React.JSX.Element {
     if (!win || !readyRef.current || !activeId) return
     const loaded = await rpc.request<{ json: string } | null>('maps/load', [activeId])
     if (!loaded) return
-    win.setImageBaseUrl(IMAGE_BASE_URL)
+    // Map image paths are book-root-relative; prefix the active book folder so
+    // the project-rooted protocol resolves them (same scope fix as entity images).
+    const base = await rpc.request<string>('maps/imageBase').catch(() => '')
+    win.setImageBaseUrl(base ? `${IMAGE_BASE_URL}${encodeURI(base)}/` : IMAGE_BASE_URL)
     win.setMapData(loaded.json)
     win.setMode(editMode ? 'edit' : 'view')
     let data: MapDataT | null = null
@@ -182,6 +185,22 @@ export function MapsView(): React.JSX.Element {
         setSelectedNodeId((prev) => prev ?? leaf)
       }
     }
+    // The engine may have initialised its stage before the view had a size;
+    // nudge a resize, then fit once the base images have decoded.
+    try {
+      win.dispatchEvent(new Event('resize'))
+    } catch {
+      /* ignore */
+    }
+    window.setTimeout(() => {
+      const w = getWin()
+      try {
+        w?.dispatchEvent(new Event('resize'))
+        w?.zoomToFit()
+      } catch {
+        /* ignore */
+      }
+    }, 600)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getWin, activeId, editMode, t])
 
