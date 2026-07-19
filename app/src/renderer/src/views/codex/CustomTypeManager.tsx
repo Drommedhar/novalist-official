@@ -89,7 +89,9 @@ export function CustomTypeManager({
             enumOptions:
               f.type === 'Enum' && f.enumOptionsText.trim()
                 ? f.enumOptionsText.split(',').map((o) => o.trim()).filter(Boolean)
-                : null,
+                : f.type === 'EntityRef' && f.enumOptionsText.trim()
+                  ? [f.enumOptionsText.trim()]
+                  : null,
             required: f.required
           })),
         includeImages: form.includeImages,
@@ -232,6 +234,25 @@ export function CustomTypeManager({
                       value={field.enumOptionsText}
                       onChange={(e) => patchField(index, { enumOptionsText: e.target.value })}
                     />
+                  )}
+                  {field.type === 'EntityRef' && (
+                    <select
+                      className="dialog-input type-manager-type"
+                      value={field.enumOptionsText || 'character'}
+                      onChange={(e) => patchField(index, { enumOptionsText: e.target.value })}
+                    >
+                      {[
+                        { value: 'character', label: t('codexHub.characters') },
+                        { value: 'location', label: t('codexHub.locations') },
+                        { value: 'item', label: t('codexHub.items') },
+                        { value: 'lore', label: t('codexHub.lore') },
+                        ...types.map((ct) => ({ value: ct.typeKey, label: ct.displayNamePlural }))
+                      ].map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
                   )}
                   <label className="type-manager-check">
                     <input

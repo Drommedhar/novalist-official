@@ -148,6 +148,8 @@ interface HoverCard {
   entityType: string
   entityId: string
   chips: string[]
+  relationships: string[]
+  sections: string[]
 }
 
 /** Ordered tab strip for the scenes open in one editor pane. */
@@ -304,7 +306,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
     }[] = []
     for (const type of ['character', 'location', 'item', 'lore']) {
       const list = await rpc.request<
-        { id: string; name: string; detail: string; imagePath: string | null }[]
+        { id: string; name: string; detail: string; imagePath: string | null; aliases: string[] }[]
       >('entities/list', [type])
       for (const entity of list) {
         index.set(entity.id, { ...entity, type })
@@ -318,6 +320,19 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           isAlias: false,
           subtitle: entity.detail ?? ''
         })
+        for (const alias of entity.aliases ?? []) {
+          if (!alias.trim()) continue
+          index.set(alias.toLowerCase(), { ...entity, type })
+          names.push({ name: alias, entityId: entity.id, entityType: type, isAlias: true })
+          candidates.push({
+            entityId: entity.id,
+            entityType: type,
+            primaryName: entity.name,
+            matchedText: alias,
+            isAlias: true,
+            subtitle: entity.detail ?? ''
+          })
+        }
       }
     }
     entityIndexRef.current = index
@@ -401,15 +416,27 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
         typeLabel,
         entityType: hit.type,
         entityId: hit.id,
-        chips: []
+        chips: [],
+        relationships: [],
+        sections: []
       })
       // Enrich with a couple of attribute chips from the full record.
       void rpc
         .request<Record<string, unknown>>('entities/get', [hit.type, hit.id])
         .then((record) => {
           const chips = extractPeekChips(hit.type, record)
-          if (chips.length === 0) return
-          setHoverCard((prev) => (prev && prev.entityId === hit.id ? { ...prev, chips } : prev))
+          const rels = Array.isArray(record.relationships)
+            ? (record.relationships as { role: string; target: string }[])
+                .filter((r) => r.role || r.target)
+                .slice(0, 4)
+                .map((r) => `${r.role}: ${r.target}`)
+            : []
+          const sections = Array.isArray(record.sections)
+            ? (record.sections as { title: string }[]).map((sec) => sec.title).filter(Boolean).slice(0, 4)
+            : []
+          setHoverCard((prev) =>
+            prev && prev.entityId === hit.id ? { ...prev, chips, relationships: rels, sections } : prev
+          )
         })
         .catch(() => {
           // Record fetch is best-effort; the basic card still shows.
@@ -658,6 +685,24 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
                 {hoverCard.chips.map((chip, i) => (
                   <span key={i} className="editor-peek-chip">
                     {chip}
+                  </span>
+                ))}
+              </div>
+            )}
+            {hoverCard.relationships.length > 0 && (
+              <div className="editor-peek-rels">
+                {hoverCard.relationships.map((rel, i) => (
+                  <div key={i} className="editor-peek-rel">
+                    {rel}
+                  </div>
+                ))}
+              </div>
+            )}
+            {hoverCard.sections.length > 0 && (
+              <div className="editor-peek-chips">
+                {hoverCard.sections.map((sec, i) => (
+                  <span key={i} className="editor-peek-chip">
+                    {sec}
                   </span>
                 ))}
               </div>
