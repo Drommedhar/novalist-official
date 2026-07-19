@@ -59,6 +59,7 @@
   --nl-surface-inspector: #1e1e1e;
   --nl-surface-editor: #181818;
   --nl-surface-card: #252526;
+  --nl-surface-input: #1b1b1c;
   --nl-surface-overlay: rgb(0 0 0 / 0.5);
   --nl-surface-hover: #262a30;
   --nl-surface-selected: #2e353d;
@@ -99,6 +100,7 @@
   --nl-surface-inspector: #efeeea;
   --nl-surface-editor: #fdfdfb;
   --nl-surface-card: #ffffff;
+  --nl-surface-input: #ffffff;
   --nl-surface-overlay: rgb(40 38 34 / 0.35);
   --nl-surface-hover: #e6e4de;
   --nl-surface-selected: #dcdad2;
@@ -138,9 +140,9 @@
 :root[data-material='vibrancy'],
 :root[data-material='glass'] {
   --nl-surface-window: transparent;
-  --nl-surface-sidebar: rgb(var(--nl-base) / 0.55);
-  --nl-surface-toolbar: rgb(var(--nl-base) / 0.4);
-  --nl-surface-inspector: rgb(var(--nl-base) / 0.55);
+  --nl-surface-sidebar: rgb(var(--nl-base) / 0.72);
+  --nl-surface-toolbar: rgb(var(--nl-base) / 0.6);
+  --nl-surface-inspector: rgb(var(--nl-base) / 0.72);
   /* --nl-surface-editor deliberately untouched: text always sits on opaque ground */
 }
 
@@ -153,6 +155,7 @@
   --nl-surface-inspector: #2b2d31;
   --nl-surface-editor: #313338;
   --nl-surface-card: #2b2d31;
+  --nl-surface-input: #1e1f22;
   --nl-surface-hover: #35373c;
   --nl-surface-selected: #3f4147;
   --nl-text: #f2f3f5;
@@ -177,6 +180,7 @@
   --nl-surface-inspector: #181825;
   --nl-surface-editor: #1e1e2e;
   --nl-surface-card: #181825;
+  --nl-surface-input: #11111b;
   --nl-surface-hover: #313244;
   --nl-surface-selected: #45475a;
   --nl-text: #cdd6f4;

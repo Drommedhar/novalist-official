@@ -592,7 +592,7 @@
 .dialog-input {
   font: inherit;
   color: var(--nl-text);
-  background: var(--nl-surface-window);
+  background: var(--nl-surface-input);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-md);
   padding: var(--nl-space-sm) var(--nl-space-md);
@@ -747,7 +747,7 @@
   resize: vertical;
   font: inherit;
   color: var(--nl-text);
-  background: var(--nl-surface-window);
+  background: var(--nl-surface-input);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-md);
   padding: var(--nl-space-sm) var(--nl-space-md);
@@ -1497,7 +1497,7 @@
 .outliner-input:focus {
   outline: none;
   border-color: var(--nl-focus-ring);
-  background: var(--nl-surface-window);
+  background: var(--nl-surface-input);
 }
 
 /* ===== Plot grid ===== */
@@ -1546,7 +1546,7 @@
 .plotgrid-rowlabel {
   position: sticky;
   left: 0;
-  background: var(--nl-surface-window);
+  background: var(--nl-surface-input);
   text-align: left;
   font-size: var(--nl-font-body);
   font-weight: var(--nl-weight-title);

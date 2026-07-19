@@ -29,7 +29,7 @@
   font-size: var(--nl-font-body-sm);
   line-height: 1.5;
   padding: var(--nl-space-md);
-  background: var(--nl-surface-window);
+  background: var(--nl-surface-input);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-md);
 }
