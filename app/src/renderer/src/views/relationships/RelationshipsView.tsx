@@ -225,6 +225,7 @@ export function RelationshipsView(): React.JSX.Element {
           >
             {layout.boxes.map((box, i) => {
               const color = BOX_PALETTE[i % BOX_PALETTE.length]
+              const isRole = box.kind === 'role'
               return (
                 <g key={i}>
                   <rect
@@ -233,17 +234,21 @@ export function RelationshipsView(): React.JSX.Element {
                     width={box.width}
                     height={box.height}
                     className="relationships-familybox"
-                    style={{ stroke: color, fill: `${color}22` }}
+                    style={{
+                      stroke: color,
+                      fill: `${color}22`,
+                      ...(isRole ? { strokeDasharray: '6 4' } : {})
+                    }}
                     rx={8}
                   />
-                  {box.label && (
+                  {(isRole || box.label) && (
                     <text
                       x={box.x + 8}
                       y={box.y + 16}
                       className="relationships-familylabel"
                       style={{ fill: color }}
                     >
-                      {t('relationships.familyPrefix', { name: box.label })}
+                      {isRole ? box.label : t('relationships.familyPrefix', { name: box.label })}
                     </text>
                   )}
                 </g>

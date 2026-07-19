@@ -175,6 +175,66 @@ public sealed class DashboardManuscriptTests : IDisposable
     }
 
     [Fact]
+    public async Task Cover_NoCover_GetReturnsNull()
+    {
+        var dto = await new DashboardRpc(_workspace).GetCoverAsync();
+        Assert.Null(dto);
+    }
+
+    [Fact]
+    public async Task Cover_SetImportsResolvesAndPersists()
+    {
+        var source = Path.Combine(_root, "picked-cover.png");
+        await File.WriteAllBytesAsync(source, [0x89, 0x50, 0x4E, 0x47, 1, 2, 3]);
+
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetCoverAsync(source);
+
+        // Stored on both project and active-book metadata as a book-relative path.
+        var stored = _workspace.Projects.ActiveBook!.CoverImage;
+        Assert.EndsWith("picked-cover.png", stored);
+        Assert.Equal(stored, _workspace.Projects.CurrentProject!.CoverImage);
+
+        // The picked file was copied into the book's image folder.
+        var bookRoot = _workspace.Projects.ActiveBookRoot!;
+        Assert.True(File.Exists(Path.Combine(bookRoot, stored.Replace('/', Path.DirectorySeparatorChar))));
+
+        // getCover projects the stored path relative to the project root.
+        var resolved = await rpc.GetCoverAsync();
+        Assert.NotNull(resolved);
+        Assert.EndsWith("picked-cover.png", resolved);
+    }
+
+    [Fact]
+    public async Task Cover_GetFallsBackToProjectCover_WhenBookEmpty()
+    {
+        _workspace.Projects.ActiveBook!.CoverImage = string.Empty;
+        _workspace.Projects.CurrentProject!.CoverImage = "Images/legacy.png";
+
+        var resolved = await new DashboardRpc(_workspace).GetCoverAsync();
+
+        Assert.NotNull(resolved);
+        Assert.Contains("Images/legacy.png", resolved);
+    }
+
+    [Fact]
+    public async Task Cover_SetBlankPath_ClearsCover()
+    {
+        var source = Path.Combine(_root, "temp-cover.png");
+        await File.WriteAllBytesAsync(source, [0x89, 0x50, 0x4E, 0x47, 9]);
+
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetCoverAsync(source);
+        Assert.NotNull(await rpc.GetCoverAsync());
+
+        await rpc.SetCoverAsync("  ");
+
+        Assert.Null(await rpc.GetCoverAsync());
+        Assert.Equal(string.Empty, _workspace.Projects.ActiveBook!.CoverImage);
+        Assert.Equal(string.Empty, _workspace.Projects.CurrentProject!.CoverImage);
+    }
+
+    [Fact]
     public async Task Manuscript_GroupsFiltersAndCarriesContent()
     {
         var (chapterGuid, sceneId) = await SeedSceneAsync("<p>Es war kalt</p>", "Es war kalt");

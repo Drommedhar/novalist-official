@@ -96,7 +96,10 @@ export function AnnotationsPanel({
         <div className="ctx-section">
           <div className="inspector-label">{t('comments.panelTitle')}</div>
           {comments.map((comment, index) => (
-            <div key={comment.id} className="annotation-comment">
+            <div
+              key={comment.id}
+              className={`annotation-comment${comment.resolved ? ' resolved' : ''}`}
+            >
               {comment.anchorText && (
                 <span className="annotation-anchor" title={comment.anchorText}>
                   {comment.anchorText}
@@ -127,6 +130,20 @@ export function AnnotationsPanel({
                   <X size={12} strokeWidth={2} />
                 </button>
               </div>
+              <label className="annotation-resolve">
+                <input
+                  type="checkbox"
+                  checked={comment.resolved}
+                  onChange={(e) => {
+                    const next = comments.map((c, i) =>
+                      i === index ? { ...c, resolved: e.target.checked } : c
+                    )
+                    setComments(next)
+                    persist(next, footnotes)
+                  }}
+                />
+                {t('comments.resolved')}
+              </label>
             </div>
           ))}
         </div>

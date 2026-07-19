@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Binder } from './Binder'
 import { CommandPalette } from './CommandPalette'
 import { FindReplaceDialog } from './FindReplaceDialog'
@@ -9,6 +8,7 @@ import { Toolbar } from './Toolbar'
 import { StatusBar } from './StatusBar'
 import { MainArea } from './MainArea'
 import { StartScreen } from './StartScreen'
+import { UpdateDialog } from './UpdateDialog'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
@@ -26,8 +26,8 @@ async function hydrate(): Promise<void> {
 }
 
 export function AppShell(): React.JSX.Element {
-  const { t } = useTranslation()
   const binderVisible = useShellStore((s) => s.binderVisible)
+  const backendVersion = useShellStore((s) => s.backendVersion)
   const focusMode = useShellStore((s) => s.focusMode)
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
   const isLoaded = useProjectStore((s) => s.isLoaded)
@@ -74,10 +74,11 @@ export function AppShell(): React.JSX.Element {
         )}
       </div>
       {updateVersion && (
-        <div className="update-banner">
-          {t('update.available', { 0: updateVersion })}
-          <button onClick={() => setUpdateVersion(null)}>{t('dialog.close')}</button>
-        </div>
+        <UpdateDialog
+          version={updateVersion}
+          currentVersion={backendVersion}
+          onClose={() => setUpdateVersion(null)}
+        />
       )}
       <StatusBar />
       {findReplaceOpen && (

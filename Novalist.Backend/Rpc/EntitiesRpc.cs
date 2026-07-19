@@ -10,11 +10,13 @@ public sealed class EntitiesRpc
 {
     private readonly Workspace _workspace;
     private readonly EntityService _entities;
+    private readonly HttpClient _http;
 
-    public EntitiesRpc(Workspace workspace)
+    public EntitiesRpc(Workspace workspace, HttpClient? http = null)
     {
         _workspace = workspace;
         _entities = new EntityService(workspace.Projects);
+        _http = http ?? new HttpClient();
     }
 
     [JsonRpcMethod("entities/customTypes")]
@@ -96,22 +98,23 @@ public sealed class EntitiesRpc
                     c.Name,
                     c.Fields.Values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty,
                     c.IsWorldBible,
-                    c.Images.FirstOrDefault()))
+                    c.Images.FirstOrDefault(),
+                    c.Aliases))
                 .ToArray();
         }
         return type switch
         {
             "character" => (await _entities.LoadCharactersAsync())
-                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), group: c.Group, gender: c.Gender))
+                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender))
                 .ToArray(),
             "location" => (await _entities.LoadLocationsAsync())
-                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), parent: l.Parent))
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent))
                 .ToArray(),
             "item" => (await _entities.LoadItemsAsync())
-                .Select(i => Summary(i.Id, i.Name, i.Description, i.IsWorldBible, i.Images.FirstOrDefault()))
+                .Select(i => Summary(i.Id, i.Name, i.Description, i.IsWorldBible, i.Images.FirstOrDefault(), i.Aliases))
                 .ToArray(),
             "lore" => (await _entities.LoadLoreAsync())
-                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault()))
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases))
                 .ToArray(),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
@@ -473,6 +476,87 @@ public sealed class EntitiesRpc
         MutateImagesAsync(type, id, images =>
             images.RemoveAll(i => i.Path == path));
 
+    /// <summary>Renames the stored image whose <c>Path</c> matches, leaving its
+    /// path (and on-disk file) untouched so add/remove still match on it.</summary>
+    [JsonRpcMethod("entities/renameImage")]
+    public Task<JsonElement> RenameImageAsync(string type, string id, string path, string newName) =>
+        MutateImagesAsync(type, id, images =>
+        {
+            var image = images.FirstOrDefault(i => i.Path == path);
+            if (image != null) image.Name = newName;
+        });
+
+    /// <summary>Swaps the stored path of the image matching <paramref name="oldPath"/>
+    /// for <paramref name="newPath"/> (a project-relative path already on disk),
+    /// keeping the display name unless it was empty.</summary>
+    [JsonRpcMethod("entities/replaceImage")]
+    public Task<JsonElement> ReplaceImageAsync(string type, string id, string oldPath, string newPath) =>
+        MutateImagesAsync(type, id, images =>
+        {
+            var image = images.FirstOrDefault(i => i.Path == oldPath);
+            if (image != null)
+            {
+                image.Path = newPath;
+                if (string.IsNullOrWhiteSpace(image.Name))
+                    image.Name = Path.GetFileNameWithoutExtension(newPath);
+            }
+        });
+
+    private static readonly string[] ImageFileExtensions =
+        [".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg"];
+
+    /// <summary>Downloads an image from a remote URL into the entity's image
+    /// folder (via <see cref="EntityService.ImportImageAsync"/>) and attaches it.
+    /// Download uses the injected <see cref="HttpClient"/> so tests stub the
+    /// transport; a failed request surfaces as a clean error.</summary>
+    [JsonRpcMethod("entities/addImageFromUrl")]
+    public async Task<JsonElement> AddImageFromUrlAsync(string type, string id, string url)
+    {
+        byte[] bytes;
+        try
+        {
+            using var response = await _http.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            bytes = await response.Content.ReadAsByteArrayAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new InvalidOperationException("Could not download the image from the given URL.", ex);
+        }
+
+        var tempDir = Path.Combine(Path.GetTempPath(), "nl-url-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDir);
+        var fileName = DeriveImageFileName(url);
+        var tempPath = Path.Combine(tempDir, fileName);
+        await File.WriteAllBytesAsync(tempPath, bytes);
+
+        var relative = await _entities.ImportImageAsync(tempPath);
+        Directory.Delete(tempDir, true);
+
+        return await MutateImagesAsync(type, id, images =>
+            images.Add(new EntityImage
+            {
+                Name = Path.GetFileNameWithoutExtension(fileName),
+                Path = relative
+            }));
+    }
+
+    /// <summary>Derives a safe, image-extensioned file name from a download URL,
+    /// falling back to <c>image.png</c> when the URL carries no usable segment.</summary>
+    private static string DeriveImageFileName(string url)
+    {
+        var name = "image";
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            var segment = uri.Segments.LastOrDefault(s => s.Trim('/').Length > 0)?.Trim('/');
+            if (!string.IsNullOrWhiteSpace(segment))
+                name = Uri.UnescapeDataString(segment);
+        }
+        return ImageFileExtensions.Contains(Path.GetExtension(name).ToLowerInvariant())
+            ? name
+            : name + ".png";
+    }
+
     private async Task<JsonElement> MutateImagesAsync(
         string type, string id, Action<List<EntityImage>> mutate)
     {
@@ -700,9 +784,11 @@ public sealed class EntitiesRpc
 
     private EntitySummaryDto Summary(
         string id, string name, string detail, bool isWorldBible, EntityImage? image,
+        IReadOnlyList<string> aliases,
         string? group = null, string? gender = null, string? parent = null) =>
         new(id, name, detail, isWorldBible,
             image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
+            aliases,
             NullIfEmpty(group), NullIfEmpty(gender), NullIfEmpty(parent));
 
     private static string? NullIfEmpty(string? value) =>
@@ -769,6 +855,7 @@ public sealed record EntitySummaryDto(
     string Detail,
     bool IsWorldBible,
     string? ImagePath,
+    IReadOnlyList<string> Aliases,
     string? Group = null,
     string? Gender = null,
     string? Parent = null);

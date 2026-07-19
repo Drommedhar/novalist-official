@@ -82,7 +82,8 @@
   },
   "comments": {
     "noSelection": "请先在场景中选择一些文本。",
-    "panelTitle": "评论"
+    "panelTitle": "评论",
+    "resolved": "已解决"
   },
   "footnotes": {
     "addTitle": "添加脚注",
@@ -309,7 +310,11 @@
       "moderate": "中等",
       "difficult": "困难",
       "veryDifficult": "非常困难"
-    }
+    },
+    "overviewTooltip": "项目概览",
+    "dailyGoalShort": "每日 {{current}}/{{target}}",
+    "projectGoalShort": "项目 {{current}}/{{target}}",
+    "gitTooltip": "打开版本控制 — {{count}} 处更改"
   },
   "overview": {
     "chapterColumn": "章节",
@@ -698,7 +703,12 @@
     "importImage": "导入文件",
     "addOverride": "添加覆盖",
     "wholeChapter": "整章",
-    "inverseRole": "反向关系"
+    "inverseRole": "反向关系",
+    "pasteImage": "粘贴图片",
+    "fromUrl": "来自网址",
+    "fromUrlTitle": "从网址添加图片",
+    "fromUrlPlaceholder": "https://example.com/image.png",
+    "fromUrlError": "无法从该网址加载图片。"
   },
   "context": {
     "title": "NOVALIST 上下文",
@@ -1264,7 +1274,12 @@
     "currentBadge": "当前",
     "enterNameWatermark": "输入名称...",
     "clear": "清除",
-    "delete": "删除"
+    "delete": "删除",
+    "newChapterTitle": "新建章节",
+    "newSceneTitle": "新建场景",
+    "status": "状态",
+    "act": "幕",
+    "actWatermark": "例如：第一幕（可选）"
   },
   "book": {
     "pickerTooltip": "切换书籍",
@@ -1361,7 +1376,9 @@
     "compareApplySelectedTooltip": "对于每一行被标记的内容，使用快照版本代替当前版本。当前状态将先自动创建快照。",
     "compareApplyHunkTooltip": "使用此行的快照版本",
     "compareSelectAll": "全选",
-    "compareSelectNone": "全不选"
+    "compareSelectNone": "全不选",
+    "comparePick": "选择第二个快照进行比较",
+    "compareIdentical": "这两个版本完全相同。"
   },
   "dashboard": {
     "subtitle": "项目仪表板",
@@ -1398,7 +1415,12 @@
     "echoDescription": "书稿中频繁重复的短语。在计数较高的地方可以考虑替换词汇。",
     "recentActivity": "最近活动",
     "avgChapter": "每章平均",
-    "streakDays": "连续 {{count}} 天"
+    "streakDays": "连续 {{count}} 天",
+    "addCover": "添加封面",
+    "changeCover": "更换封面",
+    "removeCover": "移除封面",
+    "pickCoverTitle": "选择封面图片",
+    "noCover": "无封面图片"
   },
   "import": {
     "title": "从 Obsidian 插件导入",
@@ -1633,7 +1655,8 @@
     "launching": "正在启动安装程序...",
     "error": "更新失败：{0}",
     "checkForUpdates": "检查更新",
-    "checkForUpdatesDesc": "启动时自动检查新版本"
+    "checkForUpdatesDesc": "启动时自动检查新版本",
+    "noNotes": "请在发布页面查看此版本的完整更改列表。"
   },
   "shell": {
     "toggleBinder": "切换项目栏",
@@ -1669,6 +1692,7 @@
     "words": "字",
     "chapters": "章",
     "scenes": "场景",
-    "groupApp": "应用"
+    "groupApp": "应用",
+    "menu": "菜单"
   }
 }

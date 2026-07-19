@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Camera, History } from 'lucide-react'
+import { Camera, GitCompare, History, RotateCcw, Trash2 } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { InputDialog } from './InputDialog'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
+import { SnapshotCompareDialog } from './SnapshotCompareDialog'
+import './inspector.css'
 
 interface SnapshotDto {
   id: string
@@ -14,32 +16,62 @@ interface SnapshotDto {
   wordCount: number
 }
 
+interface SceneMeta {
+  notes?: string | null
+  storyDate?: string
+  isoDate?: string | null
+}
+
+interface CompareView {
+  idA: string
+  idB: string
+  labelA: string
+  labelB: string
+}
+
+function snapshotLabel(snapshot: SnapshotDto | undefined): string {
+  if (!snapshot) return ''
+  return snapshot.label || snapshot.takenAt.slice(0, 10)
+}
+
 /**
- * Right-hand inspector: synopsis and notes for the open scene, saved on blur.
- * Grows Context/Footnotes/extension tabs in later milestones.
+ * Right-hand inspector: scene context/analysis, synopsis, notes, annotations
+ * and per-scene snapshot history (take / restore / delete / compare).
  */
 export function Inspector(): React.JSX.Element {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const openSceneId = useProjectStore((s) => s.openSceneId)
-  const scene = useProjectStore((s) =>
-    s.chapters
-      .find((c) => c.guid === s.openChapterGuid)
-      ?.scenes.find((sc) => sc.id === s.openSceneId)
-  )
+  const chapter = chapters.find((c) => c.guid === openChapterGuid)
+  const scene = chapter?.scenes.find((sc) => sc.id === openSceneId)
+  const sceneIndex = chapter ? chapter.scenes.findIndex((sc) => sc.id === openSceneId) + 1 : 0
+  const sceneTotal = chapter?.scenes.length ?? 0
+
   const [synopsis, setSynopsis] = useState('')
   const [notes, setNotes] = useState('')
+  const [storyDate, setStoryDate] = useState('')
+  const [isoDate, setIsoDate] = useState<string | null>(null)
   const [snapshots, setSnapshots] = useState<SnapshotDto[]>([])
   const [labelPrompt, setLabelPrompt] = useState(false)
+  const [compareBase, setCompareBase] = useState<string | null>(null)
+  const [compareView, setCompareView] = useState<CompareView | null>(null)
 
   useEffect(() => {
     setSynopsis(scene?.synopsis ?? '')
     setNotes('')
+    setStoryDate('')
+    setIsoDate(null)
+    setCompareBase(null)
     if (openChapterGuid && openSceneId) {
-      // Notes live only in the manifest; fetch the current value on scene switch.
+      // Notes + the resolved story date live in the manifest; fetch on switch.
       void rpc
-        .request<{ notes?: string | null }>('scenes/getMeta', [openChapterGuid, openSceneId])
-        .then((meta) => setNotes(meta.notes ?? ''))
+        .request<SceneMeta>('scenes/getMeta', [openChapterGuid, openSceneId])
+        .then((meta) => {
+          setNotes(meta.notes ?? '')
+          setStoryDate(meta.storyDate ?? '')
+          setIsoDate(meta.isoDate ?? null)
+        })
         .catch(() => setNotes(''))
       void rpc
         .request<SnapshotDto[]>('snapshots/list', [openChapterGuid, openSceneId])
@@ -57,9 +89,43 @@ export function Inspector(): React.JSX.Element {
     )
   }
 
+  const weekday = isoDate
+    ? new Date(`${isoDate}T00:00:00`).toLocaleDateString(i18n.language, { weekday: 'long' })
+    : null
+  const dateDisplay = storyDate ? (weekday ? `${storyDate} · ${weekday}` : storyDate) : ''
+  const positionText =
+    sceneTotal > 0
+      ? chapter?.title
+        ? t('context.sceneOfChapter')
+            .replace('{0}', chapter.title)
+            .replace('{1}', String(sceneIndex))
+            .replace('{2}', String(sceneTotal))
+        : t('context.sceneOf').replace('{0}', String(sceneIndex)).replace('{1}', String(sceneTotal))
+      : ''
+
+  const onCompare = (snapshot: SnapshotDto): void => {
+    if (!compareBase) {
+      setCompareBase(snapshot.id)
+      return
+    }
+    if (compareBase === snapshot.id) {
+      setCompareBase(null)
+      return
+    }
+    setCompareView({
+      idA: compareBase,
+      idB: snapshot.id,
+      labelA: snapshotLabel(snapshots.find((s) => s.id === compareBase)),
+      labelB: snapshotLabel(snapshot)
+    })
+    setCompareBase(null)
+  }
+
   return (
     <aside className="inspector">
       <div className="inspector-header">{scene.title}</div>
+      {positionText && <div className="inspector-subtitle">{positionText}</div>}
+      {dateDisplay && <div className="inspector-date">{dateDisplay}</div>}
       <div className="inspector-meta">
         {scene.wordCount.toLocaleString()} {t('shell.words')}
       </div>
@@ -98,26 +164,60 @@ export function Inspector(): React.JSX.Element {
         <Camera size={13} strokeWidth={2} />
         {t('snapshots.take')}
       </button>
+      {compareBase && <div className="snapshot-compare-hint">{t('snapshots.comparePick')}</div>}
       {snapshots.map((snapshot) => (
         <div key={snapshot.id} className="snapshot-row">
-          <span className="binder-scene-title">
-            {snapshot.label || snapshot.takenAt.slice(0, 10)}
-          </span>
+          <span className="binder-scene-title">{snapshotLabel(snapshot)}</span>
           <span className="binder-scene-words">{snapshot.wordCount.toLocaleString()}</span>
-          <button
-            className="snapshot-restore"
-            onClick={() =>
-              void rpc
-                .request<boolean>('snapshots/restore', [openChapterGuid, openSceneId, snapshot.id])
-                .then(async (restored) => {
-                  if (restored) {
-                    await useProjectStore.getState().openScene(openChapterGuid, openSceneId)
-                  }
-                })
-            }
-          >
-            {t('snapshots.restore')}
-          </button>
+          <div className="snapshot-actions">
+            <button
+              className={`snapshot-action${compareBase === snapshot.id ? ' active' : ''}`}
+              title={t('snapshots.compare')}
+              aria-label={t('snapshots.compare')}
+              onClick={() => onCompare(snapshot)}
+            >
+              <GitCompare size={13} strokeWidth={2} />
+            </button>
+            <button
+              className="snapshot-action"
+              title={t('snapshots.restore')}
+              aria-label={t('snapshots.restore')}
+              onClick={() =>
+                void rpc
+                  .request<boolean>('snapshots/restore', [
+                    openChapterGuid,
+                    openSceneId,
+                    snapshot.id
+                  ])
+                  .then(async (restored) => {
+                    if (restored) {
+                      await useProjectStore.getState().openScene(openChapterGuid, openSceneId)
+                    }
+                  })
+              }
+            >
+              <RotateCcw size={13} strokeWidth={2} />
+            </button>
+            <button
+              className="snapshot-action danger"
+              title={t('snapshots.delete')}
+              aria-label={t('snapshots.delete')}
+              onClick={() =>
+                void rpc
+                  .request<SnapshotDto[]>('snapshots/delete', [
+                    openChapterGuid,
+                    openSceneId,
+                    snapshot.id
+                  ])
+                  .then((list) => {
+                    setSnapshots(list)
+                    if (compareBase === snapshot.id) setCompareBase(null)
+                  })
+              }
+            >
+              <Trash2 size={13} strokeWidth={2} />
+            </button>
+          </div>
         </div>
       ))}
       {labelPrompt && (
@@ -131,6 +231,17 @@ export function Inspector(): React.JSX.Element {
               .request<SnapshotDto[]>('snapshots/take', [openChapterGuid, openSceneId, label])
               .then(setSnapshots)
           }}
+        />
+      )}
+      {compareView && (
+        <SnapshotCompareDialog
+          chapterGuid={openChapterGuid}
+          sceneId={openSceneId}
+          idA={compareView.idA}
+          idB={compareView.idB}
+          labelA={compareView.labelA}
+          labelB={compareView.labelB}
+          onClose={() => setCompareView(null)}
         />
       )}
     </aside>

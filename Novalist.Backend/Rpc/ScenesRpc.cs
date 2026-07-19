@@ -1,3 +1,5 @@
+using Novalist.Core.Models;
+using Novalist.Core.Utilities;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
@@ -23,8 +25,83 @@ public sealed class ScenesRpc
     [JsonRpcMethod("scenes/getMeta")]
     public SceneMetaDto GetMeta(string chapterGuid, string sceneId)
     {
+        var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        var storyDate = ResolveStoryDate(chapter, scene);
+        return new SceneMetaDto(
+            scene.Id,
+            scene.Synopsis,
+            scene.Notes,
+            storyDate,
+            StoryDateFormatter.ExtractLeadingDate(storyDate));
+    }
+
+    /// <summary>
+    /// Effective in-world date for the scene, mirroring the Avalonia
+    /// <c>ContextSidebarViewModel.ResolveContextDateDisplay</c>: scene range,
+    /// then scene date, then chapter range, then chapter date.
+    /// </summary>
+    private static string ResolveStoryDate(ChapterData chapter, SceneData scene)
+    {
+        if (scene.DateRange?.HasValue == true)
+            return StoryDateFormatter.FormatRange(scene.DateRange);
+        if (!string.IsNullOrWhiteSpace(scene.Date))
+            return scene.Date.Trim();
+        if (chapter.DateRange?.HasValue == true)
+            return StoryDateFormatter.FormatRange(chapter.DateRange);
+        return chapter.Date.Trim();
+    }
+
+    /// <summary>
+    /// Merge-patches the scene's analysis overrides: only non-null fields on the
+    /// patch are applied; the rest keep their existing value. Clearing a single
+    /// field is done via <c>scenes/resetAnalysisOverride</c>.
+    /// </summary>
+    [JsonRpcMethod("scenes/setAnalysisOverride")]
+    public async Task SetAnalysisOverrideAsync(string chapterGuid, string sceneId, AnalysisOverrideDto patch)
+    {
         var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
-        return new SceneMetaDto(scene.Id, scene.Synopsis, scene.Notes);
+        var overrides = scene.AnalysisOverrides?.Clone() ?? new SceneAnalysisOverrides();
+
+        if (patch.Pov != null)
+            overrides.Pov = patch.Pov.Trim();
+        if (patch.Emotion != null)
+            overrides.Emotion = patch.Emotion.Trim();
+        if (patch.Intensity.HasValue)
+            overrides.Intensity = Math.Clamp(patch.Intensity.Value, -10, 10);
+        if (patch.Conflict != null)
+            overrides.Conflict = patch.Conflict.Trim();
+        if (patch.Tags != null)
+            overrides.Tags = patch.Tags
+                .Where(tag => !string.IsNullOrWhiteSpace(tag))
+                .Select(tag => tag.Trim())
+                .ToList();
+
+        await _workspace.Projects.SetSceneAnalysisOverridesAsync(
+            chapterGuid, sceneId, overrides.HasValues ? overrides : null);
+    }
+
+    /// <summary>Clears a single analysis-override field so it reverts to the
+    /// auto-computed value. Unknown fields are ignored.</summary>
+    [JsonRpcMethod("scenes/resetAnalysisOverride")]
+    public async Task ResetAnalysisOverrideAsync(string chapterGuid, string sceneId, string field)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        var overrides = scene.AnalysisOverrides?.Clone();
+        if (overrides == null)
+            return;
+
+        switch (field)
+        {
+            case "pov": overrides.Pov = null; break;
+            case "emotion": overrides.Emotion = null; break;
+            case "intensity": overrides.Intensity = null; break;
+            case "conflict": overrides.Conflict = null; break;
+            case "tags": overrides.Tags = null; break;
+            default: return;
+        }
+
+        await _workspace.Projects.SetSceneAnalysisOverridesAsync(
+            chapterGuid, sceneId, overrides.HasValues ? overrides : null);
     }
 
     [JsonRpcMethod("scenes/archive")]
@@ -101,7 +178,21 @@ public sealed class ScenesRpc
 
 public sealed record SceneContentDto(string SceneId, string Html);
 
-public sealed record SceneMetaDto(string SceneId, string? Synopsis, string? Notes);
+public sealed record SceneMetaDto(
+    string SceneId,
+    string? Synopsis,
+    string? Notes,
+    string StoryDate,
+    string? IsoDate);
+
+/// <summary>Partial patch for a scene's analysis overrides. Null fields are
+/// left unchanged; only supplied fields are written.</summary>
+public sealed record AnalysisOverrideDto(
+    string? Pov,
+    string? Emotion,
+    int? Intensity,
+    string? Conflict,
+    string[]? Tags);
 
 public sealed record ArchivedSceneDto(string Id, string Title, int WordCount, string? ArchivedAt);
 

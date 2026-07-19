@@ -149,6 +149,51 @@ public sealed class RpcFacadeTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task DeleteDraft_RemovesDraft_OverTheWire()
+    {
+        await InvokeAsync<ProjectStateDto>("project/create", _root, "DraftNovel", "Book");
+        var drafts = await InvokeAsync<DraftDto[]>("project/drafts");
+        var created = await InvokeAsync<DraftDto[]>("project/createDraft", "Throwaway", drafts[0].Id);
+        Assert.Equal(2, created.Length);
+
+        var throwaway = created.Single(d => d.Name == "Throwaway");
+        var remaining = await InvokeAsync<DraftDto[]>("project/deleteDraft", throwaway.Id);
+        Assert.Single(remaining);
+        Assert.DoesNotContain(remaining, d => d.Id == throwaway.Id);
+    }
+
+    [Fact]
+    public async Task SceneEdit_PovAndDateRange_RoundTrips_OverTheWire()
+    {
+        await InvokeAsync<ProjectStateDto>("project/create", _root, "DateNovel", "Book");
+        var withChapter = await InvokeAsync<ProjectStateDto>("project/createChapter", "Chapter");
+        var chapter = withChapter.Chapters.Single();
+        var withScene = await InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Scene");
+        var scene = withScene.Chapters.Single().Scenes.Single();
+
+        var empty = await InvokeAsync<SceneEditDto>("project/getSceneEdit", chapter.Guid, scene.Id);
+        Assert.Equal("", empty.Pov);
+        Assert.Equal("", empty.DateStart);
+
+        await _client.InvokeAsync("scenes/setPov", chapter.Guid, scene.Id, "Alice");
+        var withPov = await InvokeAsync<SceneEditDto>("project/getSceneEdit", chapter.Guid, scene.Id);
+        Assert.Equal("Alice", withPov.Pov);
+
+        var set = await InvokeAsync<SceneEditDto>(
+            "project/setSceneDateRange", chapter.Guid, scene.Id, "1999-01-02", "1999-01-05", "Winter");
+        Assert.Equal("1999-01-02", set.DateStart);
+        Assert.Equal("1999-01-05", set.DateEnd);
+        Assert.Equal("Winter", set.DateNote);
+        Assert.Equal("Alice", set.Pov);
+
+        var cleared = await InvokeAsync<SceneEditDto>(
+            "project/setSceneDateRange", chapter.Guid, scene.Id, "", "", "");
+        Assert.Equal("", cleared.DateStart);
+        Assert.Equal("", cleared.DateEnd);
+        Assert.Equal("", cleared.DateNote);
+    }
+
+    [Fact]
     public async Task StructureEdits_RenameStatusDelete_OverTheWire()
     {
         await InvokeAsync<ProjectStateDto>("project/create", _root, "EditNovel", "Book");

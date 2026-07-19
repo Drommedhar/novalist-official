@@ -82,7 +82,8 @@
   },
   "comments": {
     "noSelection": "Select some text in the scene first.",
-    "panelTitle": "COMMENTS"
+    "panelTitle": "COMMENTS",
+    "resolved": "Resolved"
   },
   "footnotes": {
     "addTitle": "Add footnote",
@@ -267,7 +268,11 @@
       "moderate": "Moderate",
       "difficult": "Difficult",
       "veryDifficult": "Very difficult"
-    }
+    },
+    "overviewTooltip": "Project overview",
+    "dailyGoalShort": "Daily {{current}}/{{target}}",
+    "projectGoalShort": "Project {{current}}/{{target}}",
+    "gitTooltip": "Open version control — {{count}} changed"
   },
   "overview": {
     "chapterColumn": "Chapter",
@@ -656,7 +661,12 @@
     "importImage": "Import file",
     "addOverride": "Add override",
     "wholeChapter": "Whole chapter",
-    "inverseRole": "Inverse role"
+    "inverseRole": "Inverse role",
+    "pasteImage": "Paste image",
+    "fromUrl": "From URL",
+    "fromUrlTitle": "Add image from URL",
+    "fromUrlPlaceholder": "https://example.com/image.png",
+    "fromUrlError": "Could not load image from that URL."
   },
   "context": {
     "title": "NOVALIST CONTEXT",
@@ -1222,7 +1232,12 @@
     "currentBadge": "Current",
     "enterNameWatermark": "Enter name...",
     "clear": "Clear",
-    "delete": "Delete"
+    "delete": "Delete",
+    "newChapterTitle": "New Chapter",
+    "newSceneTitle": "New Scene",
+    "status": "Status",
+    "act": "Act",
+    "actWatermark": "e.g. Act I (optional)"
   },
   "book": {
     "pickerTooltip": "Switch book",
@@ -1319,7 +1334,9 @@
     "compareApplySelectedTooltip": "For each marked line, use the snapshot version instead of the current. Current state is auto-snapshotted first.",
     "compareApplyHunkTooltip": "Use snapshot version of this line",
     "compareSelectAll": "Select all",
-    "compareSelectNone": "Select none"
+    "compareSelectNone": "Select none",
+    "comparePick": "Select a second snapshot to compare",
+    "compareIdentical": "These versions are identical."
   },
   "dashboard": {
     "subtitle": "Project Dashboard",
@@ -1356,7 +1373,12 @@
     "echoDescription": "Frequently repeated phrases across your manuscript. Consider varying your language where counts are high.",
     "recentActivity": "RECENT ACTIVITY",
     "avgChapter": "Average per chapter",
-    "streakDays": "Streak: {{count}} days"
+    "streakDays": "Streak: {{count}} days",
+    "addCover": "Add cover",
+    "changeCover": "Change cover",
+    "removeCover": "Remove cover",
+    "pickCoverTitle": "Choose cover image",
+    "noCover": "No cover image"
   },
   "import": {
     "title": "Import from Obsidian Plugin",
@@ -1591,7 +1613,8 @@
     "launching": "Launching installer...",
     "error": "Update failed: {0}",
     "checkForUpdates": "Check for updates",
-    "checkForUpdatesDesc": "Automatically check for new versions on startup"
+    "checkForUpdatesDesc": "Automatically check for new versions on startup",
+    "noNotes": "See the release page for the full list of changes in this version."
   },
   "shell": {
     "toggleBinder": "Toggle binder",
@@ -1627,6 +1650,7 @@
     "words": "words",
     "chapters": "chapters",
     "scenes": "scenes",
-    "groupApp": "Application"
+    "groupApp": "Application",
+    "menu": "Menu"
   }
 }

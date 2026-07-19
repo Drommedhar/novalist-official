@@ -170,7 +170,11 @@
       "moderate": "Mittel",
       "difficult": "Schwer",
       "veryDifficult": "Sehr schwer"
-    }
+    },
+    "overviewTooltip": "Projektübersicht",
+    "dailyGoalShort": "Täglich {{current}}/{{target}}",
+    "projectGoalShort": "Projekt {{current}}/{{target}}",
+    "gitTooltip": "Versionsverwaltung öffnen — {{count}} geändert"
   },
   "overview": {
     "chapterColumn": "Kapitel",
@@ -554,7 +558,12 @@
     "importImage": "Datei importieren",
     "addOverride": "Override hinzufügen",
     "wholeChapter": "Ganzes Kapitel",
-    "inverseRole": "Gegenrolle"
+    "inverseRole": "Gegenrolle",
+    "pasteImage": "Bild einfügen",
+    "fromUrl": "Von URL",
+    "fromUrlTitle": "Bild von URL hinzufügen",
+    "fromUrlPlaceholder": "https://example.com/bild.png",
+    "fromUrlError": "Bild konnte von dieser URL nicht geladen werden."
   },
   "context": {
     "title": "NOVALIST KONTEXT",
@@ -741,7 +750,12 @@
     "currentBadge": "Aktuell",
     "enterNameWatermark": "Namen eingeben...",
     "clear": "Löschen",
-    "delete": "Löschen"
+    "delete": "Löschen",
+    "newChapterTitle": "Neues Kapitel",
+    "newSceneTitle": "Neue Szene",
+    "status": "Status",
+    "act": "Akt",
+    "actWatermark": "z. B. Akt I (optional)"
   },
   "book": {
     "pickerTooltip": "Buch wechseln",
@@ -817,7 +831,8 @@
   },
   "comments": {
     "noSelection": "Wähle zuerst Text in der Szene aus.",
-    "panelTitle": "KOMMENTARE"
+    "panelTitle": "KOMMENTARE",
+    "resolved": "Erledigt"
   },
   "footnotes": {
     "addTitle": "Fußnote hinzufügen",
@@ -943,7 +958,9 @@
     "compareApplySelectedTooltip": "Für jede markierte Zeile die Stand-Version statt der aktuellen verwenden. Aktueller Zustand wird vorher automatisch gesichert.",
     "compareApplyHunkTooltip": "Stand-Version dieser Zeile verwenden",
     "compareSelectAll": "Alle auswählen",
-    "compareSelectNone": "Keine auswählen"
+    "compareSelectNone": "Keine auswählen",
+    "comparePick": "Zweiten Snapshot zum Vergleich wählen",
+    "compareIdentical": "Diese Versionen sind identisch."
   },
   "dashboard": {
     "subtitle": "Projekt-Dashboard",
@@ -980,7 +997,12 @@
     "echoDescription": "Häufig wiederholte Phrasen in Ihrem Manuskript. Erwägen Sie, Ihre Sprache zu variieren, wenn die Anzahl hoch ist.",
     "recentActivity": "LETZTE AKTIVITÄT",
     "avgChapter": "Durchschnitt pro Kapitel",
-    "streakDays": "Serie: {{count}} Tage"
+    "streakDays": "Serie: {{count}} Tage",
+    "addCover": "Cover hinzufügen",
+    "changeCover": "Cover ändern",
+    "removeCover": "Cover entfernen",
+    "pickCoverTitle": "Coverbild wählen",
+    "noCover": "Kein Coverbild"
   },
   "import": {
     "title": "Aus Obsidian-Plugin importieren",
@@ -1211,7 +1233,8 @@
     "launching": "Installer wird gestartet...",
     "error": "Update fehlgeschlagen: {0}",
     "checkForUpdates": "Nach Updates suchen",
-    "checkForUpdatesDesc": "Beim Start automatisch nach neuen Versionen suchen"
+    "checkForUpdatesDesc": "Beim Start automatisch nach neuen Versionen suchen",
+    "noNotes": "Die vollständige Änderungsliste dieser Version finden Sie auf der Release-Seite."
   },
   "wizard": {
     "cancel": "Abbrechen",
@@ -1626,6 +1649,7 @@
     "words": "Wörter",
     "chapters": "Kapitel",
     "scenes": "Szenen",
-    "groupApp": "Anwendung"
+    "groupApp": "Anwendung",
+    "menu": "Menü"
   }
 }

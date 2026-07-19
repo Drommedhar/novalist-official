@@ -90,11 +90,13 @@ interface ProjectState {
   loadDrafts(): Promise<void>
   createDraft(name: string): Promise<void>
   switchDraft(draftId: string): Promise<void>
+  deleteDraft(draftId: string): Promise<void>
   renameChapter(chapterGuid: string, title: string): Promise<void>
   renameScene(chapterGuid: string, sceneId: string, title: string): Promise<void>
   deleteChapter(chapterGuid: string): Promise<void>
   deleteScene(chapterGuid: string, sceneId: string): Promise<void>
   setChapterStatus(chapterGuid: string, status: string): Promise<void>
+  setChapterAct(chapterGuid: string, act: string): Promise<void>
   reorderChapter(chapterGuid: string, newOrder: number): Promise<void>
   reorderScene(chapterGuid: string, sceneId: string, newOrder: number): Promise<void>
   moveScenes(sceneIds: string[], targetChapterGuid: string, targetIndex: number): Promise<void>
@@ -157,6 +159,22 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     await get().flushPendingSave()
     set({ ...clearedEditorState() })
     get().applyState(await rpc.request<ProjectStateDto>('project/switchDraft', [draftId]))
+  },
+
+  deleteDraft: async (draftId) => {
+    const wasActive = get().drafts.find((d) => d.id === draftId)?.isActive ?? false
+    const drafts = await rpc.request<{ id: string; name: string; isActive: boolean }[]>(
+      'project/deleteDraft',
+      [draftId]
+    )
+    set({ drafts })
+    // Deleting the active draft makes the backend switch to another draft and
+    // reload its chapters/scenes, so refresh project state and reset the editor.
+    if (wasActive) {
+      await get().flushPendingSave()
+      set({ ...clearedEditorState() })
+      get().applyState(await rpc.request<ProjectStateDto>('project/getState'))
+    }
   },
 
   loadRecents: async () => {
@@ -361,6 +379,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   setChapterStatus: async (chapterGuid, status) => {
     get().applyState(
       await rpc.request<ProjectStateDto>('project/setChapterStatus', [chapterGuid, status])
+    )
+  },
+
+  setChapterAct: async (chapterGuid, act) => {
+    get().applyState(
+      await rpc.request<ProjectStateDto>('project/setChapterAct', [chapterGuid, act])
     )
   },
 

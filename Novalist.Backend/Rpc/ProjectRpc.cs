@@ -152,6 +152,13 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 
+    [JsonRpcMethod("project/deleteDraft")]
+    public async Task<DraftDto[]> DeleteDraftAsync(string draftId)
+    {
+        await _workspace.Projects.DeleteDraftAsync(draftId);
+        return GetDrafts();
+    }
+
     [JsonRpcMethod("project/setChapterAct")]
     public async Task<ProjectStateDto> SetChapterActAsync(string chapterGuid, string act)
     {
@@ -169,8 +176,37 @@ public sealed class ProjectRpc
         await _workspace.Projects.SaveScenesAsync();
         return _workspace.BuildState();
     }
+
+    [JsonRpcMethod("project/getSceneEdit")]
+    public SceneEditDto GetSceneEdit(string chapterGuid, string sceneId)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        var range = scene.DateRange;
+        return new SceneEditDto(
+            scene.AnalysisOverrides?.Pov ?? string.Empty,
+            range?.Start ?? string.Empty,
+            range?.End ?? string.Empty,
+            range?.Note ?? string.Empty);
+    }
+
+    [JsonRpcMethod("project/setSceneDateRange")]
+    public async Task<SceneEditDto> SetSceneDateRangeAsync(
+        string chapterGuid, string sceneId, string start, string end, string note)
+    {
+        var range = new Novalist.Core.Models.StoryDateRange
+        {
+            Start = start.Trim(),
+            End = end.Trim(),
+            Note = note.Trim(),
+        };
+        await _workspace.Projects.SetSceneDateRangeAsync(
+            chapterGuid, sceneId, range.HasValue ? range : null);
+        return GetSceneEdit(chapterGuid, sceneId);
+    }
 }
 
 public sealed record DraftDto(string Id, string Name, bool IsActive);
 
 public sealed record ProjectTemplateDto(string Id, string Name, string Description);
+
+public sealed record SceneEditDto(string Pov, string DateStart, string DateEnd, string DateNote);

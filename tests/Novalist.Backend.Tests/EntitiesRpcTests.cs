@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text.Json;
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
@@ -9,6 +10,25 @@ namespace Novalist.Backend.Tests;
 
 public sealed class EntitiesRpcTests : IDisposable
 {
+    /// <summary>Stubs the HTTP transport so image-from-URL downloads never hit
+    /// the network; returns the configured status and bytes.</summary>
+    private sealed class StubHandler : HttpMessageHandler
+    {
+        public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
+        public byte[] ContentBytes { get; set; } = [137, 80, 78, 71];
+        public Uri? LastRequestUri { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            LastRequestUri = request.RequestUri;
+            return Task.FromResult(new HttpResponseMessage(StatusCode)
+            {
+                Content = new ByteArrayContent(ContentBytes)
+            });
+        }
+    }
+
     private readonly string _root;
     private readonly Workspace _workspace;
     private readonly EntitiesRpc _rpc;
@@ -479,6 +499,105 @@ public sealed class EntitiesRpcTests : IDisposable
             var updated = await _rpc.AddImageAsync(type, id, "Images/x.png", import: false);
             Assert.Equal(1, updated.GetProperty("images").GetArrayLength());
         }
+    }
+
+    [Fact]
+    public async Task RenameImage_SetsNameKeepsPath_AndGuards()
+    {
+        var id = (await _rpc.CreateAsync("character", "Mira")).GetProperty("id").GetString()!;
+        var added = await _rpc.AddImageAsync("character", id, "Images/mira.png", import: false);
+        Assert.Equal("mira", added.GetProperty("images")[0].GetProperty("name").GetString());
+
+        var renamed = await _rpc.RenameImageAsync("character", id, "Images/mira.png", "Portrait");
+        var image = renamed.GetProperty("images")[0];
+        Assert.Equal("Portrait", image.GetProperty("name").GetString());
+        // The stored path (what add/remove match on) is untouched by a rename.
+        Assert.Equal("Images/mira.png", image.GetProperty("path").GetString());
+
+        // A path that matches nothing is a silent no-op, not an error.
+        var untouched = await _rpc.RenameImageAsync("character", id, "Images/none.png", "X");
+        Assert.Equal("Portrait", untouched.GetProperty("images")[0].GetProperty("name").GetString());
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.RenameImageAsync("dragon", id, "x", "y"));
+    }
+
+    [Fact]
+    public async Task ReplaceImage_SwapsPath_AndFillsEmptyName()
+    {
+        var id = (await _rpc.CreateAsync("character", "Mira")).GetProperty("id").GetString()!;
+        await _rpc.AddImageAsync("character", id, "Images/a.png", import: false);
+
+        // A named image keeps its name; only the stored path swaps.
+        var swapped = await _rpc.ReplaceImageAsync("character", id, "Images/a.png", "Images/b.png");
+        var image = swapped.GetProperty("images")[0];
+        Assert.Equal("a", image.GetProperty("name").GetString());
+        Assert.Equal("Images/b.png", image.GetProperty("path").GetString());
+
+        // Emptying the name then swapping fills it from the new file name.
+        await _rpc.RenameImageAsync("character", id, "Images/b.png", "");
+        var refilled = await _rpc.ReplaceImageAsync("character", id, "Images/b.png", "Images/c.png");
+        var filled = refilled.GetProperty("images")[0];
+        Assert.Equal("c", filled.GetProperty("name").GetString());
+        Assert.Equal("Images/c.png", filled.GetProperty("path").GetString());
+
+        // No match is a no-op; an unknown entity throws.
+        var noop = await _rpc.ReplaceImageAsync("character", id, "Images/zzz.png", "Images/d.png");
+        Assert.Equal("Images/c.png", noop.GetProperty("images")[0].GetProperty("path").GetString());
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.ReplaceImageAsync("character", "missing", "x", "y"));
+    }
+
+    [Fact]
+    public async Task AddImageFromUrl_DownloadsImportsAndAttaches()
+    {
+        var handler = new StubHandler();
+        var rpc = new EntitiesRpc(_workspace, new HttpClient(handler));
+        var id = (await rpc.CreateAsync("character", "Mira")).GetProperty("id").GetString()!;
+
+        var updated = await rpc.AddImageFromUrlAsync("character", id, "https://img.test/pics/dragon.png");
+        var image = updated.GetProperty("images")[0];
+        Assert.Equal("dragon", image.GetProperty("name").GetString());
+        Assert.EndsWith("dragon.png", image.GetProperty("path").GetString());
+        Assert.Equal("https://img.test/pics/dragon.png", handler.LastRequestUri!.ToString());
+
+        // A URL segment without an image extension gets one appended.
+        handler.ContentBytes = [1, 2, 3, 4, 5];
+        var second = await rpc.AddImageFromUrlAsync("character", id, "https://img.test/gallery/portrait");
+        var portrait = second.GetProperty("images")[1];
+        Assert.Equal("portrait", portrait.GetProperty("name").GetString());
+        Assert.EndsWith("portrait.png", portrait.GetProperty("path").GetString());
+    }
+
+    [Fact]
+    public async Task AddImageFromUrl_FailedRequest_ThrowsCleanly()
+    {
+        var handler = new StubHandler { StatusCode = HttpStatusCode.NotFound };
+        var rpc = new EntitiesRpc(_workspace, new HttpClient(handler));
+        var id = (await rpc.CreateAsync("character", "Mira")).GetProperty("id").GetString()!;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => rpc.AddImageFromUrlAsync("character", id, "https://img.test/missing.png"));
+    }
+
+    [Fact]
+    public async Task List_ExposesAliases_ForMentionAutocomplete()
+    {
+        await Entities.SaveCharacterAsync(new CharacterData
+        {
+            Name = "Mira", Surname = "Frost", Aliases = ["Die Klinge", "Nordwind"]
+        });
+        await Entities.SaveCharacterAsync(new CharacterData { Name = "Plain" });
+
+        var list = await _rpc.ListAsync("character");
+        Assert.Equal(new[] { "Die Klinge", "Nordwind" },
+            list.Single(e => e.Name == "Mira Frost").Aliases);
+        Assert.Empty(list.Single(e => e.Name == "Plain").Aliases);
+
+        // Locations expose aliases too (item/lore/custom arms share the code path).
+        await Entities.SaveLocationAsync(new LocationData { Name = "Keep", Aliases = ["Fortress"] });
+        Assert.Equal(new[] { "Fortress" },
+            (await _rpc.ListAsync("location")).Single(e => e.Name == "Keep").Aliases);
     }
 
     [Fact]

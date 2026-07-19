@@ -27,3 +27,145 @@
   text-overflow: ellipsis;
   color: var(--nl-text-dim);
 }
+
+/* ===== Centre overview trigger + popover ===== */
+.status-center-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-overview-trigger {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.status-overview-trigger:hover {
+  color: var(--nl-text);
+}
+
+.status-overview-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.status-overview-popover {
+  position: absolute;
+  bottom: calc(100% + var(--nl-space-sm));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 41;
+  min-width: 220px;
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.35);
+  padding: var(--nl-space-normal);
+}
+
+.status-overview-title {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: var(--nl-space-sm);
+}
+
+.status-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nl-space-md);
+}
+
+.status-overview-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-overview-value {
+  font-size: var(--nl-font-body-lg);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+  color: var(--nl-text);
+}
+
+.status-overview-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+/* ===== Right segment: goals + git indicator + backend ===== */
+.status-right {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-lg);
+  min-width: 0;
+}
+
+.status-goals {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+}
+
+.status-goal {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  white-space: nowrap;
+}
+
+.status-goal-label {
+  font-variant-numeric: tabular-nums;
+}
+
+.status-goal-track {
+  width: 48px;
+  height: 4px;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-hover);
+  overflow: hidden;
+}
+
+.status-goal-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-accent, #4f8cff);
+}
+
+.status-git {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.status-git:hover {
+  color: var(--nl-text);
+}
+
+.status-git-branch {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-git-count {
+  font-variant-numeric: tabular-nums;
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-pill);
+  padding: 0 var(--nl-space-sm);
+}

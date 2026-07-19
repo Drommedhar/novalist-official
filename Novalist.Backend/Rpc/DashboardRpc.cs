@@ -159,6 +159,46 @@ public sealed partial class DashboardRpc
         await _workspace.Projects.SaveProjectSettingsAsync();
     }
 
+    /// <summary>
+    /// Returns the active book's cover image as a path relative to the project
+    /// root so the renderer can serve it through <c>novalist-project://</c>, or
+    /// null when no cover is set. Prefers the book cover, falling back to the
+    /// project-level cover.
+    /// </summary>
+    [JsonRpcMethod("dashboard/getCover")]
+    public Task<string?> GetCoverAsync()
+    {
+        var projects = _workspace.Projects;
+        var stored = projects.ActiveBook?.CoverImage;
+        if (string.IsNullOrEmpty(stored))
+            stored = projects.CurrentProject?.CoverImage;
+        return Task.FromResult<string?>(string.IsNullOrEmpty(stored)
+            ? null
+            : _entities.ResolveProjectRelativeImage(stored));
+    }
+
+    /// <summary>
+    /// Imports the picked image into the active book's image folder and records
+    /// the resulting book-relative path as both the project and active-book
+    /// cover. A null or blank path clears the cover instead.
+    /// </summary>
+    [JsonRpcMethod("dashboard/setCover")]
+    public async Task SetCoverAsync(string? path)
+    {
+        var projects = _workspace.Projects;
+        var project = projects.CurrentProject
+            ?? throw new InvalidOperationException("No project open.");
+
+        var relative = string.IsNullOrWhiteSpace(path)
+            ? string.Empty
+            : await _entities.ImportImageAsync(path);
+
+        project.CoverImage = relative;
+        if (projects.ActiveBook != null)
+            projects.ActiveBook.CoverImage = relative;
+        await projects.SaveProjectAsync();
+    }
+
     // Ported verbatim from the Avalonia DashboardViewModel so results match.
     internal static List<(string Phrase, int Count)> FindEchoPhrases(string text, int minWords, int threshold)
     {

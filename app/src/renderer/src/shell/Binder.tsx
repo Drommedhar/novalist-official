@@ -24,6 +24,9 @@ import { useExtensionsStore } from '../stores/extensionsStore'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
 import { InputDialog } from './InputDialog'
 import { ConfirmDialog } from './ConfirmDialog'
+import { ChapterDialog } from './ChapterDialog'
+import { SceneDialog } from './SceneDialog'
+import { StoryDateRangeDialog } from './StoryDateRangeDialog'
 import { SmartListsPanel } from './SmartListsPanel'
 
 const viewIcons: Record<MainView, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
@@ -53,10 +56,11 @@ interface MenuState {
 }
 
 type PendingAction =
-  | { kind: 'renameChapter'; chapterGuid: string; current: string }
-  | { kind: 'renameScene'; chapterGuid: string; sceneId: string; current: string }
+  | { kind: 'editChapter'; chapterGuid: string }
+  | { kind: 'editScene'; chapterGuid: string; sceneId: string; current: string }
   | { kind: 'deleteChapter'; chapterGuid: string; title: string }
   | { kind: 'deleteScene'; chapterGuid: string; sceneId: string; title: string }
+  | { kind: 'setDate'; chapterGuid: string; sceneId: string }
   | { kind: 'setAct'; chapterGuid: string; current: string }
 
 interface ArchivedScene {
@@ -144,11 +148,16 @@ export function Binder(): React.JSX.Element {
           label: t('explorer.renameScene'),
           onClick: () =>
             setPending({
-              kind: 'renameScene',
+              kind: 'editScene',
               chapterGuid: chapter.guid,
               sceneId: scene.id,
               current: scene.title
             })
+        },
+        {
+          label: t('explorer.contextSetDate'),
+          onClick: () =>
+            setPending({ kind: 'setDate', chapterGuid: chapter.guid, sceneId: scene.id })
         },
         {
           label: t('explorer.contextDelete'),
@@ -171,8 +180,7 @@ export function Binder(): React.JSX.Element {
       },
       {
         label: t('explorer.renameChapter'),
-        onClick: () =>
-          setPending({ kind: 'renameChapter', chapterGuid: chapter.guid, current: chapter.title })
+        onClick: () => setPending({ kind: 'editChapter', chapterGuid: chapter.guid })
       },
       {
         label: t('explorer.contextDelete'),
@@ -356,26 +364,28 @@ export function Binder(): React.JSX.Element {
         ))}
       </div>
       {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems()} onClose={() => setMenu(null)} />}
-      {pending?.kind === 'renameChapter' && (
-        <InputDialog
-          title={t('explorer.renameChapterPrompt')}
-          placeholder={pending.current}
-          onCancel={() => setPending(null)}
-          onSubmit={(title) => {
-            setPending(null)
-            void store.getState().renameChapter(pending.chapterGuid, title)
+      {pending?.kind === 'editChapter' &&
+        chapters.some((c) => c.guid === pending.chapterGuid) && (
+          <ChapterDialog
+            chapter={chapters.find((c) => c.guid === pending.chapterGuid)}
+            onClose={() => setPending(null)}
+          />
+        )}
+      {pending?.kind === 'editScene' && (
+        <SceneDialog
+          edit={{
+            chapterGuid: pending.chapterGuid,
+            sceneId: pending.sceneId,
+            title: pending.current
           }}
+          onClose={() => setPending(null)}
         />
       )}
-      {pending?.kind === 'renameScene' && (
-        <InputDialog
-          title={t('explorer.renameScenePrompt')}
-          placeholder={pending.current}
-          onCancel={() => setPending(null)}
-          onSubmit={(title) => {
-            setPending(null)
-            void store.getState().renameScene(pending.chapterGuid, pending.sceneId, title)
-          }}
+      {pending?.kind === 'setDate' && (
+        <StoryDateRangeDialog
+          chapterGuid={pending.chapterGuid}
+          sceneId={pending.sceneId}
+          onClose={() => setPending(null)}
         />
       )}
       {pending?.kind === 'setAct' && (

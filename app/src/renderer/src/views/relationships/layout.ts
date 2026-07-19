@@ -39,6 +39,12 @@ export interface LayoutBox {
   width: number
   height: number
   label: string
+  /**
+   * 'family' boxes wrap a genealogy cluster and their label is a surname;
+   * 'role' boxes wrap the endpoints of a non-family relationship shared by
+   * three or more characters (e.g. "Ring") and their label is the raw role.
+   */
+  kind: 'family' | 'role'
 }
 
 export interface GraphLayout {
@@ -58,7 +64,32 @@ const FAMILY_TOP = 80
 const LEFT_MARGIN = 60
 const FAMILY_GAP = 100
 const BOX_PADDING = 20
+const ROLE_BOX_PADDING = 14
+const ROLE_LOOSE_SPACING = 120 // gap between pre-placed loose role-group members
 const PAD = 40 // normalized canvas margin
+
+/**
+ * True when the padded box [minX..maxX] × [minY..maxY] would enclose the centre
+ * of any positioned node that is not one of the group's own endpoints. Used to
+ * stop greedy role-box expansion from swallowing unrelated characters.
+ */
+function boxEnvelopsOther(
+  positions: Map<string, { x: number; y: number }>,
+  endpoints: Set<string>,
+  minX: number,
+  minY: number,
+  maxX: number,
+  maxY: number,
+  pad: number
+): boolean {
+  for (const [id, p] of positions) {
+    if (endpoints.has(id)) continue
+    if (p.x >= minX - pad && p.x <= maxX + pad && p.y >= minY - pad && p.y <= maxY + pad) {
+      return true
+    }
+  }
+  return false
+}
 
 function matchesAny(role: string, keywords: Set<string>): boolean {
   const lower = role.toLowerCase()
@@ -200,6 +231,36 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
   const boxes: LayoutBox[] = []
   const coupleChildren: { parents: string[]; children: string[] }[] = []
   let familyLeft = LEFT_MARGIN
+
+  // Endpoints of each non-family role (node ids on either side of the edge).
+  // A role shared by >=3 characters is drawn later as one labeled box.
+  const roleEndpointsByRole = new Map<string, Set<string>>()
+  for (const e of edges) {
+    if (!byId.has(e.from.id) || !byId.has(e.to.id)) continue
+    if (isFamilyRole(e.role)) continue
+    let set = roleEndpointsByRole.get(e.role)
+    if (!set) {
+      set = new Set()
+      roleEndpointsByRole.set(e.role, set)
+    }
+    set.add(e.from.id)
+    set.add(e.to.id)
+  }
+
+  // Pre-place loose members (not in any family) of multi-endpoint role groups
+  // in a compact row at top-left, BEFORE families, so their bounding box stays
+  // tight instead of enveloping downstream family clusters. Mirrors the
+  // Avalonia RelationshipsGraph pre-placement pass.
+  let looseCursorX = LEFT_MARGIN
+  for (const eps of roleEndpointsByRole.values()) {
+    if (eps.size < 3) continue
+    for (const id of eps) {
+      if (familyOf.has(id) || positions.has(id)) continue
+      positions.set(id, { x: looseCursorX + NODE_W / 2, y: FAMILY_TOP })
+      looseCursorX += ROLE_LOOSE_SPACING
+    }
+  }
+  if (positions.size > 0) familyLeft = looseCursorX + FAMILY_GAP
 
   const familyMembers: string[][] = []
   for (let f = 0; f < familyCount; f++) {
@@ -365,7 +426,8 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
         y: minY - BOX_PADDING,
         width: maxX - minX + 2 * BOX_PADDING,
         height: maxY - minY + 2 * BOX_PADDING,
-        label: mostCommon(surnames)
+        label: mostCommon(surnames),
+        kind: 'family'
       })
       familyLeft = maxX + BOX_PADDING + FAMILY_GAP
     }
@@ -386,6 +448,58 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
         y: centerY + radius * Math.sin(angle)
       })
     })
+  }
+
+  // Non-family roles shared by three or more characters render as one labeled
+  // box instead of a tangle of individual edges. The box wraps the loose
+  // (non-family) endpoints, then greedily expands to cover family-side endpoints
+  // ordered by X as long as the growth would not swallow an unrelated node.
+  // Mirrors the Avalonia RelationshipsGraph role-group boxes.
+  const clusteredPairs = new Set<string>()
+  for (const [role, eps] of roleEndpointsByRole) {
+    if (eps.size < 3) continue
+    let minX = Number.POSITIVE_INFINITY
+    let minY = Number.POSITIVE_INFINITY
+    let maxX = Number.NEGATIVE_INFINITY
+    let maxY = Number.NEGATIVE_INFINITY
+    for (const id of eps) {
+      if (familyOf.has(id)) continue
+      const p = positions.get(id)
+      if (!p) continue
+      minX = Math.min(minX, p.x - NODE_W / 2)
+      minY = Math.min(minY, p.y - NODE_H / 2)
+      maxX = Math.max(maxX, p.x + NODE_W / 2)
+      maxY = Math.max(maxY, p.y + NODE_H / 2)
+    }
+    if (!Number.isFinite(minX)) continue // no loose endpoints to anchor the box
+    const familySide = [...eps]
+      .filter((id) => familyOf.has(id) && positions.has(id))
+      .sort((a, b) => positions.get(a)!.x - positions.get(b)!.x)
+    for (const id of familySide) {
+      const p = positions.get(id)!
+      const nMinX = Math.min(minX, p.x - NODE_W / 2)
+      const nMinY = Math.min(minY, p.y - NODE_H / 2)
+      const nMaxX = Math.max(maxX, p.x + NODE_W / 2)
+      const nMaxY = Math.max(maxY, p.y + NODE_H / 2)
+      if (boxEnvelopsOther(positions, eps, nMinX, nMinY, nMaxX, nMaxY, ROLE_BOX_PADDING)) continue
+      minX = nMinX
+      minY = nMinY
+      maxX = nMaxX
+      maxY = nMaxY
+    }
+    boxes.push({
+      x: minX - ROLE_BOX_PADDING,
+      y: minY - ROLE_BOX_PADDING,
+      width: maxX - minX + 2 * ROLE_BOX_PADDING,
+      height: maxY - minY + 2 * ROLE_BOX_PADDING,
+      label: role,
+      kind: 'role'
+    })
+    // Suppress every edge of this role so it does not also draw as a line.
+    for (const e of edges) {
+      if (e.role !== role) continue
+      clusteredPairs.add([e.from.id, e.to.id].sort().join('|'))
+    }
   }
 
   const layoutEdges: LayoutEdge[] = []
@@ -418,6 +532,7 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
       familyOf.has(e.from.id) && familyOf.get(e.from.id) === familyOf.get(e.to.id)
     if (isFamilyRole(e.role) && sameFamily) continue
     const key = [e.from.id, e.to.id].sort().join('|')
+    if (clusteredPairs.has(key)) continue // already drawn as a role-group box
     let entry = merged.get(key)
     if (!entry) {
       entry = { from: e.from.id, to: e.to.id, roles: [] }

@@ -1,9 +1,36 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { GitBranch } from 'lucide-react'
+import { rpc } from '../rpc/client'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useSettingsStore } from '../stores/settingsStore'
 import './statusbar.css'
+
+// Whole-project figures the status bar surfaces (goal progress + the overview
+// popover). A subset of dashboard/get's DashboardDto; the extra fields are
+// simply ignored. Refreshed on project change and a slow interval so the bar
+// never runs a fresh-array zustand selector to derive them.
+interface ProjectOverview {
+  totalWords: number
+  chapterCount: number
+  sceneCount: number
+  characterCount: number
+  locationCount: number
+  readingTimeMinutes: number
+  dailyGoalCurrent: number
+  dailyGoalTarget: number
+  dailyGoalPercent: number
+  projectGoalTarget: number
+  projectGoalPercent: number
+}
+
+interface GitIndicator {
+  branchName: string
+  changedFiles: unknown[]
+}
+
+const OVERVIEW_REFRESH_MS = 20000
 
 // ── Text statistics (ported from Novalist.Core TextStatistics) ─────────────
 // The editor reports plain text on every change and the store strips HTML on
@@ -186,7 +213,9 @@ function computeStats(plainText: string, language: string): EditorStats {
 export function StatusBar(): React.JSX.Element {
   const { t } = useTranslation()
   const backendVersion = useShellStore((s) => s.backendVersion)
+  const setMainView = useShellStore((s) => s.setMainView)
   const isLoaded = useProjectStore((s) => s.isLoaded)
+  const projectPath = useProjectStore((s) => s.projectPath)
   const chapters = useProjectStore((s) => s.chapters)
   const plainText = useProjectStore((s) => s.openScenePlainText)
   const language = useSettingsStore((s) => s.view?.effective.autoReplacementLanguage ?? 'en')
@@ -195,6 +224,45 @@ export function StatusBar(): React.JSX.Element {
       .find((c) => c.guid === s.openChapterGuid)
       ?.scenes.find((sc) => sc.id === s.openSceneId)
   )
+
+  const [overview, setOverview] = useState<ProjectOverview | null>(null)
+  const [git, setGit] = useState<GitIndicator | null | undefined>(undefined)
+  const [overviewOpen, setOverviewOpen] = useState(false)
+
+  // Pull whole-project figures + git status when a project opens and on a slow
+  // interval thereafter (dashboard/get is comparatively heavy). git/status
+  // returns null outside a repository, which hides the git indicator.
+  useEffect(() => {
+    if (!isLoaded) {
+      setOverview(null)
+      setGit(undefined)
+      setOverviewOpen(false)
+      return
+    }
+    let active = true
+    const load = (): void => {
+      void rpc
+        .request<ProjectOverview>('dashboard/get', [1])
+        .then((d) => {
+          if (active) setOverview(d)
+        })
+        .catch(() => {})
+      void rpc
+        .request<GitIndicator | null>('git/status')
+        .then((g) => {
+          if (active) setGit(g)
+        })
+        .catch(() => {
+          if (active) setGit(null)
+        })
+    }
+    load()
+    const id = window.setInterval(load, OVERVIEW_REFRESH_MS)
+    return () => {
+      active = false
+      window.clearInterval(id)
+    }
+  }, [isLoaded, projectPath])
 
   const totalWords = chapters.reduce(
     (sum, c) => sum + c.scenes.reduce((s2, sc) => s2 + sc.wordCount, 0),
@@ -206,6 +274,17 @@ export function StatusBar(): React.JSX.Element {
     () => (plainText === null ? null : computeStats(plainText, language)),
     [plainText, language]
   )
+
+  const toggleOverview = (): void => {
+    const next = !overviewOpen
+    setOverviewOpen(next)
+    if (next) {
+      void rpc
+        .request<ProjectOverview>('dashboard/get', [1])
+        .then(setOverview)
+        .catch(() => {})
+    }
+  }
 
   return (
     <footer className="status-bar">
@@ -240,14 +319,116 @@ export function StatusBar(): React.JSX.Element {
           </span>
         )}
       </span>
-      <span className="status-center">
-        {isLoaded &&
-          `${totalWords.toLocaleString()} ${t('shell.words')} - ${chapters.length} ${t('shell.chapters')} - ${sceneCount} ${t('shell.scenes')}`}
+
+      <span className="status-center-wrap">
+        {isLoaded ? (
+          <button
+            type="button"
+            className="status-center status-overview-trigger"
+            onClick={toggleOverview}
+            title={t('statusBar.overviewTooltip')}
+          >
+            {`${totalWords.toLocaleString()} ${t('shell.words')} - ${chapters.length} ${t('shell.chapters')} - ${sceneCount} ${t('shell.scenes')}`}
+          </button>
+        ) : (
+          <span className="status-center" />
+        )}
+        {overviewOpen && overview && (
+          <>
+            <div className="status-overview-backdrop" onClick={() => setOverviewOpen(false)} />
+            <div className="status-overview-popover" role="dialog">
+              <div className="status-overview-title">{t('dashboard.projectOverview')}</div>
+              <div className="status-overview-grid">
+                <div className="status-overview-item">
+                  <span className="status-overview-value">
+                    {overview.totalWords.toLocaleString()}
+                  </span>
+                  <span className="status-overview-label">{t('dashboard.words')}</span>
+                </div>
+                <div className="status-overview-item">
+                  <span className="status-overview-value">{overview.chapterCount}</span>
+                  <span className="status-overview-label">{t('dashboard.chapters')}</span>
+                </div>
+                <div className="status-overview-item">
+                  <span className="status-overview-value">{overview.sceneCount}</span>
+                  <span className="status-overview-label">{t('dashboard.scenes')}</span>
+                </div>
+                <div className="status-overview-item">
+                  <span className="status-overview-value">{overview.characterCount}</span>
+                  <span className="status-overview-label">{t('dashboard.characters')}</span>
+                </div>
+                <div className="status-overview-item">
+                  <span className="status-overview-value">{overview.locationCount}</span>
+                  <span className="status-overview-label">{t('dashboard.locations')}</span>
+                </div>
+                <div className="status-overview-item">
+                  <span className="status-overview-value">
+                    {t('statusBar.readingTime', { minutes: overview.readingTimeMinutes })}
+                  </span>
+                  <span className="status-overview-label">{t('dashboard.readingTime')}</span>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </span>
-      <span className="status-backend">
-        {backendVersion
-          ? t('shell.backendConnected', { version: backendVersion })
-          : t('shell.backendConnecting')}
+
+      <span className="status-right">
+        {overview && (overview.dailyGoalTarget > 0 || overview.projectGoalTarget > 0) && (
+          <span className="status-goals">
+            {overview.dailyGoalTarget > 0 && (
+              <span className="status-goal" title={`${overview.dailyGoalPercent}%`}>
+                <span className="status-goal-label">
+                  {t('statusBar.dailyGoalShort', {
+                    current: overview.dailyGoalCurrent.toLocaleString(),
+                    target: overview.dailyGoalTarget.toLocaleString()
+                  })}
+                </span>
+                <span className="status-goal-track">
+                  <span
+                    className="status-goal-fill"
+                    style={{ width: `${overview.dailyGoalPercent}%` }}
+                  />
+                </span>
+              </span>
+            )}
+            {overview.projectGoalTarget > 0 && (
+              <span className="status-goal" title={`${overview.projectGoalPercent}%`}>
+                <span className="status-goal-label">
+                  {t('statusBar.projectGoalShort', {
+                    current: overview.totalWords.toLocaleString(),
+                    target: overview.projectGoalTarget.toLocaleString()
+                  })}
+                </span>
+                <span className="status-goal-track">
+                  <span
+                    className="status-goal-fill"
+                    style={{ width: `${overview.projectGoalPercent}%` }}
+                  />
+                </span>
+              </span>
+            )}
+          </span>
+        )}
+        {git && (
+          <button
+            type="button"
+            className="status-git"
+            onClick={() => setMainView('git')}
+            title={t('statusBar.gitTooltip', { count: git.changedFiles.length })}
+          >
+            <GitBranch size={12} aria-hidden />
+            <span className="status-git-branch">{git.branchName}</span>
+            {git.changedFiles.length > 0 && (
+              <span className="status-git-count">{git.changedFiles.length}</span>
+            )}
+          </button>
+        )}
+        <span className="status-backend">
+          {backendVersion
+            ? t('shell.backendConnected', { version: backendVersion })
+            : t('shell.backendConnecting')}
+        </span>
       </span>
     </footer>
   )

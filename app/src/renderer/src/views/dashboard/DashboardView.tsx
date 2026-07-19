@@ -57,11 +57,29 @@ export function DashboardView(): React.JSX.Element {
   const [data, setData] = useState<DashboardDto | null>(null)
   const [range, setRange] = useState(30)
   const [editingGoal, setEditingGoal] = useState<'daily' | 'project' | null>(null)
+  const [cover, setCover] = useState<string | null>(null)
 
   useEffect(() => {
     if (mainView !== 'dashboard') return
     void rpc.request<DashboardDto>('dashboard/get', [range]).then(setData)
   }, [mainView, range])
+
+  useEffect(() => {
+    if (mainView !== 'dashboard') return
+    void rpc.request<string | null>('dashboard/getCover').then(setCover)
+  }, [mainView])
+
+  const changeCover = async (): Promise<void> => {
+    const path = await window.novalist.pickFile(t('dashboard.pickCoverTitle'), 'images')
+    if (!path) return
+    await rpc.request('dashboard/setCover', [path])
+    setCover(await rpc.request<string | null>('dashboard/getCover'))
+  }
+
+  const removeCover = async (): Promise<void> => {
+    await rpc.request('dashboard/setCover', [null])
+    setCover(null)
+  }
 
   if (!data) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
@@ -79,6 +97,28 @@ export function DashboardView(): React.JSX.Element {
 
   return (
     <div className="dashboard">
+      <div className="dashboard-cover">
+        {cover ? (
+          <img
+            className="dashboard-cover-img"
+            src={`novalist-project://nl/${encodeURI(cover)}`}
+            alt={data.projectName}
+          />
+        ) : (
+          <div className="dashboard-cover-empty">{t('dashboard.noCover')}</div>
+        )}
+        <div className="dashboard-cover-actions">
+          <button className="dashboard-cover-btn" onClick={() => void changeCover()}>
+            {cover ? t('dashboard.changeCover') : t('dashboard.addCover')}
+          </button>
+          {cover && (
+            <button className="dashboard-cover-btn" onClick={() => void removeCover()}>
+              {t('dashboard.removeCover')}
+            </button>
+          )}
+        </div>
+      </div>
+
       <div className="dashboard-header">
         <h1 className="dashboard-title">{data.projectName}</h1>
         {data.author && <div className="dashboard-author">{data.author}</div>}
