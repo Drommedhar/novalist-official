@@ -1,5 +1,19 @@
 # UI parity plan v2 — old Avalonia vs new React (honest re-audit)
 
+**STATUS: COMPLETE (2026-07-19).** All audited UI-parity gaps closed across
+codex, inspector, editor, all planning views (incl. Maps), settings, dialogs,
+git, export, research, gallery, status bar. Backend 253 tests at 100% coverage;
+app builds; 3 Playwright e2e suites green. Delivered in phases 1-2 + three
+parallel waves + mop-up (see git log "Parity wave 1/2/3" + "Mop-up").
+
+Non-buildable residuals (genuine SDK/engine limits, not deferrals): extension
+inline-action + settings-page + entity-type host surfaces (SDK v2 exposes no
+such contribution API yet; client registries are in place), the map.html
+custom-profile authoring bridge, a scene-status data-model field, and JS Date's
+sub-year-1000 handling on the timeline jump. None regress vs the old app.
+
+---
+
 Triggered 2026-07-19 after the "feature complete" claim was correctly rejected.
 The backend RPC facades exist and are tested, but the **React UI is a thin
 skeleton** over them. Five parallel audits (codex, inspector, editor/manuscript,
