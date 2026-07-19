@@ -680,7 +680,8 @@
     "fromGallery": "从图库选择",
     "importImage": "导入文件",
     "addOverride": "添加覆盖",
-    "wholeChapter": "整章"
+    "wholeChapter": "整章",
+    "inverseRole": "反向关系"
   },
   "context": {
     "title": "NOVALIST 上下文",

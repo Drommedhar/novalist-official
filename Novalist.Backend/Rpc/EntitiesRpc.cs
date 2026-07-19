@@ -267,6 +267,76 @@ public sealed class EntitiesRpc
         return WithResolvedImages(entity);
     }
 
+    [JsonRpcMethod("entities/relationshipSuggestions")]
+    public async Task<RelationshipSuggestionsDto> RelationshipSuggestionsAsync()
+    {
+        var characters = await _entities.LoadCharactersAsync();
+        var names = characters.Select(c => Compose(c.Name, c.Surname))
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        var roles = characters.SelectMany(c => c.Relationships.Select(r => r.Role))
+            .Concat(_workspace.Settings.Settings.RelationshipPairs.Keys)
+            .Where(r => !string.IsNullOrWhiteSpace(r))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(r => r, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        return new RelationshipSuggestionsDto(names, roles);
+    }
+
+    [JsonRpcMethod("entities/inverseRole")]
+    public string InverseRole(string role) =>
+        _workspace.Settings.Settings.GetKnownInverseRoles(role).FirstOrDefault() ?? string.Empty;
+
+    /// <summary>
+    /// Writes a character's relationships and, for each row that names an
+    /// existing character and carries an inverse role, adds the reciprocal
+    /// relationship on that target and learns the role pair (ported from
+    /// EntityEditorViewModel.SyncInverseRelationshipsAsync).
+    /// </summary>
+    [JsonRpcMethod("entities/setRelationships")]
+    public async Task<JsonElement> SetRelationshipsAsync(string id, RelationshipEditRowDto[] rows)
+    {
+        var characters = await _entities.LoadCharactersAsync();
+        var character = characters.FirstOrDefault(c => c.Id == id) ?? throw Unknown(id);
+        var selfName = Compose(character.Name, character.Surname);
+
+        character.Relationships = rows
+            .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
+            .Select(r => new EntityRelationship { Role = r.Role.Trim(), Target = r.Target.Trim() })
+            .ToList();
+        await _entities.SaveCharacterAsync(character);
+
+        var settingsChanged = false;
+        foreach (var row in rows)
+        {
+            if (string.IsNullOrWhiteSpace(row.Role) || string.IsNullOrWhiteSpace(row.Target)
+                || string.IsNullOrWhiteSpace(row.InverseRole))
+                continue;
+            var target = characters.FirstOrDefault(c =>
+                string.Equals(Compose(c.Name, c.Surname), row.Target.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (target == null || target.Id == character.Id) continue;
+
+            var already = target.Relationships.Any(r =>
+                string.Equals(r.Role, row.InverseRole.Trim(), StringComparison.OrdinalIgnoreCase)
+                && string.Equals(r.Target, selfName, StringComparison.OrdinalIgnoreCase));
+            if (!already)
+            {
+                target.Relationships.Add(new EntityRelationship
+                {
+                    Role = row.InverseRole.Trim(),
+                    Target = selfName
+                });
+                await _entities.SaveCharacterAsync(target);
+            }
+            settingsChanged |= _workspace.Settings.Settings.LearnRelationshipPair(row.Role.Trim(), row.InverseRole.Trim());
+        }
+        if (settingsChanged) await _workspace.Settings.SaveAsync();
+
+        return WithResolvedImages(character);
+    }
+
     [JsonRpcMethod("entities/setOverride")]
     public async Task<JsonElement> SetOverrideAsync(
         string characterId,
@@ -686,6 +756,12 @@ public sealed record CustomPropDto(string Key, string Value, string PropType, IR
 public sealed record EntitySectionDto(string Title, string Content);
 
 public sealed record RelationshipRowDto(string Role, string Target);
+
+public sealed record RelationshipEditRowDto(string Role, string Target, string? InverseRole);
+
+public sealed record RelationshipSuggestionsDto(
+    IReadOnlyList<string> CharacterNames,
+    IReadOnlyList<string> Roles);
 
 public sealed record EntitySummaryDto(
     string Id,

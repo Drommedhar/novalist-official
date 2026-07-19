@@ -539,7 +539,8 @@
     "fromGallery": "Aus Galerie",
     "importImage": "Datei importieren",
     "addOverride": "Override hinzufügen",
-    "wholeChapter": "Ganzes Kapitel"
+    "wholeChapter": "Ganzes Kapitel",
+    "inverseRole": "Gegenrolle"
   },
   "context": {
     "title": "NOVALIST KONTEXT",

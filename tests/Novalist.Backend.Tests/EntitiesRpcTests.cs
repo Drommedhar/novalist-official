@@ -77,6 +77,46 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetRelationships_SyncsInverseAndLearnsPair()
+    {
+        var aliceId = (await _rpc.CreateAsync("character", "Alice")).GetProperty("id").GetString()!;
+        var bobId = (await _rpc.CreateAsync("character", "Bob")).GetProperty("id").GetString()!;
+
+        var result = await _rpc.SetRelationshipsAsync(aliceId,
+        [
+            new RelationshipEditRowDto("Mother", "Bob", "Son"),
+            new RelationshipEditRowDto("Friend", "Nobody Here", "Friend"),
+            // A row with no inverse role is stored but not synced.
+            new RelationshipEditRowDto("Rival", "Bob", null)
+        ]);
+        Assert.Equal("Mother", result.GetProperty("relationships")[0].GetProperty("role").GetString());
+
+        // Bob got the reciprocal "Son -> Alice".
+        var bob = await _rpc.GetAsync("character", bobId);
+        var bobRels = bob.GetProperty("relationships");
+        Assert.Equal(1, bobRels.GetArrayLength());
+        Assert.Equal("Son", bobRels[0].GetProperty("role").GetString());
+        Assert.Equal("Alice", bobRels[0].GetProperty("target").GetString());
+
+        // The pair is learned both ways.
+        Assert.Equal("Son", _rpc.InverseRole("Mother"));
+        Assert.Equal("Mother", _rpc.InverseRole("Son"));
+
+        // Suggestions expose character names + known roles.
+        var suggestions = await _rpc.RelationshipSuggestionsAsync();
+        Assert.Contains("Bob", suggestions.CharacterNames);
+        Assert.Contains("Mother", suggestions.Roles);
+
+        // Re-running does not duplicate the reciprocal.
+        await _rpc.SetRelationshipsAsync(aliceId, [new RelationshipEditRowDto("Mother", "Bob", "Son")]);
+        Assert.Equal(1, (await _rpc.GetAsync("character", bobId)).GetProperty("relationships").GetArrayLength());
+
+        Assert.Equal(string.Empty, _rpc.InverseRole("Unheard"));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetRelationshipsAsync("missing", []));
+    }
+
+    [Fact]
     public async Task MoveToWorldBibleAndBack()
     {
         var created = await _rpc.CreateAsync("character", "Wanderer");

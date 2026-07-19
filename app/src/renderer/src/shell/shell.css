@@ -646,6 +646,10 @@
   flex-shrink: 0;
 }
 
+.codex-rel-inverse {
+  max-width: 120px;
+}
+
 .codex-field-section {
   display: flex;
   flex-direction: column;

@@ -12,6 +12,7 @@ interface SectionRow {
 interface RelationshipRow {
   role: string
   target: string
+  inverseRole?: string
 }
 
 /** Aliases, sections, and (for characters) relationships of the selected entity. */
@@ -24,6 +25,8 @@ export function EntityListsEditor(): React.JSX.Element | null {
   const [aliasDraft, setAliasDraft] = useState('')
   const [sections, setSections] = useState<SectionRow[]>([])
   const [relationships, setRelationships] = useState<RelationshipRow[]>([])
+  const [nameSuggestions, setNameSuggestions] = useState<string[]>([])
+  const [roleSuggestions, setRoleSuggestions] = useState<string[]>([])
 
   useEffect(() => {
     if (!record) return
@@ -37,6 +40,27 @@ export function EntityListsEditor(): React.JSX.Element | null {
         : []
     )
   }, [selectedId, record])
+
+  useEffect(() => {
+    if (entityType !== 'character') return
+    void rpc
+      .request<{ characterNames: string[]; roles: string[] }>('entities/relationshipSuggestions')
+      .then((s) => {
+        setNameSuggestions(s.characterNames)
+        setRoleSuggestions(s.roles)
+      })
+      .catch(() => {})
+  }, [entityType, selectedId])
+
+  const persistRelationships = (next: RelationshipRow[]): void => {
+    if (!selectedId) return
+    void rpc
+      .request<Record<string, unknown>>('entities/setRelationships', [
+        selectedId,
+        next.map((r) => ({ role: r.role, target: r.target, inverseRole: r.inverseRole ?? '' }))
+      ])
+      .then((updated) => useCodexStore.setState({ selectedRecord: updated }))
+  }
 
   if (!record || !selectedId) return null
 
@@ -97,48 +121,71 @@ export function EntityListsEditor(): React.JSX.Element | null {
       {entityType === 'character' && (
         <>
           <div className="inspector-label">{t('entityEditor.relationships')}</div>
-          {relationships.map((rel, index) => (
-            <div key={index} className="entity-rel-row">
-              <input
-                className="outliner-input"
-                placeholder={t('entityEditor.rolePlaceholderRel')}
-                value={rel.role}
-                onChange={(e) =>
-                  setRelationships(
-                    relationships.map((r, i) => (i === index ? { ...r, role: e.target.value } : r))
-                  )
-                }
-                onBlur={() => persist(null, null, relationships)}
-              />
-              <input
-                className="outliner-input"
-                placeholder={t('entityEditor.targetNames')}
-                value={rel.target}
-                onChange={(e) =>
-                  setRelationships(
-                    relationships.map((r, i) =>
-                      i === index ? { ...r, target: e.target.value } : r
-                    )
-                  )
-                }
-                onBlur={() => persist(null, null, relationships)}
-              />
-              <button
-                className="binder-expand"
-                aria-label={t('explorer.contextDelete')}
-                onClick={() => {
-                  const next = relationships.filter((_, i) => i !== index)
-                  setRelationships(next)
-                  persist(null, null, next)
-                }}
-              >
-                <X size={12} strokeWidth={2} />
-              </button>
-            </div>
-          ))}
+          <datalist id="codex-rel-names">
+            {nameSuggestions.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
+          <datalist id="codex-rel-roles">
+            {roleSuggestions.map((r) => (
+              <option key={r} value={r} />
+            ))}
+          </datalist>
+          {relationships.map((rel, index) => {
+            const patch = (p: Partial<RelationshipRow>): void =>
+              setRelationships(relationships.map((r, i) => (i === index ? { ...r, ...p } : r)))
+            return (
+              <div key={index} className="entity-rel-row">
+                <input
+                  className="outliner-input"
+                  list="codex-rel-roles"
+                  placeholder={t('entityEditor.rolePlaceholderRel')}
+                  value={rel.role}
+                  onChange={(e) => patch({ role: e.target.value })}
+                  onBlur={() => {
+                    if (rel.role.trim() && !rel.inverseRole) {
+                      void rpc
+                        .request<string>('entities/inverseRole', [rel.role.trim()])
+                        .then((inv) => {
+                          if (inv) patch({ inverseRole: inv })
+                        })
+                    }
+                    persistRelationships(relationships)
+                  }}
+                />
+                <input
+                  className="outliner-input"
+                  list="codex-rel-names"
+                  placeholder={t('entityEditor.targetNames')}
+                  value={rel.target}
+                  onChange={(e) => patch({ target: e.target.value })}
+                  onBlur={() => persistRelationships(relationships)}
+                />
+                <input
+                  className="outliner-input codex-rel-inverse"
+                  placeholder={t('entityEditor.inverseRole')}
+                  list="codex-rel-roles"
+                  value={rel.inverseRole ?? ''}
+                  onChange={(e) => patch({ inverseRole: e.target.value })}
+                  onBlur={() => persistRelationships(relationships)}
+                />
+                <button
+                  className="binder-expand"
+                  aria-label={t('explorer.contextDelete')}
+                  onClick={() => {
+                    const next = relationships.filter((_, i) => i !== index)
+                    setRelationships(next)
+                    persistRelationships(next)
+                  }}
+                >
+                  <X size={12} strokeWidth={2} />
+                </button>
+              </div>
+            )
+          })}
           <button
             className="binder-rail-item"
-            onClick={() => setRelationships([...relationships, { role: '', target: '' }])}
+            onClick={() => setRelationships([...relationships, { role: '', target: '', inverseRole: '' }])}
           >
             <Plus size={13} strokeWidth={2} />
             {t('entityEditor.addRelationship')}
