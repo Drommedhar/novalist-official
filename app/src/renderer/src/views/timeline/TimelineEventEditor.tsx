@@ -11,7 +11,7 @@ export interface TimelineEventDraft {
   linkedChapterGuid: string | null
 }
 
-const CATEGORIES = ['plot', 'character', 'location', 'world']
+const CATEGORIES = ['plot', 'character', 'location', 'world', 'other']
 
 interface TimelineEventEditorProps {
   initial: TimelineEventDto | null

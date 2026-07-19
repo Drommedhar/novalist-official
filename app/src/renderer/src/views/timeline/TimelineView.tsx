@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftRight, FileDown, Plus, ZoomIn } from 'lucide-react'
+import { ArrowLeftRight, ChevronLeft, ChevronRight, FileDown, Plus, ZoomIn } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { TimelineEventEditor, type TimelineEventDraft } from './TimelineEventEditor'
+import './timeline.css'
 
 export interface TimelineEventDto {
   id: string
@@ -30,6 +31,27 @@ interface TimelineDto {
 
 const ZOOMS = ['year', 'month', 'day']
 
+const pad = (n: number, len = 2): string => String(n).padStart(len, '0')
+
+// Mirrors TimelineRpc.GroupKey so a date maps to the same client-side group.
+const groupKeyForDate = (d: Date, zoom: string): string => {
+  const y = d.getFullYear()
+  if (zoom === 'year') return `${y}`
+  if (zoom === 'day') return `${y}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+  return `${y}-${pad(d.getMonth() + 1)}`
+}
+
+// Group key back to a comparable timestamp; null for the "no-date" bucket.
+const parseGroupKey = (key: string): number | null => {
+  if (key === 'no-date') return null
+  const [y, mo, day] = key.split('-').map(Number)
+  if (Number.isNaN(y)) return null
+  return new Date(y, (mo || 1) - 1, day || 1).getTime()
+}
+
+const toInputValue = (d: Date): string =>
+  `${pad(d.getFullYear(), 4)}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+
 type Pending =
   | { kind: 'create' }
   | { kind: 'edit'; event: TimelineEventDto }
@@ -46,6 +68,9 @@ export function TimelineView(): React.JSX.Element {
   const [structures, setStructures] = useState<
     { id: string; displayName: string; description: string }[]
   >([])
+  const [anchorDate, setAnchorDate] = useState<Date | null>(null)
+  const [highlightedKey, setHighlightedKey] = useState<string | null>(null)
+  const groupRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   useEffect(() => {
     if (mainView !== 'timeline') return
@@ -87,6 +112,46 @@ export function TimelineView(): React.JSX.Element {
     (sourceFilter === 'all' || event.source === sourceFilter) &&
     (!characterFilter || event.characters.includes(characterFilter)) &&
     (!locationFilter || event.locations.includes(locationFilter))
+
+  // Scroll the visible window to the group matching a date; falls back to the
+  // nearest dated group when nothing sits in that exact bucket.
+  const scrollToDate = (date: Date): void => {
+    setAnchorDate(date)
+    const exactKey = groupKeyForDate(date, data.zoomLevel)
+    let targetKey = groupRefs.current.has(exactKey) ? exactKey : null
+    if (!targetKey) {
+      const target = date.getTime()
+      let bestDiff = Infinity
+      for (const group of data.groups) {
+        const t = parseGroupKey(group.key)
+        if (t === null) continue
+        const diff = Math.abs(t - target)
+        if (diff < bestDiff) {
+          bestDiff = diff
+          targetKey = group.key
+        }
+      }
+    }
+    if (!targetKey) return
+    setHighlightedKey(targetKey)
+    groupRefs.current
+      .get(targetKey)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'start' })
+  }
+
+  const pan = (direction: number): void => {
+    const next = new Date(anchorDate ?? new Date())
+    if (data.zoomLevel === 'year') next.setFullYear(next.getFullYear() + direction)
+    else if (data.zoomLevel === 'day') next.setDate(next.getDate() + direction)
+    else next.setMonth(next.getMonth() + direction)
+    scrollToDate(next)
+  }
+
+  const openLinkedChapter = (chapterGuid: string): void => {
+    const chapter = useProjectStore.getState().chapters.find((c) => c.guid === chapterGuid)
+    const firstScene = chapter?.scenes[0]
+    if (firstScene) void useProjectStore.getState().openScene(chapterGuid, firstScene.id)
+  }
 
   return (
     <div className="timeline">
@@ -185,20 +250,65 @@ export function TimelineView(): React.JSX.Element {
           <ZoomIn size={14} strokeWidth={2} />
           {t(`timeline.zoom${data.zoomLevel.charAt(0).toUpperCase() + data.zoomLevel.slice(1)}`)}
         </button>
+        <div className="timeline-nav">
+          <button
+            className="toolbar-button timeline-nav-arrow"
+            aria-label={t('timeline.prev')}
+            title={t('timeline.prev')}
+            onClick={() => pan(-1)}
+          >
+            <ChevronLeft size={14} strokeWidth={2} />
+          </button>
+          <button
+            className="toolbar-button timeline-nav-arrow"
+            aria-label={t('timeline.next')}
+            title={t('timeline.next')}
+            onClick={() => pan(1)}
+          >
+            <ChevronRight size={14} strokeWidth={2} />
+          </button>
+          <button
+            className="toolbar-button toolbar-action"
+            onClick={() => scrollToDate(new Date())}
+          >
+            {t('timeline.today')}
+          </button>
+          <input
+            type="date"
+            className="dialog-input timeline-jump-input"
+            aria-label={t('timeline.jumpTo')}
+            title={t('timeline.jumpTo')}
+            value={anchorDate ? toInputValue(anchorDate) : ''}
+            onChange={(e) => {
+              const v = e.target.value
+              if (!v) return
+              const [y, m, d] = v.split('-').map(Number)
+              scrollToDate(new Date(y, m - 1, d))
+            }}
+          />
+        </div>
       </div>
       <div className={`timeline-body ${data.viewMode}`}>
         {data.groups.map((group) => (
-          <div key={group.key} className="timeline-group">
+          <div
+            key={group.key}
+            className={`timeline-group${highlightedKey === group.key ? ' highlighted' : ''}`}
+            ref={(el) => {
+              if (el) groupRefs.current.set(group.key, el)
+              else groupRefs.current.delete(group.key)
+            }}
+          >
             <div className="timeline-group-label">{group.label}</div>
             {group.events.filter(matchesFilters).map((event) => (
               <div
                 key={event.id}
                 className={`timeline-event source-${event.source}`}
-                role={event.sceneId || event.isManual ? 'button' : undefined}
+                role={event.sceneId || event.isManual || event.chapterGuid ? 'button' : undefined}
                 onClick={() => {
                   if (event.isManual) setPending({ kind: 'edit', event })
                   else if (event.chapterGuid && event.sceneId)
                     void useProjectStore.getState().openScene(event.chapterGuid, event.sceneId)
+                  else if (event.chapterGuid) openLinkedChapter(event.chapterGuid)
                 }}
                 onContextMenu={(e) => {
                   if (!event.isManual) return
@@ -208,7 +318,12 @@ export function TimelineView(): React.JSX.Element {
               >
                 <span className="timeline-event-dot" />
                 <div className="timeline-event-body">
-                  <div className="timeline-event-title">{event.title}</div>
+                  <div className="timeline-event-head">
+                    <div className="timeline-event-title">{event.title}</div>
+                    <span className={`timeline-source-pill source-${event.source}`}>
+                      {t(`timeline.${event.source}Event`)}
+                    </span>
+                  </div>
                   {event.dateStr && <div className="timeline-event-date">{event.dateStr}</div>}
                   {event.description && (
                     <div className="timeline-event-desc">{event.description}</div>
@@ -226,6 +341,17 @@ export function TimelineView(): React.JSX.Element {
                         </span>
                       ))}
                     </div>
+                  )}
+                  {event.isManual && event.chapterGuid && (
+                    <button
+                      className="timeline-open-chapter"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (event.chapterGuid) openLinkedChapter(event.chapterGuid)
+                      }}
+                    >
+                      {t('timeline.openChapter')}
+                    </button>
                   )}
                 </div>
               </div>

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Novalist.Core.Services;
 using Novalist.Core.Utilities;
@@ -30,6 +31,8 @@ public sealed partial class DashboardRpc
         var statusAgg = new Dictionary<string, (int Count, int Words)>();
         var pacing = new List<ChapterPacingDto>();
         var allText = new System.Text.StringBuilder();
+        var allSceneWords = new List<int>();
+        var activity = new List<(string SceneTitle, string ChapterTitle, DateTime Modified)>();
 
         foreach (var chapter in chapters)
         {
@@ -47,6 +50,9 @@ public sealed partial class DashboardRpc
             foreach (var scene in live)
             {
                 allText.Append(await projects.ReadSceneContentAsync(chapter, scene)).Append(' ');
+                allSceneWords.Add(scene.WordCount);
+                activity.Add((scene.Title, chapter.Title,
+                    System.IO.File.GetLastWriteTime(projects.GetSceneFilePath(chapter, scene))));
             }
         }
 
@@ -74,9 +80,24 @@ public sealed partial class DashboardRpc
         var characters = await _entities.LoadCharactersAsync();
         var locations = await _entities.LoadLocationsAsync();
         var maxChapterWords = pacing.Count > 0 ? pacing.Max(p => p.Words) : 0;
+        var minChapterWords = pacing.Count > 0 ? pacing.Min(p => p.Words) : 0;
+        var avgSceneWords = allSceneWords.Count > 0 ? allSceneWords.Average() : 0d;
+
+        var (daysRemaining, wordsPerDayNeeded) =
+            ComputeDeadlineMetrics(goals.Deadline, totalWords, goals.ProjectGoal);
+
+        var recentActivity = activity
+            .OrderByDescending(a => a.Modified)
+            .Take(8)
+            .Select(a => new RecentActivityDto(a.SceneTitle, a.ChapterTitle,
+                a.Modified.ToString("yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture)))
+            .ToArray();
+
+        int StatusCount(string status) => statusAgg.GetValueOrDefault(status).Count;
 
         return new DashboardDto(
             projects.CurrentProject!.Name,
+            projects.ProjectSettings.Author,
             totalWords,
             chapters.Count,
             sceneCount,
@@ -90,14 +111,42 @@ public sealed partial class DashboardRpc
             goals.ProjectGoal,
             goals.ProjectGoal > 0 ? Math.Min(100, (int)Math.Round(totalWords * 100.0 / goals.ProjectGoal)) : 0,
             goals.Deadline,
+            daysRemaining,
+            wordsPerDayNeeded,
             _workspace.WordHistory.TotalForDay(today, book.Id),
             _workspace.WordHistory.CurrentStreak(today, Math.Max(1, goals.DailyGoal), book.Id),
+            maxChapterWords,
+            minChapterWords,
+            avgSceneWords,
+            StatusCount("Outline"),
+            StatusCount("FirstDraft"),
+            StatusCount("Revised"),
+            StatusCount("Edited"),
+            StatusCount("Final"),
             statusAgg.Select(kv => new StatusBreakdownDto(kv.Key, kv.Value.Count, kv.Value.Words)).ToArray(),
             pacing.ToArray(),
             maxChapterWords,
             FindEchoPhrases(allText.ToString(), 3, 5).Take(20)
                 .Select(e => new EchoPhraseDto(e.Phrase, e.Count)).ToArray(),
-            bars.ToArray());
+            bars.ToArray(),
+            recentActivity);
+    }
+
+    // Ported from the Avalonia DashboardViewModel.ComputeDeadlineMetrics so the
+    // deadline detail block (days-left / words-per-day) matches the old shell.
+    internal static (int DaysRemaining, int WordsPerDayNeeded) ComputeDeadlineMetrics(
+        string? deadline, int totalWords, int projectGoal)
+    {
+        if (string.IsNullOrWhiteSpace(deadline)
+            || !DateTime.TryParse(deadline, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+        {
+            return (0, 0);
+        }
+
+        var remaining = Math.Max(0, (date.Date - DateTime.Today).Days);
+        var wordsLeft = Math.Max(0, projectGoal - totalWords);
+        var perDay = remaining > 0 ? (int)Math.Ceiling(wordsLeft / (double)remaining) : wordsLeft;
+        return (remaining, perDay);
     }
 
     [JsonRpcMethod("dashboard/setGoals")]
@@ -159,6 +208,7 @@ public sealed partial class DashboardRpc
 
 public sealed record DashboardDto(
     string ProjectName,
+    string Author,
     int TotalWords,
     int ChapterCount,
     int SceneCount,
@@ -172,13 +222,24 @@ public sealed record DashboardDto(
     int ProjectGoalTarget,
     int ProjectGoalPercent,
     string? Deadline,
+    int DaysRemaining,
+    int WordsPerDayNeeded,
     int TodayWords,
     int CurrentStreak,
+    int LongestChapterWords,
+    int ShortestChapterWords,
+    double AverageSceneWords,
+    int OutlineCount,
+    int FirstDraftCount,
+    int RevisedCount,
+    int EditedCount,
+    int FinalCount,
     IReadOnlyList<StatusBreakdownDto> StatusBreakdown,
     IReadOnlyList<ChapterPacingDto> ChapterPacing,
     int MaxChapterWords,
     IReadOnlyList<EchoPhraseDto> EchoPhrases,
-    IReadOnlyList<WordHistoryBarDto> WordHistory);
+    IReadOnlyList<WordHistoryBarDto> WordHistory,
+    IReadOnlyList<RecentActivityDto> RecentActivity);
 
 public sealed record StatusBreakdownDto(string Status, int Count, int WordCount);
 
@@ -187,3 +248,5 @@ public sealed record ChapterPacingDto(string Title, int Words);
 public sealed record EchoPhraseDto(string Phrase, int Count);
 
 public sealed record WordHistoryBarDto(string Date, int Words, bool MetGoal);
+
+public sealed record RecentActivityDto(string SceneTitle, string ChapterTitle, string Timestamp);

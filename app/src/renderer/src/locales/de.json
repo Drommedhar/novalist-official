@@ -158,7 +158,18 @@
   "statusBar": {
     "openSceneHint": "Öffne eine Szene, um Live-Statistiken zu sehen",
     "dailyPercent": "Täglich {0}%",
-    "projectPercent": "Projekt {0}%"
+    "projectPercent": "Projekt {0}%",
+    "characters": "{{value}} Zeichen",
+    "charactersNoSpaces": "{{value}} Zeichen (ohne Leerzeichen)",
+    "readingTime": "{{minutes}} Min. Lesezeit",
+    "readability": "Lesbarkeit {{score}}/100",
+    "readabilityLevel": {
+      "veryEasy": "Sehr leicht",
+      "easy": "Leicht",
+      "moderate": "Mittel",
+      "difficult": "Schwer",
+      "veryDifficult": "Sehr schwer"
+    }
   },
   "overview": {
     "chapterColumn": "Kapitel",
@@ -902,7 +913,9 @@
     "weekdayThu": "Do",
     "weekdayFri": "Fr",
     "weekdaySat": "Sa",
-    "weekdaySun": "So"
+    "weekdaySun": "So",
+    "sceneCount_one": "{{count}} Szene",
+    "sceneCount_other": "{{count}} Szenen"
   },
   "snapshots": {
     "title": "Szenen-Stände",

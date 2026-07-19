@@ -119,7 +119,32 @@ RPC + a sectioned Inspector:
 6. Git staging model (stage/unstage, commit-staged, not-installed guidance).
 7. Export: presets/SMF toggle, extension formats, select-all/none/count.
 
-## Note
-Each phase ships backend RPCs (100% test-gated) + React UI + e2e. The full set
-is large (multi-day). Detailed per-item findings with file:line refs are in the
-five audit reports captured in this session's task outputs.
+## NO DEFERRALS (user directive 2026-07-19)
+
+"Full parity" = every item in this file, including all previously "deferred"
+minors. Complete checklist still to land (in-flight or queued):
+
+- Phase 1 leftovers: entity image name-edit, swap-image, clipboard + URL image
+  sources.
+- Phase 2 leftovers: editable emotion/intensity/conflict/tags (needs a
+  scenes/setAnalysisOverride RPC), reset-override buttons, story-date + weekday
+  header, position subtitle, collapsible persisted sections, comment resolved
+  toggle.
+- Phase 3 editor chrome (in-flight): scene tabs, footnotes panel wiring, dead
+  editor.html hooks, editor-iframe hotkeys, focus-peek rich card, readability +
+  char counts + reading time in status bar.
+- Phase 4 (in-flight: calendar/dashboard/relationships/timeline; queued:
+  research file-import/open-external/search/preview, gallery lightbox +
+  context actions + list view, **maps full authoring chrome** — tools/layers/
+  properties/3D/rename-delete, dashboard cover image, timeline all items).
+- Phase 5: hotkey rebinding UI, grammar-check config, book-width block,
+  updates/integrations, writing-goals detail (deadline/author/watch-fs),
+  extension settings pages, settings search; status bar (goals/git/overview/
+  counts); ALL missing dialogs (snapshot compare, map profile, chapter/scene,
+  update release-notes/progress, story-date-range, start-menu overlay); git
+  staging model + not-installed guidance; export presets/SMF/extension formats/
+  select-all-none-count; draft delete; diagnostics log buttons.
+
+Each ships backend RPCs (Backend gated at 100%) + React UI + e2e. Detailed
+per-item findings with file:line refs are in the five audit reports in this
+session's task outputs.

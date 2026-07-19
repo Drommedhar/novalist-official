@@ -83,7 +83,46 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
   return actions
 }
 
+/**
+ * The actions currently bound by {@link installHotkeys}. Kept so hotkeys
+ * forwarded from inside the editor iframe (which never reach the window
+ * keydown listener) can be routed through the same registry.
+ */
+let installedActions: HotkeyAction[] = []
+
+/**
+ * Dispatches a hotkey that originated inside the editor iframe. editor.html
+ * posts {@code { key, code, ctrlKey, shiftKey, altKey }} for modified keys and
+ * function keys; we rebuild a minimal event and reuse {@link matchGesture} so
+ * global shortcuts fire even while the caret is in the editor. Returns true
+ * when an action ran.
+ */
+export function dispatchForwardedHotkey(payload: {
+  key: string
+  code: string
+  ctrlKey: boolean
+  shiftKey: boolean
+  altKey: boolean
+}): boolean {
+  const synthetic = {
+    key: payload.key,
+    code: payload.code,
+    ctrlKey: payload.ctrlKey,
+    metaKey: false,
+    shiftKey: payload.shiftKey,
+    altKey: payload.altKey
+  } as KeyboardEvent
+  for (const action of installedActions) {
+    if (matchGesture(synthetic, action.gesture)) {
+      action.run()
+      return true
+    }
+  }
+  return false
+}
+
 export function installHotkeys(actions: HotkeyAction[]): () => void {
+  installedActions = actions
   const onKeyDown = (event: KeyboardEvent): void => {
     const target = event.target as HTMLElement | null
     const inField =
@@ -101,5 +140,8 @@ export function installHotkeys(actions: HotkeyAction[]): () => void {
     }
   }
   window.addEventListener('keydown', onKeyDown)
-  return () => window.removeEventListener('keydown', onKeyDown)
+  return () => {
+    window.removeEventListener('keydown', onKeyDown)
+    if (installedActions === actions) installedActions = []
+  }
 }

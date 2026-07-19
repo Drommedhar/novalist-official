@@ -1,0 +1,29 @@
+/* Live editor statistics shown in the status bar's left segment. */
+
+.status-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.status-stats > span {
+  white-space: nowrap;
+}
+
+.status-stats > span + span::before {
+  content: '·';
+  margin-right: var(--nl-space-md);
+  color: var(--nl-text-subtle);
+}
+
+.status-readability {
+  font-weight: var(--nl-weight-title);
+}
+
+.status-scene-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--nl-text-dim);
+}

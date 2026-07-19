@@ -1,3 +1,4 @@
+using System.Globalization;
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
 using Xunit;
@@ -39,6 +40,18 @@ public sealed class DashboardManuscriptTests : IDisposable
         Assert.Equal(0, dto.AverageChapterWords);
         Assert.Equal(0, dto.MaxChapterWords);
         Assert.Empty(dto.ChapterPacing);
+        Assert.Equal(0, dto.LongestChapterWords);
+        Assert.Equal(0, dto.ShortestChapterWords);
+        Assert.Equal(0d, dto.AverageSceneWords);
+        Assert.Equal(0, dto.OutlineCount);
+        Assert.Equal(0, dto.FirstDraftCount);
+        Assert.Equal(0, dto.RevisedCount);
+        Assert.Equal(0, dto.EditedCount);
+        Assert.Equal(0, dto.FinalCount);
+        Assert.Equal(0, dto.DaysRemaining);
+        Assert.Equal(0, dto.WordsPerDayNeeded);
+        Assert.Empty(dto.RecentActivity);
+        Assert.Equal(string.Empty, dto.Author);
     }
 
     [Fact]
@@ -46,10 +59,12 @@ public sealed class DashboardManuscriptTests : IDisposable
     {
         await SeedSceneAsync("<p>alpha beta gamma delta</p>", "alpha beta gamma delta");
         await SeedSceneAsync("<p>one two three</p>", "one two three");
+        _workspace.Projects.ProjectSettings.Author = "Ada Author";
 
         var dto = await new DashboardRpc(_workspace).GetAsync(7);
 
         Assert.Equal("DashNovel", dto.ProjectName);
+        Assert.Equal("Ada Author", dto.Author);
         Assert.Equal(7, dto.TotalWords);
         Assert.Equal(2, dto.ChapterCount);
         Assert.Equal(2, dto.SceneCount);
@@ -60,6 +75,58 @@ public sealed class DashboardManuscriptTests : IDisposable
         Assert.Equal(2, dto.StatusBreakdown.Single(s => s.Status == "Outline").Count);
         Assert.Equal(2, dto.ChapterPacing.Count);
         Assert.True(dto.MaxChapterWords >= 4);
+
+        // Enhanced pacing summary: each scene is its own chapter (4 and 3 words).
+        Assert.Equal(4, dto.LongestChapterWords);
+        Assert.Equal(3, dto.ShortestChapterWords);
+        Assert.Equal(3.5d, dto.AverageSceneWords);
+
+        // Status summary counts (per chapter, all five statuses present).
+        Assert.Equal(2, dto.OutlineCount);
+        Assert.Equal(0, dto.FirstDraftCount);
+        Assert.Equal(0, dto.RevisedCount);
+        Assert.Equal(0, dto.EditedCount);
+        Assert.Equal(0, dto.FinalCount);
+
+        // Recent activity: one entry per live scene, newest first, capped list.
+        Assert.Equal(2, dto.RecentActivity.Count);
+        Assert.All(dto.RecentActivity, a => Assert.Equal("S", a.SceneTitle));
+        Assert.All(dto.RecentActivity, a => Assert.False(string.IsNullOrWhiteSpace(a.Timestamp)));
+    }
+
+    [Fact]
+    public async Task Dashboard_DeadlineMetrics_SurfacedFromGoals()
+    {
+        await SeedSceneAsync("<p>one two three four five</p>", "one two three four five");
+        var rpc = new DashboardRpc(_workspace);
+
+        var future = DateTime.Today.AddDays(20).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        await rpc.SetGoalsAsync(50, 105, future);
+
+        var dto = await rpc.GetAsync(1);
+        Assert.Equal(future, dto.Deadline);
+        Assert.Equal(20, dto.DaysRemaining);
+        // 100 words left over 20 days -> 5 words/day.
+        Assert.Equal(5, dto.WordsPerDayNeeded);
+    }
+
+    [Fact]
+    public void ComputeDeadlineMetrics_CoversNullGarbagePastAndFuture()
+    {
+        Assert.Equal((0, 0), DashboardRpc.ComputeDeadlineMetrics(null, 0, 100));
+        Assert.Equal((0, 0), DashboardRpc.ComputeDeadlineMetrics("   ", 0, 100));
+        Assert.Equal((0, 0), DashboardRpc.ComputeDeadlineMetrics("not-a-date", 0, 100));
+
+        // Past deadline: remaining clamps to 0, per-day falls back to remaining words.
+        var past = DateTime.Today.AddDays(-3).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        Assert.Equal((0, 40), DashboardRpc.ComputeDeadlineMetrics(past, 60, 100));
+
+        // Future deadline with work left: positive days + ceil(words-left / days).
+        var future = DateTime.Today.AddDays(10).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        Assert.Equal((10, 10), DashboardRpc.ComputeDeadlineMetrics(future, 0, 100));
+
+        // Goal already met: no words left -> zero per day.
+        Assert.Equal((10, 0), DashboardRpc.ComputeDeadlineMetrics(future, 100, 100));
     }
 
     [Fact]

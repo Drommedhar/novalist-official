@@ -214,7 +214,9 @@
     "weekdayThu": "周四",
     "weekdayFri": "周五",
     "weekdaySat": "周六",
-    "weekdaySun": "周日"
+    "weekdaySun": "周日",
+    "sceneCount_one": "{{count}} 个场景",
+    "sceneCount_other": "{{count}} 个场景"
   },
   "smartList": {
     "section": "智能列表",
@@ -295,7 +297,18 @@
   "statusBar": {
     "openSceneHint": "打开场景以查看实时统计信息",
     "dailyPercent": "今日 {0}%",
-    "projectPercent": "项目 {0}%"
+    "projectPercent": "项目 {0}%",
+    "characters": "{{value}} 字符",
+    "charactersNoSpaces": "{{value}} 字符（不含空格）",
+    "readingTime": "{{minutes}} 分钟阅读",
+    "readability": "可读性 {{score}}/100",
+    "readabilityLevel": {
+      "veryEasy": "非常容易",
+      "easy": "容易",
+      "moderate": "中等",
+      "difficult": "困难",
+      "veryDifficult": "非常困难"
+    }
   },
   "overview": {
     "chapterColumn": "章节",

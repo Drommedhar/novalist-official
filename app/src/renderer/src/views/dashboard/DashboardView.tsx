@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { InputDialog } from '../../shell/InputDialog'
 import { useShellStore } from '../../stores/shellStore'
+import './dashboard.css'
 
 interface DashboardDto {
   projectName: string
+  author: string
   totalWords: number
   chapterCount: number
   sceneCount: number
@@ -19,16 +21,35 @@ interface DashboardDto {
   projectGoalTarget: number
   projectGoalPercent: number
   deadline: string | null
+  daysRemaining: number
+  wordsPerDayNeeded: number
   todayWords: number
   currentStreak: number
+  longestChapterWords: number
+  shortestChapterWords: number
+  averageSceneWords: number
+  outlineCount: number
+  firstDraftCount: number
+  revisedCount: number
+  editedCount: number
+  finalCount: number
   statusBreakdown: { status: string; count: number; wordCount: number }[]
   chapterPacing: { title: string; words: number }[]
   maxChapterWords: number
   echoPhrases: { phrase: string; count: number }[]
   wordHistory: { date: string; words: number; metGoal: boolean }[]
+  recentActivity: { sceneTitle: string; chapterTitle: string; timestamp: string }[]
 }
 
 const RANGES = [30, 90, 365]
+
+const STATUS_SUMMARY: { key: keyof DashboardDto; label: string }[] = [
+  { key: 'outlineCount', label: 'dashboard.statusOutline' },
+  { key: 'firstDraftCount', label: 'dashboard.statusFirstDraft' },
+  { key: 'revisedCount', label: 'dashboard.statusRevised' },
+  { key: 'editedCount', label: 'dashboard.statusEdited' },
+  { key: 'finalCount', label: 'dashboard.statusFinal' }
+]
 
 export function DashboardView(): React.JSX.Element {
   const { t } = useTranslation()
@@ -58,7 +79,11 @@ export function DashboardView(): React.JSX.Element {
 
   return (
     <div className="dashboard">
-      <h1 className="dashboard-title">{data.projectName}</h1>
+      <div className="dashboard-header">
+        <h1 className="dashboard-title">{data.projectName}</h1>
+        {data.author && <div className="dashboard-author">{data.author}</div>}
+        <div className="dashboard-subtitle">{t('dashboard.subtitle')}</div>
+      </div>
 
       <div className="dashboard-metrics">
         {metrics.map((m) => (
@@ -127,12 +152,35 @@ export function DashboardView(): React.JSX.Element {
             <div className="dashboard-bar-fill" style={{ width: `${data.projectGoalPercent}%` }} />
           </div>
           {data.deadline && (
-            <div className="dashboard-deadline">
-              {t('dashboard.deadline')}: {data.deadline}
+            <div className="dashboard-deadline-detail">
+              <div>
+                <div className="dashboard-detail-label">{t('dashboard.deadline')}</div>
+                <div className="dashboard-detail-value">{data.deadline}</div>
+              </div>
+              <div>
+                <div className="dashboard-detail-label">{t('dashboard.daysLeft')}</div>
+                <div className="dashboard-detail-value">{data.daysRemaining}</div>
+              </div>
+              <div>
+                <div className="dashboard-detail-label">{t('dashboard.neededPerDay')}</div>
+                <div className="dashboard-detail-value">
+                  {data.wordsPerDayNeeded.toLocaleString()}
+                </div>
+              </div>
             </div>
           )}
-          <div className="dashboard-average">
-            {t('dashboard.avgChapter')}: {data.averageChapterWords.toLocaleString()}
+        </div>
+      </div>
+
+      <div className="dashboard-card">
+        <div className="dashboard-avg-grid">
+          <div>
+            <div className="dashboard-avg-value">{data.averageChapterWords.toLocaleString()}</div>
+            <div className="dashboard-avg-label">{t('dashboard.avgPerChapter')}</div>
+          </div>
+          <div>
+            <div className="dashboard-avg-value">{data.readingTimeMinutes} min</div>
+            <div className="dashboard-avg-label">{t('dashboard.estReadingTime')}</div>
           </div>
         </div>
       </div>
@@ -155,12 +203,40 @@ export function DashboardView(): React.JSX.Element {
               </span>
             </div>
           ))}
+          <div className="dashboard-status-summary">
+            {STATUS_SUMMARY.map((s) => (
+              <div key={s.key}>
+                <div className="dashboard-summary-count">{data[s.key] as number}</div>
+                <div className="dashboard-summary-count-label">{t(s.label)}</div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
       {data.chapterPacing.length > 0 && (
         <div className="dashboard-card">
           <div className="dashboard-card-title">{t('dashboard.pacingAnalysis')}</div>
+          <div className="dashboard-pacing-summary">
+            <div>
+              <div className="dashboard-summary-value">
+                {data.longestChapterWords.toLocaleString()}
+              </div>
+              <div className="dashboard-summary-label">{t('dashboard.longestChapter')}</div>
+            </div>
+            <div>
+              <div className="dashboard-summary-value">
+                {data.shortestChapterWords.toLocaleString()}
+              </div>
+              <div className="dashboard-summary-label">{t('dashboard.shortestChapter')}</div>
+            </div>
+            <div>
+              <div className="dashboard-summary-value">
+                {Math.round(data.averageSceneWords).toLocaleString()}
+              </div>
+              <div className="dashboard-summary-label">{t('dashboard.avgSceneWords')}</div>
+            </div>
+          </div>
           {data.chapterPacing.map((c) => (
             <div key={c.title} className="dashboard-pacing-row">
               <span className="dashboard-pacing-title">{c.title}</span>
@@ -181,6 +257,7 @@ export function DashboardView(): React.JSX.Element {
       {data.echoPhrases.length > 0 && (
         <div className="dashboard-card">
           <div className="dashboard-card-title">{t('dashboard.echoFinder')}</div>
+          <div className="dashboard-echo-desc">{t('dashboard.echoDescription')}</div>
           <div className="dashboard-echoes">
             {data.echoPhrases.map((e) => (
               <span key={e.phrase} className="dashboard-echo">
@@ -188,6 +265,21 @@ export function DashboardView(): React.JSX.Element {
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {data.recentActivity.length > 0 && (
+        <div className="dashboard-card">
+          <div className="dashboard-card-title">{t('dashboard.recentActivity')}</div>
+          {data.recentActivity.map((a, i) => (
+            <div key={i} className="dashboard-activity-row">
+              <div className="dashboard-activity-main">
+                <div className="dashboard-activity-scene">{a.sceneTitle}</div>
+                <div className="dashboard-activity-chapter">{a.chapterTitle}</div>
+              </div>
+              <div className="dashboard-activity-time">{a.timestamp}</div>
+            </div>
+          ))}
         </div>
       )}
       {editingGoal && (

@@ -36,6 +36,15 @@ export interface RecentProjectDto {
   path: string
 }
 
+/** One open scene in an editor pane's tab strip. Title is resolved from
+ * `chapters` at render time so renames stay live. */
+export interface SceneTabRef {
+  chapterGuid: string
+  sceneId: string
+}
+
+export type EditorPane = 'primary' | 'split'
+
 // Matches the Avalonia EditorViewModel.AutoSaveDelayMs default.
 const AUTOSAVE_DELAY_MS = 2000
 
@@ -53,9 +62,14 @@ interface ProjectState {
   openChapterGuid: string | null
   openSceneId: string | null
   openSceneHtml: string | null
+  openScenePlainText: string | null
+  openTabs: SceneTabRef[]
   splitChapterGuid: string | null
   splitSceneId: string | null
   splitSceneHtml: string | null
+  splitTabs: SceneTabRef[]
+  /** Per-scene unsaved-edit flags, keyed by sceneId (drives the tab dirty dot). */
+  dirtyMap: Record<string, boolean>
   isDirty: boolean
   applyState(state: ProjectStateDto): void
   loadRecents(): Promise<void>
@@ -64,6 +78,8 @@ interface ProjectState {
   openScene(chapterGuid: string, sceneId: string): Promise<void>
   openSceneInSplit(chapterGuid: string, sceneId: string): Promise<void>
   closeSplit(): void
+  closeTab(pane: EditorPane, sceneId: string): Promise<void>
+  moveTabToOtherPane(pane: EditorPane, sceneId: string): Promise<void>
   onEditorContentChanged(html: string, plainText: string): void
   onSplitContentChanged(html: string, plainText: string): void
   flushPendingSave(): Promise<void>
@@ -96,9 +112,13 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   openChapterGuid: null,
   openSceneId: null,
   openSceneHtml: null,
+  openScenePlainText: null,
+  openTabs: [],
   splitChapterGuid: null,
   splitSceneId: null,
   splitSceneHtml: null,
+  splitTabs: [],
+  dirtyMap: {},
   isDirty: false,
 
   applyState: (state) => {
@@ -116,7 +136,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   switchBook: async (bookId) => {
     await get().flushPendingSave()
-    set({ openChapterGuid: null, openSceneId: null, openSceneHtml: null, isDirty: false })
+    set({ ...clearedEditorState() })
     get().applyState(await rpc.request<ProjectStateDto>('project/switchBook', [bookId]))
   },
 
@@ -135,7 +155,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   switchDraft: async (draftId) => {
     await get().flushPendingSave()
-    set({ openChapterGuid: null, openSceneId: null, openSceneHtml: null, isDirty: false })
+    set({ ...clearedEditorState() })
     get().applyState(await rpc.request<ProjectStateDto>('project/switchDraft', [draftId]))
   },
 
@@ -160,7 +180,14 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       chapterGuid,
       sceneId
     ])
-    set({ openChapterGuid: chapterGuid, openSceneId: sceneId, openSceneHtml: content.html })
+    const tabs = get().openTabs
+    set({
+      openChapterGuid: chapterGuid,
+      openSceneId: sceneId,
+      openSceneHtml: content.html,
+      openScenePlainText: stripHtml(content.html),
+      openTabs: tabs.some((t) => t.sceneId === sceneId) ? tabs : [...tabs, { chapterGuid, sceneId }]
+    })
     useShellStore.getState().setMainView('write')
   },
 
@@ -169,23 +196,92 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       chapterGuid,
       sceneId
     ])
-    set({ splitChapterGuid: chapterGuid, splitSceneId: sceneId, splitSceneHtml: content.html })
+    const tabs = get().splitTabs
+    set({
+      splitChapterGuid: chapterGuid,
+      splitSceneId: sceneId,
+      splitSceneHtml: content.html,
+      splitTabs: tabs.some((t) => t.sceneId === sceneId) ? tabs : [...tabs, { chapterGuid, sceneId }]
+    })
     useShellStore.getState().setMainView('write')
   },
 
-  closeSplit: () => set({ splitChapterGuid: null, splitSceneId: null, splitSceneHtml: null }),
+  closeSplit: () =>
+    set({ splitChapterGuid: null, splitSceneId: null, splitSceneHtml: null, splitTabs: [] }),
+
+  closeTab: async (pane, sceneId) => {
+    const s = get()
+    if (pane === 'primary') {
+      const idx = s.openTabs.findIndex((t) => t.sceneId === sceneId)
+      if (idx < 0) return
+      const isActive = s.openSceneId === sceneId
+      if (isActive) await get().flushPendingSave()
+      const remaining = get().openTabs.filter((t) => t.sceneId !== sceneId)
+      if (!isActive) {
+        set({ openTabs: remaining })
+        return
+      }
+      if (remaining.length === 0) {
+        set({
+          openTabs: [],
+          openChapterGuid: null,
+          openSceneId: null,
+          openSceneHtml: null,
+          openScenePlainText: null,
+          isDirty: false
+        })
+        return
+      }
+      const next = remaining[Math.min(idx, remaining.length - 1)]
+      set({ openTabs: remaining })
+      await get().openScene(next.chapterGuid, next.sceneId)
+    } else {
+      const idx = s.splitTabs.findIndex((t) => t.sceneId === sceneId)
+      if (idx < 0) return
+      const isActive = s.splitSceneId === sceneId
+      const remaining = s.splitTabs.filter((t) => t.sceneId !== sceneId)
+      if (!isActive) {
+        set({ splitTabs: remaining })
+        return
+      }
+      if (remaining.length === 0) {
+        get().closeSplit()
+        return
+      }
+      const next = remaining[Math.min(idx, remaining.length - 1)]
+      set({ splitTabs: remaining })
+      await get().openSceneInSplit(next.chapterGuid, next.sceneId)
+    }
+  },
+
+  moveTabToOtherPane: async (pane, sceneId) => {
+    const srcTabs = pane === 'primary' ? get().openTabs : get().splitTabs
+    const tab = srcTabs.find((t) => t.sceneId === sceneId)
+    if (!tab) return
+    await get().closeTab(pane, sceneId)
+    if (pane === 'primary') await get().openSceneInSplit(tab.chapterGuid, tab.sceneId)
+    else await get().openScene(tab.chapterGuid, tab.sceneId)
+  },
 
   onEditorContentChanged: (html, plainText) => {
     const { openChapterGuid, openSceneId } = get()
     if (!openChapterGuid || !openSceneId) return
-    set({ openSceneHtml: html, isDirty: true })
+    set((state) => ({
+      openSceneHtml: html,
+      openScenePlainText: plainText,
+      isDirty: true,
+      dirtyMap: { ...state.dirtyMap, [openSceneId]: true }
+    }))
     scheduleSave('primary', openChapterGuid, openSceneId, html, plainText)
   },
 
   onSplitContentChanged: (html, plainText) => {
     const { splitChapterGuid, splitSceneId } = get()
     if (!splitChapterGuid || !splitSceneId) return
-    set({ splitSceneHtml: html })
+    set((state) => ({
+      splitSceneHtml: html,
+      dirtyMap: { ...state.dirtyMap, [splitSceneId]: true }
+    }))
     scheduleSave('split', splitChapterGuid, splitSceneId, html, plainText)
   },
 
@@ -221,16 +317,42 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   deleteChapter: async (chapterGuid) => {
-    if (get().openChapterGuid === chapterGuid) {
-      set({ openChapterGuid: null, openSceneId: null, openSceneHtml: null, isDirty: false })
-    }
+    set((s) => ({
+      openTabs: s.openTabs.filter((t) => t.chapterGuid !== chapterGuid),
+      splitTabs: s.splitTabs.filter((t) => t.chapterGuid !== chapterGuid),
+      ...(s.openChapterGuid === chapterGuid
+        ? {
+            openChapterGuid: null,
+            openSceneId: null,
+            openSceneHtml: null,
+            openScenePlainText: null,
+            isDirty: false
+          }
+        : {}),
+      ...(s.splitChapterGuid === chapterGuid
+        ? { splitChapterGuid: null, splitSceneId: null, splitSceneHtml: null }
+        : {})
+    }))
     get().applyState(await rpc.request<ProjectStateDto>('project/deleteChapter', [chapterGuid]))
   },
 
   deleteScene: async (chapterGuid, sceneId) => {
-    if (get().openSceneId === sceneId) {
-      set({ openChapterGuid: null, openSceneId: null, openSceneHtml: null, isDirty: false })
-    }
+    set((s) => ({
+      openTabs: s.openTabs.filter((t) => t.sceneId !== sceneId),
+      splitTabs: s.splitTabs.filter((t) => t.sceneId !== sceneId),
+      ...(s.openSceneId === sceneId
+        ? {
+            openChapterGuid: null,
+            openSceneId: null,
+            openSceneHtml: null,
+            openScenePlainText: null,
+            isDirty: false
+          }
+        : {}),
+      ...(s.splitSceneId === sceneId
+        ? { splitChapterGuid: null, splitSceneId: null, splitSceneHtml: null }
+        : {})
+    }))
     get().applyState(
       await rpc.request<ProjectStateDto>('project/deleteScene', [chapterGuid, sceneId])
     )
@@ -265,6 +387,32 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   }
 }))
 
+/** Full editor reset used when the active book/draft changes. */
+function clearedEditorState(): Partial<ProjectState> {
+  return {
+    openChapterGuid: null,
+    openSceneId: null,
+    openSceneHtml: null,
+    openScenePlainText: null,
+    openTabs: [],
+    splitChapterGuid: null,
+    splitSceneId: null,
+    splitSceneHtml: null,
+    splitTabs: [],
+    dirtyMap: {},
+    isDirty: false
+  }
+}
+
+/** Strips HTML tags and decodes entities to plain text for live statistics.
+ * Mirrors the desktop EditorViewModel.StripHtmlForStats fast path. */
+function stripHtml(html: string): string {
+  if (!html) return ''
+  if (!html.trimStart().startsWith('<')) return html
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  return doc.body.textContent ?? ''
+}
+
 function scheduleSave(
   pane: string,
   chapterGuid: string,
@@ -297,6 +445,7 @@ async function saveScene(
   ])
   useProjectStore.setState((state) => ({
     isDirty: state.openSceneId === sceneId ? false : state.isDirty,
+    dirtyMap: state.dirtyMap[sceneId] ? { ...state.dirtyMap, [sceneId]: false } : state.dirtyMap,
     chapters: state.chapters.map((c) =>
       c.guid === chapterGuid
         ? {

@@ -24,9 +24,12 @@ export interface EditorWindow extends Window {
   setCommentsData(data: { id: string; anchorText: string; text: string }[]): void
   setFootnotesData(data: { id: string; text: string }[]): void
   setEntityNames(namesJson: string): void
+  setMentionCandidates(candidatesJson: string): void
   setAutoReplacements(pairsJson: string): void
   setDialogueCorrectionConfig(configJson: string): void
   setContextMenuLabels(labelsJson: string): void
+  setInlineActions(actionsJson: string): void
+  applyInlineActionResult(resultJson: string): void
   setGrammarCheckEnabled(enabled: boolean): void
   setGrammarIssues(issuesJson: string): void
   addCommentToSelection(id: string): void
@@ -73,6 +76,69 @@ export function listenToEditor(
 
 export function editorWindow(iframe: HTMLIFrameElement): EditorWindow | null {
   return iframe.contentWindow as EditorWindow | null
+}
+
+// ── Inline-action registry (SDK extension surface) ─────────────────────────
+// The editor.html context menu can offer extension-contributed "inline actions"
+// over a selection. The old Avalonia host fed these from IInlineActionContributor
+// and executed them through the extension host. The Electron backend exposes no
+// inline-action RPC yet, so this client-side registry is the plumbing: it keeps
+// the editor.html hooks (setInlineActions / inlineActionRequested /
+// applyInlineActionResult) live and gives extensions a real place to register.
+
+export interface InlineActionDescriptor {
+  id: string
+  label: string
+  group?: string
+  icon?: string
+}
+
+export interface InlineActionResult {
+  /** Text to insert. */
+  text: string
+  /** 'replace' swaps the selection; 'insertAfter' appends on a new line. */
+  disposition: 'replace' | 'insertAfter'
+  /** Non-empty aborts the edit; editor.html leaves the selection untouched. */
+  error?: string
+}
+
+export type InlineActionHandler = (
+  selectedText: string
+) => InlineActionResult | Promise<InlineActionResult>
+
+const inlineActions = new Map<
+  string,
+  { descriptor: InlineActionDescriptor; run: InlineActionHandler }
+>()
+
+/** Registers (or replaces) an inline action. Returns a disposer. */
+export function registerInlineAction(
+  descriptor: InlineActionDescriptor,
+  run: InlineActionHandler
+): () => void {
+  inlineActions.set(descriptor.id, { descriptor, run })
+  return () => inlineActions.delete(descriptor.id)
+}
+
+/** JSON array of registered descriptors, in the shape editor.html expects. */
+export function inlineActionDescriptorsJson(): string {
+  return JSON.stringify([...inlineActions.values()].map((a) => a.descriptor))
+}
+
+/** Runs an inline action by id; unknown ids resolve to an error result. */
+export async function runInlineAction(
+  actionId: string,
+  selectedText: string
+): Promise<InlineActionResult> {
+  const entry = inlineActions.get(actionId)
+  if (!entry) {
+    return { text: '', disposition: 'replace', error: `Unknown inline action: ${actionId}` }
+  }
+  try {
+    return await entry.run(selectedText)
+  } catch (err) {
+    return { text: '', disposition: 'replace', error: String(err) }
+  }
 }
 
 /** Reads the current theme tokens and pushes them into the editor page. */

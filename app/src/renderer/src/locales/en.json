@@ -172,7 +172,9 @@
     "weekdayThu": "Thu",
     "weekdayFri": "Fri",
     "weekdaySat": "Sat",
-    "weekdaySun": "Sun"
+    "weekdaySun": "Sun",
+    "sceneCount_one": "{{count}} scene",
+    "sceneCount_other": "{{count}} scenes"
   },
   "smartList": {
     "section": "Smart Lists",
@@ -253,7 +255,18 @@
   "statusBar": {
     "openSceneHint": "Open a scene to see live statistics",
     "dailyPercent": "Daily {0}%",
-    "projectPercent": "Project {0}%"
+    "projectPercent": "Project {0}%",
+    "characters": "{{value}} chars",
+    "charactersNoSpaces": "{{value}} chars (no spaces)",
+    "readingTime": "{{minutes}} min read",
+    "readability": "Readability {{score}}/100",
+    "readabilityLevel": {
+      "veryEasy": "Very easy",
+      "easy": "Easy",
+      "moderate": "Moderate",
+      "difficult": "Difficult",
+      "veryDifficult": "Very difficult"
+    }
   },
   "overview": {
     "chapterColumn": "Chapter",

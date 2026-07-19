@@ -37,13 +37,15 @@ public sealed class CalendarRpcTests : IDisposable
             Start = "1043-03-06",
             End = "1043-03-08",
             StartTime = "09:30",
-            EndTime = "17:00"
+            EndTime = "17:00",
+            Note = "Council of elders"
         });
         await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Undated");
 
         var events = _rpc.Get("1043-03-01", "1043-03-31");
 
-        Assert.Single(events, e => e.SceneId == single.Id && e.AllDay && e.Date == "1043-03-05");
+        var singleEvent = Assert.Single(events, e => e.SceneId == single.Id && e.AllDay && e.Date == "1043-03-05");
+        Assert.Null(singleEvent.Note);
         var multiDays = events.Where(e => e.SceneId == multi.Id).Select(e => e.Date).ToArray();
         Assert.Equal(new[] { "1043-03-06", "1043-03-07", "1043-03-08" }, multiDays);
         var timed = events.First(e => e.SceneId == multi.Id);
@@ -51,9 +53,23 @@ public sealed class CalendarRpcTests : IDisposable
         Assert.Equal(9, timed.StartHour);
         Assert.Equal(30, timed.StartMinute);
         Assert.Equal(17, timed.EndHour);
+        Assert.Equal("Council of elders", timed.Note);
         Assert.DoesNotContain(events, e => e.Title == "Undated");
 
         Assert.Empty(_rpc.Get("1044-01-01", "1044-12-31"));
+    }
+
+    [Fact]
+    public void Get_ThrowsWhenNoProjectOpen()
+    {
+        var noProjectRoot = Path.Combine(Path.GetTempPath(), "nl-cal-np-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(noProjectRoot);
+        var workspace = new Workspace(Path.Combine(noProjectRoot, "settings"));
+        var rpc = new CalendarRpc(workspace);
+
+        Assert.Throws<InvalidOperationException>(() => rpc.Get("1043-03-01", "1043-03-31"));
+
+        try { Directory.Delete(noProjectRoot, true); } catch (IOException) { }
     }
 
     [Fact]

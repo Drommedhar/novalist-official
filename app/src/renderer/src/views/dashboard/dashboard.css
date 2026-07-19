@@ -1,0 +1,158 @@
+/*
+ * Dashboard-specific styles for parity additions (deadline detail block,
+ * pacing/status summaries, dedicated average card, echo description, recent
+ * activity). Base .dashboard* classes live in shell.css; these only cover the
+ * new surfaces. All sizes come from the design tokens in styles/tokens.css.
+ */
+
+/* ===== Header (project name + author + subtitle) ===== */
+.dashboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.dashboard-author {
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}
+
+.dashboard-subtitle {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+}
+
+/* ===== Deadline detail block (Deadline / Days Left / Words per Day) ===== */
+.dashboard-deadline-detail {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--nl-space-lg);
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-lg);
+  margin-top: var(--nl-space-md);
+}
+
+.dashboard-detail-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.dashboard-detail-value {
+  font-size: var(--nl-font-title-sm);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--nl-space-tightest);
+}
+
+/* ===== Dedicated average-per-chapter card ===== */
+.dashboard-avg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nl-space-lg);
+}
+
+.dashboard-avg-grid > div:last-child {
+  text-align: right;
+}
+
+.dashboard-avg-value {
+  font-size: var(--nl-font-display);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-avg-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  margin-top: var(--nl-space-tighter);
+}
+
+/* ===== Pacing summary trio (Longest / Shortest / Avg scene) ===== */
+.dashboard-pacing-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--nl-space-xl);
+  margin-bottom: var(--nl-space-xl);
+}
+
+.dashboard-summary-value {
+  font-size: var(--nl-font-display-sm);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-summary-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  margin-top: var(--nl-space-tighter);
+}
+
+/* ===== Status summary row (5 status counts) ===== */
+.dashboard-status-summary {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--nl-space-normal);
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-lg);
+  margin-top: var(--nl-space-lg);
+  text-align: center;
+}
+
+.dashboard-summary-count {
+  font-size: var(--nl-font-title);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-summary-count-label {
+  font-size: var(--nl-font-tiny);
+  color: var(--nl-text-subtle);
+  margin-top: var(--nl-space-tightest);
+}
+
+/* ===== Echo finder description ===== */
+.dashboard-echo-desc {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+  margin-bottom: var(--nl-space-lg);
+}
+
+/* ===== Recent activity ===== */
+.dashboard-activity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-tighter) 0;
+}
+
+.dashboard-activity-main {
+  min-width: 0;
+}
+
+.dashboard-activity-scene {
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-activity-chapter {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-activity-time {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
