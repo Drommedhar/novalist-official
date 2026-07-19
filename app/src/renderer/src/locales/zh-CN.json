@@ -80,7 +80,8 @@
     "emptyHint": "暂无情节线。添加一条以跟踪故事线中的场景。"
   },
   "comments": {
-    "noSelection": "请先在场景中选择一些文本。"
+    "noSelection": "请先在场景中选择一些文本。",
+    "panelTitle": "评论"
   },
   "footnotes": {
     "addTitle": "添加脚注",

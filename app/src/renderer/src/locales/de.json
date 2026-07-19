@@ -802,7 +802,8 @@
     "synopsisPlaceholder": "Kurze Zusammenfassung dieser Szene..."
   },
   "comments": {
-    "noSelection": "Wähle zuerst Text in der Szene aus."
+    "noSelection": "Wähle zuerst Text in der Szene aus.",
+    "panelTitle": "KOMMENTARE"
   },
   "footnotes": {
     "addTitle": "Fußnote hinzufügen",

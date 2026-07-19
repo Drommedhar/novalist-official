@@ -4,6 +4,8 @@ import { Camera, History } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { InputDialog } from './InputDialog'
+import { ContextPanel } from './ContextPanel'
+import { AnnotationsPanel } from './AnnotationsPanel'
 
 interface SnapshotDto {
   id: string
@@ -61,6 +63,7 @@ export function Inspector(): React.JSX.Element {
       <div className="inspector-meta">
         {scene.wordCount.toLocaleString()} {t('shell.words')}
       </div>
+      <ContextPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
       <label className="inspector-label" htmlFor="inspector-synopsis">
         {t('sceneNotes.synopsisTitle')}
       </label>
@@ -87,6 +90,7 @@ export function Inspector(): React.JSX.Element {
         onChange={(e) => setNotes(e.target.value)}
         onBlur={() => void rpc.request('scenes/setNotes', [openChapterGuid, openSceneId, notes])}
       />
+      <AnnotationsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
       <label className="inspector-label">
         <History size={12} strokeWidth={2} /> {t('snapshots.title')}
       </label>

@@ -55,6 +55,12 @@ test('real project renders binder and scene content', async () => {
     .poll(async () => ((await editor.innerText()) ?? '').trim().length, { timeout: 15_000 })
     .toBeGreaterThan(50)
 
+  // Inspector context panel: scene analysis (POV + stats) computed for the
+  // open scene, and any characters detected in the prose are listed.
+  await expect(page.locator('.ctx-panel')).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('.ctx-stats')).toBeVisible()
+  await expect(page.locator('.ctx-pov')).toBeVisible()
+
   // Inspector: write a synopsis, blur, and confirm it persisted over RPC.
   const synopsis = page.locator('#inspector-synopsis')
   await synopsis.fill('Verification synopsis from e2e')

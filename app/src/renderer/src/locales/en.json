@@ -80,7 +80,8 @@
     "emptyHint": "No plotlines yet. Add one to start tracking scenes across your story arcs."
   },
   "comments": {
-    "noSelection": "Select some text in the scene first."
+    "noSelection": "Select some text in the scene first.",
+    "panelTitle": "COMMENTS"
   },
   "footnotes": {
     "addTitle": "Add footnote",
