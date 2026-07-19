@@ -92,6 +92,13 @@ test('real project renders binder and scene content', async () => {
     .poll(() => page.locator('.codex-group-head').count(), { timeout: 10_000 })
     .toBeGreaterThan(0)
 
+  // Typed detail pane: selecting a character shows grouped sections
+  // (Basic Info + Physical Attributes), not a raw key dump.
+  await page.locator('.codex-row').first().click()
+  await expect
+    .poll(() => page.locator('.codex-field-section').count(), { timeout: 10_000 })
+    .toBeGreaterThanOrEqual(2)
+
   // Search filters the navigation list.
   await page.locator('.codex-search').fill('zzz-no-such-entity')
   await expect.poll(() => page.locator('.codex-row').count(), { timeout: 5_000 }).toBe(0)

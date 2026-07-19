@@ -17,6 +17,7 @@ import { EntityImages } from './EntityImages'
 import { CustomPropsEditor } from './CustomPropsEditor'
 import { OverridesEditor } from './OverridesEditor'
 import { CodexNav } from './CodexNav'
+import { EntityDetailFields } from './EntityDetailFields'
 import type { EntitySummary } from '../../stores/codexStore'
 
 const TYPES: { type: EntityType; key: string }[] = [
@@ -25,9 +26,6 @@ const TYPES: { type: EntityType; key: string }[] = [
   { type: 'item', key: 'codexHub.items' },
   { type: 'lore', key: 'codexHub.lore' }
 ]
-
-/** Fields shown in the generic detail pane when present and non-empty. */
-const HIDDEN_FIELDS = new Set(['id', 'isWorldBible', 'images', 'relationships', 'sections', 'customProperties'])
 
 export function CodexView(): React.JSX.Element {
   const { t } = useTranslation()
@@ -190,26 +188,12 @@ export function CodexView(): React.JSX.Element {
                   <Trash2 size={13} strokeWidth={2} /> {t('explorer.contextDelete')}
                 </button>
               </div>
-              <dl className="codex-fields">
-                {Object.entries(record)
-                  .filter(
-                    ([key, value]) => !HIDDEN_FIELDS.has(key) && typeof value === 'string'
-                  )
-                  .map(([key, value]) => (
-                    <div key={`${selectedId}-${key}`} className="codex-field">
-                      <dt>{key}</dt>
-                      <dd>
-                        <input
-                          className="outliner-input codex-field-input"
-                          defaultValue={String(value)}
-                          onBlur={(e) => {
-                            if (e.target.value !== value) void updateField(key, e.target.value)
-                          }}
-                        />
-                      </dd>
-                    </div>
-                  ))}
-              </dl>
+              <EntityDetailFields
+                entityType={entityType}
+                record={record}
+                customDef={customTypes.find((d) => d.typeKey === entityType)}
+                updateField={updateField}
+              />
               <EntityImages />
               <CustomPropsEditor />
               <OverridesEditor />

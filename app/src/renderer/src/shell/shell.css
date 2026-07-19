@@ -646,6 +646,13 @@
   flex-shrink: 0;
 }
 
+.codex-field-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tight);
+  margin-bottom: var(--nl-space-md);
+}
+
 .codex-row {
   display: flex;
   align-items: center;
