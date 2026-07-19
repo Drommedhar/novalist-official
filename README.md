@@ -110,8 +110,8 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - **Hotkeys** — every action is rebindable; defaults documented in [`docs/manual/26-hotkeys.md`](docs/manual/26-hotkeys.md).
 - **Command Palette** (`Ctrl+Shift+P`) — every action by name.
-- **Localization** — drop-in JSON locale files; English and German ship in the box.
-- **Theme** — system / light / dark with a custom accent color.
+- **Localization** — drop-in JSON locale files; English, German, and Simplified Chinese ship in the box.
+- **Theme** — light/dark following the OS, plus bundled Discord and Catppuccin Mocha palettes and a custom accent color; on macOS 26+ the window uses native Liquid Glass, with a vibrancy fallback on older macOS.
 - **Global or per-project settings** — appearance, editor, and writing-assistance settings default to global but can be overridden per project (e.g. an English book and a German book each with their own language, quotes, and theme); project overrides live in `.novalist/` and sync via git.
 - **Book preview** — render the editor as a printed page with configurable trim size and book font.
 
@@ -119,19 +119,14 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 Novalist has a plugin architecture through the **Novalist SDK**. Extensions can contribute:
 
-- Ribbon and status-bar items
-- Sidebar and context-sidebar tabs
-- Full-screen content views with activity-bar icons
-- Settings categories and pages
-- Hotkeys
+- Webview panels that appear in the binder rail under Extensions (SDK v2)
 - Editor hooks (lifecycle, inline actions, grammar checks)
-- Context-menu items
-- Export formats and presets
-- Themes
+- Export formats
 - Custom entity types and custom property types
 - AI integration hooks (prompt building, response processing)
+- Themes
 
-Extensions are .NET 8 class libraries discovered at runtime from the user extensions folder. See the [Extension Guide](docs/extension-guide.md) and the bundled `Novalist.Sdk.Example` project for a working reference implementation.
+Extensions are .NET 8 class libraries loaded by the core process at runtime from the user extensions folder; their UI is delivered as sandboxed webviews. The bundled AI Assistant is the reference example, contributing the AI Chat, Character Chat, and Story Analysis panels. See the `Novalist.Sdk.Example` project for a working implementation.
 
 ## Building
 
