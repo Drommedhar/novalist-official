@@ -161,8 +161,9 @@ function SceneTabStrip({ pane }: { pane: EditorPane }): React.JSX.Element | null
   const dirtyMap = useProjectStore((s) => s.dirtyMap)
   const [menu, setMenu] = useState<{ x: number; y: number; sceneId: string } | null>(null)
 
-  // A single open scene keeps the original strip-free look.
-  if (tabs.length <= 1) return null
+  // The split pane always shows its strip (so its scene can be closed); the
+  // primary pane keeps the strip-free look for a single open scene.
+  if (tabs.length === 0 || (pane !== 'split' && tabs.length <= 1)) return null
 
   const titleFor = (ref: SceneTabRef): string => {
     const chapter = chapters.find((c) => c.guid === ref.chapterGuid)
@@ -291,10 +292,42 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   }
 
   const pushEntityNames = async (editor: EditorWindow): Promise<void> => {
-    const index = new Map<
+    type Hit = { id: string; name: string; detail: string; imagePath: string | null; type: string }
+    const index = new Map<string, Hit>()
+    // Collect every matchable text -> candidate(s). Names that resolve to more
+    // than one entity are dropped (mirrors FocusPeekExtension's Count==1 rule)
+    // so an ambiguous first name never peeks the wrong character.
+    const byText = new Map<
       string,
-      { id: string; name: string; detail: string; imagePath: string | null; type: string }
+      { hit: Hit; primaryName: string; isAlias: boolean; text: string }[]
     >()
+    const addText = (text: string, hit: Hit, primaryName: string, isAlias: boolean): void => {
+      const trimmed = text.trim()
+      const key = trimmed.toLowerCase()
+      if (!key) return
+      const list = byText.get(key) ?? []
+      list.push({ hit, primaryName, isAlias, text: trimmed })
+      byText.set(key, list)
+    }
+    for (const type of ['character', 'location', 'item', 'lore']) {
+      const list = await rpc.request<
+        {
+          id: string
+          name: string
+          detail: string
+          imagePath: string | null
+          aliases: string[]
+          firstName: string | null
+        }[]
+      >('entities/list', [type])
+      for (const entity of list) {
+        const hit: Hit = { ...entity, type }
+        index.set(entity.id, hit)
+        addText(entity.name, hit, entity.name, false)
+        if (entity.firstName) addText(entity.firstName, hit, entity.name, true)
+        for (const alias of entity.aliases ?? []) addText(alias, hit, entity.name, true)
+      }
+    }
     const names: { name: string; entityId: string; entityType: string; isAlias: boolean }[] = []
     const candidates: {
       entityId: string
@@ -304,36 +337,19 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
       isAlias: boolean
       subtitle: string
     }[] = []
-    for (const type of ['character', 'location', 'item', 'lore']) {
-      const list = await rpc.request<
-        { id: string; name: string; detail: string; imagePath: string | null; aliases: string[] }[]
-      >('entities/list', [type])
-      for (const entity of list) {
-        index.set(entity.id, { ...entity, type })
-        index.set(entity.name.toLowerCase(), { ...entity, type })
-        names.push({ name: entity.name, entityId: entity.id, entityType: type, isAlias: false })
-        candidates.push({
-          entityId: entity.id,
-          entityType: type,
-          primaryName: entity.name,
-          matchedText: entity.name,
-          isAlias: false,
-          subtitle: entity.detail ?? ''
-        })
-        for (const alias of entity.aliases ?? []) {
-          if (!alias.trim()) continue
-          index.set(alias.toLowerCase(), { ...entity, type })
-          names.push({ name: alias, entityId: entity.id, entityType: type, isAlias: true })
-          candidates.push({
-            entityId: entity.id,
-            entityType: type,
-            primaryName: entity.name,
-            matchedText: alias,
-            isAlias: true,
-            subtitle: entity.detail ?? ''
-          })
-        }
-      }
+    for (const [key, list] of byText) {
+      if (list.length !== 1) continue // ambiguous — drop, like the desktop app
+      const { hit, primaryName, isAlias, text } = list[0]
+      index.set(key, hit)
+      names.push({ name: text, entityId: hit.id, entityType: hit.type, isAlias })
+      candidates.push({
+        entityId: hit.id,
+        entityType: hit.type,
+        primaryName,
+        matchedText: text,
+        isAlias,
+        subtitle: hit.detail ?? ''
+      })
     }
     entityIndexRef.current = index
     editor.setEntityNames(JSON.stringify(names))

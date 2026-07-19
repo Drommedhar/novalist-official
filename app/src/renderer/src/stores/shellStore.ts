@@ -18,7 +18,7 @@ export type MainView =
   | 'settings'
 
 export const viewGroups: { key: string; views: MainView[] }[] = [
-  { key: 'shell.groupWrite', views: ['write', 'manuscript', 'dashboard'] },
+  { key: 'shell.groupWrite', views: ['dashboard', 'write', 'manuscript'] },
   { key: 'shell.groupPlan', views: ['timeline', 'plotGrid', 'calendar', 'relationships'] },
   { key: 'shell.groupWorld', views: ['codex', 'maps', 'research', 'gallery'] },
   { key: 'shell.groupPublish', views: ['export', 'git'] },

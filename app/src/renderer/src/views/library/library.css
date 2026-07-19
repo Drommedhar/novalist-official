@@ -187,7 +187,7 @@
   width: 56px;
   height: 56px;
   flex-shrink: 0;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: var(--nl-radius-sm);
   border: 1px solid var(--nl-border);
 }

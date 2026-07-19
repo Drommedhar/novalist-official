@@ -45,3 +45,8 @@
   color: var(--nl-text-subtle);
   margin-top: calc(-1 * var(--nl-space-tighter));
 }
+
+.dashboard.export-view {
+  max-width: none;
+  margin: 0;
+}

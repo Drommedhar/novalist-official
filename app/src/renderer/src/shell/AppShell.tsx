@@ -43,6 +43,11 @@ export function AppShell(): React.JSX.Element {
     void rpc.connect().then(hydrate)
   }, [])
 
+  // Opening a project lands on the dashboard, matching the Avalonia app.
+  useEffect(() => {
+    if (isLoaded) useShellStore.getState().setMainView('dashboard')
+  }, [isLoaded])
+
   useEffect(() => installHotkeys(hotkeys), [hotkeys])
 
   const [updateVersion, setUpdateVersion] = useState<string | null>(null)

@@ -105,3 +105,8 @@
   font-family: var(--nl-font-family);
   line-height: 1.4;
 }
+
+.dashboard.gitview {
+  max-width: none;
+  margin: 0;
+}

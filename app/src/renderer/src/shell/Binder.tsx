@@ -323,6 +323,24 @@ export function Binder(): React.JSX.Element {
         )}
       </div>
       <div className="binder-rail">
+        {viewGroups.map((group) => (
+          <div key={group.key} className="binder-group">
+            <div className="binder-group-label">{t(group.key)}</div>
+            {group.views.map((view) => {
+              const Icon = viewIcons[view]
+              return (
+                <button
+                  key={view}
+                  className={`binder-rail-item${mainView === view ? ' active' : ''}`}
+                  onClick={() => setMainView(view)}
+                >
+                  <Icon size={15} strokeWidth={1.75} />
+                  {t(`shell.view.${view}`)}
+                </button>
+              )
+            })}
+          </div>
+        ))}
         {extViews.length > 0 && (
           <div className="binder-group">
             <div className="binder-group-label">{t('extensions.title')}</div>
@@ -344,24 +362,6 @@ export function Binder(): React.JSX.Element {
             ))}
           </div>
         )}
-        {viewGroups.map((group) => (
-          <div key={group.key} className="binder-group">
-            <div className="binder-group-label">{t(group.key)}</div>
-            {group.views.map((view) => {
-              const Icon = viewIcons[view]
-              return (
-                <button
-                  key={view}
-                  className={`binder-rail-item${mainView === view ? ' active' : ''}`}
-                  onClick={() => setMainView(view)}
-                >
-                  <Icon size={15} strokeWidth={1.75} />
-                  {t(`shell.view.${view}`)}
-                </button>
-              )
-            })}
-          </div>
-        ))}
       </div>
       {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems()} onClose={() => setMenu(null)} />}
       {pending?.kind === 'editChapter' &&

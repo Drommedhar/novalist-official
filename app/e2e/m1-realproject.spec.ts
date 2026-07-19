@@ -55,6 +55,52 @@ test('real project renders binder and scene content', async () => {
     .poll(async () => ((await editor.innerText()) ?? '').trim().length, { timeout: 15_000 })
     .toBeGreaterThan(50)
 
+  // Focus peek: hovering a character's first name in the prose ("Liam" for the
+  // character "Liam Calder") shows the entity peek card. Regression: the peek
+  // index only carried composed full names, so bare first names never matched.
+  await page.evaluate(async () => {
+    const st = window.novalistStores.project.getState()
+    for (const ch of st.chapters)
+      for (const scn of ch.scenes) {
+        const c = (await window.novalistRpc.request('scenes/read', [ch.guid, scn.id])) as {
+          html: string
+        }
+        if (c.html.includes('Liam')) {
+          await st.openScene(ch.guid, scn.id)
+          return
+        }
+      }
+  })
+  const peekEditor = page.frameLocator('.editor-frame').locator('#editor')
+  await expect(peekEditor).toBeVisible({ timeout: 15_000 })
+  await page.waitForTimeout(1500)
+  const peekBox = await page.locator('.editor-frame').boundingBox()
+  const peekFrame = page.frames().find((f) => f.url().includes('editor'))
+  const liam =
+    peekFrame &&
+    (await peekFrame.evaluate(() => {
+      const w = document.createTreeWalker(document.getElementById('editor')!, NodeFilter.SHOW_TEXT)
+      let n: Node | null
+      while ((n = w.nextNode())) {
+        const i = (n.textContent ?? '').indexOf('Liam')
+        if (i >= 0) {
+          const r = document.createRange()
+          r.setStart(n, i)
+          r.setEnd(n, i + 4)
+          ;(r.startContainer.parentElement as HTMLElement).scrollIntoView({ block: 'center' })
+          const b = r.getBoundingClientRect()
+          return { x: b.left + b.width / 2, y: b.top + b.height / 2 }
+        }
+      }
+      return null
+    }))
+  if (liam && peekBox) {
+    await page.mouse.move(peekBox.x + liam.x - 8, peekBox.y + liam.y)
+    await page.mouse.move(peekBox.x + liam.x, peekBox.y + liam.y)
+    await expect(page.locator('.editor-peek-card')).toBeVisible({ timeout: 10_000 })
+    await expect(page.locator('.editor-peek-name')).toContainText('Liam')
+  }
+
   // Inspector context panel: scene analysis (POV + stats) computed for the
   // open scene, and any characters detected in the prose are listed.
   await expect(page.locator('.ctx-panel')).toBeVisible({ timeout: 15_000 })

@@ -9,18 +9,23 @@ files:
 extraResources:
   - from: dist-backend
     to: backend
+  - from: resources/icon.png
+    to: icon.png
 asarUnpack:
   - '**/*.node'
 mac:
+  icon: build/icon.icns
   target:
     - dmg
     - zip
   category: public.app-category.productivity
   identity: null
 win:
+  icon: build/icon.png
   target:
     - nsis
 linux:
+  icon: build/icon.png
   target:
     - AppImage
   category: Office

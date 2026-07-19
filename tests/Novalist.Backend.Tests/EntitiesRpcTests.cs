@@ -66,6 +66,10 @@ public sealed class EntitiesRpcTests : IDisposable
 
         var mira = list.Single(e => e.Name == "Mira Frost");
         Assert.Equal("Protagonist", mira.Detail);
+        // The bare first name is exposed as an extra hover/mention target, and
+        // is null when it already equals the composed display name.
+        Assert.Equal("Mira", mira.FirstName);
+        Assert.Null(list.Single(e => e.Name == "Solo").FirstName);
         // ImagePath is resolved to a project-root-relative path (book folder
         // prepended) so the renderer's project-rooted protocol can load it.
         Assert.EndsWith("/Images/mira.png", mira.ImagePath);

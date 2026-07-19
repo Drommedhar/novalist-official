@@ -105,7 +105,7 @@ public sealed class EntitiesRpc
         return type switch
         {
             "character" => (await _entities.LoadCharactersAsync())
-                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender))
+                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender, firstName: c.Name))
                 .ToArray(),
             "location" => (await _entities.LoadLocationsAsync())
                 .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent))
@@ -785,11 +785,14 @@ public sealed class EntitiesRpc
     private EntitySummaryDto Summary(
         string id, string name, string detail, bool isWorldBible, EntityImage? image,
         IReadOnlyList<string> aliases,
-        string? group = null, string? gender = null, string? parent = null) =>
+        string? group = null, string? gender = null, string? parent = null, string? firstName = null) =>
         new(id, name, detail, isWorldBible,
             image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
             aliases,
-            NullIfEmpty(group), NullIfEmpty(gender), NullIfEmpty(parent));
+            NullIfEmpty(group), NullIfEmpty(gender), NullIfEmpty(parent),
+            // The bare first name is an extra hover/mention target ("Liam" for
+            // "Liam Calder"); null when it equals the composed display name.
+            NullIfEmpty(firstName) is { } fn && !string.Equals(fn, name, StringComparison.Ordinal) ? fn : null);
 
     private static string? NullIfEmpty(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value;
@@ -858,4 +861,5 @@ public sealed record EntitySummaryDto(
     IReadOnlyList<string> Aliases,
     string? Group = null,
     string? Gender = null,
-    string? Parent = null);
+    string? Parent = null,
+    string? FirstName = null);

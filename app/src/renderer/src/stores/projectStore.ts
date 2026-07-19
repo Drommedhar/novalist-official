@@ -248,6 +248,9 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
           openScenePlainText: null,
           isDirty: false
         })
+        // No scenes left open in the editor — fall back to the dashboard
+        // (unless a scene is still open in the split pane).
+        if (get().splitSceneId === null) useShellStore.getState().setMainView('dashboard')
         return
       }
       const next = remaining[Math.min(idx, remaining.length - 1)]
