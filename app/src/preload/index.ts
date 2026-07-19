@@ -32,6 +32,9 @@ contextBridge.exposeInMainWorld('novalist', {
   copyText(text: string): void {
     ipcRenderer.send('novalist:copy-text', text)
   },
+  readClipboardImage(): Promise<string | null> {
+    return ipcRenderer.invoke('novalist:read-clipboard-image')
+  },
   setProjectRoot(root: string | null): void {
     ipcRenderer.send('novalist:set-project-root', root)
   },

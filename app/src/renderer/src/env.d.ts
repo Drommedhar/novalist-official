@@ -17,6 +17,7 @@ interface Window {
     openExternal(target: string): Promise<boolean>
     revealPath(target: string): Promise<boolean>
     copyText(text: string): void
+    readClipboardImage(): Promise<string | null>
     setProjectRoot(root: string | null): void
     registerExtensionRoots(roots: Record<string, string>): void
   }

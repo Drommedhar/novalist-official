@@ -37,6 +37,16 @@ export function registerDialogHandlers(): void {
     clipboard.writeText(text)
   })
 
+  ipcMain.handle('novalist:read-clipboard-image', async () => {
+    const image = clipboard.readImage()
+    if (image.isEmpty()) return null
+    const { tmpdir } = await import('node:os')
+    const { writeFile } = await import('node:fs/promises')
+    const file = join(tmpdir(), `novalist-clip-${process.hrtime.bigint()}.png`)
+    await writeFile(file, image.toPNG())
+    return file
+  })
+
   ipcMain.handle('novalist:pick-folder', async (event, title: string) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     const result = await dialog.showOpenDialog(win!, {
