@@ -169,3 +169,20 @@
   border-radius: var(--nl-radius-pill);
   padding: 0 var(--nl-space-sm);
 }
+
+.status-readability-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 0 var(--nl-space-tightest);
+  border-radius: var(--nl-radius-sm);
+  color: #fff;
+  font-size: var(--nl-font-tiny);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-dim {
+  color: var(--nl-text-subtle);
+}

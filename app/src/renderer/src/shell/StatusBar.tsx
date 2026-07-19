@@ -291,31 +291,34 @@ export function StatusBar(): React.JSX.Element {
       <span className="status-left">
         {openScene && (
           <span className="status-stats">
-            <span>
+            <span
+              title={
+                stats
+                  ? `${t('statusBar.characters', { value: stats.characterCount })}\n${t(
+                      'statusBar.charactersNoSpaces',
+                      { value: stats.characterCountNoSpaces }
+                    )}`
+                  : undefined
+              }
+            >
               {openScene.wordCount.toLocaleString()} {t('shell.words')}
             </span>
-            {stats && (
-              <>
-                <span>{t('statusBar.characters', { value: stats.characterCount })}</span>
-                <span>
-                  {t('statusBar.charactersNoSpaces', { value: stats.characterCountNoSpaces })}
-                </span>
-                {stats.readingTimeMinutes > 0 && (
-                  <span>{t('statusBar.readingTime', { minutes: stats.readingTimeMinutes })}</span>
-                )}
-                {stats.readabilityScore > 0 && (
-                  <span
-                    className="status-readability"
-                    style={{ color: LEVEL_COLOR[stats.readabilityLevel] }}
-                    title={t(`statusBar.readabilityLevel.${stats.readabilityLevel}`)}
-                  >
-                    {t('statusBar.readability', { score: stats.readabilityScore })} -{' '}
-                    {t(`statusBar.readabilityLevel.${stats.readabilityLevel}`)}
-                  </span>
-                )}
-              </>
+            {stats && stats.readingTimeMinutes > 0 && (
+              <span className="status-dim">
+                {t('statusBar.readingTime', { minutes: stats.readingTimeMinutes })}
+              </span>
             )}
-            <span className="status-scene-title">{openScene.title}</span>
+            {stats && stats.readabilityScore > 0 && (
+              <span
+                className="status-readability-badge"
+                style={{ backgroundColor: LEVEL_COLOR[stats.readabilityLevel] }}
+                title={`${t('statusBar.readability', { score: stats.readabilityScore })} - ${t(
+                  `statusBar.readabilityLevel.${stats.readabilityLevel}`
+                )}`}
+              >
+                {stats.readabilityScore}
+              </span>
+            )}
           </span>
         )}
       </span>
@@ -328,7 +331,12 @@ export function StatusBar(): React.JSX.Element {
             onClick={toggleOverview}
             title={t('statusBar.overviewTooltip')}
           >
-            {`${totalWords.toLocaleString()} ${t('shell.words')} - ${chapters.length} ${t('shell.chapters')} - ${sceneCount} ${t('shell.scenes')}`}
+            {`${totalWords.toLocaleString()} ${t('shell.words')} · ${chapters.length} ${t('shell.chapters')} · ${sceneCount} ${t('shell.scenes')}`}
+            {overview && (
+              <span className="status-dim">
+                {` · ${overview.characterCount} ${t('dashboard.characters')} · ${overview.locationCount} ${t('dashboard.locations')}`}
+              </span>
+            )}
           </button>
         ) : (
           <span className="status-center" />
