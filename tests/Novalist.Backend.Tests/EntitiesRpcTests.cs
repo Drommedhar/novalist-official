@@ -46,7 +46,10 @@ public sealed class EntitiesRpcTests : IDisposable
 
         var mira = list.Single(e => e.Name == "Mira Frost");
         Assert.Equal("Protagonist", mira.Detail);
-        Assert.Equal("Images/mira.png", mira.ImagePath);
+        // ImagePath is resolved to a project-root-relative path (book folder
+        // prepended) so the renderer's project-rooted protocol can load it.
+        Assert.EndsWith("/Images/mira.png", mira.ImagePath);
+        Assert.NotEqual("Images/mira.png", mira.ImagePath);
         Assert.Contains(list, e => e.Name == "Solo" && e.ImagePath == null);
     }
 
@@ -356,8 +359,13 @@ public sealed class EntitiesRpcTests : IDisposable
         var source = Path.Combine(_root, "portrait.png");
         File.WriteAllBytes(source, [137, 80, 78, 71]);
         var imported = await _rpc.AddImageAsync("character", id, source, import: true);
-        var importedPath = imported.GetProperty("images")[0].GetProperty("path").GetString()!;
+        var importedImage = imported.GetProperty("images")[0];
+        var importedPath = importedImage.GetProperty("path").GetString()!;
         Assert.NotEqual(source, importedPath);
+        // Each image also carries a resolved project-root-relative url for display.
+        var importedUrl = importedImage.GetProperty("url").GetString()!;
+        Assert.EndsWith(importedPath, importedUrl);
+        Assert.NotEqual(importedPath, importedUrl);
 
         var addedExisting = await _rpc.AddImageAsync("character", id, importedPath, import: false);
         Assert.Equal(2, addedExisting.GetProperty("images").GetArrayLength());

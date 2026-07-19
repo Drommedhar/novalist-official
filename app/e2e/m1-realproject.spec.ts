@@ -76,6 +76,17 @@ test('real project renders binder and scene content', async () => {
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await expect.poll(() => page.locator('.codex-row').count(), { timeout: 15_000 }).toBeGreaterThan(0)
 
+  // Book-local entity images must actually load (regression: paths were resolved
+  // against the project root, missing the book folder → 404). Assert a real
+  // portrait thumbnail decodes to non-zero pixels.
+  const thumb = page.locator('img.codex-thumb').first()
+  await expect(thumb).toBeVisible({ timeout: 15_000 })
+  await expect
+    .poll(() => thumb.evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth), {
+      timeout: 15_000
+    })
+    .toBeGreaterThan(0)
+
   // Custom entity types: create a type through the manager dialog, then an
   // entity of that type through its new codex tab.
   await page.locator('.codex-tab-manage').click()

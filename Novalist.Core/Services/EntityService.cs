@@ -341,6 +341,18 @@ public class EntityService : IEntityService
         return Path.Combine(BookRoot, relativePath);
     }
 
+    /// <summary>
+    /// Maps a stored image path (book-root-relative, or WorldBible-prefixed for
+    /// world-bible images) to a path relative to the project root, so the
+    /// renderer's project-rooted <c>novalist-project://</c> protocol resolves it.
+    /// The stored path is unchanged on disk; this is a display-only projection.
+    /// </summary>
+    public string ResolveProjectRelativeImage(string relativePath)
+    {
+        var full = GetImageFullPath(relativePath);
+        return Path.GetRelativePath(_projectService.ProjectRoot!, full).Replace('\\', '/');
+    }
+
     // ── Generic helpers ─────────────────────────────────────────────
 
     private async Task<List<T>> LoadEntitiesMergedAsync<T>(string bookFolder, string wbFolder) where T : IEntityData

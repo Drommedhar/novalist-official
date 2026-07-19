@@ -124,7 +124,7 @@ public sealed class EntitiesRpc
         {
             var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
                 ?? throw Unknown(id);
-            return JsonSerializer.SerializeToElement(custom, JsonOptions);
+            return WithResolvedImages(custom);
         }
         object? entity = type switch
         {
@@ -134,7 +134,7 @@ public sealed class EntitiesRpc
             "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
-        return JsonSerializer.SerializeToElement(entity ?? throw Unknown(id), JsonOptions);
+        return WithResolvedImages(entity ?? throw Unknown(id));
     }
 
     [JsonRpcMethod("entities/update")]
@@ -150,7 +150,7 @@ public sealed class EntitiesRpc
                 else custom.Fields[key] = value;
             }
             await _entities.SaveCustomEntityAsync(custom);
-            return JsonSerializer.SerializeToElement(custom, JsonOptions);
+            return WithResolvedImages(custom);
         }
         object entity = type switch
         {
@@ -186,7 +186,7 @@ public sealed class EntitiesRpc
                 await _entities.SaveLoreAsync((LoreData)entity);
                 break;
         }
-        return JsonSerializer.SerializeToElement(entity, JsonOptions);
+        return WithResolvedImages(entity);
     }
 
     [JsonRpcMethod("entities/updateLists")]
@@ -241,7 +241,7 @@ public sealed class EntitiesRpc
                 await _entities.SaveLoreAsync((LoreData)entity);
                 break;
         }
-        return JsonSerializer.SerializeToElement(entity, JsonOptions);
+        return WithResolvedImages(entity);
     }
 
     [JsonRpcMethod("entities/setOverride")]
@@ -272,7 +272,7 @@ public sealed class EntitiesRpc
             }
         }
         await _entities.SaveCharacterAsync(character);
-        return JsonSerializer.SerializeToElement(character, JsonOptions);
+        return WithResolvedImages(character);
     }
 
     [JsonRpcMethod("entities/removeOverride")]
@@ -284,7 +284,7 @@ public sealed class EntitiesRpc
         character.ChapterOverrides.RemoveAll(o =>
             o.Chapter == chapterGuid && (o.Scene ?? string.Empty) == (sceneTitle ?? string.Empty));
         await _entities.SaveCharacterAsync(character);
-        return JsonSerializer.SerializeToElement(character, JsonOptions);
+        return WithResolvedImages(character);
     }
 
     [JsonRpcMethod("entities/customProps")]
@@ -410,7 +410,7 @@ public sealed class EntitiesRpc
                 await _entities.SaveLoreAsync((LoreData)entity);
                 break;
         }
-        return JsonSerializer.SerializeToElement(entity, JsonOptions);
+        return WithResolvedImages(entity);
     }
 
     [JsonRpcMethod("entities/templates")]
@@ -447,7 +447,7 @@ public sealed class EntitiesRpc
                 ApplyCustomEntityTemplate(custom, templateId);
             }
             await _entities.SaveCustomEntityAsync(custom);
-            return JsonSerializer.SerializeToElement(custom, JsonOptions);
+            return WithResolvedImages(custom);
         }
         object entity = type switch
         {
@@ -476,7 +476,7 @@ public sealed class EntitiesRpc
                 await _entities.SaveLoreAsync((LoreData)entity);
                 break;
         }
-        return JsonSerializer.SerializeToElement(entity, JsonOptions);
+        return WithResolvedImages(entity);
     }
 
     [JsonRpcMethod("entities/delete")]
@@ -605,9 +605,33 @@ public sealed class EntitiesRpc
     private static string Compose(string name, string surname) =>
         surname.Length == 0 ? name : $"{name} {surname}";
 
-    private static EntitySummaryDto Summary(
+    private EntitySummaryDto Summary(
         string id, string name, string detail, bool isWorldBible, EntityImage? image) =>
-        new(id, name, detail, isWorldBible, image?.Path);
+        new(id, name, detail, isWorldBible,
+            image == null ? null : _entities.ResolveProjectRelativeImage(image.Path));
+
+    /// <summary>
+    /// Serializes an entity and annotates each image with a <c>url</c> field
+    /// (project-root-relative) for display, leaving <c>path</c> (the stored
+    /// value) intact so add/remove still match on it.
+    /// </summary>
+    private JsonElement WithResolvedImages(object entity)
+    {
+        var node = JsonSerializer.SerializeToNode(entity, JsonOptions);
+        if (node is System.Text.Json.Nodes.JsonObject obj
+            && obj["images"] is System.Text.Json.Nodes.JsonArray images)
+        {
+            foreach (var image in images)
+            {
+                if (image is System.Text.Json.Nodes.JsonObject imageObj
+                    && imageObj["path"]?.GetValue<string>() is { } path)
+                {
+                    imageObj["url"] = _entities.ResolveProjectRelativeImage(path);
+                }
+            }
+        }
+        return JsonSerializer.SerializeToElement(node, JsonOptions);
+    }
 }
 
 public sealed record EntityTemplateDto(string Id, string Name);

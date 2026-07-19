@@ -42,7 +42,7 @@ export function MapsView(): React.JSX.Element {
     if (!win || !readyRef.current || !activeId) return
     const loaded = await rpc.request<{ json: string } | null>('maps/load', [activeId])
     if (loaded) {
-      win.setImageBaseUrl('novalist-project:///')
+      win.setImageBaseUrl('novalist-project://nl/')
       win.setMapData(loaded.json)
     }
   }

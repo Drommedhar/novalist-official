@@ -33,7 +33,11 @@ public sealed class LibraryRpcTests : IDisposable
         File.WriteAllBytes(source, [137, 80, 78, 71]);
         new Novalist.Core.Services.EntityService(_workspace.Projects)
             .ImportImageAsync(source).GetAwaiter().GetResult();
-        Assert.Single(_rpc.ListImages());
+        var listed = _rpc.ListImages();
+        var image = Assert.Single(listed);
+        // Stored path stays book-relative; url is project-root-relative for display.
+        Assert.EndsWith(image.Path, image.Url);
+        Assert.NotEqual(image.Path, image.Url);
     }
 
     [Fact]

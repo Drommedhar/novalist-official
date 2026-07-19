@@ -348,7 +348,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: 'primary' | 'split' }
           }}
         >
           {hoverCard.imagePath && (
-            <img src={`novalist-project:///${encodeURI(hoverCard.imagePath)}`} alt="" />
+            <img src={`novalist-project://nl/${encodeURI(hoverCard.imagePath)}`} alt="" />
           )}
           <div>
             <div className="entity-hover-name">{hoverCard.name}</div>

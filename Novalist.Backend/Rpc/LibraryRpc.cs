@@ -17,7 +17,10 @@ public sealed class LibraryRpc
     }
 
     [JsonRpcMethod("gallery/list")]
-    public string[] ListImages() => _entities.GetProjectImages().ToArray();
+    public GalleryImageDto[] ListImages() =>
+        _entities.GetProjectImages()
+            .Select(path => new GalleryImageDto(path, _entities.ResolveProjectRelativeImage(path)))
+            .ToArray();
 
     [JsonRpcMethod("research/list")]
     public ResearchItemDto[] ListResearch() =>
@@ -52,3 +55,5 @@ public sealed class LibraryRpc
 
 public sealed record ResearchItemDto(
     string Id, string Title, string Type, string Content, IReadOnlyList<string> Tags);
+
+public sealed record GalleryImageDto(string Path, string Url);

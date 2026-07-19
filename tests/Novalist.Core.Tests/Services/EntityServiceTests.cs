@@ -49,6 +49,18 @@ public class EntityServiceTests : IDisposable
     // ── load / save / delete (generic helpers via Character) ──
 
     [Fact]
+    public void ResolveProjectRelativeImage_BookAndWorldBible()
+    {
+        // A book image path (book-root-relative) resolves under the book folder.
+        Assert.Equal("Books/Book1/Images/x.png".Replace('/', Path.DirectorySeparatorChar).Replace('\\', '/'),
+            _sut.ResolveProjectRelativeImage("Images/x.png"));
+
+        // A world-bible path (prefixed with the WB folder) resolves against the project root.
+        var wbPath = $"{_meta.WorldBibleFolder}/Images/y.png";
+        Assert.Equal(wbPath, _sut.ResolveProjectRelativeImage(wbPath));
+    }
+
+    [Fact]
     public async Task LoadCharacters_MergesBookAndWorldBible_DedupesAndSkipsMalformed()
     {
         WriteBookChar("c1", "Alice");

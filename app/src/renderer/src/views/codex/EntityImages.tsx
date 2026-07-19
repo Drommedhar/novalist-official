@@ -7,6 +7,8 @@ import { useCodexStore } from '../../stores/codexStore'
 interface EntityImage {
   name: string
   path: string
+  /** Project-root-relative display URL resolved by the backend. */
+  url: string
 }
 
 /** Image strip for the selected entity: gallery pick, import, remove. */
@@ -16,7 +18,7 @@ export function EntityImages(): React.JSX.Element | null {
   const selectedId = useCodexStore((s) => s.selectedId)
   const record = useCodexStore((s) => s.selectedRecord)
   const [galleryOpen, setGalleryOpen] = useState(false)
-  const [galleryImages, setGalleryImages] = useState<string[]>([])
+  const [galleryImages, setGalleryImages] = useState<{ path: string; url: string }[]>([])
 
   if (!record || !selectedId) return null
   const images = Array.isArray(record.images) ? (record.images as EntityImage[]) : []
@@ -27,7 +29,7 @@ export function EntityImages(): React.JSX.Element | null {
   }
 
   const addFromGallery = async (): Promise<void> => {
-    setGalleryImages(await rpc.request<string[]>('gallery/list'))
+    setGalleryImages(await rpc.request<{ path: string; url: string }[]>('gallery/list'))
     setGalleryOpen(true)
   }
 
@@ -50,7 +52,7 @@ export function EntityImages(): React.JSX.Element | null {
       <div className="entity-images-strip">
         {images.map((image) => (
           <figure key={image.path} className="entity-image">
-            <img src={`novalist-project:///${encodeURI(image.path)}`} alt={image.name} />
+            <img src={`novalist-project://nl/${encodeURI(image.url)}`} alt={image.name} />
             <button
               aria-label={`${t('explorer.contextDelete')} ${image.name}`}
               onClick={() =>
@@ -84,9 +86,9 @@ export function EntityImages(): React.JSX.Element | null {
           <div className="dialog-card entity-gallery-card" role="dialog">
             <div className="dialog-title">{t('entityEditor.fromGallery')}</div>
             <div className="gallery-grid entity-gallery-grid">
-              {galleryImages.map((path) => (
+              {galleryImages.map((img) => (
                 <button
-                  key={path}
+                  key={img.path}
                   className="entity-gallery-pick"
                   onClick={() => {
                     setGalleryOpen(false)
@@ -94,13 +96,13 @@ export function EntityImages(): React.JSX.Element | null {
                       .request<Record<string, unknown>>('entities/addImage', [
                         entityType,
                         selectedId,
-                        path,
+                        img.path,
                         false
                       ])
                       .then(applyResult)
                   }}
                 >
-                  <img src={`novalist-project:///${encodeURI(path)}`} alt={path} loading="lazy" />
+                  <img src={`novalist-project://nl/${encodeURI(img.url)}`} alt={img.path} loading="lazy" />
                 </button>
               ))}
               {galleryImages.length === 0 && (

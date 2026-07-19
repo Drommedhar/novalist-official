@@ -6,16 +6,16 @@ import { useShellStore } from '../../stores/shellStore'
 export function GalleryView(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
-  const [images, setImages] = useState<string[]>([])
+  const [images, setImages] = useState<{ path: string; url: string }[]>([])
   const [search, setSearch] = useState('')
 
   useEffect(() => {
     if (mainView !== 'gallery') return
-    void rpc.request<string[]>('gallery/list').then(setImages)
+    void rpc.request<{ path: string; url: string }[]>('gallery/list').then(setImages)
   }, [mainView])
 
   const filtered = images.filter(
-    (path) => search.length === 0 || path.toLowerCase().includes(search.toLowerCase())
+    (img) => search.length === 0 || img.path.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
@@ -34,10 +34,10 @@ export function GalleryView(): React.JSX.Element {
         <p className="codex-empty">{t('imageGallery.noImages')}</p>
       ) : (
         <div className="gallery-grid">
-          {filtered.map((path) => (
-            <figure key={path} className="gallery-item">
-              <img src={`novalist-project:///${encodeURI(path)}`} alt={path} loading="lazy" />
-              <figcaption title={path}>{path.split('/').pop()}</figcaption>
+          {filtered.map((img) => (
+            <figure key={img.path} className="gallery-item">
+              <img src={`novalist-project://nl/${encodeURI(img.url)}`} alt={img.path} loading="lazy" />
+              <figcaption title={img.path}>{img.path.split('/').pop()}</figcaption>
             </figure>
           ))}
         </div>

@@ -152,7 +152,7 @@ export function CodexView(): React.JSX.Element {
               {entity.imagePath ? (
                 <img
                   className="codex-thumb"
-                  src={`novalist-project:///${encodeURI(entity.imagePath)}`}
+                  src={`novalist-project://nl/${encodeURI(entity.imagePath)}`}
                   alt=""
                 />
               ) : (
