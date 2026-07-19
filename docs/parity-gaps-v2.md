@@ -32,7 +32,14 @@ build plan to reach genuine parity.
 
 ## Phased plan (priority order)
 
-### Phase 1 — Codex depth (user's #1 & #2 complaints) [biggest visible win]
+### Phase 1 — Codex depth (user's #1 & #2 complaints) [DONE — commits f21fada, 15fccbc, a578cf8]
+Shipped: persistent entity nav (search, counts, character Role/Group grouping,
+location parent/child tree, gender badge, right-click move-to-WB); typed grouped
+detail pane (built-in sections + custom-entity typed fields, no leaked internals,
+lore category dropdown, parent-location autocomplete); relationship editor with
+role/target autocomplete + inverse auto-sync + learned pairs; move-to-WB RPCs.
+Deferred (minor): image name edit / swap / clipboard+URL sources.
+
 1. **Persistent entity sidebar** — a left panel (like the binder) listing
    characters/locations/items/lore, always available, not a full-screen view.
    - Character **grouping** (Role / Family Group toggle, section headers).
