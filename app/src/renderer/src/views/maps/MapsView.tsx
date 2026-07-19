@@ -1,57 +1,371 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus } from 'lucide-react'
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Maximize,
+  Crosshair,
+  Box,
+  Scissors,
+  Spline as SplineIcon,
+  Eye,
+  X
+} from 'lucide-react'
 import { rpc } from '../../rpc/client'
-import { useShellStore } from '../../stores/shellStore'
 import { InputDialog } from '../../shell/InputDialog'
+import { ConfirmDialog } from '../../shell/ConfirmDialog'
+import { ToolRail } from './ToolRail'
+import { LayerPanel, firstLeafId } from './LayerPanel'
+import {
+  buildMapStrings,
+  deleteNode as deleteNodeInTree,
+  findNode,
+  moveNode,
+  newId,
+  type DropPosition,
+  type ElementKind,
+  type MapDataT,
+  type MapProfileT,
+  type MapWindow,
+  type ToolMode
+} from './mapModel'
+import './map.css'
 
 interface MapRefDto {
   id: string
   name: string
 }
 
-interface MapWindow extends Window {
-  setImageBaseUrl(url: string): void
-  setMapData(json: string): void
-  getMapData(): string
+interface EntityOption {
+  id: string
+  type: string
+  name: string
+}
+
+interface PeekData {
+  name: string
+  detail: string
+  imageUrl: string | null
+}
+
+interface Loading3D {
+  progress: number
+  status: string
 }
 
 const MAP_AUTOSAVE_MS = 1200
+const IMAGE_BASE_URL = 'novalist-project://nl/'
+
+async function loadEntityOptions(): Promise<EntityOption[]> {
+  const baseTypes = ['character', 'location', 'item', 'lore']
+  let customTypes: string[] = []
+  try {
+    const custom = await rpc.request<{ typeKey: string }[]>('entities/customTypes')
+    customTypes = custom.map((c) => c.typeKey)
+  } catch {
+    customTypes = []
+  }
+  const results = await Promise.all(
+    [...baseTypes, ...customTypes].map(async (type) => {
+      try {
+        const list = await rpc.request<{ id: string; name: string }[]>('entities/list', [type])
+        return list.map((e) => ({ id: e.id, type, name: e.name }))
+      } catch {
+        return []
+      }
+    })
+  )
+  return results.flat()
+}
 
 export function MapsView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const [maps, setMaps] = useState<MapRefDto[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [mapModel, setMapModel] = useState<MapDataT | null>(null)
+  const [activeTool, setActiveTool] = useState<ToolMode>('select')
+  const [editMode, setEditMode] = useState(true)
+  const [is3D, setIs3D] = useState(false)
+  const [loading3D, setLoading3D] = useState<Loading3D | null>(null)
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [isolated, setIsolated] = useState<{ kind: string; id: string } | null>(null)
+  const [selection, setSelection] = useState<{ kind: string } | null>(null)
+  const [peek, setPeek] = useState<PeekData | null>(null)
+  const [buildingScale, setBuildingScale] = useState(1)
   const [creating, setCreating] = useState(false)
+  const [renaming, setRenaming] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [imagePicker, setImagePicker] = useState<{ path: string; url: string }[] | null>(null)
+
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const readyRef = useRef(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const entityOptionsRef = useRef<EntityOption[]>([])
+  const mapModelRef = useRef<MapDataT | null>(null)
+  mapModelRef.current = mapModel
+  const apiRef = useRef<{ onMapMessage(msg: MapMessage): void }>({
+    onMapMessage: () => {}
+  })
 
-  useEffect(() => {
-    if (mainView !== 'maps') return
-    void rpc.request<MapRefDto[]>('maps/list').then((list) => {
-      setMaps(list)
-      if (list.length > 0 && !activeId) setActiveId(list[0].id)
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mainView])
+  const getWin = useCallback((): MapWindow | null => {
+    return (iframeRef.current?.contentWindow as MapWindow | null) ?? null
+  }, [])
 
-  const pushMap = async (): Promise<void> => {
-    const win = iframeRef.current?.contentWindow as MapWindow | null
+  const persist = useCallback((json: string): void => {
+    void rpc.request('maps/save', [json])
+  }, [])
+
+  /** Read authoritative state from the canvas, mutate, push back + persist. */
+  const commitMap = useCallback(
+    (mutate: (data: MapDataT) => void, debounceSaveMs?: number): void => {
+      const win = getWin()
+      if (!win || typeof win.getMapData !== 'function') return
+      let data: MapDataT
+      try {
+        data = JSON.parse(win.getMapData()) as MapDataT
+      } catch {
+        return
+      }
+      mutate(data)
+      const json = JSON.stringify(data)
+      win.setMapData(json)
+      setMapModel(data)
+      if (debounceSaveMs) {
+        if (saveTimer.current) clearTimeout(saveTimer.current)
+        saveTimer.current = setTimeout(() => persist(json), debounceSaveMs)
+      } else {
+        persist(json)
+      }
+    },
+    [getWin, persist]
+  )
+
+  const refreshModelFromView = useCallback((): void => {
+    const win = getWin()
+    if (!win || typeof win.getMapData !== 'function') return
+    try {
+      setMapModel(JSON.parse(win.getMapData()) as MapDataT)
+    } catch {
+      /* ignore malformed */
+    }
+  }, [getWin])
+
+  const pushStringsAndOptions = useCallback((): void => {
+    const win = getWin()
+    if (!win) return
+    win.setContextMenuLabels(t('map.imageMenuMove'), t('map.imageMenuClip'), t('map.imageMenuDelete'))
+    win.setMapStrings(buildMapStrings(t))
+    win.setEntityOptions(JSON.stringify(entityOptionsRef.current))
+  }, [getWin, t])
+
+  const pushMap = useCallback(async (): Promise<void> => {
+    const win = getWin()
     if (!win || !readyRef.current || !activeId) return
     const loaded = await rpc.request<{ json: string } | null>('maps/load', [activeId])
-    if (loaded) {
-      win.setImageBaseUrl('novalist-project://nl/')
-      win.setMapData(loaded.json)
+    if (!loaded) return
+    win.setImageBaseUrl(IMAGE_BASE_URL)
+    win.setMapData(loaded.json)
+    win.setMode(editMode ? 'edit' : 'view')
+    let data: MapDataT | null = null
+    try {
+      data = JSON.parse(loaded.json) as MapDataT
+    } catch {
+      data = null
     }
-  }
+    setMapModel(data)
+    if (data) {
+      const leaf = firstLeafId(data)
+      if (leaf) {
+        win.setActiveLayer(leaf)
+        setSelectedNodeId((prev) => prev ?? leaf)
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getWin, activeId, editMode, t])
 
+  // ── Map list ────────────────────────────────────────────────────────────
   useEffect(() => {
+    void rpc.request<MapRefDto[]>('maps/list').then((list) => {
+      setMaps(list)
+      setActiveId((prev) => prev ?? (list.length > 0 ? list[0].id : null))
+    })
+    void loadEntityOptions().then((opts) => {
+      entityOptionsRef.current = opts
+      const win = getWin()
+      if (win && readyRef.current) win.setEntityOptions(JSON.stringify(opts))
+    })
+  }, [getWin])
+
+  // Reload the active map whenever the selection changes.
+  useEffect(() => {
+    setSelectedNodeId(null)
+    setSelection(null)
+    setIsolated(null)
     void pushMap()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId])
 
+  // Edit / view mode toggle.
+  useEffect(() => {
+    const win = getWin()
+    if (win && readyRef.current) win.setMode(editMode ? 'edit' : 'view')
+  }, [editMode, getWin])
+
+  // ── Focus peek fetch ──────────────────────────────────────────────────────
+  const showPinPeek = useCallback(async (entityType: string, entityId: string): Promise<void> => {
+    try {
+      const list = await rpc.request<
+        { id: string; name: string; detail: string; imagePath: string | null }[]
+      >('entities/list', [entityType])
+      const found = list.find((e) => e.id === entityId)
+      if (!found) return
+      setPeek({
+        name: found.name,
+        detail: found.detail ?? '',
+        imageUrl: found.imagePath ? IMAGE_BASE_URL + found.imagePath : null
+      })
+    } catch {
+      /* entity type unknown / project closed */
+    }
+  }, [])
+
+  // ── Inbound message routing ───────────────────────────────────────────────
+  const start3DLoading = useCallback((status: string, progress: number): void => {
+    setLoading3D({ status, progress })
+  }, [])
+
+  const selectImageOwner = useCallback((imageId: string): void => {
+    const data = mapModelRef.current
+    if (!data) return
+    let ownerId: string | null = null
+    const walk = (nodes: MapDataT['layers']): void => {
+      for (const n of nodes) {
+        if (!ownerId && (n.images ?? []).some((i) => i.id === imageId)) ownerId = n.id
+        if (n.children?.length) walk(n.children)
+      }
+    }
+    walk(data.layers)
+    if (ownerId) {
+      setSelectedNodeId(ownerId)
+      getWin()?.setActiveLayer(ownerId)
+    }
+  }, [getWin])
+
+  const handleMessage = useCallback(
+    (msg: MapMessage): void => {
+      switch (msg.type) {
+        case 'ready':
+          readyRef.current = true
+          pushStringsAndOptions()
+          void pushMap()
+          break
+        case 'mapChanged':
+          if (saveTimer.current) clearTimeout(saveTimer.current)
+          saveTimer.current = setTimeout(() => {
+            const win = getWin()
+            if (!win || typeof win.getMapData !== 'function') return
+            persist(win.getMapData())
+          }, MAP_AUTOSAVE_MS)
+          refreshModelFromView()
+          break
+        case 'viewChanged':
+          if (saveTimer.current) clearTimeout(saveTimer.current)
+          saveTimer.current = setTimeout(() => {
+            const win = getWin()
+            if (win && typeof win.getMapData === 'function') persist(win.getMapData())
+          }, MAP_AUTOSAVE_MS)
+          break
+        case 'placePinAt': {
+          const win = getWin()
+          if (win) win.addPinAtPoint(msg.x ?? 0, msg.y ?? 0, '', '', '', '')
+          setActiveTool('select')
+          break
+        }
+        case 'imageSelected':
+          setSelection({ kind: 'image' })
+          if (msg.imageId) selectImageOwner(msg.imageId)
+          break
+        case 'pinSelected':
+          setSelection({ kind: 'pin' })
+          break
+        case 'labelSelected':
+          setSelection({ kind: 'label' })
+          break
+        case 'splineSelected':
+          setSelection({ kind: 'spline' })
+          break
+        case 'shapeSelected':
+          setSelection({ kind: 'shape' })
+          break
+        case 'buildingSelected':
+          setSelection({ kind: 'building' })
+          break
+        case 'borderSelected':
+          setSelection({ kind: 'border' })
+          break
+        case 'pinClick':
+          if (msg.entityId && msg.entityType) void showPinPeek(msg.entityType, msg.entityId)
+          break
+        case 'selectionCleared':
+        case 'pinDeselected':
+        case 'labelDeselected':
+        case 'splineDeselected':
+        case 'shapeDeselected':
+        case 'buildingDeselected':
+        case 'borderDeselected':
+          setSelection(null)
+          break
+        case 'cancelPinPlace':
+        case 'cancelLabelPlace':
+        case 'cancelSplineMode':
+        case 'cancelTerrainMode':
+        case 'cancelBuildingMode':
+        case 'cancelBorderMode':
+          setActiveTool('select')
+          break
+        case 'map3dLoading':
+          start3DLoading(t('map.loading3DInitialising'), 0.05)
+          break
+        case 'map3dStep':
+          switch (msg.step) {
+            case 'before-build':
+              start3DLoading(t('map.loading3DAssets'), 0.1)
+              break
+            case 'after-tree-assets':
+              start3DLoading(t('map.loading3DScene'), 0.55)
+              break
+            case 'after-build':
+              start3DLoading(t('map.loading3DCamera'), 0.85)
+              break
+            case 'after-frame':
+              start3DLoading(t('map.loading3DAlmost'), 0.95)
+              break
+          }
+          break
+        case 'map3dEntered':
+          setIs3D(true)
+          setLoading3D(null)
+          break
+        case 'map3dExited':
+          setIs3D(false)
+          setLoading3D(null)
+          break
+        case 'map3dError':
+          setIs3D(false)
+          setLoading3D(null)
+          break
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [getWin, persist, pushMap, pushStringsAndOptions, refreshModelFromView, showPinPeek, start3DLoading, t]
+  )
+
+  apiRef.current.onMapMessage = handleMessage
+
+  // Single, stable message listener; delegates through apiRef to avoid
+  // re-subscribing (which would reset readyRef / autosave timers).
   useEffect(() => {
     const iframe = iframeRef.current
     if (!iframe) return
@@ -59,23 +373,13 @@ export function MapsView(): React.JSX.Element {
       if (event.source !== iframe.contentWindow) return
       const raw = (event.data as { novalistMap?: string })?.novalistMap
       if (typeof raw !== 'string') return
-      let message: { type: string }
+      let message: MapMessage
       try {
-        message = JSON.parse(raw)
+        message = JSON.parse(raw) as MapMessage
       } catch {
         return
       }
-      if (message.type === 'ready') {
-        readyRef.current = true
-        void pushMap()
-      } else if (message.type === 'mapChanged') {
-        if (saveTimer.current) clearTimeout(saveTimer.current)
-        saveTimer.current = setTimeout(() => {
-          const win = iframe.contentWindow as MapWindow | null
-          if (!win || typeof win.getMapData !== 'function') return
-          void rpc.request('maps/save', [win.getMapData()])
-        }, MAP_AUTOSAVE_MS)
-      }
+      apiRef.current.onMapMessage(message)
     }
     window.addEventListener('message', onMessage)
     return () => {
@@ -83,53 +387,567 @@ export function MapsView(): React.JSX.Element {
       readyRef.current = false
       if (saveTimer.current) clearTimeout(saveTimer.current)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // ── Tool-rail handlers ────────────────────────────────────────────────────
+  const selectTool = useCallback(
+    (tool: ToolMode): void => {
+      const win = getWin()
+      if (!win) return
+      setActiveTool(tool)
+      win.setToolMode(tool)
+    },
+    [getWin]
+  )
+
+  const onSplinePreset = useCallback(
+    (kind: string, preset: string): void => {
+      const win = getWin()
+      if (!win) return
+      win.setSplineDraftType(kind, preset)
+      win.setToolMode('spline')
+      setActiveTool('spline')
+    },
+    [getWin]
+  )
+
+  const onTerrain = useCallback(
+    (type: string): void => {
+      const win = getWin()
+      if (!win) return
+      win.setTerrainDraftType(type)
+      win.setToolMode('terrain')
+      setActiveTool('terrain')
+    },
+    [getWin]
+  )
+
+  const onBuilding = useCallback(
+    (type: string): void => {
+      const win = getWin()
+      if (!win) return
+      win.setBuildingDraftType(type)
+      win.setToolMode('building')
+      setActiveTool('building')
+    },
+    [getWin]
+  )
+
+  const onBuildingScale = useCallback(
+    (scale: number): void => {
+      setBuildingScale(scale)
+      getWin()?.setBuildingScale(scale)
+    },
+    [getWin]
+  )
+
+  const onAddImage = useCallback((): void => {
+    void rpc
+      .request<{ path: string; url: string }[]>('gallery/list')
+      .then((imgs) => setImagePicker(imgs))
+  }, [])
+
+  const placeImage = useCallback(
+    (path: string, url: string): void => {
+      const win = getWin()
+      setImagePicker(null)
+      if (!win) return
+      const probe = new Image()
+      probe.onload = () => win.addImageToMap(path, probe.naturalWidth, probe.naturalHeight)
+      probe.onerror = () => win.addImageToMap(path, 0, 0)
+      probe.src = url
+    },
+    [getWin]
+  )
+
+  // ── Layer-panel handlers ──────────────────────────────────────────────────
+  const onSelectNode = useCallback(
+    (id: string): void => {
+      setSelectedNodeId(id)
+      getWin()?.setActiveLayer(id)
+    },
+    [getWin]
+  )
+
+  const onToggleExpand = useCallback((id: string): void => {
+    setExpanded((prev) => {
+      const model = mapModelRef.current
+      const node = model ? findNode(model, id) : null
+      const current = prev[id] ?? node?.expanded ?? true
+      return { ...prev, [id]: !current }
+    })
+  }, [])
+
+  const onAddLayer = useCallback((): void => {
+    let newNodeId = ''
+    commitMap((data) => {
+      newNodeId = newId('layer')
+      data.layers.push({
+        id: newNodeId,
+        name: `Layer ${data.layers.length + 1}`,
+        opacity: 1,
+        locked: false,
+        hidden: false,
+        expanded: true,
+        images: [],
+        children: []
+      })
+    })
+    if (newNodeId) onSelectNode(newNodeId)
+  }, [commitMap, onSelectNode])
+
+  const onAddChild = useCallback(
+    (parentId: string): void => {
+      let newNodeId = ''
+      commitMap((data) => {
+        const parent = findNode(data, parentId)
+        if (!parent) return
+        parent.children = parent.children ?? []
+        newNodeId = newId('layer')
+        parent.children.push({
+          id: newNodeId,
+          name: `Layer ${parent.children.length + 1}`,
+          opacity: 1,
+          locked: false,
+          hidden: false,
+          expanded: true,
+          images: [],
+          children: []
+        })
+        parent.expanded = true
+      })
+      setExpanded((prev) => ({ ...prev, [parentId]: true }))
+      if (newNodeId) onSelectNode(newNodeId)
+    },
+    [commitMap, onSelectNode]
+  )
+
+  const onDeleteNode = useCallback(
+    (id: string): void => {
+      commitMap((data) => {
+        deleteNodeInTree(data, id)
+      })
+      setSelectedNodeId((prev) => (prev === id ? null : prev))
+    },
+    [commitMap]
+  )
+
+  const onRenameNode = useCallback(
+    (id: string, name: string): void => {
+      commitMap((data) => {
+        const node = findNode(data, id)
+        if (node) node.name = name
+      })
+    },
+    [commitMap]
+  )
+
+  const onToggleHidden = useCallback(
+    (id: string): void => {
+      commitMap((data) => {
+        const node = findNode(data, id)
+        if (node) node.hidden = !node.hidden
+      })
+    },
+    [commitMap]
+  )
+
+  const onToggleLocked = useCallback(
+    (id: string): void => {
+      commitMap((data) => {
+        const node = findNode(data, id)
+        if (node) node.locked = !node.locked
+      })
+    },
+    [commitMap]
+  )
+
+  const onMoveNode = useCallback(
+    (dragId: string, targetId: string, pos: DropPosition): void => {
+      commitMap((data) => {
+        moveNode(data, dragId, targetId, pos)
+      })
+    },
+    [commitMap]
+  )
+
+  const onMoveToRoot = useCallback(
+    (dragId: string): void => {
+      commitMap((data) => {
+        const node = findNode(data, dragId)
+        if (!node) return
+        deleteNodeInTree(data, dragId)
+        data.layers.push(node)
+      })
+    },
+    [commitMap]
+  )
+
+  const onSetOpacity = useCallback(
+    (id: string, opacity: number): void => {
+      const clamped = Math.round(Math.max(0, Math.min(1, opacity)) * 100) / 100
+      commitMap((data) => {
+        const node = findNode(data, id)
+        if (node) node.opacity = clamped
+      }, 400)
+    },
+    [commitMap]
+  )
+
+  const onSetNodeZoom = useCallback(
+    (id: string, min: number, max: number): void => {
+      commitMap((data) => {
+        const node = findNode(data, id)
+        if (!node) return
+        node.minZoom = min > 0 ? min : null
+        node.maxZoom = max > 0 ? max : null
+      }, 400)
+    },
+    [commitMap]
+  )
+
+  const onSetFloorMode = useCallback(
+    (id: string, on: boolean): void => {
+      commitMap((data) => {
+        const node = findNode(data, id)
+        if (!node) return
+        node.isConnectedSet = on
+        if (on && !node.defaultMemberLayerId && node.children?.length)
+          node.defaultMemberLayerId = node.children[0].id
+      })
+    },
+    [commitMap]
+  )
+
+  const onSetActiveFloor = useCallback(
+    (id: string, memberId: string): void => {
+      commitMap((data) => {
+        const node = findNode(data, id)
+        if (node) node.defaultMemberLayerId = memberId || null
+      })
+    },
+    [commitMap]
+  )
+
+  const onSetElementZoom = useCallback(
+    (kind: ElementKind, id: string, min: number, max: number): void => {
+      const win = getWin()
+      if (!win) return
+      // Images use updateImageZoomRange; every other kind goes through
+      // setElementZoomRange (map.html's elementById() has no image case). Both
+      // emit mapChanged, which refreshes the panel model and persists.
+      if (kind === 'image') win.updateImageZoomRange(id, min, max)
+      else win.setElementZoomRange(kind, id, min, max)
+    },
+    [getWin]
+  )
+
+  const onToggleIsolate = useCallback(
+    (kind: ElementKind, id: string): void => {
+      const win = getWin()
+      if (!win) return
+      const nowOn = !(isolated && isolated.kind === kind && isolated.id === id)
+      if (kind === 'image') win.setIsolatedImage(nowOn ? id : '')
+      else win.setIsolatedElement(nowOn ? kind : '', nowOn ? id : '')
+      setIsolated(nowOn ? { kind, id } : null)
+    },
+    [getWin, isolated]
+  )
+
+  // ── Toolbar actions ───────────────────────────────────────────────────────
+  const toggle3D = useCallback((): void => {
+    const win = getWin()
+    if (!win?.Map3D) return
+    if (is3D) {
+      win.Map3D.exit()
+    } else {
+      setLoading3D({ status: t('map.loading3DInitialising'), progress: 0.02 })
+      win.Map3D.enter()
+    }
+  }, [getWin, is3D, t])
+
+  const onCreateMap = useCallback((name: string): void => {
+    setCreating(false)
+    void rpc.request<{ id: string }>('maps/create', [name]).then(async (created) => {
+      const list = await rpc.request<MapRefDto[]>('maps/list')
+      setMaps(list)
+      setActiveId(created.id)
+    })
+  }, [])
+
+  const onRenameMap = useCallback(
+    (name: string): void => {
+      setRenaming(false)
+      if (!activeId) return
+      void rpc.request<MapRefDto[]>('maps/rename', [activeId, name]).then(setMaps)
+    },
+    [activeId]
+  )
+
+  const onDeleteMap = useCallback((): void => {
+    setConfirmingDelete(false)
+    if (!activeId) return
+    void rpc.request<MapRefDto[]>('maps/delete', [activeId]).then((list) => {
+      setMaps(list)
+      setActiveId(list.length > 0 ? list[0].id : null)
+    })
+  }, [activeId])
+
+  const activeMap = maps.find((m) => m.id === activeId) ?? null
+  const hasMap = !!activeId
 
   return (
     <div className="mapsview">
-      <div className="timeline-toolbar">
-        <button className="toolbar-button toolbar-action" onClick={() => setCreating(true)}>
+      <div className="map-toolbar">
+        <button className="map-tb-btn" onClick={() => setCreating(true)}>
           <Plus size={14} strokeWidth={2} />
           {t('map.menuNewMap')}
         </button>
-        {maps.map((map) => (
-          <button
-            key={map.id}
-            className={`dashboard-range${activeId === map.id ? ' active' : ''}`}
-            onClick={() => setActiveId(map.id)}
-          >
-            {map.name}
-          </button>
-        ))}
+        <div className="map-tabs">
+          {maps.map((map) => (
+            <button
+              key={map.id}
+              className={`map-tab${activeId === map.id ? ' active' : ''}`}
+              onClick={() => setActiveId(map.id)}
+            >
+              {map.name}
+            </button>
+          ))}
+        </div>
+        <div className="map-tb-spacer" />
+        <button
+          className={`map-tb-icon${editMode ? ' active' : ''}`}
+          title={t('map.modeToggle')}
+          disabled={!hasMap || is3D}
+          onClick={() => setEditMode((v) => !v)}
+        >
+          {editMode ? <Pencil size={15} /> : <Eye size={15} />}
+        </button>
+        <button
+          className="map-tb-icon"
+          title={t('map.toolZoomFitTooltip')}
+          disabled={!hasMap}
+          onClick={() => getWin()?.zoomToFit()}
+        >
+          <Maximize size={15} />
+        </button>
+        <button
+          className="map-tb-icon"
+          title={t('map.toolResetViewTooltip')}
+          disabled={!hasMap}
+          onClick={() => getWin()?.resetView()}
+        >
+          <Crosshair size={15} />
+        </button>
+        <button
+          className={`map-tb-icon${is3D ? ' active' : ''}`}
+          title={t('map.view3d')}
+          disabled={!hasMap}
+          onClick={toggle3D}
+        >
+          <Box size={15} />
+        </button>
+        <span className="map-tb-sep" />
+        <button
+          className="map-tb-icon"
+          title={t('map.toolBorderTooltip')}
+          disabled={!hasMap || is3D}
+          onClick={() => selectTool('border')}
+        >
+          <SplineIcon size={15} />
+        </button>
+        <button
+          className="map-tb-icon"
+          title={t('map.editClipTooltip')}
+          disabled={selection?.kind !== 'image' || is3D}
+          onClick={() => getWin()?.toggleClipEditOnSelected()}
+        >
+          <Scissors size={15} />
+        </button>
+        <button
+          className="map-tb-icon"
+          title={t('map.splineEditHint')}
+          disabled={selection?.kind !== 'spline' || is3D}
+          onClick={() => getWin()?.toggleSplineEditOnSelected()}
+        >
+          <Pencil size={15} />
+        </button>
+        <button
+          className="map-tb-icon danger"
+          title={t('map.toolDeleteTooltip')}
+          disabled={!selection || is3D}
+          onClick={() => getWin()?.deleteSelected()}
+        >
+          <Trash2 size={15} />
+        </button>
+        <span className="map-tb-sep" />
+        <button
+          className="map-tb-icon"
+          title={t('map.menuRenameMap')}
+          disabled={!hasMap}
+          onClick={() => setRenaming(true)}
+        >
+          <Pencil size={15} />
+        </button>
+        <button
+          className="map-tb-icon danger"
+          title={t('map.menuDeleteMap')}
+          disabled={!hasMap}
+          onClick={() => setConfirmingDelete(true)}
+        >
+          <Trash2 size={15} />
+        </button>
       </div>
+
       {maps.length === 0 ? (
         <p className="codex-empty">{t('map.emptyState')}</p>
       ) : (
-        <iframe
-          ref={iframeRef}
-          className="editor-frame"
-          src="./map/map.html"
-          title="map"
-          sandbox="allow-scripts allow-same-origin"
-        />
+        <div className="map-body">
+          <ToolRail
+            activeTool={activeTool}
+            disabled={!hasMap || !editMode || is3D}
+            buildingScale={buildingScale}
+            customProfiles={(mapModel?.customProfiles ?? []) as MapProfileT[]}
+            onSelectTool={selectTool}
+            onAddImage={onAddImage}
+            onSplinePreset={onSplinePreset}
+            onTerrain={onTerrain}
+            onBuilding={onBuilding}
+            onBuildingScale={onBuildingScale}
+          />
+          <div className="map-stage">
+            <iframe
+              ref={iframeRef}
+              className="editor-frame"
+              src="./map/map.html"
+              title="map"
+              sandbox="allow-scripts allow-same-origin"
+            />
+            {loading3D && (
+              <div className="map-loading-overlay">
+                <div className="map-loading-card">
+                  <div className="map-loading-title">{t('map.loading3DTitle')}</div>
+                  <div className="map-loading-status">{loading3D.status}</div>
+                  <div className="map-loading-track">
+                    <div
+                      className="map-loading-bar"
+                      style={{ width: `${Math.round(loading3D.progress * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            {peek && (
+              <div className="map-peek" role="dialog">
+                <button className="map-peek-close" onClick={() => setPeek(null)} title={t('dialog.cancel')}>
+                  <X size={13} />
+                </button>
+                {peek.imageUrl && (
+                  <img
+                    className="map-peek-image"
+                    src={peek.imageUrl}
+                    alt=""
+                    onError={(e) => {
+                      ;(e.currentTarget as HTMLImageElement).style.display = 'none'
+                    }}
+                  />
+                )}
+                <div className="map-peek-name">{peek.name}</div>
+                {peek.detail && <div className="map-peek-detail">{peek.detail}</div>}
+              </div>
+            )}
+          </div>
+          <LayerPanel
+            data={mapModel}
+            selectedNodeId={selectedNodeId}
+            expanded={expanded}
+            isolated={isolated}
+            onSelectNode={onSelectNode}
+            onToggleExpand={onToggleExpand}
+            onAddLayer={onAddLayer}
+            onAddChild={onAddChild}
+            onDeleteNode={onDeleteNode}
+            onRename={onRenameNode}
+            onToggleHidden={onToggleHidden}
+            onToggleLocked={onToggleLocked}
+            onMoveNode={onMoveNode}
+            onMoveToRoot={onMoveToRoot}
+            onSetOpacity={onSetOpacity}
+            onSetNodeZoom={onSetNodeZoom}
+            onSetFloorMode={onSetFloorMode}
+            onSetActiveFloor={onSetActiveFloor}
+            onSetElementZoom={onSetElementZoom}
+            onToggleIsolate={onToggleIsolate}
+          />
+        </div>
       )}
+
       {creating && (
         <InputDialog
-          title={t('map.menuNewMap')}
+          title={t('map.createTitle')}
+          placeholder={t('map.createPrompt')}
           onCancel={() => setCreating(false)}
-          onSubmit={(name) => {
-            setCreating(false)
-            void rpc
-              .request<{ id: string }>('maps/create', [name])
-              .then(async (created) => {
-                const list = await rpc.request<MapRefDto[]>('maps/list')
-                setMaps(list)
-                setActiveId(created.id)
-              })
-          }}
+          onSubmit={onCreateMap}
         />
+      )}
+      {renaming && (
+        <InputDialog
+          title={t('map.renameTitle')}
+          placeholder={t('map.renamePrompt')}
+          onCancel={() => setRenaming(false)}
+          onSubmit={onRenameMap}
+        />
+      )}
+      {confirmingDelete && activeMap && (
+        <ConfirmDialog
+          title={t('map.deleteTitle')}
+          message={t('map.deleteMessage').replace('{0}', activeMap.name)}
+          onCancel={() => setConfirmingDelete(false)}
+          onConfirm={onDeleteMap}
+        />
+      )}
+      {imagePicker && (
+        <div
+          className="dialog-overlay"
+          onPointerDown={(e) => e.target === e.currentTarget && setImagePicker(null)}
+        >
+          <div className="dialog-card map-image-picker" role="dialog">
+            <div className="dialog-title">{t('map.toolAddImageTooltip')}</div>
+            <div className="map-image-grid">
+              {imagePicker.map((img) => (
+                <button
+                  key={img.path}
+                  type="button"
+                  className="map-image-choice"
+                  onClick={() => placeImage(img.path, img.url)}
+                >
+                  <img src={img.url} alt="" />
+                </button>
+              ))}
+              {imagePicker.length === 0 && (
+                <div className="map-image-empty">{t('imageGallery.noImages')}</div>
+              )}
+            </div>
+            <div className="dialog-actions">
+              <button className="dialog-button" onClick={() => setImagePicker(null)}>
+                {t('dialog.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
+}
+
+// ── Message + model helpers ────────────────────────────────────────────────
+
+interface MapMessage {
+  type: string
+  x?: number
+  y?: number
+  imageId?: string
+  entityId?: string
+  entityType?: string
+  step?: string
 }

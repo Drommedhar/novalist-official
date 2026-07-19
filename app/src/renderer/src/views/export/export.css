@@ -1,0 +1,47 @@
+/* Export view — preset/format selectors, chapter selection toolbar. Base
+   .export-card, .export-chapters, .export-run, .export-result live in shell.css. */
+
+.export-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.export-chapters-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-md);
+  margin-top: var(--nl-space-md);
+}
+
+.export-select-buttons {
+  display: flex;
+  gap: var(--nl-space-sm);
+}
+
+.export-inline-btn {
+  background: transparent;
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  cursor: pointer;
+}
+
+.export-inline-btn:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.export-count {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.export-preset-desc {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  margin-top: calc(-1 * var(--nl-space-tighter));
+}

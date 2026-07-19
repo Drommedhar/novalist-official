@@ -63,7 +63,8 @@
     "typeNote": "Notiz",
     "typeLink": "Link",
     "typeFile": "Datei",
-    "typeImage": "Bild"
+    "typeImage": "Bild",
+    "typePdf": "PDF"
   },
   "plotGrid": {
     "title": "Plot-Raster",
@@ -320,7 +321,8 @@
     "diagnosticLoggingDesc": "Schreibt ein technisches Protokoll in eine Datei, die du zur Unterstützung senden kannst. Es erfasst nur App-Ereignisse, Einstellungen und Fehler — niemals deinen Text, Charaktere, Orte, Szenen oder Dateinamen. Du kannst die Datei vor dem Senden öffnen und lesen.",
     "openLogFolder": "Protokollordner öffnen",
     "openCurrentLog": "Aktuelles Protokoll öffnen",
-    "clearLogs": "Protokolle löschen"
+    "clearLogs": "Protokolle löschen",
+    "bookWidthCharsPerLine": "~{{count}} Zeichen pro Zeile"
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -335,7 +337,8 @@
       "scenes": "Szenen & Kapitel",
       "editor": "Editor",
       "project": "Projekt",
-      "git": "Git"
+      "git": "Git",
+      "general": "Allgemein"
     },
     "app": {
       "commandPalette": "Befehlspalette öffnen"
@@ -1059,7 +1062,10 @@
     "selectedCount": "Ausgewählt: {0} Kapitel",
     "exporting": "Exportiere…",
     "exportSuccess": "Export abgeschlossen.",
-    "exportFailed": "Export fehlgeschlagen: {0}"
+    "exportFailed": "Export fehlgeschlagen: {0}",
+    "exportAction": "Exportieren",
+    "selectedOfTotal": "{{selected}} von {{total}} ausgewählt",
+    "smfToggle": "Shunn-Manuskriptformat"
   },
   "imageGallery": {
     "search": "Bilder suchen…",
@@ -1071,7 +1077,8 @@
     "copyPath": "Pfad kopieren",
     "copyMarkdown": "Als Markdown kopieren",
     "openExternally": "Extern öffnen",
-    "openInExplorer": "Im Datei-Explorer öffnen"
+    "openInExplorer": "Im Datei-Explorer öffnen",
+    "countOf": "{{shown}} von {{total}}"
   },
   "git": {
     "title": "Versionskontrolle",
@@ -1095,7 +1102,10 @@
     "commitSuccess": "Änderungen erfolgreich committet.",
     "pushSuccess": "Zum Remote gepusht.",
     "pullSuccess": "Vom Remote gepullt.",
-    "confirmDiscard": "Änderungen in {{count}} Dateien verwerfen? Das kann nicht rückgängig gemacht werden."
+    "confirmDiscard": "Änderungen in {{count}} Dateien verwerfen? Das kann nicht rückgängig gemacht werden.",
+    "stagedChanges": "Bereitgestellte Änderungen",
+    "stage": "Bereitstellen",
+    "unstage": "Zurücknehmen"
   },
   "toast": {
     "saved": "Gespeichert",

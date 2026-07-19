@@ -1,0 +1,230 @@
+/* Settings view: search + category nav layout and the controls unique to the
+ * settings surface. Shared primitives (cards, inputs, toggles) come from
+ * shell.css; this file only adds settings-specific composition. */
+
+.settings-view {
+  max-width: 1080px;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-lg);
+  flex-wrap: wrap;
+}
+
+.settings-search {
+  max-width: 280px;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr);
+  gap: var(--nl-space-xl);
+  align-items: start;
+}
+
+.settings-nav {
+  position: sticky;
+  top: var(--nl-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.settings-nav-item {
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--nl-text-dim);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-radius: var(--nl-radius-md);
+  font-size: var(--nl-font-body);
+  cursor: pointer;
+}
+
+.settings-nav-item:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.settings-sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-lg);
+  min-width: 0;
+}
+
+/* Section cards fill the sections column rather than the narrow export width. */
+.settings-sections .export-card,
+.settings-sections .templates-card {
+  max-width: none;
+}
+
+.settings-scope {
+  margin-bottom: var(--nl-space-sm);
+}
+
+.settings-accent-row,
+.settings-button-row {
+  display: flex;
+  gap: var(--nl-space-sm);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.settings-color {
+  width: 60px;
+  height: 32px;
+  padding: 2px;
+}
+
+.settings-subgroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  border-left: 2px solid var(--nl-border-subtle);
+  padding-left: var(--nl-space-md);
+  margin-top: var(--nl-space-sm);
+}
+
+.settings-preview {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+}
+
+.settings-desc,
+.settings-hint {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+}
+
+.settings-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  align-self: flex-start;
+}
+
+/* Keyboard shortcuts */
+.settings-hotkeys {
+  max-width: none;
+}
+
+.settings-hotkeys-header {
+  display: flex;
+  gap: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-md);
+}
+
+.settings-hotkeys-filter {
+  flex: 1;
+}
+
+.settings-hotkeys-group {
+  margin-bottom: var(--nl-space-md);
+}
+
+.settings-hotkeys-category {
+  font-size: var(--nl-font-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--nl-text-subtle);
+  margin: var(--nl-space-sm) 0 var(--nl-space-tighter);
+}
+
+.settings-hotkey-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-tighter) 0;
+}
+
+.settings-hotkey-name {
+  flex: 1;
+  font-size: var(--nl-font-body);
+}
+
+.settings-hotkey-conflict {
+  color: var(--nl-warning);
+  font-size: var(--nl-font-body-sm);
+}
+
+.settings-hotkey-gesture {
+  min-width: 116px;
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  cursor: pointer;
+  font-size: var(--nl-font-body-sm);
+}
+
+.settings-hotkey-gesture.recording {
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
+}
+
+.settings-hotkey-gesture kbd {
+  font-family: var(--nl-font-mono);
+}
+
+/* Installed extensions */
+.settings-extension-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.settings-extension-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-md);
+}
+
+.settings-extension-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.settings-extension-name {
+  font-size: var(--nl-font-body);
+}
+
+.settings-extension-meta {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.settings-extension-state {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-pill);
+  padding: 2px var(--nl-space-sm);
+  white-space: nowrap;
+}
+
+.settings-extension-state.on {
+  color: var(--nl-success);
+  border-color: var(--nl-success);
+}
+
+@media (max-width: 720px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}

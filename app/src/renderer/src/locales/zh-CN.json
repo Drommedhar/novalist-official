@@ -63,7 +63,8 @@
     "typeNote": "笔记",
     "typeLink": "链接",
     "typeFile": "文件",
-    "typeImage": "图片"
+    "typeImage": "图片",
+    "typePdf": "PDF"
   },
   "plotGrid": {
     "title": "剧情网格",
@@ -464,7 +465,8 @@
     "diagnosticLoggingDesc": "将技术日志写入文件，以便发送给技术支持。它仅记录应用程序事件、设置和错误 —— 绝不会记录你的故事文本、角色、地点、场景或文件名。发送前你可以自行打开和读取此文件。",
     "openLogFolder": "打开日志文件夹",
     "openCurrentLog": "打开当前日志",
-    "clearLogs": "清除日志"
+    "clearLogs": "清除日志",
+    "bookWidthCharsPerLine": "~每行 {{count}} 个字符"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",
@@ -479,7 +481,8 @@
       "scenes": "场景与章节",
       "editor": "编辑器",
       "project": "项目",
-      "git": "Git"
+      "git": "Git",
+      "general": "常规"
     },
     "app": {
       "commandPalette": "打开命令面板"
@@ -1477,7 +1480,10 @@
     "selectedCount": "已选：{0} 个章节",
     "exporting": "正在导出...",
     "exportSuccess": "导出完成。",
-    "exportFailed": "导出失败：{0}"
+    "exportFailed": "导出失败：{0}",
+    "exportAction": "导出",
+    "selectedOfTotal": "已选择 {{selected}} / {{total}}",
+    "smfToggle": "Shunn 手稿格式"
   },
   "imageGallery": {
     "search": "搜索图像...",
@@ -1489,7 +1495,8 @@
     "copyPath": "复制路径",
     "copyMarkdown": "复制为 Markdown 格式",
     "openExternally": "在外部打开",
-    "openInExplorer": "在文件资源管理器中打开"
+    "openInExplorer": "在文件资源管理器中打开",
+    "countOf": "{{shown}} / {{total}}"
   },
   "git": {
     "title": "版本控制",
@@ -1513,7 +1520,10 @@
     "commitSuccess": "更改已成功提交。",
     "pushSuccess": "已推送到远程仓库。",
     "pullSuccess": "已从远程仓库拉取。",
-    "confirmDiscard": "丢弃 {{count}} 个文件的更改？此操作无法撤销。"
+    "confirmDiscard": "丢弃 {{count}} 个文件的更改？此操作无法撤销。",
+    "stagedChanges": "已暂存的更改",
+    "stage": "暂存",
+    "unstage": "取消暂存"
   },
   "toast": {
     "saved": "已保存",

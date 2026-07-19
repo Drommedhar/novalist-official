@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import i18next from '../i18n'
 import { rpc } from '../rpc/client'
+import { applyCustomGestures } from '../shell/hotkeys'
 
 export interface EffectiveSettings {
   language: string
@@ -27,11 +28,21 @@ export interface EffectiveSettings {
   grammarCheckMotherTongue: string | null
 }
 
+/** Per-project metadata that lives outside the overridable settings model. */
+export interface ProjectMeta {
+  author: string
+  watchFilesystem: boolean
+  deadline: string | null
+  dailyGoal: number
+  projectGoal: number
+}
+
 export interface SettingsView {
   hasProject: boolean
   global: Record<string, unknown>
   overrides: Record<string, unknown> | null
   effective: EffectiveSettings
+  project: ProjectMeta | null
 }
 
 interface SettingsState {
@@ -39,6 +50,10 @@ interface SettingsState {
   load(): Promise<void>
   update(scope: 'global' | 'project', patch: Record<string, unknown>): Promise<void>
   clearSection(section: 'appearance' | 'editor' | 'writing'): Promise<void>
+  updateProjectMeta(patch: Record<string, unknown>): Promise<void>
+  setHotkeyBinding(actionId: string, gesture: string): Promise<void>
+  resetHotkeyBinding(actionId: string): Promise<void>
+  resetAllHotkeys(): Promise<void>
 }
 
 const THEME_SLUGS: Record<string, string> = {
@@ -72,6 +87,7 @@ function applySideEffects(view: SettingsView): void {
     void i18next.changeLanguage(view.effective.language)
   }
   applyThemeTokens(view.effective.theme, view.effective.accentColor)
+  applyCustomGestures((view.global.hotkeyBindings as Record<string, string>) ?? {})
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
@@ -92,6 +108,30 @@ export const useSettingsStore = create<SettingsState>((set) => ({
 
   clearSection: async (section) => {
     const view = await rpc.request<SettingsView>('settings/clearSection', [section])
+    applySideEffects(view)
+    set({ view })
+  },
+
+  updateProjectMeta: async (patch) => {
+    const view = await rpc.request<SettingsView>('settings/updateProjectMeta', [patch])
+    applySideEffects(view)
+    set({ view })
+  },
+
+  setHotkeyBinding: async (actionId, gesture) => {
+    const view = await rpc.request<SettingsView>('settings/setHotkeyBinding', [actionId, gesture])
+    applySideEffects(view)
+    set({ view })
+  },
+
+  resetHotkeyBinding: async (actionId) => {
+    const view = await rpc.request<SettingsView>('settings/resetHotkeyBinding', [actionId])
+    applySideEffects(view)
+    set({ view })
+  },
+
+  resetAllHotkeys: async () => {
+    const view = await rpc.request<SettingsView>('settings/resetAllHotkeys')
     applySideEffects(view)
     set({ view })
   }

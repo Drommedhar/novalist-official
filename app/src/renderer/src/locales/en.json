@@ -63,7 +63,8 @@
     "typeNote": "Note",
     "typeLink": "Link",
     "typeFile": "File",
-    "typeImage": "Image"
+    "typeImage": "Image",
+    "typePdf": "PDF"
   },
   "plotGrid": {
     "title": "Plot Grid",
@@ -422,7 +423,8 @@
     "diagnosticLoggingDesc": "Write a technical log to a file you can send for support. It records only app events, settings, and errors — never your story text, characters, locations, scenes, or file names. You can open and read the file before sending it.",
     "openLogFolder": "Open log folder",
     "openCurrentLog": "Open current log",
-    "clearLogs": "Clear logs"
+    "clearLogs": "Clear logs",
+    "bookWidthCharsPerLine": "~{{count}} characters per line"
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -437,7 +439,8 @@
       "scenes": "Scenes & Chapters",
       "editor": "Editor",
       "project": "Project",
-      "git": "Git"
+      "git": "Git",
+      "general": "General"
     },
     "app": {
       "commandPalette": "Open Command Palette"
@@ -1435,7 +1438,10 @@
     "selectedCount": "Selected: {0} chapter(s)",
     "exporting": "Exporting…",
     "exportSuccess": "Export complete.",
-    "exportFailed": "Export failed: {0}"
+    "exportFailed": "Export failed: {0}",
+    "exportAction": "Export",
+    "selectedOfTotal": "{{selected}} of {{total}} selected",
+    "smfToggle": "Shunn manuscript format"
   },
   "imageGallery": {
     "search": "Search images…",
@@ -1447,7 +1453,8 @@
     "copyPath": "Copy path",
     "copyMarkdown": "Copy as Markdown",
     "openExternally": "Open externally",
-    "openInExplorer": "Open in file explorer"
+    "openInExplorer": "Open in file explorer",
+    "countOf": "{{shown}} of {{total}}"
   },
   "git": {
     "title": "Version Control",
@@ -1471,7 +1478,10 @@
     "commitSuccess": "Changes committed successfully.",
     "pushSuccess": "Pushed to remote.",
     "pullSuccess": "Pulled from remote.",
-    "confirmDiscard": "Discard changes in {{count}} files? This cannot be undone."
+    "confirmDiscard": "Discard changes in {{count}} files? This cannot be undone.",
+    "stagedChanges": "Staged Changes",
+    "stage": "Stage",
+    "unstage": "Unstage"
   },
   "toast": {
     "saved": "Saved",

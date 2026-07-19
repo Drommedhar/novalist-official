@@ -1,5 +1,6 @@
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
+using Novalist.Sdk.Models;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -39,6 +40,31 @@ public sealed class ExportRpcTests : IDisposable
     }
 
     [Fact]
+    public void Presets_ListNamedPresets()
+    {
+        var presets = _rpc.Presets();
+        Assert.Contains(presets, p => p.Id == "default");
+        Assert.Contains(presets, p => p.Id == "shunn-manuscript" && p.DisplayName == "Shunn Manuscript Format");
+        Assert.All(presets, p => Assert.False(string.IsNullOrWhiteSpace(p.Description)));
+    }
+
+    [Fact]
+    public void ExtensionFormats_EmptyByDefault_ReflectsContributions()
+    {
+        Assert.Empty(_rpc.ExtensionFormats());
+
+        _workspace.ExtensionsHost.ExportFormats.Add(new ExportFormatDescriptor
+        {
+            FormatKey = "fountain",
+            DisplayName = "Fountain",
+            FileExtension = ".fountain"
+        });
+
+        var formats = _rpc.ExtensionFormats();
+        Assert.Contains(formats, f => f.FormatKey == "fountain" && f.FileExtension == ".fountain");
+    }
+
+    [Fact]
     public async Task TimelineOutline_ProducesFile()
     {
         var output = Path.Combine(_root, "outline.md");
@@ -62,5 +88,40 @@ public sealed class ExportRpcTests : IDisposable
 
         Assert.True(result.Success);
         Assert.True(result.SizeBytes > 0);
+    }
+
+    [Fact]
+    public async Task Run_WithShunnPreset_ProducesFile()
+    {
+        var output = Path.Combine(_root, "shunn.docx");
+        var result = await _rpc.RunAsync(
+            "Docx", output, "ExpNovel", "Tester", true, [], "shunn-manuscript", smf: true);
+        Assert.True(result.Success);
+        Assert.True(result.SizeBytes > 0);
+    }
+
+    [Fact]
+    public async Task Run_ExtensionFormat_InvokesContributedHandler()
+    {
+        _workspace.ExtensionsHost.ExportFormats.Add(new ExportFormatDescriptor
+        {
+            FormatKey = "fountain",
+            DisplayName = "Fountain",
+            FileExtension = ".fountain",
+            Export = ctx => File.WriteAllTextAsync(ctx.OutputPath, "TITLE: " + ctx.BookName)
+        });
+
+        var output = Path.Combine(_root, "out.fountain");
+        var result = await _rpc.RunAsync("fountain", output, "", "Tester", true, []);
+        Assert.True(result.Success);
+        Assert.Contains("Untitled", await File.ReadAllTextAsync(output));
+    }
+
+    [Fact]
+    public async Task Run_UnknownFormat_Throws()
+    {
+        var output = Path.Combine(_root, "out.xyz");
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.RunAsync("no-such-format", output, "ExpNovel", "Tester", true, []));
     }
 }

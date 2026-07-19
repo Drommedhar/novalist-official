@@ -1,15 +1,149 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ExternalLink } from 'lucide-react'
 import { availableLanguages } from '../../i18n'
+import { rpc } from '../../rpc/client'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { TemplatesCard } from './TemplatesCard'
+import { HotkeysCard } from './HotkeysCard'
+import { ExtensionsCard } from './ExtensionsCard'
+import './settings.css'
 
 const THEMES = ['Default', 'Discord', 'Catppuccin Mocha']
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
 
+/** Common typographic fonts offered as a datalist; the field stays free-text so
+ * any installed family can be typed. */
+const SYSTEM_FONTS = [
+  'Inter',
+  'Times New Roman',
+  'Georgia',
+  'Garamond',
+  'Baskerville',
+  'Palatino',
+  'Book Antiqua',
+  'Cambria',
+  'Merriweather',
+  'Lora',
+  'Arial',
+  'Helvetica',
+  'Verdana',
+  'Calibri',
+  'Trebuchet MS',
+  'Courier New',
+  'Consolas'
+]
+
+const PAGE_FORMATS: { code: string; name: string }[] = [
+  { code: 'USTrade6x9', name: 'US Trade (6x9)' },
+  { code: 'Digest5_5x8_5', name: 'Digest (5.5x8.5)' },
+  { code: 'A5', name: 'A5 (5.83x8.27)' },
+  { code: 'MassMarket', name: 'Mass Market (4.25x6.87)' },
+  { code: 'Custom', name: 'Custom' }
+]
+
+// Mirrors Novalist.Desktop BookWidthCalculator so the live preview matches.
+const PAGE_FORMAT_WIDTHS: Record<string, number> = {
+  USTrade6x9: 4.75,
+  Digest5_5x8_5: 4.3,
+  A5: 4.63,
+  MassMarket: 3.35
+}
+const MEASURE_SAMPLE =
+  'abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ,.;:!?\'-"'
+
+function estimateCharsPerLine(
+  format: string,
+  customWidth: number | null,
+  fontFamily: string,
+  fontSize: number
+): number {
+  const inches =
+    format === 'Custom'
+      ? customWidth && customWidth > 0
+        ? customWidth
+        : 4.75
+      : (PAGE_FORMAT_WIDTHS[format] ?? 4.75)
+  const px = inches * 96
+  const ctx = document.createElement('canvas').getContext('2d')
+  if (!ctx) return 65
+  ctx.font = `${fontSize}px "${fontFamily}"`
+  const avg = ctx.measureText(MEASURE_SAMPLE).width / MEASURE_SAMPLE.length
+  return avg > 0 ? Math.round(px / avg) : 65
+}
+
+/** Opening/closing quote pair per auto-replacement language, for the preview. */
+const QUOTE_PREVIEW: Record<string, [string, string]> = {
+  en: ['“', '”'],
+  'de-low': ['„', '“'],
+  'de-guillemet': ['»', '«'],
+  fr: ['« ', ' »'],
+  es: ['«', '»'],
+  it: ['«', '»'],
+  pt: ['«', '»'],
+  ru: ['«', '»'],
+  pl: ['„', '“'],
+  cs: ['„', '“'],
+  sk: ['„', '“']
+}
+
+function autoReplacementPreview(language: string): string {
+  const [open, close] = QUOTE_PREVIEW[language] ?? QUOTE_PREVIEW.en
+  return `'x' → ${open}x${close}   |   -- → —   |   ... → …`
+}
+
 type Scope = 'global' | 'project'
+
+/** Text input with a local draft that commits on blur, so per-keystroke RPC
+ * round-trips never fight the caret; syncs to the incoming value when idle. */
+function SettingInput({
+  value,
+  onCommit,
+  type,
+  placeholder,
+  id,
+  list
+}: {
+  value: string
+  onCommit(next: string): void
+  type?: string
+  placeholder?: string
+  id?: string
+  list?: string
+}): React.JSX.Element {
+  const [draft, setDraft] = useState(value)
+  const focused = useRef(false)
+  useEffect(() => {
+    if (!focused.current) setDraft(value)
+  }, [value])
+  return (
+    <input
+      id={id}
+      list={list}
+      className="dialog-input"
+      type={type}
+      placeholder={placeholder}
+      value={draft}
+      onFocus={() => (focused.current = true)}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={() => {
+        focused.current = false
+        if (draft !== value) onCommit(draft)
+      }}
+    />
+  )
+}
+
+interface SectionDef {
+  key: string
+  titleKey: string
+  keywords: string[]
+  body: React.ReactNode
+  /** True when the body is a self-contained card (its own title + styling). */
+  standalone?: boolean
+}
 
 export function SettingsView(): React.JSX.Element {
   const { t } = useTranslation()
@@ -18,10 +152,13 @@ export function SettingsView(): React.JSX.Element {
   const load = useSettingsStore((s) => s.load)
   const update = useSettingsStore((s) => s.update)
   const clearSection = useSettingsStore((s) => s.clearSection)
+  const updateProjectMeta = useSettingsStore((s) => s.updateProjectMeta)
   const isLoaded = useProjectStore((s) => s.isLoaded)
   const [appearanceScope, setAppearanceScope] = useState<Scope>('global')
   const [editorScope, setEditorScope] = useState<Scope>('global')
   const [writingScope, setWritingScope] = useState<Scope>('global')
+  const [search, setSearch] = useState('')
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
   useEffect(() => {
     if (mainView !== 'settings') return
@@ -31,6 +168,7 @@ export function SettingsView(): React.JSX.Element {
   if (!view) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
   const eff = view.effective
+  const project = view.project
 
   const scopeToggle = (
     scope: Scope,
@@ -54,190 +192,599 @@ export function SettingsView(): React.JSX.Element {
 
   const scopeFor = (scope: Scope): Scope => (view.hasProject ? scope : 'global')
 
-  return (
-    <div className="dashboard settings-view">
-      <h1 className="dashboard-title">{t('settings.title')}</h1>
+  const fontDatalist = (
+    <datalist id="settings-fonts">
+      {SYSTEM_FONTS.map((f) => (
+        <option key={f} value={f} />
+      ))}
+    </datalist>
+  )
 
-      <div className="dashboard-card export-card">
-        <div className="dashboard-card-title">{t('settings.appearance')}</div>
-        {scopeToggle(appearanceScope, setAppearanceScope, 'appearance')}
-        <label className="inspector-label" htmlFor="set-language">
-          {t('settings.uiLanguage')}
-        </label>
-        <select
-          id="set-language"
-          className="dialog-input"
-          value={eff.language}
-          onChange={(e) =>
-            void update(scopeFor(appearanceScope), { language: e.target.value })
-          }
-        >
-          {availableLanguages().map((lang) => (
-            <option key={lang.code} value={lang.code}>
-              {lang.name}
-            </option>
-          ))}
-        </select>
-        <label className="inspector-label" htmlFor="set-theme">
-          {t('settings.theme')}
-        </label>
-        <select
-          id="set-theme"
-          className="dialog-input"
-          value={eff.theme === 'system' ? 'Default' : eff.theme}
-          onChange={(e) => void update(scopeFor(appearanceScope), { theme: e.target.value })}
-        >
-          {THEMES.map((theme) => (
-            <option key={theme} value={theme}>
-              {theme}
-            </option>
-          ))}
-        </select>
-        <label className="inspector-label" htmlFor="set-accent">
-          {t('settings.accentColor')}
-        </label>
-        <input
-          id="set-accent"
-          className="dialog-input settings-color"
-          type="color"
-          value={eff.accentColor ?? '#0e8bdf'}
-          onChange={(e) => void update(scopeFor(appearanceScope), { accentColor: e.target.value })}
-        />
-      </div>
-
-      <div className="dashboard-card export-card">
-        <div className="dashboard-card-title">{t('settings.editor')}</div>
-        {scopeToggle(editorScope, setEditorScope, 'editor')}
-        <label className="inspector-label" htmlFor="set-font">
-          {t('settings.fontFamily')}
-        </label>
-        <input
-          id="set-font"
-          className="dialog-input"
-          defaultValue={eff.editorFontFamily}
-          onBlur={(e) =>
-            void update(scopeFor(editorScope), { editorFontFamily: e.target.value })
-          }
-        />
-        <label className="inspector-label" htmlFor="set-fontsize">
-          {t('settings.fontSize')}
-        </label>
-        <input
-          id="set-fontsize"
-          className="dialog-input"
-          type="number"
-          min={8}
-          max={36}
-          value={eff.editorFontSize}
-          onChange={(e) =>
-            void update(scopeFor(editorScope), {
-              editorFontSize: Math.min(36, Math.max(8, Number(e.target.value)))
-            })
-          }
-        />
-        <label className="relationships-toggle">
+  const sections: SectionDef[] = [
+    {
+      key: 'appearance',
+      titleKey: 'settings.appearance',
+      keywords: ['appearance', 'language', 'theme', 'accent', 'color', 'interface'],
+      body: (
+        <>
+          {scopeToggle(appearanceScope, setAppearanceScope, 'appearance')}
+          <label className="inspector-label" htmlFor="set-language">
+            {t('settings.uiLanguage')}
+          </label>
+          <select
+            id="set-language"
+            className="dialog-input"
+            value={eff.language}
+            onChange={(e) => void update(scopeFor(appearanceScope), { language: e.target.value })}
+          >
+            {availableLanguages().map((lang) => (
+              <option key={lang.code} value={lang.code}>
+                {lang.name}
+              </option>
+            ))}
+          </select>
+          <label className="inspector-label" htmlFor="set-theme">
+            {t('settings.theme')}
+          </label>
+          <select
+            id="set-theme"
+            className="dialog-input"
+            value={eff.theme === 'system' ? 'Default' : eff.theme}
+            onChange={(e) => void update(scopeFor(appearanceScope), { theme: e.target.value })}
+          >
+            {THEMES.map((theme) => (
+              <option key={theme} value={theme}>
+                {theme}
+              </option>
+            ))}
+          </select>
+          <label className="inspector-label" htmlFor="set-accent">
+            {t('settings.accentColor')}
+          </label>
+          <div className="settings-accent-row">
+            <input
+              id="set-accent"
+              className="dialog-input settings-color"
+              type="color"
+              value={eff.accentColor ?? '#0e8bdf'}
+              onChange={(e) =>
+                void update(scopeFor(appearanceScope), { accentColor: e.target.value })
+              }
+            />
+            <button
+              className="dialog-button"
+              onClick={() => void update(scopeFor(appearanceScope), { accentColor: null })}
+            >
+              {t('settings.accentColorReset')}
+            </button>
+          </div>
+        </>
+      )
+    },
+    {
+      key: 'editor',
+      titleKey: 'settings.editor',
+      keywords: ['editor', 'font', 'book', 'width', 'page', 'paragraph', 'spacing', 'typewriter'],
+      body: (
+        <>
+          {scopeToggle(editorScope, setEditorScope, 'editor')}
+          {fontDatalist}
+          <label className="inspector-label" htmlFor="set-font">
+            {t('settings.fontFamily')}
+          </label>
+          <SettingInput
+            id="set-font"
+            list="settings-fonts"
+            value={eff.editorFontFamily}
+            onCommit={(v) => void update(scopeFor(editorScope), { editorFontFamily: v })}
+          />
+          <label className="inspector-label" htmlFor="set-fontsize">
+            {t('settings.fontSize')}
+          </label>
           <input
-            type="checkbox"
-            checked={eff.typewriterScrollEnabled}
+            id="set-fontsize"
+            className="dialog-input"
+            type="number"
+            min={8}
+            max={36}
+            value={eff.editorFontSize}
             onChange={(e) =>
-              void update(scopeFor(editorScope), { typewriterScrollEnabled: e.target.checked })
+              void update(scopeFor(editorScope), {
+                editorFontSize: Math.min(36, Math.max(8, Number(e.target.value)))
+              })
             }
           />
-          {t('settings.typewriterScroll')}
-        </label>
-        {eff.typewriterScrollEnabled && (
-          <div className="findreplace-options">
-            {['top', 'middle', 'bottom'].map((anchor) => (
-              <label key={anchor} className="relationships-toggle">
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={eff.typewriterScrollEnabled}
+              onChange={(e) =>
+                void update(scopeFor(editorScope), { typewriterScrollEnabled: e.target.checked })
+              }
+            />
+            {t('settings.typewriterScroll')}
+          </label>
+          {eff.typewriterScrollEnabled && (
+            <div className="findreplace-options">
+              {['top', 'middle', 'bottom'].map((anchor) => (
+                <label key={anchor} className="relationships-toggle">
+                  <input
+                    type="radio"
+                    name="typewriter-anchor"
+                    checked={eff.typewriterScrollAnchor === anchor}
+                    onChange={() =>
+                      void update(scopeFor(editorScope), { typewriterScrollAnchor: anchor })
+                    }
+                  />
+                  {t(`settings.typewriterAnchor${anchor.charAt(0).toUpperCase()}${anchor.slice(1)}`)}
+                </label>
+              ))}
+            </div>
+          )}
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={eff.pageViewEnabled}
+              onChange={(e) =>
+                void update(scopeFor(editorScope), { pageViewEnabled: e.target.checked })
+              }
+            />
+            {t('settings.pageView')}
+          </label>
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={eff.enableBookParagraphSpacing}
+              onChange={(e) =>
+                void update(scopeFor(editorScope), { enableBookParagraphSpacing: e.target.checked })
+              }
+            />
+            {t('settings.bookSpacing')}
+          </label>
+
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={eff.enableBookWidth}
+              onChange={(e) =>
+                void update(scopeFor(editorScope), { enableBookWidth: e.target.checked })
+              }
+            />
+            {t('settings.bookWidth')}
+          </label>
+          {eff.enableBookWidth && (
+            <div className="settings-subgroup">
+              <label className="inspector-label" htmlFor="set-pageformat">
+                {t('settings.bookWidthPageFormat')}
+              </label>
+              <select
+                id="set-pageformat"
+                className="dialog-input"
+                value={eff.bookPageFormat}
+                onChange={(e) =>
+                  void update(scopeFor(editorScope), { bookPageFormat: e.target.value })
+                }
+              >
+                {PAGE_FORMATS.map((f) => (
+                  <option key={f.code} value={f.code}>
+                    {f.name}
+                  </option>
+                ))}
+              </select>
+              {eff.bookPageFormat === 'Custom' && (
+                <>
+                  <label className="inspector-label" htmlFor="set-customwidth">
+                    {t('settings.bookWidthCustom')}
+                  </label>
+                  <input
+                    id="set-customwidth"
+                    className="dialog-input"
+                    type="number"
+                    min={1}
+                    max={12}
+                    step={0.05}
+                    value={eff.bookTextBlockWidth ?? 4.75}
+                    onChange={(e) =>
+                      void update(scopeFor(editorScope), {
+                        bookTextBlockWidth: Number(e.target.value)
+                      })
+                    }
+                  />
+                </>
+              )}
+              <label className="inspector-label" htmlFor="set-bookfont">
+                {t('settings.bookWidthFont')}
+              </label>
+              <SettingInput
+                id="set-bookfont"
+                list="settings-fonts"
+                value={eff.bookFontFamily}
+                onCommit={(v) => void update(scopeFor(editorScope), { bookFontFamily: v })}
+              />
+              <label className="inspector-label" htmlFor="set-bookfontsize">
+                {t('settings.bookWidthFontSize')}
+              </label>
+              <input
+                id="set-bookfontsize"
+                className="dialog-input"
+                type="number"
+                min={6}
+                max={24}
+                value={eff.bookFontSize}
+                onChange={(e) =>
+                  void update(scopeFor(editorScope), {
+                    bookFontSize: Math.min(24, Math.max(6, Number(e.target.value)))
+                  })
+                }
+              />
+              <div className="settings-preview">
+                {t('settings.bookWidthCharsPerLine', {
+                  count: estimateCharsPerLine(
+                    eff.bookPageFormat,
+                    eff.bookTextBlockWidth,
+                    eff.bookFontFamily,
+                    eff.bookFontSize
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )
+    },
+    {
+      key: 'writingGoals',
+      titleKey: 'settings.writingGoals',
+      keywords: ['goal', 'deadline', 'author', 'watch', 'filesystem', 'writing'],
+      body: (
+        <>
+          <div className="settings-desc">{t('settings.goalsDesc')}</div>
+          {view.hasProject && project ? (
+            <>
+              <label className="inspector-label" htmlFor="set-deadline">
+                {t('settings.projectDeadline')}
+              </label>
+              <input
+                id="set-deadline"
+                className="dialog-input"
+                type="date"
+                value={project.deadline ?? ''}
+                onChange={(e) => void updateProjectMeta({ deadline: e.target.value })}
+              />
+              <label className="inspector-label" htmlFor="set-author">
+                {t('settings.projectAuthor')}
+              </label>
+              <SettingInput
+                id="set-author"
+                value={project.author}
+                onCommit={(v) => void updateProjectMeta({ author: v })}
+              />
+              <label className="relationships-toggle">
                 <input
-                  type="radio"
-                  name="typewriter-anchor"
-                  checked={eff.typewriterScrollAnchor === anchor}
-                  onChange={() =>
-                    void update(scopeFor(editorScope), { typewriterScrollAnchor: anchor })
+                  type="checkbox"
+                  checked={project.watchFilesystem}
+                  onChange={(e) => void updateProjectMeta({ watchFilesystem: e.target.checked })}
+                />
+                {t('settings.watchFilesystem')}
+              </label>
+              <div className="settings-hint">{t('settings.watchFilesystemDesc')}</div>
+            </>
+          ) : (
+            <div className="settings-hint">{t('settings.scopeProjectHint')}</div>
+          )}
+        </>
+      )
+    },
+    {
+      key: 'writingAssistance',
+      titleKey: 'settings.writingAssistance',
+      keywords: ['auto', 'replacement', 'quote', 'dialogue', 'grammar', 'spelling'],
+      body: (
+        <>
+          {scopeToggle(writingScope, setWritingScope, 'writing')}
+          <label className="inspector-label" htmlFor="set-quotes">
+            {t('settings.quoteStyle')}
+          </label>
+          <select
+            id="set-quotes"
+            className="dialog-input"
+            value={eff.autoReplacementLanguage}
+            onChange={(e) =>
+              void update(scopeFor(writingScope), { autoReplacementLanguage: e.target.value })
+            }
+          >
+            {QUOTE_LANGUAGES.map((lang) => (
+              <option key={lang} value={lang}>
+                {lang}
+              </option>
+            ))}
+          </select>
+          <div className="settings-preview">
+            {t('settings.preview')}: {autoReplacementPreview(eff.autoReplacementLanguage)}
+          </div>
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={eff.dialogueCorrectionEnabled}
+              onChange={(e) =>
+                void update(scopeFor(writingScope), { dialogueCorrectionEnabled: e.target.checked })
+              }
+            />
+            {t('settings.dialogueCorrection')}
+          </label>
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={eff.grammarCheckEnabled}
+              onChange={(e) =>
+                void update(scopeFor(writingScope), { grammarCheckEnabled: e.target.checked })
+              }
+            />
+            {t('settings.grammarCheck')}
+          </label>
+          {eff.grammarCheckEnabled && (
+            <div className="settings-subgroup">
+              <label className="inspector-label" htmlFor="set-gc-url">
+                {t('settings.grammarCheckApiUrl')}
+              </label>
+              <SettingInput
+                id="set-gc-url"
+                value={eff.grammarCheckApiUrl ?? ''}
+                placeholder="https://api.languagetool.org/v2/check"
+                onCommit={(v) =>
+                  void update(scopeFor(writingScope), { grammarCheckApiUrl: v.trim() || null })
+                }
+              />
+              <label className="inspector-label" htmlFor="set-gc-user">
+                {t('settings.grammarCheckUsername')}
+              </label>
+              <SettingInput
+                id="set-gc-user"
+                value={eff.grammarCheckUsername ?? ''}
+                placeholder={t('settings.grammarCheckUsernamePlaceholder')}
+                onCommit={(v) =>
+                  void update(scopeFor(writingScope), { grammarCheckUsername: v.trim() || null })
+                }
+              />
+              <label className="inspector-label" htmlFor="set-gc-key">
+                {t('settings.grammarCheckApiKey')}
+              </label>
+              <SettingInput
+                id="set-gc-key"
+                type="password"
+                value={eff.grammarCheckApiKey ?? ''}
+                onCommit={(v) =>
+                  void update(scopeFor(writingScope), { grammarCheckApiKey: v.trim() || null })
+                }
+              />
+              <button
+                className="dialog-button settings-link"
+                onClick={() =>
+                  void window.novalist.openExternal(
+                    'https://languagetool.org/editor/settings/access-tokens'
+                  )
+                }
+              >
+                <ExternalLink size={13} strokeWidth={2} /> {t('settings.grammarCheckGetApiKey')}
+              </button>
+              <label className="relationships-toggle">
+                <input
+                  type="checkbox"
+                  checked={eff.grammarCheckPickyMode}
+                  onChange={(e) =>
+                    void update(scopeFor(writingScope), { grammarCheckPickyMode: e.target.checked })
                   }
                 />
-                {t(`settings.typewriterAnchor${anchor.charAt(0).toUpperCase()}${anchor.slice(1)}`)}
+                {t('settings.grammarCheckPickyMode')}
               </label>
-            ))}
-          </div>
-        )}
-        <label className="relationships-toggle">
-          <input
-            type="checkbox"
-            checked={eff.pageViewEnabled}
-            onChange={(e) =>
-              void update(scopeFor(editorScope), { pageViewEnabled: e.target.checked })
-            }
-          />
-          {t('settings.pageView')}
-        </label>
-        <label className="relationships-toggle">
-          <input
-            type="checkbox"
-            checked={eff.enableBookParagraphSpacing}
-            onChange={(e) =>
-              void update(scopeFor(editorScope), { enableBookParagraphSpacing: e.target.checked })
-            }
-          />
-          {t('settings.bookSpacing')}
-        </label>
-      </div>
-
-      <div className="dashboard-card export-card">
-        <div className="dashboard-card-title">{t('settings.writingAssistance')}</div>
-        {scopeToggle(writingScope, setWritingScope, 'writing')}
-        <label className="inspector-label" htmlFor="set-quotes">
-          {t('settings.quoteStyle')}
-        </label>
-        <select
-          id="set-quotes"
-          className="dialog-input"
-          value={eff.autoReplacementLanguage}
-          onChange={(e) =>
-            void update(scopeFor(writingScope), { autoReplacementLanguage: e.target.value })
+              <label className="inspector-label" htmlFor="set-gc-mother">
+                {t('settings.grammarCheckMotherTongue')}
+              </label>
+              <select
+                id="set-gc-mother"
+                className="dialog-input"
+                value={eff.grammarCheckMotherTongue ?? ''}
+                onChange={(e) =>
+                  void update(scopeFor(writingScope), {
+                    grammarCheckMotherTongue: e.target.value || null
+                  })
+                }
+              >
+                <option value="">{t('settings.grammarCheckMotherTongueNone')}</option>
+                {['en', 'de', 'fr', 'es', 'it', 'pt', 'nl', 'pl', 'ru', 'zh', 'ja'].map((code) => (
+                  <option key={code} value={code}>
+                    {code}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </>
+      )
+    },
+    ...(isLoaded
+      ? [
+          {
+            key: 'templates',
+            titleKey: 'settings.templates',
+            keywords: ['template', 'character', 'location', 'item', 'lore'],
+            body: <TemplatesCard />,
+            standalone: true
           }
-        >
-          {QUOTE_LANGUAGES.map((lang) => (
-            <option key={lang} value={lang}>
-              {lang}
-            </option>
-          ))}
-        </select>
-        <label className="relationships-toggle">
-          <input
-            type="checkbox"
-            checked={eff.dialogueCorrectionEnabled}
-            onChange={(e) =>
-              void update(scopeFor(writingScope), { dialogueCorrectionEnabled: e.target.checked })
-            }
+        ]
+      : []),
+    {
+      key: 'hotkeys',
+      titleKey: 'settings.hotkeys',
+      keywords: ['hotkey', 'keyboard', 'shortcut', 'key', 'binding', 'gesture'],
+      body: <HotkeysCard />,
+      standalone: true
+    },
+    {
+      key: 'updatesIntegrations',
+      titleKey: 'settings.updatesIntegrations',
+      keywords: ['update', 'extension', 'github', 'token', 'pat', 'integration', 'general'],
+      body: (
+        <>
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={Boolean(view.global.checkForUpdates)}
+              onChange={(e) => void update('global', { checkForUpdates: e.target.checked })}
+            />
+            {t('update.checkForUpdates')}
+          </label>
+          <div className="settings-hint">{t('update.checkForUpdatesDesc')}</div>
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={Boolean(view.global.checkForExtensionUpdates)}
+              onChange={(e) =>
+                void update('global', { checkForExtensionUpdates: e.target.checked })
+              }
+            />
+            {t('settings.checkForExtensionUpdates')}
+          </label>
+          <div className="settings-hint">{t('settings.checkForExtensionUpdatesDesc')}</div>
+          <label className="inspector-label" htmlFor="set-github-token">
+            {t('settings.githubToken')}
+          </label>
+          <SettingInput
+            id="set-github-token"
+            type="password"
+            value={String(view.global.githubToken ?? '')}
+            onCommit={(v) => void update('global', { githubToken: v.trim() || null })}
           />
-          {t('settings.dialogueCorrection')}
-        </label>
-        <label className="relationships-toggle">
-          <input
-            type="checkbox"
-            checked={eff.grammarCheckEnabled}
-            onChange={(e) =>
-              void update(scopeFor(writingScope), { grammarCheckEnabled: e.target.checked })
-            }
-          />
-          {t('settings.grammarCheck')}
-        </label>
+          <div className="settings-hint">{t('settings.githubTokenDesc')}</div>
+        </>
+      )
+    },
+    {
+      key: 'diagnostics',
+      titleKey: 'settings.diagnostics',
+      keywords: ['log', 'logging', 'diagnostic', 'support'],
+      body: (
+        <>
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={Boolean(view.global.diagnosticLoggingEnabled)}
+              onChange={(e) =>
+                void update('global', { diagnosticLoggingEnabled: e.target.checked })
+              }
+            />
+            {t('settings.diagnosticLogging')}
+          </label>
+          <div className="settings-hint">{t('settings.diagnosticLoggingDesc')}</div>
+          <div className="settings-button-row">
+            <button
+              className="dialog-button"
+              onClick={() => {
+                void (async () => {
+                  const info = await rpc.request<{ directory: string; currentLog: string | null }>(
+                    'settings/logInfo'
+                  )
+                  await window.novalist.revealPath(info.directory)
+                })()
+              }}
+            >
+              {t('settings.openLogFolder')}
+            </button>
+            <button
+              className="dialog-button"
+              onClick={() => {
+                void (async () => {
+                  const info = await rpc.request<{ directory: string; currentLog: string | null }>(
+                    'settings/logInfo'
+                  )
+                  if (info.currentLog) await window.novalist.openExternal(info.currentLog)
+                  else await window.novalist.revealPath(info.directory)
+                })()
+              }}
+            >
+              {t('settings.openCurrentLog')}
+            </button>
+            <button
+              className="dialog-button"
+              onClick={() => void rpc.request('settings/clearLogs')}
+            >
+              {t('settings.clearLogs')}
+            </button>
+          </div>
+        </>
+      )
+    },
+    {
+      key: 'extensions',
+      titleKey: 'extensions.title',
+      keywords: ['extension', 'plugin', 'addon'],
+      body: <ExtensionsCard />,
+      standalone: true
+    }
+  ]
+
+  const query = search.trim().toLowerCase()
+  const sectionVisible = (s: SectionDef): boolean =>
+    query.length === 0 ||
+    t(s.titleKey).toLowerCase().includes(query) ||
+    s.keywords.some((k) => k.includes(query))
+
+  const jumpTo = (key: string): void => {
+    setSearch('')
+    requestAnimationFrame(() => {
+      sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+
+  return (
+    <div className="dashboard settings-view">
+      <div className="settings-header">
+        <h1 className="dashboard-title">{t('settings.title')}</h1>
+        <input
+          className="dialog-input settings-search"
+          placeholder={t('settings.searchPlaceholder')}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
-      {isLoaded && <TemplatesCard />}
+      <div className="settings-layout">
+        <nav className="settings-nav">
+          {sections.map((s) => (
+            <button key={s.key} className="settings-nav-item" onClick={() => jumpTo(s.key)}>
+              {t(s.titleKey)}
+            </button>
+          ))}
+        </nav>
 
-      <div className="dashboard-card export-card">
-        <div className="dashboard-card-title">{t('settings.diagnostics')}</div>
-        <label className="relationships-toggle">
-          <input
-            type="checkbox"
-            checked={Boolean(view.global.diagnosticLoggingEnabled)}
-            onChange={(e) => void update('global', { diagnosticLoggingEnabled: e.target.checked })}
-          />
-          {t('settings.diagnosticLogging')}
-        </label>
+        <div className="settings-sections">
+          {sections.map((s) =>
+            sectionVisible(s) ? (
+              s.standalone ? (
+                <div
+                  key={s.key}
+                  className="settings-anchor"
+                  ref={(el) => {
+                    sectionRefs.current[s.key] = el
+                  }}
+                >
+                  {s.body}
+                </div>
+              ) : (
+                <div
+                  key={s.key}
+                  className="dashboard-card export-card"
+                  ref={(el) => {
+                    sectionRefs.current[s.key] = el
+                  }}
+                >
+                  <div className="dashboard-card-title">{t(s.titleKey)}</div>
+                  {s.body}
+                </div>
+              )
+            ) : null
+          )}
+        </div>
       </div>
     </div>
   )

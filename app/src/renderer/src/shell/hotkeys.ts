@@ -2,9 +2,74 @@ import { useShellStore, type MainView } from '../stores/shellStore'
 
 export interface HotkeyAction {
   actionId: string
+  /** Currently active gesture (persisted override, else {@link defaultGesture}). */
   gesture: string
+  /** Factory default gesture, used for reset and the "modified" indicator. */
+  defaultGesture: string
+  /** Localization key for the settings category the action groups under. */
+  categoryKey: string
   labelKey: string
   run(): void
+}
+
+/**
+ * Persisted per-action gesture overrides (action ID → gesture string), mirrored
+ * from {@code AppSettings.HotkeyBindings}. {@link buildDefaultHotkeys} folds
+ * these over the defaults, and {@link applyCustomGestures} keeps the already
+ * installed actions in sync when they change while the app is running.
+ */
+let customGestures: Record<string, string> = {}
+
+/**
+ * Applies persisted gesture overrides. Updates the module map and mutates the
+ * gestures of the currently installed actions in place, so the live keydown
+ * listener (which closes over those same objects) and the command palette pick
+ * up the change without a reinstall.
+ */
+export function applyCustomGestures(map: Record<string, string>): void {
+  customGestures = map ?? {}
+  for (const action of installedActions) {
+    action.gesture = customGestures[action.actionId] ?? action.defaultGesture
+  }
+}
+
+/**
+ * Canonical, comparable form of a gesture ("ctrl+shift+1") used for conflict
+ * detection in the settings UI. Mirrors {@link matchGesture}'s normalization so
+ * "Ctrl+D1" and "Ctrl+1" collapse to the same key.
+ */
+export function canonicalGesture(gesture: string): string {
+  const parts = gesture.split('+')
+  const key = parts[parts.length - 1].toLowerCase()
+  const normalized = key.startsWith('d') && key.length === 2 ? key.slice(1) : key
+  const ctrl = parts.includes('Ctrl') ? 'ctrl+' : ''
+  const shift = parts.includes('Shift') ? 'shift+' : ''
+  const alt = parts.includes('Alt') ? 'alt+' : ''
+  return `${ctrl}${shift}${alt}${normalized}`
+}
+
+/**
+ * Builds an Avalonia-style gesture string from a keydown event, or null for a
+ * modifier-only press (which cannot be a binding on its own). Digits become
+ * "D1".."D9" and single letters upper-case, matching the default descriptors.
+ */
+export function eventToGesture(event: {
+  key: string
+  ctrlKey: boolean
+  metaKey: boolean
+  shiftKey: boolean
+  altKey: boolean
+}): string | null {
+  const { key } = event
+  if (key === 'Control' || key === 'Shift' || key === 'Alt' || key === 'Meta') return null
+  const parts: string[] = []
+  if (event.ctrlKey || event.metaKey) parts.push('Ctrl')
+  if (event.shiftKey) parts.push('Shift')
+  if (event.altKey) parts.push('Alt')
+  if (/^[0-9]$/.test(key)) parts.push(`D${key}`)
+  else if (key.length === 1) parts.push(key.toUpperCase())
+  else parts.push(key)
+  return parts.join('+')
 }
 
 /**
@@ -40,47 +105,59 @@ const NAV_VIEWS: { gesture: string; view: MainView }[] = [
   { gesture: 'Ctrl+D9', view: 'research' }
 ]
 
+/** Descriptor before the active gesture is resolved from persisted overrides. */
+type HotkeyDef = Omit<HotkeyAction, 'gesture'>
+
 export function buildDefaultHotkeys(): HotkeyAction[] {
   const shell = (): ReturnType<typeof useShellStore.getState> => useShellStore.getState()
-  const actions: HotkeyAction[] = NAV_VIEWS.map(({ gesture, view }) => ({
+  const defs: HotkeyDef[] = NAV_VIEWS.map(({ gesture, view }) => ({
     actionId: `app.nav.${view}`,
-    gesture,
+    defaultGesture: gesture,
+    categoryKey: 'hotkeys.category.navigation',
     labelKey: `shell.view.${view}`,
     run: () => shell().setMainView(view)
   }))
-  actions.push(
+  defs.push(
     {
       actionId: 'app.panels.binder',
-      gesture: 'Ctrl+B',
+      defaultGesture: 'Ctrl+B',
+      categoryKey: 'hotkeys.category.panels',
       labelKey: 'shell.toggleBinder',
       run: () => shell().toggleBinder()
     },
     {
       actionId: 'app.panels.inspector',
-      gesture: 'Ctrl+Shift+B',
+      defaultGesture: 'Ctrl+Shift+B',
+      categoryKey: 'hotkeys.category.panels',
       labelKey: 'shell.toggleInspector',
       run: () => shell().toggleInspector()
     },
     {
       actionId: 'app.edit.findReplace',
-      gesture: 'Ctrl+Shift+F',
+      defaultGesture: 'Ctrl+Shift+F',
+      categoryKey: 'hotkeys.category.editor',
       labelKey: 'findReplace.title',
       run: () => shell().setFindReplaceOpen(true)
     },
     {
       actionId: 'app.view.focus',
-      gesture: 'Alt+F',
+      defaultGesture: 'Alt+F',
+      categoryKey: 'hotkeys.category.panels',
       labelKey: 'menu.focusMode',
       run: () => shell().toggleFocusMode()
     },
     {
       actionId: 'app.commandPalette',
-      gesture: 'Ctrl+Shift+P',
+      defaultGesture: 'Ctrl+Shift+P',
+      categoryKey: 'hotkeys.category.general',
       labelKey: 'commandPalette.placeholder',
       run: () => shell().setCommandPaletteOpen(true)
     }
   )
-  return actions
+  return defs.map((def) => ({
+    ...def,
+    gesture: customGestures[def.actionId] ?? def.defaultGesture
+  }))
 }
 
 /**
