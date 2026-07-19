@@ -20,8 +20,17 @@ contextBridge.exposeInMainWorld('novalist', {
   saveFile(defaultName: string): Promise<string | null> {
     return ipcRenderer.invoke('novalist:save-file', defaultName)
   },
-  pickFile(title: string): Promise<string | null> {
-    return ipcRenderer.invoke('novalist:pick-file', title)
+  pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null> {
+    return ipcRenderer.invoke('novalist:pick-file', title, mode)
+  },
+  openExternal(target: string): Promise<boolean> {
+    return ipcRenderer.invoke('novalist:open-external', target)
+  },
+  revealPath(target: string): Promise<boolean> {
+    return ipcRenderer.invoke('novalist:reveal-path', target)
+  },
+  copyText(text: string): void {
+    ipcRenderer.send('novalist:copy-text', text)
   },
   setProjectRoot(root: string | null): void {
     ipcRenderer.send('novalist:set-project-root', root)
