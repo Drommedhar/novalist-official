@@ -2,6 +2,46 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "New UI: Main Process",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/app",
+      "runtimeExecutable": "${workspaceFolder}/app/node_modules/.bin/electron-vite",
+      "windows": {
+        "runtimeExecutable": "${workspaceFolder}/app/node_modules/.bin/electron-vite.cmd"
+      },
+      "runtimeArgs": ["dev", "--sourcemap"],
+      "console": "integratedTerminal",
+      "preLaunchTask": "build Novalist Backend (Debug)",
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/app/**",
+        "!**/node_modules/**"
+      ],
+      "env": {
+        "ELECTRON_RUN_AS_NODE": null,
+        "REMOTE_DEBUGGING_PORT": "9222"
+      }
+    },
+    {
+      "name": "New UI: Renderer Process",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "timeout": 60000,
+      "webRoot": "${workspaceFolder}/app/src/renderer",
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/app/**",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "name": "New UI: Attach to Backend (C#)",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:pickProcess}",
+      "justMyCode": true
+    },
+    {
       "name": "Launch Novalist Standalone",
       "type": "coreclr",
       "request": "launch",
@@ -31,6 +71,13 @@
         "WEBKIT_DISABLE_DMABUF_RENDERER": "1",
         "NOVALIST_FORCE_WEBKIT_WIZARD": "0"
       }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "New UI: Full Stack (main + renderer)",
+      "configurations": ["New UI: Main Process", "New UI: Renderer Process"],
+      "stopAll": true
     }
   ]
 }

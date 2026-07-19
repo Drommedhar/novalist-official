@@ -1,63 +1,43 @@
 # Smart Lists
 
-A **Smart List** is a saved query over your scenes. Instead of manually keeping a folder of "scenes to revise" or "scenes with Alice POV that aren't first-draft yet", you define the criteria once and the list updates itself as your project changes.
+A **Smart List** is a saved query over your scenes. Instead of manually keeping a folder of "scenes to revise" or "scenes with Alice POV that aren't drafted yet", you define the criteria once and re-run the list whenever you need it.
 
-## Where Smart Lists appear
+## Where Smart Lists live
 
-Smart Lists are in the **Smart Lists** tab of the left sidebar. Click it (or use the sidebar tab hotkey) to see all saved lists. Each list shows:
+Smart Lists have their own tab in the **binder's tab strip** — click **Smart Lists** next to **Chapters** at the top of the left pane.
 
-- **Name** — your label.
-- **Color** — optional swatch.
-- **Result count** — how many scenes currently match.
-
-Click a list to expand it: matching scenes appear underneath, grouped just like in the chapter Explorer. Click a scene to open it.
+Each saved list appears as a row. Click the chevron to expand it: the list is evaluated and matching scenes appear underneath as `Chapter - Scene` rows. Click a scene to open it in the Editor. While a list is expanded, a **refresh** button re-runs the query so the results reflect your latest edits.
 
 ## Creating a Smart List
 
-Click **+New smart list** at the top of the panel. The Smart List Editor dialog opens.
+Click **+ New smart list** at the top of the panel. The Smart List editor opens with these fields:
 
-Fields:
+- **Name** — required; the label shown in the panel.
+- **Chapter status** — match scenes whose chapter is at a specific status (**Outline / Draft / Revised / Edited / Final**). Leave at **Any status** to ignore.
+- **POV contains** — substring match against the scene's POV field. Set or fix POV values in the [Manuscript outliner](10-manuscript.md).
+- **Tag** — match scenes carrying a specific tag.
 
-- **Name** — required.
-- **Color** — optional. Used as a small swatch in the panel.
-- **Chapter status filter** — match scenes whose chapter is at a specific status (Outline / First Draft / Revised / Edited / Final). Leave unset to match all statuses.
-- **POV contains** — substring match against the scene's analyzed (or overridden) POV. Use this for "scenes from Alice's POV" if your Context sidebar is detecting POV correctly, or set the analysis override manually for reliability.
-- **Tag filter** — match scenes whose analysis tags include a specific tag. Tags live in `SceneData.AnalysisOverrides.Tags`.
-- **Plotline filter** — match scenes that include a specific plotline. Pick from the dropdown of plotlines.
+Filters combine as **AND**; leave a field empty to ignore it. **Save** and the list appears in the panel.
 
-Multiple filters combine as **AND**. Leave a filter unset to ignore it.
+## Editing and deleting
 
-Save and the list appears in the panel.
+Right-click a list in the panel:
 
-## Editing a Smart List
-
-Right-click a list in the panel → **Edit**. The same dialog opens for editing.
-
-## Deleting a Smart List
-
-Right-click → **Delete**.
+- **Rename** — opens the same editor to change the name or any filter.
+- **Delete** — removes the list after confirmation. Deleting a list never touches your scenes; a Smart List is purely a view.
 
 ## Use cases
 
-- **Revision queues.** "First Draft chapters with Alice POV" — your weekly revision list.
-- **Plotline focus.** "Mystery plotline scenes" — read the mystery as a continuous thread.
+- **Revision queues.** "Draft chapters with Alice POV" — your weekly revision list.
 - **Tag-based reading.** "Scenes tagged combat" — beta-read all the action without the connective tissue.
-- **Status audit.** "Scenes in Outline status" — find what still needs writing.
+- **Status audit.** "Chapters in Outline status" — find what still needs writing.
 
-## How matching works
+## Persistence
 
-Smart lists are computed live whenever the panel is visible or refreshed. There is no manual rebuild step.
-
-The filters are queried in this order: chapter status → POV substring → tag → plotline. A scene that matches every set filter passes.
-
-The list **does not** edit your scenes — it is purely a view.
-
-## Sharing and persistence
-
-Smart Lists are stored in the project's `project.json` and travel with the project. Anyone who opens the project sees the same lists.
+Smart Lists are stored in the project file and travel with the project. Anyone who opens the project sees the same lists.
 
 ## Where to go next
 
-- [Chapters & Scenes](04-chapters-and-scenes.md) — status, POV, plotlines, tags live here.
-- [Plot Grid](08-plot-grid.md) — Plotline filters get their values from the grid.
-- [Manuscript view](10-manuscript.md) — combine status filter with Smart Lists for a focused read.
+- [Chapters & Scenes](04-chapters-and-scenes.md) — status lives on chapters; scenes carry POV and tags.
+- [Manuscript view](10-manuscript.md) — edit POV and synopses in bulk in the outliner.
+- [Plot Grid](08-plot-grid.md) — track scenes across plotlines.

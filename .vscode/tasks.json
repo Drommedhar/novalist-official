@@ -2,6 +2,36 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "build Novalist Backend (Debug)",
+      "detail": "Builds the C# core the new Electron UI spawns as a child process.",
+      "type": "shell",
+      "command": "dotnet",
+      "args": [
+        "build",
+        "${workspaceFolder}/Novalist.Backend/Novalist.Backend.csproj",
+        "/property:GenerateFullPaths=true",
+        "/consoleloggerparameters:NoSummary"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$msCompile"
+      ],
+      "group": "build"
+    },
+    {
+      "label": "install New UI deps",
+      "detail": "npm install for the Electron app (run once after cloning).",
+      "type": "shell",
+      "command": "npm",
+      "args": ["install"],
+      "options": {
+        "cwd": "${workspaceFolder}/app"
+      },
+      "problemMatcher": []
+    },
+    {
       "label": "build Novalist Standalone",
       "type": "shell",
       "command": "dotnet",

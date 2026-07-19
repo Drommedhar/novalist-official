@@ -320,7 +320,8 @@
     "importPlugin": "从 Obsidian 插件导入...",
     "recentProjects": "最近项目",
     "noRecentProjects": "暂无最近项目。创建或打开一个项目以开始。",
-    "removeFromList": "从列表中移除"
+    "removeFromList": "从列表中移除",
+    "newProject": "新建项目"
   },
   "settings": {
     "title": "设置",

@@ -40,6 +40,23 @@ public sealed class RpcFacadeTests : IAsyncDisposable
         _client.InvokeAsync<T>(method, args);
 
     [Fact]
+    public async Task ProjectTemplates_ListAndCreateFromTemplate()
+    {
+        var templates = await InvokeAsync<ProjectTemplateDto[]>("project/templates");
+        Assert.Contains(templates, t => t.Id == "blank");
+        Assert.Contains(templates, t => t.Id == "three-act");
+
+        var seeded = await InvokeAsync<ProjectStateDto>(
+            "project/create", Path.Combine(_root, "seeded"), "Seeded", "Book", "three-act");
+        Assert.True(seeded.Chapters.Count > 0);
+        Assert.Contains(seeded.Chapters, c => c.Title == "Setup");
+
+        var blank = await InvokeAsync<ProjectStateDto>(
+            "project/create", Path.Combine(_root, "blank"), "Blank", "Book", "no-such-template");
+        Assert.Empty(blank.Chapters);
+    }
+
+    [Fact]
     public async Task FullProjectFlow_OverTheWire()
     {
         var created = await InvokeAsync<ProjectStateDto>("project/create", _root, "WireNovel", "Book One");

@@ -21,10 +21,24 @@ public sealed class ProjectRpc
     [JsonRpcMethod("project/recent")]
     public Task<RecentProjectDto[]> GetRecentAsync() => _workspace.GetRecentProjectsAsync();
 
+    private static readonly Novalist.Core.Services.ProjectTemplateService ProjectTemplates = new();
+
+    [JsonRpcMethod("project/templates")]
+    public ProjectTemplateDto[] GetProjectTemplates() =>
+        ProjectTemplates.GetTemplates()
+            .Select(t => new ProjectTemplateDto(t.Id, t.DisplayName, t.Description))
+            .ToArray();
+
     [JsonRpcMethod("project/create")]
-    public async Task<ProjectStateDto> CreateAsync(string parentDirectory, string projectName, string firstBookName)
+    public async Task<ProjectStateDto> CreateAsync(
+        string parentDirectory, string projectName, string firstBookName, string? templateId = null)
     {
         await _workspace.Projects.CreateProjectAsync(parentDirectory, projectName, firstBookName);
+        if (!string.IsNullOrWhiteSpace(templateId)
+            && ProjectTemplates.GetById(templateId) is { } template)
+        {
+            await ProjectTemplates.ApplyAsync(_workspace.Projects, template);
+        }
         var root = _workspace.Projects.ProjectRoot!;
         return await _workspace.OpenProjectAsync(root);
     }
@@ -158,3 +172,5 @@ public sealed class ProjectRpc
 }
 
 public sealed record DraftDto(string Id, string Name, bool IsActive);
+
+public sealed record ProjectTemplateDto(string Id, string Name, string Description);

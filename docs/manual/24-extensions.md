@@ -1,115 +1,73 @@
 # Extensions
 
-Novalist is extensible. An extension is a small .NET assembly that contributes new buttons, panels, views, export formats, entity types, editor behaviors, AI integrations, or themes. Anyone can install one; anyone can write one.
+Novalist is extensible. An extension is a small .NET assembly that runs inside the Novalist core process and contributes new panels, export formats, entity types, AI integrations, grammar checkers, or property types. Anyone can install one; anyone can write one.
 
 This page covers using extensions. For writing them, see [`extension-guide.md`](../extension-guide.md) in the parent docs folder.
 
-## The Extensions view
+## How extensions run
 
-Click the **plug** icon in the activity bar (bottom group). The Extensions view has two tabs:
+The Novalist interface is an Electron shell; all project logic lives in the bundled C# core process that starts with the app. Extensions are loaded by that core process, not by the interface — an extension is a .NET DLL plus an `extension.json` manifest, discovered at startup from the user extensions folder.
 
-### Installed
+Since SDK v2, extensions can also contribute **webview views**: HTML panels declared in the manifest's `contributes.views` block. Each view ships its own HTML entry file inside the extension folder and talks to the extension's .NET code over a JSON message channel, so the panel's logic runs in the core process while its UI renders in the app window.
 
-A list of every extension currently installed. Each entry shows:
+## Extension panels in the binder
 
-- **Name**, **version**, **author**.
-- **Description**.
-- **Enabled / Disabled** toggle — disable to silence an extension without uninstalling.
-- **Update** button — visible when a newer version is available in the gallery.
-- **Uninstall** button — removes the extension's files.
+When an installed extension contributes views, an **Extensions** group appears at the top of the view rail in the binder (the left pane), above the built-in Write / Plan / World / Publish groups. Each contributed view gets its own button with the icon and title from the manifest; clicking it opens the panel in the main area.
 
-Installing, updating, uninstalling, or toggling an extension's Enabled state requires a Novalist restart to fully take effect.
+The flagship example is the **AI Assistant** extension, which contributes three panels:
 
-### Browse Store
-
-Connects to the Novalist extension gallery (a GitHub-hosted index of community extensions). Each entry shows:
-
-- **Name**, **author**, **description**, **tags**.
-- **Install** button.
-- A short readme excerpt and an optional icon (128×128 PNG).
-
-The gallery is filtered to extensions compatible with your running Novalist version (the gallery entries declare `minHostVersion` and `maxHostVersion`).
-
-A search box filters by name, description, and tags.
+- **AI Chat** — a project-aware chat with your configured AI provider.
+- **Character Chat** — converse with one of your characters, grounded in their Codex entry.
+- **Story Analysis** — AI-driven analysis findings for your manuscript.
 
 ## Installing an extension
 
-1. Open the **Browse Store** tab.
-2. Find the extension you want.
-3. Click **Install**. The DLL and its assets are downloaded and unpacked into the user extensions folder.
-4. **Restart Novalist** for the new extension to load. After restart, look for its activity-bar icon, sidebar tab, ribbon button, status-bar item, or settings page to confirm.
-
-Some extensions need configuration after install — check their settings page (under Settings → the extension's category).
-
-## Enabling and disabling
-
-In the **Installed** tab, toggle the **Enabled** switch. A disabled extension contributes nothing.
-
-This is the safest way to debug a misbehaving extension: disable, restart, see if the problem persists.
-
-## Uninstalling
-
-In the **Installed** tab, click **Uninstall**. Confirms, then removes the extension folder. The extension's settings (if any) are preserved unless you delete the corresponding settings file under the app data folder.
+1. Get the extension's release package (usually a zip with the DLL, `extension.json`, and assets at the archive root).
+2. Unpack it into a folder named after the extension id inside the user extensions folder (see below).
+3. **Restart Novalist.** Extensions are discovered when the core process starts. After the restart, a contributed panel appears under **Extensions** in the binder rail; other contributions (export formats, entity types, grammar checkers) show up in their respective features.
 
 ## Where extensions live
 
 - **User-installed extensions** — `%APPDATA%/Novalist/Extensions/<extensionId>/` (Windows), `~/Library/Application Support/Novalist/Extensions/<extensionId>/` (macOS), `~/.config/Novalist/Extensions/<extensionId>/` (Linux).
-- Each extension folder contains the **DLL**, the **extension.json manifest**, and any **Locales/**, **Themes/**, or assets the extension ships.
+- Each extension folder contains the **DLL**, the **extension.json manifest**, and any **Locales/**, **web/**, or other assets the extension ships.
+
+To remove an extension, close Novalist and delete its folder.
 
 ## What extensions can do
 
-Extensions implement hook interfaces from the Novalist SDK. The full list of hooks:
+Extensions implement hook interfaces from the Novalist SDK. The main contribution points in the current interface:
 
-| Hook | Adds |
+| Contribution | Adds |
 | --- | --- |
-| `IRibbonContributor` | Buttons on the ribbon/app bar. |
-| `ISidebarContributor` | Tabs in the left or right sidebar. |
-| `IContentViewContributor` | Full-screen content views with activity-bar icons. |
-| `IStatusBarContributor` | Items in the status bar. |
-| `ISettingsContributor` | Categories and pages in Settings. |
-| `IHotkeyContributor` | Keyboard shortcuts. |
-| `IEditorExtension` | Hooks into the editor's lifecycle (document open/close, save). |
-| `IContextMenuContributor` | Items on right-click menus (explorer, entities, editor). |
-| `IExportFormatContributor` | New export formats. |
-| `IThemeContributor` | Color themes. |
+| Webview views (`contributes.views` + `IWebViewContributor`) | Panels in the binder rail under Extensions, rendered from the extension's own HTML. |
+| `IExportFormatContributor` | New export formats in the Export view. |
 | `IEntityTypeContributor` | New entity types in the Codex. |
 | `IPropertyTypeContributor` | New property types for templates. |
-| `IInlineActionContributor` | Editor inline actions (AI rewrite, expand, describe). |
 | `IAiHook` | Extends AI system prompts and processes responses. |
-| `IGrammarCheckContributor` | Custom grammar / style checkers. |
+| `IGrammarCheckContributor` | Custom grammar / style checkers for the editor. |
 
-Extensions can register **multiple** hooks. A single extension might add a sidebar tab, a status-bar widget, a settings page, and a hotkey.
-
-## Bundled example extension
-
-`Novalist.Sdk.Example` is a reference extension demonstrating 11 hook types: a Pomodoro timer (status bar + ribbon toggle), word frequency analysis (content view), writing prompts (sidebar), a plain-text export format, two themes (`.axaml`), an AI prompt-injection hook, an editor lifecycle hook, a context-menu item, a custom "Factions" entity type, a settings page, and an inline action.
-
-It's the best reading material if you're writing your own extension.
+Extensions can register **multiple** hooks — a single extension might add a panel, an export format, and a custom entity type. The manifest's `minHostVersion` / `maxHostVersion` fields declare which Novalist versions the extension supports.
 
 ## AI integration
 
-Some extensions integrate large-language-model providers (OpenAI, LM Studio, Claude, local copilot CLI). Typical settings exposed by an AI extension:
+The AI Assistant extension integrates large-language-model providers (for example LM Studio and the GitHub Copilot CLI). Typical settings exposed by an AI extension:
 
-- **Provider** — OpenAI / Anthropic / LM Studio / local CLI.
-- **Endpoint URL** — for self-hosted servers.
-- **Model name**.
-- **API token** — stored locally.
-- **Temperature**, **context length**, **frequency penalty**, **repeat-last-N**.
-- **Response language**.
-- **System prompt** — override the extension's default.
-- **Analysis checks** — toggles for entity-reference checking, inconsistency detection, suggestion generation, scene stats.
+- **Provider** and **endpoint URL** — for self-hosted or local servers.
+- **Model name** and **API token** — stored locally.
+- **Response language** and **system prompt** overrides.
+- **Analysis checks** — toggles for the individual analysis passes.
 
-These settings appear in Settings under the AI extension's category. Refer to the extension's README for specifics; AI extensions are not part of the core app.
+Refer to the extension's README for specifics; AI extensions are not part of the core app, and nothing leaves your machine unless you configure a remote provider.
 
 ## Writing your own extension
 
 See [`extension-guide.md`](../extension-guide.md). In short:
 
 1. Create a .NET 8 class library.
-2. Reference the `Novalist.Sdk` NuGet package.
-3. Implement `IExtension` and any hook interfaces you want to contribute.
+2. Reference the `Novalist.Sdk` package.
+3. Implement `IExtension` and any hook interfaces you want to contribute. For a UI panel, declare it in `extension.json` under `contributes.views` and implement `IWebViewContributor` for its message handling.
 4. Add an `extension.json` manifest.
-5. Build, copy output into your user extensions folder, restart.
+5. Build, copy the output into your user extensions folder, restart Novalist.
 
 To publish:
 
@@ -121,13 +79,12 @@ The full submission flow is in the extension guide.
 
 ## Troubleshooting extensions
 
-- **Extension didn't load.** Check the Extensions view — the bottom of an entry shows load errors.
-- **Crashes on startup.** Disable the suspect extension via the file manager: delete or rename `<extensions>/<extensionId>/`.
-- **Hotkey conflicts.** Two extensions binding the same gesture: rebind one of them in Settings → Hotkeys.
-- **AI extension consuming credits.** Check the extension's settings for an "enabled" toggle.
+- **Extension didn't load.** Check that the folder contains the DLL and a valid `extension.json`, and that the manifest's `minHostVersion` is not higher than your Novalist version. Load errors are written to the core process log.
+- **Crashes on startup.** Close Novalist and delete or rename `<extensions>/<extensionId>/`. The next startup skips the missing extension.
+- **AI extension consuming credits.** Check the extension's settings for an enable toggle, or remove the extension.
 
 ## Where to go next
 
 - [`extension-guide.md`](../extension-guide.md) — full SDK and packaging guide for developers.
-- [Settings](23-settings.md) — extension-contributed pages live here.
-- [Hotkeys](26-hotkeys.md) — extension-contributed bindings appear in the hotkeys grid.
+- [Settings](23-settings.md) — app settings, including the diagnostics log that captures extension load errors.
+- [Export](20-export.md) — extension-contributed formats appear here.

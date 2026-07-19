@@ -278,7 +278,8 @@
     "importPlugin": "Import from Obsidian Plugin...",
     "recentProjects": "Recent Projects",
     "noRecentProjects": "No recent projects yet. Create or open a project to get started.",
-    "removeFromList": "Remove from list"
+    "removeFromList": "Remove from list",
+    "newProject": "New Project"
   },
   "settings": {
     "title": "Settings",

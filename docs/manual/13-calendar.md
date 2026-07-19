@@ -1,92 +1,54 @@
-# Calendar & in-world dates
+# Calendar & story dates
 
-Novalist runs on the standard Gregorian calendar today. Chapters, scenes, acts, and timeline events can carry structured dates that show up on the Calendar view, the Timeline, and in tooltips and exports.
+The Calendar lays your scenes out on a Gregorian calendar, using the story dates stored on scenes and chapters. Use it to see the in-world schedule of the book — what happens on which day, and at what time.
 
-> **Note:** A custom-calendar data model (custom month names, days per month, weekday names, year label) exists internally and can be set via a project's JSON, but there is no in-app editor for it yet. The Calendar view, date pickers, and Timeline labels currently assume Gregorian. A custom-calendar editor is planned.
+## Where the dates come from
 
-## What "story dates" are
+A scene appears on the calendar when it has a resolvable story date: its own date (or date range), or, failing that, the date of its chapter or act. Dates can carry optional start/end times for hour-level precision; a scene without a time counts as all-day. A scene whose range spans several days appears on every day it covers.
 
-A **StoryDateRange** is a structured date attached to a chapter, scene, or timeline event. It has:
+Scene and chapter dates are part of the project data and are shared with the [Timeline](12-timeline.md).
 
-- **Start** — a date string in the active calendar's format.
-- **End** — same, optional. If absent the event is a single date.
-- **Start time / End time** — optional `HH:mm` strings for hour-level precision.
-- **Note** — optional free text annotation shown on hover.
+## Opening the Calendar
 
-Story date ranges live on:
+Open it from the **Plan** group in the binder's view rail (**Calendar**), from the command palette, or with `Ctrl+6` (macOS uses Cmd).
 
-- `ChapterData.dateRange`
-- `SceneData.dateRange`
-- `ActData` (for acts)
-- Timeline manual events
+## View modes
 
-When a date range is present it takes precedence over the simpler free-text `Date` field on the same item.
+Buttons at the top-left switch between three modes:
 
-## The Calendar view
+### Week
 
-Click the multi-day calendar icon in the activity bar to open the Calendar view. It has three view modes:
+Seven day columns. Each scene that falls on a day appears as a chip: all-day scenes first, then timed scenes in time order with their start time (`09:30`) as a prefix. Hover a chip for the chapter, scene title, and synopsis; click it to open the scene in the Editor.
 
-### Week view
+Use this view for schedule-driven sequences — a heist hour by hour, a wedding day, a multi-day siege — and for spotting clashes where two scenes claim the same hours.
 
-A 24-hour grid with day columns. Each scene with a `StoryDateRange` that overlaps the week is rendered as a colored block at the correct hour and day. The colour uses the scene's label color when set, otherwise a default.
+### Month
 
-Click a block to open the scene. Drag a block (in supported builds) to reschedule.
+A month grid. Each day cell shows up to three scene chips; if there are more, a `+N` marker shows the overflow. Days outside the current month are dimmed.
 
-Use this view for:
+Use this view for the in-world pace of a chapter — and for finding empty days that need filling, or proving your protagonist is over-scheduled.
 
-- Schedule-driven scenes (a heist hour by hour, a wedding day, a multi-day siege).
-- Spotting clashes where two scenes claim the same hours.
+### Year
 
-### Month view
+Twelve month cards, each showing how many scene-days it contains. Click a month to jump into its Month view.
 
-A standard month grid. Each day cell shows the scenes that take place that day as compact pills. Multi-day events span across cells.
+Use this view for macro-scale pacing and seasonal gaps.
 
-Use this view for:
+## Rescheduling by drag and drop
 
-- Sense of the in-world pace of a chapter.
-- Finding empty days that need filling — or empty days that prove your protagonist is over-scheduled.
+In Week and Month view, **drag a scene chip onto another day** to reschedule it — the scene's story date is set to that day. This is the quickest way to shuffle the in-world schedule without editing dates by hand.
 
-### Year view
+## Navigation and the anchor date
 
-A grid of months for the whole year. Each month cell highlights the days that contain scenes.
-
-Use this view for:
-
-- Macro-scale pacing.
-- Spotting seasonal gaps.
-
-## Navigation
-
-The toolbar has:
-
-- **Previous / Next** — moves by one unit of the active view mode (week, month, year).
-- **Today** — jumps to the current real-world date in the active calendar.
-- **Jump to date** — opens a date picker.
-
-## Setting story dates on chapters and scenes
-
-There are two ways to put a date on a chapter or scene:
-
-1. **Simple Date field** — a free-text string. Useful if your calendar is informal ("Day 3", "Spring"). Stored as `Date`.
-2. **Structured date range** — opens the **Story Date Range dialog** with calendar-aware controls. Stored as `DateRange`.
-
-Open the dialog from the chapter or scene right-click menu (**Set date**). The dialog asks for start, optional end, optional start/end times, and an optional note.
-
-## Where calendar dates show up
-
-- **Calendar view** — primary display.
-- **Timeline** — chapters and scenes with dates appear chronologically.
-- **Chapter / scene tooltips** — date-range string in the chapter and scene hover tooltips.
-- **Manuscript outliner** — date column.
-- **Exports** — when an export template includes a date placeholder.
+The **Previous / Next** buttons step by one week, month, or year depending on the mode; the label between them shows the visible range. The date the calendar is centered on — the **anchor date** — is saved with the project, so the Calendar reopens where you left it.
 
 ## Tips
 
-- **Even if dates don't matter, give chapters relative dates.** "Day 1", "Day 5", "Two weeks later" is enough to drive the timeline.
-- **For travel-heavy stories use the Week view.** Multi-day journeys plotted hour by hour quickly reveal whether the travel time is plausible.
+- **Even if dates don't matter, give chapters dates.** A coarse date per chapter puts every scene on the calendar; refine individual scenes only where the schedule matters.
+- **For travel-heavy stories use the Week view.** Multi-day journeys plotted day by day quickly reveal whether the travel time is plausible.
 
 ## Where to go next
 
-- [Chapters & Scenes](04-chapters-and-scenes.md) — story-date fields live on chapters and scenes.
-- [Timeline](12-timeline.md) — the other big chronological view.
-- [Codex](06-codex.md) — character ages can be driven by the calendar via birth-date age mode.
+- [Timeline](12-timeline.md) — the other chronological view, including manual events.
+- [Chapters & Scenes](04-chapters-and-scenes.md) — chapters and scenes carry the story dates.
+- [Codex](06-codex.md) — character ages can be driven by birth dates.

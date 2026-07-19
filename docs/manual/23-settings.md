@@ -1,132 +1,88 @@
 # Settings
 
-Settings is where you configure Novalist's appearance, the editor, writing assistance, writing goals, default templates, hotkeys, and integrations.
-
-Settings are stored in your user app-data folder and apply to every project you open. A subset (templates, calendar, project name) are per-project; those appear next to their per-project counterparts.
-
-## Global vs project settings
-
-The **Appearance**, **Editor**, and **Writing Assistance** sections each have an **Override for this project** checkbox at the top. It is enabled only while a project is open.
-
-- **Off (default)** — that section uses your global settings, shared by every project.
-- **On** — the section's values are saved with the project, in its `.novalist/settings.json` file, and override the global values whenever this project is open. Because they live inside the project folder, the overrides travel with the project through git and across devices.
-
-Overrides are resolved per setting: a project only stores the keys for the sections you switch to project scope; anything left global keeps inheriting the global value. Switching a section back to global clears that section's overrides and the values revert to your global settings immediately.
-
-This lets you, for example, keep one book in English with English quotation marks and another in German with German quotes and a German interface, without changing your global defaults. Switching projects re-applies the effective theme, accent color, and interface language for the project you open.
-
-Other sections have a fixed scope: hotkeys, updates, and diagnostics are always global; writing goals, templates, author, and calendar are always per-project. Only Appearance, Editor, and Writing Assistance offer the global/project switch.
+Settings is where you configure Novalist's appearance, the editor, writing assistance, entity templates, and diagnostics.
 
 ## Opening Settings
 
-- Click the **gear** icon in the activity bar.
-- Or **Start menu → Settings** (open the start menu from the hamburger button at the far left of the app bar).
-- Or the command palette → "Settings".
+In the binder's view rail (below the chapter tree), click **Settings** in the **Application** group, or use the command palette (`Ctrl+Shift+P`, `Cmd` on macOS) → "Settings". Settings opens in the main area like any other view.
 
-Settings opens as a full-window overlay. Click **Close** or press `Escape` to dismiss.
+## Global vs project settings
 
-A search box at the top of the Settings overlay lets you find a setting by name across all categories.
+The **Appearance**, **Editor**, and **Writing Assistance** cards each have an **Override for this project** checkbox at the top. It appears only while a project is open.
 
-## Categories
+- **Off (default)** — that section uses your global settings, shared by every project.
+- **On** — the section's values are saved with the project, in its `.novalist` folder, and override the global values whenever this project is open. Because they live inside the project folder, the overrides travel with the project through Git and across devices.
 
-The Settings overlay is divided into the following sections.
+Switching a section back to global clears that section's overrides and the values revert to your global settings immediately.
 
-### Appearance
+This lets you, for example, keep one book in English with English quotation marks and another in German with German quotes and a German interface, without changing your global defaults. Switching projects re-applies the effective theme, accent color, and interface language for the project you open.
 
-- **Language** — UI language. Discovered from the `Assets/Locales/*.json` files (English and German ship by default). The display name comes from each file's `language.name` key. Changes apply immediately without restart.
-- **Theme** — picks the active color scheme. Ships with **Default** (VS Code Dark+ inspired) and **Discord**. Custom themes can be dropped into `<InstallDir>/Assets/Themes/` as `.axaml` files and appear in the picker on next launch; extensions can also contribute themes via the SDK. The selection is stored in `AppSettings.Theme`.
-- **Accent color** — pick a custom accent or leave it on the theme default. The hex string is stored in `AppSettings.AccentColor`.
+The **Templates** section is always per-project (it only appears while a project is open). **Diagnostics** is always global.
 
-### Editor
+## Appearance
 
-- **Editor font family** — typeface used in the editor when book preview is off. Defaults to **Inter**.
-- **Editor font size** — point size. Default 14.
-- **Enable book paragraph spacing** — when on, the editor renders paragraphs the way a printed book would (first-line indents, tighter spacing).
-- **Enable book width** — when on, constrains the column to a printed-page width.
-- **Book page format** — choice of trim sizes. Default is **US Trade 6×9**. Other options include Digest (5.5×8.5), A5, Mass Market, and a Custom size.
-- **Book text-block width** — optional manual override of the text-block width within the page.
-- **Book font family** — typeface used in book preview / book export. Defaults to **Times New Roman**.
-- **Book font size** — book-preview point size. Default 11.
+- **Interface Language** — UI language. English, German, and Chinese (Simplified) ship built in. Changes apply immediately without restart.
+- **Theme** — the active color scheme:
+  - **Default** — follows your operating system's light/dark preference.
+  - **Discord**
+  - **Catppuccin Mocha**
+- **Accent Color** — pick a custom highlight color used throughout the interface.
 
-### Writing Goals
+On macOS 26 and later the window uses the native Liquid Glass material; older macOS versions get standard vibrancy.
 
-- **Daily word goal** — integer. Drives the daily-goal progress bar in the status bar. Reset at local midnight.
-- **Project word goal** — integer. Drives the project-goal progress bar.
-- **Project deadline** — optional date. When set, the dashboard computes days remaining and a suggested daily pace.
+## Editor
 
-### Writing Assistance
+- **Font Family** — typeface used in the editor.
+- **Font Size** — editor font size in pixels (8–36).
+- **Typewriter Scrolling** — keeps the active line at a fixed vertical position so you don't write near the bottom of the page. When on, an anchor choice appears: **Top**, **Middle**, or **Bottom**.
+- **Page View** — renders the editor as a printed-book-style page with paper background, margins, and shadow.
+- **Book Paragraph Spacing** — adds extra vertical space between lines for a book-like reading experience.
 
-- **Auto-replacement language** — preset that decides how straight quotes, dashes, and ellipses are converted. Options: English, German (low), German (guillemet), French, Spanish, Italian, Portuguese, Russian, Polish, Czech, Slovak. Picking a preset replaces the auto-replacement table with that language's defaults.
-- **Auto-replacement table** — editable list of `start`/`end` patterns and their `startReplace`/`endReplace` substitutions. Add custom replacements if you have specific quotation conventions.
-- **Dialogue Punctuation Correction** — toggle. When on, dialogue punctuation is auto-corrected as you type.
-- **Grammar & Spelling Check** — toggle. When on, the editor underlines grammar and spelling issues via a LanguageTool-compatible API.
-- **Grammar check API URL** — optional override. Leave empty to use the free public LanguageTool API. Provide a URL like `http://localhost:8081/v2/check` for a self-hosted instance.
+## Writing Assistance
 
-### Templates
+- **Quote Style** — the language preset for smart quotes, em-dashes, and ellipsis replacement as you type. Presets: `en`, `de-low`, `de-guillemet`, `fr`, `es`, `it`, `pt`, `ru`, `pl`, `cs`, `sk`.
+- **Dialogue Punctuation Correction** — automatically corrects comma and period placement around quotation marks in dialogue, based on the selected quote style language.
+- **Grammar & Spelling Check** — underlines grammar, spelling, and style issues in the editor using **LanguageTool**. Requires an internet connection (or a self-hosted LanguageTool server).
 
-Per-entity-type template management. For each of Character, Location, Item, Lore, and each custom entity type:
+## Templates
 
-- A list of available templates with **Edit** and **Delete** actions.
-- A **+New template** button.
+Per-entity-type template management, for Characters, Locations, Items, Lore, and every custom entity type. Each type lists its templates with **edit** and **delete** buttons plus an **Add template** button.
 
-See [Templates](07-templates.md) for the template editor itself.
+The template editor covers:
 
-### Hotkeys / Keyboard Shortcuts
+- **Template name**.
+- **Known fields** — tick the built-in fields the template should include and give each a default value. For characters, the Age field can be a plain **number** or a **date** (birth date) with a unit of years, months, or days.
+- **Custom fields** — extra key/default-value pairs.
+- **Default custom properties** — typed properties (String, Int, Bool, Date, Enum, Timespan) with defaults; Enum properties take a comma-separated option list.
+- **Sections** — pre-created sections with optional default content.
+- **Options** — whether entities created from the template include images, relationships (characters and custom types), and per-chapter overrides (characters).
 
-A searchable grid of every registered action with:
+See [Templates](07-templates.md) for how templates are used when creating entities.
 
-- **Action label** — e.g. "Toggle Focus Mode", "Add Comment", "Open Codex".
-- **Category** — e.g. "Editor", "Navigation", "Panels".
-- **Default binding** — the shipped hotkey.
-- **Current binding** — your override, if any.
-
-To rebind, click an action's binding and press the new key combination. Click the **×** next to a binding to clear it back to default.
-
-See [Hotkeys](26-hotkeys.md) for the full list of defaults.
-
-### Updates & Integrations
-
-- **Check for updates** — toggle. When on, Novalist checks for new releases on startup.
-- **Check for extension updates** — toggle.
-- **GitHub Personal Access Token** — optional. Increases the extension gallery API rate limit from 60 to 5000 requests per hour. Stored locally; never sent anywhere other than GitHub's public API.
-
-### Diagnostics
+## Diagnostics
 
 - **Diagnostic logging** — toggle, off by default. When on, Novalist writes a technical log to a file you can send for support (e.g. to report a bug we cannot reproduce).
-  - **What it records:** app events, lifecycle and startup phases, settings state, panel/sidebar visibility, and errors / stack traces.
-  - **What it never records:** your story text, characters, locations, items, lore, scene or chapter titles, notes, or file names. File paths are stripped to their extension only. The log is content-safe by design so you do not have to worry about your writing being copied.
-  - **Open log folder** / **Open current log** — open the log so you can read it before sending. **Clear logs** deletes the files.
-  - Logs live in `%APPDATA%/Novalist/logs/` (Windows), `~/Library/Application Support/Novalist/logs/` (macOS), `~/.config/Novalist/logs/` (Linux), named `novalist-<date>.log` and size-rotated.
+  - **What it records:** app events, lifecycle and startup phases, settings state, and errors / stack traces.
+  - **What it never records:** your story text, characters, locations, items, lore, scene or chapter titles, notes, or file names. The log is content-safe by design, and you can open and read the file before sending it.
 
-### Extension settings
+## Moved elsewhere
 
-Each installed extension that contributes settings appears as its own category at the bottom of the Settings overlay. The category name and icon are chosen by the extension.
-
-## Per-project settings
-
-A small set of settings are project-scoped rather than app-scoped, stored in `<Project>/.novalist/settings.json`:
-
-- **Author name** for exports.
-- **Project default templates** (when distinct from the global ones).
-- **Watch filesystem** — toggle, on by default. When on, Novalist watches the active draft folder and reconciles scenes/chapters you add, move, rename, or delete with a file manager while the app is open. Turn it off on flaky network or cloud drives where the watcher misbehaves; reconciliation still runs when you open the project. See [Editing your project outside Novalist](03-projects-and-books.md#editing-your-project-outside-novalist).
+- **Writing goals** (daily and project word goals) are edited directly on the [Dashboard](11-dashboard.md) — click a goal card's title.
+- **Keyboard shortcuts** are listed in [Hotkeys](26-hotkeys.md).
 
 ## Where settings live
 
-- **App-level** — `%APPDATA%/Novalist/` on Windows, `~/Library/Application Support/Novalist/` on macOS, `~/.config/Novalist/` on Linux.
-- **Project-level** — `<Project>/.novalist/`.
-- **Hotkey overrides** — `AppSettings.HotkeyBindings` (app-level).
-- **Recent projects** — `AppSettings.RecentProjects` (app-level).
-- **Window state** — width, height, position, maximized (app-level).
+- **Global settings** — in your user app-data folder, per machine.
+- **Project overrides** — in `<Project>/.novalist/`, versioned with the project.
 
 ## Tips
 
-- **Set the daily goal small at first.** A daily goal you hit eight days out of ten is better than one you hit twice a month.
-- **Switch theme by light.** Dark mode for evening sessions, light for daylight; the eyes will thank you.
+- **Switch theme by light.** Dark for evening sessions, light for daylight; with the Default theme this follows your OS automatically.
 - **Disable grammar check if it slows you down.** It calls a remote API; some networks are slow enough that the underlines lag.
 - **Use a self-hosted LanguageTool for offline use.** A `docker-compose` LanguageTool image takes minutes and removes the cloud dependency.
 
 ## Where to go next
 
+- [Templates](07-templates.md) — how entity templates are applied.
 - [Hotkeys](26-hotkeys.md) — every default shortcut.
-- [Extensions](24-extensions.md) — extension contributions appear here.
-- [Localization](27-localization.md) — adding new UI languages.
+- [Localization](27-localization.md) — the bundled interface languages.

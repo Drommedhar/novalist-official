@@ -1,75 +1,50 @@
 # Research
 
-The Research view is your project's scrapbook. Notes, URLs, PDFs, reference images, downloaded articles, transcripts of interviews — anything that informs the writing but isn't a scene or an entity.
+The Research view is your project's scrapbook: quick notes, reference URLs, and pointers to files — anything that informs the writing but is not a scene or an entity.
 
-Research is per-project; it isn't tied to a specific book, scene, or character (though you can tag items so they're easy to filter).
+Research is per-project. It is not tied to a specific book, scene, or character, and it travels with the project folder.
 
 ## Opening Research
 
-Use **View → Research** or its hotkey. Research lives in its own content area and you can have it open as a tab alongside scenes.
+Open it from the **World** group in the binder's view rail (**Research**), from the command palette, or with `Ctrl+9` (macOS uses Cmd).
 
-## Item types
+## Layout
 
-A research item is one of:
+The view is a two-pane list-and-editor:
 
-- **Note** — markdown body. For quick text notes, transcribed paragraphs, research summaries.
-- **Link** — a URL. Click to open in the system browser.
-- **File** — any binary file. Stored alongside the project.
-- **Image** — auto-detected from the file extension. Renders inline in the preview.
-- **PDF** — auto-detected from `.pdf`. Renders in the embedded PDF viewer.
+- **Left** — the list of research items, each showing its title and type. Click an item to open it.
+- **Right** — the editor for the selected item.
 
-Each item has:
+## Items
+
+Every research item has:
 
 - **Title**
-- **Type**
-- **Content** — for notes, the markdown body; for links, the URL; for files/images/PDFs, a relative path inside the research folder.
-- **Tags** — comma-separated. Used for filtering.
-- **Created at** / **Updated at** — auto-timestamped.
+- **Type** — one of **Note**, **Link**, **File**, or **Image**.
+- **Content** — the body. For notes this is the text itself; for links, the URL; for files and images, the file path.
+- **Tags** — comma-separated labels.
 
-## Adding items
+Click **+ Note** at the top of the list to create a new item (it starts as a Note; switch the type in the editor if it is really a link or a file reference).
 
-Toolbar buttons:
+Everything saves automatically as you edit — changes are written when you leave a field.
 
-- **Add note** — opens a markdown editor for an inline note.
-- **Add link** — input dialog for URL and title.
-- **Import file** — file picker; Novalist auto-detects the type (image, PDF, or generic file) by extension and copies the file into the project's research folder.
-
-## Browsing and filtering
-
-- Items appear as a **list on the left** of the Research view, sorted by recency.
-- Click an item to see it in the **detail panel on the right**.
-- A **search box** filters by title.
-- A **tag filter** narrows to items with a specific tag.
-
-## The detail panel
-
-- **Notes** — rendered markdown with edit-in-place. Inline images supported via standard markdown syntax pointing at images stored in the project.
-- **Links** — title, URL, **Open** button.
-- **Images** — full-size preview with zoom.
-- **PDFs** — embedded reader with paging and zoom.
-- **Files** — metadata, size, type, with **Open externally** and **Reveal in file manager** actions.
+To delete an item, open it and click **Delete**; a confirmation dialog asks first.
 
 ## Tags
 
-Add tags by editing the item. Tags are case-sensitive labels separated by commas. Useful schemes:
+Tags are comma-separated labels on each item. Useful schemes:
 
 - By topic: `medieval`, `sailing`, `chemistry`.
 - By chapter: `ch1`, `ch4`.
 - By status: `to-read`, `consulted`.
 
-The tag filter shows every distinct tag in the project.
-
-## Where files live
-
-Imported files are copied into `<Project>/Research/` so the project is self-contained. Notes are stored as JSON entries in the research manifest.
-
 ## Tips
 
-- **Capture once, in detail.** It is much faster to write while reading research notes inside the app than to alt-tab to a browser tab.
-- **Tag by chapter when relevant.** A `ch3` tag on every piece of research you needed for chapter 3 makes copy-edits trivial: filter, re-read, fix.
-- **Don't over-organize.** A flat list with sensible titles plus a few tags beats a deep folder hierarchy.
+- **Capture once, in detail.** It is much faster to write while reading research notes inside the app than to alt-tab to a browser.
+- **Tag by chapter when relevant.** A `ch3` tag on every piece of research you needed for chapter 3 makes copy-edits trivial: skim, re-read, fix.
+- **Don't over-organize.** A flat list with sensible titles plus a few tags beats a deep hierarchy.
 
 ## Where to go next
 
 - [Codex](06-codex.md) — for worldbuilding that is structured.
-- [Snapshots](17-snapshots.md) — Research items are not snapshotted; for irreplaceable notes, also keep a Git commit.
+- [Git integration](18-git.md) — commit regularly so irreplaceable notes are versioned with the project.

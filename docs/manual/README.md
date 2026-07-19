@@ -15,65 +15,66 @@ If you are looking for a specific feature, jump straight to its page from the ta
 ### The basics
 
 1. [Getting Started](01-getting-started.md) — install Novalist, create your first project, write your first scene.
-2. [Interface Overview](02-interface-overview.md) — activity bar, sidebars, content area, status bar, start menu, command palette.
+2. [Interface Overview](02-interface-overview.md) — the three-pane window: binder, main area, inspector; toolbar, status bar, start screen, command palette.
 3. [Projects & Books](03-projects-and-books.md) — what a project is, the multi-book model, project folder layout, recent-projects list.
 
 ### Writing
 
-4. [Chapters & Scenes](04-chapters-and-scenes.md) — the unit of writing in Novalist. Status, dates, plotlines, label colors, favorites, reordering.
-5. [Editor](05-editor.md) — WYSIWYG editor, formatting, paragraph styles, focus mode, split editor, auto-replacements, dialogue correction, grammar check, focus peek.
-6. [Manuscript view](10-manuscript.md) — read the whole book end-to-end, switch to corkboard or outliner, filter by status.
-7. [Find & Replace](21-find-replace.md) — across-book search with regex, scopes, match list.
+4. [Chapters & Scenes](04-chapters-and-scenes.md) — the unit of writing in Novalist. Status, dates, plotlines, favorites, reordering, archiving.
+5. [Editor](05-editor.md) — WYSIWYG editor, formatting, paragraph styles, focus mode, split editor, auto-replacements, dialogue correction, grammar check, entity hover cards.
+6. [Manuscript view](10-manuscript.md) — read the whole book end-to-end, switch to corkboard or outliner.
+7. [Find & Replace](21-find-replace.md) — project-wide search with scopes and snapshot-guarded replace-all.
 
 ### Worldbuilding
 
-8. [Codex (Characters, Locations, Items, Lore)](06-codex.md) — entities, sections, custom properties, chapter overrides, relationships, world bible vs book-scoped, custom entity types.
+8. [Codex (Characters, Locations, Items, Lore)](06-codex.md) — entities, sections, custom properties, chapter overrides, relationships, custom entity types, guided wizards.
 9. [Templates](07-templates.md) — entity templates, project templates, story-structure templates, default values.
 10. [Plot Grid & Plotlines](08-plot-grid.md) — track which scenes belong to which threads.
 11. [Relationships graph](14-relationships.md) — auto-clustered family/social graph of your characters.
 12. [Calendar & in-world dates](13-calendar.md) — Gregorian calendar, scene placement, story date ranges.
-13. [Timeline](12-timeline.md) — chronological event view across acts, chapters, scenes, and manual events.
-14. [Maps](29-maps.md) — interactive map view with layered images, polygon clip masks, entity-linked pins, floor stacks.
+13. [Timeline](12-timeline.md) — chronological event view across acts, chapters, scenes, and manual events, with story-structure templates.
+14. [Maps](29-maps.md) — interactive 2D/3D map view with layered images, terrain, roads, buildings, and entity-linked pins.
 
 ### Project management
 
 15. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
-16. [Research](15-research.md) — notes, links, files, PDFs, images attached to your project.
+16. [Research](15-research.md) — notes attached to your project.
 17. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline.
-18. [Snapshots](17-snapshots.md) — per-scene version history with side-by-side compare.
+18. [Snapshots](17-snapshots.md) — per-scene version history, taken from the inspector.
 19. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
-20. [Git integration](18-git.md) — stage, commit, push, pull without leaving the app.
+20. [Git integration](18-git.md) — commit, push, pull without leaving the app.
 
 ### Output
 
-21. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, plus formats added by extensions.
+21. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, and more, plus formats added by extensions.
 
-### Context panels
+### The inspector
 
-22. [Context sidebar, Notes, Footnotes, Comments](22-context-sidebar.md) — the right-hand and bottom panels that surround the editor.
+22. [Inspector](22-context-sidebar.md) — the right-hand pane: synopsis, notes, metadata, and scene snapshots for the open scene.
 
 ### Customisation
 
-23. [Settings](23-settings.md) — appearance, editor, writing assistance, writing goals, accent color, language.
-24. [Extensions](24-extensions.md) — install, enable, disable, browse the gallery, write your own.
-25. [Command palette](25-command-palette.md) — every action in one searchable box.
-26. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut, and how to rebind.
-27. [Localization](27-localization.md) — switching language, contributing translations.
+23. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
+24. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
+25. [Command palette](25-command-palette.md) — every shell command in one searchable box.
+26. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
+27. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
 
 ### Help
 
-28. [Troubleshooting & FAQ](28-troubleshooting.md) — common problems, where files live, how to recover.
+28. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
 
 ## Conventions used in this manual
 
-- **Activity bar** refers to the narrow vertical strip of icons on the far left of the window. Clicking one switches the main content view.
-- **Sidebar** without qualification means the left sidebar (chapter/entity/smart-list explorer).
-- **Context sidebar** is the right-hand panel that holds the Context tab, Footnotes tab, and any extension-contributed tabs.
-- **Scene notes** is the bottom panel that holds the scene's synopsis, notes, and comments.
+- **Binder** is the left pane: the chapter/scene tree (with a Smart Lists tab) and, below it, the **view rail** — grouped buttons (Write, Plan, World, Publish, Application, and Extensions when installed) that switch the main area.
+- **Main area** is the center pane showing the active view.
+- **Inspector** is the right pane with details for the open scene.
+- **Toolbar** is the slim bar at the top: binder toggle, book and draft selectors, project name, new chapter / new scene, Search, inspector toggle.
+- **Status bar** is the bottom strip with live word counts and the core-connection status.
 - Keyboard shortcuts are written as `Ctrl+Shift+P`. On macOS, read `Ctrl` as `Cmd`.
 
 ## A note on data safety
 
 Everything in your project lives in a single folder. The `.novalist/` subfolder holds the JSON manifests; the `Books/` subfolder holds your chapters, scenes, and entity files. You can back up your project by copying the folder, version-control it with Git, or sync it through any file-sync tool you already use.
 
-Novalist also takes **snapshots** of scenes automatically when you save, so you can revert an individual scene to a previous version without affecting the rest of the project. See [Snapshots](17-snapshots.md).
+Novalist also keeps per-scene **snapshots**: take one from the inspector at any time, and replace-all operations take one automatically before touching your text — so you can revert an individual scene without affecting the rest of the project. See [Snapshots](17-snapshots.md).

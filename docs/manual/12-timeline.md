@@ -1,94 +1,72 @@
 # Timeline
 
-The Timeline is a chronological view of your story. It collects everything that has a date attached — acts, chapters, scenes, and manually-added events — and arranges them on a timeline you can zoom in and out of.
+The Timeline is a chronological view of your story. It collects everything that has a date attached — acts, chapters, scenes, and manually added events — and groups them along a time axis you can zoom in and out of.
 
-Use it to see the pacing of in-world time, to spot timeline holes, and to plan events outside any particular scene.
+Use it to see the pacing of in-world time, to spot timeline holes, and to plan beats that are not tied to any particular scene.
 
 ## Opening the Timeline
 
-Click the calendar icon in the activity bar, or use **View → Timeline** (or its hotkey).
+Open it from the **Plan** group in the binder's view rail (**Timeline**), from the command palette, or with `Ctrl+3` (macOS uses Cmd).
 
 ## What appears on the timeline
 
-The timeline draws an event for every:
+- **Acts** — each act name appears once, ahead of its first chapter.
+- **Chapters** — every chapter that has a date.
+- **Scenes** — every scene that has a date (a scene without its own date inherits its chapter's date). Shown as `Chapter: Scene`.
+- **Manual events** — anything you add directly to the timeline.
 
-- **Act** — if the act has a date range. Shown in purple (`#9b59b6`).
-- **Chapter** — if the chapter has a date or date range. Shown in blue (`#3498db`).
-- **Scene** — if the scene has a date or date range. Shown in green (`#27ae60`).
-- **Manual event** — anything you add directly to the timeline. Shown in orange (`#e67e22`).
+Each entry shows a marker dot, its title, its date, and (for scenes and manual events) a description or synopsis. Events that reference characters or locations also show them as **chips** under the description.
 
-Each event has:
+Entries are grouped under headers according to the zoom level (for example `2024`, `Mar 2024`, or `Mar 15, 2024`). Undated entries collect in a `???` group at the end — handy as an inbox of beats still waiting for a date.
 
-- **Title**.
-- **Date** (or date range).
-- **Category** — one of Plot, Character, Location, World, Other.
-- **Description** (optional).
-- **Linked chapter** (optional) — clicking the event jumps to the chapter.
+**Dates** are free-form text but sort best in ISO form: `YYYY-MM-DD` (also accepted: `YYYY-MM`, `YYYY`, `D.M.YYYY`).
 
-Items with **date ranges** (start/end) render as bars; items with a single date render as dots.
+## The toolbar
 
-## View modes
+- **Add Event** — create a manual event (see below).
+- **Export Outline** — pick a file and Novalist writes the timeline as a Markdown outline.
+- **Add structure...** — story-structure templates (see below).
+- **Character filter** — only show events that reference a specific character. The dropdown appears once at least one event references characters.
+- **Location filter** — same, for locations.
+- **Source filter** — limit to **Acts**, **Chapters**, **Scenes**, or **Events** (manual). Use this to hide the chapter rows when you only want your planned beats.
+- **Vertical / Horizontal** — toggles the layout direction. Vertical flows top-to-bottom for scrolling; horizontal lays groups left-to-right for a sense of pace.
+- **Zoom** — cycles the grouping granularity: **Year → Month → Day**.
 
-A toggle at the top of the view switches between:
+Filters combine. The layout direction and zoom level are saved with the project.
 
-- **Vertical** — events flow top-to-bottom in a single column. Easy to scroll through.
-- **Horizontal** — events laid left-to-right along a horizontal axis. Good for visualizing pace.
+## Story-structure templates
 
-The choice persists per book.
+The **Add structure...** dropdown appends a bundled set of beats to the timeline as manual events:
 
-## Zoom levels
+- **Three-Act** — Setup, Confrontation, Resolution; 8 beats.
+- **Save the Cat** — Blake Snyder's 15-beat structure.
+- **Hero's Journey** — the 12-stage monomyth.
+- **7-Point Story** — Dan Wells' 7-point structure.
 
-A second toggle changes the time granularity:
+The beats arrive undated (they land in the `???` group). Work through them: open each beat, give it a date, link it to the chapter that delivers it, and replace the stock description with your own. Applying a template never touches your chapters or scenes — it only adds manual events, which you can edit or delete individually.
 
-- **Day**
-- **Month**
-- **Year**
+## Manual events
 
-The labels along the time axis change accordingly. Zoom out to see the whole book at once; zoom in to see day-by-day scheduling for a tightly-timed thriller.
+Click **Add Event** (or click an existing manual event) to open the event editor:
 
-## Navigation
-
-The toolbar has:
-
-- **Previous / Next** — moves the visible window by one zoom unit (one day, one month, or one year).
-- **Today** — re-center on today's real-world date.
-- **Jump to date** — opens a date picker (uses the active in-world calendar if one is configured for the book; see [Calendar](13-calendar.md)).
-
-## Filtering
-
-Three filter controls:
-
-- **Character** — only show events linked to (or referencing) a specific character. The dropdown lists characters from the active book.
-- **Location** — only show events at a specific location.
-- **Source** — limit by event source (Act / Chapter / Scene / Manual). Use this to hide chapter rows when you want to see only manually-added events.
-
-Filters combine. Active filters are indicated next to the toolbar.
-
-## Adding a manual event
-
-Click **+New event** on the timeline toolbar. An inline form appears:
-
-- **Title** — short label.
-- **Date** — date or date range picker (uses the active in-world calendar).
-- **Category** — Plot / Character / Location / World / Other.
+- **Name** — short label.
+- **Date** — optional, e.g. `1043-03-01`.
+- **Category** — Plot Point, Character Event, Location Event, or World Event.
+- **Link to Chapter** — optional; associates the event with a chapter.
 - **Description** — optional long text.
-- **Linked chapter** — pick from the active book's chapters; the event will jump to that chapter when clicked.
 
-Press **Save** and the event appears on the timeline. Manual events are stored on the book.
+**Save** stores the event with the project. When editing, the dialog also offers **Delete**; alternatively, right-click a manual event on the timeline to delete it.
 
-## Editing and deleting events
-
-- **Auto-derived events** (act / chapter / scene) cannot be edited from the timeline — change their date by editing the act, chapter, or scene directly.
-- **Manual events** can be edited by clicking them and pressing **Edit**, or deleted via **Delete**.
+Act, chapter, and scene entries cannot be edited from the timeline — change their dates on the item itself. Clicking a scene entry opens that scene in the Editor.
 
 ## Tips
 
-- **Set chapter dates first.** Even if your story doesn't depend on dates, a relative date is enough to make the timeline meaningful — "Day 1", "Day 3", "Year 2 Spring".
-- **Use ranges where it matters.** A chapter that spans three weeks tells a different pacing story than three chapters that span one day each. Use date ranges to capture that.
-- **Filter by character to spot off-screen time.** A character filter shows you where they were "on screen" and where they were not — easy way to spot a character who disappears for half the book and reappears without explanation.
+- **Set chapter dates first.** Even a coarse date per chapter is enough to make the timeline meaningful; scenes inherit it automatically.
+- **Use a template as a checklist, not a mold.** Apply Save the Cat, then delete the beats your story genuinely does not have — the ones left undated at the end are your gaps.
+- **Filter by character to spot off-screen time.** A character filter shows where someone was "on screen" and where they were not — an easy way to catch a character who disappears for half the book.
 
 ## Where to go next
 
-- [Calendar](13-calendar.md) — the Gregorian calendar view.
-- [Chapters & Scenes](04-chapters-and-scenes.md) — set dates and date ranges on chapters and scenes.
-- [Plot Grid](08-plot-grid.md) — orthogonal view (plotlines × scenes).
+- [Calendar](13-calendar.md) — the day/week/month calendar view of the same dates.
+- [Chapters & Scenes](04-chapters-and-scenes.md) — chapters and scenes carry the dates.
+- [Plot Grid](08-plot-grid.md) — the orthogonal view (plotlines × scenes).

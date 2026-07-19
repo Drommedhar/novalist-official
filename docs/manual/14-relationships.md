@@ -1,64 +1,45 @@
 # Relationships graph
 
-The Relationships view draws every character in the active book as a node and every relationship between them as a labeled edge. It auto-clusters families and shared groups, so big casts remain legible.
+The Relationships view draws your characters as nodes and the relationships between them as labeled edges. It clusters families automatically, so big casts remain legible.
 
 ## Opening the Relationships view
 
-Click the **user** icon in the activity bar, or use the Relationships hotkey.
+Open it from the **Plan** group in the binder's view rail (**Relationships**), from the command palette, or with `Ctrl+7` (macOS uses Cmd).
 
 ## What you see
 
-- **Nodes** — one per character. Each node shows the character's primary image (or initials) and their display name.
-- **Edges** — directed lines for each relationship, labeled with the relationship role (e.g. "Father", "Mentor", "Owes a debt to").
-- **Group boxes** — characters in the same family or `Group` are visually clustered with a soft outline.
+- **Nodes** — one per character that has at least one relationship. Characters with no relationships are hidden; if nothing is connected yet, the view tells you to add relationships in the Codex.
+- **Edges** — lines between related characters, labeled with the relationship role (e.g. "Father", "Mentor", "Owes a debt to"). When two characters are linked by several roles, the labels combine into one edge ("Father / Mentor"). Family edges inside a cluster are drawn thin and unlabeled — the layout already says what they mean.
+- **Family boxes** — related family members are enclosed in a soft box labeled `Family <surname>` (using the family's most common surname). Inside a box, generations are layered top to bottom: parents above children, partners on the same row.
+- Characters connected only by non-family roles are arranged in a loose ring below the family clusters.
 
-The layout is force-directed: well-connected characters pull together, weakly-connected ones drift apart. Drag any node to pin it.
+## How family clustering works
 
-## How clustering works
+Novalist detects family roles by keyword: relationship roles containing words like "father", "mother", "son", "daughter", "spouse", "wife", "husband", "partner", "brother", "sister", "twin" (and their equivalents in every bundled language) are treated as family links. The keyword vocabularies live in the locale files under the `relationships` section and are merged across all bundled languages, so role matching works regardless of the UI language you write in.
 
-Novalist detects family roles automatically via keyword matching. The keyword lists live in the locale files under the `relationships` section (`parent`, `child`, `partner`, `sibling`, `pseudo`) — see `Assets/Locales/en.json` and `de.json` for the shipped vocabularies. Adding a new language is a matter of dropping a locale JSON with its own `relationships` section; all installed locales are merged at load time so role matching always covers every shipped vocabulary regardless of the active UI language.
+Other roles — mentor, enemy, business partner, owes a debt to — appear as labeled edges without clustering.
 
-Characters with these connections are grouped into family clusters. Characters with the same `Group` field (see [Codex](06-codex.md)) are clustered together too.
+## Toolbar
 
-Other relationship roles (mentor, enemy, business partner, owes a debt to) appear as labeled edges without grouping.
+- **Search** — type to filter the graph to characters whose name matches.
+- **Hide world-bible entities** — hide characters marked as world-bible, leaving only this book's cast.
+- **Zoom readout** — shows the current zoom percentage.
 
-## Filtering
-
-The toolbar offers:
-
-- **Search** — filter by name.
-- **Group filter** — show only characters in a given Group.
-- **Role filter** — show only characters in a given Role (Protagonist, Antagonist, etc.).
-- **Hide world-bible characters** — toggle to hide entities marked as world-bible from the current book's view.
-
-## Interacting with nodes
-
-- **Click a node** — opens the character editor in a new tab.
-- **Hover** — preview the character's focus-peek card.
-- **Drag a node** — repositions it; the rest of the graph re-layouts.
+**Zoom** with the mouse wheel (20% to 400%); **pan** by dragging the background.
 
 ## Adding and editing relationships
 
-The graph reflects what's stored on each character entity. To add a relationship:
+The graph reflects what is stored on each character entity. To add a relationship, open the character in the [Codex](06-codex.md), go to its **Relationships** section, and add a role plus one or more target characters. When you add a relationship, Novalist offers to add the matching inverse on the target character so both sides stay in sync.
 
-1. Open the source character editor.
-2. Go to the **Relationships** section.
-3. Click **Add relationship**.
-4. Type the role description (e.g. "Father", "Best friend", "Owes 5000 gold to") in the **description** field.
-5. Pick the target character(s) — the **target** field accepts a comma-separated list of names with autocomplete.
-6. Save.
-
-When you save, Novalist may prompt the **Inverse Relationship Dialog** asking whether to add the inverse on the target character. It only asks for relationships that are not already reciprocated — if the target already points back at this character, the prompt is skipped and no duplicate is created. After a few rounds it learns your project's role pairs and prompts less.
-
-Each role is stored once per character; adding the same role for several targets merges them into one comma-separated row rather than repeating the role.
+Return to the Relationships view and the graph updates.
 
 ## Tips
 
-- **Use Group field for non-family clusters.** Houses, factions, ships' crews — set a consistent Group value and the graph groups them automatically.
-- **Use ALL CAPS for roles when noise is high.** A directed "OWES MONEY TO" edge reads at a glance.
-- **For very large casts, filter by Group.** Force-directed graphs become spaghetti past ~40 nodes; filtering is more useful than zooming.
+- **Name roles with family words when you want clustering.** "Father", "wife", "half-sister" cluster; "patriarch of" does not. Keep an eye on which edges end up inside boxes.
+- **Use ALL CAPS for high-signal roles.** A directed "OWES MONEY TO" edge reads at a glance.
+- **For very large casts, search.** Filtering to a name and its connections is more useful than zooming out over a hundred nodes.
 
 ## Where to go next
 
 - [Codex](06-codex.md) — where character relationships are edited.
-- [Settings](23-settings.md) — Novalist remembers relationship-pair inverses you confirm; you can also seed them.
+- [Timeline](12-timeline.md) — track where those characters appear over story time.

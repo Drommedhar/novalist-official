@@ -1,104 +1,69 @@
 # Dashboard
 
-The Dashboard is your project's home screen. It shows totals, goals, status breakdown, pacing, and writing-quality cues — the numbers you want to glance at before sitting down to write, and the ones you want to check before declaring a draft done.
+The Dashboard is your project's numbers page. It shows totals, goals, streaks, status breakdown, pacing, and writing-quality cues — the numbers you want to glance at before sitting down to write, and the ones you want to check before declaring a draft done.
 
 ## Opening the Dashboard
 
-Click the bar-chart icon in the activity bar, or use **View → Dashboard** (or its hotkey). When you open a project with no scene previously active, the Dashboard is the default landing view.
+Open it from the **Write** group in the binder's view rail (**Dashboard**), from the command palette, or with `Ctrl+2` (macOS uses Cmd).
 
 ## What the Dashboard shows
 
-### Header
+### Header and top-line stats
 
-- **Book cover image** (if set) — set from the dashboard's image picker. The Dashboard is the only place to set or change the cover.
-- **Book name** — large title.
-- **Author** (from project settings, optional).
+The project name heads the page, followed by a row of metric cards:
 
-### Top-line stats
-
-A row of cards with:
-
-- **Total words** in the book.
-- **Reading time** (minutes), based on 225 words per minute.
+- **Words** — total words in the book.
 - **Chapters** — total count.
 - **Scenes** — total count.
-- **Characters** — number of entities of type Character.
-- **Locations** — number of entities of type Location.
+- **Reading time** — estimated minutes.
+- **Characters** — number of Character entities.
+- **Locations** — number of Location entities.
 
-### Status breakdown
+### Daily Progress
 
-A bar (or stacked donut, depending on layout) showing how many chapters are at each status:
+**Click the card title to edit your daily word goal.** The card shows:
 
-- Outline
-- First Draft
-- Revised
-- Edited
-- Final
+- Words written today against the daily target, with a progress bar and percentage.
+- Your current **streak** — consecutive days on which you wrote.
+- A **history chart** of words per day. Buttons switch the range between **30d**, **90d**, and **365d**; bars on days where you met the goal are highlighted, and hovering a bar shows the date and word count.
 
-### Writing goals
+### Goal Tracking
 
-Two progress bars and number readouts:
+**Click the card title to edit your project word goal.** The card shows:
 
-- **Daily goal** — words written today vs your daily target. The target is set in **Settings → Writing Goals**. "Today" resets at midnight in your local timezone.
-- **Project goal** — total project words vs the project target, optionally with a deadline. If a deadline is set you also see **days remaining** and a **suggested daily target** to hit the goal on time.
-
-Both progress bars are mirrored in the status bar (bottom-right of the window) so you can keep an eye on them even when the Dashboard is not visible.
-
-### Chapter pacing
-
-For each chapter, a stat block:
-
-- Word count
-- A bar showing this chapter's word count relative to the book's longest chapter (gives a visual sense of pacing).
-- Readability score (Flesch reading-ease) with a color-coded badge.
-- Status indicator.
-
-Look for outliers — a chapter twice as long as the others, or one with markedly worse readability than its neighbors, deserves a closer look.
-
-The dashboard also surfaces:
-
-- **Longest chapter**.
-- **Shortest chapter**.
+- Total words against the project target, with a progress bar and percentage.
+- The **deadline**, if one is set (see below).
 - **Average words per chapter**.
 
-### Echo phrases
+### Progress Breakdown
 
-A section listing phrases (2- to 5-word sequences) that recur unusually often across the book, with their frequency. Useful for spotting tics, repeated metaphors, and overused turns of phrase.
+One row per chapter status — Outline, Draft, Revised, Edited, Final — with a status dot, a bar showing that status's share of chapters, and the chapter count plus word count at that status.
 
-Click an echo phrase to run a Find across the book.
+### Pacing Analysis
 
-### Recent activity
+One row per chapter with a bar showing its word count relative to the book's longest chapter. Look for outliers — a chapter twice as long as its neighbors deserves a closer look.
 
-A short timeline of recent edits — which scenes were modified in the last few days, sorted by recency. Click a scene name to jump to it.
+### Echo Finder
 
-## The status-bar Project Overview
-
-There is a second, more compact overview tucked into the **status bar** (middle button). Click the project totals to pop it open:
-
-- The popup lists every chapter with its name, word count (with a mini bar visualizing relative length), and readability badge.
-- Expand a chapter to see its scenes, each with its own word count.
-- A **Rename project** button.
-
-This Project Overview is intentionally always-visible (one click away). The full Dashboard is for deeper analysis.
+Phrases that recur unusually often across the manuscript, with their frequency. Useful for spotting tics, repeated metaphors, and overused turns of phrase. Consider varying your language where counts are high.
 
 ## Configuring goals
 
-In **Settings → Writing Goals**:
+Two places:
 
-- **Daily word goal** — integer; default 0 (no goal). Example: 500, 1000, 2000.
-- **Project word goal** — integer; total target words for the book.
-- **Project deadline** — date. When set, the dashboard shows days remaining and a suggested daily pace.
+- **On the Dashboard** — click the **Daily Progress** or **Goal Tracking** card title and enter a number.
+- **Settings → Writing Goals** — **Daily Word Goal**, **Project Word Goal**, and **Project Deadline** (`YYYY-MM-DD`). The deadline can only be set here.
 
-Goals are per-project. Edit them as your situation changes — a daily-goal change after vacation, a deadline shift after a contract change, etc.
+Goals are per-project.
 
 ## Tips
 
-- **Pick one number to track.** Most writers benefit from one daily word goal and one project goal. Resist the temptation to set ambitious targets for everything; pick the number that actually moves you and ignore the rest.
-- **Use status as truth.** A draft is not "done" until every chapter is at least at First Draft; revision isn't done until everything is at Revised. The status breakdown is a useful forcing function.
-- **Watch the echo phrases.** A unique stylistic flourish becomes a tic on the third repetition. The echo-phrase list is the cheap version of a copy edit pass.
+- **Pick one number to track.** Most writers benefit from one daily goal and one project goal. Pick the number that actually moves you and ignore the rest.
+- **Use status as truth.** A draft is not "done" until every chapter is at least at First Draft; revision is not done until everything is at Revised. The Progress Breakdown is a useful forcing function.
+- **Watch the echo phrases.** A unique stylistic flourish becomes a tic on the third repetition. The Echo Finder is the cheap version of a copy-edit pass.
 
 ## Where to go next
 
-- [Settings](23-settings.md) — set your daily and project goals.
-- [Manuscript view](10-manuscript.md) — read filtered by status.
-- [Image Gallery](19-image-gallery.md) — set the book cover.
+- [Settings](23-settings.md) — set goals and the project deadline.
+- [Manuscript view](10-manuscript.md) — read the book filtered by status.
+- [Chapters & Scenes](04-chapters-and-scenes.md) — where chapter statuses are set.

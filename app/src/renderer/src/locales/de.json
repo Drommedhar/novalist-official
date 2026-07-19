@@ -182,7 +182,9 @@
     "importPlugin": "Aus Obsidian-Plugin importieren...",
     "recentProjects": "Zuletzt geöffnete Projekte",
     "noRecentProjects": "Noch keine Projekte. Erstellen oder öffnen Sie ein Projekt.",
-    "removeFromList": "Aus Liste entfernen"
+    "removeFromList": "Aus Liste entfernen",
+    "newProject": "Neues Projekt",
+    "pickFolderTitle": "Speicherort für Projekt wählen"
   },
   "settings": {
     "title": "Einstellungen",

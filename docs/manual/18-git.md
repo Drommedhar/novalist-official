@@ -1,34 +1,30 @@
 # Git integration
 
-Novalist has a built-in Git client that lets you stage, commit, push, and pull without leaving the app. It is intentionally minimal — for complex history surgery use a dedicated Git client — but covers the everyday workflow of saving and syncing your project.
+Novalist has a built-in Git client that lets you commit, push, and pull without leaving the app. It is intentionally minimal — for complex history surgery use a dedicated Git client — but covers the everyday workflow of saving and syncing your project.
 
 ## Requirements
 
 - **Git installed on your system.** Novalist calls the `git` executable in the background and parses its output. If `git` is not found, the Git view tells you so.
-- **A Git repository at the project root.** Initialize one with `git init` from a terminal in the project folder (the Git view shows a hint if the project is not yet a repo). After init, the **Git** icon appears in the activity bar.
+- **A Git repository at the project root.** Initialize one with `git init` from a terminal in the project folder. Until then, the Git view shows "Not a Git repository" with a hint.
 
 ## Opening the Git view
 
-Click the **branch** icon in the activity bar. The icon only appears when the project folder is a Git repo.
-
-You can also click the **Git status indicator** in the status bar (bottom-right of the window), which shows the current branch and the number of changed files.
+In the binder's view rail (below the chapter tree), click **Git** in the **Publish** group.
 
 ## The Git view layout
 
-- **Header** — current branch name, ahead/behind count vs the upstream, presence of a remote.
-- **Changes section** — list of changed files with status icons:
-  - **Modified** — file changed.
-  - **Added** — new file.
-  - **Deleted** — file removed.
-  - **Untracked** — new file Git is not yet tracking.
-  Each row has a **stage** / **unstage** button. Clicking a row shows the diff in a side panel.
-- **Staged section** — files that will be included in the next commit.
-- **Commit message input** — multi-line text box.
-- **Commit** — creates a new commit with the staged files and the entered message.
+- **Header** — the current branch name. When a remote is configured, the ahead/behind counts vs the upstream appear next to it (`+n` commits to push, `-n` commits to pull).
+- **Refresh** — re-reads the Git status.
+- **Pull** — fetches and merges from the upstream remote. Disabled if no remote.
 - **Push** — pushes the current branch to its upstream remote. Disabled if no remote.
-- **Pull** — fetches and merges the upstream remote.
-- **Refresh** — re-reads Git status.
-- **Status message** — shows the last operation's result or any error.
+- **Changed Files** — every modified, added, deleted, or untracked file, each with:
+  - a **checkbox** — all files are included by default; untick files to leave them out of the next commit or discard,
+  - a **status letter** (M modified, A added, D deleted, ? untracked),
+  - the file's path relative to the project root.
+- **Commit message** — single-line input below the file list.
+- **Commit All** — commits the checked files with the entered message. There is no separate staging step: the checkboxes decide what goes into the commit.
+- **Discard Unstaged** — throws away the changes in the checked files. A confirmation dialog warns you first; this cannot be undone.
+- A **status line** shows the last operation's result or any error.
 
 ## Common workflows
 
@@ -62,9 +58,9 @@ Keep `.novalist/`, `Books/`, `WorldBible/` checked in.
 ### Save your day's work
 
 1. Open the Git view.
-2. Click **Stage all** (or stage individual files).
+2. Leave all files checked (or untick the ones you don't want).
 3. Type a short commit message (e.g. `Chapter 3 first-draft polish`).
-4. Click **Commit**.
+4. Click **Commit All**.
 
 If you have an upstream remote and want to back up off-machine, click **Push**.
 
@@ -75,7 +71,7 @@ On the other machine, with the same repo cloned:
 1. Open the Git view.
 2. Click **Pull**.
 
-Conflicts should be rare if you only edit on one machine at a time. If a conflict occurs, the Git view will tell you and the safe path is to resolve in an external Git client.
+Conflicts should be rare if you only edit on one machine at a time. If a conflict occurs, the status line will tell you and the safe path is to resolve in an external Git client.
 
 ### Browse history
 
@@ -83,25 +79,14 @@ The Git view focuses on the working tree. To browse history, use any external Gi
 
 ## What Git does and does not see
 
-- **Git sees** every file under the project folder that isn't `.gitignore`'d: scene HTML, JSON manifests, entity files, research files, images.
-- **Git does not see** application-level state (settings, hotkeys, recent projects). Those live in your user app-data folder, not in the project.
-
-## Status-bar Git indicator
-
-The status bar (bottom-right of the window) shows:
-
-- The current branch name.
-- The count of changed files (with a small edit-pen icon).
-
-Click the indicator to open the Git view.
-
-The indicator is only visible when the project is in a Git repo.
+- **Git sees** every file under the project folder that isn't `.gitignore`'d: scene files, JSON manifests, entity files, research files, images.
+- **Git does not see** application-level state (settings, recent projects). Those live in your user app-data folder, not in the project. Per-project setting overrides live in `.novalist/` and are versioned with the project.
 
 ## Tips
 
 - **Commit small.** "Chapter 3 — first draft" is a better commit than "lots of work". Future-you can use `git log` to find when something changed.
 - **Push daily.** A push to a remote (GitHub, Gitea, a self-hosted server) is the cheapest off-machine backup you can get.
-- **Use branches for big experiments.** A `branch -m main backup-2025-05-10` checkpoint costs nothing and gives you a one-command undo if a heavy revision goes wrong.
+- **Use branches for big experiments.** A checkpoint branch costs nothing and gives you a one-command undo if a heavy revision goes wrong.
 - **Don't fight conflicts in the app.** If a merge conflict appears, drop to a CLI or a graphical Git client and resolve there. Then return to Novalist.
 
 ## Where to go next

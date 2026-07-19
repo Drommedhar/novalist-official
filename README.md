@@ -23,7 +23,7 @@
 
 ## What is Novalist?
 
-Novalist is an offline-first desktop application for writing novels. It handles the full scope of a writing project — manuscript editing, worldbuilding, plotting, timelines, exporting, and version control — in a single, self-contained tool. It runs on Windows, macOS, and Linux on top of .NET 8 and Avalonia.
+Novalist is an offline-first desktop application for writing novels. It handles the full scope of a writing project — manuscript editing, worldbuilding, plotting, timelines, exporting, and version control — in a single, self-contained tool. It runs on Windows, macOS, and Linux: an Electron + React interface in front of a bundled .NET 8 core process that owns all project logic.
 
 Rather than scattering notes across separate apps, browser tabs, and Markdown files, Novalist keeps everything about a project in one folder of plain files: chapters and scenes as HTML, entities and metadata as JSON, images and research alongside. The folder is yours — back it up, sync it, version-control it, edit it with any text editor when Novalist is closed.
 
@@ -34,6 +34,12 @@ A full **User Manual** lives in [`docs/manual/`](docs/manual/README.md). It cove
 For extension authors, the [Extension Guide](docs/extension-guide.md) walks through the SDK, hooks, packaging, and store submission.
 
 ## Features
+
+### Interface
+
+- **Three-pane, Scrivener-style layout** — the binder (chapter/scene tree, smart lists, and grouped view navigation) on the left, the active view in the center, and an inspector with scene details on the right.
+- **Command palette** (`Ctrl+Shift+P`) and number-key view switching for keyboard-driven navigation.
+- On macOS 26+ the window uses native **Liquid Glass**, with vibrancy on older macOS; Windows and Linux render opaque themed surfaces from the same design tokens.
 
 ### Writing
 
