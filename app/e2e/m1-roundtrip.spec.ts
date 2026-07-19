@@ -39,6 +39,16 @@ test('project + binder + editor round-trip', async () => {
   // Backend handshake: status bar shows the core version like "Core connected (1.13...)".
   await expect(page.locator('.status-backend')).toContainText('(', { timeout: 30_000 })
 
+  // connect() must be idempotent: a repeat call (as React StrictMode triggers in
+  // dev) must not open a second port channel and orphan the live one. After a
+  // second connect, RPC must still flow.
+  const stillConnected = await page.evaluate(async () => {
+    await window.novalistRpc.connect()
+    const ping = (await window.novalistRpc.request('system/ping')) as { version: string }
+    return Boolean(ping.version)
+  })
+  expect(stillConnected).toBe(true)
+
   // Create + open a project through the app's own RPC client (bypasses the native picker).
   await page.evaluate(async (dir) => {
     const state = await window.novalistRpc.request('project/create', [dir, 'E2E Novel', 'Book One'])

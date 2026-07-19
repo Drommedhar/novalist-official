@@ -18,10 +18,19 @@ export class RpcClient {
   private readonly notificationHandlers = new Map<string, NotificationHandler>()
   private buffer = new Uint8Array(0)
   private readonly connectListeners = new Set<() => void>()
+  private connecting: Promise<void> | null = null
 
-  /** Requests a backend port from main and resolves once frames can flow. */
+  /**
+   * Requests a backend port from main and resolves once frames can flow.
+   * Idempotent: concurrent or repeat calls share one in-flight request so a
+   * second port channel is never opened (React StrictMode invokes the boot
+   * effect twice in dev, and main closes the prior backend port whenever a new
+   * one is attached — a second request would orphan the first port). Genuine
+   * reconnects reset the guard via reconnect().
+   */
   connect(): Promise<void> {
-    return new Promise((resolve) => {
+    if (this.connecting) return this.connecting
+    this.connecting = new Promise((resolve) => {
       const onMessage = (event: MessageEvent): void => {
         if ((event.data as { novalist?: string })?.novalist !== 'backend-port') return
         window.removeEventListener('message', onMessage)
@@ -31,6 +40,13 @@ export class RpcClient {
       window.addEventListener('message', onMessage)
       window.novalist.requestBackendPort()
     })
+    return this.connecting
+  }
+
+  /** Forces a fresh port request (used after the backend restarts). */
+  private reconnect(): Promise<void> {
+    this.connecting = null
+    return this.connect()
   }
 
   attach(port: MessagePort): void {
@@ -77,7 +93,7 @@ export class RpcClient {
       // Main restarted the backend; ask for a fresh port and let stores re-hydrate.
       for (const [, p] of this.pending) p.reject(new Error('backend restarted'))
       this.pending.clear()
-      void this.connect()
+      void this.reconnect()
       return
     }
     this.append(data as Uint8Array)
