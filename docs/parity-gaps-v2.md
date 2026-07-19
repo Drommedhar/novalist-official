@@ -1,65 +1,109 @@
-# UI parity gaps — honest re-audit (old Avalonia vs new React)
+# UI parity plan v2 — old Avalonia vs new React (honest re-audit)
 
-Triggered 2026-07-19 after the user correctly rejected the "feature complete"
-claim. The backend RPC facades exist and are tested, but the React UI is a
-shallow reimplementation of the Avalonia UI. This file tracks the real gaps
-and the plan to close them.
+Triggered 2026-07-19 after the "feature complete" claim was correctly rejected.
+The backend RPC facades exist and are tested, but the **React UI is a thin
+skeleton** over them. Five parallel audits (codex, inspector, editor/manuscript,
+planning views, settings/dialogs/shell) measured the real depth. This is the
+build plan to reach genuine parity.
 
-## CONFIRMED BUG — entity/gallery/map images do not load
+## Current parity by area (audited)
 
-Root cause: image paths are stored **book-root-relative**
-(`Images/Characters/x.png`, real file at `<projectRoot>/<bookFolder>/Images/...`),
-and world-bible images are **WorldBible-root-relative**. The
-`novalist-project://` protocol (app/src/main/protocols.ts) resolves against the
-**project root**, so the book folder is missing from the path → 404 → no image.
+| Area | Parity | Worst gaps |
+|---|---|---|
+| Smart Lists | ~100% | done |
+| Plot Grid | ~90% | inline rename, chapter title in column header |
+| Timeline | ~75% | pan/today/jump-to-date nav, source label pill |
+| Dashboard | ~60% | cover image, deadline detail, recent activity, pacing summary |
+| Editor/Manuscript chrome | ~50% | **scene tabs**, **footnotes panel**, inline actions, @-mentions, auto-replace, editor hotkeys, focus-peek depth, readability |
+| Calendar | ~55% | week hour-grid, year per-month scene lists |
+| Relationships | ~55% | group/role filters, genealogy T-connectors, auto-fit |
+| Research | ~45% | file import, open-external, search, image preview |
+| Gallery | ~45% | lightbox, context actions, list view |
+| Codex/entities | ~35% | **no entity sidebar**, generic string-dumper detail, move-to-WB, inverse relationships, rich rel editor |
+| Settings | ~40% | hotkey rebinding, grammar config, book-width, updates/integrations, goals detail |
+| Inspector (context sidebar) | ~15% | **entire scene-analysis engine** (chars/locs/items/lore in scene, mentions, POV/emotion/intensity, footnotes/comments lists) |
+| Maps | ~15% | **entire authoring chrome** (tools, layers, properties, 3D) |
+| Dialogs | ~half | snapshot compare, map profile, inverse rel, chapter/scene, update, story-date-range |
 
-- Stored path base: `ActiveBookRoot = ProjectRoot/<bookFolder>` (EntityService
-  ImportImageAsync stores `Combine(Book.ImageFolder, file)` = book-relative).
-  WB entities: `WorldBibleRoot`.
-- Protocol base: `projectRoot` (state.projectPath = Projects.ProjectRoot).
+## DONE this session
+- Image loading fixed (book-relative path resolved to project-relative +
+  sentinel-host URL). e2e proves real portraits decode.
+- Create-project UI + dev "connecting to core" bug.
 
-Fix (planned): backend returns a **project-root-relative** display path
-(resolve `Combine(isWorldBible ? WorldBibleRoot : ActiveBookRoot, stored)` then
-`GetRelativePath(ProjectRoot, …)`), kept SEPARATE from the stored path so
-add/remove still match on the stored value. Touches EntitiesRpc (summaries +
-`get` images + addImage return), LibraryRpc (gallery/list), MapsRpc (map image
-base), and the renderer img src builders (CodexView, EntityImages, GalleryView,
-EditorFrame hover card, MapsView base url).
+## Phased plan (priority order)
 
-## Context sidebar / Inspector — "not even a quarter" (accurate)
+### Phase 1 — Codex depth (user's #1 & #2 complaints) [biggest visible win]
+1. **Persistent entity sidebar** — a left panel (like the binder) listing
+   characters/locations/items/lore, always available, not a full-screen view.
+   - Character **grouping** (Role / Family Group toggle, section headers).
+   - Location **hierarchy tree** (parent/child, expand/collapse, reparent).
+   - Cross-entity **search**, per-type **counts**, sort.
+2. **Typed detail pane** — replace the generic string `<dl>` dumper with
+   labelled, grouped, typed fields per type (Basic/Physical for characters),
+   localized labels; stop leaking internal fields (templateId, ageMode,
+   entityTypeKey); date-age mode + birthdate picker + computed age; lore
+   category dropdown; parent-location autocomplete; **custom-entity typed
+   fields** (currently uneditable beyond name — blocker).
+3. **Relationships editor** — role autocomplete + target chips + suggestions;
+   **inverse-relationship auto-sync** (dialog + learned pairs; backend
+   `entities/setRelationshipWithInverse`).
+4. **Move to World Bible / back** (backend RPC + context action).
+5. Image extras: editable name, swap image, clipboard/URL sources.
 
-OLD: two right-side surfaces + in-editor annotation. `ContextSidebarViewModel`
-(1918 lines) drove a tabbed analysis panel; `SceneNotesViewModel` a bottom
-synopsis/notes/comments dock; `FootnotesPanelViewModel` a footnote list.
+### Phase 2 — Inspector / context-analysis engine [user's #3 complaint]
+Port `ContextSidebarViewModel` (~1400 lines) to a backend `context/analyze`
+RPC + a sectioned Inspector:
+1. Characters/locations/items/lore **present in the scene** (text match w/
+   aliases + overrides), cards with role/group/gender/computed-age, click→open.
+2. **Cross-chapter mention matrix** + "last seen N chapters ago".
+3. **Scene analysis**: POV (auto-detect + edit), emotion (16 profiles),
+   intensity (bipolar bar + chapter sparkline), conflict, auto-tags, dialogue %,
+   avg sentence length.
+4. Standalone **footnotes list** + **comments list** (jump/edit/delete).
+5. Story-date + weekday header, position subtitle, collapsible persisted sections.
 
-NEW `Inspector.tsx`: synopsis + notes + word count + snapshots. That's it.
+### Phase 3 — Editor/manuscript chrome
+1. **Scene tab strip per pane** (open set, dirty dot, close, move-to-pane).
+2. **Footnotes panel** wiring (edit/jump/delete; currently only a stub row).
+3. Wire the already-present editor.html hooks the host never calls:
+   `setMentionCandidates`, `setAutoReplacements`, `setDialogueCorrectionConfig`,
+   `setContextMenuLabels`, `setInlineActions` (+ `inlineActionRequested`).
+4. **Hotkey forwarding from the editor iframe** (global shortcuts dead while
+   typing) + ctrl-wheel zoom, comment click-to-scroll.
+5. **Focus-peek** rich card (relationships, properties, images, sections,
+   open-entity, pin).
+6. Status bar: readability badge, char counts, reading time; manuscript header
+   stats; outliner POV auto-detect.
 
-Missing (severity):
-- CRITICAL: characters-in-scene section — regex match on scene text (name +
-  aliases, overrides applied), cards with role/group/gender/computed-age,
-  click-to-open.
-- HIGH: locations / items / lore in-scene sections (parent, type, category,
-  description, click-to-open); cross-chapter mention matrix + "last seen N
-  chapters ago"; Scene Analysis POV (auto-detect + editable), Emotion (16
-  keyword profiles), Intensity (−10..+10 bipolar bar).
-- MEDIUM: story date + weekday header; position subtitle; conflict snippet;
-  auto scene tags; dialogue %; avg sentence length; intensity sparkline across
-  chapter; standalone footnotes list.
-- LOW: collapsible persisted sections; comments list in sidebar; extension
-  context tabs; legend/empty states.
+### Phase 4 — Planning/world views
+1. **Maps** authoring chrome (blocker): tool palette (image/pin/label/spline+
+   presets/terrain/building/scale), layer panel (tree, lock/visibility/rename/
+   reorder/nest), properties panel (opacity/zoom-range/floor/isolate), edit/view
+   toggle, zoom-fit/reset, 3D toggle+overlay, focus-peek, rename/delete (RPCs
+   exist), wire `placePinAt`/`imageSelected`/`pinClick`/etc.
+2. **Calendar**: week hour-grid w/ timed+overlap layout; year per-month scene
+   lists; Today; weekday headers; month-cell jump.
+3. **Relationships**: group/role filters; genealogy T-connectors + role-group
+   boxes; auto-fit.
+4. **Research**: file import (+PDF/image, backend RPC), open-external, search,
+   image preview.
+5. **Dashboard**: cover image, author/deadline detail, recent activity, pacing
+   summary.
+6. **Gallery**: lightbox + context actions (copy path/markdown, reveal, open —
+   needs RPCs). **Timeline**: pan/today/jump nav, source pill.
 
-Backend support: NONE of the analysis engine exists in the new backend
-(~1400 lines to port from ContextSidebarViewModel). `SceneDto` lacks date,
-POV, analysis fields. Must build `context/analyze` (or similar) RPC.
+### Phase 5 — Settings / shell / dialogs / export / git
+1. **Hotkey rebinding** system (44 actions, capture, conflict detect, reset).
+2. **Grammar-check config** UI (endpoint/creds/picky/mother-tongue/validate).
+3. **Book-width** settings block; **Updates & Integrations**; writing-goals
+   detail (deadline/author/watch-fs); extension settings pages; settings search.
+4. Status bar: goals progress, git indicator, project overview, counts.
+5. Dialogs: snapshot compare, map profile, inverse rel, chapter/scene, update
+   (release notes/progress), story-date-range; start-menu overlay.
+6. Git staging model (stage/unstage, commit-staged, not-installed guidance).
+7. Export: presets/SMF toggle, extension formats, select-all/none/count.
 
-## (pending) Codex / entities — user: "no character/location sidebar"
-Audit running.
-
-## (pending) Editor + manuscript chrome
-Audit running.
-
-## (pending) Planning views depth (dashboard/timeline/calendar/relationships/plotgrid/research/maps/gallery)
-Audit running.
-
-## (pending) Settings / dialogs / shell chrome / smart lists / export / git
-Audit running.
+## Note
+Each phase ships backend RPCs (100% test-gated) + React UI + e2e. The full set
+is large (multi-day). Detailed per-item findings with file:line refs are in the
+five audit reports captured in this session's task outputs.
