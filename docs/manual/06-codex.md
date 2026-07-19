@@ -8,12 +8,23 @@ For the visual relationship graph see [Relationships](14-relationships.md). For 
 
 ## The Codex view
 
-Across the top is a **tab strip**: **Characters**, **Locations**, **Items**, **Lore**, one tab per custom entity type, and a **Manage types** button (see below).
+Across the top is a **tab strip**: **Characters**, **Locations**, **Items**, **Lore**, one tab per custom entity type (shown by its plural name), and a **Manage types** button (see below).
 
-Below it, the view is split in two:
+Below it, the view is split in two: the **navigation column** on the left and the **detail pane** on the right.
 
-- **The list** (left) — every entity of the active type, with a thumbnail (or initial), name, a short detail line, and a **WB** badge for World Bible entries. Click an entry to select it. At the bottom, **New entry** creates a new entity.
-- **The detail pane** (right) — the editors for the selected entity.
+### The navigation column
+
+The left column lists every entity of the active type. At the top is a **search box** — filter the list by name as you type — next to a **count** of how many entries currently match. **New entry** at the bottom creates a new entity.
+
+How the list is arranged depends on the type:
+
+- **Characters** are **grouped**, with a **By Role / By Group** toggle above the list. Each group is a collapsible section with a heading and a member count; click a heading to fold or unfold it. Characters with no role/group fall under an "Ungrouped" heading.
+- **Locations** are shown as a **parent/child hierarchy tree** — a location whose parent is another location is nested (indented) beneath it, so a city can sit under its region.
+- **Items**, **Lore**, and custom types are shown as a flat list.
+
+Each row shows a thumbnail (or the entity's initial), its name, and a short detail line. Characters also show a one-letter **gender badge**, and World Bible entries carry a **WB** badge.
+
+**Right-click** any row for a context menu to **Move to World Bible** / **Move to Book** (see [The World Bible](#the-world-bible-shared-entities)) or **Delete** it (with confirmation).
 
 ## The built-in entity types
 
@@ -42,15 +53,20 @@ With a character selected, click **Run character interview...** at the top of th
 
 ## The detail pane
 
-From top to bottom:
+The right pane holds the editors for the selected entity, from top to bottom:
 
 - **Actions** — **Run character interview...** (characters only) and **Delete** (asks to confirm).
-- **Fields** — the type's scalar fields (name, gender, role, description, ...) as a simple form; changes are saved when you leave a field.
-- **Images** — the entity's image strip. **From gallery** picks an existing project image; **Import file** copies a new file into the project. The first image is the thumbnail used in the list and in the editor's hover cards. Remove an image with its close button.
-- **Custom properties** — typed key-value pairs. Each property renders with a type-aware control: checkbox for Bool, number input for Int, date picker for Date, dropdown for Enum. Property types and defaults come from the entity's template or type definition; you can also add ad-hoc properties.
+- **Fields** — the type's own fields, laid out as a typed, grouped form with the right control for each field. Changes save when you leave a field.
+  - **Characters** get two groups: **Basic Info** (name, surname, gender, age, role, group) and **Physical Attributes** (eye color, hair color, hair length, height, build, skin tone, and a multi-line distinguishing features box).
+  - **Locations** have name, type, a **parent location** field with autocomplete over the project's other locations (this drives the hierarchy tree in the navigation column), and a description.
+  - **Items** have name, type, origin, and description.
+  - **Lore** has name, a **category** dropdown (Organization, Culture, History, Other), and description.
+  - **Custom types** render the typed fields you declared for them: a text box for String, a number box for Int, a date picker for Date, a dropdown for Bool and Enum, and a picker for EntityRef.
+- **Images** — the entity's image strip. **From gallery** picks an existing project image; **Import file** copies a new file into the project; **Paste from clipboard** pastes a copied image; **From URL** downloads an image from a web address. Each image has an editable **name**, a **swap** button (replace it with another gallery image), and a remove button. The first image is the thumbnail used in the list and in the editor's hover cards.
+- **Custom properties** — typed key-value pairs. Each renders with a type-aware control: checkbox for Bool, number input for Int, date picker for Date, dropdown for Enum, text for String. Types and defaults come from the entity's template or type definition; you can also add ad-hoc properties and delete any of them.
 - **Chapter overrides** (characters only) — see below.
 - **Aliases** — alternative names, entered as chips. Aliases count as mentions of the entity in the editor's hover cards and analysis.
-- **Relationships** (characters only) — rows of **Role** (e.g. "Father") and **Names** (comma-separated targets). Powering the [Relationships graph](14-relationships.md), which clusters families from parent/child/partner/sibling roles.
+- **Relationships** (characters only) — rows of **Role** (e.g. "Father"), a **target** name, and an **inverse role**. Role and target both autocomplete against the existing cast and the roles already in use. When you set a role, Novalist suggests its inverse and, on save, writes the reciprocal relationship back onto the target character automatically — and learns the role/inverse pair so it can suggest it next time. This powers the [Relationships graph](14-relationships.md), which clusters families from parent/child/partner/sibling roles.
 - **Sections** — free-form titled text blocks ("Background", "Motivation", "Voice", ...). Add, retitle, edit, and remove; this is where long-form prose about an entity lives.
 
 ## Chapter overrides (characters)
@@ -71,7 +87,7 @@ Click **Manage types** in the tab strip:
 
 1. Click **New Entity Type**.
 2. Enter a **Display Name** (e.g. "Faction") and optionally a **Plural Name** ("Factions" — auto-generated if empty).
-3. Define its **Fields** — each has a name, a type (String, Int, Bool, Date, Enum, Timespan, or EntityRef — a link to another entity), an optional default value, for Enum a comma-separated option list, and a **Required** flag.
+3. Define its **Fields** — each has a name, a type (String, Int, Bool, Date, Enum, Timespan, or EntityRef — a link to another entity), an optional default value, for Enum a comma-separated option list, for **EntityRef** a target-type picker choosing which entity type it links to, and a **Required** flag.
 4. Choose its **Features**: **Include Images**, **Include Relationships**, **Include Sections**.
 5. Confirm with **OK**.
 

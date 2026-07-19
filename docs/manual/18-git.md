@@ -4,8 +4,8 @@ Novalist has a built-in Git client that lets you commit, push, and pull without 
 
 ## Requirements
 
-- **Git installed on your system.** Novalist calls the `git` executable in the background and parses its output. If `git` is not found, the Git view tells you so.
-- **A Git repository at the project root.** Initialize one with `git init` from a terminal in the project folder. Until then, the Git view shows "Not a Git repository" with a hint.
+- **Git installed on your system.** Novalist calls the `git` executable in the background and parses its output. If `git` is not found, the Git view shows **"Git is not installed"** with a hint to install it — distinct from the "not a repository" message below.
+- **A Git repository at the project root.** Initialize one with `git init` from a terminal in the project folder. Until then, the Git view shows **"Not a Git repository"** with a hint.
 
 ## Opening the Git view
 
@@ -17,14 +17,26 @@ In the binder's view rail (below the chapter tree), click **Git** in the **Publi
 - **Refresh** — re-reads the Git status.
 - **Pull** — fetches and merges from the upstream remote. Disabled if no remote.
 - **Push** — pushes the current branch to its upstream remote. Disabled if no remote.
-- **Changed Files** — every modified, added, deleted, or untracked file, each with:
-  - a **checkbox** — all files are included by default; untick files to leave them out of the next commit or discard,
-  - a **status letter** (M modified, A added, D deleted, ? untracked),
-  - the file's path relative to the project root.
-- **Commit message** — single-line input below the file list.
-- **Commit All** — commits the checked files with the entered message. There is no separate staging step: the checkboxes decide what goes into the commit.
-- **Discard Unstaged** — throws away the changes in the checked files. A confirmation dialog warns you first; this cannot be undone.
+- **File lists** — changed files are split into two groups, **Staged Changes** and **Changed Files** (the unstaged ones). Each file row shows:
+  - a **status letter** (M modified, A added, D deleted, R renamed, ? untracked),
+  - the file's **name**, with its **directory** relative to the project root shown as subtext beneath it,
+  - a per-file **stage** (`+`) or **unstage** (`-`) button that moves just that file between the two groups.
+- **Stage All / Unstage All** — the header of each group has a button that stages every changed file or unstages every staged file at once.
+- **Commit message** — a multi-line text box below the file lists, so you can write a subject line and a body.
+- **Commit Staged** — commits only the files in the Staged Changes group. Enabled once something is staged and a message is entered.
+- **Commit All** — commits every changed file, staged or not, with the entered message. Enabled once a message is entered.
+- **Discard Unstaged** — throws away the changes in the unstaged files. A confirmation dialog warns you first; this cannot be undone.
 - A **status line** shows the last operation's result or any error.
+
+## The staging model
+
+Novalist uses Git's normal staging area, so you can build a commit from a subset of your changes:
+
+1. Stage the files you want in the next commit with each file's `+` button, or **Stage All**.
+2. Review the **Staged Changes** group.
+3. Click **Commit Staged** to commit exactly what is staged.
+
+When you want to commit everything without staging piece by piece, skip straight to **Commit All** — it commits every changed file regardless of what is staged.
 
 ## Common workflows
 
@@ -58,9 +70,9 @@ Keep `.novalist/`, `Books/`, `WorldBible/` checked in.
 ### Save your day's work
 
 1. Open the Git view.
-2. Leave all files checked (or untick the ones you don't want).
+2. Either click **Commit All** to include every changed file, or stage just the files you want (per-file `+`, or **Stage All**) and use **Commit Staged**.
 3. Type a short commit message (e.g. `Chapter 3 first-draft polish`).
-4. Click **Commit All**.
+4. Click **Commit All** or **Commit Staged**.
 
 If you have an upstream remote and want to back up off-machine, click **Push**.
 

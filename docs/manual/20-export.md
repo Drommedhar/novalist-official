@@ -16,12 +16,21 @@ In the binder's view rail (below the chapter tree), click **Export** in the **Pu
   - **Final Draft (.fdx)**
   - **LaTeX**
   - **Codex (Markdown)** — manuscript plus your codex entries as an appendix.
+
+  Any formats contributed by installed [extensions](24-extensions.md) appear below the built-in ones in the same drop-down.
+- **Preset** — a layout preset that sets fonts, spacing, and margins. Built-in presets are:
+  - **Default** — Georgia 12pt, 1.5 line spacing; a readable PDF/EPUB.
+  - **Shunn Manuscript Format** — the industry-standard submission format: Courier 12pt, double-spaced, with the Shunn header.
+  - **Ebook Flow** — tighter spacing for digital reading: Georgia 11pt, 1.4 line spacing, narrower margins.
+
+  A short description of the selected preset is shown beneath the drop-down. Extensions can contribute additional presets.
+- **Shunn Manuscript Format** — for **DOCX** and **PDF** only, a toggle that switches the export straight to the Shunn submission preset (and disables the Preset drop-down while it is on).
 - **Title** — the title of the exported document. Defaults to the project's name.
 - **Author** — author name printed on the title page and in document metadata.
 - **Title page** — toggle. Include or omit a generated title page.
-- **Chapter selection** — a checkbox per chapter. All chapters are included by default; untick chapters to exclude them.
+- **Chapter selection** — a checkbox per chapter, with **Select All** and **Select None** buttons and a running "*n* of *m*" count. All chapters are included by default; untick chapters to exclude them. This list is hidden for the **Codex** format and for extension-contributed formats, which always cover the whole project.
 
-Click **Export**. The system file save dialog asks where to save; pick a location and filename (the extension is pre-filled to match the format). The button shows "Exporting…" while the job runs and a result line reports success (with the output path) or failure.
+Click **Export**. The system file save dialog asks where to save; pick a location and filename (the extension is pre-filled to match the format). The button shows "Exporting…" while the job runs and a result line reports success or failure.
 
 ## Built-in format details
 
@@ -69,7 +78,7 @@ Use cases for partial exports:
 - The first three chapters as a submission packet.
 - Only chapters at Final status, to publish a polished excerpt.
 
-The chapter list always shows all chapters regardless of status — you pick what you want via the checkboxes.
+For chapter-based formats the list shows all chapters regardless of status — you pick what you want via the checkboxes, or use **Select All** / **Select None**. The Codex and extension formats export the whole project and hide the list.
 
 ## Tips
 

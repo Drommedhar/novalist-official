@@ -4,15 +4,35 @@ Novalist has an interactive map view for hand-built world maps, city plans, buil
 
 Open **Maps** from the **World** group in the binder's view rail. The view is per-book: each book carries its own list of maps.
 
+## The map view at a glance
+
+The Maps view is a full authoring surface, laid out as:
+
+- A **top toolbar** with the map list and the view/edit controls (below).
+- A **tool rail** down the left edge for adding elements — images, pins, labels, roads and rivers, terrain, and buildings.
+- The **map stage** in the middle.
+- A **layer panel** on the right, with a properties section for the selected layer and element.
+
 ## Managing maps
 
-The toolbar above the map lists every map in the current book:
+The top toolbar lists every map in the current book:
 
 - **New map** creates a new empty map (one default layer, no pins) — you are asked for a name.
-- Click a map's name in the toolbar to switch to it.
-- The current map can be **renamed** or **deleted**; deleting asks for confirmation.
+- Click a map's name (tab) in the toolbar to switch to it.
+- **Rename current map** and **Delete current map** act on the active map; deleting asks for confirmation.
 
 Changes to the map are saved automatically a moment after you make them — there is no save button.
+
+### View controls
+
+Also in the top toolbar:
+
+- **Toggle Edit / View** — switch between editing and read-only viewing (see below).
+- **Zoom to fit** — frame all visible images.
+- **Reset view** — recentre the map at 1x zoom.
+- **3D** — flip between the flat 2D map and the 3D view (see below).
+- **Map border**, **Edit clip mask** (enabled when an image is selected), and **Edit spline** (enabled when a road/river is selected) toggle those editing modes.
+- **Delete selected** removes the currently selected element.
 
 ## What a map is
 
@@ -22,14 +42,14 @@ Each map has its own JSON file under `Books/<book>/Drafts/<draftId>/Maps/<mapId>
 
 ## Editing vs viewing
 
-The map has two modes: **View** (default) and **Edit**. The *Toggle Edit / View* button in the map's own toolbar swaps between them.
+The map has two modes: **Edit** (default) and **View**. The *Toggle Edit / View* button in the top toolbar swaps between them.
 
-- **View** mode is for reading. The edit tool palette is hidden, images are not draggable, and clicking a pin opens a summary card for its linked entity.
-- **Edit** mode reveals the tool palette (add image, add pin, label, spline, terrain, building, border, clip-edit, delete), shows resize handles on the selected image, lets you drag images and pins, and exposes context menus.
+- **Edit** mode enables the left tool rail (add image, pin, label, spline, terrain, building), shows resize handles on the selected image, lets you drag images and pins, and exposes context menus.
+- **View** mode is for reading. The tool rail is disabled, images are not draggable, and clicking a pin with a linked entity opens a summary card for it (see [Pins](#pins)).
 
 ## Adding images
 
-Click *Add image* in the map toolbar and pick an image — from the images already in the project or imported from disk. The image lands at the centre of the current viewport, sized to its natural dimensions, and is added to the currently active layer.
+Click *Add image* in the tool rail and pick an image from the project's [image gallery](19-image-gallery.md). The image lands at the centre of the current viewport, sized to its natural dimensions, and is added to the currently active layer. (To bring a new picture into the project first, add it in the Image Gallery.)
 
 ## Navigating
 
@@ -56,7 +76,7 @@ Right-click → *Move to layer…* opens a dialog listing all layers in the map.
 
 ### Clip mask (polygon clip)
 
-Right-click → *Edit clip mask* enters clip-edit mode for the image. You see an orange polygon overlay with one draggable handle per vertex.
+Right-click → *Edit clip mask* (or the **Edit clip mask** button in the top toolbar, enabled while an image is selected) enters clip-edit mode for the image. You see an orange polygon overlay with one draggable handle per vertex.
 
 - **Drag** any vertex handle to reshape.
 - **Double-click** anywhere on the image to add a new vertex (appended to the polygon).
@@ -68,7 +88,7 @@ The clip polygon is stored in the image's natural-pixel coordinates, so it survi
 
 ## Pins
 
-Pins are screen-space markers that stay the same size regardless of zoom. Click *Add pin* in the toolbar, then click on the map where you want the pin. Once placed, its settings appear in a properties panel at the bottom of the layer panel:
+Pins are screen-space markers that stay the same size regardless of zoom. Click *Add pin* in the tool rail, then click on the map where you want the pin. Once placed, its settings appear in a properties panel at the bottom of the layer panel:
 
 - **Label** — text shown above the pin in the map.
 - **Link to entity** — search across characters, locations, items, lore, and custom entity types. Linking is optional.
@@ -78,7 +98,7 @@ Move pins by dragging them. Right-click a pin for a menu: *Edit…* (re-edit lab
 
 A pin belongs to a **layer** — the one that was active when it was placed. It follows that layer's visibility, opacity, zoom-range and floor settings, and *Move to layer…* reassigns it.
 
-In view mode, clicking a pin that has a linked entity opens a card with that entity's summary — jump from there to the Codex when you actually want to edit.
+In view mode, clicking a pin that has a linked entity opens a small **focus-peek card** with that entity's image, name, and detail line — a quick look at what the pin marks without leaving the map. Close it with its `×`.
 
 ## Labels
 
@@ -132,7 +152,7 @@ Like every other map element, a terrain shape belongs to a layer and follows tha
 
 The **map border** is a single clip boundary for the whole map: a freeform polygon you draw, where **everything outside it is hidden** and the polygon itself is stroked as a visible frame. Use it to give a map a clean edge — an island coastline, a torn-parchment outline, a rectangular frame.
 
-Click the **map border tool** in the tool rail. If the map has no border yet, click on the map to drop polygon points, then **Enter** to commit (needs at least 3 points), **Esc** to cancel. A map has at most one border — committing replaces any previous one.
+Click the **Map border** button in the top toolbar. If the map has no border yet, click on the map to drop polygon points, then **Enter** to commit (needs at least 3 points), **Esc** to cancel. A map has at most one border — committing replaces any previous one.
 
 Click the tool again when a border already exists and it enters **edit mode**: vertex handles appear.
 
@@ -151,7 +171,7 @@ While editing, a **Map border** properties panel appears at the bottom of the la
 
 Place typed **buildings** on the map — row homes, single family homes, schools, police / fire stations, halls, playgrounds, train stations.
 
-Click the **building tool** in the tool rail and pick a type from the menu. A preview of the building follows the cursor:
+Click the **building tool** in the tool rail and pick a type from the menu. The same menu has a **Building scale** slider (0.25x to 4x) that sets how large newly placed buildings are relative to the map, so a town of houses and a single cathedral can be sized appropriately. A preview of the building follows the cursor:
 
 - Press **R** to re-roll — each building type generates a random fitting footprint, so no two are identical.
 - Move near a road and the building **snaps** parallel and offset to the road edge (any layer's roads). Hold **Shift** to place freely.
@@ -241,7 +261,7 @@ Custom profiles are saved with the map and appear under a *Custom* submenu in bo
 
 ## Layer panel
 
-Toggle the layer panel from the *Layers* button in the map toolbar (it is open by default). The panel is an Affinity-style layer tree: each row is a single layer, indented to show how deeply it is nested.
+The **layer panel** sits on the right of the map. It is an Affinity-style layer tree: each row is a single layer, indented to show how deeply it is nested.
 
 Each row carries, left to right:
 

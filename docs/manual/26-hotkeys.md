@@ -1,8 +1,10 @@
 # Hotkeys reference
 
-This is the full list of keyboard shortcuts shipped with Novalist. On macOS, read `Ctrl` as `Cmd` — the two are treated as the same modifier.
+This is the full list of **default** keyboard shortcuts shipped with Novalist. On macOS, read `Ctrl` as `Cmd` — the two are treated as the same modifier.
 
 Gestures are written in Novalist's key-gesture grammar: `D1` through `D9` are the number keys `1` through `9` on the main keyboard row, so `Ctrl+D1` means `Ctrl+1`.
+
+Every shortcut below is rebindable. Change any of them in **Settings → Hotkeys**: click a shortcut's gesture, press the new combination to capture it (Novalist warns you if it clashes with another action), and reset a single shortcut or all of them back to these defaults at any time. See [Settings](23-settings.md#hotkeys). The bindings below are what a fresh install ships with.
 
 ## Navigation
 

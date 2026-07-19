@@ -18,21 +18,30 @@ Buttons at the top-left switch between three modes:
 
 ### Week
 
-Seven day columns. Each scene that falls on a day appears as a chip: all-day scenes first, then timed scenes in time order with their start time (`09:30`) as a prefix. Hover a chip for the chapter, scene title, and synopsis; click it to open the scene in the Editor.
+Seven day columns headed by weekday and date. Each day has two parts:
 
-Use this view for schedule-driven sequences — a heist hour by hour, a wedding day, a multi-day siege — and for spotting clashes where two scenes claim the same hours.
+- An **all-day band** at the top, where all-day scenes sit as chips.
+- A scrolling **24-hour timed grid** below it, with an hour gutter down the side. Timed scenes are placed by time of day and sized to their duration, with their start time (`09:30`) prefixed to the title. When several scenes overlap in time, they split into **side-by-side columns** so every one stays visible — the fast way to spot clashes where two scenes claim the same hours.
+
+Hover a timed event or chip for the scene title, note, and synopsis; click it to open the scene in the Editor. Today's column is highlighted.
+
+Use this view for schedule-driven sequences — a heist hour by hour, a wedding day, a multi-day siege.
 
 ### Month
 
-A month grid. Each day cell shows up to three scene chips; if there are more, a `+N` marker shows the overflow. Days outside the current month are dimmed.
+A month grid under a **weekday header** row. Each day cell shows up to three scene chips; if there are more, a `+N` marker shows the overflow. Days outside the current month are dimmed, and today is highlighted. **Click a day** to jump straight to that day's Week view.
 
 Use this view for the in-world pace of a chapter — and for finding empty days that need filling, or proving your protagonist is over-scheduled.
 
 ### Year
 
-Twelve month cards, each showing how many scene-days it contains. Click a month to jump into its Month view.
+Twelve month cards. Each card lists the **scenes** that fall in that month (deduplicated so a multi-day scene appears once) with a scene count in its header. Click a scene to open it, or click the month header to jump into that month's Month view.
 
 Use this view for macro-scale pacing and seasonal gaps.
+
+## Scene notes
+
+A scene's **note** shows on its calendar chip and timed event alongside the title, and in the hover tooltip together with the synopsis — a place for a short scheduling reminder that is not part of the prose.
 
 ## Rescheduling by drag and drop
 
@@ -40,7 +49,7 @@ In Week and Month view, **drag a scene chip onto another day** to reschedule it 
 
 ## Navigation and the anchor date
 
-The **Previous / Next** buttons step by one week, month, or year depending on the mode; the label between them shows the visible range. The date the calendar is centered on — the **anchor date** — is saved with the project, so the Calendar reopens where you left it.
+A **Today** button jumps back to the current date. The **Previous / Next** arrows step by one week, month, or year depending on the mode; the label between them shows the visible range. The date the calendar is centered on — the **anchor date** — is saved with the project, so the Calendar reopens where you left it.
 
 ## Tips
 

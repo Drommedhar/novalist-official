@@ -15,7 +15,7 @@ Open it from the **Plan** group in the binder's view rail (**Timeline**), from t
 - **Scenes** — every scene that has a date (a scene without its own date inherits its chapter's date). Shown as `Chapter: Scene`.
 - **Manual events** — anything you add directly to the timeline.
 
-Each entry shows a marker dot, its title, its date, and (for scenes and manual events) a description or synopsis. Events that reference characters or locations also show them as **chips** under the description.
+Each entry shows a marker dot, its title, a **source pill** naming where it came from (Act, Chapter, Scene, or Events), its date, and (for scenes and manual events) a description or synopsis. Events that reference characters or locations also show them as **chips** under the description.
 
 Entries are grouped under headers according to the zoom level (for example `2024`, `Mar 2024`, or `Mar 15, 2024`). Undated entries collect in a `???` group at the end — handy as an inbox of beats still waiting for a date.
 
@@ -34,6 +34,14 @@ Entries are grouped under headers according to the zoom level (for example `2024
 
 Filters combine. The layout direction and zoom level are saved with the project.
 
+### Date navigation
+
+To the right of the toolbar are controls for moving the visible window along the time axis:
+
+- **Previous / Next** — step the scroll position back or forward by one unit of the current zoom (a year, month, or day) and highlight the group you land on.
+- **Today** — jump to the group nearest today's date.
+- **Jump to date** — pick any date; the timeline scrolls to the matching group, or the nearest dated group when nothing sits in that exact bucket.
+
 ## Story-structure templates
 
 The **Add structure...** dropdown appends a bundled set of beats to the timeline as manual events:
@@ -51,13 +59,13 @@ Click **Add Event** (or click an existing manual event) to open the event editor
 
 - **Name** — short label.
 - **Date** — optional, e.g. `1043-03-01`.
-- **Category** — Plot Point, Character Event, Location Event, or World Event.
-- **Link to Chapter** — optional; associates the event with a chapter.
+- **Category** — Plot Point, Character Event, Location Event, World Event, or **Other**.
+- **Link to Chapter** — optional; associates the event with a chapter. When set, the event shows an **Open Chapter** button that jumps to that chapter's first scene in the Editor.
 - **Description** — optional long text.
 
 **Save** stores the event with the project. When editing, the dialog also offers **Delete**; alternatively, right-click a manual event on the timeline to delete it.
 
-Act, chapter, and scene entries cannot be edited from the timeline — change their dates on the item itself. Clicking a scene entry opens that scene in the Editor.
+Act, chapter, and scene entries cannot be edited from the timeline — change their dates on the item itself. Clicking a scene entry opens that scene in the Editor; clicking a chapter entry opens the chapter's first scene.
 
 ## Tips
 

@@ -1,14 +1,30 @@
 # Editor
 
-The Editor is where you write. It is a WYSIWYG rich-text editor that operates one scene at a time, with the option of a second scene side by side. The writing engine is the same proven one as in earlier Novalist versions — typewriter scrolling, page view, comments, and footnotes all behave identically; only the shell around it is new.
+The Editor is where you write. It is a WYSIWYG rich-text editor. Each editor pane keeps a strip of open scene tabs, and you can show a second pane side by side. The writing engine is the same proven one as in earlier Novalist versions — typewriter scrolling, page view, comments, and footnotes all behave identically; only the shell around it is new.
 
 Shortcuts below are written with `Ctrl`; on macOS use `Cmd`.
 
 ## Opening a scene
 
-Click any scene in the **binder**. The main area switches to the Editor view and loads the scene; the open scene is highlighted in the binder and its word count and title appear in the status bar.
+Click any scene in the **binder**. The main area switches to the Editor view and loads the scene; the open scene is highlighted in the binder, it is added to the pane's tab strip, and its statistics appear in the [status bar](#status-bar-statistics).
 
 You can also switch to the Editor view any time via **Write → Editor** in the binder's view rail.
+
+## Scene tabs
+
+Each editor pane keeps the scenes you have opened as a **tab strip** across the top of the pane. Clicking another scene in the binder adds it as a new tab instead of replacing the current one, so you can keep several scenes open and jump between them.
+
+The strip appears once a pane has more than one scene open (a single open scene keeps the clean, strip-free look). Each tab shows:
+
+- The scene title (falling back to the chapter title for an untitled scene).
+- A small **dirty dot** while the scene has unsaved edits, which clears once autosave flushes.
+- A **close** button (`×`).
+
+Tab actions:
+
+- **Click** a tab to switch the pane to that scene.
+- **Middle-click** a tab, or click its `×`, to close it. Closing the active tab activates its neighbour.
+- **Right-click** a tab for a small menu: **Close tab** and **Move to other split** (sends the scene to the other editor pane, opening the split if needed).
 
 ## Auto-save
 
@@ -35,13 +51,28 @@ Right-click inside the text for:
 
 ## Split editor
 
-To see two scenes at once, right-click a scene in the binder and choose **Toggle split editor**. The main area splits into two editor panes: your current scene on the left, the chosen scene on the right. Both panes are fully editable and auto-save independently. Choosing the command on another scene swaps which scene the second pane shows.
+To see two scenes at once, right-click a scene in the binder and choose **Toggle split editor**. The main area splits into two editor panes: your current scene on the left, the chosen scene on the right. Both panes are fully editable, auto-save independently, and each keeps its own [tab strip](#scene-tabs) of open scenes. Use **Move to other split** on a tab to hand a scene from one pane to the other.
 
 Common uses: referencing an earlier scene while writing a later one, or editing two scenes in parallel.
 
+## Entity mentions and autocomplete
+
+Novalist recognises the names of your [Codex](06-codex.md) entities — characters, locations, items, and lore — as you write, matching both the primary name and any aliases.
+
+Type `@` to open the **mention autocomplete**: a picker of matching entities (by name or alias) appears; choose one to insert its name. This is the quickest way to keep names spelled consistently across the manuscript.
+
 ## Entity hover cards
 
-When you hover over the name (or alias) of a codex entity in your prose, a small **hover card** appears with the entity's image, name, and a short detail line — enough to check a character's face or a location without leaving the editor. Entities are managed in the [Codex](06-codex.md).
+When you hover over the name or alias of a codex entity in your prose (or over an inserted mention), an enriched **hover card** appears with, as available:
+
+- The entity's **image** and **name**, plus a **type** label (Character / Location / Item / Lore).
+- A short **detail** line.
+- A couple of key **attribute chips** — for a character its role, gender, and age; for a location its type and parent; and so on.
+- Up to a few **relationships** (`role: target`).
+- The entity's **section** titles.
+- An **Open entity** button that jumps straight to that entity in the Codex.
+
+The card is enough to check a character's face, a relationship, or a location without leaving the editor. Move the pointer onto the card to keep it open. Entities are managed in the [Codex](06-codex.md).
 
 ## Grammar and spelling check
 
@@ -74,6 +105,23 @@ In [Settings](23-settings.md) → Editor:
 - **Font Family** and **Font Size** control the regular editing view.
 
 All of this is purely visual — it doesn't change what gets exported. For export styling see [Export](20-export.md).
+
+## Keyboard shortcuts and zoom
+
+The editor participates fully in the app's keyboard shortcuts even while the caret is inside the text: a global gesture (for example the command palette, focus mode, or find & replace) fires whether or not the editor has focus, so you never have to click out of the page first. See [Hotkeys](26-hotkeys.md) for the full list.
+
+Hold `Ctrl` and scroll the mouse wheel over the page to **zoom** the editor font up or down (clamped to a sensible range). The zoom adjusts the editor font size, the same value exposed in [Settings](23-settings.md) → Editor.
+
+## Status bar statistics
+
+While a scene is open, the left of the status bar shows live figures for that scene, recomputed as you type:
+
+- **Word count** and **character counts** (with and without spaces).
+- Estimated **reading time** in minutes.
+- A **readability badge** — a 0–100 score with a colour-coded label (Very easy, Easy, Moderate, Difficult, Very difficult). The score adapts to the writing language selected under Settings → Writing assistance.
+- The **scene title**.
+
+The centre of the status bar shows whole-project totals (words, chapters, scenes); click it for a project overview popover. The right side shows daily and project goal progress when goals are set (see [Dashboard](11-dashboard.md)).
 
 ## Focus mode
 

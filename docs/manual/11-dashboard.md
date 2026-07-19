@@ -8,9 +8,13 @@ Open it from the **Write** group in the binder's view rail (**Dashboard**), from
 
 ## What the Dashboard shows
 
+### Cover image
+
+At the very top sits the project's **cover image**. Use **Add cover** to pick an image, **Change cover** to replace it, and **Remove cover** to clear it. When no cover is set, a placeholder is shown. The cover is stored with the project.
+
 ### Header and top-line stats
 
-The project name heads the page, followed by a row of metric cards:
+The project name heads the page, with the **author** underneath (when set) and a **Project Dashboard** subtitle, followed by a row of metric cards:
 
 - **Words** — total words in the book.
 - **Chapters** — total count.
@@ -32,20 +36,27 @@ The project name heads the page, followed by a row of metric cards:
 **Click the card title to edit your project word goal.** The card shows:
 
 - Total words against the project target, with a progress bar and percentage.
-- The **deadline**, if one is set (see below).
-- **Average words per chapter**.
+- When a **deadline** is set (see below), a detail row with the **deadline** date, the **days left**, and the **words per day** you need to average to hit the target on time.
+
+### Averages
+
+A small card pairs **average words per chapter** with the project's **estimated reading time**.
 
 ### Progress Breakdown
 
-One row per chapter status — Outline, Draft, Revised, Edited, Final — with a status dot, a bar showing that status's share of chapters, and the chapter count plus word count at that status.
+One row per chapter status — Outline, Draft, Revised, Edited, Final — with a status dot, a bar showing that status's share of chapters, and the chapter count plus word count at that status. Below the rows, a summary strip shows the plain chapter **count at each status**.
 
 ### Pacing Analysis
 
-One row per chapter with a bar showing its word count relative to the book's longest chapter. Look for outliers — a chapter twice as long as its neighbors deserves a closer look.
+Opens with a summary of the **longest chapter**, the **shortest chapter**, and the **average scene** length. Below it, one row per chapter shows a bar with the chapter's word count relative to the book's longest chapter. Look for outliers — a chapter twice as long as its neighbors deserves a closer look.
 
 ### Echo Finder
 
 Phrases that recur unusually often across the manuscript, with their frequency. Useful for spotting tics, repeated metaphors, and overused turns of phrase. Consider varying your language where counts are high.
+
+### Recent Activity
+
+A short list of the scenes you edited most recently, each with its chapter and a timestamp — a quick way to pick up where you left off.
 
 ## Configuring goals
 

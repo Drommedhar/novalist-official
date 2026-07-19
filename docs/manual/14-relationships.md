@@ -9,9 +9,12 @@ Open it from the **Plan** group in the binder's view rail (**Relationships**), f
 ## What you see
 
 - **Nodes** — one per character that has at least one relationship. Characters with no relationships are hidden; if nothing is connected yet, the view tells you to add relationships in the Codex.
-- **Edges** — lines between related characters, labeled with the relationship role (e.g. "Father", "Mentor", "Owes a debt to"). When two characters are linked by several roles, the labels combine into one edge ("Father / Mentor"). Family edges inside a cluster are drawn thin and unlabeled — the layout already says what they mean.
+- **Edges** — lines between related characters, labeled with the relationship role (e.g. "Father", "Mentor", "Owes a debt to"). When two characters are linked by several roles, the labels combine into one edge ("Father / Mentor"). Family (parent/child) relationships instead render as unlabeled **genealogy T-connectors** — a vertical drop from the parents' mid-point branching out to each child — so a family tree reads at a glance without label clutter.
 - **Family boxes** — related family members are enclosed in a soft box labeled `Family <surname>` (using the family's most common surname). Inside a box, generations are layered top to bottom: parents above children, partners on the same row.
+- **Role-group boxes** — when three or more characters share the same non-family role (for example everyone tied to a "Ring"), their nodes are wrapped in a dashed box labeled with that role, grouping the shared connection visually.
 - Characters connected only by non-family roles are arranged in a loose ring below the family clusters.
+
+Each family and role box is drawn in its own colour so overlapping groups stay distinguishable.
 
 ## How family clustering works
 
@@ -22,10 +25,13 @@ Other roles — mentor, enemy, business partner, owes a debt to — appear as la
 ## Toolbar
 
 - **Search** — type to filter the graph to characters whose name matches.
+- **Filter by group** — show only characters in a chosen group. The dropdown lists the groups present in the cast.
+- **Filter by role** — show only characters with a chosen role.
 - **Hide world-bible entities** — hide characters marked as world-bible, leaving only this book's cast.
+- **Clear filters** — appears once any filter (search, group, role, or hide-world-bible) is active; resets them all at once.
 - **Zoom readout** — shows the current zoom percentage.
 
-**Zoom** with the mouse wheel (20% to 400%); **pan** by dragging the background.
+Filters combine. **Zoom** with the mouse wheel (20% to 400%); **pan** by dragging the background. Whenever the graph is rebuilt — on open, or after changing a filter — it **auto-fits** and centres itself in the viewport, so you never have to hunt for the cast.
 
 ## Adding and editing relationships
 

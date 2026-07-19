@@ -12,23 +12,37 @@ Open it from the **World** group in the binder's view rail (**Research**), from 
 
 The view is a two-pane list-and-editor:
 
-- **Left** — the list of research items, each showing its title and type. Click an item to open it.
+- **Left** — the action buttons, a search box, and the list of research items, each showing its title and type. Click an item to open it.
 - **Right** — the editor for the selected item.
+
+The **search box** filters the list by title, content, or tag (substring match).
+
+## Adding items
+
+Three buttons sit at the top of the list:
+
+- **Add Note** — creates an empty note.
+- **Add Link** — creates a link item pre-filled with `https://`.
+- **Import File** — opens the system file picker and copies the chosen file into the project. Novalist classifies it by extension: images become **Image** items, PDFs become **Pdf** items, and everything else becomes a **File** item.
 
 ## Items
 
 Every research item has:
 
 - **Title**
-- **Type** — one of **Note**, **Link**, **File**, or **Image**.
-- **Content** — the body. For notes this is the text itself; for links, the URL; for files and images, the file path.
+- **Type** — one of **Note**, **Link**, **File**, **Image**, or **Pdf**. You can change the type in the editor.
+- **Content** — the body. For notes this is the text itself; for links, the URL; for files, images, and PDFs, the file path.
 - **Tags** — comma-separated labels.
 
-Click **+ Note** at the top of the list to create a new item (it starts as a Note; switch the type in the editor if it is really a link or a file reference).
+For **Image** items the editor shows a **preview** of the picture. For **File**, **Image**, and **Pdf** items it shows the file's **metadata** — its path, size, and last-modified date.
+
+Depending on the type, the editor's action row offers:
+
+- **Open External** — opens a link in your browser, or a file/image/PDF in its default application. Available for Link and file-backed items.
+- **Reveal** — shows the file in your system file manager. Available for file-backed items.
+- **Delete** — removes the item; a confirmation dialog asks first.
 
 Everything saves automatically as you edit — changes are written when you leave a field.
-
-To delete an item, open it and click **Delete**; a confirmation dialog asks first.
 
 ## Tags
 

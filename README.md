@@ -37,7 +37,8 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Interface
 
-- **Three-pane, Scrivener-style layout** — the binder (chapter/scene tree, smart lists, and grouped view navigation) on the left, the active view in the center, and an inspector with scene details on the right.
+- **Three-pane, Scrivener-style layout** — the binder (chapter/scene tree, smart lists, and grouped view navigation) on the left, the active view in the center, and a scene inspector on the right.
+- **Scene context & analysis inspector** — the right pane shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides, alongside synopsis, notes, inline annotations, and per-scene snapshot history.
 - **Command palette** (`Ctrl+Shift+P`) and number-key view switching for keyboard-driven navigation.
 - On macOS 26+ the window uses native **Liquid Glass**, with vibrancy on older macOS; Windows and Linux render opaque themed surfaces from the same design tokens.
 
@@ -90,9 +91,9 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Output
 
-- Export to **EPUB**, **DOCX**, **PDF**, **Markdown**, **Final Draft / Fountain**, **LaTeX**, and **Codex Markdown**.
-- Built-in **Shunn Modern Manuscript Format** preset for submissions.
-- Chapter-level selection, optional title page, custom title and author.
+- Export to **EPUB**, **DOCX**, **PDF**, **Markdown**, **Final Draft**, **LaTeX**, and **Codex Markdown**.
+- **Layout presets** — Default, **Shunn Manuscript Format** (industry-standard submission format), and Ebook Flow set fonts, spacing, and margins; a one-click Shunn toggle for DOCX and PDF.
+- Chapter-level selection with select-all / select-none, optional title page, custom title and author.
 - Extensions can contribute additional formats and presets.
 
 ### Version control
