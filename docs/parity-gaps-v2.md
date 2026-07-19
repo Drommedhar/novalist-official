@@ -57,7 +57,16 @@ Deferred (minor): image name edit / swap / clipboard+URL sources.
 4. **Move to World Bible / back** (backend RPC + context action).
 5. Image extras: editable name, swap image, clipboard/URL sources.
 
-### Phase 2 — Inspector / context-analysis engine [user's #3 complaint]
+### Phase 2 — Inspector / context-analysis engine [DONE — commits d3b1d38, 82dc07e]
+Shipped: backend context/analyze (verbatim port of ContextSidebarViewModel:
+entities-in-scene matching, mention matrix + last-seen, POV/16-emotion/intensity/
+conflict/tags/dialogue%/avg-sentence, overrides merged); Inspector ContextPanel
+(entity cards click-to-open, mention matrix, analysis with editable POV) +
+AnnotationsPanel (footnotes + comments lists, edit/delete). 201 backend tests,
+100%. Deferred (low/medium): story-date+weekday header, position subtitle,
+collapsible persisted sections, comment resolved toggle, editable
+emotion/intensity/conflict/tags (needs a setAnalysisOverrides RPC).
+
 Port `ContextSidebarViewModel` (~1400 lines) to a backend `context/analyze`
 RPC + a sectioned Inspector:
 1. Characters/locations/items/lore **present in the scene** (text match w/
