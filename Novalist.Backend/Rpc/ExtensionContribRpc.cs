@@ -151,7 +151,8 @@ public sealed class ExtensionContribRpc
                        schema.Title,
                        schema.Fields.Select(f => new SettingsFieldDto(
                            f.Key, f.Label, f.Type.ToString().ToLowerInvariant(), f.Value,
-                           f.Options?.ToArray(), f.Min, f.Max, f.Group, f.Help)).ToArray());
+                           f.Options?.ToArray(), f.Min, f.Max, f.Group, f.Help,
+                           f.VisibleWhenKey, f.VisibleWhenValues?.ToArray())).ToArray());
                })
                .ToArray()
            ?? [];
@@ -173,4 +174,5 @@ public sealed record StatusBarInfoDto(string Id, string Alignment, int Order, st
 public sealed record SettingsSchemaDto(string ExtensionId, string ExtensionName, string Title, IReadOnlyList<SettingsFieldDto> Fields);
 public sealed record SettingsFieldDto(
     string Key, string Label, string Type, string Value,
-    IReadOnlyList<string>? Options, double? Min, double? Max, string? Group, string? Help);
+    IReadOnlyList<string>? Options, double? Min, double? Max, string? Group, string? Help,
+    string? VisibleWhenKey, IReadOnlyList<string>? VisibleWhenValues);

@@ -226,6 +226,15 @@ public sealed class ExtensionContribRpcTests : IDisposable
         Assert.Equal(SampleId, schema.ExtensionId);
         Assert.Contains(schema.Fields, f => f.Key == "duration");
 
+        // Conditional-visibility metadata flows through to the DTO: a field with no
+        // condition carries nulls; a gated field carries its key + allowed values.
+        var duration = schema.Fields.First(f => f.Key == "duration");
+        Assert.Null(duration.VisibleWhenKey);
+        Assert.Null(duration.VisibleWhenValues);
+        var gated = schema.Fields.First(f => f.Key == "promptCategory");
+        Assert.Equal("autoStartBreaks", gated.VisibleWhenKey);
+        Assert.Equal(new[] { "true" }, gated.VisibleWhenValues);
+
         await _rpc.SaveSettingsSchemaAsync(SampleId, new Dictionary<string, string> { ["duration"] = "45" });
         Assert.Equal("45", _rpc.SettingsSchemas().Single().Fields.First(f => f.Key == "duration").Value);
 

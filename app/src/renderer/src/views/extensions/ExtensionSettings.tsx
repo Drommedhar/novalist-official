@@ -29,6 +29,10 @@ interface SettingsFieldDto {
   max: number | null
   group: string | null
   help: string | null
+  /** When set, this field is shown only while the field named by
+   * visibleWhenKey currently holds one of visibleWhenValues. */
+  visibleWhenKey: string | null
+  visibleWhenValues: string[] | null
 }
 
 interface SettingsSchemaDto {
@@ -144,13 +148,19 @@ function ExtensionSchemaForm({
         <span className="ext-settings-card-sub">{schema.extensionName}</span>
       </div>
       <div className="ext-schema-fields">
-        {schema.fields.map((field) => (
-          <label key={field.key} className="ext-schema-field">
-            <span className="ext-schema-label">{field.label}</span>
-            <SchemaInput field={field} value={values[field.key] ?? ''} onChange={(v) => set(field.key, v)} />
-            {field.help && <span className="ext-schema-help">{field.help}</span>}
-          </label>
-        ))}
+        {schema.fields
+          .filter(
+            (field) =>
+              !field.visibleWhenKey ||
+              (field.visibleWhenValues ?? []).includes(values[field.visibleWhenKey] ?? '')
+          )
+          .map((field) => (
+            <label key={field.key} className="ext-schema-field">
+              <span className="ext-schema-label">{field.label}</span>
+              <SchemaInput field={field} value={values[field.key] ?? ''} onChange={(v) => set(field.key, v)} />
+              {field.help && <span className="ext-schema-help">{field.help}</span>}
+            </label>
+          ))}
       </div>
       <div className="ext-schema-actions">
         <button type="button" className="export-inline-btn" disabled={saving} onClick={() => void save()}>

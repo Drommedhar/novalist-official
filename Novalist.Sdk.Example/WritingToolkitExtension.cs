@@ -492,7 +492,11 @@ public sealed class WritingToolkitExtension :
                 Label = _loc.T("settingsSchema.promptCategory"),
                 Type = SettingsFieldType.Select,
                 Value = _promptCategory,
-                Options = ["any", "character", "setting", "conflict"]
+                Options = ["any", "character", "setting", "conflict"],
+                // Demonstrates conditional visibility: the host shows this field
+                // only while the "autoStartBreaks" field above is enabled.
+                VisibleWhenKey = "autoStartBreaks",
+                VisibleWhenValues = ["true"]
             }
         ]
     };

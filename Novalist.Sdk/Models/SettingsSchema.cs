@@ -71,4 +71,16 @@ public sealed class SettingsField
 
     /// <summary>Optional helper text shown beneath the input.</summary>
     public string? Help { get; init; }
+
+    /// <summary>Optional conditional visibility: the key of another field in the
+    /// same schema that this field depends on. When set, the host shows this
+    /// field only while that field's current value is one of
+    /// <see cref="VisibleWhenValues"/>. Null means the field is always visible.
+    /// Useful for provider-specific settings (e.g. show the LM Studio fields only
+    /// when the "provider" field is "lmstudio").</summary>
+    public string? VisibleWhenKey { get; init; }
+
+    /// <summary>The values of the <see cref="VisibleWhenKey"/> field that make
+    /// this field visible. Ignored when <see cref="VisibleWhenKey"/> is null.</summary>
+    public IReadOnlyList<string>? VisibleWhenValues { get; init; }
 }
