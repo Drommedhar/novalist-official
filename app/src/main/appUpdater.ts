@@ -49,6 +49,15 @@ function parts(v: string): number[] {
     .map((p) => parseInt(p, 10) || 0)
 }
 
+/**
+ * The version the update check treats as "currently installed". Normally the
+ * packaged app version; setting NOVALIST_FORCE_VERSION lets a developer pretend
+ * to be an older (or newer) build to exercise the self-update flow in dev.
+ */
+function currentAppVersion(): string {
+  return process.env.NOVALIST_FORCE_VERSION?.trim() || app.getVersion()
+}
+
 /** True when `remote` is a strictly newer semver than `current`. */
 export function isNewer(remote: string, current: string): boolean {
   const r = parts(remote)
@@ -86,7 +95,7 @@ export async function checkAppUpdate(): Promise<AppUpdateInfo | null> {
   if (!release.tag_name) return null
 
   const remote = release.tag_name.replace(/^v/i, '')
-  if (!isNewer(remote, app.getVersion())) return null
+  if (!isNewer(remote, currentAppVersion())) return null
 
   const asset = release.assets ? findPlatformAsset(release.assets) : null
   if (!asset?.browser_download_url) return null

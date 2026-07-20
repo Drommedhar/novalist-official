@@ -19,7 +19,12 @@
       ],
       "env": {
         "ELECTRON_RUN_AS_NODE": null,
-        "REMOTE_DEBUGGING_PORT": "9222"
+        "REMOTE_DEBUGGING_PORT": "9222",
+        // Force the version the update check treats as "installed". Set to an
+        // older version (e.g. "1.0.0") to make the app detect the latest GitHub
+        // release as an update and exercise the self-update flow. Empty = use the
+        // real build version (no forcing).
+        "NOVALIST_FORCE_VERSION": ""
       }
     },
     {
