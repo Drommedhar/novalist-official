@@ -13,7 +13,6 @@
     "backend:publish": "dotnet publish ../Novalist.Backend/Novalist.Backend.csproj -c Release -r $npm_config_rid --self-contained -p:PublishSingleFile=true -o dist-backend"
   },
   "dependencies": {
-    "electron-liquid-glass": "^1.1.1",
     "electron-updater": "^6.8.9",
     "i18next": "^26.3.6",
     "lucide-react": "^1.25.0",
@@ -35,5 +34,8 @@
     "typescript": "^7.0.2",
     "vite": "^7.0.2"
   },
-  "author": "Novalist"
+  "author": "Novalist",
+  "optionalDependencies": {
+    "electron-liquid-glass": "^1.1.1"
+  }
 }

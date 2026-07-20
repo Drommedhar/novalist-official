@@ -63,7 +63,16 @@ function manualPlugin(): Plugin {
 }
 
 export default defineConfig({
-  main: {},
+  main: {
+    build: {
+      rollupOptions: {
+        // Darwin-only optional native module (Liquid Glass). Never bundle it —
+        // glass.ts imports it lazily at runtime and no-ops when it is absent
+        // (Windows/Linux), so the build must not try to resolve it there.
+        external: ['electron-liquid-glass']
+      }
+    }
+  },
   preload: {},
   renderer: {
     plugins: [react(), manualPlugin()]
