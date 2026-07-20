@@ -1,23 +1,20 @@
-using Avalonia.Controls;
-
 namespace Novalist.Sdk.Models;
 
 /// <summary>
-/// Describes a settings page to add to the Settings view.
+/// Describes a settings category an extension contributes. The host surfaces it
+/// in the Extensions view; the editable form itself comes from
+/// <see cref="Hooks.ISettingsSchemaContributor"/>.
 /// </summary>
 public sealed class SettingsPage
 {
-    /// <summary>Category label shown in the settings sidebar.</summary>
+    /// <summary>Category label shown in the settings list.</summary>
     public string Category { get; init; } = string.Empty;
 
-    /// <summary>Icon emoji/text.</summary>
-    public string Icon { get; init; } = "🧩";
+    /// <summary>Optional icon text.</summary>
+    public string Icon { get; init; } = string.Empty;
 
     /// <summary>Optional SVG path geometry data for a vector icon.</summary>
     public string? IconPath { get; init; }
-
-    /// <summary>Factory that creates the settings panel Control.</summary>
-    public Func<Control> CreateView { get; init; } = null!;
 
     /// <summary>Called when the user leaves the settings page. Persist settings here.</summary>
     public Action? OnSave { get; init; }

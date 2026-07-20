@@ -6,11 +6,8 @@ namespace Novalist.Sdk.Hooks;
 
 /// <summary>
 /// Contributes a declarative settings schema that a host can render as a form
-/// without executing any extension UI code. This is the portable counterpart to
-/// <see cref="ISettingsContributor"/> (whose <see cref="SettingsPage.CreateView"/>
-/// returns an Avalonia control the Electron host cannot render). Extensions that
-/// need their advanced configuration reachable on every host should implement
-/// this interface.
+/// without executing any extension UI code. Extensions that need their advanced
+/// configuration reachable on every host should implement this interface.
 /// </summary>
 public interface ISettingsSchemaContributor
 {

@@ -37,8 +37,7 @@ public sealed class HotkeyDescriptor
     public string EffectiveCategory => CategoryProvider?.Invoke() ?? Category;
 
     /// <summary>
-    /// Default key gesture as a string (e.g. "Ctrl+Shift+N").
-    /// Uses Avalonia KeyGesture string format.
+    /// Default key gesture as a "Modifier+Key" string (e.g. "Ctrl+Shift+N").
     /// </summary>
     public string DefaultGesture { get; init; } = string.Empty;
 

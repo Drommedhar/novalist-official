@@ -1,5 +1,4 @@
 using System.Text;
-using Avalonia.Controls;
 using Novalist.Sdk;
 using Novalist.Sdk.Hooks;
 using Novalist.Sdk.Models;
@@ -15,7 +14,6 @@ namespace Novalist.Sdk.Example;
 public sealed class WritingToolkitExtension :
     IExtension,
     IRibbonContributor,
-    ISidebarContributor,
     IEditorExtension,
     IAiHook,
     ISettingsContributor,
@@ -23,7 +21,6 @@ public sealed class WritingToolkitExtension :
     IThemeContributor,
     IStatusBarContributor,
     IContextMenuContributor,
-    IContentViewContributor,
     IEntityTypeContributor,
     IGrammarCheckContributor,
     IHotkeyContributor,
@@ -127,25 +124,6 @@ public sealed class WritingToolkitExtension :
         }
     ];
 
-    // ── ISidebarContributor ─────────────────────────────────────────
-
-    public IReadOnlyList<SidebarPanel> GetSidebarPanels() =>
-    [
-        new SidebarPanel
-        {
-            Id = "writingToolkit.prompts",
-            Label = _loc.T("sidebar.writingPrompts.label"),
-            Icon = "🎲",
-            IconPath = "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12",
-            Side = "Right",
-            Tooltip = _loc.T("sidebar.writingPrompts.tooltip"),
-            CreateView = () => new Views.WritingPromptsView
-            {
-                DataContext = new ViewModels.WritingPromptsViewModel(_prompts, _loc)
-            }
-        }
-    ];
-
     // ── IEditorExtension ────────────────────────────────────────────
 
     public string Name => "WritingToolkitEditor";
@@ -172,23 +150,14 @@ public sealed class WritingToolkitExtension :
 
     public string OnResponseChunk(string chunk) => chunk; // pass through
 
-    // ── ISettingsContributor ────────────────────────────────────────
+    // ── ISettingsContributor (page metadata; the form comes from the schema) ─
 
     public IReadOnlyList<SettingsPage> GetSettingsPages() =>
     [
         new SettingsPage
         {
             Category = _loc.T("settings.category"),
-            Icon = "🧰",
-            IconPath = "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z",
-            CreateView = () => new Views.ToolkitSettingsView
-            {
-                DataContext = new ViewModels.ToolkitSettingsViewModel(_pomodoro, _prompts, _host, _loc)
-            },
-            OnSave = () =>
-            {
-                // Settings would be persisted via IHostServices.GetExtensionSettingsPath
-            }
+            IconPath = "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
         }
     ];
 
@@ -264,12 +233,12 @@ public sealed class WritingToolkitExtension :
         new ThemeOverride
         {
             Name = "Sepia",
-            ResourcePath = "Themes/SepiaTheme.axaml"
+            AccentColor = "#8a6d3b"
         },
         new ThemeOverride
         {
             Name = "Dark Ocean",
-            ResourcePath = "Themes/DarkOceanTheme.axaml"
+            AccentColor = "#1b6ca8"
         }
     ];
 
@@ -328,25 +297,6 @@ public sealed class WritingToolkitExtension :
         }
     ];
 
-    // ── IContentViewContributor ─────────────────────────────────────
-
-    public IReadOnlyList<ContentViewDescriptor> GetContentViews() =>
-    [
-        new ContentViewDescriptor
-        {
-            ViewKey = "ext.wordfreq",
-            DisplayName = _loc.T("contentView.wordFrequency"),
-            Icon = "📊",
-            IconPath = "M18 20V10M12 20V4M6 20v-4",
-            CreateView = () => new Views.WordFrequencyView
-            {
-                DataContext = new ViewModels.WordFrequencyViewModel(_wordFrequency, _host, _loc)
-            },
-            OnActivated = () => { },
-            OnDeactivated = () => { }
-        }
-    ];
-
     // ── IEntityTypeContributor ──────────────────────────────────────
 
     public IReadOnlyList<EntityTypeDescriptor> GetEntityTypes() =>
@@ -356,7 +306,6 @@ public sealed class WritingToolkitExtension :
             TypeKey = "ext.writingtoolkit.faction",
             DisplayName = _loc.T("entityType.faction"),
             DisplayNamePlural = _loc.T("entityType.factions"),
-            Icon = "⚔️",
             FolderName = "Factions",
             DefaultFields =
             [

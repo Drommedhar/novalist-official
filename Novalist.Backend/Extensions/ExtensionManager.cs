@@ -29,10 +29,8 @@ public sealed class ExtensionManager
     // ── Hook collections (populated during loading) ─────────────────
 
     public List<RibbonItem> RibbonItems { get; } = [];
-    public List<SidebarPanel> SidebarPanels { get; } = [];
     public List<StatusBarItem> StatusBarItems { get; } = [];
     public List<ContextMenuItem> ContextMenuItems { get; } = [];
-    public List<ContentViewDescriptor> ContentViews { get; } = [];
     public List<SettingsPage> SettingsPages { get; } = [];
     public List<Novalist.Sdk.Models.Wizards.WizardDefinition> Wizards { get; } = [];
     public List<EntityTypeDescriptor> EntityTypes { get; } = [];
@@ -141,17 +139,11 @@ public sealed class ExtensionManager
         if (instance is IRibbonContributor ribbon)
             AddList(RibbonItems, ribbon.GetRibbonItems());
 
-        if (instance is ISidebarContributor sidebar)
-            AddList(SidebarPanels, sidebar.GetSidebarPanels());
-
         if (instance is IStatusBarContributor statusBar)
             AddList(StatusBarItems, statusBar.GetStatusBarItems());
 
         if (instance is IContextMenuContributor contextMenu)
             AddList(ContextMenuItems, contextMenu.GetContextMenuItems());
-
-        if (instance is IContentViewContributor contentView)
-            AddList(ContentViews, contentView.GetContentViews());
 
         if (instance is ISettingsContributor settings)
             AddList(SettingsPages, settings.GetSettingsPages());

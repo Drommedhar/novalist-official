@@ -4,13 +4,9 @@ namespace Novalist.Sdk.Models;
 
 /// <summary>
 /// A declarative, host-renderable description of an extension's advanced
-/// settings. Unlike <see cref="SettingsPage"/> (which returns an Avalonia
-/// <c>Control</c> the headless/Electron host cannot render), a schema is pure
-/// data: the host renders a form from <see cref="Fields"/> and hands the edited
-/// values back to the extension. Extensions that want their advanced settings to
-/// be reachable on the Electron host should implement
-/// <see cref="Hooks.ISettingsSchemaContributor"/> in addition to (or instead of)
-/// <see cref="Hooks.ISettingsContributor"/>.
+/// settings. A schema is pure data: the host renders a form from
+/// <see cref="Fields"/> and hands the edited values back to the extension.
+/// Implement <see cref="Hooks.ISettingsSchemaContributor"/> to contribute one.
 /// </summary>
 public sealed class SettingsSchema
 {

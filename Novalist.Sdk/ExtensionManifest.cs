@@ -45,9 +45,7 @@ public sealed class ExtensionManifest
     public string? Icon { get; set; }
 
     /// <summary>
-    /// SDK v2: declarative web contributions rendered by web-based hosts.
-    /// Ignored by the Avalonia host; extensions may declare both this and the
-    /// classic control-factory hooks during the transition.
+    /// Declarative web contributions (views, etc.) rendered by the host.
     /// </summary>
     [JsonPropertyName("contributes")]
     public WebContributions? Contributes { get; set; }

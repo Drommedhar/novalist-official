@@ -98,7 +98,7 @@ Extensions can register **multiple** hooks — a single extension might add a pa
 ### Hotkeys, themes, and the status bar
 
 - **Hotkeys** contributed by an extension fire globally (and from inside the editor). Their default gestures are shown together with the built-in shortcuts.
-- **Themes** contributed by an extension are listed under **Extension themes** in the Extensions view. Selecting one applies its accent colour; selecting it again clears it. (On this host only a theme's accent colour is applied; Avalonia style resources from older desktop extensions are ignored.)
+- **Themes** contributed by an extension are listed under **Extension themes** in the Extensions view. Selecting one applies its accent colour; selecting it again clears it. (A contributed theme carries an accent colour, applied when selected.)
 - **Status-bar items** render at the left of the status bar and refresh about once a second; clicking one runs the extension's command.
 
 ## Host UI an extension can drive

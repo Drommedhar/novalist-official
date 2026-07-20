@@ -137,10 +137,8 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
 
     public void ActivateContentView(string viewKey)
     {
-        Log.Debug($"[ExtCtxMenu] ActivateContentView called with '{viewKey}', handler null? {ContentViewActivated is null}");
-        var displayName = ExtensionManager?.ContentViews
-            .FirstOrDefault(v => v.ViewKey == viewKey)?.DisplayName ?? viewKey;
-        ContentViewActivated?.Invoke(viewKey, displayName);
+        Log.Debug($"[ExtCtxMenu] ActivateContentView handler null? {ContentViewActivated is null}");
+        ContentViewActivated?.Invoke(viewKey, viewKey);
     }
 
     public void ToggleRightSidebar(string panelId)

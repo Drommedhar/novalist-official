@@ -61,7 +61,6 @@ public class ExtensionManagerTests
         var sample = mgr.Extensions.First(e => e.Manifest.Id == SampleId);
         Assert.True(sample.IsLoaded);
         Assert.NotEmpty(mgr.RibbonItems);       // hooks collected from the sample
-        Assert.NotEmpty(mgr.SidebarPanels);
         Assert.NotEmpty(mgr.ThemeOverrides);
         Assert.Contains(mgr.Extensions, e => e.Manifest.Id == "ext.disabled" && !e.IsEnabled);
         Assert.Contains(mgr.Extensions, e => e.Manifest.Id == "Bad" && e.LoadError != null);
@@ -96,7 +95,6 @@ public class ExtensionManagerTests
         var sample = mgr.Extensions.First(e => e.Manifest.Id == SampleId);
         Assert.False(sample.IsLoaded);
         Assert.Empty(mgr.RibbonItems);   // hooks removed
-        Assert.Empty(mgr.SidebarPanels);
 
         await mgr.EnableExtensionAsync(SampleId);
         Assert.True(sample.IsLoaded);

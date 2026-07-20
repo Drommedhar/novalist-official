@@ -121,8 +121,8 @@ public sealed class ExtensionsRpc
     }
 
     /// <summary>Extension-contributed settings-page metadata (category + icon).
-    /// The page body is an extension-owned Avalonia control that the headless
-    /// backend cannot render; the setup wizard is the configuration surface.</summary>
+    /// The page is metadata (category + icon); the editable form comes from the
+    /// extension settings schema.</summary>
     [JsonRpcMethod("extensions/settingsPages")]
     public SettingsPageDto[] SettingsPages() =>
         _workspace.ExtensionsHost.EnumerateSettingsPages()
