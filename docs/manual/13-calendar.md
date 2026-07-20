@@ -2,6 +2,8 @@
 
 The Calendar lays your scenes out on a Gregorian calendar, using the story dates stored on scenes and chapters. Use it to see the in-world schedule of the book — what happens on which day, and at what time.
 
+![The Calendar view](images/calendar.png)
+
 ## Where the dates come from
 
 A scene appears on the calendar when it has a resolvable story date: its own date (or date range), or, failing that, the date of its chapter or act. Dates can carry optional start/end times for hour-level precision; a scene without a time counts as all-day. A scene whose range spans several days appears on every day it covers.
@@ -10,7 +12,7 @@ Scene and chapter dates are part of the project data and are shared with the [Ti
 
 ## Opening the Calendar
 
-Open it from the **Plan** group in the binder's view rail (**Calendar**), from the command palette, or with `Ctrl+6` (macOS uses Cmd).
+Open it from the **Plan** group in the activity bar (**Calendar**), from the **Go** menu or command palette, or with `Ctrl+6` (macOS uses Cmd).
 
 ## View modes
 

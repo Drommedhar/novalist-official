@@ -16,7 +16,7 @@ Every character you create from this template starts with all of that already in
 
 ## Managing templates (Settings → TEMPLATES)
 
-Open **Settings** from the binder's view rail (Application group). With a project loaded, the **TEMPLATES** section lists one group per entity type — **Character Templates**, **Location Templates**, **Item Templates**, **Lore Templates**, and one group per custom type.
+Open **Settings** from the activity bar (the bottom block, beside Extensions). With a project loaded, the **TEMPLATES** section lists one group per entity type — **Character Templates**, **Location Templates**, **Item Templates**, **Lore Templates**, and one group per custom type.
 
 Each group shows its templates with edit and delete buttons, plus **Add template** to create a new one. Editing or adding opens the template editor as an overlay.
 

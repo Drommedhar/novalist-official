@@ -1,6 +1,8 @@
 # Command Palette
 
-The Command Palette is a single text box that can run any registered shell command. If you don't remember where a view lives or what its hotkey is, you can usually get there faster by typing.
+The Command Palette is a single text box that can run any registered command. If you don't remember where a view lives or what its hotkey is, you can usually get there faster by typing.
+
+![The command palette](images/command-palette.png)
 
 ## Opening the palette
 
@@ -16,7 +18,7 @@ Press `Ctrl+Shift+P` (`Cmd+Shift+P` on macOS). The palette opens as an overlay i
 
 ## What's in the palette
 
-Every registered shell command:
+Every registered command:
 
 - **View switching** — jump to the Editor, Manuscript, Dashboard, Timeline, Plot Grid, Calendar, Relationships, Codex, or Research view by name.
 - **Panel toggles** — toggle the binder (left pane) and the inspector (right pane).

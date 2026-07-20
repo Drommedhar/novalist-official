@@ -4,9 +4,11 @@ The Manuscript view stitches every scene of your book into a single continuous d
 
 It has three display modes: **Manuscript**, **Corkboard**, and **Outliner**.
 
+![The Manuscript corkboard](images/manuscript.png)
+
 ## Opening the Manuscript view
 
-Open it from the **Write** group in the binder's view rail (**Manuscript**), from the command palette, or with `Ctrl+5` (macOS uses Cmd).
+Open it from the **Write** group in the activity bar (**Manuscript**), from the **Go** menu or command palette, or with `Ctrl+5` (macOS uses Cmd).
 
 ## The toolbar
 

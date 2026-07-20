@@ -9,7 +9,7 @@ Novalist has a built-in Git client that lets you commit, push, and pull without 
 
 ## Opening the Git view
 
-In the binder's view rail (below the chapter tree), click **Git** in the **Publish** group.
+In the activity bar, click **Git** in the **Publish** group.
 
 ## The Git view layout
 

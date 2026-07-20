@@ -2,9 +2,11 @@
 
 The Dashboard is your project's numbers page. It shows totals, goals, streaks, status breakdown, pacing, and writing-quality cues — the numbers you want to glance at before sitting down to write, and the ones you want to check before declaring a draft done.
 
+![The project Dashboard](images/dashboard.png)
+
 ## Opening the Dashboard
 
-Open it from the **Write** group in the binder's view rail (**Dashboard**), from the command palette, or with `Ctrl+2` (macOS uses Cmd).
+Open it from the **Write** group in the activity bar (**Dashboard**), from the **Go** menu or command palette, or with `Ctrl+2` (macOS uses Cmd).
 
 ## What the Dashboard shows
 

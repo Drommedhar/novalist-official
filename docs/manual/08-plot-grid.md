@@ -4,11 +4,13 @@ A **plotline** is a thread that runs through your story. The romance, the myster
 
 The **Plot Grid** is a spreadsheet-like view that shows every plotline as a row and every scene as a column. Cells mark which scenes belong to which plotline. Use it to see structure at a glance, spot threads that have been dropped, or check that subplots have setup and payoff.
 
+![The Plot Grid](images/plot-grid.png)
+
 ## Opening the Plot Grid
 
 Open it from:
 
-- The **Plan** group in the binder's view rail — click **Plot Grid**.
+- The **Plan** group in the activity bar — click **Plot Grid**.
 - The command palette (`Ctrl+Shift+P` → "Plot Grid").
 - The hotkey `Ctrl+8` (macOS uses Cmd; see [Hotkeys](26-hotkeys.md)).
 

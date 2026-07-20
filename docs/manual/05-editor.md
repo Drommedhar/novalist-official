@@ -4,11 +4,13 @@ The Editor is where you write. It is a WYSIWYG rich-text editor. Each editor pan
 
 Shortcuts below are written with `Ctrl`; on macOS use `Cmd`.
 
+![A scene open in the editor with the Context inspector and scene-notes dock](images/editor.png)
+
 ## Opening a scene
 
 Click any scene in the **binder**. The main area switches to the Editor view and loads the scene; the open scene is highlighted in the binder, it is added to the pane's tab strip, and its statistics appear in the [status bar](#status-bar-statistics).
 
-You can also switch to the Editor view any time via **Write → Editor** in the binder's view rail.
+The Editor has no view-rail icon of its own — you always reach it by opening a scene from the binder.
 
 ## Scene tabs
 

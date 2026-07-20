@@ -2,9 +2,11 @@
 
 The Relationships view draws your characters as nodes and the relationships between them as labeled edges. It clusters families automatically, so big casts remain legible.
 
+![The Relationships graph](images/relationships.png)
+
 ## Opening the Relationships view
 
-Open it from the **Plan** group in the binder's view rail (**Relationships**), from the command palette, or with `Ctrl+7` (macOS uses Cmd).
+Open it from the **Plan** group in the activity bar (**Relationships**), from the **Go** menu or command palette, or with `Ctrl+7` (macOS uses Cmd).
 
 ## What you see
 

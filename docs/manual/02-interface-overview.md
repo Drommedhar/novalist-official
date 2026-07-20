@@ -4,6 +4,8 @@ This page is a map of every region of the Novalist window. Keep it open in anoth
 
 Keyboard shortcuts below are written with `Ctrl`; on macOS use `Cmd` instead.
 
+![The Novalist workspace: activity bar, binder, editor, and inspector](images/interface-overview.png)
+
 ## The layout at a glance
 
 Novalist uses an activity-bar layout: a slim icon rail switches views, and the binder beside it is only the chapter/scene tree.
@@ -28,23 +30,25 @@ Navigation happens through the **activity bar**, the **Go** menu in the menu bar
 
 ## The toolbar
 
-The slim bar at the top of the window. From left to right:
+The slim bar at the top of the window. On the left, from left to right:
 
-- **Binder toggle** — shows/hides the left pane (`Ctrl+B`).
 - **Menu (burger)** — opens the **backstage drawer** (see below).
 - **Project name** — double-click it to rename the project.
 - **Book selector** — a dropdown listing the project's books. Pick one to switch; the last entry, **+ Add Book**, creates a new book. See [Projects & Books](03-projects-and-books.md).
 - **Draft selector** — a dropdown listing the active book's drafts. Pick one to switch; **+ New draft (clone from current)** creates a new draft as a copy of the current one.
+- **Delete draft** — removes the active draft (you are asked to confirm; a book always keeps at least one draft).
 - **+ Chapter** — creates a new chapter.
 - **+ Scene** — creates a new scene in the chapter of the currently open scene.
+
+On the right:
+
 - **Search** — opens [Find & Replace](21-find-replace.md) (`Ctrl+Shift+F`).
 - **Snapshots** — opens the [Snapshots](17-snapshots.md) dialog for the open scene.
-- **Scene notes toggle** — shows/hides the bottom scene-notes dock (`Ctrl+Shift+N`).
-- **Inspector toggle** — shows/hides the right pane (`Ctrl+Shift+B`).
+- **Layout toggles** — three buttons that show/hide the panes: the **binder** (left pane, `Ctrl+B`), the **inspector** (right pane, `Ctrl+Shift+B`), and the **scene-notes dock** (bottom, `Ctrl+Shift+N`).
 
 ## The activity bar
 
-The slim icon rail on the far left is the top-level view switcher. From top to bottom it groups: Dashboard and Manuscript; then Timeline, Plot Grid, Calendar, Relationships; then Codex, Maps, Research, Gallery; then Export and Git. **Settings** sits at the bottom. Extension views that contribute to the main area appear as extra icons. Hover any icon for its name; the active view is highlighted.
+The slim icon rail on the far left is the top-level view switcher. From top to bottom it groups: **Write** (Dashboard, Manuscript); **Plan** (Timeline, Plot Grid, Calendar, Relationships); **World** (Codex, Maps, Research, Gallery); and **Publish** (Export, Git). **Extensions** and **Settings** sit at the bottom. Extension views that contribute to the main area appear as extra icons. Hover any icon for its name; the active view is highlighted.
 
 The **Editor** has no icon of its own — you reach it by opening a scene from the binder. The same destinations are also listed in the **Go** menu in the menu bar, and `Ctrl+1` through `Ctrl+9` jump to the most-used views — see [Hotkeys](26-hotkeys.md).
 

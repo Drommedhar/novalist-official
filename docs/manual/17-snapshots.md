@@ -51,6 +51,6 @@ When you delete a scene, its snapshot folder remains on disk. To recover the con
 
 ## Where to go next
 
-- [Inspector](22-context-sidebar.md) — where snapshots are taken and restored.
+- [Editor](05-editor.md) — open a scene, then take and restore its snapshots from the toolbar Snapshots dialog.
 - [Find & Replace](21-find-replace.md) — Replace All auto-snapshots every scene it changes.
 - [Git integration](18-git.md) — project-level version control complementing snapshots.

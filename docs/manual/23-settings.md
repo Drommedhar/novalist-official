@@ -4,7 +4,7 @@ Settings is where you configure Novalist's appearance, the editor, writing goals
 
 ## Opening Settings
 
-In the binder's view rail (below the chapter tree), click **Settings** in the **Application** group, or use the command palette (`Ctrl+Shift+P`, `Cmd` on macOS) and pick "Settings". Settings opens in the main area like any other view.
+In the activity bar (the icon rail on the far left), click **Settings** in the bottom block next to Extensions, or use the command palette (`Ctrl+Shift+P`, `Cmd` on macOS) and pick "Settings". Settings opens in the main area like any other view.
 
 ## Finding a setting
 
@@ -114,7 +114,7 @@ The default bindings are listed in [Hotkeys](26-hotkeys.md).
 
 ## Extensions
 
-A read-only list of the extensions installed for Novalist. Each row shows the extension's name, its version, whether it is enabled or disabled, and a note if it failed to load. Install and manage extensions from the Extensions rail; see [Extensions](24-extensions.md).
+A read-only list of the extensions installed for Novalist. Each row shows the extension's name, its version, whether it is enabled or disabled, and a note if it failed to load. Install and manage extensions from the Extensions view; see [Extensions](24-extensions.md).
 
 ## Where settings live
 

@@ -57,7 +57,7 @@ A scene has:
 - **Order** and **chapter** — its place in the manuscript; controlled by drag-and-drop.
 - **File name** — the `.novalist` file on disk, derived from the title at creation.
 - **Word count** — auto-computed, shown next to the scene in the binder.
-- **Synopsis** and **notes** — editable in the [inspector](02-interface-overview.md#the-inspector). The synopsis is also editable from the Manuscript view's outliner and appears on its corkboard cards.
+- **Synopsis** and **notes** — editable in the [scene-notes dock](02-interface-overview.md#the-scene-notes-dock) at the bottom of the editor. The synopsis is also editable from the Manuscript view's outliner and appears on its corkboard cards.
 - **Date / date range** — in-world dates used by the Calendar and Timeline.
 - **Comments** and **footnotes** — anchored to the text. See [Editor](05-editor.md).
 - **Analysis overrides** — optional manual overrides for detected POV, emotion, intensity, conflict, and tags, used by Smart Lists and the Manuscript outliner.
@@ -112,7 +112,7 @@ The Timeline's **Add structure...** dropdown can lay out a known story structure
 
 ## Snapshots
 
-Take a snapshot of the open scene from the inspector (with an optional label such as "Before rewrite") and restore any earlier snapshot from the same list. Automatic snapshots are also taken before destructive operations such as Replace All. See [Snapshots](17-snapshots.md).
+Take a snapshot of the open scene from the toolbar **Snapshots** button (with an optional label such as "Before rewrite") and restore any earlier snapshot from the same list. Automatic snapshots are also taken before destructive operations such as Replace All. See [Snapshots](17-snapshots.md).
 
 ## Where to go next
 

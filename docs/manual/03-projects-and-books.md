@@ -144,6 +144,7 @@ Each book has its own drafts, shown in the **draft selector** in the toolbar (ne
 
 - Pick a draft to switch to it. The binder, editor, and all manuscript views follow the active draft.
 - Pick **+ New draft (clone from current)** to create a new draft as a full copy of the current one — useful before a structural rewrite: the old draft stays intact and you keep working in the clone.
+- Use the **delete-draft** button next to the draft selector to remove the active draft (you are asked to confirm). A book always keeps at least one draft.
 
 Entities, images, plotlines, and templates are per-book, not per-draft — all drafts of a book share them.
 

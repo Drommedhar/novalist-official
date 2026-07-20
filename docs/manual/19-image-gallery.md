@@ -4,7 +4,7 @@ The Gallery is a unified view of every image in your project. Reference photos, 
 
 ## Opening the Gallery
 
-In the binder's view rail (below the chapter tree), click **Gallery** in the **World** group.
+In the activity bar, click **Gallery** in the **World** group.
 
 ## What it shows
 

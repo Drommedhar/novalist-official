@@ -12,7 +12,7 @@ Since SDK v2, extensions can also contribute **webview views**: HTML panels decl
 
 ## The Extensions view
 
-Novalist has a dedicated **Extensions** management view. Open it from the **Extensions** button in the bottom block of the activity bar (the slim icon rail on the far left, next to Settings), or from **Extensions** in the start-menu drawer.
+Novalist has a dedicated **Extensions** management view. Open it from the **Extensions** button in the bottom block of the activity bar (the slim icon rail on the far left, next to Settings), or from the **Go** menu in the app menu bar.
 
 The view has two tabs:
 
@@ -27,9 +27,12 @@ The **Installed** tab lists every installed extension with its name, version, au
 - **Open Extensions Folder** — reveal the user extensions folder in your file manager.
 - **Reload** — re-read the contributed views after a change.
 
-## Extension panels in the activity bar
+## Extension panels in the activity bar and inspector
 
-When an installed and enabled extension contributes views, each contributed view gets its own button in the **activity bar**, below the built-in views. Each button uses the icon and title from the manifest; clicking it opens the panel in the main area.
+When an installed and enabled extension contributes views, where each view appears depends on its declared **placement** in the manifest:
+
+- **`main`** — the view gets its own button in the **activity bar**, below the built-in views (just like Codex or Timeline). Each button uses the icon and title from the manifest; clicking it opens the panel in the main area.
+- **`inspector`** — the view appears in the right-hand **inspector** (context sidebar), alongside the built-in Context and Footnotes tabs.
 
 The flagship example is the **AI Assistant** extension, which contributes three panels:
 
@@ -69,7 +72,7 @@ Extensions implement hook interfaces from the Novalist SDK. The main contributio
 
 | Contribution | Adds |
 | --- | --- |
-| Webview views (`contributes.views` + `IWebViewContributor`) | Panels in the binder rail under Extensions, rendered from the extension's own HTML. |
+| Webview views (`contributes.views` + `IWebViewContributor`) | Rendered from the extension's own HTML. Placement `main` gives the view its own activity-bar icon (like Codex or Timeline); placement `inspector` shows it in the inspector alongside Context and Footnotes. |
 | `IExportFormatContributor` | New export formats in the Export view. |
 | `IEntityTypeContributor` | New entity types in the Codex (registered into the open project's custom types). |
 | `IPropertyTypeContributor` | New property types for templates. |

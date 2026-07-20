@@ -4,9 +4,11 @@ The Timeline is a chronological view of your story. It collects everything that 
 
 Use it to see the pacing of in-world time, to spot timeline holes, and to plan beats that are not tied to any particular scene.
 
+![The Timeline](images/timeline.png)
+
 ## Opening the Timeline
 
-Open it from the **Plan** group in the binder's view rail (**Timeline**), from the command palette, or with `Ctrl+3` (macOS uses Cmd).
+Open it from the **Plan** group in the activity bar (**Timeline**), from the **Go** menu or command palette, or with `Ctrl+3` (macOS uses Cmd).
 
 ## What appears on the timeline
 

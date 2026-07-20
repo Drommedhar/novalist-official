@@ -12,7 +12,7 @@ The Find and Replace dialog opens in-window.
 
 ## Fields
 
-- **Find** — the pattern to search for. If **Regex** is on, this is a .NET regular expression; otherwise it's a literal string.
+- **Find** — the pattern to search for. If **Regex** is on, this is a regular expression; otherwise it's a literal string.
 - **Replace** — the replacement string. If regex is on, you can use capture-group back-references (`$1`, `$2`, etc.).
 - **Match case** — case-sensitive search when on.
 - **Whole word** — only match whole words.
@@ -40,11 +40,11 @@ Click a result to close the dialog and open that scene in the editor.
 
 ## Replacing
 
-Click **Replace All** to replace every match in the selected scope. Before any scene is modified, an **automatic snapshot** of that scene is taken, so a bad Replace All can always be undone by restoring the snapshot from the Inspector. After the run, the dialog reports how many occurrences were replaced, and the open scene reloads with the new content.
+Click **Replace All** to replace every match in the selected scope. Before any scene is modified, an **automatic snapshot** of that scene is taken, so a bad Replace All can always be undone by restoring the snapshot from the toolbar Snapshots dialog. After the run, the dialog reports how many occurrences were replaced, and the open scene reloads with the new content.
 
 ## Regex notes
 
-- The engine is .NET regex.
+- The engine is .NET regular expressions, so .NET syntax (including inline flags) applies.
 - Use `(?i)` inline for case-insensitive within the pattern.
 - Use `\b` for word boundaries (or just toggle **Whole word**).
 - Multi-line patterns: set `(?s)` to make `.` match newlines.

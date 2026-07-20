@@ -4,7 +4,7 @@ The Export view turns your book into a file you can send to a beta reader, an ed
 
 ## Opening Export
 
-In the binder's view rail (below the chapter tree), click **Export** in the **Publish** group.
+In the activity bar, click **Export** in the **Publish** group.
 
 ## The export form
 
