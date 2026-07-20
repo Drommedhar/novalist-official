@@ -20,6 +20,14 @@ public class DefaultInterfaceMemberTests
         public void OnDocumentClosing(EditorDocumentContext context) { }
     }
 
+    private sealed class MinimalSchemaContributor : ISettingsSchemaContributor
+    {
+        public SettingsSchema GetSettingsSchema() => new();
+        public System.Threading.Tasks.Task ApplySettingsAsync(
+            System.Collections.Generic.IReadOnlyDictionary<string, string> values)
+            => System.Threading.Tasks.Task.CompletedTask;
+    }
+
     [Fact]
     public void IAiHook_OnResponseChunk_DefaultPassesThrough()
     {
@@ -32,5 +40,14 @@ public class DefaultInterfaceMemberTests
     {
         IEditorExtension ext = new MinimalEditorExtension();
         Assert.Equal(100, ext.Priority);
+    }
+
+    [Fact]
+    public async System.Threading.Tasks.Task ISettingsSchemaContributor_ExecuteAction_DefaultsToNull()
+    {
+        ISettingsSchemaContributor c = new MinimalSchemaContributor();
+        var result = await c.ExecuteSchemaActionAsync(
+            "any", new System.Collections.Generic.Dictionary<string, string>());
+        Assert.Null(result);
     }
 }

@@ -248,4 +248,35 @@ public sealed class ExtensionContribRpcTests : IDisposable
             await rpc.SaveSettingsSchemaAsync("x", new Dictionary<string, string>());
         }
     }
+
+    [Fact]
+    public async Task SettingsSchemaAction_RefreshesSuggestions_AndHandlesMisses()
+    {
+        // The "suggestKeywords" action fills the promptKeyword field's suggestions.
+        var before = _rpc.SettingsSchemas().Single().Fields.First(f => f.Key == "promptKeyword");
+        Assert.Empty(before.Suggestions!);
+
+        var refreshed = await _rpc.ExecuteSettingsSchemaActionAsync(
+            SampleId, "suggestKeywords", new Dictionary<string, string>());
+        Assert.NotNull(refreshed);
+        var keyword = refreshed!.Fields.First(f => f.Key == "promptKeyword");
+        Assert.Contains("mystery", keyword.Suggestions!);
+        // The action button itself is surfaced as an 'action'-typed field.
+        Assert.Contains(refreshed.Fields, f => f.Key == "suggestKeywords" && f.Type == "action");
+
+        // Unknown action key -> the extension leaves the form unchanged (null).
+        Assert.Null(await _rpc.ExecuteSettingsSchemaActionAsync(
+            SampleId, "nope", new Dictionary<string, string>()));
+        // Unknown extension id -> null.
+        Assert.Null(await _rpc.ExecuteSettingsSchemaActionAsync(
+            "not.an.extension", "suggestKeywords", new Dictionary<string, string>()));
+
+        // No host -> null.
+        var rpc = NoHostRpc(out var ws);
+        using (ws)
+        {
+            Assert.Null(await rpc.ExecuteSettingsSchemaActionAsync(
+                SampleId, "suggestKeywords", null!));
+        }
+    }
 }

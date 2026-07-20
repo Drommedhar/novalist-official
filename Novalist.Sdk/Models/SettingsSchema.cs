@@ -35,7 +35,13 @@ public enum SettingsFieldType
     /// <summary>Single-select from <see cref="SettingsField.Options"/>.</summary>
     Select,
     /// <summary>Multi-line text area.</summary>
-    Multiline
+    Multiline,
+    /// <summary>A button that invokes
+    /// <see cref="Hooks.ISettingsSchemaContributor.ExecuteSchemaActionAsync"/>
+    /// with the field's <see cref="SettingsField.Key"/> as the action id. The
+    /// extension can return a refreshed schema (e.g. to populate a field's
+    /// <see cref="SettingsField.Suggestions"/> after fetching data).</summary>
+    Action
 }
 
 /// <summary>
@@ -83,4 +89,13 @@ public sealed class SettingsField
     /// <summary>The values of the <see cref="VisibleWhenKey"/> field that make
     /// this field visible. Ignored when <see cref="VisibleWhenKey"/> is null.</summary>
     public IReadOnlyList<string>? VisibleWhenValues { get; init; }
+
+    /// <summary>Optional autocomplete suggestions for a text or password field.
+    /// The host renders the input as free-text but offers these as a dropdown of
+    /// suggestions (an HTML datalist). Unlike <see cref="Options"/> (which
+    /// restricts a <see cref="SettingsFieldType.Select"/> to those choices), a
+    /// field with suggestions still accepts any typed value. Typically populated
+    /// dynamically by an <see cref="SettingsFieldType.Action"/> — e.g. a
+    /// "Refresh models" button that fills a model field's suggestions.</summary>
+    public IReadOnlyList<string>? Suggestions { get; init; }
 }

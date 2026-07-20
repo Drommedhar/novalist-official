@@ -48,7 +48,9 @@
     "title": "Writing-Toolkit-Einstellungen",
     "duration": "Pomodoro-Dauer (Minuten)",
     "autoStart": "Pausen automatisch starten",
-    "promptCategory": "Standard-Prompt-Kategorie"
+    "promptCategory": "Standard-Prompt-Kategorie",
+    "promptKeyword": "Prompt-Schlagwort",
+    "suggestKeywords": "Schlagwörter vorschlagen"
   },
   "contextMenu": {
     "analyzeWordFrequency": "Worthäufigkeit analysieren"

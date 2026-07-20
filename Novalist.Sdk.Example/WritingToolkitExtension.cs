@@ -34,6 +34,10 @@ public sealed class WritingToolkitExtension :
 {
     private bool _autoStartBreaks;
     private string _promptCategory = "any";
+    private string _promptKeyword = string.Empty;
+    // Autocomplete suggestions filled by the "Suggest keywords" action button —
+    // demonstrates SettingsFieldType.Action + SettingsField.Suggestions.
+    private List<string> _keywordSuggestions = [];
 
     private IHostServices _host = null!;
     private IExtensionLocalization _loc = null!;
@@ -497,9 +501,34 @@ public sealed class WritingToolkitExtension :
                 // only while the "autoStartBreaks" field above is enabled.
                 VisibleWhenKey = "autoStartBreaks",
                 VisibleWhenValues = ["true"]
+            },
+            new SettingsField
+            {
+                Key = "promptKeyword",
+                Label = _loc.T("settingsSchema.promptKeyword"),
+                Type = SettingsFieldType.Text,
+                Value = _promptKeyword,
+                // Stays free-text, but offers the action-populated list as a datalist.
+                Suggestions = _keywordSuggestions
+            },
+            new SettingsField
+            {
+                Key = "suggestKeywords",
+                Label = _loc.T("settingsSchema.suggestKeywords"),
+                Type = SettingsFieldType.Action
             }
         ]
     };
+
+    public Task<SettingsSchema?> ExecuteSchemaActionAsync(
+        string actionKey, IReadOnlyDictionary<string, string> values)
+    {
+        if (actionKey != "suggestKeywords") return Task.FromResult<SettingsSchema?>(null);
+        // A real extension might fetch these from a service; here we just supply a
+        // fixed set to show how an action refreshes a field's suggestions.
+        _keywordSuggestions = ["conflict", "mystery", "betrayal", "reunion"];
+        return Task.FromResult<SettingsSchema?>(GetSettingsSchema());
+    }
 
     public Task ApplySettingsAsync(IReadOnlyDictionary<string, string> values)
     {
@@ -516,11 +545,16 @@ public sealed class WritingToolkitExtension :
         {
             _promptCategory = c;
         }
+        if (values.TryGetValue("promptKeyword", out var kw))
+        {
+            _promptKeyword = kw;
+        }
         return _host.WriteHostDataAsync("writingtoolkit", System.Text.Json.JsonSerializer.Serialize(new
         {
             duration = _pomodoro.DurationMinutes,
             autoStartBreaks = _autoStartBreaks,
-            promptCategory = _promptCategory
+            promptCategory = _promptCategory,
+            promptKeyword = _promptKeyword
         }));
     }
 }

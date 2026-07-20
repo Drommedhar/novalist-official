@@ -33,6 +33,9 @@ interface SettingsFieldDto {
    * visibleWhenKey currently holds one of visibleWhenValues. */
   visibleWhenKey: string | null
   visibleWhenValues: string[] | null
+  /** Autocomplete suggestions for a text/password field (datalist); the input
+   * stays free-text. Typically filled by an 'action' field. */
+  suggestions: string[] | null
 }
 
 interface SettingsSchemaDto {
@@ -124,43 +127,77 @@ function ExtensionSchemaForm({
   onSaved: () => void
 }): React.JSX.Element {
   const { t } = useTranslation()
+  // The rendered schema can be replaced by an action (e.g. "Refresh models"
+  // populates a field's suggestions); user edits in `values` survive the swap.
+  const [active, setActive] = useState<SettingsSchemaDto>(schema)
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(schema.fields.map((f) => [f.key, f.value]))
   )
   const [saving, setSaving] = useState(false)
+  const [runningAction, setRunningAction] = useState<string | null>(null)
 
   const set = (key: string, value: string): void => setValues((v) => ({ ...v, [key]: value }))
 
   const save = async (): Promise<void> => {
     setSaving(true)
     try {
-      await rpc.request('extensions/settingsSchema/save', [schema.extensionId, values])
+      await rpc.request('extensions/settingsSchema/save', [active.extensionId, values])
       onSaved()
     } finally {
       setSaving(false)
     }
   }
 
+  const runAction = async (key: string): Promise<void> => {
+    setRunningAction(key)
+    try {
+      const next = await rpc.request<SettingsSchemaDto | null>('extensions/settingsSchema/action', [
+        active.extensionId,
+        key,
+        values
+      ])
+      if (next) {
+        setActive(next)
+        // Adopt any new fields' defaults but keep the user's current edits.
+        setValues((v) => ({ ...Object.fromEntries(next.fields.map((f) => [f.key, f.value])), ...v }))
+      }
+    } finally {
+      setRunningAction(null)
+    }
+  }
+
   return (
     <div className="ext-schema-form">
       <div className="ext-schema-head">
-        <span className="ext-settings-card-title">{schema.title}</span>
-        <span className="ext-settings-card-sub">{schema.extensionName}</span>
+        <span className="ext-settings-card-title">{active.title}</span>
+        <span className="ext-settings-card-sub">{active.extensionName}</span>
       </div>
       <div className="ext-schema-fields">
-        {schema.fields
+        {active.fields
           .filter(
             (field) =>
               !field.visibleWhenKey ||
               (field.visibleWhenValues ?? []).includes(values[field.visibleWhenKey] ?? '')
           )
-          .map((field) => (
-            <label key={field.key} className="ext-schema-field">
-              <span className="ext-schema-label">{field.label}</span>
-              <SchemaInput field={field} value={values[field.key] ?? ''} onChange={(v) => set(field.key, v)} />
-              {field.help && <span className="ext-schema-help">{field.help}</span>}
-            </label>
-          ))}
+          .map((field) =>
+            field.type === 'action' ? (
+              <button
+                key={field.key}
+                type="button"
+                className="export-inline-btn ext-schema-action"
+                disabled={runningAction !== null}
+                onClick={() => void runAction(field.key)}
+              >
+                {runningAction === field.key ? t('extensions.settingsWorking') : field.label}
+              </button>
+            ) : (
+              <label key={field.key} className="ext-schema-field">
+                <span className="ext-schema-label">{field.label}</span>
+                <SchemaInput field={field} value={values[field.key] ?? ''} onChange={(v) => set(field.key, v)} />
+                {field.help && <span className="ext-schema-help">{field.help}</span>}
+              </label>
+            )
+          )}
       </div>
       <div className="ext-schema-actions">
         <button type="button" className="export-inline-btn" disabled={saving} onClick={() => void save()}>
@@ -217,6 +254,7 @@ function SchemaInput({
           type="password"
           className="ext-schema-input"
           value={value}
+          list={field.suggestions?.length ? `dl-${field.key}` : undefined}
           onChange={(e) => onChange(e.target.value)}
         />
       )
@@ -230,7 +268,22 @@ function SchemaInput({
         />
       )
     default:
-      return (
+      return field.suggestions?.length ? (
+        <>
+          <input
+            type="text"
+            className="ext-schema-input"
+            value={value}
+            list={`dl-${field.key}`}
+            onChange={(e) => onChange(e.target.value)}
+          />
+          <datalist id={`dl-${field.key}`}>
+            {field.suggestions.map((s) => (
+              <option key={s} value={s} />
+            ))}
+          </datalist>
+        </>
+      ) : (
         <input
           type="text"
           className="ext-schema-input"

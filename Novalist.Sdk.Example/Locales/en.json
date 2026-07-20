@@ -48,7 +48,9 @@
     "title": "Writing Toolkit settings",
     "duration": "Pomodoro duration (minutes)",
     "autoStart": "Auto-start breaks",
-    "promptCategory": "Default prompt category"
+    "promptCategory": "Default prompt category",
+    "promptKeyword": "Prompt keyword",
+    "suggestKeywords": "Suggest keywords"
   },
   "contextMenu": {
     "analyzeWordFrequency": "Analyze word frequency"

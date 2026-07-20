@@ -1632,6 +1632,7 @@
     "settingsTitle": "扩展设置",
     "settingsRun": "运行",
     "settingsSave": "保存",
+    "settingsWorking": "处理中…",
     "themesTitle": "扩展主题",
     "updateTo": "更新到 {0}"
   },

@@ -563,6 +563,17 @@ public sealed class ExtensionManager
         await match.Contributor.ApplySettingsAsync(values);
     }
 
+    /// <summary>Runs a schema action button for the given extension and returns
+    /// the refreshed schema (or null when the id is unknown or the action made no
+    /// change).</summary>
+    public async Task<Novalist.Sdk.Models.SettingsSchema?> ExecuteSchemaActionAsync(
+        string extensionId, string actionKey, IReadOnlyDictionary<string, string> values)
+    {
+        var match = EnumerateSettingsSchemas().FirstOrDefault(x => x.ExtensionId == extensionId);
+        if (match.Contributor == null) return null;
+        return await match.Contributor.ExecuteSchemaActionAsync(actionKey, values);
+    }
+
     /// <summary>
     /// Returns the <see cref="HostServices"/> instance for event wiring.
     /// </summary>

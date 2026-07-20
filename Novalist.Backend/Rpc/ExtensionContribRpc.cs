@@ -142,18 +142,7 @@ public sealed class ExtensionContribRpc
     [JsonRpcMethod("extensions/settingsSchema")]
     public SettingsSchemaDto[] SettingsSchemas()
         => Host?.EnumerateSettingsSchemas()
-               .Select(x =>
-               {
-                   var schema = x.Contributor.GetSettingsSchema();
-                   return new SettingsSchemaDto(
-                       x.ExtensionId,
-                       x.ExtensionName,
-                       schema.Title,
-                       schema.Fields.Select(f => new SettingsFieldDto(
-                           f.Key, f.Label, f.Type.ToString().ToLowerInvariant(), f.Value,
-                           f.Options?.ToArray(), f.Min, f.Max, f.Group, f.Help,
-                           f.VisibleWhenKey, f.VisibleWhenValues?.ToArray())).ToArray());
-               })
+               .Select(x => ToDto(x.ExtensionId, x.ExtensionName, x.Contributor.GetSettingsSchema()))
                .ToArray()
            ?? [];
 
@@ -163,6 +152,29 @@ public sealed class ExtensionContribRpc
         if (Host == null) return;
         await Host.ApplySettingsSchemaAsync(extensionId, values ?? new Dictionary<string, string>());
     }
+
+    /// <summary>Runs a schema action button (e.g. "Refresh models") for an
+    /// extension, passing the form's current values, and returns the refreshed
+    /// schema — or null when the extension leaves the form unchanged.</summary>
+    [JsonRpcMethod("extensions/settingsSchema/action")]
+    public async Task<SettingsSchemaDto?> ExecuteSettingsSchemaActionAsync(
+        string extensionId, string actionKey, Dictionary<string, string> values)
+    {
+        if (Host == null) return null;
+        var name = Host.EnumerateSettingsSchemas()
+            .FirstOrDefault(x => x.ExtensionId == extensionId).ExtensionName ?? extensionId;
+        var schema = await Host.ExecuteSchemaActionAsync(
+            extensionId, actionKey, values ?? new Dictionary<string, string>());
+        return schema == null ? null : ToDto(extensionId, name, schema);
+    }
+
+    private static SettingsSchemaDto ToDto(string extId, string extName, Novalist.Sdk.Models.SettingsSchema schema)
+        => new(
+            extId, extName, schema.Title,
+            schema.Fields.Select(f => new SettingsFieldDto(
+                f.Key, f.Label, f.Type.ToString().ToLowerInvariant(), f.Value,
+                f.Options?.ToArray(), f.Min, f.Max, f.Group, f.Help,
+                f.VisibleWhenKey, f.VisibleWhenValues?.ToArray(), f.Suggestions?.ToArray())).ToArray());
 }
 
 public sealed record InlineActionInfoDto(string Id, string Label, string Group, string Icon, int Priority);
@@ -175,4 +187,4 @@ public sealed record SettingsSchemaDto(string ExtensionId, string ExtensionName,
 public sealed record SettingsFieldDto(
     string Key, string Label, string Type, string Value,
     IReadOnlyList<string>? Options, double? Min, double? Max, string? Group, string? Help,
-    string? VisibleWhenKey, IReadOnlyList<string>? VisibleWhenValues);
+    string? VisibleWhenKey, IReadOnlyList<string>? VisibleWhenValues, IReadOnlyList<string>? Suggestions);
