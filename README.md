@@ -37,8 +37,8 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Interface
 
-- **Three-pane, Scrivener-style layout** — the binder (chapter/scene tree, smart lists, and grouped view navigation) on the left, the active view in the center, and a scene inspector on the right.
-- **Scene context & analysis inspector** — the right pane shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides, alongside synopsis, notes, inline annotations, and per-scene snapshot history.
+- **Activity-bar layout** — a slim icon rail on the far left switches views, the binder (chapter/scene tree and smart lists) sits beside it, the active view fills the center with an optional scene-notes dock beneath the editor, and a context sidebar is on the right.
+- **Scene context & analysis inspector** — the right sidebar's **Context** tab shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides; the **Footnotes** tab lists footnotes and comments. Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.
 - **Command palette** (`Ctrl+Shift+P`) and number-key view switching for keyboard-driven navigation.
 - On macOS 26+ the window uses native **Liquid Glass**, with vibrancy on older macOS; Windows and Linux render opaque themed surfaces from the same design tokens.
 
@@ -63,7 +63,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Worldbuilding (Codex)
 
-- **Characters** with name/surname, gender, age (manual or computed from birth date and the in-world calendar), role, group, physical traits, images, relationships, and per-act / per-chapter / per-scene overrides for any field.
+- **Characters** with name/surname, gender, age (manual or computed from birth date and the in-world calendar), role, group, physical traits, images, relationships, and per-act / per-chapter / per-scene overrides for any field as well as for images, relationships, and sections.
 - **Locations** with hierarchical parents, types, and custom fields.
 - **Items** with origin, type, and description.
 - **Lore** entries for magic systems, religions, history, in-world books.
@@ -81,7 +81,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Relationships graph** — auto-clustered force-directed graph of characters with family detection in English and German.
 - **Manuscript view** — read the whole book end-to-end, switch to Corkboard for index-card planning, or Outliner for a sortable scene table.
 - **Maps** — interactive layered map view: recursive layer tree with drag-and-drop nesting, per-layer opacity / lock / zoom-range / floor-stack mode; per-image rotate, resize, polygon clip mask; entity-linked colour pins; text labels; road & river spline tool with typed profiles (casing, fill, lane markings) and per-point width; terrain shapes (grass, forest, sand, …) with feathered, blendable edges and z-ordering; typed buildings (homes, schools, stations, …) with procedurally-generated footprints that snap to roads and optional multi-floor interior plans (walls, doors, windows, stairs); a freeform clip border that frames the whole map; and a one-click **3D view** — a GPU-rendered, free-fly walkthrough of the whole map with extruded buildings, sloped roofs, interiors, terrain and roads.
-- **Dashboard** — totals, status breakdown, chapter pacing, echo phrases, daily / project word goals with deadlines.
+- **Dashboard** — totals, status breakdown, chapter pacing, echo phrases, daily / project word goals with deadlines, plus a wide project banner and a portrait book cover (the cover shows for each project on the welcome screen).
 
 ### Research & assets
 
@@ -120,7 +120,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 Novalist has a plugin architecture through the **Novalist SDK**. Extensions can contribute:
 
-- Webview panels that appear in the binder rail under Extensions (SDK v2)
+- Webview panels that appear as activity-bar view icons under Extensions (SDK v2)
 - Editor hooks (lifecycle, inline actions, grammar checks)
 - Export formats
 - Custom entity types and custom property types
@@ -128,6 +128,8 @@ Novalist has a plugin architecture through the **Novalist SDK**. Extensions can 
 - Themes
 
 Extensions are .NET 8 class libraries loaded by the core process at runtime from the user extensions folder; their UI is delivered as sandboxed webviews. The bundled AI Assistant is the reference example, contributing the AI Chat, Character Chat, and Story Analysis panels. See the `Novalist.Sdk.Example` project for a working implementation.
+
+The Extensions view has a built-in **store**: browse the online extension gallery, read each extension's README and release notes, and install or update extensions in place (with download progress and a cancel option) without leaving the app. It can also check installed extensions for updates on startup.
 
 ## Building
 

@@ -29,6 +29,7 @@ export interface EditorWindow extends Window {
   setDialogueCorrectionConfig(configJson: string): void
   setContextMenuLabels(labelsJson: string): void
   setInlineActions(actionsJson: string): void
+  setExtensionContextMenuItems(itemsJson: string): void
   applyInlineActionResult(resultJson: string): void
   setGrammarCheckEnabled(enabled: boolean): void
   setGrammarIssues(issuesJson: string): void
@@ -139,6 +140,29 @@ export async function runInlineAction(
   } catch (err) {
     return { text: '', disposition: 'replace', error: String(err) }
   }
+}
+
+// ── Extension context-menu items (IContextMenuContributor) ─────────────────
+// Separate from inline actions: these are not selection-gated and operate on the
+// currently open scene (Context "Scene"/"Editor"). The backend owns the click
+// handler; the editor only needs the descriptors and posts the chosen id back.
+
+export interface ExtensionContextMenuItem {
+  id: string
+  label: string
+  icon?: string
+}
+
+let extensionContextMenuItems: ExtensionContextMenuItem[] = []
+
+/** Replaces the extension context-menu descriptor list pushed to the editor. */
+export function setExtensionContextMenuItems(items: ExtensionContextMenuItem[]): void {
+  extensionContextMenuItems = items
+}
+
+/** JSON array of extension context-menu descriptors, in editor.html's shape. */
+export function extensionContextMenuItemsJson(): string {
+  return JSON.stringify(extensionContextMenuItems)
 }
 
 /** Reads the current theme tokens and pushes them into the editor page. */

@@ -133,6 +133,13 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
       run: () => shell().toggleInspector()
     },
     {
+      actionId: 'app.panels.sceneNotes',
+      defaultGesture: 'Ctrl+Shift+N',
+      categoryKey: 'hotkeys.category.panels',
+      labelKey: 'shell.toggleSceneNotes',
+      run: () => shell().toggleNotesDock()
+    },
+    {
       actionId: 'app.edit.findReplace',
       defaultGesture: 'Ctrl+Shift+F',
       categoryKey: 'hotkeys.category.editor',
@@ -168,6 +175,19 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
 let installedActions: HotkeyAction[] = []
 
 /**
+ * Extension-contributed hotkey actions (IHotkeyContributor), fetched after the
+ * built-in set is installed. The live keydown listener and the editor-forwarded
+ * dispatcher both consult this module-level array on every event, so a later
+ * {@link setExtensionHotkeys} takes effect without reinstalling the listener.
+ */
+let extensionActions: HotkeyAction[] = []
+
+/** Replaces the set of extension-contributed hotkeys. */
+export function setExtensionHotkeys(actions: HotkeyAction[]): void {
+  extensionActions = actions
+}
+
+/**
  * Dispatches a hotkey that originated inside the editor iframe. editor.html
  * posts {@code { key, code, ctrlKey, shiftKey, altKey }} for modified keys and
  * function keys; we rebuild a minimal event and reuse {@link matchGesture} so
@@ -189,7 +209,7 @@ export function dispatchForwardedHotkey(payload: {
     shiftKey: payload.shiftKey,
     altKey: payload.altKey
   } as KeyboardEvent
-  for (const action of installedActions) {
+  for (const action of [...installedActions, ...extensionActions]) {
     if (matchGesture(synthetic, action.gesture)) {
       action.run()
       return true
@@ -206,7 +226,7 @@ export function installHotkeys(actions: HotkeyAction[]): () => void {
       target?.tagName === 'INPUT' ||
       target?.tagName === 'TEXTAREA' ||
       target?.isContentEditable === true
-    for (const action of actions) {
+    for (const action of [...actions, ...extensionActions]) {
       if (!matchGesture(event, action.gesture)) continue
       // Plain Ctrl+B etc. still fire in fields only when they carry modifiers
       // beyond what text editing uses; navigation gestures always take priority.

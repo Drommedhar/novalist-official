@@ -28,6 +28,7 @@ The number keys switch the main area between views, in this order:
 | --- | --- |
 | Toggle binder (left pane) | `Ctrl+B` |
 | Toggle inspector (right pane) | `Ctrl+Shift+B` |
+| Toggle scene notes (bottom dock) | `Ctrl+Shift+N` |
 | Find & Replace | `Ctrl+Shift+F` |
 | Toggle Focus Mode | `Alt+F` |
 | Command Palette | `Ctrl+Shift+P` |

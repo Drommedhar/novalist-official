@@ -1,26 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  BookOpen,
-  CalendarDays,
-  ChartNoAxesGantt,
-  ChevronRight,
-  FileText,
-  FolderGit2,
-  Grid3x3,
-  Images,
-  LayoutDashboard,
-  Library,
-  Map,
-  Network,
-  NotebookPen,
-  Send,
-  Settings
-} from 'lucide-react'
-import { useShellStore, viewGroups, type MainView } from '../stores/shellStore'
+import { ChevronRight } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
-import { useExtensionsStore } from '../stores/extensionsStore'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
 import { InputDialog } from './InputDialog'
 import { ConfirmDialog } from './ConfirmDialog'
@@ -28,23 +10,8 @@ import { ChapterDialog } from './ChapterDialog'
 import { SceneDialog } from './SceneDialog'
 import { StoryDateRangeDialog } from './StoryDateRangeDialog'
 import { SmartListsPanel } from './SmartListsPanel'
-
-const viewIcons: Record<MainView, React.ComponentType<{ size?: number; strokeWidth?: number }>> = {
-  write: NotebookPen,
-  manuscript: BookOpen,
-  dashboard: LayoutDashboard,
-  timeline: ChartNoAxesGantt,
-  plotGrid: Grid3x3,
-  calendar: CalendarDays,
-  relationships: Network,
-  codex: Library,
-  maps: Map,
-  research: FileText,
-  gallery: Images,
-  export: Send,
-  git: FolderGit2,
-  settings: Settings
-}
+import { useShellStore } from '../stores/shellStore'
+import { PanelResizer } from './PanelResizer'
 
 const STATUS_CYCLE = ['Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']
 
@@ -71,14 +38,32 @@ interface ArchivedScene {
 
 export function Binder(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
-  const setMainView = useShellStore((s) => s.setMainView)
   const binderTab = useShellStore((s) => s.binderTab)
-  const extView = useShellStore((s) => s.extView)
-  const setExtView = useShellStore((s) => s.setExtView)
-  const allExtViews = useExtensionsStore((s) => s.views)
-  const extViews = allExtViews.filter((v) => v.placement === 'main')
   const setBinderTab = useShellStore((s) => s.setBinderTab)
+  const binderWidth = useShellStore((s) => s.binderWidth)
+  const setBinderWidth = useShellStore((s) => s.setBinderWidth)
+  const projectPath = useProjectStore((s) => s.projectPath)
+  const [changedIds, setChangedIds] = useState<Set<string>>(new Set())
+
+  // Poll which scenes have uncommitted Git changes so their rows can be marked
+  // in the explorer (matches the desktop change markers). Quiet no-op outside a repo.
+  useEffect(() => {
+    let active = true
+    const load = (): void => {
+      void rpc
+        .request<string[]>('git/changedScenes')
+        .then((ids) => {
+          if (active) setChangedIds(new Set(ids))
+        })
+        .catch(() => {})
+    }
+    load()
+    const id = window.setInterval(load, 12000)
+    return () => {
+      active = false
+      window.clearInterval(id)
+    }
+  }, [projectPath])
   const chapters = useProjectStore((s) => s.chapters)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const openScene = useProjectStore((s) => s.openScene)
@@ -197,7 +182,8 @@ export function Binder(): React.JSX.Element {
   }
 
   return (
-    <nav className="binder">
+    <nav className="binder" style={{ width: binderWidth }}>
+      <PanelResizer edge="right" width={binderWidth} onResize={setBinderWidth} />
       <div className="binder-tabs">
         <button
           className={`binder-tab${binderTab === 'chapters' ? ' active' : ''}`}
@@ -259,7 +245,9 @@ export function Binder(): React.JSX.Element {
               chapter.scenes.map((scene, sceneIndex) => (
                 <button
                   key={scene.id}
-                  className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}`}
+                  className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}${
+                    changedIds.has(scene.id) ? ' changed' : ''
+                  }`}
                   draggable
                   onDragStart={() =>
                     setDrag({ kind: 'scene', chapterGuid: chapter.guid, sceneId: scene.id })
@@ -276,6 +264,7 @@ export function Binder(): React.JSX.Element {
                       sceneId: scene.id
                     })
                   }}
+                  title={changedIds.has(scene.id) ? t('explorer.changed') : undefined}
                 >
                   <span className="binder-scene-title">{scene.title}</span>
                   <span className="binder-scene-words">
@@ -319,47 +308,6 @@ export function Binder(): React.JSX.Element {
             {archived !== null && archived.length === 0 && (
               <div className="binder-placeholder">{t('explorer.archiveEmpty')}</div>
             )}
-          </div>
-        )}
-      </div>
-      <div className="binder-rail">
-        {viewGroups.map((group) => (
-          <div key={group.key} className="binder-group">
-            <div className="binder-group-label">{t(group.key)}</div>
-            {group.views.map((view) => {
-              const Icon = viewIcons[view]
-              return (
-                <button
-                  key={view}
-                  className={`binder-rail-item${mainView === view ? ' active' : ''}`}
-                  onClick={() => setMainView(view)}
-                >
-                  <Icon size={15} strokeWidth={1.75} />
-                  {t(`shell.view.${view}`)}
-                </button>
-              )
-            })}
-          </div>
-        ))}
-        {extViews.length > 0 && (
-          <div className="binder-group">
-            <div className="binder-group-label">{t('extensions.title')}</div>
-            {extViews.map((view) => (
-              <button
-                key={`${view.extensionId}|${view.key}`}
-                className={`binder-rail-item${
-                  extView?.key === view.key && extView.extensionId === view.extensionId
-                    ? ' active'
-                    : ''
-                }`}
-                onClick={() => setExtView({ extensionId: view.extensionId, key: view.key })}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
-                  <path d={view.iconPath || 'M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'} />
-                </svg>
-                {view.title}
-              </button>
-            ))}
           </div>
         )}
       </div>

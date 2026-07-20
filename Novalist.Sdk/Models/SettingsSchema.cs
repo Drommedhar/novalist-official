@@ -1,0 +1,74 @@
+using System.Collections.Generic;
+
+namespace Novalist.Sdk.Models;
+
+/// <summary>
+/// A declarative, host-renderable description of an extension's advanced
+/// settings. Unlike <see cref="SettingsPage"/> (which returns an Avalonia
+/// <c>Control</c> the headless/Electron host cannot render), a schema is pure
+/// data: the host renders a form from <see cref="Fields"/> and hands the edited
+/// values back to the extension. Extensions that want their advanced settings to
+/// be reachable on the Electron host should implement
+/// <see cref="Hooks.ISettingsSchemaContributor"/> in addition to (or instead of)
+/// <see cref="Hooks.ISettingsContributor"/>.
+/// </summary>
+public sealed class SettingsSchema
+{
+    /// <summary>Heading shown above the generated form.</summary>
+    public string Title { get; init; } = string.Empty;
+
+    /// <summary>The fields, in display order.</summary>
+    public IReadOnlyList<SettingsField> Fields { get; init; } = [];
+}
+
+/// <summary>Editor kind for a <see cref="SettingsField"/>.</summary>
+public enum SettingsFieldType
+{
+    /// <summary>Single-line text input.</summary>
+    Text,
+    /// <summary>Masked single-line text input (tokens, keys).</summary>
+    Password,
+    /// <summary>Boolean checkbox.</summary>
+    Bool,
+    /// <summary>Numeric input (integer or decimal).</summary>
+    Number,
+    /// <summary>Single-select from <see cref="SettingsField.Options"/>.</summary>
+    Select,
+    /// <summary>Multi-line text area.</summary>
+    Multiline
+}
+
+/// <summary>
+/// One field in a <see cref="SettingsSchema"/>. Values cross the host boundary
+/// as strings (bool as "true"/"false", numbers as their invariant string form).
+/// </summary>
+public sealed class SettingsField
+{
+    /// <summary>Stable key used when reading the edited value back.</summary>
+    public string Key { get; init; } = string.Empty;
+
+    /// <summary>Localized label rendered next to the input.</summary>
+    public string Label { get; init; } = string.Empty;
+
+    /// <summary>The editor kind.</summary>
+    public SettingsFieldType Type { get; init; } = SettingsFieldType.Text;
+
+    /// <summary>Current value as a string.</summary>
+    public string Value { get; init; } = string.Empty;
+
+    /// <summary>Choices for <see cref="SettingsFieldType.Select"/>.</summary>
+    public IReadOnlyList<string>? Options { get; init; }
+
+    /// <summary>Optional minimum for <see cref="SettingsFieldType.Number"/>.</summary>
+    public double? Min { get; init; }
+
+    /// <summary>Optional maximum for <see cref="SettingsFieldType.Number"/>.</summary>
+    public double? Max { get; init; }
+
+    /// <summary>Optional group heading; consecutive fields sharing a group are
+    /// rendered together under it.</summary>
+    public string? Group { get; init; }
+
+    /// <summary>Optional helper text shown beneath the input.</summary>
+    public string? Help { get; init; }
+}

@@ -13,6 +13,7 @@ import {
   X
 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { useShellStore } from '../../stores/shellStore'
 import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { ToolRail } from './ToolRail'
@@ -101,6 +102,8 @@ export function MapsView(): React.JSX.Element {
 
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const readyRef = useRef(false)
+  // Pin to centre once the next map load finishes (focus-peek "ON MAPS" deep link).
+  const pendingFocusPinRef = useRef<string | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const entityOptionsRef = useRef<EntityOption[]>([])
   const mapModelRef = useRef<MapDataT | null>(null)
@@ -196,7 +199,13 @@ export function MapsView(): React.JSX.Element {
       const w = getWin()
       try {
         w?.dispatchEvent(new Event('resize'))
-        w?.zoomToFit()
+        // A deep-linked pin (from the focus-peek card) wins over fit-to-view.
+        if (pendingFocusPinRef.current && typeof w?.focusOnPin === 'function') {
+          w.focusOnPin(pendingFocusPinRef.current)
+          pendingFocusPinRef.current = null
+        } else {
+          w?.zoomToFit()
+        }
       } catch {
         /* ignore */
       }
@@ -231,6 +240,22 @@ export function MapsView(): React.JSX.Element {
     const win = getWin()
     if (win && readyRef.current) win.setMode(editMode ? 'edit' : 'view')
   }, [editMode, getWin])
+
+  // Consume a focus-peek "ON MAPS" deep link: open the target map and centre the
+  // pin. If the map is already active the reload effect won't fire, so focus now.
+  const pendingMapNav = useShellStore((s) => s.pendingMapNav)
+  useEffect(() => {
+    if (!pendingMapNav) return
+    const { mapId, pinId } = pendingMapNav
+    useShellStore.getState().clearPendingMapNav()
+    if (mapId === activeId) {
+      const win = getWin()
+      if (win && typeof win.focusOnPin === 'function') win.focusOnPin(pinId)
+    } else {
+      pendingFocusPinRef.current = pinId
+      setActiveId(mapId)
+    }
+  }, [pendingMapNav, activeId, getWin])
 
   // ── Focus peek fetch ──────────────────────────────────────────────────────
   const showPinPeek = useCallback(async (entityType: string, entityId: string): Promise<void> => {

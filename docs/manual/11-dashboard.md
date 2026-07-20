@@ -8,9 +8,14 @@ Open it from the **Write** group in the binder's view rail (**Dashboard**), from
 
 ## What the Dashboard shows
 
-### Cover image
+### Banner and book cover
 
-At the very top sits the project's **cover image**. Use **Add cover** to pick an image, **Change cover** to replace it, and **Remove cover** to clear it. When no cover is set, a placeholder is shown. The cover is stored with the project.
+Novalist keeps two distinct images for a project:
+
+- The **banner** — a wide image shown across the top of the Dashboard. Use **Add banner** / **Change banner** / **Remove banner** in the banner's action row. When no banner is set, the Dashboard falls back to the book cover so projects made before this split keep showing their existing image.
+- The **book cover** — a portrait image shown for the project on the welcome/start screen and in the recent-projects list. Set it in the **Book cover** panel just below the banner with **Add cover** / **Change cover** / **Remove cover**.
+
+Both images are stored with the project. Setting only a cover on a fresh project also gives you a Dashboard banner automatically (via the fallback); set a banner explicitly when you want a different wide image from the portrait cover.
 
 ### Header and top-line stats
 

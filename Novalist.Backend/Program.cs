@@ -14,8 +14,14 @@ internal class Program
         var stdin = Console.OpenStandardInput();
         BackendHost.GuardStandardOutput();
 
-        using var host = new BackendHost(
-            Environment.GetEnvironmentVariable("NOVALIST_SETTINGS_DIR"));
+        var settingsDir = Environment.GetEnvironmentVariable("NOVALIST_SETTINGS_DIR");
+        // First run after unifying with Electron's userData: carry over a legacy
+        // ~/.config/Novalist install so settings + extensions are not orphaned.
+        // Only when the app chose userData itself (flag set by the main process);
+        // never when a test/tool supplied its own NOVALIST_SETTINGS_DIR.
+        if (Environment.GetEnvironmentVariable("NOVALIST_ALLOW_LEGACY_MIGRATION") == "1")
+            DataMigration.MigrateLegacyIfNeeded(settingsDir);
+        using var host = new BackendHost(settingsDir);
         await host.RunAsync(stdout, stdin);
         return 0;
     }

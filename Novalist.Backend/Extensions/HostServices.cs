@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using Novalist.Core;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
@@ -18,23 +17,36 @@ namespace Novalist.Backend.Extensions;
 /// Concrete implementation of <see cref="IHostServices"/> that wraps the host's
 /// static App services and exposes read-only facades to extensions.
 /// </summary>
-public sealed class HostServices : IHostServices, IExtensionFileService, IExtensionProjectService, IExtensionEntityService
+public sealed class HostServices : IHostServices, IExtensionFileService, IExtensionProjectService, IExtensionEntityService, IDisposable
 {
     private readonly IFileService _fileService;
     private readonly IProjectService _projectService;
     private readonly IEntityService _entityService;
     private readonly ISettingsService _settingsService;
+    private readonly UiPump _uiPump;
+    private readonly bool _ownsPump;
     private readonly Dictionary<string, ExtensionLocalizationService> _locServices = new(StringComparer.Ordinal);
 
     /// <summary>Reference to the extension manager (set after construction).</summary>
     internal ExtensionManager? ExtensionManager { get; set; }
 
-    public HostServices(IFileService fileService, IProjectService projectService, IEntityService entityService, ISettingsService settingsService)
+    /// <param name="uiPump">Shared backend UI pump. When null, an owned pump is
+    /// created and disposed with this instance (used by unit tests that construct
+    /// HostServices directly).</param>
+    public HostServices(IFileService fileService, IProjectService projectService, IEntityService entityService, ISettingsService settingsService, UiPump? uiPump = null)
     {
         _fileService = fileService;
         _projectService = projectService;
         _entityService = entityService;
         _settingsService = settingsService;
+        _uiPump = uiPump ?? new UiPump();
+        _ownsPump = uiPump == null;
+    }
+
+    public void Dispose()
+    {
+        if (_ownsPump)
+            _uiPump.Dispose();
     }
 
     // ── IHostServices ──────────────────────────────────────────────
@@ -66,7 +78,7 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
 
     public void PostToUI(Action action)
     {
-        Dispatcher.UIThread.Post(action);
+        _uiPump.Post(action);
     }
 
     public IExtensionLocalization GetLocalization(string extensionId)
@@ -105,26 +117,9 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         if (factory == null)
             return new NoopBusyProgress();
 
-        return Dispatcher.UIThread.CheckAccess()
+        return _uiPump.CheckAccess()
             ? factory(options)
-            : InvokeFactoryOnUI(factory, options);
-    }
-
-    // Cross-thread marshal of the factory call. Excluded: the blocking Post+Wait
-    // across threads deadlocks under the headless single-thread test model; the
-    // testable dispatch (no-factory / on-UI-thread) stays in ShowBusyProgress.
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private static IBusyProgress InvokeFactoryOnUI(Func<BusyProgressOptions, IBusyProgress> factory, BusyProgressOptions options)
-    {
-        IBusyProgress? handle = null;
-        var done = new System.Threading.ManualResetEventSlim();
-        Dispatcher.UIThread.Post(() =>
-        {
-            try { handle = factory(options); }
-            finally { done.Set(); }
-        });
-        done.Wait();
-        return handle ?? new NoopBusyProgress();
+            : _uiPump.Invoke(() => factory(options));
     }
 
     private sealed class NoopBusyProgress : IBusyProgress

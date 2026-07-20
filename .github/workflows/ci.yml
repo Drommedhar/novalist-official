@@ -141,6 +141,9 @@ jobs:
         working-directory: app
         run: npm run typecheck
 
+      - name: Locale doctor (new UI keys)
+        run: python3 tools/locale-doctor.py --target react --no-fail-on-dead
+
       - name: Build renderer
         working-directory: app
         run: npm run build

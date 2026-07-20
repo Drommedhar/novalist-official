@@ -58,6 +58,7 @@ export function DashboardView(): React.JSX.Element {
   const [range, setRange] = useState(30)
   const [editingGoal, setEditingGoal] = useState<'daily' | 'project' | null>(null)
   const [cover, setCover] = useState<string | null>(null)
+  const [banner, setBanner] = useState<string | null>(null)
 
   useEffect(() => {
     if (mainView !== 'dashboard') return
@@ -67,18 +68,33 @@ export function DashboardView(): React.JSX.Element {
   useEffect(() => {
     if (mainView !== 'dashboard') return
     void rpc.request<string | null>('dashboard/getCover').then(setCover)
+    void rpc.request<string | null>('dashboard/getBanner').then(setBanner)
   }, [mainView])
+
+  const changeBanner = async (): Promise<void> => {
+    const path = await window.novalist.pickFile(t('dashboard.pickBannerTitle'), 'images')
+    if (!path) return
+    await rpc.request('dashboard/setBanner', [path])
+    setBanner(await rpc.request<string | null>('dashboard/getBanner'))
+  }
+
+  const removeBanner = async (): Promise<void> => {
+    await rpc.request('dashboard/setBanner', [null])
+    setBanner(await rpc.request<string | null>('dashboard/getBanner'))
+  }
 
   const changeCover = async (): Promise<void> => {
     const path = await window.novalist.pickFile(t('dashboard.pickCoverTitle'), 'images')
     if (!path) return
     await rpc.request('dashboard/setCover', [path])
     setCover(await rpc.request<string | null>('dashboard/getCover'))
+    setBanner(await rpc.request<string | null>('dashboard/getBanner'))
   }
 
   const removeCover = async (): Promise<void> => {
     await rpc.request('dashboard/setCover', [null])
     setCover(null)
+    setBanner(await rpc.request<string | null>('dashboard/getBanner'))
   }
 
   if (!data) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
@@ -98,24 +114,53 @@ export function DashboardView(): React.JSX.Element {
   return (
     <div className="dashboard">
       <div className="dashboard-cover">
-        {cover ? (
+        {banner ? (
           <img
             className="dashboard-cover-img"
-            src={`novalist-project://nl/${encodeURI(cover)}`}
+            src={`novalist-project://nl/${encodeURI(banner)}`}
             alt={data.projectName}
           />
         ) : (
-          <div className="dashboard-cover-empty">{t('dashboard.noCover')}</div>
+          <div className="dashboard-cover-empty">{t('dashboard.noBanner')}</div>
         )}
         <div className="dashboard-cover-actions">
-          <button className="dashboard-cover-btn" onClick={() => void changeCover()}>
-            {cover ? t('dashboard.changeCover') : t('dashboard.addCover')}
+          <span className="dashboard-cover-tag">{t('dashboard.bannerLabel')}</span>
+          <button className="dashboard-cover-btn" onClick={() => void changeBanner()}>
+            {banner ? t('dashboard.changeBanner') : t('dashboard.addBanner')}
           </button>
-          {cover && (
-            <button className="dashboard-cover-btn" onClick={() => void removeCover()}>
-              {t('dashboard.removeCover')}
+          {banner && (
+            <button className="dashboard-cover-btn" onClick={() => void removeBanner()}>
+              {t('dashboard.removeBanner')}
             </button>
           )}
+        </div>
+      </div>
+
+      <div className="dashboard-bookcover">
+        <div className="dashboard-bookcover-preview">
+          {cover ? (
+            <img
+              className="dashboard-bookcover-img"
+              src={`novalist-project://nl/${encodeURI(cover)}`}
+              alt={data.projectName}
+            />
+          ) : (
+            <div className="dashboard-bookcover-empty">{t('dashboard.noCover')}</div>
+          )}
+        </div>
+        <div className="dashboard-bookcover-body">
+          <div className="dashboard-bookcover-label">{t('dashboard.bookCoverLabel')}</div>
+          <div className="dashboard-bookcover-hint">{t('dashboard.bookCoverHint')}</div>
+          <div className="dashboard-cover-actions dashboard-bookcover-actions">
+            <button className="dashboard-cover-btn" onClick={() => void changeCover()}>
+              {cover ? t('dashboard.changeCover') : t('dashboard.addCover')}
+            </button>
+            {cover && (
+              <button className="dashboard-cover-btn" onClick={() => void removeCover()}>
+                {t('dashboard.removeCover')}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

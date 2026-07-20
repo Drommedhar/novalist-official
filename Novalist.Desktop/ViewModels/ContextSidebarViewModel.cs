@@ -15,6 +15,9 @@ using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Novalist.Core.Utilities;
 using Novalist.Desktop.Localization;
+// Both namespaces above now define AgeComputation (Core gained one for the
+// Electron backend); this frozen view-model keeps using the Desktop version.
+using AgeComputation = Novalist.Desktop.Localization.AgeComputation;
 
 namespace Novalist.Desktop.ViewModels;
 

@@ -8,8 +8,25 @@ namespace Novalist.Backend.Tests;
 public class ExtensionLoaderTests
 {
     [Fact]
-    public void GetExtensionsDirectory_UnderAppData()
-        => Assert.Contains("Extensions", ExtensionLoader.GetExtensionsDirectory());
+    public void GetExtensionsDirectory_HonorsSettingsDirOverride()
+    {
+        var prev = Environment.GetEnvironmentVariable("NOVALIST_SETTINGS_DIR");
+        try
+        {
+            // Unset → production %APPDATA%/Novalist/Extensions.
+            Environment.SetEnvironmentVariable("NOVALIST_SETTINGS_DIR", null);
+            Assert.Contains(Path.Combine("Novalist", "Extensions"), ExtensionLoader.GetExtensionsDirectory());
+
+            // Set → isolated under the settings root (test isolation).
+            var custom = Path.Combine(Path.GetTempPath(), "nl-extdir-" + Guid.NewGuid().ToString("N"));
+            Environment.SetEnvironmentVariable("NOVALIST_SETTINGS_DIR", custom);
+            Assert.Equal(Path.Combine(custom, "Extensions"), ExtensionLoader.GetExtensionsDirectory());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("NOVALIST_SETTINGS_DIR", prev);
+        }
+    }
 
     [Fact]
     public void Discover_MissingDir_CreatesAndReturnsEmpty()

@@ -91,50 +91,7 @@
   --nl-favorite: #e5c07b;
 }
 
-/* ===== Light theme ===== */
-:root[data-theme='light'] {
-  --nl-base: 247 246 243;
-  --nl-surface-window: #f7f6f3;
-  --nl-surface-sidebar: #efeeea;
-  --nl-surface-toolbar: #f2f1ed;
-  --nl-surface-inspector: #efeeea;
-  --nl-surface-editor: #fdfdfb;
-  --nl-surface-card: #ffffff;
-  --nl-surface-input: #ffffff;
-  --nl-surface-overlay: rgb(40 38 34 / 0.35);
-  --nl-surface-hover: #e6e4de;
-  --nl-surface-selected: #dcdad2;
-
-  --nl-text: #23262b;
-  --nl-text-dim: #5c6470;
-  --nl-text-subtle: #8a919c;
-
-  --nl-accent: #0b6fb8;
-  --nl-accent-hover: #0e8bdf;
-  --nl-accent-ink: #ffffff;
-  --nl-focus-ring: rgb(11 111 184 / 0.5);
-
-  --nl-border: #dddbd4;
-  --nl-border-subtle: #e5e3dc;
-
-  --nl-success: #178a44;
-  --nl-warning: #b87a2e;
-  --nl-danger: #c0392b;
-
-  --nl-status-outline: #8a8fa8;
-  --nl-status-first-draft: #c97f3d;
-  --nl-status-revised: #4d78c9;
-  --nl-status-edited: #4d9e47;
-  --nl-status-final: #2e9688;
-
-  --nl-git-dirty: #b8860b;
-  --nl-git-clean: #4d9e47;
-  --nl-favorite: #b8860b;
-
-  --nl-elevation-low: 0 1px 3px 0 rgb(40 38 34 / 0.1);
-  --nl-elevation-md: 0 4px 12px 0 rgb(40 38 34 / 0.15);
-  --nl-elevation-high: 0 8px 24px 0 rgb(40 38 34 / 0.2);
-}
+/* The light theme was removed; Default resolves to the dark palette above. */
 
 /* ===== Material layer: chrome goes translucent under native blur ===== */
 :root[data-material='vibrancy'],

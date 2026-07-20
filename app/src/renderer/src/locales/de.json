@@ -43,6 +43,13 @@
     "placeholder": "Befehlsname eingeben...",
     "noResults": "Keine passenden Befehle."
   },
+  "help": {
+    "title": "Novalist-Handbuch",
+    "manual": "Handbuch",
+    "searchPlaceholder": "Handbuch durchsuchen…",
+    "noResults": "Keine passenden Seiten.",
+    "close": "Schließen"
+  },
   "research": {
     "title": "Recherche",
     "search": "Recherche durchsuchen…",
@@ -172,6 +179,11 @@
       "veryDifficult": "Sehr schwer"
     },
     "overviewTooltip": "Projektübersicht",
+    "chAbbrev": "Kap.",
+    "scAbbrev": "Sz.",
+    "charsAbbrev": "Figuren",
+    "locAbbrev": "Orte",
+    "avgPerChapter": "~ {{value}}/Kap.",
     "dailyGoalShort": "Täglich {{current}}/{{target}}",
     "projectGoalShort": "Projekt {{current}}/{{target}}",
     "gitTooltip": "Versionsverwaltung öffnen — {{count}} geändert"
@@ -200,7 +212,8 @@
     "noRecentProjects": "Noch keine Projekte. Erstellen oder öffnen Sie ein Projekt.",
     "removeFromList": "Aus Liste entfernen",
     "newProject": "Neues Projekt",
-    "pickFolderTitle": "Speicherort für Projekt wählen"
+    "pickFolderTitle": "Speicherort für Projekt wählen",
+    "createWithWizard": "Geführte Einrichtung (Assistent)"
   },
   "settings": {
     "title": "Einstellungen",
@@ -326,7 +339,11 @@
     "openLogFolder": "Protokollordner öffnen",
     "openCurrentLog": "Aktuelles Protokoll öffnen",
     "clearLogs": "Protokolle löschen",
-    "bookWidthCharsPerLine": "~{{count}} Zeichen pro Zeile"
+    "bookWidthCharsPerLine": "~{{count}} Zeichen pro Zeile",
+    "checkForExtensionUpdates": "Nach Erweiterungs-Updates suchen",
+    "checkForExtensionUpdatesDesc": "Beim Start automatisch nach Erweiterungs-Updates suchen",
+    "githubToken": "GitHub Personal Access Token",
+    "githubTokenDesc": "Optionales Token, um das API-Ratenlimit beim Durchsuchen oder Aktualisieren von Erweiterungen zu erhöhen (60/Std. → 5000/Std.)"
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -429,6 +446,7 @@
     "contextDelete": "Löschen",
     "contextArchive": "Archivieren",
     "archive": "ARCHIV",
+    "changed": "Nicht committete Änderungen",
     "archivePreview": "Öffnen (schreibgeschützt)",
     "archiveRestore": "Wiederherstellen...",
     "archiveDelete": "Endgültig löschen",
@@ -548,7 +566,7 @@
     "deleteConfirmMessage": "Möchtest du \"{0}\" wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
     "selectChapter": "Kapitel wählen...",
     "selectScene": "Szene wählen...",
-    "editOverride": "Überschreibung hinzufügen / bearbeiten",
+    "editOverride": "Override bearbeiten",
     "stopOverride": "Fertig",
     "noOverrides": "Keine Überschreibungen definiert.",
     "editingOverride": "Überschreibung bearbeiten: {0}",
@@ -558,6 +576,11 @@
     "importImage": "Datei importieren",
     "addOverride": "Override hinzufügen",
     "wholeChapter": "Ganzes Kapitel",
+    "overridesHint": "Identität oder Aussehen einer Figur für ein bestimmtes Kapitel oder eine Szene neu festlegen. Leere Felder übernehmen den Basiswert.",
+    "overrideInheriting": "Erbt Basis",
+    "overrideResetToInherit": "Auf Erben zurücksetzen",
+    "overrideMediaHint": "Speichere diesen Bereich zuerst, um seine Bilder, Beziehungen und Abschnitte zu überschreiben.",
+    "overridesNoneSet": "Keine Felder überschrieben",
     "inverseRole": "Gegenrolle",
     "pasteImage": "Bild einfügen",
     "fromUrl": "Von URL",
@@ -628,7 +651,9 @@
     "typeLore": "Wissen",
     "agePill": "Alter {0}",
     "inPill": "In {0}",
-    "sublocationsPill": "{0} Unterorte"
+    "sublocationsPill": "{0} Unterorte",
+    "overrideScope": "Überschrieben für {0}",
+    "overrideScopeHint": "Diese Karte zeigt Werte, die für die bearbeitete Szene überschrieben wurden."
   },
   "emotion": {
     "neutral": "Neutral",
@@ -1002,7 +1027,15 @@
     "changeCover": "Cover ändern",
     "removeCover": "Cover entfernen",
     "pickCoverTitle": "Coverbild wählen",
-    "noCover": "Kein Coverbild"
+    "noCover": "Kein Coverbild",
+    "bookCoverLabel": "Buchcover",
+    "bookCoverHint": "Hochformat-Cover, das im Startbildschirm angezeigt wird.",
+    "bannerLabel": "Banner",
+    "addBanner": "Banner hinzufügen",
+    "changeBanner": "Banner ändern",
+    "removeBanner": "Banner entfernen",
+    "pickBannerTitle": "Bannerbild wählen",
+    "noBanner": "Kein Bannerbild"
   },
   "import": {
     "title": "Aus Obsidian-Plugin importieren",
@@ -1161,6 +1194,10 @@
     "author": "Von",
     "restart": "Neustart erforderlich",
     "settings": "Einstellungen",
+    "installFromFolder": "Aus Ordner installieren…",
+    "installFailed": "Installation fehlgeschlagen. Der Ordner muss eine gültige extension.json enthalten.",
+    "uninstall": "Deinstallieren",
+    "uninstallConfirm": "{{name}} entfernen? Dadurch werden die Dateien dauerhaft aus dem Erweiterungsordner gelöscht.",
     "tabInstalled": "Installiert",
     "tabBrowse": "Store durchsuchen",
     "store": {
@@ -1173,8 +1210,24 @@
       "update": "Update",
       "updating": "Aktualisiere…",
       "updateAvailableSingle": "1 Erweiterungs-Update verfügbar",
-      "updateAvailableMulti": "{0} Erweiterungs-Updates verfügbar"
-    }
+      "updateAvailableMulti": "{0} Erweiterungs-Updates verfügbar",
+      "loading": "Erweiterungen werden geladen…",
+      "empty": "Noch keine Erweiterungen im Katalog verfügbar.",
+      "retry": "Erneut versuchen",
+      "releaseNotes": "Versionshinweise",
+      "checkUpdates": "Nach Updates suchen",
+      "installed": "Installiert",
+      "upToDate": "Alle Erweiterungen sind aktuell.",
+      "readmeUnavailable": "Keine README verfügbar.",
+      "loadError": "Der Erweiterungskatalog konnte nicht geladen werden.",
+      "back": "Zurück",
+      "noResults": "Keine Erweiterungen entsprechen deiner Suche."
+    },
+    "settingsTitle": "Erweiterungseinstellungen",
+    "settingsRun": "Ausführen",
+    "settingsSave": "Speichern",
+    "themesTitle": "Erweiterungs-Designs",
+    "updateTo": "Auf {0} aktualisieren"
   },
   "codexHub": {
     "title": "Codex Hub",
@@ -1228,13 +1281,23 @@
     "available": "Update verfügbar",
     "versionInfo": "Eine neue Version ist verfügbar: {1} (aktuell: {0})",
     "downloadInstall": "Herunterladen & Installieren",
+    "ready": "Update bereit zur Installation",
+    "viewRelease": "Release anzeigen",
+    "later": "Später",
+    "restartInstall": "Neu starten & installieren",
     "skip": "Überspringen",
     "downloading": "Herunterladen... {0}%",
     "launching": "Installer wird gestartet...",
     "error": "Update fehlgeschlagen: {0}",
     "checkForUpdates": "Nach Updates suchen",
     "checkForUpdatesDesc": "Beim Start automatisch nach neuen Versionen suchen",
-    "noNotes": "Die vollständige Änderungsliste dieser Version finden Sie auf der Release-Seite."
+    "noNotes": "Die vollständige Änderungsliste dieser Version finden Sie auf der Release-Seite.",
+    "extAvailable": "{{count}} Erweiterungs-Update(s) verfügbar.",
+    "openStore": "Erweiterungs-Store öffnen",
+    "upToDate": "Novalist ist aktuell",
+    "upToDateDetail": "Sie verwenden die neueste Version, und alle Erweiterungen sind aktuell.",
+    "updateAction": "Aktualisieren",
+    "updating": "Wird aktualisiert…"
   },
   "wizard": {
     "cancel": "Abbrechen",
@@ -1618,6 +1681,9 @@
   "shell": {
     "toggleBinder": "Binder umschalten",
     "toggleInspector": "Inspektor umschalten",
+    "toggleSceneNotes": "Szenennotizen umschalten",
+    "snapshots": "Szenen-Schnappschüsse",
+    "activityBar": "Ansichten",
     "newChapter": "Kapitel",
     "newScene": "Szene",
     "binderEmpty": "Öffne ein Projekt, um hier Kapitel und Szenen zu sehen.",
@@ -1651,5 +1717,11 @@
     "scenes": "Szenen",
     "groupApp": "Anwendung",
     "menu": "Menü"
+  },
+  "hostBridge": {
+    "toastRegion": "Benachrichtigungen",
+    "dismiss": "Schließen",
+    "wizardLoading": "Optionen werden geladen…",
+    "wizardNoChoices": "Keine Optionen verfügbar."
   }
 }

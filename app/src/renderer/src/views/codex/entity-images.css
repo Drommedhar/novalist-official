@@ -65,3 +65,47 @@
   font-size: var(--nl-font-tiny);
   color: var(--nl-danger);
 }
+
+/* Per-scope override media editors (images / relationships / sections) inside the
+   inline overrides form: a header row that pairs the section label with either an
+   "inheriting base" tag or a "reset to inherit" button. */
+.overrides-media-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  margin-top: var(--nl-space-md);
+}
+
+.overrides-media-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-sm);
+}
+
+.overrides-media-head .inspector-label {
+  margin: 0;
+}
+
+.overrides-inherit-tag {
+  font-size: var(--nl-font-tiny);
+  color: var(--nl-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.overrides-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-accent);
+  padding: var(--nl-space-none);
+}
+
+.overrides-reset:hover {
+  text-decoration: underline;
+}

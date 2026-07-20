@@ -61,18 +61,12 @@ const THEME_SLUGS: Record<string, string> = {
   'Catppuccin Mocha': 'catppuccin-mocha'
 }
 
-/** Applies the selected theme: named themes pin their palette; Default/system
- * follows the OS light/dark preference. Accent overrides the token directly. */
+/** Applies the selected theme: named themes pin their palette; Default resolves
+ * to dark (the light theme was removed). Accent overrides the token directly. */
 export function applyThemeTokens(theme: string, accentColor: string | null): void {
   const root = document.documentElement
   const slug = THEME_SLUGS[theme]
-  if (slug) {
-    root.dataset.theme = slug
-  } else {
-    root.dataset.theme = window.matchMedia('(prefers-color-scheme: light)').matches
-      ? 'light'
-      : 'dark'
-  }
+  root.dataset.theme = slug ?? 'dark'
   if (accentColor) {
     root.style.setProperty('--nl-accent', accentColor)
     root.style.setProperty('--nl-accent-hover', accentColor)

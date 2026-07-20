@@ -19,7 +19,19 @@ export class BackendProcess {
 
   start(): void {
     const exe = resolveBackendPath()
-    const child = spawn(exe, [], { stdio: ['pipe', 'pipe', 'pipe'] })
+    // Unify the backend's data root with Electron's userData so settings and
+    // extensions live in ONE place (macOS-native ~/Library/Application Support/
+    // Novalist), instead of the .NET default (~/.config/Novalist). The e2e specs
+    // set NOVALIST_SETTINGS_DIR explicitly, so respect it when already present —
+    // and only allow the legacy migration when WE chose userData (i.e. no
+    // external override), so tests never get legacy data copied into their dirs.
+    const preset = process.env.NOVALIST_SETTINGS_DIR
+    const env = {
+      ...process.env,
+      NOVALIST_SETTINGS_DIR: preset ?? app.getPath('userData'),
+      ...(preset ? {} : { NOVALIST_ALLOW_LEGACY_MIGRATION: '1' })
+    }
+    const child = spawn(exe, [], { stdio: ['pipe', 'pipe', 'pipe'], env })
     this.child = child
 
     child.on('error', (error) => {

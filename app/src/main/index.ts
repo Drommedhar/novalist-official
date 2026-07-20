@@ -5,7 +5,8 @@ import { BackendProcess } from './backend-process'
 import { attachLiquidGlass, detectMaterial, materialWindowOptions } from './glass'
 import { registerDialogHandlers } from './dialogs'
 import { installAppMenu } from './menu'
-import { checkForUpdates } from './updater'
+import { checkAppUpdate, downloadAndInstall } from './appUpdater'
+import { createSplashWindow, setSplashStatus } from './splash'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
 
 // Name the app before anything reads it (menu/About/dock/window title) so the
@@ -47,10 +48,6 @@ function createWindow(): BrowserWindow {
     }
   })
 
-  win.once('ready-to-show', () => win.show())
-  if (app.isPackaged) {
-    win.webContents.once('did-finish-load', () => checkForUpdates(win))
-  }
   if (material === 'glass') {
     win.webContents.once('did-finish-load', () => attachLiquidGlass(win))
   }
@@ -74,6 +71,15 @@ ipcMain.on('novalist:request-backend-port', (event) => {
   event.sender.postMessage('novalist:backend-port', null, [port2])
 })
 
+// App self-update (GitHub release → download installer → open). Extension
+// updates are handled separately by the renderer via the extension store.
+ipcMain.handle('novalist:check-app-update', () => checkAppUpdate())
+ipcMain.handle('novalist:download-app-update', (event, info) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win) throw new Error('No window for update download.')
+  return downloadAndInstall(info, win)
+})
+
 void app.whenReady().then(() => {
   installAppMenu()
   // Dock icon for the dev run (packaged builds get it from the app bundle).
@@ -84,7 +90,28 @@ void app.whenReady().then(() => {
   registerDialogHandlers()
   registerProtocolHandlers()
   backend.start()
-  createWindow()
+
+  // Create the main window first (kept hidden), then show a splash over it while
+  // the renderer runs the startup update check - mirroring the Avalonia splash.
+  // Skipped under NOVALIST_NO_SPLASH so e2e's app.firstWindow() deterministically
+  // hits the renderer and startup is not gated on a network check.
+  const win = createWindow()
+  const splash = process.env.NOVALIST_NO_SPLASH ? null : createSplashWindow(resolveIconPath())
+  setSplashStatus(splash, 'Checking for updates…')
+
+  const reveal = (): void => {
+    if (win.isDestroyed()) return
+    if (splash && !splash.isDestroyed()) splash.close()
+    if (!win.isVisible()) win.show()
+  }
+  if (splash) {
+    // The renderer signals when the app+extension update check has finished;
+    // a safety timeout reveals anyway so startup never hangs on the network.
+    ipcMain.once('novalist:updates-checked', reveal)
+    setTimeout(reveal, 15000)
+  } else {
+    win.once('ready-to-show', () => win.show())
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

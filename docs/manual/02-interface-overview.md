@@ -6,90 +6,87 @@ Keyboard shortcuts below are written with `Ctrl`; on macOS use `Cmd` instead.
 
 ## The layout at a glance
 
-Novalist uses a three-pane layout:
+Novalist uses an activity-bar layout: a slim icon rail switches views, and the binder beside it is only the chapter/scene tree.
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│ Toolbar:  [=]  Project name  [Book v] [Draft v]  +Chapter +Scene │
-│                                              Search  Inspector   │
-├──────────────┬───────────────────────────────────┬───────────────┤
-│  Binder      │                                   │  Inspector    │
-│  (Chapters / │            Main area              │  (synopsis,   │
-│  Smart Lists │      (editor or active view)      │   notes,      │
-│  + tree)     │                                   │   snapshots)  │
-│  ──────────  │                                   │               │
-│  View rail   │                                   │               │
-│  (Write,     │                                   │               │
-│   Plan, ...) │                                   │               │
-├──────────────┴───────────────────────────────────┴───────────────┤
-│ Status bar:  scene words  |  project totals  |  Core connected   │
-└──────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│ Toolbar:  [=] Project name [Book v] [Draft v]  +Chapter +Scene         │
+│                             Search  Snapshots  Scene notes  Inspector   │
+├────┬──────────────┬───────────────────────────────────┬────────────────┤
+│ A  │  Binder      │            Main area              │  Inspector     │
+│ c  │  (Chapters / │      (editor or active view)      │  (Context /    │
+│ t  │  Smart Lists │                                   │   Footnotes    │
+│ i  │  + tree)     │───────────────────────────────────│   tabs)        │
+│ v  │              │   Scene notes dock (optional)     │                │
+│ e  │              │   (Synopsis  |  Notes)            │                │
+├────┴──────────────┴───────────────────────────────────┴────────────────┤
+│ Status bar:  scene words │ project totals strip │ goals  git  Core     │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
-All navigation happens through the toolbar, the binder's view rail, and the command palette. Both side panes can be hidden.
+Navigation happens through the **activity bar**, the **Go** menu in the menu bar, and the command palette. The binder, the inspector, and the bottom scene-notes dock can each be hidden.
 
 ## The toolbar
 
 The slim bar at the top of the window. From left to right:
 
 - **Binder toggle** — shows/hides the left pane (`Ctrl+B`).
+- **Menu (burger)** — opens the **backstage drawer** (see below).
 - **Project name** — double-click it to rename the project.
 - **Book selector** — a dropdown listing the project's books. Pick one to switch; the last entry, **+ Add Book**, creates a new book. See [Projects & Books](03-projects-and-books.md).
 - **Draft selector** — a dropdown listing the active book's drafts. Pick one to switch; **+ New draft (clone from current)** creates a new draft as a copy of the current one.
 - **+ Chapter** — creates a new chapter.
 - **+ Scene** — creates a new scene in the chapter of the currently open scene.
 - **Search** — opens [Find & Replace](21-find-replace.md) (`Ctrl+Shift+F`).
+- **Snapshots** — opens the [Snapshots](17-snapshots.md) dialog for the open scene.
+- **Scene notes toggle** — shows/hides the bottom scene-notes dock (`Ctrl+Shift+N`).
 - **Inspector toggle** — shows/hides the right pane (`Ctrl+Shift+B`).
+
+## The activity bar
+
+The slim icon rail on the far left is the top-level view switcher. From top to bottom it groups: Dashboard and Manuscript; then Timeline, Plot Grid, Calendar, Relationships; then Codex, Maps, Research, Gallery; then Export and Git. **Settings** sits at the bottom. Extension views that contribute to the main area appear as extra icons. Hover any icon for its name; the active view is highlighted.
+
+The **Editor** has no icon of its own — you reach it by opening a scene from the binder. The same destinations are also listed in the **Go** menu in the menu bar, and `Ctrl+1` through `Ctrl+9` jump to the most-used views — see [Hotkeys](26-hotkeys.md).
 
 ## The binder
 
-The left pane has three parts, top to bottom:
+The left pane is the chapter/scene tree only — view navigation lives in the activity bar.
 
 ### Tabs
 
 - **Chapters** — the chapter/scene tree of the active book: act headers, status dots, per-scene word counts, drag-and-drop reordering, context menus, and the Archive section. See [Chapters & Scenes](04-chapters-and-scenes.md).
 - **Smart Lists** — saved scene queries (e.g. "all scenes with POV = Alice that aren't in First Draft yet"). See [Smart Lists](16-smart-lists.md).
 
-### The tree
-
 Click a scene to open it in the editor; the open scene is highlighted. Right-click chapters and scenes for their context menus.
-
-### The view rail
-
-Below the tree, grouped navigation buttons switch what the main area shows:
-
-| Group | Views |
-| --- | --- |
-| **Write** | Editor, Manuscript, Dashboard |
-| **Plan** | Timeline, Plot Grid, Calendar, Relationships |
-| **World** | Codex, Maps, Research, Gallery |
-| **Publish** | Export, Git |
-| **Application** | Settings |
-
-When installed extensions contribute views (for example an AI Chat panel), an **Extensions** group appears with one button per contributed view. See [Extensions](24-extensions.md).
-
-The active view is highlighted. `Ctrl+1` through `Ctrl+9` jump directly to the most-used views — see [Hotkeys](26-hotkeys.md).
 
 ## The main area
 
-The big region in the middle shows the active view: the scene **Editor** by default, or whichever view you picked in the rail (Dashboard, Timeline, Codex, Export, Settings, and so on). When a second scene is opened in the split editor, the main area shows two editor panes side by side. See [Editor](05-editor.md).
+The big region in the middle shows the active view: the scene **Editor** by default, or whichever view you picked in the activity bar (Dashboard, Timeline, Codex, Export, Settings, and so on). When a second scene is opened in the split editor, the main area shows two editor panes side by side. See [Editor](05-editor.md).
+
+### The scene-notes dock
+
+Below the editor sits an optional **scene-notes dock**, toggled from the toolbar or `Ctrl+Shift+N`. It holds the open scene's **Synopsis** and freeform **Notes** side by side, saved when you click away. Drag its top edge to resize it. The dock only appears in the editor.
 
 ## The inspector
 
-The right pane shows details for the open scene:
+The right pane is the context sidebar for the open scene, with two tabs:
 
-- **Title and word count** at the top.
-- **Synopsis** — a short summary, saved when you click away.
-- **Scene notes** — longer freeform notes, saved when you click away.
-- **Scene snapshots** — take a snapshot (with an optional label) and restore earlier ones. See [Snapshots](17-snapshots.md).
+- **Context** — the scene's characters, mention frequency, locations, items, lore, and editable scene analysis (POV, emotion, intensity, conflict, tags). See [Inspector](22-context-sidebar.md).
+- **Footnotes** — the footnotes and comments anchored in the open scene.
+
+Per-scene snapshots are taken from the toolbar **Snapshots** button rather than the inspector. See [Snapshots](17-snapshots.md).
+
+## The backstage drawer
+
+The toolbar burger opens a left-anchored **backstage drawer**: create or open a project, import an Obsidian plugin, pick from recent projects, or jump to **Settings** / **Extensions**. Click outside or press `Escape` to close it.
 
 ## The status bar
 
 The thin strip across the bottom:
 
-- **Left** — the open scene's word count and title.
-- **Center** — project totals: words, chapters, scenes.
-- **Right** — the core-connection status: **Core connected (version)** once the bundled Novalist Core process is up, **Connecting to core...** while it starts. If it never connects, see [Troubleshooting](28-troubleshooting.md).
+- **Left** — the open scene's live word count, reading time, and readability badge.
+- **Center** — an always-visible project metrics strip: words, chapters, scenes, characters, locations, reading time, and average words per chapter. Click it for the **project overview** popover, a per-chapter and per-scene breakdown with word bars and readability.
+- **Right** — daily and project goal progress, the git branch and changed-file count, and a compact **core-connection dot** (green once the bundled Novalist Core process is up; hover it for the version). If it never connects, see [Troubleshooting](28-troubleshooting.md).
 
 ## The command palette
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GitBranch } from 'lucide-react'
 import { rpc } from '../rpc/client'
+import { ExtensionStatusItems } from './ExtensionStatusItems'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useSettingsStore } from '../stores/settingsStore'
@@ -28,6 +29,32 @@ interface ProjectOverview {
 interface GitIndicator {
   branchName: string
   changedFiles: unknown[]
+}
+
+// Per-chapter / per-scene breakdown for the overview popover (dashboard/overview).
+interface SceneOverview {
+  title: string
+  words: number
+}
+interface ChapterOverview {
+  title: string
+  words: number
+  readability: number
+  readabilityLevel: string | null
+  scenes: SceneOverview[]
+}
+interface ProjectBreakdown {
+  projectName: string
+  chapters: ChapterOverview[]
+}
+
+// Maps the backend's localized readability-level label to the badge palette.
+const LEVEL_BY_LABEL: Record<string, Level> = {
+  'Very easy': 'veryEasy',
+  Easy: 'easy',
+  Moderate: 'moderate',
+  Difficult: 'difficult',
+  'Very difficult': 'veryDifficult'
 }
 
 const OVERVIEW_REFRESH_MS = 20000
@@ -228,6 +255,7 @@ export function StatusBar(): React.JSX.Element {
   const [overview, setOverview] = useState<ProjectOverview | null>(null)
   const [git, setGit] = useState<GitIndicator | null | undefined>(undefined)
   const [overviewOpen, setOverviewOpen] = useState(false)
+  const [breakdown, setBreakdown] = useState<ProjectBreakdown | null>(null)
 
   // Pull whole-project figures + git status when a project opens and on a slow
   // interval thereafter (dashboard/get is comparatively heavy). git/status
@@ -237,6 +265,7 @@ export function StatusBar(): React.JSX.Element {
       setOverview(null)
       setGit(undefined)
       setOverviewOpen(false)
+      setBreakdown(null)
       return
     }
     let active = true
@@ -269,6 +298,8 @@ export function StatusBar(): React.JSX.Element {
     0
   )
   const sceneCount = chapters.reduce((sum, c) => sum + c.scenes.length, 0)
+  const avgChapterWords =
+    chapters.length > 0 ? Math.round(totalWords / chapters.length) : 0
 
   const stats = useMemo(
     () => (plainText === null ? null : computeStats(plainText, language)),
@@ -283,8 +314,17 @@ export function StatusBar(): React.JSX.Element {
         .request<ProjectOverview>('dashboard/get', [1])
         .then(setOverview)
         .catch(() => {})
+      void rpc
+        .request<ProjectBreakdown>('dashboard/overview')
+        .then(setBreakdown)
+        .catch(() => {})
     }
   }
+
+  const maxChapterWords =
+    breakdown && breakdown.chapters.length > 0
+      ? Math.max(1, ...breakdown.chapters.map((c) => c.words))
+      : 1
 
   return (
     <footer className="status-bar">
@@ -321,6 +361,7 @@ export function StatusBar(): React.JSX.Element {
             )}
           </span>
         )}
+        <ExtensionStatusItems />
       </span>
 
       <span className="status-center-wrap">
@@ -331,50 +372,97 @@ export function StatusBar(): React.JSX.Element {
             onClick={toggleOverview}
             title={t('statusBar.overviewTooltip')}
           >
-            {`${totalWords.toLocaleString()} ${t('shell.words')} · ${chapters.length} ${t('shell.chapters')} · ${sceneCount} ${t('shell.scenes')}`}
+            <span className="status-metric">
+              {`${totalWords.toLocaleString()} ${t('shell.words')}`}
+            </span>
+            <span className="status-metric">{`${chapters.length} ${t('statusBar.chAbbrev')}`}</span>
+            <span className="status-metric">{`${sceneCount} ${t('statusBar.scAbbrev')}`}</span>
             {overview && (
-              <span className="status-dim">
-                {` · ${overview.characterCount} ${t('dashboard.characters')} · ${overview.locationCount} ${t('dashboard.locations')}`}
-              </span>
+              <>
+                <span className="status-metric">
+                  {`${overview.characterCount} ${t('statusBar.charsAbbrev')}`}
+                </span>
+                <span className="status-metric">
+                  {`${overview.locationCount} ${t('statusBar.locAbbrev')}`}
+                </span>
+                <span className="status-dim">
+                  {t('statusBar.readingTime', { minutes: overview.readingTimeMinutes })}
+                </span>
+              </>
             )}
+            <span className="status-dim">
+              {t('statusBar.avgPerChapter', { value: avgChapterWords.toLocaleString() })}
+            </span>
           </button>
         ) : (
           <span className="status-center" />
         )}
-        {overviewOpen && overview && (
+        {overviewOpen && (
           <>
             <div className="status-overview-backdrop" onClick={() => setOverviewOpen(false)} />
             <div className="status-overview-popover" role="dialog">
-              <div className="status-overview-title">{t('dashboard.projectOverview')}</div>
-              <div className="status-overview-grid">
-                <div className="status-overview-item">
-                  <span className="status-overview-value">
-                    {overview.totalWords.toLocaleString()}
-                  </span>
-                  <span className="status-overview-label">{t('dashboard.words')}</span>
-                </div>
-                <div className="status-overview-item">
-                  <span className="status-overview-value">{overview.chapterCount}</span>
-                  <span className="status-overview-label">{t('dashboard.chapters')}</span>
-                </div>
-                <div className="status-overview-item">
-                  <span className="status-overview-value">{overview.sceneCount}</span>
-                  <span className="status-overview-label">{t('dashboard.scenes')}</span>
-                </div>
-                <div className="status-overview-item">
-                  <span className="status-overview-value">{overview.characterCount}</span>
-                  <span className="status-overview-label">{t('dashboard.characters')}</span>
-                </div>
-                <div className="status-overview-item">
-                  <span className="status-overview-value">{overview.locationCount}</span>
-                  <span className="status-overview-label">{t('dashboard.locations')}</span>
-                </div>
-                <div className="status-overview-item">
-                  <span className="status-overview-value">
-                    {t('statusBar.readingTime', { minutes: overview.readingTimeMinutes })}
-                  </span>
-                  <span className="status-overview-label">{t('dashboard.readingTime')}</span>
-                </div>
+              <div className="status-overview-title">
+                {breakdown?.projectName ?? t('dashboard.projectOverview')}
+              </div>
+              <div className="status-overview-cols">
+                <span>{t('overview.chapterColumn')}</span>
+                <span>{t('overview.wordsColumn')}</span>
+                <span>{t('overview.readabilityColumn')}</span>
+              </div>
+              <div className="status-overview-list">
+                {!breakdown && <div className="status-dim">{t('shell.backendConnecting')}</div>}
+                {breakdown && breakdown.chapters.length === 0 && (
+                  <div className="status-dim">{t('overview.noChapters')}</div>
+                )}
+                {breakdown?.chapters.map((chapter, ci) => (
+                  <div key={ci} className="status-overview-chapter">
+                    <div className="status-overview-row">
+                      <span className="status-overview-name">{chapter.title}</span>
+                      <span className="status-overview-words">
+                        {chapter.words.toLocaleString()}
+                        <span className="status-overview-bar">
+                          <span
+                            className="status-overview-bar-fill"
+                            style={{ width: `${Math.round((chapter.words / maxChapterWords) * 100)}%` }}
+                          />
+                        </span>
+                      </span>
+                      <span className="status-overview-read">
+                        {chapter.readabilityLevel ? (
+                          <span
+                            className="status-readability-badge"
+                            style={{
+                              backgroundColor:
+                                LEVEL_COLOR[LEVEL_BY_LABEL[chapter.readabilityLevel] ?? 'moderate']
+                            }}
+                            title={chapter.readabilityLevel}
+                          >
+                            {chapter.readability}
+                          </span>
+                        ) : (
+                          <span className="status-dim">–</span>
+                        )}
+                      </span>
+                    </div>
+                    {chapter.scenes.map((scene, si) => (
+                      <div key={si} className="status-overview-row status-overview-scene">
+                        <span className="status-overview-name">{scene.title}</span>
+                        <span className="status-overview-words">
+                          {scene.words.toLocaleString()}
+                          <span className="status-overview-bar">
+                            <span
+                              className="status-overview-bar-fill"
+                              style={{
+                                width: `${Math.round((scene.words / maxChapterWords) * 100)}%`
+                              }}
+                            />
+                          </span>
+                        </span>
+                        <span className="status-overview-read" />
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           </>
@@ -432,10 +520,20 @@ export function StatusBar(): React.JSX.Element {
             )}
           </button>
         )}
-        <span className="status-backend">
-          {backendVersion
-            ? t('shell.backendConnected', { version: backendVersion })
-            : t('shell.backendConnecting')}
+        <span
+          className={`status-backend${backendVersion ? ' connected' : ''}`}
+          title={
+            backendVersion
+              ? t('shell.backendConnected', { version: backendVersion })
+              : t('shell.backendConnecting')
+          }
+          aria-label={
+            backendVersion
+              ? t('shell.backendConnected', { version: backendVersion })
+              : t('shell.backendConnecting')
+          }
+        >
+          <span className="status-backend-dot" aria-hidden />
         </span>
       </span>
     </footer>

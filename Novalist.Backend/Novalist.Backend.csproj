@@ -16,6 +16,12 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
+    <!-- Shipped so extensions built against the desktop host's MVVM toolkit (their
+         ViewModels derive from CommunityToolkit.Mvvm's ObservableObject) can resolve
+         it from the backend's app base. Without it, ExtensionLoadContext delegates
+         the "CommunityToolkit" host prefix to the default context, which cannot find
+         the assembly, and Assembly.GetTypes() throws during extension load. -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
   </ItemGroup>
 
 </Project>

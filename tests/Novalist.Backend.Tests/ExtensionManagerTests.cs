@@ -68,6 +68,22 @@ public class ExtensionManagerTests
     }
 
     [Fact]
+    public async Task LoadAllAsync_CalledTwice_DoesNotDuplicate()
+    {
+        using var ext = new TempDir();
+        DeploySample(ext.Path);
+        var (mgr, _) = Build(ext.Path);
+
+        await mgr.LoadAllAsync();
+        var firstCount = mgr.Extensions.Count(e => e.Manifest.Id == SampleId);
+        // A reconnect / re-hydrate re-invokes extensions/load -> LoadAllAsync again.
+        await mgr.LoadAllAsync();
+
+        Assert.Equal(1, firstCount);
+        Assert.Equal(1, mgr.Extensions.Count(e => e.Manifest.Id == SampleId));
+    }
+
+    [Fact]
     public async Task Disable_RemovesHooksAndUnloads_ThenEnableReloads()
     {
         using var ext = new TempDir();
@@ -109,6 +125,33 @@ public class ExtensionManagerTests
         // Already known -> no duplicate.
         await mgr.DiscoverAndEnableAsync(SampleId);
         Assert.Single(mgr.Extensions, e => e.Manifest.Id == SampleId);
+    }
+
+    [Fact]
+    public async Task Reload_LoadedExtension_UnloadsAndReloadsFromDisk()
+    {
+        using var ext = new TempDir();
+        DeploySample(ext.Path);
+        var (mgr, _) = Build(ext.Path);
+        await mgr.LoadAllAsync();
+        Assert.True(mgr.Extensions.Single(e => e.Manifest.Id == SampleId).IsLoaded);
+
+        await mgr.ReloadExtensionAsync(SampleId);
+
+        var sample = mgr.Extensions.Single(e => e.Manifest.Id == SampleId);
+        Assert.True(sample.IsLoaded);
+        Assert.NotEmpty(mgr.RibbonItems);
+    }
+
+    [Fact]
+    public async Task Reload_NotYetKnown_DiscoversAndLoads()
+    {
+        using var ext = new TempDir();
+        DeploySample(ext.Path);
+        var (mgr, _) = Build(ext.Path);
+        // Never loaded, not in the collection: the existing==null path runs.
+        await mgr.ReloadExtensionAsync(SampleId);
+        Assert.Contains(mgr.Extensions, e => e.Manifest.Id == SampleId && e.IsLoaded);
     }
 
     [Fact]
@@ -207,5 +250,135 @@ public class ExtensionManagerTests
         mgr.ShutdownAll();
         Assert.All(mgr.Extensions, e => Assert.False(e.IsLoaded));
         Assert.Empty(mgr.RibbonItems);
+    }
+
+    // Builds a source folder (outside the extensions dir) that install-from-folder
+    // copies in. Includes a nested "Locales" folder so CopyDirectory recursion runs.
+    private static string BuildSourceFolder(string root)
+    {
+        var src = Path.Combine(root, "src");
+        Directory.CreateDirectory(src);
+        var dll = Path.Combine(AppContext.BaseDirectory, "Novalist.Sdk.Example.dll");
+        File.Copy(dll, Path.Combine(src, "Novalist.Sdk.Example.dll"));
+        var pdb = Path.ChangeExtension(dll, ".pdb");
+        if (File.Exists(pdb)) File.Copy(pdb, Path.Combine(src, "Novalist.Sdk.Example.pdb"));
+        File.WriteAllText(Path.Combine(src, "extension.json"),
+            $$"""{ "id": "{{SampleId}}", "name": "Sample", "entryAssembly": "Novalist.Sdk.Example.dll" }""");
+        var locales = Path.Combine(src, "Locales");
+        Directory.CreateDirectory(locales);
+        File.WriteAllText(Path.Combine(locales, "en.json"), "{}");
+        return src;
+    }
+
+    [Fact]
+    public async Task InstallFromFolder_CopiesEnablesAndLoads()
+    {
+        using var ext = new TempDir();
+        using var work = new TempDir();
+        var src = BuildSourceFolder(work.Path);
+        var (mgr, settings) = Build(ext.Path);
+
+        var id = await mgr.InstallFromFolderAsync(src);
+
+        Assert.Equal(SampleId, id);
+        var info = mgr.Extensions.Single(e => e.Manifest.Id == SampleId);
+        Assert.True(info.IsLoaded);
+        // Files were copied into the extensions dir (including the nested folder).
+        Assert.True(File.Exists(Path.Combine(ext.Path, SampleId, "extension.json")));
+        Assert.True(File.Exists(Path.Combine(ext.Path, SampleId, "Locales", "en.json")));
+        Assert.True(settings.Extensions[SampleId]);
+
+        // Reinstall over the top replaces cleanly (still a single entry, still loaded).
+        var again = await mgr.InstallFromFolderAsync(src);
+        Assert.Equal(SampleId, again);
+        Assert.Single(mgr.Extensions, e => e.Manifest.Id == SampleId);
+        Assert.True(mgr.Extensions.Single(e => e.Manifest.Id == SampleId).IsLoaded);
+    }
+
+    [Fact]
+    public async Task InstallFromFolder_MissingFolder_Throws()
+    {
+        using var ext = new TempDir();
+        var (mgr, _) = Build(ext.Path);
+        await Assert.ThrowsAsync<DirectoryNotFoundException>(
+            () => mgr.InstallFromFolderAsync(Path.Combine(ext.Path, "does-not-exist")));
+    }
+
+    [Fact]
+    public async Task InstallFromFolder_NoManifest_Throws()
+    {
+        using var ext = new TempDir();
+        using var work = new TempDir();
+        var (mgr, _) = Build(ext.Path);
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => mgr.InstallFromFolderAsync(work.Path));
+        Assert.Contains("extension.json", ex.Message);
+    }
+
+    [Fact]
+    public async Task InstallFromFolder_CorruptManifest_Throws()
+    {
+        using var ext = new TempDir();
+        using var work = new TempDir();
+        File.WriteAllText(Path.Combine(work.Path, "extension.json"), "{ not json");
+        var (mgr, _) = Build(ext.Path);
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => mgr.InstallFromFolderAsync(work.Path));
+        Assert.Contains("could not be parsed", ex.Message);
+    }
+
+    [Fact]
+    public async Task InstallFromFolder_ManifestWithoutId_Throws()
+    {
+        using var ext = new TempDir();
+        using var work = new TempDir();
+        File.WriteAllText(Path.Combine(work.Path, "extension.json"), """{ "name": "No Id" }""");
+        var (mgr, _) = Build(ext.Path);
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => mgr.InstallFromFolderAsync(work.Path));
+        Assert.Contains("id", ex.Message);
+    }
+
+    [Fact]
+    public async Task Uninstall_UnloadsDeletesFolderAndDropsSetting()
+    {
+        using var ext = new TempDir();
+        DeploySample(ext.Path);
+        var (mgr, settings) = Build(ext.Path);
+        await mgr.LoadAllAsync();
+        var folder = mgr.Extensions.Single(e => e.Manifest.Id == SampleId).FolderPath;
+        Assert.True(Directory.Exists(folder));
+
+        await mgr.UninstallAsync(SampleId);
+
+        Assert.DoesNotContain(mgr.Extensions, e => e.Manifest.Id == SampleId);
+        Assert.False(Directory.Exists(folder));
+        Assert.False(settings.Extensions.ContainsKey(SampleId));
+        Assert.Empty(mgr.RibbonItems);
+    }
+
+    [Fact]
+    public async Task Uninstall_UnknownId_NoOp()
+    {
+        using var ext = new TempDir();
+        var (mgr, _) = Build(ext.Path);
+        await mgr.UninstallAsync("not.installed"); // RemoveInstalledAsync early-returns
+        Assert.Empty(mgr.Extensions);
+    }
+
+    [Fact]
+    public async Task Uninstall_DiscoveredButFolderAlreadyGone_NoDeleteError()
+    {
+        using var ext = new TempDir();
+        var (mgr, _) = Build(ext.Path);
+        // A discovered-but-unloaded entry whose FolderPath no longer exists exercises
+        // the Directory.Exists=false branch of RemoveInstalledAsync.
+        mgr.Extensions.Add(new ExtensionInfo
+        {
+            Manifest = new ExtensionManifest { Id = "ghost" },
+            FolderPath = Path.Combine(ext.Path, "gone")
+        });
+        await mgr.UninstallAsync("ghost");
+        Assert.DoesNotContain(mgr.Extensions, e => e.Manifest.Id == "ghost");
     }
 }

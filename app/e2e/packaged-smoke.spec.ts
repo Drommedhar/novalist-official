@@ -16,11 +16,12 @@ test('packaged app boots and connects to its bundled backend', async () => {
     Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
   ) as Record<string, string>
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
+  env.NOVALIST_NO_SPLASH = '1'
 
   const app = await electron.launch({ executablePath: PACKAGED_BIN, env })
   const page = await app.firstWindow()
 
-  await expect(page.locator('.status-backend')).toContainText('(', { timeout: 30_000 })
+  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
   await expect(page.locator('.start-card')).toBeVisible()
 
   await app.close()

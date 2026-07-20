@@ -4,6 +4,15 @@ import { ChevronDown, ChevronRight, RotateCcw } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useShellStore } from '../stores/shellStore'
 import { useCodexStore } from '../stores/codexStore'
+import { useProjectStore } from '../stores/projectStore'
+import { useEntityPeek, type PeekScope } from '../views/editor/PeekCard'
+
+/** Callbacks that let an entity card raise/dismiss the shared focus-peek overlay,
+ * threaded from the panel down into each card. */
+interface CardPeek {
+  onEnter(type: string, id: string, el: HTMLElement): void
+  onLeave(): void
+}
 
 interface EntityCard {
   id: string
@@ -11,6 +20,8 @@ interface EntityCard {
   detail: string
   secondary: string | null
   imagePath: string | null
+  gender?: string | null
+  age?: string | null
 }
 
 interface MentionCell {
@@ -110,7 +121,8 @@ function EntitySection({
   type,
   cards,
   collapsed,
-  onToggle
+  onToggle,
+  peek
 }: {
   titleKey: string
   sectionKey: string
@@ -118,7 +130,9 @@ function EntitySection({
   cards: EntityCard[]
   collapsed: boolean
   onToggle(key: string): void
+  peek: CardPeek
 }): React.JSX.Element | null {
+  const { t } = useTranslation()
   if (cards.length === 0) return null
   const open = async (id: string): Promise<void> => {
     useShellStore.getState().setMainView('codex')
@@ -133,7 +147,13 @@ function EntitySection({
       onToggle={onToggle}
     >
       {cards.map((card) => (
-        <button key={card.id} className="ctx-card" onClick={() => void open(card.id)}>
+        <button
+          key={card.id}
+          className="ctx-card"
+          onClick={() => void open(card.id)}
+          onMouseEnter={(e) => peek.onEnter(type, card.id, e.currentTarget)}
+          onMouseLeave={() => peek.onLeave()}
+        >
           {card.imagePath ? (
             <img
               className="ctx-card-img"
@@ -149,6 +169,20 @@ function EntitySection({
             <span className="ctx-card-name">{card.name}</span>
             {card.detail && <span className="ctx-card-detail">{card.detail}</span>}
             {card.secondary && <span className="ctx-card-detail">{card.secondary}</span>}
+            {(card.gender || card.age) && (
+              <span className="ctx-card-pills">
+                {card.gender && (
+                  <span className="entity-chip">
+                    {t('context.genderPill')} {card.gender}
+                  </span>
+                )}
+                {card.age && (
+                  <span className="entity-chip">
+                    {t('context.agePill')} {card.age}
+                  </span>
+                )}
+              </span>
+            )}
           </span>
         </button>
       ))}
@@ -172,6 +206,37 @@ export function ContextPanel({
   const [conflictDraft, setConflictDraft] = useState('')
   const [tagsDraft, setTagsDraft] = useState('')
   const [intensityDraft, setIntensityDraft] = useState('')
+  const chapters = useProjectStore((s) => s.chapters)
+
+  // The open chapter/scene, so a character peek raised from the sidebar resolves
+  // its per-chapter/scene overrides for the scene in view — exactly as the editor
+  // peek does.
+  const scopeChapter = chapters.find((c) => c.guid === chapterGuid)
+  const peekScope: PeekScope = {
+    chapterGuid,
+    chapterTitle: scopeChapter?.title ?? null,
+    sceneTitle: scopeChapter?.scenes.find((s) => s.id === sceneId)?.title ?? null
+  }
+  // Shared focus-peek overlay — the same card the editor shows on entity hover.
+  const entityPeek = useEntityPeek({
+    scope: peekScope,
+    onOpen: (type, id) => {
+      useShellStore.getState().setMainView('codex')
+      void useCodexStore
+        .getState()
+        .setType(type)
+        .then(() => useCodexStore.getState().select(id))
+    }
+  })
+  const cardPeek: CardPeek = {
+    onEnter: (type, id, el) => {
+      // Anchor the card just to the left of the sidebar card so it never covers it.
+      const rect = el.getBoundingClientRect()
+      entityPeek.showAt({ entityType: type, entityId: id }, Math.max(8, rect.left - 372), rect.top - 18)
+    },
+    // Debounced, guarded by the pointer-over-card flag so moving onto the card keeps it open.
+    onLeave: () => entityPeek.scheduleHide()
+  }
 
   const analyze = (): void => {
     void rpc
@@ -253,6 +318,7 @@ export function ContextPanel({
         cards={ctx.characters}
         collapsed={!!collapsed.characters}
         onToggle={toggleSection}
+        peek={cardPeek}
       />
 
       {ctx.mentionRows.length > 0 && (
@@ -297,6 +363,7 @@ export function ContextPanel({
         cards={ctx.locations}
         collapsed={!!collapsed.locations}
         onToggle={toggleSection}
+        peek={cardPeek}
       />
       <EntitySection
         titleKey="context.items"
@@ -305,6 +372,7 @@ export function ContextPanel({
         cards={ctx.items}
         collapsed={!!collapsed.items}
         onToggle={toggleSection}
+        peek={cardPeek}
       />
       <EntitySection
         titleKey="context.lore"
@@ -313,6 +381,7 @@ export function ContextPanel({
         cards={ctx.lore}
         collapsed={!!collapsed.lore}
         onToggle={toggleSection}
+        peek={cardPeek}
       />
 
       <CollapsibleSection
@@ -451,6 +520,8 @@ export function ContextPanel({
           {t('context.avgSentenceDisplay').replace('{0}', String(Math.round(a.avgSentenceLength)))}
         </div>
       </CollapsibleSection>
+
+      {entityPeek.overlay}
     </div>
   )
 }

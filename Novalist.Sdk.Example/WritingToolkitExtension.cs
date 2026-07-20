@@ -27,8 +27,14 @@ public sealed class WritingToolkitExtension :
     IEntityTypeContributor,
     IGrammarCheckContributor,
     IHotkeyContributor,
-    IPropertyTypeContributor
+    IWizardContributor,
+    IPropertyTypeContributor,
+    IInlineActionContributor,
+    ISettingsSchemaContributor
 {
+    private bool _autoStartBreaks;
+    private string _promptCategory = "any";
+
     private IHostServices _host = null!;
     private IExtensionLocalization _loc = null!;
     private readonly PomodoroService _pomodoro = new();
@@ -49,6 +55,9 @@ public sealed class WritingToolkitExtension :
         _loc = host.GetLocalization(Id);
         host.ProjectLoaded += info => _wordFrequency.Clear();
         host.SceneSaved += scene => _wordFrequency.MarkDirty();
+        // Inline actions register imperatively (they are not collected from a
+        // return-value hook like the other contributions).
+        host.RegisterInlineActionContributor(this);
     }
 
     public void Shutdown()
@@ -179,6 +188,39 @@ public sealed class WritingToolkitExtension :
         }
     ];
 
+    // ── IWizardContributor ──────────────────────────────────────────
+
+    public IReadOnlyList<Novalist.Sdk.Models.Wizards.WizardDefinition> GetWizards() =>
+    [
+        new Novalist.Sdk.Models.Wizards.WizardDefinition
+        {
+            Id = "com.novalist.writingtoolkit.pomodoro",
+            DisplayName = _loc.T("wizard.pomodoro.title"),
+            Description = _loc.T("wizard.pomodoro.description"),
+            Scope = Novalist.Sdk.Models.Wizards.WizardScope.Reference,
+            Steps =
+            {
+                new Novalist.Sdk.Models.Wizards.NumberStep
+                {
+                    Id = "duration",
+                    Title = _loc.T("wizard.pomodoro.duration"),
+                    Min = 5, Max = 90, DefaultValue = 25, Unit = "min",
+                    Skippable = false,
+                },
+                new Novalist.Sdk.Models.Wizards.ChoiceStep
+                {
+                    Id = "autostart",
+                    Title = _loc.T("wizard.pomodoro.autostart"),
+                    Choices =
+                    {
+                        new Novalist.Sdk.Models.Wizards.WizardChoice { Value = "true", Label = _loc.T("wizard.pomodoro.yes") },
+                        new Novalist.Sdk.Models.Wizards.WizardChoice { Value = "false", Label = _loc.T("wizard.pomodoro.no") },
+                    },
+                },
+            },
+        },
+    ];
+
     // ── IExportFormatContributor ────────────────────────────────────
 
     public IReadOnlyList<ExportFormatDescriptor> GetExportFormats() =>
@@ -237,8 +279,8 @@ public sealed class WritingToolkitExtension :
             Alignment = "Right",
             Order = 50,
             GetText = () => _pomodoro.IsRunning
-                ? $"⏱ {_pomodoro.RemainingMinutes}:{_pomodoro.RemainingSeconds:D2}"
-                : "⏱ --:--",
+                ? $"{_loc.T("statusBar.pomodoroPrefix")} {_pomodoro.RemainingMinutes}:{_pomodoro.RemainingSeconds:D2}"
+                : $"{_loc.T("statusBar.pomodoroPrefix")} --:--",
             GetTooltip = () => _pomodoro.IsRunning
                 ? _loc.T("statusBar.pomodoroRunning", _pomodoro.SessionCount)
                 : _loc.T("statusBar.pomodoroIdle"),
@@ -258,7 +300,7 @@ public sealed class WritingToolkitExtension :
         new ContextMenuItem
         {
             Label = _loc.T("contextMenu.analyzeWordFrequency"),
-            Icon = "📊",
+            Icon = string.Empty,
             Context = "Chapter",
             OnClick = _ =>
             {
@@ -269,8 +311,11 @@ public sealed class WritingToolkitExtension :
         new ContextMenuItem
         {
             Label = _loc.T("contextMenu.analyzeWordFrequency"),
-            Icon = "📊",
+            Icon = string.Empty,
             Context = "Scene",
+            // Only meaningful with a concrete scene in context (e.g. the editor's
+            // current scene); hidden when there is none.
+            IsVisible = ctx => ctx != null,
             OnClick = _ =>
             {
                 System.Diagnostics.Debug.WriteLine("[ExtCtxMenu] Example extension: Scene OnClick fired");
@@ -377,4 +422,101 @@ public sealed class WritingToolkitExtension :
             DefaultValue = "0"
         }
     ];
+
+    // ── IInlineActionContributor ────────────────────────────────────
+
+    public IReadOnlyList<InlineActionDescriptor> GetInlineActions() =>
+    [
+        new InlineActionDescriptor
+        {
+            Id = "ext.writingtoolkit.uppercase",
+            Label = _loc.T("inline.uppercase"),
+            Group = _loc.T("group.writingToolkit"),
+            Priority = 10
+        },
+        new InlineActionDescriptor
+        {
+            Id = "ext.writingtoolkit.wordcount",
+            Label = _loc.T("inline.wordCount"),
+            Group = _loc.T("group.writingToolkit"),
+            Priority = 20
+        }
+    ];
+
+    public Task<InlineActionResult> ExecuteAsync(string actionId, InlineActionRequest request, CancellationToken cancellationToken)
+    {
+        var text = request.SelectedText ?? string.Empty;
+        return actionId switch
+        {
+            "ext.writingtoolkit.uppercase" => Task.FromResult(new InlineActionResult
+            {
+                Text = text.ToUpperInvariant(),
+                Disposition = InlineActionDisposition.ReplaceSelection
+            }),
+            "ext.writingtoolkit.wordcount" => Task.FromResult(new InlineActionResult
+            {
+                Text = _loc.T("inline.wordCountResult",
+                    text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length),
+                Disposition = InlineActionDisposition.InsertAfterSelection
+            }),
+            _ => Task.FromResult(new InlineActionResult { Error = _loc.T("inline.unknownAction") })
+        };
+    }
+
+    // ── ISettingsSchemaContributor (declarative advanced settings) ───
+
+    public SettingsSchema GetSettingsSchema() => new()
+    {
+        Title = _loc.T("settingsSchema.title"),
+        Fields =
+        [
+            new SettingsField
+            {
+                Key = "duration",
+                Label = _loc.T("settingsSchema.duration"),
+                Type = SettingsFieldType.Number,
+                Value = _pomodoro.DurationMinutes.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Min = 5,
+                Max = 90
+            },
+            new SettingsField
+            {
+                Key = "autoStartBreaks",
+                Label = _loc.T("settingsSchema.autoStart"),
+                Type = SettingsFieldType.Bool,
+                Value = _autoStartBreaks ? "true" : "false"
+            },
+            new SettingsField
+            {
+                Key = "promptCategory",
+                Label = _loc.T("settingsSchema.promptCategory"),
+                Type = SettingsFieldType.Select,
+                Value = _promptCategory,
+                Options = ["any", "character", "setting", "conflict"]
+            }
+        ]
+    };
+
+    public Task ApplySettingsAsync(IReadOnlyDictionary<string, string> values)
+    {
+        if (values.TryGetValue("duration", out var d)
+            && int.TryParse(d, System.Globalization.CultureInfo.InvariantCulture, out var mins))
+        {
+            _pomodoro.DurationMinutes = Math.Clamp(mins, 5, 90);
+        }
+        if (values.TryGetValue("autoStartBreaks", out var a))
+        {
+            _autoStartBreaks = string.Equals(a, "true", StringComparison.OrdinalIgnoreCase);
+        }
+        if (values.TryGetValue("promptCategory", out var c) && !string.IsNullOrWhiteSpace(c))
+        {
+            _promptCategory = c;
+        }
+        return _host.WriteHostDataAsync("writingtoolkit", System.Text.Json.JsonSerializer.Serialize(new
+        {
+            duration = _pomodoro.DurationMinutes,
+            autoStartBreaks = _autoStartBreaks,
+            promptCategory = _promptCategory
+        }));
+    }
 }

@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
@@ -31,6 +34,7 @@ public sealed class ExtensionManager
     public List<ContextMenuItem> ContextMenuItems { get; } = [];
     public List<ContentViewDescriptor> ContentViews { get; } = [];
     public List<SettingsPage> SettingsPages { get; } = [];
+    public List<Novalist.Sdk.Models.Wizards.WizardDefinition> Wizards { get; } = [];
     public List<EntityTypeDescriptor> EntityTypes { get; } = [];
     public List<ExportFormatDescriptor> ExportFormats { get; } = [];
     public List<IAiHook> AiHooks { get; } = [];
@@ -62,6 +66,13 @@ public sealed class ExtensionManager
 
         foreach (var info in discovered)
         {
+            // Idempotent: a repeated LoadAllAsync (e.g. on RPC reconnect / re-hydrate)
+            // must not add the same extension again, which produced duplicate list
+            // rows and duplicate hook registrations.
+            if (Extensions.Any(e =>
+                    string.Equals(e.Manifest.Id, info.Manifest.Id, StringComparison.OrdinalIgnoreCase)))
+                continue;
+
             // Check enable/disable state (default: enabled)
             if (enabledMap.TryGetValue(info.Manifest.Id, out var enabled))
                 info.IsEnabled = enabled;
@@ -144,6 +155,9 @@ public sealed class ExtensionManager
 
         if (instance is ISettingsContributor settings)
             AddList(SettingsPages, settings.GetSettingsPages());
+
+        if (instance is IWizardContributor wizardContributor)
+            AddList(Wizards, wizardContributor.GetWizards());
 
         if (instance is IEntityTypeContributor entityType)
             AddList(EntityTypes, entityType.GetEntityTypes());
@@ -237,6 +251,122 @@ public sealed class ExtensionManager
     }
 
     /// <summary>
+    /// Reloads an extension from disk after its files changed underneath us (a
+    /// gallery install or update wrote a new version into the extensions folder).
+    /// Unloads and drops the currently-loaded instance if present, then
+    /// re-discovers, enables, loads, and initializes it from the new files so the
+    /// change takes effect without an app restart. No-op when the id is neither
+    /// loaded nor present on disk.
+    /// </summary>
+    public async Task ReloadExtensionAsync(string extensionId)
+    {
+        var existing = Extensions.FirstOrDefault(e =>
+            string.Equals(e.Manifest.Id, extensionId, StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
+        {
+            // Unloads the collectible assembly context (memory-loaded, no file
+            // locks) so the freshly written DLLs can be loaded below.
+            await DisableExtensionAsync(existing.Manifest.Id);
+            Extensions.Remove(existing);
+        }
+
+        await DiscoverAndEnableAsync(extensionId);
+    }
+
+    private static readonly JsonSerializerOptions InstallJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
+    /// <summary>
+    /// Installs an extension from a source folder: validates its manifest, copies
+    /// the folder into the extensions directory (replacing any previous install of
+    /// the same id), then discovers, enables, loads, and initializes it.
+    /// Returns the installed extension id.
+    /// </summary>
+    public async Task<string> InstallFromFolderAsync(string sourceFolder)
+    {
+        if (string.IsNullOrWhiteSpace(sourceFolder) || !Directory.Exists(sourceFolder))
+            throw new DirectoryNotFoundException("The selected folder does not exist.");
+
+        var manifestPath = Path.Combine(sourceFolder, "extension.json");
+        if (!File.Exists(manifestPath))
+            throw new InvalidOperationException("The selected folder does not contain an extension.json manifest.");
+
+        ExtensionManifest? manifest;
+        try
+        {
+            manifest = JsonSerializer.Deserialize<ExtensionManifest>(File.ReadAllText(manifestPath), InstallJsonOptions);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"extension.json could not be parsed: {ex.Message}");
+        }
+
+        if (manifest == null || string.IsNullOrWhiteSpace(manifest.Id))
+            throw new InvalidOperationException("extension.json is missing a valid \"id\".");
+
+        var id = manifest.Id;
+        Log.Info($"Extension install from folder: id={id}.");
+
+        // Replace any previous install of the same id (unload + delete files first).
+        await RemoveInstalledAsync(id);
+
+        var target = Path.Combine(_loader.ExtensionsDirectory, SanitizeFolderName(id));
+        CopyDirectory(sourceFolder, target);
+
+        await DiscoverAndEnableAsync(id);
+        return id;
+    }
+
+    /// <summary>
+    /// Uninstalls an extension: unloads it if loaded, deletes its folder from disk,
+    /// and drops its persisted enable/disable state.
+    /// </summary>
+    public async Task UninstallAsync(string extensionId)
+    {
+        Log.Info($"Extension uninstall: id={extensionId}.");
+        await RemoveInstalledAsync(extensionId);
+        _settingsService.Settings.Extensions.Remove(extensionId);
+        await _settingsService.SaveAsync();
+    }
+
+    /// <summary>
+    /// Unloads (if loaded), removes from the live collection, and deletes the
+    /// on-disk folder for the given extension id. No-op when not installed.
+    /// </summary>
+    private async Task RemoveInstalledAsync(string extensionId)
+    {
+        var info = Extensions.FirstOrDefault(e =>
+            string.Equals(e.Manifest.Id, extensionId, StringComparison.OrdinalIgnoreCase));
+        if (info == null)
+            return;
+
+        // DisableExtensionAsync unloads the assembly context (memory-loaded, so no
+        // file locks are held) and persists the disabled state.
+        await DisableExtensionAsync(info.Manifest.Id);
+        Extensions.Remove(info);
+
+        if (!string.IsNullOrEmpty(info.FolderPath) && Directory.Exists(info.FolderPath))
+            Directory.Delete(info.FolderPath, recursive: true);
+    }
+
+    private static string SanitizeFolderName(string id)
+    {
+        var invalid = Path.GetInvalidFileNameChars();
+        return new string(id.Select(c => invalid.Contains(c) ? '_' : c).ToArray());
+    }
+
+    private static void CopyDirectory(string source, string target)
+    {
+        Directory.CreateDirectory(target);
+        foreach (var file in Directory.GetFiles(source))
+            File.Copy(file, Path.Combine(target, Path.GetFileName(file)), overwrite: true);
+        foreach (var dir in Directory.GetDirectories(source))
+            CopyDirectory(dir, Path.Combine(target, Path.GetFileName(dir)));
+    }
+
+    /// <summary>
     /// Enables an extension and persists the state.
     /// Requires app restart to take effect.
     /// </summary>
@@ -301,7 +431,143 @@ public sealed class ExtensionManager
     }
 
     /// <summary>
+    /// Enumerates every contributed settings page together with its owning
+    /// extension id, for the renderer's extension-settings surface.
+    /// </summary>
+    public IEnumerable<(string ExtensionId, string ExtensionName, SettingsPage Page)> EnumerateSettingsPages()
+    {
+        foreach (var e in Extensions.Where(e => e.IsLoaded && e.Instance is ISettingsContributor))
+        {
+            foreach (var page in ((ISettingsContributor)e.Instance!).GetSettingsPages())
+                yield return (e.Manifest.Id, e.Manifest.Name, page);
+        }
+    }
+
+    /// <summary>
+    /// Enumerates every contributed wizard together with its owning extension id.
+    /// </summary>
+    public IEnumerable<(string ExtensionId, string ExtensionName, Novalist.Sdk.Models.Wizards.WizardDefinition Def)> EnumerateWizards()
+    {
+        foreach (var e in Extensions.Where(e => e.IsLoaded && e.Instance is IWizardContributor))
+        {
+            foreach (var def in ((IWizardContributor)e.Instance!).GetWizards())
+                yield return (e.Manifest.Id, e.Manifest.Name, def);
+        }
+    }
+
+    /// <summary>Finds a contributed wizard definition by extension + wizard id, or
+    /// null when not found. Returns a freshly built definition whose runtime
+    /// callbacks are live.</summary>
+    public Novalist.Sdk.Models.Wizards.WizardDefinition? FindWizard(string extensionId, string wizardId)
+    {
+        var extension = Extensions.FirstOrDefault(e =>
+            e.IsLoaded && e.Manifest.Id == extensionId && e.Instance is IWizardContributor);
+        if (extension?.Instance is not IWizardContributor contributor)
+            return null;
+        return contributor.GetWizards().FirstOrDefault(w => w.Id == wizardId);
+    }
+
+    // ── Contribution surfacing + execution (Electron host bridges) ───────
+    // These enumerate the live contributor instances (so runtime closures stay
+    // valid) and assign each surfaced item a stable, opaque id the renderer
+    // echoes back to invoke the matching callback across the RPC boundary.
+
+    /// <summary>Extension-contributed inline actions, flattened across all
+    /// registered <see cref="IInlineActionContributor"/>s and ordered by
+    /// priority (lower first), matching the desktop editor's ordering.</summary>
+    public IReadOnlyList<Novalist.Sdk.Hooks.InlineActionDescriptor> GetInlineActionDescriptors()
+        => _hostServices.GetInlineActionContributors()
+            .SelectMany(c => c.GetInlineActions())
+            .OrderBy(a => a.Priority)
+            .ToList();
+
+    /// <summary>Runs the inline action with the given id against the request, by
+    /// locating the contributor that owns it. Null when no contributor claims the
+    /// id.</summary>
+    public async Task<Novalist.Sdk.Hooks.InlineActionResult?> ExecuteInlineActionAsync(
+        string actionId, Novalist.Sdk.Hooks.InlineActionRequest request, CancellationToken cancellationToken)
+    {
+        foreach (var contributor in _hostServices.GetInlineActionContributors())
+        {
+            if (contributor.GetInlineActions().Any(a => a.Id == actionId))
+                return await contributor.ExecuteAsync(actionId, request, cancellationToken);
+        }
+        return null;
+    }
+
+    /// <summary>Enumerates contributed context-menu items with a stable id
+    /// ("{extensionId}#ctx#{index}") for round-trip execution.</summary>
+    public IEnumerable<(string Id, string ExtensionId, ContextMenuItem Item)> EnumerateContextMenuItemsWithIds()
+    {
+        foreach (var e in Extensions.Where(e => e.IsLoaded && e.Instance is IContextMenuContributor))
+        {
+            var items = ((IContextMenuContributor)e.Instance!).GetContextMenuItems();
+            for (var i = 0; i < items.Count; i++)
+                yield return ($"{e.Manifest.Id}#ctx#{i}", e.Manifest.Id, items[i]);
+        }
+    }
+
+    /// <summary>Invokes a contributed context-menu item's click handler with the
+    /// supplied context object (respecting its visibility guard).</summary>
+    public void ExecuteContextMenuItem(string id, object? context)
+    {
+        var match = EnumerateContextMenuItemsWithIds().FirstOrDefault(x => x.Id == id).Item;
+        if (match == null) return;
+        if (match.IsVisible != null && !match.IsVisible(context)) return;
+        match.OnClick?.Invoke(context);
+    }
+
+    /// <summary>Enumerates contributed status-bar items with a stable id
+    /// ("{extensionId}#sb#{itemId}") plus their current text/tooltip.</summary>
+    public IEnumerable<(string Id, string ExtensionId, StatusBarItem Item)> EnumerateStatusBarItemsWithIds()
+    {
+        foreach (var e in Extensions.Where(e => e.IsLoaded && e.Instance is IStatusBarContributor))
+        {
+            foreach (var item in ((IStatusBarContributor)e.Instance!).GetStatusBarItems())
+                yield return ($"{e.Manifest.Id}#sb#{item.Id}", e.Manifest.Id, item);
+        }
+    }
+
+    /// <summary>Invokes a contributed status-bar item's click handler.</summary>
+    public void ExecuteStatusBarItem(string id)
+    {
+        var match = EnumerateStatusBarItemsWithIds().FirstOrDefault(x => x.Id == id).Item;
+        match?.OnClick?.Invoke();
+    }
+
+    /// <summary>Enumerates contributed theme overrides with their owning extension
+    /// id. Only the portable <see cref="ThemeOverride.AccentColor"/> is meaningful
+    /// on the Electron host; Avalonia <c>Styles</c>/<c>ResourcePath</c> are ignored.</summary>
+    public IEnumerable<(string ExtensionId, ThemeOverride Theme)> EnumerateThemes()
+    {
+        foreach (var e in Extensions.Where(e => e.IsLoaded && e.Instance is IThemeContributor))
+        {
+            foreach (var theme in ((IThemeContributor)e.Instance!).GetThemeOverrides())
+                yield return (e.Manifest.Id, theme);
+        }
+    }
+
+    /// <summary>Enumerates contributors of a declarative settings schema.</summary>
+    public IEnumerable<(string ExtensionId, string ExtensionName, Novalist.Sdk.Hooks.ISettingsSchemaContributor Contributor)> EnumerateSettingsSchemas()
+    {
+        foreach (var e in Extensions.Where(e => e.IsLoaded && e.Instance is Novalist.Sdk.Hooks.ISettingsSchemaContributor))
+            yield return (e.Manifest.Id, e.Manifest.Name, (Novalist.Sdk.Hooks.ISettingsSchemaContributor)e.Instance!);
+    }
+
+    /// <summary>Applies edited settings values for the schema-contributing
+    /// extension with the given id. No-op when the id is unknown.</summary>
+    public async Task ApplySettingsSchemaAsync(string extensionId, IReadOnlyDictionary<string, string> values)
+    {
+        var match = EnumerateSettingsSchemas().FirstOrDefault(x => x.ExtensionId == extensionId);
+        if (match.Contributor == null) return;
+        await match.Contributor.ApplySettingsAsync(values);
+    }
+
+    /// <summary>
     /// Returns the <see cref="HostServices"/> instance for event wiring.
     /// </summary>
     internal HostServices Host => _hostServices;
+
+    /// <summary>The on-disk directory extensions are discovered from and installed into.</summary>
+    public string ExtensionsDirectory => _loader.ExtensionsDirectory;
 }

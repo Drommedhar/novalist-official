@@ -2355,6 +2355,15 @@ document.addEventListener('contextmenu', (e) => {
         }
     }
 
+    // Extension context-menu items (always shown; operate on the current scene).
+    if (extensionMenuItems && extensionMenuItems.length > 0) {
+        html += '<div class="cm-separator"></div>';
+        for (const it of extensionMenuItems) {
+            const icon = it.icon ? (escapeHtml(it.icon) + ' ') : '';
+            html += '<div class="cm-item" data-ext-ctx="' + escapeHtml(it.id) + '"><span>' + icon + escapeHtml(it.label) + '</span></div>';
+        }
+    }
+
     contextMenu.innerHTML = html;
 
     // Position
@@ -2381,6 +2390,13 @@ contextMenu.addEventListener('click', (e) => {
     if (inlineItem) {
         const id = inlineItem.getAttribute('data-inline-action');
         triggerInlineAction(id);
+        hideContextMenu();
+        return;
+    }
+
+    const extItem = e.target.closest('[data-ext-ctx]');
+    if (extItem) {
+        sendMessage({ type: 'extensionContextMenuRequested', itemId: extItem.getAttribute('data-ext-ctx') });
         hideContextMenu();
         return;
     }
@@ -3095,6 +3111,17 @@ function triggerInlineAction(id) {
     pendingInlineAction = { id: id, range: range };
     sendMessage({ type: 'inlineActionRequested', actionId: id, selectedText: text });
 }
+
+// Extension context-menu items (IContextMenuContributor): not selection-gated;
+// the host runs the click handler against the currently open scene.
+let extensionMenuItems = [];
+window.setExtensionContextMenuItems = function (json) {
+    try {
+        extensionMenuItems = typeof json === 'string' ? JSON.parse(json) : (json || []);
+    } catch (e) {
+        extensionMenuItems = [];
+    }
+};
 
 window.applyInlineActionResult = function (json) {
     try {

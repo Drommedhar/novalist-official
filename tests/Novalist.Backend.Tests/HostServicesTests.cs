@@ -151,12 +151,24 @@ public class HostServicesTests
     }
 
     [Fact]
-    public void ShowBusyProgress_WithFactory_OnUIThread_Invokes()
+    public void ShowBusyProgress_WithFactory_MarshalsThroughPump()
     {
         var (h, _, _, _, _) = Build();
         var fake = Substitute.For<IBusyProgress>();
-        h.BusyProgressFactory = _ => fake;
-        Assert.Same(fake, h.ShowBusyProgress(new BusyProgressOptions())); // test runs on UI thread
+        var factoryThread = -1;
+        h.BusyProgressFactory = _ => { factoryThread = Environment.CurrentManagedThreadId; return fake; };
+        // Test thread is not the pump thread, so the factory is marshaled onto the
+        // pump thread and its result returned.
+        Assert.Same(fake, h.ShowBusyProgress(new BusyProgressOptions()));
+        Assert.NotEqual(Environment.CurrentManagedThreadId, factoryThread);
+    }
+
+    [Fact]
+    public void Dispose_OwnedPump_DisposesCleanly()
+    {
+        var (h, _, _, _, _) = Build();
+        h.Dispose();
+        h.Dispose(); // idempotent
     }
 
     [Fact]
@@ -347,9 +359,10 @@ public class HostServicesTests
     public void PostToUI_RunsAction()
     {
         var (h, _, _, _, _) = Build();
+        using var done = new System.Threading.ManualResetEventSlim();
         var ran = false;
-        h.PostToUI(() => ran = true);
-        Avalonia.Threading.Dispatcher.UIThread.RunJobs();
+        h.PostToUI(() => { ran = true; done.Set(); });
+        Assert.True(done.Wait(TimeSpan.FromSeconds(5)));
         Assert.True(ran);
     }
 

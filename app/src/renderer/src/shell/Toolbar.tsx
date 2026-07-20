@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Menu, PanelLeft, PanelRight, Plus, Search, Trash2 } from 'lucide-react'
+import { History, Menu, PanelBottom, PanelLeft, PanelRight, Plus, Search, Trash2 } from 'lucide-react'
 import { useShellStore } from '../stores/shellStore'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
@@ -9,6 +9,7 @@ import { ConfirmDialog } from './ConfirmDialog'
 import { ChapterDialog } from './ChapterDialog'
 import { SceneDialog } from './SceneDialog'
 import { StartMenuOverlay } from './StartMenuOverlay'
+import { SnapshotsDialog } from './SnapshotsDialog'
 
 type PendingDialog = 'chapter' | 'scene' | 'book' | 'draft' | 'renameProject' | null
 
@@ -16,6 +17,8 @@ export function Toolbar(): React.JSX.Element {
   const { t } = useTranslation()
   const toggleBinder = useShellStore((s) => s.toggleBinder)
   const toggleInspector = useShellStore((s) => s.toggleInspector)
+  const toggleNotesDock = useShellStore((s) => s.toggleNotesDock)
+  const notesDockVisible = useShellStore((s) => s.notesDockVisible)
   const projectName = useProjectStore((s) => s.projectName)
   const isLoaded = useProjectStore((s) => s.isLoaded)
   const books = useProjectStore((s) => s.books)
@@ -23,8 +26,10 @@ export function Toolbar(): React.JSX.Element {
   const drafts = useProjectStore((s) => s.drafts)
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
+  const openSceneId = useProjectStore((s) => s.openSceneId)
   const [dialog, setDialog] = useState<PendingDialog>(null)
   const [startMenuOpen, setStartMenuOpen] = useState(false)
+  const [snapshotsOpen, setSnapshotsOpen] = useState(false)
   const [deleteDraftTarget, setDeleteDraftTarget] = useState<{ id: string; name: string } | null>(
     null
   )
@@ -35,9 +40,6 @@ export function Toolbar(): React.JSX.Element {
 
   return (
     <header className={`toolbar${isMac ? ' toolbar-mac' : ''}`}>
-      <button className="toolbar-button" title={t('shell.toggleBinder')} onClick={toggleBinder}>
-        <PanelLeft size={16} strokeWidth={1.75} />
-      </button>
       {isLoaded && (
         <button className="toolbar-button" title={t('shell.menu')} onClick={() => setStartMenuOpen(true)}>
           <Menu size={16} strokeWidth={1.75} />
@@ -118,12 +120,37 @@ export function Toolbar(): React.JSX.Element {
       </button>
       <button
         className="toolbar-button"
+        title={t('shell.snapshots')}
+        disabled={!openChapterGuid || !openSceneId}
+        onClick={() => setSnapshotsOpen(true)}
+      >
+        <History size={15} strokeWidth={1.75} />
+      </button>
+      <button className="toolbar-button" title={t('shell.toggleBinder')} onClick={toggleBinder}>
+        <PanelLeft size={16} strokeWidth={1.75} />
+      </button>
+      <button
+        className={`toolbar-button${notesDockVisible ? ' active' : ''}`}
+        title={t('shell.toggleSceneNotes')}
+        onClick={toggleNotesDock}
+      >
+        <PanelBottom size={16} strokeWidth={1.75} />
+      </button>
+      <button
+        className="toolbar-button"
         title={t('shell.toggleInspector')}
         onClick={toggleInspector}
       >
         <PanelRight size={16} strokeWidth={1.75} />
       </button>
       {startMenuOpen && <StartMenuOverlay onClose={() => setStartMenuOpen(false)} />}
+      {snapshotsOpen && openChapterGuid && openSceneId && (
+        <SnapshotsDialog
+          chapterGuid={openChapterGuid}
+          sceneId={openSceneId}
+          onClose={() => setSnapshotsOpen(false)}
+        />
+      )}
       {dialog === 'renameProject' && (
         <InputDialog
           title={t('explorer.contextRename')}

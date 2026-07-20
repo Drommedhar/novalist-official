@@ -19,6 +19,9 @@ public sealed class ScenesRpc
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
         var html = await _workspace.Projects.ReadSceneContentAsync(chapter, scene);
+        // Opening a scene in the editor is a scenes/read; notify extensions so the
+        // AI Assistant tracks the current-scene context and knowledge cache.
+        _workspace.RaiseSceneOpened(chapter, scene);
         return new SceneContentDto(sceneId, html);
     }
 

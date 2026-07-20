@@ -122,12 +122,24 @@ Novalist is light, but very large projects (50+ chapters, hundreds of scenes, bi
 - **Image gallery** decodes thumbnails lazily. The first scroll through is slower; subsequent ones reuse the cache.
 - **Grammar check** calls a remote API per scene; disable it in Settings if it lags.
 
+## Updates
+
+Novalist checks for updates on startup (in installed builds) and from **Help → Check for Updates…** at any time. When a newer release exists it is **downloaded automatically** on all platforms, with a progress bar in the update dialog; once ready you can **Restart & install** immediately, or dismiss and it installs on next quit.
+
+- On **macOS**, an installed update can only be applied to a code-signed build. An unsigned/ad-hoc build will download the update but fail to install it — use the **View release** link in the dialog to update manually.
+- In a development build there is no update feed, so **Check for Updates…** reports that updates are only available in installed builds.
+
+## The manual and startup
+
+- Press **F1** or use **Help → Novalist Manual** (also the **Manual** entry in the backstage drawer) to open this manual inside the app: a searchable, readable overlay with every page.
+- A brief **splash** appears while the core process starts and the update check runs, then the main window opens.
+
 ## Reporting bugs
 
 Open an issue on the project's repo. Include:
 
 - Your OS and version.
-- The Novalist version, and the core version shown in the status bar ("Core connected (...)").
+- The Novalist version, and the core version shown in the status bar's connection indicator (hover the dot at the far right — its tooltip reads "Core connected (...)").
 - A description of what you did and what happened.
 - Steps to reproduce, if you have them.
 - The diagnostic log, if you can reproduce the issue with diagnostic logging enabled.

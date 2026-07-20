@@ -34,6 +34,8 @@ export interface ProjectStateDto {
 export interface RecentProjectDto {
   name: string
   path: string
+  /** Portrait book cover as a base64 data: URI, or null when none is set. */
+  cover?: string | null
 }
 
 /** One open scene in an editor pane's tab strip. Title is resolved from

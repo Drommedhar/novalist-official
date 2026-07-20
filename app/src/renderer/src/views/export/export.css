@@ -46,7 +46,22 @@
   margin-top: calc(-1 * var(--nl-space-tighter));
 }
 
+/* Fill the whole centre panel (full height) and centre the export form so it
+ * reads as an intentional, anchored layout rather than a box stuck top-left. */
 .dashboard.export-view {
   max-width: none;
   margin: 0;
+  min-height: 100%;
+  box-sizing: border-box;
+  align-items: center;
+}
+
+.dashboard.export-view .dashboard-title {
+  width: 100%;
+  max-width: 620px;
+}
+
+.dashboard.export-view .export-card {
+  width: 100%;
+  max-width: 620px;
 }

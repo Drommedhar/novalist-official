@@ -38,15 +38,59 @@ public sealed class GrammarRpc
         Configure();
         var language = GrammarCheckService.MapLanguageCode(
             _workspace.Settings.Effective.AutoReplacementLanguage);
-        var issues = await _service.CheckAsync(text, language, cancellationToken);
-        return issues
+        var coreIssues = await _service.CheckAsync(text, language, cancellationToken);
+        var results = coreIssues
             .Select(i => new GrammarIssueDto(
                 i.Message,
                 i.Offset,
                 i.Length,
                 i.Type.ToString().ToLowerInvariant(),
                 i.Replacements.Take(5).ToArray()))
-            .ToArray();
+            .ToList();
+
+        // Merge in extension-contributed grammar issues (best-effort; matches the
+        // desktop's GrammarCheckExtension.QueryContributorsAsync behavior).
+        results.AddRange(await QueryContributorsAsync(text, cancellationToken));
+        return results.ToArray();
+    }
+
+    /// <summary>Runs every enabled extension grammar contributor and flattens
+    /// their issues. Never force-creates the extension host, and swallows
+    /// individual contributor faults so one bad rule cannot blank the check.</summary>
+    private async Task<IReadOnlyList<GrammarIssueDto>> QueryContributorsAsync(string text, CancellationToken cancellationToken)
+    {
+        var host = _workspace.ExtensionHostOrNull;
+        if (host == null) return [];
+        var contributors = host.GrammarCheckContributors
+            .Where(c => c.IsGrammarCheckEnabled)
+            .ToList();
+        if (contributors.Count == 0) return [];
+
+        var uiLanguage = _workspace.Settings.Effective.Language;
+        var merged = new List<GrammarIssueDto>();
+        foreach (var contributor in contributors)
+        {
+            try
+            {
+                var result = await contributor.CheckAsync(text, uiLanguage, cancellationToken);
+                merged.AddRange(result.Issues.Select(i => new GrammarIssueDto(
+                    i.Message,
+                    i.Offset,
+                    i.Length,
+                    i.Type.ToString().ToLowerInvariant(),
+                    i.Replacements.Take(5).ToArray())));
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                // Log only the shape — never the message (could echo story content).
+                Novalist.Backend.Extensions.Log.Warn($"[Grammar] contributor {contributor.GetType().Name} threw {ex.GetType().Name}");
+            }
+        }
+        return merged;
     }
 
     [JsonRpcMethod("grammar/addToDictionary")]

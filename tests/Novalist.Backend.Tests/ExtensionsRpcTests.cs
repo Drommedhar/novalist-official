@@ -118,6 +118,53 @@ public sealed class ExtensionsRpcTests : IDisposable
         ExtensionsRpc.WebviewPosted = null;
     }
 
+    private static string DeploySampleSource(string root)
+    {
+        var src = Path.Combine(root, "src");
+        Directory.CreateDirectory(src);
+        var dll = Path.Combine(AppContext.BaseDirectory, "Novalist.Sdk.Example.dll");
+        File.Copy(dll, Path.Combine(src, "Novalist.Sdk.Example.dll"));
+        File.WriteAllText(Path.Combine(src, "extension.json"),
+            """{"id":"com.novalist.sample","name":"Sample","version":"1.0.0","author":"Tests","description":"A sample","entryAssembly":"Novalist.Sdk.Example.dll"}""");
+        return src;
+    }
+
+    [Fact]
+    public async Task Install_Uninstall_And_SetEnabled_RoundTrip()
+    {
+        var extRoot = Path.Combine(_root, "exts");
+        _workspace.ExtensionsLoaderOverride = new ExtensionLoader(extRoot);
+        var src = DeploySampleSource(_root);
+        var rpc = new ExtensionsRpc(_workspace);
+
+        // Install from folder.
+        var afterInstall = await rpc.InstallAsync(src);
+        var installed = Assert.Single(afterInstall, e => e.Id == "com.novalist.sample");
+        Assert.True(installed.IsEnabled);
+        Assert.Equal("Tests", installed.Author);
+        Assert.Equal("A sample", installed.Description);
+
+        // Disable then enable.
+        var afterDisable = await rpc.SetEnabledAsync("com.novalist.sample", false);
+        Assert.False(afterDisable.Single(e => e.Id == "com.novalist.sample").IsEnabled);
+        var afterEnable = await rpc.SetEnabledAsync("com.novalist.sample", true);
+        Assert.True(afterEnable.Single(e => e.Id == "com.novalist.sample").IsEnabled);
+
+        // Uninstall.
+        var afterUninstall = await rpc.UninstallAsync("com.novalist.sample");
+        Assert.DoesNotContain(afterUninstall, e => e.Id == "com.novalist.sample");
+        Assert.False(Directory.Exists(Path.Combine(extRoot, "com.novalist.sample")));
+    }
+
+    [Fact]
+    public void Directory_ReturnsLoaderExtensionsDirectory()
+    {
+        var extRoot = Path.Combine(_root, "exts");
+        _workspace.ExtensionsLoaderOverride = new ExtensionLoader(extRoot);
+        var rpc = new ExtensionsRpc(_workspace);
+        Assert.Equal(extRoot, rpc.Directory());
+    }
+
     [Fact]
     public void Shims_LogLocAndNotifications_Work()
     {

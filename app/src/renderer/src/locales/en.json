@@ -43,6 +43,13 @@
     "placeholder": "Type a command name...",
     "noResults": "No matching commands."
   },
+  "help": {
+    "title": "Novalist Manual",
+    "manual": "Manual",
+    "searchPlaceholder": "Search the manual…",
+    "noResults": "No matching pages.",
+    "close": "Close"
+  },
   "research": {
     "title": "Research",
     "search": "Search research…",
@@ -270,6 +277,11 @@
       "veryDifficult": "Very difficult"
     },
     "overviewTooltip": "Project overview",
+    "chAbbrev": "ch",
+    "scAbbrev": "sc",
+    "charsAbbrev": "chars",
+    "locAbbrev": "loc",
+    "avgPerChapter": "~ {{value}}/ch",
     "dailyGoalShort": "Daily {{current}}/{{target}}",
     "projectGoalShort": "Project {{current}}/{{target}}",
     "gitTooltip": "Open version control — {{count}} changed"
@@ -532,6 +544,7 @@
     "contextDelete": "Delete",
     "contextArchive": "Archive",
     "archive": "ARCHIVE",
+    "changed": "Uncommitted changes",
     "archivePreview": "Open (read-only)",
     "archiveRestore": "Restore...",
     "archiveDelete": "Delete forever",
@@ -651,7 +664,7 @@
     "deleteConfirmMessage": "Are you sure you want to delete \"{0}\"? This cannot be undone.",
     "selectChapter": "Select chapter...",
     "selectScene": "Select scene...",
-    "editOverride": "Add / Edit Override",
+    "editOverride": "Edit override",
     "stopOverride": "Done",
     "noOverrides": "No overrides defined.",
     "editingOverride": "Editing override: {0}",
@@ -661,6 +674,11 @@
     "importImage": "Import file",
     "addOverride": "Add override",
     "wholeChapter": "Whole chapter",
+    "overridesHint": "Restate a character's identity or appearance for a specific chapter or scene. Blank fields inherit the base value.",
+    "overridesNoneSet": "No fields overridden",
+    "overrideInheriting": "Inheriting base",
+    "overrideResetToInherit": "Reset to inherit",
+    "overrideMediaHint": "Save this scope first to override its images, relationships, and sections.",
     "inverseRole": "Inverse role",
     "pasteImage": "Paste image",
     "fromUrl": "From URL",
@@ -731,7 +749,9 @@
     "typeLore": "Lore",
     "agePill": "Age {0}",
     "inPill": "In {0}",
-    "sublocationsPill": "{0} sublocations"
+    "sublocationsPill": "{0} sublocations",
+    "overrideScope": "Overridden for {0}",
+    "overrideScopeHint": "This card shows values overridden for the scene you are editing."
   },
   "emotion": {
     "neutral": "Neutral",
@@ -1378,7 +1398,15 @@
     "changeCover": "Change cover",
     "removeCover": "Remove cover",
     "pickCoverTitle": "Choose cover image",
-    "noCover": "No cover image"
+    "noCover": "No cover image",
+    "bookCoverLabel": "Book cover",
+    "bookCoverHint": "Portrait cover shown on the welcome screen.",
+    "bannerLabel": "Banner",
+    "addBanner": "Add banner",
+    "changeBanner": "Change banner",
+    "removeBanner": "Remove banner",
+    "pickBannerTitle": "Choose banner image",
+    "noBanner": "No banner image"
   },
   "import": {
     "title": "Import from Obsidian Plugin",
@@ -1537,6 +1565,10 @@
     "author": "By",
     "restart": "Restart required",
     "settings": "Settings",
+    "installFromFolder": "Install from Folder…",
+    "installFailed": "Installation failed. Check the folder contains a valid extension.json.",
+    "uninstall": "Uninstall",
+    "uninstallConfirm": "Remove {{name}}? This permanently deletes its files from the Extensions folder.",
     "tabInstalled": "Installed",
     "tabBrowse": "Browse Store",
     "store": {
@@ -1553,8 +1585,20 @@
       "update": "Update",
       "updating": "Updating…",
       "updateAvailableSingle": "1 extension update available",
-      "updateAvailableMulti": "{0} extension updates available"
-    }
+      "updateAvailableMulti": "{0} extension updates available",
+      "checkUpdates": "Check for updates",
+      "installed": "Installed",
+      "upToDate": "All extensions are up to date.",
+      "readmeUnavailable": "No README available.",
+      "loadError": "Could not load the extension gallery.",
+      "back": "Back",
+      "noResults": "No extensions match your search."
+    },
+    "settingsTitle": "Extension settings",
+    "settingsRun": "Run",
+    "settingsSave": "Save",
+    "themesTitle": "Extension themes",
+    "updateTo": "Update to {0}"
   },
   "codexHub": {
     "title": "Codex Hub",
@@ -1608,17 +1652,30 @@
     "available": "Update Available",
     "versionInfo": "A new version is available: {1} (current: {0})",
     "downloadInstall": "Download & Install",
+    "ready": "Update ready to install",
+    "viewRelease": "View release",
+    "later": "Later",
+    "restartInstall": "Restart & install",
     "skip": "Skip",
     "downloading": "Downloading... {0}%",
     "launching": "Launching installer...",
     "error": "Update failed: {0}",
     "checkForUpdates": "Check for updates",
     "checkForUpdatesDesc": "Automatically check for new versions on startup",
-    "noNotes": "See the release page for the full list of changes in this version."
+    "noNotes": "See the release page for the full list of changes in this version.",
+    "extAvailable": "{{count}} extension update(s) available.",
+    "openStore": "Open extension store",
+    "upToDate": "Novalist is up to date",
+    "upToDateDetail": "You are running the latest version, and all extensions are current.",
+    "updateAction": "Update",
+    "updating": "Updating…"
   },
   "shell": {
     "toggleBinder": "Toggle binder",
     "toggleInspector": "Toggle inspector",
+    "toggleSceneNotes": "Toggle scene notes",
+    "snapshots": "Scene snapshots",
+    "activityBar": "Views",
     "newChapter": "Chapter",
     "newScene": "Scene",
     "binderEmpty": "Open a project to see your chapters and scenes here.",
@@ -1652,5 +1709,11 @@
     "scenes": "scenes",
     "groupApp": "Application",
     "menu": "Menu"
+  },
+  "hostBridge": {
+    "toastRegion": "Notifications",
+    "dismiss": "Dismiss",
+    "wizardLoading": "Loading options…",
+    "wizardNoChoices": "No options available."
   }
 }

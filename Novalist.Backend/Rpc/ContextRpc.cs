@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Core.Utilities;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
@@ -182,7 +183,8 @@ public sealed class ContextRpc
                 var character = (CharacterData)match.Source.Entity;
                 var display = ResolveCharacterDisplay(character, targetChapter, targetScene);
                 return new EntityCardDto(
-                    character.Id, display.Name, display.Role, NullIfEmpty(display.Group), ResolveImage(character.Images));
+                    character.Id, display.Name, display.Role, NullIfEmpty(display.Group), ResolveImage(character.Images),
+                    NullIfEmpty(display.Gender), NullIfEmpty(display.Age));
             })
             .ToArray();
 
@@ -575,7 +577,32 @@ public sealed class ContextRpc
         var displaySurname = string.IsNullOrWhiteSpace(match?.Surname) ? character.Surname : match.Surname!;
         var name = string.IsNullOrWhiteSpace(displaySurname) ? displayName : $"{displayName} {displaySurname}".Trim();
         var role = string.IsNullOrWhiteSpace(match?.Role) ? character.Role : match.Role!;
-        return new CharacterDisplay(name, role, character.Group);
+        var gender = string.IsNullOrWhiteSpace(match?.Gender) ? character.Gender : match.Gender!;
+        var age = ResolveDisplayAge(character, match, chapter, scene);
+        return new CharacterDisplay(name, role, character.Group, gender, age);
+    }
+
+    /// <summary>Resolves a character's displayed age: when age is stored as a birth
+    /// date (<c>AgeMode == "date"</c>), it is computed relative to the scene's story
+    /// date (else the chapter's, else today) via <see cref="AgeComputation"/>;
+    /// otherwise the override age wins over the base. Ported from
+    /// <c>ContextSidebarViewModel.ResolveDisplayAge</c>.</summary>
+    private static string ResolveDisplayAge(
+        CharacterData character, CharacterOverride? match, ChapterData chapter, SceneData scene)
+    {
+        if (string.Equals(character.AgeMode, "date", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(character.BirthDate))
+        {
+            var referenceDate = !string.IsNullOrWhiteSpace(scene.Date) ? scene.Date
+                : !string.IsNullOrWhiteSpace(chapter.Date) ? chapter.Date
+                : null;
+            var computed = AgeComputation.ComputeAge(character.BirthDate, referenceDate,
+                character.AgeIntervalUnit ?? IntervalUnit.Years);
+            if (!string.IsNullOrWhiteSpace(computed))
+                return computed;
+        }
+
+        return string.IsNullOrWhiteSpace(match?.Age) ? character.Age : match.Age!;
     }
 
     private static IEnumerable<string> GetCharacterAliases(CharacterData character)
@@ -668,7 +695,7 @@ public sealed class ContextRpc
 
     private sealed record SceneEmotionSnapshot(string Key, string Label, int Score);
 
-    private sealed record CharacterDisplay(string Name, string Role, string Group);
+    private sealed record CharacterDisplay(string Name, string Role, string Group, string Gender, string Age);
 }
 
 public sealed record SceneContextDto(
@@ -679,7 +706,9 @@ public sealed record SceneContextDto(
     MentionRowDto[] MentionRows,
     SceneAnalysisDto Analysis);
 
-public sealed record EntityCardDto(string Id, string Name, string Detail, string? Secondary, string? ImagePath);
+public sealed record EntityCardDto(
+    string Id, string Name, string Detail, string? Secondary, string? ImagePath,
+    string? Gender = null, string? Age = null);
 
 public sealed record MentionRowDto(string Name, MentionCellDto[] Cells, int LastSeenChaptersAgo);
 

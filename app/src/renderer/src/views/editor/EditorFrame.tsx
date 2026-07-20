@@ -7,6 +7,7 @@ import {
   pushEditorTheme,
   inlineActionDescriptorsJson,
   runInlineAction,
+  extensionContextMenuItemsJson,
   type EditorWindow
 } from './editorBridge'
 import { EditorToolbar, type FormattingState } from './EditorToolbar'
@@ -16,6 +17,7 @@ import { useSettingsStore } from '../../stores/settingsStore'
 import { useCodexStore } from '../../stores/codexStore'
 import { dispatchForwardedHotkey } from '../../shell/hotkeys'
 import { rpc } from '../../rpc/client'
+import { useEntityPeek, type PeekScope } from './PeekCard'
 import './editor.css'
 
 function pushEditorSettings(editor: EditorWindow, initial = false): void {
@@ -97,25 +99,7 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
     })
   )
   editor.setInlineActions(inlineActionDescriptorsJson())
-}
-
-/** A couple of value chips per entity type, mirroring FocusPeek pills. */
-function extractPeekChips(type: string, record: Record<string, unknown>): string[] {
-  const field = (key: string): string => {
-    const value = record[key]
-    return typeof value === 'string' ? value.trim() : ''
-  }
-  const keys =
-    type === 'character'
-      ? ['role', 'gender', 'age']
-      : type === 'location'
-        ? ['type', 'parent']
-        : type === 'item'
-          ? ['type', 'origin']
-          : type === 'lore'
-            ? ['category']
-            : []
-  return keys.map(field).filter((v) => v.length > 0).slice(0, 3)
+  editor.setExtensionContextMenuItems(extensionContextMenuItemsJson())
 }
 
 const DEFAULT_FORMATTING: FormattingState = {
@@ -138,20 +122,6 @@ interface SceneFootnote {
   text: string
 }
 
-interface HoverCard {
-  x: number
-  y: number
-  name: string
-  detail: string
-  imagePath: string | null
-  typeLabel: string
-  entityType: string
-  entityId: string
-  chips: string[]
-  relationships: string[]
-  sections: string[]
-}
-
 /** Ordered tab strip for the scenes open in one editor pane. */
 function SceneTabStrip({ pane }: { pane: EditorPane }): React.JSX.Element | null {
   const { t } = useTranslation()
@@ -159,11 +129,14 @@ function SceneTabStrip({ pane }: { pane: EditorPane }): React.JSX.Element | null
   const activeId = useProjectStore((s) => (pane === 'split' ? s.splitSceneId : s.openSceneId))
   const chapters = useProjectStore((s) => s.chapters)
   const dirtyMap = useProjectStore((s) => s.dirtyMap)
+  const splitOpen = useProjectStore((s) => s.splitSceneId !== null)
   const [menu, setMenu] = useState<{ x: number; y: number; sceneId: string } | null>(null)
 
-  // The split pane always shows its strip (so its scene can be closed); the
-  // primary pane keeps the strip-free look for a single open scene.
-  if (tabs.length === 0 || (pane !== 'split' && tabs.length <= 1)) return null
+  // While the split editor is open, both panes always show their strip (so each
+  // side's scene is closeable and the two panes look consistent). With a single
+  // editor, keep the strip-free look until a second scene is opened.
+  if (tabs.length === 0) return null
+  if (!splitOpen && tabs.length <= 1) return null
 
   const titleFor = (ref: SceneTabRef): string => {
     const chapter = chapters.find((c) => c.guid === ref.chapterGuid)
@@ -259,7 +232,13 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   const editorRef = useRef<EditorWindow | null>(null)
   const openSceneId = useProjectStore((s) => (pane === 'split' ? s.splitSceneId : s.openSceneId))
   const sceneHtml = useProjectStore((s) => (pane === 'split' ? s.splitSceneHtml : s.openSceneHtml))
+  const chapters = useProjectStore((s) => s.chapters)
   const loadingRef = useRef(false)
+  // The HTML the editor last reported to the store. The store round-trips every
+  // keystroke back into sceneHtml, so without this the push effect below would
+  // re-setContent on every keystroke - resetting the caret to the start and
+  // wiping the native undo stack. We only push content the editor did NOT author.
+  const lastReportedHtmlRef = useRef<string | null>(null)
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
   const annotationsRef = useRef<{ comments: SceneComment[]; footnotes: SceneFootnote[] }>({
     comments: [],
@@ -268,28 +247,29 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   const entityIndexRef = useRef<
     Map<string, { id: string; name: string; detail: string; imagePath: string | null; type: string }>
   >(new Map())
-  const [hoverCard, setHoverCard] = useState<HoverCard | null>(null)
-  const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const clearHoverHide = (): void => {
-    if (hoverHideRef.current) {
-      clearTimeout(hoverHideRef.current)
-      hoverHideRef.current = null
-    }
-  }
-  const scheduleHoverHide = (): void => {
-    clearHoverHide()
-    hoverHideRef.current = setTimeout(() => setHoverCard(null), 220)
-  }
   const openHoveredEntity = (entityType: string, entityId: string): void => {
-    clearHoverHide()
-    setHoverCard(null)
     useShellStore.getState().setMainView('codex')
     void useCodexStore
       .getState()
       .setType(entityType)
       .then(() => useCodexStore.getState().select(entityId))
   }
+
+  // The pane's open chapter/scene, resolved from the live chapter list so a peek
+  // over a character shows the values overridden for the scope currently in view.
+  const scopeChapter = chapters.find((c) => c.scenes.some((s) => s.id === openSceneId))
+  const peekScope: PeekScope = {
+    chapterGuid: scopeChapter?.guid ?? null,
+    chapterTitle: scopeChapter?.title ?? null,
+    sceneTitle: scopeChapter?.scenes.find((s) => s.id === openSceneId)?.title ?? null
+  }
+  // Shared focus-peek overlay: owns the show/hide debounce, the pointer-over-card
+  // guard, pin state, and viewport-clamped positioning. Driven here by the iframe's
+  // entity hover/exit messages; the context sidebar drives the same hook itself.
+  const peek = useEntityPeek({ scope: peekScope, onOpen: openHoveredEntity })
+  // Read the latest controls from inside the (rarely re-created) listener effect.
+  const peekRef = useRef(peek)
+  peekRef.current = peek
 
   const pushEntityNames = async (editor: EditorWindow): Promise<void> => {
     type Hit = { id: string; name: string; detail: string; imagePath: string | null; type: string }
@@ -399,13 +379,17 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
     ])
   }
 
-  // Push content whenever the open scene changes and the editor is live.
+  // Push content on scene switch and on genuine external changes (snapshot
+  // restore, live disk edits), but NOT when sceneHtml is merely the echo of the
+  // edit the editor just reported - that would reset the caret and kill undo.
   useEffect(() => {
     const editor = editorRef.current
     if (!editor || sceneHtml === null) return
+    if (sceneHtml === lastReportedHtmlRef.current) return
     loadingRef.current = true
     editor.setContent(sceneHtml)
     loadingRef.current = false
+    lastReportedHtmlRef.current = sceneHtml
     void loadAnnotations(editor)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openSceneId, sceneHtml])
@@ -415,48 +399,19 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
     if (!iframe) return
 
     const showHoverCard = (
-      hit: { id: string; name: string; detail: string; imagePath: string | null; type: string },
+      hit: { id: string; type: string },
       x: number,
       y: number
     ): void => {
       if (!iframeRef.current) return
-      clearHoverHide()
+      // Translate the iframe-relative point into viewport coordinates; the shared
+      // overlay handles the pinned guard, debounce cancel, and clamping.
       const rect = iframeRef.current.getBoundingClientRect()
-      const typeLabel = t(`focusPeek.type${hit.type.charAt(0).toUpperCase()}${hit.type.slice(1)}`)
-      setHoverCard({
-        x: rect.left + x,
-        y: rect.top + y,
-        name: hit.name,
-        detail: hit.detail,
-        imagePath: hit.imagePath,
-        typeLabel,
-        entityType: hit.type,
-        entityId: hit.id,
-        chips: [],
-        relationships: [],
-        sections: []
-      })
-      // Enrich with a couple of attribute chips from the full record.
-      void rpc
-        .request<Record<string, unknown>>('entities/get', [hit.type, hit.id])
-        .then((record) => {
-          const chips = extractPeekChips(hit.type, record)
-          const rels = Array.isArray(record.relationships)
-            ? (record.relationships as { role: string; target: string }[])
-                .filter((r) => r.role || r.target)
-                .slice(0, 4)
-                .map((r) => `${r.role}: ${r.target}`)
-            : []
-          const sections = Array.isArray(record.sections)
-            ? (record.sections as { title: string }[]).map((sec) => sec.title).filter(Boolean).slice(0, 4)
-            : []
-          setHoverCard((prev) =>
-            prev && prev.entityId === hit.id ? { ...prev, chips, relationships: rels, sections } : prev
-          )
-        })
-        .catch(() => {
-          // Record fetch is best-effort; the basic card still shows.
-        })
+      peekRef.current.showAt(
+        { entityType: hit.type, entityId: hit.id },
+        rect.left + x,
+        rect.top + y
+      )
     }
 
     const dispose = listenToEditor(iframe, (message) => {
@@ -476,6 +431,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
             loadingRef.current = true
             live.setContent(initialHtml)
             loadingRef.current = false
+            lastReportedHtmlRef.current = initialHtml
           }
           void loadAnnotations(live)
           void pushEntityNames(live)
@@ -495,6 +451,9 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
         }
         case 'contentChanged': {
           if (loadingRef.current || !editor) return
+          // Record what the editor authored so the push effect treats the
+          // store's echo of this same HTML as a no-op (keeps caret + undo).
+          lastReportedHtmlRef.current = String(message.html ?? '')
           useProjectStore
             .getState()
             [pane === 'split' ? 'onSplitContentChanged' : 'onEditorContentChanged'](
@@ -573,6 +532,16 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           })
           break
         }
+        case 'extensionContextMenuRequested': {
+          const itemId = String(message.itemId ?? '')
+          const proj = useProjectStore.getState()
+          void rpc.request('extensions/contextMenuItem/execute', [
+            itemId,
+            proj.openChapterGuid ?? '',
+            proj.openSceneId ?? ''
+          ])
+          break
+        }
         case 'hotkey': {
           dispatchForwardedHotkey({
             key: String(message.key ?? ''),
@@ -607,12 +576,12 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
         }
         case 'entityExit': {
           // Debounced so moving the pointer onto the card doesn't dismiss it.
-          scheduleHoverHide()
+          peekRef.current.scheduleHide()
           break
         }
         case 'pointerPressed': {
-          clearHoverHide()
-          setHoverCard(null)
+          // A click in the editor dismisses the card unless it is pinned.
+          peekRef.current.hide()
           break
         }
         case 'addToDictionary': {
@@ -660,7 +629,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
       dispose()
       observer.disconnect()
       unsubscribeSettings()
-      clearHoverHide()
+      peekRef.current.clearHide()
       editorRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -677,61 +646,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
         title="editor"
         sandbox="allow-scripts allow-same-origin"
       />
-      {hoverCard && (
-        <div
-          className="editor-peek-card"
-          style={{
-            left: Math.min(hoverCard.x, window.innerWidth - 280),
-            top: Math.min(hoverCard.y + 18, window.innerHeight - 180)
-          }}
-          onMouseEnter={clearHoverHide}
-          onMouseLeave={() => setHoverCard(null)}
-        >
-          {hoverCard.imagePath && (
-            <img src={`novalist-project://nl/${encodeURI(hoverCard.imagePath)}`} alt="" />
-          )}
-          <div className="editor-peek-body">
-            <div className="editor-peek-head">
-              <span className="editor-peek-name">{hoverCard.name}</span>
-              <span className="editor-peek-type">{hoverCard.typeLabel}</span>
-            </div>
-            {hoverCard.detail && <div className="editor-peek-detail">{hoverCard.detail}</div>}
-            {hoverCard.chips.length > 0 && (
-              <div className="editor-peek-chips">
-                {hoverCard.chips.map((chip, i) => (
-                  <span key={i} className="editor-peek-chip">
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            )}
-            {hoverCard.relationships.length > 0 && (
-              <div className="editor-peek-rels">
-                {hoverCard.relationships.map((rel, i) => (
-                  <div key={i} className="editor-peek-rel">
-                    {rel}
-                  </div>
-                ))}
-              </div>
-            )}
-            {hoverCard.sections.length > 0 && (
-              <div className="editor-peek-chips">
-                {hoverCard.sections.map((sec, i) => (
-                  <span key={i} className="editor-peek-chip">
-                    {sec}
-                  </span>
-                ))}
-              </div>
-            )}
-            <button
-              className="editor-peek-open"
-              onClick={() => openHoveredEntity(hoverCard.entityType, hoverCard.entityId)}
-            >
-              {t('focusPeek.openEntity')}
-            </button>
-          </div>
-        </div>
-      )}
+      {peek.overlay}
     </div>
   )
 }

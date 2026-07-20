@@ -63,6 +63,29 @@ public class BackendHostTests
     }
 
     [Fact]
+    public async Task HostNotification_ReachesClient_OverRpc()
+    {
+        var (serverStream, clientStream) = FullDuplexStream.CreatePair();
+        using var host = new BackendHost();
+        host.Attach(serverStream, serverStream);
+
+        var formatter = new SystemTextJsonFormatter();
+        formatter.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        using var client = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, formatter));
+        var received = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        client.AddLocalRpcMethod("ui/showNotification",
+            new Action<string>(message => received.TrySetResult(message)));
+        client.StartListening();
+
+        // Drive a host-side ShowNotification through the UI bridge; it must arrive
+        // as a ui/showNotification notification on the renderer side.
+        host.Workspace.UiBridge.ShowNotification("hello from host");
+
+        var message = await received.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Assert.Equal("hello from host", message);
+    }
+
+    [Fact]
     public void RequestShutdown_IsIdempotent()
     {
         using var host = new BackendHost();

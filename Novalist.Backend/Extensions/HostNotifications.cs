@@ -1,3 +1,4 @@
+using System.Linq;
 using Novalist.Sdk.Models;
 
 namespace Novalist.Backend.Extensions;
@@ -33,5 +34,11 @@ public static class HotkeyRegistry
     public static void Unregister(string actionId)
     {
         lock (Registered) Registered.RemoveAll(d => d.ActionId == actionId);
+    }
+
+    /// <summary>Finds a registered descriptor by action id, or null.</summary>
+    public static HotkeyDescriptor? Find(string actionId)
+    {
+        lock (Registered) return Registered.FirstOrDefault(d => d.ActionId == actionId);
     }
 }

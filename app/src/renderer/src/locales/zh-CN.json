@@ -314,7 +314,12 @@
     "overviewTooltip": "项目概览",
     "dailyGoalShort": "每日 {{current}}/{{target}}",
     "projectGoalShort": "项目 {{current}}/{{target}}",
-    "gitTooltip": "打开版本控制 — {{count}} 处更改"
+    "gitTooltip": "打开版本控制 — {{count}} 处更改",
+    "chAbbrev": "章",
+    "scAbbrev": "场",
+    "charsAbbrev": "角色",
+    "locAbbrev": "地点",
+    "avgPerChapter": "~ {{value}}/章"
   },
   "overview": {
     "chapterColumn": "章节",
@@ -598,7 +603,8 @@
     "confirmDeleteChapter": "删除章节\"{{name}}\"及其所有场景？",
     "confirmDeleteScene": "删除场景\"{{name}}\"？",
     "deleteTitle": "确认删除",
-    "archiveEmpty": "没有已归档的场景。"
+    "archiveEmpty": "没有已归档的场景。",
+    "changed": "未提交的更改"
   },
   "entityPanel": {
     "charactersTooltip": "角色",
@@ -708,7 +714,12 @@
     "fromUrl": "来自网址",
     "fromUrlTitle": "从网址添加图片",
     "fromUrlPlaceholder": "https://example.com/image.png",
-    "fromUrlError": "无法从该网址加载图片。"
+    "fromUrlError": "无法从该网址加载图片。",
+    "overridesHint": "为特定章节或场景重新定义角色的身份或外貌。留空的字段沿用基础值。",
+    "overridesNoneSet": "未覆盖任何字段",
+    "overrideInheriting": "沿用基础值",
+    "overrideResetToInherit": "重置为继承",
+    "overrideMediaHint": "请先保存此范围，才能覆盖其图片、关系和章节。"
   },
   "context": {
     "title": "NOVALIST 上下文",
@@ -773,7 +784,9 @@
     "typeLore": "设定",
     "agePill": "年龄 {0}",
     "inPill": "位于 {0}",
-    "sublocationsPill": "{0} 个子地点"
+    "sublocationsPill": "{0} 个子地点",
+    "overrideScope": "针对 {0} 的覆盖",
+    "overrideScopeHint": "此卡片显示针对您正在编辑的场景覆盖的值。"
   },
   "emotion": {
     "neutral": "中性",
@@ -1420,7 +1433,15 @@
     "changeCover": "更换封面",
     "removeCover": "移除封面",
     "pickCoverTitle": "选择封面图片",
-    "noCover": "无封面图片"
+    "noCover": "无封面图片",
+    "bookCoverLabel": "书籍封面",
+    "bookCoverHint": "在欢迎界面显示的竖版封面。",
+    "bannerLabel": "横幅",
+    "addBanner": "添加横幅",
+    "changeBanner": "更换横幅",
+    "removeBanner": "移除横幅",
+    "pickBannerTitle": "选择横幅图片",
+    "noBanner": "无横幅图片"
   },
   "import": {
     "title": "从 Obsidian 插件导入",
@@ -1595,8 +1616,24 @@
       "update": "更新",
       "updating": "正在更新...",
       "updateAvailableSingle": "有 1 个扩展更新可用",
-      "updateAvailableMulti": "有 {0} 个扩展更新可用"
-    }
+      "updateAvailableMulti": "有 {0} 个扩展更新可用",
+      "checkUpdates": "检查更新",
+      "installed": "已安装",
+      "upToDate": "所有扩展均为最新。",
+      "readmeUnavailable": "没有可用的 README。",
+      "loadError": "无法加载扩展库。",
+      "back": "返回",
+      "noResults": "没有与搜索匹配的扩展。"
+    },
+    "installFromFolder": "从文件夹安装…",
+    "installFailed": "安装失败。请检查文件夹是否包含有效的 extension.json。",
+    "uninstall": "卸载",
+    "uninstallConfirm": "移除 {{name}}？这将永久删除其在扩展文件夹中的文件。",
+    "settingsTitle": "扩展设置",
+    "settingsRun": "运行",
+    "settingsSave": "保存",
+    "themesTitle": "扩展主题",
+    "updateTo": "更新到 {0}"
   },
   "codexHub": {
     "title": "设定集大厅",
@@ -1656,7 +1693,17 @@
     "error": "更新失败：{0}",
     "checkForUpdates": "检查更新",
     "checkForUpdatesDesc": "启动时自动检查新版本",
-    "noNotes": "请在发布页面查看此版本的完整更改列表。"
+    "noNotes": "请在发布页面查看此版本的完整更改列表。",
+    "ready": "更新已准备好安装",
+    "viewRelease": "查看发行版",
+    "later": "稍后",
+    "restartInstall": "重启并安装",
+    "extAvailable": "有 {{count}} 个扩展更新可用。",
+    "openStore": "打开扩展商店",
+    "upToDate": "Novalist 已是最新版本",
+    "upToDateDetail": "您正在使用最新版本，所有扩展均为最新。",
+    "updateAction": "更新",
+    "updating": "正在更新…"
   },
   "shell": {
     "toggleBinder": "切换项目栏",
@@ -1693,6 +1740,22 @@
     "chapters": "章",
     "scenes": "场景",
     "groupApp": "应用",
-    "menu": "菜单"
+    "menu": "菜单",
+    "toggleSceneNotes": "切换场景笔记",
+    "snapshots": "场景快照",
+    "activityBar": "视图"
+  },
+  "help": {
+    "title": "Novalist 手册",
+    "manual": "手册",
+    "searchPlaceholder": "搜索手册…",
+    "noResults": "没有匹配的页面。",
+    "close": "关闭"
+  },
+  "hostBridge": {
+    "toastRegion": "通知",
+    "dismiss": "关闭",
+    "wizardLoading": "正在加载选项…",
+    "wizardNoChoices": "没有可用选项。"
   }
 }

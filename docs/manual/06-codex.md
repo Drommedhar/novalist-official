@@ -71,13 +71,36 @@ The right pane holds the editors for the selected entity, from top to bottom:
 
 ## Chapter overrides (characters)
 
-A character can override any of its core fields (name, surname, role, age, eye color, hair color, height, build) from a specific chapter — optionally a specific scene — onward. Example uses:
+A character can restate its identity or appearance for a specific chapter — optionally a single scene within it. Example uses:
 
 - A character travels under a false name for a few chapters.
 - Hair color changes after an event.
 - Age changes between story parts.
 
-In the **Chapter overrides** section, click **Add override**, pick the chapter (and optionally scene), and fill in only the fields that change — blank fields keep inheriting the character's base value. Overrides are applied wherever the character is referenced in that scope, including the editor's hover cards. Remove an override with its close button.
+In the **Chapter overrides** section, click **Add override**, pick the chapter (and optionally a scene of that chapter), and fill in only the fields that change — blank fields keep inheriting the character's base value. Editing happens **inline** in the detail pane: the override form expands in place beneath its scope row (there is no pop-up dialog). The full field set is available, grouped the same way as the base editor:
+
+- **Basic Info** — name, surname, role, gender, age.
+- **Physical Attributes** — eye color, hair color, hair length, height, build, skin tone, distinguishing features.
+- **Custom Properties** — any custom property the character carries can be restated for the scope; blank inherits the base value.
+
+Once a scope is saved, the same inline editor also lets you override the character's **images**, **relationships**, and **sections** for that scope — each edited in place, exactly like the base editor:
+
+- **Images** — add from the gallery, import a file, paste from the clipboard, or download from a URL, and remove or rename per image. The scope keeps its own image set (which may be empty, meaning "no images here"), independent of the base.
+- **Relationships** — restate the character's relationships (role and target) for the scope.
+- **Sections** — restate the free-text sections for the scope.
+
+Each of these three starts out **inheriting** the base list (labelled "Inheriting base"); the first edit makes the scope own the list, and a **Reset to inherit** button drops the override and falls back to the base again. Overriding images, relationships, or sections requires the scope to exist first, so save the scope's fields once before editing them.
+
+Each saved override shows its **scope** (chapter, or "chapter → scene") and a summary of which fields it changes (including whether it overrides images, relationships, or sections). Click the row (or the pencil button) to expand its inline editor, or the close button to remove it. A **scene-specific** override wins over a **chapter-wide** one for the same chapter, and each overridden non-blank field wins over the base value. Images, relationships, and sections replace the base list wholesale when the scope owns them.
+
+If a character's age is stored as a **birth date**, the override does not need an explicit age at all — the displayed age is computed from the birth date against the scope's story date automatically (see below).
+
+Resolved override values appear everywhere the character surfaces for that scope:
+
+- The editor's **focus-peek** hover card shows the overridden name, role, age, appearance, custom properties, relationships, images and sections for the scene you are editing, with a subtle banner naming the scope it is showing ("Overridden for ...").
+- The [Inspector's](22-context-sidebar.md) scene context list shows the character's overridden name, role, gender and age for the open scene.
+
+When a character's age is kept as a **birth date**, the age shown on the focus-peek card and in the Inspector's character cards is the age **at that scene** — computed from the birth date against the open scene's story date (falling back to the chapter's date, then to today). The interval unit (years, months, or days) follows the character's age setting.
 
 ## Custom entity types
 

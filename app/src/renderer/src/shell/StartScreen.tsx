@@ -5,7 +5,7 @@ import { ImportPluginDialog } from './ImportPluginDialog'
 import { CreateProjectDialog } from './CreateProjectDialog'
 
 interface StartScreenProps {
-  recentProjects: { name: string; path: string }[]
+  recentProjects: { name: string; path: string; cover?: string | null }[]
   onOpenPath(path: string): void
   onPickProject(): void
 }
@@ -51,12 +51,28 @@ export function StartScreen({
           {recentProjects.length === 0 && (
             <p className="start-recents-empty">{t('welcome.noRecentProjects')}</p>
           )}
-          {recentProjects.map((p) => (
-            <button key={p.path} className="start-recent" onClick={() => onOpenPath(p.path)}>
-              <span className="start-recent-name">{p.name}</span>
-              <span className="start-recent-path">{p.path}</span>
-            </button>
-          ))}
+          <div className="start-recent-grid">
+            {recentProjects.map((p) => (
+              <button
+                key={p.path}
+                className="start-recent-card"
+                onClick={() => onOpenPath(p.path)}
+                title={p.path}
+              >
+                <div className="start-recent-cover">
+                  {p.cover ? (
+                    <img className="start-recent-cover-img" src={p.cover} alt="" />
+                  ) : (
+                    <div className="start-recent-cover-empty">
+                      <BookOpen size={28} strokeWidth={1.25} />
+                    </div>
+                  )}
+                </div>
+                <span className="start-recent-name">{p.name}</span>
+                <span className="start-recent-path">{p.path}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

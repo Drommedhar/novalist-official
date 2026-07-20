@@ -118,6 +118,7 @@ public sealed class ProjectRpc
     public async Task<ProjectStateDto> SwitchBookAsync(string bookId)
     {
         await _workspace.Projects.SwitchBookAsync(bookId);
+        _workspace.RaiseBookChanged();
         return _workspace.BuildState();
     }
 

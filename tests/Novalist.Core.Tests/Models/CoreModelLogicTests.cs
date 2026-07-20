@@ -181,6 +181,37 @@ public class BookDataTests
     [Fact]
     public void ActiveDraft_Null_WhenNoDrafts()
         => Assert.Null(new BookData().ActiveDraft);
+
+    [Fact]
+    public void CoverAndBanner_AreDistinctFields_DefaultEmpty()
+    {
+        var book = new BookData();
+        Assert.Equal(string.Empty, book.CoverImage);
+        Assert.Equal(string.Empty, book.BannerImage);
+
+        book.CoverImage = "Images/cover.png";
+        book.BannerImage = "Images/banner.png";
+        Assert.Equal("Images/cover.png", book.CoverImage);
+        Assert.Equal("Images/banner.png", book.BannerImage);
+        Assert.NotEqual(book.CoverImage, book.BannerImage);
+    }
+}
+
+public class ProjectMetadataImageTests
+{
+    [Fact]
+    public void CoverAndBanner_AreDistinctFields_DefaultEmpty()
+    {
+        var project = new ProjectMetadata();
+        Assert.Equal(string.Empty, project.CoverImage);
+        Assert.Equal(string.Empty, project.BannerImage);
+
+        project.CoverImage = "Images/cover.png";
+        project.BannerImage = "Images/banner.png";
+        Assert.Equal("Images/cover.png", project.CoverImage);
+        Assert.Equal("Images/banner.png", project.BannerImage);
+        Assert.NotEqual(project.CoverImage, project.BannerImage);
+    }
 }
 
 public class ExportPresetTests

@@ -267,6 +267,77 @@ public sealed class ContextRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task CharacterCard_CarriesGenderAndComputedAgeFromBirthDate()
+    {
+        // Age stored as a birth date is computed relative to the scene's story
+        // date; gender surfaces on the card too.
+        await Entities.SaveCharacterAsync(new CharacterData
+        {
+            Name = "Mira",
+            Gender = "Female",
+            AgeMode = "date",
+            BirthDate = "1990-03-04",
+            Age = "" // raw age empty on purpose
+        });
+
+        var chapter = await _workspace.Projects.CreateChapterAsync("Ch");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        scene.Date = "2015-03-04";
+        await Write(chapter, scene, "Mira stood at the gate.");
+
+        var dto = await _rpc.AnalyzeAsync(chapter.Guid, scene.Id);
+
+        var mira = dto.Characters.Single(c => c.Name == "Mira");
+        Assert.Equal("Female", mira.Gender);
+        Assert.Equal("25", mira.Age);
+    }
+
+    [Fact]
+    public async Task CharacterCard_FallsBackToChapterDate_ThenOverrideAge()
+    {
+        // No scene date -> chapter date drives the computation.
+        await Entities.SaveCharacterAsync(new CharacterData
+        {
+            Name = "Mira",
+            AgeMode = "date",
+            BirthDate = "1990-03-04"
+        });
+        var chapter = await _workspace.Projects.CreateChapterAsync("Ch");
+        chapter.Date = "2010-03-04";
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await Write(chapter, scene, "Mira waited.");
+
+        var byChapter = await _rpc.AnalyzeAsync(chapter.Guid, scene.Id);
+        Assert.Equal("20", byChapter.Characters.Single(c => c.Name == "Mira").Age);
+
+        // A plain (non-date) character with a scene-scoped override age uses it.
+        await Entities.SaveCharacterAsync(new CharacterData
+        {
+            Name = "Bram",
+            Age = "30",
+            ChapterOverrides =
+            [
+                new CharacterOverride { Chapter = chapter.Guid, Scene = "S", Age = "55" }
+            ]
+        });
+        await Write(chapter, scene, "Mira and Bram waited.");
+
+        var withOverride = await _rpc.AnalyzeAsync(chapter.Guid, scene.Id);
+        Assert.Equal("55", withOverride.Characters.Single(c => c.Name == "Bram").Age);
+
+        // Date mode but birth after the reference -> computation yields nothing, so
+        // the raw age is used (fall-through arm).
+        await Entities.SaveCharacterAsync(new CharacterData
+        {
+            Name = "Cade", Age = "unborn", AgeMode = "date", BirthDate = "2030-01-01"
+        });
+        await Write(chapter, scene, "Mira and Bram and Cade waited.");
+
+        var fell = await _rpc.AnalyzeAsync(chapter.Guid, scene.Id);
+        Assert.Equal("unborn", fell.Characters.Single(c => c.Name == "Cade").Age);
+    }
+
+    [Fact]
     public async Task StoredOverrides_TakePrecedenceOverAutoAnalysis()
     {
         var chapter = await _workspace.Projects.CreateChapterAsync("Ch");

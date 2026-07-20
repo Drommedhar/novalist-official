@@ -55,6 +55,41 @@ public sealed class DashboardManuscriptTests : IDisposable
     }
 
     [Fact]
+    public async Task Overview_EmptyProject_HasNameAndNoChapters()
+    {
+        var overview = await new DashboardRpc(_workspace).OverviewAsync();
+        Assert.Equal("DashNovel", overview.ProjectName);
+        Assert.Empty(overview.Chapters);
+    }
+
+    [Fact]
+    public async Task Overview_ReportsChaptersScenesAndReadability()
+    {
+        var (chapterGuid, _) = await SeedSceneAsync(
+            "<p>The quick brown fox jumps over the lazy dog again and again.</p>",
+            "The quick brown fox jumps over the lazy dog again and again.");
+        // Second scene in the same chapter, so the chapter aggregates both scenes.
+        var scene2 = await _workspace.Projects.CreateSceneAsync(chapterGuid, "S2");
+        await _workspace.WriteSceneAsync(chapterGuid, scene2.Id, "<p>Short line.</p>", "Short line.");
+        // An empty chapter with no words exercises the readability=0 branch.
+        await _workspace.Projects.CreateChapterAsync("Empty");
+
+        var overview = await new DashboardRpc(_workspace).OverviewAsync();
+
+        Assert.Equal(2, overview.Chapters.Length);
+        var first = overview.Chapters[0];
+        Assert.Equal(2, first.Scenes.Length);
+        Assert.True(first.Words > 0);
+        Assert.NotNull(first.ReadabilityLevel);
+
+        var empty = overview.Chapters[1];
+        Assert.Empty(empty.Scenes);
+        Assert.Equal(0, empty.Words);
+        Assert.Equal(0, empty.Readability);
+        Assert.Null(empty.ReadabilityLevel);
+    }
+
+    [Fact]
     public async Task Dashboard_ComputesTotalsGoalsAndHistory()
     {
         await SeedSceneAsync("<p>alpha beta gamma delta</p>", "alpha beta gamma delta");
@@ -232,6 +267,111 @@ public sealed class DashboardManuscriptTests : IDisposable
         Assert.Null(await rpc.GetCoverAsync());
         Assert.Equal(string.Empty, _workspace.Projects.ActiveBook!.CoverImage);
         Assert.Equal(string.Empty, _workspace.Projects.CurrentProject!.CoverImage);
+    }
+
+    [Fact]
+    public async Task Banner_NoImages_GetReturnsNull()
+    {
+        var dto = await new DashboardRpc(_workspace).GetBannerAsync();
+        Assert.Null(dto);
+    }
+
+    [Fact]
+    public async Task Banner_FallsBackToCover_WhenBannerEmpty()
+    {
+        var source = Path.Combine(_root, "legacy-banner.png");
+        await File.WriteAllBytesAsync(source, [0x89, 0x50, 0x4E, 0x47, 5]);
+
+        var rpc = new DashboardRpc(_workspace);
+        // Only a portrait cover is set (pre-split project); the banner must fall
+        // back to it so existing projects keep rendering a Dashboard banner.
+        await rpc.SetCoverAsync(source);
+        Assert.Equal(string.Empty, _workspace.Projects.ActiveBook!.BannerImage);
+
+        var banner = await rpc.GetBannerAsync();
+        Assert.NotNull(banner);
+        Assert.EndsWith("legacy-banner.png", banner);
+    }
+
+    [Fact]
+    public async Task Banner_And_Cover_SetIndependently()
+    {
+        var coverSrc = Path.Combine(_root, "portrait.png");
+        var bannerSrc = Path.Combine(_root, "wide.jpg");
+        await File.WriteAllBytesAsync(coverSrc, [0x89, 0x50, 1]);
+        await File.WriteAllBytesAsync(bannerSrc, [0xFF, 0xD8, 2]);
+
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetCoverAsync(coverSrc);
+        await rpc.SetBannerAsync(bannerSrc);
+
+        var book = _workspace.Projects.ActiveBook!;
+        var project = _workspace.Projects.CurrentProject!;
+        Assert.EndsWith("portrait.png", book.CoverImage);
+        Assert.EndsWith("wide.jpg", book.BannerImage);
+        Assert.EndsWith("portrait.png", project.CoverImage);
+        Assert.EndsWith("wide.jpg", project.BannerImage);
+        // The two fields are distinct.
+        Assert.NotEqual(book.CoverImage, book.BannerImage);
+
+        // getBanner prefers the banner over the cover.
+        var banner = await rpc.GetBannerAsync();
+        Assert.NotNull(banner);
+        Assert.EndsWith("wide.jpg", banner);
+
+        var cover = await rpc.GetCoverAsync();
+        Assert.NotNull(cover);
+        Assert.EndsWith("portrait.png", cover);
+    }
+
+    [Fact]
+    public async Task Banner_ClearFallsBackToCover_ThenNull()
+    {
+        var coverSrc = Path.Combine(_root, "c.png");
+        var bannerSrc = Path.Combine(_root, "b.png");
+        await File.WriteAllBytesAsync(coverSrc, [1]);
+        await File.WriteAllBytesAsync(bannerSrc, [2]);
+
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetCoverAsync(coverSrc);
+        await rpc.SetBannerAsync(bannerSrc);
+
+        // Clearing the banner falls back to the cover.
+        await rpc.SetBannerAsync(" ");
+        Assert.Equal(string.Empty, _workspace.Projects.ActiveBook!.BannerImage);
+        var fallback = await rpc.GetBannerAsync();
+        Assert.NotNull(fallback);
+        Assert.EndsWith("c.png", fallback);
+
+        // Clearing the cover too leaves nothing.
+        await rpc.SetCoverAsync("");
+        Assert.Null(await rpc.GetBannerAsync());
+    }
+
+    [Fact]
+    public async Task Banner_GetFallsBackToProjectBanner_WhenBookEmpty()
+    {
+        _workspace.Projects.ActiveBook!.BannerImage = string.Empty;
+        _workspace.Projects.CurrentProject!.BannerImage = "Images/proj-banner.png";
+
+        var resolved = await new DashboardRpc(_workspace).GetBannerAsync();
+
+        Assert.NotNull(resolved);
+        Assert.Contains("Images/proj-banner.png", resolved);
+    }
+
+    [Fact]
+    public async Task Banner_GetFallsBackToProjectCover_WhenAllElseEmpty()
+    {
+        _workspace.Projects.ActiveBook!.BannerImage = string.Empty;
+        _workspace.Projects.ActiveBook!.CoverImage = string.Empty;
+        _workspace.Projects.CurrentProject!.BannerImage = string.Empty;
+        _workspace.Projects.CurrentProject!.CoverImage = "Images/proj-cover.png";
+
+        var resolved = await new DashboardRpc(_workspace).GetBannerAsync();
+
+        Assert.NotNull(resolved);
+        Assert.Contains("Images/proj-cover.png", resolved);
     }
 
     [Fact]

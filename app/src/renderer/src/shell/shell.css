@@ -64,12 +64,38 @@
 
 /* ===== Binder ===== */
 .binder {
+  position: relative;
   display: flex;
   flex-direction: column;
+  flex: 0 0 auto;
   width: 240px;
   min-width: 180px;
   background: var(--nl-surface-sidebar);
   border-right: 1px solid var(--nl-border);
+}
+
+/* ===== Panel resize handles (binder / inspector) ===== */
+.panel-resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  z-index: 6;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.panel-resizer-right {
+  right: -3px;
+}
+
+.panel-resizer-left {
+  left: -3px;
+}
+
+.panel-resizer:hover {
+  background: var(--nl-accent, #4f8cff);
+  opacity: 0.35;
 }
 
 .binder-tabs {
@@ -109,13 +135,6 @@
   padding: var(--nl-space-md);
 }
 
-.binder-rail {
-  border-top: 1px solid var(--nl-border);
-  padding: var(--nl-space-md) var(--nl-space-sm);
-  overflow-y: auto;
-  max-height: 45%;
-}
-
 .binder-group-label {
   font-size: var(--nl-font-caption);
   font-weight: var(--nl-weight-title);
@@ -125,6 +144,8 @@
   padding: var(--nl-space-sm) var(--nl-space-sm) var(--nl-space-tighter);
 }
 
+/* Shared full-width list-action button (create / add rows) reused by the codex,
+ * templates, and smart-lists panels. Formerly the binder view-rail item. */
 .binder-rail-item {
   display: flex;
   align-items: center;
@@ -146,12 +167,185 @@
   color: var(--nl-text);
 }
 
+/* ===== Activity bar (slim icon rail, left of the binder) ===== */
+.activity-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 44px;
+  flex: 0 0 44px;
+  background: var(--nl-surface-sidebar);
+  border-right: 1px solid var(--nl-border);
+  padding: var(--nl-space-tighter) 0;
+}
+
+.activity-bar-top,
+.activity-bar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.activity-bar-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.activity-bar-sep {
+  width: 24px;
+  height: 1px;
+  margin: var(--nl-space-tighter) 0;
+  background: var(--nl-border);
+}
+
+.activity-bar-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: 1px 0;
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text-subtle);
+}
+
+.activity-bar-item:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.activity-bar-item.active {
+  color: var(--nl-text);
+  background: var(--nl-surface-selected);
+  box-shadow: inset 2px 0 0 0 var(--nl-accent);
+}
+
+/* VSCode-style label flyout to the right of the hovered icon. */
+.activity-bar-item[data-tip] {
+  position: relative;
+}
+
+.activity-bar-item[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 80;
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  border-radius: var(--nl-radius-sm);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body-sm);
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.08s ease 0.25s;
+}
+
+.activity-bar-item[data-tip]:hover::after {
+  opacity: 1;
+}
+
+/* ===== Main column (content over the bottom notes dock) ===== */
+.shell-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
 /* ===== Main area ===== */
 .main-area {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   background: var(--nl-surface-editor);
   overflow: auto;
+}
+
+/* ===== Bottom scene-notes dock ===== */
+.notes-dock {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  background: var(--nl-surface-sidebar);
+  border-top: 1px solid var(--nl-border);
+}
+
+.notes-dock-resize {
+  height: 6px;
+  flex: 0 0 6px;
+  cursor: ns-resize;
+  background: transparent;
+}
+
+.notes-dock-resize:hover {
+  background: var(--nl-surface-hover);
+}
+
+.notes-dock-body {
+  display: flex;
+  gap: var(--nl-space-normal);
+  flex: 1;
+  min-height: 0;
+  padding: var(--nl-space-sm) var(--nl-space-md) var(--nl-space-md);
+}
+
+.notes-dock-col {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.notes-dock-col-grow {
+  flex: 1.6 1 0;
+}
+
+.notes-dock-label {
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-title);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--nl-text-subtle);
+  margin-bottom: var(--nl-space-tighter);
+}
+
+.notes-dock-textarea {
+  flex: 1;
+  min-height: 40px;
+  resize: none;
+  padding: var(--nl-space-sm);
+  border-radius: var(--nl-radius-md);
+  border: 1px solid var(--nl-border);
+  background: var(--nl-surface-input);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  line-height: 1.5;
+}
+
+.notes-dock-textarea:focus {
+  outline: none;
+  border-color: var(--nl-accent);
+}
+
+.notes-dock-synopsis {
+  max-height: 120px;
+}
+
+.notes-dock-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
 }
 
 .main-placeholder {
@@ -175,14 +369,52 @@
   font-size: var(--nl-font-body);
 }
 
-/* ===== Inspector ===== */
+/* ===== Inspector (right context sidebar) ===== */
 .inspector {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
   width: 280px;
   min-width: 220px;
   background: var(--nl-surface-inspector);
   border-left: 1px solid var(--nl-border);
-  padding: var(--nl-space-md);
+  min-height: 0;
+}
+
+.inspector-body {
+  flex: 1;
   overflow-y: auto;
+  padding: var(--nl-space-md);
+}
+
+.inspector > .inspector-header,
+.inspector > .inspector-placeholder {
+  padding: var(--nl-space-md);
+}
+
+.inspector-tabs {
+  display: flex;
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-sm) var(--nl-space-md) 0;
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.inspector-tab {
+  padding: var(--nl-space-tighter) var(--nl-space-normal);
+  border-radius: var(--nl-radius-sm) var(--nl-radius-sm) 0 0;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+}
+
+.inspector-tab:hover {
+  color: var(--nl-text);
+}
+
+.inspector-tab.active {
+  color: var(--nl-text);
+  background: var(--nl-surface-hover);
+  font-weight: var(--nl-weight-title);
 }
 
 /* ===== Context / analysis panel ===== */
@@ -252,6 +484,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.ctx-card-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-tightest);
 }
 
 .ctx-matrix {
@@ -507,6 +746,15 @@
   color: var(--nl-text);
 }
 
+/* Uncommitted Git changes: a dirty accent bar + tinted title. */
+.binder-scene-row.changed {
+  box-shadow: inset 2px 0 0 0 var(--nl-git-dirty, #b8860b);
+}
+
+.binder-scene-row.changed .binder-scene-title {
+  color: var(--nl-git-dirty, #b8860b);
+}
+
 .binder-scene-title {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -645,7 +893,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--nl-space-lg);
-  width: min(420px, 80vw);
+  width: min(820px, 92vw);
   padding: var(--nl-space-xxl);
 }
 
@@ -722,6 +970,66 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ===== Recent-project cover cards (welcome screen) ===== */
+.start-recent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--nl-space-lg);
+  width: 100%;
+}
+
+.start-recent-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+  gap: var(--nl-space-tightest);
+  padding: 0;
+  border-radius: var(--nl-radius-lg);
+  overflow: hidden;
+}
+
+.start-recent-cover {
+  aspect-ratio: 3 / 4;
+  border-radius: var(--nl-radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--nl-border);
+  background: var(--nl-surface-card);
+}
+
+.start-recent-card:hover .start-recent-cover {
+  border-color: var(--nl-accent);
+}
+
+.start-recent-cover-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.start-recent-cover-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--nl-text-subtle);
+}
+
+.start-recent-card .start-recent-name {
+  padding: var(--nl-space-sm) var(--nl-space-tightest) 0;
+  font-weight: var(--nl-weight-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.start-recent-card .start-recent-path {
+  padding: 0 var(--nl-space-tightest);
 }
 
 /* ===== Inspector fields ===== */
@@ -885,7 +1193,15 @@
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-tight);
-  margin-bottom: var(--nl-space-md);
+  margin-bottom: var(--nl-space-lg);
+  padding: var(--nl-space-md) var(--nl-space-lg) var(--nl-space-lg);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-lg);
+}
+
+.codex-field-section .inspector-label {
+  padding: var(--nl-space-tighter) 0 var(--nl-space-tightest);
 }
 
 .codex-row {
@@ -972,15 +1288,24 @@
 .codex-fields {
   display: flex;
   flex-direction: column;
-  gap: var(--nl-space-lg);
+  gap: var(--nl-space-none);
   margin: 0;
-  max-width: 560px;
+}
+
+.codex-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.codex-field + .codex-field {
+  margin-top: var(--nl-space-md);
 }
 
 .codex-field dt {
   font-size: var(--nl-font-caption);
   font-weight: var(--nl-weight-title);
-  letter-spacing: 0.07em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--nl-text-subtle);
   margin-bottom: var(--nl-space-tightest);
@@ -1889,7 +2214,6 @@
 /* ===== Entity lists editor ===== */
 .entity-lists {
   margin-top: var(--nl-space-xl);
-  max-width: 560px;
 }
 
 .entity-chips {
@@ -2287,8 +2611,87 @@
   font-size: var(--nl-font-body-sm);
 }
 
-.overrides-scope { color: var(--nl-accent); text-align: left; }
-.overrides-scope:hover { text-decoration: underline; }
+/* ===== Character chapter/scene overrides ===== */
+.overrides-empty {
+  padding: var(--nl-space-tighter) var(--nl-space-sm) var(--nl-space-md);
+}
+
+.overrides-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-sm);
+}
+
+.overrides-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-md);
+}
+
+.overrides-scope {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  min-width: 0;
+  text-align: left;
+}
+
+.overrides-scope-label {
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overrides-scope:hover .overrides-scope-label {
+  color: var(--nl-accent);
+}
+
+.overrides-scope-fields {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overrides-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.overrides-inline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-md);
+  margin-bottom: var(--nl-space-sm);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-md);
+}
+
+.overrides-scope-pickers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-md);
+}
+
+.overrides-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+}
 
 .binder-archived {
   border-top: 1px solid var(--nl-border-subtle);

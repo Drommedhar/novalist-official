@@ -157,6 +157,7 @@ export function SettingsView(): React.JSX.Element {
   const [appearanceScope, setAppearanceScope] = useState<Scope>('global')
   const [editorScope, setEditorScope] = useState<Scope>('global')
   const [writingScope, setWritingScope] = useState<Scope>('global')
+  const settingsSearch = useShellStore((s) => s.settingsSearch)
   const [search, setSearch] = useState('')
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
 
@@ -164,6 +165,15 @@ export function SettingsView(): React.JSX.Element {
     if (mainView !== 'settings') return
     void load()
   }, [mainView, load])
+
+  // Consume a one-shot deep-link prefill (e.g. "Extensions" from the backstage
+  // drawer) and clear it so it does not re-apply on the next visit.
+  useEffect(() => {
+    if (mainView === 'settings' && settingsSearch) {
+      setSearch(settingsSearch)
+      useShellStore.getState().settingsSearch && useShellStore.setState({ settingsSearch: '' })
+    }
+  }, [mainView, settingsSearch])
 
   if (!view) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
@@ -652,8 +662,8 @@ export function SettingsView(): React.JSX.Element {
           <SettingInput
             id="set-github-token"
             type="password"
-            value={String(view.global.githubToken ?? '')}
-            onCommit={(v) => void update('global', { githubToken: v.trim() || null })}
+            value={String(view.global.gitHubToken ?? '')}
+            onCommit={(v) => void update('global', { gitHubToken: v.trim() || null })}
           />
           <div className="settings-hint">{t('settings.githubTokenDesc')}</div>
         </>

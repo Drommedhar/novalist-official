@@ -1,0 +1,206 @@
+/* ===== Extension-host UI surfaces: toasts, busy-progress, wizard ===== */
+
+.toast-host {
+  position: fixed;
+  right: var(--nl-space-lg);
+  bottom: var(--nl-space-lg);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  max-width: min(360px, 80vw);
+  pointer-events: none;
+}
+
+.toast-card {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  box-shadow: var(--nl-elevation-high);
+  pointer-events: auto;
+}
+
+.toast-message {
+  flex: 1;
+  font-size: var(--nl-font-body-sm);
+  line-height: 1.4;
+}
+
+.toast-dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nl-text-dim);
+  border-radius: var(--nl-radius-sm);
+}
+
+.toast-dismiss:hover {
+  color: var(--nl-text);
+  background: var(--nl-surface-hover);
+}
+
+/* ===== Busy progress ===== */
+
+.busy-progress-card {
+  width: min(420px, 85vw);
+  gap: var(--nl-space-md);
+}
+
+.busy-progress-status {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+}
+
+.busy-progress-track {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  background: var(--nl-surface-input);
+  border-radius: var(--nl-radius-pill);
+}
+
+.busy-progress-fill {
+  height: 100%;
+  background: var(--nl-accent);
+  border-radius: var(--nl-radius-pill);
+  transition: width 120ms linear;
+}
+
+.busy-progress-track.indeterminate .busy-progress-fill {
+  width: 35%;
+  animation: busy-progress-marquee 1.1s ease-in-out infinite;
+}
+
+@keyframes busy-progress-marquee {
+  0% {
+    margin-left: -35%;
+  }
+  100% {
+    margin-left: 100%;
+  }
+}
+
+.busy-progress-details {
+  margin: 0;
+  padding-left: var(--nl-space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+/* ===== Wizard host ===== */
+
+.wizard-host-card {
+  width: min(440px, 88vw);
+  gap: var(--nl-space-md);
+}
+
+.wizard-host-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--nl-space-md);
+}
+
+.wizard-host-progress {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.wizard-host-label {
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-title);
+}
+
+.wizard-host-help {
+  margin: 0;
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+  line-height: 1.4;
+}
+
+.wizard-host-hint {
+  margin: 0;
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+}
+
+.wizard-host-textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+.wizard-host-choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.wizard-host-choice {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  font-size: var(--nl-font-body-sm);
+}
+
+.wizard-host-choice-desc {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+}
+
+.wizard-host-error {
+  margin: 0;
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-danger);
+}
+
+.wizard-host-spacer {
+  flex: 1;
+}
+
+/* ===== Extension settings surface ===== */
+
+.ext-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+}
+
+.ext-settings-card {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+.ext-settings-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.ext-settings-card-title {
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-title);
+}
+
+.ext-settings-card-sub {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.ext-settings-icon {
+  color: var(--nl-text-dim);
+  flex-shrink: 0;
+}

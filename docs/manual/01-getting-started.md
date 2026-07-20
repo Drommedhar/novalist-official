@@ -24,7 +24,7 @@ No account is required. Novalist works fully offline. The only times it touches 
 
 When you launch Novalist with no project open, the **start screen** appears. It offers:
 
-- **Recent Projects** — projects you have opened before, newest first. Each entry shows the project name and its folder path; click one to open it.
+- **Recent Projects** — projects you have opened before, newest first. Each entry shows the project's portrait **book cover** (set on the [Dashboard](11-dashboard.md#banner-and-book-cover)) — or a placeholder when none is set — above the project name and its folder path; click one to open it.
 - **Browse for Project Folder...** — opens a folder picker. Point it at any folder that contains a `.novalist/` subdirectory (a Novalist project). Projects created with earlier versions of Novalist open unchanged — the on-disk format is the same.
 - **Import from Obsidian Plugin...** — converts a project produced by the legacy "Obsidian Novalist Plugin" into a native Novalist project: pick the vault folder, Novalist detects the plugin projects inside it, choose the output folder and names, and run the import. The new project opens when the import finishes and an `import-log.txt` is written into it. See [Troubleshooting](28-troubleshooting.md) for details.
 

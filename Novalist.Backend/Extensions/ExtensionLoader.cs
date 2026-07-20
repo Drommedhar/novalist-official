@@ -24,13 +24,22 @@ public sealed class ExtensionLoader
     /// <param name="extensionsDir">Extensions directory; defaults to %APPDATA%/Novalist/Extensions. Tests pass a temp dir.</param>
     public ExtensionLoader(string? extensionsDir = null) => _extensionsDirOverride = extensionsDir;
 
+    /// <summary>The resolved root extensions directory this loader discovers from
+    /// and installs into (override in tests, else %APPDATA%/Novalist/Extensions).</summary>
+    public string ExtensionsDirectory => _extensionsDirOverride ?? GetExtensionsDirectory();
+
     /// <summary>
-    /// Returns the root extensions directory: %APPDATA%/Novalist/Extensions/
+    /// Returns the root extensions directory: &lt;settings-root&gt;/Extensions/.
+    /// The settings root honors NOVALIST_SETTINGS_DIR (matching SettingsService)
+    /// so an isolated data dir gets an isolated extensions dir; unset, it is the
+    /// production %APPDATA%/Novalist/Extensions.
     /// </summary>
     public static string GetExtensionsDirectory()
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(appData, "Novalist", "Extensions");
+        var root = Environment.GetEnvironmentVariable("NOVALIST_SETTINGS_DIR")
+            ?? Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Novalist");
+        return Path.Combine(root, "Extensions");
     }
 
     /// <summary>

@@ -31,10 +31,11 @@ test('real project renders binder and scene content', async () => {
     Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
   ) as Record<string, string>
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
+  env.NOVALIST_NO_SPLASH = '1'
 
   const app = await electron.launch({ args: ['out/main/index.js'], env })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend')).toContainText('(', { timeout: 30_000 })
+  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
   await page.evaluate(async (root) => {
     const state = await window.novalistRpc.request('project/open', [root])
@@ -97,8 +98,8 @@ test('real project renders binder and scene content', async () => {
   if (liam && peekBox) {
     await page.mouse.move(peekBox.x + liam.x - 8, peekBox.y + liam.y)
     await page.mouse.move(peekBox.x + liam.x, peekBox.y + liam.y)
-    await expect(page.locator('.editor-peek-card')).toBeVisible({ timeout: 10_000 })
-    await expect(page.locator('.editor-peek-name')).toContainText('Liam')
+    await expect(page.locator('.peek-card')).toBeVisible({ timeout: 10_000 })
+    await expect(page.locator('.peek-title')).toContainText('Liam')
   }
 
   // Inspector context panel: scene analysis (POV + stats) computed for the
@@ -107,8 +108,22 @@ test('real project renders binder and scene content', async () => {
   await expect(page.locator('.ctx-stats')).toBeVisible()
   await expect(page.locator('.ctx-pov')).toBeVisible()
 
-  // Inspector: write a synopsis, blur, and confirm it persisted over RPC.
-  const synopsis = page.locator('#inspector-synopsis')
+  // Sidebar focus-peek: hovering an entity card in the Inspector shows the very
+  // same peek card as the editor. Move the pointer off the prose first so the
+  // editor's own peek dismisses, then hover a character card and assert the peek.
+  await page.mouse.move(4, 4)
+  await expect(page.locator('.peek-card')).toHaveCount(0, { timeout: 5_000 })
+  const ctxCard = page.locator('.ctx-card').first()
+  if (await ctxCard.count()) {
+    await ctxCard.hover()
+    await expect(page.locator('.peek-card')).toBeVisible({ timeout: 10_000 })
+    await expect(page.locator('.peek-title')).toBeVisible()
+  }
+
+  // Scene-notes dock: open it, write a synopsis, blur, confirm it persisted.
+  await page.evaluate(() => window.novalistStores.shell.getState().toggleNotesDock())
+  const synopsis = page.locator('#dock-synopsis')
+  await expect(synopsis).toBeVisible({ timeout: 10_000 })
   await synopsis.fill('Verification synopsis from e2e')
   await synopsis.blur()
   await expect
@@ -278,7 +293,7 @@ test('real project renders binder and scene content', async () => {
   // SDK v2: the deployed AiAssistant contributes a webview panel; opening it
   // exercises manifest discovery, the novalist-ext protocol, and the
   // postMessage-to-controller bridge end to end.
-  const aiChatItem = page.locator('.binder-rail-item', { hasText: 'AI Chat' })
+  const aiChatItem = page.locator('.activity-bar-item[title="AI Chat"]')
   if ((await aiChatItem.count()) > 0) {
     await aiChatItem.click()
     const chatFrame = page.frameLocator('iframe[src^="novalist-ext://com.novalist.ai/"]')

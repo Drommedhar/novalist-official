@@ -35,7 +35,82 @@
   bottom: var(--nl-space-md);
   right: var(--nl-space-md);
   display: flex;
+  align-items: center;
   gap: var(--nl-space-sm);
+}
+
+.dashboard-cover-tag {
+  font-size: var(--nl-font-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--nl-text);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+}
+
+/* ===== Portrait book cover (shown on the welcome screen) ===== */
+.dashboard-bookcover {
+  display: flex;
+  gap: var(--nl-space-lg);
+  align-items: stretch;
+  padding: var(--nl-space-lg);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  background: var(--nl-surface-card);
+}
+
+.dashboard-bookcover-preview {
+  flex: 0 0 auto;
+  width: 96px;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--nl-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--nl-border);
+  background: var(--nl-surface-hover);
+}
+
+.dashboard-bookcover-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dashboard-bookcover-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-sm);
+}
+
+.dashboard-bookcover-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  justify-content: center;
+}
+
+.dashboard-bookcover-label {
+  font-size: var(--nl-font-body-lg);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text);
+}
+
+.dashboard-bookcover-hint {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+}
+
+.dashboard-bookcover-actions {
+  position: static;
+  margin-top: var(--nl-space-sm);
 }
 
 .dashboard-cover-btn {

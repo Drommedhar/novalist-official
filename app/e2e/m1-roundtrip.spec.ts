@@ -32,12 +32,13 @@ test('project + binder + editor round-trip', async () => {
     Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
   ) as Record<string, string>
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
+  env.NOVALIST_NO_SPLASH = '1'
 
   const app = await electron.launch({ args: ['out/main/index.js'], env })
   const page = await app.firstWindow()
 
   // Backend handshake: status bar shows the core version like "Core connected (1.13...)".
-  await expect(page.locator('.status-backend')).toContainText('(', { timeout: 30_000 })
+  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
   // connect() must be idempotent: a repeat call (as React StrictMode triggers in
   // dev) must not open a second port channel and orphan the live one. After a

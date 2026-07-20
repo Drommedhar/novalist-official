@@ -59,8 +59,14 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new ImportRpc(_workspace), targetOptions);
         var extensionsRpc = new ExtensionsRpc(_workspace);
         rpc.AddLocalRpcTarget(extensionsRpc, targetOptions);
+        rpc.AddLocalRpcTarget(new ExtensionContribRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new ExtensionStoreRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new UiBridgeRpc(_workspace), targetOptions);
         Extensions.HostNotifications.Error = message =>
             _ = rpc.NotifyAsync("ui/showNotification", message);
+        // Route imperative host-service UI capabilities (toasts, busy-progress,
+        // wizards) out to the renderer as ui/* notifications.
+        _workspace.UiBridge.Notifier = (method, payload) => rpc.NotifyAsync(method, payload);
         ExtensionsRpc.WebviewPosted = (extensionId, viewKey, json) =>
             _ = rpc.NotifyAsync("extensions/webviewPosted", extensionId, viewKey, json);
         rpc.StartListening();
@@ -75,6 +81,10 @@ public sealed class BackendHost : IDisposable
         await Task.WhenAny(rpc.Completion, _shutdownRequested.Task);
     }
 
+    /// <summary>Test seam: the owned workspace (for driving host-service events
+    /// through the attached RPC endpoint).</summary>
+    internal Workspace Workspace => _workspace;
+
     internal void RequestShutdown() => _shutdownRequested.TrySetResult();
 
     internal bool IsShutdownRequested => _shutdownRequested.Task.IsCompleted;
@@ -82,5 +92,6 @@ public sealed class BackendHost : IDisposable
     public void Dispose()
     {
         _rpc?.Dispose();
+        _workspace.Dispose();
     }
 }

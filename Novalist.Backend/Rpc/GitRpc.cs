@@ -62,6 +62,41 @@ public sealed class GitRpc
                 .ToArray());
     }
 
+    /// <summary>
+    /// Scene IDs whose files have uncommitted Git changes, so the explorer can
+    /// mark changed scenes (mirrors the desktop binder's change markers). Matches
+    /// a scene's project-relative path against the changed pathspecs by suffix,
+    /// which is robust whether the repo root is the project or a parent folder.
+    /// </summary>
+    [JsonRpcMethod("git/changedScenes")]
+    public async Task<string[]> ChangedScenesAsync()
+    {
+        await EnsureInitializedAsync();
+        var info = await _git.GetStatusAsync();
+        var projects = _workspace.Projects;
+        var book = projects.ActiveBook;
+        if (info == null || book == null || projects.ProjectRoot == null)
+            return [];
+
+        var changed = info.ChangedFiles.Select(f => f.RelativePath.Replace('\\', '/')).ToArray();
+        if (changed.Length == 0) return [];
+
+        var manifest = projects.ScenesManifest;
+        var ids = new List<string>();
+        foreach (var chapter in book.Chapters)
+        {
+            var scenes = manifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [];
+            foreach (var scene in scenes.Where(s => s.ArchivedAt == null))
+            {
+                var rel = Path.GetRelativePath(projects.ProjectRoot,
+                    projects.GetSceneFilePath(chapter, scene)).Replace('\\', '/');
+                if (changed.Any(c => c.EndsWith(rel, StringComparison.OrdinalIgnoreCase)))
+                    ids.Add(scene.Id);
+            }
+        }
+        return ids.ToArray();
+    }
+
     /// <summary>Whether Git is available on the system PATH.</summary>
     [JsonRpcMethod("git/installed")]
     public async Task<bool> IsInstalledAsync()

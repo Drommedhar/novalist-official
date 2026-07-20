@@ -338,6 +338,65 @@ public class ExtensionGalleryServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task CheckForUpdates_UsesInstalledManifestVersion_NotStoreMetaTag()
+    {
+        // store-meta LIES (records the 2.0.0 release tag) but the manifest on disk
+        // is 1.0.0 (a release packaged with a stale manifest). The update check
+        // must compare against the manifest, so a 2.0.0 release still updates.
+        var dir = Path.Combine(_extDir, "ext1");
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "store-meta.json"),
+            """{ "installedFromGallery": true, "repo": "owner/ext1", "installedVersion": "2.0.0" }""");
+        File.WriteAllText(Path.Combine(dir, "extension.json"),
+            """{ "id": "ext1", "version": "1.0.0" }""");
+
+        var sut = Service(req =>
+        {
+            var uri = req.RequestUri!.AbsoluteUri;
+            if (uri.Contains("gallery.json")) return Json("""[ { "id": "ext1", "repo": "owner/ext1" } ]""");
+            if (uri.Contains("/releases")) return Json(ReleasesJson("v2.0.0", "ext1.zip"));
+            if (uri.Contains("extension.json")) return Text("", HttpStatusCode.NotFound); // compatible
+            return Text("", HttpStatusCode.NotFound);
+        });
+
+        var updates = await sut.CheckForUpdatesAsync();
+        var u = Assert.Single(updates);
+        Assert.Equal("1.0.0", u.InstalledVersion);   // from the manifest, not store-meta's 2.0.0
+        Assert.Equal("2.0.0", u.AvailableVersion);
+
+        // Direct coverage of the manifest reader.
+        Assert.Equal("1.0.0", sut.ReadInstalledManifestVersion("ext1"));
+        Assert.Null(sut.ReadInstalledManifestVersion("not-installed"));
+    }
+
+    [Fact]
+    public async Task CheckForUpdates_FallsBackToStoreMeta_WhenManifestMissingOrInvalid()
+    {
+        var dir = Path.Combine(_extDir, "ext1");
+        Directory.CreateDirectory(dir);
+        File.WriteAllText(Path.Combine(dir, "store-meta.json"),
+            """{ "installedFromGallery": true, "repo": "owner/ext1", "installedVersion": "1.0.0" }""");
+        // No extension.json → ReadInstalledManifestVersion returns null → fall back to store-meta.
+
+        var sut = Service(req =>
+        {
+            var uri = req.RequestUri!.AbsoluteUri;
+            if (uri.Contains("gallery.json")) return Json("""[ { "id": "ext1", "repo": "owner/ext1" } ]""");
+            if (uri.Contains("/releases")) return Json(ReleasesJson("v2.0.0", "ext1.zip"));
+            return Text("", HttpStatusCode.NotFound);
+        });
+
+        var u = Assert.Single(await sut.CheckForUpdatesAsync());
+        Assert.Equal("1.0.0", u.InstalledVersion);
+
+        // Manifest reader edge cases: missing "version", and invalid JSON → null.
+        File.WriteAllText(Path.Combine(dir, "extension.json"), """{ "id": "ext1" }""");
+        Assert.Null(sut.ReadInstalledManifestVersion("ext1"));
+        File.WriteAllText(Path.Combine(dir, "extension.json"), "{ broken");
+        Assert.Null(sut.ReadInstalledManifestVersion("ext1"));
+    }
+
+    [Fact]
     public async Task Install_ExtractsAndWritesStoreMeta_DeletesZip()
     {
         var (sut, zip) = InstallSetup("ext1");

@@ -50,7 +50,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 
 ### The inspector
 
-22. [Inspector](22-context-sidebar.md) — the right-hand pane: synopsis, notes, metadata, and scene snapshots for the open scene.
+22. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
 
 ### Customisation
 
@@ -66,15 +66,16 @@ If you are looking for a specific feature, jump straight to its page from the ta
 
 ## Conventions used in this manual
 
-- **Binder** is the left pane: the chapter/scene tree (with a Smart Lists tab) and, below it, the **view rail** — grouped buttons (Write, Plan, World, Publish, Application, and Extensions when installed) that switch the main area.
-- **Main area** is the center pane showing the active view.
-- **Inspector** is the right pane with details for the open scene.
-- **Toolbar** is the slim bar at the top: binder toggle, book and draft selectors, project name, new chapter / new scene, Search, inspector toggle.
-- **Status bar** is the bottom strip with live word counts and the core-connection status.
+- **Activity bar** is the slim icon rail on the far left that switches the main area between views (Dashboard, Manuscript, Timeline, Plot Grid, Calendar, Relationships, Codex, Maps, Research, Gallery, Export, Git, Settings, plus extension views).
+- **Binder** is the left pane next to the activity bar: the chapter/scene tree, with a Smart Lists tab.
+- **Main area** is the center pane showing the active view, with an optional **scene-notes dock** (Synopsis + Notes) beneath the editor.
+- **Inspector** is the right pane: Context and Footnotes tabs for the open scene.
+- **Toolbar** is the slim bar at the top: binder toggle, backstage-drawer burger, book and draft selectors, project name, new chapter / new scene, Search, Snapshots, scene-notes toggle, inspector toggle.
+- **Status bar** is the bottom strip with live word counts, a project metrics strip with an overview popover, goals, git, and the core-connection status.
 - Keyboard shortcuts are written as `Ctrl+Shift+P`. On macOS, read `Ctrl` as `Cmd`.
 
 ## A note on data safety
 
 Everything in your project lives in a single folder. The `.novalist/` subfolder holds the JSON manifests; the `Books/` subfolder holds your chapters, scenes, and entity files. You can back up your project by copying the folder, version-control it with Git, or sync it through any file-sync tool you already use.
 
-Novalist also keeps per-scene **snapshots**: take one from the inspector at any time, and replace-all operations take one automatically before touching your text — so you can revert an individual scene without affecting the rest of the project. See [Snapshots](17-snapshots.md).
+Novalist also keeps per-scene **snapshots**: take one from the toolbar Snapshots button at any time, and replace-all operations take one automatically before touching your text — so you can revert an individual scene without affecting the rest of the project. See [Snapshots](17-snapshots.md).

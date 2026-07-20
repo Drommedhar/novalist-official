@@ -404,6 +404,197 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Overrides_StoreCustomPropertyDiff_AndClearOnEmpty()
+    {
+        var created = await _rpc.CreateAsync("character", "Mira");
+        var id = created.GetProperty("id").GetString()!;
+
+        // Blank custom-property values are dropped; only real overrides persist.
+        var withProps = await _rpc.SetOverrideAsync(id, "ch-1", null,
+            new Dictionary<string, string>(),
+            new Dictionary<string, string> { ["Rank"] = "Warlord", ["Mood"] = "" });
+        var props = withProps.GetProperty("chapterOverrides")[0].GetProperty("customProperties");
+        Assert.Equal("Warlord", props.GetProperty("Rank").GetString());
+        Assert.False(props.TryGetProperty("Mood", out _));
+
+        // An all-blank map clears the override custom properties (inherit base).
+        var cleared = await _rpc.SetOverrideAsync(id, "ch-1", null,
+            new Dictionary<string, string>(),
+            new Dictionary<string, string> { ["Rank"] = "" });
+        var entry = cleared.GetProperty("chapterOverrides")[0];
+        Assert.Equal(JsonValueKind.Null,
+            entry.TryGetProperty("customProperties", out var cp) ? cp.ValueKind : JsonValueKind.Null);
+
+        // Omitting the map entirely leaves the string-field override untouched.
+        var stringOnly = await _rpc.SetOverrideAsync(id, "ch-1", null,
+            new Dictionary<string, string> { ["role"] = "Captain" });
+        Assert.Equal("Captain",
+            stringOnly.GetProperty("chapterOverrides")[0].GetProperty("role").GetString());
+    }
+
+    [Fact]
+    public async Task OverrideImages_SetReplacesClearInherits_AndPeekResolves()
+    {
+        var mira = new CharacterData
+        {
+            Name = "Mira",
+            Images = { new EntityImage { Name = "base", Path = "Images/base.png" } }
+        };
+        await Entities.SaveCharacterAsync(mira);
+        var id = (await Entities.LoadCharactersAsync()).Single().Id;
+
+        // A non-null list replaces the base images for the scope.
+        var set = await _rpc.SetOverrideImagesAsync(id, "ch-1", "Scene One",
+            [new EntityImageDto("scene", "Images/scene.png")]);
+        var ovr = set.GetProperty("chapterOverrides")[0];
+        Assert.Equal("scene", ovr.GetProperty("images")[0].GetProperty("name").GetString());
+        // The override image carries a resolved url for inline display.
+        Assert.EndsWith("/Images/scene.png", ovr.GetProperty("images")[0].GetProperty("url").GetString());
+
+        // The peek for that scope shows the overridden image, not the base one.
+        var peek = await _rpc.PeekAsync("character", id, "ch-1", "Chapter One", "Scene One");
+        Assert.EndsWith("/Images/scene.png", Assert.Single(peek.Images).Url);
+
+        // An empty list is still an override (the scope shows no images).
+        var emptied = await _rpc.SetOverrideImagesAsync(id, "ch-1", "Scene One", []);
+        Assert.Empty(emptied.GetProperty("chapterOverrides")[0].GetProperty("images").EnumerateArray());
+        var emptyPeek = await _rpc.PeekAsync("character", id, "ch-1", "Chapter One", "Scene One");
+        Assert.Empty(emptyPeek.Images);
+
+        // Null resets the scope to inherit the base images.
+        var inherited = await _rpc.SetOverrideImagesAsync(id, "ch-1", "Scene One", null);
+        Assert.Equal(JsonValueKind.Null,
+            inherited.GetProperty("chapterOverrides")[0].GetProperty("images").ValueKind);
+        var inheritPeek = await _rpc.PeekAsync("character", id, "ch-1", "Chapter One", "Scene One");
+        Assert.EndsWith("/Images/base.png", Assert.Single(inheritPeek.Images).Url);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetOverrideImagesAsync("missing", "ch-1", null, null));
+    }
+
+    [Fact]
+    public async Task AddOverrideImage_ImportsSeedsFromBase_AndAppends()
+    {
+        var mira = new CharacterData
+        {
+            Name = "Mira",
+            Images = { new EntityImage { Name = "base", Path = "Images/base.png" } }
+        };
+        await Entities.SaveCharacterAsync(mira);
+        var id = (await Entities.LoadCharactersAsync()).Single().Id;
+
+        var source = Path.Combine(_root, "portrait.png");
+        await File.WriteAllBytesAsync(source, [137, 80, 78, 71]);
+
+        // First divergence seeds from the base list, then appends the import.
+        var added = await _rpc.AddOverrideImageAsync(id, "ch-1", "Scene One", source);
+        var images = added.GetProperty("chapterOverrides")[0].GetProperty("images");
+        Assert.Equal(2, images.GetArrayLength());
+        Assert.Equal("base", images[0].GetProperty("name").GetString());
+        Assert.Equal("portrait", images[1].GetProperty("name").GetString());
+
+        // A second add appends onto the now-existing override list.
+        var source2 = Path.Combine(_root, "sketch.png");
+        await File.WriteAllBytesAsync(source2, [137, 80, 78, 71]);
+        var again = await _rpc.AddOverrideImageAsync(id, "ch-1", "Scene One", source2);
+        Assert.Equal(3, again.GetProperty("chapterOverrides")[0].GetProperty("images").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task AddOverrideImageFromUrl_DownloadsAndAppends()
+    {
+        var handler = new StubHandler();
+        var rpc = new EntitiesRpc(_workspace, new HttpClient(handler));
+        var id = (await rpc.CreateAsync("character", "Mira")).GetProperty("id").GetString()!;
+
+        var updated = await rpc.AddOverrideImageFromUrlAsync(
+            id, "ch-1", null, "https://img.test/pics/dragon.png");
+        var image = updated.GetProperty("chapterOverrides")[0].GetProperty("images")[0];
+        Assert.Equal("dragon", image.GetProperty("name").GetString());
+        Assert.EndsWith("dragon.png", image.GetProperty("path").GetString());
+    }
+
+    [Fact]
+    public async Task OverrideRelationships_SetReplacesClearInherits_AndPeekResolves()
+    {
+        var mira = new CharacterData
+        {
+            Name = "Mira",
+            Relationships = { new EntityRelationship { Role = "Sister", Target = "Nyla" } }
+        };
+        await Entities.SaveCharacterAsync(mira);
+        await Entities.SaveCharacterAsync(new CharacterData { Name = "Rook" });
+        var id = (await Entities.LoadCharactersAsync()).Single(c => c.Name == "Mira").Id;
+
+        // A list replaces the base relationships for the scope; blank rows drop.
+        var set = await _rpc.SetOverrideRelationshipsAsync(id, "ch-1", "Scene One",
+        [
+            new RelationshipRowDto("Enemy", "Rook"),
+            new RelationshipRowDto("", "")
+        ]);
+        var rels = set.GetProperty("chapterOverrides")[0].GetProperty("relationships");
+        Assert.Equal(1, rels.GetArrayLength());
+        Assert.Equal("Enemy", rels[0].GetProperty("role").GetString());
+
+        var peek = await _rpc.PeekAsync("character", id, "ch-1", "Chapter One", "Scene One");
+        var rel = Assert.Single(peek.Relationships);
+        Assert.Equal("Enemy", rel.Role);
+        Assert.Equal("Rook", rel.Targets[0].Name);
+
+        // Empty list = override to no relationships.
+        var emptied = await _rpc.SetOverrideRelationshipsAsync(id, "ch-1", "Scene One", []);
+        Assert.Empty(emptied.GetProperty("chapterOverrides")[0].GetProperty("relationships").EnumerateArray());
+        Assert.Empty((await _rpc.PeekAsync("character", id, "ch-1", "Chapter One", "Scene One")).Relationships);
+
+        // Null resets to inherit the base relationships.
+        var inherited = await _rpc.SetOverrideRelationshipsAsync(id, "ch-1", "Scene One", null);
+        Assert.Equal(JsonValueKind.Null,
+            inherited.GetProperty("chapterOverrides")[0].GetProperty("relationships").ValueKind);
+        Assert.Equal("Sister",
+            Assert.Single((await _rpc.PeekAsync("character", id, "ch-1", "Chapter One", "Scene One")).Relationships).Role);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetOverrideRelationshipsAsync("missing", "ch-1", null, null));
+    }
+
+    [Fact]
+    public async Task OverrideSections_SetReplacesClearInherits_AndPeekResolves()
+    {
+        var mira = new CharacterData
+        {
+            Name = "Mira",
+            Sections = { new EntitySection { Title = "Backstory", Content = "Base tale" } }
+        };
+        await Entities.SaveCharacterAsync(mira);
+        var id = (await Entities.LoadCharactersAsync()).Single().Id;
+
+        var set = await _rpc.SetOverrideSectionsAsync(id, "ch-1", "Scene One",
+            [new EntitySectionDto("Wounded", "Injured in the raid")]);
+        var sections = set.GetProperty("chapterOverrides")[0].GetProperty("sections");
+        Assert.Equal("Wounded", sections[0].GetProperty("title").GetString());
+
+        var peek = await _rpc.PeekAsync("character", id, "ch-1", "Chapter One", "Scene One");
+        var section = Assert.Single(peek.Sections);
+        Assert.Equal("Wounded", section.Title);
+        Assert.Equal("Injured in the raid", section.Content);
+
+        // Empty list = override to no sections.
+        var emptied = await _rpc.SetOverrideSectionsAsync(id, "ch-1", "Scene One", []);
+        Assert.Empty(emptied.GetProperty("chapterOverrides")[0].GetProperty("sections").EnumerateArray());
+        Assert.Empty((await _rpc.PeekAsync("character", id, "ch-1", "Chapter One", "Scene One")).Sections);
+
+        // Null resets to inherit the base sections.
+        var inherited = await _rpc.SetOverrideSectionsAsync(id, "ch-1", "Scene One", null);
+        Assert.Equal(JsonValueKind.Null,
+            inherited.GetProperty("chapterOverrides")[0].GetProperty("sections").ValueKind);
+        Assert.Equal("Backstory",
+            Assert.Single((await _rpc.PeekAsync("character", id, "ch-1", "Chapter One", "Scene One")).Sections).Title);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetOverrideSectionsAsync("missing", "ch-1", null, null));
+    }
+
+    [Fact]
     public async Task CustomProps_SetTypedAndRemove_WithTemplateDefs()
     {
         var book = _workspace.Projects.ActiveBook!;

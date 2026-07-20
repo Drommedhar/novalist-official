@@ -37,9 +37,20 @@ public sealed class SettingsRpc
     [JsonRpcMethod("settings/updateGlobal")]
     public async Task<JsonElement> UpdateGlobalAsync(Dictionary<string, JsonElement> patch)
     {
+        var beforeLanguage = _workspace.Settings.Effective.Language;
         Apply(_workspace.Settings.Settings, patch);
         await _workspace.Settings.SaveAsync();
+        RaiseLanguageIfChanged(beforeLanguage);
         return await GetAsync();
+    }
+
+    /// <summary>Fires the extension LanguageChanged event when the effective UI
+    /// language changed as a result of the last settings write.</summary>
+    private void RaiseLanguageIfChanged(string beforeLanguage)
+    {
+        var afterLanguage = _workspace.Settings.Effective.Language;
+        if (!string.Equals(beforeLanguage, afterLanguage, StringComparison.Ordinal))
+            _workspace.RaiseLanguageChanged(afterLanguage);
     }
 
     [JsonRpcMethod("settings/updateProject")]
@@ -49,8 +60,10 @@ public sealed class SettingsRpc
         {
             throw new InvalidOperationException("No project open.");
         }
+        var beforeLanguage = _workspace.Settings.Effective.Language;
         Apply(_workspace.Projects.ProjectSettings.Overrides, patch);
         await _workspace.Projects.SaveProjectSettingsAsync();
+        RaiseLanguageIfChanged(beforeLanguage);
         return await GetAsync();
     }
 

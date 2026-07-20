@@ -1,20 +1,49 @@
 import { useEffect, useMemo, useState } from 'react'
+import { ActivityBar } from './ActivityBar'
 import { Binder } from './Binder'
 import { CommandPalette } from './CommandPalette'
 import { FindReplaceDialog } from './FindReplaceDialog'
+import { HelpOverlay } from './HelpOverlay'
 import { buildDefaultHotkeys, installHotkeys } from './hotkeys'
 import { Inspector } from './Inspector'
 import { Toolbar } from './Toolbar'
 import { StatusBar } from './StatusBar'
 import { MainArea } from './MainArea'
+import { SceneNotesDock } from './SceneNotesDock'
 import { StartScreen } from './StartScreen'
 import { UpdateDialog } from './UpdateDialog'
-import { useShellStore } from '../stores/shellStore'
+import { useShellStore, type MainView } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
-import { useExtensionsStore } from '../stores/extensionsStore'
+import { useExtensionsStore, type StoreUpdate } from '../stores/extensionsStore'
 import type { PingResult } from '../rpc/contract'
 import './shell.css'
+
+/** Maps a native-menu command ("nav:codex", "toggle:focus") onto the shell store. */
+function handleMenuCommand(command: string): void {
+  const shell = useShellStore.getState()
+  if (command.startsWith('nav:')) {
+    shell.setMainView(command.slice(4) as MainView)
+    return
+  }
+  switch (command) {
+    case 'toggle:binder':
+      shell.toggleBinder()
+      break
+    case 'toggle:inspector':
+      shell.toggleInspector()
+      break
+    case 'toggle:sceneNotes':
+      shell.toggleNotesDock()
+      break
+    case 'toggle:focus':
+      shell.toggleFocusMode()
+      break
+    case 'help:manual':
+      shell.setHelpOpen(true)
+      break
+  }
+}
 
 async function hydrate(): Promise<void> {
   const ping = await rpc.request<PingResult>('system/ping')
@@ -30,17 +59,68 @@ export function AppShell(): React.JSX.Element {
   const backendVersion = useShellStore((s) => s.backendVersion)
   const focusMode = useShellStore((s) => s.focusMode)
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
+  const notesDockVisible = useShellStore((s) => s.notesDockVisible)
+  const mainView = useShellStore((s) => s.mainView)
+  const extView = useShellStore((s) => s.extView)
   const isLoaded = useProjectStore((s) => s.isLoaded)
   const recentProjects = useProjectStore((s) => s.recentProjects)
   const openProject = useProjectStore((s) => s.openProject)
   const pickAndOpenProject = useProjectStore((s) => s.pickAndOpenProject)
   const findReplaceOpen = useShellStore((s) => s.findReplaceOpen)
   const commandPaletteOpen = useShellStore((s) => s.commandPaletteOpen)
+  const helpOpen = useShellStore((s) => s.helpOpen)
   const hotkeys = useMemo(() => buildDefaultHotkeys(), [])
+
+  // ── Combined app + extension update check (run in the splash on startup) ──
+  const [appUpdate, setAppUpdate] = useState<AppUpdate | null>(null)
+  const [extUpdates, setExtUpdates] = useState<StoreUpdate[]>([])
+  const [updatingExtId, setUpdatingExtId] = useState<string | null>(null)
+  const [updateOpen, setUpdateOpen] = useState(false)
+  const [updateProgress, setUpdateProgress] = useState<number | null>(null)
+  const [downloading, setDownloading] = useState(false)
+
+  const runUpdateCheck = async (manual: boolean): Promise<void> => {
+    let app: AppUpdate | null = null
+    let ext: StoreUpdate[] = []
+    try {
+      app = (await window.novalist.checkAppUpdate()) as AppUpdate | null
+    } catch {
+      /* offline / no release metadata — leave app update absent */
+    }
+    try {
+      await useExtensionsStore.getState().checkStoreUpdates()
+      ext = useExtensionsStore.getState().storeUpdates
+    } catch {
+      /* offline — leave extension updates empty */
+    }
+    setAppUpdate(app)
+    setExtUpdates(ext)
+    if (app || ext.length > 0 || manual) setUpdateOpen(true)
+  }
+
+  const updateExtension = async (u: StoreUpdate): Promise<void> => {
+    setUpdatingExtId(u.extensionId)
+    try {
+      await useExtensionsStore.getState().installFromStore(u.extensionId, u.repo, true)
+      // installFromStore drops the entry from storeUpdates on success.
+      setExtUpdates(useExtensionsStore.getState().storeUpdates)
+    } catch {
+      /* leave the row so the user can retry */
+    } finally {
+      setUpdatingExtId(null)
+    }
+  }
 
   useEffect(() => {
     rpc.onReconnected(() => void hydrate())
-    void rpc.connect().then(hydrate)
+    // Boot: connect, hydrate, run the combined update check, then tell main the
+    // check finished so it can close the splash (updatesChecked always fires).
+    void rpc
+      .connect()
+      .then(hydrate)
+      .then(() => (window.novalist.autoUpdate ? runUpdateCheck(false) : undefined))
+      .catch(() => {})
+      .finally(() => window.novalist.updatesChecked())
   }, [])
 
   // Opening a project lands on the dashboard, matching the Avalonia app.
@@ -50,15 +130,31 @@ export function AppShell(): React.JSX.Element {
 
   useEffect(() => installHotkeys(hotkeys), [hotkeys])
 
-  const [updateVersion, setUpdateVersion] = useState<string | null>(null)
   useEffect(() => {
     const onMessage = (event: MessageEvent): void => {
-      const data = event.data as { novalist?: string; version?: string }
-      if (data?.novalist === 'update-available' && data.version) setUpdateVersion(data.version)
+      const data = event.data as { novalist?: string; command?: string; percent?: number }
+      if (data?.novalist === 'update-progress' && typeof data.percent === 'number')
+        setUpdateProgress(data.percent)
+      if (data?.novalist === 'menu-command' && data.command) {
+        if (data.command === 'help:checkUpdates') void runUpdateCheck(true)
+        else handleMenuCommand(data.command)
+      }
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
   }, [])
+
+  const downloadAppUpdate = async (): Promise<void> => {
+    if (!appUpdate) return
+    setDownloading(true)
+    setUpdateProgress(0)
+    try {
+      await window.novalist.downloadAppUpdate(appUpdate)
+    } finally {
+      setDownloading(false)
+    }
+  }
+
 
   return (
     <div className="shell">
@@ -66,9 +162,18 @@ export function AppShell(): React.JSX.Element {
       <div className="shell-body">
         {isLoaded ? (
           <>
+            {!focusMode && <ActivityBar />}
             {binderVisible && !focusMode && <Binder />}
-            <MainArea />
-            {inspectorVisible && !focusMode && <Inspector />}
+            <div className="shell-main">
+              <MainArea />
+              {mainView === 'write' && !extView && notesDockVisible && !focusMode && (
+                <SceneNotesDock />
+              )}
+            </div>
+            {inspectorVisible &&
+              !focusMode &&
+              !extView &&
+              (mainView === 'write' || mainView === 'manuscript') && <Inspector />}
           </>
         ) : (
           <StartScreen
@@ -78,11 +183,20 @@ export function AppShell(): React.JSX.Element {
           />
         )}
       </div>
-      {updateVersion && (
+      {updateOpen && (
         <UpdateDialog
-          version={updateVersion}
+          appUpdate={appUpdate}
           currentVersion={backendVersion}
-          onClose={() => setUpdateVersion(null)}
+          extUpdates={extUpdates}
+          updatingExtId={updatingExtId}
+          progress={updateProgress}
+          downloading={downloading}
+          onDownload={() => void downloadAppUpdate()}
+          onUpdateExt={(u) => void updateExtension(u)}
+          onClose={() => {
+            setUpdateOpen(false)
+            setUpdateProgress(null)
+          }}
         />
       )}
       <StatusBar />
@@ -95,6 +209,7 @@ export function AppShell(): React.JSX.Element {
           onClose={() => useShellStore.getState().setCommandPaletteOpen(false)}
         />
       )}
+      {helpOpen && <HelpOverlay onClose={() => useShellStore.getState().setHelpOpen(false)} />}
     </div>
   )
 }

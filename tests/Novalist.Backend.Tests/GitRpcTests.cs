@@ -41,6 +41,28 @@ public sealed class GitRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task ChangedScenes_MarksScenesWithUncommittedEdits()
+    {
+        // No project scene changes committed yet: the freshly created scene file
+        // is uncommitted, so it shows as changed.
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, "<p>alpha</p>", "alpha");
+
+        var changed = await _rpc.ChangedScenesAsync();
+        Assert.Contains(scene.Id, changed);
+
+        // After committing everything, nothing is changed.
+        var all = (await _rpc.StatusAsync())!.ChangedFiles.Select(f => f.RelativePath).ToArray();
+        await _rpc.CommitAsync(all, "commit scene");
+        Assert.Empty(await _rpc.ChangedScenesAsync());
+
+        // Re-editing the scene marks it changed again.
+        await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, "<p>alpha beta</p>", "alpha beta");
+        Assert.Contains(scene.Id, await _rpc.ChangedScenesAsync());
+    }
+
+    [Fact]
     public async Task Status_Commit_Discard_FullFlow()
     {
         var status = await _rpc.StatusAsync();
@@ -150,6 +172,8 @@ public sealed class GitRpcTests : IDisposable
             Assert.Equal("Not a Git repository", await rpc.StageAllAsync());
             Assert.Equal("Not a Git repository", await rpc.UnstageAllAsync());
             Assert.Equal("Not a Git repository", await rpc.CommitStagedAsync("m"));
+            // Outside a repo there is no status, so no scenes are marked changed.
+            Assert.Empty(await rpc.ChangedScenesAsync());
         }
         finally
         {

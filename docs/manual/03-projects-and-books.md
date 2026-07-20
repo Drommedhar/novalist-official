@@ -35,7 +35,7 @@ The **World Bible** is a shared entity pool across books. Characters, locations,
 
 From the [start screen](01-getting-started.md#the-start-screen):
 
-- Click a project in **Recent Projects**, or
+- Click a project in **Recent Projects** — each recent project shows its portrait **book cover** (set on the [Dashboard](11-dashboard.md#banner-and-book-cover)), or a placeholder when none is set, or
 - Click **Browse for Project Folder...** and point the folder picker at the project folder (any folder containing a `.novalist/` subdirectory).
 
 This also covers projects copied from another machine, restored from backup, or cloned from Git — there is no separate "import" step for native projects. For projects from the legacy Obsidian plugin, use **Import from Obsidian Plugin...** instead.

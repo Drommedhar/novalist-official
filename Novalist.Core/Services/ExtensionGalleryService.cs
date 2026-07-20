@@ -66,6 +66,9 @@ public interface IExtensionGalleryService
     /// Reads the store-meta.json for an installed extension, or null if not present.
     /// </summary>
     ExtensionStoreMeta? ReadStoreMeta(string extensionId);
+
+    /// <summary>The version in the installed extension's own manifest, or null.</summary>
+    string? ReadInstalledManifestVersion(string extensionId);
 }
 
 public sealed class ExtensionGalleryService : IExtensionGalleryService
@@ -410,12 +413,16 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
                 if (latestRelease is null)
                     continue;
 
-                if (IsNewer(latestRelease.Version, meta.InstalledVersion))
+                // Compare against the version actually on disk (extension.json),
+                // not the tag store-meta recorded at install time — a release
+                // packaged with a stale manifest version makes those disagree.
+                var installedVersion = ReadInstalledManifestVersion(entry.Id) ?? meta.InstalledVersion;
+                if (IsNewer(latestRelease.Version, installedVersion))
                 {
                     updates.Add(new ExtensionUpdateInfo
                     {
                         ExtensionId = entry.Id,
-                        InstalledVersion = meta.InstalledVersion,
+                        InstalledVersion = installedVersion,
                         AvailableVersion = latestRelease.Version,
                         Release = latestRelease,
                         Entry = entry
@@ -432,6 +439,28 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
     }
 
     // ── Store meta ────────────────────────────────────────────────────
+
+    /// <summary>
+    /// The version stamped in the installed extension's own manifest
+    /// (extension.json) — the ground truth of what is on disk. Update checks use
+    /// this rather than store-meta's recorded install tag, which can disagree.
+    /// Returns null when the extension is not installed or the manifest is unreadable.
+    /// </summary>
+    public string? ReadInstalledManifestVersion(string extensionId)
+    {
+        var manifestPath = Path.Combine(GetExtensionsDirectory(), extensionId, "extension.json");
+        if (!File.Exists(manifestPath))
+            return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(File.ReadAllText(manifestPath));
+            return doc.RootElement.TryGetProperty("version", out var v) ? v.GetString() : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
 
     public ExtensionStoreMeta? ReadStoreMeta(string extensionId)
     {

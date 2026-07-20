@@ -1,6 +1,11 @@
 # Inspector
 
-The **Inspector** is the right-hand pane of the Novalist window. For the scene open in the editor it shows scene context and analysis, the synopsis, notes, footnotes and comments, and the scene's snapshot history. (This pane was called the context sidebar in earlier versions.)
+The **Inspector** is the right-hand context sidebar of the Novalist window. For the scene open in the editor it has two tabs:
+
+- **Context** — scene context and analysis (entities, mention matrix, editable POV/emotion/intensity/conflict/tags).
+- **Footnotes** — the footnotes and comments anchored in the open scene.
+
+The scene's **synopsis** and freeform **notes** live in the [scene-notes dock](02-interface-overview.md) beneath the editor (`Ctrl+Shift+N`), and the scene's **snapshot history** is opened from the toolbar Snapshots button. (This pane was called the context sidebar in earlier versions.)
 
 ## Toggling the Inspector
 
@@ -21,7 +26,7 @@ Directly below the header, Novalist analyses the open scene and shows what it fi
 
 ### Entities in the scene
 
-The **characters**, **locations**, **items**, and **lore** detected in the scene, each shown as a card with its thumbnail and name. Click a card to open that entity in the [Codex](06-codex.md).
+The **characters**, **locations**, **items**, and **lore** detected in the scene, each shown as a card with its thumbnail and name. **Hover** a card to raise the same rich **focus-peek** card the editor shows when you hover an entity's name in the prose — image, attribute pills, relationships (which you can click to peek through to related entities), appearance, custom properties, description, map pins and sections, with pin/open/close buttons in its header. The peek resolves any [chapter or scene overrides](06-codex.md) for the open scene, so it matches who the entity is at this point in the story. **Click** a card to open that entity in the [Codex](06-codex.md). Character cards also carry small **Gender** and **Age** pills. A character that has a [chapter or scene override](06-codex.md) for the open scene is shown with its overridden name, role, gender and age, so the card matches who the character is at this point in the story. When age is stored as a birth date, the pill shows the character's age **at the open scene**, computed from the birth date against the scene's story date (falling back to the chapter's date, then today).
 
 ### Mention matrix
 
@@ -39,41 +44,22 @@ Each value is auto-computed but fully editable, and every field carries a **rese
 
 Beneath the analysis, a stats line reports the scene's **word count**, **dialogue percentage**, and **average sentence length**.
 
-## Synopsis
+## Footnotes and comments (Footnotes tab)
 
-A short summary of the scene — two or three sentences is the usual scale. Edit it directly in the text box; it saves when you click away. The synopsis appears:
-
-- On scene cards in the Manuscript **corkboard**.
-- In the Manuscript **outliner** table.
-
-## Scene notes
-
-A longer freeform note field, saved the same way. Use it for:
-
-- Research links specific to the scene.
-- Outline / draft notes during writing.
-- Reminders ("fix the timing of Alice arriving" / "double-check the magic-system rule applies here").
-
-Notes are never exported. They're for you.
-
-## Footnotes and comments
-
-When the open scene has footnotes or inline comments, the Inspector lists them:
+The **Footnotes** tab lists the footnotes and inline comments in the open scene:
 
 - **Footnotes** — each with its number and its text, editable inline; remove one with its close button.
 - **Comments** — each shows the anchored text it attaches to, an editable comment body, a close button to delete it, and a **resolved** toggle to mark it done (resolved comments are dimmed).
 
-You create footnotes and comments inside the editor (see [Editor](05-editor.md)); this panel is where you read, edit, resolve, and clear them.
+You create footnotes and comments inside the editor (see [Editor](05-editor.md)); this tab is where you read, edit, resolve, and clear them.
 
-## Scene snapshots
+## Synopsis and notes (bottom dock)
 
-The snapshot list for the open scene. Click **Take snapshot** to save the scene's current state, with an optional label. Each entry offers:
+The scene's **synopsis** (a short summary) and freeform **notes** are no longer in the Inspector — they live in the **scene-notes dock** beneath the editor, toggled from the toolbar or `Ctrl+Shift+N`. Both save when you click away. The synopsis also appears on Manuscript corkboard cards and in the outliner table; notes are never exported.
 
-- **Restore** — bring that older version back.
-- **Delete** — discard the snapshot.
-- **Compare** — pick one snapshot, then a second, to see the two side by side.
+## Scene snapshots (toolbar dialog)
 
-See [Snapshots](17-snapshots.md) for the full picture, including the auto-snapshots taken before Replace All and before restores.
+Per-scene snapshots are taken and managed from the toolbar **Snapshots** button, which opens a dialog with **Take snapshot**, **Restore**, **Delete**, and **Compare**. See [Snapshots](17-snapshots.md) for the full picture, including the auto-snapshots taken before Replace All and before restores.
 
 ## Where to go next
 

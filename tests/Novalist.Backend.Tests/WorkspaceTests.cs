@@ -156,4 +156,88 @@ public sealed class WorkspaceTests : IDisposable
     {
         Assert.Equal(expected, Workspace.StripHtml(input));
     }
+
+    [Fact]
+    public async Task Recents_CarryCoverDataUri_AfterCoverSet()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var source = Path.Combine(_root, "cover.png");
+        await File.WriteAllBytesAsync(source, [0x89, 0x50, 0x4E, 0x47, 1, 2, 3]);
+        await new Rpc.DashboardRpc(workspace).SetCoverAsync(source);
+
+        var recents = await workspace.GetRecentProjectsAsync();
+        var entry = recents.Single(r => r.Path == workspace.Projects.ProjectRoot);
+        Assert.NotNull(entry.Cover);
+        Assert.StartsWith("data:image/png;base64,", entry.Cover);
+    }
+
+    [Fact]
+    public async Task Recents_NoCover_YieldsNullDataUri()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var recents = await workspace.GetRecentProjectsAsync();
+        Assert.NotEmpty(recents);
+        Assert.All(recents, r => Assert.Null(r.Cover));
+    }
+
+    [Fact]
+    public async Task LoadCoverDataUri_HandlesEmptyMissingAndReal()
+    {
+        Assert.Null(await Workspace.LoadCoverDataUriAsync(null));
+        Assert.Null(await Workspace.LoadCoverDataUriAsync(""));
+        Assert.Null(await Workspace.LoadCoverDataUriAsync(Path.Combine(_root, "absent.png")));
+
+        var file = Path.Combine(_root, "real.jpg");
+        var bytes = new byte[] { 1, 2, 3, 4 };
+        await File.WriteAllBytesAsync(file, bytes);
+        var uri = await Workspace.LoadCoverDataUriAsync(file);
+        Assert.NotNull(uri);
+        Assert.StartsWith("data:image/jpeg;base64,", uri);
+        Assert.EndsWith(Convert.ToBase64String(bytes), uri);
+    }
+
+    [Theory]
+    [InlineData(".jpg", "image/jpeg")]
+    [InlineData(".JPEG", "image/jpeg")]
+    [InlineData("png", "image/png")]
+    [InlineData(".gif", "image/gif")]
+    [InlineData(".webp", "image/webp")]
+    [InlineData(".bmp", "image/bmp")]
+    [InlineData(".xyz", "application/octet-stream")]
+    public void MimeForExtension_MapsKnownAndDefaults(string extension, string expected)
+    {
+        Assert.Equal(expected, Workspace.MimeForExtension(extension));
+    }
+
+    [Fact]
+    public void ActiveCoverAbsolutePath_NullWhenNoProject()
+    {
+        Assert.Null(CreateWorkspace().ActiveCoverAbsolutePath());
+    }
+
+    [Fact]
+    public async Task ActiveCoverAbsolutePath_NullWhenNoCover_RootedWhenSet()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        Assert.Null(workspace.ActiveCoverAbsolutePath());
+
+        workspace.Projects.ActiveBook!.CoverImage = "Images/x.png";
+        var abs = workspace.ActiveCoverAbsolutePath();
+        Assert.NotNull(abs);
+        Assert.EndsWith("x.png", abs);
+        Assert.True(Path.IsPathRooted(abs));
+    }
+
+    [Fact]
+    public async Task RefreshRecentCover_NoOp_WhenNoProjectOrNotInRecents()
+    {
+        // No project open -> ProjectRoot null -> silent no-op.
+        await CreateWorkspace().RefreshRecentCoverAsync();
+
+        // Project open but absent from the recents list -> silent no-op.
+        var workspace = await CreateOpenProjectAsync();
+        workspace.Settings.Settings.RecentProjects.Clear();
+        await workspace.RefreshRecentCoverAsync();
+        Assert.Empty(workspace.Settings.Settings.RecentProjects);
+    }
 }

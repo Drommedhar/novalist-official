@@ -4,8 +4,9 @@ import { rpc } from '../../rpc/client'
 import type { CustomTypeDefinition } from './CustomTypeManager'
 
 const LORE_CATEGORIES = ['Organization', 'Culture', 'History', 'Other']
+const REF_TYPES = ['character', 'location', 'item', 'lore']
 
-type Control = 'text' | 'textarea' | 'category' | 'parent' | 'date'
+type Control = 'text' | 'textarea' | 'category' | 'parent' | 'date' | 'ref'
 
 interface FieldSpec {
   key: string
@@ -95,6 +96,10 @@ export function EntityDetailFields({
 }): React.JSX.Element {
   const { t } = useTranslation()
   const [locationNames, setLocationNames] = useState<string[]>([])
+  const [refNames, setRefNames] = useState<string[]>([])
+
+  const custom = !['character', 'location', 'item', 'lore'].includes(entityType)
+  const customFields = record.fields as Record<string, string> | undefined
 
   const needsParent = entityType === 'location'
   useEffect(() => {
@@ -105,8 +110,18 @@ export function EntityDetailFields({
       .catch(() => setLocationNames([]))
   }, [needsParent])
 
-  const custom = !['character', 'location', 'item', 'lore'].includes(entityType)
-  const customFields = record.fields as Record<string, string> | undefined
+  // EntityRef custom fields offer a name picker across the built-in entity types.
+  const needsRefs = custom && (customDef?.defaultFields ?? []).some((f) => f.type === 'EntityRef')
+  useEffect(() => {
+    if (!needsRefs) return
+    void Promise.all(
+      REF_TYPES.map((type) =>
+        rpc.request<{ name: string }[]>('entities/list', [type]).catch(() => [])
+      )
+    )
+      .then((lists) => setRefNames([...new Set(lists.flat().map((e) => e.name))].sort()))
+      .catch(() => setRefNames([]))
+  }, [needsRefs])
 
   const readValue = (key: string, isCustom: boolean): string => {
     if (key === 'name') return String(record.name ?? '')
@@ -152,12 +167,14 @@ export function EntityDetailFields({
       )
     }
     const inputType = control === 'date' ? 'date' : 'text'
+    const listId =
+      control === 'parent' ? 'codex-location-names' : control === 'ref' ? 'codex-ref-names' : undefined
     return (
       <>
         <input
           className="outliner-input codex-field-input"
           type={inputType}
-          list={control === 'parent' ? 'codex-location-names' : undefined}
+          list={listId}
           defaultValue={value}
           key={`${key}:${value}`}
           onBlur={(e) => commit(e.target.value)}
@@ -165,6 +182,13 @@ export function EntityDetailFields({
         {control === 'parent' && (
           <datalist id="codex-location-names">
             {locationNames.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
+        )}
+        {control === 'ref' && (
+          <datalist id="codex-ref-names">
+            {refNames.map((n) => (
               <option key={n} value={n} />
             ))}
           </datalist>
@@ -179,6 +203,8 @@ export function EntityDetailFields({
         return { control: 'date' }
       case 'Bool':
         return { control: 'category', options: ['true', 'false'] }
+      case 'EntityRef':
+        return { control: 'ref' }
       default:
         return { control: 'text' }
     }

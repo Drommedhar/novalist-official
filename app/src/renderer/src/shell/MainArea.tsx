@@ -16,9 +16,23 @@ import { GitView } from '../views/git/GitView'
 import { SettingsView } from '../views/settings/SettingsView'
 import { MapsView } from '../views/maps/MapsView'
 import { ExtensionWebView } from '../views/extensions/ExtensionWebView'
+import { ExtensionsView } from '../views/extensions/ExtensionsView'
 import { useExtensionsStore } from '../stores/extensionsStore'
+import { HostBridgeOverlays } from './HostBridgeOverlays'
 
+/** Wraps the routed main-area content with the always-present extension-host UI
+ * surfaces (toasts, busy-progress, wizard). The overlays read their state from
+ * the host-bridge store, so a view switch never disturbs an in-flight dialog. */
 export function MainArea(): React.JSX.Element {
+  return (
+    <>
+      <MainAreaContent />
+      <HostBridgeOverlays />
+    </>
+  )
+}
+
+function MainAreaContent(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
   const extView = useShellStore((s) => s.extView)
@@ -161,6 +175,14 @@ export function MainArea(): React.JSX.Element {
     return (
       <main className="main-area">
         <MapsView />
+      </main>
+    )
+  }
+
+  if (mainView === 'extensions') {
+    return (
+      <main className="main-area">
+        <ExtensionsView />
       </main>
     )
   }
