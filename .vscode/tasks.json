@@ -18,7 +18,10 @@
       "problemMatcher": [
         "$msCompile"
       ],
-      "group": "build"
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     },
     {
       "label": "install New UI deps",
@@ -30,49 +33,6 @@
         "cwd": "${workspaceFolder}/app"
       },
       "problemMatcher": []
-    },
-    {
-      "label": "build Novalist Standalone",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "build",
-        "${workspaceFolder}/Novalist.Desktop/Novalist.Desktop.csproj",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "problemMatcher": [
-        "$msCompile"
-      ],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
-    },
-    {
-      "label": "build Novalist Standalone (Release)",
-      "type": "shell",
-      "command": "dotnet",
-      "args": [
-        "build",
-        "-c",
-        "Release",
-        "${workspaceFolder}/Novalist.Desktop/Novalist.Desktop.csproj",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "problemMatcher": [
-        "$msCompile"
-      ],
-      "group": {
-        "kind": "build"
-      }
     }
   ]
 }

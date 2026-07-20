@@ -8,7 +8,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)] [string] $CoberturaGlob,  # glob to coverage.cobertura.xml
-    [Parameter(Mandatory)] [string] $Package,        # assembly/package name, e.g. Novalist.Desktop
+    [Parameter(Mandatory)] [string] $Package,        # assembly/package name, e.g. Novalist.Core
     [double] $Threshold = 100.0,
     [switch] $NoFail                                 # measure + report only; never throw on low coverage
 )

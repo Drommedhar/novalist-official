@@ -13,25 +13,25 @@ which is reproduced below per the redistribution requirement.
 The following files in this repository originate from or are derived from
 revo-realms, branch `feat/new-world`:
 
-- `Novalist.Desktop/Assets/Map/vegetation/sekai.glb`
+- `app/src/renderer/public/map/vegetation/sekai.glb`
   — sourced from `public/models/sekai.glb`. We use only the `pine_tree_bark`
   and `pine_tree_canopy` meshes from this GLB; the rest of the model is
   unused at runtime but present in the binary for simplicity.
-- `Novalist.Desktop/Assets/Map/vegetation/realm.glb`
+- `app/src/renderer/public/map/vegetation/realm.glb`
   — sourced from `public/models/realm.glb`. Currently unused at runtime but
   kept in case we later wire up the maple-tree variant from `Tree.ts`.
-- `Novalist.Desktop/Assets/Map/vegetation/pine-canopy-diffuse.png`
+- `app/src/renderer/public/map/vegetation/pine-canopy-diffuse.png`
   — sourced from `public/textures/new-world/pine-tree/diffuse.png`.
-- `Novalist.Desktop/Assets/Map/vegetation/pine-canopy-diffuse.ktx2`
+- `app/src/renderer/public/map/vegetation/pine-canopy-diffuse.ktx2`
   — sourced from `public/textures/new-world/pine-tree/diffuse_2k.ktx2`.
   Preferred at runtime over the PNG; the PNG is the fallback.
-- `Novalist.Desktop/Assets/Map/vegetation/tree-bark-diffuse.ktx2`
+- `app/src/renderer/public/map/vegetation/tree-bark-diffuse.ktx2`
   — sourced from `public/textures/new-world/tree/bark_diffuse_512_uastc.ktx2`.
-- `Novalist.Desktop/Assets/Map/vegetation/tree-bark-normal.ktx2`
+- `app/src/renderer/public/map/vegetation/tree-bark-normal.ktx2`
   — sourced from `public/textures/new-world/tree/bark_normal_512_uastc.ktx2`.
 
 The grass blade material and the pine tree material in
-`Novalist.Desktop/Assets/Map/map3d.js` are adapted from `Grass.ts` and
+`app/src/renderer/public/map/map3d.js` are adapted from `Grass.ts` and
 `PineTrees.ts` in the same repository.
 
 ```
@@ -62,5 +62,5 @@ SOFTWARE.
 
 The 3D map view uses three.js (https://threejs.org/). three.js is distributed
 under the MIT License — the relevant copyright header is preserved in the
-bundled `Novalist.Desktop/Assets/Map/three.*.min.js` and
+bundled `app/src/renderer/public/map/three.*.min.js` and
 `GLTFLoader.js` files.

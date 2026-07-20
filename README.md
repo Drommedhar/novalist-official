@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Novalist.Desktop/splash.png" alt="Novalist" width="400" />
+  <img src="docs/manual/images/interface-overview.png" alt="Novalist" width="820" />
 </p>
 
 <h3 align="center">A desktop novel-writing application for authors who want to stay organized.</h3>
@@ -133,24 +133,32 @@ The Extensions view has a built-in **store**: browse the online extension galler
 
 ## Building
 
-```
-dotnet build Novalist.Desktop/Novalist.Desktop.csproj
-```
-
-To run a Release build:
+Novalist is an Electron + React front end over a bundled .NET 8 core process (`Novalist.Backend`).
 
 ```
-dotnet run --project Novalist.Desktop/Novalist.Desktop.csproj -c Release
+# build the backend the app spawns, then run the app in development
+dotnet build Novalist.Backend/Novalist.Backend.csproj
+cd app
+npm install
+npm run dev
+```
+
+To produce distributable installers for the current platform:
+
+```
+cd app
+npm run package
 ```
 
 ## Project structure
 
 ```
-Novalist.Desktop      Desktop application — views, view models, dialogs, editor extensions
+app/                  Electron + React front end — renderer, main, preload
+Novalist.Backend      .NET 8 core process the app spawns (JSON-RPC over stdio)
 Novalist.Core         Core library — models, services, serialization, localization, utilities
 Novalist.Sdk          Extension SDK — public interfaces, hooks, host-service contracts, descriptor models
-Novalist.Sdk.Example  Reference extension demonstrating 11 hook types
-docs/                 User manual, extension guide, gallery images
+Novalist.Sdk.Example  Reference extension demonstrating the hook types
+docs/                 User manual, extension guide, screenshots
 ```
 
 ## Support the Project

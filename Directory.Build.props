@@ -16,7 +16,7 @@
     <Company>Novalist</Company>
     <Copyright>Copyright © Novalist contributors</Copyright>
 
-    <!-- Warnings we intentionally tolerate (Avalonia deprecations covered separately). -->
-    <NoWarn>$(NoWarn);AVLN5001;AVLN3001;CS8618</NoWarn>
+    <!-- Warnings we intentionally tolerate. -->
+    <NoWarn>$(NoWarn);CS8618</NoWarn>
   </PropertyGroup>
 </Project>
