@@ -35,10 +35,7 @@ public sealed class GitRpcTests : IDisposable
         process.WaitForExit();
     }
 
-    public void Dispose()
-    {
-        try { Directory.Delete(_root, true); } catch (IOException) { }
-    }
+    public void Dispose() => TestHelpers.TempDir.ForceDelete(_root);
 
     [Fact]
     public async Task ChangedScenes_MarksScenesWithUncommittedEdits()
@@ -177,7 +174,7 @@ public sealed class GitRpcTests : IDisposable
         }
         finally
         {
-            try { Directory.Delete(root, true); } catch (IOException) { }
+            TestHelpers.TempDir.ForceDelete(root);
         }
     }
 }
