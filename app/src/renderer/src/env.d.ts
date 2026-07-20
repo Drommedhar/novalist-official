@@ -6,6 +6,12 @@ declare module 'virtual:novalist-manual' {
   export default pages
 }
 
+/** Manual images inlined as data URIs, keyed by filename ("editor.png"). */
+declare module 'virtual:novalist-manual-images' {
+  const images: Record<string, string>
+  export default images
+}
+
 interface Window {
   novalistStores: {
     project: typeof import('./stores/projectStore').useProjectStore

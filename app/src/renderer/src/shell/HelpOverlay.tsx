@@ -4,6 +4,7 @@ import { BookOpen, X } from 'lucide-react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import manualPages from 'virtual:novalist-manual'
+import manualImages from 'virtual:novalist-manual-images'
 import './help.css'
 
 interface ManualPage {
@@ -113,6 +114,16 @@ export function HelpOverlay({ onClose }: { onClose(): void }): React.JSX.Element
               <Markdown
                 remarkPlugins={[remarkGfm]}
                 components={{
+                  // Manual images are referenced as `images/<file>.png`; resolve
+                  // them to the inlined data URIs (no real asset origin exists in
+                  // the packaged app). Unknown sources render nothing.
+                  img: ({ src, alt }) => {
+                    const key = typeof src === 'string' ? (src.split('/').pop() ?? '') : ''
+                    const resolved = manualImages[key]
+                    return resolved ? (
+                      <img className="help-image" src={resolved} alt={alt ?? ''} />
+                    ) : null
+                  },
                   a: ({ href, children, ...rest }) => {
                     const target = href ? resolvePageLink(href, pages) : null
                     if (target) {

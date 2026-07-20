@@ -121,6 +121,16 @@
   line-height: 1.6;
 }
 
+/* Screenshots embedded in manual pages. */
+.help-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: var(--nl-space-lg) 0;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
 /* ===== Markdown typography ===== */
 .help-content h1,
 .help-content h2,
