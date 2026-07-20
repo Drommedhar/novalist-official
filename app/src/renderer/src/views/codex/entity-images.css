@@ -1,0 +1,111 @@
+/* Entity image strip: per-image editable name, swap/remove actions, and the
+   add-from-URL dialog. Layout overrides use higher specificity so they win over
+   the base .entity-image rules in shell.css without editing that file. */
+
+.entity-images-strip .entity-image {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 72px;
+}
+
+/* Overlay actions (swap + remove) pinned to the thumbnail's top-right corner. */
+.entity-image-actions {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.entity-image .entity-image-actions button {
+  position: static;
+  top: auto;
+  right: auto;
+}
+
+.entity-image .entity-image-actions button:hover {
+  color: var(--nl-accent);
+}
+
+.entity-image .entity-image-actions button.entity-image-remove:hover {
+  color: var(--nl-danger);
+}
+
+/* Inline, blur-saved image name under each thumbnail. */
+.entity-image-namefield {
+  display: block;
+  width: 72px;
+  margin-top: var(--nl-space-tighter);
+  font: inherit;
+  font-size: var(--nl-font-tiny);
+  color: var(--nl-text);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 1px 2px;
+  text-align: center;
+}
+
+.entity-image-namefield:hover {
+  border-bottom-color: var(--nl-border);
+}
+
+.entity-image-namefield:focus {
+  outline: none;
+  border-bottom-color: var(--nl-accent);
+}
+
+/* Add-from-URL dialog. */
+.entity-url-input {
+  width: 100%;
+}
+
+.entity-url-error {
+  font-size: var(--nl-font-tiny);
+  color: var(--nl-danger);
+}
+
+/* Per-scope override media editors (images / relationships / sections) inside the
+   inline overrides form: a header row that pairs the section label with either an
+   "inheriting base" tag or a "reset to inherit" button. */
+.overrides-media-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  margin-top: var(--nl-space-md);
+}
+
+.overrides-media-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-sm);
+}
+
+.overrides-media-head .inspector-label {
+  margin: 0;
+}
+
+.overrides-inherit-tag {
+  font-size: var(--nl-font-tiny);
+  color: var(--nl-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.overrides-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-accent);
+  padding: var(--nl-space-none);
+}
+
+.overrides-reset:hover {
+  text-decoration: underline;
+}

@@ -1,5 +1,3 @@
-using Avalonia.Controls;
-
 namespace Novalist.Sdk.Models;
 
 /// <summary>
@@ -16,8 +14,8 @@ public sealed class EntityTypeDescriptor
     /// <summary>Plural display name (e.g. "Factions").</summary>
     public string DisplayNamePlural { get; init; } = string.Empty;
 
-    /// <summary>Icon emoji.</summary>
-    public string Icon { get; init; } = "🧩";
+    /// <summary>Optional icon text.</summary>
+    public string Icon { get; init; } = string.Empty;
 
     /// <summary>Folder name within the book directory.</summary>
     public string FolderName { get; init; } = string.Empty;
@@ -27,9 +25,6 @@ public sealed class EntityTypeDescriptor
 
     /// <summary>Feature toggles (images, relationships, sections).</summary>
     public EntityTypeFeatures Features { get; init; } = new();
-
-    /// <summary>Optional: custom editor view (overrides the generic editor).</summary>
-    public Func<object, Control>? CreateEditorView { get; init; }
 
     /// <summary>Optional: factory for creating a new empty entity of this type.</summary>
     public Func<object>? CreateNew { get; init; }

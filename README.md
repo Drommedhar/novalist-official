@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="Novalist.Desktop/splash.png" alt="Novalist" width="400" />
+  <img src="docs/manual/images/interface-overview.png" alt="Novalist" width="820" />
 </p>
 
 <h3 align="center">A desktop novel-writing application for authors who want to stay organized.</h3>
@@ -23,7 +23,7 @@
 
 ## What is Novalist?
 
-Novalist is an offline-first desktop application for writing novels. It handles the full scope of a writing project — manuscript editing, worldbuilding, plotting, timelines, exporting, and version control — in a single, self-contained tool. It runs on Windows, macOS, and Linux on top of .NET 8 and Avalonia.
+Novalist is an offline-first desktop application for writing novels. It handles the full scope of a writing project — manuscript editing, worldbuilding, plotting, timelines, exporting, and version control — in a single, self-contained tool. It runs on Windows, macOS, and Linux: an Electron + React interface in front of a bundled .NET 8 core process that owns all project logic.
 
 Rather than scattering notes across separate apps, browser tabs, and Markdown files, Novalist keeps everything about a project in one folder of plain files: chapters and scenes as HTML, entities and metadata as JSON, images and research alongside. The folder is yours — back it up, sync it, version-control it, edit it with any text editor when Novalist is closed.
 
@@ -34,6 +34,13 @@ A full **User Manual** lives in [`docs/manual/`](docs/manual/README.md). It cove
 For extension authors, the [Extension Guide](docs/extension-guide.md) walks through the SDK, hooks, packaging, and store submission.
 
 ## Features
+
+### Interface
+
+- **Activity-bar layout** — a slim icon rail on the far left switches views, the binder (chapter/scene tree and smart lists) sits beside it, the active view fills the center with an optional scene-notes dock beneath the editor, and a context sidebar is on the right.
+- **Scene context & analysis inspector** — the right sidebar's **Context** tab shows the entities present in the current scene, a cross-chapter mention matrix, and an auto-computed scene analysis (POV, emotion, intensity, conflict, tags) with manual overrides; the **Footnotes** tab lists footnotes and comments. Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.
+- **Command palette** (`Ctrl+Shift+P`) and number-key view switching for keyboard-driven navigation.
+- On macOS 26+ the window uses native **Liquid Glass**, with vibrancy on older macOS; Windows and Linux render opaque themed surfaces from the same design tokens.
 
 ### Writing
 
@@ -56,7 +63,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Worldbuilding (Codex)
 
-- **Characters** with name/surname, gender, age (manual or computed from birth date and the in-world calendar), role, group, physical traits, images, relationships, and per-act / per-chapter / per-scene overrides for any field.
+- **Characters** with name/surname, gender, age (manual or computed from birth date and the in-world calendar), role, group, physical traits, images, relationships, and per-act / per-chapter / per-scene overrides for any field as well as for images, relationships, and sections.
 - **Locations** with hierarchical parents, types, and custom fields.
 - **Items** with origin, type, and description.
 - **Lore** entries for magic systems, religions, history, in-world books.
@@ -74,7 +81,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Relationships graph** — auto-clustered force-directed graph of characters with family detection in English and German.
 - **Manuscript view** — read the whole book end-to-end, switch to Corkboard for index-card planning, or Outliner for a sortable scene table.
 - **Maps** — interactive layered map view: recursive layer tree with drag-and-drop nesting, per-layer opacity / lock / zoom-range / floor-stack mode; per-image rotate, resize, polygon clip mask; entity-linked colour pins; text labels; road & river spline tool with typed profiles (casing, fill, lane markings) and per-point width; terrain shapes (grass, forest, sand, …) with feathered, blendable edges and z-ordering; typed buildings (homes, schools, stations, …) with procedurally-generated footprints that snap to roads and optional multi-floor interior plans (walls, doors, windows, stairs); a freeform clip border that frames the whole map; and a one-click **3D view** — a GPU-rendered, free-fly walkthrough of the whole map with extruded buildings, sloped roofs, interiors, terrain and roads.
-- **Dashboard** — totals, status breakdown, chapter pacing, echo phrases, daily / project word goals with deadlines.
+- **Dashboard** — totals, status breakdown, chapter pacing, echo phrases, daily / project word goals with deadlines, plus a wide project banner and a portrait book cover (the cover shows for each project on the welcome screen).
 
 ### Research & assets
 
@@ -84,9 +91,9 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Output
 
-- Export to **EPUB**, **DOCX**, **PDF**, **Markdown**, **Final Draft / Fountain**, **LaTeX**, and **Codex Markdown**.
-- Built-in **Shunn Modern Manuscript Format** preset for submissions.
-- Chapter-level selection, optional title page, custom title and author.
+- Export to **EPUB**, **DOCX**, **PDF**, **Markdown**, **Final Draft**, **LaTeX**, and **Codex Markdown**.
+- **Layout presets** — Default, **Shunn Manuscript Format** (industry-standard submission format), and Ebook Flow set fonts, spacing, and margins; a one-click Shunn toggle for DOCX and PDF.
+- Chapter-level selection with select-all / select-none, optional title page, custom title and author.
 - Extensions can contribute additional formats and presets.
 
 ### Version control
@@ -104,8 +111,8 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - **Hotkeys** — every action is rebindable; defaults documented in [`docs/manual/26-hotkeys.md`](docs/manual/26-hotkeys.md).
 - **Command Palette** (`Ctrl+Shift+P`) — every action by name.
-- **Localization** — drop-in JSON locale files; English and German ship in the box.
-- **Theme** — system / light / dark with a custom accent color.
+- **Localization** — drop-in JSON locale files; English, German, and Simplified Chinese ship in the box.
+- **Theme** — light/dark following the OS, plus bundled Discord and Catppuccin Mocha palettes and a custom accent color; on macOS 26+ the window uses native Liquid Glass, with a vibrancy fallback on older macOS.
 - **Global or per-project settings** — appearance, editor, and writing-assistance settings default to global but can be overridden per project (e.g. an English book and a German book each with their own language, quotes, and theme); project overrides live in `.novalist/` and sync via git.
 - **Book preview** — render the editor as a printed page with configurable trim size and book font.
 
@@ -113,40 +120,45 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 Novalist has a plugin architecture through the **Novalist SDK**. Extensions can contribute:
 
-- Ribbon and status-bar items
-- Sidebar and context-sidebar tabs
-- Full-screen content views with activity-bar icons
-- Settings categories and pages
-- Hotkeys
+- Webview panels that appear as activity-bar view icons under Extensions (SDK v2)
 - Editor hooks (lifecycle, inline actions, grammar checks)
-- Context-menu items
-- Export formats and presets
-- Themes
+- Export formats
 - Custom entity types and custom property types
 - AI integration hooks (prompt building, response processing)
+- Themes
 
-Extensions are .NET 8 class libraries discovered at runtime from the user extensions folder. See the [Extension Guide](docs/extension-guide.md) and the bundled `Novalist.Sdk.Example` project for a working reference implementation.
+Extensions are .NET 8 class libraries loaded by the core process at runtime from the user extensions folder; their UI is delivered as sandboxed webviews. The bundled AI Assistant is the reference example, contributing the AI Chat, Character Chat, and Story Analysis panels. See the `Novalist.Sdk.Example` project for a working implementation.
+
+The Extensions view has a built-in **store**: browse the online extension gallery, read each extension's README and release notes, and install or update extensions in place (with download progress and a cancel option) without leaving the app. It can also check installed extensions for updates on startup.
 
 ## Building
 
-```
-dotnet build Novalist.Desktop/Novalist.Desktop.csproj
-```
-
-To run a Release build:
+Novalist is an Electron + React front end over a bundled .NET 8 core process (`Novalist.Backend`).
 
 ```
-dotnet run --project Novalist.Desktop/Novalist.Desktop.csproj -c Release
+# build the backend the app spawns, then run the app in development
+dotnet build Novalist.Backend/Novalist.Backend.csproj
+cd app
+npm install
+npm run dev
+```
+
+To produce distributable installers for the current platform:
+
+```
+cd app
+npm run package
 ```
 
 ## Project structure
 
 ```
-Novalist.Desktop      Desktop application — views, view models, dialogs, editor extensions
+app/                  Electron + React front end — renderer, main, preload
+Novalist.Backend      .NET 8 core process the app spawns (JSON-RPC over stdio)
 Novalist.Core         Core library — models, services, serialization, localization, utilities
 Novalist.Sdk          Extension SDK — public interfaces, hooks, host-service contracts, descriptor models
-Novalist.Sdk.Example  Reference extension demonstrating 11 hook types
-docs/                 User manual, extension guide, gallery images
+Novalist.Sdk.Example  Reference extension demonstrating the hook types
+docs/                 User manual, extension guide, screenshots
 ```
 
 ## Support the Project

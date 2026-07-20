@@ -1,9 +1,9 @@
 <Project>
   <PropertyGroup>
-    <!-- Single source of truth for Novalist versioning.
-         CI overrides these via -p:VersionPrefix=x.y.z on the dotnet publish command.
-         Local/dev builds default to 0.0.1-dev. -->
-    <VersionPrefix>1.13</VersionPrefix>
+    <!-- Single source of truth for Novalist versioning. Release builds set the
+         real version from the git tag (CI passes -p:VersionPrefix=x.y.z); this is
+         only the local/dev baseline, kept in step with the current major. -->
+    <VersionPrefix>2.0.0</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)' == '' AND '$(ContinuousIntegrationBuild)' != 'true'">dev</VersionSuffix>
 
     <!-- These all derive from Version automatically, but we set them explicitly
@@ -16,7 +16,7 @@
     <Company>Novalist</Company>
     <Copyright>Copyright © Novalist contributors</Copyright>
 
-    <!-- Warnings we intentionally tolerate (Avalonia deprecations covered separately). -->
-    <NoWarn>$(NoWarn);AVLN5001;AVLN3001;CS8618</NoWarn>
+    <!-- Warnings we intentionally tolerate. -->
+    <NoWarn>$(NoWarn);CS8618</NoWarn>
   </PropertyGroup>
 </Project>

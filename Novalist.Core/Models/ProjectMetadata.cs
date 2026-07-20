@@ -44,8 +44,14 @@ public class ProjectMetadata
     [JsonPropertyName("imageFolder")]
     public string ImageFolder { get; set; } = "Images";
 
+    /// <summary>Portrait book-cover image (shown on the welcome/start screen).</summary>
     [JsonPropertyName("coverImage")]
     public string CoverImage { get; set; } = string.Empty;
+
+    /// <summary>Wide banner image (shown on the Dashboard). Falls back to
+    /// <see cref="CoverImage"/> when empty so pre-split projects keep a banner.</summary>
+    [JsonPropertyName("bannerImage")]
+    public string BannerImage { get; set; } = string.Empty;
 
     /// <summary>
     /// Custom entity type definitions shared across all books in the project.

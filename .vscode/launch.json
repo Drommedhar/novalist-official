@@ -2,35 +2,56 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Novalist Standalone",
-      "type": "coreclr",
+      "name": "New UI: Main Process",
+      "type": "node",
       "request": "launch",
-      "preLaunchTask": "build Novalist Standalone",
-      "program": "${workspaceFolder}/Novalist.Desktop/bin/Debug/net8.0/Novalist.Desktop.dll",
-      "cwd": "${workspaceFolder}/Novalist.Desktop",
-      "stopAtEntry": false,
-      "console": "internalConsole",
-      "justMyCode": true,
+      "cwd": "${workspaceFolder}/app",
+      "runtimeExecutable": "${workspaceFolder}/app/node_modules/.bin/electron-vite",
+      "windows": {
+        "runtimeExecutable": "${workspaceFolder}/app/node_modules/.bin/electron-vite.cmd"
+      },
+      "runtimeArgs": ["dev", "--sourcemap"],
+      "console": "integratedTerminal",
+      "preLaunchTask": "build Novalist Backend (Debug)",
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/app/**",
+        "!**/node_modules/**"
+      ],
       "env": {
-        "GDK_BACKEND": "x11",
-        "WEBKIT_DISABLE_DMABUF_RENDERER": "1",
-        "NOVALIST_FORCE_WEBKIT_WIZARD": "0"
+        "ELECTRON_RUN_AS_NODE": null,
+        "REMOTE_DEBUGGING_PORT": "9222",
+        // Force the version the update check treats as "installed". Set to an
+        // older version (e.g. "1.0.0") to make the app detect the latest GitHub
+        // release as an update and exercise the self-update flow. Empty = use the
+        // real build version (no forcing).
+        "NOVALIST_FORCE_VERSION": ""
       }
     },
     {
-      "name": "Launch Novalist Standalone (Release)",
+      "name": "New UI: Renderer Process",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9222,
+      "timeout": 60000,
+      "webRoot": "${workspaceFolder}/app/src/renderer",
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/app/**",
+        "!**/node_modules/**"
+      ]
+    },
+    {
+      "name": "New UI: Attach to Backend (C#)",
       "type": "coreclr",
-      "request": "launch",
-      "preLaunchTask": "build Novalist Standalone (Release)",
-      "program": "${workspaceFolder}/Novalist.Desktop/bin/Release/net8.0/Novalist.Desktop.dll",
-      "cwd": "${workspaceFolder}/Novalist.Desktop",
-      "stopAtEntry": false,
-      "justMyCode": false,
-      "env": {
-        "GDK_BACKEND": "x11",
-        "WEBKIT_DISABLE_DMABUF_RENDERER": "1",
-        "NOVALIST_FORCE_WEBKIT_WIZARD": "0"
-      }
+      "request": "attach",
+      "processId": "${command:pickProcess}",
+      "justMyCode": true
+    }
+  ],
+  "compounds": [
+    {
+      "name": "New UI: Full Stack (main + renderer)",
+      "configurations": ["New UI: Main Process", "New UI: Renderer Process"],
+      "stopAll": true
     }
   ]
 }

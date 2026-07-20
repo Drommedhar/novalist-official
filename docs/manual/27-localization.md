@@ -1,106 +1,86 @@
 # Localization
 
-Novalist's interface is fully localizable. The two languages shipping in the box are **English** and **German**. Adding another language is as simple as dropping a translated JSON file into the locales folder — no rebuild required.
+Novalist's interface is fully localizable. Three languages ship in the box:
+
+- **English** (`en`) — the fallback language.
+- **German** (`de`).
+- **Chinese, Simplified** (`zh-CN`).
+
+On first launch, Novalist picks the language matching your operating system where possible, and English otherwise.
 
 ## Choosing a language
 
-**Settings → Appearance → Language**. The dropdown lists every locale found in the locales folder. Switching is immediate; no restart needed.
+**Settings → Appearance → Language**. The dropdown lists every bundled language by its native name. Switching applies **immediately** — every label in the app changes on the spot, no restart needed.
 
-By default the language is global. If you want a specific book to use a different interface language, open that project and tick **Override for this project** at the top of the Appearance section — the language (and the rest of Appearance) is then stored with the project and applied whenever you open it. See [Settings](23-settings.md) for how global vs project scope works.
-
-The chosen language is stored in `AppSettings.Language` (or the project's `.novalist/settings.json` override) and applies to:
-
-- Every label, menu, button, tooltip, and dialog in the UI.
-- Date pickers, where the language affects month and weekday names (for Gregorian calendars).
-- The default auto-replacement language preset.
-- The default grammar-check language passed to LanguageTool.
+By default the language is global. If you want a specific project to use a different interface language, open that project and tick the **project override** switch at the top of the Appearance section — the language (and the rest of Appearance) is then stored with the project and applied whenever you open it. See [Settings](23-settings.md) for how global vs project scope works.
 
 ## How localization works
 
-All UI strings come from JSON files under the app's `Assets/Locales/` folder. There is one file per language:
-
-- `en.json` — English (fallback).
-- `de.json` — German.
-- `<your-language>.json` — your contribution.
-
-Each file is a flat dictionary of **dot-notation keys** mapped to strings:
+All UI strings come from one JSON file per language, bundled with the app. Each file organizes **dot-notation keys** by area:
 
 ```json
 {
   "language.name": "English",
   "language.code": "en",
-  "menu.edit": "Edit",
-  "menu.view": "View",
-  "ribbon.chapterTooltip": "Create new chapter",
-  "ribbon.sceneTooltip": "Create new scene",
+  "shell.groupWrite": "Write",
   "dialog.ok": "OK",
   "dialog.cancel": "Cancel",
   ...
 }
 ```
 
-Keys are organized hierarchically by area: `menu.*`, `ribbon.*`, `dialog.*`, `settings.*`, `hotkeys.*`, `welcome.*`, etc.
+Keys are grouped hierarchically: `shell.*`, `settings.*`, `explorer.*`, `dialog.*`, `map.*`, `welcome.*`, and so on. If a key is missing in a translation, Novalist falls back to the English value, so a partial translation is still usable.
 
-## Adding a new language
+## Tokens
 
-1. Copy `Assets/Locales/en.json` to `Assets/Locales/<code>.json` where `<code>` is the language code (e.g. `fr` for French, `es` for Spanish, `pt-br` for Brazilian Portuguese).
-2. Translate every value in the JSON file. **Do not change the keys.**
-3. Update the special keys `language.name` (used in the language picker, written in the language itself: "Français", "Español") and `language.code`.
-4. Drop the file into the locales folder, restart Novalist (or reload via the language picker).
-5. The new language appears in **Settings → Language**.
-
-If a key is missing in your translation, Novalist falls back to the English value, so a partial translation is still usable.
-
-## Tokens and pluralization
-
-Some strings contain placeholder tokens like `{0}` or `{0:N0}` (used by the .NET formatter). Keep the tokens in your translation — the number of tokens and their order must match.
+Some strings contain placeholder tokens like `{{version}}` or `{{count}}`. Keep the tokens in your translation — the names must match exactly.
 
 Example:
 
 ```json
-"statusBar.dailyPercent": "Today: {0}%"
+"shell.backendConnected": "Core connected ({{version}})"
 ```
 
 Translated:
 
 ```json
-"statusBar.dailyPercent": "Heute: {0}%"
+"shell.backendConnected": "Kern verbunden ({{version}})"
 ```
-
-A handful of strings are stitched together at runtime with conjunctions ("X and Y", "X, Y, and Z"). Where possible the entire fragment is in the JSON; if you spot an awkward fragment that the JSON can't fully express, file an issue.
 
 ## Relationship role keywords
 
-The [Relationships graph](14-relationships.md) classifies family roles (father, mother, sibling, …) via keyword matching. The keyword lists live in each locale file under a top-level `relationships` object:
+The [Relationships graph](14-relationships.md) classifies family roles (father, mother, sibling, and so on) via keyword matching. The keyword lists live in each locale file under a top-level `relationships` object:
 
 ```json
 "relationships": {
-  "parent":  ["father", "mother", "parent", "dad", "mom", "papa", "mama"],
+  "parent":  ["father", "mother", "parent", "dad", "mom"],
   "child":   ["child", "daughter", "son"],
   "partner": ["spouse", "husband", "wife", "partner"],
   "sibling": ["brother", "sister", "sibling", "twin"],
-  "pseudo":  ["cousin", "uncle", "aunt", "nephew", "grandfather", ...]
+  "pseudo":  ["cousin", "uncle", "aunt", "nephew", ...]
 }
 ```
 
-The matcher merges these arrays from **every** locale file on disk, so the graph keeps recognising English roles when the UI is in German (and vice versa). To add language coverage, add a `relationships` section to your `<code>.json` — no rebuild required.
+The matcher merges these arrays from **every** bundled language, so the graph keeps recognising English roles when the UI is in German (and vice versa).
 
 Buckets:
 
 - `parent` / `child` / `partner` / `sibling` drive family clustering and edge typing in the graph.
-- `pseudo` covers extended family (cousin, uncle, in-laws, grandparents…) used to anchor non-immediate family characters next to the right node.
+- `pseudo` covers extended family (cousin, uncle, in-laws, grandparents) used to anchor non-immediate family characters next to the right node.
 
-## Contributing translations back
+## Contributing translations
 
-If you'd like your translation included in a future Novalist release, open a pull request against the project repo with your `<code>.json` added under `Novalist.Desktop/Assets/Locales/`. Translations are welcome.
+Locale files are compiled into the app, so adding a language means adding a file to the source tree and building. If you'd like your translation included in a future Novalist release:
+
+1. Copy the English locale file (`app/src/renderer/src/locales/en.json` in the repository) to `<code>.json` for your language code (e.g. `fr`, `es`, `pt-BR`).
+2. Translate every value. **Do not change the keys.**
+3. Set `language.name` to the language's own name ("Français", "Español") and `language.code` to the code.
+4. Add a `relationships` keyword section for your language.
+5. Open a pull request against the project repo. Translations are welcome.
 
 ## Extensions and localization
 
-Extensions ship their own locale files in their `Locales/` folder. The active app language is exposed to extensions via `host.CurrentLanguage`; extensions can load their own translations via `host.GetLocalization`. Extension localization is independent of core localization — translating the core app does not translate extensions, and vice versa.
-
-## Right-to-left support
-
-Right-to-left scripts (Arabic, Hebrew, Persian) are not yet fully supported by the Avalonia layout used in Novalist. Translations into RTL languages are still useful but the visual flow remains left-to-right.
+Extensions ship their own locale files in their `Locales/` folder. The active app language is exposed to extensions through the SDK, and extensions load their own translations independently — translating the core app does not translate extensions, and vice versa.
 
 ## Where to go next
 

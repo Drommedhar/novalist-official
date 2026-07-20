@@ -1,5 +1,4 @@
 using System.Text;
-using Avalonia.Controls;
 using Novalist.Sdk;
 using Novalist.Sdk.Hooks;
 using Novalist.Sdk.Models;
@@ -15,7 +14,6 @@ namespace Novalist.Sdk.Example;
 public sealed class WritingToolkitExtension :
     IExtension,
     IRibbonContributor,
-    ISidebarContributor,
     IEditorExtension,
     IAiHook,
     ISettingsContributor,
@@ -23,12 +21,21 @@ public sealed class WritingToolkitExtension :
     IThemeContributor,
     IStatusBarContributor,
     IContextMenuContributor,
-    IContentViewContributor,
     IEntityTypeContributor,
     IGrammarCheckContributor,
     IHotkeyContributor,
-    IPropertyTypeContributor
+    IWizardContributor,
+    IPropertyTypeContributor,
+    IInlineActionContributor,
+    ISettingsSchemaContributor
 {
+    private bool _autoStartBreaks;
+    private string _promptCategory = "any";
+    private string _promptKeyword = string.Empty;
+    // Autocomplete suggestions filled by the "Suggest keywords" action button —
+    // demonstrates SettingsFieldType.Action + SettingsField.Suggestions.
+    private List<string> _keywordSuggestions = [];
+
     private IHostServices _host = null!;
     private IExtensionLocalization _loc = null!;
     private readonly PomodoroService _pomodoro = new();
@@ -49,6 +56,9 @@ public sealed class WritingToolkitExtension :
         _loc = host.GetLocalization(Id);
         host.ProjectLoaded += info => _wordFrequency.Clear();
         host.SceneSaved += scene => _wordFrequency.MarkDirty();
+        // Inline actions register imperatively (they are not collected from a
+        // return-value hook like the other contributions).
+        host.RegisterInlineActionContributor(this);
     }
 
     public void Shutdown()
@@ -114,25 +124,6 @@ public sealed class WritingToolkitExtension :
         }
     ];
 
-    // ── ISidebarContributor ─────────────────────────────────────────
-
-    public IReadOnlyList<SidebarPanel> GetSidebarPanels() =>
-    [
-        new SidebarPanel
-        {
-            Id = "writingToolkit.prompts",
-            Label = _loc.T("sidebar.writingPrompts.label"),
-            Icon = "🎲",
-            IconPath = "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12",
-            Side = "Right",
-            Tooltip = _loc.T("sidebar.writingPrompts.tooltip"),
-            CreateView = () => new Views.WritingPromptsView
-            {
-                DataContext = new ViewModels.WritingPromptsViewModel(_prompts, _loc)
-            }
-        }
-    ];
-
     // ── IEditorExtension ────────────────────────────────────────────
 
     public string Name => "WritingToolkitEditor";
@@ -159,24 +150,48 @@ public sealed class WritingToolkitExtension :
 
     public string OnResponseChunk(string chunk) => chunk; // pass through
 
-    // ── ISettingsContributor ────────────────────────────────────────
+    // ── ISettingsContributor (page metadata; the form comes from the schema) ─
 
     public IReadOnlyList<SettingsPage> GetSettingsPages() =>
     [
         new SettingsPage
         {
             Category = _loc.T("settings.category"),
-            Icon = "🧰",
-            IconPath = "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z",
-            CreateView = () => new Views.ToolkitSettingsView
-            {
-                DataContext = new ViewModels.ToolkitSettingsViewModel(_pomodoro, _prompts, _host, _loc)
-            },
-            OnSave = () =>
-            {
-                // Settings would be persisted via IHostServices.GetExtensionSettingsPath
-            }
+            IconPath = "M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"
         }
+    ];
+
+    // ── IWizardContributor ──────────────────────────────────────────
+
+    public IReadOnlyList<Novalist.Sdk.Models.Wizards.WizardDefinition> GetWizards() =>
+    [
+        new Novalist.Sdk.Models.Wizards.WizardDefinition
+        {
+            Id = "com.novalist.writingtoolkit.pomodoro",
+            DisplayName = _loc.T("wizard.pomodoro.title"),
+            Description = _loc.T("wizard.pomodoro.description"),
+            Scope = Novalist.Sdk.Models.Wizards.WizardScope.Reference,
+            Steps =
+            {
+                new Novalist.Sdk.Models.Wizards.NumberStep
+                {
+                    Id = "duration",
+                    Title = _loc.T("wizard.pomodoro.duration"),
+                    Min = 5, Max = 90, DefaultValue = 25, Unit = "min",
+                    Skippable = false,
+                },
+                new Novalist.Sdk.Models.Wizards.ChoiceStep
+                {
+                    Id = "autostart",
+                    Title = _loc.T("wizard.pomodoro.autostart"),
+                    Choices =
+                    {
+                        new Novalist.Sdk.Models.Wizards.WizardChoice { Value = "true", Label = _loc.T("wizard.pomodoro.yes") },
+                        new Novalist.Sdk.Models.Wizards.WizardChoice { Value = "false", Label = _loc.T("wizard.pomodoro.no") },
+                    },
+                },
+            },
+        },
     ];
 
     // ── IExportFormatContributor ────────────────────────────────────
@@ -218,12 +233,12 @@ public sealed class WritingToolkitExtension :
         new ThemeOverride
         {
             Name = "Sepia",
-            ResourcePath = "Themes/SepiaTheme.axaml"
+            AccentColor = "#8a6d3b"
         },
         new ThemeOverride
         {
             Name = "Dark Ocean",
-            ResourcePath = "Themes/DarkOceanTheme.axaml"
+            AccentColor = "#1b6ca8"
         }
     ];
 
@@ -237,8 +252,8 @@ public sealed class WritingToolkitExtension :
             Alignment = "Right",
             Order = 50,
             GetText = () => _pomodoro.IsRunning
-                ? $"⏱ {_pomodoro.RemainingMinutes}:{_pomodoro.RemainingSeconds:D2}"
-                : "⏱ --:--",
+                ? $"{_loc.T("statusBar.pomodoroPrefix")} {_pomodoro.RemainingMinutes}:{_pomodoro.RemainingSeconds:D2}"
+                : $"{_loc.T("statusBar.pomodoroPrefix")} --:--",
             GetTooltip = () => _pomodoro.IsRunning
                 ? _loc.T("statusBar.pomodoroRunning", _pomodoro.SessionCount)
                 : _loc.T("statusBar.pomodoroIdle"),
@@ -258,7 +273,7 @@ public sealed class WritingToolkitExtension :
         new ContextMenuItem
         {
             Label = _loc.T("contextMenu.analyzeWordFrequency"),
-            Icon = "📊",
+            Icon = string.Empty,
             Context = "Chapter",
             OnClick = _ =>
             {
@@ -269,32 +284,16 @@ public sealed class WritingToolkitExtension :
         new ContextMenuItem
         {
             Label = _loc.T("contextMenu.analyzeWordFrequency"),
-            Icon = "📊",
+            Icon = string.Empty,
             Context = "Scene",
+            // Only meaningful with a concrete scene in context (e.g. the editor's
+            // current scene); hidden when there is none.
+            IsVisible = ctx => ctx != null,
             OnClick = _ =>
             {
                 System.Diagnostics.Debug.WriteLine("[ExtCtxMenu] Example extension: Scene OnClick fired");
                 _host.ActivateContentView("ext.wordfreq");
             }
-        }
-    ];
-
-    // ── IContentViewContributor ─────────────────────────────────────
-
-    public IReadOnlyList<ContentViewDescriptor> GetContentViews() =>
-    [
-        new ContentViewDescriptor
-        {
-            ViewKey = "ext.wordfreq",
-            DisplayName = _loc.T("contentView.wordFrequency"),
-            Icon = "📊",
-            IconPath = "M18 20V10M12 20V4M6 20v-4",
-            CreateView = () => new Views.WordFrequencyView
-            {
-                DataContext = new ViewModels.WordFrequencyViewModel(_wordFrequency, _host, _loc)
-            },
-            OnActivated = () => { },
-            OnDeactivated = () => { }
         }
     ];
 
@@ -307,7 +306,6 @@ public sealed class WritingToolkitExtension :
             TypeKey = "ext.writingtoolkit.faction",
             DisplayName = _loc.T("entityType.faction"),
             DisplayNamePlural = _loc.T("entityType.factions"),
-            Icon = "⚔️",
             FolderName = "Factions",
             DefaultFields =
             [
@@ -377,4 +375,135 @@ public sealed class WritingToolkitExtension :
             DefaultValue = "0"
         }
     ];
+
+    // ── IInlineActionContributor ────────────────────────────────────
+
+    public IReadOnlyList<InlineActionDescriptor> GetInlineActions() =>
+    [
+        new InlineActionDescriptor
+        {
+            Id = "ext.writingtoolkit.uppercase",
+            Label = _loc.T("inline.uppercase"),
+            Group = _loc.T("group.writingToolkit"),
+            Priority = 10
+        },
+        new InlineActionDescriptor
+        {
+            Id = "ext.writingtoolkit.wordcount",
+            Label = _loc.T("inline.wordCount"),
+            Group = _loc.T("group.writingToolkit"),
+            Priority = 20
+        }
+    ];
+
+    public Task<InlineActionResult> ExecuteAsync(string actionId, InlineActionRequest request, CancellationToken cancellationToken)
+    {
+        var text = request.SelectedText ?? string.Empty;
+        return actionId switch
+        {
+            "ext.writingtoolkit.uppercase" => Task.FromResult(new InlineActionResult
+            {
+                Text = text.ToUpperInvariant(),
+                Disposition = InlineActionDisposition.ReplaceSelection
+            }),
+            "ext.writingtoolkit.wordcount" => Task.FromResult(new InlineActionResult
+            {
+                Text = _loc.T("inline.wordCountResult",
+                    text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length),
+                Disposition = InlineActionDisposition.InsertAfterSelection
+            }),
+            _ => Task.FromResult(new InlineActionResult { Error = _loc.T("inline.unknownAction") })
+        };
+    }
+
+    // ── ISettingsSchemaContributor (declarative advanced settings) ───
+
+    public SettingsSchema GetSettingsSchema() => new()
+    {
+        Title = _loc.T("settingsSchema.title"),
+        Fields =
+        [
+            new SettingsField
+            {
+                Key = "duration",
+                Label = _loc.T("settingsSchema.duration"),
+                Type = SettingsFieldType.Number,
+                Value = _pomodoro.DurationMinutes.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                Min = 5,
+                Max = 90
+            },
+            new SettingsField
+            {
+                Key = "autoStartBreaks",
+                Label = _loc.T("settingsSchema.autoStart"),
+                Type = SettingsFieldType.Bool,
+                Value = _autoStartBreaks ? "true" : "false"
+            },
+            new SettingsField
+            {
+                Key = "promptCategory",
+                Label = _loc.T("settingsSchema.promptCategory"),
+                Type = SettingsFieldType.Select,
+                Value = _promptCategory,
+                Options = ["any", "character", "setting", "conflict"],
+                // Demonstrates conditional visibility: the host shows this field
+                // only while the "autoStartBreaks" field above is enabled.
+                VisibleWhenKey = "autoStartBreaks",
+                VisibleWhenValues = ["true"]
+            },
+            new SettingsField
+            {
+                Key = "promptKeyword",
+                Label = _loc.T("settingsSchema.promptKeyword"),
+                Type = SettingsFieldType.Text,
+                Value = _promptKeyword,
+                // Stays free-text, but offers the action-populated list as a datalist.
+                Suggestions = _keywordSuggestions
+            },
+            new SettingsField
+            {
+                Key = "suggestKeywords",
+                Label = _loc.T("settingsSchema.suggestKeywords"),
+                Type = SettingsFieldType.Action
+            }
+        ]
+    };
+
+    public Task<SettingsSchema?> ExecuteSchemaActionAsync(
+        string actionKey, IReadOnlyDictionary<string, string> values)
+    {
+        if (actionKey != "suggestKeywords") return Task.FromResult<SettingsSchema?>(null);
+        // A real extension might fetch these from a service; here we just supply a
+        // fixed set to show how an action refreshes a field's suggestions.
+        _keywordSuggestions = ["conflict", "mystery", "betrayal", "reunion"];
+        return Task.FromResult<SettingsSchema?>(GetSettingsSchema());
+    }
+
+    public Task ApplySettingsAsync(IReadOnlyDictionary<string, string> values)
+    {
+        if (values.TryGetValue("duration", out var d)
+            && int.TryParse(d, System.Globalization.CultureInfo.InvariantCulture, out var mins))
+        {
+            _pomodoro.DurationMinutes = Math.Clamp(mins, 5, 90);
+        }
+        if (values.TryGetValue("autoStartBreaks", out var a))
+        {
+            _autoStartBreaks = string.Equals(a, "true", StringComparison.OrdinalIgnoreCase);
+        }
+        if (values.TryGetValue("promptCategory", out var c) && !string.IsNullOrWhiteSpace(c))
+        {
+            _promptCategory = c;
+        }
+        if (values.TryGetValue("promptKeyword", out var kw))
+        {
+            _promptKeyword = kw;
+        }
+        return _host.WriteHostDataAsync("writingtoolkit", System.Text.Json.JsonSerializer.Serialize(new
+        {
+            duration = _pomodoro.DurationMinutes,
+            autoStartBreaks = _autoStartBreaks,
+            promptCategory = _promptCategory,
+            promptKeyword = _promptKeyword
+        }));
+    }
 }

@@ -1,0 +1,356 @@
+/* Scene tab strip + enriched focus-peek card for the editor pane. */
+
+.editor-tabs {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  background: var(--nl-surface-toolbar);
+  border-bottom: 1px solid var(--nl-border);
+  scrollbar-width: thin;
+}
+
+.editor-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  max-width: 220px;
+  padding: var(--nl-space-tighter) var(--nl-space-md);
+  border-right: 1px solid var(--nl-border-subtle);
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.editor-tab:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.editor-tab.active {
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
+}
+
+.editor-tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor-tab-dirty {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-git-dirty);
+  flex-shrink: 0;
+}
+
+.editor-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.editor-tab-close:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.editor-tab-menu-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+}
+
+.editor-tab-menu {
+  position: fixed;
+  z-index: 301;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  padding: var(--nl-space-tighter);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  box-shadow: var(--nl-elevation-md);
+}
+
+.editor-tab-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-radius: var(--nl-radius-sm);
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text);
+}
+
+.editor-tab-menu button:hover {
+  background: var(--nl-surface-hover);
+}
+
+/* ===== Focus-peek entity card (full port of FocusPeekCardView) ===== */
+.peek-card-anchor {
+  position: fixed;
+  z-index: 250;
+}
+
+.peek-card-anchor.pinned {
+  left: var(--nl-space-lg);
+  bottom: var(--nl-space-lg);
+}
+
+.peek-card {
+  display: flex;
+  flex-direction: column;
+  width: 360px;
+  max-width: 360px;
+  max-height: 440px;
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-xl);
+  box-shadow: var(--nl-elevation-high);
+  overflow: hidden;
+}
+
+.peek-header {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.peek-title {
+  font-weight: var(--nl-weight-title);
+  font-size: var(--nl-font-title-sm);
+  color: var(--nl-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Subtle banner flagging that the card shows values overridden for the open scope. */
+.peek-scope {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-tighter) var(--nl-space-lg);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  background: var(--nl-surface-hover);
+  border-bottom: 1px solid var(--nl-border-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.peek-badge {
+  flex-shrink: 0;
+  padding: 1px var(--nl-space-sm);
+  border-radius: var(--nl-radius-pill);
+  color: #cdd6f4;
+  font-size: var(--nl-font-tiny);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.peek-actions {
+  display: flex;
+  gap: var(--nl-space-tightest);
+  margin-left: auto;
+}
+
+.peek-action {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body);
+  line-height: 1;
+}
+
+.peek-action:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.peek-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-normal);
+  padding: var(--nl-space-lg);
+  overflow-y: auto;
+}
+
+.peek-body {
+  display: flex;
+  gap: var(--nl-space-lg);
+  align-items: flex-start;
+}
+
+.peek-image-area {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  flex-shrink: 0;
+}
+
+.peek-image-frame {
+  width: 120px;
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-md);
+  overflow: hidden;
+  background: var(--nl-surface-input);
+}
+
+.peek-image-frame img {
+  display: block;
+  width: 100%;
+  max-height: 150px;
+  object-fit: contain;
+}
+
+.peek-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  min-width: 0;
+  flex: 1;
+}
+
+.peek-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter);
+}
+
+.peek-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  padding: 1px var(--nl-space-sm);
+  border-radius: var(--nl-radius-pill);
+  color: #cdd6f4;
+  font-size: var(--nl-font-tiny);
+}
+
+.peek-pill-icon {
+  width: 11px;
+  height: 11px;
+}
+
+.peek-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.peek-caption {
+  font-size: var(--nl-font-tiny);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--nl-text-subtle);
+}
+
+.peek-rel-row {
+  display: flex;
+  gap: var(--nl-space-sm);
+  font-size: var(--nl-font-body-sm);
+}
+
+.peek-rel-role {
+  color: var(--nl-text-subtle);
+  flex-shrink: 0;
+}
+
+.peek-rel-targets {
+  color: var(--nl-text);
+}
+
+.peek-rel-sep,
+.peek-rel-plain {
+  color: var(--nl-text-dim);
+}
+
+.peek-link {
+  color: var(--nl-accent);
+  font-size: inherit;
+}
+
+.peek-link:hover {
+  text-decoration: underline;
+}
+
+.peek-inline-props {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm);
+  font-size: var(--nl-font-body-sm);
+}
+
+.peek-prop-row {
+  font-size: var(--nl-font-body-sm);
+}
+
+.peek-prop-key {
+  color: var(--nl-text-subtle);
+}
+
+.peek-prop-val {
+  color: var(--nl-text);
+}
+
+.peek-description {
+  font-style: italic;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+}
+
+.peek-pins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm) var(--nl-space-md);
+}
+
+.peek-sections-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-sm);
+}
+
+.peek-select {
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body-sm);
+  padding: 1px var(--nl-space-sm);
+}
+
+.peek-section-body {
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text);
+  white-space: pre-wrap;
+}
+
+.peek-ai-stub {
+  font-style: italic;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+}

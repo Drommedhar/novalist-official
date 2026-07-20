@@ -2,7 +2,37 @@
 
 Novalist has an interactive map view for hand-built world maps, city plans, building layouts, and any other spatial reference you need at writing time. Maps live next to the rest of your project on disk and can hold multiple layered images, pinned references to entities, and zoom-dependent detail.
 
-Open the map view from the activity bar (the map icon). The view is per-book: each book carries its own list of maps.
+Open **Maps** from the **World** group in the activity bar (the icon rail on the far left). The view is per-book: each book carries its own list of maps.
+
+## The map view at a glance
+
+The Maps view is a full authoring surface, laid out as:
+
+- A **top toolbar** with the map list and the view/edit controls (below).
+- A **tool rail** down the left edge for adding elements — images, pins, labels, roads and rivers, terrain, and buildings.
+- The **map stage** in the middle.
+- A **layer panel** on the right, with a properties section for the selected layer and element.
+
+## Managing maps
+
+The top toolbar lists every map in the current book:
+
+- **New map** creates a new empty map (one default layer, no pins) — you are asked for a name.
+- Click a map's name (tab) in the toolbar to switch to it.
+- **Rename current map** and **Delete current map** act on the active map; deleting asks for confirmation.
+
+Changes to the map are saved automatically a moment after you make them — there is no save button.
+
+### View controls
+
+Also in the top toolbar:
+
+- **Toggle Edit / View** — switch between editing and read-only viewing (see below).
+- **Zoom to fit** — frame all visible images.
+- **Reset view** — recentre the map at 1x zoom.
+- **3D** — flip between the flat 2D map and the 3D view (see below).
+- **Map border**, **Edit clip mask** (enabled when an image is selected), and **Edit spline** (enabled when a road/river is selected) toggle those editing modes.
+- **Delete selected** removes the currently selected element.
 
 ## What a map is
 
@@ -12,21 +42,14 @@ Each map has its own JSON file under `Books/<book>/Drafts/<draftId>/Maps/<mapId>
 
 ## Editing vs viewing
 
-The map has two modes: **View** (default) and **Edit**. The toolbar's *Toggle Edit / View* button swaps between them.
+The map has two modes: **Edit** (default) and **View**. The *Toggle Edit / View* button in the top toolbar swaps between them.
 
-- **View** mode is for reading. The edit tool palette is hidden, images are not draggable, and clicking a pin opens its linked entity in a focus-peek card.
-- **Edit** mode reveals the tool palette (add image, add pin, label, spline, terrain, building, border, clip-edit, delete), shows resize handles on the selected image, lets you drag images and pins, and exposes context menus.
+- **Edit** mode enables the left tool rail (add image, pin, label, spline, terrain, building), shows resize handles on the selected image, lets you drag images and pins, and exposes context menus.
+- **View** mode is for reading. The tool rail is disabled, images are not draggable, and clicking a pin with a linked entity opens a summary card for it (see [Pins](#pins)).
 
 ## Adding images
 
-Click *Add image* in the toolbar. The same image-source dialog used in entity images appears, with four options:
-
-- **From library** — pick from images already in the project's `Images/` folder.
-- **Import file** — copy an image from disk into the project.
-- **Paste from clipboard** — useful for screenshot-driven workflows.
-- **From URL** — download into the project.
-
-The image lands at the centre of the current viewport, sized to its natural dimensions, and is added to the currently active layer.
+Click *Add image* in the tool rail and pick an image from the project's [image gallery](19-image-gallery.md). The image lands at the centre of the current viewport, sized to its natural dimensions, and is added to the currently active layer. (To bring a new picture into the project first, add it in the Image Gallery.)
 
 ## Navigating
 
@@ -35,7 +58,7 @@ The image lands at the centre of the current viewport, sized to its natural dime
 
 Pan and zoom are saved per-map so the next time you open it you return to the same view.
 
-The cursor only switches to a grab indicator while panning. Left-click on empty space simply clears any selection.
+Left-click on empty space simply clears any selection.
 
 ## Working with images
 
@@ -53,7 +76,7 @@ Right-click → *Move to layer…* opens a dialog listing all layers in the map.
 
 ### Clip mask (polygon clip)
 
-Right-click → *Edit clip mask* enters clip-edit mode for the image. You see an orange polygon overlay with one draggable handle per vertex.
+Right-click → *Edit clip mask* (or the **Edit clip mask** button in the top toolbar, enabled while an image is selected) enters clip-edit mode for the image. You see an orange polygon overlay with one draggable handle per vertex.
 
 - **Drag** any vertex handle to reshape.
 - **Double-click** anywhere on the image to add a new vertex (appended to the polygon).
@@ -65,17 +88,17 @@ The clip polygon is stored in the image's natural-pixel coordinates, so it survi
 
 ## Pins
 
-Pins are screen-space markers that stay the same size regardless of zoom. Click *Add pin* in the toolbar, then click on the map where you want the pin. Once placed, its settings appear in a properties panel at the bottom of the layer panel:
+Pins are screen-space markers that stay the same size regardless of zoom. Click *Add pin* in the tool rail, then click on the map where you want the pin. Once placed, its settings appear in a properties panel at the bottom of the layer panel:
 
 - **Label** — text shown above the pin in the map.
-- **Link to entity** — type-ahead search across characters, locations, items, lore, and custom entity types. Linking is optional.
+- **Link to entity** — search across characters, locations, items, lore, and custom entity types. Linking is optional.
 - **Color** — full colour picker. Default is the theme accent.
 
 Move pins by dragging them. Right-click a pin for a menu: *Edit…* (re-edit label/link/colour), *Move to layer…*, *Delete*.
 
 A pin belongs to a **layer** — the one that was active when it was placed. It follows that layer's visibility, opacity, zoom-range and floor settings, and *Move to layer…* reassigns it.
 
-In view mode, clicking a pin that has a linked entity opens the focus-peek card with that entity's summary — same card you see when hovering an entity mention in the editor. Use the card's open button to jump to the full entity editor when you actually want to edit.
+In view mode, clicking a pin that has a linked entity opens a small **focus-peek card** with that entity's image, name, and detail line — a quick look at what the pin marks without leaving the map. Close it with its `×`.
 
 ## Labels
 
@@ -129,7 +152,7 @@ Like every other map element, a terrain shape belongs to a layer and follows tha
 
 The **map border** is a single clip boundary for the whole map: a freeform polygon you draw, where **everything outside it is hidden** and the polygon itself is stroked as a visible frame. Use it to give a map a clean edge — an island coastline, a torn-parchment outline, a rectangular frame.
 
-Click the **map border tool** in the tool rail. If the map has no border yet, click on the map to drop polygon points, then **Enter** to commit (needs at least 3 points), **Esc** to cancel. A map has at most one border — committing replaces any previous one.
+Click the **Map border** button in the top toolbar. If the map has no border yet, click on the map to drop polygon points, then **Enter** to commit (needs at least 3 points), **Esc** to cancel. A map has at most one border — committing replaces any previous one.
 
 Click the tool again when a border already exists and it enters **edit mode**: vertex handles appear.
 
@@ -148,7 +171,7 @@ While editing, a **Map border** properties panel appears at the bottom of the la
 
 Place typed **buildings** on the map — row homes, single family homes, schools, police / fire stations, halls, playgrounds, train stations.
 
-Click the **building tool** in the tool rail and pick a type from the menu. A preview of the building follows the cursor:
+Click the **building tool** in the tool rail and pick a type from the menu. The same menu has a **Building scale** slider (0.25x to 4x) that sets how large newly placed buildings are relative to the map, so a town of houses and a single cathedral can be sized appropriately. A preview of the building follows the cursor:
 
 - Press **R** to re-roll — each building type generates a random fitting footprint, so no two are identical.
 - Move near a road and the building **snaps** parallel and offset to the road edge (any layer's roads). Hold **Shift** to place freely.
@@ -183,7 +206,6 @@ Select a building and click **Edit floor plan** to draw the interior in place:
 - Upper floors automatically lose usable area to the **roof slope**: a gable roof squeezes the outline only on the eave sides, a hip roof insets it on every side, a flat roof not at all — scaled by the roof pitch. The full footprint is shown ghosted behind an inset upper floor for reference.
 
 Every building showing its floor plan gets a small **floor selector** at its top corner — up / down arrows with the current floor number. It works in **view mode** too, so a reader can flip through a building's floors.
-
 
 ## Roads & rivers (splines)
 
@@ -239,7 +261,7 @@ Custom profiles are saved with the map and appear under a *Custom* submenu in bo
 
 ## Layer panel
 
-Toggle the layer panel from the *Layers* button in the toolbar (it is open by default). The panel is an Affinity-style layer tree: each row is a single layer, indented to show how deeply it is nested.
+The **layer panel** sits on the right of the map. It is an Affinity-style layer tree: each row is a single layer, indented to show how deeply it is nested.
 
 Each row carries, left to right:
 
@@ -282,17 +304,9 @@ In the Properties section of a *group* layer, tick **Floor mode (one layer at a 
 
 With floor mode on, the Properties section exposes an **Active floor** dropdown listing the group's child layers. Whichever child you pick is the only one rendered; the other children stay hidden until you select them. Internally this sets the group's `isConnectedSet` flag — the map data still contains every floor, but the renderer only shows the chosen one.
 
-## Managing maps
-
-Maps are managed from the **File** menu in the toolbar at the top of the map view:
-
-- **New map…** prompts for a name and creates a new empty map (one default layer, no pins).
-- **Open map** is a submenu listing every map in the current book — pick one to switch to it. Switching saves the active map's view (pan/zoom) before loading the new one.
-- **Rename current map…** / **Delete current map…** act on the map currently open.
-
 ## 3D view
 
-The **3D** toggle in the map toolbar flips the editor between the flat 2D map and a GPU-rendered 3D view of the same map. It renders whatever the map already holds — no extra setup.
+The **3D** toggle in the map toolbar flips the map between the flat 2D view and a GPU-rendered 3D view of the same map. It renders whatever the map already holds — no extra setup.
 
 - **Buildings** stand up: walls extruded to `floor count x floor height`, with a real sloped roof on top (gable, hip, or flat) shaded by the roof pitch. Fly inside to see the interior — per-floor slabs, interior walls, doors and windows, and stairs (with stairwell holes cut through the ceilings). Floor labels and pins show as billboards.
 - **Terrain** shapes lie flat on the ground in their colours; **roads** render as flat ribbons following their curves; **base map images** become textured ground under everything.
@@ -301,9 +315,9 @@ The **3D** toggle in the map toolbar flips the editor between the flat 2D map an
 - **Pins** show as upright markers with their label; **labels** as camera-facing text.
 - Hidden layers and Isolate are respected; per-layer opacity and zoom ranges are ignored in 3D.
 
-The 3D view needs **WebGPU**, which a current system WebView2 runtime provides. If WebGPU is unavailable, the 3D view shows a short message instead of rendering — update the WebView2 runtime, or keep working in the 2D map.
+The 3D view needs **WebGPU**, which the app's bundled browser engine provides on current systems. If WebGPU is unavailable on your machine, the 3D view shows a short message instead of rendering — keep working in the 2D map.
 
-When you switch to 3D the editor first shows a **loading overlay** (progress bar + status text) while the renderer warms up, tree GLB + canopy textures load, and the grass/tree instance buffers are filled. The WebView is hidden until the scene is ready so you never see a half-built frame; the overlay then dismisses itself.
+When you switch to 3D the map first shows a **loading overlay** (progress bar + status text) while the renderer warms up, tree models and canopy textures load, and the grass/tree instance buffers are filled. The scene appears only when it is ready, so you never see a half-built frame.
 
 **Camera** — click the view to capture the mouse, then fly freely: `W` / `A` / `S` / `D` to move, `Q` / `E` down / up, mouse to look, `Shift` to move faster, `Esc` to release the mouse. There is no collision — fly straight through walls to inspect interiors.
 
@@ -327,4 +341,4 @@ Map images live in the book's regular `Images/` folder — the same place that e
 
 - [Image Gallery](19-image-gallery.md) — see every image across the project, including those used by maps.
 - [Codex (Characters, Locations, Items, Lore)](06-codex.md) — pin targets come from your Codex.
-- [Snapshots](17-snapshots.md) — map JSON files are versioned like any other project file when you commit through Git.
+- [Git integration](18-git.md) — map JSON files are versioned like any other project file when you commit through Git.

@@ -127,9 +127,7 @@ public class SdkDtoDefaultsTests
     {
         Assert.Equal(string.Empty, new ActivityBarItem().Label);
         Assert.Equal(string.Empty, new ContextMenuItem().Label);
-        Assert.Equal(string.Empty, new ContentViewDescriptor().ViewKey);
-        Assert.Equal("Right", new SidebarPanel().Side);
-        Assert.Null(new ThemeOverride().Styles);
+        Assert.Null(new ThemeOverride().AccentColor);
         Assert.Equal(string.Empty, new ExportFormatDescriptor().FileExtension);
         Assert.Equal(string.Empty, new ExportContext().BookName);
         Assert.Equal(string.Empty, new SettingsPage().Category);

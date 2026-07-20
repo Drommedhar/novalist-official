@@ -1,24 +1,22 @@
 # Chapters & Scenes
 
-Chapters and scenes are how Novalist breaks a book into writable pieces. A book has an ordered list of chapters; each chapter has an ordered list of scenes; each scene holds the actual prose.
+Chapters and scenes are how Novalist breaks a book into writable pieces. A book (more precisely, its active draft) has an ordered list of chapters; each chapter has an ordered list of scenes; each scene holds the actual prose.
 
-You spend most of your time looking at one scene in the editor and the full tree in the left sidebar.
+You spend most of your time looking at one scene in the editor and the full tree in the **binder** on the left.
 
-## The Explorer (left sidebar, Chapters tab)
+## The binder tree (Chapters tab)
 
-The Chapters tab of the left sidebar shows the book's structure as a tree. Each chapter is expandable; scenes appear underneath. Click a scene to open it in the editor. The currently open scene is highlighted.
+The **Chapters** tab of the binder shows the active draft's structure as a tree:
 
-Above the tree is a row of controls:
-
-- **New chapter** — same as the **+Chapter** button in the app bar.
-- **New scene** — same as the **+Scene** button in the app bar.
-- **Search** — filters the tree by title.
+- **Act headers** — when chapters are assigned to acts, a header row with the act name appears above the first chapter of each act.
+- **Chapter rows** — a collapse/expand chevron, a colored **status dot**, and the title. Click the dot to cycle the chapter's status.
+- **Scene rows** — the scene title and its word count. Click a scene to open it in the editor; the open scene is highlighted.
+- **ARCHIVE** — a section at the bottom listing archived scenes (see below).
 
 The tree supports:
 
-- **Drag to reorder** — drag a scene to another position to change its order, or to another chapter to move it. Drag a chapter to change its order in the book.
-- **Multi-select** — `Ctrl+Click` or `Shift+Click` to select multiple chapters or scenes. Operations like delete and status change apply to the selection.
-- **Right-click context menu** — rename, delete, duplicate, set status, set label color, mark favorite, take snapshot, open in split pane, etc.
+- **Drag to reorder** — drag a chapter onto another chapter to change chapter order. Drag a scene within its chapter to reorder it, or drop it onto another chapter (or one of that chapter's scenes) to move it there.
+- **Right-click context menus** — on chapters: **Rename Act**, **Rename Chapter**, **Delete**. On scenes: **Archive**, **Toggle split editor**, **Rename**, **Delete**.
 
 ## Chapters
 
@@ -26,125 +24,99 @@ A chapter has:
 
 - **Title** — shown everywhere.
 - **Order** — its position in the book; controlled by drag-and-drop.
-- **Status** — one of `Outline`, `First Draft`, `Revised`, `Edited`, `Final`. Drives the Dashboard status breakdown and is filterable from the Manuscript view.
-- **Act** — optional textual label (e.g. "Act 1", "Act II"). Used by the timeline and by the Plot Grid for grouping. Acts can have their own date ranges defined in the book's act list.
-- **Date** — a free-text in-world date string (e.g. "Spring, Year 312"). Optional.
-- **Date range** — a structured `StoryDateRange` with start/end and optional start/end times. When present this takes precedence over the free-text date. See [Calendar & in-world dates](13-calendar.md).
-- **Favorite** — pin to the top of filtered views.
-- **Folder name** — derived from the title at creation, can be overridden. Determines the on-disk folder for the chapter's scene files.
+- **Status** — one of `Outline`, `First Draft`, `Revised`, `Edited`, `Final`. Shown as the status dot and driving the Dashboard status breakdown and the Manuscript view filter.
+- **Act** — optional textual label (e.g. "Act 1"). Groups chapters under act headers in the binder and in the Timeline and Plot Grid.
+- **Date / date range** — in-world dates used by the [Timeline](12-timeline.md) and [Calendar](13-calendar.md).
+- **Folder name** — derived from the title at creation. Determines the on-disk folder for the chapter's scene files.
 
 ### Creating a chapter
 
-Click **+Chapter** in the app bar or press the hotkey (`Ctrl+Shift+N` by default).
-
-The dialog asks for:
-
-- **Chapter name** (up to 200 characters).
-- An optional **date** via a date picker.
-
-Press **Create** or `Enter`.
+Click **+ Chapter** in the toolbar. A dialog asks for the chapter name; confirm with `Enter`.
 
 ### Renaming a chapter
 
-Right-click the chapter in the Explorer → **Rename**. The folder on disk is renamed in step with the title.
+Right-click the chapter in the binder → **Rename Chapter**. The folder on disk is renamed in step with the title.
 
 ### Setting chapter status
 
-Right-click → **Status →** pick one of the five. The status color appears as a small swatch next to the chapter in the Explorer and contributes to the Dashboard breakdown.
+Click the chapter's **status dot**. Each click cycles to the next status: Outline, First Draft, Revised, Edited, Final, and back to Outline. The dot's color reflects the current status.
 
 ### Reordering chapters
 
-Drag the chapter to a new position in the tree. The order is persisted immediately.
+Drag the chapter onto the chapter you want it to take the place of. The order is persisted immediately.
 
 ### Deleting a chapter
 
-Right-click → **Delete**. You are asked to confirm. Deletion removes the chapter, its scenes, and the on-disk folder. Snapshots of the deleted scenes survive in `Books/<bookId>/Snapshots/` until you delete them manually.
+Right-click → **Delete**. You are asked to confirm; deletion removes the chapter, its scenes, and the on-disk folder. Snapshots of the deleted scenes survive in the book's `Snapshots/` folder until you delete them manually.
 
 ## Scenes
 
 A scene has:
 
-- **Title** — shown in the Explorer and the editor tab.
-- **Order** — its position within the chapter.
-- **Chapter** — which chapter it belongs to.
-- **File name** — derived from the title at creation; the actual `.html` file on disk.
-- **Word count** — auto-computed from the scene content.
-- **Date** — free-text in-world date.
-- **Date range** — structured `StoryDateRange` (start, end, optional times, note). Used by the Calendar and Timeline.
-- **Synopsis** — short summary. Editable from the Scene Notes bottom panel and from the Manuscript outliner view.
-- **Notes** — longer freeform notes. Editable from the Scene Notes bottom panel.
-- **Label color** — pick from a palette to color-code the scene in the Explorer, Manuscript corkboard, and other views.
-- **Favorite** — pin to favorite-filtered views.
-- **Plotline IDs** — list of plotlines this scene contributes to. Editable from the [Plot Grid](08-plot-grid.md) or scene context menu.
-- **Comments** — inline comments anchored to text ranges. See [Comments](22-context-sidebar.md#comments).
-- **Footnotes** — numbered footnotes attached to text positions. See [Footnotes](22-context-sidebar.md#footnotes).
-- **Analysis overrides** — optional manual overrides for the scene's detected POV, emotion, intensity, conflict, and tags. The Context sidebar derives these by default; you can override any of them.
+- **Title** — shown in the binder and the status bar.
+- **Order** and **chapter** — its place in the manuscript; controlled by drag-and-drop.
+- **File name** — the `.novalist` file on disk, derived from the title at creation.
+- **Word count** — auto-computed, shown next to the scene in the binder.
+- **Synopsis** and **notes** — editable in the [scene-notes dock](02-interface-overview.md#the-scene-notes-dock) at the bottom of the editor. The synopsis is also editable from the Manuscript view's outliner and appears on its corkboard cards.
+- **Date / date range** — in-world dates used by the Calendar and Timeline.
+- **Comments** and **footnotes** — anchored to the text. See [Editor](05-editor.md).
+- **Analysis overrides** — optional manual overrides for detected POV, emotion, intensity, conflict, and tags, used by Smart Lists and the Manuscript outliner.
 
 ### Creating a scene
 
-Click **+Scene** in the app bar or use the hotkey. The dialog asks for:
-
-- **Scene name** (up to 200 characters).
-- **Chapter** — drop-down of all chapters in the active book.
-- Optional **date**.
-
-The new scene opens in the editor.
+Click **+ Scene** in the toolbar and enter a name. The scene is added to the chapter of the currently open scene (or the last chapter when nothing is open).
 
 ### Renaming a scene
 
-Right-click in the Explorer → **Rename**. The file on disk is renamed to match.
+Right-click the scene in the binder → **Rename**. The file on disk is renamed to match.
 
 ### Reordering and moving scenes
 
-Drag inside the same chapter to change order. Drag to another chapter to move. The file moves to the target chapter's folder; the snapshot history follows.
+Drag within the same chapter to change order. Drop the scene onto another chapter to move it there; the file moves to the target chapter's folder and the snapshot history follows.
 
-### Marking favorite
+### Opening a scene in the split editor
 
-Right-click → **Toggle favorite**, or click the star icon if shown. Favorites appear at the top of the explorer when the favorites filter is on, and contribute to the smart-list query options.
-
-### Setting a label color
-
-Right-click → **Label color** → pick a swatch (or **Clear**). The chosen color appears as a small bar on the scene row and as the card background in the Manuscript corkboard. Useful for color-coding by POV, plotline emphasis, or tone — entirely up to you.
-
-### Duplicating a scene
-
-Right-click → **Duplicate**. Creates a copy of the scene's content as a new scene immediately below, with `(copy)` appended to the title.
+Right-click → **Toggle split editor** opens the scene in a second editor pane beside the one you are writing in — for example to reference an earlier scene. See [Editor](05-editor.md#split-editor).
 
 ### Deleting a scene
 
-Right-click → **Delete**. Asks to confirm. Snapshots of the deleted scene survive in `Books/<bookId>/Snapshots/<sceneId>/`.
+Right-click → **Delete**. Asks to confirm. Snapshots of the deleted scene survive in the book's `Snapshots/` folder. If you might want the scene back, prefer **Archive**.
+
+## Archiving scenes
+
+Archiving removes a scene from the manuscript without deleting its text — useful for cut scenes you are not ready to throw away.
+
+- Right-click a scene → **Archive**. The scene leaves its chapter; it no longer counts toward totals or exports.
+- Click **ARCHIVE** at the bottom of the binder tree to show the list of archived scenes.
+- Click **Restore** next to an archived scene to bring it back into the manuscript (it is restored into the first chapter; drag it from there to where it belongs).
 
 ## Status workflow
 
 A typical novelist workflow with the five built-in chapter statuses:
 
-1. **Outline** — bullet points or rough structure in the scene; not yet written.
+1. **Outline** — bullet points or rough structure; not yet written.
 2. **First Draft** — first pass through, complete or near-complete.
 3. **Revised** — restructuring, voice fixes, scene-level edits done.
 4. **Edited** — line edits, prose polish, copy-edits applied.
 5. **Final** — ready to export.
 
-The Dashboard shows a count of chapters at each status. The Manuscript view filter lets you read only chapters at a given status.
+The [Dashboard](11-dashboard.md) shows a breakdown of chapters at each status. The [Manuscript](10-manuscript.md) view filter lets you read only chapters at a given status.
 
 ## Acts
 
-A book has an optional list of **acts**. Acts are simple named buckets (e.g. "Act 1: Setup", "Act 2: Confrontation", "Act 3: Resolution"). Each chapter optionally references an act by name via its `Act` property.
+Acts are simple named buckets (e.g. "Act 1: Setup", "Act 2: Confrontation") that group chapters.
 
-Acts can have their own optional `StoryDateRange`. The Timeline displays acts as the broadest grouping; the Plot Grid groups columns by act when the act label is set.
+To assign a chapter to an act, right-click it → **Rename Act** and type the act name (use the same spelling for every chapter of that act). An act header appears in the binder above the first chapter of each act, the [Timeline](12-timeline.md) shows acts as its broadest grouping, and the [Plot Grid](08-plot-grid.md) groups columns by act.
 
-Right-click a chapter in the Explorer and choose **Set act…** to assign it. The picker opens with the existing acts already listed — pick one to reassign, or type a new name to create one. The list merges acts referenced by other chapters with any orphan acts on the book.
-
-Story-structure templates (such as the three-act or hero's-journey templates) pre-create acts and assign chapters to them. See [Templates](07-templates.md).
+The Timeline's **Add structure...** dropdown can lay out a known story structure (Three-Act, Save the Cat, Hero's Journey, 7-Point) as timeline events to plot against — see [Timeline](12-timeline.md).
 
 ## Snapshots
 
-Every time you save a scene a **snapshot** is captured automatically. Snapshots are independent per scene and let you revert one scene's content without affecting the rest of the project. See [Snapshots](17-snapshots.md) for the snapshot browser, compare view, and pruning.
-
-You can also take a manual snapshot at any time from **Edit → Take Snapshot**, or from a scene's right-click menu in the Explorer.
+Take a snapshot of the open scene from the toolbar **Snapshots** button (with an optional label such as "Before rewrite") and restore any earlier snapshot from the same list. Automatic snapshots are also taken before destructive operations such as Replace All. See [Snapshots](17-snapshots.md).
 
 ## Where to go next
 
-- [Editor](05-editor.md) — formatting, focus mode, comments, footnotes, split editor.
+- [Editor](05-editor.md) — formatting, split editor, comments, footnotes.
 - [Plot Grid](08-plot-grid.md) — attach scenes to plotlines.
 - [Calendar & in-world dates](13-calendar.md) — give scenes structured story dates.
 - [Smart Lists](16-smart-lists.md) — saved scene queries.

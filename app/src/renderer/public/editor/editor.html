@@ -1,0 +1,3159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+    --bg: #1e1e2e;
+    --fg: #cdd6f4;
+    --caret: #cdd6f4;
+    --selection-bg: #45475a;
+    --font-family: 'Segoe UI', sans-serif;
+    --font-size: 16px;
+    --padding-h: 24px;
+    --padding-v: 8px;
+    --book-width: none;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-family);
+    font-size: var(--font-size);
+    overflow: hidden;
+}
+body { display: flex; justify-content: center; }
+#editor-wrapper {
+    width: 100%;
+    max-width: var(--book-width);
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #585b7066 transparent;
+}
+#editor {
+    min-height: 100%;
+    padding: var(--padding-v) var(--padding-h);
+    outline: none;
+    caret-color: var(--caret);
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+}
+#editor:empty::before {
+    content: '';
+    display: block;
+}
+#editor p { margin: 0; }
+#editor.book-spacing p { padding-bottom: 0.75em; }
+#editor.book-spacing p:empty { padding-bottom: 0; min-height: 1em; }
+#editor ::selection { background: var(--selection-bg); }
+#editor::-webkit-scrollbar { width: 8px; }
+#editor::-webkit-scrollbar-track { background: transparent; }
+#editor::-webkit-scrollbar-thumb { background: #585b7066; border-radius: 4px; }
+
+/* Grammar check underlines */
+.grammar-issue {
+    text-decoration: underline wavy;
+    text-decoration-skip-ink: none;
+    cursor: pointer;
+}
+.grammar-issue[data-issue-type="spelling"] { text-decoration-color: #f38ba8; }
+.grammar-issue[data-issue-type="grammar"] { text-decoration-color: #89b4fa; }
+.grammar-issue[data-issue-type="style"] { text-decoration-color: #a6e3a1; }
+
+/* Grammar popup */
+#grammar-popup {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    background: color-mix(in srgb, var(--bg) 95%, white 5%);
+    border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
+    border-radius: 8px;
+    padding: 0.625rem 0.75rem;
+    max-width: 20rem;
+    font-size: 0.8125rem;
+    color: var(--fg);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    line-height: 1.4;
+}
+#grammar-popup.visible { display: block; }
+#grammar-popup .gp-message { margin-bottom: 0.5rem; opacity: 0.85; }
+#grammar-popup .gp-suggestions { display: flex; flex-wrap: wrap; gap: 4px; }
+#grammar-popup .gp-suggestion {
+    background: color-mix(in srgb, var(--fg) 12%, transparent 88%);
+    border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
+    border-radius: 4px;
+    padding: 3px 8px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    transition: background 0.15s;
+}
+#grammar-popup .gp-suggestion:hover {
+    background: color-mix(in srgb, var(--fg) 25%, transparent 75%);
+}
+#grammar-popup .gp-dismiss {
+    margin-top: 0.375rem;
+    font-size: 0.6875rem;
+    opacity: 0.5;
+    cursor: pointer;
+}
+#grammar-popup .gp-dismiss:hover { opacity: 0.8; }
+
+/* Custom context menu */
+#context-menu {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    background: color-mix(in srgb, var(--bg) 95%, white 5%);
+    border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
+    border-radius: 8px;
+    padding: 4px 0;
+    min-width: 200px;
+    font-size: 0.8125rem;
+    color: var(--fg);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+#context-menu.visible { display: block; }
+#context-menu .cm-item {
+    padding: 6px 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#context-menu .cm-item:hover {
+    background: color-mix(in srgb, var(--fg) 10%, transparent 90%);
+}
+#context-menu .cm-item.disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+#context-menu .cm-shortcut {
+    font-size: 11px;
+    opacity: 0.5;
+    margin-left: 24px;
+}
+#context-menu .cm-separator {
+    height: 1px;
+    background: color-mix(in srgb, var(--fg) 15%, transparent 85%);
+    margin: 4px 8px;
+}
+#context-menu .cm-grammar-section {
+    border-top: 1px solid color-mix(in srgb, var(--fg) 12%, transparent 88%);
+    margin-top: 2px;
+    padding-top: 4px;
+}
+#context-menu .cm-grammar-msg {
+    padding: 4px 14px;
+    font-size: 11px;
+    opacity: 0.6;
+    font-style: italic;
+}
+#context-menu .cm-suggestion {
+    padding: 5px 14px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #89b4fa;
+}
+#context-menu .cm-suggestion:hover {
+    background: color-mix(in srgb, var(--fg) 10%, transparent 90%);
+}
+
+/* Floating selection toolbar */
+#floating-toolbar {
+    display: none;
+    position: fixed;
+    z-index: 10001;
+    background: color-mix(in srgb, var(--bg) 92%, white 8%);
+    border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
+    border-radius: 6px;
+    padding: 3px 4px;
+    gap: 2px;
+    align-items: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.4);
+    pointer-events: auto;
+}
+#floating-toolbar.visible { display: flex; }
+#floating-toolbar button {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--fg);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 3px 7px;
+    min-width: 28px;
+    min-height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s;
+}
+#floating-toolbar button:hover {
+    background: color-mix(in srgb, var(--fg) 12%, transparent 88%);
+}
+#floating-toolbar button.active {
+    background: color-mix(in srgb, var(--fg) 18%, transparent 82%);
+    border-color: color-mix(in srgb, var(--fg) 30%, transparent 70%);
+}
+#floating-toolbar .ft-sep {
+    width: 1px;
+    height: 18px;
+    background: color-mix(in srgb, var(--fg) 18%, transparent 82%);
+    margin: 0 2px;
+    flex-shrink: 0;
+}
+.nv-comment {
+    background-color: rgba(255, 200, 60, 0.28);
+    border-bottom: 1px dashed rgba(255, 160, 30, 0.7);
+    cursor: pointer;
+}
+.nv-fn {
+    color: #89b4fa;
+    cursor: pointer;
+    font-size: 0.7em;
+    padding: 0 1px;
+    vertical-align: super;
+    line-height: 0;
+}
+.nv-fn:hover { text-decoration: underline; }
+
+.nv-comment.nv-comment-active {
+    background-color: rgba(255, 200, 60, 0.55);
+}
+
+/* Margin comment gutter — sizes in em scale with --font-size */
+#commentGutter {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 18em;
+    font-size: var(--font-size);
+    pointer-events: none;
+    overflow: visible;
+    z-index: 5;
+}
+body.has-comments { padding-right: 18em; }
+.nv-cc-card {
+    position: absolute;
+    left: 0.5em;
+    right: 0.5em;
+    pointer-events: auto;
+    background: color-mix(in srgb, var(--bg) 88%, white 12%);
+    border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent 75%);
+    border-left: 0.2em solid #f9c46a;
+    border-radius: 0.4em;
+    padding: 0.5em 1.5em 0.5em 0.625em;
+    box-shadow: 0 0.125em 0.5em rgba(0,0,0,0.25);
+    font-size: 0.78em;
+    color: var(--fg);
+    transition: top 0.12s ease;
+}
+.nv-cc-card.active {
+    border-left-color: #ffd76a;
+    box-shadow: 0 0.125em 0.75em rgba(255, 200, 60, 0.35);
+}
+.nv-cc-anchor {
+    font-size: 0.85em;
+    opacity: 0.7;
+    font-style: italic;
+    margin-bottom: 0.3em;
+    word-break: break-word;
+    line-height: 1.3;
+}
+.nv-cc-text {
+    width: 100%;
+    min-height: 3em;
+    max-height: 12em;
+    box-sizing: border-box;
+    resize: vertical;
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid color-mix(in srgb, var(--fg) 12%, transparent 88%);
+    border-radius: 0.25em;
+    padding: 0.25em 0.4em;
+    font: inherit;
+}
+.nv-cc-text:focus {
+    outline: none;
+    border-color: color-mix(in srgb, var(--fg) 35%, transparent 65%);
+}
+.nv-cc-del {
+    position: absolute;
+    top: 0.2em;
+    right: 0.25em;
+    background: transparent;
+    border: 0;
+    color: var(--fg);
+    opacity: 0.5;
+    cursor: pointer;
+    font-size: 1.15em;
+    padding: 0.125em 0.4em;
+    line-height: 1;
+}
+.nv-cc-del:hover { opacity: 1; }
+
+/* Entity mention spans (inserted via @ picker) */
+.nv-entity-mention {
+    border-bottom: 1px solid color-mix(in srgb, var(--fg) 35%, transparent 65%);
+    border-bottom-style: solid;
+    text-decoration: none;
+    cursor: default;
+}
+.nv-entity-mention:hover {
+    border-bottom-color: color-mix(in srgb, var(--fg) 70%, transparent 30%);
+    background: color-mix(in srgb, var(--fg) 6%, transparent 94%);
+}
+.nv-entity-mention.nv-mention-missing {
+    border-bottom-style: dashed;
+    border-bottom-color: rgba(243, 139, 168, 0.7);
+}
+.nv-mention-pending {
+    background: color-mix(in srgb, var(--fg) 12%, transparent 88%);
+    border-radius: 2px;
+}
+
+/* Mention picker popup (rendered inside the WebView) */
+#mention-picker {
+    position: absolute;
+    display: none;
+    z-index: 9998;
+    min-width: 16em;
+    max-width: 22em;
+    max-height: 18em;
+    overflow-y: auto;
+    background: color-mix(in srgb, var(--bg) 92%, white 8%);
+    border: 1px solid color-mix(in srgb, var(--fg) 25%, transparent 75%);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    font-size: 0.85em;
+    padding: 4px 0;
+}
+#mention-picker.visible { display: block; }
+.nv-mp-row {
+    padding: 0.35em 0.7em;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border-left: 2px solid transparent;
+}
+.nv-mp-row.selected {
+    background: color-mix(in srgb, var(--fg) 14%, transparent 86%);
+    border-left-color: #89b4fa;
+}
+.nv-mp-row:hover { background: color-mix(in srgb, var(--fg) 10%, transparent 90%); }
+.nv-mp-name { font-weight: 500; color: var(--fg); }
+.nv-mp-name .nv-mp-alias-hint {
+    opacity: 0.65;
+    font-weight: 400;
+    font-style: italic;
+    margin-left: 0.3em;
+}
+.nv-mp-subtitle { opacity: 0.6; font-size: 0.82em; }
+.nv-mp-create {
+    padding: 0.4em 0.7em;
+    cursor: pointer;
+    border-top: 1px solid color-mix(in srgb, var(--fg) 15%, transparent 85%);
+    opacity: 0.85;
+    font-style: italic;
+}
+.nv-mp-create:hover { background: color-mix(in srgb, var(--fg) 10%, transparent 90%); }
+.nv-mp-empty { padding: 0.5em 0.7em; opacity: 0.6; font-style: italic; }
+
+/* Typewriter scroll virtual top + bottom padding so caret can reach any anchor */
+body.typewriter-on #editor { padding-top: 70vh; }
+body.typewriter-on #editor::after {
+    content: '';
+    display: block;
+    height: 70vh;
+}
+
+/* Page view: editor content is grouped into <div class="nv-page"> containers
+   by repaginatePageView(). Each .nv-page is a paper surface in flow. */
+/* Page-view paper colors default; overridden by setTheme via --page-bg/--page-fg. */
+:root {
+    --page-bg: #f5efe6;
+    --page-fg: #1c1a18;
+}
+body.page-view #editor-wrapper {
+    background: color-mix(in srgb, var(--bg) 70%, black 30%);
+    /* em-based so paper + padding scale with editor font size / zoom.
+       Width is clamped to the visible viewport so big zoom levels do not
+       push the page off-screen. */
+    --page-target-width: 32em;
+    --page-h-padding: 4em;
+    --page-v-padding: 4em;
+    --page-width: min(var(--page-target-width), calc(100vw - 6em));
+    --page-shadow: 0 4px 24px rgba(0,0,0,0.45), 0 0 0 1px rgba(0,0,0,0.15);
+}
+body.page-view #editor {
+    background: transparent;
+    color: inherit;
+    padding: 32px 0;
+    margin: 0;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 48px;
+}
+body.page-view .nv-page {
+    background: var(--page-bg);
+    color: var(--page-fg);
+    caret-color: var(--page-fg);
+    padding: var(--page-v-padding) var(--page-h-padding);
+    box-shadow: var(--page-shadow);
+    border-radius: 2px;
+    width: var(--page-width);
+    max-width: calc(100% - 4em);
+    box-sizing: border-box;
+    /* Full page height = content budget (48em, mirrored in repaginatePageView)
+       + vertical padding (2 × 4em). All pages are sized to this height so the
+       last page shows the writer how much room remains before overflow. */
+    min-height: calc(48em + var(--page-v-padding) * 2);
+    overflow-wrap: break-word;
+}
+body.page-view .nv-page > p { margin: 0; }
+body.page-view .nv-page ::selection {
+    background: color-mix(in srgb, var(--page-fg) 22%, transparent 78%);
+}
+body.page-view.typewriter-on #editor { padding-top: 70vh; }
+
+/* Grammar Check Status Bar */
+.grammar-status-bar {
+    position: fixed;
+    bottom: 16px;
+    right: 24px;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: color-mix(in srgb, var(--bg) 85%, white 15%);
+    border: 1px solid color-mix(in srgb, var(--fg) 15%, transparent 85%);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    font-family: var(--font-family);
+    font-size: 0.75rem;
+    color: var(--fg);
+    user-select: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+}
+.grammar-status-bar.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.status-throbber {
+    display: none;
+    width: 14px;
+    height: 14px;
+    margin-right: 2px;
+}
+.status-throbber.active {
+    display: block;
+}
+.status-throbber svg.spinner {
+    animation: rotate 2s linear infinite;
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+.status-throbber circle.path {
+    stroke: var(--fg);
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+}
+@keyframes rotate {
+    100% { transform: rotate(360deg); }
+}
+@keyframes dash {
+    0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+    50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+    100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+}
+.status-check-done {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    color: #a6e3a1; /* green */
+    width: 14px;
+    height: 14px;
+    margin-right: 2px;
+}
+.status-check-done.active {
+    display: flex;
+}
+.status-divider {
+    width: 1px;
+    height: 12px;
+    background: color-mix(in srgb, var(--fg) 20%, transparent 85%);
+}
+.status-item {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 12px;
+    transition: background 0.2s, transform 0.1s;
+}
+.status-item.active {
+    display: flex;
+}
+.status-item:hover {
+    background: color-mix(in srgb, var(--fg) 10%, transparent 90%);
+}
+.status-item:active {
+    transform: scale(0.95);
+}
+.status-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+}
+.grammar-icon svg {
+    color: #89b4fa; /* blue */
+}
+.spelling-icon svg {
+    color: #f38ba8; /* red */
+}
+.status-count {
+    font-weight: 600;
+}
+</style>
+</head>
+<body>
+<div id="editor-wrapper">
+    <div id="editor" contenteditable="true" spellcheck="false"></div>
+</div>
+<div id="grammar-status-bar" class="grammar-status-bar">
+    <div class="status-throbber" id="status-throbber">
+        <svg class="spinner" viewBox="0 0 50 50">
+            <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+    </div>
+    <div class="status-check-done" id="status-check-done" title="Check completed: no issues found">
+        <svg viewBox="0 0 24 24" width="14" height="14">
+            <path fill="currentColor" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+    </div>
+    <div class="status-divider"></div>
+    <div class="status-item" id="status-grammar-count-container" title="Grammar & style issues (Click to find next)">
+        <span class="status-icon grammar-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14">
+                <path fill="currentColor" d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+            </svg>
+        </span>
+        <span class="status-count" id="status-grammar-count">0</span>
+    </div>
+    <div class="status-item" id="status-punctuation-count-container" title="Spelling & typography issues (Click to find next)">
+        <span class="status-icon spelling-icon">
+            <svg viewBox="0 0 24 24" width="14" height="14">
+                <path fill="currentColor" d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z"/>
+            </svg>
+        </span>
+        <span class="status-count" id="status-punctuation-count">0</span>
+    </div>
+</div>
+<div id="grammar-popup">
+    <div class="gp-message"></div>
+    <div class="gp-suggestions"></div>
+    <div class="gp-dismiss">Dismiss</div>
+</div>
+<div id="context-menu"></div>
+<div id="floating-toolbar">
+    <button id="ft-bold" title="Bold (Ctrl+B)"><b>B</b></button>
+    <button id="ft-italic" title="Italic (Ctrl+I)"><i>I</i></button>
+    <button id="ft-underline" title="Underline (Ctrl+U)" style="text-decoration:underline">U</button>
+    <div class="ft-sep"></div>
+    <button id="ft-align-left" title="Align Left">&#8676;</button>
+    <button id="ft-align-center" title="Center">&#8677;</button>
+    <button id="ft-align-right" title="Align Right">&#8678;</button>
+    <button id="ft-align-justify" title="Justify">&#8801;</button>
+    <div class="ft-sep"></div>
+    <button id="ft-comment" title="Add comment">Cmt</button>
+    <button id="ft-footnote" title="Add footnote">Fn</button>
+</div>
+<div id="mention-picker" tabindex="-1"></div>
+<script>
+'use strict';
+
+const editor = document.getElementById('editor');
+const wrapper = document.getElementById('editor-wrapper');
+
+// ── State ────────────────────────────────────────────────────────
+let isSettingContent = false;
+let lastHtml = '';
+let entityRegex = null;
+let entityNames = [];
+let entityIndex = new Map(); // lowercase name → {entityId, entityType, isAlias}
+let autoReplacements = [];
+let lastHoveredAlias = null;
+let lastHoveredMentionId = null;
+let entityExitTimer = null;
+let dialogueCorrectionConfig = null;
+let dialogueCorrectionTimer = null;
+
+// Mention picker state
+let mentionState = null;          // {startNode, startOffset, queryNode, query} when picker is active
+let mentionCandidates = [];       // full list pushed by host
+let mentionFiltered = [];
+let mentionSelectedIndex = 0;
+
+// Focus scroll prevention state
+let savedScrollTop = 0;
+let isFocusing = false;
+
+// Typewriter scroll state
+let typewriterEnabled = false;
+let typewriterAnchor = 'middle';  // 'top' | 'middle' | 'bottom'
+let typewriterFrame = 0;
+let typewriterLastY = -9999;
+let typewriterMouseDown = false;
+let typewriterSuspendUntil = 0;   // ms epoch — suppress recenter until then
+
+// ── C#→JS Bridge ────────────────────────────────────────────────
+
+function sendMessage(msg) {
+    try {
+        const json = JSON.stringify(msg);
+        if (typeof invokeCSharpAction === 'function') {
+            invokeCSharpAction(json);
+        } else if (window.chrome && window.chrome.webview) {
+            window.chrome.webview.postMessage(json);
+        } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.webview) {
+            window.webkit.messageHandlers.webview.postMessage(json);
+        } else if (window.parent && window.parent !== window) {
+            // Electron shell: editor runs in a same-origin iframe; the parent
+            // page bridges these messages to the backend over JSON-RPC.
+            window.parent.postMessage({ novalistEditor: json }, '*');
+        }
+    } catch (_) { /* ignore if bridge not ready */ }
+}
+
+// ── Content Management ──────────────────────────────────────────
+
+function setContent(html) {
+    isSettingContent = true;
+    if (!html || html.trim() === '' || isEmptyHtml(html)) {
+        editor.innerHTML = '<p><br></p>';
+    } else {
+        const bodyContent = extractBody(html);
+        editor.innerHTML = bodyContent;
+    }
+    lastHtml = editor.innerHTML;
+    isSettingContent = false;
+
+    savedScrollTop = 0;
+    wrapper.scrollTop = 0;
+
+    // Trigger grammar check for the new content
+    requestGrammarCheck();
+
+    // If page view is on, paginate synchronously before paint so users never
+    // see the unpaginated layout flash.
+    if (pageViewEnabled) repaginatePageView();
+}
+
+function getContent() {
+    return getCleanContentHtml();
+}
+
+function getPlainText() {
+    return editor.innerText || '';
+}
+
+function extractBody(html) {
+    const match = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+    return match ? match[1] : html;
+}
+
+function isEmptyHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return !tmp.textContent || tmp.textContent.trim() === '';
+}
+
+// ── Formatting Commands ─────────────────────────────────────────
+
+function toggleBold() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('bold', false, null);
+    notifyFormattingChanged();
+}
+
+function toggleItalic() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('italic', false, null);
+    notifyFormattingChanged();
+}
+
+function toggleUnderline() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('underline', false, null);
+    notifyFormattingChanged();
+}
+
+function alignLeft() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('justifyLeft', false, null);
+    notifyFormattingChanged();
+}
+
+function alignCenter() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('justifyCenter', false, null);
+    notifyFormattingChanged();
+}
+
+function alignRight() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('justifyRight', false, null);
+    notifyFormattingChanged();
+}
+
+function alignJustify() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('justifyFull', false, null);
+    notifyFormattingChanged();
+}
+
+// ── Formatting State ────────────────────────────────────────────
+
+function getFormattingState() {
+    const bold = document.queryCommandState('bold');
+    const italic = document.queryCommandState('italic');
+    const underline = document.queryCommandState('underline');
+    let alignment = 'left';
+    if (document.queryCommandState('justifyCenter')) alignment = 'center';
+    else if (document.queryCommandState('justifyRight')) alignment = 'right';
+    else if (document.queryCommandState('justifyFull')) alignment = 'justify';
+    return { bold, italic, underline, alignment };
+}
+
+function notifyFormattingChanged() {
+    const state = getFormattingState();
+    sendMessage({ type: 'formattingChanged', ...state });
+}
+
+// ── Theme & Font ────────────────────────────────────────────────
+
+function setTheme(bg, fg, caretColor, selectionBg, pageBg, pageFg) {
+    const root = document.documentElement;
+    root.style.setProperty('--bg', bg);
+    root.style.setProperty('--fg', fg);
+    root.style.setProperty('--caret', caretColor || fg);
+    if (selectionBg) root.style.setProperty('--selection-bg', selectionBg);
+    if (pageBg) root.style.setProperty('--page-bg', pageBg);
+    if (pageFg) root.style.setProperty('--page-fg', pageFg);
+}
+
+function setFont(family, size) {
+    const root = document.documentElement;
+    if (family) {
+        const val = "'" + family + "', sans-serif";
+        root.style.setProperty('--font-family', val);
+    }
+    if (size) {
+        root.style.setProperty('--font-size', size + 'px');
+    }
+    // Force-override via a dynamic <style> to beat any inline styles
+    let s = document.getElementById('novalist-font-override');
+    if (!s) {
+        s = document.createElement('style');
+        s.id = 'novalist-font-override';
+        document.head.appendChild(s);
+    }
+    const f = family ? "'" + family + "', sans-serif" : 'var(--font-family)';
+    const sz = size ? size + 'px' : 'var(--font-size)';
+    s.textContent = '#editor, #editor * { font-family: ' + f + ' !important; font-size: ' + sz + ' !important; }';
+}
+
+function setBookWidth(enabled, widthPx) {
+    const root = document.documentElement;
+    root.style.setProperty('--book-width', enabled ? widthPx + 'px' : 'none');
+}
+
+function setPadding(horizontal, vertical) {
+    const root = document.documentElement;
+    if (horizontal != null) root.style.setProperty('--padding-h', horizontal + 'px');
+    if (vertical != null) root.style.setProperty('--padding-v', vertical + 'px');
+}
+
+function setBookParagraphSpacing(enabled) {
+    const editor = document.getElementById('editor');
+    if (enabled) editor.classList.add('book-spacing');
+    else editor.classList.remove('book-spacing');
+}
+
+function setLanguage(lang) {
+    document.documentElement.lang = lang || 'en';
+}
+
+// ── Entity Detection (Focus Peek) ───────────────────────────────
+
+function setEntityNames(namesJson) {
+    try {
+        const parsed = JSON.parse(namesJson);
+        entityIndex = new Map();
+
+        if (parsed.length === 0) {
+            entityNames = [];
+            entityRegex = null;
+            return;
+        }
+
+        // Accept both legacy ["Name", ...] and richer [{name, entityId, entityType, isAlias}, ...]
+        if (typeof parsed[0] === 'string') {
+            entityNames = parsed;
+        } else {
+            entityNames = parsed.map(p => p.name);
+            for (const rec of parsed) {
+                if (!rec || !rec.name) continue;
+                const key = String(rec.name).toLowerCase();
+                if (!entityIndex.has(key)) {
+                    entityIndex.set(key, {
+                        entityId: rec.entityId || '',
+                        entityType: rec.entityType || '',
+                        isAlias: !!rec.isAlias
+                    });
+                }
+            }
+        }
+
+        const escaped = entityNames
+            .slice()
+            .sort((a, b) => b.length - a.length)
+            .map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+        entityRegex = new RegExp('(?<![\\p{L}\\p{N}])(' + escaped.join('|') + ')(?![\\p{L}\\p{N}])', 'iu');
+    } catch (_) {
+        entityRegex = null;
+    }
+}
+
+// ── Typewriter scroll ───────────────────────────────────────────
+
+let pageViewEnabled = false;
+let pageViewRepaginateScheduled = false;
+let pageViewMutationObserver = null;
+let pageViewRepaginating = false;
+
+function setPageView(enabled) {
+    pageViewEnabled = !!enabled;
+    document.body.classList.toggle('page-view', pageViewEnabled);
+    if (pageViewEnabled) {
+        if (!pageViewMutationObserver) {
+            pageViewMutationObserver = new MutationObserver(() => {
+                if (pageViewRepaginating) return;
+                schedulePageViewRepaginate();
+            });
+        }
+        pageViewMutationObserver.observe(editor, { childList: true, characterData: true, subtree: true });
+        schedulePageViewRepaginate();
+    } else {
+        if (pageViewMutationObserver) {
+            pageViewMutationObserver.disconnect();
+        }
+        unwrapPages();
+    }
+}
+
+function schedulePageViewRepaginate() {
+    if (!pageViewEnabled) return;
+    if (pageViewRepaginateScheduled) return;
+    pageViewRepaginateScheduled = true;
+    setTimeout(() => {
+        pageViewRepaginateScheduled = false;
+        repaginatePageView();
+    }, 150);
+}
+
+function captureSelectionForRepaginate() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const r = sel.getRangeAt(0);
+    if (!editor.contains(r.startContainer)) return null;
+    // Snapshot the live (node, offset) pair. Unwrap/rewrap of .nv-page wrappers
+    // only moves these nodes around; the references stay valid, so restoring
+    // them preserves the caret exactly — including in empty paragraphs that a
+    // text-only walker would skip past.
+    return {
+        startContainer: r.startContainer,
+        startOffset: r.startOffset,
+        endContainer: r.endContainer,
+        endOffset: r.endOffset,
+    };
+}
+
+function restoreSelectionForRepaginate(saved) {
+    if (!saved) return;
+    if (!editor.contains(saved.startContainer) || !editor.contains(saved.endContainer)) return;
+    const r = document.createRange();
+    try {
+        r.setStart(saved.startContainer, saved.startOffset);
+        r.setEnd(saved.endContainer, saved.endOffset);
+    } catch (_) {
+        return;
+    }
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+}
+
+function unwrapPages() {
+    const pages = Array.from(editor.querySelectorAll(':scope > .nv-page'));
+    if (pages.length === 0) return;
+    pages.forEach(page => {
+        while (page.firstChild) editor.insertBefore(page.firstChild, page);
+        page.remove();
+    });
+}
+
+function repaginatePageView() {
+    if (!pageViewEnabled) return;
+    pageViewRepaginating = true;
+    if (pageViewMutationObserver) pageViewMutationObserver.disconnect();
+    try {
+        const savedSelection = captureSelectionForRepaginate();
+
+        // Unwrap any existing pages so we can re-measure flat content.
+        unwrapPages();
+
+        const children = Array.from(editor.children);
+        if (children.length === 0) return;
+
+        // Force layout, then snapshot heights so wrapping does not invalidate
+        // measurements mid-pass.
+        void editor.offsetHeight;
+        const heights = children.map(el => Math.max(1, el.offsetHeight));
+
+        // Content budget per page measured in current em so it scales with font / zoom.
+        const emPx = parseFloat(getComputedStyle(editor).fontSize) || 16;
+        const pageContentHeight = 48 * emPx;
+
+        // Compute groups by summing heights.
+        const groups = [];
+        let current = [];
+        let currentHeight = 0;
+        for (let i = 0; i < children.length; i++) {
+            const h = heights[i];
+            if (currentHeight + h > pageContentHeight && current.length > 0) {
+                groups.push(current);
+                current = [];
+                currentHeight = 0;
+            }
+            current.push(children[i]);
+            currentHeight += h;
+        }
+        if (current.length > 0) groups.push(current);
+
+        // Wrap each group in a .nv-page container.
+        groups.forEach(group => {
+            const page = document.createElement('div');
+            page.className = 'nv-page';
+            const first = group[0];
+            editor.insertBefore(page, first);
+            group.forEach(el => page.appendChild(el));
+        });
+
+        restoreSelectionForRepaginate(savedSelection);
+    } finally {
+        pageViewRepaginating = false;
+        if (pageViewMutationObserver && pageViewEnabled) {
+            pageViewMutationObserver.observe(editor, { childList: true, characterData: true, subtree: true });
+        }
+    }
+}
+
+window.addEventListener('resize', () => {
+    if (pageViewEnabled) schedulePageViewRepaginate();
+});
+
+function setTypewriterScroll(enabled, anchor) {
+    typewriterEnabled = !!enabled;
+    typewriterAnchor = (anchor === 'top' || anchor === 'bottom') ? anchor : 'middle';
+    document.body.classList.toggle('typewriter-on', typewriterEnabled);
+    typewriterLastY = -9999;
+    scheduleTypewriterRecenter();
+}
+
+function scheduleTypewriterRecenter() {
+    if (typewriterMouseDown) return;                       // user drag-selecting
+    if (Date.now() < typewriterSuspendUntil) return;       // recently wheel-scrolled
+    if (typewriterFrame) return;
+    typewriterFrame = requestAnimationFrame(() => {
+        typewriterFrame = 0;
+        recenterCaret();
+    });
+}
+
+// Mouse interaction pauses typewriter so drag-select works.
+document.addEventListener('mousedown', (e) => {
+    if (e.button === 0) typewriterMouseDown = true;
+}, true);
+document.addEventListener('mouseup', () => {
+    if (typewriterMouseDown) {
+        typewriterMouseDown = false;
+        // Keep suppressing for a moment so the trailing selectionchange does
+        // not snap the caret line away from where the user pointed.
+        typewriterSuspendUntil = Date.now() + 400;
+    }
+}, true);
+
+// Mouse-wheel / trackpad scroll: respect user's chosen position briefly.
+wrapper.addEventListener('wheel', () => {
+    typewriterSuspendUntil = Date.now() + 1200;
+}, { passive: true });
+
+function recenterCaret() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+
+    // Measure caret without mutating the DOM — any insertNode/removeChild here
+    // would split text nodes around the user's selection and interfere with input.
+    let rect = range.getBoundingClientRect();
+    let top = rect.top;
+    let bottom = rect.bottom;
+    if (top === 0 && bottom === 0) {
+        // Empty block: fall back to the nearest element's rect.
+        const node = range.startContainer;
+        const el = node && node.nodeType === Node.ELEMENT_NODE ? node : (node && node.parentElement);
+        if (!el) return;
+        const elRect = el.getBoundingClientRect();
+        if (elRect.height === 0 && elRect.width === 0) return;
+        top = elRect.top;
+        bottom = elRect.bottom;
+    }
+
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const viewportH = wrapper.clientHeight;
+
+    if (typewriterEnabled) {
+        if (Math.abs(top - typewriterLastY) < 4) return;
+        typewriterLastY = top;
+
+        let frac = 0.5;
+        if (typewriterAnchor === 'top') frac = 0.33;
+        else if (typewriterAnchor === 'bottom') frac = 0.66;
+        const targetY = viewportH * frac;
+        const caretRelative = top - wrapperRect.top;
+        const delta = caretRelative - targetY;
+        if (Math.abs(delta) < 2) return;
+        wrapper.scrollTop = wrapper.scrollTop + delta;
+    } else {
+        // Typewriter is disabled: just keep caret in view (standard scroll-into-view)
+        const caretRelativeTop = top - wrapperRect.top;
+        const caretRelativeBottom = bottom - wrapperRect.top;
+        const padding = 40; // px margin
+
+        let delta = 0;
+        if (caretRelativeTop < padding) {
+            delta = caretRelativeTop - padding;
+        } else if (caretRelativeBottom > viewportH - padding) {
+            delta = caretRelativeBottom - (viewportH - padding);
+        }
+
+        if (Math.abs(delta) > 1) {
+            wrapper.scrollTop = wrapper.scrollTop + delta;
+        }
+    }
+}
+
+// ── Mention picker (@) ──────────────────────────────────────────
+
+const mentionPicker = document.getElementById('mention-picker');
+
+function setMentionCandidates(candidatesJson) {
+    try { mentionCandidates = JSON.parse(candidatesJson) || []; }
+    catch (_) { mentionCandidates = []; }
+}
+
+function isWordChar(ch) {
+    return /[\p{L}\p{N}_]/u.test(ch || '');
+}
+
+function detectMentionAtCaret() {
+    // Returns {node, atOffset} if caret is right after a `@` that started a
+    // mention sequence (i.e. preceded by start-of-text or a non-word char).
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+    const range = sel.getRangeAt(0);
+    if (range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+    const text = range.startContainer.textContent || '';
+    const offset = range.startOffset;
+    if (offset === 0) return null;
+    if (text.charAt(offset - 1) !== '@') return null;
+    if (offset >= 2 && isWordChar(text.charAt(offset - 2))) return null;
+    return { node: range.startContainer, atOffset: offset - 1 };
+}
+
+function openMentionPicker() {
+    const pos = detectMentionAtCaret();
+    if (!pos) return false;
+    mentionState = { node: pos.node, atOffset: pos.atOffset, query: '' };
+    renderMentionPicker();
+    return true;
+}
+
+function closeMentionPicker(_keepLiteral) {
+    mentionState = null;
+    mentionPicker.classList.remove('visible');
+    mentionPicker.innerHTML = '';
+}
+
+function updateMentionQuery() {
+    if (!mentionState) return;
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) {
+        closeMentionPicker(true);
+        return;
+    }
+    const range = sel.getRangeAt(0);
+    if (range.startContainer !== mentionState.node) {
+        // Caret left the @-bearing text node — close.
+        closeMentionPicker(true);
+        return;
+    }
+    const txt = mentionState.node.textContent || '';
+    // Verify @ is still there at atOffset.
+    if (mentionState.atOffset >= txt.length || txt.charAt(mentionState.atOffset) !== '@') {
+        closeMentionPicker(true);
+        return;
+    }
+    const caret = range.startOffset;
+    if (caret <= mentionState.atOffset) {
+        closeMentionPicker(true);
+        return;
+    }
+    const query = txt.slice(mentionState.atOffset + 1, caret);
+    // Abort if query contains a space (mention names are single-word for the picker).
+    if (/\s/.test(query)) {
+        closeMentionPicker(true);
+        return;
+    }
+    mentionState.query = query;
+    renderMentionPicker();
+}
+
+function getMentionPositionRect() {
+    // Position the picker right below the `@` character.
+    if (!mentionState) return null;
+    try {
+        const r = document.createRange();
+        r.setStart(mentionState.node, mentionState.atOffset);
+        r.setEnd(mentionState.node, Math.min(mentionState.atOffset + 1, (mentionState.node.textContent || '').length));
+        return r.getBoundingClientRect();
+    } catch (_) { return null; }
+}
+
+function scoreCandidate(cand, query) {
+    if (!query) return 1;
+    const q = query.toLowerCase();
+    const name = (cand.matchedText || cand.primaryName || '').toLowerCase();
+    if (name === q) return 1000;
+    if (name.startsWith(q)) return 600 - (cand.isAlias ? 5 : 0);
+    if (name.includes(q)) return 300 - (cand.isAlias ? 5 : 0);
+    // Subsequence
+    let i = 0;
+    for (const ch of name) { if (ch === q[i]) i++; if (i === q.length) break; }
+    if (i === q.length) return 100 - name.length - (cand.isAlias ? 5 : 0);
+    return -1;
+}
+
+function renderMentionPicker() {
+    if (!mentionState) return;
+
+    mentionFiltered = mentionCandidates
+        .map(c => ({ c: c, score: scoreCandidate(c, mentionState.query) }))
+        .filter(p => p.score > 0)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 20)
+        .map(p => p.c);
+
+    mentionSelectedIndex = 0;
+    mentionPicker.innerHTML = '';
+
+    if (mentionFiltered.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'nv-mp-empty';
+        empty.textContent = 'No matches';
+        mentionPicker.appendChild(empty);
+    } else {
+        mentionFiltered.forEach((c, idx) => {
+            const row = document.createElement('div');
+            row.className = 'nv-mp-row' + (idx === 0 ? ' selected' : '');
+            const name = document.createElement('div');
+            name.className = 'nv-mp-name';
+            name.textContent = c.primaryName;
+            if (c.isAlias) {
+                const hint = document.createElement('span');
+                hint.className = 'nv-mp-alias-hint';
+                hint.textContent = '(' + c.matchedText + ')';
+                name.appendChild(hint);
+            }
+            row.appendChild(name);
+            if (c.subtitle) {
+                const sub = document.createElement('div');
+                sub.className = 'nv-mp-subtitle';
+                sub.textContent = c.subtitle;
+                row.appendChild(sub);
+            }
+            row.addEventListener('mousedown', (ev) => {
+                ev.preventDefault();
+                confirmMentionAt(idx);
+            });
+            mentionPicker.appendChild(row);
+        });
+    }
+
+    // Position picker right below the `@` char.
+    const rect = getMentionPositionRect();
+    if (rect) {
+        mentionPicker.style.left = (rect.left + window.scrollX) + 'px';
+        mentionPicker.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+        mentionPicker.classList.add('visible');
+    }
+}
+
+function moveMentionSelection(delta) {
+    if (mentionFiltered.length === 0) return;
+    mentionSelectedIndex = (mentionSelectedIndex + delta + mentionFiltered.length) % mentionFiltered.length;
+    Array.from(mentionPicker.children).forEach((row, idx) => {
+        row.classList.toggle('selected', idx === mentionSelectedIndex);
+    });
+    // Scroll into view
+    const sel = mentionPicker.children[mentionSelectedIndex];
+    if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
+}
+
+function confirmMentionAt(idx) {
+    if (!mentionState) return;
+    if (idx < 0 || idx >= mentionFiltered.length) return;
+    const cand = mentionFiltered[idx];
+    const displayText = cand.matchedText || cand.primaryName;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) { closeMentionPicker(true); return; }
+
+    // Select from `@` to current caret so execCommand replaces the whole token.
+    const range = document.createRange();
+    range.setStart(mentionState.node, mentionState.atOffset);
+    const endRange = sel.getRangeAt(0);
+    range.setEnd(endRange.endContainer, endRange.endOffset);
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    const html = '<span class="nv-entity-mention"'
+        + ' data-entity-id="' + escapeAttr(cand.entityId) + '"'
+        + ' data-entity-type="' + escapeAttr(cand.entityType) + '"'
+        + ' data-mention-source="' + (cand.isAlias ? 'alias' : 'name') + '">'
+        + escapeHtml(displayText)
+        + '</span>&nbsp;';
+
+    // Use execCommand for undo-stack support. Falls back to manual replace.
+    let inserted = false;
+    try { inserted = document.execCommand('insertHTML', false, html); } catch (_) {}
+    if (!inserted) {
+        // Fallback: manual DOM edit (no undo stack).
+        range.deleteContents();
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const frag = document.createDocumentFragment();
+        while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+        range.insertNode(frag);
+    }
+
+    closeMentionPicker(false);
+    queueContentChangedSoon();
+}
+
+function escapeAttr(s) {
+    return String(s).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
+}
+function escapeHtml(s) {
+    return String(s).replace(/[&<>]/g, c =>
+        ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' })[c]);
+}
+
+function queueContentChangedSoon() {
+    // Lightweight nudge — dispatch input event so the input listener picks it up.
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+}
+
+function findEntityAtPoint(x, y) {
+    if (!entityRegex) return null;
+
+    let range;
+    if (document.caretRangeFromPoint) {
+        range = document.caretRangeFromPoint(x, y);
+    } else if (document.caretPositionFromPoint) {
+        const pos = document.caretPositionFromPoint(x, y);
+        if (pos) {
+            range = document.createRange();
+            range.setStart(pos.offsetNode, pos.offset);
+            range.collapse(true);
+        }
+    }
+    if (!range || !range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+
+    const textNode = range.startContainer;
+    const text = textNode.textContent || '';
+    const offset = range.startOffset;
+
+    // Find the word boundaries around the offset, then check broader context
+    // We check the full line (parent element text) for entity matches
+    const parentEl = textNode.parentElement;
+    if (!parentEl) return null;
+    const lineText = parentEl.innerText || '';
+    if (!lineText) return null;
+
+    // Calculate offset within the parent element text
+    let charOffset = 0;
+    const walker = document.createTreeWalker(parentEl, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node === textNode) {
+            charOffset += offset;
+            break;
+        }
+        charOffset += (node.textContent || '').length;
+    }
+
+    // Find entity alias at this position
+    const globalRegex = new RegExp(entityRegex.source, 'giu');
+    let match;
+    while ((match = globalRegex.exec(lineText)) !== null) {
+        if (charOffset >= match.index && charOffset <= match.index + match[0].length) {
+            return match[0];
+        }
+    }
+    return null;
+}
+
+function findEntityAtCaret() {
+    if (!entityRegex) return null;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+
+    const range = sel.getRangeAt(0);
+    if (!range.startContainer || range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+
+    const textNode = range.startContainer;
+    const offset = range.startOffset;
+    const parentEl = textNode.parentElement;
+    if (!parentEl) return null;
+    const lineText = parentEl.innerText || '';
+    if (!lineText) return null;
+
+    let charOffset = 0;
+    const walker = document.createTreeWalker(parentEl, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    while ((node = walker.nextNode())) {
+        if (node === textNode) {
+            charOffset += offset;
+            break;
+        }
+        charOffset += (node.textContent || '').length;
+    }
+
+    const globalRegex = new RegExp(entityRegex.source, 'giu');
+    let match;
+    while ((match = globalRegex.exec(lineText)) !== null) {
+        if (charOffset >= match.index && charOffset <= match.index + match[0].length) {
+            return match[0];
+        }
+    }
+    return null;
+}
+
+function getCaretRect() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const range = sel.getRangeAt(0).cloneRange();
+    range.collapse(true);
+    const rect = range.getBoundingClientRect();
+    if (!rect || (rect.x === 0 && rect.y === 0 && rect.width === 0 && rect.height === 0)) return null;
+    return rect;
+}
+
+// ── Auto Replacement ────────────────────────────────────────────
+
+function setAutoReplacements(pairsJson) {
+    try {
+        autoReplacements = JSON.parse(pairsJson);
+    } catch (_) {
+        autoReplacements = [];
+    }
+}
+
+function getContainingBlock(node) {
+    if (!node) return null;
+    let el = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+    const blockTags = ['P', 'DIV', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'BLOCKQUOTE', 'LI'];
+    while (el && el !== editor) {
+        if (blockTags.includes(el.tagName)) {
+            return el;
+        }
+        if (el.parentElement === editor) {
+            return el;
+        }
+        el = el.parentElement;
+    }
+    return null;
+}
+
+function tryAutoReplace(inputText) {
+    if (autoReplacements.length === 0 || !inputText) return null;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    const range = sel.getRangeAt(0);
+    if (!range.collapsed) return null;
+
+    const textNode = range.startContainer;
+    
+    // Find the block element containing the caret
+    const paraEl = getContainingBlock(textNode) || editor;
+
+    // Get the text of the paragraph before the caret
+    let textBeforePara = '';
+    try {
+        const preRange = document.createRange();
+        preRange.selectNodeContents(paraEl);
+        preRange.setEnd(range.startContainer, range.startOffset);
+        textBeforePara = preRange.toString();
+    } catch (ex) {
+        // Fallback to text node if range calculation fails
+        if (textNode.nodeType === Node.TEXT_NODE) {
+            const text = textNode.textContent || '';
+            const offset = range.startOffset;
+            textBeforePara = text.slice(0, offset);
+        } else {
+            textBeforePara = '';
+        }
+    }
+
+    // Text as it will appear after insertion up to the caret
+    const lineText = textBeforePara + inputText;
+
+    for (const pair of autoReplacements) {
+        // Paired quotes: same trigger, different open/close
+        if (pair.start === pair.end && pair.startReplace !== pair.endReplace) {
+            if (lineText.endsWith(pair.end)) {
+                const opens = countOccurrences(lineText, pair.startReplace);
+                const closes = countOccurrences(lineText, pair.endReplace);
+                if (opens > closes) {
+                    return {
+                        replacement: pair.endReplace,
+                        backtrack: pair.end.length - inputText.length
+                    };
+                }
+            }
+        }
+
+        if (lineText.endsWith(pair.start)) {
+            return {
+                replacement: pair.startReplace,
+                backtrack: pair.start.length - inputText.length
+            };
+        }
+    }
+    return null;
+}
+
+function countOccurrences(text, token) {
+    if (!token) return 0;
+    let count = 0, idx = 0;
+    while ((idx = text.indexOf(token, idx)) >= 0) { count++; idx += token.length; }
+    return count;
+}
+
+// ── Dialogue Punctuation Correction ─────────────────────────────
+
+function setDialogueCorrectionConfig(configJson) {
+    try {
+        dialogueCorrectionConfig = JSON.parse(configJson);
+        if (!dialogueCorrectionConfig || !dialogueCorrectionConfig.enabled) {
+            dialogueCorrectionConfig = null;
+        }
+    } catch (_) {
+        dialogueCorrectionConfig = null;
+    }
+}
+
+function tryDialogueCorrection() {
+    if (!dialogueCorrectionConfig) return;
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return;
+
+    const range = sel.getRangeAt(0);
+    const node = range.startContainer;
+
+    // Find the paragraph/block element containing the caret
+    const paraEl = getContainingBlock(node);
+    if (!paraEl || paraEl === editor) return;
+
+    const text = paraEl.innerText || '';
+    if (!text || text.length < 3) return;
+
+    const cfg = dialogueCorrectionConfig;
+    const oq = cfg.openQuote;
+    const cq = cfg.closeQuote;
+    const verbs = cfg.speechVerbs;
+
+    const corrected = cfg.ruleFamily === 'de'
+        ? correctGermanDialogue(text, oq, cq, verbs)
+        : correctEnglishDialogue(text, oq, cq, verbs);
+
+    if (corrected && corrected !== text) {
+        applyParagraphCorrection(paraEl, text, corrected);
+    }
+}
+
+function correctGermanDialogue(text, oq, cq, verbs) {
+    let changed = false;
+    let result = text;
+
+    const verbPattern = verbs.map(v => escapeRegex(v)).join('|');
+    const cqE = escapeRegex(cq);
+    const oqE = escapeRegex(oq);
+
+    // Pass 1: Period inside closing quote before verb → remove period, comma outside
+    // „Text." sagte er → „Text", sagte er
+    const p1 = new RegExp(
+        oqE + '([^' + cqE + ']*?)\\.' + cqE + '\\s*,?\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p1, (m, inner, verb) => {
+        changed = true;
+        return oq + inner + cq + ', ' + verb.toLowerCase();
+    });
+
+    // Pass 2: Wrong period after closing quote → replace with comma
+    // „Text?". sagte er → „Text?", sagte er
+    const p2 = new RegExp(
+        cqE + '\\.\\s*,?\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p2, (m, verb) => {
+        changed = true;
+        return cq + ', ' + verb.toLowerCase();
+    });
+
+    // Pass 3: Missing comma after closing quote before verb
+    // „Text" sagte er → „Text", sagte er
+    // „Text?" sagte er → „Text?", sagte er
+    // But NOT if comma already present: „Text", sagte → skip
+    const p3 = new RegExp(
+        cqE + '(?!,)\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p3, (m, verb) => {
+        changed = true;
+        return cq + ', ' + verb.toLowerCase();
+    });
+
+    // Pass 4: Uppercase verb after comma
+    // „Text", Sagte → „Text", sagte
+    const p4 = new RegExp(
+        cqE + ',\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p4, (m, verb) => {
+        const lower = verb.charAt(0).toLowerCase() + verb.slice(1);
+        if (lower !== verb) {
+            changed = true;
+            return cq + ', ' + lower;
+        }
+        return m;
+    });
+
+    // Pass 5: Interrupted speech — add comma before continuation opening quote
+    // sagte Noah „und... → sagte Noah, „und...
+    // But NOT if period precedes opening quote (new sentence: sagte Liam. „Wir...)
+    const p5 = new RegExp(
+        '(' + verbPattern + ')(\\s+[^' + oqE + cqE + ']*?)\\s+(' + oqE + ')',
+        'giu'
+    );
+    result = result.replace(p5, (m, verb, middle, nextOq) => {
+        const trimmed = middle.trimEnd();
+        if (trimmed.endsWith('.') || trimmed.endsWith(',')) return m;
+        changed = true;
+        return verb + trimmed + ', ' + nextOq;
+    });
+
+    return changed ? result : null;
+}
+
+function correctEnglishDialogue(text, oq, cq, verbs) {
+    let changed = false;
+    let result = text;
+
+    const verbPattern = verbs.map(v => escapeRegex(v)).join('|');
+    const cqE = escapeRegex(cq);
+    const oqE = escapeRegex(oq);
+
+    // Pass 1: Period inside quotes before verb → comma inside quotes
+    // "Text." said he → "Text," said he
+    const p1 = new RegExp(
+        oqE + '([^' + cqE + ']*?)\\.' + cqE + '\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p1, (m, inner, verb) => {
+        changed = true;
+        return oq + inner + ',' + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 2: Comma outside quotes → move inside
+    // "Text", said he → "Text," said he
+    // But "Text?", asked → remove comma (handled in Pass 4)
+    const p2 = new RegExp(
+        oqE + '([^' + cqE + ']*?)' + cqE + ',\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p2, (m, inner, verb) => {
+        if (inner.endsWith(',')) return m;
+        if (/[?!]$/.test(inner)) {
+            changed = true;
+            return oq + inner + cq + ' ' + verb.toLowerCase();
+        }
+        changed = true;
+        return oq + inner + ',' + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 3: No comma at all → add comma inside quotes
+    // "Text" said he → "Text," said he
+    const p3 = new RegExp(
+        oqE + '([^' + cqE + ']*?)' + cqE + '\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p3, (m, inner, verb) => {
+        if (/[,?!]$/.test(inner)) return m;
+        changed = true;
+        return oq + inner + ',' + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 4: Remove comma after ? or !
+    // "Text?", asked → "Text?" asked
+    const p4 = new RegExp(
+        '([?!])' + cqE + ',\\s*(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p4, (m, punct, verb) => {
+        changed = true;
+        return punct + cq + ' ' + verb.toLowerCase();
+    });
+
+    // Pass 5: Uppercase verb → lowercase
+    // "Text," Said → "Text," said
+    const p5 = new RegExp(
+        cqE + '\\s+(' + verbPattern + ')\\b',
+        'giu'
+    );
+    result = result.replace(p5, (m, verb) => {
+        const lower = verb.charAt(0).toLowerCase() + verb.slice(1);
+        if (lower !== verb) {
+            changed = true;
+            return cq + ' ' + lower;
+        }
+        return m;
+    });
+
+    // Pass 6: Interrupted speech — add comma before continuation opening quote
+    // said Noah "and... → said Noah, "and...
+    // But NOT if period precedes (new sentence: said Liam. "We...)
+    const p6 = new RegExp(
+        '(' + verbPattern + ')(\\s+[^' + oqE + cqE + ']*?)\\s+(' + oqE + ')',
+        'giu'
+    );
+    result = result.replace(p6, (m, verb, middle, nextOq) => {
+        const trimmed = middle.trimEnd();
+        if (trimmed.endsWith('.') || trimmed.endsWith(',')) return m;
+        changed = true;
+        return verb + trimmed + ', ' + nextOq;
+    });
+
+    return changed ? result : null;
+}
+
+function applyParagraphCorrection(paraEl, oldText, newText) {
+    // 1. Compute caret text offset before correction
+    const sel = window.getSelection();
+    let caretTextOffset = 0;
+    if (sel && sel.rangeCount > 0) {
+        const r = sel.getRangeAt(0);
+        const preRange = document.createRange();
+        preRange.selectNodeContents(paraEl);
+        preRange.setEnd(r.startContainer, r.startOffset);
+        caretTextOffset = preRange.toString().length;
+    }
+
+    // 2. Find diff boundaries
+    let diffStart = 0;
+    const minLen = Math.min(oldText.length, newText.length);
+    while (diffStart < minLen && oldText[diffStart] === newText[diffStart]) diffStart++;
+
+    let oldEnd = oldText.length;
+    let newEnd = newText.length;
+    while (oldEnd > diffStart && newEnd > diffStart &&
+           oldText[oldEnd - 1] === newText[newEnd - 1]) {
+        oldEnd--;
+        newEnd--;
+    }
+
+    // 3. Calculate adjusted caret position
+    const delta = (newEnd - diffStart) - (oldEnd - diffStart);
+    let newCaretOffset;
+    if (caretTextOffset <= diffStart) {
+        newCaretOffset = caretTextOffset;
+    } else if (caretTextOffset >= oldEnd) {
+        newCaretOffset = caretTextOffset + delta;
+    } else {
+        newCaretOffset = newEnd;
+    }
+
+    // 4. Apply change to DOM text nodes
+    replaceInTextNodes(paraEl, oldText, diffStart, oldEnd, newText.slice(diffStart, newEnd));
+
+    // 5. Restore caret at adjusted position
+    const finalLen = (paraEl.innerText || '').length;
+    restoreCaretInElement(paraEl, Math.max(0, Math.min(newCaretOffset, finalLen)));
+}
+
+function replaceInTextNodes(element, oldText, diffStart, diffEnd, replacement) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+    const nodes = [];
+    let total = 0;
+    let nd;
+    while ((nd = walker.nextNode())) {
+        nodes.push({ node: nd, start: total, end: total + nd.textContent.length });
+        total += nd.textContent.length;
+    }
+    if (total !== oldText.length) return;
+
+    const isInsertion = diffStart === diffEnd;
+    let applied = false;
+    for (let i = 0; i < nodes.length; i++) {
+        const { node: tn, start: ns, end: ne } = nodes[i];
+
+        // Check overlap with changed region
+        if (isInsertion) {
+            if (diffStart < ns || diffStart > ne) continue;
+        } else {
+            if (ne <= diffStart || ns >= diffEnd) continue;
+        }
+
+        const localStart = Math.max(0, diffStart - ns);
+        const localEnd = Math.min(tn.textContent.length, diffEnd - ns);
+
+        if (!applied) {
+            tn.textContent = tn.textContent.slice(0, localStart) + replacement + tn.textContent.slice(localEnd);
+            applied = true;
+        } else {
+            tn.textContent = tn.textContent.slice(0, localStart) + tn.textContent.slice(localEnd);
+        }
+    }
+}
+
+function restoreCaretInElement(element, textOffset) {
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
+    let accumulated = 0;
+    let node;
+    while ((node = walker.nextNode())) {
+        const len = (node.textContent || '').length;
+        if (accumulated + len >= textOffset) {
+            const sel = window.getSelection();
+            const range = document.createRange();
+            range.setStart(node, textOffset - accumulated);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            return;
+        }
+        accumulated += len;
+    }
+}
+
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ── Caret Position ──────────────────────────────────────────────
+
+function getCaretPosition() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return { line: 1, column: 1 };
+
+    const range = sel.getRangeAt(0);
+    const preRange = range.cloneRange();
+    preRange.selectNodeContents(editor);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    const textBefore = preRange.toString();
+    const lines = textBefore.split('\n');
+    return { line: lines.length, column: lines[lines.length - 1].length + 1 };
+}
+
+// ── Event Handlers ──────────────────────────────────────────────
+
+let contentChangeTimer = null;
+
+function getCleanContentHtml() {
+    if (!pageViewEnabled) return editor.innerHTML;
+    const clone = editor.cloneNode(true);
+    clone.querySelectorAll('.nv-page').forEach(p => {
+        const parent = p.parentNode;
+        while (p.firstChild) parent.insertBefore(p.firstChild, p);
+        parent.removeChild(p);
+    });
+    return clone.innerHTML;
+}
+
+editor.addEventListener('input', () => {
+    if (isSettingContent) return;
+
+    // Debounced dialogue correction — runs after typing pauses
+    if (dialogueCorrectionConfig) {
+        if (dialogueCorrectionTimer) clearTimeout(dialogueCorrectionTimer);
+        dialogueCorrectionTimer = setTimeout(() => {
+            dialogueCorrectionTimer = null;
+            tryDialogueCorrection();
+        }, 600);
+    }
+
+    if (contentChangeTimer) clearTimeout(contentChangeTimer);
+    contentChangeTimer = setTimeout(() => {
+        const html = getCleanContentHtml();
+        if (html !== lastHtml) {
+            lastHtml = html;
+            sendMessage({
+                type: 'contentChanged',
+                html: html,
+                plainText: editor.innerText || ''
+            });
+        }
+    }, 50);
+
+    // Request grammar check after typing pause
+    requestGrammarCheck();
+});
+
+editor.addEventListener('beforeinput', (e) => {
+    if (isSettingContent) return;
+    if (e.inputType !== 'insertText' || !e.data) return;
+
+    const result = tryAutoReplace(e.data);
+    if (result && result.replacement !== e.data) {
+        e.preventDefault();
+
+        if (result.backtrack > 0) {
+            const sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+                for (let i = 0; i < result.backtrack; i++) {
+                    sel.modify('extend', 'backward', 'character');
+                }
+            }
+        }
+
+        document.execCommand('insertText', false, result.replacement);
+    }
+});
+
+// Capture-phase keydown for mention picker navigation — runs before main keydown.
+editor.addEventListener('keydown', (e) => {
+    if (!mentionState) return;
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        closeMentionPicker(true);
+        return;
+    }
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        e.stopPropagation();
+        moveMentionSelection(1);
+        return;
+    }
+    if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        moveMentionSelection(-1);
+        return;
+    }
+    if (e.key === 'Enter' || e.key === 'Tab') {
+        if (mentionFiltered.length > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            confirmMentionAt(mentionSelectedIndex);
+            return;
+        }
+        // No matches — fall through; Enter inserts a newline and closes picker.
+        closeMentionPicker(true);
+        return;
+    }
+}, true);
+
+editor.addEventListener('input', () => {
+    if (mentionState) {
+        updateMentionQuery();
+        return;
+    }
+    // After a normal input event, check if caret just landed right after a
+    // freshly-typed `@` that should open the picker.
+    if (detectMentionAtCaret()) {
+        openMentionPicker();
+    }
+});
+
+document.addEventListener('selectionchange', () => {
+    if (isSettingContent) return;
+    notifyFormattingChanged();
+    const pos = getCaretPosition();
+    sendMessage({ type: 'caretPosition', line: pos.line, column: pos.column });
+    // Close mention picker if caret leaves the pending span.
+    if (mentionState) {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            const r = sel.getRangeAt(0);
+            if (!mentionState.span.contains(r.startContainer)) {
+                closeMentionPicker(true);
+            }
+        }
+    }
+    scheduleTypewriterRecenter();
+});
+
+// ── Margin Comment Gutter ───────────────────────────────────────
+const commentsState = new Map(); // id -> { anchorText, text }
+let commentGutterEl = null;
+let commentRenderScheduled = false;
+
+function ensureGutter() {
+    if (commentGutterEl) return commentGutterEl;
+    commentGutterEl = document.createElement('div');
+    commentGutterEl.id = 'commentGutter';
+    document.body.appendChild(commentGutterEl);
+    return commentGutterEl;
+}
+
+function scheduleCommentRender() {
+    if (commentRenderScheduled) return;
+    commentRenderScheduled = true;
+    requestAnimationFrame(() => {
+        commentRenderScheduled = false;
+        renderCommentGutter();
+    });
+}
+
+window.setCommentsData = function (data) {
+    try {
+        const arr = typeof data === 'string' ? JSON.parse(data) : (data || []);
+        commentsState.clear();
+        (arr || []).forEach(c => {
+            if (!c || !c.id) return;
+            commentsState.set(c.id, {
+                anchorText: c.anchorText || '',
+                text: c.text || ''
+            });
+        });
+        scheduleCommentRender();
+    } catch (_) { /* ignore */ }
+};
+
+function createCommentCard(id, data) {
+    const card = document.createElement('div');
+    card.className = 'nv-cc-card';
+    card.dataset.commentId = id;
+
+    const anchor = document.createElement('div');
+    anchor.className = 'nv-cc-anchor';
+    anchor.textContent = data.anchorText || '';
+    card.appendChild(anchor);
+
+    const ta = document.createElement('textarea');
+    ta.className = 'nv-cc-text';
+    ta.value = data.text || '';
+    ta.spellcheck = true;
+    ta.addEventListener('input', () => {
+        const cur = commentsState.get(id);
+        if (cur) cur.text = ta.value;
+        sendMessage({ type: 'commentTextChanged', commentId: id, text: ta.value });
+        scheduleCommentRender();
+    });
+    ta.addEventListener('focus', () => {
+        scrollToComment(id, false);
+    });
+    card.appendChild(ta);
+
+    const del = document.createElement('button');
+    del.className = 'nv-cc-del';
+    del.type = 'button';
+    del.textContent = '×';
+    del.title = 'Delete comment';
+    del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sendMessage({ type: 'commentDeleted', commentId: id });
+    });
+    card.appendChild(del);
+
+    card.addEventListener('mousedown', (e) => {
+        if (e.target === ta || e.target === del) return;
+        e.preventDefault();
+    });
+    card.addEventListener('click', (e) => {
+        if (e.target === ta || e.target === del) return;
+        scrollToComment(id, true);
+        ta.focus();
+    });
+    return card;
+}
+
+function renderCommentGutter() {
+    const gutter = ensureGutter();
+    const liveIds = new Set();
+    const items = [];
+    const spans = editor.querySelectorAll('span.nv-comment[data-comment-id]');
+    spans.forEach(s => {
+        const id = s.getAttribute('data-comment-id');
+        if (!id || !commentsState.has(id) || liveIds.has(id)) return;
+        liveIds.add(id);
+        const r = s.getBoundingClientRect();
+        items.push({ id, top: r.top });
+    });
+    items.sort((a, b) => a.top - b.top);
+
+    const have = new Map();
+    Array.from(gutter.children).forEach(c => have.set(c.dataset.commentId, c));
+    have.forEach((card, id) => { if (!liveIds.has(id)) card.remove(); });
+
+    let prevBottom = 0;
+    const gap = 6;
+    items.forEach(item => {
+        const data = commentsState.get(item.id);
+        let card = have.get(item.id);
+        if (!card) {
+            card = createCommentCard(item.id, data);
+            gutter.appendChild(card);
+        } else {
+            const ta = card.querySelector('textarea');
+            if (ta && document.activeElement !== ta && ta.value !== data.text) {
+                ta.value = data.text;
+            }
+            const ae = card.querySelector('.nv-cc-anchor');
+            if (ae && ae.textContent !== data.anchorText) ae.textContent = data.anchorText;
+        }
+        const desired = Math.max(item.top, prevBottom + gap);
+        card.style.top = desired + 'px';
+        prevBottom = desired + card.offsetHeight;
+    });
+
+    document.body.classList.toggle('has-comments', liveIds.size > 0);
+}
+
+wrapper.addEventListener('scroll', scheduleCommentRender);
+window.addEventListener('resize', scheduleCommentRender);
+const commentObserver = new MutationObserver(scheduleCommentRender);
+commentObserver.observe(editor, { childList: true, characterData: true, subtree: true });
+
+editor.addEventListener('mousemove', (e) => {
+    // First, check if the cursor is over an `nv-entity-mention` span — preferred
+    // because it carries a stable entity ID immune to renames.
+    const target = e.target;
+    let mention = null;
+    if (target && target.closest) mention = target.closest('.nv-entity-mention');
+    if (mention) {
+        const id = mention.getAttribute('data-entity-id') || '';
+        if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+        if (id && id !== lastHoveredMentionId) {
+            lastHoveredMentionId = id;
+            lastHoveredAlias = null;
+            sendMessage({
+                type: 'entityMentionHover',
+                entityId: id,
+                x: e.clientX,
+                y: e.clientY
+            });
+        }
+        return;
+    }
+    if (lastHoveredMentionId) {
+        // Left a mention span — debounce exit
+        if (!entityExitTimer) {
+            entityExitTimer = setTimeout(() => {
+                entityExitTimer = null;
+                lastHoveredMentionId = null;
+                lastHoveredAlias = null;
+                sendMessage({ type: 'entityExit' });
+            }, 200);
+        }
+        return;
+    }
+
+    if (!entityRegex) return;
+    const alias = findEntityAtPoint(e.clientX, e.clientY);
+    if (alias) {
+        // Found an entity — cancel any pending exit and notify if alias changed
+        if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+        if (alias !== lastHoveredAlias) {
+            lastHoveredAlias = alias;
+            sendMessage({
+                type: 'entityHover',
+                alias: alias,
+                x: e.clientX,
+                y: e.clientY
+            });
+        }
+    } else if (lastHoveredAlias) {
+        // Lost entity match — debounce the exit so small pixel jitter doesn't kill the peek
+        if (!entityExitTimer) {
+            entityExitTimer = setTimeout(() => {
+                entityExitTimer = null;
+                lastHoveredAlias = null;
+                sendMessage({ type: 'entityExit' });
+            }, 200);
+        }
+    }
+});
+
+editor.addEventListener('mouseleave', () => {
+    if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
+    if (lastHoveredAlias || lastHoveredMentionId) {
+        lastHoveredAlias = null;
+        lastHoveredMentionId = null;
+        sendMessage({ type: 'entityExit' });
+    }
+});
+
+editor.addEventListener('mousedown', () => {
+    sendMessage({ type: 'pointerPressed' });
+});
+
+editor.addEventListener('keydown', (e) => {
+    // Forward function keys (F1-F12) and Esc unconditionally so host hotkeys
+    // like F11 (focus mode) and Esc work even while focus is in the editor.
+    var isFunctionKey = /^F\d{1,2}$/.test(e.code);
+    if (isFunctionKey || e.key === 'Escape') {
+        e.preventDefault();
+        sendMessage({
+            type: 'hotkey',
+            key: e.key,
+            code: e.code,
+            ctrlKey: e.ctrlKey,
+            shiftKey: e.shiftKey,
+            altKey: e.altKey
+        });
+        return;
+    }
+
+    // Forward modifier key combinations to the host app for hotkey dispatch.
+    // Exclude standard text-editing shortcuts handled natively by contenteditable.
+    if ((e.ctrlKey || e.altKey) && !isTextEditingShortcut(e)) {
+        e.preventDefault();
+        sendMessage({
+            type: 'hotkey',
+            key: e.key,
+            code: e.code,
+            ctrlKey: e.ctrlKey,
+            shiftKey: e.shiftKey,
+            altKey: e.altKey
+        });
+    }
+});
+
+function isTextEditingShortcut(e) {
+    if (!e.ctrlKey) return false;
+    var k = e.key.toLowerCase();
+    // Navigation keys that should be handled natively by contenteditable
+    var navKeys = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'home', 'end'];
+    if (navKeys.includes(k)) return true;
+    // Ctrl+(no shift): select-all, copy, paste, cut, undo, redo
+    if (!e.shiftKey && !e.altKey) return 'acvxzy'.includes(k);
+    // Ctrl+Shift+Z = redo
+    if (e.shiftKey && !e.altKey && k === 'z') return true;
+    return false;
+}
+
+// Handle paste: strip external formatting, keep only basic formatting
+editor.addEventListener('paste', (e) => {
+    const html = e.clipboardData?.getData('text/html');
+    if (html) {
+        e.preventDefault();
+        // Parse and sanitize the pasted HTML
+        const cleaned = sanitizePastedHtml(html);
+        document.execCommand('insertHTML', false, cleaned);
+    }
+});
+
+function sanitizePastedHtml(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+
+    // Remove all style attributes except basic formatting
+    const allElements = tmp.querySelectorAll('*');
+    for (const el of allElements) {
+        // Keep b, i, u, strong, em, p, br, div, span
+        const tag = el.tagName.toLowerCase();
+        const allowedTags = ['b', 'i', 'u', 'strong', 'em', 'p', 'br', 'div', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+        if (!allowedTags.includes(tag)) {
+            // Replace with its text content
+            el.replaceWith(...el.childNodes);
+            continue;
+        }
+        // Remove all attributes except style with basic formatting
+        const style = el.getAttribute('style');
+        // Clear all attributes
+        while (el.attributes.length > 0) el.removeAttribute(el.attributes[0].name);
+        if (style) {
+            // Only keep font-weight, font-style, text-decoration, text-align
+            const allowed = {};
+            if (/font-weight\s*:\s*bold/i.test(style)) allowed['font-weight'] = 'bold';
+            if (/font-style\s*:\s*italic/i.test(style)) allowed['font-style'] = 'italic';
+            if (/text-decoration\s*:\s*underline/i.test(style)) allowed['text-decoration'] = 'underline';
+            const alignMatch = style.match(/text-align\s*:\s*(left|center|right|justify)/i);
+            if (alignMatch) allowed['text-align'] = alignMatch[1];
+            const parts = Object.entries(allowed).map(([k, v]) => k + ':' + v);
+            if (parts.length > 0) el.setAttribute('style', parts.join(';'));
+        }
+    }
+    return tmp.innerHTML;
+}
+
+// ── Scroll Zoom (Ctrl+Wheel) ───────────────────────────────────
+
+wrapper.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 1 : -1;
+    sendMessage({ type: 'zoom', delta: delta });
+}, { passive: false });
+
+// ── Focus ───────────────────────────────────────────────────────
+
+function focusEditor() {
+    editor.focus({ preventScroll: true });
+}
+
+// Track scroll positions for focus-gain scroll jump prevention
+wrapper.addEventListener('scroll', () => {
+    if (!isFocusing) {
+        savedScrollTop = wrapper.scrollTop;
+    }
+});
+
+// Update saved scroll top on mousedown before focus changes
+document.addEventListener('mousedown', () => {
+    if (!isFocusing) {
+        savedScrollTop = wrapper.scrollTop;
+    }
+}, true);
+
+// Prevent default scroll-to-top behavior when editor gains focus natively
+editor.addEventListener('focus', () => {
+    isFocusing = true;
+    const restore = () => {
+        if (wrapper.scrollTop !== savedScrollTop) {
+            wrapper.scrollTop = savedScrollTop;
+        }
+    };
+    restore();
+    requestAnimationFrame(restore);
+    setTimeout(() => {
+        restore();
+        isFocusing = false;
+    }, 100);
+});
+
+// ── Custom Context Menu ─────────────────────────────────────────
+
+const contextMenu = document.getElementById('context-menu');
+let contextMenuTarget = null;
+let contextMenuLabels = { cut: 'Cut', copy: 'Copy', paste: 'Paste', selectAll: 'Select All' };
+
+function setContextMenuLabels(labelsJson) {
+    try {
+        contextMenuLabels = JSON.parse(labelsJson);
+    } catch (_) {}
+}
+
+document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    hideGrammarPopup();
+
+    contextMenuTarget = e.target;
+    const sel = window.getSelection();
+    const hasSelection = sel && !sel.isCollapsed;
+
+    let html = '';
+
+    // Check if right-clicking on a grammar issue
+    const issueSpan = e.target.closest('.grammar-issue');
+    if (issueSpan && grammarEnabled) {
+        const index = parseInt(issueSpan.getAttribute('data-issue-index'), 10);
+        const issue = grammarIssues[index];
+        if (issue) {
+            html += '<div class="cm-grammar-msg">' + escapeHtml(issue.message) + '</div>';
+            if (issue.replacements && issue.replacements.length > 0) {
+                for (const rep of issue.replacements) {
+                    html += '<div class="cm-suggestion" data-issue-index="' + index + '" data-replacement="' + escapeHtml(rep) + '">' + escapeHtml(rep) + '</div>';
+                }
+            }
+            if (issue.type === 'spelling') {
+                const word = issueSpan.textContent || '';
+                if (word.trim().length > 0) {
+                    html += '<div class="cm-item" data-action="addToDictionary" data-word="' + escapeHtml(word.trim()) + '"><span>' + escapeHtml(contextMenuLabels.addToDictionary || 'Add to Dictionary') + '</span></div>';
+                }
+            }
+            html += '<div class="cm-separator"></div>';
+        }
+    }
+
+    // Standard editing items
+    const disabledAttr = hasSelection ? '' : ' disabled';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="cut"><span>' + escapeHtml(contextMenuLabels.cut || 'Cut') + '</span><span class="cm-shortcut">Ctrl+X</span></div>';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="copy"><span>' + escapeHtml(contextMenuLabels.copy || 'Copy') + '</span><span class="cm-shortcut">Ctrl+C</span></div>';
+    html += '<div class="cm-item" data-action="paste"><span>' + escapeHtml(contextMenuLabels.paste || 'Paste') + '</span><span class="cm-shortcut">Ctrl+V</span></div>';
+    html += '<div class="cm-separator"></div>';
+    html += '<div class="cm-item" data-action="selectAll"><span>' + escapeHtml(contextMenuLabels.selectAll || 'Select All') + '</span><span class="cm-shortcut">Ctrl+A</span></div>';
+    html += '<div class="cm-separator"></div>';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="addComment"><span>' + escapeHtml(contextMenuLabels.addComment || 'Add comment') + '</span><span class="cm-shortcut">Ctrl+Shift+M</span></div>';
+    html += '<div class="cm-item" data-action="addFootnote"><span>' + escapeHtml(contextMenuLabels.addFootnote || 'Add footnote') + '</span><span class="cm-shortcut">Ctrl+Shift+F</span></div>';
+
+    console.log('[InlineActions] context menu open. hasSelection=', hasSelection, 'inlineActions.length=', (inlineActions || []).length);
+    // Inline actions (extension-contributed). Shown only when selection non-empty.
+    if (hasSelection && inlineActions && inlineActions.length > 0) {
+        const grouped = {};
+        for (const a of inlineActions) {
+            const g = a.group || '';
+            (grouped[g] = grouped[g] || []).push(a);
+        }
+        for (const groupName of Object.keys(grouped)) {
+            html += '<div class="cm-separator"></div>';
+            if (groupName) {
+                html += '<div class="cm-grammar-msg">' + escapeHtml(groupName) + '</div>';
+            }
+            for (const a of grouped[groupName]) {
+                const icon = a.icon ? (escapeHtml(a.icon) + ' ') : '';
+                html += '<div class="cm-item" data-inline-action="' + escapeHtml(a.id) + '"><span>' + icon + escapeHtml(a.label) + '</span></div>';
+            }
+        }
+    }
+
+    // Extension context-menu items (always shown; operate on the current scene).
+    if (extensionMenuItems && extensionMenuItems.length > 0) {
+        html += '<div class="cm-separator"></div>';
+        for (const it of extensionMenuItems) {
+            const icon = it.icon ? (escapeHtml(it.icon) + ' ') : '';
+            html += '<div class="cm-item" data-ext-ctx="' + escapeHtml(it.id) + '"><span>' + icon + escapeHtml(it.label) + '</span></div>';
+        }
+    }
+
+    contextMenu.innerHTML = html;
+
+    // Position
+    let x = e.clientX, y = e.clientY;
+    contextMenu.classList.add('visible');
+    const rect = contextMenu.getBoundingClientRect();
+    if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 4;
+    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
+    contextMenu.style.left = x + 'px';
+    contextMenu.style.top = y + 'px';
+});
+
+contextMenu.addEventListener('click', (e) => {
+    const suggestion = e.target.closest('.cm-suggestion');
+    if (suggestion) {
+        const index = parseInt(suggestion.getAttribute('data-issue-index'), 10);
+        const replacement = suggestion.getAttribute('data-replacement');
+        applyGrammarSuggestion(index, replacement);
+        hideContextMenu();
+        return;
+    }
+
+    const inlineItem = e.target.closest('[data-inline-action]');
+    if (inlineItem) {
+        const id = inlineItem.getAttribute('data-inline-action');
+        triggerInlineAction(id);
+        hideContextMenu();
+        return;
+    }
+
+    const extItem = e.target.closest('[data-ext-ctx]');
+    if (extItem) {
+        sendMessage({ type: 'extensionContextMenuRequested', itemId: extItem.getAttribute('data-ext-ctx') });
+        hideContextMenu();
+        return;
+    }
+
+    const item = e.target.closest('.cm-item');
+    if (!item || item.classList.contains('disabled')) return;
+
+    const action = item.getAttribute('data-action');
+    switch (action) {
+        case 'cut':
+            document.execCommand('cut');
+            break;
+        case 'copy':
+            document.execCommand('copy');
+            break;
+        case 'paste':
+            navigator.clipboard.readText().then(text => {
+                document.execCommand('insertText', false, text);
+            }).catch(() => {
+                document.execCommand('paste');
+            });
+            break;
+        case 'selectAll':
+            document.execCommand('selectAll');
+            break;
+        case 'addComment':
+            sendMessage({ type: 'requestAddComment' });
+            break;
+        case 'addFootnote':
+            sendMessage({ type: 'requestAddFootnote' });
+            break;
+        case 'addToDictionary': {
+            const word = item.getAttribute('data-word');
+            sendMessage({ type: 'addToDictionary', word: word });
+            break;
+        }
+    }
+    hideContextMenu();
+});
+
+function hideContextMenu() {
+    contextMenu.classList.remove('visible');
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+document.addEventListener('click', (e) => {
+    if (!contextMenu.contains(e.target)) hideContextMenu();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') hideContextMenu();
+});
+wrapper.addEventListener('scroll', hideContextMenu);
+
+// ── Grammar Check ───────────────────────────────────────────────
+
+function logToHost(msg) {
+    sendMessage({ type: 'jsLog', message: msg });
+}
+
+let grammarIssues = [];
+let grammarCheckTimer = null;
+let grammarEnabled = false;
+let grammarChecking = false;
+const grammarPopup = document.getElementById('grammar-popup');
+const grammarStatusBar = document.getElementById('grammar-status-bar');
+
+function setGrammarCheckEnabled(enabled) {
+    logToHost("setGrammarCheckEnabled: enabled=" + enabled);
+    grammarEnabled = enabled;
+    if (!enabled) {
+        clearGrammarHighlights();
+        grammarIssues = [];
+        hideGrammarPopup();
+    } else {
+        // Trigger an initial check if there's content
+        requestGrammarCheck();
+    }
+    updateGrammarStatusBar();
+}
+
+function setGrammarIssues(issuesJson) {
+    logToHost("setGrammarIssues called: raw issues length = " + (issuesJson ? issuesJson.length : 0));
+    try {
+        const raw = JSON.parse(issuesJson);
+        // Filter out issues that target known entity names. Must use the same
+        // plain-text builder that produced the offsets LanguageTool returned,
+        // otherwise substring() reads from the wrong position.
+        const { plainText } = buildGrammarPlainTextMap();
+        grammarIssues = raw.filter(issue => {
+            const flaggedText = plainText.substring(issue.offset, issue.offset + issue.length);
+            return !isKnownEntity(flaggedText);
+        });
+        logToHost("setGrammarIssues: filtered issues count = " + grammarIssues.length);
+    } catch (ex) {
+        logToHost("setGrammarIssues exception: " + ex);
+        grammarIssues = [];
+    }
+    grammarChecking = false;
+    applyGrammarHighlights();
+    updateGrammarStatusBar();
+}
+
+function isKnownEntity(text) {
+    if (!text || entityNames.length === 0) return false;
+    const lower = text.toLowerCase();
+    for (const name of entityNames) {
+        if (name.toLowerCase() === lower) return true;
+    }
+    return false;
+}
+
+function clearGrammarHighlights() {
+    const marks = editor.querySelectorAll('.grammar-issue');
+    for (const mark of marks) {
+        const parent = mark.parentNode;
+        while (mark.firstChild) parent.insertBefore(mark.firstChild, mark);
+        parent.removeChild(mark);
+    }
+    // Normalize adjacent text nodes
+    editor.normalize();
+}
+
+function buildGrammarPlainTextMap() {
+    // Build the plain text we hand to LanguageTool together with a per-text-node
+    // offset map, in lock-step. We must not use editor.innerText for this: it
+    // collapses whitespace and trims block boundaries, which drifts the offsets
+    // returned by LanguageTool away from the actual text-node positions we need
+    // for highlighting and replacement. By concatenating textContent ourselves
+    // with explicit '\n' separators between blocks, the offsets LanguageTool
+    // returns map exactly onto positions in textNodes[].
+    const textNodes = [];
+    const parts = [];
+    let pos = 0;
+    let prevBlockEnd = null;
+
+    function walk(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const t = node.textContent;
+            textNodes.push({ node, start: pos, end: pos + t.length });
+            parts.push(t);
+            pos += t.length;
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const tag = node.tagName;
+            const isBlock = tag === 'P' || tag === 'DIV' || tag === 'BR'
+                         || tag === 'H1' || tag === 'H2' || tag === 'H3'
+                         || tag === 'H4' || tag === 'H5' || tag === 'H6';
+
+            if (isBlock && prevBlockEnd !== null && pos > 0) {
+                parts.push('\n');
+                pos++;
+            }
+
+            if (tag === 'BR') {
+                parts.push('\n');
+                pos++;
+                prevBlockEnd = pos;
+            } else {
+                const children = node.childNodes;
+                for (let i = 0; i < children.length; i++) {
+                    walk(children[i]);
+                }
+                if (isBlock) prevBlockEnd = pos;
+            }
+        }
+    }
+
+    for (let i = 0; i < editor.childNodes.length; i++) {
+        walk(editor.childNodes[i]);
+    }
+    return { plainText: parts.join(''), textNodes };
+}
+
+function applyGrammarHighlights() {
+    // Save caret position
+    const sel = window.getSelection();
+    let savedRange = null;
+    let caretTextOffset = -1;
+    if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
+        const r = sel.getRangeAt(0);
+        const preRange = document.createRange();
+        preRange.selectNodeContents(editor);
+        preRange.setEnd(r.startContainer, r.startOffset);
+        caretTextOffset = preRange.toString().length;
+    }
+
+    // Remove existing highlights
+    clearGrammarHighlights();
+
+    if (!grammarIssues || grammarIssues.length === 0) return;
+
+    // Use the same plain-text builder that fed LanguageTool so issue offsets
+    // align exactly with text-node positions.
+    const { textNodes } = buildGrammarPlainTextMap();
+
+    // Sort issues by offset descending so we can apply from the end
+    const sorted = [...grammarIssues].sort((a, b) => b.offset - a.offset);
+
+    for (const issue of sorted) {
+        const issueStart = issue.offset;
+        const issueEnd = issue.offset + issue.length;
+        const issueIdx = grammarIssues.indexOf(issue);
+
+        // Collect every text-node fragment overlapping the issue's range.
+        // An issue can straddle multiple text nodes when an inline highlight
+        // (entity mention, comment anchor, etc.) splits the underlying word;
+        // wrapping only the first fragment would leave the rest of the word
+        // outside the .grammar-issue span and survive a later replacement.
+        const fragments = [];
+        for (let i = 0; i < textNodes.length; i++) {
+            const tn = textNodes[i];
+            if (tn.end <= issueStart || tn.start >= issueEnd) continue;
+            const localStart = Math.max(0, issueStart - tn.start);
+            const localEnd = Math.min(tn.node.textContent.length, issueEnd - tn.start);
+            if (localStart < localEnd) {
+                fragments.push({ node: tn.node, start: localStart, end: localEnd });
+            }
+        }
+
+        // Wrap each fragment in its own span sharing the same data-issue-index.
+        // applyGrammarSuggestion collapses all such spans into a single
+        // replacement text node, so the whole issue range gets replaced.
+        for (const f of fragments) {
+            const range = document.createRange();
+            range.setStart(f.node, f.start);
+            range.setEnd(f.node, f.end);
+            const span = document.createElement('span');
+            span.className = 'grammar-issue';
+            span.setAttribute('data-issue-type', issue.type || 'grammar');
+            span.setAttribute('data-issue-index', issueIdx);
+            try {
+                range.surroundContents(span);
+            } catch (_) {
+                // surroundContents throws if the range crosses element boundaries
+                // mid-fragment; skip silently and let the recheck reconcile.
+            }
+        }
+    }
+
+    // Restore caret
+    if (caretTextOffset >= 0) {
+        restoreCaretInElement(editor, caretTextOffset);
+    }
+}
+
+function showGrammarPopup(issueIndex, x, y) {
+    const issue = grammarIssues[issueIndex];
+    if (!issue) return;
+
+    const msgEl = grammarPopup.querySelector('.gp-message');
+    const sugEl = grammarPopup.querySelector('.gp-suggestions');
+
+    msgEl.textContent = issue.message || 'Issue detected';
+    sugEl.innerHTML = '';
+
+    if (issue.replacements && issue.replacements.length > 0) {
+        for (const rep of issue.replacements) {
+            const btn = document.createElement('span');
+            btn.className = 'gp-suggestion';
+            btn.textContent = rep;
+            btn.addEventListener('click', () => {
+                applyGrammarSuggestion(issueIndex, rep);
+                hideGrammarPopup();
+            });
+            sugEl.appendChild(btn);
+        }
+    }
+
+    if (issue.type === 'spelling') {
+        const spans = editor.querySelectorAll('[data-issue-index="' + issueIndex + '"]');
+        if (spans.length > 0) {
+            const word = spans[0].textContent || '';
+            if (word.trim().length > 0) {
+                const addBtn = document.createElement('span');
+                addBtn.className = 'gp-suggestion';
+                addBtn.textContent = '+ Dictionary';
+                addBtn.style.opacity = '0.7';
+                addBtn.addEventListener('click', () => {
+                    sendMessage({ type: 'addToDictionary', word: word.trim() });
+                    hideGrammarPopup();
+                });
+                sugEl.appendChild(addBtn);
+            }
+        }
+    }
+
+    // Position popup
+    grammarPopup.style.left = Math.min(x, window.innerWidth - 340) + 'px';
+    grammarPopup.style.top = (y + 20) + 'px';
+    grammarPopup.classList.add('visible');
+}
+
+function hideGrammarPopup() {
+    grammarPopup.classList.remove('visible');
+}
+
+function applyGrammarSuggestion(issueIndex, replacement) {
+    const spans = editor.querySelectorAll('[data-issue-index="' + issueIndex + '"]');
+    if (spans.length === 0) return;
+
+    // Strip grammar-issue classes and attributes first so the browser does not
+    // preserve the underline style when replacing the elements via insertText.
+    for (const span of spans) {
+        span.className = '';
+        span.removeAttribute('style');
+        span.removeAttribute('data-issue-type');
+        span.removeAttribute('data-issue-index');
+    }
+
+    // Route the replacement through execCommand so the change lands on the
+    // contentEditable undo stack and Ctrl+Z reverts it like a normal edit.
+    // selectNode targets the wrapping span itself, so insertText/delete replace
+    // the entire element (including its .grammar-issue wrapper) atomically.
+    // Use preventScroll on focus + snapshot/restore wrapper scrollTop so the
+    // viewport doesn't jump to the top when focus moves into the editor.
+    const savedScrollTop = wrapper.scrollTop;
+    editor.focus({ preventScroll: true });
+    const sel = window.getSelection();
+
+    const firstRange = document.createRange();
+    firstRange.selectNode(spans[0]);
+    sel.removeAllRanges();
+    sel.addRange(firstRange);
+    document.execCommand('insertText', false, replacement);
+
+    // Drop any remaining fragments (rare: issue range was split by an inline
+    // highlight). Each delete is its own undo step.
+    for (let i = 1; i < spans.length; i++) {
+        const s = spans[i];
+        if (!s.parentNode) continue;
+        const r = document.createRange();
+        r.selectNode(s);
+        sel.removeAllRanges();
+        sel.addRange(r);
+        document.execCommand('delete', false);
+    }
+
+    if (wrapper.scrollTop !== savedScrollTop) {
+        wrapper.scrollTop = savedScrollTop;
+    }
+
+    // Remove the issue from the list. The input event fired by execCommand
+    // takes care of the contentChanged notification and the grammar recheck.
+    grammarIssues.splice(issueIndex, 1);
+    updateGrammarStatusBar();
+}
+
+function requestGrammarCheck() {
+    logToHost("requestGrammarCheck called: grammarEnabled=" + grammarEnabled + ", grammarChecking=" + grammarChecking);
+    if (!grammarEnabled) return;
+    if (grammarChecking) {
+        grammarChecking = false;
+        updateGrammarStatusBar();
+    }
+    if (grammarCheckTimer) clearTimeout(grammarCheckTimer);
+    grammarCheckTimer = setTimeout(() => {
+        grammarCheckTimer = null;
+        // Use buildGrammarPlainTextMap so the text we send and the offsets we
+        // get back stay aligned with our highlight-positioning logic.
+        const { plainText } = buildGrammarPlainTextMap();
+        grammarChecking = true;
+        logToHost("requestGrammarCheck timer fired: grammarChecking set to true, sending request. Plain text len=" + plainText.length);
+        updateGrammarStatusBar();
+        sendMessage({
+            type: 'grammarCheckRequest',
+            plainText: plainText
+        });
+    }, 1500);
+}
+
+function updateGrammarStatusBar() {
+    if (!grammarStatusBar) return;
+    logToHost("updateGrammarStatusBar: grammarEnabled=" + grammarEnabled + ", grammarChecking=" + grammarChecking + ", issues count=" + grammarIssues.length);
+
+    if (!grammarEnabled) {
+        grammarStatusBar.classList.remove('visible');
+        return;
+    }
+
+    grammarStatusBar.classList.add('visible');
+
+    const throbber = document.getElementById('status-throbber');
+    const doneIcon = document.getElementById('status-check-done');
+    const grammarItem = document.getElementById('status-grammar-count-container');
+    const punctuationItem = document.getElementById('status-punctuation-count-container');
+    const grammarCountSpan = document.getElementById('status-grammar-count');
+    const punctuationCountSpan = document.getElementById('status-punctuation-count');
+
+    // Throbber state
+    if (grammarChecking) {
+        throbber.classList.add('active');
+        doneIcon.classList.remove('active');
+    } else {
+        throbber.classList.remove('active');
+    }
+
+    // Compute counts
+    const grammarCount = grammarIssues.filter(i => i.type === 'grammar').length;
+    const punctuationCount = grammarIssues.filter(i => i.type === 'spelling' || i.type === 'style').length;
+
+    // Show checkmark done only when not checking and counts are 0
+    if (!grammarChecking && grammarCount === 0 && punctuationCount === 0) {
+        doneIcon.classList.add('active');
+    } else {
+        doneIcon.classList.remove('active');
+    }
+
+    // Update grammar count item
+    if (grammarCount > 0) {
+        grammarCountSpan.textContent = grammarCount;
+        grammarItem.classList.add('active');
+    } else {
+        grammarItem.classList.remove('active');
+    }
+
+    // Update punctuation/spelling count item
+    if (punctuationCount > 0) {
+        punctuationCountSpan.textContent = punctuationCount;
+        punctuationItem.classList.add('active');
+    } else {
+        punctuationItem.classList.remove('active');
+    }
+}
+
+function scrollToNextIssue(type) {
+    const selector = type === 'grammar'
+        ? '.grammar-issue[data-issue-type="grammar"]'
+        : '.grammar-issue[data-issue-type="spelling"], .grammar-issue[data-issue-type="style"]';
+    const firstIssue = editor.querySelector(selector);
+    if (firstIssue) {
+        firstIssue.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Wait briefly for scroll to finish, then open popup
+        setTimeout(() => {
+            const index = parseInt(firstIssue.getAttribute('data-issue-index'), 10);
+            const rect = firstIssue.getBoundingClientRect();
+            showGrammarPopup(index, rect.left, rect.bottom);
+        }, 150);
+    }
+}
+
+// Hook up status bar event listeners
+document.getElementById('status-grammar-count-container').addEventListener('click', (e) => {
+    scrollToNextIssue('grammar');
+    e.stopPropagation();
+});
+document.getElementById('status-punctuation-count-container').addEventListener('click', (e) => {
+    scrollToNextIssue('punctuation');
+    e.stopPropagation();
+});
+
+// Grammar issue click/hover handler
+editor.addEventListener('click', (e) => {
+    const issueSpan = e.target.closest('.grammar-issue');
+    if (issueSpan) {
+        const index = parseInt(issueSpan.getAttribute('data-issue-index'), 10);
+        const rect = issueSpan.getBoundingClientRect();
+        showGrammarPopup(index, rect.left, rect.bottom);
+        e.stopPropagation();
+    } else {
+        hideGrammarPopup();
+    }
+});
+
+// Dismiss button
+grammarPopup.querySelector('.gp-dismiss').addEventListener('click', hideGrammarPopup);
+
+// Hide popup on scroll or outside click
+wrapper.addEventListener('scroll', hideGrammarPopup);
+document.addEventListener('click', (e) => {
+    if (!grammarPopup.contains(e.target) && !e.target.closest('.grammar-issue')) {
+        hideGrammarPopup();
+    }
+});
+
+// ── Floating Selection Toolbar ───────────────────────────────────
+
+const floatingToolbar = document.getElementById('floating-toolbar');
+let floatingToolbarTimer = null;
+
+function updateFloatingToolbar() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
+        floatingToolbar.classList.remove('visible');
+        return;
+    }
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    if (rect.width === 0 && rect.height === 0) {
+        floatingToolbar.classList.remove('visible');
+        return;
+    }
+
+    // Update active state for format buttons
+    document.getElementById('ft-bold').classList.toggle('active', document.queryCommandState('bold'));
+    document.getElementById('ft-italic').classList.toggle('active', document.queryCommandState('italic'));
+    document.getElementById('ft-underline').classList.toggle('active', document.queryCommandState('underline'));
+    document.getElementById('ft-align-left').classList.toggle('active', document.queryCommandState('justifyLeft'));
+    document.getElementById('ft-align-center').classList.toggle('active', document.queryCommandState('justifyCenter'));
+    document.getElementById('ft-align-right').classList.toggle('active', document.queryCommandState('justifyRight'));
+    document.getElementById('ft-align-justify').classList.toggle('active', document.queryCommandState('justifyFull'));
+
+    floatingToolbar.classList.add('visible');
+    const tbWidth = floatingToolbar.offsetWidth || 220;
+    const tbHeight = floatingToolbar.offsetHeight || 34;
+    let x = rect.left + rect.width / 2 - tbWidth / 2;
+    let y = rect.top - tbHeight - 8;
+    if (x < 4) x = 4;
+    if (x + tbWidth > window.innerWidth - 4) x = window.innerWidth - tbWidth - 4;
+    if (y < 4) y = rect.bottom + 8;
+    floatingToolbar.style.left = x + 'px';
+    floatingToolbar.style.top = y + 'px';
+}
+
+document.addEventListener('selectionchange', () => {
+    if (floatingToolbarTimer) clearTimeout(floatingToolbarTimer);
+    floatingToolbarTimer = setTimeout(updateFloatingToolbar, 60);
+});
+
+floatingToolbar.addEventListener('mousedown', (e) => {
+    e.preventDefault(); // keep selection alive
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    const id = btn.id;
+    if (id === 'ft-bold') document.execCommand('bold', false, null);
+    else if (id === 'ft-italic') document.execCommand('italic', false, null);
+    else if (id === 'ft-underline') document.execCommand('underline', false, null);
+    else if (id === 'ft-align-left') document.execCommand('justifyLeft', false, null);
+    else if (id === 'ft-align-center') document.execCommand('justifyCenter', false, null);
+    else if (id === 'ft-align-right') document.execCommand('justifyRight', false, null);
+    else if (id === 'ft-align-justify') document.execCommand('justifyFull', false, null);
+    else if (id === 'ft-comment') sendMessage({ type: 'requestAddComment' });
+    else if (id === 'ft-footnote') sendMessage({ type: 'requestAddFootnote' });
+    updateFloatingToolbar();
+});
+
+// ── Inline Comments ─────────────────────────────────────────────
+
+function wrapSelectionAsComment(commentId) {
+    var sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    var range = sel.getRangeAt(0);
+    if (range.collapsed) return null;
+    var anchorText = sel.toString();
+    if (!anchorText) return null;
+
+    var span = document.createElement('span');
+    span.className = 'nv-comment';
+    span.setAttribute('data-comment-id', commentId);
+    try {
+        range.surroundContents(span);
+    } catch (e1) {
+        try {
+            var frag = range.extractContents();
+            span.appendChild(frag);
+            range.insertNode(span);
+        } catch (e2) {
+            return null;
+        }
+    }
+    sel.removeAllRanges();
+    // Notify host that the editor HTML changed so the comment span persists.
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    return anchorText;
+}
+
+function removeCommentSpan(commentId) {
+    var nodes = document.querySelectorAll('span.nv-comment[data-comment-id="' + commentId + '"]');
+    for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        var parent = node.parentNode;
+        while (node.firstChild) parent.insertBefore(node.firstChild, node);
+        parent.removeChild(node);
+        parent.normalize();
+    }
+    commentsState.delete(commentId);
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    scheduleCommentRender();
+}
+
+function scrollToComment(commentId, doScroll) {
+    document.querySelectorAll('span.nv-comment.nv-comment-active').forEach(function (n) {
+        n.classList.remove('nv-comment-active');
+    });
+    if (commentGutterEl) {
+        Array.from(commentGutterEl.children).forEach(function (c) {
+            c.classList.toggle('active', c.dataset.commentId === commentId);
+        });
+    }
+    var node = document.querySelector('span.nv-comment[data-comment-id="' + commentId + '"]');
+    if (!node) return;
+    node.classList.add('nv-comment-active');
+    if (doScroll !== false) node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+editor.addEventListener('click', function (e) {
+    var target = e.target;
+    while (target && target !== editor && !target.classList?.contains('nv-comment')) {
+        target = target.parentNode;
+    }
+    if (target && target !== editor && target.classList?.contains('nv-comment')) {
+        var id = target.getAttribute('data-comment-id');
+        if (id) sendMessage({ type: 'commentClicked', commentId: id });
+    }
+});
+
+// Host bridge: addComment(id) wraps current selection. Returns anchor via message.
+window.addCommentToSelection = function (commentId) {
+    try {
+        var anchor = wrapSelectionAsComment(commentId);
+        sendMessage({
+            type: 'commentAdded',
+            commentId: commentId,
+            anchorText: anchor || ''
+        });
+    } catch (err) {
+        sendMessage({ type: 'commentAdded', commentId: commentId, anchorText: '' });
+    }
+};
+
+window.removeCommentById = removeCommentSpan;
+window.scrollToCommentById = scrollToComment;
+
+// ── Footnotes ──────────────────────────────────────────────────
+function renumberFootnotes() {
+    var sups = editor.querySelectorAll('sup.nv-fn[data-fn-id]');
+    var i = 1;
+    sups.forEach(function (sup) { sup.textContent = i; i++; });
+    return Array.from(sups).map(function (s) { return s.getAttribute('data-fn-id'); });
+}
+
+window.insertFootnoteAtSelection = function (footnoteId) {
+    var sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    var range = sel.getRangeAt(0);
+    var sup = document.createElement('sup');
+    sup.className = 'nv-fn';
+    sup.setAttribute('data-fn-id', footnoteId);
+    sup.textContent = '0';
+    range.collapse(false);
+    range.insertNode(sup);
+    range.setStartAfter(sup);
+    range.setEndAfter(sup);
+    sel.removeAllRanges();
+    sel.addRange(range);
+    var ids = renumberFootnotes();
+    var num = ids.indexOf(footnoteId) + 1;
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    sendMessage({ type: 'footnoteInserted', footnoteId: footnoteId, number: num });
+    return num;
+};
+
+window.setFootnotesData = function (data) {
+    try {
+        var arr = typeof data === 'string' ? JSON.parse(data) : (data || []);
+        var byId = {};
+        for (var i = 0; i < arr.length; i++) byId[arr[i].id] = arr[i].text || '';
+        var sups = editor.querySelectorAll('sup.nv-fn[data-fn-id]');
+        sups.forEach(function (s) {
+            var id = s.getAttribute('data-fn-id');
+            var t = byId[id];
+            if (t) s.setAttribute('title', t); else s.removeAttribute('title');
+        });
+    } catch (_) { /* ignore */ }
+};
+
+window.scrollToFootnoteById = function (footnoteId) {
+    var node = editor.querySelector('sup.nv-fn[data-fn-id="' + footnoteId + '"]');
+    if (!node) return;
+    node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    var prev = node.style.background;
+    node.style.background = 'rgba(137, 180, 250, 0.4)';
+    setTimeout(function () { node.style.background = prev || ''; }, 1200);
+};
+
+window.removeFootnoteById = function (footnoteId) {
+    var nodes = editor.querySelectorAll('sup.nv-fn[data-fn-id="' + footnoteId + '"]');
+    nodes.forEach(function (n) { n.parentNode && n.parentNode.removeChild(n); });
+    renumberFootnotes();
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+};
+
+editor.addEventListener('click', function (e) {
+    var target = e.target;
+    if (target && target.classList && target.classList.contains('nv-fn')) {
+        var id = target.getAttribute('data-fn-id');
+        if (id) sendMessage({ type: 'footnoteClicked', footnoteId: id });
+    }
+});
+
+// ── Inline actions (extension-contributed) ──────────────────────
+let inlineActions = [];
+let pendingInlineAction = null; // { id, range, originalText, disposition }
+
+window.setInlineActions = function (json) {
+    try {
+        inlineActions = typeof json === 'string' ? JSON.parse(json) : (json || []);
+        console.log('[InlineActions] setInlineActions received', inlineActions.length, 'items', inlineActions);
+    } catch (e) {
+        console.log('[InlineActions] setInlineActions parse error', e);
+        inlineActions = [];
+    }
+};
+
+function triggerInlineAction(id) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+    const range = sel.getRangeAt(0).cloneRange();
+    const text = sel.toString();
+    if (!text) return;
+    pendingInlineAction = { id: id, range: range };
+    sendMessage({ type: 'inlineActionRequested', actionId: id, selectedText: text });
+}
+
+// Extension context-menu items (IContextMenuContributor): not selection-gated;
+// the host runs the click handler against the currently open scene.
+let extensionMenuItems = [];
+window.setExtensionContextMenuItems = function (json) {
+    try {
+        extensionMenuItems = typeof json === 'string' ? JSON.parse(json) : (json || []);
+    } catch (e) {
+        extensionMenuItems = [];
+    }
+};
+
+window.applyInlineActionResult = function (json) {
+    try {
+        var payload = typeof json === 'string' ? JSON.parse(json) : json;
+        if (!payload || !pendingInlineAction) return;
+        if (payload.actionId !== pendingInlineAction.id) { pendingInlineAction = null; return; }
+        if (payload.error) { pendingInlineAction = null; return; }
+
+        const range = pendingInlineAction.range;
+        const disposition = payload.disposition || 'replace';
+        const text = payload.text || '';
+
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+
+        if (disposition === 'insertAfter') {
+            range.collapse(false);
+            document.execCommand('insertText', false, '\n' + text);
+        } else {
+            document.execCommand('insertText', false, text);
+        }
+
+        pendingInlineAction = null;
+        try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch { }
+    } catch (_) {
+        pendingInlineAction = null;
+    }
+};
+
+// ── Ready Signal ────────────────────────────────────────────────
+sendMessage({ type: 'ready' });
+</script>
+</body>
+</html>

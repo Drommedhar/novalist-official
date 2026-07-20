@@ -1,0 +1,79 @@
+/* Timeline view — styles specific to the date-navigation toolbar,
+   source pills, jumped-to group highlight, and linked-chapter action.
+   Shared timeline layout lives in shell.css. */
+
+/* Date navigation cluster (prev / next / today / jump-to-date). */
+.timeline-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+}
+
+.timeline-nav-arrow {
+  min-width: 24px;
+  justify-content: center;
+  font-size: var(--nl-font-body-lg);
+  line-height: 1;
+}
+
+.timeline-jump-input {
+  width: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Source label pill shown next to the coloured dot. */
+.timeline-event-head {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  flex-wrap: wrap;
+}
+
+.timeline-source-pill {
+  flex-shrink: 0;
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  border-radius: var(--nl-radius-pill);
+  font-size: var(--nl-font-tiny);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: #fff;
+  background: var(--nl-text-subtle);
+}
+
+.timeline-source-pill.source-act {
+  background: var(--nl-status-revised);
+}
+.timeline-source-pill.source-chapter {
+  background: var(--nl-accent);
+}
+.timeline-source-pill.source-scene {
+  background: var(--nl-success);
+}
+.timeline-source-pill.source-manual {
+  background: var(--nl-warning);
+}
+
+/* Explicit "Open Chapter" affordance for manual events whose card click is
+   reserved for the editor. */
+.timeline-open-chapter {
+  align-self: flex-start;
+  margin-top: var(--nl-space-tightest);
+  padding: 0;
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.timeline-open-chapter:hover {
+  color: var(--nl-accent-hover);
+}
+
+/* Group scrolled to via Today / Pan / Jump. */
+.timeline-group.highlighted .timeline-group-label {
+  color: var(--nl-accent);
+  border-left: 2px solid var(--nl-accent);
+  padding-left: var(--nl-space-sm);
+}

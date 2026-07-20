@@ -1,0 +1,35 @@
+/* ===== Relationships header ===== */
+.relationships-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-normal) var(--nl-space-xl) 0;
+}
+
+.relationships-title {
+  font-size: var(--nl-font-title-sm);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text);
+}
+
+.relationships-hint {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+}
+
+.relationships-clear {
+  -webkit-app-region: no-drag;
+  font: inherit;
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+  background: transparent;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  padding: var(--nl-space-tightest) var(--nl-space-md);
+  cursor: pointer;
+}
+
+.relationships-clear:hover {
+  color: var(--nl-text);
+  border-color: var(--nl-accent);
+}

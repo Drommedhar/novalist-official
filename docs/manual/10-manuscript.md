@@ -4,92 +4,66 @@ The Manuscript view stitches every scene of your book into a single continuous d
 
 It has three display modes: **Manuscript**, **Corkboard**, and **Outliner**.
 
+![The Manuscript corkboard](images/manuscript.png)
+
 ## Opening the Manuscript view
 
-Click the scroll icon in the activity bar, or use **View → Manuscript** (or the hotkey).
+Open it from the **Write** group in the activity bar (**Manuscript**), from the **Go** menu or command palette, or with `Ctrl+5` (macOS uses Cmd).
+
+## The toolbar
+
+A mode switch at the top-left toggles between **Manuscript**, **Corkboard**, and **Outliner**. The choice is kept while the app is running.
+
+At the top-right, a status filter limits which chapters are included in all three modes:
+
+- **All** — every chapter (default).
+- **Outline** — only chapters at Outline status.
+- **Draft** — only chapters at First Draft status.
+- **Final** — only chapters at Final status.
+
+Chapters at Revised or Edited status appear under **All**.
 
 ## Manuscript mode
 
-The default mode. All chapters and scenes are rendered top-to-bottom as one scrollable document, with chapter titles as headings and scenes flowing one after another.
+The default mode. All chapters and scenes render top-to-bottom as one scrollable document:
 
-This is read-mostly. Each scene shows:
+- **Act headers** appear above the first chapter of each act.
+- **Chapter headings** show the chapter title and a **status badge** — click the badge to cycle the chapter's status (Outline → First Draft → Revised → Edited → Final).
+- Each scene has a small header with its **title** and a live **word count**. Click the scene title to open that scene in the Editor view.
+- The scene prose itself is **editable in place**. Type directly into the manuscript; changes save automatically after a short pause, exactly like the editor.
 
-- Chapter heading at the top of the first scene.
-- Scene title (small, optional, depending on your book settings).
-- The full HTML content of the scene.
-- Comments and footnotes rendered inline (same as in the editor).
+A footer at the end of the document totals what is currently visible (respecting the status filter): word count, scene count, and estimated reading time.
 
-Clicking on a scene opens that scene in the editor in a new tab so you can switch from reading to writing without losing your place.
-
-### Filtering by chapter status
-
-The toolbar has a status filter dropdown:
-
-- **All** — every chapter (default).
-- **Outline** — only chapters at outline status.
-- **First Draft**
-- **Revised**
-- **Edited**
-- **Final**
-
-When a filter is applied, only chapters at that status appear in the rendering. Useful for:
-
-- "Read everything in First Draft to find the rhythm."
-- "Print only Final chapters for a beta reader."
-
-### Totals
-
-The toolbar displays total **word count** and **reading time** for whatever is currently visible (respecting the filter).
+Use this mode for read-throughs and light line edits without leaving the flow of the book.
 
 ## Corkboard mode
 
-Each scene becomes a card on a board. Cards are arranged left-to-right, top-to-bottom, grouped by chapter.
+Each scene becomes a card on a board, grouped under its chapter title. Each card shows:
 
-Each card shows:
+- **Scene title**.
+- **Synopsis** — editable directly on the card; the change is saved when you click away.
+- **Word count**.
 
-- Scene title.
-- Word count.
-- Synopsis (the first lines of the scene's synopsis field).
-- Label color as the card border / accent.
-- Status indicator (via chapter status).
-- Plotline color chips, if the scene belongs to plotlines.
-
-Click a card to open the scene. Right-click for the same context menu as the Explorer (rename, status, label color, delete, etc.).
-
-Drag cards to reorder scenes within or across chapters — the same as drag-and-drop in the Explorer.
-
-Corkboard mode is ideal for planning passes: rearrange the structure quickly without scrolling through prose.
+Corkboard mode is ideal for planning passes: skim the whole book as synopses and fill in the summaries you skipped while drafting.
 
 ## Outliner mode
 
-A table view of every scene with these columns:
+A table with one row per scene and these columns:
 
 - **Chapter**
-- **Title**
-- **Synopsis** — inline-editable.
-- **POV** — derived or overridden.
+- **Scene**
+- **Synopsis** — editable inline; saved when you leave the field.
+- **POV** — editable inline; saved when you leave the field.
 - **Words**
-
-Click a row to open the scene; edit the synopsis cell to update it in place.
 
 The outliner is useful for:
 
 - Bulk editing synopses.
-- Auditing POV distribution.
+- Auditing and correcting POV assignments (Smart Lists filter on this field).
 - Eyeballing word counts to find unusually short or long scenes.
-
-## Toggling between modes
-
-A three-segment toggle at the top-left of the Manuscript view switches between **Manuscript**, **Corkboard**, and **Outliner**. The choice persists per book.
-
-## Editing from the Manuscript view
-
-You can edit inline in Manuscript mode for short tweaks. For longer work, click the scene's header — the title at the top of the scene — to open it in the editor (which retains the Manuscript view in the background — you can switch back).
-
-Comments added in the editor appear inline in the Manuscript view. Footnotes are rendered at the end of each scene in the Manuscript mode.
 
 ## Where to go next
 
 - [Editor](05-editor.md) — for actually writing the scenes.
-- [Smart Lists](16-smart-lists.md) — for additional filtering across the book.
+- [Smart Lists](16-smart-lists.md) — saved scene queries over status, POV, and tags.
 - [Export](20-export.md) — when you want a file outside the app.

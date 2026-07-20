@@ -7,13 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  APP_NAME: Novalist
-  EXECUTABLE_NAME: Novalist.Desktop
-  MACOS_ICON_FILE: novalist.icns
-  LINUX_ICON_FILE: novalist.png
   DOTNET_VERSION: 8.0.x
-  PROJECT_PATH: Novalist.Desktop/Novalist.Desktop.csproj
-  CONFIGURATION: Release
+  NODE_VERSION: "20"
 
 jobs:
   publish:
@@ -29,25 +24,25 @@ jobs:
           - label: Windows x64
             os: windows-latest
             rid: win-x64
-            publish_dir: novalist-windows-x64
+            eb_flags: --win --x64
             artifact_name: novalist-windows-x64-installer
             package_name: novalist-windows-x64-setup.exe
           - label: macOS x64
             os: macos-latest
             rid: osx-x64
-            publish_dir: novalist-macos-x64
+            eb_flags: --mac --x64
             artifact_name: novalist-macos-x64-dmg
             package_name: novalist-macos-x64.dmg
           - label: macOS ARM64
             os: macos-latest
             rid: osx-arm64
-            publish_dir: novalist-macos-arm64
+            eb_flags: --mac --arm64
             artifact_name: novalist-macos-arm64-dmg
             package_name: novalist-macos-arm64.dmg
           - label: Linux x64
-            os: ubuntu-24.04
+            os: ubuntu-22.04
             rid: linux-x64
-            publish_dir: novalist-linux-x64
+            eb_flags: --linux --x64
             artifact_name: novalist-linux-x64-appimage
             package_name: Novalist-x86_64.AppImage
 
@@ -62,234 +57,59 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
       - name: Derive version from tag
         id: version
         shell: bash
         run: |
           TAG="${GITHUB_REF_NAME}"
-          # Extract digits from tag (e.g. "v1.2.3" → "1.2.3")
-          VER="$(printf '%s' "$TAG" | grep -oE '[0-9]+(\.[0-9]+)*')"
+          VER="$(printf '%s' "$TAG" | grep -oE '[0-9]+(\.[0-9]+)*' || true)"
           if [ -z "$VER" ]; then VER="0.0.1"; fi
+          # npm / electron-builder need full semver — pad to three components.
+          IFS='.' read -r a b c <<< "$VER"
+          VER="${a:-0}.${b:-0}.${c:-0}"
           echo "prefix=$VER" >> "$GITHUB_OUTPUT"
 
-      - name: Publish app
+      - name: Install app dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Set app version
+        working-directory: app
+        shell: bash
+        run: npm version "${{ steps.version.outputs.prefix }}" --no-git-tag-version --allow-same-version
+
+      - name: Publish backend (${{ matrix.rid }})
+        working-directory: app
+        shell: bash
         run: >-
-          dotnet publish "${{ env.PROJECT_PATH }}"
-          -c "${{ env.CONFIGURATION }}"
+          dotnet publish ../Novalist.Backend/Novalist.Backend.csproj
+          -c Release
           -r "${{ matrix.rid }}"
-          --self-contained true
+          --self-contained
           -p:PublishSingleFile=true
-          -p:EnableCompressionInSingleFile=true
-          -p:ContinuousIntegrationBuild=true
-          -p:DebugSymbols=false
-          -p:DebugType=None
           -p:VersionPrefix=${{ steps.version.outputs.prefix }}
           -p:VersionSuffix=
-          -o "${{ github.workspace }}/dist/${{ matrix.publish_dir }}"
+          -o dist-backend
 
-      - name: Install Inno Setup
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: choco install innosetup --no-progress -y
+      - name: Build renderer
+        working-directory: app
+        run: npm run build
 
-      - name: Package app (Windows installer)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $appVersion = "${{ steps.version.outputs.prefix }}"
-          $publishDir = (Resolve-Path (Join-Path $env:GITHUB_WORKSPACE "dist\${{ matrix.publish_dir }}")).ProviderPath
-          $outputDir = Join-Path $env:GITHUB_WORKSPACE 'artifacts'
-          $iconPath = (Resolve-Path (Join-Path $env:GITHUB_WORKSPACE 'Novalist.Desktop\novalist.ico')).ProviderPath
-          New-Item -ItemType Directory -Force -Path $outputDir | Out-Null
-
-          $iscc = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
-          if (-not (Test-Path $iscc)) {
-            $iscc = Join-Path $env:ProgramFiles 'Inno Setup 6\ISCC.exe'
-          }
-          if (-not (Test-Path $iscc)) {
-            throw 'ISCC.exe not found after installing Inno Setup.'
-          }
-
-          $arguments = @(
-            "/DAppVersion=$appVersion"
-            "/DSourceDir=$publishDir"
-            "/DOutputDir=$outputDir"
-            "/DOutputBaseFilename=$([System.IO.Path]::GetFileNameWithoutExtension('${{ matrix.package_name }}'))"
-            "/DInstallerIconFile=$iconPath"
-            '.github\installers\windows\novalist.iss'
-          )
-
-          & $iscc @arguments
-
-          if ($LASTEXITCODE -ne 0) {
-            throw "Inno Setup compilation failed with exit code $LASTEXITCODE"
-          }
-
-      - name: Package app (macOS DMG)
-        if: runner.os == 'macOS'
+      - name: Package (electron-builder)
+        working-directory: app
         shell: bash
-        run: |
-          set -euo pipefail
-
-          app_version="${{ steps.version.outputs.prefix }}"
-
-          publish_dir="${GITHUB_WORKSPACE}/dist/${{ matrix.publish_dir }}"
-          bundle_dir="${GITHUB_WORKSPACE}/dist/${{ env.APP_NAME }}.app"
-          contents_dir="${bundle_dir}/Contents"
-          macos_dir="${contents_dir}/MacOS"
-          resources_dir="${contents_dir}/Resources"
-          artifacts_dir="${GITHUB_WORKSPACE}/artifacts"
-          dmg_root="${GITHUB_WORKSPACE}/dmg-root"
-          rw_dmg="${artifacts_dir}/${{ matrix.publish_dir }}-rw.dmg"
-          final_dmg_base="${artifacts_dir}/${{ matrix.publish_dir }}"
-          mount_point="${GITHUB_WORKSPACE}/mounted-dmg"
-          setfile_path="$(xcrun -find SetFile)"
-
-          rm -rf "${bundle_dir}" "${dmg_root}" "${mount_point}"
-          mkdir -p "${macos_dir}" "${resources_dir}" "${artifacts_dir}" "${dmg_root}"
-          shopt -s dotglob nullglob
-          for path in "${publish_dir}"/*; do
-            name="$(basename "${path}")"
-            if [[ -d "${path}" ]]; then
-              cp -R "${path}" "${resources_dir}/${name}"
-            else
-              cp -R "${path}" "${macos_dir}/${name}"
-            fi
-          done
-          shopt -u dotglob nullglob
-
-          cp "${GITHUB_WORKSPACE}/Novalist.Desktop/${{ env.MACOS_ICON_FILE }}" "${resources_dir}/${{ env.MACOS_ICON_FILE }}"
-          chmod +x "${macos_dir}/${{ env.EXECUTABLE_NAME }}"
-
-          sed \
-            -e "s/__APP_VERSION__/${app_version}/g" \
-            -e "s/__EXECUTABLE_NAME__/${{ env.EXECUTABLE_NAME }}/g" \
-            '.github/installers/macos/Info.plist.template' > "${contents_dir}/Info.plist"
-
-          # Ad-hoc sign the bundle so Gatekeeper evaluates a consistent app bundle.
-          xattr -cr "${bundle_dir}"
-          find "${bundle_dir}" -type f \( -name '*.dylib' -o -perm -111 \) -print0 | while IFS= read -r -d '' file; do
-            codesign --force --sign - --timestamp=none "${file}"
-          done
-          codesign --force --sign - --timestamp=none "${bundle_dir}"
-          codesign --verify --deep --strict --verbose=2 "${bundle_dir}"
-
-          cp -R "${bundle_dir}" "${dmg_root}/"
-          cp "${GITHUB_WORKSPACE}/Novalist.Desktop/${{ env.MACOS_ICON_FILE }}" "${dmg_root}/.VolumeIcon.icns"
-          ln -s /Applications "${dmg_root}/Applications"
-
-          hdiutil create \
-            -volname '${{ env.APP_NAME }}' \
-            -srcfolder "${dmg_root}" \
-            -ov \
-            -fs HFS+ \
-            -format UDRW \
-            "${rw_dmg}"
-
-          mkdir -p "${mount_point}"
-          hdiutil attach \
-            -readwrite \
-            -noverify \
-            -noautoopen \
-            -mountpoint "${mount_point}" \
-            "${rw_dmg}"
-
-          "${setfile_path}" -a C "${mount_point}"
-          "${setfile_path}" -a V "${mount_point}/.VolumeIcon.icns"
-
-          hdiutil detach "${mount_point}"
-          hdiutil convert "${rw_dmg}" -format UDZO -o "${final_dmg_base}"
-          rm -f "${rw_dmg}"
-
-      - name: Package app (Linux AppImage)
-        if: runner.os == 'Linux'
-        shell: bash
-        run: |
-          set -euxo pipefail
-          publish_dir="${GITHUB_WORKSPACE}/dist/${{ matrix.publish_dir }}"
-          appdir="${GITHUB_WORKSPACE}/AppDir"
-          artifacts_dir="${GITHUB_WORKSPACE}/artifacts"
-
-          # We don't bundle webkit2gtk: distro packages compile out the
-          # WEBKIT_EXEC_PATH override, so a bundled libwebkit2gtk-4.1.so.0
-          # would still try to spawn its helper processes from the hardcoded
-          # /usr/lib/x86_64-linux-gnu/webkit2gtk-4.1/ path. The app instead
-          # prompts the user to install the distro package on first launch.
-          # We only need build tools, FUSE for appimagetool, and basic GTK3
-          # bits for Avalonia's own UI.
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            imagemagick \
-            libgtk-3-0 \
-            libfuse2t64 \
-            desktop-file-utils \
-            wget
-
-          convert "${GITHUB_WORKSPACE}/Novalist.Desktop/novalist.ico[0]" -resize 256x256 \
-            "PNG32:${GITHUB_WORKSPACE}/${{ env.LINUX_ICON_FILE }}"
-
-          # ── AppDir layout ────────────────────────────────────────────
-          rm -rf "${appdir}"
-          mkdir -p \
-            "${appdir}/usr/bin" \
-            "${appdir}/usr/share/applications" \
-            "${appdir}/usr/share/icons/hicolor/256x256/apps"
-
-          cp -a "${publish_dir}/." "${appdir}/usr/bin/"
-          chmod +x "${appdir}/usr/bin/${{ env.EXECUTABLE_NAME }}"
-
-          cat > "${appdir}/novalist.desktop" <<'EOF'
-          [Desktop Entry]
-          Version=1.0
-          Type=Application
-          Name=Novalist
-          Comment=Standalone novel planning and writing app
-          Exec=Novalist.Desktop
-          Icon=novalist
-          Terminal=false
-          Categories=Office;WordProcessor;
-          StartupNotify=true
-          EOF
-          cp "${appdir}/novalist.desktop" "${appdir}/usr/share/applications/"
-          cp "${GITHUB_WORKSPACE}/${{ env.LINUX_ICON_FILE }}" "${appdir}/novalist.png"
-          cp "${GITHUB_WORKSPACE}/${{ env.LINUX_ICON_FILE }}" \
-             "${appdir}/usr/share/icons/hicolor/256x256/apps/novalist.png"
-
-          # Minimal AppRun: force GTK to use X11 (the GtkX11WebViewAdapter
-          # path) and exec the binary. No LD_LIBRARY_PATH tricks needed since
-          # webkit2gtk comes from the host.
-          cat > "${appdir}/AppRun" <<'EOF'
-          #!/bin/bash
-          HERE="$(dirname "$(readlink -f "${0}")")"
-          if [ -n "${DISPLAY:-}" ]; then
-            export GDK_BACKEND=x11
-          fi
-          # WebKitGTK 2.42+ DMA-BUF renderer fails GBM allocation under
-          # XWayland / VMs / containers and silently renders a blank surface.
-          export WEBKIT_DISABLE_DMABUF_RENDERER=1
-          # WebKit runs the WebProcess inside a bubblewrap sandbox by default.
-          # The sandbox's filesystem namespace doesn't see the AppImage's FUSE
-          # mount (/tmp/.mount_*) so file:// navigation to our bundled HTML
-          # silently fails. Disabling the sandbox is safe here because the
-          # only content we load is our own bundled editor pages.
-          export WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS=1
-          exec "${HERE}/usr/bin/Novalist.Desktop" "$@"
-          EOF
-          chmod +x "${appdir}/AppRun"
-
-          cd "${GITHUB_WORKSPACE}"
-          wget -q -O appimagetool https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-
-          mkdir -p "${artifacts_dir}"
-          ARCH=x86_64 ./appimagetool --no-appstream \
-            "${appdir}" "${artifacts_dir}/${{ matrix.package_name }}"
+        run: npx electron-builder --config electron-builder.yml ${{ matrix.eb_flags }} -p never
 
       - name: Upload packaged artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: artifacts/${{ matrix.package_name }}
+          path: app/dist/${{ matrix.package_name }}
           if-no-files-found: error
 
   sdk-and-example:

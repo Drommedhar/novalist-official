@@ -1,0 +1,280 @@
+/*
+ * Research library + image gallery view styles. Co-located with the two views
+ * (ResearchView / GalleryView). Base layout classes (.codex*, .gallery,
+ * .gallery-grid, .gallery-item, .research-editor) live in shell.css; this file
+ * only adds the parity surfaces: research toolbar/preview/metadata/tags and the
+ * gallery view toggle, list mode, lightbox, and context menu.
+ */
+
+/* ===== Research ===== */
+.research-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter);
+  margin-bottom: var(--nl-space-sm);
+}
+
+.research-action-btn {
+  flex: 1;
+  min-width: 0;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body-sm);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.research-action-btn:hover {
+  background: var(--nl-surface-hover);
+}
+
+.research-search {
+  width: 100%;
+  margin-bottom: var(--nl-space-sm);
+}
+
+.research-preview {
+  display: flex;
+  justify-content: center;
+  padding: var(--nl-space-sm);
+  background: var(--nl-surface-sidebar);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+.research-preview img {
+  max-width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: var(--nl-radius-sm);
+}
+
+.research-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin: 0;
+}
+
+.research-meta dt {
+  font-size: var(--nl-font-body-sm);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text-subtle);
+}
+
+.research-meta dd {
+  margin: 0;
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+  word-break: break-all;
+}
+
+.research-meta-stats {
+  font-variant-numeric: tabular-nums;
+}
+
+.research-tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.research-tags-label {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+}
+
+.research-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter);
+}
+
+.research-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-tightest) var(--nl-space-md);
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-accent);
+  color: var(--nl-accent-ink);
+  font-size: var(--nl-font-body-sm);
+}
+
+.research-tag-remove {
+  color: var(--nl-accent-ink);
+  font-size: var(--nl-font-body);
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.research-tag-remove:hover {
+  opacity: 1;
+}
+
+.research-tag-add {
+  display: flex;
+  gap: var(--nl-space-sm);
+}
+
+.research-tag-add .dialog-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ===== Gallery: grid affordance (base grid lives in shell.css) ===== */
+.gallery-item {
+  cursor: zoom-in;
+}
+
+/* ===== Gallery: view toggle ===== */
+.gallery-viewtoggle {
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.gallery-viewtoggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--nl-space-sm);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text-dim);
+  background: transparent;
+}
+
+.gallery-viewtoggle-btn:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.gallery-viewtoggle-btn.active {
+  background: var(--nl-accent);
+  border-color: var(--nl-accent);
+  color: var(--nl-accent-ink);
+}
+
+/* ===== Gallery: list view ===== */
+.gallery-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-xl);
+  overflow-y: auto;
+}
+
+.gallery-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-lg);
+  padding: var(--nl-space-sm);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+  text-align: left;
+}
+
+.gallery-list-row:hover {
+  background: var(--nl-surface-hover);
+}
+
+.gallery-list-thumb {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: var(--nl-radius-sm);
+  border: 1px solid var(--nl-border);
+}
+
+.gallery-list-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  min-width: 0;
+}
+
+.gallery-list-name {
+  font-size: var(--nl-font-body-lg);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gallery-list-path {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== Gallery: lightbox ===== */
+.gallery-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--nl-space-lg);
+  padding: var(--nl-space-xxl);
+  background: var(--nl-surface-overlay);
+  cursor: zoom-out;
+}
+
+.gallery-lightbox img {
+  max-width: 90%;
+  max-height: 80%;
+  object-fit: contain;
+  border-radius: var(--nl-radius-lg);
+  box-shadow: var(--nl-elevation-high);
+}
+
+.gallery-lightbox-name {
+  color: #fff;
+  font-size: var(--nl-font-title-sm);
+  text-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+}
+
+/* ===== Gallery: context menu ===== */
+.gallery-menu-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+}
+
+.gallery-menu {
+  position: fixed;
+  z-index: 301;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: var(--nl-space-tighter);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  box-shadow: var(--nl-elevation-md);
+}
+
+.gallery-menu button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-radius: var(--nl-radius-sm);
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text);
+}
+
+.gallery-menu button:hover {
+  background: var(--nl-surface-hover);
+}

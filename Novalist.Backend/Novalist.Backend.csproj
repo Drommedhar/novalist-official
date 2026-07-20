@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Novalist.Backend.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Novalist.Core\Novalist.Core.csproj" />
+    <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="StreamJsonRpc" Version="2.25.29" />
+    <!-- Shipped so extensions built against the desktop host's MVVM toolkit (their
+         ViewModels derive from CommunityToolkit.Mvvm's ObservableObject) can resolve
+         it from the backend's app base. Without it, ExtensionLoadContext delegates
+         the "CommunityToolkit" host prefix to the default context, which cannot find
+         the assembly, and Assembly.GetTypes() throws during extension load. -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
+</Project>

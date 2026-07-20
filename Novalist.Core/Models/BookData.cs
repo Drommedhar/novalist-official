@@ -44,8 +44,16 @@ public class BookData
     [JsonPropertyName("snapshotFolder")]
     public string SnapshotFolder { get; set; } = "Snapshots";
 
+    /// <summary>Portrait book-cover image (shown on the welcome/start screen).
+    /// Stored as a book-root-relative path.</summary>
     [JsonPropertyName("coverImage")]
     public string CoverImage { get; set; } = string.Empty;
+
+    /// <summary>Wide banner image (shown on the Dashboard). Stored as a
+    /// book-root-relative path. When empty, the Dashboard falls back to
+    /// <see cref="CoverImage"/> so pre-split projects keep their banner.</summary>
+    [JsonPropertyName("bannerImage")]
+    public string BannerImage { get; set; } = string.Empty;
 
     [JsonPropertyName("characterTemplates")]
     public List<CharacterTemplate> CharacterTemplates { get; set; } = [];

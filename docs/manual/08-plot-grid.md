@@ -2,71 +2,62 @@
 
 A **plotline** is a thread that runs through your story. The romance, the mystery, the political subplot, the protagonist's internal arc — each can be a plotline.
 
-The **Plot Grid** is a spreadsheet-like view that shows every plotline as a row and every scene as a column. Cells let you mark which scenes belong to which plotline. Use it to see structure at a glance, spot threads that have been dropped, or check that subplots have setup and payoff.
+The **Plot Grid** is a spreadsheet-like view that shows every plotline as a row and every scene as a column. Cells mark which scenes belong to which plotline. Use it to see structure at a glance, spot threads that have been dropped, or check that subplots have setup and payoff.
+
+![The Plot Grid](images/plot-grid.png)
 
 ## Opening the Plot Grid
 
 Open it from:
 
-- **View → Plot Grid**.
+- The **Plan** group in the activity bar — click **Plot Grid**.
 - The command palette (`Ctrl+Shift+P` → "Plot Grid").
-- Its hotkey (see [Hotkeys](26-hotkeys.md)).
+- The hotkey `Ctrl+8` (macOS uses Cmd; see [Hotkeys](26-hotkeys.md)).
 
-The grid replaces the editor in the main content area.
+The grid fills the main area.
 
 ## Anatomy of the grid
 
-- **Rows** — one per plotline in the active book. Each row shows the plotline's **color swatch**, **name**, and **description**.
-- **Columns** — one per scene, in story order. Columns are grouped by chapter; group headers show the chapter title. Column labels look like `Ch1 - Sc1`, `Ch1 - Sc2`, `Ch2 - Sc1`, etc.
-- **Cells** — a tick marks that the scene contributes to the plotline. Click to toggle.
+- **Rows** — one per plotline in the active book. Each row header shows the plotline's **color swatch** and **name**.
+- **Columns** — one per scene, in story order. The column header shows the scene title; hover it to see the full `Chapter - Scene` label.
+- **Cells** — click a cell to toggle whether that scene belongs to that plotline. Assigned cells fill with the plotline's color.
 
-Color-coded backgrounds reflect each plotline's color, making it visually obvious which threads are dense vs sparse.
+Because assigned cells take the plotline color, it is visually obvious which threads are dense and which are sparse.
 
-## Plotlines
-
-A plotline has:
-
-- **Name** — short label.
-- **Color** — assigned automatically from the palette.
-- **Description** — optional longer notes.
-- **Order** — its row position in the grid.
+## Managing plotlines
 
 ### Adding a plotline
 
-Click **+New plotline** in the grid toolbar. An input dialog asks for the name. The plotline appears as a new row at the bottom of the grid, with a default color.
+Click **Add plotline** in the grid toolbar and enter a name. The plotline appears as a new row with an automatically assigned color.
 
 ### Renaming and deleting
 
-Click the plotline name in the grid header → context menu:
+Right-click the plotline's row header:
 
 - **Rename**
 - **Delete**
 
-Deletion removes the plotline and clears it from any scenes that referenced it.
+Deleting a plotline removes its row and clears the assignment from every scene that referenced it (a confirmation dialog asks first).
 
 ## Marking scenes
 
-Click a cell at the intersection of a plotline and a scene to toggle that scene's membership in the plotline. The cell highlights with the plotline color.
+Click a cell at the intersection of a plotline and a scene to toggle that scene's membership. A scene can belong to any number of plotlines. Assignments are stored on the scene and travel with the project.
 
-A scene can belong to any number of plotlines. The list of plotline IDs is stored on `SceneData.plotlineIds`.
+## Reading the grid
 
-## Filtering and reading
+Once scenes are tagged:
 
-Once your scenes are tagged you can:
-
-- See plotline coverage at a glance — a row of mostly-empty cells is a thread that has gone quiet.
-- Use a **Smart List** to filter scenes by plotline (e.g. "all scenes in the Mystery plotline"). See [Smart Lists](16-smart-lists.md).
-- Filter the **Manuscript** view to one plotline (if implemented in your installed version).
-- Group **Timeline** events by plotline (when the chapter or scene has a plotline tag).
+- A row of mostly empty cells is a thread that has gone quiet — check whether that is intentional.
+- A column with no marks is a scene that advances nothing you are tracking.
+- Clusters of one color show where a subplot takes over; long gaps between marks show where it disappears.
 
 ## Tips
 
-- **Have a thin plotline for everything.** Even the protagonist's internal arc benefits from being a plotline row — you can spot stretches where you forgot to advance it.
-- **Use color consistently.** Reserve hot colors (red, orange) for high-tension threads and cool colors (blue, green) for quieter ones.
+- **Have a thin plotline for everything.** Even the protagonist's internal arc benefits from being a row — you can spot stretches where you forgot to advance it.
 - **Re-plot after a draft.** After finishing a draft, walk the grid scene by scene and tick what each scene actually did. The resulting grid is the truth of the manuscript, not your outline's prediction.
 
 ## Where to go next
 
-- [Chapters & Scenes](04-chapters-and-scenes.md) — scenes hold the plotline references.
-- [Manuscript view](10-manuscript.md) — read scenes filtered by status; combine with Smart Lists for plotline-filtered reads.
-- [Timeline](12-timeline.md) — chronological view including plotline color cues.
+- [Chapters & Scenes](04-chapters-and-scenes.md) — scenes hold the plotline assignments.
+- [Manuscript view](10-manuscript.md) — read the book continuously, filtered by chapter status.
+- [Timeline](12-timeline.md) — the chronological view of the same story.

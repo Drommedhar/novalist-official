@@ -1,0 +1,279 @@
+/*
+ * Dashboard-specific styles for parity additions (deadline detail block,
+ * pacing/status summaries, dedicated average card, echo description, recent
+ * activity). Base .dashboard* classes live in shell.css; these only cover the
+ * new surfaces. All sizes come from the design tokens in styles/tokens.css.
+ */
+
+/* ===== Cover image banner ===== */
+.dashboard-cover {
+  position: relative;
+  border-radius: var(--nl-radius-lg);
+  overflow: hidden;
+  background: var(--nl-surface-hover);
+  border: 1px solid var(--nl-border);
+}
+
+.dashboard-cover-img {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+}
+
+.dashboard-cover-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+}
+
+.dashboard-cover-actions {
+  position: absolute;
+  bottom: var(--nl-space-md);
+  right: var(--nl-space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.dashboard-cover-tag {
+  font-size: var(--nl-font-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--nl-text);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+}
+
+/* ===== Portrait book cover (shown on the welcome screen) ===== */
+.dashboard-bookcover {
+  display: flex;
+  gap: var(--nl-space-lg);
+  align-items: stretch;
+  padding: var(--nl-space-lg);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  background: var(--nl-surface-card);
+}
+
+.dashboard-bookcover-preview {
+  flex: 0 0 auto;
+  width: 96px;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--nl-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--nl-border);
+  background: var(--nl-surface-hover);
+}
+
+.dashboard-bookcover-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dashboard-bookcover-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-sm);
+}
+
+.dashboard-bookcover-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  justify-content: center;
+}
+
+.dashboard-bookcover-label {
+  font-size: var(--nl-font-body-lg);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text);
+}
+
+.dashboard-bookcover-hint {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+}
+
+.dashboard-bookcover-actions {
+  position: static;
+  margin-top: var(--nl-space-sm);
+}
+
+.dashboard-cover-btn {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-tighter) var(--nl-space-normal);
+}
+
+.dashboard-cover-btn:hover {
+  background: var(--nl-surface-hover);
+}
+
+/* ===== Header (project name + author + subtitle) ===== */
+.dashboard-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.dashboard-author {
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}
+
+.dashboard-subtitle {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+}
+
+/* ===== Deadline detail block (Deadline / Days Left / Words per Day) ===== */
+.dashboard-deadline-detail {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--nl-space-lg);
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-lg);
+  margin-top: var(--nl-space-md);
+}
+
+.dashboard-detail-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.dashboard-detail-value {
+  font-size: var(--nl-font-title-sm);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+  margin-top: var(--nl-space-tightest);
+}
+
+/* ===== Dedicated average-per-chapter card ===== */
+.dashboard-avg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nl-space-lg);
+}
+
+.dashboard-avg-grid > div:last-child {
+  text-align: right;
+}
+
+.dashboard-avg-value {
+  font-size: var(--nl-font-display);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-avg-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  margin-top: var(--nl-space-tighter);
+}
+
+/* ===== Pacing summary trio (Longest / Shortest / Avg scene) ===== */
+.dashboard-pacing-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--nl-space-xl);
+  margin-bottom: var(--nl-space-xl);
+}
+
+.dashboard-summary-value {
+  font-size: var(--nl-font-display-sm);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-summary-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  margin-top: var(--nl-space-tighter);
+}
+
+/* ===== Status summary row (5 status counts) ===== */
+.dashboard-status-summary {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--nl-space-normal);
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-lg);
+  margin-top: var(--nl-space-lg);
+  text-align: center;
+}
+
+.dashboard-summary-count {
+  font-size: var(--nl-font-title);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-summary-count-label {
+  font-size: var(--nl-font-tiny);
+  color: var(--nl-text-subtle);
+  margin-top: var(--nl-space-tightest);
+}
+
+/* ===== Echo finder description ===== */
+.dashboard-echo-desc {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+  margin-bottom: var(--nl-space-lg);
+}
+
+/* ===== Recent activity ===== */
+.dashboard-activity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-tighter) 0;
+}
+
+.dashboard-activity-main {
+  min-width: 0;
+}
+
+.dashboard-activity-scene {
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-title);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-activity-chapter {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-activity-time {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}

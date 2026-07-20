@@ -1,0 +1,114 @@
+/* Git view — staging model, per-file rows, commit box. Shared .git-file*,
+   .git-message and layout primitives live in shell.css. */
+
+.git-section {
+  margin-top: var(--nl-space-md);
+}
+
+.git-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-md);
+  margin-bottom: var(--nl-space-sm);
+}
+
+.git-section-title {
+  font-size: var(--nl-font-body-sm);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.git-inline-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  background: transparent;
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  cursor: pointer;
+}
+
+.git-inline-btn:hover:not(:disabled) {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.git-inline-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.git-file-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-tightest) 0;
+}
+
+.git-file-main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.git-file-name {
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-file-dir {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-file-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-dim);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.git-file-action:hover:not(:disabled) {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.git-file-action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.git-message-box {
+  margin-top: var(--nl-space-md);
+  min-height: 64px;
+  resize: vertical;
+  font-family: var(--nl-font-family);
+  line-height: 1.4;
+}
+
+.dashboard.gitview {
+  max-width: none;
+  margin: 0;
+  min-height: 100%;
+  box-sizing: border-box;
+}

@@ -1,0 +1,1467 @@
+using System.Text.Json;
+using Novalist.Core.Models;
+using Novalist.Core.Services;
+using Novalist.Core.Utilities;
+using StreamJsonRpc;
+
+namespace Novalist.Backend.Rpc;
+
+/// <summary>Codex entity access: list summaries per type, fetch full records.</summary>
+public sealed class EntitiesRpc
+{
+    private readonly Workspace _workspace;
+    private readonly EntityService _entities;
+    private readonly HttpClient _http;
+
+    public EntitiesRpc(Workspace workspace, HttpClient? http = null)
+    {
+        _workspace = workspace;
+        _entities = new EntityService(workspace.Projects);
+        _http = http ?? new HttpClient();
+    }
+
+    [JsonRpcMethod("entities/customTypes")]
+    public CustomEntityTypeDefinition[] GetCustomTypes() =>
+        _entities.GetCustomEntityTypes().ToArray();
+
+    [JsonRpcMethod("entities/saveCustomType")]
+    public async Task<CustomEntityTypeDefinition[]> SaveCustomTypeAsync(CustomTypeSpecDto spec)
+    {
+        var isEditing = !string.IsNullOrWhiteSpace(spec.TypeKey);
+        if (isEditing)
+        {
+            var existing = _entities.GetCustomEntityTypes().FirstOrDefault(d => d.TypeKey == spec.TypeKey);
+            if (existing is { IsUserSource: false })
+                throw new InvalidOperationException($"Custom type is not editable: {spec.TypeKey}");
+        }
+        var key = isEditing ? spec.TypeKey! : GenerateTypeKey(spec.DisplayName);
+        var name = spec.DisplayName.Trim();
+        await _entities.SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
+        {
+            TypeKey = key,
+            DisplayName = name,
+            DisplayNamePlural = string.IsNullOrWhiteSpace(spec.DisplayNamePlural) ? name + "s" : spec.DisplayNamePlural.Trim(),
+            Icon = string.Empty,
+            FolderName = key,
+            Source = "user",
+            DefaultFields = (spec.Fields ?? []).Select(f => new CustomEntityFieldDefinition
+            {
+                Key = string.IsNullOrWhiteSpace(f.Key)
+                    ? f.DisplayName.Replace(" ", "", StringComparison.Ordinal)
+                    : f.Key,
+                DisplayName = f.DisplayName,
+                Type = Enum.Parse<CustomPropertyType>(f.Type, ignoreCase: true),
+                DefaultValue = f.DefaultValue ?? string.Empty,
+                EnumOptions = f.EnumOptions is { Length: > 0 } ? [.. f.EnumOptions] : null,
+                Required = f.Required
+            }).ToList(),
+            Features = new CustomEntityFeatures
+            {
+                IncludeImages = spec.IncludeImages,
+                IncludeRelationships = spec.IncludeRelationships,
+                IncludeSections = spec.IncludeSections
+            }
+        });
+        return GetCustomTypes();
+    }
+
+    [JsonRpcMethod("entities/deleteCustomType")]
+    public async Task<CustomEntityTypeDefinition[]> DeleteCustomTypeAsync(string typeKey)
+    {
+        var definition = _entities.GetCustomEntityTypes().FirstOrDefault(d => d.TypeKey == typeKey)
+            ?? throw new InvalidOperationException($"Unknown custom type: {typeKey}");
+        if (!definition.IsUserSource)
+            throw new InvalidOperationException($"Custom type is not deletable: {typeKey}");
+        await _entities.DeleteCustomEntityTypeAsync(typeKey);
+        return GetCustomTypes();
+    }
+
+    private static string GenerateTypeKey(string displayName)
+    {
+        if (string.IsNullOrWhiteSpace(displayName))
+            return "custom_" + Guid.NewGuid().ToString("N")[..8];
+        return string.Concat(displayName.Trim().ToLowerInvariant()
+            .Select(c => char.IsLetterOrDigit(c) ? c : '_'))
+            .Trim('_');
+    }
+
+    private bool IsCustomType(string type) =>
+        _entities.GetCustomEntityTypes().Any(d => d.TypeKey == type);
+
+    [JsonRpcMethod("entities/list")]
+    public async Task<EntitySummaryDto[]> ListAsync(string type)
+    {
+        if (IsCustomType(type))
+        {
+            return (await _entities.LoadCustomEntitiesAsync(type))
+                .Select(c => Summary(
+                    c.Id,
+                    c.Name,
+                    c.Fields.Values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty,
+                    c.IsWorldBible,
+                    c.Images.FirstOrDefault(),
+                    c.Aliases))
+                .ToArray();
+        }
+        return type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync())
+                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender, firstName: c.Name))
+                .ToArray(),
+            "location" => (await _entities.LoadLocationsAsync())
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent))
+                .ToArray(),
+            "item" => (await _entities.LoadItemsAsync())
+                .Select(i => Summary(i.Id, i.Name, i.Description, i.IsWorldBible, i.Images.FirstOrDefault(), i.Aliases))
+                .ToArray(),
+            "lore" => (await _entities.LoadLoreAsync())
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases))
+                .ToArray(),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        };
+    }
+
+    [JsonRpcMethod("entities/moveToWorldBible")]
+    public async Task MoveToWorldBibleAsync(string type, string id)
+    {
+        if (IsCustomType(type)) await _entities.MoveCustomEntityToWorldBibleAsync(type, id);
+        else await _entities.MoveEntityToWorldBibleAsync(ParseType(type), id);
+    }
+
+    [JsonRpcMethod("entities/moveToBook")]
+    public async Task MoveToBookAsync(string type, string id)
+    {
+        if (IsCustomType(type)) await _entities.MoveCustomEntityToBookAsync(type, id);
+        else await _entities.MoveEntityToBookAsync(ParseType(type), id);
+    }
+
+    private static EntityType ParseType(string type) => type switch
+    {
+        "character" => EntityType.Character,
+        "location" => EntityType.Location,
+        "item" => EntityType.Item,
+        "lore" => EntityType.Lore,
+        _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+    };
+
+    [JsonRpcMethod("entities/get")]
+    public async Task<JsonElement> GetAsync(string type, string id)
+    {
+        if (IsCustomType(type))
+        {
+            var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
+                ?? throw Unknown(id);
+            return WithResolvedImages(custom);
+        }
+        object? entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id),
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        };
+        return WithResolvedImages(entity ?? throw Unknown(id));
+    }
+
+    [JsonRpcMethod("entities/update")]
+    public async Task<JsonElement> UpdateAsync(string type, string id, Dictionary<string, string> fields)
+    {
+        if (IsCustomType(type))
+        {
+            var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
+                ?? throw Unknown(id);
+            foreach (var (key, value) in fields)
+            {
+                if (key == "name") custom.Name = value;
+                else custom.Fields[key] = value;
+            }
+            await _entities.SaveCustomEntityAsync(custom);
+            return WithResolvedImages(custom);
+        }
+        object entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        } ?? throw Unknown(id);
+
+        foreach (var (key, value) in fields)
+        {
+            var property = entity.GetType().GetProperty(
+                char.ToUpperInvariant(key[0]) + key[1..]);
+            if (property?.CanWrite == true && property.PropertyType == typeof(string))
+            {
+                property.SetValue(entity, value);
+            }
+        }
+
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+        return WithResolvedImages(entity);
+    }
+
+    [JsonRpcMethod("entities/updateLists")]
+    public async Task<JsonElement> UpdateListsAsync(
+        string type,
+        string id,
+        string[]? aliases,
+        EntitySectionDto[]? sections,
+        RelationshipRowDto[]? relationships)
+    {
+        object entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        } ?? throw Unknown(id);
+
+        if (aliases != null)
+        {
+            var target = (List<string>)entity.GetType().GetProperty("Aliases")!.GetValue(entity)!;
+            target.Clear();
+            target.AddRange(aliases.Where(a => !string.IsNullOrWhiteSpace(a)));
+        }
+        if (sections != null)
+        {
+            var target = (List<EntitySection>)entity.GetType().GetProperty("Sections")!.GetValue(entity)!;
+            target.Clear();
+            target.AddRange(sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }));
+        }
+        if (relationships != null && entity is CharacterData character)
+        {
+            character.Relationships = relationships
+                .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
+                .Select(r => new EntityRelationship { Role = r.Role, Target = r.Target })
+                .ToList();
+        }
+
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+        return WithResolvedImages(entity);
+    }
+
+    [JsonRpcMethod("entities/relationshipSuggestions")]
+    public async Task<RelationshipSuggestionsDto> RelationshipSuggestionsAsync()
+    {
+        var characters = await _entities.LoadCharactersAsync();
+        var names = characters.Select(c => Compose(c.Name, c.Surname))
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        var roles = characters.SelectMany(c => c.Relationships.Select(r => r.Role))
+            .Concat(_workspace.Settings.Settings.RelationshipPairs.Keys)
+            .Where(r => !string.IsNullOrWhiteSpace(r))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(r => r, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+        return new RelationshipSuggestionsDto(names, roles);
+    }
+
+    [JsonRpcMethod("entities/inverseRole")]
+    public string InverseRole(string role) =>
+        _workspace.Settings.Settings.GetKnownInverseRoles(role).FirstOrDefault() ?? string.Empty;
+
+    /// <summary>
+    /// Writes a character's relationships and, for each row that names an
+    /// existing character and carries an inverse role, adds the reciprocal
+    /// relationship on that target and learns the role pair (ported from
+    /// EntityEditorViewModel.SyncInverseRelationshipsAsync).
+    /// </summary>
+    [JsonRpcMethod("entities/setRelationships")]
+    public async Task<JsonElement> SetRelationshipsAsync(string id, RelationshipEditRowDto[] rows)
+    {
+        var characters = await _entities.LoadCharactersAsync();
+        var character = characters.FirstOrDefault(c => c.Id == id) ?? throw Unknown(id);
+        var selfName = Compose(character.Name, character.Surname);
+
+        character.Relationships = rows
+            .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
+            .Select(r => new EntityRelationship { Role = r.Role.Trim(), Target = r.Target.Trim() })
+            .ToList();
+        await _entities.SaveCharacterAsync(character);
+
+        var settingsChanged = false;
+        foreach (var row in rows)
+        {
+            if (string.IsNullOrWhiteSpace(row.Role) || string.IsNullOrWhiteSpace(row.Target)
+                || string.IsNullOrWhiteSpace(row.InverseRole))
+                continue;
+            var target = characters.FirstOrDefault(c =>
+                string.Equals(Compose(c.Name, c.Surname), row.Target.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (target == null || target.Id == character.Id) continue;
+
+            var already = target.Relationships.Any(r =>
+                string.Equals(r.Role, row.InverseRole.Trim(), StringComparison.OrdinalIgnoreCase)
+                && string.Equals(r.Target, selfName, StringComparison.OrdinalIgnoreCase));
+            if (!already)
+            {
+                target.Relationships.Add(new EntityRelationship
+                {
+                    Role = row.InverseRole.Trim(),
+                    Target = selfName
+                });
+                await _entities.SaveCharacterAsync(target);
+            }
+            settingsChanged |= _workspace.Settings.Settings.LearnRelationshipPair(row.Role.Trim(), row.InverseRole.Trim());
+        }
+        if (settingsChanged) await _workspace.Settings.SaveAsync();
+
+        return WithResolvedImages(character);
+    }
+
+    [JsonRpcMethod("entities/setOverride")]
+    public async Task<JsonElement> SetOverrideAsync(
+        string characterId,
+        string chapterGuid,
+        string? sceneTitle,
+        Dictionary<string, string> fields,
+        Dictionary<string, string>? customProperties = null)
+    {
+        var character = (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == characterId)
+            ?? throw Unknown(characterId);
+        var existing = FindOrCreateOverride(character, chapterGuid, sceneTitle);
+        foreach (var (key, value) in fields)
+        {
+            var property = typeof(CharacterOverride).GetProperty(
+                char.ToUpperInvariant(key[0]) + key[1..]);
+            if (property?.CanWrite == true && property.PropertyType == typeof(string))
+            {
+                // Empty means inherit the base value (stored as null, the diff model).
+                property.SetValue(existing, string.IsNullOrEmpty(value) ? null : value);
+            }
+        }
+
+        // Per-scope custom-property overrides layer over the base set in the peek
+        // card; an empty map clears them (inherit the base entirely). Blank values
+        // are dropped so a cleared field inherits rather than blanks the base.
+        if (customProperties != null)
+        {
+            var kept = customProperties
+                .Where(pair => !string.IsNullOrWhiteSpace(pair.Value))
+                .ToDictionary(pair => pair.Key, pair => pair.Value);
+            existing.CustomProperties = kept.Count == 0 ? null : kept;
+        }
+
+        await _entities.SaveCharacterAsync(character);
+        return WithResolvedImages(character);
+    }
+
+    [JsonRpcMethod("entities/removeOverride")]
+    public async Task<JsonElement> RemoveOverrideAsync(
+        string characterId, string chapterGuid, string? sceneTitle)
+    {
+        var character = (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == characterId)
+            ?? throw Unknown(characterId);
+        character.ChapterOverrides.RemoveAll(o =>
+            o.Chapter == chapterGuid && (o.Scene ?? string.Empty) == (sceneTitle ?? string.Empty));
+        await _entities.SaveCharacterAsync(character);
+        return WithResolvedImages(character);
+    }
+
+    /// <summary>
+    /// Replaces the per-scope override image list. <paramref name="images"/> null
+    /// resets the scope to inherit the base entity's images; a list (possibly
+    /// empty) replaces them wholesale — the desktop
+    /// <c>EntityEditorViewModel</c> override-image semantics (null = inherit,
+    /// otherwise the override owns the list). Used by the inline overrides editor
+    /// for gallery-add, remove, rename, and reset-to-inherit.
+    /// </summary>
+    [JsonRpcMethod("entities/setOverrideImages")]
+    public async Task<JsonElement> SetOverrideImagesAsync(
+        string characterId, string chapterGuid, string? sceneTitle, EntityImageDto[]? images)
+    {
+        var character = await LoadCharacterAsync(characterId);
+        var ovr = FindOrCreateOverride(character, chapterGuid, sceneTitle);
+        ovr.Images = images?
+            .Select(i => new EntityImage { Name = i.Name, Path = i.Path })
+            .ToList();
+        await _entities.SaveCharacterAsync(character);
+        return WithResolvedImages(character);
+    }
+
+    /// <summary>Imports a file into the entity image folder and appends it to the
+    /// scope's override image list (seeding the list from the base images the
+    /// first time it diverges). Serves both file-picker and clipboard paste.</summary>
+    [JsonRpcMethod("entities/addOverrideImage")]
+    public async Task<JsonElement> AddOverrideImageAsync(
+        string characterId, string chapterGuid, string? sceneTitle, string path)
+    {
+        var relative = await _entities.ImportImageAsync(path);
+        var name = Path.GetFileNameWithoutExtension(relative);
+        return await MutateOverrideImagesAsync(characterId, chapterGuid, sceneTitle,
+            images => images.Add(new EntityImage { Name = name, Path = relative }));
+    }
+
+    /// <summary>Downloads a remote image and appends it to the scope's override
+    /// image list (seeding from the base images on first divergence).</summary>
+    [JsonRpcMethod("entities/addOverrideImageFromUrl")]
+    public async Task<JsonElement> AddOverrideImageFromUrlAsync(
+        string characterId, string chapterGuid, string? sceneTitle, string url)
+    {
+        var (relative, fileName) = await DownloadAndImportImageAsync(url);
+        return await MutateOverrideImagesAsync(characterId, chapterGuid, sceneTitle,
+            images => images.Add(new EntityImage
+            {
+                Name = Path.GetFileNameWithoutExtension(fileName),
+                Path = relative
+            }));
+    }
+
+    /// <summary>Replaces the per-scope override relationship list. Null resets the
+    /// scope to inherit the base relationships; a list (possibly empty, blank rows
+    /// dropped) replaces them. Mirrors desktop override-relationship semantics.</summary>
+    [JsonRpcMethod("entities/setOverrideRelationships")]
+    public async Task<JsonElement> SetOverrideRelationshipsAsync(
+        string characterId, string chapterGuid, string? sceneTitle, RelationshipRowDto[]? relationships)
+    {
+        var character = await LoadCharacterAsync(characterId);
+        var ovr = FindOrCreateOverride(character, chapterGuid, sceneTitle);
+        ovr.Relationships = relationships?
+            .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
+            .Select(r => new EntityRelationship { Role = r.Role.Trim(), Target = r.Target.Trim() })
+            .ToList();
+        await _entities.SaveCharacterAsync(character);
+        return WithResolvedImages(character);
+    }
+
+    /// <summary>Replaces the per-scope override section list. Null resets the scope
+    /// to inherit the base sections; a list (possibly empty) replaces them. Mirrors
+    /// desktop override-section semantics.</summary>
+    [JsonRpcMethod("entities/setOverrideSections")]
+    public async Task<JsonElement> SetOverrideSectionsAsync(
+        string characterId, string chapterGuid, string? sceneTitle, EntitySectionDto[]? sections)
+    {
+        var character = await LoadCharacterAsync(characterId);
+        var ovr = FindOrCreateOverride(character, chapterGuid, sceneTitle);
+        ovr.Sections = sections?
+            .Select(s => new EntitySection { Title = s.Title, Content = s.Content })
+            .ToList();
+        await _entities.SaveCharacterAsync(character);
+        return WithResolvedImages(character);
+    }
+
+    private async Task<CharacterData> LoadCharacterAsync(string characterId) =>
+        (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == characterId)
+            ?? throw Unknown(characterId);
+
+    /// <summary>Finds the chapter/scene override matching the scope, creating and
+    /// appending an empty one when absent. Scene is matched exactly (null == "").</summary>
+    private static CharacterOverride FindOrCreateOverride(
+        CharacterData character, string chapterGuid, string? sceneTitle)
+    {
+        var existing = character.ChapterOverrides.FirstOrDefault(o =>
+            o.Chapter == chapterGuid && (o.Scene ?? string.Empty) == (sceneTitle ?? string.Empty));
+        if (existing == null)
+        {
+            existing = new CharacterOverride { Chapter = chapterGuid, Scene = sceneTitle };
+            character.ChapterOverrides.Add(existing);
+        }
+        return existing;
+    }
+
+    /// <summary>Mutates the scope's override image list in place, seeding it from a
+    /// deep copy of the base images the first time the scope diverges (so an add
+    /// starts from what the peek currently shows), then persists.</summary>
+    private async Task<JsonElement> MutateOverrideImagesAsync(
+        string characterId, string chapterGuid, string? sceneTitle, Action<List<EntityImage>> mutate)
+    {
+        var character = await LoadCharacterAsync(characterId);
+        var ovr = FindOrCreateOverride(character, chapterGuid, sceneTitle);
+        var images = ovr.Images
+            ?? character.Images.Select(i => new EntityImage { Name = i.Name, Path = i.Path }).ToList();
+        mutate(images);
+        ovr.Images = images;
+        await _entities.SaveCharacterAsync(character);
+        return WithResolvedImages(character);
+    }
+
+    [JsonRpcMethod("entities/customProps")]
+    public async Task<CustomPropDto[]> GetCustomPropsAsync(string type, string id)
+    {
+        var (entity, templateId) = await LoadWithTemplateAsync(type, id);
+        var props = (Dictionary<string, string>)entity.GetType()
+            .GetProperty("CustomProperties")!.GetValue(entity)!;
+        var defs = ResolvePropertyDefs(type, templateId);
+        return props
+            .Select(kv =>
+            {
+                var def = defs.FirstOrDefault(d => d.Key == kv.Key);
+                return new CustomPropDto(
+                    kv.Key,
+                    kv.Value,
+                    (def?.Type ?? CustomPropertyType.String).ToString(),
+                    def?.EnumOptions?.ToArray() ?? []);
+            })
+            .ToArray();
+    }
+
+    [JsonRpcMethod("entities/setCustomProp")]
+    public async Task<CustomPropDto[]> SetCustomPropAsync(string type, string id, string key, string? value)
+    {
+        var (entity, _) = await LoadWithTemplateAsync(type, id);
+        var props = (Dictionary<string, string>)entity.GetType()
+            .GetProperty("CustomProperties")!.GetValue(entity)!;
+        if (value == null) props.Remove(key);
+        else props[key] = value;
+        await SaveEntityAsync(entity);
+        return await GetCustomPropsAsync(type, id);
+    }
+
+    private async Task<(object Entity, string? TemplateId)> LoadWithTemplateAsync(string type, string id)
+    {
+        object entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        } ?? throw Unknown(id);
+        var templateId = entity.GetType().GetProperty("TemplateId")?.GetValue(entity) as string;
+        return (entity, templateId);
+    }
+
+    private List<CustomPropertyDefinition> ResolvePropertyDefs(string type, string? templateId)
+    {
+        var book = _workspace.Projects.ActiveBook;
+        if (book == null || templateId == null) return [];
+        return type switch
+        {
+            "character" => book.CharacterTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
+            "location" => book.LocationTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
+            "item" => book.ItemTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? [],
+            _ => book.LoreTemplates.FirstOrDefault(t => t.Id == templateId)?.CustomPropertyDefs ?? []
+        };
+    }
+
+    private async Task SaveEntityAsync(object entity)
+    {
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+    }
+
+    [JsonRpcMethod("entities/addImage")]
+    public async Task<JsonElement> AddImageAsync(
+        string type, string id, string path, bool import)
+    {
+        var relative = import ? await _entities.ImportImageAsync(path) : path;
+        var name = Path.GetFileNameWithoutExtension(relative);
+        return await MutateImagesAsync(type, id, images =>
+            images.Add(new EntityImage { Name = name, Path = relative }));
+    }
+
+    [JsonRpcMethod("entities/removeImage")]
+    public Task<JsonElement> RemoveImageAsync(string type, string id, string path) =>
+        MutateImagesAsync(type, id, images =>
+            images.RemoveAll(i => i.Path == path));
+
+    /// <summary>Renames the stored image whose <c>Path</c> matches, leaving its
+    /// path (and on-disk file) untouched so add/remove still match on it.</summary>
+    [JsonRpcMethod("entities/renameImage")]
+    public Task<JsonElement> RenameImageAsync(string type, string id, string path, string newName) =>
+        MutateImagesAsync(type, id, images =>
+        {
+            var image = images.FirstOrDefault(i => i.Path == path);
+            if (image != null) image.Name = newName;
+        });
+
+    /// <summary>Swaps the stored path of the image matching <paramref name="oldPath"/>
+    /// for <paramref name="newPath"/> (a project-relative path already on disk),
+    /// keeping the display name unless it was empty.</summary>
+    [JsonRpcMethod("entities/replaceImage")]
+    public Task<JsonElement> ReplaceImageAsync(string type, string id, string oldPath, string newPath) =>
+        MutateImagesAsync(type, id, images =>
+        {
+            var image = images.FirstOrDefault(i => i.Path == oldPath);
+            if (image != null)
+            {
+                image.Path = newPath;
+                if (string.IsNullOrWhiteSpace(image.Name))
+                    image.Name = Path.GetFileNameWithoutExtension(newPath);
+            }
+        });
+
+    private static readonly string[] ImageFileExtensions =
+        [".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg"];
+
+    /// <summary>Downloads an image from a remote URL into the entity's image
+    /// folder (via <see cref="EntityService.ImportImageAsync"/>) and attaches it.
+    /// Download uses the injected <see cref="HttpClient"/> so tests stub the
+    /// transport; a failed request surfaces as a clean error.</summary>
+    [JsonRpcMethod("entities/addImageFromUrl")]
+    public async Task<JsonElement> AddImageFromUrlAsync(string type, string id, string url)
+    {
+        var (relative, fileName) = await DownloadAndImportImageAsync(url);
+        return await MutateImagesAsync(type, id, images =>
+            images.Add(new EntityImage
+            {
+                Name = Path.GetFileNameWithoutExtension(fileName),
+                Path = relative
+            }));
+    }
+
+    /// <summary>Downloads an image from a remote URL (via the injected
+    /// <see cref="HttpClient"/> so tests stub the transport) and imports it into
+    /// the entity image folder, returning the project-relative path and the
+    /// derived file name. A failed request surfaces as a clean error.</summary>
+    private async Task<(string Relative, string FileName)> DownloadAndImportImageAsync(string url)
+    {
+        byte[] bytes;
+        try
+        {
+            using var response = await _http.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            bytes = await response.Content.ReadAsByteArrayAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new InvalidOperationException("Could not download the image from the given URL.", ex);
+        }
+
+        var tempDir = Path.Combine(Path.GetTempPath(), "nl-url-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(tempDir);
+        var fileName = DeriveImageFileName(url);
+        var tempPath = Path.Combine(tempDir, fileName);
+        await File.WriteAllBytesAsync(tempPath, bytes);
+
+        var relative = await _entities.ImportImageAsync(tempPath);
+        Directory.Delete(tempDir, true);
+        return (relative, fileName);
+    }
+
+    /// <summary>Derives a safe, image-extensioned file name from a download URL,
+    /// falling back to <c>image.png</c> when the URL carries no usable segment.</summary>
+    private static string DeriveImageFileName(string url)
+    {
+        var name = "image";
+        if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            var segment = uri.Segments.LastOrDefault(s => s.Trim('/').Length > 0)?.Trim('/');
+            if (!string.IsNullOrWhiteSpace(segment))
+                name = Uri.UnescapeDataString(segment);
+        }
+        return ImageFileExtensions.Contains(Path.GetExtension(name).ToLowerInvariant())
+            ? name
+            : name + ".png";
+    }
+
+    private async Task<JsonElement> MutateImagesAsync(
+        string type, string id, Action<List<EntityImage>> mutate)
+    {
+        object entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        } ?? throw Unknown(id);
+
+        var images = (List<EntityImage>)entity.GetType().GetProperty("Images")!.GetValue(entity)!;
+        mutate(images);
+
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+        return WithResolvedImages(entity);
+    }
+
+    [JsonRpcMethod("entities/templates")]
+    public EntityTemplateDto[] GetTemplates(string type)
+    {
+        var book = _workspace.Projects.ActiveBook
+            ?? throw new InvalidOperationException("No project open.");
+        return type switch
+        {
+            "character" => book.CharacterTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
+            "location" => book.LocationTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
+            "item" => book.ItemTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
+            "lore" => book.LoreTemplates.Select(t => new EntityTemplateDto(t.Id, t.Name)).ToArray(),
+            _ => book.CustomEntityTemplates
+                .Where(t => t.EntityTypeKey == type)
+                .Select(t => new EntityTemplateDto(t.Id, t.Name))
+                .ToArray()
+        };
+    }
+
+    [JsonRpcMethod("entities/create")]
+    public async Task<JsonElement> CreateAsync(string type, string name, string? templateId = null)
+    {
+        if (IsCustomType(type))
+        {
+            var definition = _entities.GetCustomEntityTypes().First(d => d.TypeKey == type);
+            var custom = new CustomEntityData { EntityTypeKey = type, Name = name };
+            foreach (var field in definition.DefaultFields)
+            {
+                custom.Fields.TryAdd(field.Key, field.DefaultValue);
+            }
+            if (templateId != null)
+            {
+                ApplyCustomEntityTemplate(custom, templateId);
+            }
+            await _entities.SaveCustomEntityAsync(custom);
+            return WithResolvedImages(custom);
+        }
+        object entity = type switch
+        {
+            "character" => new CharacterData { Name = name },
+            "location" => new LocationData { Name = name },
+            "item" => new ItemData { Name = name },
+            "lore" => new LoreData { Name = name },
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        };
+        if (templateId != null)
+        {
+            ApplyTemplate(entity, type, templateId);
+        }
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+        return WithResolvedImages(entity);
+    }
+
+    [JsonRpcMethod("entities/delete")]
+    public async Task DeleteAsync(string type, string id, bool isWorldBible)
+    {
+        if (IsCustomType(type))
+        {
+            await _entities.DeleteCustomEntityAsync(type, id, isWorldBible);
+            return;
+        }
+        switch (type)
+        {
+            case "character":
+                await _entities.DeleteCharacterAsync(id, isWorldBible);
+                break;
+            case "location":
+                await _entities.DeleteLocationAsync(id, isWorldBible);
+                break;
+            case "item":
+                await _entities.DeleteItemAsync(id, isWorldBible);
+                break;
+            case "lore":
+                await _entities.DeleteLoreAsync(id, isWorldBible);
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown entity type '{type}'.");
+        }
+    }
+
+    // Users-icon geometry ported verbatim from FocusPeekExtension.UsersIconPath
+    // so the relationship-count pill renders the same glyph as the desktop card.
+    private const string UsersIconPath = "M8 12A3 3 0 1 0 8 6A3 3 0 0 0 8 12ZM15.5 10A2.5 2.5 0 1 0 15.5 5A2.5 2.5 0 0 0 15.5 10ZM3.5 19C3.5 16.5147 5.51472 14.5 8 14.5C10.4853 14.5 12.5 16.5147 12.5 19V19.5H3.5V19ZM12.5 19.5V19C12.5 18.0739 12.2503 17.2061 11.8145 16.4601C12.4966 15.8667 13.3879 15.5 14.3654 15.5H14.6346C16.7743 15.5 18.5 17.2257 18.5 19.3654V19.5H12.5Z";
+
+    /// <summary>
+    /// Builds the rich focus-peek card payload for a single entity, faithful to
+    /// the desktop FocusPeekExtension: type badge, ordered attribute pills,
+    /// appearance (characters), custom properties, relationships with resolved
+    /// navigate targets, description, sections, and linked map pins. AI findings
+    /// are intentionally not returned (no analysis pipeline over RPC — the client
+    /// shows the localized stub).
+    ///
+    /// When the caller passes the open editor's <paramref name="chapterGuid"/> /
+    /// <paramref name="chapterTitle"/> / <paramref name="sceneTitle"/>, a matching
+    /// character chapter/scene override is resolved and applied (name, surname,
+    /// role, gender, age, appearance, relationships, custom properties, images) —
+    /// a scene-specific override wins over a chapter-wide one, and each overridden
+    /// non-blank field wins over the base value. This ports
+    /// <c>FocusPeekExtension.ResolveCharacterOverride</c>. The resolved
+    /// <see cref="EntityPeekDto.ScopeLabel"/> names the scope so the card can flag
+    /// that it is showing overridden values.
+    /// </summary>
+    [JsonRpcMethod("entities/peek")]
+    public async Task<EntityPeekDto> PeekAsync(
+        string type, string id,
+        string? chapterGuid = null, string? chapterTitle = null, string? sceneTitle = null)
+    {
+        var characters = await _entities.LoadCharactersAsync();
+        var locations = await _entities.LoadLocationsAsync();
+        var items = await _entities.LoadItemsAsync();
+        var lore = await _entities.LoadLoreAsync();
+
+        // name (normalized, lowercased) -> single resolvable entity. Names that
+        // map to more than one entity are dropped (the desktop Count==1 rule) so
+        // a relationship target never navigates to the wrong record.
+        var resolveIndex = await BuildResolveIndexAsync(characters, locations, items, lore);
+
+        var pins = await GetMapPinsForEntityAsync(id);
+
+        if (IsCustomType(type))
+        {
+            var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
+                ?? throw Unknown(id);
+            return BuildCustomPeek(custom, type, resolveIndex, pins);
+        }
+
+        return type switch
+        {
+            "character" => BuildCharacterPeek(
+                characters.FirstOrDefault(c => c.Id == id) ?? throw Unknown(id), resolveIndex, pins,
+                chapterGuid, chapterTitle, sceneTitle),
+            "location" => BuildLocationPeek(
+                locations.FirstOrDefault(l => l.Id == id) ?? throw Unknown(id), locations, pins),
+            "item" => BuildItemPeek(items.FirstOrDefault(i => i.Id == id) ?? throw Unknown(id), pins),
+            "lore" => BuildLorePeek(lore.FirstOrDefault(l => l.Id == id) ?? throw Unknown(id), pins),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        };
+    }
+
+    /// <summary>
+    /// Resolves the character chapter/scene override that applies to the given
+    /// editor context, matching the chapter by GUID or title. Scene-specific
+    /// overrides win over chapter-wide ones. Ported from
+    /// <c>FocusPeekExtension.ResolveCharacterOverride</c>.
+    /// </summary>
+    private static CharacterOverride? ResolveCharacterOverride(
+        CharacterData character, string? chapterGuid, string? chapterTitle, string? sceneTitle)
+    {
+        if (string.IsNullOrWhiteSpace(chapterGuid) && string.IsNullOrWhiteSpace(chapterTitle))
+            return null;
+
+        bool ChapterMatches(CharacterOverride o) =>
+            (!string.IsNullOrWhiteSpace(chapterGuid)
+                && string.Equals(o.Chapter, chapterGuid, StringComparison.OrdinalIgnoreCase))
+            || (!string.IsNullOrWhiteSpace(chapterTitle)
+                && string.Equals(o.Chapter, chapterTitle, StringComparison.OrdinalIgnoreCase));
+
+        var sceneMatch = character.ChapterOverrides.FirstOrDefault(o =>
+            ChapterMatches(o)
+            && !string.IsNullOrWhiteSpace(o.Scene)
+            && string.Equals(o.Scene, sceneTitle, StringComparison.OrdinalIgnoreCase));
+        if (sceneMatch != null)
+            return sceneMatch;
+
+        return character.ChapterOverrides.FirstOrDefault(o =>
+            ChapterMatches(o) && string.IsNullOrWhiteSpace(o.Scene));
+    }
+
+    /// <summary>Builds the "Ch: X → Sc: Y" scope label for an applied override,
+    /// preferring the friendly chapter title the client passed over the stored
+    /// (often GUID) chapter key.</summary>
+    private static string BuildOverrideScopeLabel(
+        CharacterOverride ovr, string? chapterTitle)
+    {
+        var parts = new List<string>();
+        var chapter = string.IsNullOrWhiteSpace(chapterTitle) ? ovr.Chapter : chapterTitle;
+        if (!string.IsNullOrWhiteSpace(chapter)) parts.Add($"Ch: {chapter}");
+        if (!string.IsNullOrWhiteSpace(ovr.Scene)) parts.Add($"Sc: {ovr.Scene}");
+        return string.Join(" → ", parts);
+    }
+
+    private async Task<Dictionary<string, (string Id, string TypeKey)>> BuildResolveIndexAsync(
+        IReadOnlyList<CharacterData> characters, IReadOnlyList<LocationData> locations,
+        IReadOnlyList<ItemData> items, IReadOnlyList<LoreData> lore)
+    {
+        var candidates = new Dictionary<string, List<(string Id, string TypeKey)>>(StringComparer.OrdinalIgnoreCase);
+        void Add(string? name, string entityId, string typeKey)
+        {
+            var key = NormalizeReference(name);
+            if (key.Length == 0) return;
+            if (!candidates.TryGetValue(key, out var list))
+            {
+                list = [];
+                candidates[key] = list;
+            }
+            list.Add((entityId, typeKey));
+        }
+
+        foreach (var c in characters)
+        {
+            var display = Compose(c.Name, c.Surname);
+            Add(display, c.Id, "character");
+            // The bare first name is an extra target, but only when it differs
+            // from the composed name — else a surnameless character would map its
+            // one name twice and be wrongly treated as ambiguous (desktop parity).
+            if (!string.Equals(c.Name, display, StringComparison.OrdinalIgnoreCase))
+                Add(c.Name, c.Id, "character");
+            foreach (var alias in c.Aliases) Add(alias, c.Id, "character");
+        }
+        foreach (var l in locations)
+        {
+            Add(l.Name, l.Id, "location");
+            foreach (var alias in l.Aliases) Add(alias, l.Id, "location");
+        }
+        foreach (var i in items)
+        {
+            Add(i.Name, i.Id, "item");
+            foreach (var alias in i.Aliases) Add(alias, i.Id, "item");
+        }
+        foreach (var l in lore)
+        {
+            Add(l.Name, l.Id, "lore");
+            foreach (var alias in l.Aliases) Add(alias, l.Id, "lore");
+        }
+        foreach (var typeDef in _entities.GetCustomEntityTypes())
+        {
+            foreach (var entity in await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey))
+            {
+                Add(entity.Name, entity.Id, typeDef.TypeKey);
+                foreach (var alias in entity.Aliases) Add(alias, entity.Id, typeDef.TypeKey);
+            }
+        }
+
+        return candidates
+            .Where(pair => pair.Value.Count == 1)
+            .ToDictionary(pair => pair.Key, pair => pair.Value[0], StringComparer.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Indexes every map pin referencing <paramref name="entityId"/> so
+    /// the peek card can list "PinLabel · MapName" links that jump to the pin.</summary>
+    private async Task<PeekMapPinDto[]> GetMapPinsForEntityAsync(string entityId)
+    {
+        var result = new List<PeekMapPinDto>();
+        var book = _workspace.Projects.ActiveBook;
+        var service = new MapService(_workspace.Projects, _workspace.FileService);
+        foreach (var mapRef in book?.Maps ?? Enumerable.Empty<MapReference>())
+        {
+            var map = await service.LoadMapAsync(mapRef.Id);
+            if (map == null) continue;
+            foreach (var pin in map.Pins)
+            {
+                if (!string.Equals(pin.EntityId, entityId, StringComparison.Ordinal)) continue;
+                var mapName = string.IsNullOrWhiteSpace(mapRef.Name) ? map.Name : mapRef.Name;
+                result.Add(new PeekMapPinDto(mapRef.Id, mapName, pin.Id, pin.Label ?? string.Empty));
+            }
+        }
+        return result.ToArray();
+    }
+
+    private EntityPeekDto BuildCharacterPeek(
+        CharacterData c, Dictionary<string, (string Id, string TypeKey)> resolve, PeekMapPinDto[] pins,
+        string? chapterGuid = null, string? chapterTitle = null, string? sceneTitle = null)
+    {
+        var ovr = ResolveCharacterOverride(c, chapterGuid, chapterTitle, sceneTitle);
+
+        // Each overridden non-blank field wins over the base value (desktop rule).
+        string Pick(string? overridden, string @base) =>
+            string.IsNullOrWhiteSpace(overridden) ? @base : overridden!;
+
+        var name = Pick(ovr?.Name, c.Name);
+        var surname = Pick(ovr?.Surname, c.Surname);
+        var title = string.IsNullOrWhiteSpace(surname) ? name : $"{name} {surname}";
+        var pills = new List<PeekPillDto>();
+        AddPill(pills, Pick(ovr?.Role, c.Role), "#3B4466");
+        AddPill(pills, Pick(ovr?.Gender, c.Gender), "#314355");
+        AddLabelPill(pills, "focusPeek.agePill",
+            ResolveCharacterAge(c, ovr, chapterGuid, sceneTitle), "#2E344D", dim: true);
+        AddPill(pills, c.Group, "#2A3C38", dim: true);
+
+        var relationships = ovr?.Relationships ?? c.Relationships;
+        if (relationships.Count > 0)
+            pills.Add(new PeekPillDto(relationships.Count.ToString(), null, null, true, "#2E344D", UsersIconPath));
+
+        var appearance = new List<PeekPropDto>();
+        AddProp(appearance, "focusPeek.eyes", Pick(ovr?.EyeColor, c.EyeColor));
+        AddProp(appearance, "focusPeek.hair", Pick(ovr?.HairColor, c.HairColor));
+        AddProp(appearance, "focusPeek.hairLength", Pick(ovr?.HairLength, c.HairLength));
+        AddProp(appearance, "focusPeek.height", Pick(ovr?.Height, c.Height));
+        AddProp(appearance, "focusPeek.build", Pick(ovr?.Build, c.Build));
+        AddProp(appearance, "focusPeek.skin", Pick(ovr?.SkinTone, c.SkinTone));
+        AddProp(appearance, "focusPeek.distinguishing", Pick(ovr?.DistinguishingFeatures, c.DistinguishingFeatures));
+
+        // Overridden custom properties layer over the base set (blank-skipped by CustomProps).
+        var customProperties = new Dictionary<string, string>(c.CustomProperties, StringComparer.OrdinalIgnoreCase);
+        if (ovr?.CustomProperties != null)
+            foreach (var pair in ovr.CustomProperties)
+                customProperties[pair.Key] = pair.Value;
+
+        // Override list semantics: null inherits the base list; a non-null list
+        // (even empty) replaces it, mirroring the desktop editor's write-back.
+        var images = ovr?.Images ?? c.Images;
+        var sections = ovr?.Sections ?? c.Sections;
+        var scopeLabel = ovr == null ? null : BuildOverrideScopeLabel(ovr, chapterTitle);
+
+        return new EntityPeekDto(
+            c.Id, "character", title, null, "#5B3F7A", string.Empty,
+            ResolveImages(images), pills.ToArray(),
+            appearance.ToArray(),
+            CustomProps(customProperties),
+            relationships.Select(r => BuildRelationship(r.Role, r.Target, resolve)).ToArray(),
+            sections.Select(s => new EntitySectionDto(s.Title, s.Content)).ToArray(),
+            pins, scopeLabel);
+    }
+
+    /// <summary>
+    /// Resolves a character's displayed age. When <c>AgeMode == "date"</c> and a
+    /// birth date is present, the age is computed from the birth date relative to
+    /// the open scene's story date (else the chapter's date, else today) via
+    /// <see cref="AgeComputation"/> — the <c>AgeIntervalUnit</c> (default Years)
+    /// picks years/months/days. Otherwise the override age wins over the base age.
+    /// Ported from <c>FocusPeekExtension.ResolveCharacterAge</c>.
+    /// </summary>
+    private string ResolveCharacterAge(
+        CharacterData c, CharacterOverride? ovr, string? chapterGuid, string? sceneTitle)
+    {
+        if (string.Equals(c.AgeMode, "date", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(c.BirthDate))
+        {
+            var referenceDate = ResolveStoryReferenceDate(chapterGuid, sceneTitle);
+            var computed = AgeComputation.ComputeAge(
+                c.BirthDate, referenceDate, c.AgeIntervalUnit ?? IntervalUnit.Years);
+            if (!string.IsNullOrWhiteSpace(computed))
+                return computed;
+        }
+
+        return string.IsNullOrWhiteSpace(ovr?.Age) ? c.Age : ovr.Age!;
+    }
+
+    /// <summary>Resolves the story date to measure age against: the named scene's
+    /// date, else the chapter's date, else null (→ today). Scenes are matched by
+    /// title within the chapter, mirroring the peek's chapter/scene scope.</summary>
+    private string? ResolveStoryReferenceDate(string? chapterGuid, string? sceneTitle)
+    {
+        if (string.IsNullOrWhiteSpace(chapterGuid))
+            return null;
+
+        var scenes = _workspace.Projects.ScenesManifest?.Chapters.GetValueOrDefault(chapterGuid);
+        var scene = scenes?.FirstOrDefault(s =>
+            !string.IsNullOrWhiteSpace(sceneTitle)
+            && string.Equals(s.Title, sceneTitle, StringComparison.OrdinalIgnoreCase));
+        if (!string.IsNullOrWhiteSpace(scene?.Date))
+            return scene.Date;
+
+        var chapter = _workspace.Projects.ActiveBook?.Chapters
+            .FirstOrDefault(ch => string.Equals(ch.Guid, chapterGuid, StringComparison.OrdinalIgnoreCase));
+        return string.IsNullOrWhiteSpace(chapter?.Date) ? null : chapter.Date;
+    }
+
+    private EntityPeekDto BuildLocationPeek(
+        LocationData l, IReadOnlyList<LocationData> all, PeekMapPinDto[] pins)
+    {
+        var childCount = all.Count(other =>
+            string.Equals(NormalizeReference(other.Parent), l.Name, StringComparison.OrdinalIgnoreCase));
+        var pills = new List<PeekPillDto>();
+        AddPill(pills, l.Type, "#314355");
+        AddLabelPill(pills, "focusPeek.inPill",
+            string.IsNullOrWhiteSpace(l.Parent) ? null : NormalizeReference(l.Parent), "#2E344D", dim: true);
+        if (childCount > 0)
+            pills.Add(new PeekPillDto(null, "focusPeek.sublocationsPill", childCount.ToString(), true, "#2E344D", null));
+
+        return new EntityPeekDto(
+            l.Id, "location", l.Name, null, "#355C7D", l.Description,
+            ResolveImages(l.Images), pills.ToArray(), [], CustomProps(l.CustomProperties),
+            [], l.Sections.Select(s => new EntitySectionDto(s.Title, s.Content)).ToArray(), pins);
+    }
+
+    private EntityPeekDto BuildItemPeek(ItemData i, PeekMapPinDto[] pins)
+    {
+        var pills = new List<PeekPillDto>();
+        AddPill(pills, i.Type, "#5C4C2F");
+        AddPill(pills, i.Origin, "#2E344D", dim: true);
+        return new EntityPeekDto(
+            i.Id, "item", i.Name, null, "#6A4D2F", i.Description,
+            ResolveImages(i.Images), pills.ToArray(), [], CustomProps(i.CustomProperties),
+            [], i.Sections.Select(s => new EntitySectionDto(s.Title, s.Content)).ToArray(), pins);
+    }
+
+    private EntityPeekDto BuildLorePeek(LoreData l, PeekMapPinDto[] pins)
+    {
+        var pills = new List<PeekPillDto>();
+        AddPill(pills, l.Category, "#47506D");
+        return new EntityPeekDto(
+            l.Id, "lore", l.Name, null, "#4B5A73", l.Description,
+            ResolveImages(l.Images), pills.ToArray(), [], CustomProps(l.CustomProperties),
+            [], l.Sections.Select(s => new EntitySectionDto(s.Title, s.Content)).ToArray(), pins);
+    }
+
+    private EntityPeekDto BuildCustomPeek(
+        CustomEntityData entity, string type,
+        Dictionary<string, (string Id, string TypeKey)> resolve, PeekMapPinDto[] pins)
+    {
+        var typeDef = _entities.GetCustomEntityTypes()
+            .FirstOrDefault(t => string.Equals(t.TypeKey, type, StringComparison.OrdinalIgnoreCase));
+        var typeLabel = typeDef?.DisplayName ?? entity.EntityTypeKey;
+        var fieldDefs = typeDef?.DefaultFields ?? [];
+
+        var pills = new List<PeekPillDto>();
+        if (entity.Relationships.Count > 0)
+            pills.Add(new PeekPillDto(entity.Relationships.Count.ToString(), null, null, true, "#2E344D", UsersIconPath));
+
+        var props = new List<PeekPropDto>();
+        var entityRefRelationships = new List<PeekRelationshipDto>();
+        foreach (var pair in entity.Fields)
+        {
+            if (string.IsNullOrWhiteSpace(pair.Value)) continue;
+            var def = fieldDefs.FirstOrDefault(f => string.Equals(f.Key, pair.Key, StringComparison.OrdinalIgnoreCase));
+            var label = def?.DisplayName ?? pair.Key;
+            if (def?.Type == CustomPropertyType.EntityRef)
+                entityRefRelationships.Add(BuildRelationship(label, pair.Value, resolve));
+            else
+                props.Add(new PeekPropDto(label, pair.Value));
+        }
+        foreach (var pair in entity.CustomProperties)
+        {
+            if (string.IsNullOrWhiteSpace(pair.Value)) continue;
+            props.Add(new PeekPropDto(pair.Key, pair.Value));
+        }
+
+        var relationships = entity.Relationships
+            .Select(r => BuildRelationship(r.Role, r.Target, resolve))
+            .Concat(entityRefRelationships)
+            .ToArray();
+
+        return new EntityPeekDto(
+            entity.Id, type, entity.Name, typeLabel, "#4A6A5A", string.Empty,
+            ResolveImages(entity.Images), pills.ToArray(), [], props.ToArray(),
+            relationships,
+            entity.Sections.Select(s => new EntitySectionDto(s.Title, s.Content)).ToArray(), pins);
+    }
+
+    private PeekRelationshipDto BuildRelationship(
+        string role, string target, Dictionary<string, (string Id, string TypeKey)> resolve)
+    {
+        var targets = target
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(NormalizeReference)
+            .Where(n => n.Length > 0)
+            .Select(n => resolve.TryGetValue(n, out var hit)
+                ? new PeekRelationshipTargetDto(n, hit.Id, hit.TypeKey)
+                : new PeekRelationshipTargetDto(n, null, null))
+            .ToArray();
+        return new PeekRelationshipDto(role, targets);
+    }
+
+    private PeekImageDto[] ResolveImages(IReadOnlyList<EntityImage> images) =>
+        images.Select(i => new PeekImageDto(i.Name, _entities.ResolveProjectRelativeImage(i.Path))).ToArray();
+
+    private static PeekPropDto[] CustomProps(IReadOnlyDictionary<string, string> props) =>
+        props.Where(p => !string.IsNullOrWhiteSpace(p.Value))
+            .Select(p => new PeekPropDto(p.Key, p.Value)).ToArray();
+
+    private static void AddPill(ICollection<PeekPillDto> target, string? text, string color, bool dim = false)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        target.Add(new PeekPillDto(text, null, null, dim, color, null));
+    }
+
+    private static void AddLabelPill(
+        ICollection<PeekPillDto> target, string labelKey, string? arg, string color, bool dim)
+    {
+        if (string.IsNullOrWhiteSpace(arg)) return;
+        target.Add(new PeekPillDto(null, labelKey, arg, dim, color, null));
+    }
+
+    private static void AddProp(ICollection<PeekPropDto> target, string keyLabel, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return;
+        target.Add(new PeekPropDto(keyLabel, value));
+    }
+
+    private static string NormalizeReference(string? value)
+        => (value ?? string.Empty)
+            .Replace("[[", string.Empty, StringComparison.Ordinal)
+            .Replace("]]", string.Empty, StringComparison.Ordinal)
+            .Trim();
+
+    [JsonRpcMethod("scenes/setSynopsis")]
+    public async Task SetSynopsisAsync(string chapterGuid, string sceneId, string synopsis)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        scene.Synopsis = synopsis.Length == 0 ? null : synopsis;
+        await _workspace.Projects.SaveScenesAsync();
+    }
+
+    [JsonRpcMethod("scenes/setNotes")]
+    public async Task SetNotesAsync(string chapterGuid, string sceneId, string notes)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        scene.Notes = notes.Length == 0 ? null : notes;
+        await _workspace.Projects.SaveScenesAsync();
+    }
+
+    private void ApplyCustomEntityTemplate(CustomEntityData entity, string templateId)
+    {
+        var book = _workspace.Projects.ActiveBook;
+        var template = book?.CustomEntityTemplates.FirstOrDefault(t =>
+            t.Id == templateId && t.EntityTypeKey == entity.EntityTypeKey);
+        if (template == null) return;
+
+        entity.TemplateId = template.Id;
+        foreach (var field in template.Fields)
+        {
+            if (!string.IsNullOrWhiteSpace(field.DefaultValue))
+                entity.Fields[field.Key] = field.DefaultValue;
+        }
+        foreach (var def in template.CustomPropertyDefs)
+        {
+            if (!entity.CustomProperties.ContainsKey(def.Key))
+                entity.CustomProperties[def.Key] = def.DefaultValue;
+        }
+        foreach (var section in template.Sections)
+        {
+            if (!entity.Sections.Any(s => string.Equals(s.Title, section.Title, StringComparison.OrdinalIgnoreCase)))
+                entity.Sections.Add(new EntitySection { Title = section.Title, Content = section.DefaultContent });
+        }
+    }
+
+    private static readonly JsonSerializerOptions JsonOptions =
+        new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+    /// <summary>Applies a book template: known fields by name, custom-property
+    /// defaults without overwriting, and section seeds - mirroring the
+    /// Avalonia EntityPanelViewModel.Apply*Template behavior.</summary>
+    private void ApplyTemplate(object entity, string type, string templateId)
+    {
+        var defs = ResolvePropertyDefs(type, templateId);
+        entity.GetType().GetProperty("TemplateId")?.SetValue(entity, templateId);
+
+        var book = _workspace.Projects.ActiveBook!;
+        (List<TemplateField> Fields, List<TemplateSection> Sections) parts = type switch
+        {
+            "character" => Pick(book.CharacterTemplates.FirstOrDefault(t => t.Id == templateId)),
+            "location" => Pick(book.LocationTemplates.FirstOrDefault(t => t.Id == templateId)),
+            "item" => Pick(book.ItemTemplates.FirstOrDefault(t => t.Id == templateId)),
+            _ => Pick(book.LoreTemplates.FirstOrDefault(t => t.Id == templateId))
+        };
+
+        foreach (var field in parts.Fields)
+        {
+            var property = entity.GetType().GetProperty(
+                char.ToUpperInvariant(field.Key[0]) + field.Key[1..]);
+            if (property?.CanWrite == true && property.PropertyType == typeof(string))
+            {
+                property.SetValue(entity, field.DefaultValue);
+            }
+        }
+
+        var props = (Dictionary<string, string>)entity.GetType()
+            .GetProperty("CustomProperties")!.GetValue(entity)!;
+        foreach (var def in defs)
+        {
+            props.TryAdd(def.Key, def.DefaultValue);
+        }
+
+        var sections = (List<EntitySection>)entity.GetType()
+            .GetProperty("Sections")!.GetValue(entity)!;
+        foreach (var section in parts.Sections)
+        {
+            if (sections.All(s => s.Title != section.Title))
+            {
+                sections.Add(new EntitySection { Title = section.Title, Content = section.DefaultContent });
+            }
+        }
+    }
+
+    private static (List<TemplateField>, List<TemplateSection>) Pick(object? template) =>
+        template == null
+            ? ([], [])
+            : (((dynamic)template).Fields, ((dynamic)template).Sections);
+
+    private static InvalidOperationException Unknown(string id) => new($"Unknown entity '{id}'.");
+
+    private static string Compose(string name, string surname) =>
+        surname.Length == 0 ? name : $"{name} {surname}";
+
+    private EntitySummaryDto Summary(
+        string id, string name, string detail, bool isWorldBible, EntityImage? image,
+        IReadOnlyList<string> aliases,
+        string? group = null, string? gender = null, string? parent = null, string? firstName = null) =>
+        new(id, name, detail, isWorldBible,
+            image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
+            aliases,
+            NullIfEmpty(group), NullIfEmpty(gender), NullIfEmpty(parent),
+            // The bare first name is an extra hover/mention target ("Liam" for
+            // "Liam Calder"); null when it equals the composed display name.
+            NullIfEmpty(firstName) is { } fn && !string.Equals(fn, name, StringComparison.Ordinal) ? fn : null);
+
+    private static string? NullIfEmpty(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value;
+
+    /// <summary>
+    /// Serializes an entity and annotates each image with a <c>url</c> field
+    /// (project-root-relative) for display, leaving <c>path</c> (the stored
+    /// value) intact so add/remove still match on it.
+    /// </summary>
+    private JsonElement WithResolvedImages(object entity)
+    {
+        var node = JsonSerializer.SerializeToNode(entity, JsonOptions);
+        if (node is System.Text.Json.Nodes.JsonObject obj)
+        {
+            ResolveImageUrls(obj["images"] as System.Text.Json.Nodes.JsonArray);
+            // Per-scope character overrides carry their own image lists; annotate
+            // each so the inline overrides editor can render them by resolved url.
+            if (obj["chapterOverrides"] is System.Text.Json.Nodes.JsonArray overrides)
+            {
+                foreach (var ovr in overrides)
+                {
+                    if (ovr is System.Text.Json.Nodes.JsonObject ovrObj)
+                        ResolveImageUrls(ovrObj["images"] as System.Text.Json.Nodes.JsonArray);
+                }
+            }
+        }
+        return JsonSerializer.SerializeToElement(node, JsonOptions);
+    }
+
+    /// <summary>Annotates each image object in the array with a project-root-relative
+    /// <c>url</c> for the novalist-project:// protocol, leaving <c>path</c> intact.</summary>
+    private void ResolveImageUrls(System.Text.Json.Nodes.JsonArray? images)
+    {
+        if (images == null) return;
+        foreach (var image in images)
+        {
+            if (image is System.Text.Json.Nodes.JsonObject imageObj
+                && imageObj["path"]?.GetValue<string>() is { } path)
+            {
+                imageObj["url"] = _entities.ResolveProjectRelativeImage(path);
+            }
+        }
+    }
+}
+
+public sealed record EntityTemplateDto(string Id, string Name);
+
+public sealed record CustomTypeSpecDto(
+    string? TypeKey,
+    string DisplayName,
+    string? DisplayNamePlural,
+    CustomFieldSpecDto[]? Fields,
+    bool IncludeImages,
+    bool IncludeRelationships,
+    bool IncludeSections);
+
+public sealed record CustomFieldSpecDto(
+    string? Key,
+    string DisplayName,
+    string Type,
+    string? DefaultValue,
+    string[]? EnumOptions,
+    bool Required);
+
+public sealed record CustomPropDto(string Key, string Value, string PropType, IReadOnlyList<string> EnumOptions);
+
+public sealed record EntitySectionDto(string Title, string Content);
+
+/// <summary>A stored entity image (display name + project-relative path) as sent
+/// by the inline overrides editor when replacing a scope's image list.</summary>
+public sealed record EntityImageDto(string Name, string Path);
+
+public sealed record RelationshipRowDto(string Role, string Target);
+
+public sealed record RelationshipEditRowDto(string Role, string Target, string? InverseRole);
+
+public sealed record RelationshipSuggestionsDto(
+    IReadOnlyList<string> CharacterNames,
+    IReadOnlyList<string> Roles);
+
+public sealed record EntitySummaryDto(
+    string Id,
+    string Name,
+    string Detail,
+    bool IsWorldBible,
+    string? ImagePath,
+    IReadOnlyList<string> Aliases,
+    string? Group = null,
+    string? Gender = null,
+    string? Parent = null,
+    string? FirstName = null);
+
+/// <summary>Rich focus-peek card payload. <c>TypeKey</c> is the built-in key
+/// (character/location/item/lore) or a custom type key; <c>CustomTypeLabel</c>
+/// carries the display name for custom types (null for built-ins, which the
+/// client localizes). Colors are hex strings straight from the desktop card.</summary>
+public sealed record EntityPeekDto(
+    string Id,
+    string TypeKey,
+    string Title,
+    string? CustomTypeLabel,
+    string BadgeColor,
+    string Description,
+    PeekImageDto[] Images,
+    PeekPillDto[] Pills,
+    PeekPropDto[] AppearanceProps,
+    PeekPropDto[] CustomProps,
+    PeekRelationshipDto[] Relationships,
+    EntitySectionDto[] Sections,
+    PeekMapPinDto[] MapPins,
+    string? ScopeLabel = null);
+
+/// <summary>A single framed image; <c>Url</c> is project-root-relative for the
+/// novalist-project:// protocol.</summary>
+public sealed record PeekImageDto(string Name, string Url);
+
+/// <summary>An attribute pill. Exactly one of <c>Text</c> (literal) or
+/// <c>LabelKey</c>+<c>Arg</c> (client-localized template, e.g. "Age {0}") is set.
+/// <c>Icon</c> is an SVG path geometry (the users glyph) or null.</summary>
+public sealed record PeekPillDto(
+    string? Text, string? LabelKey, string? Arg, bool Dim, string Color, string? Icon);
+
+/// <summary>A key/value property. For appearance props the <c>Key</c> is a
+/// localization key; for custom props it is a literal field label.</summary>
+public sealed record PeekPropDto(string Key, string Value);
+
+public sealed record PeekRelationshipDto(string Role, PeekRelationshipTargetDto[] Targets);
+
+/// <summary><c>EntityId</c>/<c>TypeKey</c> are null when the name resolves to no
+/// (or an ambiguous) entity — the client renders those as plain disabled text.</summary>
+public sealed record PeekRelationshipTargetDto(string Name, string? EntityId, string? TypeKey);
+
+public sealed record PeekMapPinDto(string MapId, string MapName, string PinId, string PinLabel);

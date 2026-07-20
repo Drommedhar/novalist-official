@@ -1,0 +1,38 @@
+appId: com.novalist.app
+productName: Novalist
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**
+  - package.json
+extraResources:
+  - from: dist-backend
+    to: backend
+  - from: resources/icon.png
+    to: icon.png
+asarUnpack:
+  - '**/*.node'
+# Artifact names are kept compatible with the previous (Avalonia) release assets
+# so an already-installed app can find and download the update. The old updater
+# matches: windows -> name contains "windows" and ends ".exe"; macos -> contains
+# "macos" and the arch and ends ".dmg"; linux -> ends ".AppImage".
+mac:
+  icon: build/icon.icns
+  target:
+    - dmg
+  category: public.app-category.productivity
+  identity: null
+  artifactName: novalist-macos-${arch}.${ext}
+win:
+  icon: build/icon.ico
+  target:
+    - nsis
+  artifactName: novalist-windows-${arch}-setup.${ext}
+linux:
+  icon: build/icon.png
+  target:
+    - AppImage
+  category: Office
+  artifactName: Novalist-x86_64.${ext}
+npmRebuild: true

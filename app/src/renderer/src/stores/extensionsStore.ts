@@ -1,0 +1,293 @@
+import { create } from 'zustand'
+import { rpc } from '../rpc/client'
+import {
+  registerInlineAction,
+  setExtensionContextMenuItems,
+  type InlineActionResult
+} from '../views/editor/editorBridge'
+import { setExtensionHotkeys } from '../shell/hotkeys'
+import { useProjectStore } from './projectStore'
+import { applyExtensionTheme, selectedExtensionTheme } from './extensionThemes'
+
+export interface ExtensionWebView {
+  extensionId: string
+  key: string
+  title: string
+  iconPath: string
+  placement: 'main' | 'inspector'
+  entry: string
+  folderPath: string
+}
+
+export interface ExtensionInfo {
+  id: string
+  name: string
+  version: string
+  description: string
+  author: string
+  isEnabled: boolean
+  loadError: string | null
+}
+
+export interface ExtensionTheme {
+  extensionId: string
+  name: string
+  accentColor: string | null
+}
+
+/** A gallery extension plus its installed/update state (backend `store/index`). */
+export interface StoreEntry {
+  id: string
+  name: string
+  description: string
+  author: string
+  repo: string
+  tags: string[]
+  icon: string | null
+  latestVersion: string | null
+  releaseTag: string | null
+  isCompatible: boolean
+  isInstalled: boolean
+  hasUpdate: boolean
+  installedVersion: string | null
+}
+
+/** A published release (backend `store/releases`). */
+export interface StoreRelease {
+  tagName: string
+  version: string
+  body: string
+  publishedAt: string
+}
+
+/** An available update for an installed extension (backend `store/checkUpdates`). */
+export interface StoreUpdate {
+  extensionId: string
+  name: string
+  repo: string
+  installedVersion: string
+  availableVersion: string
+}
+
+/** Result of an install/update attempt (backend `store/install` / `store/update`). */
+export interface StoreInstallResult {
+  id: string
+  success: boolean
+  error: string | null
+}
+
+export type StoreStatus = 'idle' | 'loading' | 'ready' | 'error'
+
+interface InlineActionInfo {
+  id: string
+  label: string
+  group: string
+  icon: string
+  priority: number
+}
+
+interface ContextMenuInfo {
+  id: string
+  label: string
+  icon: string
+  iconPath: string | null
+  context: string
+}
+
+interface ExtensionHotkeyInfo {
+  actionId: string
+  displayName: string
+  category: string
+  defaultGesture: string
+}
+
+interface ExtensionsState {
+  extensions: ExtensionInfo[]
+  views: ExtensionWebView[]
+  themes: ExtensionTheme[]
+  loaded: boolean
+  load(): Promise<void>
+  /** Re-fetch contributed views and re-announce their folder roots to the main
+   * process. Called after any mutation that can change the view set. */
+  refreshViews(): Promise<void>
+  /** Re-fetch declarative contributions (inline actions, context menu, hotkeys,
+   * themes) and wire them into the renderer. Idempotent. */
+  refreshContributions(): Promise<void>
+  setEnabled(id: string, enabled: boolean): Promise<void>
+  install(sourceFolder: string): Promise<void>
+  uninstall(id: string): Promise<void>
+
+  // ── Remote gallery / store ──
+  store: StoreEntry[]
+  storeStatus: StoreStatus
+  storeError: string | null
+  storeUpdates: StoreUpdate[]
+  /** Fetches the gallery index. Cached after the first success unless `force`. */
+  loadStore(force?: boolean): Promise<void>
+  /** Checks installed gallery extensions for updates; returns the update count. */
+  checkStoreUpdates(): Promise<number>
+  /** Downloads and installs (or updates) a gallery extension. Progress and Cancel
+   * surface through the shared host-progress overlay. Refreshes both the installed
+   * list and the store index on success. */
+  installFromStore(id: string, repo: string, update: boolean): Promise<StoreInstallResult>
+  fetchReadme(repo: string): Promise<string>
+  fetchReleases(id: string, repo: string): Promise<StoreRelease[]>
+  /** Re-fetches the installed-extensions list (after a live install/update). */
+  refreshInstalled(): Promise<void>
+}
+
+// Disposers for the inline actions currently registered from extensions, so a
+// reload can drop the previous set before registering the fresh one.
+let inlineDisposers: Array<() => void> = []
+
+export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
+  extensions: [],
+  views: [],
+  themes: [],
+  loaded: false,
+
+  load: async () => {
+    if (get().loaded) return
+    const extensions = await rpc.request<ExtensionInfo[]>('extensions/load')
+    set({ extensions, loaded: true })
+    await get().refreshViews()
+    await get().refreshContributions()
+  },
+
+  refreshViews: async () => {
+    const views = await rpc.request<ExtensionWebView[]>('extensions/views')
+    window.novalist.registerExtensionRoots(
+      Object.fromEntries(views.map((v) => [v.extensionId, v.folderPath]))
+    )
+    set({ views })
+  },
+
+  refreshContributions: async () => {
+    // Inline actions: register each into the editor's inline-action registry with
+    // a runner that routes execution back to the owning contributor over RPC.
+    const [inline, context, hotkeys, themes] = await Promise.all([
+      rpc.request<InlineActionInfo[]>('extensions/inlineActions').catch(() => []),
+      rpc.request<ContextMenuInfo[]>('extensions/contextMenuItems').catch(() => []),
+      rpc.request<ExtensionHotkeyInfo[]>('extensions/hotkeys').catch(() => []),
+      rpc.request<ExtensionTheme[]>('extensions/themes').catch(() => [])
+    ])
+
+    for (const dispose of inlineDisposers) dispose()
+    inlineDisposers = inline.map((a) =>
+      registerInlineAction({ id: a.id, label: a.label, group: a.group, icon: a.icon }, async (
+        selectedText
+      ): Promise<InlineActionResult> => {
+        const proj = useProjectStore.getState()
+        const result = await rpc.request<{
+          text: string
+          disposition: 'replace' | 'insertAfter'
+          error: string | null
+        } | null>('extensions/inlineAction/execute', [
+          a.id,
+          selectedText,
+          proj.openChapterGuid ?? '',
+          proj.openSceneId ?? ''
+        ])
+        if (!result) return { text: '', disposition: 'replace', error: `Unknown inline action: ${a.id}` }
+        return { text: result.text, disposition: result.disposition, error: result.error ?? undefined }
+      })
+    )
+
+    // Context-menu items usable from the editor operate on the current scene.
+    setExtensionContextMenuItems(
+      context
+        .filter((c) => c.context === 'Scene' || c.context === 'Editor')
+        .map((c) => ({ id: c.id, label: c.label, icon: c.icon }))
+    )
+
+    // Hotkeys: register actions that dispatch back to the host by action id.
+    setExtensionHotkeys(
+      hotkeys.map((h) => ({
+        actionId: h.actionId,
+        gesture: h.defaultGesture,
+        defaultGesture: h.defaultGesture,
+        categoryKey: h.category,
+        labelKey: h.displayName,
+        run: () => {
+          void rpc.request('extensions/hotkey/execute', [h.actionId])
+        }
+      }))
+    )
+
+    // Re-apply the persisted extension theme selection if it still exists.
+    const selected = selectedExtensionTheme()
+    const match = selected ? themes.find((th) => th.name === selected) : undefined
+    if (match) applyExtensionTheme(match.name, match.accentColor)
+    else if (selected) applyExtensionTheme(null, null)
+
+    set({ themes })
+  },
+
+  setEnabled: async (id, enabled) => {
+    const extensions = await rpc.request<ExtensionInfo[]>('extensions/setEnabled', [id, enabled])
+    set({ extensions })
+    await get().refreshViews()
+    await get().refreshContributions()
+  },
+
+  install: async (sourceFolder) => {
+    const extensions = await rpc.request<ExtensionInfo[]>('extensions/install', [sourceFolder])
+    set({ extensions })
+    await get().refreshViews()
+    await get().refreshContributions()
+  },
+
+  uninstall: async (id) => {
+    const extensions = await rpc.request<ExtensionInfo[]>('extensions/uninstall', [id])
+    set({ extensions })
+    await get().refreshViews()
+    await get().refreshContributions()
+  },
+
+  // ── Remote gallery / store ──
+  store: [],
+  storeStatus: 'idle',
+  storeError: null,
+  storeUpdates: [],
+
+  loadStore: async (force) => {
+    if (!force && get().storeStatus === 'ready') return
+    set({ storeStatus: 'loading', storeError: null })
+    try {
+      const store = await rpc.request<StoreEntry[]>('store/index')
+      set({ store, storeStatus: 'ready' })
+    } catch (e) {
+      set({ storeStatus: 'error', storeError: e instanceof Error ? e.message : String(e) })
+    }
+  },
+
+  checkStoreUpdates: async () => {
+    const storeUpdates = await rpc.request<StoreUpdate[]>('store/checkUpdates')
+    set({ storeUpdates })
+    // Reflect freshly discovered updates in the browse list if it is loaded.
+    if (get().storeStatus === 'ready') await get().loadStore(true)
+    return storeUpdates.length
+  },
+
+  installFromStore: async (id, repo, update) => {
+    const method = update ? 'store/update' : 'store/install'
+    const result = await rpc.request<StoreInstallResult>(method, [id, repo])
+    if (result.success) {
+      await get().refreshInstalled()
+      await get().loadStore(true)
+      set((s) => ({ storeUpdates: s.storeUpdates.filter((u) => u.extensionId !== id) }))
+    }
+    return result
+  },
+
+  fetchReadme: (repo) => rpc.request<string>('store/readme', [repo]),
+
+  fetchReleases: (id, repo) => rpc.request<StoreRelease[]>('store/releases', [id, repo]),
+
+  refreshInstalled: async () => {
+    const extensions = await rpc.request<ExtensionInfo[]>('extensions/list')
+    set({ extensions })
+    await get().refreshViews()
+    await get().refreshContributions()
+  }
+}))

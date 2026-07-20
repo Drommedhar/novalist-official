@@ -1,0 +1,243 @@
+/* Co-located styles for the shell dialogs and overlays added alongside the
+ * richer chapter/scene/update/story-date flows. Reuses the shared dialog-*
+ * primitives from shell.css; only the extras below are defined here. */
+
+/* Two date fields side by side in the story-date-range dialog. */
+.date-range-row {
+  display: flex;
+  gap: var(--nl-space-md);
+}
+
+.date-range-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  flex: 1;
+  min-width: 0;
+}
+
+.date-range-col .dialog-input {
+  width: 100%;
+}
+
+/* Update dialog release-notes block. */
+.update-notes {
+  max-height: 180px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body-sm);
+  line-height: 1.5;
+  padding: var(--nl-space-md);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+/* Backstage drawer: a left-anchored panel (not a centred modal) with project
+ * actions, recents, and Settings / Extensions. Mirrors the desktop start menu. */
+.start-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--nl-overlay-scrim, rgba(0, 0, 0, 0.32));
+}
+
+.start-drawer {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  max-width: 86vw;
+  height: 100%;
+  background: var(--nl-surface-sidebar);
+  border-right: 1px solid var(--nl-border);
+  box-shadow: 2px 0 18px 0 rgba(0, 0, 0, 0.28);
+}
+
+.start-drawer-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--nl-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+}
+
+/* Clear the macOS traffic-light window controls above the first entry. */
+.start-drawer-mac .start-drawer-scroll {
+  padding-top: 36px;
+}
+
+.start-drawer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.start-drawer-sep {
+  height: 1px;
+  background: var(--nl-border);
+}
+
+.start-drawer-version {
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-top: 1px solid var(--nl-border);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.start-menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.start-menu-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-md) var(--nl-space-md);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  text-align: left;
+}
+
+.start-menu-action:hover {
+  background: var(--nl-surface-hover);
+}
+
+.start-menu-recents {
+  display: flex;
+  flex-direction: column;
+  max-height: 220px;
+  overflow-y: auto;
+  border-top: 1px solid var(--nl-border);
+  padding-top: var(--nl-space-sm);
+}
+
+.start-recent-row {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--nl-space-md);
+}
+
+.start-recent-thumb {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 42px;
+  border-radius: var(--nl-radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--nl-border);
+}
+
+.start-recent-thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nl-text-subtle);
+  background: var(--nl-surface-card);
+}
+
+.start-recent-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  min-width: 0;
+}
+
+/* Update dialog: inline extension-update rows. */
+.update-ext-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  margin: var(--nl-space-sm) 0;
+  border-top: 1px solid var(--nl-border);
+  padding-top: var(--nl-space-sm);
+}
+
+.update-ext-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+}
+
+.update-ext-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nl-text);
+}
+
+.update-ext-ver {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Update dialog: auto-download progress bar. */
+.update-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  margin: var(--nl-space-sm) 0;
+}
+
+.update-progress-track {
+  height: 6px;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-hover);
+  overflow: hidden;
+}
+
+.update-progress-fill {
+  height: 100%;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-accent, #4f8cff);
+  transition: width 0.2s ease;
+}
+
+.update-progress-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+/* Snapshots dialog: take button, list, and empty state. Row/action styles are
+ * shared with the inspector (inspector.css). */
+.dialog-inline-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  align-self: flex-start;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-radius: var(--nl-radius-md);
+  border: 1px solid var(--nl-border);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+}
+
+.dialog-inline-button:hover {
+  background: var(--nl-surface-hover);
+}
+
+.snapshot-list {
+  display: flex;
+  flex-direction: column;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.dialog-empty {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+  padding: var(--nl-space-md) 0;
+}
+
+/* Delete affordance next to the toolbar draft selector. */
+.toolbar-draft {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+}

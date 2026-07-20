@@ -1,62 +1,66 @@
 # Export
 
-The Export view turns your book into a file you can send to a beta reader, an editor, or a publisher. Built-in formats include EPUB, DOCX, PDF, Markdown, Final Draft (Fountain), LaTeX, and Codex Markdown. Extensions can add more.
+The Export view turns your book into a file you can send to a beta reader, an editor, or a publisher. Seven formats are built in: EPUB, DOCX, PDF, Markdown, Final Draft, LaTeX, and Codex Markdown.
 
 ## Opening Export
 
-Click the **upload** icon in the activity bar, or use the export hotkey.
+In the activity bar, click **Export** in the **Publish** group.
 
 ## The export form
 
-- **Format** — drop-down of every available format:
-  - **EPUB** — e-book.
-  - **DOCX** — Microsoft Word.
-  - **PDF** — print-ready PDF.
-  - **Markdown** — single-file markdown.
-  - **Final Draft** — screenplay format (Fountain-compatible).
-  - **LaTeX** — `.tex` source.
-  - **Codex Markdown** — markdown export including codex entries as appendix.
-  - Plus formats contributed by extensions.
-- **Title** — the title of the exported document. Defaults to the book's name.
-- **Author** — author name. Defaults to the project's author setting (Settings → Appearance / Project).
-- **Include title page** — toggle.
-- **Preset** — optional. Pre-configured export settings; built-in presets include:
-  - **Default** — sensible all-rounder.
-  - **Shunn** — Shunn Modern Manuscript Format (for submissions).
-  - Any extension-contributed presets.
-- **Chapter selection** — checkboxes for every chapter. Defaults to all. Use **Select all** / **Deselect all** for quick toggling.
+- **Format** — drop-down of the available formats:
+  - **EPUB (e-book)**
+  - **DOCX (Word)**
+  - **PDF**
+  - **Markdown**
+  - **Final Draft (.fdx)**
+  - **LaTeX**
+  - **Codex (Markdown)** — manuscript plus your codex entries as an appendix.
 
-After filling in, click **Export**. A file picker asks where to save. Status messages appear while the job runs; a toast confirms when it's done.
+  Any formats contributed by installed [extensions](24-extensions.md) appear below the built-in ones in the same drop-down.
+- **Preset** — a layout preset that sets fonts, spacing, and margins. Built-in presets are:
+  - **Default** — Georgia 12pt, 1.5 line spacing; a readable PDF/EPUB.
+  - **Shunn Manuscript Format** — the industry-standard submission format: Courier 12pt, double-spaced, with the Shunn header.
+  - **Ebook Flow** — tighter spacing for digital reading: Georgia 11pt, 1.4 line spacing, narrower margins.
+
+  A short description of the selected preset is shown beneath the drop-down. Extensions can contribute additional presets.
+- **Shunn Manuscript Format** — for **DOCX** and **PDF** only, a toggle that switches the export straight to the Shunn submission preset (and disables the Preset drop-down while it is on).
+- **Title** — the title of the exported document. Defaults to the project's name.
+- **Author** — author name printed on the title page and in document metadata.
+- **Title page** — toggle. Include or omit a generated title page.
+- **Chapter selection** — a checkbox per chapter, with **Select All** and **Select None** buttons and a running "*n* of *m*" count. All chapters are included by default; untick chapters to exclude them. This list is hidden for the **Codex** format and for extension-contributed formats, which always cover the whole project.
+
+Click **Export**. The system file save dialog asks where to save; pick a location and filename (the extension is pre-filled to match the format). The button shows "Exporting…" while the job runs and a result line reports success or failure.
 
 ## Built-in format details
 
 ### EPUB
 
 - Includes chapter breaks, scene breaks, paragraph styles.
-- Embeds the book cover image, if set.
+- Embeds the book's cover image, if one is set.
 - Compatible with major e-readers (Kindle via conversion, Apple Books, Kobo, etc.).
 
 ### DOCX
 
 - Standard Word document with paragraph styles mapped to Word styles:
-  - Heading 1 — Chapter title.
-  - Heading 2 — Scene title (if rendered).
+  - Heading 1 — chapter title.
+  - Heading 2 — scene title (if rendered).
   - Body Text — paragraph.
-  - Quote — Blockquote.
-- Comments are dropped by default (toggleable in extension presets).
+  - Quote — blockquote.
+- Comments are dropped.
 - Footnotes preserved as Word footnotes.
 
 ### PDF
 
-- Print-ready. The page size and margins come from Settings → Editor → Book page format. Cover image embedded if set.
+- Print-ready PDF with the book's cover image embedded if set.
 
 ### Markdown
 
-- Single `.md` file. Chapter headings at H1, scenes at H2 (if titled). Comments and footnotes preserved as markdown footnotes.
+- Single `.md` file. Chapter headings at H1, scenes at H2 (if titled). Footnotes preserved as markdown footnotes.
 
-### Final Draft (Fountain)
+### Final Draft
 
-- Plain-text screenplay markup. Useful for projects that double as scripts.
+- `.fdx` screenplay format. Useful for projects that double as scripts.
 
 ### LaTeX
 
@@ -66,15 +70,6 @@ After filling in, click **Export**. A file picker asks where to save. Status mes
 
 - Markdown export with an appendix containing your codex entries (characters, locations, items, lore). Useful for delivering a "world bible" version of the project to a collaborator.
 
-## Presets
-
-A preset is a saved combination of format + options. The bundled presets:
-
-- **Default** — format-appropriate defaults.
-- **Shunn** — submission-format DOCX (12pt Courier-equivalent, double-spaced, first-line indents, page breaks at chapter starts).
-
-Extensions can contribute presets. Pick a preset to load its settings; you can still override individual fields before clicking Export.
-
 ## Selecting chapters
 
 Use cases for partial exports:
@@ -83,16 +78,15 @@ Use cases for partial exports:
 - The first three chapters as a submission packet.
 - Only chapters at Final status, to publish a polished excerpt.
 
-Combine chapter selection with the chapter-status filter you may already have applied in the Manuscript view, but note that Export's chapter list shows all chapters regardless of status — you pick what you want via the checkboxes.
+For chapter-based formats the list shows all chapters regardless of status — you pick what you want via the checkboxes, or use **Select All** / **Select None**. The Codex and extension formats export the whole project and hide the list.
 
 ## Tips
 
-- **Always export EPUB and DOCX before sharing.** EPUB for reading, DOCX for tracked-changes editing.
-- **Use Shunn for submissions.** Even if a publisher has slightly different requirements, Shunn is closer to standard than a casual export.
+- **Export EPUB and DOCX before sharing.** EPUB for reading, DOCX for tracked-changes editing.
 - **Embed a cover image.** EPUB readers display the cover prominently; a missing cover signals "amateur".
 - **Re-export every release.** Re-run the export for any new beta reader instead of sending an old file — it's the only way to be sure they see the latest revisions.
 
 ## Where to go next
 
-- [Settings](23-settings.md) — book page format and font settings affect PDF and the book preview.
-- [Extensions](24-extensions.md) — add new export formats via the SDK.
+- [Settings](23-settings.md) — editor and appearance settings.
+- [Manuscript view](10-manuscript.md) — read the whole book before you export it.

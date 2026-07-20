@@ -1,6 +1,6 @@
 # Projects & Books
 
-A **project** in Novalist is one folder on your disk. Inside that folder are one or more **books**, and inside each book are chapters, scenes, characters, locations, items, lore, images, and snapshots.
+A **project** in Novalist is one folder on your disk. Inside that folder are one or more **books**, each book has one or more **drafts**, and inside each draft are chapters and scenes. Books also hold characters, locations, items, lore, images, and snapshots.
 
 This page explains what each layer is, what is shared and what is per-book, and how everything is stored on disk.
 
@@ -9,13 +9,12 @@ This page explains what each layer is, what is shared and what is per-book, and 
 ```
 Project
 ├── one or more Books
-│   ├── Chapters (each with one or more Scenes)
+│   ├── Drafts (each with Chapters, each chapter with Scenes)
 │   ├── Entities (Characters, Locations, Items, Lore, Custom types)
 │   ├── Templates (per entity type)
 │   ├── Plotlines
 │   ├── Acts
 │   ├── In-world calendar
-│   ├── Cover image
 │   └── Images (the per-book image pool)
 ├── World Bible
 │   └── Project-wide Entities (shared across books)
@@ -24,32 +23,22 @@ Project
 └── Story calendar config (shared default)
 ```
 
-A **project** is the top container. It owns the recent-projects entry, the project name shown in the title bar, the optional Git repo, and the world bible.
+A **project** is the top container. It owns the recent-projects entry, the project name shown in the toolbar, the optional Git repo, and the World Bible.
 
-A **book** is where the actual story lives. You can have a single book (most users) or many books (a series, related novellas, an anthology). Each book has its own chapters, scenes, entities, plotlines, acts, calendar, and templates.
+A **book** is where the actual story lives. You can have a single book (most users) or many books (a series, related novellas, an anthology). Each book has its own drafts, entities, plotlines, acts, calendar, and templates.
 
-The **World Bible** is a shared entity pool across books. Characters, locations, items, and lore stored there are visible from every book, so a series of novels can share the same cast without duplicating data. The book picker shows World Bible entries alongside book-scoped entries when relevant.
+A **draft** is one version of a book's manuscript. Most books have a single draft; create more when you want to keep a rewrite separate from the original without losing it.
 
-## Creating a project
+The **World Bible** is a shared entity pool across books. Characters, locations, items, and lore stored there are visible from every book, so a series of novels can share the same cast without duplicating data. World Bible entries are marked with a **WB** badge in the [Codex](06-codex.md).
 
-From the [Welcome screen](01-getting-started.md#the-welcome-screen):
+## Opening a project
 
-1. Click **Create new project**.
-2. Fill in **Project name**, **First book name**, **Location**, and pick a **Template**.
-3. Click **Create**.
+From the [start screen](01-getting-started.md#the-start-screen):
 
-The folder is created at `<Location>/<Project name>/` and opened immediately.
+- Click a project in **Recent Projects** — each recent project shows its portrait **book cover** (set on the [Dashboard](11-dashboard.md#banner-and-book-cover)), or a placeholder when none is set, or
+- Click **Browse for Project Folder...** and point the folder picker at the project folder (any folder containing a `.novalist/` subdirectory).
 
-If you already have a project folder on disk (for example after copying from another machine, restoring from backup, or cloning from Git), use **Open project** instead and point the file picker at the project folder.
-
-## Opening recent projects
-
-Recent projects appear:
-
-- On the Welcome screen as cover-image cards.
-- In the **Start menu → Recent Projects** flyout (opened from the hamburger button at the far left of the app bar).
-
-Right-click a recent project card to remove it from the list.
+This also covers projects copied from another machine, restored from backup, or cloned from Git — there is no separate "import" step for native projects. For projects from the legacy Obsidian plugin, use **Import from Obsidian Plugin...** instead.
 
 ## The folder layout
 
@@ -65,7 +54,7 @@ This is the on-disk shape of a project. **Do not edit the `.json` cache files by
 ├── <BookFolder>/               # one folder per book, named after the book
 │   ├── .book/                  # per-book metadata (book.json, acts, etc.)
 │   ├── Drafts/
-│   │   └── <DraftFolder>/      # active draft
+│   │   └── <DraftFolder>/      # one folder per draft
 │   │       └── <ChapterFolder>/
 │   │           └── <Scene>.novalist   # one file per scene; plain text inside
 │   ├── Characters/
@@ -88,7 +77,7 @@ This is the on-disk shape of a project. **Do not edit the `.json` cache files by
     └── Lore/
 ```
 
-Scene files use the `.novalist` extension and contain HTML inside — you can open them in any text editor. The folder names inside a book (`Characters`, `Locations`, etc.) are configurable per book — see `BookData` for details — but the defaults shown above are what you get from a fresh project.
+Scene files use the `.novalist` extension and contain HTML inside — you can open them in any text editor. The folder names inside a book (`Characters`, `Locations`, etc.) are configurable per book, but the defaults shown above are what you get from a fresh project.
 
 ## Editing your project outside Novalist
 
@@ -117,33 +106,31 @@ What Novalist does **not** detect — for these you must use the app:
 
 | You do this | Why it doesn't reconcile |
 |---|---|
-| Edit a scene's title, date, date range, notes, synopsis, label colour, favourite, or POV/conflict/emotion overrides | Per-scene metadata lives in `scenes.json`. There is no per-scene marker file. Edit it from the [Scene dialog](04-chapters-and-scenes.md) or the Context sidebar, or edit `scenes.json` directly (treat as advanced — Novalist does not validate the schema). |
-| Edit a chapter's title, act, status, date, date range, or favourite | Chapter metadata lives in both `.nvchapter.json` and `draft.json`. The reconciler currently treats the cached `draft.json` value as authoritative for these fields — editing the marker in a text editor does **not** propagate. Use the chapter's right-click menu in the Explorer. |
-| Reorder chapters by changing the `NN -` folder prefix | The number prefix is cosmetic — Novalist never renumbers behind your back, and equally never reads the prefix as a reorder signal. Drag chapters in the Explorer to reorder. |
-| Reorder scenes by renaming `scene-NN.novalist` files | Same reason — the `NN` is cosmetic. Drag scenes in the Explorer to reorder. |
-| Add a new act, rename an act, change an act's date range | Acts live in `acts.json` and on chapter records. Use **Right-click chapter → Set act…** or the Plot Grid. |
+| Edit a scene's title, date, notes, or synopsis | Per-scene metadata lives in `scenes.json`. There is no per-scene marker file. Rename scenes from the binder; edit synopsis and notes in the inspector. |
+| Edit a chapter's title, act, status, or date | Chapter metadata lives in both `.nvchapter.json` and `draft.json`. The reconciler treats the cached `draft.json` value as authoritative for these fields — editing the marker in a text editor does **not** propagate. Use the chapter's right-click menu in the binder. |
+| Reorder chapters by changing the `NN -` folder prefix | The number prefix is cosmetic — Novalist never renumbers behind your back, and equally never reads the prefix as a reorder signal. Drag chapters in the binder to reorder. |
+| Reorder scenes by renaming `scene-NN.novalist` files | Same reason — the `NN` is cosmetic. Drag scenes in the binder to reorder. |
+| Add or rename an act | Acts live in `acts.json` and on chapter records. Use **Right-click chapter → Rename Act** in the binder. |
 | Edit project / book / draft names or folder layout fields | These live in `project.json` (root `.novalist/project.json`). Renaming the project folder itself is supported by re-opening the moved project; renaming or restructuring inside the project tree is not auto-migrated. |
 | Add or rename codex entities by editing JSON in `Characters/`, `Locations/`, etc. | Codex entities are not part of the manuscript reconciler. The app reads them on open but doesn't reconcile schema-level edits. |
 
-If you want a chapter's act to follow a chapter move, change the act inside Novalist after moving the folder — the act value carried along with the moved chapter is whatever was last set in `draft.json`, not what its new neighbours have. The Explorer groups chapters by act in first-appearance order, so a chapter whose act doesn't match its neighbours will appear under its own act's header in the tree rather than between those neighbours; reassign the act in Novalist if you want it back at its visual position.
+If you want a chapter's act to follow a chapter move, change the act inside Novalist after moving the folder — the act value carried along with the moved chapter is whatever was last set in `draft.json`, not what its new neighbours have. The binder groups chapters by act in first-appearance order, so a chapter whose act doesn't match its neighbours will appear under its own act's header in the tree rather than between those neighbours; reassign the act in Novalist if you want it back at its visual position.
 
 Two ways reconciliation runs:
 
 - **On load** — when you open a project, Novalist scans the active draft and applies any external changes made while it was closed.
-- **Live** — while the app is open, Novalist watches the active draft folder and reconciles changes shortly after they happen, so moving a file in Explorer updates the manuscript without a restart. If a file you have open in the editor changes on disk, Novalist asks before discarding unsaved edits. Live watching can be turned off in [Settings](23-settings.md) (for example on flaky network drives); load-time reconciliation still runs.
+- **Live** — while the app is open, Novalist watches the active draft folder and reconciles changes shortly after they happen, so moving a file in a file manager updates the manuscript without a restart. If a file you have open in the editor changes on disk, Novalist asks before discarding unsaved edits. Live watching can be turned off in [Settings](23-settings.md) (for example on flaky network drives); load-time reconciliation still runs.
 
 Migration to this model happens automatically the first time you open an older project: scene files are stamped, markers and the index are written. It adds about 30 bytes per scene and one small file per chapter folder — no content is rewritten.
 
-## Multi-book support
+## Working with books
 
-Every project starts with one book (the **First book name** you chose at creation time). To work with more than one book:
+Every project has at least one book. To work with more than one:
 
-1. Click the **book picker** in the app bar (the chevron next to the active book name).
-2. The book picker overlay opens, showing one card per book with its cover image.
-3. Click **Add book**, give it a name, and a new book is created with its own empty folder layout.
-4. Right-click a book card for **Rename** or **Delete**.
+1. Open the **book selector** in the toolbar (the dropdown next to the project name).
+2. Pick a book to switch to it, or pick **+ Add Book** and give the new book a name. It is created with its own empty folder layout.
 
-The **active book** is the one all views (editor, codex, dashboard, plot grid, calendar, etc.) operate on. Switching books takes you back to the dashboard.
+The **active book** is the one all views (editor, codex, dashboard, plot grid, calendar, etc.) operate on.
 
 A typical use of multiple books:
 
@@ -151,27 +138,20 @@ A typical use of multiple books:
 - The main book and a companion (short stories, prequels, lore primer).
 - A draft and a heavily-revised remix you want to keep separate but in the same workspace.
 
+## Working with drafts
+
+Each book has its own drafts, shown in the **draft selector** in the toolbar (next to the book selector):
+
+- Pick a draft to switch to it. The binder, editor, and all manuscript views follow the active draft.
+- Pick **+ New draft (clone from current)** to create a new draft as a full copy of the current one — useful before a structural rewrite: the old draft stays intact and you keep working in the clone.
+- Use the **delete-draft** button next to the draft selector to remove the active draft (you are asked to confirm). A book always keeps at least one draft.
+
+Entities, images, plotlines, and templates are per-book, not per-draft — all drafts of a book share them.
+
 ## Renaming and deleting projects
 
-- To **rename the project itself**, click the project totals button in the middle of the status bar to open the Project Overview, then click **Rename project**.
+- To **rename the project**, double-click the project name in the toolbar and enter the new name.
 - To **delete a project**, close Novalist and delete the folder from your file manager. Novalist does not delete project folders for you.
-
-## Renaming and deleting books
-
-From the book picker overlay, right-click a book card:
-
-- **Rename** — opens an input dialog.
-- **Delete** — removes the book and its folder. This is destructive; consider taking a Git commit or filesystem copy first.
-
-## Cover images
-
-Each book has its own optional **cover image**. Set it from the book editor or from the Dashboard. Cover images appear:
-
-- On the book card in the book picker.
-- As the hero image on the Dashboard.
-- On the project card in the Welcome screen (the cover of the first book is used).
-
-See [Image Gallery](19-image-gallery.md) for how images are stored.
 
 ## Backups, sync, and version control
 
@@ -179,16 +159,16 @@ Because everything is a regular folder of regular files, your options for safeke
 
 - **Filesystem backups** — copy the folder, restore the folder.
 - **Cloud sync** — Dropbox, OneDrive, iCloud Drive, etc. all work. Avoid editing the same scene on two machines at the same time.
-- **Git** — Novalist has first-class Git support inside the app. See [Git](18-git.md). The recommended `.gitignore` for a Novalist project excludes only `.novalist/runtime/` and similar caches.
+- **Git** — Novalist has first-class Git support inside the app. See [Git](18-git.md).
 
-Novalist also supports per-scene snapshots — a manual version history per scene plus auto-snapshots taken before destructive operations such as Find & Replace. See [Snapshots](17-snapshots.md) for the per-scene history mechanism — it is complementary to Git, not a replacement.
+Novalist also supports per-scene snapshots — a manual version history per scene plus auto-snapshots taken before destructive operations such as Replace All. See [Snapshots](17-snapshots.md) — it is complementary to Git, not a replacement.
 
 ## Importing from other tools
 
-The Welcome screen has an **Import from Obsidian Plugin** entry. This converts a project produced by the legacy Obsidian-based Novalist workflow into a native Novalist project. See [Troubleshooting](28-troubleshooting.md#import) for details.
+The start screen has an **Import from Obsidian Plugin...** entry. This converts a project produced by the legacy Obsidian-based Novalist workflow into a native Novalist project. See [Troubleshooting](28-troubleshooting.md#import) for details.
 
 ## Where to go next
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — start filling your book with content.
 - [Codex](06-codex.md) — build the cast, world, and lore.
-- [Settings](23-settings.md) — change the project's UI language, theme, accent, default templates.
+- [Settings](23-settings.md) — change the UI language, theme, accent, templates.

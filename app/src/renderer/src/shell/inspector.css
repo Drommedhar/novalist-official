@@ -1,0 +1,213 @@
+/* Inspector extras: collapsible context sections, editable scene analysis,
+   snapshot actions, and the side-by-side snapshot compare dialog. Base
+   inspector / ctx-* styles live in shell.css; this file only adds the parity
+   surface owned by the Inspector components. */
+
+/* ===== Inspector header ===== */
+.inspector-subtitle {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body-sm);
+  padding: 0 var(--nl-space-sm) var(--nl-space-tightest);
+}
+
+.inspector-date {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  padding: 0 var(--nl-space-sm) var(--nl-space-md);
+}
+
+/* ===== Collapsible context sections ===== */
+.ctx-section-head {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  width: 100%;
+  text-align: left;
+  color: var(--nl-text-subtle);
+  padding: var(--nl-space-tighter) var(--nl-space-sm) var(--nl-space-tightest);
+}
+
+.ctx-section-head:hover {
+  color: var(--nl-text);
+}
+
+.ctx-section-chevron {
+  flex-shrink: 0;
+}
+
+.ctx-section-title {
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-title);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+/* ===== Editable analysis rows ===== */
+.ctx-analysis-edit {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  flex: 1;
+  min-width: 0;
+}
+
+.ctx-analysis-input {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--nl-font-body-sm);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+}
+
+.ctx-intensity-input {
+  flex: none;
+  width: 54px;
+}
+
+.ctx-analysis-block .ctx-analysis-input {
+  width: 100%;
+}
+
+.ctx-reset {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--nl-space-tightest);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-subtle);
+}
+
+.ctx-reset:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+/* ===== Comment resolved toggle ===== */
+.annotation-resolve {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  padding: 0 var(--nl-space-sm);
+  cursor: pointer;
+}
+
+.annotation-comment.resolved .outliner-input {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* ===== Snapshot row actions ===== */
+.snapshot-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  flex-shrink: 0;
+}
+
+.snapshot-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--nl-space-tightest);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-subtle);
+}
+
+.snapshot-action:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.snapshot-action.danger:hover {
+  color: var(--nl-danger);
+}
+
+.snapshot-action.active {
+  color: var(--nl-accent);
+  background: var(--nl-surface-selected);
+}
+
+.snapshot-compare-hint {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-accent);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+}
+
+/* ===== Snapshot compare dialog ===== */
+.snapshot-compare-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  width: min(920px, 92vw);
+  max-height: 86vh;
+  padding: var(--nl-space-xl);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  box-shadow: var(--nl-elevation-high);
+}
+
+.snapshot-compare-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-md);
+}
+
+.snapshot-compare-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nl-space-sm);
+}
+
+.snapshot-compare-col {
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snapshot-diff {
+  overflow: auto;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+.snapshot-diff-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.snapshot-diff-cell {
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-body-sm);
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-bottom: 1px solid var(--nl-border);
+  min-height: 1.5em;
+}
+
+.snapshot-diff-cell.left {
+  border-right: 1px solid var(--nl-border);
+}
+
+.snapshot-diff-cell.removed {
+  background: color-mix(in srgb, var(--nl-danger) 16%, transparent);
+}
+
+.snapshot-diff-cell.added {
+  background: color-mix(in srgb, var(--nl-success) 16%, transparent);
+}
+
+.snapshot-diff-empty {
+  padding: var(--nl-space-lg);
+  text-align: center;
+  color: var(--nl-text-subtle);
+}

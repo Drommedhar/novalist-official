@@ -34,8 +34,23 @@
     "plainTextClean": "Klartext (bereinigt)"
   },
   "statusBar": {
+    "pomodoroPrefix": "Pomodoro",
     "pomodoroRunning": "Pomodoro: {0} Sitzungen abgeschlossen",
     "pomodoroIdle": "Pomodoro-Timer (nicht aktiv)"
+  },
+  "inline": {
+    "uppercase": "Auswahl in Großbuchstaben",
+    "wordCount": "Wörter in Auswahl zählen",
+    "wordCountResult": "[{0} Wörter]",
+    "unknownAction": "Unbekannte Inline-Aktion."
+  },
+  "settingsSchema": {
+    "title": "Writing-Toolkit-Einstellungen",
+    "duration": "Pomodoro-Dauer (Minuten)",
+    "autoStart": "Pausen automatisch starten",
+    "promptCategory": "Standard-Prompt-Kategorie",
+    "promptKeyword": "Prompt-Schlagwort",
+    "suggestKeywords": "Schlagwörter vorschlagen"
   },
   "contextMenu": {
     "analyzeWordFrequency": "Worthäufigkeit analysieren"

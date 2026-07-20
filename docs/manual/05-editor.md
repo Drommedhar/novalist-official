@@ -1,183 +1,137 @@
 # Editor
 
-The Editor is where you write. It is a WYSIWYG rich-text editor that operates one scene at a time, with the option of a split second pane.
+The Editor is where you write. It is a WYSIWYG rich-text editor. Each editor pane keeps a strip of open scene tabs, and you can show a second pane side by side. The writing engine is the same proven one as in earlier Novalist versions — typewriter scrolling, page view, comments, and footnotes all behave identically; only the shell around it is new.
 
-This page covers everything in or attached to the editor: formatting, paragraph styles, the auto-save loop, focus mode, the split editor, multiple scene tabs, auto-replacements, dialogue correction, grammar check, comments, footnotes, and the focus-peek popover.
+Shortcuts below are written with `Ctrl`; on macOS use `Cmd`.
 
-For everything around the editor (synopsis/notes, scene analysis, footnote list) see [Context sidebar](22-context-sidebar.md). For chapter and scene management see [Chapters & Scenes](04-chapters-and-scenes.md).
+![A scene open in the editor with the Context inspector and scene-notes dock](images/editor.png)
 
 ## Opening a scene
 
-Click any scene in the left **Explorer**. It opens in a new tab at the top of the content area, or focuses the existing tab if already open. The active tab is highlighted.
+Click any scene in the **binder**. The main area switches to the Editor view and loads the scene; the open scene is highlighted in the binder, it is added to the pane's tab strip, and its statistics appear in the [status bar](#status-bar-statistics).
 
-Each tab has:
+The Editor has no view-rail icon of its own — you always reach it by opening a scene from the binder.
 
-- A short **badge** with the chapter index (for example `1.3` for chapter 1, scene 3).
-- The scene title.
-- A **dirty dot** indicating unsaved changes.
-- A **close (×)** button.
+## Scene tabs
 
-Right-click a tab for **Close** and **Move to other pane** (sends the tab to the secondary editor, opening a split if needed). Drag a tab to reorder it.
+Each editor pane keeps the scenes you have opened as a **tab strip** across the top of the pane. Clicking another scene in the binder adds it as a new tab instead of replacing the current one, so you can keep several scenes open and jump between them.
 
-## Auto-save and the dirty indicator
+The strip appears once a pane has more than one scene open (a single open scene keeps the clean, strip-free look). Each tab shows:
 
-Novalist saves automatically two seconds after the last keystroke. The dirty dot disappears when the save completes. You can also save immediately with `Ctrl+S`.
+- The scene title (falling back to the chapter title for an untitled scene).
+- A small **dirty dot** while the scene has unsaved edits, which clears once autosave flushes.
+- A **close** button (`×`).
 
-If the app is closed while a tab is still dirty, the in-flight save is flushed first.
+Tab actions:
 
-## Word count, reading time, and readability
+- **Click** a tab to switch the pane to that scene.
+- **Middle-click** a tab, or click its `×`, to close it. Closing the active tab activates its neighbour.
+- **Right-click** a tab for a small menu: **Close tab** and **Move to other split** (sends the scene to the other editor pane, opening the split if needed).
 
-The status bar (bottom-left of the window) shows three live metrics for the active scene:
+## Auto-save
 
-- **Word count** — Hover for a tooltip showing character count (with and without spaces).
-- **Reading time** — Based on ~225 words per minute.
-- **Readability badge** — Flesch reading-ease score 0–100. Color-coded:
-  - Green — very easy (80–100)
-  - Yellow-green — easy (70–80)
-  - Yellow — fairly easy (60–70)
-  - Orange — fairly difficult (50–60)
-  - Red-orange — difficult (30–50)
-  - Red — very difficult (0–30)
+Novalist saves automatically **two seconds** after the last keystroke. Pending changes are also flushed when you switch to another scene and when the app closes — there is no manual save step.
 
-  Hover for the textual level label. The same scoring appears per chapter in the Project Overview popup (status bar center).
+## The formatting toolbar
 
-## Formatting
+The strip above the page:
 
-The toolbar above the editor (or the **Format** menu of the editor extension, or the keyboard shortcuts) gives you:
+- **Bold**, **Italic**, **Underline** — toggle inline formatting on the selection.
+- **Align left / center / right / justify** — set paragraph alignment.
+- **Page view toggle** (book icon, far right) — switches the editor between a plain writing surface and a printed-book-style page with paper background, margins, and shadow. This is the same setting as **Page View** in [Settings](23-settings.md) → Editor.
 
-### Inline formatting
+The active formatting of the text under the caret is highlighted in the toolbar.
 
-| Action | Shortcut |
-| --- | --- |
-| Bold | `Ctrl+B` |
-| Italic | `Ctrl+I` |
-| Underline | `Ctrl+U` |
+## The editor context menu
 
-### Alignment
+Right-click inside the text for:
 
-| Action | Shortcut |
-| --- | --- |
-| Align left | `Ctrl+L` |
-| Align center | `Ctrl+E` |
-| Align right | `Ctrl+R` |
-| Justify | `Ctrl+J` |
-
-### Paragraph styles
-
-> **Known bug:** the named paragraph styles (Heading, Subheading, Blockquote, Poetry, Clear) and their default hotkeys (`Ctrl+Alt+1` through `Ctrl+Alt+4`, plus `Ctrl+Alt+0` to clear) are wired in code but currently have no working UI or visible effect in the running app. Treat this section as planned future behaviour, not current behaviour.
-
-## Auto-replacements
-
-As you type, certain character sequences are converted automatically based on the active **auto-replacement language preset** (set in Settings → Writing Assistance):
-
-- `--` becomes an em-dash (—).
-- `...` becomes an ellipsis (…).
-- Straight quotes `'` become curly quotes appropriate to the preset: English curly quotes, German low-quote style, French guillemets with non-breaking spaces, Spanish/Italian/Portuguese/Russian guillemets, Polish/Czech/Slovak quotes.
-
-You can edit the replacement table from Settings or disable it entirely. Replacements only fire as you type; pasting raw text is left alone.
-
-## Dialogue correction
-
-When **Dialogue Punctuation Correction** is enabled in Settings → Writing Assistance, common dialogue punctuation mistakes are fixed for you as you type. Examples:
-
-- `"That's mine." he said.` → `"That's mine," he said.` (period before tag becomes comma)
-- `"What?". she asked` → `"What?" she asked` (no period after a question mark)
-
-The correction is opinionated and follows the conventions of the active language. Disable it if you have your own house style.
-
-## Grammar and spelling check
-
-When **Grammar & Spelling Check** is enabled (default on), Novalist calls a LanguageTool-compatible API and underlines issues inline. By default it uses the free public LanguageTool endpoint; the URL is configurable to point at a self-hosted server. The selected UI language drives the check language.
-
-Click an underlined word for:
-
-- **Suggestions** — pick one to replace.
-- **Add to ignore list** — for the current scene.
-- **Ignore rule** — silence this rule entirely.
-
-You can also disable the check from Settings.
-
-## Focus mode
-
-`F11` toggles **Focus Mode**. The menu bar, app bar, sidebars, scene notes, and tab strip all hide. Only the editor remains. Press `F11` again to bring everything back.
-
-Use this for distraction-free drafting. All hotkeys still work, including the command palette (`Ctrl+Shift+P`) which gives you access to any action you need.
-
-## Focus peek (entity preview)
-
-When you hover over an entity reference in the prose (for example a character's name), a **focus peek** card pops up showing:
-
-- The entity's name.
-- Its primary image, if any.
-- Its short description / synopsis.
-
-The peek card itself is interactive — you can scroll through it and inspect the image. To open the full entity in a tab, use the dedicated open-in-tab button on the card. The peek is provided by the `FocusPeekExtension` and is always on.
+- **Cut / Copy / Paste / Select All** — pasting strips foreign formatting and keeps only basic bold/italic/underline and alignment.
+- **Add comment** — on a selection: attaches a comment to the selected text. Commented passages are marked in the text; click the marker to read or edit the comment.
+- **Add footnote** — inserts a footnote at the caret. Footnotes are numbered sequentially within the scene and renumber automatically when one is deleted.
+- **Add to Dictionary** — on a word flagged by the spell check: whitelists it.
 
 ## Split editor
 
-Toggle the split with **View → Toggle Split Editor**, or use the hotkey. A second editor pane opens to the right with its own tab strip. Each tab can be moved between panes via right-click → **Move to other pane**, or dragged.
+To see two scenes at once, right-click a scene in the binder and choose **Toggle split editor**. The main area splits into two editor panes: your current scene on the left, the chosen scene on the right. Both panes are fully editable, auto-save independently, and each keeps its own [tab strip](#scene-tabs) of open scenes. Use **Move to other split** on a tab to hand a scene from one pane to the other.
 
-Common uses:
+Common uses: referencing an earlier scene while writing a later one, or editing two scenes in parallel.
 
-- Reference an earlier scene while writing a later one.
-- Edit two scenes in parallel.
-- Keep an entity editor visible while writing.
+## Entity mentions and autocomplete
 
-The split is a runtime view; closing the second pane (by clicking the toggle again) does not lose any tabs — they fold back into the main pane.
+Novalist recognises the names of your [Codex](06-codex.md) entities — characters, locations, items, and lore — as you write, matching both the primary name and any aliases.
 
-## Comments
+Type `@` to open the **mention autocomplete**: a picker of matching entities (by name or alias) appears; choose one to insert its name. This is the quickest way to keep names spelled consistently across the manuscript.
 
-Highlight some text and press the comment hotkey (or **Edit → Add Comment**). A bubble dialog asks for the comment text. After pressing Save the selection is wrapped in a comment span (with a colored underline) and the comment appears in the **Comments** section of the Scene Notes panel.
+## Entity hover cards
 
-Each comment has:
+When you hover over the name or alias of a codex entity in your prose (or over an inserted mention), an enriched **hover card** appears with, as available:
 
-- **Anchor text** — the snippet you originally selected.
-- **Body** — your comment.
-- **Created at** — timestamp.
-- **Resolved** — toggleable. Resolved comments still exist but display de-emphasized.
+- The entity's **image** and **name**, plus a **type** label (Character / Location / Item / Lore).
+- A short **detail** line.
+- A couple of key **attribute chips** — for a character its role, gender, and age; for a location its type and parent; and so on.
+- Up to a few **relationships** (`role: target`).
+- The entity's **section** titles.
+- An **Open entity** button that jumps straight to that entity in the Codex.
 
-Click a comment in the Scene Notes panel to jump back to its anchor in the editor.
+The card is enough to check a character's face, a relationship, or a location without leaving the editor. Move the pointer onto the card to keep it open. Entities are managed in the [Codex](06-codex.md).
 
-See [Comments](22-context-sidebar.md#comments) for the full lifecycle.
+## Grammar and spelling check
 
-## Footnotes
+When **Grammar & Spelling Check** is enabled in [Settings](23-settings.md) → Writing assistance, Novalist sends your text to a LanguageTool-compatible API and underlines issues inline. Click an underlined passage to see suggestions and apply one.
 
-Place the caret where you want the footnote marker and press the footnote hotkey (or **Edit → Add Footnote**). A superscript number is inserted; the footnote opens for editing in the **Footnotes** tab of the Context sidebar.
+By default the free public LanguageTool endpoint is used; the URL is configurable to point at a self-hosted server (to keep your text local), and Premium credentials, picky mode, and a mother-tongue setting for false-friend detection are available in the same settings section. Use **Add to Dictionary** in the context menu for names the spell check keeps flagging.
 
-Footnotes are numbered sequentially within the scene. Deleting a footnote renumbers the rest automatically. Each footnote has an `id` (stable across renumbering) and a `number` (renderer-facing).
+## Auto-replacements
 
-See [Footnotes](22-context-sidebar.md#footnotes) for the panel.
+As you type, certain character sequences are converted automatically based on the **Quote Style** language preset in Settings → Writing assistance:
 
-## The book-style preview
+- `--` becomes an em-dash.
+- `...` becomes an ellipsis.
+- Straight quotes become the curly quotes of the selected preset (English curly quotes, German low quotes, French guillemets, and others).
 
-The editor can be styled to look like a printed book page. Toggle from Settings → Editor:
+Replacements only fire as you type; pasted text is left alone.
 
-- **Enable book paragraph spacing** — applies first-line indents and tighter paragraph spacing.
-- **Enable book width** — constrains the text column to a printed-page width.
-- **Book page format** — choose a target trim size (US Trade 6×9 by default; A5 and other presets available).
-- **Book font family / size** — the typeface used in book-preview mode.
+## Dialogue correction
 
-The book preview is purely visual — it doesn't change what gets exported. For the actual export styling see [Export](20-export.md).
+When **Dialogue Punctuation Correction** is enabled in Settings → Writing assistance, common dialogue punctuation mistakes are fixed as you type, following the conventions of the selected quote-style language — for example a period before a dialogue tag becomes a comma. Disable it if you have your own house style.
 
-## Multiple open scenes
+## Typewriter scrolling and page styling
 
-You can have many scenes open at once across the two panes. Tabs persist across sessions: when you reopen the project, the same scenes are reopened in the same panes in the same order, with the same active tab.
+In [Settings](23-settings.md) → Editor:
 
-Close a tab with × on the tab, `Ctrl+W`, or middle-click. Closing a tab does not delete the scene — it just removes it from the open list.
+- **Typewriter Scrolling** keeps the active line at a fixed vertical position (top, middle, or bottom) so you never write at the bottom edge of the window.
+- **Page View** renders the editor as a book-style page (also toggleable from the formatting toolbar).
+- **Book Page Width** constrains the text column to a printed page width, with selectable page formats, and **Book Font** / **Book Font Size** set the typeface for that mode.
+- **Book Paragraph Spacing** adds book-like vertical spacing.
+- **Font Family** and **Font Size** control the regular editing view.
 
-## Selection actions and inline actions
+All of this is purely visual — it doesn't change what gets exported. For export styling see [Export](20-export.md).
 
-Right-clicking inside the editor opens a context menu with:
+## Keyboard shortcuts and zoom
 
-- Standard cut/copy/paste/select-all.
-- **Add comment** (if a selection is active).
-- **Add footnote** (at the caret).
-- **Style** submenu (apply a paragraph style).
-- Any **inline actions** contributed by extensions (e.g. AI rewrite, expand, describe, translate). Inline actions can act on the current selection and replace it with the result.
+The editor participates fully in the app's keyboard shortcuts even while the caret is inside the text: a global gesture (for example the command palette, focus mode, or find & replace) fires whether or not the editor has focus, so you never have to click out of the page first. See [Hotkeys](26-hotkeys.md) for the full list.
+
+Hold `Ctrl` and scroll the mouse wheel over the page to **zoom** the editor font up or down (clamped to a sensible range). The zoom adjusts the editor font size, the same value exposed in [Settings](23-settings.md) → Editor.
+
+## Status bar statistics
+
+While a scene is open, the left of the status bar shows live figures for that scene, recomputed as you type:
+
+- **Word count** and **character counts** (with and without spaces).
+- Estimated **reading time** in minutes.
+- A **readability badge** — a 0–100 score with a colour-coded label (Very easy, Easy, Moderate, Difficult, Very difficult). The score adapts to the writing language selected under Settings → Writing assistance.
+- The **scene title**.
+
+The centre of the status bar shows whole-project totals (words, chapters, scenes); click it for a project overview popover. The right side shows daily and project goal progress when goals are set (see [Dashboard](11-dashboard.md)).
+
+## Focus mode
+
+`Alt+F` hides both side panes so only the toolbar, the page, and the status bar remain. Press `Alt+F` again to bring the panes back. The command palette (`Ctrl+Shift+P`) keeps working, so every command stays reachable while focused.
 
 ## Where to go next
 
-- [Context sidebar](22-context-sidebar.md) — scene analysis, comments, footnotes, scene notes panel.
-- [Snapshots](17-snapshots.md) — revert a single scene to a previous save.
-- [Find & Replace](21-find-replace.md) — across-book search.
-- [Settings](23-settings.md) — fonts, theme, accent, writing assistance.
+- [Chapters & Scenes](04-chapters-and-scenes.md) — the binder tree around the editor.
+- [Snapshots](17-snapshots.md) — revert a single scene to a previous state.
+- [Find & Replace](21-find-replace.md) — search across scene, chapter, book, or project.
+- [Settings](23-settings.md) — fonts, theme, writing assistance.

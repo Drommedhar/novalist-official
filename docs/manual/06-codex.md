@@ -1,207 +1,134 @@
 # Codex (Characters, Locations, Items, Lore, Custom types)
 
-The Codex is Novalist's worldbuilding database. Every named thing in your story can live here: people, places, objects, organizations, magic systems, mythology, technology, languages — whatever you need.
+The Codex is Novalist's worldbuilding database. Every named thing in your story can live here: people, places, objects, organizations, magic systems, mythology — whatever you need.
 
-This page covers the four built-in entity types (Character, Location, Item, Lore), custom entity types, the World Bible, chapter overrides, sections, custom properties, relationships, and the two ways to browse entities (the **Entities** sidebar tab and the **Codex Hub** full view).
+Open it via the **Codex** icon in the World group of the activity bar (or **Go → Codex** in the menu bar). This page covers the four built-in entity types, custom entity types, creating entries (including the guided wizard and the character interview), the detail pane, and the World Bible.
 
-For the visual relationship graph see [Relationships](14-relationships.md). For templates that pre-fill new entities see [Templates](07-templates.md).
+For the visual relationship graph see [Relationships](14-relationships.md). For templates that pre-fill new entries see [Templates](07-templates.md).
+
+![The Codex with a character selected](images/codex.png)
+
+## The Codex view
+
+Across the top is a **tab strip**: **Characters**, **Locations**, **Items**, **Lore**, one tab per custom entity type (shown by its plural name), and a **Manage types** button (see below).
+
+Below it, the view is split in two: the **navigation column** on the left and the **detail pane** on the right.
+
+### The navigation column
+
+The left column lists every entity of the active type. At the top is a **search box** — filter the list by name as you type — next to a **count** of how many entries currently match. **New entry** at the bottom creates a new entity.
+
+How the list is arranged depends on the type:
+
+- **Characters** are **grouped**, with a **By Role / By Group** toggle above the list. Each group is a collapsible section with a heading and a member count; click a heading to fold or unfold it. Characters with no role/group fall under an "Ungrouped" heading.
+- **Locations** are shown as a **parent/child hierarchy tree** — a location whose parent is another location is nested (indented) beneath it, so a city can sit under its region.
+- **Items**, **Lore**, and custom types are shown as a flat list.
+
+Each row shows a thumbnail (or the entity's initial), its name, and a short detail line. Characters also show a one-letter **gender badge**, and World Bible entries carry a **WB** badge.
+
+**Right-click** any row for a context menu to **Move to World Bible** / **Move to Book** (see [The World Bible](#the-world-bible-shared-entities)) or **Delete** it (with confirmation).
 
 ## The built-in entity types
 
 | Type | What it's for |
 | --- | --- |
-| **Character** | People in your story. Stores name, surname, gender, age, role, group, physical traits, images, relationships. |
-| **Location** | Places. Stores name, type, parent (hierarchy), description, images. |
-| **Item** | Objects. Stores name, type, description, origin, images. |
-| **Lore** | Abstract worldbuilding entries (magic, religion, history). Name, description, images. |
+| **Character** | People. Name and surname, gender, age, role, group, physical traits, relationships, chapter overrides. |
+| **Location** | Places. Type (city, forest, ...), parent location, description. |
+| **Item** | Objects. Type, description, origin. |
+| **Lore** | Abstract worldbuilding entries (magic, religion, history). Category and description. |
 
-All four share a common set of features: images, sections, custom properties, relationships, and templates.
+All types share images, aliases, sections, custom properties, and templates.
 
-## Shared entity fields
+## Creating an entry
 
-Every entity has:
+Click **New entry** at the bottom of the list. The dialog asks for:
 
-- **Name** — the primary label. Characters also have a separate **Surname** field.
-- **Images** — a list of images attached to the entity. Each has a relative path and an optional caption.
-- **Sections** — named markdown sections (e.g. "Background", "Motivation", "Voice"). You can add, rename, reorder, and delete sections. Sections are where long-form prose about an entity lives.
-- **Custom properties** — key-value pairs that don't fit a built-in field. Each property has a **type**: String, Int, Bool, Date, Enum (with predefined values), Timespan, or EntityRef (a typed link to another entity). Extensions can contribute additional types.
-- **Relationships** — typed connections to other entities (e.g. "Father", "Mentor", "Enemy", "Owns", "Located in"). Each relationship has a **description** (the role) and a comma-separated list of **target** entity names.
-- **Template ID** — the template this entity was created from, if any. Changing the template can re-apply defaults.
+- **Name** — the entity's primary name.
+- **Template** — optional; pick one of the type's templates to pre-fill fields, properties, and sections. See [Templates](07-templates.md).
+- **Use guided wizard** — when checked, a step-by-step wizard opens after creation and walks you through the type's remaining key fields one question at a time (for a character: surname, gender, age, role, group, and a short description that is saved as a "Description" section — the name comes from the dialog). Each step shows a short help text; steps can be skipped, and a review step lets you check everything before finishing.
 
-## Characters
+Confirm with **OK** (or `Enter`).
 
-A character has all the shared fields plus:
+## The character interview
 
-- **Gender**
-- **Age** — either a literal value or **age mode** with a birth date and an interval unit (the age is computed from the active in-world date).
-- **Birth date** — used by age computation in age-mode-`birthDate`.
-- **Role** — e.g. "Protagonist", "Antagonist", "Mentor", "Foil". Used by Smart Lists, the Plot Grid, and the Relationships graph.
-- **Group** — e.g. "House Stark", "The Crew", "Faculty". Free-text grouping; surfaces in filtered views.
-- **Eye color, Hair color, Hair length, Height, Build, Skin tone, Distinguishing features** — physical traits.
-- **Chapter overrides** — see below.
+With a character selected, click **Run character interview...** at the top of the detail pane. The interview walks the seven psychology pillars — **Wound**, **Fear**, **Lie they believe**, **Want**, **Need**, **Secret**, and **Voice** — with a help text for each. Your answers are saved as sections on the character (existing sections with the same titles are updated, not duplicated), so they stay editable afterwards like any other section.
 
-### Chapter overrides
+## The detail pane
 
-A character can have **per-act / per-chapter / per-scene overrides** that change any of the character's fields at a specific point in the story. Example uses:
+The right pane holds the editors for the selected entity, from top to bottom:
 
-- A character changes name (Frodo → Mr. Underhill) in a specific chapter.
-- A character ages over the course of the book.
+- **Actions** — **Run character interview...** (characters only) and **Delete** (asks to confirm).
+- **Fields** — the type's own fields, laid out as a typed, grouped form with the right control for each field. Changes save when you leave a field.
+  - **Characters** get two groups: **Basic Info** (name, surname, gender, age, role, group) and **Physical Attributes** (eye color, hair color, hair length, height, build, skin tone, and a multi-line distinguishing features box).
+  - **Locations** have name, type, a **parent location** field with autocomplete over the project's other locations (this drives the hierarchy tree in the navigation column), and a description.
+  - **Items** have name, type, origin, and description.
+  - **Lore** has name, a **category** dropdown (Organization, Culture, History, Other), and description.
+  - **Custom types** render the typed fields you declared for them: a text box for String, a number box for Int, a date picker for Date, a dropdown for Bool and Enum, and a picker for EntityRef.
+- **Images** — the entity's image strip. **From gallery** picks an existing project image; **Import file** copies a new file into the project; **Paste from clipboard** pastes a copied image; **From URL** downloads an image from a web address. Each image has an editable **name**, a **swap** button (replace it with another gallery image), and a remove button. The first image is the thumbnail used in the list and in the editor's hover cards.
+- **Custom properties** — typed key-value pairs. Each renders with a type-aware control: checkbox for Bool, number input for Int, date picker for Date, dropdown for Enum, text for String. Types and defaults come from the entity's template or type definition; you can also add ad-hoc properties and delete any of them.
+- **Chapter overrides** (characters only) — see below.
+- **Aliases** — alternative names, entered as chips. Aliases count as mentions of the entity in the editor's hover cards and analysis.
+- **Relationships** (characters only) — rows of **Role** (e.g. "Father"), a **target** name, and an **inverse role**. Role and target both autocomplete against the existing cast and the roles already in use. When you set a role, Novalist suggests its inverse and, on save, writes the reciprocal relationship back onto the target character automatically — and learns the role/inverse pair so it can suggest it next time. This powers the [Relationships graph](14-relationships.md), which clusters families from parent/child/partner/sibling roles.
+- **Sections** — free-form titled text blocks ("Background", "Motivation", "Voice", ...). Add, retitle, edit, and remove; this is where long-form prose about an entity lives.
+
+## Chapter overrides (characters)
+
+A character can restate its identity or appearance for a specific chapter — optionally a single scene within it. Example uses:
+
+- A character travels under a false name for a few chapters.
 - Hair color changes after an event.
-- Disguise / alias used only in certain scenes.
+- Age changes between story parts.
 
-To add an override, open the character editor, scroll to **Chapter overrides**, and click **Add override**. Choose the scope (act, chapter, optionally a specific scene) and which fields to override.
+In the **Chapter overrides** section, click **Add override**, pick the chapter (and optionally a scene of that chapter), and fill in only the fields that change — blank fields keep inheriting the character's base value. Editing happens **inline** in the detail pane: the override form expands in place beneath its scope row (there is no pop-up dialog). The full field set is available, grouped the same way as the base editor:
 
-The override is applied automatically wherever the character is referenced in that scope: the editor's focus peek, the manuscript view, exports.
+- **Basic Info** — name, surname, role, gender, age.
+- **Physical Attributes** — eye color, hair color, hair length, height, build, skin tone, distinguishing features.
+- **Custom Properties** — any custom property the character carries can be restated for the scope; blank inherits the base value.
 
-## Locations
+Once a scope is saved, the same inline editor also lets you override the character's **images**, **relationships**, and **sections** for that scope — each edited in place, exactly like the base editor:
 
-A location has all the shared fields plus:
+- **Images** — add from the gallery, import a file, paste from the clipboard, or download from a URL, and remove or rename per image. The scope keeps its own image set (which may be empty, meaning "no images here"), independent of the base.
+- **Relationships** — restate the character's relationships (role and target) for the scope.
+- **Sections** — restate the free-text sections for the scope.
 
-- **Type** — e.g. "City", "Forest", "Building", "Continent".
-- **Parent** — points to another location, allowing nesting (a city inside a country inside a continent).
-- **Description** — free text.
+Each of these three starts out **inheriting** the base list (labelled "Inheriting base"); the first edit makes the scope own the list, and a **Reset to inherit** button drops the override and falls back to the base again. Overriding images, relationships, or sections requires the scope to exist first, so save the scope's fields once before editing them.
 
-Hierarchy is editable; the Codex Hub displays locations as a tree when a parent is set.
+Each saved override shows its **scope** (chapter, or "chapter → scene") and a summary of which fields it changes (including whether it overrides images, relationships, or sections). Click the row (or the pencil button) to expand its inline editor, or the close button to remove it. A **scene-specific** override wins over a **chapter-wide** one for the same chapter, and each overridden non-blank field wins over the base value. Images, relationships, and sections replace the base list wholesale when the scope owns them.
 
-## Items
+If a character's age is stored as a **birth date**, the override does not need an explicit age at all — the displayed age is computed from the birth date against the scope's story date automatically (see below).
 
-An item has all the shared fields plus:
+Resolved override values appear everywhere the character surfaces for that scope:
 
-- **Type** — e.g. "Weapon", "Artifact", "Vehicle".
-- **Description** — free text.
-- **Origin** — short note on where the item came from.
+- The editor's **focus-peek** hover card shows the overridden name, role, age, appearance, custom properties, relationships, images and sections for the scene you are editing, with a subtle banner naming the scope it is showing ("Overridden for ...").
+- The [Inspector's](22-context-sidebar.md) scene context list shows the character's overridden name, role, gender and age for the open scene.
 
-## Lore
-
-A lore entry has the shared fields, no extra structure. Use it for anything that doesn't fit Character / Location / Item: magic systems, religions, calendars, language notes, political histories, in-world books.
+When a character's age is kept as a **birth date**, the age shown on the focus-peek card and in the Inspector's character cards is the age **at that scene** — computed from the birth date against the open scene's story date (falling back to the chapter's date, then to today). The interval unit (years, months, or days) follows the character's age setting.
 
 ## Custom entity types
 
-Beyond the four built-ins you can define your own entity types: Factions, Spells, Vehicles, Races, Currencies — whatever the project needs.
+Beyond the four built-ins you can define your own types: Factions, Spells, Vehicles, Races — whatever the project needs.
 
-### Defining a custom type
+Click **Manage types** in the tab strip:
 
-Open the **Entity Type Manager** — either from **Codex Hub → Manage types**, or from the plus button in the entity list of the left sidebar:
+1. Click **New Entity Type**.
+2. Enter a **Display Name** (e.g. "Faction") and optionally a **Plural Name** ("Factions" — auto-generated if empty).
+3. Define its **Fields** — each has a name, a type (String, Int, Bool, Date, Enum, Timespan, or EntityRef — a link to another entity), an optional default value, for Enum a comma-separated option list, for **EntityRef** a target-type picker choosing which entity type it links to, and a **Required** flag.
+4. Choose its **Features**: **Include Images**, **Include Relationships**, **Include Sections**.
+5. Confirm with **OK**.
 
-1. Click **Add type**.
-2. Give it a **type key** (used internally, e.g. `faction`), a **display name** (e.g. "Faction"), a **plural** (e.g. "Factions"), and an **icon** (an SVG path string).
-3. Optionally point it at a **folder name** under the book directory (defaults to the plural).
-4. Define its **fields** — each is a key + type + display label + default. Field types are the same set as custom properties (String / Int / Bool / Date / Enum / Timespan / EntityRef).
-5. Save.
+The new type appears as a tab in the Codex, gets its own folder in the book, can have its own [templates](07-templates.md), and can be referenced by other entities through EntityRef fields. Edit or delete user-defined types from the same dialog — deleting a type deletes its entities, and you are asked to confirm.
 
-After saving, the new type:
-
-- Appears as a tab in the **Codex Hub**.
-- Appears as a section in the **Entities** sidebar.
-- Can be created via **+New entity → \<your type\>**.
-- Can be referenced by other entities through `EntityRef` custom properties.
-
-### Custom-entity templates
-
-Each custom type can have multiple templates with different defaults. The active template ID is stored per type on the book.
-
-### Extensions and custom types
-
-Extensions can contribute custom entity types via the SDK's `IEntityTypeContributor` interface. Types contributed by extensions appear alongside user-defined ones and behave identically — they can have templates, fields, relationships.
-
-See [Extensions](24-extensions.md).
+Extensions can also contribute entity types; those appear alongside user-defined ones but are managed by the extension, not the type manager. See [Extensions](24-extensions.md).
 
 ## The World Bible (shared entities)
 
-By default an entity belongs to the active book. For series authors who want a shared cast across multiple books, the **World Bible** holds project-wide entities.
+By default an entity belongs to the active book. Entities stored in the project's **World Bible** are visible from every book and carry a **WB** badge in the list — useful for a returning cast across a trilogy or a shared magic system.
 
-To move an entity into the World Bible:
-
-1. Open the entity editor.
-2. Toggle the **Is World Bible** flag (or use the "Move to World Bible" action in the right-click menu).
-
-World Bible entities are visible from every book in the project. The on-disk location is `<Project>/WorldBible/<type>/<entity>.json`.
-
-Useful for:
-
-- A returning cast across a trilogy.
-- A shared magic system or pantheon.
-- A continent or city that recurs in multiple books.
-
-If you keep all your work in a single book, ignore the World Bible — it adds nothing for single-book projects.
-
-## Browsing entities
-
-### The Entities sidebar tab
-
-Click the **Entities** tab at the top of the left sidebar. You'll see a flat list grouped by type:
-
-- Characters
-- Locations
-- Items
-- Lore
-- Each custom type (alphabetically by display name)
-
-Each entry shows the entity's name, optional thumbnail, and an indicator if it's in the World Bible. Click to open in a tab.
-
-The sidebar has:
-
-- A **search box** that filters by name.
-- A **+New entity** button (pick the type).
-- Per-group **collapse/expand**.
-
-Right-click an entry for:
-
-- **Rename**
-- **Duplicate**
-- **Delete**
-- **Move to World Bible** / **Move to active book**
-- **Open in split pane**
-- **Take snapshot** (if applicable)
-
-### The Codex Hub (full view)
-
-Click the **Codex Hub** activity bar icon (the open-book glyph). This is the bigger, richer browser:
-
-- **Tabs** along the top: All / Characters / Locations / Items / Lore / each custom type.
-- **Search field** — filters across all visible entities.
-- **Per-entity card** with name, thumbnail, role / group / type, and a short snippet of the first section.
-- **Counts per type** in each tab header.
-- **Sort options** — by name, by recently modified.
-
-This is the best view for getting a sense of your cast and world at a glance, or for cleaning up after a long writing session.
-
-## Editing an entity
-
-Click an entity to open it in a tab. The entity editor is split into:
-
-- **Header** — name (and surname for characters), template indicator, primary image, "is world bible" toggle.
-- **Built-in fields** — laid out as a form.
-- **Custom properties** — key-value editor with type-aware controls (date pickers for dates, dropdowns for enums, entity selectors for EntityRef, etc.).
-- **Sections** — markdown-edited blocks you can add, rename, reorder, delete.
-- **Relationships** — list of incoming and outgoing relationships, with inline edit. Each role appears once per character; adding the same role to several people merges them into a single row ("Friend → Alice, Bob"). On save Novalist remembers the role pair (e.g. "Father" ↔ "Son") and offers to set the inverse on the target. See **Inverse relationships** below.
-- **Images** — gallery with reorder, captions, set-primary.
-- **Chapter overrides** (characters only).
-
-### Inverse relationships
-
-When you save a character that has a relationship to character B with role "Father", Novalist learns the pair and asks via the **Inverse Relationship Dialog** whether you also want to add the inverse "Son/Daughter" on character B. After a few uses Novalist will remember which role goes with which inverse for your project.
-
-The prompt only appears for relationships that are not yet reciprocated: if character B already references the source back (in any role), Novalist skips the dialog and adds nothing — so you are never re-asked about relationships that are already set, and reciprocals are never duplicated.
-
-The mapping is stored in `AppSettings.RelationshipPairs` and grows as you use it. When a project is opened, Novalist runs a one-time repair that collapses any duplicate relationship rows left by older versions (each role merged back to a single entry).
-
-### Adding images
-
-In the entity editor's image gallery, click **Add image**. The **Add Image Source Dialog** asks where the image comes from:
-
-- **From file** — open a system file picker.
-- **From clipboard** — paste an image from the clipboard.
-- **From the project gallery** — pick from existing project images via the **Project Image Picker**.
-- **From URL** — paste a URL; Novalist downloads it.
-
-The image is copied (or referenced) into the book's `Images/` folder. Captions are editable. Reorder by drag.
-
-The first image in the gallery is the entity's **primary image**, shown in the focus peek and in card views.
+On disk, World Bible entities live in `<Project>/WorldBible/<type>/` instead of the book folder; see [Projects & Books](03-projects-and-books.md#the-folder-layout). If you keep all your work in a single book, ignore the World Bible — it adds nothing for single-book projects.
 
 ## Where to go next
 
-- [Relationships graph](14-relationships.md) — visualize relationships across the cast.
-- [Templates](07-templates.md) — speed up entity creation with templates.
-- [Image Gallery](19-image-gallery.md) — full image browser.
-- [Plot Grid](08-plot-grid.md) — track which characters appear in which scenes via plotlines.
+- [Templates](07-templates.md) — speed up entity creation with per-type templates.
+- [Relationships graph](14-relationships.md) — visualize the cast's connections.
+- [Image Gallery](19-image-gallery.md) — browse all project images.
+- [Editor](05-editor.md#entity-hover-cards) — hover cards for codex entities in your prose.

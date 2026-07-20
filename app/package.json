@@ -1,0 +1,41 @@
+{
+  "name": "novalist",
+  "version": "2.0.0-dev",
+  "description": "Novalist - a writing app for novelists",
+  "main": "./out/main/index.js",
+  "private": true,
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json",
+    "package": "npm run build && npm run backend:publish && electron-builder --config electron-builder.yml",
+    "backend:publish": "dotnet publish ../Novalist.Backend/Novalist.Backend.csproj -c Release -r $npm_config_rid --self-contained -p:PublishSingleFile=true -o dist-backend"
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.9",
+    "i18next": "^26.3.6",
+    "lucide-react": "^1.25.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-i18next": "^17.0.10",
+    "react-markdown": "^9.1.0",
+    "remark-gfm": "^4.0.1",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "electron": "^38.8.6",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^7.0.2"
+  },
+  "author": "Novalist",
+  "optionalDependencies": {
+    "electron-liquid-glass": "^1.1.1"
+  }
+}

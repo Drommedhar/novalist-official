@@ -1,0 +1,250 @@
+/* In-app user-manual help viewer. A large two-pane modal: a searchable page
+ * list on the left, the rendered Markdown page on the right. Theme-aware via
+ * design tokens only. */
+
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nl-surface-overlay);
+  z-index: 210;
+  padding: var(--nl-space-xl);
+}
+
+.help-card {
+  display: flex;
+  width: min(1040px, 94vw);
+  height: min(760px, 92vh);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  box-shadow: var(--nl-elevation-high);
+  overflow: hidden;
+}
+
+/* ===== Left pane ===== */
+.help-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  width: 260px;
+  flex-shrink: 0;
+  padding: var(--nl-space-lg);
+  background: var(--nl-surface-sidebar);
+  border-right: 1px solid var(--nl-border);
+}
+
+.help-sidebar-head {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  color: var(--nl-text);
+}
+
+.help-title {
+  font-size: var(--nl-font-title-sm);
+  font-weight: var(--nl-weight-title);
+}
+
+.help-search {
+  width: 100%;
+}
+
+.help-page-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.help-page-item {
+  text-align: left;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body);
+  line-height: 1.35;
+}
+
+.help-page-item:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.help-page-item.active {
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
+}
+
+.help-empty {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+  padding: var(--nl-space-sm);
+}
+
+/* ===== Right pane ===== */
+.help-main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.help-close {
+  position: absolute;
+  top: var(--nl-space-lg);
+  right: var(--nl-space-lg);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--nl-space-tighter);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text-dim);
+}
+
+.help-close:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.help-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--nl-space-xxl);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body-lg);
+  line-height: 1.6;
+}
+
+/* Screenshots embedded in manual pages. */
+.help-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: var(--nl-space-lg) 0;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+/* ===== Markdown typography ===== */
+.help-content h1,
+.help-content h2,
+.help-content h3,
+.help-content h4 {
+  color: var(--nl-text);
+  font-weight: var(--nl-weight-title);
+  line-height: 1.3;
+  margin: var(--nl-space-xl) 0 var(--nl-space-md);
+}
+
+.help-content h1 {
+  font-size: var(--nl-font-display-sm);
+  margin-top: 0;
+}
+
+.help-content h2 {
+  font-size: var(--nl-font-title);
+  padding-bottom: var(--nl-space-tighter);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.help-content h3 {
+  font-size: var(--nl-font-title-sm);
+}
+
+.help-content h4 {
+  font-size: var(--nl-font-body-lg);
+}
+
+.help-content p {
+  margin: var(--nl-space-md) 0;
+}
+
+.help-content ul,
+.help-content ol {
+  margin: var(--nl-space-md) 0;
+  padding-left: var(--nl-space-xl);
+}
+
+.help-content li {
+  margin: var(--nl-space-tightest) 0;
+}
+
+.help-content a {
+  color: var(--nl-accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.help-content a:hover {
+  text-decoration: underline;
+}
+
+.help-content blockquote {
+  margin: var(--nl-space-md) 0;
+  padding: var(--nl-space-sm) var(--nl-space-lg);
+  border-left: 3px solid var(--nl-border);
+  color: var(--nl-text-dim);
+}
+
+.help-content code {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-body);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-sm);
+  padding: 0 var(--nl-space-tighter);
+}
+
+.help-content pre {
+  margin: var(--nl-space-md) 0;
+  padding: var(--nl-space-lg);
+  overflow-x: auto;
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+.help-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.help-content table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  margin: var(--nl-space-md) 0;
+  font-size: var(--nl-font-body);
+}
+
+.help-content th,
+.help-content td {
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.help-content th {
+  background: var(--nl-surface-hover);
+  font-weight: var(--nl-weight-title);
+}
+
+.help-content hr {
+  border: none;
+  border-top: 1px solid var(--nl-border-subtle);
+  margin: var(--nl-space-xl) 0;
+}
+
+.help-content img {
+  max-width: 100%;
+}

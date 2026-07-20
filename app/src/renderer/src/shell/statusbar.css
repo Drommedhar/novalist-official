@@ -1,0 +1,307 @@
+/* Live editor statistics shown in the status bar's left segment. */
+
+.status-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.status-stats > span {
+  white-space: nowrap;
+}
+
+.status-stats > span + span::before {
+  content: '·';
+  margin-right: var(--nl-space-md);
+  color: var(--nl-text-subtle);
+}
+
+.status-readability {
+  font-weight: var(--nl-weight-title);
+}
+
+.status-scene-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--nl-text-dim);
+}
+
+/* ===== Centre overview trigger + popover ===== */
+.status-center-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-overview-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.status-overview-trigger > span {
+  white-space: nowrap;
+}
+
+.status-overview-trigger > span + span::before {
+  content: '·';
+  margin-right: var(--nl-space-md);
+  color: var(--nl-text-subtle);
+}
+
+.status-metric {
+  font-variant-numeric: tabular-nums;
+}
+
+.status-overview-trigger:hover {
+  color: var(--nl-text);
+}
+
+.status-overview-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.status-overview-popover {
+  position: absolute;
+  bottom: calc(100% + var(--nl-space-sm));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 41;
+  width: 460px;
+  max-width: 90vw;
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.35);
+  padding: var(--nl-space-normal);
+}
+
+.status-overview-title {
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text);
+  margin-bottom: var(--nl-space-sm);
+}
+
+.status-overview-cols,
+.status-overview-row {
+  display: grid;
+  grid-template-columns: 1fr 150px 44px;
+  align-items: center;
+  gap: var(--nl-space-md);
+}
+
+.status-overview-cols {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding-bottom: var(--nl-space-tighter);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.status-overview-cols > span:nth-child(2),
+.status-overview-row > .status-overview-words {
+  justify-self: end;
+}
+
+.status-overview-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: var(--nl-space-tighter);
+}
+
+.status-overview-chapter {
+  padding: var(--nl-space-tightest) 0;
+}
+
+.status-overview-row {
+  padding: 2px 0;
+  font-size: var(--nl-font-body-sm);
+}
+
+.status-overview-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nl-text);
+}
+
+.status-overview-scene .status-overview-name {
+  padding-left: var(--nl-space-lg);
+  color: var(--nl-text-dim);
+}
+
+.status-overview-words {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  font-variant-numeric: tabular-nums;
+  color: var(--nl-text-dim);
+}
+
+.status-overview-bar {
+  display: inline-block;
+  width: 80px;
+  height: 4px;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-hover);
+  overflow: hidden;
+}
+
+.status-overview-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-accent, #4f8cff);
+}
+
+.status-overview-read {
+  justify-self: end;
+}
+
+/* ===== Right segment: goals + git indicator + backend ===== */
+.status-right {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-lg);
+  min-width: 0;
+}
+
+.status-goals {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+}
+
+.status-goal {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  white-space: nowrap;
+}
+
+.status-goal-label {
+  font-variant-numeric: tabular-nums;
+}
+
+.status-goal-track {
+  width: 48px;
+  height: 4px;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-hover);
+  overflow: hidden;
+}
+
+.status-goal-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-accent, #4f8cff);
+}
+
+.status-git {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.status-git:hover {
+  color: var(--nl-text);
+}
+
+.status-git-branch {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-git-count {
+  font-variant-numeric: tabular-nums;
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-pill);
+  padding: 0 var(--nl-space-sm);
+}
+
+.status-readability-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  padding: 0 var(--nl-space-tightest);
+  border-radius: var(--nl-radius-sm);
+  color: #fff;
+  font-size: var(--nl-font-tiny);
+  font-weight: var(--nl-weight-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.status-dim {
+  color: var(--nl-text-subtle);
+}
+
+/* Compact core-connection indicator: a single dot (details in its tooltip). */
+.status-backend {
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-backend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-text-subtle);
+}
+
+.status-backend.connected .status-backend-dot {
+  background: #16a34a;
+}
+
+/* Extension-contributed status-bar items (IStatusBarContributor). */
+.status-ext-items {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-2, 6px);
+  margin-left: var(--nl-space-2, 6px);
+}
+
+.status-ext-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--nl-space-2, 6px);
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: var(--nl-text-dim, #9aa0a6);
+  font: inherit;
+  font-size: var(--nl-font-caption, 11px);
+  cursor: default;
+}
+
+button.status-ext-item {
+  cursor: pointer;
+  border-radius: var(--nl-radius-sm, 4px);
+}
+
+button.status-ext-item:hover {
+  background: var(--nl-surface-hover, rgba(255, 255, 255, 0.06));
+  color: var(--nl-text, #e8eaed);
+}

@@ -1,147 +1,69 @@
-# Context sidebar, Scene Notes, Footnotes, Comments
+# Inspector
 
-This page covers the auxiliary panels that surround the editor:
+The **Inspector** is the right-hand context sidebar of the Novalist window. For the scene open in the editor it has two tabs:
 
-- The **Context sidebar** on the right — live scene analysis.
-- The **Footnotes** tab — list of footnotes in the current scene.
-- The **Scene Notes** panel at the bottom — synopsis, notes, comments.
+- **Context** — scene context and analysis (entities, mention matrix, editable POV/emotion/intensity/conflict/tags).
+- **Footnotes** — the footnotes and comments anchored in the open scene.
 
-Each can be toggled individually. They appear only when a scene is open.
+The scene's **synopsis** and freeform **notes** live in the [scene-notes dock](02-interface-overview.md) beneath the editor (`Ctrl+Shift+N`), and the scene's **snapshot history** is opened from the toolbar Snapshots button. (This pane was called the context sidebar in earlier versions.)
 
-## The Context sidebar
+## Toggling the Inspector
 
-The right-hand panel. Toggle with the corresponding button on the app bar, **View → Toggle Context Sidebar**, or the hotkey.
+- The Inspector toggle at the far right of the toolbar, or
+- `Ctrl+Shift+B` (`Cmd+Shift+B` on macOS).
 
-Tabs along the top of the sidebar:
+**Focus mode** (`Alt+F`) hides the Inspector together with the binder, leaving only the editor.
 
-- **Context** — the live scene-analysis panel (described below).
-- **Footnotes** — list of footnotes in the scene.
-- Any tabs contributed by extensions.
+When no scene is open, the Inspector shows a placeholder; open a scene from the binder and its details appear.
 
-### The Context tab — live scene analysis
+## Scene header
 
-When you open or edit a scene, the Context tab analyzes the prose and shows:
+The header shows the open scene's title, a **Chapter · Scene N of M** subtitle placing it within its chapter, the scene's **story date** with the weekday it falls on (when the scene has a date), and the current **word count**.
 
-#### Detected entities
+## Scene context and analysis
 
-- **Characters** — all characters whose name (or surname) appears in the scene, with thumbnails and frequency counts. Click a character row to open them in a new tab.
-- **Locations** — locations referenced.
-- **Items** — items referenced.
-- **Lore** — lore entries referenced.
+Directly below the header, Novalist analyses the open scene and shows what it finds. Every part is a collapsible section, and your collapse choices are remembered between scenes.
 
-Detection is name-match-based.
+### Entities in the scene
 
-#### POV analysis
+The **characters**, **locations**, **items**, and **lore** detected in the scene, each shown as a card with its thumbnail and name. **Hover** a card to raise the same rich **focus-peek** card the editor shows when you hover an entity's name in the prose — image, attribute pills, relationships (which you can click to peek through to related entities), appearance, custom properties, description, map pins and sections, with pin/open/close buttons in its header. The peek resolves any [chapter or scene overrides](06-codex.md) for the open scene, so it matches who the entity is at this point in the story. **Click** a card to open that entity in the [Codex](06-codex.md). Character cards also carry small **Gender** and **Age** pills. A character that has a [chapter or scene override](06-codex.md) for the open scene is shown with its overridden name, role, gender and age, so the card matches who the character is at this point in the story. When age is stored as a birth date, the pill shows the character's age **at the open scene**, computed from the birth date against the scene's story date (falling back to the chapter's date, then today).
 
-- Detected **POV character** based on first-person markers and dialogue tags. If unsure, lists candidates.
-- **POV style** — first-person / second-person / third-person.
-- You can override the detected POV via the scene's analysis-overrides; the override sticks even after re-detection.
+### Mention matrix
 
-#### Emotional tone
+A cross-chapter grid: one row per tracked character showing, chapter by chapter, where they appear. The current chapter is marked, and a character who has been off-page for a while gets a **"last seen N chapters ago"** note — an easy way to spot a cast member who has quietly dropped out of the story.
 
-A profile picker plus inferred values:
+### Scene analysis
 
-- **Neutral / Tense / Joyful / Melancholic / Chaotic / Somber** — the dominant tone, inferred from keyword sentiment.
-- **Intensity** — 1–10 scale.
-- **Conflict** — short tag.
-- **Tags** — free-text tags used by Smart Lists.
+Each value is auto-computed but fully editable, and every field carries a **reset-to-auto** button that drops your override and restores the detected value:
 
-You can override any of these from the analysis overrides editor.
+- **POV** — the point-of-view character, chosen from a dropdown.
+- **Emotion** — the scene's dominant emotion, chosen from a dropdown.
+- **Intensity** — a bipolar bar from -10 to +10 (the fill runs one way for negative values, the other for positive) with a number box to set it exactly.
+- **Conflict** — a short free-text description.
+- **Tags** — a comma-separated list; the current tags also appear as chips below the field.
 
-#### Counts
+Beneath the analysis, a stats line reports the scene's **word count**, **dialogue percentage**, and **average sentence length**.
 
-- **Word** count, **sentence** count, and **average sentence length**.
+## Footnotes and comments (Footnotes tab)
 
-#### Live updates
+The **Footnotes** tab lists the footnotes and inline comments in the open scene:
 
-The analysis re-runs when the scene content changes. It is debounced so it doesn't update on every keystroke; expect it to refresh a second or so after you stop typing.
+- **Footnotes** — each with its number and its text, editable inline; remove one with its close button.
+- **Comments** — each shows the anchored text it attaches to, an editable comment body, a close button to delete it, and a **resolved** toggle to mark it done (resolved comments are dimmed).
 
-### Hiding the Context sidebar
+You create footnotes and comments inside the editor (see [Editor](05-editor.md)); this tab is where you read, edit, resolve, and clear them.
 
-Toggle from **View → Toggle Context Sidebar** or the app-bar button. It hides cleanly without losing any data.
+## Synopsis and notes (bottom dock)
 
-## The Footnotes tab
+The scene's **synopsis** (a short summary) and freeform **notes** are no longer in the Inspector — they live in the **scene-notes dock** beneath the editor, toggled from the toolbar or `Ctrl+Shift+N`. Both save when you click away. The synopsis also appears on Manuscript corkboard cards and in the outliner table; notes are never exported.
 
-The **Footnotes** tab of the Context sidebar lists every footnote in the current scene, in order. Each entry shows:
+## Scene snapshots (toolbar dialog)
 
-- **Number** — superscript number anchored in the scene.
-- **Body** — editable text. Edit and click outside to save.
-- A **delete** button.
-- A **jump** button that scrolls the editor to the footnote's anchor.
-
-### Adding a footnote
-
-Place the caret in the editor at the desired position. Use:
-
-- **Edit → Add Footnote**, or
-- the hotkey (see [Hotkeys](26-hotkeys.md)), or
-- the editor's context menu.
-
-A superscript number is inserted at the caret position; the new footnote opens for editing in the panel.
-
-### Renumbering
-
-Deleting a footnote causes the remaining footnotes to renumber automatically. Each footnote has a stable internal `id` separate from its rendered `number`, so cross-references in your prose continue to point at the right footnote even if the number changes.
-
-### Footnotes in exports
-
-Footnotes are preserved across all exports that support them (DOCX, EPUB, PDF, Markdown). LaTeX and Final Draft export them in their respective conventions.
-
-## The Scene Notes panel
-
-The bottom panel beneath the editor. Toggle from the app bar, **View → Toggle Scene Notes**, or the hotkey. It contains three sub-sections:
-
-### Synopsis
-
-A short summary of the scene. Two or three sentences is the usual scale. Synopsis appears:
-
-- On scene cards in the Manuscript Corkboard.
-- In the Manuscript Outliner table.
-- On scene tooltips in the Explorer.
-
-Edit inline; saves automatically.
-
-### Notes
-
-A longer freeform note field. Use for:
-
-- Research links specific to the scene.
-- Outline / draft notes during writing.
-- Reminders ("fix the timing of Alice arriving" / "double-check the magic-system rule applies here").
-
-Notes are not exported. They're for you.
-
-### Comments
-
-The list of inline comments anchored to text ranges in the scene (see below). Each entry shows:
-
-- **Anchor snippet** — the text the comment was attached to.
-- **Body** — your comment.
-- **Created at** — timestamp.
-- **Resolved** — toggleable. Resolved comments are styled de-emphasized.
-- **Jump** — scrolls the editor to the anchor.
-- **Delete** — removes the comment span from the scene and the entry from the list.
-
-#### Adding a comment
-
-In the editor, select some text and use **Edit → Add Comment** or the hotkey. A small input dialog asks for the comment body. After save, the selection is wrapped in a comment span (colored underline) and the comment appears in the list.
-
-#### Resolving vs deleting
-
-A **resolved** comment remains in the scene (and re-appears if a beta reader looks at the file), but is visually de-emphasized. A **deleted** comment is gone entirely. Use Resolve for tracked feedback you've addressed; use Delete for outdated noise.
-
-#### Comments in exports
-
-By default DOCX and Markdown exports drop comments. Some extension presets include them as DOCX comments or Markdown footnotes for delivery to editors.
-
-## Showing both notes panels at once
-
-The Context sidebar (right) and the Scene Notes panel (bottom) are independent. You can have both open while writing. The status bar continues to work normally.
-
-On smaller windows, consider keeping only one open at a time to keep the editor wide enough to read comfortably.
+Per-scene snapshots are taken and managed from the toolbar **Snapshots** button, which opens a dialog with **Take snapshot**, **Restore**, **Delete**, and **Compare**. See [Snapshots](17-snapshots.md) for the full picture, including the auto-snapshots taken before Replace All and before restores.
 
 ## Where to go next
 
-- [Editor](05-editor.md) — where comments and footnotes are inserted.
-- [Manuscript view](10-manuscript.md) — synopsis and comments appear here too.
-- [Smart Lists](16-smart-lists.md) — tag and POV filters come from the Context analysis.
+- [Editor](05-editor.md) — the writing surface the Inspector describes.
+- [Snapshots](17-snapshots.md) — per-scene version history.
+- [Codex](06-codex.md) — where the entity cards open.
+- [Manuscript view](10-manuscript.md) — where synopses show up on cards and in the outliner.
