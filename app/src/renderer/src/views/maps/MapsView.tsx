@@ -411,10 +411,13 @@ export function MapsView(): React.JSX.Element {
   // Single, stable message listener; delegates through apiRef to avoid
   // re-subscribing (which would reset readyRef / autosave timers).
   useEffect(() => {
-    const iframe = iframeRef.current
-    if (!iframe) return
+    // Read the iframe inside the handler (not at mount): on the first render the
+    // map list is still empty, so the iframe is not in the DOM yet and capturing
+    // iframeRef.current here would be null — the listener would never attach, the
+    // "ready" handshake would be missed, and the map would stay blank.
     const onMessage = (event: MessageEvent): void => {
-      if (event.source !== iframe.contentWindow) return
+      const iframe = iframeRef.current
+      if (!iframe || event.source !== iframe.contentWindow) return
       const raw = (event.data as { novalistMap?: string })?.novalistMap
       if (typeof raw !== 'string') return
       let message: MapMessage
