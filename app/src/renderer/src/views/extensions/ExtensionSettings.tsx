@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Play, SlidersHorizontal } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -133,20 +133,40 @@ function ExtensionSchemaForm({
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(schema.fields.map((f) => [f.key, f.value]))
   )
-  const [saving, setSaving] = useState(false)
   const [runningAction, setRunningAction] = useState<string | null>(null)
 
-  const set = (key: string, value: string): void => setValues((v) => ({ ...v, [key]: value }))
+  // Auto-save, matching the rest of the app (which has no Save button). Refs
+  // carry the latest id/values into the debounced/unmount flush.
+  const extIdRef = useRef(active.extensionId)
+  extIdRef.current = active.extensionId
+  const valuesRef = useRef(values)
+  valuesRef.current = values
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dirty = useRef(false)
 
-  const save = async (): Promise<void> => {
-    setSaving(true)
-    try {
-      await rpc.request('extensions/settingsSchema/save', [active.extensionId, values])
-      onSaved()
-    } finally {
-      setSaving(false)
-    }
+  const flush = useCallback((): void => {
+    if (!dirty.current) return
+    dirty.current = false
+    void rpc
+      .request('extensions/settingsSchema/save', [extIdRef.current, valuesRef.current])
+      .then(onSaved)
+  }, [onSaved])
+
+  const set = (key: string, value: string): void => {
+    setValues((v) => ({ ...v, [key]: value }))
+    dirty.current = true
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(flush, 600)
   }
+
+  // Persist a pending edit if the user navigates away before the debounce fires.
+  useEffect(
+    () => () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+      flush()
+    },
+    [flush]
+  )
 
   const runAction = async (key: string): Promise<void> => {
     setRunningAction(key)
@@ -200,9 +220,7 @@ function ExtensionSchemaForm({
           )}
       </div>
       <div className="ext-schema-actions">
-        <button type="button" className="export-inline-btn" disabled={saving} onClick={() => void save()}>
-          {t('extensions.settingsSave')}
-        </button>
+        <span className="ext-schema-autosave">{t('extensions.settingsAutoSaved')}</span>
       </div>
     </div>
   )

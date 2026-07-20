@@ -210,6 +210,11 @@
   margin-top: var(--nl-space-3, 10px);
 }
 
+.ext-schema-autosave {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
 /* ── Installed / Store tab bar ── */
 .ext-tabs {
   display: flex;
