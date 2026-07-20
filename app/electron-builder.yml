@@ -30,6 +30,10 @@ win:
   target:
     - nsis
   artifactName: novalist-windows-${arch}-setup.${ext}
+nsis:
+  # build/installer.nsh removes the old Inno Setup (Avalonia) install on upgrade
+  # so the two don't coexist. See that file for details.
+  include: build/installer.nsh
 linux:
   icon: build/icon.png
   target:
