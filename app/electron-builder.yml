@@ -1,4 +1,5 @@
 appId: com.novalist.app
+afterPack: build/afterPack.cjs
 productName: Novalist
 directories:
   output: dist
