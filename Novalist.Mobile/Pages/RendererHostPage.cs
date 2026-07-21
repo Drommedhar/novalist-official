@@ -8,6 +8,7 @@ using Novalist.Backend;
 using Novalist.Core.Services;
 #if IOS
 using UIKit;
+using WebKit;
 #endif
 
 namespace Novalist.Mobile.Pages;
@@ -51,8 +52,28 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         _web.RawMessageReceived += OnRawMessageReceived;
         Content = _web;
 
+#if IOS
+        // Lock zoom once the WKWebView exists: prevents the iOS focus-zoom trap
+        // (tapping a contenteditable auto-zooms the viewport with no way back).
+        _web.HandlerChanged += (_, _) => LockWebViewZoom();
+#endif
+
         _ = PumpBackendToWebAsync(_cts.Token);
     }
+
+#if IOS
+    private void LockWebViewZoom()
+    {
+        if (_web.Handler?.PlatformView is WKWebView wk)
+        {
+            wk.ScrollView.MinimumZoomScale = 1f;
+            wk.ScrollView.MaximumZoomScale = 1f;
+            wk.ScrollView.BouncesZoom = false;
+            if (wk.ScrollView.PinchGestureRecognizer != null)
+                wk.ScrollView.PinchGestureRecognizer.Enabled = false;
+        }
+    }
+#endif
 
 #if IOS
     // Native iOS 26 Liquid Glass bottom navigation. A plain UITabBar adopts the
@@ -64,7 +85,9 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     private static readonly (string Key, string Title, string Symbol)[] Tabs =
     {
         ("dashboard", "Dashboard", "square.grid.2x2"),
-        ("manuscript", "Manuscript", "book"),
+        // key stays "manuscript" (internal); "Write" avoids clashing with the
+        // desktop Manuscript (corkboard) view.
+        ("manuscript", "Write", "square.and.pencil"),
         ("codex", "Codex", "person.2"),
         ("search", "Search", "magnifyingglass"),
         ("more", "More", "ellipsis"),

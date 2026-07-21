@@ -63,7 +63,7 @@ export function MobileShell(): React.JSX.Element {
             }}
           >
             <ChevronLeft size={20} strokeWidth={2} />
-            <span>{t('shell.view.manuscript')}</span>
+            <span>{t('shell.chapters')}</span>
           </button>
         </div>
       )}

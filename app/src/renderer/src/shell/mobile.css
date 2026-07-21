@@ -73,3 +73,53 @@
 .shell.mobile .panel-resizer {
   display: none;
 }
+
+/* Touch chapter/scene management: add-chapter bar + always-visible row actions
+   (desktop reveals these on hover / right-click, which touch has no equivalent for). */
+.shell.mobile .binder-mobile-actions {
+  display: flex;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.shell.mobile .binder-mobile-add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-sm) var(--nl-space-lg);
+  font-size: var(--nl-font-body-lg);
+  cursor: pointer;
+}
+
+.shell.mobile .binder-scene-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.shell.mobile .binder-scene-wrap .binder-scene-row {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Touch-sized icon buttons on chapter and scene rows. */
+.shell.mobile .binder-row-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 34px;
+  min-height: 34px;
+  background: none;
+  border: none;
+  color: var(--nl-text-dim);
+  cursor: pointer;
+}
+
+.shell.mobile .binder-row-action:active {
+  color: var(--nl-text);
+}
