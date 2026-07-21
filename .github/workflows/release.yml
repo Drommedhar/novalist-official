@@ -102,30 +102,43 @@ jobs:
         working-directory: app
         run: npm run build
 
-      # Write the App Store Connect API key (.p8) to disk for notarization.
-      # macOS runners only — the other platforms never notarize.
-      - name: Prepare macOS notarization key
+      # Export macOS signing + notarization env — ONLY on macOS AND only when the
+      # Developer ID secret is actually present. Writing them to $GITHUB_ENV lets
+      # us OMIT the variables entirely when unset: an *empty* CSC_LINK makes
+      # electron-builder treat "" as a cert file path and crash ("not a file"),
+      # whereas an unset one cleanly means "build unsigned". Non-macOS runners
+      # never enter this step, so Windows never sees a macOS cert.
+      - name: Prepare macOS signing
         if: runner.os == 'macOS'
-        id: mac_notary
         shell: bash
+        env:
+          MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
           set -euo pipefail
+          if [ -z "${MAC_CSC_LINK}" ]; then
+            echo "MAC_CSC_LINK not set — building UNSIGNED (skipping signing + notarization)."
+            exit 0
+          fi
           KEY_PATH="${RUNNER_TEMP}/AuthKey.p8"
-          echo "${{ secrets.APPLE_API_KEY_BASE64 }}" | base64 --decode > "${KEY_PATH}"
-          echo "key_path=${KEY_PATH}" >> "$GITHUB_OUTPUT"
+          printf '%s' "${APPLE_API_KEY_BASE64}" | base64 --decode > "${KEY_PATH}"
+          {
+            echo "CSC_LINK=${MAC_CSC_LINK}"
+            echo "CSC_KEY_PASSWORD=${MAC_CSC_KEY_PASSWORD}"
+            echo "APPLE_API_KEY=${KEY_PATH}"
+            echo "APPLE_API_KEY_ID=${APPLE_API_KEY_ID}"
+            echo "APPLE_API_ISSUER=${APPLE_API_ISSUER}"
+          } >> "$GITHUB_ENV"
+          echo "Developer ID signing + notarization enabled."
 
       - name: Package (electron-builder)
         working-directory: app
         shell: bash
-        # Signing env is set ONLY on macOS runners. Guarding with runner.os keeps
-        # CSC_LINK empty on the Windows job, otherwise electron-builder would try
-        # to Authenticode-sign the .exe with the macOS certificate.
-        env:
-          CSC_LINK: ${{ runner.os == 'macOS' && secrets.MAC_CSC_LINK || '' }}
-          CSC_KEY_PASSWORD: ${{ runner.os == 'macOS' && secrets.MAC_CSC_KEY_PASSWORD || '' }}
-          APPLE_API_KEY: ${{ runner.os == 'macOS' && steps.mac_notary.outputs.key_path || '' }}
-          APPLE_API_KEY_ID: ${{ runner.os == 'macOS' && secrets.APPLE_API_KEY_ID || '' }}
-          APPLE_API_ISSUER: ${{ runner.os == 'macOS' && secrets.APPLE_API_ISSUER || '' }}
+        # Signing/notarization vars come from $GITHUB_ENV (set by the step above)
+        # and only exist on a macOS runner with the Developer ID secret present.
         run: npx electron-builder --config electron-builder.yml ${{ matrix.eb_flags }} -p never
 
       - name: Upload packaged artifact
