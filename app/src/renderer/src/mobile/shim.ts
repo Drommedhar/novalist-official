@@ -107,6 +107,10 @@ const novalist: Window['novalist'] = {
   copyText: (text) => {
     void hostCall('copyText', [text])
   },
+  // Mobile-only: show/hide the native Liquid Glass tab bar (hidden on welcome).
+  setNavVisible: (visible: boolean) => {
+    void hostCall('setNavVisible', [visible])
+  },
   readClipboardImage: () => hostCall<string | null>('readClipboardImage', []),
   // App-container storage (Phase 2): every project path is inside the sandbox and
   // always accessible, so these are no-ops. Security-scoped external folders are

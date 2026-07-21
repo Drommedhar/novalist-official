@@ -6,6 +6,9 @@ using Microsoft.Maui.Storage;
 using Nerdbank.Streams;
 using Novalist.Backend;
 using Novalist.Core.Services;
+#if IOS
+using UIKit;
+#endif
 
 namespace Novalist.Mobile.Pages;
 
@@ -50,6 +53,59 @@ public sealed class RendererHostPage : ContentPage, IDisposable
 
         _ = PumpBackendToWebAsync(_cts.Token);
     }
+
+#if IOS
+    // Native iOS 26 Liquid Glass bottom navigation. A plain UITabBar adopts the
+    // system Liquid Glass material on iOS 26 automatically; it is overlaid on the
+    // HybridWebView and drives the single-pane web layout via window.__novalistTab.
+    // (The web content insets its bottom padding by --nl-mobile-tabbar-h.)
+    private UITabBar? _tabBar;
+
+    private static readonly (string Key, string Title, string Symbol)[] Tabs =
+    {
+        ("dashboard", "Dashboard", "square.grid.2x2"),
+        ("manuscript", "Manuscript", "book"),
+        ("codex", "Codex", "person.2"),
+        ("search", "Search", "magnifyingglass"),
+        ("more", "More", "ellipsis"),
+    };
+
+    protected override void OnHandlerChanged()
+    {
+        base.OnHandlerChanged();
+        if (_tabBar == null && Handler?.PlatformView is UIView native)
+            AddNativeTabBar(native);
+    }
+
+    private void AddNativeTabBar(UIView parent)
+    {
+        var items = new UITabBarItem[Tabs.Length];
+        for (var i = 0; i < Tabs.Length; i++)
+            items[i] = new UITabBarItem(Tabs[i].Title, UIImage.GetSystemImage(Tabs[i].Symbol), i) { Tag = i };
+
+        _tabBar = new UITabBar { TranslatesAutoresizingMaskIntoConstraints = false, Hidden = true };
+        _tabBar.SetItems(items, animated: false);
+        _tabBar.SelectedItem = items[0];
+        // "Search" and "More" that map to a dialog/sheet should not stick as the
+        // selected tab; the web decides. We only forward the tap.
+        _tabBar.ItemSelected += (_, e) => OnNativeTabSelected((int)e.Item.Tag);
+
+        parent.AddSubview(_tabBar);
+        NSLayoutConstraint.ActivateConstraints(new[]
+        {
+            _tabBar.LeadingAnchor.ConstraintEqualTo(parent.LeadingAnchor),
+            _tabBar.TrailingAnchor.ConstraintEqualTo(parent.TrailingAnchor),
+            _tabBar.BottomAnchor.ConstraintEqualTo(parent.BottomAnchor),
+        });
+    }
+
+    private void OnNativeTabSelected(int tag)
+    {
+        if (tag < 0 || tag >= Tabs.Length) return;
+        var key = Tabs[tag].Key;
+        _ = EvalOnMainAsync($"window.__novalistTab && window.__novalistTab('{key}')");
+    }
+#endif
 
     private void OnRawMessageReceived(object? sender, HybridWebViewRawMessageReceivedEventArgs e)
     {
@@ -170,6 +226,21 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 return false;          // no file-manager reveal on iOS
             case "readClipboardImage":
                 return null;           // MAUI Clipboard is text-only
+            case "setNavVisible":
+            {
+                // Show the native Liquid Glass tab bar only inside a project
+                // (hidden on the welcome/start screen).
+                var visible = args.ValueKind == JsonValueKind.Array
+                    && args.GetArrayLength() > 0
+                    && args[0].ValueKind == JsonValueKind.True;
+#if IOS
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (_tabBar != null) _tabBar.Hidden = !visible;
+                });
+#endif
+                return null;
+            }
             default:
                 return null;           // unknown / JS-side no-ops
         }

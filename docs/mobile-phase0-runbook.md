@@ -223,12 +223,33 @@ install fails to reopen ("No Novalist project found"). Fix later by storing app-
 project paths relative to `FileSystem.AppDataDirectory` (ties into the deferred external-folder
 work). Does not affect projects created + used within one install.
 
-## Next
+## Phase 4 result (verified, in progress)
 
-- Phase 4: responsive mobile layout (collapse the desktop activity bar + multi-pane shell into
-  phone navigation; adaptive multi-pane on iPad). Right now the desktop three-pane layout is
-  just squeezed onto phone width.
+Responsive single-pane mobile layout with a NATIVE iOS 26 Liquid Glass bottom tab bar.
+Verified on the simulator: welcome (no tab bar) -> project (tab bar appears) -> switch tabs ->
+Manuscript binder (full-width) -> tap scene -> full-screen editor + back.
+
+- Navigation is a native UIKit `UITabBar` (adopts iOS 26 Liquid Glass automatically) overlaid
+  on the HybridWebView by `RendererHostPage` (`#if IOS`), NOT an HTML bar - true system glass.
+  Tabs: Dashboard, Manuscript, Codex, Search, More. On select it calls
+  `EvaluateJavaScript(window.__novalistTab('<key>'))`. Hidden until a project is open, toggled
+  by `window.novalist.setNavVisible(bool)` (a host-bridge call driven by AppShell's isLoaded).
+- Web side: `AppShell` renders `<MobileShell>` instead of the desktop multi-pane when
+  `window.novalist.isMobile`. `MobileShell` shows one full-screen view per tab (DashboardView,
+  CodexView, SettingsView for "More"; Manuscript = Binder full-width, or EditorFrame + a back
+  bar when a scene is open). Search opens the Find/Replace dialog. Desktop Toolbar/StatusBar and
+  the pane rails are hidden on mobile; content insets its bottom by `--nl-mobile-tabbar-h` and
+  respects the safe areas (viewport-fit=cover).
+- macOS already has native Liquid Glass (Electron `app/src/main/glass.ts` -> NSGlassEffectView
+  on macOS 26+); nothing to add there.
+
+Still open in Phase 4: iPad adaptive multi-pane (device idiom); feature-flag the remaining
+non-v1 views into the More sheet (only Git is hidden so far); native<-web tab-selection sync
+when the web changes tab itself (native taps already sync); editor input hardening polish.
+
+## Next / deferred
+
 - Deferred storage: external-folder access (iOS security-scoped URLs + bookmarks, Android SAF)
   behind beginProjectAccess/endProjectAccess, AND relative recents paths (see limitation above).
-- Not yet done: redeploy Phases 1-3 to a physical device (only the Phase 0 spike ran on the
+- Not yet done: redeploy Phases 1-4 to a physical device (only the Phase 0 spike ran on the
   real iPhone).

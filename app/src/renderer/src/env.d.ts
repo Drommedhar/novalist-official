@@ -25,6 +25,8 @@ interface Window {
     // True on the mobile (MAUI) build. Undefined on desktop. Gates capabilities
     // unavailable in the sandbox (e.g. Git/versioning UI).
     isMobile?: boolean
+    // Mobile-only: show/hide the native Liquid Glass tab bar (project vs welcome).
+    setNavVisible?(visible: boolean): void
     isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void

@@ -9,6 +9,7 @@ import { Inspector } from './Inspector'
 import { Toolbar } from './Toolbar'
 import { StatusBar } from './StatusBar'
 import { MainArea } from './MainArea'
+import { MobileShell } from './MobileShell'
 import { SceneNotesDock } from './SceneNotesDock'
 import { StartScreen } from './StartScreen'
 import { UpdateDialog } from './UpdateDialog'
@@ -130,6 +131,11 @@ export function AppShell(): React.JSX.Element {
 
   useEffect(() => installHotkeys(hotkeys), [hotkeys])
 
+  // Mobile: the native Liquid Glass tab bar shows only inside a project.
+  useEffect(() => {
+    if (window.novalist.isMobile) window.novalist.setNavVisible?.(isLoaded)
+  }, [isLoaded])
+
   useEffect(() => {
     const onMessage = (event: MessageEvent): void => {
       const data = event.data as { novalist?: string; command?: string; percent?: number }
@@ -156,25 +162,31 @@ export function AppShell(): React.JSX.Element {
   }
 
 
+  const isMobile = window.novalist.isMobile === true
+
   return (
-    <div className="shell">
-      <Toolbar />
+    <div className={`shell${isMobile ? ' mobile' : ''}`}>
+      {!isMobile && <Toolbar />}
       <div className="shell-body">
         {isLoaded ? (
-          <>
-            {!focusMode && <ActivityBar />}
-            {binderVisible && !focusMode && <Binder />}
-            <div className="shell-main">
-              <MainArea />
-              {mainView === 'write' && !extView && notesDockVisible && !focusMode && (
-                <SceneNotesDock />
-              )}
-            </div>
-            {inspectorVisible &&
-              !focusMode &&
-              !extView &&
-              (mainView === 'write' || mainView === 'manuscript') && <Inspector />}
-          </>
+          isMobile ? (
+            <MobileShell />
+          ) : (
+            <>
+              {!focusMode && <ActivityBar />}
+              {binderVisible && !focusMode && <Binder />}
+              <div className="shell-main">
+                <MainArea />
+                {mainView === 'write' && !extView && notesDockVisible && !focusMode && (
+                  <SceneNotesDock />
+                )}
+              </div>
+              {inspectorVisible &&
+                !focusMode &&
+                !extView &&
+                (mainView === 'write' || mainView === 'manuscript') && <Inspector />}
+            </>
+          )
         ) : (
           <StartScreen
             recentProjects={recentProjects}
@@ -199,7 +211,7 @@ export function AppShell(): React.JSX.Element {
           }}
         />
       )}
-      <StatusBar />
+      {!isMobile && <StatusBar />}
       {findReplaceOpen && (
         <FindReplaceDialog onClose={() => useShellStore.getState().setFindReplaceOpen(false)} />
       )}

@@ -27,6 +27,10 @@
   --nl-radius-xl: 10px;
   --nl-radius-pill: 999px;
 
+  /* Mobile: height of the native iOS UITabBar (Liquid Glass) overlay, so web
+     content can inset its bottom padding to sit above it. */
+  --nl-mobile-tabbar-h: 49px;
+
   /* Typography scale */
   --nl-font-tiny: 9px;
   --nl-font-caption: 10px;
