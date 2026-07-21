@@ -565,6 +565,11 @@ jobs:
           name: ${{ github.ref_name }}
           generate_release_notes: true
           fail_on_unmatched_files: true
+          # A tag with a prerelease suffix (e.g. v2.0.0-beta.1) publishes as a
+          # prerelease. GitHub's /releases/latest — which the in-app updater uses —
+          # excludes prereleases, so tagged test builds never reach users. Plain
+          # tags (v2.0.0) publish as a normal, user-facing release.
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             release-assets/*.dmg
             release-assets/*.exe
