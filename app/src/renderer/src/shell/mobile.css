@@ -105,6 +105,26 @@
   cursor: pointer;
 }
 
+/* Book + Draft selectors surfaced at the top of the mobile binder (they live in
+   the hidden desktop toolbar otherwise). */
+.mobile-bookdraft {
+  display: flex;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.mobile-bookdraft-select {
+  flex: 1;
+  min-width: 0;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  font-size: var(--nl-font-body);
+}
+
 .shell.mobile .binder-scene-wrap {
   display: flex;
   align-items: center;

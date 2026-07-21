@@ -565,6 +565,8 @@
     }
   },
   "explorer": {
+    "moveUp": "上移",
+    "moveDown": "下移",
     "title": "Novalist 资源管理器",
     "addChapter": "+ 章节",
     "addChapterTooltip": "创建新章节",

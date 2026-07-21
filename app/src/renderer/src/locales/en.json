@@ -530,6 +530,8 @@
     }
   },
   "explorer": {
+    "moveUp": "Move up",
+    "moveDown": "Move down",
     "title": "Novalist Explorer",
     "addChapter": "+ Chapter",
     "addChapterTooltip": "Create a new chapter",

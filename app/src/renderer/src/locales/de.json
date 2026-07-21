@@ -432,6 +432,8 @@
     }
   },
   "explorer": {
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
     "title": "Novalist Explorer",
     "addChapter": "+ Kapitel",
     "addChapterTooltip": "Ein neues Kapitel erstellen",

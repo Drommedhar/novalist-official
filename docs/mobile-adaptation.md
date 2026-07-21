@@ -28,7 +28,9 @@ Companion to `docs/mobile-port-plan.md` (architecture) and `docs/mobile-phase0-r
   external-folder picker + security-scoped bookmarks, and the writing-hub bottom sheet
   (Inspector button in the editor raises Context / Footnotes / Scene Notes tabs; the native
   tab bar hides while it is up), editor mobile mode (full-width text - no 18em comment
-  gutter, comments as inline highlights - + touch-sized selection toolbar / context menu).
+  gutter, comments as inline highlights - + touch-sized selection toolbar / context menu),
+  binder Move up/down (touch reorder via the row menu) + a mobile Book/Draft selector bar
+  at the top of the binder.
 
 ---
 
