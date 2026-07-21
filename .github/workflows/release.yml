@@ -246,6 +246,20 @@ jobs:
           CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.MAS_INSTALLER_CSC_KEY_PASSWORD }}
         run: npx electron-builder --config electron-builder.yml ${{ matrix.eb_flags }} -p never
 
+      # Diagnostic: show exactly what the mas build produced and where, so a
+      # missing/renamed .pkg is obvious in the log.
+      - name: List MAS build output
+        if: always()
+        working-directory: app
+        shell: bash
+        run: |
+          echo "=== .pkg / .app under dist ==="
+          find dist -maxdepth 3 \( -name '*.pkg' -o -name '*.app' \) -print 2>/dev/null || true
+          echo "=== dist ==="
+          ls -la dist 2>/dev/null || true
+          echo "=== dist/mas ==="
+          ls -la dist/mas 2>/dev/null || true
+
       - name: Upload to App Store Connect
         # Tag releases only — never upload a build during a manual dry-run.
         if: startsWith(github.ref, 'refs/tags/')
@@ -261,7 +275,8 @@ jobs:
           mkdir -p "$HOME/.appstoreconnect/private_keys"
           echo "${{ secrets.APPLE_API_KEY_BASE64 }}" | base64 --decode \
             > "$HOME/.appstoreconnect/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
-          PKG=$(ls dist/novalist-mas-*.pkg | head -n1)
+          PKG=$(find dist -maxdepth 3 -name '*.pkg' | head -n1)
+          if [ -z "${PKG}" ]; then echo "No .pkg found under dist" >&2; exit 1; fi
           echo "Validating ${PKG}"
           xcrun altool --validate-app -f "${PKG}" -t macos \
             --apiKey "${APPLE_API_KEY_ID}" --apiIssuer "${APPLE_API_ISSUER}"
@@ -273,7 +288,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: novalist-mas-${{ matrix.arch }}-pkg
-          path: app/dist/novalist-mas-*.pkg
+          path: app/dist/**/*.pkg
           if-no-files-found: error
 
   sdk-and-example:
