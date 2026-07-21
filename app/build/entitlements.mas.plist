@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Mac App Store (MAS) entitlements for the MAIN app binary.
+
+    The App Sandbox is MANDATORY on the Mac App Store. Everything Novalist does
+    that touches the disk must go through one of the exceptions below:
+
+      - app-sandbox: required for MAS. Turns on the container jail.
+      - files.user-selected.read-write: lets the app read/write files and
+        folders the user explicitly picks in an NSOpenPanel (Electron's
+        dialog.showOpenDialog). This is how a sandboxed Novalist can open a
+        project folder at all.
+      - files.bookmarks.app-scope: lets the app persist a security-scoped
+        bookmark to a user-selected folder so it can be reopened on next launch
+        without prompting again. REQUIRES app code to create/resolve the
+        bookmark and wrap access in startAccessingSecurityScopedResource.
+      - network.client: the renderer/backend talk over a local channel and the
+        app may reach the update/telemetry endpoints; outbound only.
+
+    KNOWN-OPEN RISKS (must be validated on-device before submitting — see
+    docs/macos-signing.md "Sandbox feasibility"):
+      1. The .NET backend is spawned as a child process. Under the sandbox it
+         must inherit the sandbox (entitlements.mas.inherit.plist) and be signed
+         with the same provisioning profile. A self-contained single-file exe
+         that extracts native libs to a temp dir may be blocked or need
+         DOTNET_BUNDLE_EXTRACT_BASE_DIR pointed inside the container.
+      2. Folder access granted to the MAIN process via the open panel is shared
+         with the child through the same sandbox container, BUT security-scoped
+         bookmarks resolved in the main process do not automatically transfer to
+         the child — the backend may lose access after a restart until the app
+         re-grants it.
+  -->
+  <key>com.apple.security.app-sandbox</key>
+  <true/>
+  <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+  <key>com.apple.security.files.bookmarks.app-scope</key>
+  <true/>
+  <key>com.apple.security.network.client</key>
+  <true/>
+</dict>
+</plist>

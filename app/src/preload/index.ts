@@ -3,6 +3,11 @@ import { contextBridge, ipcRenderer } from 'electron'
 const material =
   process.argv.find((a) => a.startsWith('--nl-material='))?.split('=')[1] ?? 'opaque'
 
+// True only in the Mac App Store (sandboxed) build. Apple forbids self-updating
+// there (the store delivers updates), so the download-and-run-installer flow is
+// disabled for MAS.
+const isMas = (process as NodeJS.Process & { mas?: boolean }).mas === true
+
 /**
  * Minimal privileged surface. The backend MessagePort cannot cross the context
  * bridge directly, so it is forwarded to the page via window.postMessage and
@@ -11,9 +16,13 @@ const material =
 contextBridge.exposeInMainWorld('novalist', {
   material,
   platform: process.platform,
+  // True only in the Mac App Store build. The renderer uses this to hide
+  // self-update UI (the store delivers updates there).
+  isMas,
   // Off in headless/e2e runs (NOVALIST_NO_SPLASH) so a network update check
-  // never pops a modal that blocks tests.
-  autoUpdate: !process.env.NOVALIST_NO_SPLASH,
+  // never pops a modal that blocks tests. Also off in the Mac App Store build,
+  // where self-updating is prohibited.
+  autoUpdate: !process.env.NOVALIST_NO_SPLASH && !isMas,
   requestBackendPort(): void {
     ipcRenderer.send('novalist:request-backend-port')
   },
@@ -40,6 +49,14 @@ contextBridge.exposeInMainWorld('novalist', {
   },
   setProjectRoot(root: string | null): void {
     ipcRenderer.send('novalist:set-project-root', root)
+  },
+  // Sandbox (MAS) access to a project folder reopened from a stored path. Returns
+  // true when access is available (always so off MAS); false means re-prompt.
+  beginProjectAccess(path: string): Promise<boolean> {
+    return ipcRenderer.invoke('novalist:begin-project-access', path)
+  },
+  endProjectAccess(path: string): void {
+    ipcRenderer.send('novalist:end-project-access', path)
   },
   registerExtensionRoots(roots: Record<string, string>): void {
     ipcRenderer.send('novalist:register-ext-roots', roots)

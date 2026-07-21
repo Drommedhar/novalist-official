@@ -196,6 +196,20 @@ public sealed class WorkspaceTests : IDisposable
         Assert.EndsWith(Convert.ToBase64String(bytes), uri);
     }
 
+    [Fact]
+    public async Task LoadCoverDataUri_UnreadableCover_YieldsNullNotThrow()
+    {
+        // A cover that exists but cannot be read (locked here; in the wild a
+        // sandbox-denied or dataless iCloud file for a recent project we don't
+        // hold access to) must degrade to null rather than throw and take down
+        // the whole recents list. Hold an exclusive lock so the read fails.
+        var file = Path.Combine(_root, "locked-cover.png");
+        await File.WriteAllBytesAsync(file, [1, 2, 3, 4]);
+        using var exclusive = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.None);
+        Assert.True(File.Exists(file));
+        Assert.Null(await Workspace.LoadCoverDataUriAsync(file));
+    }
+
     [Theory]
     [InlineData(".jpg", "image/jpeg")]
     [InlineData(".JPEG", "image/jpeg")]

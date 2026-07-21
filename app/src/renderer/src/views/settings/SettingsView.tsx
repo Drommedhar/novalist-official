@@ -636,15 +636,21 @@ export function SettingsView(): React.JSX.Element {
       keywords: ['update', 'extension', 'github', 'token', 'pat', 'integration', 'general'],
       body: (
         <>
-          <label className="relationships-toggle">
-            <input
-              type="checkbox"
-              checked={Boolean(view.global.checkForUpdates)}
-              onChange={(e) => void update('global', { checkForUpdates: e.target.checked })}
-            />
-            {t('update.checkForUpdates')}
-          </label>
-          <div className="settings-hint">{t('update.checkForUpdatesDesc')}</div>
+          {/* App self-update is disabled on the Mac App Store build (the store
+              delivers updates), so hide the toggle there. */}
+          {!window.novalist.isMas && (
+            <>
+              <label className="relationships-toggle">
+                <input
+                  type="checkbox"
+                  checked={Boolean(view.global.checkForUpdates)}
+                  onChange={(e) => void update('global', { checkForUpdates: e.target.checked })}
+                />
+                {t('update.checkForUpdates')}
+              </label>
+              <div className="settings-hint">{t('update.checkForUpdatesDesc')}</div>
+            </>
+          )}
           <label className="relationships-toggle">
             <input
               type="checkbox"

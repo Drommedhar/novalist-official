@@ -1,5 +1,9 @@
 import { app, BrowserWindow, Menu, shell, type MenuItemConstructorOptions } from 'electron'
 
+// Mac App Store build: the store delivers updates and self-update is disabled, so
+// the manual "Check for Updates…" item is omitted there.
+const isMas = (process as NodeJS.Process & { mas?: boolean }).mas === true
+
 /** Relays a menu command to the renderer, which maps it onto the shell store. */
 function sendCommand(command: string): void {
   const win = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
@@ -137,10 +141,14 @@ export function installAppMenu(): void {
           accelerator: 'F1',
           click: () => sendCommand('help:manual')
         },
-        {
-          label: 'Check for Updates…',
-          click: () => sendCommand('help:checkUpdates')
-        },
+        ...(isMas
+          ? []
+          : [
+              {
+                label: 'Check for Updates…',
+                click: () => sendCommand('help:checkUpdates')
+              }
+            ]),
         { type: 'separator' as const },
         {
           label: 'Novalist on GitHub',

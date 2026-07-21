@@ -2,6 +2,7 @@ import { dialog, ipcMain, BrowserWindow, shell, clipboard } from 'electron'
 import { join, normalize, isAbsolute } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { currentProjectRoot } from './protocols'
+import { saveBookmark, beginAccess, endAccess } from './mac-bookmarks'
 
 /** Resolves a renderer-supplied path (project-relative or absolute) to an
  * absolute path inside the open project, guarding against traversal. */
@@ -51,10 +52,23 @@ export function registerDialogHandlers(): void {
     const win = BrowserWindow.fromWebContents(event.sender)
     const result = await dialog.showOpenDialog(win!, {
       title,
-      properties: ['openDirectory', 'createDirectory']
+      properties: ['openDirectory', 'createDirectory'],
+      // Only has effect in the Mac App Store build; ignored elsewhere. Lets us
+      // reopen this folder on a later launch under the sandbox.
+      securityScopedBookmarks: true
     })
-    return result.canceled ? null : result.filePaths[0]
+    if (result.canceled || result.filePaths.length === 0) return null
+    const picked = result.filePaths[0]
+    saveBookmark(picked, result.bookmarks?.[0])
+    return picked
   })
+
+  // Begin/end security-scoped access to a previously-picked project folder.
+  // Off the Mac App Store build these are trivial (always granted); on MAS they
+  // resolve the stored bookmark so the backend can read/write a project reopened
+  // from a stored path. Returning false lets the renderer re-prompt for access.
+  ipcMain.handle('novalist:begin-project-access', (_event, path: string) => beginAccess(path))
+  ipcMain.on('novalist:end-project-access', (_event, path: string) => endAccess(path))
 
   ipcMain.handle('novalist:pick-file', async (event, title: string, mode?: string) => {
     const win = BrowserWindow.fromWebContents(event.sender)

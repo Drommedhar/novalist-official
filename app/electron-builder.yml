@@ -23,8 +23,41 @@ mac:
   target:
     - dmg
   category: public.app-category.productivity
-  identity: null
+  # Developer ID (direct download) signing. The identity is auto-discovered from
+  # the certificate imported via CSC_LINK in CI; locally, with no certificate,
+  # electron-builder skips signing and afterPack.cjs falls back to an ad-hoc
+  # sign. hardenedRuntime + entitlements + notarize are required so notarized
+  # DMGs open without a Gatekeeper warning.
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # Export-compliance declaration baked into Info.plist so App Store Connect /
+  # TestFlight never prompts per build. false = only exempt encryption (standard
+  # HTTPS / OS-provided crypto); no custom cryptography. Inherited by the `mas`
+  # block below. Revisit if Novalist ever ships proprietary encryption.
+  extendInfo:
+    ITSAppUsesNonExemptEncryption: false
+  # Notarization uses the App Store Connect API key from the environment
+  # (APPLE_API_KEY / APPLE_API_KEY_ID / APPLE_API_ISSUER). Left as `true` so it
+  # only runs when those are present (CI); skipped for unsigned local builds.
+  notarize: true
   artifactName: novalist-macos-${arch}.${ext}
+# Mac App Store build. Inherits from `mac` but overrides everything the sandbox
+# requires: the `mas` target (produces a .pkg), the sandbox entitlements, and an
+# embedded provisioning profile. Signed with the "Apple Distribution" cert (app)
+# and "Mac Installer Distribution" cert (pkg), NOT the Developer ID cert above.
+# Not notarized — App Review handles that. See docs/macos-signing.md.
+mas:
+  type: distribution
+  category: public.app-category.productivity
+  hardenedRuntime: false
+  # App Review handles this channel — never notarize MAS (inherited from `mac`).
+  notarize: false
+  entitlements: build/entitlements.mas.plist
+  entitlementsInherit: build/entitlements.mas.inherit.plist
+  provisioningProfile: build/embedded.provisionprofile
+  artifactName: novalist-mas-${arch}.${ext}
 win:
   icon: build/icon.ico
   target:

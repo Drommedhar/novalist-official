@@ -22,6 +22,7 @@ interface Window {
   novalist: {
     material: 'glass' | 'vibrancy' | 'opaque'
     platform: NodeJS.Platform
+    isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void
     pickFolder(title: string): Promise<string | null>
@@ -32,6 +33,8 @@ interface Window {
     copyText(text: string): void
     readClipboardImage(): Promise<string | null>
     setProjectRoot(root: string | null): void
+    beginProjectAccess(path: string): Promise<boolean>
+    endProjectAccess(path: string): void
     registerExtensionRoots(roots: Record<string, string>): void
     checkAppUpdate(): Promise<AppUpdate | null>
     downloadAppUpdate(info: AppUpdate): Promise<string>

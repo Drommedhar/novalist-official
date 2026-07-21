@@ -73,8 +73,12 @@ ipcMain.on('novalist:request-backend-port', (event) => {
 
 // App self-update (GitHub release → download installer → open). Extension
 // updates are handled separately by the renderer via the extension store.
-ipcMain.handle('novalist:check-app-update', () => checkAppUpdate())
+// Disabled in the Mac App Store build: Apple prohibits self-updating, so even a
+// manual trigger must do nothing there (updates arrive via the App Store).
+const isMasBuild = (process as NodeJS.Process & { mas?: boolean }).mas === true
+ipcMain.handle('novalist:check-app-update', () => (isMasBuild ? null : checkAppUpdate()))
 ipcMain.handle('novalist:download-app-update', (event, info) => {
+  if (isMasBuild) throw new Error('Self-update is disabled in the App Store build.')
   const win = BrowserWindow.fromWebContents(event.sender)
   if (!win) throw new Error('No window for update download.')
   return downloadAndInstall(info, win)

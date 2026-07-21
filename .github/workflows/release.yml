@@ -13,7 +13,9 @@ env:
 jobs:
   publish:
     name: Publish ${{ matrix.label }}
-    if: startsWith(github.ref, 'refs/tags/')
+    # Tags do a real release; a manual workflow_dispatch is a dry-run that builds
+    # and signs but publishes nothing (the release job stays tag-only).
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -100,9 +102,43 @@ jobs:
         working-directory: app
         run: npm run build
 
+      # Export macOS signing + notarization env — ONLY on macOS AND only when the
+      # Developer ID secret is actually present. Writing them to $GITHUB_ENV lets
+      # us OMIT the variables entirely when unset: an *empty* CSC_LINK makes
+      # electron-builder treat "" as a cert file path and crash ("not a file"),
+      # whereas an unset one cleanly means "build unsigned". Non-macOS runners
+      # never enter this step, so Windows never sees a macOS cert.
+      - name: Prepare macOS signing
+        if: runner.os == 'macOS'
+        shell: bash
+        env:
+          MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MAC_CSC_LINK}" ]; then
+            echo "MAC_CSC_LINK not set — building UNSIGNED (skipping signing + notarization)."
+            exit 0
+          fi
+          KEY_PATH="${RUNNER_TEMP}/AuthKey.p8"
+          printf '%s' "${APPLE_API_KEY_BASE64}" | base64 --decode > "${KEY_PATH}"
+          {
+            echo "CSC_LINK=${MAC_CSC_LINK}"
+            echo "CSC_KEY_PASSWORD=${MAC_CSC_KEY_PASSWORD}"
+            echo "APPLE_API_KEY=${KEY_PATH}"
+            echo "APPLE_API_KEY_ID=${APPLE_API_KEY_ID}"
+            echo "APPLE_API_ISSUER=${APPLE_API_ISSUER}"
+          } >> "$GITHUB_ENV"
+          echo "Developer ID signing + notarization enabled."
+
       - name: Package (electron-builder)
         working-directory: app
         shell: bash
+        # Signing/notarization vars come from $GITHUB_ENV (set by the step above)
+        # and only exist on a macOS runner with the Developer ID secret present.
         run: npx electron-builder --config electron-builder.yml ${{ matrix.eb_flags }} -p never
 
       - name: Upload packaged artifact
@@ -112,8 +148,156 @@ jobs:
           path: app/dist/${{ matrix.package_name }}
           if-no-files-found: error
 
+  # ── Mac App Store build + upload ────────────────────────────────────────
+  # Separate job because MAS uses different certificates (Apple Distribution +
+  # Mac Installer Distribution), an embedded provisioning profile, the sandbox
+  # entitlements, and uploads to App Store Connect instead of a GitHub release.
+  # Gated on the MAS secrets being present so the release still works before the
+  # App Store side is fully set up. See docs/macos-signing.md.
+  mac-app-store:
+    name: Mac App Store ${{ matrix.arch }}
+    # Dry-run on manual dispatch: builds and signs the .pkg but skips the App
+    # Store Connect upload (that step is tag-only), so you can inspect the pkg
+    # artifact without consuming a build number.
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        # App Store: arm64-only for now. The App Store accepts one build per app
+        # version, so shipping a single Apple Silicon build avoids the "two builds,
+        # submit one" problem. Intel users are still covered natively by the DMG.
+        # To go universal later, ship both backends + pick by process.arch and
+        # build the Electron app with --universal (see docs/macos-signing.md).
+        include:
+          - arch: arm64
+            rid: osx-arm64
+            eb_flags: --mac mas --arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="$(printf '%s' "$TAG" | grep -oE '[0-9]+(\.[0-9]+)*' | head -n1 || true)"
+          if [ -z "$VER" ]; then VER="0.0.1"; fi
+          IFS='.' read -r a b c <<< "$VER"
+          VER="${a:-0}.${b:-0}.${c:-0}"
+          echo "prefix=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Install app dependencies
+        working-directory: app
+        run: npm ci
+
+      - name: Set app version
+        working-directory: app
+        shell: bash
+        run: npm version "${{ steps.version.outputs.prefix }}" --no-git-tag-version --allow-same-version
+
+      - name: Publish backend (${{ matrix.rid }})
+        working-directory: app
+        shell: bash
+        run: >-
+          dotnet publish ../Novalist.Backend/Novalist.Backend.csproj
+          -c Release
+          -r "${{ matrix.rid }}"
+          --self-contained
+          -p:PublishSingleFile=true
+          -p:VersionPrefix=${{ steps.version.outputs.prefix }}
+          -p:VersionSuffix=
+          -o dist-backend
+
+      - name: Build renderer
+        working-directory: app
+        run: npm run build
+
+      - name: Write provisioning profile
+        working-directory: app
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.MAS_PROVISION_PROFILE_BASE64 }}" | base64 --decode > build/embedded.provisionprofile
+
+      - name: Package MAS (electron-builder)
+        working-directory: app
+        shell: bash
+        env:
+          # Apple Distribution cert (signs the .app) and Mac Installer
+          # Distribution cert (signs the .pkg). electron-builder reads both.
+          CSC_LINK: ${{ secrets.MAS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAS_CSC_KEY_PASSWORD }}
+          CSC_INSTALLER_LINK: ${{ secrets.MAS_INSTALLER_CSC_LINK }}
+          CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.MAS_INSTALLER_CSC_KEY_PASSWORD }}
+        run: npx electron-builder --config electron-builder.yml ${{ matrix.eb_flags }} -p never
+
+      # Diagnostic: show exactly what the mas build produced and where, so a
+      # missing/renamed .pkg is obvious in the log.
+      - name: List MAS build output
+        if: always()
+        working-directory: app
+        shell: bash
+        run: |
+          echo "=== .pkg / .app under dist ==="
+          find dist -maxdepth 3 \( -name '*.pkg' -o -name '*.app' \) -print 2>/dev/null || true
+          echo "=== dist ==="
+          ls -la dist 2>/dev/null || true
+          echo "=== dist/mas ==="
+          ls -la dist/mas 2>/dev/null || true
+
+      - name: Upload to App Store Connect
+        # Tag releases only — never upload a build during a manual dry-run.
+        if: startsWith(github.ref, 'refs/tags/')
+        working-directory: app
+        shell: bash
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          set -euo pipefail
+          # altool with an App Store Connect API key expects the .p8 at a known
+          # private_keys directory named AuthKey_<KEYID>.p8.
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          echo "${{ secrets.APPLE_API_KEY_BASE64 }}" | base64 --decode \
+            > "$HOME/.appstoreconnect/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
+          PKG=$(find dist -maxdepth 3 -name '*.pkg' | head -n1)
+          if [ -z "${PKG}" ]; then echo "No .pkg found under dist" >&2; exit 1; fi
+          echo "Validating ${PKG}"
+          xcrun altool --validate-app -f "${PKG}" -t macos \
+            --apiKey "${APPLE_API_KEY_ID}" --apiIssuer "${APPLE_API_ISSUER}"
+          echo "Uploading ${PKG}"
+          xcrun altool --upload-app -f "${PKG}" -t macos \
+            --apiKey "${APPLE_API_KEY_ID}" --apiIssuer "${APPLE_API_ISSUER}"
+
+      - name: Upload MAS pkg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: novalist-mas-${{ matrix.arch }}-pkg
+          path: app/dist/**/*.pkg
+          if-no-files-found: error
+
   sdk-and-example:
     name: Pack SDK & Example Extension
+    # Tag releases only: this job publishes to NuGet and commits a version bump to
+    # the default branch, so it must never run during a manual dry-run.
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -381,6 +565,11 @@ jobs:
           name: ${{ github.ref_name }}
           generate_release_notes: true
           fail_on_unmatched_files: true
+          # A tag with a prerelease suffix (e.g. v2.0.0-beta.1) publishes as a
+          # prerelease. GitHub's /releases/latest — which the in-app updater uses —
+          # excludes prereleases, so tagged test builds never reach users. Plain
+          # tags (v2.0.0) publish as a normal, user-facing release.
+          prerelease: ${{ contains(github.ref_name, '-') }}
           files: |
             release-assets/*.dmg
             release-assets/*.exe

@@ -63,3 +63,14 @@ app/dist/
 
 app/dist-backend/
 app/dist/
+
+# macOS signing secrets (decoded at build time from CI secrets — never commit)
+app/build/embedded.provisionprofile
+certs/
+*.p12
+*.p8
+*.key
+*.csr
+*.cer
+*.mobileprovision
+*.provisionprofile
