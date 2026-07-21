@@ -17,6 +17,7 @@ import { useShellStore, type MainView } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { useExtensionsStore, type StoreUpdate } from '../stores/extensionsStore'
+import { useSettingsStore } from '../stores/settingsStore'
 import type { PingResult } from '../rpc/contract'
 import './shell.css'
 
@@ -49,6 +50,10 @@ function handleMenuCommand(command: string): void {
 async function hydrate(): Promise<void> {
   const ping = await rpc.request<PingResult>('system/ping')
   useShellStore.getState().setBackendVersion(ping.version)
+  // Apply the user's settings (language, theme, gestures) at startup - not just
+  // when the Settings view is first opened - so the app isn't stuck on the OS
+  // language / default theme until then.
+  await useSettingsStore.getState().load()
   const state = await rpc.request<ProjectStateDto>('project/getState')
   useProjectStore.getState().applyState(state)
   await useProjectStore.getState().loadRecents()
