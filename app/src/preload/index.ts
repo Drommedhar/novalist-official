@@ -16,6 +16,9 @@ const isMas = (process as NodeJS.Process & { mas?: boolean }).mas === true
 contextBridge.exposeInMainWorld('novalist', {
   material,
   platform: process.platform,
+  // True only in the Mac App Store build. The renderer uses this to hide
+  // self-update UI (the store delivers updates there).
+  isMas,
   // Off in headless/e2e runs (NOVALIST_NO_SPLASH) so a network update check
   // never pops a modal that blocks tests. Also off in the Mac App Store build,
   // where self-updating is prohibited.

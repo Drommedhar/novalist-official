@@ -22,6 +22,7 @@ interface Window {
   novalist: {
     material: 'glass' | 'vibrancy' | 'opaque'
     platform: NodeJS.Platform
+    isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void
     pickFolder(title: string): Promise<string | null>
