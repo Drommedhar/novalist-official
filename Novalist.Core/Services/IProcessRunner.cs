@@ -76,3 +76,29 @@ public sealed class ProcessRunner : IProcessRunner
         return (process.ExitCode, output, error);
     }
 }
+
+/// <summary>
+/// <see cref="IProcessRunner"/> for sandboxed platforms (iOS/Android) where
+/// launching external processes is forbidden. Every run reports a non-zero exit
+/// with no output, so process-based capabilities degrade to "unavailable"
+/// instead of throwing: <see cref="GitService"/> sees <c>git --version</c> fail
+/// and reports Git not installed, and repository probes find no repo. Injected in
+/// place of <see cref="ProcessRunner"/> by the mobile host.
+/// </summary>
+public sealed class UnavailableProcessRunner : IProcessRunner
+{
+    // 127 is the shell convention for "command not found".
+    private const int ExitNotFound = 127;
+    private const string Message = "Process execution is not available on this platform.";
+
+    private static Task<(int ExitCode, string Output, string Error)> Unavailable()
+        => Task.FromResult((ExitNotFound, string.Empty, Message));
+
+    public Task<(int ExitCode, string Output, string Error)> RunAsync(
+        string fileName, string? workingDirectory, params string[] args)
+        => Unavailable();
+
+    public Task<(int ExitCode, string Output, string Error)> RunAsync(
+        string fileName, string? workingDirectory, CancellationToken cancellationToken, params string[] args)
+        => Unavailable();
+}

@@ -1,5 +1,6 @@
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Services;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -36,6 +37,18 @@ public sealed class GitRpcTests : IDisposable
     }
 
     public void Dispose() => TestHelpers.TempDir.ForceDelete(_root);
+
+    [Fact]
+    public async Task UnavailableProcessRunner_DegradesGitToUnavailable()
+    {
+        // Mobile wiring: with an UnavailableProcessRunner, `git --version` and the
+        // repo probe both fail, so Git reports not installed and no status - even
+        // though this fixture created a real repo on disk.
+        var rpc = new GitRpc(_workspace, new UnavailableProcessRunner());
+
+        Assert.False(await rpc.IsInstalledAsync());
+        Assert.Null(await rpc.StatusAsync());
+    }
 
     [Fact]
     public async Task ChangedScenes_MarksScenesWithUncommittedEdits()

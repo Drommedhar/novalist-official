@@ -7,7 +7,7 @@ namespace Novalist.Backend.Rpc;
 public sealed class GitRpc
 {
     private readonly Workspace _workspace;
-    private readonly GitService _git = new();
+    private readonly GitService _git;
     private readonly IProcessRunner _process;
     private bool _initialized;
     private string? _repoRoot;
@@ -16,6 +16,10 @@ public sealed class GitRpc
     {
         _workspace = workspace;
         _process = processRunner ?? new ProcessRunner();
+        // Share one runner across both paths (GitService and the direct
+        // pathspec/commit calls) so an injected runner - e.g. the mobile
+        // UnavailableProcessRunner - disables Git everywhere, not just partially.
+        _git = new GitService(_process);
     }
 
     private async Task EnsureInitializedAsync()
