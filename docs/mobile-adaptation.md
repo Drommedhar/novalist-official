@@ -24,7 +24,10 @@ Companion to `docs/mobile-port-plan.md` (architecture) and `docs/mobile-phase0-r
   language change; verified de on the simulator), portrait+landscape (safe-area insets on
   all sides + a native-measured tab-bar bottom inset that tracks rotation), mobile settings
   filter (hides Hotkeys / Updates+Integrations / Extensions / Watch-filesystem / log-folder
-  reveal; keeps Appearance, Editor, Writing Goals, Writing Assistance, Templates, Diagnostics).
+  reveal; keeps Appearance, Editor, Writing Goals, Writing Assistance, Templates, Diagnostics),
+  external-folder picker + security-scoped bookmarks, and the writing-hub bottom sheet
+  (Inspector button in the editor raises Context / Footnotes / Scene Notes tabs; the native
+  tab bar hides while it is up).
 
 ---
 

@@ -1,11 +1,12 @@
-import { useEffect } from 'react'
-import { ChevronLeft } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ChevronLeft, PanelRightOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Binder } from './Binder'
 import { EditorFrame } from '../views/editor/EditorFrame'
 import { DashboardView } from '../views/dashboard/DashboardView'
 import { CodexView } from '../views/codex/CodexView'
 import { SettingsView } from '../views/settings/SettingsView'
+import { MobileInspectorSheet } from './MobileInspectorSheet'
 import { useShellStore, type MobileTab } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import './mobile.css'
@@ -26,6 +27,8 @@ export function MobileShell(): React.JSX.Element {
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const closeTab = useProjectStore((s) => s.closeTab)
+  // Writing-hub sheet (Context / Footnotes / Notes) raised from the editor.
+  const [inspectorOpen, setInspectorOpen] = useState(false)
 
   // Localize the native iOS tab bar: the native side ships English fallbacks; the
   // web owns i18n, so push translated titles (in the native tab order) on mount
@@ -62,6 +65,13 @@ export function MobileShell(): React.JSX.Element {
     }
   }, [setTab, setFindReplaceOpen])
 
+  // The native Liquid Glass tab bar is a native view that always floats above web
+  // content, so it would occlude a web bottom sheet. Hide it while the writing-hub
+  // sheet is up (it's a focused modal with its own dismiss); restore on close.
+  useEffect(() => {
+    window.novalist.setNavVisible?.(!inspectorOpen)
+  }, [inspectorOpen])
+
   const inEditor = tab === 'manuscript' && !!openSceneId
 
   let content: React.JSX.Element
@@ -85,9 +95,20 @@ export function MobileShell(): React.JSX.Element {
             <ChevronLeft size={20} strokeWidth={2} />
             <span>{t('shell.chapters')}</span>
           </button>
+          <button
+            type="button"
+            className="mobile-editor-inspector"
+            aria-label={t('shell.inspector')}
+            onClick={() => setInspectorOpen(true)}
+          >
+            <PanelRightOpen size={20} strokeWidth={2} />
+          </button>
         </div>
       )}
       <div className="mobile-content">{content}</div>
+      {inEditor && inspectorOpen && (
+        <MobileInspectorSheet onClose={() => setInspectorOpen(false)} />
+      )}
     </div>
   )
 }

@@ -132,3 +132,121 @@
 .shell.mobile .binder-row-action:active {
   color: var(--nl-text);
 }
+
+/* Inspector button on the right of the editor bar (raises the writing-hub sheet). */
+.mobile-editor-inspector {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 34px;
+  background: none;
+  border: none;
+  color: var(--nl-accent);
+  cursor: pointer;
+}
+
+/* ── Mobile bottom sheet (writing hub: Context / Footnotes / Notes) ── */
+.mobile-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.mobile-sheet {
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  background: var(--nl-surface-card);
+  border-top-left-radius: var(--nl-radius-xl);
+  border-top-right-radius: var(--nl-radius-xl);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+  padding-bottom: env(safe-area-inset-bottom);
+  transition: transform 0.2s ease;
+  animation: mobile-sheet-up 0.24s ease;
+}
+
+@keyframes mobile-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Drag grabber region at the top of the sheet. */
+.mobile-sheet-grab {
+  display: flex;
+  justify-content: center;
+  padding: var(--nl-space-sm) 0 var(--nl-space-tighter);
+  touch-action: none;
+  cursor: grab;
+}
+
+.mobile-sheet-grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-border);
+}
+
+.mobile-sheet-title {
+  padding: 0 var(--nl-space-lg) var(--nl-space-sm);
+  font-size: var(--nl-font-title);
+  font-weight: 600;
+  color: var(--nl-text);
+  text-align: center;
+}
+
+.mobile-sheet-tabs {
+  display: flex;
+  gap: var(--nl-space-sm);
+  padding: 0 var(--nl-space-lg) var(--nl-space-sm);
+}
+
+.mobile-sheet-tab {
+  flex: 1;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  background: var(--nl-surface-window);
+  color: var(--nl-text-dim);
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-md);
+  font-size: var(--nl-font-body);
+  cursor: pointer;
+}
+
+.mobile-sheet-tab.active {
+  color: var(--nl-text);
+  border-color: var(--nl-accent);
+  background: var(--nl-surface-card);
+}
+
+.mobile-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-sheet-tabbody {
+  padding: 0 var(--nl-space-lg) var(--nl-space-lg);
+}
+
+/* In the sheet, stack synopsis + notes vertically (desktop docks them side by side)
+   and give the textareas a comfortable touch height. */
+.mobile-sheet-tabbody .notes-dock-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+}
+
+.mobile-sheet-tabbody .notes-dock-textarea {
+  width: 100%;
+  min-height: 120px;
+}
