@@ -154,6 +154,11 @@ export function SettingsView(): React.JSX.Element {
   const clearSection = useSettingsStore((s) => s.clearSection)
   const updateProjectMeta = useSettingsStore((s) => s.updateProjectMeta)
   const isLoaded = useProjectStore((s) => s.isLoaded)
+  // On mobile, hide sections/controls that only make sense on desktop: physical
+  // keyboard shortcuts, store-delivered self-update, extensions (deferred), the
+  // GitHub token (Git is external on mobile), desktop file-watching, and the
+  // file-manager log-folder reveal (no-op in the iOS sandbox).
+  const isMobile = window.novalist.isMobile === true
   const [appearanceScope, setAppearanceScope] = useState<Scope>('global')
   const [editorScope, setEditorScope] = useState<Scope>('global')
   const [writingScope, setWritingScope] = useState<Scope>('global')
@@ -469,15 +474,20 @@ export function SettingsView(): React.JSX.Element {
                 value={project.author}
                 onCommit={(v) => void updateProjectMeta({ author: v })}
               />
-              <label className="relationships-toggle">
-                <input
-                  type="checkbox"
-                  checked={project.watchFilesystem}
-                  onChange={(e) => void updateProjectMeta({ watchFilesystem: e.target.checked })}
-                />
-                {t('settings.watchFilesystem')}
-              </label>
-              <div className="settings-hint">{t('settings.watchFilesystemDesc')}</div>
+              {/* Desktop-only file-watching: irrelevant in the mobile sandbox. */}
+              {!isMobile && (
+                <>
+                  <label className="relationships-toggle">
+                    <input
+                      type="checkbox"
+                      checked={project.watchFilesystem}
+                      onChange={(e) => void updateProjectMeta({ watchFilesystem: e.target.checked })}
+                    />
+                    {t('settings.watchFilesystem')}
+                  </label>
+                  <div className="settings-hint">{t('settings.watchFilesystemDesc')}</div>
+                </>
+              )}
             </>
           ) : (
             <div className="settings-hint">{t('settings.scopeProjectHint')}</div>
@@ -693,33 +703,42 @@ export function SettingsView(): React.JSX.Element {
           </label>
           <div className="settings-hint">{t('settings.diagnosticLoggingDesc')}</div>
           <div className="settings-button-row">
-            <button
-              className="dialog-button"
-              onClick={() => {
-                void (async () => {
-                  const info = await rpc.request<{ directory: string; currentLog: string | null }>(
-                    'settings/logInfo'
-                  )
-                  await window.novalist.revealPath(info.directory)
-                })()
-              }}
-            >
-              {t('settings.openLogFolder')}
-            </button>
-            <button
-              className="dialog-button"
-              onClick={() => {
-                void (async () => {
-                  const info = await rpc.request<{ directory: string; currentLog: string | null }>(
-                    'settings/logInfo'
-                  )
-                  if (info.currentLog) await window.novalist.openExternal(info.currentLog)
-                  else await window.novalist.revealPath(info.directory)
-                })()
-              }}
-            >
-              {t('settings.openCurrentLog')}
-            </button>
+            {/* Revealing / opening the log in a file manager has no iOS equivalent
+                (revealPath is a no-op in the sandbox), so hide those on mobile and
+                keep only Clear logs. A "share log" action is a later addition. */}
+            {!isMobile && (
+              <>
+                <button
+                  className="dialog-button"
+                  onClick={() => {
+                    void (async () => {
+                      const info = await rpc.request<{
+                        directory: string
+                        currentLog: string | null
+                      }>('settings/logInfo')
+                      await window.novalist.revealPath(info.directory)
+                    })()
+                  }}
+                >
+                  {t('settings.openLogFolder')}
+                </button>
+                <button
+                  className="dialog-button"
+                  onClick={() => {
+                    void (async () => {
+                      const info = await rpc.request<{
+                        directory: string
+                        currentLog: string | null
+                      }>('settings/logInfo')
+                      if (info.currentLog) await window.novalist.openExternal(info.currentLog)
+                      else await window.novalist.revealPath(info.directory)
+                    })()
+                  }}
+                >
+                  {t('settings.openCurrentLog')}
+                </button>
+              </>
+            )}
             <button
               className="dialog-button"
               onClick={() => void rpc.request('settings/clearLogs')}
@@ -738,6 +757,15 @@ export function SettingsView(): React.JSX.Element {
       standalone: true
     }
   ]
+
+  // Whole sections that only make sense on desktop. Hotkeys need a physical
+  // keyboard; Updates/Integrations covers store-delivered self-update, extension
+  // updates, and the GitHub token (Git is external on mobile); Extensions are
+  // deferred on mobile (App Store remote-code rules).
+  const HIDDEN_ON_MOBILE = new Set(['hotkeys', 'updatesIntegrations', 'extensions'])
+  const visibleSections = isMobile
+    ? sections.filter((s) => !HIDDEN_ON_MOBILE.has(s.key))
+    : sections
 
   const query = search.trim().toLowerCase()
   const sectionVisible = (s: SectionDef): boolean =>
@@ -766,7 +794,7 @@ export function SettingsView(): React.JSX.Element {
 
       <div className="settings-layout">
         <nav className="settings-nav">
-          {sections.map((s) => (
+          {visibleSections.map((s) => (
             <button key={s.key} className="settings-nav-item" onClick={() => jumpTo(s.key)}>
               {t(s.titleKey)}
             </button>
@@ -774,7 +802,7 @@ export function SettingsView(): React.JSX.Element {
         </nav>
 
         <div className="settings-sections">
-          {sections.map((s) =>
+          {visibleSections.map((s) =>
             sectionVisible(s) ? (
               s.standalone ? (
                 <div

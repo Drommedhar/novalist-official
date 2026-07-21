@@ -21,7 +21,9 @@ Companion to `docs/mobile-port-plan.md` (architecture) and `docs/mobile-phase0-r
 - Done: editor zoom-trap fix, touch chapter/scene CRUD (+dialogs), settings-load-at-boot,
   git UI hidden, native tab-bar localization (web pushes localized titles, re-push on
   language change; verified de on the simulator), portrait+landscape (safe-area insets on
-  all sides + a native-measured tab-bar bottom inset that tracks rotation).
+  all sides + a native-measured tab-bar bottom inset that tracks rotation), mobile settings
+  filter (hides Hotkeys / Updates+Integrations / Extensions / Watch-filesystem / log-folder
+  reveal; keeps Appearance, Editor, Writing Goals, Writing Assistance, Templates, Diagnostics).
 
 ---
 
