@@ -267,8 +267,20 @@ public sealed partial class Workspace : IDisposable
     {
         if (string.IsNullOrEmpty(path) || !File.Exists(path))
             return null;
-        var bytes = await File.ReadAllBytesAsync(path);
-        return $"data:{MimeForExtension(Path.GetExtension(path))};base64,{Convert.ToBase64String(bytes)}";
+        try
+        {
+            var bytes = await File.ReadAllBytesAsync(path);
+            return $"data:{MimeForExtension(Path.GetExtension(path))};base64,{Convert.ToBase64String(bytes)}";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            // The cover must never take down the recents list. Under the macOS App
+            // Sandbox a recent project we don't currently hold access to — e.g. one
+            // in iCloud Drive, whose cover file may be dataless — passes File.Exists
+            // but throws on read. Degrade to no thumbnail instead of failing
+            // GetRecentProjectsAsync (which would leave the start screen empty).
+            return null;
+        }
     }
 
     internal static string MimeForExtension(string extension)

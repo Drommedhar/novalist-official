@@ -276,9 +276,15 @@ Open items requiring on-device work / a product decision:
   process is shared with the child through the container, but confirm the backend
   still reads/writes the project after a `backend-restarted` supervisor restart.
 - **Recent-project cover thumbnails.** `project/recent` reads each stored
-  `CoverImagePath` on boot before any project is open; if a cover lives in a
-  not-yet-accessible folder the thumbnail simply won't load (no crash). Acceptable
-  to start; revisit if it looks bad.
+  `CoverImagePath` on boot, before any project is open. Under the sandbox that
+  file is not accessible (it lives in a project folder no bookmark has been
+  resolved for yet), and the read *threw* — which took down the whole
+  `project/recent` response and left the start screen with **no recents at all**.
+  Fixed: `LoadCoverDataUriAsync` now swallows the read failure and returns no
+  thumbnail, so the recents list always loads (verified on-device). The covers
+  themselves stay blank in the MAS build until we resolve each recent's
+  security-scoped bookmark before reading its cover — a follow-up enhancement, not
+  a blocker.
 - **Architecture (decided: arm64-only for now).** The App Store accepts one build
   per app version, so the MAS job builds **arm64 only** — a single Apple Silicon
   build with no ambiguity about which to submit. Intel Macs are still covered
