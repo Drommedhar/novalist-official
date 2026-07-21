@@ -29,7 +29,16 @@ export class BackendProcess {
     const env = {
       ...process.env,
       NOVALIST_SETTINGS_DIR: preset ?? app.getPath('userData'),
-      ...(preset ? {} : { NOVALIST_ALLOW_LEGACY_MIGRATION: '1' })
+      ...(preset ? {} : { NOVALIST_ALLOW_LEGACY_MIGRATION: '1' }),
+      // macOS only: the self-contained single-file backend extracts native libs
+      // at startup. Its default target ($TMPDIR) is fine for the Developer ID
+      // build, but under the Mac App Store sandbox it must live inside the app's
+      // container. userData is always container-local, so point the extractor
+      // there on darwin. Left unset on Windows/Linux to keep their default (and
+      // avoid re-extracting into a non-temp dir every launch).
+      ...(process.platform === 'darwin'
+        ? { DOTNET_BUNDLE_EXTRACT_BASE_DIR: join(app.getPath('userData'), 'backend-cache') }
+        : {})
     }
     const child = spawn(exe, [], { stdio: ['pipe', 'pipe', 'pipe'], env })
     this.child = child

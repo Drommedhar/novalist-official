@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Hardened-runtime entitlements for the Developer ID (direct download) build.
+    Notarization requires the hardened runtime; these exceptions are what an
+    Electron shell that also spawns a self-contained .NET backend needs:
+      - allow-jit / allow-unsigned-executable-memory: V8 (Chromium) JITs.
+      - disable-library-validation: the bundled .NET single-file backend
+        extracts and loads native libs at runtime whose signature is not the
+        app's team signature; without this, dyld refuses to load them.
+      - allow-dyld-environment-variables: the backend is launched with a
+        custom environment (see backend-process.ts).
+    This is NOT the App Sandbox — Developer ID apps are not sandboxed. See
+    entitlements.mas.plist for the Mac App Store build.
+  -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+  <true/>
+  <key>com.apple.security.cs.disable-library-validation</key>
+  <true/>
+  <key>com.apple.security.cs.allow-dyld-environment-variables</key>
+  <true/>
+</dict>
+</plist>

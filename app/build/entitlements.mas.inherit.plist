@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    MAS entitlements INHERITED by child processes: the Electron helper apps
+    (GPU / Renderer / Plugin) and the spawned .NET backend. The `inherit` key
+    tells the sandbox each child runs inside the parent's container and shares
+    its granted resources, rather than declaring its own sandbox. Do not add
+    file/network keys here — children inherit the parent's grants.
+  -->
+  <key>com.apple.security.app-sandbox</key>
+  <true/>
+  <key>com.apple.security.inherit</key>
+  <true/>
+</dict>
+</plist>

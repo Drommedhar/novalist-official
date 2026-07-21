@@ -185,7 +185,18 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   openProject: async (path) => {
-    const state = await rpc.request<ProjectStateDto>('project/open', [path])
+    // On the sandboxed Mac App Store build, a project reopened from a stored path
+    // (e.g. a recent-project card) needs its security-scoped bookmark resolved
+    // before the backend can touch the files. beginProjectAccess returns true
+    // immediately on every non-MAS build, so this is a no-op there. If it fails
+    // (no usable bookmark), re-prompt for the folder to regrant access.
+    let target = path
+    if (!(await window.novalist.beginProjectAccess(target))) {
+      const repicked = await window.novalist.pickFolder('Novalist')
+      if (!repicked) return
+      target = repicked
+    }
+    const state = await rpc.request<ProjectStateDto>('project/open', [target])
     get().applyState(state)
   },
 
