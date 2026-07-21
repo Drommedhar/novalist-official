@@ -117,12 +117,14 @@ const novalist: Window['novalist'] = {
     void hostCall('setTabTitles', [titles])
   },
   readClipboardImage: () => hostCall<string | null>('readClipboardImage', []),
-  // App-container storage (Phase 2): every project path is inside the sandbox and
-  // always accessible, so these are no-ops. Security-scoped external folders are
-  // a later addition.
   setProjectRoot: () => {},
-  beginProjectAccess: async () => true,
-  endProjectAccess: () => {},
+  // Security-scoped external folders: resolve the native bookmark and start/stop
+  // access around opening a project (mirrors the Mac App Store contract). A false
+  // result makes the renderer re-prompt for the folder.
+  beginProjectAccess: (path: string) => hostCall<boolean>('beginProjectAccess', [path]),
+  endProjectAccess: (path: string) => {
+    void hostCall('endProjectAccess', [path])
+  },
   registerExtensionRoots: () => {},
   // Store-delivered updates: no self-update on mobile.
   checkAppUpdate: async () => null,

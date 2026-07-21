@@ -17,7 +17,8 @@ Companion to `docs/mobile-port-plan.md` (architecture) and `docs/mobile-phase0-r
 
 - MAUI iOS shell hosts the real renderer over the in-process backend; native Liquid Glass
   tab bar (Dashboard / Write / Codex / Search / More); single-pane layout.
-- Storage: app-container only (pickFolder returns a sandbox dir). Git: stubbed unavailable.
+- Storage: real external folders via the iOS document picker + security-scoped bookmarks
+  (open a Git repo folder cloned by an external client). Git ops: stubbed unavailable.
 - Done: editor zoom-trap fix, touch chapter/scene CRUD (+dialogs), settings-load-at-boot,
   git UI hidden, native tab-bar localization (web pushes localized titles, re-push on
   language change; verified de on the simulator), portrait+landscape (safe-area insets on

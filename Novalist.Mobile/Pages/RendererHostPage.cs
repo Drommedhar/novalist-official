@@ -6,6 +6,7 @@ using Microsoft.Maui.Storage;
 using Nerdbank.Streams;
 using Novalist.Backend;
 using Novalist.Core.Services;
+using Novalist.Mobile.Services;
 #if IOS
 using UIKit;
 using WebKit;
@@ -260,12 +261,19 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         {
             case "pickFolder":
             {
-                // App-container storage: projects live under a writable sandbox dir.
-                // No external folder picker yet (security-scoped URLs come later).
-                var dir = Path.Combine(FileSystem.Current.AppDataDirectory, "Projects");
-                Directory.CreateDirectory(dir);
-                return dir;
+                // Real external-folder picker: the iOS document picker returns a
+                // security-scoped folder URL (e.g. an iCloud/Files/Working-Copy repo
+                // folder). SecurityScopedFolders persists a bookmark and keeps the
+                // scope open so the backend can read/write it. Null on cancel.
+                return await SecurityScopedFolders.PickFolderAsync().ConfigureAwait(false);
             }
+            case "beginProjectAccess":
+                // Mirror the MAS contract: resolve the stored bookmark and start
+                // access; false lets the renderer re-prompt for the folder.
+                return SecurityScopedFolders.BeginAccess(ArgString(args, 0));
+            case "endProjectAccess":
+                SecurityScopedFolders.EndAccess(ArgString(args, 0));
+                return null;
             case "pickFile":
             {
                 var options = new PickOptions { PickerTitle = ArgString(args, 0) };
