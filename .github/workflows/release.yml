@@ -166,10 +166,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # App Store: arm64-only for now. The App Store accepts one build per app
+        # version, so shipping a single Apple Silicon build avoids the "two builds,
+        # submit one" problem. Intel users are still covered natively by the DMG.
+        # To go universal later, ship both backends + pick by process.arch and
+        # build the Electron app with --universal (see docs/macos-signing.md).
         include:
-          - arch: x64
-            rid: osx-x64
-            eb_flags: --mac mas --x64
           - arch: arm64
             rid: osx-arm64
             eb_flags: --mac mas --arm64

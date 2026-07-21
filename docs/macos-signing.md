@@ -279,12 +279,14 @@ Open items requiring on-device work / a product decision:
   `CoverImagePath` on boot before any project is open; if a cover lives in a
   not-yet-accessible folder the thumbnail simply won't load (no crash). Acceptable
   to start; revisit if it looks bad.
-- **Architecture / universal build.** The job builds arm64 and x64 as separate
-  `.pkg`s with distinct build numbers. App Store Connect lets you upload multiple
-  builds but you submit **one** per app version, so a per-arch build excludes the
-  other architecture's users. The App Store norm is a single **universal** build —
-  which for Novalist means a universal (lipo'd or dual) backend selected at
-  runtime. Decide this before the first real submission.
+- **Architecture (decided: arm64-only for now).** The App Store accepts one build
+  per app version, so the MAS job builds **arm64 only** — a single Apple Silicon
+  build with no ambiguity about which to submit. Intel Macs are still covered
+  natively by the Developer ID DMG. To go **universal** later (native on both
+  Intel and Apple Silicon in one App Store build): ship both per-arch backends in
+  the bundle, pick the right one at runtime by `process.arch` in
+  [backend-process.ts](../app/src/main/backend-process.ts), and build the Electron
+  app with `--universal`. Deferred until Intel App Store coverage is needed.
 
 Recommended path: install the build from TestFlight (internal testers, no review
 needed), exercise open/reopen/import/export, fix whatever the sandbox surfaces,
