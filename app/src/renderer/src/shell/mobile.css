@@ -105,6 +105,37 @@
   cursor: pointer;
 }
 
+/* Codex is single-pane on mobile: the list and the detail each take the full
+   width (CodexView renders one at a time), so drop the fixed-width side list. */
+.shell.mobile .codex-body-mobile {
+  display: block;
+}
+
+.shell.mobile .codex-body-mobile .codex-list {
+  width: 100%;
+  min-width: 0;
+  border-right: none;
+}
+
+.shell.mobile .codex-body-mobile .codex-detail {
+  width: 100%;
+}
+
+.shell.mobile .codex-detail-back {
+  margin-bottom: var(--nl-space-md);
+}
+
+/* The entity-type tabs can exceed a phone's width; scroll them instead of wrapping. */
+.shell.mobile .codex-tabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shell.mobile .codex-tabs .codex-tab {
+  flex: 0 0 auto;
+}
+
 /* Book + Draft selectors surfaced at the top of the mobile binder (they live in
    the hidden desktop toolbar otherwise). */
 .mobile-bookdraft {

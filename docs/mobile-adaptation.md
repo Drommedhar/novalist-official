@@ -30,7 +30,8 @@ Companion to `docs/mobile-port-plan.md` (architecture) and `docs/mobile-phase0-r
   tab bar hides while it is up), editor mobile mode (full-width text - no 18em comment
   gutter, comments as inline highlights - + touch-sized selection toolbar / context menu),
   binder Move up/down (touch reorder via the row menu) + a mobile Book/Draft selector bar
-  at the top of the binder.
+  at the top of the binder, and a single-pane Codex (list <-> full-width detail with a back
+  button; type tabs scroll horizontally).
 
 ---
 
