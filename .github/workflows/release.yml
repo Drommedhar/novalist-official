@@ -13,7 +13,9 @@ env:
 jobs:
   publish:
     name: Publish ${{ matrix.label }}
-    if: startsWith(github.ref, 'refs/tags/')
+    # Tags do a real release; a manual workflow_dispatch is a dry-run that builds
+    # and signs but publishes nothing (the release job stays tag-only).
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: ${{ matrix.os }}
     permissions:
       contents: read
@@ -141,7 +143,10 @@ jobs:
   # App Store side is fully set up. See docs/macos-signing.md.
   mac-app-store:
     name: Mac App Store ${{ matrix.arch }}
-    if: startsWith(github.ref, 'refs/tags/')
+    # Dry-run on manual dispatch: builds and signs the .pkg but skips the App
+    # Store Connect upload (that step is tag-only), so you can inspect the pkg
+    # artifact without consuming a build number.
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     permissions:
       contents: read
@@ -229,6 +234,8 @@ jobs:
         run: npx electron-builder --config electron-builder.yml ${{ matrix.eb_flags }} -p never
 
       - name: Upload to App Store Connect
+        # Tag releases only — never upload a build during a manual dry-run.
+        if: startsWith(github.ref, 'refs/tags/')
         working-directory: app
         shell: bash
         env:
@@ -258,6 +265,9 @@ jobs:
 
   sdk-and-example:
     name: Pack SDK & Example Extension
+    # Tag releases only: this job publishes to NuGet and commits a version bump to
+    # the default branch, so it must never run during a manual dry-run.
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
