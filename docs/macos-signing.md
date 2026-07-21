@@ -72,17 +72,27 @@ key once.
    types. Only the **Account Holder** can create Developer ID certificates.
 
 3. Bundle the downloaded `.cer` with the private key into a password-protected
-   `.p12`. Apple's `.cer` is DER-encoded, so convert it first:
+   `.p12`. Apple's `.cer` is DER-encoded, so convert it first.
+
+   **Critical:** OpenSSL 3 defaults to AES-256 + SHA-256 PKCS#12 encryption,
+   which macOS's `/usr/bin/security import` (used by the CI runner) CANNOT read —
+   it fails with the misleading `MAC verification failed during PKCS12 import
+   (wrong password?)` even when the password is correct. Export with the
+   **legacy** algorithms (SHA1 + 3DES) so `security import` accepts it:
 
    ```bash
    MSYS_NO_PATHCONV=1 openssl x509 -inform DER -in downloaded.cer -out cert.pem
    MSYS_NO_PATHCONV=1 openssl pkcs12 -export \
+     -legacy -macalg sha1 -keypbe PBE-SHA1-3DES -certpbe PBE-SHA1-3DES \
      -inkey novalist.key -in cert.pem \
      -name "Developer ID Application" \
      -passout pass:"YOUR_EXPORT_PASSWORD" \
      -out novalist.p12
    ```
 
+   Verify the format is legacy (`openssl pkcs12 -in novalist.p12 -passin
+   pass:… -noout -info` should show `MAC: sha1` and
+   `pbeWithSHA1And3-KeyTripleDES-CBC`, NOT `AES-256-CBC` / `hmacWithSHA256`).
    The export password becomes the matching `*_KEY_PASSWORD` secret.
 
 4. Sanity checks — confirm the cert type and that it matches your key:
