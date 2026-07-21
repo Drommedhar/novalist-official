@@ -42,8 +42,14 @@ const viewIcons: Partial<Record<MainView, IconComponent>> = {
   git: FolderGit2
 }
 
+// Views unavailable in the mobile sandbox, hidden from the activity bar there.
+// Phase 3: Git/versioning (no `git` binary on iOS/Android). Phase 4 may extend this.
+const mobileHiddenViews = new Set<MainView>(['git'])
+const EMPTY_HIDDEN_VIEWS = new Set<MainView>()
+
 export function ActivityBar(): React.JSX.Element {
   const { t } = useTranslation()
+  const hiddenViews = window.novalist.isMobile ? mobileHiddenViews : EMPTY_HIDDEN_VIEWS
   const mainView = useShellStore((s) => s.mainView)
   const extView = useShellStore((s) => s.extView)
   const setMainView = useShellStore((s) => s.setMainView)
@@ -53,10 +59,13 @@ export function ActivityBar(): React.JSX.Element {
   return (
     <nav className="activity-bar" aria-label={t('shell.activityBar')}>
       <div className="activity-bar-top">
-        {activityGroups.map((group, groupIndex) => (
+        {activityGroups.map((group, groupIndex) => {
+          const views = group.views.filter((view) => !hiddenViews.has(view))
+          if (views.length === 0) return null
+          return (
           <div key={group.key} className="activity-bar-group">
             {groupIndex > 0 && <div className="activity-bar-sep" />}
-            {group.views.map((view) => {
+            {views.map((view) => {
               const Icon = viewIcons[view]
               if (!Icon) return null
               const active = !extView && mainView === view
@@ -75,7 +84,8 @@ export function ActivityBar(): React.JSX.Element {
               )
             })}
           </div>
-        ))}
+          )
+        })}
         {extViews.length > 0 && (
           <div className="activity-bar-group">
             <div className="activity-bar-sep" />

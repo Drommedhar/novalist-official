@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-src 'self' data:; connect-src 'self'"
+    />
+    <!-- MAUI HybridWebView (.NET 10) serves its JS bridge library here but does
+         NOT auto-inject it; the page must reference it. This defines
+         window.HybridWebView (SendRawMessage / InvokeDotNet). Must load before the
+         shim uses it. -->
+    <script src="_framework/hybridwebview.js"></script>
+
+    <title>Novalist</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Mobile shim installs window.novalist (incl. the HybridWebView transport)
+         before the app boots. Must precede main.tsx. -->
+    <script type="module" src="/src/mobile/shim.ts"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

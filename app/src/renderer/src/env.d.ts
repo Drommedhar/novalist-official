@@ -22,6 +22,9 @@ interface Window {
   novalist: {
     material: 'glass' | 'vibrancy' | 'opaque'
     platform: NodeJS.Platform
+    // True on the mobile (MAUI) build. Undefined on desktop. Gates capabilities
+    // unavailable in the sandbox (e.g. Git/versioning UI).
+    isMobile?: boolean
     isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void
