@@ -1,4 +1,13 @@
 {
+  "mobile": {
+    "tab": {
+      "dashboard": "仪表盘",
+      "write": "写作",
+      "codex": "百科",
+      "search": "搜索",
+      "more": "更多"
+    }
+  },
   "splash": {
     "loading": "正在加载...",
     "applyingSettings": "正在应用设置...",

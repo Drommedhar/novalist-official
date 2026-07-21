@@ -19,13 +19,33 @@ import './mobile.css'
  * world / publish views are feature-flagged off (see ActivityBar mobileHiddenViews).
  */
 export function MobileShell(): React.JSX.Element {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const tab = useShellStore((s) => s.mobileTab)
   const setTab = useShellStore((s) => s.setMobileTab)
   const setFindReplaceOpen = useShellStore((s) => s.setFindReplaceOpen)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const closeTab = useProjectStore((s) => s.closeTab)
+
+  // Localize the native iOS tab bar: the native side ships English fallbacks; the
+  // web owns i18n, so push translated titles (in the native tab order) on mount
+  // and whenever the language changes.
+  useEffect(() => {
+    const push = (): void => {
+      window.novalist.setTabTitles?.([
+        t('mobile.tab.dashboard'),
+        t('mobile.tab.write'),
+        t('mobile.tab.codex'),
+        t('mobile.tab.search'),
+        t('mobile.tab.more')
+      ])
+    }
+    push()
+    i18n.on('languageChanged', push)
+    return () => {
+      i18n.off('languageChanged', push)
+    }
+  }, [t, i18n])
 
   // Bridge for the native UITabBar (RendererHostPage -> EvaluateJavaScript).
   useEffect(() => {

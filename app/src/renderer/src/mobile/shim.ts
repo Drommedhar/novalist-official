@@ -111,6 +111,11 @@ const novalist: Window['novalist'] = {
   setNavVisible: (visible: boolean) => {
     void hostCall('setNavVisible', [visible])
   },
+  // Mobile-only: push localized titles onto the native tab bar, in tab order
+  // (dashboard, manuscript, codex, search, more). Re-pushed on language change.
+  setTabTitles: (titles: string[]) => {
+    void hostCall('setTabTitles', [titles])
+  },
   readClipboardImage: () => hostCall<string | null>('readClipboardImage', []),
   // App-container storage (Phase 2): every project path is inside the sandbox and
   // always accessible, so these are no-ops. Security-scoped external folders are

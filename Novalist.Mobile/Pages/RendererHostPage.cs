@@ -82,11 +82,16 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     // (The web content insets its bottom padding by --nl-mobile-tabbar-h.)
     private UITabBar? _tabBar;
 
+    // Last localized titles pushed by the web (setTabTitles), in tab order. Held
+    // so titles that arrive before the bar is built (or a rebuild) still apply.
+    private string[]? _tabTitles;
+
     private static readonly (string Key, string Title, string Symbol)[] Tabs =
     {
         ("dashboard", "Dashboard", "square.grid.2x2"),
         // key stays "manuscript" (internal); "Write" avoids clashing with the
-        // desktop Manuscript (corkboard) view.
+        // desktop Manuscript (corkboard) view. English titles here are only the
+        // pre-localization fallback; the web pushes localized ones via setTabTitles.
         ("manuscript", "Write", "square.and.pencil"),
         ("codex", "Codex", "person.2"),
         ("search", "Search", "magnifyingglass"),
@@ -109,6 +114,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         _tabBar = new UITabBar { TranslatesAutoresizingMaskIntoConstraints = false, Hidden = true };
         _tabBar.SetItems(items, animated: false);
         _tabBar.SelectedItem = items[0];
+        ApplyTabTitles();   // adopt any titles the web pushed before the bar existed
         // "Search" and "More" that map to a dialog/sheet should not stick as the
         // selected tab; the web decides. We only forward the tap.
         _tabBar.ItemSelected += (_, e) => OnNativeTabSelected((int)e.Item.Tag);
@@ -127,6 +133,15 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         if (tag < 0 || tag >= Tabs.Length) return;
         var key = Tabs[tag].Key;
         _ = EvalOnMainAsync($"window.__novalistTab && window.__novalistTab('{key}')");
+    }
+
+    // Push the web's localized titles onto the live UITabBarItems (main thread).
+    private void ApplyTabTitles()
+    {
+        if (_tabBar?.Items is not { } items || _tabTitles == null) return;
+        var count = Math.Min(items.Length, _tabTitles.Length);
+        for (var i = 0; i < count; i++)
+            items[i].Title = _tabTitles[i];
     }
 #endif
 
@@ -261,6 +276,23 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 {
                     if (_tabBar != null) _tabBar.Hidden = !visible;
                 });
+#endif
+                return null;
+            }
+            case "setTabTitles":
+            {
+                // args[0] = localized titles in tab order (dashboard, manuscript,
+                // codex, search, more). Pushed by the web on mount + language change.
+                var titles = new List<string>();
+                if (args.ValueKind == JsonValueKind.Array && args.GetArrayLength() > 0
+                    && args[0].ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var el in args[0].EnumerateArray())
+                        titles.Add(el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "");
+                }
+#if IOS
+                _tabTitles = titles.ToArray();
+                await MainThread.InvokeOnMainThreadAsync(ApplyTabTitles);
 #endif
                 return null;
             }

@@ -1,4 +1,13 @@
 {
+  "mobile": {
+    "tab": {
+      "dashboard": "Dashboard",
+      "write": "Schreiben",
+      "codex": "Codex",
+      "search": "Suche",
+      "more": "Mehr"
+    }
+  },
   "splash": {
     "loading": "Laden...",
     "applyingSettings": "Einstellungen werden angewendet...",

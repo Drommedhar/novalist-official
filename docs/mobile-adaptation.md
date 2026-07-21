@@ -19,7 +19,8 @@ Companion to `docs/mobile-port-plan.md` (architecture) and `docs/mobile-phase0-r
   tab bar (Dashboard / Write / Codex / Search / More); single-pane layout.
 - Storage: app-container only (pickFolder returns a sandbox dir). Git: stubbed unavailable.
 - Done: editor zoom-trap fix, touch chapter/scene CRUD (+dialogs), settings-load-at-boot,
-  git UI hidden.
+  git UI hidden, native tab-bar localization (web pushes localized titles, re-push on
+  language change; verified de on the simulator).
 
 ---
 

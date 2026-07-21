@@ -27,6 +27,8 @@ interface Window {
     isMobile?: boolean
     // Mobile-only: show/hide the native Liquid Glass tab bar (project vs welcome).
     setNavVisible?(visible: boolean): void
+    // Mobile-only: push localized titles onto the native tab bar (tab order).
+    setTabTitles?(titles: string[]): void
     isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void
