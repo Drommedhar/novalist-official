@@ -111,7 +111,12 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         for (var i = 0; i < Tabs.Length; i++)
             items[i] = new UITabBarItem(Tabs[i].Title, UIImage.GetSystemImage(Tabs[i].Symbol), i) { Tag = i };
 
-        _tabBar = new UITabBar { TranslatesAutoresizingMaskIntoConstraints = false, Hidden = true };
+        var bar = new MetricsTabBar { TranslatesAutoresizingMaskIntoConstraints = false, Hidden = true };
+        // Re-measure whenever the bar lays out (first appearance, rotation): the
+        // iOS 26 floating tab bar has a different height/position in landscape, so
+        // the web's bottom inset must follow the real frame rather than a constant.
+        bar.LayoutChanged = PushTabBarMetrics;
+        _tabBar = bar;
         _tabBar.SetItems(items, animated: false);
         _tabBar.SelectedItem = items[0];
         ApplyTabTitles();   // adopt any titles the web pushed before the bar existed
@@ -142,6 +147,35 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         var count = Math.Min(items.Length, _tabTitles.Length);
         for (var i = 0; i < count; i++)
             items[i].Title = _tabTitles[i];
+    }
+
+    // Tell the web how much vertical space the (bottom-pinned) tab bar covers, so
+    // .mobile-content can inset its bottom to clear it. The bar's bottom is the
+    // screen bottom, so its frame height is the covered strip (already spanning the
+    // home-indicator zone). Re-pushed on every layout so it tracks rotation.
+    private double _lastPushedTabH = -1;
+
+    private void PushTabBarMetrics()
+    {
+        if (_tabBar == null) return;
+        var h = Math.Round(_tabBar.Frame.Height);
+        if (h <= 0 || Math.Abs(h - _lastPushedTabH) < 0.5) return;   // unchanged layout
+        _lastPushedTabH = h;
+        var px = h.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        _ = EvalOnMainAsync(
+            $"document.documentElement.style.setProperty('--nl-mobile-tabbar-h','{px}px')");
+    }
+
+    // UITabBar that reports its layout so the web inset can track the real frame.
+    private sealed class MetricsTabBar : UITabBar
+    {
+        public Action? LayoutChanged;
+
+        public override void LayoutSubviews()
+        {
+            base.LayoutSubviews();
+            LayoutChanged?.Invoke();
+        }
     }
 #endif
 

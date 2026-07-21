@@ -29,7 +29,14 @@
   overflow: auto;
   -webkit-overflow-scrolling: touch;
   padding-top: env(safe-area-inset-top);
-  /* Sit above the native tab bar + home indicator. */
+  /* Clear the side notch / Dynamic Island in landscape (0 in portrait). */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  /* Clear the native floating tab bar. RendererHostPage measures the real
+     (bottom-pinned) tab-bar frame and pushes it as --nl-mobile-tabbar-h on every
+     layout / rotation. Add the bottom safe-area inset so the last content clears
+     the floating pill comfortably (it sits above the home indicator) in both
+     orientations - a small extra gap is preferable to clipping on-device. */
   padding-bottom: calc(var(--nl-mobile-tabbar-h) + env(safe-area-inset-bottom));
 }
 
@@ -39,6 +46,8 @@
   align-items: center;
   padding: var(--nl-space-sm) var(--nl-space-md);
   padding-top: calc(env(safe-area-inset-top) + var(--nl-space-sm));
+  padding-left: calc(env(safe-area-inset-left) + var(--nl-space-md));
+  padding-right: calc(env(safe-area-inset-right) + var(--nl-space-md));
   border-bottom: 1px solid var(--nl-border-subtle);
   background: var(--nl-surface-toolbar);
 }
