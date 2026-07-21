@@ -18,6 +18,8 @@ export interface EditorWindow extends Window {
   ): void
   setFont(family: string, size: number): void
   setLanguage(lang: string): void
+  /** Mobile mode: full-width text (no margin comment gutter) + touch-sized UI. */
+  setMobile(enabled: boolean): void
   setTypewriterScroll(enabled: boolean, anchor: string): void
   setPageView(enabled: boolean): void
   setBookParagraphSpacing(enabled: boolean): void

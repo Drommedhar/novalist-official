@@ -423,6 +423,8 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           editorRef.current = live
           pushEditorTheme(live)
           live.setLanguage(i18n.language.startsWith('de') ? 'de' : 'en')
+          // Mobile: full-width text (no 18em comment gutter) + touch-sized toolbar.
+          live.setMobile(window.novalist.isMobile === true)
           // Content loads synchronously so typing can never race a deferred
           // setContent; the settings push is made non-destructive instead.
           const state = useProjectStore.getState()

@@ -240,6 +240,20 @@ body { display: flex; justify-content: center; }
     z-index: 5;
 }
 body.has-comments { padding-right: 18em; }
+/* Mobile: an 18em margin gutter has no room on a phone, so reclaim the width and
+   show comments as inline highlights only (.nv-comment). Touch targets on the
+   floating selection toolbar and the context menu are enlarged. */
+body.mobile.has-comments { padding-right: 0; }
+body.mobile #commentGutter { display: none; }
+body.mobile #floating-toolbar button {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 15px;
+    padding: 6px 10px;
+}
+body.mobile #floating-toolbar .ft-sep { height: 24px; }
+body.mobile #context-menu .cm-item { padding: 10px 14px; font-size: 15px; }
+body.mobile #context-menu .cm-suggestion { padding: 8px 14px; }
 .nv-cc-card {
     position: absolute;
     left: 0.5em;
@@ -850,6 +864,11 @@ let pageViewEnabled = false;
 let pageViewRepaginateScheduled = false;
 let pageViewMutationObserver = null;
 let pageViewRepaginating = false;
+
+function setMobile(enabled) {
+    // Full-width text (drop the margin comment gutter) + touch-sized controls.
+    document.body.classList.toggle('mobile', !!enabled);
+}
 
 function setPageView(enabled) {
     pageViewEnabled = !!enabled;

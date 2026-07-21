@@ -27,7 +27,8 @@ Companion to `docs/mobile-port-plan.md` (architecture) and `docs/mobile-phase0-r
   reveal; keeps Appearance, Editor, Writing Goals, Writing Assistance, Templates, Diagnostics),
   external-folder picker + security-scoped bookmarks, and the writing-hub bottom sheet
   (Inspector button in the editor raises Context / Footnotes / Scene Notes tabs; the native
-  tab bar hides while it is up).
+  tab bar hides while it is up), editor mobile mode (full-width text - no 18em comment
+  gutter, comments as inline highlights - + touch-sized selection toolbar / context menu).
 
 ---
 
