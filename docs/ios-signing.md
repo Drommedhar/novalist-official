@@ -35,11 +35,29 @@ of the macOS pieces, so most of the hard setup is already done.
    Apple Distribution certificate** used for the Mac App Store build (so the CI cert
    secret matches) -> download the `.mobileprovision`.
 
-## The one new secret
+## The new secrets
 
 | Secret | Value |
 | --- | --- |
 | `IOS_APPSTORE_PROVISION_BASE64` | base64 of the iOS App Store `.mobileprovision` |
+| `IOS_DIST_CSC_LINK` | base64 of the `.p12` for the Apple Distribution cert the profile is tied to |
+| `IOS_DIST_CSC_KEY_PASSWORD` | that `.p12`'s export password |
+
+`IOS_DIST_CSC_*` are only needed when the iOS App Store profile is tied to a
+**different** Apple Distribution certificate than the Mac App Store build (e.g. you
+created a fresh cert during iOS setup — you can end up with two "Apple Distribution"
+certs of the same name but different serials, and the profile matches exactly one).
+If the profile reuses the Mac App Store's cert, leave these unset and the job falls
+back to `MAS_CSC_LINK`.
+
+To build the `.p12` from the `.cer` you downloaded plus the private key from your
+CSR (Windows, Git Bash / OpenSSL — same as the MAS cert in `docs/macos-signing.md`):
+
+```sh
+openssl x509 -inform DER -in ios_distribution.cer -out ios_distribution.pem
+openssl pkcs12 -export -inkey ios_distribution_key.pem -in ios_distribution.pem -out ios_dist.p12
+# then base64 ios_dist.p12 -> IOS_DIST_CSC_LINK, export password -> IOS_DIST_CSC_KEY_PASSWORD
+```
 
 Encode it the same way as the macOS profile (see `docs/macos-signing.md`):
 
