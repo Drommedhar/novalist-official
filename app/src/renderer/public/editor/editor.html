@@ -2922,7 +2922,15 @@ editor.addEventListener('mousedown', (e) => {
         if (id) sendMessage({ type: 'entityMentionHover', entityId: id, x: rect.left, y: rect.bottom });
         return;
     }
-    // Tapping plain text dismisses any shown peek.
+    // Most entity references in prose are plain text (auto-detected), not explicit
+    // mention spans, so resolve the entity at the tap point and peek that.
+    const alias = (typeof findEntityAtPoint === 'function') ? findEntityAtPoint(e.clientX, e.clientY) : null;
+    if (alias) {
+        e.preventDefault();
+        sendMessage({ type: 'entityHover', alias: alias, x: e.clientX, y: e.clientY });
+        return;
+    }
+    // Tapping plain text with no entity dismisses any shown peek.
     sendMessage({ type: 'entityExit' });
 });
 
