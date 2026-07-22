@@ -7,8 +7,9 @@ import { DashboardView } from '../views/dashboard/DashboardView'
 import { CodexView } from '../views/codex/CodexView'
 import { SettingsView } from '../views/settings/SettingsView'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
-import { useShellStore, type MobileTab } from '../stores/shellStore'
+import { useShellStore, type MobileTab, type MainView } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
+import { useCodexStore } from '../stores/codexStore'
 import './mobile.css'
 
 /**
@@ -58,6 +59,11 @@ export function MobileShell(): React.JSX.Element {
         setFindReplaceOpen(true)
         return
       }
+      // Tapping the Codex tab always returns to its list root (clears any open
+      // entity detail), so it behaves like re-tapping a native tab.
+      if (key === 'codex') {
+        useCodexStore.setState({ selectedId: null, selectedRecord: null })
+      }
       setTab(key as MobileTab)
     }
     return () => {
@@ -71,6 +77,20 @@ export function MobileShell(): React.JSX.Element {
   useEffect(() => {
     window.novalist.setNavVisible?.(!inspectorOpen)
   }, [inspectorOpen])
+
+  // Mobile navigates via the tab, but several views gate their data fetch on
+  // mainView (e.g. DashboardView only fetches when mainView === 'dashboard').
+  // Keep mainView in sync with the tab so those views load on return instead of
+  // getting stuck on "Connecting to core".
+  useEffect(() => {
+    const map: Record<MobileTab, MainView> = {
+      dashboard: 'dashboard',
+      manuscript: 'write',
+      codex: 'codex',
+      more: 'settings'
+    }
+    useShellStore.getState().setMainView(map[tab])
+  }, [tab])
 
   const inEditor = tab === 'manuscript' && !!openSceneId
 
