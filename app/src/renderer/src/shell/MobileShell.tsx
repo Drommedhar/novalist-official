@@ -72,14 +72,18 @@ export function MobileShell(): React.JSX.Element {
   useEffect(() => {
     const w = window as unknown as { __novalistTab?: (key: string) => void }
     w.__novalistTab = (key: string) => {
+      // Plan only pops (toggles) its menu over the current view; it does NOT switch
+      // the view until a mode is picked (that happens in selectPlanning).
+      if (key === 'planning') {
+        setPlanningDrawerOpen((open) => !open)
+        return
+      }
       // Tapping the Codex tab always returns to its list root (clears any open
       // entity detail), so it behaves like re-tapping a native tab.
       if (key === 'codex') {
         useCodexStore.setState({ selectedId: null, selectedRecord: null })
       }
-      // The Plan tab pops out a menu of planning modes over the tab bar; re-tapping
-      // Plan toggles it, and any other tab closes it.
-      setPlanningDrawerOpen((open) => (key === 'planning' ? !open : false))
+      setPlanningDrawerOpen(false)
       setTab(key as MobileTab)
     }
     return () => {
@@ -111,8 +115,13 @@ export function MobileShell(): React.JSX.Element {
 
   const selectPlanning = (target: PlanningTarget): void => {
     setPlanningDrawerOpen(false)
-    if (target === 'findReplace') setFindReplaceOpen(true)
-    else setPlanningView(target)
+    if (target === 'findReplace') {
+      setFindReplaceOpen(true)
+      return
+    }
+    // Only now switch to the Plan tab and show the chosen mode.
+    setPlanningView(target)
+    setTab('planning')
   }
 
   // The Plan menu is rendered natively (same Liquid Glass as the tab bar, anchored

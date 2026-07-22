@@ -123,6 +123,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         _tabBar = bar;
         _tabBar.SetItems(items, animated: false);
         _tabBar.SelectedItem = items[0];
+        _committedItem = items[0];
         ApplyTabTitles();   // adopt any titles the web pushed before the bar existed
         // "Search" and "More" that map to a dialog/sheet should not stick as the
         // selected tab; the web decides. We only forward the tap.
@@ -137,10 +138,21 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         });
     }
 
+    // The tab item that maps to the view currently shown. Tapping Plan only opens
+    // the menu (it does not switch the view), so on dismiss the highlight reverts
+    // to this rather than sticking on Plan.
+    private UITabBarItem? _committedItem;
+
     private void OnNativeTabSelected(int tag)
     {
         if (tag < 0 || tag >= Tabs.Length) return;
         var key = Tabs[tag].Key;
+        if (key != "planning")
+        {
+            // A real view tab: it becomes the committed selection.
+            _committedItem = _tabBar?.SelectedItem;
+            HidePlanMenu();
+        }
         _ = EvalOnMainAsync($"window.__novalistTab && window.__novalistTab('{key}')");
     }
 
@@ -193,9 +205,12 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         if (Handler?.PlatformView is not UIView parent || _tabBar == null || labels.Length == 0)
             return;
 
+        // The tap-catcher covers only the area ABOVE the tab bar, so tapping another
+        // tab still switches (and taps here dismiss the menu).
+        var tabTop = _tabBar.Frame.Top;
         _planOverlay = new UIView
         {
-            Frame = parent.Bounds,
+            Frame = new CGRect(0, 0, parent.Bounds.Width, tabTop),
             AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight,
             BackgroundColor = UIColor.Clear
         };
@@ -232,6 +247,10 @@ public sealed class RendererHostPage : ContentPage, IDisposable
             if (btn.TitleLabel != null) btn.TitleLabel.Font = UIFont.SystemFontOfSize(17);
             btn.TouchUpInside += (_, _) =>
             {
+                // The last item (Find & Replace) is a dialog, not a view, so it
+                // leaves the committed tab as-is; a planning mode commits to Plan.
+                if (idx < labels.Length - 1 && _tabBar?.Items is { Length: > 3 } tabItems)
+                    _committedItem = tabItems[3];
                 _ = EvalOnMainAsync($"window.__novalistPlanSelect && window.__novalistPlanSelect({idx})");
                 HidePlanMenu();
             };
@@ -249,7 +268,6 @@ public sealed class RendererHostPage : ContentPage, IDisposable
 
         const double width = 240;
         var height = labels.Length * 48 + 12;
-        var tabTop = _tabBar.Frame.Top;
         var centerX = PlanButtonCenterX(parent);
         var x = Math.Max(8, Math.Min(centerX - width / 2, parent.Bounds.Width - width - 8));
         _planMenu.Frame = new CGRect(x, tabTop - height - 8, width, height);
@@ -260,10 +278,15 @@ public sealed class RendererHostPage : ContentPage, IDisposable
 
     private void HidePlanMenu()
     {
+        var wasOpen = _planMenu != null;
         _planMenu?.RemoveFromSuperview();
         _planMenu = null;
         _planOverlay?.RemoveFromSuperview();
         _planOverlay = null;
+        // Revert the highlight to the view actually shown (Plan doesn't stick just
+        // for opening the menu). Selecting a planning mode set _committedItem=Plan.
+        if (wasOpen && _tabBar != null && _committedItem != null)
+            _tabBar.SelectedItem = _committedItem;
     }
 
     // Center-x (in parent coords) of the Plan tab item (index 3 of the 5 tabs),
