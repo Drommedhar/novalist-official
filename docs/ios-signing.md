@@ -77,10 +77,14 @@ base64 -i Novalist_iOS_AppStore.mobileprovision | pbcopy
   **dry-run**: it builds and signs the IPA and uploads it as a workflow artifact
   (`novalist-ios-ipa`) but does **not** upload to App Store Connect. Use this first
   to confirm the runner can build the app.
-- **Pushing a tag** builds the IPA and uploads it to TestFlight via
-  `xcrun altool --upload-app -t ios` with the API key. The build number is the CI
-  run number (unique + increasing, which TestFlight requires); the version prefix
-  comes from the tag.
+- **Pushing an `ios-v*` tag** (e.g. `ios-v0.1.0`) builds the IPA and uploads it to
+  TestFlight via `xcrun altool --upload-app -t ios` with the API key — and runs
+  ONLY the iOS job, so a mobile build never cuts a desktop release. The build
+  number is the CI run number (unique + increasing, which TestFlight requires);
+  the version prefix comes from the digits in the tag.
+- **Pushing a normal tag** (e.g. `v2.2`) runs the desktop release pipeline and
+  currently skips the iOS job entirely. Fold iOS back into the main release once
+  the mobile app ships for real.
 
 The job selects the newest Xcode on the runner (net10.0-ios needs the iOS 26 SDK /
 Xcode 26), restores the `maui-ios` workload, imports the Apple Distribution cert
