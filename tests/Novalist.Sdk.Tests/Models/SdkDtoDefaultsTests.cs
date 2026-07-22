@@ -202,6 +202,20 @@ public class SdkDtoDefaultsTests
     }
 
     [Fact]
+    public void ArticleGeneratorDtos_Defaults()
+    {
+        var request = new ArticleGenerationRequest();
+        Assert.Equal(string.Empty, request.TypeKey);
+        Assert.Equal(string.Empty, request.EntityId);
+        Assert.Equal(string.Empty, request.EntityName);
+        Assert.Equal(string.Empty, request.Context);
+
+        var result = new ArticleGenerationResult();
+        Assert.Equal(string.Empty, result.Summary);
+        Assert.Null(result.Error);
+    }
+
+    [Fact]
     public void BusyProgressOptions_Defaults()
     {
         var o = new BusyProgressOptions();

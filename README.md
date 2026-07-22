@@ -72,7 +72,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Sections** of long-form Markdown content per entity.
 - **Relationships** with auto-learned inverse-role pairs and inverse-prompting on new relationships.
 - **Focus peek** card on entity hover inside the editor.
-- **Wiki** — a read-only, Wikipedia-style reader over the whole Codex: one cross-linked article per entity with a lead descriptor, table of contents, infobox and image gallery, sections, relationships and reverse "referenced by", an at-a-glance stats strip, "appears with", plotlines, map pins, and a per-entity Appearances timeline built from the scenes that mention it.
+- **Wiki** — a read-only, Wikipedia-style reader over the whole Codex: one cross-linked article per entity with a lead descriptor, table of contents, infobox and image gallery, sections, relationships and reverse "referenced by", an at-a-glance stats strip, "appears with", plotlines, map pins, a per-entity Appearances timeline built from the scenes that mention it, and an optional on-demand AI summary (when an AI extension is installed).
 
 ### Planning & visualization
 

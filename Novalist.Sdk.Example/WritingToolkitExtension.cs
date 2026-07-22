@@ -23,6 +23,7 @@ public sealed class WritingToolkitExtension :
     IContextMenuContributor,
     IEntityTypeContributor,
     IGrammarCheckContributor,
+    IArticleGeneratorContributor,
     IHotkeyContributor,
     IWizardContributor,
     IPropertyTypeContributor,
@@ -348,6 +349,25 @@ public sealed class WritingToolkitExtension :
             });
         }
         return Task.FromResult(new GrammarCheckResult { Issues = issues });
+    }
+
+    // ── IArticleGeneratorContributor ────────────────────────────────
+
+    public string ArticleGeneratorName => "Writing Toolkit Article Generator";
+
+    public bool IsArticleGeneratorEnabled => true;
+
+    public Task<ArticleGenerationResult> GenerateAsync(
+        ArticleGenerationRequest request, CancellationToken cancellationToken = default)
+    {
+        // Deterministic stand-in for a real model. An entity named "GenFail"
+        // exercises the error path; everything else returns a one-line summary.
+        if (string.Equals(request.EntityName, "GenFail", StringComparison.OrdinalIgnoreCase))
+            return Task.FromResult(new ArticleGenerationResult { Error = "no model configured" });
+        return Task.FromResult(new ArticleGenerationResult
+        {
+            Summary = $"{request.EntityName} is a notable {request.TypeKey} in this story."
+        });
     }
 
     // ── IHotkeyContributor ──────────────────────────────────────────

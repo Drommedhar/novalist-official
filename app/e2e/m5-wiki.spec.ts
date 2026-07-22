@@ -32,7 +32,7 @@ test('wiki view lists entities and opens an article', async () => {
 
   // The index lists at least one entity, and the article pane renders a title.
   await expect(page.locator('.wiki-entry').first()).toBeVisible({ timeout: 15_000 })
-  await expect(page.locator('.wiki-article h1')).toBeVisible({ timeout: 15_000 })
+  await expect(page.locator('.wiki-article-heading h1')).toBeVisible({ timeout: 15_000 })
 
   // Selecting an index entry opens its article with the encyclopedic lead line.
   await page.locator('.wiki-entry').first().click()

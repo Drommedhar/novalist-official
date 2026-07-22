@@ -80,6 +80,7 @@ Extensions implement hook interfaces from the Novalist SDK. The main contributio
 | `IInlineActionContributor` | Selection actions in the editor's right-click menu (e.g. AI rewrite / expand / describe). |
 | `IContextMenuContributor` | Extra items in the editor context menu that act on the current scene (e.g. "generate synopsis"). |
 | `IGrammarCheckContributor` | Custom grammar / style checkers, merged with the built-in check in the editor. |
+| `IArticleGeneratorContributor` | Generates the AI summary shown at the top of a [Wiki](30-wiki.md) article, from a deterministic dossier the host assembles for the entity. |
 | `IHotkeyContributor` | Keyboard shortcuts that fire the extension's own commands. |
 | `IThemeContributor` | Selectable accent themes, applied from the Extensions view. |
 | `IStatusBarContributor` | Live text items in the status bar, with optional click commands. |
@@ -94,6 +95,7 @@ Extensions can register **multiple** hooks — a single extension might add a pa
 - **Inline actions** appear in the editor's right-click menu when you have text selected, grouped by the label the extension chooses. Picking one sends the selection to the extension, which returns text that either replaces the selection or is inserted after it.
 - **Context-menu items** for a scene appear in the editor menu regardless of selection and act on the scene you are editing (the AI Assistant's "generate synopsis" is one).
 - **Grammar contributors** run alongside the built-in grammar check after a typing pause; their issues are underlined and merged with the built-in results.
+- **Article generators** produce the optional AI summary on a [Wiki](30-wiki.md) article. The host builds a deterministic, plain-text dossier of the entity (its fields, sections, relationships, and appearances) and hands it to the generator; the returned prose is cached per entity and shown at the top of the article. With no such extension installed, the Wiki simply omits the summary — everything else works unchanged. (The AI Assistant provides one.)
 
 ### Hotkeys, themes, and the status bar
 

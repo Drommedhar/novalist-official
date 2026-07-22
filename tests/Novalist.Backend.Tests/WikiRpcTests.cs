@@ -111,7 +111,7 @@ public sealed class WikiRpcTests : IDisposable
         await _entities.SaveCharacterAsync(new CharacterData
         {
             Id = "hero", Name = "Aldric", Surname = "Vane",
-            Role = "Knight", Group = "Grey Order", Gender = "",
+            Role = "Knight", Group = "Grey Order", Gender = "", Age = "30",
             Aliases = { "The Grey" },
             Images = { new EntityImage { Name = "portrait", Path = "Images/hero.png" } },
             CustomProperties = { ["Motto"] = "Hold the line", ["Empty"] = "" },
@@ -161,6 +161,7 @@ public sealed class WikiRpcTests : IDisposable
 
         // Infobox: role present, gender skipped, custom prop present, blank prop skipped, image resolved.
         Assert.Contains(article.Infobox.Fields, f => f.LabelKey == "entityEditor.rolePlaceholder" && f.Value == "Knight");
+        Assert.Contains(article.Infobox.Fields, f => f.LabelKey == "entityEditor.age" && f.Value == "30"); // numeric age
         Assert.DoesNotContain(article.Infobox.Fields, f => f.LabelKey == "entityEditor.gender");
         Assert.Contains(article.Infobox.Fields, f => f.LiteralLabel == "Motto");
         Assert.DoesNotContain(article.Infobox.Fields, f => f.LiteralLabel == "Empty");
@@ -197,6 +198,45 @@ public sealed class WikiRpcTests : IDisposable
 
         // Appearances chronological.
         Assert.Equal(new[] { "Early", "Later", "Undated" }, article.Appearances.Select(a => a.SceneTitle));
+    }
+
+    [Fact]
+    public async Task Article_BirthDateLabel_GroupEqualsSurnameDropped_ReferencedByExcludesReciprocal()
+    {
+        // Reciprocal: hero references villain AND villain references hero.
+        await _entities.SaveCharacterAsync(new CharacterData
+        {
+            Id = "villain", Name = "Mordre",
+            Relationships = { new EntityRelationship { Role = "Rival", Target = "Elias Ward" } }
+        });
+        // One-way: ally references hero, hero does not reference ally.
+        await _entities.SaveCharacterAsync(new CharacterData
+        {
+            Id = "ally", Name = "Mira",
+            Relationships = { new EntityRelationship { Role = "Protects", Target = "Elias Ward" } }
+        });
+        await _entities.SaveCharacterAsync(new CharacterData
+        {
+            Id = "hero", Name = "Elias", Surname = "Ward",
+            Group = "Ward",            // equals surname -> dropped
+            Age = "1976-04-10",        // a date -> labelled birth date
+            Relationships = { new EntityRelationship { Role = "Nemesis", Target = "Mordre" } }
+        });
+
+        var article = await _rpc.ArticleAsync("character", "hero");
+
+        // Age holding a date is shown as a birth date, not "age".
+        Assert.Contains(article.Infobox.Fields, f => f.LabelKey == "entityEditor.birthDate" && f.Value == "1976-04-10");
+        Assert.DoesNotContain(article.Infobox.Fields, f => f.LabelKey == "entityEditor.age");
+
+        // Group == surname is omitted from the infobox and the lead descriptor.
+        Assert.DoesNotContain(article.Infobox.Fields, f => f.LabelKey == "entityEditor.groupPlaceholder");
+        Assert.Null(article.Lead.Secondary);
+
+        // Referenced-by drops the reciprocal (villain, already in Relationships) but
+        // keeps the one-way reference (ally).
+        Assert.DoesNotContain(article.ReferencedBy, r => r.EntityId == "villain");
+        Assert.Contains(article.ReferencedBy, r => r.EntityId == "ally");
     }
 
     [Fact]
@@ -292,6 +332,44 @@ public sealed class WikiRpcTests : IDisposable
         var article = await _rpc.ArticleAsync("lore", "pact");
 
         Assert.Empty(article.Overrides);
+    }
+
+    // ── AI summary layer (no extension host) ────────────────────────
+
+    [Fact]
+    public async Task Article_NoGenerator_NoSummary()
+    {
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "hero", Name = "Aldric" });
+
+        var article = await _rpc.ArticleAsync("character", "hero");
+
+        Assert.False(article.GeneratorAvailable);
+        Assert.Null(article.Generated);
+        Assert.False(_rpc.GeneratorAvailable());
+    }
+
+    [Fact]
+    public async Task Article_ShowsCachedSummary_StaleWhenInputChanged()
+    {
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "hero", Name = "Aldric" });
+        var cache = new WikiArticleCache(_workspace.Projects, _workspace.FileService);
+        await cache.WriteAsync("hero", new WikiArticleCacheEntry
+        {
+            Summary = "Old summary.", InputHash = "STALEHASH", GeneratedAt = "2020-01-01T00:00:00Z"
+        });
+
+        var article = await _rpc.ArticleAsync("character", "hero");
+
+        Assert.NotNull(article.Generated);
+        Assert.Equal("Old summary.", article.Generated!.Summary);
+        Assert.True(article.Generated.Stale);   // live dossier hash won't match "STALEHASH"
+    }
+
+    [Fact]
+    public async Task Regenerate_NoHost_ReturnsNull()
+    {
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "hero", Name = "Aldric" });
+        Assert.Null(await _rpc.RegenerateAsync("character", "hero", CancellationToken.None));
     }
 
     [Fact]

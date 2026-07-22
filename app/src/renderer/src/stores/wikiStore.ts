@@ -125,6 +125,18 @@ export interface WikiOverride {
   sectionTitles: string[]
 }
 
+export interface WikiGenerated {
+  summary: string
+  stale: boolean
+  generatedAt: string
+}
+
+interface WikiRegenerateResult {
+  summary: string | null
+  error: string | null
+  generatedAt: string | null
+}
+
 export interface WikiArticle {
   id: string
   typeKey: string
@@ -144,6 +156,8 @@ export interface WikiArticle {
   plotlines: WikiPlotline[]
   overrides: WikiOverride[]
   appearances: WikiAppearance[]
+  generatorAvailable: boolean
+  generated: WikiGenerated | null
 }
 
 interface WikiState {
@@ -153,8 +167,11 @@ interface WikiState {
   currentId: string | null
   article: WikiArticle | null
   articleLoading: boolean
+  regenerating: boolean
+  regenerateError: string | null
   loadIndex(): Promise<void>
   openArticle(type: string, id: string): Promise<void>
+  regenerate(): Promise<void>
   clear(): void
 }
 
@@ -165,6 +182,8 @@ export const useWikiStore = create<WikiState>((set, get) => ({
   currentId: null,
   article: null,
   articleLoading: false,
+  regenerating: false,
+  regenerateError: null,
 
   loadIndex: async () => {
     set({ loading: true })
@@ -179,10 +198,51 @@ export const useWikiStore = create<WikiState>((set, get) => ({
   },
 
   openArticle: async (type, id) => {
-    set({ currentType: type, currentId: id, articleLoading: true })
+    set({
+      currentType: type,
+      currentId: id,
+      articleLoading: true,
+      regenerating: false,
+      regenerateError: null
+    })
     const article = await rpc.request<WikiArticle>('wiki/article', [type, id])
     // Guard against a stale response if the user clicked another entry meanwhile.
     if (get().currentId === id) set({ article, articleLoading: false })
+  },
+
+  regenerate: async () => {
+    const { currentType, currentId, regenerating } = get()
+    if (!currentType || !currentId || regenerating) return
+    set({ regenerating: true, regenerateError: null })
+    try {
+      const result = await rpc.request<WikiRegenerateResult | null>('wiki/regenerate', [
+        currentType,
+        currentId
+      ])
+      if (get().currentId !== currentId) return // user navigated away
+      if (result == null) {
+        set({ regenerating: false })
+        return
+      }
+      if (result.error) {
+        set({ regenerating: false, regenerateError: result.error })
+        return
+      }
+      const article = get().article
+      if (article && article.id === currentId && result.summary != null) {
+        set({
+          article: {
+            ...article,
+            generated: { summary: result.summary, stale: false, generatedAt: result.generatedAt ?? '' }
+          },
+          regenerating: false
+        })
+      } else {
+        set({ regenerating: false })
+      }
+    } catch (err) {
+      set({ regenerating: false, regenerateError: err instanceof Error ? err.message : String(err) })
+    }
   },
 
   clear: () => set({ currentType: null, currentId: null, article: null })

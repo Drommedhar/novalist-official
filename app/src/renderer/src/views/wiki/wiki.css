@@ -224,6 +224,91 @@
   color: var(--nl-text-dim);
 }
 
+/* ===== AI-generated summary ===== */
+
+.wiki-summary {
+  padding: var(--nl-space-md) var(--nl-space-lg);
+  margin-bottom: var(--nl-space-lg);
+  border: 1px solid var(--nl-border-subtle);
+  border-left: 3px solid var(--nl-accent);
+  border-radius: var(--nl-radius-lg);
+  background: var(--nl-surface-card);
+}
+
+.wiki-summary-head {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-tighter);
+}
+
+.wiki-summary-label {
+  font-size: var(--nl-font-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--nl-text-subtle);
+}
+
+.wiki-summary-stale {
+  font-size: var(--nl-font-caption);
+  padding: 0 var(--nl-space-sm);
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-input);
+  color: var(--nl-warning);
+  border: 1px solid var(--nl-warning);
+}
+
+.wiki-summary-text {
+  font-size: var(--nl-font-body-lg);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.wiki-summary-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  margin-top: var(--nl-space-sm);
+}
+
+.wiki-summary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-tighter) var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-input);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body-sm);
+  cursor: pointer;
+}
+
+.wiki-summary-btn:hover:not(:disabled) {
+  background: var(--nl-surface-hover);
+}
+
+.wiki-summary-btn:disabled {
+  cursor: default;
+  color: var(--nl-text-subtle);
+}
+
+.wiki-summary-error {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-danger);
+}
+
+.wiki-spin {
+  animation: wiki-spin 1s linear infinite;
+}
+
+@keyframes wiki-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* ===== Stats strip ===== */
 
 .wiki-stats {
@@ -534,6 +619,43 @@
 
 .wiki-prose img {
   max-width: 100%;
+}
+
+/* Rendered Markdown inside a section stays modest — the section's own <h2> is
+   the heading; in-content headings sit below it. */
+.wiki-prose h1,
+.wiki-prose h2,
+.wiki-prose h3,
+.wiki-prose h4 {
+  font-size: var(--nl-font-body-lg);
+  font-weight: var(--nl-weight-title);
+  margin: var(--nl-space-md) 0 var(--nl-space-tighter);
+}
+
+.wiki-prose p {
+  margin: 0 0 var(--nl-space-sm);
+}
+
+.wiki-prose ul,
+.wiki-prose ol {
+  margin: var(--nl-space-tighter) 0;
+  padding-left: var(--nl-space-xl);
+}
+
+.wiki-prose li {
+  margin: var(--nl-space-tightest) 0;
+}
+
+.wiki-prose a {
+  color: var(--nl-accent);
+}
+
+.wiki-prose code {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-body);
+  background: var(--nl-surface-input);
+  border-radius: var(--nl-radius-sm);
+  padding: 0 var(--nl-space-tighter);
 }
 
 .wiki-empty-body {

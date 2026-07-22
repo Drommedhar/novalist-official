@@ -1,6 +1,9 @@
+using System.Text;
 using Novalist.Backend.Extensions;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
+using Novalist.Core.Utilities;
+using Novalist.Sdk.Hooks;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
@@ -21,11 +24,13 @@ public sealed class WikiRpc
 
     private readonly Workspace _workspace;
     private readonly EntityService _entities;
+    private readonly WikiArticleCache _cache;
 
     public WikiRpc(Workspace workspace)
     {
         _workspace = workspace;
         _entities = new EntityService(workspace.Projects);
+        _cache = new WikiArticleCache(workspace.Projects, workspace.FileService);
     }
 
     [JsonRpcMethod("wiki/index")]
@@ -101,22 +106,178 @@ public sealed class WikiRpc
         var character = core.Character;
 
         var stats = BuildStats(character, rawAppearances, appearances);
-        var referencedBy = BuildReferencedBy(id, characters, customTypes, resolve);
+        // Entities already shown in this article's own Relationships — exclude them
+        // from "referenced by" so it only surfaces links not already visible.
+        var relatedIds = core.Relationships
+            .SelectMany(r => r.Targets)
+            .Select(t => t.EntityId)
+            .Where(eid => eid != null)
+            .ToHashSet(StringComparer.Ordinal)!;
+        var referencedBy = BuildReferencedBy(id, characters, customTypes, resolve, relatedIds);
         var appearsWith = BuildAppearsWith(id, rawAppearances, displayMap);
         var mapPins = await BuildMapPinsAsync(id);
         var plotlines = BuildPlotlines(rawAppearances);
         var overrides = BuildOverrides(character, resolve);
 
+        // AI summary layer: whether a generator is available, plus any cached
+        // summary flagged stale when the entity's data has changed since.
+        var generatorAvailable = _workspace.ExtensionHostOrNull?.IsArticleGeneratorAvailable ?? false;
+        var dossier = BuildDossier(core, appearances);
+        var cached = await _cache.ReadAsync(id);
+        var generated = cached == null
+            ? null
+            : new WikiGeneratedDto(
+                cached.Summary,
+                cached.InputHash != WikiArticleCache.ComputeInputHash(dossier),
+                cached.GeneratedAt);
+
         Log.Info(
             $"wiki/article type={type} id={id} appearances={appearances.Length} " +
             $"refBy={referencedBy.Length} coApp={appearsWith.Length} pins={mapPins.Length} " +
-            $"plots={plotlines.Length} overrides={overrides.Length}.");
+            $"plots={plotlines.Length} overrides={overrides.Length} " +
+            $"genAvail={generatorAvailable} cached={cached != null}.");
 
         return new WikiArticleDto(
             core.Id, core.TypeKey, core.CustomTypeLabel, core.Title, core.IsWorldBible,
             core.Aliases, core.Lead, core.Description,
             core.Infobox, stats, core.Sections, core.Relationships,
-            referencedBy, appearsWith, mapPins, plotlines, overrides, appearances);
+            referencedBy, appearsWith, mapPins, plotlines, overrides, appearances,
+            generatorAvailable, generated);
+    }
+
+    [JsonRpcMethod("wiki/generatorAvailable")]
+    public bool GeneratorAvailable()
+        => _workspace.ExtensionHostOrNull?.IsArticleGeneratorAvailable ?? false;
+
+    /// <summary>Generates (via the first enabled extension article generator) and
+    /// caches an AI summary for the entity, returning it. Null when no generator
+    /// is available; an error field when generation failed.</summary>
+    [JsonRpcMethod("wiki/regenerate")]
+    public async Task<WikiRegenerateResultDto?> RegenerateAsync(
+        string type, string id, CancellationToken cancellationToken)
+    {
+        var host = _workspace.ExtensionHostOrNull;
+        if (host == null || !host.IsArticleGeneratorAvailable)
+            return null;
+
+        var (core, _, dossier) = await BuildCoreAndDossierAsync(type, id);
+        // Non-null: availability (an enabled generator) was just checked above.
+        var result = (await host.GenerateArticleAsync(
+            new ArticleGenerationRequest
+            {
+                TypeKey = core.TypeKey,
+                EntityId = core.Id,
+                EntityName = core.Title,
+                Context = dossier
+            },
+            cancellationToken))!;
+
+        if (!string.IsNullOrEmpty(result.Error))
+            return new WikiRegenerateResultDto(null, result.Error, null);
+
+        var generatedAt = DateTime.UtcNow.ToString("o");
+        await _cache.WriteAsync(id, new WikiArticleCacheEntry
+        {
+            Summary = result.Summary,
+            GeneratedAt = generatedAt,
+            InputHash = WikiArticleCache.ComputeInputHash(dossier)
+        });
+        Log.Info($"wiki/regenerate type={type} id={id} len={result.Summary.Length}.");
+        return new WikiRegenerateResultDto(result.Summary, null, generatedAt);
+    }
+
+    /// <summary>Loads and builds just what the AI generator needs: the entity
+    /// core, its ordered appearances, and the plain-text dossier prompt context.</summary>
+    private async Task<(ArticleCore Core, WikiAppearanceDto[] Appearances, string Dossier)>
+        BuildCoreAndDossierAsync(string type, string id)
+    {
+        var characters = await _entities.LoadCharactersAsync();
+        var locations = await _entities.LoadLocationsAsync();
+        var items = await _entities.LoadItemsAsync();
+        var lore = await _entities.LoadLoreAsync();
+
+        var customTypes = new List<(string TypeKey, IReadOnlyList<CustomEntityData> Entities)>();
+        foreach (var typeDef in _entities.GetCustomEntityTypes())
+            customTypes.Add((typeDef.TypeKey, await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey)));
+
+        var resolve = EntityResolveIndex.Build(characters, locations, items, lore, customTypes);
+        var appearanceIndex = await new AppearanceIndexService(_workspace.Projects).BuildAsync(characters);
+        var core = BuildCore(type, id, characters, locations, items, lore, customTypes, resolve);
+        var appearances = SortAppearances(appearanceIndex.TryGetValue(id, out var raw) ? raw : []);
+        return (core, appearances, BuildDossier(core, appearances));
+    }
+
+    /// <summary>Flattens the deterministic article into a plain-text dossier used
+    /// as the AI generator's prompt context. Content-only; never logged.</summary>
+    private static string BuildDossier(ArticleCore core, WikiAppearanceDto[] appearances)
+    {
+        var sb = new StringBuilder();
+        // Spell out given vs. family name so the model refers to the subject
+        // correctly and never mistakes a shared surname for a separate person.
+        if (core.Character != null && core.Character.Surname.Length > 0)
+            sb.AppendLine($"Name: {core.Title} (given name: {core.Character.Name}; family name: {core.Character.Surname})");
+        else
+            sb.AppendLine($"Name: {core.Title}");
+        sb.AppendLine($"Type: {core.CustomTypeLabel ?? core.TypeKey}");
+        if (core.Aliases.Length > 0)
+            sb.AppendLine($"Also known as: {string.Join(", ", core.Aliases)}");
+        if (core.Description != null)
+            sb.AppendLine($"Description: {core.Description}");
+
+        foreach (var f in core.Infobox.Fields)
+            sb.AppendLine($"- {f.LiteralLabel ?? Humanize(f.LabelKey!)}: {f.Value}");
+
+        foreach (var s in core.Sections)
+        {
+            var text = TextDiff.StripHtml(s.Content).Trim();
+            sb.AppendLine();
+            if (!string.IsNullOrWhiteSpace(s.Title))
+                sb.AppendLine($"## {s.Title}");
+            if (text.Length > 0)
+                sb.AppendLine(text);
+        }
+
+        if (core.Relationships.Length > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Relationships:");
+            foreach (var r in core.Relationships)
+                sb.AppendLine($"- {r.Role}: {string.Join(", ", r.Targets.Select(t => t.Name))}");
+        }
+
+        if (appearances.Length > 0)
+        {
+            sb.AppendLine();
+            sb.AppendLine("Appearances (in story order):");
+            foreach (var a in appearances)
+            {
+                var date = a.StoryDate.Length > 0 ? $"{a.StoryDate} — " : string.Empty;
+                var synopsis = a.Synopsis != null ? $": {a.Synopsis}" : string.Empty;
+                sb.AppendLine($"- {date}{a.ChapterTitle} / {a.SceneTitle}{synopsis}");
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>Turns an i18n field key ("entityEditor.eyeColor") into a readable
+    /// dossier label ("Eye Color"), dropping the UI-only "Placeholder"/"Plain"
+    /// suffixes some keys carry (e.g. "rolePlaceholder" -> "Role").</summary>
+    private static string Humanize(string labelKey)
+    {
+        var seg = labelKey.Contains('.') ? labelKey[(labelKey.LastIndexOf('.') + 1)..] : labelKey;
+        if (seg.EndsWith("Placeholder", StringComparison.Ordinal))
+            seg = seg[..^"Placeholder".Length];
+        if (seg.EndsWith("Plain", StringComparison.Ordinal))
+            seg = seg[..^"Plain".Length];
+        var sb = new StringBuilder();
+        foreach (var ch in seg)
+        {
+            if (char.IsUpper(ch) && sb.Length > 0) sb.Append(' ');
+            sb.Append(ch);
+        }
+        var text = sb.ToString();
+        return char.ToUpperInvariant(text[0]) + text[1..];
     }
 
     // ── Type-specific core ──────────────────────────────────────────
@@ -159,12 +320,20 @@ public sealed class WikiRpc
     private ArticleCore BuildCharacterCore(
         CharacterData c, Dictionary<string, (string Id, string TypeKey)> resolve)
     {
+        // The Wiki has no scene reference to compute an age against, so when the
+        // "age" holds a birth date show it labelled as such.
+        var ageIsBirthDate = StoryDateFormatter.ExtractLeadingDate(c.Age) != null;
+        // A family/group name equal to the surname is redundant with it — omit it.
+        var group = string.Equals(c.Group.Trim(), c.Surname.Trim(), StringComparison.OrdinalIgnoreCase)
+            ? string.Empty
+            : c.Group;
+
         var fields = new List<WikiFieldDto>();
         AddField(fields, "entityEditor.surname", c.Surname);
         AddField(fields, "entityEditor.gender", c.Gender);
-        AddField(fields, "entityEditor.age", c.Age);
+        AddField(fields, ageIsBirthDate ? "entityEditor.birthDate" : "entityEditor.age", c.Age);
         AddField(fields, "entityEditor.rolePlaceholder", c.Role);
-        AddField(fields, "entityEditor.groupPlaceholder", c.Group);
+        AddField(fields, "entityEditor.groupPlaceholder", group);
         AddField(fields, "entityEditor.eyeColor", c.EyeColor);
         AddField(fields, "entityEditor.hairColor", c.HairColor);
         AddField(fields, "entityEditor.hairLength", c.HairLength);
@@ -178,7 +347,7 @@ public sealed class WikiRpc
             .Select(r => BuildRelationship(r.Role, r.Target, resolve))
             .ToArray();
 
-        var lead = new WikiLeadDto(NullIfBlank(c.Role), NullIfBlank(c.Group), "dot");
+        var lead = new WikiLeadDto(NullIfBlank(c.Role), NullIfBlank(group), "dot");
         return new ArticleCore(
             c.Id, "character", null, EntityResolveIndex.Compose(c.Name, c.Surname), c.IsWorldBible,
             c.Aliases.ToArray(), lead, null, Infobox(c.Images, fields), Sections(c.Sections), relationships, c);
@@ -304,13 +473,15 @@ public sealed class WikiRpc
         string id,
         IReadOnlyList<CharacterData> characters,
         IReadOnlyList<(string TypeKey, IReadOnlyList<CustomEntityData> Entities)> customTypes,
-        Dictionary<string, (string Id, string TypeKey)> resolve)
+        Dictionary<string, (string Id, string TypeKey)> resolve,
+        IReadOnlySet<string> alreadyRelated)
     {
         var refs = new List<WikiReferenceDto>();
 
         foreach (var c in characters)
         {
-            if (c.Id == id) continue;
+            // Skip self and entities already shown in this article's Relationships.
+            if (c.Id == id || alreadyRelated.Contains(c.Id)) continue;
             foreach (var rel in c.Relationships)
                 if (TargetsInclude(rel.Target, id, resolve))
                     refs.Add(new WikiReferenceDto(
@@ -324,7 +495,7 @@ public sealed class WikiRpc
                 ?.DefaultFields ?? [];
             foreach (var e in entities)
             {
-                if (e.Id == id) continue;
+                if (e.Id == id || alreadyRelated.Contains(e.Id)) continue;
                 foreach (var rel in e.Relationships)
                     if (TargetsInclude(rel.Target, id, resolve))
                         refs.Add(new WikiReferenceDto(e.Name, e.Id, typeKey, rel.Role));
@@ -592,7 +763,15 @@ public sealed record WikiArticleDto(
     WikiInfoboxDto Infobox, WikiStatsDto? Stats, WikiSectionDto[] Sections,
     WikiRelationshipDto[] Relationships, WikiReferenceDto[] ReferencedBy,
     WikiCoAppearanceDto[] AppearsWith, WikiMapPinDto[] MapPins, WikiPlotlineDto[] Plotlines,
-    WikiOverrideDto[] Overrides, WikiAppearanceDto[] Appearances);
+    WikiOverrideDto[] Overrides, WikiAppearanceDto[] Appearances,
+    bool GeneratorAvailable, WikiGeneratedDto? Generated);
+
+/// <summary>A cached AI-generated summary shown at the top of an article.
+/// <see cref="Stale"/> is true when the entity's data changed since it was made.</summary>
+public sealed record WikiGeneratedDto(string Summary, bool Stale, string GeneratedAt);
+
+/// <summary>Result of <c>wiki/regenerate</c>: the fresh summary, or an error.</summary>
+public sealed record WikiRegenerateResultDto(string? Summary, string? Error, string? GeneratedAt);
 
 /// <summary>A character's overridden fields for one act/chapter/scene scope —
 /// the "as of chapter X" values shown as a change over time. Any of the parts

@@ -22,6 +22,7 @@ An article is assembled from what you have filled in — empty parts are simply 
 - **Title** — the entity's name (a character's full name where a surname is set).
 - **Type and scope chips** — the entity type and whether it lives in the current Book or the shared World Bible.
 - **Lead line** — the name in bold, any alternate names ("also known as …"), and a one-line descriptor built from the key fields (for example "Aldric Vane — Knight · Grey Order", or "Harbour — City in Aldland").
+- **AI summary** (optional) — a generated encyclopedic paragraph, shown only when an AI extension that provides an article generator is installed (see below).
 - **Description** — for locations, items, and lore, the entity's description is shown as the opening paragraph. (Characters have no single description; their body comes from sections.)
 - **Stats strip** — an at-a-glance summary for entities that appear in scenes: number of appearances, chapters spanned, POV scenes (characters only), and first / last appearance.
 - **Contents** — a table of contents listing the sections below; click an entry to jump to it. Shown once there is more than one section.
@@ -46,6 +47,15 @@ The **Appearances** section lists every scene in which the entity is mentioned. 
 Appearances are ordered chronologically by story date, with undated scenes last, then by their order in the manuscript. This doubles as a per-character (or per-place, per-item) timeline: read straight down to follow an entity through the story. Clicking an appearance opens that scene in the editor.
 
 Synopses come from the scene's Synopsis field, which you can write yourself in the scene-notes dock or have generated for you if you run the AI Assistant extension (see [Extensions](24-extensions.md)). The richer your synopses, the more readable the Appearances timeline.
+
+## AI summary
+
+If you have an AI extension installed that provides an article generator (the [AI Assistant](24-extensions.md) does), each article can carry a short, generated encyclopedic summary at the top.
+
+- It is **on demand** — nothing is generated automatically. Click **Generate summary** to create one; the button becomes **Regenerate** once a summary exists. While it runs, the button shows a **Generating…** state.
+- The summary is built from the same deterministic dossier the article is made of — the entity's fields, sections, relationships, and the scenes it appears in — so the model summarizes what you actually wrote rather than inventing facts.
+- It is **cached** per entity (under `.novalist/wiki/`), so it persists across sessions and is not regenerated on every visit. When the entity's underlying data changes, the summary is flagged **Out of date** to prompt a regenerate — but it never regenerates on its own.
+- With **no** article-generator extension installed, the summary and its button simply don't appear; the rest of the article is unchanged. A previously cached summary still shows (read-only) even if the extension is later removed.
 
 ## Cross-links
 

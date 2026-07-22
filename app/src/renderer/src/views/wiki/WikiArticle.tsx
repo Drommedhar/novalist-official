@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { SquarePen, MapPin, X } from 'lucide-react'
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import { SquarePen, MapPin, X, Sparkles, Loader2 } from 'lucide-react'
 import { useWikiStore, type WikiArticle as Article, type WikiLead } from '../../stores/wikiStore'
 import { useCodexStore } from '../../stores/codexStore'
 import { useShellStore } from '../../stores/shellStore'
@@ -42,6 +44,9 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
   const index = useWikiStore((s) => s.index)
   const openArticle = useWikiStore((s) => s.openArticle)
   const navigateToMapPin = useShellStore((s) => s.navigateToMapPin)
+  const regenerate = useWikiStore((s) => s.regenerate)
+  const regenerating = useWikiStore((s) => s.regenerating)
+  const regenerateError = useWikiStore((s) => s.regenerateError)
   const [lightbox, setLightbox] = useState<string | null>(null)
 
   // id -> typeKey, so a click on a persisted `nv-entity-mention` span (which
@@ -132,6 +137,45 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
           </p>
           {article.description && <p className="wiki-lead">{article.description}</p>}
 
+          {(article.generatorAvailable || article.generated) && (
+            <div className="wiki-summary">
+              {article.generated && (
+                <>
+                  <div className="wiki-summary-head">
+                    <span className="wiki-summary-label">{t('wiki.aiSummary')}</span>
+                    {article.generated.stale && (
+                      <span className="wiki-summary-stale">{t('wiki.summaryStale')}</span>
+                    )}
+                  </div>
+                  <p className="wiki-summary-text">{article.generated.summary}</p>
+                </>
+              )}
+              {article.generatorAvailable && (
+                <div className="wiki-summary-actions">
+                  <button
+                    type="button"
+                    className="wiki-summary-btn"
+                    disabled={regenerating}
+                    onClick={() => void regenerate()}
+                  >
+                    {regenerating ? (
+                      <>
+                        <Loader2 size={13} strokeWidth={1.75} className="wiki-spin" />{' '}
+                        {t('wiki.generating')}
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={13} strokeWidth={1.75} />{' '}
+                        {article.generated ? t('wiki.regenerate') : t('wiki.generateSummary')}
+                      </>
+                    )}
+                  </button>
+                  {regenerateError && <span className="wiki-summary-error">{regenerateError}</span>}
+                </div>
+              )}
+            </div>
+          )}
+
           {article.stats && (
             <div className="wiki-stats">
               <Stat label={t('wiki.statAppearances')} value={String(article.stats.appearanceCount)} />
@@ -172,11 +216,10 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
           {article.sections.map((section, i) => (
             <section className="wiki-section" id={`sec-${i}`} key={`${section.title}-${i}`}>
               {section.title && <h2>{section.title}</h2>}
-              <div
-                className="wiki-prose"
-                // Section content is authored HTML from the Codex; rendered read-only.
-                dangerouslySetInnerHTML={{ __html: section.content }}
-              />
+              {/* Section content is authored Markdown in the Codex; rendered read-only. */}
+              <div className="wiki-prose">
+                <Markdown remarkPlugins={[remarkGfm]}>{section.content}</Markdown>
+              </div>
             </section>
           ))}
 

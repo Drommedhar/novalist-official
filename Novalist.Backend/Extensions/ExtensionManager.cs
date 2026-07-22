@@ -37,6 +37,7 @@ public sealed class ExtensionManager
     public List<ExportFormatDescriptor> ExportFormats { get; } = [];
     public List<IAiHook> AiHooks { get; } = [];
     public List<IGrammarCheckContributor> GrammarCheckContributors { get; } = [];
+    public List<IArticleGeneratorContributor> ArticleGenerators { get; } = [];
     public List<ThemeOverride> ThemeOverrides { get; } = [];
     public List<HotkeyDescriptor> HotkeyBindings { get; } = [];
     public List<PropertyTypeDescriptor> PropertyTypes { get; } = [];
@@ -167,6 +168,12 @@ public sealed class ExtensionManager
         {
             GrammarCheckContributors.Add(grammarCheck);
             undo.Add(() => GrammarCheckContributors.Remove(grammarCheck));
+        }
+
+        if (instance is IArticleGeneratorContributor articleGenerator)
+        {
+            ArticleGenerators.Add(articleGenerator);
+            undo.Add(() => ArticleGenerators.Remove(articleGenerator));
         }
 
         if (instance is IThemeContributor theme)
@@ -485,6 +492,21 @@ public sealed class ExtensionManager
                 return await contributor.ExecuteAsync(actionId, request, cancellationToken);
         }
         return null;
+    }
+
+    /// <summary>Whether any loaded extension offers an enabled article generator
+    /// (drives the Wiki's "Generate summary" affordance).</summary>
+    public bool IsArticleGeneratorAvailable
+        => ArticleGenerators.Any(g => g.IsArticleGeneratorEnabled);
+
+    /// <summary>Generates an article summary using the first enabled generator,
+    /// or null when none is available.</summary>
+    public async Task<Novalist.Sdk.Hooks.ArticleGenerationResult?> GenerateArticleAsync(
+        Novalist.Sdk.Hooks.ArticleGenerationRequest request, CancellationToken cancellationToken)
+    {
+        var generator = ArticleGenerators.FirstOrDefault(g => g.IsArticleGeneratorEnabled);
+        if (generator == null) return null;
+        return await generator.GenerateAsync(request, cancellationToken);
     }
 
     /// <summary>Enumerates contributed context-menu items with a stable id
