@@ -72,7 +72,7 @@ When you hover over the name or alias of a codex entity in your prose (or over a
 - A couple of key **attribute chips** — for a character its role, gender, and age; for a location its type and parent; and so on.
 - Up to a few **relationships** (`role: target`).
 - The entity's **section** titles.
-- An **Open entity** button that jumps straight to that entity in the Codex.
+- An **Open entity** button that opens that entity's article in the [Wiki](30-wiki.md) (from there, **Edit in Codex** jumps to the editable record).
 
 The card is enough to check a character's face, a relationship, or a location without leaving the editor. Move the pointer onto the card to keep it open. Entities are managed in the [Codex](06-codex.md).
 

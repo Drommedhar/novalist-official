@@ -12,6 +12,7 @@ export type MainView =
   | 'calendar'
   | 'relationships'
   | 'codex'
+  | 'wiki'
   | 'maps'
   | 'research'
   | 'gallery'
@@ -29,7 +30,7 @@ export type MainView =
 export const activityGroups: { key: string; views: MainView[] }[] = [
   { key: 'shell.groupWrite', views: ['dashboard', 'manuscript'] },
   { key: 'shell.groupPlan', views: ['timeline', 'plotGrid', 'calendar', 'relationships'] },
-  { key: 'shell.groupWorld', views: ['codex', 'maps', 'research', 'gallery'] },
+  { key: 'shell.groupWorld', views: ['codex', 'wiki', 'maps', 'research', 'gallery'] },
   { key: 'shell.groupPublish', views: ['export', 'git'] }
 ]
 

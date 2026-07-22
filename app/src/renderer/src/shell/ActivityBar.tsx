@@ -12,6 +12,7 @@ import {
   Library,
   Map,
   Network,
+  Newspaper,
   Send,
   Settings
 } from 'lucide-react'
@@ -35,6 +36,7 @@ const viewIcons: Partial<Record<MainView, IconComponent>> = {
   calendar: CalendarDays,
   relationships: Network,
   codex: Library,
+  wiki: Newspaper,
   maps: Map,
   research: FileText,
   gallery: Images,

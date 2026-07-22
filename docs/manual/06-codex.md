@@ -128,6 +128,7 @@ On disk, World Bible entities live in `<Project>/WorldBible/<type>/` instead of 
 
 ## Where to go next
 
+- [Wiki](30-wiki.md) — read your whole Codex as cross-linked, Wikipedia-style articles with per-entity appearance timelines.
 - [Templates](07-templates.md) — speed up entity creation with per-type templates.
 - [Relationships graph](14-relationships.md) — visualize the cast's connections.
 - [Image Gallery](19-image-gallery.md) — browse all project images.

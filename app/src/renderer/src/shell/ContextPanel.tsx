@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronRight, RotateCcw } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useShellStore } from '../stores/shellStore'
-import { useCodexStore } from '../stores/codexStore'
+import { useWikiStore } from '../stores/wikiStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useEntityPeek, type PeekScope } from '../views/editor/PeekCard'
 
@@ -135,9 +135,8 @@ function EntitySection({
   const { t } = useTranslation()
   if (cards.length === 0) return null
   const open = async (id: string): Promise<void> => {
-    useShellStore.getState().setMainView('codex')
-    await useCodexStore.getState().setType(type)
-    await useCodexStore.getState().select(id)
+    useShellStore.getState().setMainView('wiki')
+    await useWikiStore.getState().openArticle(type, id)
   }
   return (
     <CollapsibleSection
@@ -221,11 +220,8 @@ export function ContextPanel({
   const entityPeek = useEntityPeek({
     scope: peekScope,
     onOpen: (type, id) => {
-      useShellStore.getState().setMainView('codex')
-      void useCodexStore
-        .getState()
-        .setType(type)
-        .then(() => useCodexStore.getState().select(id))
+      useShellStore.getState().setMainView('wiki')
+      void useWikiStore.getState().openArticle(type, id)
     }
   })
   const cardPeek: CardPeek = {

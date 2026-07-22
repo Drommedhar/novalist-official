@@ -29,29 +29,13 @@ public sealed class ScenesRpc
     public SceneMetaDto GetMeta(string chapterGuid, string sceneId)
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
-        var storyDate = ResolveStoryDate(chapter, scene);
+        var storyDate = SceneStoryDate.Resolve(chapter, scene);
         return new SceneMetaDto(
             scene.Id,
             scene.Synopsis,
             scene.Notes,
             storyDate,
             StoryDateFormatter.ExtractLeadingDate(storyDate));
-    }
-
-    /// <summary>
-    /// Effective in-world date for the scene, mirroring the Avalonia
-    /// <c>ContextSidebarViewModel.ResolveContextDateDisplay</c>: scene range,
-    /// then scene date, then chapter range, then chapter date.
-    /// </summary>
-    private static string ResolveStoryDate(ChapterData chapter, SceneData scene)
-    {
-        if (scene.DateRange?.HasValue == true)
-            return StoryDateFormatter.FormatRange(scene.DateRange);
-        if (!string.IsNullOrWhiteSpace(scene.Date))
-            return scene.Date.Trim();
-        if (chapter.DateRange?.HasValue == true)
-            return StoryDateFormatter.FormatRange(chapter.DateRange);
-        return chapter.Date.Trim();
     }
 
     /// <summary>

@@ -88,6 +88,35 @@ public sealed class RpcFacadeTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task Wiki_ArticleAndIndex_OverTheWire()
+    {
+        await InvokeAsync<ProjectStateDto>("project/create", _root, "WikiWire", "Book");
+        var withChapter = await InvokeAsync<ProjectStateDto>("project/createChapter", "Chapter");
+        var chapter = withChapter.Chapters.Single();
+        var withScene = await InvokeAsync<ProjectStateDto>("project/createScene", chapter.Guid, "Scene");
+        var scene = withScene.Chapters.Single().Scenes.Single();
+
+        var created = await InvokeAsync<JsonElement>("entities/create", "character", "Aldric");
+        var id = created.GetProperty("id").GetString()!;
+
+        var span = $"<p><span class=\"nv-entity-mention\" data-entity-id=\"{id}\">Aldric</span> walked.</p>";
+        await InvokeAsync<SceneWriteResultDto>("scenes/write", chapter.Guid, scene.Id, span, "Aldric walked.");
+        await _client.InvokeAsync("scenes/setSynopsis", chapter.Guid, scene.Id, "Aldric walks in.");
+        await _client.InvokeAsync("project/setSceneDateRange", chapter.Guid, scene.Id, "2024-05-01", "", "");
+
+        var article = await InvokeAsync<WikiArticleDto>("wiki/article", "character", id);
+        Assert.Equal("Aldric", article.Title);
+        var appearance = Assert.Single(article.Appearances);
+        Assert.Equal("Scene", appearance.SceneTitle);
+        Assert.Equal("Aldric walks in.", appearance.Synopsis);   // camelCase wire field
+        Assert.Equal("2024-05-01", appearance.IsoDate);
+
+        var index = await InvokeAsync<WikiIndexDto>("wiki/index");
+        var characters = index.Scopes.Single(s => !s.IsWorldBible).Types.Single(t => t.TypeKey == "character");
+        Assert.Contains(characters.Entries, e => e.Id == id && e.Title == "Aldric");
+    }
+
+    [Fact]
     public async Task RenameProject_ChangesName()
     {
         await InvokeAsync<ProjectStateDto>("project/create", _root, "OldName", "Book");

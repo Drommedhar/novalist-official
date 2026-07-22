@@ -921,57 +921,11 @@ public sealed class EntitiesRpc
         IReadOnlyList<CharacterData> characters, IReadOnlyList<LocationData> locations,
         IReadOnlyList<ItemData> items, IReadOnlyList<LoreData> lore)
     {
-        var candidates = new Dictionary<string, List<(string Id, string TypeKey)>>(StringComparer.OrdinalIgnoreCase);
-        void Add(string? name, string entityId, string typeKey)
-        {
-            var key = NormalizeReference(name);
-            if (key.Length == 0) return;
-            if (!candidates.TryGetValue(key, out var list))
-            {
-                list = [];
-                candidates[key] = list;
-            }
-            list.Add((entityId, typeKey));
-        }
-
-        foreach (var c in characters)
-        {
-            var display = Compose(c.Name, c.Surname);
-            Add(display, c.Id, "character");
-            // The bare first name is an extra target, but only when it differs
-            // from the composed name — else a surnameless character would map its
-            // one name twice and be wrongly treated as ambiguous (desktop parity).
-            if (!string.Equals(c.Name, display, StringComparison.OrdinalIgnoreCase))
-                Add(c.Name, c.Id, "character");
-            foreach (var alias in c.Aliases) Add(alias, c.Id, "character");
-        }
-        foreach (var l in locations)
-        {
-            Add(l.Name, l.Id, "location");
-            foreach (var alias in l.Aliases) Add(alias, l.Id, "location");
-        }
-        foreach (var i in items)
-        {
-            Add(i.Name, i.Id, "item");
-            foreach (var alias in i.Aliases) Add(alias, i.Id, "item");
-        }
-        foreach (var l in lore)
-        {
-            Add(l.Name, l.Id, "lore");
-            foreach (var alias in l.Aliases) Add(alias, l.Id, "lore");
-        }
+        var customTypes = new List<(string TypeKey, IReadOnlyList<CustomEntityData> Entities)>();
         foreach (var typeDef in _entities.GetCustomEntityTypes())
-        {
-            foreach (var entity in await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey))
-            {
-                Add(entity.Name, entity.Id, typeDef.TypeKey);
-                foreach (var alias in entity.Aliases) Add(alias, entity.Id, typeDef.TypeKey);
-            }
-        }
+            customTypes.Add((typeDef.TypeKey, await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey)));
 
-        return candidates
-            .Where(pair => pair.Value.Count == 1)
-            .ToDictionary(pair => pair.Key, pair => pair.Value[0], StringComparer.OrdinalIgnoreCase);
+        return EntityResolveIndex.Build(characters, locations, items, lore, customTypes);
     }
 
     /// <summary>Indexes every map pin referencing <paramref name="entityId"/> so

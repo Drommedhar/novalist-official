@@ -3,6 +3,7 @@ import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { EditorFrame } from '../views/editor/EditorFrame'
 import { CodexView } from '../views/codex/CodexView'
+import { WikiView } from '../views/wiki/WikiView'
 import { DashboardView } from '../views/dashboard/DashboardView'
 import { ManuscriptView } from '../views/manuscript/ManuscriptView'
 import { PlotGridView } from '../views/plotgrid/PlotGridView'
@@ -79,6 +80,14 @@ function MainAreaContent(): React.JSX.Element {
     return (
       <main className="main-area">
         <CodexView />
+      </main>
+    )
+  }
+
+  if (mainView === 'wiki') {
+    return (
+      <main className="main-area">
+        <WikiView />
       </main>
     )
   }

@@ -14,7 +14,7 @@ import { EditorToolbar, type FormattingState } from './EditorToolbar'
 import { useProjectStore, type SceneTabRef, type EditorPane } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
-import { useCodexStore } from '../../stores/codexStore'
+import { useWikiStore } from '../../stores/wikiStore'
 import { dispatchForwardedHotkey } from '../../shell/hotkeys'
 import { rpc } from '../../rpc/client'
 import { useEntityPeek, type PeekScope } from './PeekCard'
@@ -251,11 +251,8 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
     Map<string, { id: string; name: string; detail: string; imagePath: string | null; type: string }>
   >(new Map())
   const openHoveredEntity = (entityType: string, entityId: string): void => {
-    useShellStore.getState().setMainView('codex')
-    void useCodexStore
-      .getState()
-      .setType(entityType)
-      .then(() => useCodexStore.getState().select(entityId))
+    useShellStore.getState().setMainView('wiki')
+    void useWikiStore.getState().openArticle(entityType, entityId)
   }
 
   // The pane's open chapter/scene, resolved from the live chapter list so a peek

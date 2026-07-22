@@ -1,0 +1,75 @@
+# Wiki
+
+The Wiki is a read-only, Wikipedia-style reader over everything in your [Codex](06-codex.md). Where the Codex is for *editing* one entity at a time, the Wiki is for *reading through* your world: browsing every character, location, item, lore entry, and custom entity as a cross-linked article, following links from one page to the next, and seeing where each entity turns up across your manuscript.
+
+Nothing here is a separate copy of your data. Every article is generated on the fly from the fields, sections, relationships, and images you already authored in the Codex, plus the scenes that mention the entity. Editing still happens in the Codex — the Wiki never changes anything.
+
+Open **Wiki** from the **World** group in the activity bar (the icon rail on the far left), next to the Codex.
+
+## The Wiki at a glance
+
+The view has two panes:
+
+- The **index** on the left lists every entity, grouped first by scope (**Book** and **World Bible**) and then by type (Characters, Locations, Items, Lore, and each of your custom types). Entries are sorted by name and show a thumbnail and a short subtitle.
+- The **article** on the right shows the selected entity.
+
+Selecting an entry in the index opens its article. Opening the Wiki selects the first entry automatically so the article pane is never empty.
+
+## Anatomy of an article
+
+An article is assembled from what you have filled in — empty parts are simply omitted:
+
+- **Title** — the entity's name (a character's full name where a surname is set).
+- **Type and scope chips** — the entity type and whether it lives in the current Book or the shared World Bible.
+- **Lead line** — the name in bold, any alternate names ("also known as …"), and a one-line descriptor built from the key fields (for example "Aldric Vane — Knight · Grey Order", or "Harbour — City in Aldland").
+- **Description** — for locations, items, and lore, the entity's description is shown as the opening paragraph. (Characters have no single description; their body comes from sections.)
+- **Stats strip** — an at-a-glance summary for entities that appear in scenes: number of appearances, chapters spanned, POV scenes (characters only), and first / last appearance.
+- **Contents** — a table of contents listing the sections below; click an entry to jump to it. Shown once there is more than one section.
+- **Sections** — the free-form sections you wrote in the Codex, rendered as article body text. Any entity mentions inside that text are clickable and jump to the mentioned entity's article.
+- **Relationships** — each role and its targets. A target that resolves to a single entity is a link; an ambiguous or unknown name is shown as plain text.
+- **Referenced by** — the reverse view: other entities whose relationships or entity-reference fields point at this one.
+- **Appears with** — entities that co-occur in the same scenes, most frequent first, with the shared-scene count.
+- **Plotlines** — the plot threads the entity's scenes belong to.
+- **On maps** — map pins that point at this entity; clicking one opens the map centred on the pin.
+- **Changes over time** — for characters with per-act / per-chapter / per-scene overrides (see [Codex](06-codex.md)), the scopes where the character differs from the base, listing each changed field and its overridden value in manuscript order.
+- **Appearances** — the scenes that mention this entity, in story order (see below).
+- **Infobox** — a fact panel down the right side with the primary image (and its caption), an image gallery of any further images, and the entity's short fields (role, gender, type, parent location, category, origin, custom fields, and so on). A location's parent is a link to the parent's article.
+
+## Appearances — the built-in timeline
+
+The **Appearances** section lists every scene in which the entity is mentioned. A scene "mentions" an entity when its text contains an entity mention — the same links you get from the editor's entity hover cards and auto-mentions (see the [Editor](05-editor.md) page). For each appearance you see:
+
+- the scene's resolved **story date** (from the scene's date or range, falling back to its chapter's),
+- the chapter and scene name,
+- and the scene's **synopsis** if one is set.
+
+Appearances are ordered chronologically by story date, with undated scenes last, then by their order in the manuscript. This doubles as a per-character (or per-place, per-item) timeline: read straight down to follow an entity through the story. Clicking an appearance opens that scene in the editor.
+
+Synopses come from the scene's Synopsis field, which you can write yourself in the scene-notes dock or have generated for you if you run the AI Assistant extension (see [Extensions](24-extensions.md)). The richer your synopses, the more readable the Appearances timeline.
+
+## Cross-links
+
+The Wiki is meant to be browsed by clicking:
+
+- **Relationship targets**, **Referenced by** entries, **Appears with** chips, and the location **parent** all link to their articles.
+- **Entity mentions inside section prose** link to the mentioned entity.
+- **Appearances** open the scene in the editor.
+- **On maps** entries open the map centred on the pin.
+- The **Contents** list jumps to a section within the current article.
+
+A name only links when it resolves to exactly one entity; names that could mean more than one entity are left as plain text so a link never sends you to the wrong page.
+
+## Editing
+
+The Wiki is read-only by design. To change anything on a page, use the **Edit in Codex** button in the article header — it switches to the Codex with that entity selected, ready to edit. Your edits show up in the Wiki the next time you open the article.
+
+## Spoilers
+
+The Wiki shows everything as it currently stands — it is an author's tool, not a spoiler-free reader's companion, so late-story facts and a character's full arc are all visible.
+
+## Where to go next
+
+- [Codex (Characters, Locations, Items, Lore)](06-codex.md) — where all the entity data the Wiki reads is authored and edited.
+- [Chapters & Scenes](04-chapters-and-scenes.md) — scene synopses and story dates feed the Appearances timeline.
+- [Relationships graph](14-relationships.md) — a visual, clustered view of the same character relationships the Wiki links.
+- [Extensions](24-extensions.md) — the AI Assistant can generate the scene synopses that make Appearances richer.
