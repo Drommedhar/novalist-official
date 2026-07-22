@@ -1,0 +1,320 @@
+/* Mobile single-pane shell. Content insets its bottom so nothing sits behind the
+   native iOS Liquid Glass UITabBar (added by RendererHostPage), and respects the
+   top/bottom safe areas (viewport-fit=cover). */
+
+.shell.mobile,
+.shell.mobile .shell-body {
+  height: 100%;
+  min-height: 0;
+}
+
+/* The desktop shell-body is a flex row of panes; on mobile it holds one
+   full-width column, so drop the row layout. */
+.shell.mobile .shell-body {
+  display: block;
+}
+
+.mobile-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--nl-surface-window);
+}
+
+.mobile-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: env(safe-area-inset-top);
+  /* Clear the side notch / Dynamic Island in landscape (0 in portrait). */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  /* Clear the native floating tab bar. RendererHostPage measures the real
+     (bottom-pinned) tab-bar frame and pushes it as --nl-mobile-tabbar-h on every
+     layout / rotation. Add the bottom safe-area inset so the last content clears
+     the floating pill comfortably (it sits above the home indicator) in both
+     orientations - a small extra gap is preferable to clipping on-device. */
+  padding-bottom: calc(var(--nl-mobile-tabbar-h) + env(safe-area-inset-bottom));
+}
+
+/* Back bar shown above the editor in the Manuscript tab. */
+.mobile-editor-bar {
+  display: flex;
+  align-items: center;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  padding-top: calc(env(safe-area-inset-top) + var(--nl-space-sm));
+  padding-left: calc(env(safe-area-inset-left) + var(--nl-space-md));
+  padding-right: calc(env(safe-area-inset-right) + var(--nl-space-md));
+  border-bottom: 1px solid var(--nl-border-subtle);
+  background: var(--nl-surface-toolbar);
+}
+
+.mobile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  background: none;
+  border: none;
+  color: var(--nl-accent);
+  font-size: var(--nl-font-body-lg);
+  cursor: pointer;
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+}
+
+.mobile-editor-bar + .mobile-content {
+  padding-top: 0;
+}
+
+/* The binder is a fixed-width sidebar on desktop (inline style width); full-width
+   on mobile - !important to beat the inline width. */
+.shell.mobile .binder {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  flex: 1;
+  border-right: none;
+}
+
+/* Pane resize handles are pointless on a single-pane phone layout. */
+.shell.mobile .panel-resizer {
+  display: none;
+}
+
+/* Touch chapter/scene management: add-chapter bar + always-visible row actions
+   (desktop reveals these on hover / right-click, which touch has no equivalent for). */
+.shell.mobile .binder-mobile-actions {
+  display: flex;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.shell.mobile .binder-mobile-add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-sm) var(--nl-space-lg);
+  font-size: var(--nl-font-body-lg);
+  cursor: pointer;
+}
+
+/* Codex is single-pane on mobile: the list and the detail each take the full
+   width (CodexView renders one at a time), so drop the fixed-width side list. */
+.shell.mobile .codex-body-mobile {
+  display: block;
+}
+
+.shell.mobile .codex-body-mobile .codex-list {
+  width: 100%;
+  min-width: 0;
+  border-right: none;
+}
+
+.shell.mobile .codex-body-mobile .codex-detail {
+  width: 100%;
+}
+
+.shell.mobile .codex-detail-back {
+  margin-bottom: var(--nl-space-md);
+}
+
+/* The entity-type tabs can exceed a phone's width; scroll them instead of wrapping. */
+.shell.mobile .codex-tabs {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shell.mobile .codex-tabs .codex-tab {
+  flex: 0 0 auto;
+}
+
+/* Book + Draft selectors surfaced at the top of the mobile binder (they live in
+   the hidden desktop toolbar otherwise). */
+.mobile-bookdraft {
+  display: flex;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.mobile-bookdraft-select {
+  flex: 1;
+  min-width: 0;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  font-size: var(--nl-font-body);
+}
+
+.shell.mobile .binder-scene-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.shell.mobile .binder-scene-wrap .binder-scene-row {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Touch-sized icon buttons on chapter and scene rows. */
+.shell.mobile .binder-row-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 34px;
+  min-height: 34px;
+  background: none;
+  border: none;
+  color: var(--nl-text-dim);
+  cursor: pointer;
+}
+
+.shell.mobile .binder-row-action:active {
+  color: var(--nl-text);
+}
+
+/* Planning-view toolbars (Timeline and Calendar share .timeline-toolbar) are
+   wider than a phone; scroll them horizontally instead of clipping the controls,
+   and drop the flex spacer so items pack to the left. */
+.shell.mobile .timeline-toolbar {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shell.mobile .timeline-toolbar > * {
+  flex-shrink: 0;
+}
+
+.shell.mobile .timeline-toolbar .toolbar-spacer {
+  display: none;
+}
+
+/* Inspector button on the right of the editor bar (raises the writing-hub sheet). */
+.mobile-editor-inspector {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 34px;
+  background: none;
+  border: none;
+  color: var(--nl-accent);
+  cursor: pointer;
+}
+
+/* ── Mobile bottom sheet (writing hub: Context / Footnotes / Notes) ── */
+.mobile-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.mobile-sheet {
+  display: flex;
+  flex-direction: column;
+  max-height: 80vh;
+  background: var(--nl-surface-card);
+  border-top-left-radius: var(--nl-radius-xl);
+  border-top-right-radius: var(--nl-radius-xl);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+  padding-bottom: env(safe-area-inset-bottom);
+  transition: transform 0.2s ease;
+  animation: mobile-sheet-up 0.24s ease;
+}
+
+@keyframes mobile-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Drag grabber region at the top of the sheet. */
+.mobile-sheet-grab {
+  display: flex;
+  justify-content: center;
+  padding: var(--nl-space-sm) 0 var(--nl-space-tighter);
+  touch-action: none;
+  cursor: grab;
+}
+
+.mobile-sheet-grabber {
+  width: 36px;
+  height: 4px;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-border);
+}
+
+.mobile-sheet-title {
+  padding: 0 var(--nl-space-lg) var(--nl-space-sm);
+  font-size: var(--nl-font-title);
+  font-weight: 600;
+  color: var(--nl-text);
+  text-align: center;
+}
+
+.mobile-sheet-tabs {
+  display: flex;
+  gap: var(--nl-space-sm);
+  padding: 0 var(--nl-space-lg) var(--nl-space-sm);
+}
+
+.mobile-sheet-tab {
+  flex: 1;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  background: var(--nl-surface-window);
+  color: var(--nl-text-dim);
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-md);
+  font-size: var(--nl-font-body);
+  cursor: pointer;
+}
+
+.mobile-sheet-tab.active {
+  color: var(--nl-text);
+  border-color: var(--nl-accent);
+  background: var(--nl-surface-card);
+}
+
+.mobile-sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-sheet-tabbody {
+  padding: 0 var(--nl-space-lg) var(--nl-space-lg);
+}
+
+/* In the sheet, stack synopsis + notes vertically (desktop docks them side by side)
+   and give the textareas a comfortable touch height. */
+.mobile-sheet-tabbody .notes-dock-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+}
+
+.mobile-sheet-tabbody .notes-dock-textarea {
+  width: 100%;
+  min-height: 120px;
+}

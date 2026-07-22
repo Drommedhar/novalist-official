@@ -43,8 +43,12 @@ export interface ActiveExtView {
 /** Right context sidebar tabs, mirroring the desktop Context / Footnotes tabs. */
 export type InspectorTab = 'context' | 'footnotes'
 
+/** Active destination in the mobile bottom (native Liquid Glass) tab bar. */
+export type MobileTab = 'dashboard' | 'manuscript' | 'codex' | 'planning' | 'settings'
+
 interface ShellState {
   mainView: MainView
+  mobileTab: MobileTab
   extView: ActiveExtView | null
   binderTab: BinderTab
   binderVisible: boolean
@@ -66,6 +70,7 @@ interface ShellState {
   /** In-app user-manual help viewer overlay. */
   helpOpen: boolean
   setMainView(view: MainView): void
+  setMobileTab(tab: MobileTab): void
   /** Switch to the Maps view and ask it to open the given map and focus a pin. */
   navigateToMapPin(mapId: string, pinId: string): void
   /** MapsView clears the pending nav once it has consumed it. */
@@ -89,6 +94,7 @@ interface ShellState {
 
 export const useShellStore = create<ShellState>((set) => ({
   mainView: 'write',
+  mobileTab: 'dashboard',
   extView: null,
   binderTab: 'chapters',
   binderVisible: true,
@@ -105,6 +111,7 @@ export const useShellStore = create<ShellState>((set) => ({
   commandPaletteOpen: false,
   helpOpen: false,
   setMainView: (mainView) => set({ mainView, extView: null }),
+  setMobileTab: (mobileTab) => set({ mobileTab }),
   navigateToMapPin: (mapId, pinId) =>
     set({ mainView: 'maps', extView: null, pendingMapNav: { mapId, pinId } }),
   clearPendingMapNav: () => set({ pendingMapNav: null }),

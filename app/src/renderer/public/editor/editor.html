@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
 :root {
     --bg: #1e1e2e;
@@ -240,6 +240,20 @@ body { display: flex; justify-content: center; }
     z-index: 5;
 }
 body.has-comments { padding-right: 18em; }
+/* Mobile: an 18em margin gutter has no room on a phone, so reclaim the width and
+   show comments as inline highlights only (.nv-comment). Touch targets on the
+   floating selection toolbar and the context menu are enlarged. */
+body.mobile.has-comments { padding-right: 0; }
+body.mobile #commentGutter { display: none; }
+body.mobile #floating-toolbar button {
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 15px;
+    padding: 6px 10px;
+}
+body.mobile #floating-toolbar .ft-sep { height: 24px; }
+body.mobile #context-menu .cm-item { padding: 10px 14px; font-size: 15px; }
+body.mobile #context-menu .cm-suggestion { padding: 8px 14px; }
 .nv-cc-card {
     position: absolute;
     left: 0.5em;
@@ -850,6 +864,11 @@ let pageViewEnabled = false;
 let pageViewRepaginateScheduled = false;
 let pageViewMutationObserver = null;
 let pageViewRepaginating = false;
+
+function setMobile(enabled) {
+    // Full-width text (drop the margin comment gutter) + touch-sized controls.
+    document.body.classList.toggle('mobile', !!enabled);
+}
 
 function setPageView(enabled) {
     pageViewEnabled = !!enabled;
@@ -2686,9 +2705,14 @@ function showGrammarPopup(issueIndex, x, y) {
     }
 
     // Position popup
-    grammarPopup.style.left = Math.min(x, window.innerWidth - 340) + 'px';
+    grammarPopup.style.left = Math.max(4, Math.min(x, window.innerWidth - 340)) + 'px';
     grammarPopup.style.top = (y + 20) + 'px';
     grammarPopup.classList.add('visible');
+    // Flip above the word if it would overflow the bottom (e.g. a low line).
+    const ph = grammarPopup.offsetHeight;
+    if (y + 20 + ph > window.innerHeight) {
+        grammarPopup.style.top = Math.max(4, y - ph - 8) + 'px';
+    }
 }
 
 function hideGrammarPopup() {
@@ -2871,6 +2895,43 @@ document.addEventListener('click', (e) => {
     if (!grammarPopup.contains(e.target) && !e.target.closest('.grammar-issue')) {
         hideGrammarPopup();
     }
+});
+
+// Mobile: a plain tap on a grammar issue or an entity mention would place the
+// caret and raise the on-screen keyboard (native contenteditable). Intercept on
+// mousedown and preventDefault (the same trick the floating toolbar uses to keep
+// the selection) so the tap instead shows the grammar suggestions / entity peek
+// without moving the caret. Touch has no hover, so this is how peek is reachable.
+editor.addEventListener('mousedown', (e) => {
+    if (!document.body.classList.contains('mobile')) return;
+    const t = e.target;
+    if (!t || !t.closest) return;
+    const issue = t.closest('.grammar-issue');
+    if (issue) {
+        e.preventDefault();
+        const index = parseInt(issue.getAttribute('data-issue-index'), 10);
+        const rect = issue.getBoundingClientRect();
+        showGrammarPopup(index, rect.left, rect.bottom);
+        return;
+    }
+    const mention = t.closest('.nv-entity-mention');
+    if (mention) {
+        e.preventDefault();
+        const id = mention.getAttribute('data-entity-id') || '';
+        const rect = mention.getBoundingClientRect();
+        if (id) sendMessage({ type: 'entityMentionHover', entityId: id, x: rect.left, y: rect.bottom });
+        return;
+    }
+    // Most entity references in prose are plain text (auto-detected), not explicit
+    // mention spans, so resolve the entity at the tap point and peek that.
+    const alias = (typeof findEntityAtPoint === 'function') ? findEntityAtPoint(e.clientX, e.clientY) : null;
+    if (alias) {
+        e.preventDefault();
+        sendMessage({ type: 'entityHover', alias: alias, x: e.clientX, y: e.clientY });
+        return;
+    }
+    // Tapping plain text with no entity dismisses any shown peek.
+    sendMessage({ type: 'entityExit' });
 });
 
 // ── Floating Selection Toolbar ───────────────────────────────────

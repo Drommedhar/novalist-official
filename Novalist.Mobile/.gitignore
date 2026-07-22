@@ -1,0 +1,6 @@
+# Renderer bundle produced by `npm run build:mobile` (source is app/src/renderer).
+Resources/Raw/app/
+
+# Standard .NET / MAUI build output
+bin/
+obj/

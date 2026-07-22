@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Services;
 using StreamJsonRpc;
 
 namespace Novalist.Backend;
@@ -14,11 +15,19 @@ public sealed class BackendHost : IDisposable
     private readonly TaskCompletionSource _shutdownRequested =
         new(TaskCreationOptions.RunContinuationsAsynchronously);
     private readonly Workspace _workspace;
+    private readonly IProcessRunner? _processRunner;
     private JsonRpc? _rpc;
 
-    public BackendHost(string? settingsDirectory = null)
+    /// <param name="processRunner">
+    /// External-process backend for shell-out services (Git). Null uses the real
+    /// <see cref="ProcessRunner"/> (desktop). The mobile host injects an
+    /// <see cref="UnavailableProcessRunner"/> so Git degrades to "unavailable"
+    /// inside the sandbox.
+    /// </param>
+    public BackendHost(string? settingsDirectory = null, IProcessRunner? processRunner = null)
     {
         _workspace = new Workspace(settingsDirectory);
+        _processRunner = processRunner;
     }
 
     /// <summary>Reroutes Console.Out to stderr so stray writes cannot corrupt RPC framing.</summary>
@@ -49,7 +58,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new RelationshipsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new LibraryRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ExportRpc(_workspace), targetOptions);
-        rpc.AddLocalRpcTarget(new GitRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new GitRpc(_workspace, _processRunner), targetOptions);
         rpc.AddLocalRpcTarget(new SearchRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SnapshotsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SettingsRpc(_workspace), targetOptions);

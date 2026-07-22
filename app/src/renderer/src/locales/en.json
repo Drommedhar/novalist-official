@@ -1,4 +1,13 @@
 {
+  "mobile": {
+    "tab": {
+      "dashboard": "Dashboard",
+      "write": "Write",
+      "codex": "Codex",
+      "planning": "Plan",
+      "settings": "Settings"
+    }
+  },
   "splash": {
     "loading": "Loading...",
     "applyingSettings": "Applying settings...",
@@ -521,6 +530,8 @@
     }
   },
   "explorer": {
+    "moveUp": "Move up",
+    "moveDown": "Move down",
     "title": "Novalist Explorer",
     "addChapter": "+ Chapter",
     "addChapterTooltip": "Create a new chapter",

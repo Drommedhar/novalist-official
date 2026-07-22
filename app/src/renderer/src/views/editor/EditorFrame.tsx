@@ -25,10 +25,13 @@ function pushEditorSettings(editor: EditorWindow, initial = false): void {
   if (!view) return
   const eff = view.effective
   editor.setFont(eff.editorFontFamily, eff.editorFontSize)
+  // Typewriter scroll makes no sense on a phone, so force it off on mobile even
+  // if a (desktop) project has it enabled - the setting is also hidden there.
+  const typewriter = window.novalist.isMobile === true ? false : eff.typewriterScrollEnabled
   // On the initial push, disabled toggles match editor.html's startup state;
   // skipping them avoids DOM rebuilds that would drop the caret mid-typing.
-  if (!initial || eff.typewriterScrollEnabled) {
-    editor.setTypewriterScroll(eff.typewriterScrollEnabled, eff.typewriterScrollAnchor)
+  if (!initial || typewriter) {
+    editor.setTypewriterScroll(typewriter, eff.typewriterScrollAnchor)
   }
   if (!initial || eff.pageViewEnabled) {
     editor.setPageView(eff.pageViewEnabled)
@@ -423,6 +426,8 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           editorRef.current = live
           pushEditorTheme(live)
           live.setLanguage(i18n.language.startsWith('de') ? 'de' : 'en')
+          // Mobile: full-width text (no 18em comment gutter) + touch-sized toolbar.
+          live.setMobile(window.novalist.isMobile === true)
           // Content loads synchronously so typing can never race a deferred
           // setContent; the settings push is made non-destructive instead.
           const state = useProjectStore.getState()

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MessageCircleQuestion, Settings2, Trash2 } from 'lucide-react'
+import { ChevronLeft, MessageCircleQuestion, Settings2, Trash2 } from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
 import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
@@ -42,6 +42,7 @@ export function CodexView(): React.JSX.Element {
   const create = useCodexStore((s) => s.create)
   const remove = useCodexStore((s) => s.remove)
   const moveWorldBible = useCodexStore((s) => s.moveWorldBible)
+  const isMobile = window.novalist.isMobile === true
   const [pending, setPending] = useState<
     { kind: 'create' } | { kind: 'delete'; entity: EntitySummary } | null
   >(null)
@@ -153,20 +154,35 @@ export function CodexView(): React.JSX.Element {
           <Settings2 size={13} strokeWidth={2} /> {t('codexHub.manageTypes')}
         </button>
       </div>
-      <div className="codex-body">
-        <CodexNav
-          entityType={entityType}
-          entities={entities}
-          selectedId={selectedId}
-          onSelect={(id) => void select(id)}
-          onCreate={openCreate}
-          onMove={(id, toWorldBible) => void moveWorldBible(id, toWorldBible)}
-          onDelete={(entity) => setPending({ kind: 'delete', entity })}
-        />
-        <div className="codex-detail">
-          {record ? (
-            <>
-              <div className="codex-detail-actions">
+      <div className={`codex-body${isMobile ? ' codex-body-mobile' : ''}`}>
+        {/* Mobile is single-pane: the entity list, or the detail (with a back
+            button) once an entry is selected. Desktop shows both side by side. */}
+        {(!isMobile || !selectedId) && (
+          <CodexNav
+            entityType={entityType}
+            entities={entities}
+            selectedId={selectedId}
+            onSelect={(id) => void select(id)}
+            onCreate={openCreate}
+            onMove={(id, toWorldBible) => void moveWorldBible(id, toWorldBible)}
+            onDelete={(entity) => setPending({ kind: 'delete', entity })}
+          />
+        )}
+        {(!isMobile || selectedId) && (
+          <div className="codex-detail">
+            {isMobile && selectedId && (
+              <button
+                type="button"
+                className="mobile-back codex-detail-back"
+                onClick={() => useCodexStore.setState({ selectedId: null, selectedRecord: null })}
+              >
+                <ChevronLeft size={20} strokeWidth={2} />
+                <span>{t('shell.view.codex')}</span>
+              </button>
+            )}
+            {record ? (
+              <>
+                <div className="codex-detail-actions">
                 {entityType === 'character' && (
                   <button
                     className="dialog-button"
@@ -199,10 +215,11 @@ export function CodexView(): React.JSX.Element {
               <OverridesEditor />
               <EntityListsEditor />
             </>
-          ) : (
-            <p className="codex-empty">{t('codexHub.selectHint')}</p>
-          )}
-        </div>
+            ) : (
+              <p className="codex-empty">{t('codexHub.selectHint')}</p>
+            )}
+          </div>
+        )}
       </div>
       {pending?.kind === 'create' && (
         <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && setPending(null)}>

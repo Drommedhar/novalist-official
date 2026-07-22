@@ -108,6 +108,36 @@
   bottom: var(--nl-space-lg);
 }
 
+/* Mobile: a full-screen scrim with the card filling the space above the native
+   tab bar (its dynamic height would otherwise clip off the bottom). Closed by the
+   X or a tap on the scrim. */
+.peek-card-anchor.mobile {
+  inset: 0;
+  z-index: 10002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+  padding: calc(env(safe-area-inset-top) + var(--nl-space-md))
+    calc(env(safe-area-inset-right) + var(--nl-space-md))
+    calc(var(--nl-mobile-tabbar-h) + env(safe-area-inset-bottom))
+    calc(env(safe-area-inset-left) + var(--nl-space-md));
+}
+
+.peek-card-anchor.mobile .peek-card {
+  width: 100%;
+  max-width: 560px;
+  height: 100%;
+  max-height: 100%;
+}
+
+/* Larger touch targets for the peek header buttons (open / pin / close). */
+.peek-card-anchor.mobile .peek-action {
+  width: 36px;
+  height: 36px;
+  font-size: var(--nl-font-body-lg);
+}
+
 .peek-card {
   display: flex;
   flex-direction: column;

@@ -22,6 +22,19 @@ interface Window {
   novalist: {
     material: 'glass' | 'vibrancy' | 'opaque'
     platform: NodeJS.Platform
+    // True on the mobile (MAUI) build. Undefined on desktop. Gates capabilities
+    // unavailable in the sandbox (e.g. Git/versioning UI).
+    isMobile?: boolean
+    // Mobile-only: show/hide the native Liquid Glass tab bar (project vs welcome).
+    setNavVisible?(visible: boolean): void
+    // Mobile-only: push localized titles onto the native tab bar (tab order).
+    setTabTitles?(titles: string[]): void
+    // Mobile-only: read a project-relative image as a data: URI (the mobile
+    // WebView has no novalist-project:// scheme handler).
+    readProjectImage?(path: string): Promise<string | null>
+    // Mobile-only: show/hide the native Liquid Glass Plan popover with the given
+    // localized labels (selection returns via window.__novalistPlanSelect).
+    setPlanningMenuOpen?(open: boolean, labels: string[]): void
     isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, MoreHorizontal, Plus } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
+import { MobileBookDraftBar } from './MobileBookDraftBar'
 import { InputDialog } from './InputDialog'
 import { ConfirmDialog } from './ConfirmDialog'
 import { ChapterDialog } from './ChapterDialog'
@@ -68,6 +69,11 @@ export function Binder(): React.JSX.Element {
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const openScene = useProjectStore((s) => s.openScene)
   const store = useProjectStore
+  // Touch has no right-click/hover, so mobile surfaces add + row-menu buttons
+  // (which reuse the same dialogs and context menu as the desktop).
+  const isMobile = window.novalist.isMobile === true
+  const [addChapterOpen, setAddChapterOpen] = useState(false)
+  const [addSceneChapter, setAddSceneChapter] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [drag, setDrag] = useState<
     | { kind: 'chapter'; chapterGuid: string }
@@ -110,7 +116,37 @@ export function Binder(): React.JSX.Element {
     if (menu.sceneId) {
       const scene = chapter.scenes.find((s) => s.id === menu.sceneId)
       if (!scene) return []
+      // Touch has no drag-reorder, so mobile gets explicit Move up/down entries
+      // (using the neighbour's order, matching the desktop drag semantics).
+      const sceneIndex = chapter.scenes.findIndex((s) => s.id === scene.id)
+      const sceneMoves: ContextMenuItem[] = isMobile
+        ? [
+            ...(sceneIndex > 0
+              ? [
+                  {
+                    label: t('explorer.moveUp'),
+                    onClick: () =>
+                      void store
+                        .getState()
+                        .reorderScene(chapter.guid, scene.id, chapter.scenes[sceneIndex - 1].order)
+                  }
+                ]
+              : []),
+            ...(sceneIndex < chapter.scenes.length - 1
+              ? [
+                  {
+                    label: t('explorer.moveDown'),
+                    onClick: () =>
+                      void store
+                        .getState()
+                        .reorderScene(chapter.guid, scene.id, chapter.scenes[sceneIndex + 1].order)
+                  }
+                ]
+              : [])
+          ]
+        : []
       return [
+        ...sceneMoves,
         {
           label: t('explorer.contextArchive'),
           onClick: () => {
@@ -157,7 +193,35 @@ export function Binder(): React.JSX.Element {
         }
       ]
     }
+    const chapterIndex = chapters.findIndex((c) => c.guid === chapter.guid)
+    const chapterMoves: ContextMenuItem[] = isMobile
+      ? [
+          ...(chapterIndex > 0
+            ? [
+                {
+                  label: t('explorer.moveUp'),
+                  onClick: () =>
+                    void store
+                      .getState()
+                      .reorderChapter(chapter.guid, chapters[chapterIndex - 1].order)
+                }
+              ]
+            : []),
+          ...(chapterIndex < chapters.length - 1
+            ? [
+                {
+                  label: t('explorer.moveDown'),
+                  onClick: () =>
+                    void store
+                      .getState()
+                      .reorderChapter(chapter.guid, chapters[chapterIndex + 1].order)
+                }
+              ]
+            : [])
+        ]
+      : []
     return [
+      ...chapterMoves,
       {
         label: t('explorer.renameAct'),
         onClick: () =>
@@ -198,6 +262,15 @@ export function Binder(): React.JSX.Element {
           {t('smartList.section')}
         </button>
       </div>
+      {isMobile && binderTab === 'chapters' && <MobileBookDraftBar />}
+      {isMobile && binderTab === 'chapters' && (
+        <div className="binder-mobile-actions">
+          <button className="binder-mobile-add" onClick={() => setAddChapterOpen(true)}>
+            <Plus size={15} strokeWidth={2} />
+            {t('shell.newChapter')}
+          </button>
+        </div>
+      )}
       <div className="binder-tree">
         {binderTab === 'smartLists' && <SmartListsPanel />}
         {binderTab === 'chapters' && chapters.length === 0 && (
@@ -240,11 +313,36 @@ export function Binder(): React.JSX.Element {
                 onClick={() => cycleStatus(chapter.guid, chapter.status)}
               />
               <span className="binder-chapter-title">{chapter.title}</span>
+              {isMobile && (
+                <>
+                  <button
+                    className="binder-row-action"
+                    aria-label={t('shell.newScene')}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setAddSceneChapter(chapter.guid)
+                    }}
+                  >
+                    <Plus size={16} strokeWidth={2} />
+                  </button>
+                  <button
+                    className="binder-row-action"
+                    aria-label={t('shell.chapters')}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const r = e.currentTarget.getBoundingClientRect()
+                      setMenu({ x: r.left, y: r.bottom, chapterGuid: chapter.guid, sceneId: null })
+                    }}
+                  >
+                    <MoreHorizontal size={16} strokeWidth={2} />
+                  </button>
+                </>
+              )}
             </div>
             {!collapsed[chapter.guid] &&
               chapter.scenes.map((scene, sceneIndex) => (
+                <div key={scene.id} className="binder-scene-wrap">
                 <button
-                  key={scene.id}
                   className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}${
                     changedIds.has(scene.id) ? ' changed' : ''
                   }`}
@@ -271,6 +369,19 @@ export function Binder(): React.JSX.Element {
                     {scene.wordCount > 0 ? scene.wordCount.toLocaleString() : ''}
                   </span>
                 </button>
+                {isMobile && (
+                  <button
+                    className="binder-row-action"
+                    aria-label={t('explorer.renameScene')}
+                    onClick={(e) => {
+                      const r = e.currentTarget.getBoundingClientRect()
+                      setMenu({ x: r.left, y: r.bottom, chapterGuid: chapter.guid, sceneId: scene.id })
+                    }}
+                  >
+                    <MoreHorizontal size={16} strokeWidth={2} />
+                  </button>
+                )}
+                </div>
               ))}
           </div>
         ))}
@@ -312,6 +423,13 @@ export function Binder(): React.JSX.Element {
         )}
       </div>
       {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems()} onClose={() => setMenu(null)} />}
+      {addChapterOpen && <ChapterDialog onClose={() => setAddChapterOpen(false)} />}
+      {addSceneChapter && (
+        <SceneDialog
+          defaultChapterGuid={addSceneChapter}
+          onClose={() => setAddSceneChapter(null)}
+        />
+      )}
       {pending?.kind === 'editChapter' &&
         chapters.some((c) => c.guid === pending.chapterGuid) && (
           <ChapterDialog

@@ -395,6 +395,9 @@ export function useEntityPeek(opts: {
   // *after* the pointer has already moved onto the card, so without this guard
   // the late exit would re-schedule a hide and close the card as you reach it.
   const pointerOverCardRef = useRef(false)
+  // On mobile the peek is a full-screen sheet (see the anchor's `mobile` class)
+  // rather than a card anchored at the tap point, which clipped off-screen.
+  const isMobilePeek = window.novalist.isMobile === true
 
   const clearHide = (): void => {
     if (hoverHideRef.current) {
@@ -435,9 +438,9 @@ export function useEntityPeek(opts: {
 
   const overlay = hoverCard ? (
     <div
-      className={`peek-card-anchor${pinned ? ' pinned' : ''}`}
+      className={`peek-card-anchor${pinned ? ' pinned' : ''}${isMobilePeek ? ' mobile' : ''}`}
       style={
-        pinned
+        isMobilePeek || pinned
           ? undefined
           : {
               left: Math.min(hoverCard.x, window.innerWidth - 380),
@@ -452,6 +455,10 @@ export function useEntityPeek(opts: {
         pointerOverCardRef.current = false
         scheduleHide()
       }}
+      // Mobile: the peek is a full-screen sheet; a tap on the scrim (outside the
+      // card) closes it, matching the X. The card stops propagation, so only
+      // scrim taps reach here.
+      onClick={isMobilePeek ? () => closeCard() : undefined}
     >
       <PeekCard
         key={`${hoverCard.entityType}:${hoverCard.entityId}`}
