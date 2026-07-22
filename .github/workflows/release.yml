@@ -332,7 +332,10 @@ jobs:
             # a `-d` check nor `xcrun --find` (which falls back to other Xcodes)
             # catches it - only invoking xcodebuild with the explicit SDK path does.
             macsdk="$dev/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
-            if [ -n "$ios" ] && "$dev/usr/bin/xcodebuild" -sdk "$macsdk" -find actool >/dev/null 2>&1; then
+            # Pin DEVELOPER_DIR to THIS Xcode so the probe fails exactly like the
+            # build does. Without it, xcodebuild falls back to another Xcode's actool
+            # and every Xcode looks "ok" even when its own macOS SDK is a broken stub.
+            if [ -n "$ios" ] && DEVELOPER_DIR="$dev" "$dev/usr/bin/xcodebuild" -sdk "$macsdk" -find actool >/dev/null 2>&1; then
               best="$x"; mac="ok"
             else
               mac="broken"
