@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { useShellStore } from './shellStore'
+import { useSettingsStore } from './settingsStore'
 
 export interface SceneDto {
   id: string
@@ -126,6 +127,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   isDirty: false,
 
   applyState: (state) => {
+    const prevPath = get().projectPath
     set({
       isLoaded: state.isLoaded,
       projectName: state.projectName,
@@ -136,6 +138,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     })
     window.novalist.setProjectRoot(state.projectPath)
     if (state.isLoaded) void get().loadDrafts()
+    // The effective language/theme can carry a per-project override, so re-apply
+    // settings whenever the active project changes - otherwise a project opened
+    // with a non-default language stays on the global language until Settings is
+    // opened (which reloads settings as a side effect).
+    if (state.projectPath !== prevPath) void useSettingsStore.getState().load()
   },
 
   switchBook: async (bookId) => {
