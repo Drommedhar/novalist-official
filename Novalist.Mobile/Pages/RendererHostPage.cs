@@ -255,6 +255,40 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         return el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "";
     }
 
+    // Absolute folder of the open project; set via setProjectRoot on project open.
+    private string? _projectRoot;
+
+    private string? ReadProjectImage(string relative)
+    {
+        if (string.IsNullOrEmpty(_projectRoot) || string.IsNullOrEmpty(relative)) return null;
+        try
+        {
+            var rootFull = Path.GetFullPath(_projectRoot);
+            var full = Path.GetFullPath(Path.Combine(rootFull, relative));
+            // Never serve outside the project folder.
+            if (!full.StartsWith(rootFull, StringComparison.Ordinal)) return null;
+            if (!File.Exists(full)) return null;
+            var bytes = File.ReadAllBytes(full);
+            return $"data:{MimeForExtension(full)};base64,{Convert.ToBase64String(bytes)}";
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static string MimeForExtension(string path) =>
+        Path.GetExtension(path).ToLowerInvariant() switch
+        {
+            ".png" => "image/png",
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            ".bmp" => "image/bmp",
+            ".svg" => "image/svg+xml",
+            _ => "application/octet-stream"
+        };
+
     private async Task<object?> InvokeHostAsync(string method, JsonElement args)
     {
         switch (method)
@@ -274,6 +308,16 @@ public sealed class RendererHostPage : ContentPage, IDisposable
             case "endProjectAccess":
                 SecurityScopedFolders.EndAccess(ArgString(args, 0));
                 return null;
+            case "setProjectRoot":
+                // Track the open project's folder so project images (served on
+                // desktop via the novalist-project:// scheme) can be read below.
+                _projectRoot = ArgString(args, 0);
+                return null;
+            case "readProjectImage":
+                // Read a project-relative image and return it as a data: URI. The
+                // mobile build has no custom-scheme handler, so novalist-project://
+                // <img> srcs are rewritten to call this (see mobile/projectImages).
+                return ReadProjectImage(ArgString(args, 0));
             case "pickFile":
             {
                 var options = new PickOptions { PickerTitle = ArgString(args, 0) };

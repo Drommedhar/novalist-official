@@ -18,6 +18,8 @@
  *              host  -> window.__novalistHostResult(<base64 json>)
  */
 
+import { installProjectImageLoader, clearProjectImageCache } from './projectImages'
+
 type HybridWebViewApi = { SendRawMessage?: (message: string) => void }
 
 function hwv(): HybridWebViewApi | undefined {
@@ -117,7 +119,15 @@ const novalist: Window['novalist'] = {
     void hostCall('setTabTitles', [titles])
   },
   readClipboardImage: () => hostCall<string | null>('readClipboardImage', []),
-  setProjectRoot: () => {},
+  // Track the open project's folder natively so project images can be read, and
+  // drop the resolved-image cache so a new project can't reuse the old one's.
+  setProjectRoot: (root) => {
+    clearProjectImageCache()
+    void hostCall('setProjectRoot', [root])
+  },
+  // Read a project-relative image as a data: URI (novalist-project:// has no
+  // scheme handler in the mobile WebView; projectImages rewrites those srcs).
+  readProjectImage: (path: string) => hostCall<string | null>('readProjectImage', [path]),
   // Security-scoped external folders: resolve the native bookmark and start/stop
   // access around opening a project (mirrors the Mac App Store contract). A false
   // result makes the renderer re-prompt for the folder.
@@ -133,3 +143,7 @@ const novalist: Window['novalist'] = {
 }
 
 window.novalist = novalist
+
+// Rewrite novalist-project:// <img> srcs to data URIs (no custom-scheme handler
+// in the mobile WebView).
+installProjectImageLoader()

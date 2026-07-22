@@ -29,6 +29,9 @@ interface Window {
     setNavVisible?(visible: boolean): void
     // Mobile-only: push localized titles onto the native tab bar (tab order).
     setTabTitles?(titles: string[]): void
+    // Mobile-only: read a project-relative image as a data: URI (the mobile
+    // WebView has no novalist-project:// scheme handler).
+    readProjectImage?(path: string): Promise<string | null>
     isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void
