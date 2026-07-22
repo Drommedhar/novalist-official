@@ -320,16 +320,25 @@ jobs:
           # needs the macOS SDK. Some runner Xcodes ship one without the other, so
           # pick the newest Xcode that has BOTH and pin DEVELOPER_DIR (GitHub sets it
           # to a default that xcode-select alone would not override for the build).
-          echo "=== available Xcodes ==="
+          echo "=== available Xcodes (iOS SDK + working actool) ==="
           best=""
           for x in $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V); do
-            ios=$(ls -d "$x"/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS*.sdk 2>/dev/null | tail -n1 || true)
-            mac=$(ls -d "$x"/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX*.sdk 2>/dev/null | tail -n1 || true)
+            dev="$x/Contents/Developer"
             ver=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$x/Contents/version.plist" 2>/dev/null || echo "?")
-            echo "$x  (v$ver)  iOS:${ios:-none}  macOS:${mac:-none}"
-            if [ -n "$ios" ] && [ -n "$mac" ]; then best="$x"; fi
+            ios=$(ls -d "$dev"/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS*.sdk 2>/dev/null | tail -n1 || true)
+            # Test actool resolution directly - a dangling MacOSX.sdk symlink passes
+            # a plain directory check but still breaks actool.
+            if [ -n "$ios" ] && DEVELOPER_DIR="$dev" xcrun --sdk macosx --find actool >/dev/null 2>&1; then
+              best="$x"; ok="yes"
+            else
+              ok="no"
+            fi
+            echo "$x  (v$ver)  iOS:${ios:-none}  actool:$ok"
           done
-          if [ -z "$best" ]; then echo "No Xcode has both iOS and macOS SDKs" >&2; exit 1; fi
+          if [ -z "$best" ]; then
+            echo "No Xcode has both an iOS SDK and a working actool (macOS SDK)" >&2
+            exit 1
+          fi
           echo "Selected: $best"
           sudo xcode-select -s "$best/Contents/Developer"
           echo "DEVELOPER_DIR=$best/Contents/Developer" >> "$GITHUB_ENV"
