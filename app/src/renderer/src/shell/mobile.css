@@ -184,6 +184,57 @@
   color: var(--nl-text);
 }
 
+/* Planning-view toolbars (Timeline and Calendar share .timeline-toolbar) are
+   wider than a phone; scroll them horizontally instead of clipping the controls,
+   and drop the flex spacer so items pack to the left. */
+.shell.mobile .timeline-toolbar {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.shell.mobile .timeline-toolbar > * {
+  flex-shrink: 0;
+}
+
+.shell.mobile .timeline-toolbar .toolbar-spacer {
+  display: none;
+}
+
+/* Plan drawer list (Timeline / Plot Grid / Calendar / Find & Replace). */
+.mobile-more-hub {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-more-item {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-lg);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--nl-border-subtle);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body-lg);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-more-item:active {
+  background: var(--nl-surface-hover);
+}
+
+.mobile-more-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-more-chevron {
+  flex: 0 0 auto;
+  color: var(--nl-text-dim);
+}
+
 /* Inspector button on the right of the editor bar (raises the writing-hub sheet). */
 .mobile-editor-inspector {
   margin-left: auto;

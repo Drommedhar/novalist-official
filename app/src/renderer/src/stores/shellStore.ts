@@ -44,7 +44,7 @@ export interface ActiveExtView {
 export type InspectorTab = 'context' | 'footnotes'
 
 /** Active destination in the mobile bottom (native Liquid Glass) tab bar. */
-export type MobileTab = 'dashboard' | 'manuscript' | 'codex' | 'more'
+export type MobileTab = 'dashboard' | 'manuscript' | 'codex' | 'planning' | 'settings'
 
 interface ShellState {
   mainView: MainView
