@@ -312,15 +312,29 @@ jobs:
         with:
           submodules: true
 
-      - name: Select newest Xcode
+      - name: Select a complete Xcode (iOS + macOS SDKs)
         shell: bash
         run: |
           set -euo pipefail
-          # net10.0-ios needs the iOS 26 SDK (Xcode 26). Pick the newest Xcode on
-          # the runner; the build fails loudly below if it's too old.
-          LATEST=$(ls -d /Applications/Xcode_26*.app /Applications/Xcode.app 2>/dev/null | sort -V | tail -n1 || true)
-          if [ -n "$LATEST" ]; then sudo xcode-select -s "$LATEST/Contents/Developer"; fi
+          # net10.0-ios needs the iOS 26 SDK, and actool (app-icon asset compiler)
+          # needs the macOS SDK. Some runner Xcodes ship one without the other, so
+          # pick the newest Xcode that has BOTH and pin DEVELOPER_DIR (GitHub sets it
+          # to a default that xcode-select alone would not override for the build).
+          echo "=== available Xcodes ==="
+          best=""
+          for x in $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V); do
+            ios=$(ls -d "$x"/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS*.sdk 2>/dev/null | tail -n1 || true)
+            mac=$(ls -d "$x"/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX*.sdk 2>/dev/null | tail -n1 || true)
+            ver=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$x/Contents/version.plist" 2>/dev/null || echo "?")
+            echo "$x  (v$ver)  iOS:${ios:-none}  macOS:${mac:-none}"
+            if [ -n "$ios" ] && [ -n "$mac" ]; then best="$x"; fi
+          done
+          if [ -z "$best" ]; then echo "No Xcode has both iOS and macOS SDKs" >&2; exit 1; fi
+          echo "Selected: $best"
+          sudo xcode-select -s "$best/Contents/Developer"
+          echo "DEVELOPER_DIR=$best/Contents/Developer" >> "$GITHUB_ENV"
           xcodebuild -version
+          xcrun --sdk macosx --find actool
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
