@@ -1,6 +1,5 @@
-import { ChevronRight, Clock, LayoutGrid, CalendarDays, Replace } from 'lucide-react'
+import { Clock, LayoutGrid, CalendarDays, Replace } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { MobileSheet } from './MobileSheet'
 import type { MainView } from '../stores/shellStore'
 
 export type PlanningTarget = MainView | 'findReplace'
@@ -14,11 +13,12 @@ const ITEMS: { key: PlanningTarget; labelKey: string; Icon: typeof Clock }[] = [
 ]
 
 /**
- * The Plan tab's drawer: a bottom sheet listing the planning modes (Timeline,
- * Plot Grid, Calendar) plus Find & Replace. Selecting a mode switches the Plan
- * tab's content; Find & Replace opens the dialog. Reuses MobileSheet.
+ * The Plan tab's picker: a small liquid-glass popover that pops out just above the
+ * tab bar (near the Plan button) listing the planning modes plus Find & Replace.
+ * Selecting a mode switches the Plan tab's content; Find & Replace opens the
+ * dialog. A tap outside the menu closes it.
  */
-export function MobilePlanningDrawer({
+export function MobilePlanningMenu({
   onSelect,
   onClose
 }: {
@@ -27,21 +27,24 @@ export function MobilePlanningDrawer({
 }): React.JSX.Element {
   const { t } = useTranslation()
   return (
-    <MobileSheet title={t('mobile.tab.planning')} onClose={onClose}>
-      <div className="mobile-more-hub">
+    <div
+      className="mobile-planning-overlay"
+      onPointerDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className="mobile-planning-menu" role="menu">
         {ITEMS.map(({ key, labelKey, Icon }) => (
           <button
             key={key}
             type="button"
-            className="mobile-more-item"
+            role="menuitem"
+            className="mobile-planning-item"
             onClick={() => onSelect(key)}
           >
-            <Icon size={20} strokeWidth={1.75} />
-            <span className="mobile-more-label">{t(labelKey)}</span>
-            <ChevronRight size={18} strokeWidth={2} className="mobile-more-chevron" />
+            <Icon size={18} strokeWidth={1.75} />
+            <span>{t(labelKey)}</span>
           </button>
         ))}
       </div>
-    </MobileSheet>
+    </div>
   )
 }

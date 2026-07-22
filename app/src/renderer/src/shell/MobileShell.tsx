@@ -10,7 +10,7 @@ import { TimelineView } from '../views/timeline/TimelineView'
 import { PlotGridView } from '../views/plotgrid/PlotGridView'
 import { CalendarView } from '../views/calendar/CalendarView'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
-import { MobilePlanningDrawer, type PlanningTarget } from './MobilePlanningDrawer'
+import { MobilePlanningMenu, type PlanningTarget } from './MobilePlanningMenu'
 import { useShellStore, type MobileTab, type MainView } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useCodexStore } from '../stores/codexStore'
@@ -67,8 +67,9 @@ export function MobileShell(): React.JSX.Element {
       if (key === 'codex') {
         useCodexStore.setState({ selectedId: null, selectedRecord: null })
       }
-      // The Plan tab opens a drawer of planning modes rather than a single view.
-      setPlanningDrawerOpen(key === 'planning')
+      // The Plan tab pops out a menu of planning modes over the tab bar; re-tapping
+      // Plan toggles it, and any other tab closes it.
+      setPlanningDrawerOpen((open) => (key === 'planning' ? !open : false))
       setTab(key as MobileTab)
     }
     return () => {
@@ -76,12 +77,12 @@ export function MobileShell(): React.JSX.Element {
     }
   }, [setTab])
 
-  // The native Liquid Glass tab bar is a native view that always floats above web
-  // content, so it would occlude a web bottom sheet. Hide it while a sheet/drawer
-  // is up (each is a focused modal with its own dismiss); restore on close.
+  // The native Liquid Glass tab bar floats above web content and would occlude the
+  // writing-hub bottom sheet, so hide it while that sheet is up. The planning menu
+  // sits ABOVE the tab bar, so the bar stays visible for it.
   useEffect(() => {
-    window.novalist.setNavVisible?.(!inspectorOpen && !planningDrawerOpen)
-  }, [inspectorOpen, planningDrawerOpen])
+    window.novalist.setNavVisible?.(!inspectorOpen)
+  }, [inspectorOpen])
 
   // Mobile navigates via the tab, but several views gate their data fetch on
   // mainView (e.g. DashboardView only fetches when mainView === 'dashboard').
@@ -151,7 +152,7 @@ export function MobileShell(): React.JSX.Element {
         <MobileInspectorSheet onClose={() => setInspectorOpen(false)} />
       )}
       {planningDrawerOpen && (
-        <MobilePlanningDrawer
+        <MobilePlanningMenu
           onSelect={selectPlanning}
           onClose={() => setPlanningDrawerOpen(false)}
         />

@@ -201,38 +201,61 @@
   display: none;
 }
 
-/* Plan drawer list (Timeline / Plot Grid / Calendar / Find & Replace). */
-.mobile-more-hub {
-  display: flex;
-  flex-direction: column;
+/* Plan menu: a liquid-glass popover that pops out just above the tab bar with the
+   planning modes (Timeline / Plot Grid / Calendar / Find & Replace). */
+.mobile-planning-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
 }
 
-.mobile-more-item {
+.mobile-planning-menu {
+  position: absolute;
+  bottom: calc(var(--nl-mobile-tabbar-h) + env(safe-area-inset-bottom) + var(--nl-space-sm));
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(320px, calc(100% - var(--nl-space-xl)));
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter);
+  border-radius: var(--nl-radius-xl);
+  /* Liquid glass: translucent surface blurring the content behind it. */
+  background: color-mix(in srgb, var(--nl-surface-card) 70%, transparent);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid color-mix(in srgb, var(--nl-text) 12%, transparent);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: mobile-planning-pop 0.16s ease;
+}
+
+@keyframes mobile-planning-pop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+.mobile-planning-item {
   display: flex;
   align-items: center;
   gap: var(--nl-space-md);
-  padding: var(--nl-space-lg);
+  padding: var(--nl-space-md);
   background: none;
   border: none;
-  border-bottom: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-md);
   color: var(--nl-text);
   font-size: var(--nl-font-body-lg);
   text-align: left;
   cursor: pointer;
 }
 
-.mobile-more-item:active {
-  background: var(--nl-surface-hover);
-}
-
-.mobile-more-label {
-  flex: 1;
-  min-width: 0;
-}
-
-.mobile-more-chevron {
-  flex: 0 0 auto;
-  color: var(--nl-text-dim);
+.mobile-planning-item:active {
+  background: color-mix(in srgb, var(--nl-text) 10%, transparent);
 }
 
 /* Inspector button on the right of the editor bar (raises the writing-hub sheet). */
