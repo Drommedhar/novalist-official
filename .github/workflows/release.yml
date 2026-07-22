@@ -293,6 +293,148 @@ jobs:
           path: app/dist/**/*.pkg
           if-no-files-found: error
 
+  # ── iOS TestFlight (App Store Connect) ──────────────────────────────────
+  # Builds the MAUI iOS app (Novalist.Mobile) as a signed Release IPA and uploads
+  # it to TestFlight. Reuses the Mac App Store's Apple Distribution certificate
+  # (the unified "Apple Distribution" cert signs iOS too) and the App Store Connect
+  # API key; the only new secret is the iOS App Store provisioning profile. A manual
+  # workflow_dispatch is a dry-run: it builds the IPA (and uploads it as an
+  # artifact) but skips the App Store Connect upload. See docs/ios-signing.md.
+  ios-app-store:
+    name: iOS TestFlight
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Select newest Xcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          # net10.0-ios needs the iOS 26 SDK (Xcode 26). Pick the newest Xcode on
+          # the runner; the build fails loudly below if it's too old.
+          LATEST=$(ls -d /Applications/Xcode_26*.app /Applications/Xcode.app 2>/dev/null | sort -V | tail -n1 || true)
+          if [ -n "$LATEST" ]; then sudo xcode-select -s "$LATEST/Contents/Developer"; fi
+          xcodebuild -version
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore MAUI iOS workload
+        run: dotnet workload restore Novalist.Mobile/Novalist.Mobile.csproj
+
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VER="$(printf '%s' "$TAG" | grep -oE '[0-9]+(\.[0-9]+)*' | head -n1 || true)"
+          if [ -z "$VER" ]; then VER="0.0.1"; fi
+          IFS='.' read -r a b c <<< "$VER"
+          echo "prefix=${a:-0}.${b:-0}.${c:-0}" >> "$GITHUB_OUTPUT"
+          # Build number must be unique + increasing for TestFlight; the run number
+          # satisfies that across re-runs of the same version.
+          echo "build=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Build mobile web bundle
+        working-directory: app
+        run: |
+          npm ci
+          npm run build:mobile
+
+      - name: Import signing certificate
+        env:
+          CERT_BASE64: ${{ secrets.MAS_CSC_LINK }}
+          CERT_PASSWORD: ${{ secrets.MAS_CSC_KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          KEYCHAIN="$RUNNER_TEMP/build.keychain-db"
+          KP="$(uuidgen)"
+          security create-keychain -p "$KP" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KP" "$KEYCHAIN"
+          echo "$CERT_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$CERT_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KP" "$KEYCHAIN"
+          security list-keychains -d user -s "$KEYCHAIN" login.keychain-db
+          IDENTITY=$(security find-identity -v -p codesigning "$KEYCHAIN" \
+            | grep -m1 "Apple Distribution" | sed -E 's/^[^"]*"([^"]+)".*$/\1/')
+          if [ -z "$IDENTITY" ]; then echo "No Apple Distribution identity imported" >&2; exit 1; fi
+          echo "identity=$IDENTITY" >> "$GITHUB_ENV"
+          echo "Signing identity: $IDENTITY"
+
+      - name: Install provisioning profile
+        env:
+          PROFILE_BASE64: ${{ secrets.IOS_APPSTORE_PROVISION_BASE64 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$DIR"
+          echo "$PROFILE_BASE64" | base64 --decode > "$RUNNER_TEMP/app.mobileprovision"
+          security cms -D -i "$RUNNER_TEMP/app.mobileprovision" > "$RUNNER_TEMP/pp.plist"
+          UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" "$RUNNER_TEMP/pp.plist")
+          NAME=$(/usr/libexec/PlistBuddy -c "Print :Name" "$RUNNER_TEMP/pp.plist")
+          cp "$RUNNER_TEMP/app.mobileprovision" "$DIR/$UUID.mobileprovision"
+          echo "profile=$NAME" >> "$GITHUB_ENV"
+          echo "Provisioning profile: $NAME ($UUID)"
+
+      - name: Build signed IPA
+        shell: bash
+        run: |
+          set -euo pipefail
+          dotnet publish Novalist.Mobile/Novalist.Mobile.csproj \
+            -f net10.0-ios -c Release \
+            -p:RuntimeIdentifier=ios-arm64 \
+            -p:CodesignKey="$identity" \
+            -p:CodesignProvision="$profile" \
+            -p:ApplicationDisplayVersion=${{ steps.version.outputs.prefix }} \
+            -p:ApplicationVersion=${{ steps.version.outputs.build }}
+          IPA=$(find Novalist.Mobile/bin -name "*.ipa" | head -n1)
+          if [ -z "$IPA" ]; then echo "No .ipa produced" >&2; exit 1; fi
+          echo "ipa=$IPA" >> "$GITHUB_ENV"
+          echo "Built $IPA"
+
+      - name: Upload to TestFlight
+        # Tag releases only — a manual dispatch is a build-only dry-run.
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.appstoreconnect/private_keys"
+          echo "${{ secrets.APPLE_API_KEY_BASE64 }}" | base64 --decode \
+            > "$HOME/.appstoreconnect/private_keys/AuthKey_${APPLE_API_KEY_ID}.p8"
+          echo "Validating $ipa"
+          xcrun altool --validate-app -f "$ipa" -t ios \
+            --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER"
+          echo "Uploading $ipa"
+          xcrun altool --upload-app -f "$ipa" -t ios \
+            --apiKey "$APPLE_API_KEY_ID" --apiIssuer "$APPLE_API_ISSUER"
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: novalist-ios-ipa
+          path: Novalist.Mobile/bin/**/*.ipa
+          if-no-files-found: error
+
   sdk-and-example:
     name: Pack SDK & Example Extension
     # Tag releases only: this job publishes to NuGet and commits a version bump to
