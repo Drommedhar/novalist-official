@@ -120,6 +120,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         _tabBar = bar;
         _tabBar.SetItems(items, animated: false);
         _tabBar.SelectedItem = items[0];
+        _lastRealItem = items[0];
         ApplyTabTitles();   // adopt any titles the web pushed before the bar existed
         // "Search" and "More" that map to a dialog/sheet should not stick as the
         // selected tab; the web decides. We only forward the tap.
@@ -134,10 +135,24 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         });
     }
 
+    // The last tab that maps to an actual view (not the Search dialog), so Search
+    // can be forwarded without its highlight sticking.
+    private UITabBarItem? _lastRealItem;
+
     private void OnNativeTabSelected(int tag)
     {
         if (tag < 0 || tag >= Tabs.Length) return;
         var key = Tabs[tag].Key;
+        if (key == "search")
+        {
+            // Search opens the find dialog, not a view - revert the selection to
+            // the current view tab so it doesn't stay highlighted.
+            if (_tabBar != null && _lastRealItem != null) _tabBar.SelectedItem = _lastRealItem;
+        }
+        else
+        {
+            _lastRealItem = _tabBar?.SelectedItem;
+        }
         _ = EvalOnMainAsync($"window.__novalistTab && window.__novalistTab('{key}')");
     }
 
