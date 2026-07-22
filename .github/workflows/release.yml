@@ -326,12 +326,17 @@ jobs:
             dev="$x/Contents/Developer"
             ver=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$x/Contents/version.plist" 2>/dev/null || echo "?")
             ios=$(ls -d "$dev"/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS*.sdk 2>/dev/null | tail -n1 || true)
-            # The build invokes actool with this Xcode's OWN MacOSX.sdk (explicit
-            # path), so require it to resolve to a real directory. `-d` follows the
-            # symlink and is false for the dangling one in Xcode_26.6.0. (An
-            # actool/xcrun --find test is useless here: it falls back to other Xcodes.)
+            # Run the EXACT command the build uses (xcodebuild -sdk <this Xcode's
+            # MacOSX.sdk> -find actool). Xcode_26.6.0's MacOSX.sdk exists as a
+            # directory but is an incomplete stub that xcodebuild rejects, so neither
+            # a `-d` check nor `xcrun --find` (which falls back to other Xcodes)
+            # catches it - only invoking xcodebuild with the explicit SDK path does.
             macsdk="$dev/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
-            if [ -n "$ios" ] && [ -d "$macsdk" ]; then best="$x"; mac="yes"; else mac="no"; fi
+            if [ -n "$ios" ] && "$dev/usr/bin/xcodebuild" -sdk "$macsdk" -find actool >/dev/null 2>&1; then
+              best="$x"; mac="ok"
+            else
+              mac="broken"
+            fi
             echo "$x  (v$ver)  iOS:${ios:+yes}  macOS.sdk:$mac"
           done
           if [ -z "$best" ]; then
