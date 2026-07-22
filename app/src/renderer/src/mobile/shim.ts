@@ -118,6 +118,11 @@ const novalist: Window['novalist'] = {
   setTabTitles: (titles: string[]) => {
     void hostCall('setTabTitles', [titles])
   },
+  // Mobile-only: show/hide the native Liquid Glass Plan popover with the given
+  // localized item labels; selection comes back via window.__novalistPlanSelect.
+  setPlanningMenuOpen: (open: boolean, labels: string[]) => {
+    void hostCall('setPlanningMenuOpen', [open, labels])
+  },
   readClipboardImage: () => hostCall<string | null>('readClipboardImage', []),
   // Track the open project's folder natively so project images can be read, and
   // drop the resolved-image cache so a new project can't reuse the old one's.

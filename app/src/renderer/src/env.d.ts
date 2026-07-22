@@ -32,6 +32,9 @@ interface Window {
     // Mobile-only: read a project-relative image as a data: URI (the mobile
     // WebView has no novalist-project:// scheme handler).
     readProjectImage?(path: string): Promise<string | null>
+    // Mobile-only: show/hide the native Liquid Glass Plan popover with the given
+    // localized labels (selection returns via window.__novalistPlanSelect).
+    setPlanningMenuOpen?(open: boolean, labels: string[]): void
     isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void

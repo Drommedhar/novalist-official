@@ -10,11 +10,21 @@ import { TimelineView } from '../views/timeline/TimelineView'
 import { PlotGridView } from '../views/plotgrid/PlotGridView'
 import { CalendarView } from '../views/calendar/CalendarView'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
-import { MobilePlanningMenu, type PlanningTarget } from './MobilePlanningMenu'
 import { useShellStore, type MobileTab, type MainView } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useCodexStore } from '../stores/codexStore'
 import './mobile.css'
+
+// Plan menu items, in the order shown in the native popover. Index maps back from
+// window.__novalistPlanSelect. 'findReplace' opens the dialog, not a view.
+type PlanningTarget = MainView | 'findReplace'
+const PLANNING_TARGETS: PlanningTarget[] = ['timeline', 'plotGrid', 'calendar', 'findReplace']
+const PLANNING_LABEL_KEYS = [
+  'shell.view.timeline',
+  'shell.view.plotGrid',
+  'shell.view.calendar',
+  'findReplace.title'
+]
 
 /**
  * Single-pane mobile layout. The desktop multi-pane shell (activity bar + binder
@@ -105,6 +115,32 @@ export function MobileShell(): React.JSX.Element {
     else setPlanningView(target)
   }
 
+  // The Plan menu is rendered natively (same Liquid Glass as the tab bar, anchored
+  // to the Plan button). Drive its visibility + localized labels from here, and
+  // receive selection / dismissal back through window callbacks.
+  useEffect(() => {
+    const w = window as unknown as {
+      __novalistPlanSelect?: (index: number) => void
+      __novalistPlanDismiss?: () => void
+    }
+    w.__novalistPlanSelect = (index: number) => {
+      const target = PLANNING_TARGETS[index]
+      if (target) selectPlanning(target)
+    }
+    w.__novalistPlanDismiss = () => setPlanningDrawerOpen(false)
+    return () => {
+      delete w.__novalistPlanSelect
+      delete w.__novalistPlanDismiss
+    }
+  }, [])
+
+  useEffect(() => {
+    window.novalist.setPlanningMenuOpen?.(
+      planningDrawerOpen,
+      PLANNING_LABEL_KEYS.map((k) => t(k))
+    )
+  }, [planningDrawerOpen, t])
+
   const inEditor = tab === 'manuscript' && !!openSceneId
 
   let content: React.JSX.Element
@@ -150,12 +186,6 @@ export function MobileShell(): React.JSX.Element {
       <div className="mobile-content">{content}</div>
       {inEditor && inspectorOpen && (
         <MobileInspectorSheet onClose={() => setInspectorOpen(false)} />
-      )}
-      {planningDrawerOpen && (
-        <MobilePlanningMenu
-          onSelect={selectPlanning}
-          onClose={() => setPlanningDrawerOpen(false)}
-        />
       )}
     </div>
   )

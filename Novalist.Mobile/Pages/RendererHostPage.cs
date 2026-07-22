@@ -8,6 +8,7 @@ using Novalist.Backend;
 using Novalist.Core.Services;
 using Novalist.Mobile.Services;
 #if IOS
+using CoreGraphics;
 using UIKit;
 using WebKit;
 #endif
@@ -179,6 +180,114 @@ public sealed class RendererHostPage : ContentPage, IDisposable
             base.LayoutSubviews();
             LayoutChanged?.Invoke();
         }
+    }
+
+    // ---- Plan menu: a native Liquid Glass popover over the tab bar ------------
+
+    private UIView? _planOverlay;      // transparent full-screen tap-catcher
+    private UIVisualEffectView? _planMenu;
+
+    private void ShowPlanMenu(string[] labels)
+    {
+        HidePlanMenu();
+        if (Handler?.PlatformView is not UIView parent || _tabBar == null || labels.Length == 0)
+            return;
+
+        _planOverlay = new UIView
+        {
+            Frame = parent.Bounds,
+            AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight,
+            BackgroundColor = UIColor.Clear
+        };
+        _planOverlay.AddGestureRecognizer(new UITapGestureRecognizer(() =>
+        {
+            _ = EvalOnMainAsync("window.__novalistPlanDismiss && window.__novalistPlanDismiss()");
+            HidePlanMenu();
+        }));
+
+        // The same Liquid Glass material the tab bar uses (falls back to a chrome
+        // blur on any pre-glass runtime).
+        UIVisualEffect effect;
+        try { effect = new UIGlassEffect(); }
+        catch { effect = UIBlurEffect.FromStyle(UIBlurEffectStyle.SystemChromeMaterial); }
+        _planMenu = new UIVisualEffectView(effect) { ClipsToBounds = true };
+        _planMenu.Layer.CornerRadius = 18;
+        // Match the tab bar's dark Liquid Glass (the app is dark-only); otherwise
+        // the glass renders in the light variant.
+        _planMenu.OverrideUserInterfaceStyle = UIUserInterfaceStyle.Dark;
+
+        var stack = new UIStackView
+        {
+            Axis = UILayoutConstraintAxis.Vertical,
+            TranslatesAutoresizingMaskIntoConstraints = false
+        };
+        for (var i = 0; i < labels.Length; i++)
+        {
+            var idx = i;
+            var btn = UIButton.FromType(UIButtonType.System);
+            btn.SetTitle(labels[i], UIControlState.Normal);
+            btn.SetTitleColor(UIColor.Label, UIControlState.Normal);
+            btn.HorizontalAlignment = UIControlContentHorizontalAlignment.Left;
+            btn.ContentEdgeInsets = new UIEdgeInsets(0, 16, 0, 16);
+            if (btn.TitleLabel != null) btn.TitleLabel.Font = UIFont.SystemFontOfSize(17);
+            btn.TouchUpInside += (_, _) =>
+            {
+                _ = EvalOnMainAsync($"window.__novalistPlanSelect && window.__novalistPlanSelect({idx})");
+                HidePlanMenu();
+            };
+            btn.HeightAnchor.ConstraintEqualTo(48).Active = true;
+            stack.AddArrangedSubview(btn);
+        }
+        _planMenu.ContentView.AddSubview(stack);
+        NSLayoutConstraint.ActivateConstraints(new[]
+        {
+            stack.LeadingAnchor.ConstraintEqualTo(_planMenu.ContentView.LeadingAnchor),
+            stack.TrailingAnchor.ConstraintEqualTo(_planMenu.ContentView.TrailingAnchor),
+            stack.TopAnchor.ConstraintEqualTo(_planMenu.ContentView.TopAnchor, 6),
+            stack.BottomAnchor.ConstraintEqualTo(_planMenu.ContentView.BottomAnchor, -6),
+        });
+
+        const double width = 240;
+        var height = labels.Length * 48 + 12;
+        var tabTop = _tabBar.Frame.Top;
+        var centerX = PlanButtonCenterX(parent);
+        var x = Math.Max(8, Math.Min(centerX - width / 2, parent.Bounds.Width - width - 8));
+        _planMenu.Frame = new CGRect(x, tabTop - height - 8, width, height);
+
+        parent.AddSubview(_planOverlay);
+        parent.AddSubview(_planMenu);
+    }
+
+    private void HidePlanMenu()
+    {
+        _planMenu?.RemoveFromSuperview();
+        _planMenu = null;
+        _planOverlay?.RemoveFromSuperview();
+        _planOverlay = null;
+    }
+
+    // Center-x (in parent coords) of the Plan tab item (index 3 of the 5 tabs),
+    // so the menu anchors to it. Falls back to an even-spacing estimate.
+    private double PlanButtonCenterX(UIView parent)
+    {
+        const int planIndex = 3;
+        var buttons = new List<UIView>();
+        void Scan(UIView v)
+        {
+            foreach (var s in v.Subviews)
+            {
+                if (s.GetType().Name.Contains("TabBarButton")) buttons.Add(s);
+                Scan(s);
+            }
+        }
+        Scan(_tabBar!);
+        if (buttons.Count == Tabs.Length)
+        {
+            buttons.Sort((a, b) => a.Frame.X.CompareTo(b.Frame.X));
+            return buttons[planIndex].ConvertRectToView(buttons[planIndex].Bounds, parent).GetMidX();
+        }
+        var bar = _tabBar!.ConvertRectToView(_tabBar.Bounds, parent);
+        return bar.X + bar.Width * ((planIndex + 0.5) / Tabs.Length);
     }
 #endif
 
@@ -363,6 +472,28 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
                     if (_tabBar != null) _tabBar.Hidden = !visible;
+                });
+#endif
+                return null;
+            }
+            case "setPlanningMenuOpen":
+            {
+                // args[0]=open (bool), args[1]=localized labels (in Plan-menu order).
+                // Rendered natively so it uses the same Liquid Glass as the tab bar
+                // and can anchor to the Plan tab item. Selection/dismissal come back
+                // via window.__novalistPlanSelect / __novalistPlanDismiss.
+                var open = args.ValueKind == JsonValueKind.Array
+                    && args.GetArrayLength() > 0
+                    && args[0].ValueKind == JsonValueKind.True;
+                var labels = new List<string>();
+                if (open && args.GetArrayLength() > 1 && args[1].ValueKind == JsonValueKind.Array)
+                    foreach (var el in args[1].EnumerateArray())
+                        labels.Add(el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "");
+#if IOS
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (open) ShowPlanMenu(labels.ToArray());
+                    else HidePlanMenu();
                 });
 #endif
                 return null;
