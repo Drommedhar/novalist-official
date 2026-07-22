@@ -317,39 +317,40 @@ jobs:
         run: |
           set -euo pipefail
           # net10.0-ios needs the iOS 26 SDK; actool (the app-icon asset compiler)
-          # needs a macOS SDK. On the runner, the Xcode the build uses (Xcode_26.6.0)
-          # ships a BROKEN MacOSX.sdk: the directory exists but has no SDK contents, so
-          # `xcodebuild -sdk .../MacOSX.sdk -find actool` fails with "SDK cannot be
-          # located" and actool exits 72. Steering the build onto a different Xcode
-          # proved unreliable (it keeps defaulting back), so instead REPAIR every
-          # broken macOS SDK in place: point it at a real one from another Xcode. A
-          # valid macOS SDK has SDKSettings.plist at its root; a broken stub does not -
-          # that is the reliable discriminator (`-d` and `xcrun --find` both lie).
-          echo "=== locate a valid macOS SDK ==="
+          # needs the macOS SDK. On the runner, the Xcode the build uses (Xcode_26.6.0)
+          # has a DANGLING MacOSX.sdk symlink: it points at MacOSX26.5.sdk, but that
+          # Xcode actually ships MacOSX26.sdk, so the link resolves to nothing. The
+          # build passes that exact `.../MacOSX.sdk` path to `xcodebuild -sdk`, which
+          # then reports "SDK cannot be located" and actool exits 72. The SDK itself is
+          # fine - only the unversioned symlink is broken - so REPAIR it: repoint every
+          # unresolvable MacOSX.sdk at a real versioned SDK. `[ -f X/SDKSettings.plist ]`
+          # is the reliable test: it is false for a dangling symlink (unlike `[ -e ]`,
+          # which follows the link and so silently skipped the broken one before).
+          echo "=== locate a valid, versioned macOS SDK ==="
           good=""
           for x in $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V); do
-            for s in "$x"/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX*.sdk; do
+            for s in "$x"/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX[0-9]*.sdk; do
               [ -f "$s/SDKSettings.plist" ] && good="$s"
             done
           done
           if [ -z "$good" ]; then
-            echo "No Xcode on the runner has a valid macOS SDK" >&2
+            echo "No Xcode on the runner has a valid versioned macOS SDK" >&2
             exit 1
           fi
           echo "Canonical macOS SDK: $good"
-          echo "=== repair broken MacOSX.sdk stubs ==="
+          echo "=== repair unresolvable MacOSX.sdk symlinks ==="
           for x in $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V); do
             link="$x/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
-            if [ -e "$link" ] && [ ! -f "$link/SDKSettings.plist" ]; then
-              echo "REPAIR $x"
+            if [ -f "$link/SDKSettings.plist" ]; then
+              echo "ok     $x"
+            else
+              echo "REPAIR $x  ($(readlink "$link" 2>/dev/null || echo missing) -> $good)"
               sudo rm -rf "$link"
               sudo ln -s "$good" "$link"
-            else
-              echo "ok     $x"
             fi
           done
           # Pin the newest Xcode that has an iOS 26 SDK (what the workload targets). Its
-          # macOS SDK is now guaranteed usable, so actool resolves whichever it is.
+          # MacOSX.sdk now resolves (repaired above if it was dangling).
           best=""
           for x in $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V); do
             ls -d "$x"/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26*.sdk >/dev/null 2>&1 && best="$x"
@@ -359,8 +360,11 @@ jobs:
           sudo xcode-select -s "$best/Contents/Developer"
           echo "DEVELOPER_DIR=$best/Contents/Developer" >> "$GITHUB_ENV"
           xcodebuild -version
-          xcrun --sdk macosx --show-sdk-path
-          xcrun --sdk macosx --find actool
+          # Verify with the EXACT command the build runs: the selected Xcode's own
+          # xcodebuild + its own (now-resolvable) MacOSX.sdk must find actool.
+          bmac="$best/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+          echo "Verifying actool via $bmac"
+          DEVELOPER_DIR="$best/Contents/Developer" "$best/Contents/Developer/usr/bin/xcodebuild" -sdk "$bmac" -find actool
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
