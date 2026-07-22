@@ -41,7 +41,7 @@
     <!-- App icon: the real Novalist icon (shared with the Electron build). iOS
          icons must be opaque, so Color flattens the artwork's transparent corners
          to match its dark border. -->
-    <MauiIcon Include="Resources\AppIcon\appicon.png" Color="#0a1420" />
+    <MauiIcon Include="Resources\AppIcon\appicon.png" Color="#00060f" />
     <MauiSplashScreen Include="Resources\Splash\splash.png" Color="#0a1420" BaseSize="200,200" />
   </ItemGroup>
 
