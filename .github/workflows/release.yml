@@ -312,44 +312,54 @@ jobs:
         with:
           submodules: true
 
-      - name: Select a complete Xcode (iOS + macOS SDKs)
+      - name: Repair broken macOS SDK and select Xcode
         shell: bash
         run: |
           set -euo pipefail
-          # net10.0-ios needs the iOS 26 SDK, and actool (app-icon asset compiler)
-          # needs the macOS SDK. Some runner Xcodes ship one without the other, so
-          # pick the newest Xcode that has BOTH and pin DEVELOPER_DIR (GitHub sets it
-          # to a default that xcode-select alone would not override for the build).
-          echo "=== available Xcodes (iOS SDK + resolvable macOS SDK) ==="
-          best=""
+          # net10.0-ios needs the iOS 26 SDK; actool (the app-icon asset compiler)
+          # needs a macOS SDK. On the runner, the Xcode the build uses (Xcode_26.6.0)
+          # ships a BROKEN MacOSX.sdk: the directory exists but has no SDK contents, so
+          # `xcodebuild -sdk .../MacOSX.sdk -find actool` fails with "SDK cannot be
+          # located" and actool exits 72. Steering the build onto a different Xcode
+          # proved unreliable (it keeps defaulting back), so instead REPAIR every
+          # broken macOS SDK in place: point it at a real one from another Xcode. A
+          # valid macOS SDK has SDKSettings.plist at its root; a broken stub does not -
+          # that is the reliable discriminator (`-d` and `xcrun --find` both lie).
+          echo "=== locate a valid macOS SDK ==="
+          good=""
           for x in $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V); do
-            dev="$x/Contents/Developer"
-            ver=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$x/Contents/version.plist" 2>/dev/null || echo "?")
-            ios=$(ls -d "$dev"/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS*.sdk 2>/dev/null | tail -n1 || true)
-            # Run the EXACT command the build uses (xcodebuild -sdk <this Xcode's
-            # MacOSX.sdk> -find actool). Xcode_26.6.0's MacOSX.sdk exists as a
-            # directory but is an incomplete stub that xcodebuild rejects, so neither
-            # a `-d` check nor `xcrun --find` (which falls back to other Xcodes)
-            # catches it - only invoking xcodebuild with the explicit SDK path does.
-            macsdk="$dev/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
-            # Pin DEVELOPER_DIR to THIS Xcode so the probe fails exactly like the
-            # build does. Without it, xcodebuild falls back to another Xcode's actool
-            # and every Xcode looks "ok" even when its own macOS SDK is a broken stub.
-            if [ -n "$ios" ] && DEVELOPER_DIR="$dev" "$dev/usr/bin/xcodebuild" -sdk "$macsdk" -find actool >/dev/null 2>&1; then
-              best="$x"; mac="ok"
-            else
-              mac="broken"
-            fi
-            echo "$x  (v$ver)  iOS:${ios:+yes}  macOS.sdk:$mac"
+            for s in "$x"/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX*.sdk; do
+              [ -f "$s/SDKSettings.plist" ] && good="$s"
+            done
           done
-          if [ -z "$best" ]; then
-            echo "No Xcode has both an iOS SDK and a resolvable macOS SDK" >&2
+          if [ -z "$good" ]; then
+            echo "No Xcode on the runner has a valid macOS SDK" >&2
             exit 1
           fi
+          echo "Canonical macOS SDK: $good"
+          echo "=== repair broken MacOSX.sdk stubs ==="
+          for x in $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V); do
+            link="$x/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+            if [ -e "$link" ] && [ ! -f "$link/SDKSettings.plist" ]; then
+              echo "REPAIR $x"
+              sudo rm -rf "$link"
+              sudo ln -s "$good" "$link"
+            else
+              echo "ok     $x"
+            fi
+          done
+          # Pin the newest Xcode that has an iOS 26 SDK (what the workload targets). Its
+          # macOS SDK is now guaranteed usable, so actool resolves whichever it is.
+          best=""
+          for x in $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V); do
+            ls -d "$x"/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26*.sdk >/dev/null 2>&1 && best="$x"
+          done
+          [ -z "$best" ] && best=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
           echo "Selected: $best"
           sudo xcode-select -s "$best/Contents/Developer"
           echo "DEVELOPER_DIR=$best/Contents/Developer" >> "$GITHUB_ENV"
           xcodebuild -version
+          xcrun --sdk macosx --show-sdk-path
           xcrun --sdk macosx --find actool
 
       - name: Setup .NET 10
