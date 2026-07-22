@@ -309,32 +309,40 @@ export function SettingsView(): React.JSX.Element {
               })
             }
           />
-          <label className="relationships-toggle">
-            <input
-              type="checkbox"
-              checked={eff.typewriterScrollEnabled}
-              onChange={(e) =>
-                void update(scopeFor(editorScope), { typewriterScrollEnabled: e.target.checked })
-              }
-            />
-            {t('settings.typewriterScroll')}
-          </label>
-          {eff.typewriterScrollEnabled && (
-            <div className="findreplace-options">
-              {['top', 'middle', 'bottom'].map((anchor) => (
-                <label key={anchor} className="relationships-toggle">
-                  <input
-                    type="radio"
-                    name="typewriter-anchor"
-                    checked={eff.typewriterScrollAnchor === anchor}
-                    onChange={() =>
-                      void update(scopeFor(editorScope), { typewriterScrollAnchor: anchor })
-                    }
-                  />
-                  {t(`settings.typewriterAnchor${anchor.charAt(0).toUpperCase()}${anchor.slice(1)}`)}
-                </label>
-              ))}
-            </div>
+          {/* Typewriter scroll makes no sense on a phone (and is force-disabled in
+              the mobile editor), so hide it there. */}
+          {!isMobile && (
+            <>
+              <label className="relationships-toggle">
+                <input
+                  type="checkbox"
+                  checked={eff.typewriterScrollEnabled}
+                  onChange={(e) =>
+                    void update(scopeFor(editorScope), { typewriterScrollEnabled: e.target.checked })
+                  }
+                />
+                {t('settings.typewriterScroll')}
+              </label>
+              {eff.typewriterScrollEnabled && (
+                <div className="findreplace-options">
+                  {['top', 'middle', 'bottom'].map((anchor) => (
+                    <label key={anchor} className="relationships-toggle">
+                      <input
+                        type="radio"
+                        name="typewriter-anchor"
+                        checked={eff.typewriterScrollAnchor === anchor}
+                        onChange={() =>
+                          void update(scopeFor(editorScope), { typewriterScrollAnchor: anchor })
+                        }
+                      />
+                      {t(
+                        `settings.typewriterAnchor${anchor.charAt(0).toUpperCase()}${anchor.slice(1)}`
+                      )}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </>
           )}
           <label className="relationships-toggle">
             <input
@@ -357,6 +365,10 @@ export function SettingsView(): React.JSX.Element {
             {t('settings.bookSpacing')}
           </label>
 
+          {/* Book width targets a wide desktop editor; it has no effect on a
+              phone's narrow column, so hide it on mobile. */}
+          {!isMobile && (
+            <>
           <label className="relationships-toggle">
             <input
               type="checkbox"
@@ -443,6 +455,8 @@ export function SettingsView(): React.JSX.Element {
                 })}
               </div>
             </div>
+          )}
+            </>
           )}
         </>
       )
