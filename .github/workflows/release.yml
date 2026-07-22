@@ -320,23 +320,22 @@ jobs:
           # needs the macOS SDK. Some runner Xcodes ship one without the other, so
           # pick the newest Xcode that has BOTH and pin DEVELOPER_DIR (GitHub sets it
           # to a default that xcode-select alone would not override for the build).
-          echo "=== available Xcodes (iOS SDK + working actool) ==="
+          echo "=== available Xcodes (iOS SDK + resolvable macOS SDK) ==="
           best=""
           for x in $(ls -d /Applications/Xcode*.app 2>/dev/null | sort -V); do
             dev="$x/Contents/Developer"
             ver=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$x/Contents/version.plist" 2>/dev/null || echo "?")
             ios=$(ls -d "$dev"/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS*.sdk 2>/dev/null | tail -n1 || true)
-            # Test actool resolution directly - a dangling MacOSX.sdk symlink passes
-            # a plain directory check but still breaks actool.
-            if [ -n "$ios" ] && DEVELOPER_DIR="$dev" xcrun --sdk macosx --find actool >/dev/null 2>&1; then
-              best="$x"; ok="yes"
-            else
-              ok="no"
-            fi
-            echo "$x  (v$ver)  iOS:${ios:-none}  actool:$ok"
+            # The build invokes actool with this Xcode's OWN MacOSX.sdk (explicit
+            # path), so require it to resolve to a real directory. `-d` follows the
+            # symlink and is false for the dangling one in Xcode_26.6.0. (An
+            # actool/xcrun --find test is useless here: it falls back to other Xcodes.)
+            macsdk="$dev/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk"
+            if [ -n "$ios" ] && [ -d "$macsdk" ]; then best="$x"; mac="yes"; else mac="no"; fi
+            echo "$x  (v$ver)  iOS:${ios:+yes}  macOS.sdk:$mac"
           done
           if [ -z "$best" ]; then
-            echo "No Xcode has both an iOS SDK and a working actool (macOS SDK)" >&2
+            echo "No Xcode has both an iOS SDK and a resolvable macOS SDK" >&2
             exit 1
           fi
           echo "Selected: $best"
