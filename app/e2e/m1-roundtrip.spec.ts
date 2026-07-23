@@ -71,6 +71,31 @@ test('project + binder + editor round-trip', async () => {
   const editor = page.frameLocator('.editor-frame').locator('#editor')
   await expect(editor).toBeVisible({ timeout: 30_000 })
 
+  // Browser-painted chrome (scrollbars, form widgets) must follow the theme
+  // instead of falling back to the light OS default - in the shell and in the
+  // editor document, which is a separate frame the host has to push colours to.
+  const chrome = await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement)
+    return {
+      colorScheme: style.colorScheme,
+      thumb: style.getPropertyValue('--nl-scrollbar-thumb').trim(),
+      accent: style.accentColor
+    }
+  })
+  expect(chrome.colorScheme).toBe('dark')
+  expect(chrome.thumb).not.toBe('')
+  expect(chrome.accent).not.toBe('auto')
+
+  const editorChrome = await page
+    .frameLocator('.editor-frame')
+    .locator(':root')
+    .evaluate((root) => ({
+      colorScheme: getComputedStyle(root).colorScheme,
+      thumb: (root as HTMLElement).style.getPropertyValue('--scrollbar-thumb').trim()
+    }))
+  expect(editorChrome.colorScheme).toBe('dark')
+  expect(editorChrome.thumb).not.toBe('')
+
   // Type prose and let the 2s autosave fire.
   await editor.click()
   await page.keyboard.type('It was a dark and stormy night.')

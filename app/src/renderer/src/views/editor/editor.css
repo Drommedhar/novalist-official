@@ -6,7 +6,8 @@
   overflow-x: auto;
   background: var(--nl-surface-toolbar);
   border-bottom: 1px solid var(--nl-border);
-  scrollbar-width: thin;
+  /* No scrollbar-width here: setting it would drop this strip back to the
+     native bar by disabling the themed pseudo-elements in base.css. */
 }
 
 .editor-tab {

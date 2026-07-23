@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
 :root {
+    color-scheme: dark;
     --bg: #1e1e2e;
     --fg: #cdd6f4;
     --caret: #cdd6f4;
@@ -14,6 +15,13 @@
     --divider: #313244;
     --font-family: 'Segoe UI', sans-serif;
     --font-size: 16px;
+    /* Scrollbar colours mirror the host's --nl-scrollbar-* tokens; setTheme
+       overwrites them whenever the app theme changes. */
+    --scrollbar-size: 10px;
+    --scrollbar-track: transparent;
+    --scrollbar-thumb: rgb(255 255 255 / 0.16);
+    --scrollbar-thumb-hover: rgb(255 255 255 / 0.3);
+    --scrollbar-thumb-active: rgb(255 255 255 / 0.42);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
@@ -31,10 +39,22 @@ body { display: flex; justify-content: center; }
     height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: #585b7066 transparent;
     padding: 24px 32px;
 }
+
+/* Themed scrollbars for every scroller in this document, matching the host shell. */
+::-webkit-scrollbar { width: var(--scrollbar-size); height: var(--scrollbar-size); }
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover); }
+::-webkit-scrollbar-thumb:active { background-color: var(--scrollbar-thumb-active); }
+::-webkit-scrollbar-button { display: none; }
 .chapter-section {
     margin-bottom: 32px;
 }
@@ -329,7 +349,7 @@ function updateSceneContent(sceneId, html) {
 
 // ── Theme & Font ────────────────────────────────────────────────
 
-function setTheme(bg, fg, caretColor, selectionBg, accent, subtle, divider) {
+function setTheme(bg, fg, caretColor, selectionBg, accent, subtle, divider, scrollbarThumb, scrollbarThumbHover, scrollbarThumbActive) {
     const root = document.documentElement;
     root.style.setProperty('--bg', bg);
     root.style.setProperty('--fg', fg);
@@ -338,6 +358,10 @@ function setTheme(bg, fg, caretColor, selectionBg, accent, subtle, divider) {
     if (accent) root.style.setProperty('--accent', accent);
     if (subtle) root.style.setProperty('--subtle', subtle);
     if (divider) root.style.setProperty('--divider', divider);
+    // Scrollbars are browser-painted, so the host hands us its resolved tokens.
+    if (scrollbarThumb) root.style.setProperty('--scrollbar-thumb', scrollbarThumb);
+    if (scrollbarThumbHover) root.style.setProperty('--scrollbar-thumb-hover', scrollbarThumbHover);
+    if (scrollbarThumbActive) root.style.setProperty('--scrollbar-thumb-active', scrollbarThumbActive);
 }
 
 function setFont(family, size) {

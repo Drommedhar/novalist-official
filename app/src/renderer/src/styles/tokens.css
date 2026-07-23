@@ -47,6 +47,17 @@
     system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   --nl-font-mono: 'Cascadia Mono', ui-monospace, Consolas, monospace;
 
+  /* Native controls the browser paints itself (scrollbars above all). They are
+     the one surface the theme cannot reach through normal styling, so the
+     colours live here and base.css feeds them to the scrollbar pseudo-elements.
+     The defaults are neutral white-alpha so they sit correctly on any theme -
+     including extension themes that only override the surface tokens. */
+  --nl-scrollbar-size: 10px;
+  --nl-scrollbar-track: transparent;
+  --nl-scrollbar-thumb: rgb(255 255 255 / 0.16);
+  --nl-scrollbar-thumb-hover: rgb(255 255 255 / 0.3);
+  --nl-scrollbar-thumb-active: rgb(255 255 255 / 0.42);
+
   /* Elevation */
   --nl-elevation-low: 0 1px 3px 0 rgb(0 0 0 / 0.13);
   --nl-elevation-md: 0 4px 12px 0 rgb(0 0 0 / 0.25);
@@ -156,4 +167,8 @@
   --nl-success: #a6e3a1;
   --nl-warning: #f9e2af;
   --nl-danger: #f38ba8;
+  /* surface1 / surface2 / overlay0 - the palette's own scrollbar ramp. */
+  --nl-scrollbar-thumb: #45475a;
+  --nl-scrollbar-thumb-hover: #585b70;
+  --nl-scrollbar-thumb-active: #6c7086;
 }

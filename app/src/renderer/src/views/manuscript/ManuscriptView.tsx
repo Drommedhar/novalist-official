@@ -12,7 +12,10 @@ interface ManuscriptWindow extends Window {
     selectionBg: string,
     accent: string,
     subtle: string,
-    divider: string
+    divider: string,
+    scrollbarThumb?: string,
+    scrollbarThumbHover?: string,
+    scrollbarThumbActive?: string
   ): void
   setFont(family: string, size: number): void
 }
@@ -86,7 +89,11 @@ function ManuscriptFrame(): React.JSX.Element {
       token('--nl-surface-selected'),
       token('--nl-accent'),
       token('--nl-text-subtle'),
-      token('--nl-border')
+      token('--nl-border'),
+      // Separate document: browser-painted scrollbars need the colours pushed.
+      token('--nl-scrollbar-thumb'),
+      token('--nl-scrollbar-thumb-hover'),
+      token('--nl-scrollbar-thumb-active')
     )
     const payload = sections.map((s) => ({
       chapterGuid: s.chapterGuid,

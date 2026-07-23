@@ -14,7 +14,10 @@ export interface EditorWindow extends Window {
     caret: string,
     selectionBg: string,
     pageBg: string,
-    pageFg: string
+    pageFg: string,
+    scrollbarThumb?: string,
+    scrollbarThumbHover?: string,
+    scrollbarThumbActive?: string
   ): void
   setFont(family: string, size: number): void
   setLanguage(lang: string): void
@@ -176,7 +179,9 @@ export function extensionContextMenuItemsJson(): string {
   return JSON.stringify(extensionContextMenuItems)
 }
 
-/** Reads the current theme tokens and pushes them into the editor page. */
+/** Reads the current theme tokens and pushes them into the editor page.
+ *  The iframe is a separate document, so browser-painted chrome (scrollbars)
+ *  needs the resolved colours handed over explicitly. */
 export function pushEditorTheme(editor: EditorWindow): void {
   const style = getComputedStyle(document.documentElement)
   const token = (name: string): string => style.getPropertyValue(name).trim()
@@ -187,6 +192,9 @@ export function pushEditorTheme(editor: EditorWindow): void {
     fg,
     token('--nl-surface-selected'),
     token('--nl-surface-card'),
-    fg
+    fg,
+    token('--nl-scrollbar-thumb'),
+    token('--nl-scrollbar-thumb-hover'),
+    token('--nl-scrollbar-thumb-active')
   )
 }

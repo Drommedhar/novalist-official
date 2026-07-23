@@ -11,6 +11,60 @@ body,
   margin: 0;
 }
 
+/* The browser paints scrollbars, form widgets and the select popup itself, and
+   defaults them to the light OS look regardless of our surfaces. color-scheme
+   flips those native parts dark; accent-color tints checkbox / radio / range /
+   progress with the theme accent instead of the OS highlight colour. */
+:root {
+  color-scheme: dark;
+  accent-color: var(--nl-accent);
+}
+
+/* ===== Scrollbars =====
+   Applies to every scroller in the renderer, nested ones and overlays included.
+   Chromium and WebKit get the pseudo-element route (rounded thumb, hover and
+   active states, no stepper arrows); the standard properties are confined to
+   the @supports fallback because setting them anywhere makes Chromium ignore
+   the pseudo-elements entirely. */
+::-webkit-scrollbar {
+  width: var(--nl-scrollbar-size);
+  height: var(--nl-scrollbar-size);
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: var(--nl-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--nl-scrollbar-thumb);
+  border: 2px solid transparent;
+  /* Padding-box clip turns the transparent border into inset, so the thumb
+     reads as a floating pill rather than a full-width native bar. */
+  background-clip: padding-box;
+  border-radius: var(--nl-radius-pill);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--nl-scrollbar-thumb-hover);
+}
+
+::-webkit-scrollbar-thumb:active {
+  background-color: var(--nl-scrollbar-thumb-active);
+}
+
+/* No stepper arrows - nothing else in the shell has native chrome. */
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--nl-scrollbar-thumb) var(--nl-scrollbar-track);
+  }
+}
+
 body {
   font-family: var(--nl-font-family);
   font-size: var(--nl-font-body);
@@ -32,6 +86,38 @@ button {
 
 button:focus-visible,
 [tabindex]:focus-visible {
+  outline: 2px solid var(--nl-focus-ring);
+  outline-offset: 1px;
+}
+
+/* ===== Native form widgets =====
+   A themed floor for text fields, selects and text areas: wrapped in :where()
+   so the whole selector weighs nothing and any component class still wins.
+   Geometry is left alone (no padding overrides) - this only replaces the
+   browser's light default paint and OS font. Checkbox / radio / range / color /
+   file keep their native shape and are tinted by accent-color above. */
+:where(
+  input:not([type='checkbox'], [type='radio'], [type='range'], [type='color'], [type='file']),
+  select,
+  textarea
+) {
+  font: inherit;
+  /* The font shorthand would pull in the parent's line-height and change the
+     control's height; keep the intrinsic one so only the paint changes. */
+  line-height: normal;
+  color: var(--nl-text);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+}
+
+/* The select popup is drawn by the browser; these are the only hooks it honours. */
+:where(option, optgroup) {
+  color: var(--nl-text);
+  background: var(--nl-surface-card);
+}
+
+:where(input, select, textarea):focus-visible {
   outline: 2px solid var(--nl-focus-ring);
   outline-offset: 1px;
 }

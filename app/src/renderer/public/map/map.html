@@ -5,11 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 :root {
+    color-scheme: dark;
     --bg: #1e1e2e;
     --fg: #cdd6f4;
     --accent: #0E8BDF;
     --pin: #f9c46a;
+    /* Mirrors the host's --nl-scrollbar-* defaults so the panels inside this
+       document do not fall back to native OS scrollbars. */
+    --scrollbar-thumb: rgb(255 255 255 / 0.16);
+    --scrollbar-thumb-hover: rgb(255 255 255 / 0.3);
+    --scrollbar-thumb-active: rgb(255 255 255 / 0.42);
 }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background-color: var(--scrollbar-thumb-hover); }
+::-webkit-scrollbar-thumb:active { background-color: var(--scrollbar-thumb-active); }
+::-webkit-scrollbar-button { display: none; }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--fg); font-family: 'Segoe UI', sans-serif; user-select: none; }
 #stage {
