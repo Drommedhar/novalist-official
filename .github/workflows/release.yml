@@ -731,6 +731,59 @@ jobs:
       contents: write
 
     steps:
+      # Full history + tags: the changelog compare link needs the previous tag,
+      # and the stamping step below pushes to the default branch.
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Derive version from tag
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          VER="$(printf '%s' "$TAG" | grep -oE '[0-9]+(\.[0-9]+)*' | head -n1 || true)"
+          if [ -z "$VER" ]; then VER="0.0.1"; fi
+          # The previous desktop tag, for the changelog's compare link. Missing on
+          # the very first release, which the script handles.
+          PREV="$(git describe --tags --abbrev=0 --exclude='ios-*' --exclude="$TAG" "${TAG}^" 2>/dev/null || true)"
+          {
+            echo "version=$VER"
+            echo "previous_tag=$PREV"
+            echo "date=$(git log -1 --format=%cs "$TAG")"
+          } >> "$GITHUB_OUTPUT"
+
+      # Release notes come from CHANGELOG.md, not from commit subjects. Prefer a
+      # section already stamped with this version (a re-run of a released tag),
+      # otherwise take Unreleased — which is what a freshly pushed tag carries.
+      # If neither has content, fall back to GitHub's generated notes so a release
+      # never ships empty.
+      - name: Build release notes from the changelog
+        id: notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          VER="${{ steps.version.outputs.version }}"
+          if python3 tools/changelog.py extract --version "$VER" --require-content > release-notes.md 2>/dev/null; then
+            echo "Using the changelog section for $VER."
+          elif python3 tools/changelog.py extract --unreleased --require-content > release-notes.md 2>/dev/null; then
+            echo "Using the Unreleased changelog section."
+          else
+            : > release-notes.md
+          fi
+          # The placeholder an empty Unreleased section carries is not release notes.
+          if [ "$(tr -d '[:space:]' < release-notes.md)" = "Nothingyet." ]; then
+            : > release-notes.md
+          fi
+          if [ -s release-notes.md ]; then
+            echo "has_notes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_notes=false" >> "$GITHUB_OUTPUT"
+            echo "No changelog content found — falling back to generated notes."
+          fi
+
       - name: Download packaged artifacts
         uses: actions/download-artifact@v4
         with:
@@ -742,7 +795,9 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
-          generate_release_notes: true
+          body_path: release-notes.md
+          # Only when the changelog had nothing to say for this tag.
+          generate_release_notes: ${{ steps.notes.outputs.has_notes != 'true' }}
           fail_on_unmatched_files: true
           # A tag with a prerelease suffix (e.g. v2.0.0-beta.1) publishes as a
           # prerelease. GitHub's /releases/latest — which the in-app updater uses —
@@ -755,3 +810,37 @@ jobs:
             release-assets/*.AppImage
             release-assets/*.nupkg
             release-assets/*.zip
+
+      # Stamp the section that was just published with this tag's version and date,
+      # open a fresh Unreleased section, and push it back to the default branch.
+      # [skip ci] keeps this bookkeeping commit from starting another CI run.
+      #
+      # Stable tags only: a prerelease reads the Unreleased section but must not
+      # consume it, so the entries are still there when the real release is cut.
+      - name: Stamp the changelog with the released version
+        if: ${{ !contains(github.ref_name, '-') }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VER="${{ steps.version.outputs.version }}"
+          DEFAULT_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
+          git fetch origin "$DEFAULT_BRANCH"
+          git checkout -B "$DEFAULT_BRANCH" "origin/$DEFAULT_BRANCH"
+          if python3 tools/changelog.py extract --version "$VER" >/dev/null 2>&1; then
+            echo "Changelog already has a $VER section — nothing to stamp."
+            exit 0
+          fi
+          python3 tools/changelog.py release \
+            --version "$VER" \
+            --date "${{ steps.version.outputs.date }}" \
+            --tag "${GITHUB_REF_NAME}" \
+            --previous-tag "${{ steps.version.outputs.previous_tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No changelog change to commit."
+          else
+            git commit -m "docs(changelog): release ${VER} [skip ci]"
+            git push origin "HEAD:${DEFAULT_BRANCH}"
+          fi

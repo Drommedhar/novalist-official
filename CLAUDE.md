@@ -117,6 +117,32 @@ The canonical user-facing documentation lives in `docs/manual/` (entry point `do
 *   Keep the same no-emoji rule that applies to the rest of the project. Use plain text labels and Markdown formatting. SVG / emoji glyphs do not belong in docs prose either.
 *   If you're unsure whether a change is user-visible enough to warrant a docs edit: **err on the side of editing.** A one-line addition that turns out unnecessary costs nothing; a missed docs update means the manual is wrong on the very next read.
 
+## Every commit MUST update CHANGELOG.md
+
+`CHANGELOG.md` at the repo root is the user-facing release history for the desktop app. It is written for writers using Novalist, not for developers reading diffs. Every commit that changes anything a user could notice MUST add its entry to the **Unreleased** section in the same commit — never as a follow-up.
+
+**Format:** [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) with semantic versioning. Newest release first. Inside a release, entries are grouped under these headings, in this order, omitting the empty ones:
+
+*   **Added** — new feature, view, dialog, setting, format, hotkey, provider, language.
+*   **Changed** — existing behavior that now works differently, including UI reorganizations and defaults.
+*   **Fixed** — bugs. Describe the symptom the user saw, not the internal cause.
+*   **Removed** — features, formats, settings, or SDK surface that are gone.
+*   **Security** — anything with a security or privacy impact.
+
+**How to apply:**
+
+*   Work in progress lands under the topmost `## [Unreleased]` heading. **Never invent a version number for it** — the release workflow stamps the real one from the pushed tag. If the section is missing, add it back as a bare `## [Unreleased]`.
+*   Releasing is automatic and you do not do it by hand. On a stable tag, `.github/workflows/release.yml` reads the Unreleased section, publishes it as the GitHub release notes, then runs `tools/changelog.py release` to rename the heading to `## [X.Y.Z] - <tag date>`, add the compare link, open a fresh Unreleased section, and push that back to the default branch as `docs(changelog): release X.Y.Z [skip ci]`. Prerelease tags (any tag containing `-`) publish the notes but deliberately leave the Unreleased section intact.
+*   Use `python tools/changelog.py extract --version 2.1.1` to read a past section, and `--unreleased` for the pending one.
+*   One bullet per user-visible change, in plain language. Say what the user can now do or what stopped going wrong — not which class or RPC method changed. Bold the feature name when a bullet introduces one (`**Wiki view** — ...`).
+*   Do not name files, classes, RPC namespaces, or commit hashes. Do not reference internal milestone or plan names (M3, "parity wave 2"). Do not paste commit subjects verbatim.
+*   iOS / mobile-only work does not belong in this file — the mobile app releases under its own `ios-*` tags. If a change touches both, write the desktop half only.
+*   The same no-emoji rule applies here.
+
+**What does NOT need an entry:** pure refactors, internal renames, dependency bumps, test-only changes, CI/build changes that do not alter what ships, and documentation-only edits. If a "refactor" changed behavior at all, it needs an entry.
+
+**Why:** the changelog is what users read to decide whether to update and to understand what changed after they do. Reconstructing it from terse commit subjects after the fact is guesswork — the early 1.x history had to be rebuilt from diffs because the messages said "More" and "Fixes". Writing the entry while the change is fresh is the only point at which it is cheap and accurate.
+
 ## The diagnostic log must NEVER contain story content
 
 Novalist has an opt-in diagnostic file log (Settings → Diagnostics, `AppSettings.DiagnosticLoggingEnabled`). It exists so users can send us a log to debug issues we cannot reproduce. Users must be able to send it without fear that their writing is exposed. Treat this as a hard content-policy and content-policy-compliance constraint, not a style preference.
