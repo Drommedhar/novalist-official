@@ -143,6 +143,18 @@ The canonical user-facing documentation lives in `docs/manual/` (entry point `do
 
 **Why:** the changelog is what users read to decide whether to update and to understand what changed after they do. Reconstructing it from terse commit subjects after the fact is guesswork — the early 1.x history had to be rebuilt from diffs because the messages said "More" and "Fixes". Writing the entry while the change is fresh is the only point at which it is cheap and accurate.
 
+## Never write the CI skip token into a commit message you did not mean to skip
+
+GitHub Actions scans the **head commit message** of a push for `[skip ci]` (and `[ci skip]`, `[no ci]`, `[skip actions]`, `***NO_CI***`) and suppresses **every** workflow for that push. It does not care where in the message the token appears — subject or body — and it applies to tag pushes too, because a tag push is a push whose head commit is the tagged commit.
+
+**How to apply:**
+
+*   Only use the token when you actually want the push skipped — a version bump or a changelog stamp made by CI itself.
+*   When a commit message *describes* skip behaviour, do not spell the token out. Write "with the CI skip token" or "skip-ci" instead. Prose in a tracked file (this one, a workflow YAML, the manual) is fine — only commit messages are scanned.
+*   If a tag produced no workflow run at all, check the tagged commit's message for the token before looking at triggers or job conditions. Re-pushing the tag will not help; the message is what is scanned. Move the tag to a commit whose message is clean.
+
+**Why:** the 2.2 tag silently produced no release. The commit it pointed at explained that the release job pushes its changelog stamp with the token — and spelling it out in the body was enough to suppress the tag's own release run and the branch's CI run. The failure is invisible: no run appears, no error is reported, and the tag looks fine.
+
 ## The diagnostic log must NEVER contain story content
 
 Novalist has an opt-in diagnostic file log (Settings → Diagnostics, `AppSettings.DiagnosticLoggingEnabled`). It exists so users can send us a log to debug issues we cannot reproduce. Users must be able to send it without fear that their writing is exposed. Treat this as a hard content-policy and content-policy-compliance constraint, not a style preference.
