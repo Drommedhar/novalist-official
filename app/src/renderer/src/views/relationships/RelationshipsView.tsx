@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
+import { useWikiStore } from '../../stores/wikiStore'
 import { layoutGraph, NODE_SIZE, type GraphCharacter } from './layout'
 import './relationships.css'
 
@@ -31,8 +32,15 @@ export function RelationshipsView(): React.JSX.Element {
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const dragRef = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null)
+  const movedRef = useRef(false)
   const viewportRef = useRef<HTMLDivElement>(null)
   const fitPendingRef = useRef(false)
+  const openEntity = useCallback((id: string): void => {
+    // Ignore the click that ends a pan drag; only a genuine tap opens the article.
+    if (movedRef.current) return
+    useShellStore.getState().setMainView('wiki')
+    void useWikiStore.getState().openArticle('character', id)
+  }, [])
 
   useEffect(() => {
     if (mainView !== 'relationships') return
@@ -203,10 +211,13 @@ export function RelationshipsView(): React.JSX.Element {
         }}
         onPointerDown={(e) => {
           dragRef.current = { startX: e.clientX, startY: e.clientY, panX: pan.x, panY: pan.y }
+          movedRef.current = false
         }}
         onPointerMove={(e) => {
           const drag = dragRef.current
           if (!drag) return
+          if (Math.abs(e.clientX - drag.startX) + Math.abs(e.clientY - drag.startY) > 4)
+            movedRef.current = true
           setPan({ x: drag.panX + e.clientX - drag.startX, y: drag.panY + e.clientY - drag.startY })
         }}
         onPointerUp={() => {
@@ -271,7 +282,20 @@ export function RelationshipsView(): React.JSX.Element {
               </g>
             ))}
             {layout.nodes.map((node) => (
-              <g key={node.id}>
+              <g
+                key={node.id}
+                className="relationships-node-group"
+                role="button"
+                tabIndex={0}
+                onClick={() => openEntity(node.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    openEntity(node.id)
+                  }
+                }}
+              >
+                <title>{t('relationships.openArticle', { name: node.name })}</title>
                 <rect
                   x={node.x}
                   y={node.y}

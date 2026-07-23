@@ -123,6 +123,57 @@ public class PlotlineServiceTests
     }
 
     [Fact]
+    public async Task SetCellNoteAsync_SetsUpdatesAndClears()
+    {
+        var (sut, project, _) = Build();
+        var ch = new ChapterData { Guid = "c1" };
+        var sc = new SceneData { Id = "s1" };
+        project.GetChaptersOrdered().Returns(new List<ChapterData> { ch });
+        project.GetScenesForChapter("c1").Returns(new List<SceneData> { sc });
+
+        await sut.SetCellNoteAsync("c1", "s1", "p1", "  Sets up the betrayal.  ");
+        Assert.Equal("Sets up the betrayal.", sc.PlotlineNotes!["p1"]);   // trimmed
+
+        await sut.SetCellNoteAsync("c1", "s1", "p2", "Pays it off.");
+        Assert.Equal(2, sc.PlotlineNotes!.Count);
+
+        await sut.SetCellNoteAsync("c1", "s1", "p1", "   ");
+        Assert.False(sc.PlotlineNotes!.ContainsKey("p1"));               // blank clears
+
+        await sut.SetCellNoteAsync("c1", "s1", "p2", "");
+        Assert.Null(sc.PlotlineNotes);                                    // last one removed -> nulled
+    }
+
+    [Fact]
+    public async Task SetCellNoteAsync_ClearingWhenNoNotes_IsNoOp()
+    {
+        var (sut, project, _) = Build();
+        var ch = new ChapterData { Guid = "c1" };
+        var sc = new SceneData { Id = "s1" };
+        project.GetChaptersOrdered().Returns(new List<ChapterData> { ch });
+        project.GetScenesForChapter("c1").Returns(new List<SceneData> { sc });
+
+        await sut.SetCellNoteAsync("c1", "s1", "p1", null);
+        Assert.Null(sc.PlotlineNotes);
+        await project.DidNotReceive().SaveScenesAsync();
+    }
+
+    [Fact]
+    public async Task SetCellNoteAsync_MissingChapterOrScene_NoOp()
+    {
+        var (sut, project, _) = Build();
+        project.GetChaptersOrdered().Returns(new List<ChapterData>());
+        await sut.SetCellNoteAsync("nope", "s1", "p1", "x");
+
+        var ch = new ChapterData { Guid = "c1" };
+        project.GetChaptersOrdered().Returns(new List<ChapterData> { ch });
+        project.GetScenesForChapter("c1").Returns(new List<SceneData>());
+        await sut.SetCellNoteAsync("c1", "missing", "p1", "x");
+
+        await project.DidNotReceive().SaveScenesAsync();
+    }
+
+    [Fact]
     public async Task ToggleSceneAsync_MissingChapter_NoOp()
     {
         var (sut, project, _) = Build();

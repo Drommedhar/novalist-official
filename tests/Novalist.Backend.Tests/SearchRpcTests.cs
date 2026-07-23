@@ -52,6 +52,31 @@ public sealed class SearchRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Global_FindsSceneProseAndCodexEntries()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData
+        {
+            Id = "hero", Name = "Wolfram", Surname = "Vane"
+        });
+
+        var hits = await _rpc.GlobalAsync("wolf", 20, CancellationToken.None);
+
+        Assert.Contains(hits, h => h.Kind == "sceneText" && h.SceneId == _sceneId);
+        Assert.Contains(hits, h => h.Kind == "entity" && h.EntityId == "hero"
+            && h.EntityTypeKey == "character");
+    }
+
+    [Fact]
+    public async Task Global_BlankQueryOrNoMatch_ReturnsEmpty_AndDefaultsLimit()
+    {
+        Assert.Empty(await _rpc.GlobalAsync("   ", 20, CancellationToken.None));
+        // A non-positive limit falls back to the default rather than returning nothing.
+        Assert.NotEmpty(await _rpc.GlobalAsync("wolf", 0, CancellationToken.None));
+        Assert.Empty(await _rpc.GlobalAsync("zzzznotpresent", 20, CancellationToken.None));
+    }
+
+    [Fact]
     public async Task ReplaceAll_WritesThroughToDisk()
     {
         var count = await _rpc.ReplaceAllAsync(

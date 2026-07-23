@@ -488,4 +488,152 @@ public class HostServicesTests
         Assert.Equal("BaseRole", baseInfo!.Role); // base value
         Assert.Equal("30", baseInfo.Age);
     }
+
+    // -- scene analysis records --
+
+    /// <summary>Real file/project services over a temp project, so the analysis
+    /// store's actual read/write path is exercised rather than a mock.</summary>
+    private static (HostServices Host, ProjectService Proj, TempDir Dir) BuildReal()
+    {
+        var dir = new TempDir();
+        var file = new FileService();
+        var proj = new ProjectService(file);
+        proj.CreateProjectAsync(dir.Path, "P", "Book").GetAwaiter().GetResult();
+        var settings = Substitute.For<ISettingsService>();
+        settings.Settings.Returns(new AppSettings());
+        settings.SaveAsync().Returns(Task.CompletedTask);
+        var ent = new EntityService(proj);
+        return (new HostServices(file, proj, ent, settings), proj, dir);
+    }
+
+    [Fact]
+    public async Task SceneAnalysis_SaveReadAndStaleness()
+    {
+        var (host, _, dir) = BuildReal();
+        using var _d = dir;
+
+        Assert.Null(await host.GetSceneAnalysisAsync("s1"));
+        Assert.True(await host.IsSceneAnalysisStaleAsync("s1", "text"));
+
+        await host.SaveSceneAnalysisAsync(new SceneAnalysisRecord
+        {
+            SceneId = "s1",
+            Entities = [new() { Name = "Amy", EntityType = "character", Presence = ScenePresence.Present }],
+            Characters = [new() { Name = "Amy", Presence = ScenePresence.Present, Observed = ["saw it"] }],
+            Findings = [new() { Type = "reference", Title = "Amy is here", EntityName = "Amy" }]
+        }, "text");
+
+        var read = await host.GetSceneAnalysisAsync("s1");
+        Assert.NotNull(read);
+        Assert.Equal(ScenePresence.Present, read!.Entities[0].Presence);
+        Assert.Equal("saw it", read.Characters[0].Observed[0]);
+        Assert.Equal("Amy is here", read.Findings[0].Title);
+
+        Assert.False(await host.IsSceneAnalysisStaleAsync("s1", "text"));
+        Assert.True(await host.IsSceneAnalysisStaleAsync("s1", "changed"));
+    }
+
+    [Fact]
+    public async Task GetStaleSceneIds_ReturnsOnlyWhatChanged()
+    {
+        var (host, _, dir) = BuildReal();
+        using var _d = dir;
+        await host.SaveSceneAnalysisAsync(new SceneAnalysisRecord { SceneId = "s1" }, "one");
+
+        var stale = await host.GetStaleSceneIdsAsync(
+        [
+            new SceneTextPair { SceneId = "s1", Text = "one" },
+            new SceneTextPair { SceneId = "s2", Text = "two" }
+        ]);
+
+        Assert.Equal(["s2"], stale);
+    }
+
+    [Fact]
+    public async Task GetConfirmedMentionIds_ReadsAuthorInsertedMentionMarkers()
+    {
+        var (host, proj, dir) = BuildReal();
+        using var _d = dir;
+        var chapter = await proj.CreateChapterAsync("C");
+        var scene = await proj.CreateSceneAsync(chapter.Guid, "S");
+        await proj.WriteSceneContentAsync(chapter, scene,
+            "<p><span class=\"nv-entity-mention\" data-entity-id=\"hero\">Amy</span> and " +
+            "<span class=\"nv-entity-mention\" data-entity-id=\"port\">Harbour</span>.</p>");
+
+        Assert.Equal(["hero", "port"], await host.GetConfirmedMentionIdsAsync(chapter.Guid, scene.Id));
+
+        // Unknown chapter or scene yields nothing rather than throwing.
+        Assert.Empty(await host.GetConfirmedMentionIdsAsync("nope", scene.Id));
+        Assert.Empty(await host.GetConfirmedMentionIdsAsync(chapter.Guid, "nope"));
+    }
+
+    [Fact]
+    public async Task CreateEntity_CreatesEachBuiltInKind_AndReturnsId()
+    {
+        var (host, _, dir) = BuildReal();
+        using var _d = dir;
+        var entities = (IExtensionEntityService)host.EntityService;
+
+        // A two-word name splits into given name and surname, and the
+        // description lands in a section since characters have no description.
+        var charId = await entities.CreateEntityAsync("character", "Liam Calder", "A curious boy.");
+        Assert.False(string.IsNullOrWhiteSpace(charId));
+        var characters = await entities.LoadCharactersAsync();
+        Assert.Contains(characters, c => c.Id == charId && c.DisplayName == "Liam Calder");
+
+        var locId = await entities.CreateEntityAsync("location", "Hillsford", "A small town.");
+        Assert.Contains(await entities.LoadLocationsAsync(), l => l.Id == locId && l.Name == "Hillsford");
+
+        var itemId = await entities.CreateEntityAsync("item", "Schultuete", "A cone of sweets.");
+        Assert.Contains(await entities.LoadItemsAsync(), i => i.Id == itemId && i.Name == "Schultuete");
+
+        var loreId = await entities.CreateEntityAsync("lore", "Die Entdecker", "A club.");
+        Assert.Contains(await entities.LoadLoreAsync(), l => l.Id == loreId && l.Name == "Die Entdecker");
+
+        // Casing and padding are tolerated; a single-word character name leaves
+        // the surname empty rather than failing.
+        var single = await entities.CreateEntityAsync("  CHARACTER ", " Finn ", "");
+        Assert.Contains(await entities.LoadCharactersAsync(), c => c.Id == single && c.DisplayName == "Finn");
+    }
+
+    [Fact]
+    public async Task CreateEntity_RejectsBlankName_AndUnknownType()
+    {
+        var (host, _, dir) = BuildReal();
+        using var _d = dir;
+        var entities = (IExtensionEntityService)host.EntityService;
+
+        Assert.Null(await entities.CreateEntityAsync("character", "   ", "x"));
+        // An unregistered type must not silently create the wrong kind of entry.
+        Assert.Null(await entities.CreateEntityAsync("not-a-real-type", "Thing", "x"));
+    }
+
+
+    [Fact]
+    public async Task CreateEntity_CreatesRegisteredCustomType()
+    {
+        var dir = new TempDir();
+        using var _d = dir;
+        var file = new FileService();
+        var proj = new ProjectService(file);
+        await proj.CreateProjectAsync(dir.Path, "P", "Book");
+        var settings = Substitute.For<ISettingsService>();
+        settings.Settings.Returns(new AppSettings());
+        settings.SaveAsync().Returns(Task.CompletedTask);
+        var ent = new EntityService(proj);
+        await ent.SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
+        {
+            TypeKey = "faction",
+            DisplayName = "Faction",
+        });
+        var host = new HostServices(file, proj, ent, settings);
+        var entities = (IExtensionEntityService)host.EntityService;
+
+        var id = await entities.CreateEntityAsync("FACTION", "Die Entdecker", "A club of kids.");
+
+        Assert.False(string.IsNullOrWhiteSpace(id));
+        var created = await entities.LoadCustomEntitiesAsync("faction");
+        Assert.Contains(created, e => e.Id == id && e.Name == "Die Entdecker");
+    }
+
 }

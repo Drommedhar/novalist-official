@@ -38,6 +38,7 @@ public sealed class ExtensionManager
     public List<IAiHook> AiHooks { get; } = [];
     public List<IGrammarCheckContributor> GrammarCheckContributors { get; } = [];
     public List<IArticleGeneratorContributor> ArticleGenerators { get; } = [];
+    public List<IEntityExtractionContributor> EntityExtractors { get; } = [];
     public List<ThemeOverride> ThemeOverrides { get; } = [];
     public List<HotkeyDescriptor> HotkeyBindings { get; } = [];
     public List<PropertyTypeDescriptor> PropertyTypes { get; } = [];
@@ -174,6 +175,12 @@ public sealed class ExtensionManager
         {
             ArticleGenerators.Add(articleGenerator);
             undo.Add(() => ArticleGenerators.Remove(articleGenerator));
+        }
+
+        if (instance is IEntityExtractionContributor entityExtractor)
+        {
+            EntityExtractors.Add(entityExtractor);
+            undo.Add(() => EntityExtractors.Remove(entityExtractor));
         }
 
         if (instance is IThemeContributor theme)
@@ -507,6 +514,22 @@ public sealed class ExtensionManager
         var generator = ArticleGenerators.FirstOrDefault(g => g.IsArticleGeneratorEnabled);
         if (generator == null) return null;
         return await generator.GenerateAsync(request, cancellationToken);
+    }
+
+    /// <summary>Whether any loaded extension offers an enabled entity extractor
+    /// (drives the Inspector's "scan this scene" affordance).</summary>
+    public bool IsEntityExtractorAvailable
+        => EntityExtractors.Any(e => e.IsEntityExtractorEnabled);
+
+    /// <summary>Proposes Codex entries for a passage using the first enabled
+    /// extractor, or null when none is available. Proposals only — the caller
+    /// decides what (if anything) is written.</summary>
+    public async Task<Novalist.Sdk.Hooks.EntityExtractionResult?> ExtractEntitiesAsync(
+        Novalist.Sdk.Hooks.EntityExtractionRequest request, CancellationToken cancellationToken)
+    {
+        var extractor = EntityExtractors.FirstOrDefault(e => e.IsEntityExtractorEnabled);
+        if (extractor == null) return null;
+        return await extractor.ExtractAsync(request, cancellationToken);
     }
 
     /// <summary>Enumerates contributed context-menu items with a stable id

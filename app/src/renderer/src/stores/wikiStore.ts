@@ -110,6 +110,19 @@ export interface WikiMapPin {
   pinLabel: string
 }
 
+export interface WikiResearch {
+  id: string
+  title: string
+  type: string
+}
+
+export interface WikiEvent {
+  id: string
+  title: string
+  date: string
+  description: string | null
+}
+
 export interface WikiPlotline {
   id: string
   name: string
@@ -151,11 +164,16 @@ export interface WikiArticle {
   sections: WikiSection[]
   relationships: WikiRelationship[]
   referencedBy: WikiReference[]
+  contains: WikiLinkTarget[]
   appearsWith: WikiCoAppearance[]
   mapPins: WikiMapPin[]
   plotlines: WikiPlotline[]
+  research: WikiResearch[]
+  events: WikiEvent[]
   overrides: WikiOverride[]
   appearances: WikiAppearance[]
+  bookName: string
+  multipleBooks: boolean
   generatorAvailable: boolean
   generated: WikiGenerated | null
 }

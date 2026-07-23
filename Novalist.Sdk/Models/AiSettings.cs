@@ -28,6 +28,24 @@ public class AiSettings
     [JsonPropertyName("copilotModel")]
     public string CopilotModel { get; set; } = string.Empty;
 
+    /// <summary>Re-analyse a scene in the background shortly after it is saved,
+    /// so the first time a feature needs it the work is already done. Off by
+    /// default: it spends model time on the user's behalf without being asked.</summary>
+    [JsonPropertyName("backgroundSceneAnalysis")]
+    public bool BackgroundSceneAnalysis { get; set; }
+
+    /// <summary>What the user chose for character knowledge generated before the
+    /// shared scene-record pipeline: empty (not asked yet), "keep" or "clear".
+    /// Stored so the question is asked once per project, not every launch.</summary>
+    [JsonPropertyName("knowledgeMigrationChoice")]
+    public string KnowledgeMigrationChoice { get; set; } = string.Empty;
+
+    [JsonPropertyName("claudePath")]
+    public string ClaudePath { get; set; } = "claude";
+
+    [JsonPropertyName("claudeModel")]
+    public string ClaudeModel { get; set; } = "sonnet";
+
     [JsonPropertyName("temperature")]
     public double Temperature { get; set; } = 0.7;
 

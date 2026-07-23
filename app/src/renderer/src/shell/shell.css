@@ -837,6 +837,97 @@
   font-weight: var(--nl-weight-title);
 }
 
+/* Capture dialogs that need room for a picker list. */
+.dialog-card-wide {
+  width: min(520px, 90vw);
+}
+
+.capture-excerpt {
+  margin: 0;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-left: 2px solid var(--nl-accent);
+  background: var(--nl-surface-input);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+  max-height: 6em;
+  overflow-y: auto;
+}
+
+.capture-target-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 14em;
+  overflow-y: auto;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+}
+
+.capture-target {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  width: 100%;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.capture-target:hover {
+  background: var(--nl-surface-hover);
+}
+
+.capture-target.active {
+  background: var(--nl-surface-hover);
+  box-shadow: inset 2px 0 0 var(--nl-accent);
+}
+
+.capture-target-detail {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.capture-target-empty {
+  padding: var(--nl-space-md);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+}
+
+.dialog-hint {
+  margin-top: calc(-1 * var(--nl-space-sm));
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+}
+
+/* Entity-kind chooser used by the editor's capture flows. */
+.entity-type-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm);
+}
+
+.entity-type-choice {
+  flex: 1 1 auto;
+  min-width: 40%;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  background: var(--nl-surface-input);
+  color: var(--nl-text);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  font: inherit;
+  cursor: pointer;
+}
+
+.entity-type-choice:hover {
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
+}
+
 .dialog-input {
   font: inherit;
   color: var(--nl-text);
@@ -1857,7 +1948,8 @@
   vertical-align: bottom;
 }
 
-.plotgrid-scene span {
+.plotgrid-scene span,
+.plotgrid-scene .plotgrid-scene-link {
   display: inline-block;
   max-width: 84px;
   overflow: hidden;
@@ -1866,6 +1958,21 @@
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   max-height: 110px;
+}
+
+/* The scene header opens that scene in the editor. */
+.plotgrid-scene .plotgrid-scene-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.plotgrid-scene .plotgrid-scene-link:hover {
+  color: var(--nl-accent);
+  text-decoration: underline;
 }
 
 .plotgrid-rowlabel {
@@ -1889,6 +1996,7 @@
 }
 
 .plotgrid-cell {
+  position: relative;
   width: 22px;
   height: 22px;
   margin: 2px;
@@ -2196,6 +2304,20 @@
   text-anchor: middle;
 }
 
+/* A node opens that character's Wiki article. */
+.relationships-node-group {
+  cursor: pointer;
+}
+
+.relationships-node-group:hover .relationships-node,
+.relationships-node-group:focus-visible .relationships-node {
+  stroke: var(--nl-accent);
+}
+
+.relationships-node-group:focus-visible {
+  outline: none;
+}
+
 /* ===== Status bar ===== */
 .status-bar {
   display: flex;
@@ -2231,6 +2353,19 @@
   border-radius: var(--nl-radius-pill);
   padding: var(--nl-space-tightest) var(--nl-space-normal);
   font-size: var(--nl-font-body-sm);
+}
+
+/* A chip whose name resolved to one entity opens that entity's article. */
+.entity-chip-link {
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.entity-chip-link:hover {
+  color: var(--nl-accent);
+  text-decoration: underline;
 }
 
 .entity-chip button {
@@ -2496,6 +2631,54 @@
   padding: 1px var(--nl-space-sm);
 }
 
+/* Quick open: grouped results across every kind of content. */
+.quickopen-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.quickopen-group-label {
+  padding: var(--nl-space-sm) var(--nl-space-normal) var(--nl-space-tightest);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quickopen-item {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--nl-space-tightest);
+  text-align: left;
+}
+
+.quickopen-main {
+  display: flex;
+  align-items: baseline;
+  gap: var(--nl-space-sm);
+  min-width: 0;
+}
+
+.quickopen-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quickopen-subtitle {
+  flex: none;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.quickopen-snippet {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ===== Snapshots ===== */
 .snapshot-row {
   display: flex;
@@ -2732,4 +2915,96 @@
   background: var(--nl-accent);
   color: var(--nl-accent-ink);
   font-size: var(--nl-font-body-sm);
+}
+
+/* Inspector: AI entity extraction affordance (only shown with an extractor). */
+.ctx-extract {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-sm);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.ctx-extract-btn {
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text);
+  font: inherit;
+  font-size: var(--nl-font-body-sm);
+  cursor: pointer;
+}
+
+.ctx-extract-btn:hover:not(:disabled) {
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
+}
+
+.ctx-extract-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ctx-extract-note {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+/* Proposal review rows. */
+.capture-proposal {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  width: 100%;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  cursor: pointer;
+}
+
+.capture-proposal:hover {
+  background: var(--nl-surface-hover);
+}
+
+.capture-proposal-text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  flex: 1;
+  min-width: 0;
+}
+
+.capture-proposal-type {
+  flex: none;
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text);
+  font: inherit;
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+}
+
+/* A plot-grid cell carrying a note is marked with a corner wedge. */
+.plotgrid-cell.noted::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 0;
+  height: 0;
+  border-top: 5px solid var(--nl-text);
+  border-left: 5px solid transparent;
+  opacity: 0.55;
+}
+
+/* Why the auto-analysis is blank for non-English projects. */
+.ctx-analysis-note {
+  margin-bottom: var(--nl-space-sm);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  background: var(--nl-surface-input);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  line-height: 1.4;
 }

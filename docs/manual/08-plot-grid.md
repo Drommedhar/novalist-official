@@ -19,8 +19,8 @@ The grid fills the main area.
 ## Anatomy of the grid
 
 - **Rows** — one per plotline in the active book. Each row header shows the plotline's **color swatch** and **name**.
-- **Columns** — one per scene, in story order. The column header shows the scene title; hover it to see the full `Chapter - Scene` label.
-- **Cells** — click a cell to toggle whether that scene belongs to that plotline. Assigned cells fill with the plotline's color.
+- **Columns** — one per scene, in story order. The column header shows the scene title; hover it to see the full `Chapter - Scene` label, and click it to open that scene in the editor.
+- **Cells** — click a cell to toggle whether that scene belongs to that plotline. Assigned cells fill with the plotline's color. **Right-click an assigned cell** to attach a short **note** — what this scene actually does for that thread ("sets up the betrayal", "pays off the ring"). A cell with a note carries a small corner marker, and hovering it shows the note in the tooltip. Submit an empty note to clear it.
 
 Because assigned cells take the plotline color, it is visually obvious which threads are dense and which are sparse.
 
@@ -42,6 +42,8 @@ Deleting a plotline removes its row and clears the assignment from every scene t
 ## Marking scenes
 
 Click a cell at the intersection of a plotline and a scene to toggle that scene's membership. A scene can belong to any number of plotlines. Assignments are stored on the scene and travel with the project.
+
+A tick alone tells you a scene touches a thread, but not *how*. Right-click an assigned cell to add a one-line note saying what it contributes — reading a row of notes left to right is the fastest way to check that a subplot has setup, escalation, and payoff rather than three scenes that merely mention it.
 
 ## Reading the grid
 

@@ -54,7 +54,28 @@ public class SdkDtoDefaultsTests
         Assert.Empty(scene.Findings);
 
         Assert.Equal(string.Empty, new EntitySummary().Details);
+        Assert.Equal(string.Empty, new EntitySummary().Id);
         Assert.Null(new ChapterContext().ActName);
+
+        var record = new SceneAnalysisRecord();
+        Assert.Equal(SceneAnalysisRecord.CurrentSchemaVersion, record.SchemaVersion);
+        Assert.Empty(record.Entities);
+        Assert.Empty(record.Characters);
+        Assert.Empty(record.Findings);
+        Assert.Equal(string.Empty, record.ModelId);
+
+        // An entity defaults to "mentioned" — the conservative reading — while a
+        // character defaults to "absent" until the analysis says otherwise.
+        var entityRef = new SceneEntityRef();
+        Assert.Equal(ScenePresence.Mentioned, entityRef.Presence);
+        Assert.Null(entityRef.EntityId);
+
+        var known = new SceneCharacterKnowledge();
+        Assert.Equal(ScenePresence.Absent, known.Presence);
+        Assert.Empty(known.Observed);
+        Assert.Empty(known.InventoryChanges);
+        Assert.Equal(string.Empty, known.VoiceNotes);
+        Assert.Null(known.CharacterId);
 
         var checks = new EnabledChecks();
         Assert.True(checks.References);
@@ -72,6 +93,10 @@ public class SdkDtoDefaultsTests
         Assert.Equal("chapter", s.AnalysisMode);
         Assert.Equal("http://localhost:1234", s.LmStudioBaseUrl);
         Assert.Equal("copilot", s.CopilotPath);
+        Assert.False(s.BackgroundSceneAnalysis);
+        Assert.Equal(string.Empty, s.KnowledgeMigrationChoice);
+        Assert.Equal("claude", s.ClaudePath);
+        Assert.Equal("sonnet", s.ClaudeModel);
         Assert.Equal(0.7, s.Temperature);
         Assert.Equal(0.9, s.TopP);
         Assert.Equal(0.05, s.MinP);

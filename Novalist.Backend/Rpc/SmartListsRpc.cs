@@ -17,12 +17,13 @@ public sealed class SmartListsRpc
     [JsonRpcMethod("smartLists/list")]
     public SmartListDto[] List() =>
         _smartLists.GetAll()
-            .Select(l => new SmartListDto(l.Id, l.Name, l.ChapterStatus, l.PovContains, l.Tag))
+            .Select(l => new SmartListDto(l.Id, l.Name, l.ChapterStatus, l.PovContains, l.Tag, l.PlotlineId))
             .ToArray();
 
     [JsonRpcMethod("smartLists/save")]
     public async Task<SmartListDto[]> SaveAsync(
-        string? id, string name, string? chapterStatus, string? povContains, string? tag)
+        string? id, string name, string? chapterStatus, string? povContains, string? tag,
+        string? plotlineId = null)
     {
         var existing = id == null ? null : _smartLists.GetAll().FirstOrDefault(l => l.Id == id);
         var list = existing ?? new SmartList();
@@ -30,6 +31,7 @@ public sealed class SmartListsRpc
         list.ChapterStatus = Normalize(chapterStatus);
         list.PovContains = Normalize(povContains);
         list.Tag = Normalize(tag);
+        list.PlotlineId = Normalize(plotlineId);
         await _smartLists.SaveAsync(list);
         return List();
     }
@@ -57,7 +59,7 @@ public sealed class SmartListsRpc
 }
 
 public sealed record SmartListDto(
-    string Id, string Name, string? ChapterStatus, string? PovContains, string? Tag);
+    string Id, string Name, string? ChapterStatus, string? PovContains, string? Tag, string? PlotlineId);
 
 public sealed record SmartListMatchDto(
     string ChapterGuid, string ChapterTitle, string SceneId, string SceneTitle);

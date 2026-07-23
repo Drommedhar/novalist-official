@@ -16,6 +16,7 @@ Click **+ New smart list** at the top of the panel. The Smart List editor opens 
 - **Chapter status** — match scenes whose chapter is at a specific status (**Outline / Draft / Revised / Edited / Final**). Leave at **Any status** to ignore.
 - **POV contains** — substring match against the scene's POV field. Set or fix POV values in the [Manuscript outliner](10-manuscript.md).
 - **Tag** — match scenes carrying a specific tag.
+- **Plotline** — match scenes that belong to a specific plot thread, as marked in the [Plot Grid](08-plot-grid.md). The dropdown only appears once the book has at least one plotline; leave it at **Any plotline** to ignore.
 
 Filters combine as **AND**; leave a field empty to ignore it. **Save** and the list appears in the panel.
 
@@ -31,6 +32,7 @@ Right-click a list in the panel:
 - **Revision queues.** "Draft chapters with Alice POV" — your weekly revision list.
 - **Tag-based reading.** "Scenes tagged combat" — beta-read all the action without the connective tissue.
 - **Status audit.** "Chapters in Outline status" — find what still needs writing.
+- **Thread check.** "Scenes on the Betrayal plotline" — read one subplot end to end to check its setup and payoff.
 
 ## Persistence
 

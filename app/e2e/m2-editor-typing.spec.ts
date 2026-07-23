@@ -1,8 +1,8 @@
 import { test, expect, _electron as electron } from '@playwright/test'
-import { execFileSync } from 'node:child_process'
 import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { copyProject } from './copyProject'
 
 /**
  * Regression: typing must not reset the caret to the start of the scene, and
@@ -18,8 +18,7 @@ test('editor: typing keeps the caret and undo works', async () => {
 
   const workDir = mkdtempSync(join(tmpdir(), 'nl-type-'))
   const projectCopy = join(workDir, 'project')
-  execFileSync('rsync', ['-a', '--exclude', '.git', '--exclude', '.obsidian', '--exclude', '.claude',
-    `${REAL_PROJECT}/`, projectCopy])
+  copyProject(REAL_PROJECT, projectCopy)
   const env: Record<string, string> = Object.fromEntries(
     Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
   ) as Record<string, string>

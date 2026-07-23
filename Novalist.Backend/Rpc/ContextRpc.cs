@@ -9,8 +9,11 @@ namespace Novalist.Backend.Rpc;
 
 /// <summary>
 /// Scene context and analysis for the Inspector. Ported from the Avalonia
-/// <c>ContextSidebarViewModel</c>: the regexes, keyword lists, EmotionProfiles,
-/// and math are byte-faithful copies so headless results match the desktop app.
+/// <c>ContextSidebarViewModel</c>: the regexes and math are byte-faithful copies
+/// so headless results match the desktop app. The keyword lists and emotion keys
+/// that were hardcoded (and English-only) now come from
+/// <see cref="SceneAnalysisLexicon"/>, one JSON per writing language, so the
+/// analysis works in every language that ships one.
 ///
 /// The one unavoidable difference is display resolution: the Avalonia VM runs
 /// tags / emotions / the first-person POV label through <c>Loc.T</c> to produce
@@ -27,98 +30,14 @@ public sealed class ContextRpc
         "(?:\"[^\"]*\"|“[^”]*”|„[^“]*“|«[^»]*»|»[^«]*«|‹[^›]*›|‚[^‘]*‘)",
         RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
 
+    // Terminators include the CJK forms so Chinese prose splits into sentences too.
     private static readonly Regex SentenceRegex = new(
-        @"[^.!?]+",
+        @"[^.!?。！？]+",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     private static readonly Regex WordRegex = new(
         @"[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)?",
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-    private static readonly Regex FirstPersonRegex = new(
-        @"\b(i|me|my|mine|myself|we|us|our|ours|ourselves)\b",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-
-    private static readonly string[] PositiveWords =
-    [
-        "hope",
-        "joy",
-        "warm",
-        "smile",
-        "relief",
-        "victory",
-        "triumph",
-        "laugh",
-        "laughing",
-        "love",
-        "gentle",
-        "bright",
-        "calm",
-        "peace",
-        "safe"
-    ];
-
-    private static readonly string[] NegativeWords =
-    [
-        "fear",
-        "panic",
-        "anger",
-        "angry",
-        "blood",
-        "hurt",
-        "threat",
-        "danger",
-        "despair",
-        "sad",
-        "grief",
-        "dark",
-        "cold",
-        "cry",
-        "scream"
-    ];
-
-    private static readonly string[] ConflictKeywords =
-    [
-        "argue",
-        "battle",
-        "chase",
-        "clash",
-        "conflict",
-        "demand",
-        "fight",
-        "flee",
-        "force",
-        "hide",
-        "refuse",
-        "secret",
-        "struggle",
-        "threat",
-        "warn"
-    ];
-
-    private static readonly IReadOnlyList<EmotionProfile> EmotionProfiles =
-    [
-        new("neutral", "Neutral", ["steady", "plain", "quiet", "routine", "settled"]),
-        new("tense", "Tense", ["tense", "edge", "pressure", "alarm", "strain", "uneasy"]),
-        new("joyful", "Joyful", ["joy", "glad", "celebrate", "delight", "smile", "laugh"]),
-        new("melancholic", "Melancholic", ["melancholy", "lonely", "empty", "wistful", "faded"]),
-        new("angry", "Angry", ["anger", "furious", "rage", "snap", "resent", "spite"]),
-        new("fearful", "Fearful", ["fear", "panic", "terror", "dread", "afraid", "shiver"]),
-        new("romantic", "Romantic", ["kiss", "touch", "beloved", "heart", "desire", "tender"]),
-        new("mysterious", "Mysterious", ["shadow", "mystery", "secret", "strange", "unknown", "whisper"]),
-        new("humorous", "Humorous", ["joke", "laugh", "grin", "tease", "comic", "amused"]),
-        new("hopeful", "Hopeful", ["hope", "promise", "rise", "chance", "believe", "future"]),
-        new("desperate", "Desperate", ["desperate", "last", "plead", "beg", "hopeless", "breaking"]),
-        new("peaceful", "Peaceful", ["peace", "calm", "still", "soft", "rest", "gentle"]),
-        new("chaotic", "Chaotic", ["chaos", "riot", "wild", "fracture", "spiral", "rattle"]),
-        new("sorrowful", "Sorrowful", ["sorrow", "grief", "weep", "mourning", "ache", "loss"]),
-        new("triumphant", "Triumphant", ["triumph", "victory", "won", "conquer", "defiant", "surge"]),
-        new("somber", "Somber", ["somber", "grim", "mournful", "bleak", "subdued", "solemn", "heavy"])
-    ];
-
-    private static readonly IReadOnlyList<string> EmotionKeys = EmotionProfiles
-        .Select(profile => profile.Key)
-        .ToList();
 
     private readonly Workspace _workspace;
     private readonly EntityService _entities;
@@ -220,21 +139,34 @@ public sealed class ContextRpc
         var wordCount = CountWords(currentContent);
         var dialogueRatio = ComputeDialogueRatio(currentContent, wordCount);
         var avgSentenceLength = ComputeAverageSentenceLength(currentContent, wordCount);
-        var autoIntensity = ComputeIntensity(currentContent);
-        var autoEmotion = DetectEmotion(currentContent, autoIntensity);
-        var autoPov = DetectPov(currentContent, matchedCharacters, targetChapter, targetScene);
-        var autoConflict = ExtractConflictSnippet(currentContent);
-        var autoTags = BuildSceneTags(
-            currentContent,
-            matchedCharacters.Count,
-            matchedLocations.Count,
-            matchedItems.Count,
-            matchedLore.Count,
-            autoIntensity,
-            autoEmotion.Key,
-            dialogueRatio,
-            wordCount,
-            autoConflict);
+        // Emotion, intensity, conflict and the derived tags are keyword-driven, so
+        // they need a lexicon for the project's writing language. Every language
+        // shipping Resources/Analysis/analysis.<tag>.json gets full analysis; a
+        // language with no lexicon is left blank (with a note in the UI) rather than
+        // scored against another language's words. Overrides work everywhere.
+        var lexicon = SceneAnalysisLexicon.For(WritingLanguage());
+        var keywordAnalysis = lexicon != null;
+
+        var autoIntensity = lexicon != null ? ComputeIntensity(currentContent, lexicon) : 0;
+        var autoEmotion = lexicon != null
+            ? DetectEmotion(currentContent, autoIntensity, lexicon)
+            : new SceneEmotionSnapshot(string.Empty, string.Empty, 0);
+        var autoPov = DetectPov(currentContent, matchedCharacters, targetChapter, targetScene, lexicon);
+        var autoConflict = lexicon != null ? ExtractConflictSnippet(currentContent, lexicon) : string.Empty;
+        var autoTags = lexicon != null
+            ? BuildSceneTags(
+                currentContent,
+                matchedCharacters.Count,
+                matchedLocations.Count,
+                matchedItems.Count,
+                matchedLore.Count,
+                autoIntensity,
+                autoEmotion.Key,
+                dialogueRatio,
+                wordCount,
+                autoConflict,
+                lexicon)
+            : [];
 
         var overrides = targetScene.AnalysisOverrides;
         var pov = overrides?.Pov ?? autoPov;
@@ -247,16 +179,36 @@ public sealed class ContextRpc
             pov,
             povOptions.ToArray(),
             emotion,
-            EmotionKeys.ToArray(),
+            // The lexicon declares the emotion keys the UI offers; without one, only
+            // whatever the writer already set.
+            (lexicon?.EmotionKeys ?? (emotion.Length > 0 ? [emotion] : [])).ToArray(),
             intensity,
             conflict,
             tags,
             (int)Math.Round(dialogueRatio * 100d),
             avgSentenceLength,
-            wordCount);
+            wordCount,
+            keywordAnalysis);
 
         return new SceneContextDto(characterCards, locationCards, itemCards, loreCards, mentionRows, analysis);
     }
+
+    /// <summary>The project's writing language (the same setting that drives
+    /// auto-replacements and the readability score).</summary>
+    private string WritingLanguage()
+    {
+        var overrides = _workspace.Projects.ProjectRoot == null
+            ? null
+            : _workspace.Projects.ProjectSettings.Overrides;
+        return overrides?.AutoReplacementLanguage
+               ?? _workspace.Settings.Settings.AutoReplacementLanguage
+               ?? "en";
+    }
+
+    /// <summary>Whether keyword-driven analysis (emotion, intensity, conflict, tags)
+    /// is available for a language — that is, whether a lexicon ships for it.</summary>
+    internal static bool SupportsKeywordAnalysis(string? language)
+        => SceneAnalysisLexicon.Supports(language);
 
     private static MentionRowDto[] BuildMentionRows(
         IReadOnlyList<MatchedSource> matchedCharacters,
@@ -340,11 +292,14 @@ public sealed class ContextRpc
         string content,
         IReadOnlyList<MatchedSource> currentSceneCharacters,
         ChapterData chapter,
-        SceneData scene)
+        SceneData scene,
+        SceneAnalysisLexicon? lexicon)
     {
         if (currentSceneCharacters.Count == 0)
         {
-            return FirstPersonRegex.Matches(content).Count >= 4
+            // Without a lexicon there are no pronouns to count, so no first-person
+            // guess; the character-name path below works in every language.
+            return IsFirstPerson(content, lexicon)
                 ? "pov.firstPerson"
                 : string.Empty;
         }
@@ -363,38 +318,45 @@ public sealed class ContextRpc
         return ResolveCharacterDisplay(character, chapter, scene).Name;
     }
 
-    private static SceneEmotionSnapshot DetectEmotion(string content, int intensity)
+    private static SceneEmotionSnapshot DetectEmotion(
+        string content, int intensity, SceneAnalysisLexicon lexicon)
     {
         var normalized = content.ToLowerInvariant();
 
-        var best = EmotionProfiles
+        var best = lexicon.Emotions
             .Select(profile => new SceneEmotionSnapshot(
                 profile.Key,
-                profile.Label,
-                profile.Keywords.Count(keyword => normalized.Contains(keyword, StringComparison.Ordinal))))
+                profile.Key,
+                profile.Words.Count(keyword => normalized.Contains(keyword, StringComparison.Ordinal))))
             .OrderByDescending(entry => entry.Score)
-            .First();
+            .FirstOrDefault() ?? new SceneEmotionSnapshot(string.Empty, string.Empty, 0);
 
         if (best.Score <= 0)
         {
-            return intensity switch
+            // Fall back to a mood implied by the intensity, but only to a key the
+            // lexicon actually declares.
+            var fallback = intensity switch
             {
-                <= -6 => new SceneEmotionSnapshot("tense", "tense", 1),
-                >= 6 => new SceneEmotionSnapshot("triumphant", "triumphant", 1),
-                _ => new SceneEmotionSnapshot("neutral", "neutral", 1)
+                <= -6 => "tense",
+                >= 6 => "triumphant",
+                _ => "neutral"
             };
+            return lexicon.EmotionKeys.Contains(fallback, StringComparer.Ordinal)
+                ? new SceneEmotionSnapshot(fallback, fallback, 1)
+                : new SceneEmotionSnapshot(string.Empty, string.Empty, 0);
         }
 
         return best;
     }
 
-    private static int ComputeIntensity(string content)
+    private static int ComputeIntensity(string content, SceneAnalysisLexicon lexicon)
     {
         var normalized = content.ToLowerInvariant();
-        var positiveCount = PositiveWords.Count(keyword => normalized.Contains(keyword, StringComparison.Ordinal));
-        var negativeCount = NegativeWords.Count(keyword => normalized.Contains(keyword, StringComparison.Ordinal));
-        var conflictCount = ConflictKeywords.Count(keyword => normalized.Contains(keyword, StringComparison.Ordinal));
-        var exclamations = content.Count(character => character == '!');
+        var positiveCount = lexicon.Positive.Count(keyword => normalized.Contains(keyword, StringComparison.Ordinal));
+        var negativeCount = lexicon.Negative.Count(keyword => normalized.Contains(keyword, StringComparison.Ordinal));
+        var conflictCount = lexicon.Conflict.Count(keyword => normalized.Contains(keyword, StringComparison.Ordinal));
+        // Count the fullwidth exclamation mark too, for CJK prose.
+        var exclamations = content.Count(character => character is '!' or '！');
 
         var score = ((positiveCount - negativeCount) * 2) - conflictCount;
         if (score > 0)
@@ -413,12 +375,16 @@ public sealed class ContextRpc
         return Math.Clamp(score, -10, 10);
     }
 
-    private static string ExtractConflictSnippet(string content)
+    /// <summary>Four or more first-person pronouns reads as a first-person scene.</summary>
+    private static bool IsFirstPerson(string content, SceneAnalysisLexicon? lexicon)
+        => lexicon != null && lexicon.FirstPerson.Matches(content).Count >= 4;
+
+    private static string ExtractConflictSnippet(string content, SceneAnalysisLexicon lexicon)
     {
         foreach (var sentence in ExtractSentences(content))
         {
             var normalized = sentence.ToLowerInvariant();
-            if (!ConflictKeywords.Any(keyword => normalized.Contains(keyword, StringComparison.Ordinal)))
+            if (!lexicon.Conflict.Any(keyword => normalized.Contains(keyword, StringComparison.Ordinal)))
             {
                 continue;
             }
@@ -439,7 +405,8 @@ public sealed class ContextRpc
         string emotionLabel,
         double dialogueRatio,
         int wordCount,
-        string conflict)
+        string conflict,
+        SceneAnalysisLexicon? lexicon)
     {
         var tags = new List<string>();
 
@@ -473,7 +440,7 @@ public sealed class ContextRpc
             tags.Add("sceneTag.worldbuilding");
         }
 
-        if (FirstPersonRegex.Matches(content).Count >= 4)
+        if (IsFirstPerson(content, lexicon))
         {
             tags.Add("sceneTag.interior");
         }
@@ -724,4 +691,8 @@ public sealed record SceneAnalysisDto(
     string[] Tags,
     int DialoguePercent,
     double AvgSentenceLength,
-    int WordCount);
+    int WordCount,
+    /// <summary>False when the project's writing language is not English, in which
+    /// case emotion/intensity/conflict/tags are not auto-detected (the keyword
+    /// lists are English) and are left for the writer to set.</summary>
+    bool KeywordAnalysisSupported);

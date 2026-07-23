@@ -80,7 +80,17 @@
     "typeLink": "Link",
     "typeFile": "Datei",
     "typeImage": "Bild",
-    "typePdf": "PDF"
+    "typePdf": "PDF",
+    "inbox": "Eingang",
+    "fileThis": "Notiz einordnen:",
+    "fileAsNewEntity": "Kodex-Eintrag erstellen",
+    "fileIntoEntity": "Zu vorhandenem Eintrag",
+    "fileAsNote": "Als Recherchenotiz behalten",
+    "linkedEntities": "Verknüpfte Einträge",
+    "linkedEntitiesHint": "Noch nichts verknüpft",
+    "linkEntity": "Eintrag verknüpfen...",
+    "fetchTitle": "Titel abrufen",
+    "fetchingTitle": "Wird abgerufen..."
   },
   "plotGrid": {
     "title": "Plot-Raster",
@@ -94,7 +104,9 @@
     "renamePrompt": "Neuer Name",
     "confirmDeleteTitle": "Plotstrang löschen?",
     "confirmDelete": "\"{0}\" löschen? Szenenzuweisungen werden entfernt.",
-    "emptyHint": "Noch keine Plotlinien. Lege eine an, um Szenen über deine Handlungsbögen zu verfolgen."
+    "emptyHint": "Noch keine Plotlinien. Lege eine an, um Szenen über deine Handlungsbögen zu verfolgen.",
+    "cellNoteTitle": "Notiz zu {{scene}}",
+    "cellNotePlaceholder": "Was diese Szene für den Strang leistet"
   },
   "smartList": {
     "section": "Smart-Listen",
@@ -111,7 +123,9 @@
     "confirmDeleteTitle": "Smart-Liste löschen?",
     "confirmDelete": "\"{0}\" löschen? Kann nicht rückgängig gemacht werden.",
     "noMatches": "Keine passenden Szenen.",
-    "anyStatus": "Beliebiger Status"
+    "anyStatus": "Beliebiger Status",
+    "plotline": "Handlungsstrang",
+    "anyPlotline": "Beliebiger Strang"
   },
   "findReplace": {
     "title": "Suchen und Ersetzen",
@@ -636,7 +650,8 @@
     "wordsDisplay": "{0:N0} Wörter",
     "dialogueDisplay": "{0}% Dialog",
     "avgSentenceDisplay": "{0} Ø Satzlänge",
-    "openSceneHint": "Öffne eine Szene, um Kapitel- und Szenenkontext zu sehen."
+    "openSceneHint": "Öffne eine Szene, um Kapitel- und Szenenkontext zu sehen.",
+    "analysisEnglishOnly": "Emotion, Intensität, Konflikt und Tags können für diese Schreibsprache noch nicht automatisch erkannt werden. Bitte unten selbst setzen."
   },
   "focusPeek": {
     "openEntity": "Entität öffnen",
@@ -647,8 +662,6 @@
     "appearance": "AUSSEHEN",
     "mapPins": "AUF KARTEN",
     "sections": "ABSCHNITTE",
-    "aiFocus": "KI-FOKUS",
-    "aiStub": "Keine KI-Ergebnisse im Cache. Führe zuerst eine Kapitelanalyse durch.",
     "eyes": "Augen",
     "hair": "Haare",
     "hairLength": "Haarlänge",
@@ -664,7 +677,8 @@
     "inPill": "In {0}",
     "sublocationsPill": "{0} Unterorte",
     "overrideScope": "Überschrieben für {0}",
-    "overrideScopeHint": "Diese Karte zeigt Werte, die für die bearbeitete Szene überschrieben wurden."
+    "overrideScopeHint": "Diese Karte zeigt Werte, die für die bearbeitete Szene überschrieben wurden.",
+    "aiFocus": "KI-Fokus"
   },
   "emotion": {
     "neutral": "Neutral",
@@ -731,7 +745,12 @@
     "contextMenu.selectAll": "Alles auswählen",
     "contextMenu.addComment": "Kommentar hinzufügen",
     "contextMenu.addFootnote": "Fußnote hinzufügen",
-    "contextMenu.addToDictionary": "Wort zum Wörterbuch hinzufügen"
+    "contextMenu.addToDictionary": "Wort zum Wörterbuch hinzufügen",
+    "mentionNoMatches": "Keine Treffer",
+    "contextMenu": {
+      "createEntity": "Eintrag aus Auswahl erstellen",
+      "appendToEntity": "Auswahl zu Eintrag hinzufügen"
+    }
   },
   "section": {
     "newSection": "Neuer Abschnitt"
@@ -883,7 +902,7 @@
   },
   "relationships": {
     "title": "Beziehungen",
-    "hint": "Suchen, filtern und zum Verschieben ziehen; scrollen zum Zoomen.",
+    "hint": "Auf eine Figur klicken, um ihren Artikel zu öffnen; ziehen zum Verschieben, scrollen zum Zoomen. Beziehungen werden im Kodex bearbeitet.",
     "search": "Entitäten suchen…",
     "filterGroup": "Alle Gruppen",
     "filterRole": "Alle Rollen",
@@ -953,7 +972,8 @@
       "schwägerin"
     ],
     "emptyHint": "Noch keine verbundenen Figuren. Füge im Codex Beziehungen hinzu, um den Graphen aufzubauen.",
-    "familyPrefix": "Familie {{name}}"
+    "familyPrefix": "Familie {{name}}",
+    "openArticle": "Artikel zu {{name}} öffnen"
   },
   "calendar": {
     "title": "Kalender",
@@ -1101,7 +1121,8 @@
     "sourceAct": "Akte",
     "sourceChapter": "Kapitel",
     "sourceScene": "Szenen",
-    "sourceManual": "Ereignisse"
+    "sourceManual": "Ereignisse",
+    "openEntity": "{{name}} öffnen"
   },
   "export": {
     "header": "Roman exportieren",
@@ -1770,6 +1791,47 @@
     "statLast": "Letzter",
     "scopeBook": "Buch",
     "scopeWorldBible": "Weltenbibel",
-    "editInCodex": "Im Codex bearbeiten"
+    "editInCodex": "Im Codex bearbeiten",
+    "filterPlaceholder": "Einträge filtern",
+    "noMatches": "Keine passenden Einträge",
+    "contains": "Enthält",
+    "research": "Recherche",
+    "events": "Ereignisse",
+    "appearancesInBook": "Auftritte in {{book}}",
+    "noAppearances": "Bisher in keiner Szene erwähnt. Auftritte entstehen aus den Namen, die Novalist in deinem Text erkennt."
+  },
+  "capture": {
+    "createEntityTitle": "„{{name}}\" anlegen",
+    "createEntityHint": "Welche Art von Eintrag soll das sein?",
+    "mentionCreateRow": "„{name}\" anlegen",
+    "appendTitle": "Zu einem Kodex-Eintrag hinzufügen",
+    "appendFilterPlaceholder": "Eintrag suchen",
+    "sectionTitle": "Abschnitt",
+    "defaultSectionTitle": "Notizen",
+    "appendConfirm": "Hinzufügen",
+    "quickTitle": "Schnellnotiz",
+    "quickPlaceholder": "Notieren, später einordnen",
+    "quickHint": "Wird im Recherche-Eingang gespeichert. Strg+Enter zum Speichern.",
+    "quickSave": "Notieren",
+    "scanScene": "Neue Einträge in dieser Szene finden",
+    "scanning": "Wird durchsucht...",
+    "scanNothingNew": "Nichts Neues gefunden",
+    "scanCreated": "{{count}} angelegt",
+    "proposalsTitle": "Vorgeschlagene Kodex-Einträge",
+    "proposalsHint": "Auswählen, was angelegt werden soll. Es wird nichts ohne Bestätigung hinzugefügt.",
+    "proposalsCreate": "{{count}} anlegen"
+  },
+  "quickOpen": {
+    "placeholder": "Alles durchsuchen",
+    "hint": "Mindestens zwei Zeichen eingeben",
+    "searching": "Suche läuft...",
+    "noResults": "Nichts gefunden",
+    "kindScene": "Szenen",
+    "kindSceneText": "Im Szenentext",
+    "kindSceneNote": "Zusammenfassungen und Notizen",
+    "kindAnnotation": "Kommentare und Fußnoten",
+    "kindEntity": "Kodex",
+    "kindResearch": "Recherche",
+    "kindTimeline": "Zeitstrahl-Ereignisse"
   }
 }

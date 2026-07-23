@@ -78,7 +78,8 @@ public sealed partial class DashboardRpc
         var pacing = new List<ChapterPacingDto>();
         var allText = new System.Text.StringBuilder();
         var allSceneWords = new List<int>();
-        var activity = new List<(string SceneTitle, string ChapterTitle, DateTime Modified)>();
+        var activity = new List<(string SceneTitle, string ChapterTitle, string ChapterGuid,
+            string SceneId, DateTime Modified)>();
 
         foreach (var chapter in chapters)
         {
@@ -97,7 +98,7 @@ public sealed partial class DashboardRpc
             {
                 allText.Append(await projects.ReadSceneContentAsync(chapter, scene)).Append(' ');
                 allSceneWords.Add(scene.WordCount);
-                activity.Add((scene.Title, chapter.Title,
+                activity.Add((scene.Title, chapter.Title, chapter.Guid, scene.Id,
                     System.IO.File.GetLastWriteTime(projects.GetSceneFilePath(chapter, scene))));
             }
         }
@@ -135,7 +136,7 @@ public sealed partial class DashboardRpc
         var recentActivity = activity
             .OrderByDescending(a => a.Modified)
             .Take(8)
-            .Select(a => new RecentActivityDto(a.SceneTitle, a.ChapterTitle,
+            .Select(a => new RecentActivityDto(a.SceneTitle, a.ChapterTitle, a.ChapterGuid, a.SceneId,
                 a.Modified.ToString("yyyy-MM-dd HH:mm", CultureInfo.CurrentCulture)))
             .ToArray();
 
@@ -384,4 +385,7 @@ public sealed record EchoPhraseDto(string Phrase, int Count);
 
 public sealed record WordHistoryBarDto(string Date, int Words, bool MetGoal);
 
-public sealed record RecentActivityDto(string SceneTitle, string ChapterTitle, string Timestamp);
+/// <summary>A recently edited scene. The chapter/scene ids let the dashboard row
+/// open that scene in the editor.</summary>
+public sealed record RecentActivityDto(
+    string SceneTitle, string ChapterTitle, string ChapterGuid, string SceneId, string Timestamp);

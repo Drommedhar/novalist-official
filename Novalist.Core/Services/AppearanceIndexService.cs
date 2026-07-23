@@ -40,6 +40,29 @@ public sealed class AppearanceIndexService
         @"data-entity-id\s*=\s*[""']([^""']+)[""']",
         RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
+    /// <summary>
+    /// The entity ids explicitly `@`-mentioned in a scene's HTML, in the order they
+    /// first appear and without duplicates. These markers are author-confirmed, so
+    /// they are the strongest available statement about who a scene involves —
+    /// unlike name matching, they cannot be a false positive.
+    /// </summary>
+    public static IReadOnlyList<string> ExtractMentionIds(string? html)
+    {
+        if (string.IsNullOrEmpty(html)
+            || html.IndexOf("nv-entity-mention", StringComparison.OrdinalIgnoreCase) < 0)
+            return [];
+
+        var entityIds = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (Match match in EntityIdRegex.Matches(html))
+        {
+            var entityId = match.Groups[1].Value;
+            if (entityId.Length > 0 && seen.Add(entityId))
+                entityIds.Add(entityId);
+        }
+        return entityIds;
+    }
+
     private readonly IProjectService _projects;
 
     public AppearanceIndexService(IProjectService projects)
@@ -69,14 +92,7 @@ public sealed class AppearanceIndexService
                     html.IndexOf("nv-entity-mention", StringComparison.OrdinalIgnoreCase) < 0)
                     continue;
 
-                var entityIds = new List<string>();
-                var seen = new HashSet<string>(StringComparer.Ordinal);
-                foreach (Match match in EntityIdRegex.Matches(html))
-                {
-                    var entityId = match.Groups[1].Value;
-                    if (entityId.Length > 0 && seen.Add(entityId))
-                        entityIds.Add(entityId);
-                }
+                var entityIds = ExtractMentionIds(html);
                 if (entityIds.Count == 0)
                     continue;
 

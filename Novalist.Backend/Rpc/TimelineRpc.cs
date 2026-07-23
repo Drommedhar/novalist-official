@@ -1,5 +1,6 @@
 using System.Globalization;
 using Novalist.Core.Models;
+using Novalist.Core.Services;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
@@ -8,14 +9,16 @@ namespace Novalist.Backend.Rpc;
 public sealed class TimelineRpc
 {
     private readonly Workspace _workspace;
+    private readonly EntityService _entities;
 
     public TimelineRpc(Workspace workspace)
     {
         _workspace = workspace;
+        _entities = new EntityService(workspace.Projects);
     }
 
     [JsonRpcMethod("timeline/get")]
-    public TimelineDto Get()
+    public async Task<TimelineDto> Get()
     {
         var projects = _workspace.Projects;
         var book = projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
@@ -74,7 +77,29 @@ public sealed class TimelineRpc
             .Select(g => new TimelineGroupDto(g.Key, GroupLabel(g.Key, zoom), g.ToArray()))
             .ToArray();
 
-        return new TimelineDto(timeline.ViewMode, zoom, groups);
+        return new TimelineDto(timeline.ViewMode, zoom, groups, await BuildEntityLinksAsync(events));
+    }
+
+    /// <summary>Resolves the character/location names carried by manual events to
+    /// their Codex entities through the shared <see cref="EntityResolveIndex"/>, so
+    /// the renderer can turn each chip into a link. Names that are ambiguous or
+    /// unknown resolve to nothing and stay plain text.</summary>
+    private async Task<IReadOnlyList<TimelineEntityLinkDto>> BuildEntityLinksAsync(
+        IReadOnlyList<TimelineEventDto> events)
+    {
+        var names = events
+            .SelectMany(e => e.Characters.Concat(e.Locations))
+            .Select(EntityResolveIndex.Normalize)
+            .Where(n => n.Length > 0)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (names.Count == 0)
+            return [];
+
+        var resolve = await EntityResolveIndex.BuildAsync(_entities);
+        return names
+            .Where(resolve.ContainsKey)
+            .Select(n => new TimelineEntityLinkDto(n, resolve[n].Id, resolve[n].TypeKey))
+            .ToArray();
     }
 
     [JsonRpcMethod("timeline/setView")]
@@ -106,7 +131,7 @@ public sealed class TimelineRpc
         existing.CategoryId = categoryId;
         existing.LinkedChapterGuid = linkedChapterGuid ?? string.Empty;
         await _workspace.Projects.SaveProjectSettingsAsync();
-        return Get();
+        return await Get();
     }
 
     [JsonRpcMethod("timeline/deleteEvent")]
@@ -115,7 +140,7 @@ public sealed class TimelineRpc
         var timeline = _workspace.Projects.ProjectSettings.Timeline;
         timeline.ManualEvents.RemoveAll(e => e.Id == id);
         await _workspace.Projects.SaveProjectSettingsAsync();
-        return Get();
+        return await Get();
     }
 
     [JsonRpcMethod("timeline/structureTemplates")]
@@ -130,7 +155,7 @@ public sealed class TimelineRpc
     public async Task<TimelineDto> ApplyStructureTemplateAsync(string templateId)
     {
         var template = StoryStructureTemplates.GetById(templateId);
-        if (template == null) return Get();
+        if (template == null) return await Get();
 
         var timeline = _workspace.Projects.ProjectSettings.Timeline;
         var nextOrder = timeline.ManualEvents.Count;
@@ -146,7 +171,7 @@ public sealed class TimelineRpc
             });
         }
         await _workspace.Projects.SaveProjectSettingsAsync();
-        return Get();
+        return await Get();
     }
 
     private static string? Iso(DateTime? date) => date?.ToString("yyyy-MM-dd");
@@ -200,7 +225,13 @@ public sealed record StructureTemplateDto(string Id, string DisplayName, string 
 public sealed record TimelineDto(
     string ViewMode,
     string ZoomLevel,
-    IReadOnlyList<TimelineGroupDto> Groups);
+    IReadOnlyList<TimelineGroupDto> Groups,
+    IReadOnlyList<TimelineEntityLinkDto> EntityLinks);
+
+/// <summary>A character/location name used on a manual event that resolves to
+/// exactly one Codex entity, so the renderer can link the chip to its article.
+/// Ambiguous or unknown names are simply absent.</summary>
+public sealed record TimelineEntityLinkDto(string Name, string EntityId, string TypeKey);
 
 public sealed record TimelineGroupDto(
     string Key,

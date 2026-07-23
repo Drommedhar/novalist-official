@@ -73,3 +73,4 @@ Common patterns:
 - [Editor](05-editor.md) — for live editing of the matches.
 - [Snapshots](17-snapshots.md) — recover if a replace went wrong.
 - [Smart Lists](16-smart-lists.md) — find scenes by metadata rather than content.
+- [Quick Open](31-quick-open.md) — search Codex entries, notes, comments, and research too, not just scene prose.

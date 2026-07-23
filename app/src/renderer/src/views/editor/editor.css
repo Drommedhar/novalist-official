@@ -379,8 +379,39 @@
   white-space: pre-wrap;
 }
 
-.peek-ai-stub {
-  font-style: italic;
-  color: var(--nl-text-subtle);
+
+/* Cached chapter-analysis findings about the peeked entity. */
+.peek-findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.peek-findings li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.peek-finding-title {
   font-size: var(--nl-font-body-sm);
+}
+
+.peek-finding-desc {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.peek-finding-marker {
+  margin-right: var(--nl-space-tighter);
+  color: var(--nl-text-subtle);
+}
+
+.peek-finding-excerpt {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  font-style: italic;
 }

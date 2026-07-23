@@ -251,6 +251,26 @@
   padding: var(--nl-space-tighter) 0;
 }
 
+/* Each row opens its scene in the editor. */
+.dashboard-activity-link {
+  width: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: var(--nl-radius-sm);
+}
+
+.dashboard-activity-link:hover {
+  background: var(--nl-surface-hover);
+}
+
+.dashboard-activity-link:hover .dashboard-activity-scene {
+  color: var(--nl-accent);
+}
+
 .dashboard-activity-main {
   min-width: 0;
 }

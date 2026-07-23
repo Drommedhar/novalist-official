@@ -27,6 +27,15 @@ export interface EditorWindow extends Window {
   setFootnotesData(data: { id: string; text: string }[]): void
   setEntityNames(namesJson: string): void
   setMentionCandidates(candidatesJson: string): void
+  setMentionLabels(labelsJson: string): void
+  /** Answers a `mentionCreateRequested` message: turns the pending placeholder
+   *  into a real mention, or back into plain text when entityId is null. */
+  resolvePendingMention(
+    pendingId: string,
+    entityId: string | null,
+    entityType: string | null,
+    displayText: string | null
+  ): void
   setAutoReplacements(pairsJson: string): void
   setDialogueCorrectionConfig(configJson: string): void
   setContextMenuLabels(labelsJson: string): void

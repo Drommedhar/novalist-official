@@ -32,6 +32,12 @@ public class ItemData : IEntityData
     [JsonPropertyName("customProperties")]
     public Dictionary<string, string> CustomProperties { get; set; } = [];
 
+    /// <summary>Named links to other entities (owner, faction, origin, ...). The
+    /// same shape characters use, so the Wiki and peek resolve them identically.</summary>
+    [JsonPropertyName("relationships")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<EntityRelationship> Relationships { get; set; } = [];
+
     [JsonPropertyName("sections")]
     public List<EntitySection> Sections { get; set; } = [];
 

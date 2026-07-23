@@ -10,7 +10,7 @@ Open **Wiki** from the **World** group in the activity bar (the icon rail on the
 
 The view has two panes:
 
-- The **index** on the left lists every entity, grouped first by scope (**Book** and **World Bible**) and then by type (Characters, Locations, Items, Lore, and each of your custom types). Entries are sorted by name and show a thumbnail and a short subtitle.
+- The **index** on the left lists every entity, grouped first by scope (**Book** and **World Bible**) and then by type (Characters, Locations, Items, Lore, and each of your custom types). Entries are sorted by name and show a thumbnail and a short subtitle. A **filter box** at the top narrows the list as you type, matching an entry's name, its subtitle, or any of its aliases; groups that end up empty disappear while you type.
 - The **article** on the right shows the selected entity.
 
 Selecting an entry in the index opens its article. Opening the Wiki selects the first entry automatically so the article pane is never empty.
@@ -26,12 +26,15 @@ An article is assembled from what you have filled in — empty parts are simply 
 - **Description** — for locations, items, and lore, the entity's description is shown as the opening paragraph. (Characters have no single description; their body comes from sections.)
 - **Stats strip** — an at-a-glance summary for entities that appear in scenes: number of appearances, chapters spanned, POV scenes (characters only), and first / last appearance.
 - **Contents** — a table of contents listing the sections below; click an entry to jump to it. Shown once there is more than one section.
-- **Sections** — the free-form sections you wrote in the Codex, rendered as article body text. Any entity mentions inside that text are clickable and jump to the mentioned entity's article.
+- **Sections** — the free-form sections you wrote in the Codex, rendered as article body text. Entity names inside that text are linked automatically: whenever a word or phrase matches exactly one entity's name or alias it becomes a clickable link to that entity's article. You can also force a link (or link an ambiguous name) with a `[[Name]]` wiki-link, and give it different link text with `[[Name|shown text]]`. Names that match more than one entity, and text inside code spans or existing Markdown links, are left as plain text.
 - **Relationships** — each role and its targets. A target that resolves to a single entity is a link; an ambiguous or unknown name is shown as plain text.
 - **Referenced by** — the reverse view: other entities whose relationships or entity-reference fields point at this one.
+- **Contains** — for a location, the locations whose **parent location** is this one, so a region's article lists the cities inside it. Each is a link to its own article.
 - **Appears with** — entities that co-occur in the same scenes, most frequent first, with the shared-scene count.
 - **Plotlines** — the plot threads the entity's scenes belong to.
 - **On maps** — map pins that point at this entity; clicking one opens the map centred on the pin.
+- **Research** — the [research](15-research.md) items you linked to this entity. Clicking one opens it in the Research view.
+- **Events** — the manual [timeline](12-timeline.md) events that name this entity among their characters or locations, in date order with undated events last. Clicking one opens the Timeline. (Unlike Appearances, which is derived from your prose, this is the timeline you authored by hand.)
 - **Changes over time** — for characters with per-act / per-chapter / per-scene overrides (see [Codex](06-codex.md)), the scopes where the character differs from the base, listing each changed field and its overridden value in manuscript order.
 - **Appearances** — the scenes that mention this entity, in story order (see below).
 - **Infobox** — a fact panel down the right side with the primary image (and its caption), an image gallery of any further images, and the entity's short fields (role, gender, type, parent location, category, origin, custom fields, and so on). A location's parent is a link to the parent's article.
@@ -45,6 +48,8 @@ The **Appearances** section lists every scene in which the entity is mentioned. 
 - and the scene's **synopsis** if one is set.
 
 Appearances are ordered chronologically by story date, with undated scenes last, then by their order in the manuscript. This doubles as a per-character (or per-place, per-item) timeline: read straight down to follow an entity through the story. Clicking an appearance opens that scene in the editor.
+
+**Appearances cover the book you currently have open**, not the whole project. In a multi-book project the heading says so explicitly ("Appearances in *Book Two*") — so a World Bible character shared across a trilogy shows one book's worth of history at a time. Switch books to see the rest.
 
 Synopses come from the scene's Synopsis field, which you can write yourself in the scene-notes dock or have generated for you if you run the AI Assistant extension (see [Extensions](24-extensions.md)). The richer your synopses, the more readable the Appearances timeline.
 
@@ -61,8 +66,8 @@ If you have an AI extension installed that provides an article generator (the [A
 
 The Wiki is meant to be browsed by clicking:
 
-- **Relationship targets**, **Referenced by** entries, **Appears with** chips, and the location **parent** all link to their articles.
-- **Entity mentions inside section prose** link to the mentioned entity.
+- **Relationship targets**, **Referenced by** entries, **Contains** entries, **Appears with** chips, and the location **parent** all link to their articles.
+- **Entity names inside section prose** link to the mentioned entity automatically (and you can force one with `[[Name]]`).
 - **Appearances** open the scene in the editor.
 - **On maps** entries open the map centred on the pin.
 - The **Contents** list jumps to a section within the current article.

@@ -16,6 +16,8 @@ import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useWikiStore } from '../../stores/wikiStore'
 import { dispatchForwardedHotkey } from '../../shell/hotkeys'
+import { EntityTypeDialog } from '../../shell/EntityTypeDialog'
+import { AppendToEntityDialog } from '../../shell/AppendToEntityDialog'
 import { rpc } from '../../rpc/client'
 import { useEntityPeek, type PeekScope } from './PeekCard'
 import './editor.css'
@@ -98,7 +100,15 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
       selectAll: t('editor.contextMenu.selectAll'),
       addComment: t('editor.contextMenu.addComment'),
       addFootnote: t('editor.contextMenu.addFootnote'),
-      addToDictionary: t('editor.contextMenu.addToDictionary')
+      addToDictionary: t('editor.contextMenu.addToDictionary'),
+      createEntity: t('editor.contextMenu.createEntity'),
+      appendToEntity: t('editor.contextMenu.appendToEntity')
+    })
+  )
+  editor.setMentionLabels(
+    JSON.stringify({
+      create: t('capture.mentionCreateRow'),
+      noMatches: t('editor.mentionNoMatches')
     })
   )
   editor.setInlineActions(inlineActionDescriptorsJson())
@@ -243,6 +253,13 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   // wiping the native undo stack. We only push content the editor did NOT author.
   const lastReportedHtmlRef = useRef<string | null>(null)
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
+  // A name typed after `@` that matched no entity, waiting for the writer to pick
+  // which kind of entity to create for it.
+  const [pendingEntity, setPendingEntity] = useState<{ name: string; pendingId: string } | null>(
+    null
+  )
+  // A selected passage on its way into a Codex entity's section.
+  const [pendingAppend, setPendingAppend] = useState<string | null>(null)
   const annotationsRef = useRef<{ comments: SceneComment[]; footnotes: SceneFootnote[] }>({
     comments: [],
     footnotes: []
@@ -253,6 +270,51 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   const openHoveredEntity = (entityType: string, entityId: string): void => {
     useShellStore.getState().setMainView('wiki')
     void useWikiStore.getState().openArticle(entityType, entityId)
+  }
+
+  /** Creates the entity the writer just named in the editor and upgrades the
+   *  pending placeholder into a real mention. */
+  const createPendingEntity = async (typeKey: string): Promise<void> => {
+    const request = pendingEntity
+    setPendingEntity(null)
+    const editor = editorRef.current
+    if (!request || !editor) return
+    try {
+      const record = await rpc.request<Record<string, unknown>>('entities/create', [
+        typeKey,
+        request.name,
+        null
+      ])
+      editor.resolvePendingMention(request.pendingId, String(record.id), typeKey, request.name)
+      // The new name has to become recognisable for hover cards and future @-picks.
+      await pushEntityNames(editor)
+    } catch {
+      // Creation failed — leave the typed text in place rather than a placeholder.
+      editor.resolvePendingMention(request.pendingId, null, null, request.name)
+    }
+  }
+
+  /** Copies the selected passage into a Codex entity's section. */
+  const appendSelectionToEntity = async (target: {
+    typeKey: string
+    id: string
+    sectionTitle: string
+  }): Promise<void> => {
+    const passage = pendingAppend
+    setPendingAppend(null)
+    if (!passage) return
+    await rpc.request('entities/appendToSection', [
+      target.typeKey,
+      target.id,
+      target.sectionTitle,
+      passage
+    ])
+  }
+
+  const cancelPendingEntity = (): void => {
+    const request = pendingEntity
+    setPendingEntity(null)
+    if (request) editorRef.current?.resolvePendingMention(request.pendingId, null, null, request.name)
   }
 
   // The pane's open chapter/scene, resolved from the live chapter list so a peek
@@ -566,6 +628,19 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           void settings.update(scope, { editorFontSize: next })
           break
         }
+        case 'appendToEntityRequested': {
+          setPendingAppend(String(message.text ?? ''))
+          break
+        }
+        case 'mentionCreateRequested': {
+          // A name typed after `@` that matched nothing: ask which kind of entity
+          // to make, then swap the placeholder for a real mention.
+          setPendingEntity({
+            name: String(message.name ?? ''),
+            pendingId: String(message.pendingId ?? '')
+          })
+          break
+        }
         case 'entityMentionHover': {
           const hit = entityIndexRef.current.get(String(message.entityId))
           if (hit) showHoverCard(hit, Number(message.x ?? 0), Number(message.y ?? 0))
@@ -649,6 +724,20 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
         sandbox="allow-scripts allow-same-origin"
       />
       {peek.overlay}
+      {pendingEntity && (
+        <EntityTypeDialog
+          name={pendingEntity.name}
+          onPick={(typeKey) => void createPendingEntity(typeKey)}
+          onCancel={cancelPendingEntity}
+        />
+      )}
+      {pendingAppend != null && (
+        <AppendToEntityDialog
+          text={pendingAppend}
+          onConfirm={(target) => void appendSelectionToEntity(target)}
+          onCancel={() => setPendingAppend(null)}
+        />
+      )}
     </div>
   )
 }

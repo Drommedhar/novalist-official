@@ -63,7 +63,7 @@ Phrases that recur unusually often across the manuscript, with their frequency. 
 
 ### Recent Activity
 
-A short list of the scenes you edited most recently, each with its chapter and a timestamp — a quick way to pick up where you left off.
+A short list of the scenes you edited most recently, each with its chapter and a timestamp — a quick way to pick up where you left off. Click any row to open that scene in the editor.
 
 ## Configuring goals
 

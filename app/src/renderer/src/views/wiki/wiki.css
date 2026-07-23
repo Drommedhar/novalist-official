@@ -30,6 +30,34 @@
   padding: var(--nl-space-tighter) var(--nl-space-sm) var(--nl-space-md);
 }
 
+/* Filter box over the index list. */
+.wiki-index-search {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  margin: 0 var(--nl-space-sm) var(--nl-space-sm);
+  padding: 0 var(--nl-space-sm);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text-subtle);
+}
+
+.wiki-index-search:focus-within {
+  border-color: var(--nl-accent);
+}
+
+.wiki-index-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--nl-text);
+  font-size: var(--nl-font-body-sm);
+  padding: var(--nl-space-tighter) 0;
+}
+
 .wiki-index-status,
 .wiki-main-status {
   padding: var(--nl-space-lg);
@@ -678,14 +706,11 @@
   text-decoration: underline;
 }
 
-/* Persisted entity mentions inside authored prose become clickable links. */
-.wiki-prose .nv-entity-mention {
-  color: var(--nl-accent);
-  cursor: pointer;
-}
-
-.wiki-prose .nv-entity-mention:hover {
-  text-decoration: underline;
+/* Entity references inside authored prose, pre-linked by the backend, render
+   as inline links that sit flush in the running text. */
+.wiki-prose-link {
+  vertical-align: baseline;
+  line-height: inherit;
 }
 
 /* ===== Relationships ===== */
@@ -837,4 +862,45 @@
     flex: 1 1 auto;
     width: 100%;
   }
+}
+
+/* Manual timeline events that name this entity. */
+.wiki-events {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.wiki-event {
+  display: flex;
+  align-items: baseline;
+  gap: var(--nl-space-sm);
+  width: 100%;
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  border: none;
+  background: none;
+  border-radius: var(--nl-radius-sm);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.wiki-event:hover {
+  background: var(--nl-surface-hover);
+}
+
+.wiki-event-date {
+  flex: none;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.wiki-event-desc {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
 }

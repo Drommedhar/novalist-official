@@ -42,6 +42,8 @@ interface Window {
     pickFolder(title: string): Promise<string | null>
     saveFile(defaultName: string): Promise<string | null>
     pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null>
+    /** Absolute path of a dropped File (Electron removed File.path). */
+    filePath(file: File): string
     openExternal(target: string): Promise<boolean>
     revealPath(target: string): Promise<boolean>
     copyText(text: string): void

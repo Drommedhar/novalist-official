@@ -18,6 +18,10 @@ public enum ResearchItemType
 /// </summary>
 public sealed class ResearchItem
 {
+    /// <summary>Reserved tag marking a quick-captured note that has not been filed
+    /// anywhere yet. The Research view groups these as the "Inbox".</summary>
+    public const string InboxTag = "inbox";
+
     [JsonPropertyName("id")]
     public string Id { get; set; } = System.Guid.NewGuid().ToString();
 
@@ -33,6 +37,12 @@ public sealed class ResearchItem
 
     [JsonPropertyName("tags")]
     public List<string> Tags { get; set; } = [];
+
+    /// <summary>Ids of Codex entities this item is about. Research the writer has
+    /// linked to a character or place surfaces on that entity's Wiki article, so
+    /// it is visible at the moment of writing rather than only in the Research view.</summary>
+    [JsonPropertyName("entityRefs")]
+    public List<string> EntityRefs { get; set; } = [];
 
     [JsonPropertyName("createdAt")]
     public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;

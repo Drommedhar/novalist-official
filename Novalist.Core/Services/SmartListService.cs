@@ -84,6 +84,13 @@ public sealed class SmartListService : ISmartListService
                 return false;
         }
 
+        if (!string.IsNullOrEmpty(list.PlotlineId))
+        {
+            var plotlines = scene.PlotlineIds;
+            if (plotlines == null || !plotlines.Contains(list.PlotlineId, StringComparer.OrdinalIgnoreCase))
+                return false;
+        }
+
         if (!string.IsNullOrEmpty(list.PovContains))
         {
             var pov = scene.AnalysisOverrides?.Pov;

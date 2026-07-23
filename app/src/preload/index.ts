@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 const material =
   process.argv.find((a) => a.startsWith('--nl-material='))?.split('=')[1] ?? 'opaque'
@@ -34,6 +34,15 @@ contextBridge.exposeInMainWorld('novalist', {
   },
   pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null> {
     return ipcRenderer.invoke('novalist:pick-file', title, mode)
+  },
+  /** Absolute path of a dropped File. Electron removed File.path, so resolving
+   *  it has to happen here in the preload. Empty string when unavailable. */
+  filePath(file: File): string {
+    try {
+      return webUtils.getPathForFile(file)
+    } catch {
+      return ''
+    }
   },
   openExternal(target: string): Promise<boolean> {
     return ipcRenderer.invoke('novalist:open-external', target)

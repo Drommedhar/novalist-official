@@ -32,5 +32,6 @@ Every registered command:
 
 ## Where to go next
 
+- [Quick Open](31-quick-open.md) — the content-finding counterpart: `Ctrl+P` searches scenes, Codex, notes, and research.
 - [Hotkeys](26-hotkeys.md) — the full list of default keybindings, including the palette's own.
 - [Interface Overview](02-interface-overview.md) — the binder, main area, and inspector the palette navigates between.

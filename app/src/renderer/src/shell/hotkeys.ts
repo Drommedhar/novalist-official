@@ -159,6 +159,20 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
       categoryKey: 'hotkeys.category.general',
       labelKey: 'commandPalette.placeholder',
       run: () => shell().setCommandPaletteOpen(true)
+    },
+    {
+      actionId: 'app.quickOpen',
+      defaultGesture: 'Ctrl+P',
+      categoryKey: 'hotkeys.category.general',
+      labelKey: 'quickOpen.placeholder',
+      run: () => shell().setQuickOpenOpen(true)
+    },
+    {
+      actionId: 'app.quickCapture',
+      defaultGesture: 'Ctrl+Shift+K',
+      categoryKey: 'hotkeys.category.general',
+      labelKey: 'capture.quickTitle',
+      run: () => shell().setQuickCaptureOpen(true)
     }
   )
   return defs.map((def) => ({

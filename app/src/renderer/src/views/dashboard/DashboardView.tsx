@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { InputDialog } from '../../shell/InputDialog'
 import { useShellStore } from '../../stores/shellStore'
+import { useProjectStore } from '../../stores/projectStore'
 import './dashboard.css'
 
 interface DashboardDto {
@@ -38,7 +39,13 @@ interface DashboardDto {
   maxChapterWords: number
   echoPhrases: { phrase: string; count: number }[]
   wordHistory: { date: string; words: number; metGoal: boolean }[]
-  recentActivity: { sceneTitle: string; chapterTitle: string; timestamp: string }[]
+  recentActivity: {
+    sceneTitle: string
+    chapterTitle: string
+    chapterGuid: string
+    sceneId: string
+    timestamp: string
+  }[]
 }
 
 const RANGES = [30, 90, 365]
@@ -357,13 +364,18 @@ export function DashboardView(): React.JSX.Element {
         <div className="dashboard-card">
           <div className="dashboard-card-title">{t('dashboard.recentActivity')}</div>
           {data.recentActivity.map((a, i) => (
-            <div key={i} className="dashboard-activity-row">
+            <button
+              key={i}
+              type="button"
+              className="dashboard-activity-row dashboard-activity-link"
+              onClick={() => void useProjectStore.getState().openScene(a.chapterGuid, a.sceneId)}
+            >
               <div className="dashboard-activity-main">
                 <div className="dashboard-activity-scene">{a.sceneTitle}</div>
                 <div className="dashboard-activity-chapter">{a.chapterTitle}</div>
               </div>
               <div className="dashboard-activity-time">{a.timestamp}</div>
-            </div>
+            </button>
           ))}
         </div>
       )}

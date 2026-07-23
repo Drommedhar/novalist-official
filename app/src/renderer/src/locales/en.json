@@ -80,7 +80,17 @@
     "typeLink": "Link",
     "typeFile": "File",
     "typeImage": "Image",
-    "typePdf": "PDF"
+    "typePdf": "PDF",
+    "inbox": "Inbox",
+    "fileThis": "File this note:",
+    "fileAsNewEntity": "Create Codex entry",
+    "fileIntoEntity": "Add to existing entry",
+    "fileAsNote": "Keep as research note",
+    "linkedEntities": "Linked entries",
+    "linkedEntitiesHint": "Not linked to anything yet",
+    "linkEntity": "Link an entry...",
+    "fetchTitle": "Fetch title",
+    "fetchingTitle": "Fetching..."
   },
   "plotGrid": {
     "title": "Plot Grid",
@@ -94,7 +104,9 @@
     "renamePrompt": "New name",
     "confirmDeleteTitle": "Delete plotline?",
     "confirmDelete": "Delete \"{0}\"? Scene assignments will be removed.",
-    "emptyHint": "No plotlines yet. Add one to start tracking scenes across your story arcs."
+    "emptyHint": "No plotlines yet. Add one to start tracking scenes across your story arcs.",
+    "cellNoteTitle": "Note for {{scene}}",
+    "cellNotePlaceholder": "What this scene does for this thread"
   },
   "comments": {
     "noSelection": "Select some text in the scene first.",
@@ -114,7 +126,7 @@
   },
   "relationships": {
     "title": "Relationships",
-    "hint": "Search, filter, and drag to pan; scroll to zoom.",
+    "hint": "Click a character to open their article; drag to pan, scroll to zoom. Relationships are edited in the Codex.",
     "search": "Search entities…",
     "filterGroup": "All groups",
     "filterRole": "All roles",
@@ -176,7 +188,8 @@
       "sister-in-law"
     ],
     "emptyHint": "No connected characters yet. Add relationships in the Codex to build the graph.",
-    "familyPrefix": "Family {{name}}"
+    "familyPrefix": "Family {{name}}",
+    "openArticle": "Open {{name}}'s article"
   },
   "calendar": {
     "title": "Calendar",
@@ -209,7 +222,9 @@
     "confirmDeleteTitle": "Delete smart list?",
     "confirmDelete": "Delete \"{0}\"? This cannot be undone.",
     "noMatches": "No matching scenes.",
-    "anyStatus": "Any status"
+    "anyStatus": "Any status",
+    "plotline": "Plotline",
+    "anyPlotline": "Any plotline"
   },
   "findReplace": {
     "title": "Find and Replace",
@@ -734,7 +749,8 @@
     "wordsDisplay": "{0:N0} words",
     "dialogueDisplay": "{0}% dialogue",
     "avgSentenceDisplay": "{0} avg sentence",
-    "openSceneHint": "Open a scene to view chapter and scene context."
+    "openSceneHint": "Open a scene to view chapter and scene context.",
+    "analysisEnglishOnly": "Automatic emotion, intensity, conflict and tags are not available for this writing language yet. Set them yourself below."
   },
   "focusPeek": {
     "openEntity": "Open entity",
@@ -745,8 +761,6 @@
     "appearance": "APPEARANCE",
     "mapPins": "ON MAPS",
     "sections": "SECTIONS",
-    "aiFocus": "AI FOCUS",
-    "aiStub": "No AI findings cached. Run chapter analysis first.",
     "eyes": "Eyes",
     "hair": "Hair",
     "hairLength": "Hair Length",
@@ -762,7 +776,8 @@
     "inPill": "In {0}",
     "sublocationsPill": "{0} sublocations",
     "overrideScope": "Overridden for {0}",
-    "overrideScopeHint": "This card shows values overridden for the scene you are editing."
+    "overrideScopeHint": "This card shows values overridden for the scene you are editing.",
+    "aiFocus": "AI focus"
   },
   "emotion": {
     "neutral": "Neutral",
@@ -1208,7 +1223,12 @@
     "contextMenu.selectAll": "Select All",
     "contextMenu.addComment": "Add comment",
     "contextMenu.addFootnote": "Add footnote",
-    "contextMenu.addToDictionary": "Add to Dictionary"
+    "contextMenu.addToDictionary": "Add to Dictionary",
+    "mentionNoMatches": "No matches",
+    "contextMenu": {
+      "createEntity": "Create entity from selection",
+      "appendToEntity": "Add selection to entity"
+    }
   },
   "section": {
     "newSection": "New Section"
@@ -1472,7 +1492,8 @@
     "sourceAct": "Acts",
     "sourceChapter": "Chapters",
     "sourceScene": "Scenes",
-    "sourceManual": "Events"
+    "sourceManual": "Events",
+    "openEntity": "Open {{name}}"
   },
   "export": {
     "header": "Export Novel",
@@ -1762,6 +1783,47 @@
     "statLast": "Last",
     "scopeBook": "Book",
     "scopeWorldBible": "World Bible",
-    "editInCodex": "Edit in Codex"
+    "editInCodex": "Edit in Codex",
+    "filterPlaceholder": "Filter entries",
+    "noMatches": "No entries match",
+    "contains": "Contains",
+    "research": "Research",
+    "events": "Events",
+    "appearancesInBook": "Appearances in {{book}}",
+    "noAppearances": "Not mentioned in any scene yet. Appearances are built from the entity names Novalist recognises in your prose."
+  },
+  "capture": {
+    "createEntityTitle": "Create \"{{name}}\"",
+    "createEntityHint": "Which kind of entry should this be?",
+    "mentionCreateRow": "Create \"{name}\"",
+    "appendTitle": "Add to a Codex entry",
+    "appendFilterPlaceholder": "Find an entry",
+    "sectionTitle": "Section",
+    "defaultSectionTitle": "Notes",
+    "appendConfirm": "Add",
+    "quickTitle": "Quick capture",
+    "quickPlaceholder": "Jot it down; file it later",
+    "quickHint": "Saved to the Research inbox. Ctrl+Enter to save.",
+    "quickSave": "Capture",
+    "scanScene": "Find new entries in this scene",
+    "scanning": "Scanning...",
+    "scanNothingNew": "Nothing new found",
+    "scanCreated": "Created {{count}}",
+    "proposalsTitle": "Suggested Codex entries",
+    "proposalsHint": "Tick the ones to create. Nothing is added until you confirm.",
+    "proposalsCreate": "Create {{count}}"
+  },
+  "quickOpen": {
+    "placeholder": "Search everything",
+    "hint": "Type at least two characters",
+    "searching": "Searching...",
+    "noResults": "Nothing found",
+    "kindScene": "Scenes",
+    "kindSceneText": "In scene text",
+    "kindSceneNote": "Synopses and notes",
+    "kindAnnotation": "Comments and footnotes",
+    "kindEntity": "Codex",
+    "kindResearch": "Research",
+    "kindTimeline": "Timeline events"
   }
 }

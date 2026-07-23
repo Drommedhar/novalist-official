@@ -24,6 +24,14 @@ The header shows the open scene's title, a **Chapter · Scene N of M** subtitle 
 
 Directly below the header, Novalist analyses the open scene and shows what it finds. Every part is a collapsible section, and your collapse choices are remembered between scenes.
 
+### Find new entries in this scene
+
+If you have an extension installed that provides an entity extractor (the [AI Assistant](24-extensions.md) does), a **Find new entries in this scene** button sits at the top of the Context tab. It reads the open scene and suggests Codex entries for the people, places, and things it mentions that are not in your Codex yet — the names you invented mid-sentence and never got round to filing.
+
+The suggestions arrive as a **review list**: each row shows the proposed name, a one-line note on what the scene says about it, and a dropdown to change the kind (Character, Location, Item, Lore). Nothing is pre-ticked and nothing is written until you select entries and confirm; anything already in your Codex is filtered out before you ever see it. Accepted entries are created immediately and appear in the panel below.
+
+Without such an extension the button does not appear, and the rest of the Inspector is unchanged.
+
 ### Entities in the scene
 
 The **characters**, **locations**, **items**, and **lore** detected in the scene, each shown as a card with its thumbnail and name. **Hover** a card to raise the same rich **focus-peek** card the editor shows when you hover an entity's name in the prose — image, attribute pills, relationships (which you can click to peek through to related entities), appearance, custom properties, description, map pins and sections, with pin/open/close buttons in its header. The peek resolves any [chapter or scene overrides](06-codex.md) for the open scene, so it matches who the entity is at this point in the story. **Click** a card to open that entity's article in the [Wiki](30-wiki.md) (from there, **Edit in Codex** reaches the editable record). Character cards also carry small **Gender** and **Age** pills. A character that has a [chapter or scene override](06-codex.md) for the open scene is shown with its overridden name, role, gender and age, so the card matches who the character is at this point in the story. When age is stored as a birth date, the pill shows the character's age **at the open scene**, computed from the birth date against the scene's story date (falling back to the chapter's date, then today).
@@ -34,7 +42,13 @@ A cross-chapter grid: one row per tracked character showing, chapter by chapter,
 
 ### Scene analysis
 
-Each value is auto-computed but fully editable, and every field carries a **reset-to-auto** button that drops your override and restores the detected value:
+Each value is auto-computed but fully editable, and every field carries a **reset-to-auto** button that drops your override and restores the detected value.
+
+**A note on language:** emotion, intensity, conflict, and the auto tags are detected from keyword lists, and Novalist ships one list per language — currently **English, German, and Simplified Chinese**, matching the bundled interface languages. Your writing language (Settings → Writing assistance) selects the list; a regional variant falls back to its base language, so `de-AT` uses the German list.
+
+If you write in a language that has no list yet, Novalist does **not** guess — it leaves those fields blank and says so at the top of the section, rather than scoring your prose against another language's words. You can still set every field yourself, and the language-independent parts (POV from character names, word count, dialogue percentage, sentence length) work in every language.
+
+Adding a language is a data change, not a code change: drop an `analysis.<tag>.json` into `Novalist.Core/Resources/Analysis/` with the same emotion keys and translated word lists. See [Localization](27-localization.md).
 
 - **POV** — the point-of-view character, chosen from a dropdown.
 - **Emotion** — the scene's dominant emotion, chosen from a dropdown.

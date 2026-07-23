@@ -1,0 +1,35 @@
+{
+  "_comment": "German scene-analysis lexicon. Entries are word stems: matching is a lowercase substring test, so \"kaempf\" also catches \"kaempfen\"/\"kaempfte\". Keep the emotion key set and order identical to analysis.en.json.",
+  "wordBoundaries": true,
+  "firstPerson": ["ich", "mich", "mir", "mein", "meine", "meiner", "meines", "wir", "uns", "unser", "unsere"],
+  "positive": [
+    "hoffnung", "freude", "warm", "lächel", "lachen", "erleichter", "sieg", "triumph",
+    "liebe", "sanft", "strahl", "ruhig", "frieden", "sicherheit", "glück"
+  ],
+  "negative": [
+    "angst", "panik", "wut", "zorn", "blut", "verletz", "drohung", "gefahr",
+    "verzweifl", "traurig", "trauer", "dunkel", "kalt", "weinen", "schrei"
+  ],
+  "conflict": [
+    "streit", "kampf", "kämpf", "jagd", "konflikt", "forder", "flieh", "zwing",
+    "versteck", "weiger", "geheimnis", "ringen", "drohen", "warn", "auseinandersetzung"
+  ],
+  "emotions": [
+    { "key": "neutral", "words": ["schlicht", "gewohnt", "gefasst", "nüchtern", "alltäglich"] },
+    { "key": "tense", "words": ["spannung", "angespannt", "druck", "alarm", "nervös", "unbehag"] },
+    { "key": "joyful", "words": ["freude", "froh", "feier", "entzück", "lächel", "lachen"] },
+    { "key": "melancholic", "words": ["melancho", "einsam", "leer", "wehmut", "verblass"] },
+    { "key": "angry", "words": ["wut", "zorn", "wütend", "rasend", "groll", "aufbraus"] },
+    { "key": "fearful", "words": ["angst", "panik", "schreck", "furcht", "entsetz", "zitter"] },
+    { "key": "romantic", "words": ["kuss", "küss", "berühr", "geliebt", "herz", "zärtlich"] },
+    { "key": "mysterious", "words": ["schatten", "rätsel", "geheim", "seltsam", "unbekannt", "flüster"] },
+    { "key": "humorous", "words": ["witz", "grins", "neck", "komisch", "amüs", "scherz"] },
+    { "key": "hopeful", "words": ["hoffnung", "versprech", "chance", "glaub", "zukunft", "aufbruch"] },
+    { "key": "desperate", "words": ["verzweif", "fleh", "bettel", "aussichtslos", "ausweglos"] },
+    { "key": "peaceful", "words": ["frieden", "ruhe", "still", "sanft", "gelassen", "geborgen"] },
+    { "key": "chaotic", "words": ["chaos", "aufruhr", "wild", "wirbel", "tumult", "durcheinander"] },
+    { "key": "sorrowful", "words": ["kummer", "trauer", "wein", "klage", "schmerz", "verlust"] },
+    { "key": "triumphant", "words": ["triumph", "sieg", "gewonnen", "erober", "trotz", "überwält"] },
+    { "key": "somber", "words": ["düster", "grimm", "trüb", "bedrückt", "ernst", "schwermut"] }
+  ]
+}

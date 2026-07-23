@@ -99,6 +99,36 @@ public sealed class PlotlineService : IPlotlineService
         await _projectService.SaveScenesAsync().ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Sets (or clears, with blank text) the note on one plot-grid cell — the
+    /// short "what this scene does for this thread" line. Only meaningful for a
+    /// scene that belongs to the plotline; removing the last note drops the whole
+    /// map so scenes without notes stay clean on disk.
+    /// </summary>
+    public async Task SetCellNoteAsync(
+        string chapterGuid, string sceneId, string plotlineId, string? note)
+    {
+        var chapter = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);
+        if (chapter == null) return;
+        var scene = _projectService.GetScenesForChapter(chapter.Guid).FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null) return;
+
+        var text = (note ?? string.Empty).Trim();
+        if (text.Length == 0)
+        {
+            if (scene.PlotlineNotes == null) return;
+            scene.PlotlineNotes.Remove(plotlineId);
+            if (scene.PlotlineNotes.Count == 0) scene.PlotlineNotes = null;
+        }
+        else
+        {
+            scene.PlotlineNotes ??= [];
+            scene.PlotlineNotes[plotlineId] = text;
+        }
+
+        await _projectService.SaveScenesAsync().ConfigureAwait(false);
+    }
+
     public bool IsSceneInPlotline(SceneData scene, string plotlineId)
         => scene.PlotlineIds != null && scene.PlotlineIds.Contains(plotlineId);
 }

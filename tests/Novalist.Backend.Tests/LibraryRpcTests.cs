@@ -102,4 +102,57 @@ public sealed class LibraryRpcTests : IDisposable
     {
         Assert.Equal(expected, LibraryRpc.FormatSize(bytes));
     }
+
+    [Fact]
+    public async Task QuickCapture_CreatesInboxTaggedNote()
+    {
+        var items = await _rpc.QuickCaptureAsync("  The frost oath binds both ways.\nCheck ch. 4.  ");
+
+        var item = Assert.Single(items);
+        Assert.Equal("Note", item.Type);
+        Assert.Equal("The frost oath binds both ways.", item.Title);   // first line
+        Assert.Equal("The frost oath binds both ways.\nCheck ch. 4.", item.Content);
+        Assert.Contains("inbox", item.Tags);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   \n  ")]
+    public async Task QuickCapture_BlankText_Throws(string text)
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.QuickCaptureAsync(text));
+    }
+
+    [Fact]
+    public async Task FetchLinkTitle_UnreachableUrl_ReturnsNull()
+    {
+        // Nothing is listening on this reserved-for-docs address, so the lookup
+        // fails and the caller keeps the raw URL as the title.
+        Assert.Null(await _rpc.FetchLinkTitleAsync("not-a-url", CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task SaveResearch_RoundTripsEntityLinks()
+    {
+        var items = await _rpc.SaveResearchAsync(
+            null, "Orders", "Note", "Body", ["tag"], ["hero", "", "hero"]);
+        var item = Assert.Single(items);
+        Assert.Equal(["hero"], item.EntityRefs);   // blanks and duplicates dropped
+
+        // Omitting the argument leaves existing links untouched.
+        var again = await _rpc.SaveResearchAsync(item.Id, "Orders", "Note", "Body 2", ["tag"]);
+        Assert.Equal(["hero"], again.Single().EntityRefs);
+    }
+
+    [Fact]
+    public void DeriveTitle_ClipsLongFirstLine()
+    {
+        var longLine = new string('a', 100);
+        var title = LibraryRpc.DeriveTitle(longLine);
+        Assert.Equal(63, title.Length);          // 60 chars + the ellipsis
+        Assert.EndsWith("...", title);
+
+        // A leading blank line is skipped in favour of the first real line.
+        Assert.Equal("Real title", LibraryRpc.DeriveTitle("\n\nReal title\nmore"));
+    }
 }

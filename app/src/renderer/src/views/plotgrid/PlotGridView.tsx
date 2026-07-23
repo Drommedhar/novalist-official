@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
+import { useProjectStore } from '../../stores/projectStore'
 import { ContextMenu } from '../../shell/ContextMenu'
 import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
@@ -22,6 +23,14 @@ type Pending =
   | { kind: 'create' }
   | { kind: 'rename'; id: string; current: string }
   | { kind: 'delete'; id: string; name: string }
+  | {
+      kind: 'note'
+      chapterGuid: string
+      sceneId: string
+      plotlineId: string
+      sceneTitle: string
+      current: string
+    }
 
 export function PlotGridView(): React.JSX.Element {
   const { t } = useTranslation()
@@ -62,7 +71,15 @@ export function PlotGridView(): React.JSX.Element {
                 <th className="plotgrid-corner" />
                 {grid.columns.map((col) => (
                   <th key={col.sceneId} className="plotgrid-scene" title={`${col.chapterTitle} - ${col.sceneTitle}`}>
-                    <span>{col.sceneTitle}</span>
+                    <button
+                      type="button"
+                      className="plotgrid-scene-link"
+                      onClick={() =>
+                        void useProjectStore.getState().openScene(col.chapterGuid, col.sceneId)
+                      }
+                    >
+                      {col.sceneTitle}
+                    </button>
                   </th>
                 ))}
               </tr>
@@ -115,6 +132,25 @@ export function PlotGridView(): React.JSX.Element {
             }
           ]}
           onClose={() => setMenu(null)}
+        />
+      )}
+      {pending?.kind === 'note' && (
+        <InputDialog
+          title={t('plotGrid.cellNoteTitle', { scene: pending.sceneTitle })}
+          placeholder={pending.current || t('plotGrid.cellNotePlaceholder')}
+          onCancel={() => setPending(null)}
+          onSubmit={(note) => {
+            const p = pending
+            setPending(null)
+            void rpc
+              .request<PlotGridDto>('plot/setCellNote', [
+                p.chapterGuid,
+                p.sceneId,
+                p.plotlineId,
+                note
+              ])
+              .then(setGrid)
+          }}
         />
       )}
       {pending?.kind === 'create' && (

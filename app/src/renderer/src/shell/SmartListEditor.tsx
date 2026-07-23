@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { rpc } from '../rpc/client'
 import type { SmartListDto } from './SmartListsPanel'
 
 export interface SmartListDraft {
@@ -7,6 +8,7 @@ export interface SmartListDraft {
   chapterStatus: string | null
   povContains: string | null
   tag: string | null
+  plotlineId: string | null
 }
 
 const STATUSES = ['', 'Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']
@@ -27,6 +29,24 @@ export function SmartListEditor({
   const [status, setStatus] = useState(initial?.chapterStatus ?? '')
   const [pov, setPov] = useState(initial?.povContains ?? '')
   const [tag, setTag] = useState(initial?.tag ?? '')
+  const [plotlineId, setPlotlineId] = useState(initial?.plotlineId ?? '')
+  const [plotlines, setPlotlines] = useState<{ id: string; name: string }[]>([])
+
+  // The plotline filter is only meaningful once the book has plotlines.
+  useEffect(() => {
+    let cancelled = false
+    void rpc
+      .request<{ plotlines: { id: string; name: string }[] }>('plot/grid')
+      .then((grid) => {
+        if (!cancelled) setPlotlines(grid.plotlines)
+      })
+      .catch(() => {
+        // No plotlines available — the dropdown simply stays hidden.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const submit = (): void => {
     if (name.trim().length === 0) return
@@ -34,7 +54,8 @@ export function SmartListEditor({
       name: name.trim(),
       chapterStatus: status || null,
       povContains: pov.trim() || null,
-      tag: tag.trim() || null
+      tag: tag.trim() || null,
+      plotlineId: plotlineId || null
     })
   }
 
@@ -85,6 +106,26 @@ export function SmartListEditor({
           value={tag}
           onChange={(e) => setTag(e.target.value)}
         />
+        {plotlines.length > 0 && (
+          <>
+            <label className="inspector-label" htmlFor="sl-plotline">
+              {t('smartList.plotline')}
+            </label>
+            <select
+              id="sl-plotline"
+              className="dialog-input"
+              value={plotlineId}
+              onChange={(e) => setPlotlineId(e.target.value)}
+            >
+              <option value="">{t('smartList.anyPlotline')}</option>
+              {plotlines.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
         <div className="dialog-actions">
           <button className="dialog-button" onClick={onCancel}>
             {t('dialog.cancel')}

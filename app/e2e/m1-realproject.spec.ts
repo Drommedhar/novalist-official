@@ -1,8 +1,8 @@
 import { test, expect, _electron as electron } from '@playwright/test'
-import { execFileSync } from 'node:child_process'
 import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { copyProject } from './copyProject'
 
 /**
  * Opens a copy of a real Novalist project (119 scenes, German) and verifies
@@ -18,14 +18,7 @@ test('real project renders binder and scene content', async () => {
 
   const workDir = mkdtempSync(join(tmpdir(), 'nl-real-'))
   const projectCopy = join(workDir, 'project')
-  execFileSync('rsync', [
-    '-a',
-    '--exclude', '.git',
-    '--exclude', '.obsidian',
-    '--exclude', '.claude',
-    `${REAL_PROJECT}/`,
-    projectCopy
-  ])
+  copyProject(REAL_PROJECT, projectCopy)
 
   const env: Record<string, string> = Object.fromEntries(
     Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')

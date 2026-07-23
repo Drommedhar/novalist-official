@@ -56,6 +56,23 @@ interface EntityPeek {
   sections: PeekSection[]
   mapPins: PeekMapPin[]
   scopeLabel: string | null
+  /** Cached findings about this entity from a previous chapter analysis. Absent
+   *  when none has been run for the open chapter. */
+  aiFindings: PeekFinding[] | null
+}
+
+interface PeekFinding {
+  type: string
+  title: string
+  description: string
+  excerpt: string
+}
+
+/** Marker per finding kind, mirroring the desktop card. Text glyphs, not emoji. */
+const FINDING_MARKER: Record<string, string> = {
+  reference: '→',
+  inconsistency: '⚠',
+  suggestion: '•'
 }
 
 /** The open editor's chapter/scene, threaded into `entities/peek` so a character
@@ -317,6 +334,32 @@ export function PeekCard({
                 </div>
               </div>
             )}
+
+            {/* Findings a previous chapter analysis recorded about this entity.
+                Read-only: the host surfaces them, an extension produces them. */}
+            {data.aiFindings && data.aiFindings.length > 0 && (
+              <div className="peek-section">
+                <div className="peek-caption">{t('focusPeek.aiFocus')}</div>
+                <ul className="peek-findings">
+                  {data.aiFindings.map((finding, i) => (
+                    <li key={i}>
+                      <span className="peek-finding-title">
+                        <span className="peek-finding-marker" aria-hidden="true">
+                          {FINDING_MARKER[finding.type] ?? FINDING_MARKER.suggestion}
+                        </span>
+                        {finding.title}
+                      </span>
+                      {finding.description && (
+                        <span className="peek-finding-desc">{finding.description}</span>
+                      )}
+                      {finding.excerpt && (
+                        <span className="peek-finding-excerpt">{finding.excerpt}</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 
@@ -340,14 +383,6 @@ export function PeekCard({
           </div>
         )}
 
-        <div className="peek-section">
-          <div className="peek-caption">{t('focusPeek.aiFocus')}</div>
-          {/* AI findings come from cached chapter analysis, which is not exposed
-              over RPC; the desktop card reads ProjectSettings.ChapterAnalysis
-              scoped to the open document. Until that pipeline exists here we
-              always render the localized stub rather than invent an analysis. */}
-          <div className="peek-ai-stub">{t('focusPeek.aiStub')}</div>
-        </div>
       </div>
     </div>
   )

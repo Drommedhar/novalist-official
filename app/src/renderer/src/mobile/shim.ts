@@ -104,6 +104,9 @@ const novalist: Window['novalist'] = {
   pickFolder: (title) => hostCall<string | null>('pickFolder', [title]),
   saveFile: (defaultName) => hostCall<string | null>('saveFile', [defaultName]),
   pickFile: (title, mode) => hostCall<string | null>('pickFile', [title, mode ?? 'all']),
+  // Mobile has no desktop-style file drag-and-drop, so dropped-file paths never
+  // arise; the picker is the only way in.
+  filePath: () => '',
   openExternal: (target) => hostCall<boolean>('openExternal', [target]),
   revealPath: (target) => hostCall<boolean>('revealPath', [target]),
   copyText: (text) => {

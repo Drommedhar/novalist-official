@@ -15,9 +15,6 @@ public sealed class SmartList
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 
-    [JsonPropertyName("color")]
-    public string? Color { get; set; }
-
     /// <summary>One of <see cref="ChapterStatus"/> names; null = any status.</summary>
     [JsonPropertyName("chapterStatus")]
     public string? ChapterStatus { get; set; }
@@ -30,7 +27,7 @@ public sealed class SmartList
     [JsonPropertyName("tag")]
     public string? Tag { get; set; }
 
-    /// <summary>Plotline id (when plotlines exist) the scene must belong to.</summary>
+    /// <summary>Plotline id the scene must belong to (Plot Grid membership); null = any.</summary>
     [JsonPropertyName("plotlineId")]
     public string? PlotlineId { get; set; }
 }

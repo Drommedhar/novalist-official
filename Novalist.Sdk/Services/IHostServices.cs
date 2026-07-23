@@ -69,6 +69,17 @@ public interface IExtensionEntityService
     /// <summary>Saves a custom entity to the active book. The entity type must be registered.</summary>
     Task SaveCustomEntityAsync(CustomEntityInfo entity);
 
+    /// <summary>
+    /// Creates a Codex entry and returns its new id, or null when the type is
+    /// unknown or no book is open.
+    ///
+    /// <paramref name="typeKey"/> is one of the built-in kinds — "character",
+    /// "location", "item", "lore" — or a registered custom entity type key.
+    /// This is what lets an extension act on something it found in the prose
+    /// (a name the Codex does not have yet) instead of only reporting it.
+    /// </summary>
+    Task<string?> CreateEntityAsync(string typeKey, string name, string description = "");
+
     /// <summary>Notifies the host that entities have changed and the UI should refresh.</summary>
     void RequestEntityRefresh();
 
@@ -189,6 +200,38 @@ public interface IHostServices
 
     /// <summary>Remove a previously registered keyboard shortcut.</summary>
     void UnregisterHotkey(string actionId);
+
+    /// <summary>
+    /// Per-scene analysis records: what a pass over a scene found (entities and
+    /// their presence, per-character knowledge, findings). The host owns storage,
+    /// staleness and the schema; an extension supplies the analysis.
+    ///
+    /// Read a record to reuse previous work, ask <see cref="IsSceneAnalysisStaleAsync"/>
+    /// (or <see cref="GetStaleSceneIdsAsync"/>) to find what still needs doing, and
+    /// save one record per scene. Anything cumulative — what a character knows by a
+    /// given point — is a roll-up over these records and needs no further model calls.
+    /// </summary>
+    Task<SceneAnalysisRecord?> GetSceneAnalysisAsync(string sceneId);
+
+    /// <summary>Stores the analysis for one scene, stamped with the hash of the
+    /// text it came from so it can be skipped next time.</summary>
+    Task SaveSceneAnalysisAsync(SceneAnalysisRecord record, string sceneText);
+
+    /// <summary>Whether a scene still needs analysing — never analysed, text
+    /// changed since, or stored under an older schema.</summary>
+    Task<bool> IsSceneAnalysisStaleAsync(string sceneId, string sceneText);
+
+    /// <summary>Of the given scenes, the ids still needing analysis.</summary>
+    Task<IReadOnlyList<string>> GetStaleSceneIdsAsync(
+        IReadOnlyList<SceneTextPair> scenes);
+
+    /// <summary>
+    /// The entity ids the writer explicitly `@`-mentioned in a scene, taken from the
+    /// mention markers stored in the scene HTML. These are author-confirmed rather
+    /// than inferred, so they are the strongest signal available about who a scene
+    /// involves — worth handing to a model as known-good context.
+    /// </summary>
+    Task<IReadOnlyList<string>> GetConfirmedMentionIdsAsync(string chapterGuid, string sceneId);
 
     /// <summary>Fired when a project is loaded.</summary>
     event Action<ProjectInfo>? ProjectLoaded;

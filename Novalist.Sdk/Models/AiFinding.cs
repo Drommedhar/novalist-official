@@ -109,6 +109,10 @@ public class SceneAnalysisResult
 
 public class EntitySummary
 {
+    /// <summary>The Codex entity's id, so a summary can be tied back to the record
+    /// it came from. Empty when the summary describes something not in the Codex.</summary>
+    public string Id { get; set; } = string.Empty;
+
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string Details { get; set; } = string.Empty;

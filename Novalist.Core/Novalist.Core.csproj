@@ -10,6 +10,17 @@
     <InternalsVisibleTo Include="Novalist.Core.Tests" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Scene-analysis keyword lists, one JSON per writing language. Embedded so
+         adding a language needs no packaging change - drop in a new file. -->
+    <!-- WithCulture=false: MSBuild would otherwise read the ".en"/".de" segment as
+         a culture and push these into satellite assemblies. LogicalName pins the
+         name the loader looks up. -->
+    <EmbeddedResource Include="Resources/Analysis/*.json">
+      <WithCulture>false</WithCulture>
+      <LogicalName>Novalist.Core.Resources.Analysis.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
   </ItemGroup>
   <ItemGroup>

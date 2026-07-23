@@ -30,6 +30,94 @@ public sealed class ContextRpcTests : IDisposable
 
     private EntityService Entities => new(_workspace.Projects);
 
+    [Theory]
+    [InlineData(null, true)]
+    [InlineData("", true)]
+    [InlineData("en", true)]
+    [InlineData("en-GB", true)]
+    [InlineData("de", true)]
+    [InlineData("zh-CN", true)]
+    [InlineData("fr", false)]     // no lexicon ships for French yet
+    public void SupportsKeywordAnalysis_MatchesTheShippedLexicons(string? language, bool expected)
+        => Assert.Equal(expected, ContextRpc.SupportsKeywordAnalysis(language));
+
+    [Fact]
+    public async Task Analyze_GermanProject_UsesTheGermanLexicon()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("K");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        // German prose: English keyword lists would score this at nothing.
+        await Write(chapter, scene,
+            "<p>Angst und Panik erfüllten sie. Der Kampf drohte, und sie wollte fliehen.</p>");
+
+        _workspace.Settings.Settings.AutoReplacementLanguage = "de";
+        var analysis = (await _rpc.AnalyzeAsync(chapter.Guid, scene.Id)).Analysis;
+
+        Assert.True(analysis.KeywordAnalysisSupported);
+        Assert.True(analysis.Intensity < 0, "German negative/conflict words should push intensity down.");
+        Assert.Equal("fearful", analysis.Emotion);
+        Assert.NotEqual(string.Empty, analysis.Conflict);
+        // The lexicon drives the dropdown, so the full key set is still offered.
+        Assert.Contains("triumphant", analysis.EmotionKeys);
+    }
+
+    [Fact]
+    public async Task Analyze_ChineseProject_UsesTheChineseLexicon()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("K");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await Write(chapter, scene, "<p>她感到恐惧和恐慌。战斗迫近，她只想逃跑。</p>");
+
+        _workspace.Settings.Settings.AutoReplacementLanguage = "zh-CN";
+        var analysis = (await _rpc.AnalyzeAsync(chapter.Guid, scene.Id)).Analysis;
+
+        Assert.True(analysis.KeywordAnalysisSupported);
+        Assert.Equal("fearful", analysis.Emotion);
+        Assert.True(analysis.Intensity < 0);
+    }
+
+    [Fact]
+    public async Task Analyze_LanguageWithoutLexicon_SkipsKeywordDerivedValues()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("K");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await Write(chapter, scene, "<p>She felt hope and joy, but the fight and betrayal loomed.</p>");
+
+        var english = (await _rpc.AnalyzeAsync(chapter.Guid, scene.Id)).Analysis;
+        Assert.True(english.KeywordAnalysisSupported);
+        Assert.NotEqual(0, english.Intensity);
+
+        // French ships no lexicon: guessing with English words would be wrong, so
+        // the keyword-derived values are left for the writer.
+        _workspace.Settings.Settings.AutoReplacementLanguage = "fr";
+        var french = (await _rpc.AnalyzeAsync(chapter.Guid, scene.Id)).Analysis;
+
+        Assert.False(french.KeywordAnalysisSupported);
+        Assert.Equal(0, french.Intensity);
+        Assert.Equal(string.Empty, french.Emotion);
+        Assert.Equal(string.Empty, french.Conflict);
+        Assert.Empty(french.Tags);
+        Assert.Empty(french.EmotionKeys);
+        // Language-independent statistics are unaffected.
+        Assert.Equal(english.WordCount, french.WordCount);
+    }
+
+    [Fact]
+    public async Task Analyze_LanguageWithoutLexicon_StillOffersAnExistingOverride()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("K");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await Write(chapter, scene, "<p>Texte.</p>");
+        await _workspace.Projects.SetSceneAnalysisOverridesAsync(
+            chapter.Guid, scene.Id, new SceneAnalysisOverrides { Emotion = "joyful" });
+
+        _workspace.Settings.Settings.AutoReplacementLanguage = "fr";
+        var analysis = (await _rpc.AnalyzeAsync(chapter.Guid, scene.Id)).Analysis;
+
+        Assert.Equal("joyful", analysis.Emotion);
+        Assert.Equal(["joyful"], analysis.EmotionKeys);   // so the dropdown can show it
+    }
+
     private Task Write(ChapterData chapter, SceneData scene, string content)
         => _workspace.Projects.WriteSceneContentAsync(chapter, scene, content);
 

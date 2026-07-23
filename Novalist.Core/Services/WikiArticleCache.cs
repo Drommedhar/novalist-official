@@ -16,9 +16,6 @@ public sealed class WikiArticleCacheEntry
     /// <summary>Hash of the deterministic dossier the summary was generated from;
     /// used to flag the summary stale when the entity's data changes.</summary>
     public string InputHash { get; set; } = string.Empty;
-
-    /// <summary>Optional model identifier that produced the summary.</summary>
-    public string? Model { get; set; }
 }
 
 /// <summary>

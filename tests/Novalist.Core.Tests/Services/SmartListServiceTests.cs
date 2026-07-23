@@ -142,6 +142,33 @@ public class SmartListServiceTests
     }
 
     [Fact]
+    public async Task EvaluateAsync_PlotlineFilter_MatchesSceneMembership()
+    {
+        var (sut, project, _) = Build();
+        var ch = new ChapterData { Guid = "c1" };
+        var matching = new SceneData { Id = "s1", PlotlineIds = ["p1", "p2"] };
+        var other = new SceneData { Id = "s2", PlotlineIds = ["p2"] };
+        project.GetChaptersOrdered().Returns(new List<ChapterData> { ch });
+        project.GetScenesForChapter("c1").Returns(new List<SceneData> { matching, other });
+
+        var result = await sut.EvaluateAsync(new SmartList { PlotlineId = "p1" });
+        Assert.Single(result);
+        Assert.Equal("s1", result[0].Scene.Id);
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_PlotlineFilter_SceneWithoutPlotlines_Skips()
+    {
+        var (sut, project, _) = Build();
+        var ch = new ChapterData { Guid = "c1" };
+        project.GetChaptersOrdered().Returns(new List<ChapterData> { ch });
+        project.GetScenesForChapter("c1").Returns(new List<SceneData> { new() { Id = "s1" } });
+
+        var result = await sut.EvaluateAsync(new SmartList { PlotlineId = "p1" });
+        Assert.Empty(result);
+    }
+
+    [Fact]
     public async Task EvaluateAsync_PovFilter_UsesOverridePov()
     {
         var (sut, project, _) = Build();

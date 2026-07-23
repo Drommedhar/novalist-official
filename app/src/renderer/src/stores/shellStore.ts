@@ -68,6 +68,12 @@ interface ShellState {
   focusMode: boolean
   findReplaceOpen: boolean
   commandPaletteOpen: boolean
+  /** Quick-open overlay: one search box across scenes, Codex, research, events. */
+  quickOpenOpen: boolean
+  /** Quick-capture overlay: jot a note straight into the research inbox. */
+  quickCaptureOpen: boolean
+  /** One-shot request to open a research item, consumed by ResearchView. */
+  pendingResearchId: string | null
   /** In-app user-manual help viewer overlay. */
   helpOpen: boolean
   setMainView(view: MainView): void
@@ -90,6 +96,12 @@ interface ShellState {
   toggleFocusMode(): void
   setFindReplaceOpen(open: boolean): void
   setCommandPaletteOpen(open: boolean): void
+  setQuickOpenOpen(open: boolean): void
+  setQuickCaptureOpen(open: boolean): void
+  /** Switch to Research and ask it to select the given item. */
+  navigateToResearch(itemId: string): void
+  /** ResearchView clears the pending selection once it has consumed it. */
+  clearPendingResearch(): void
   setHelpOpen(open: boolean): void
 }
 
@@ -110,6 +122,9 @@ export const useShellStore = create<ShellState>((set) => ({
   focusMode: false,
   findReplaceOpen: false,
   commandPaletteOpen: false,
+  quickOpenOpen: false,
+  quickCaptureOpen: false,
+  pendingResearchId: null,
   helpOpen: false,
   setMainView: (mainView) => set({ mainView, extView: null }),
   setMobileTab: (mobileTab) => set({ mobileTab }),
@@ -122,6 +137,11 @@ export const useShellStore = create<ShellState>((set) => ({
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   setFindReplaceOpen: (findReplaceOpen) => set({ findReplaceOpen }),
   setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
+  setQuickOpenOpen: (quickOpenOpen) => set({ quickOpenOpen }),
+  setQuickCaptureOpen: (quickCaptureOpen) => set({ quickCaptureOpen }),
+  navigateToResearch: (itemId) =>
+    set({ mainView: 'research', extView: null, pendingResearchId: itemId }),
+  clearPendingResearch: () => set({ pendingResearchId: null }),
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   toggleBinder: () => set((s) => ({ binderVisible: !s.binderVisible })),
   setBinderWidth: (px) => set({ binderWidth: Math.max(180, Math.min(500, px)) }),

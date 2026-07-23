@@ -8,10 +8,17 @@ import { type WikiAppearance } from '../../stores/wikiStore'
  * scene in the editor. Doubles as the character/place timeline. */
 export function WikiAppearances({
   appearances,
-  id
+  id,
+  bookName,
+  multipleBooks
 }: {
   appearances: WikiAppearance[]
   id?: string
+  /** The book these appearances were gathered from. */
+  bookName: string
+  /** True when the project has more than one book, in which case the heading
+   *  says which one this list covers — appearances are per-book. */
+  multipleBooks: boolean
 }): React.JSX.Element | null {
   const { t } = useTranslation()
   const openScene = useProjectStore((s) => s.openScene)
@@ -26,7 +33,11 @@ export function WikiAppearances({
 
   return (
     <section className="wiki-section" id={id}>
-      <h2>{t('wiki.appearances')}</h2>
+      <h2>
+        {multipleBooks && bookName
+          ? t('wiki.appearancesInBook', { book: bookName })
+          : t('wiki.appearances')}
+      </h2>
       <ol className="wiki-appearances">
         {appearances.map((app) => (
           <li key={`${app.chapterGuid}-${app.sceneId}`} className="wiki-appearance">

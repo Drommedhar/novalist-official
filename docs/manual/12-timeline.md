@@ -17,7 +17,7 @@ Open it from the **Plan** group in the activity bar (**Timeline**), from the **G
 - **Scenes** — every scene that has a date (a scene without its own date inherits its chapter's date). Shown as `Chapter: Scene`.
 - **Manual events** — anything you add directly to the timeline.
 
-Each entry shows a marker dot, its title, a **source pill** naming where it came from (Act, Chapter, Scene, or Events), its date, and (for scenes and manual events) a description or synopsis. Events that reference characters or locations also show them as **chips** under the description.
+Each entry shows a marker dot, its title, a **source pill** naming where it came from (Act, Chapter, Scene, or Events), its date, and (for scenes and manual events) a description or synopsis. Events that reference characters or locations also show them as **chips** under the description. A chip whose name matches exactly one Codex entity is a link — click it to open that entity's article in the [Wiki](30-wiki.md). Names that match more than one entity, or none, stay plain text.
 
 Entries are grouped under headers according to the zoom level (for example `2024`, `Mar 2024`, or `Mar 15, 2024`). Undated entries collect in a `???` group at the end — handy as an inbox of beats still waiting for a date.
 

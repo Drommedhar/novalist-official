@@ -1,4 +1,5 @@
 using System.Globalization;
+using Novalist.Backend.Extensions;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using StreamJsonRpc;
@@ -35,7 +36,8 @@ public sealed class LibraryRpc
 
     [JsonRpcMethod("research/save")]
     public async Task<ResearchItemDto[]> SaveResearchAsync(
-        string? id, string title, string type, string content, string[] tags)
+        string? id, string title, string type, string content, string[] tags,
+        string[]? entityRefs = null)
     {
         var existing = id == null ? null : _research.GetAll().FirstOrDefault(r => r.Id == id);
         var item = existing ?? new ResearchItem { Order = _research.GetAll().Count };
@@ -43,9 +45,59 @@ public sealed class LibraryRpc
         item.Type = Enum.Parse<ResearchItemType>(type);
         item.Content = content;
         item.Tags = tags.Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
+        if (entityRefs != null)
+            item.EntityRefs = entityRefs.Where(r => !string.IsNullOrWhiteSpace(r)).Distinct().ToList();
         item.UpdatedAt = DateTime.UtcNow;
         await _research.SaveAsync(item);
         return ListResearch();
+    }
+
+    /// <summary>
+    /// Files a jotted-down thought straight into the project without asking where
+    /// it belongs. The note lands in the research library carrying the reserved
+    /// <see cref="ResearchItem.InboxTag"/>, which the Research view surfaces as an
+    /// "Inbox" so it can be filed properly later. The title is the first line
+    /// (trimmed to a sensible length); the body is the whole text.
+    /// </summary>
+    [JsonRpcMethod("research/quickCapture")]
+    public async Task<ResearchItemDto[]> QuickCaptureAsync(string text)
+    {
+        var body = (text ?? string.Empty).Trim();
+        if (body.Length == 0)
+            throw new InvalidOperationException("Nothing to capture.");
+
+        await _research.SaveAsync(new ResearchItem
+        {
+            Title = DeriveTitle(body),
+            Type = ResearchItemType.Note,
+            Content = body,
+            Tags = [ResearchItem.InboxTag],
+            Order = _research.GetAll().Count
+        });
+        Log.Info($"research/quickCapture len={body.Length}.");
+        return ListResearch();
+    }
+
+    /// <summary>First line of the capture, collapsed and clipped to a title-sized
+    /// string. Never empty — callers guarantee non-blank input.</summary>
+    internal static string DeriveTitle(string body)
+    {
+        var firstLine = body
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault(line => line.Trim().Length > 0)
+            ?.Trim() ?? body;
+        return firstLine.Length <= 60 ? firstLine : firstLine[..60].TrimEnd() + "...";
+    }
+
+    /// <summary>Looks up the page title behind a URL so a link item can carry a
+    /// readable name. Returns null when offline or the title cannot be read; the
+    /// caller then keeps the URL as the title.</summary>
+    [JsonRpcMethod("research/fetchLinkTitle")]
+    public async Task<string?> FetchLinkTitleAsync(string url, CancellationToken cancellationToken)
+    {
+        var title = await new LinkTitleService().FetchTitleAsync(url, cancellationToken);
+        Log.Info($"research/fetchLinkTitle resolved={title != null}.");
+        return title;
     }
 
     [JsonRpcMethod("research/import")]
@@ -83,7 +135,8 @@ public sealed class LibraryRpc
             ? ReadMetadata(_research.GetAbsolutePath(r.Content))
             : (string.Empty, string.Empty);
         return new ResearchItemDto(
-            r.Id, r.Title, r.Type.ToString(), r.Content, r.Tags.ToArray(), size, modified);
+            r.Id, r.Title, r.Type.ToString(), r.Content, r.Tags.ToArray(), size, modified,
+            r.EntityRefs.ToArray());
     }
 
     // Reads on-disk file metadata for imported research files. A missing target
@@ -112,6 +165,6 @@ public sealed class LibraryRpc
 
 public sealed record ResearchItemDto(
     string Id, string Title, string Type, string Content, IReadOnlyList<string> Tags,
-    string FileSize, string Modified);
+    string FileSize, string Modified, IReadOnlyList<string> EntityRefs);
 
 public sealed record GalleryImageDto(string Path, string Url);

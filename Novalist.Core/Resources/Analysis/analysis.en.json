@@ -1,0 +1,35 @@
+{
+  "_comment": "Scene-analysis lexicon. One file per language; the file name's language tag is what makes that language supported. Emotion entries drive both the detection words and the key list the UI offers (keys are stable identifiers, localized in the renderer under emotion.*) - keep the key set and its order identical across languages.",
+  "wordBoundaries": true,
+  "firstPerson": ["i", "me", "my", "mine", "myself", "we", "us", "our", "ours", "ourselves"],
+  "positive": [
+    "hope", "joy", "warm", "smile", "relief", "victory", "triumph", "laugh",
+    "laughing", "love", "gentle", "bright", "calm", "peace", "safe"
+  ],
+  "negative": [
+    "fear", "panic", "anger", "angry", "blood", "hurt", "threat", "danger",
+    "despair", "sad", "grief", "dark", "cold", "cry", "scream"
+  ],
+  "conflict": [
+    "argue", "battle", "chase", "clash", "conflict", "demand", "fight", "flee",
+    "force", "hide", "refuse", "secret", "struggle", "threat", "warn"
+  ],
+  "emotions": [
+    { "key": "neutral", "words": ["steady", "plain", "quiet", "routine", "settled"] },
+    { "key": "tense", "words": ["tense", "edge", "pressure", "alarm", "strain", "uneasy"] },
+    { "key": "joyful", "words": ["joy", "glad", "celebrate", "delight", "smile", "laugh"] },
+    { "key": "melancholic", "words": ["melancholy", "lonely", "empty", "wistful", "faded"] },
+    { "key": "angry", "words": ["anger", "furious", "rage", "snap", "resent", "spite"] },
+    { "key": "fearful", "words": ["fear", "panic", "terror", "dread", "afraid", "shiver"] },
+    { "key": "romantic", "words": ["kiss", "touch", "beloved", "heart", "desire", "tender"] },
+    { "key": "mysterious", "words": ["shadow", "mystery", "secret", "strange", "unknown", "whisper"] },
+    { "key": "humorous", "words": ["joke", "laugh", "grin", "tease", "comic", "amused"] },
+    { "key": "hopeful", "words": ["hope", "promise", "rise", "chance", "believe", "future"] },
+    { "key": "desperate", "words": ["desperate", "last", "plead", "beg", "hopeless", "breaking"] },
+    { "key": "peaceful", "words": ["peace", "calm", "still", "soft", "rest", "gentle"] },
+    { "key": "chaotic", "words": ["chaos", "riot", "wild", "fracture", "spiral", "rattle"] },
+    { "key": "sorrowful", "words": ["sorrow", "grief", "weep", "mourning", "ache", "loss"] },
+    { "key": "triumphant", "words": ["triumph", "victory", "won", "conquer", "defiant", "surge"] },
+    { "key": "somber", "words": ["somber", "grim", "mournful", "bleak", "subdued", "solemn", "heavy"] }
+  ]
+}

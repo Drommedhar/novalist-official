@@ -6,6 +6,7 @@ import { useShellStore } from '../stores/shellStore'
 import { useWikiStore } from '../stores/wikiStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useEntityPeek, type PeekScope } from '../views/editor/PeekCard'
+import { EntityProposalsDialog, type EntityProposal } from './EntityProposalsDialog'
 
 /** Callbacks that let an entity card raise/dismiss the shared focus-peek overlay,
  * threaded from the panel down into each card. */
@@ -47,6 +48,9 @@ interface SceneAnalysis {
   dialoguePercent: number
   avgSentenceLength: number
   wordCount: number
+  /** False when the writing language is not English: emotion/intensity/conflict/
+   *  tags are not auto-detected there, only whatever you set yourself. */
+  keywordAnalysisSupported: boolean
 }
 
 interface SceneContext {
@@ -205,6 +209,11 @@ export function ContextPanel({
   const [conflictDraft, setConflictDraft] = useState('')
   const [tagsDraft, setTagsDraft] = useState('')
   const [intensityDraft, setIntensityDraft] = useState('')
+  // AI entity extraction (only offered when an extension provides an extractor).
+  const [extractorAvailable, setExtractorAvailable] = useState(false)
+  const [scanning, setScanning] = useState(false)
+  const [scanMessage, setScanMessage] = useState<string | null>(null)
+  const [proposals, setProposals] = useState<EntityProposal[] | null>(null)
   const chapters = useProjectStore((s) => s.chapters)
 
   // The open chapter/scene, so a character peek raised from the sidebar resolves
@@ -241,11 +250,51 @@ export function ContextPanel({
       .catch(() => setCtx(null))
   }
 
+  /** Asks the installed AI extension which people/places/things in this scene are
+   *  missing from the Codex. Proposals only — creation happens on accept. */
+  const scanScene = async (): Promise<void> => {
+    setScanning(true)
+    setScanMessage(null)
+    try {
+      const result = await rpc.request<{
+        proposals: EntityProposal[]
+        error: string | null
+      }>('entities/extractFromScene', [chapterGuid, sceneId])
+      if (result.error) setScanMessage(result.error)
+      else if (result.proposals.length === 0) setScanMessage(t('capture.scanNothingNew'))
+      else setProposals(result.proposals)
+    } catch (err) {
+      setScanMessage(err instanceof Error ? err.message : String(err))
+    } finally {
+      setScanning(false)
+    }
+  }
+
+  /** Creates the accepted proposals, then re-runs the scene analysis so the new
+   *  entries show up in the panel immediately. */
+  const createAccepted = async (accepted: EntityProposal[]): Promise<void> => {
+    setProposals(null)
+    for (const proposal of accepted)
+      await rpc.request('entities/create', [proposal.typeKey, proposal.name, null])
+    setScanMessage(t('capture.scanCreated', { count: accepted.length }))
+    analyze()
+  }
+
   useEffect(() => {
     setCtx(null)
+    setScanMessage(null)
     analyze()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterGuid, sceneId])
+
+  // Whether any extension offers entity extraction; without one the scan button
+  // never appears.
+  useEffect(() => {
+    void rpc
+      .request<boolean>('entities/extractorAvailable')
+      .then(setExtractorAvailable)
+      .catch(() => setExtractorAvailable(false))
+  }, [])
 
   // Re-sync the editable drafts whenever the analysis (or language) changes so a
   // reset/override or a scene switch is reflected in the inputs.
@@ -307,6 +356,14 @@ export function ContextPanel({
 
   return (
     <div className="ctx-panel">
+      {extractorAvailable && (
+        <div className="ctx-extract">
+          <button className="ctx-extract-btn" disabled={scanning} onClick={() => void scanScene()}>
+            {scanning ? t('capture.scanning') : t('capture.scanScene')}
+          </button>
+          {scanMessage && <span className="ctx-extract-note">{scanMessage}</span>}
+        </div>
+      )}
       <EntitySection
         titleKey="context.characters"
         sectionKey="characters"
@@ -386,6 +443,9 @@ export function ContextPanel({
         collapsed={!!collapsed.analysis}
         onToggle={toggleSection}
       >
+        {!a.keywordAnalysisSupported && (
+          <div className="ctx-analysis-note">{t('context.analysisEnglishOnly')}</div>
+        )}
         <div className="ctx-analysis-row">
           <span className="ctx-analysis-key">{t('context.pov')}</span>
           <div className="ctx-analysis-edit">
@@ -518,6 +578,13 @@ export function ContextPanel({
       </CollapsibleSection>
 
       {entityPeek.overlay}
+      {proposals && (
+        <EntityProposalsDialog
+          proposals={proposals}
+          onCreate={(accepted) => void createAccepted(accepted)}
+          onCancel={() => setProposals(null)}
+        />
+      )}
     </div>
   )
 }

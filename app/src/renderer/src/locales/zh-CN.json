@@ -73,7 +73,17 @@
     "typeLink": "链接",
     "typeFile": "文件",
     "typeImage": "图片",
-    "typePdf": "PDF"
+    "typePdf": "PDF",
+    "inbox": "收件箱",
+    "fileThis": "整理这条笔记：",
+    "fileAsNewEntity": "创建典藏条目",
+    "fileIntoEntity": "添加到现有条目",
+    "fileAsNote": "保留为研究笔记",
+    "linkedEntities": "关联条目",
+    "linkedEntitiesHint": "尚未关联任何条目",
+    "linkEntity": "关联条目...",
+    "fetchTitle": "获取标题",
+    "fetchingTitle": "获取中..."
   },
   "plotGrid": {
     "title": "剧情网格",
@@ -87,7 +97,9 @@
     "renamePrompt": "新名称",
     "confirmDeleteTitle": "删除剧情线？",
     "confirmDelete": "确定要删除“{0}”吗？其关联的场景分配也将被移除。",
-    "emptyHint": "暂无情节线。添加一条以跟踪故事线中的场景。"
+    "emptyHint": "暂无情节线。添加一条以跟踪故事线中的场景。",
+    "cellNoteTitle": "{{scene}} 的备注",
+    "cellNotePlaceholder": "本场景对该线索的作用"
   },
   "comments": {
     "noSelection": "请先在场景中选择一些文本。",
@@ -107,7 +119,7 @@
   },
   "relationships": {
     "title": "关系",
-    "hint": "搜索、筛选，拖动平移；滚动缩放。",
+    "hint": "点击角色可打开其条目；拖动平移，滚动缩放。关系在典藏中编辑。",
     "search": "搜索实体...",
     "filterGroup": "所有分组",
     "filterRole": "所有身份",
@@ -211,7 +223,8 @@
       "弟妹"
     ],
     "emptyHint": "暂无关联角色。在百科中添加人物关系以生成关系图。",
-    "familyPrefix": "{{name}}家族"
+    "familyPrefix": "{{name}}家族",
+    "openArticle": "打开 {{name}} 的条目"
   },
   "calendar": {
     "title": "日历",
@@ -244,7 +257,9 @@
     "confirmDeleteTitle": "删除智能列表？",
     "confirmDelete": "确定要删除“{0}”吗？此操作无法撤销。",
     "noMatches": "没有匹配的场景。",
-    "anyStatus": "任意状态"
+    "anyStatus": "任意状态",
+    "plotline": "情节线",
+    "anyPlotline": "任意情节线"
   },
   "findReplace": {
     "title": "查找与替换",
@@ -769,7 +784,8 @@
     "wordsDisplay": "{0:N0} 字",
     "dialogueDisplay": "{0}% 对话",
     "avgSentenceDisplay": "平均句长 {0}",
-    "openSceneHint": "打开场景以查看章节和场景的上下文。"
+    "openSceneHint": "打开场景以查看章节和场景的上下文。",
+    "analysisEnglishOnly": "尚不支持自动检测该写作语言的情绪、强度、冲突与标签。请在下方手动设置。"
   },
   "focusPeek": {
     "openEntity": "打开实体",
@@ -780,8 +796,6 @@
     "appearance": "外貌",
     "mapPins": "在地图上",
     "sections": "内容版块",
-    "aiFocus": "AI 焦点",
-    "aiStub": "未缓存任何 AI 发现。请先运行章节分析。",
     "eyes": "眼睛",
     "hair": "头发",
     "hairLength": "发长",
@@ -797,7 +811,8 @@
     "inPill": "位于 {0}",
     "sublocationsPill": "{0} 个子地点",
     "overrideScope": "针对 {0} 的覆盖",
-    "overrideScopeHint": "此卡片显示针对您正在编辑的场景覆盖的值。"
+    "overrideScopeHint": "此卡片显示针对您正在编辑的场景覆盖的值。",
+    "aiFocus": "AI 关注点"
   },
   "emotion": {
     "neutral": "中性",
@@ -1243,7 +1258,12 @@
     "contextMenu.selectAll": "全选",
     "contextMenu.addComment": "添加批注",
     "contextMenu.addFootnote": "添加脚注",
-    "contextMenu.addToDictionary": "添加到字典"
+    "contextMenu.addToDictionary": "添加到字典",
+    "mentionNoMatches": "无匹配项",
+    "contextMenu": {
+      "createEntity": "从所选内容创建条目",
+      "appendToEntity": "将所选内容添加到条目"
+    }
   },
   "section": {
     "newSection": "新建版块"
@@ -1507,7 +1527,8 @@
     "sourceAct": "幕",
     "sourceChapter": "章节",
     "sourceScene": "场景",
-    "sourceManual": "事件"
+    "sourceManual": "事件",
+    "openEntity": "打开 {{name}}"
   },
   "export": {
     "header": "导出小说",
@@ -1804,6 +1825,47 @@
     "statLast": "最后",
     "scopeBook": "书籍",
     "scopeWorldBible": "世界圣经",
-    "editInCodex": "在百科中编辑"
+    "editInCodex": "在百科中编辑",
+    "filterPlaceholder": "筛选条目",
+    "noMatches": "没有匹配的条目",
+    "contains": "包含",
+    "research": "研究",
+    "events": "事件",
+    "appearancesInBook": "在《{{book}}》中的出场",
+    "noAppearances": "尚未在任何场景中出现。出场记录来自 Novalist 在正文中识别到的实体名称。"
+  },
+  "capture": {
+    "createEntityTitle": "创建“{{name}}”",
+    "createEntityHint": "这应该是哪一类条目？",
+    "mentionCreateRow": "创建“{name}”",
+    "appendTitle": "添加到典藏条目",
+    "appendFilterPlaceholder": "查找条目",
+    "sectionTitle": "章节",
+    "defaultSectionTitle": "笔记",
+    "appendConfirm": "添加",
+    "quickTitle": "快速记录",
+    "quickPlaceholder": "先记下来，稍后整理",
+    "quickHint": "保存到研究收件箱。按 Ctrl+Enter 保存。",
+    "quickSave": "记录",
+    "scanScene": "在本场景中查找新条目",
+    "scanning": "扫描中...",
+    "scanNothingNew": "未发现新内容",
+    "scanCreated": "已创建 {{count}} 项",
+    "proposalsTitle": "建议的典藏条目",
+    "proposalsHint": "勾选要创建的条目。确认前不会添加任何内容。",
+    "proposalsCreate": "创建 {{count}} 项"
+  },
+  "quickOpen": {
+    "placeholder": "搜索全部",
+    "hint": "请输入至少两个字符",
+    "searching": "搜索中...",
+    "noResults": "未找到任何内容",
+    "kindScene": "场景",
+    "kindSceneText": "场景正文中",
+    "kindSceneNote": "梗概与笔记",
+    "kindAnnotation": "批注与脚注",
+    "kindEntity": "典藏",
+    "kindResearch": "研究",
+    "kindTimeline": "时间线事件"
   }
 }

@@ -50,6 +50,10 @@ Right-click inside the text for:
 - **Add comment** — on a selection: attaches a comment to the selected text. Commented passages are marked in the text; click the marker to read or edit the comment.
 - **Add footnote** — inserts a footnote at the caret. Footnotes are numbered sequentially within the scene and renumber automatically when one is deleted.
 - **Add to Dictionary** — on a word flagged by the spell check: whitelists it.
+- **Create entity from selection** — on a selection: makes a new [Codex](06-codex.md) entry named after the selected text (you pick the kind) and turns the selection into a mention of it. The same flow as the `@` picker's Create row, described below.
+- **Add selection to entity** — on a selection: copies the passage into one of an existing entity's sections. Pick the entity from a searchable list, name the section (it defaults to **Notes** and is created if it does not exist yet), and confirm. Your prose is left exactly as it was — the passage is copied, not moved.
+
+The last two exist so that worldbuilding you invent mid-sentence can reach the Codex without breaking your writing flow. A description of a city you just wrote can become that location's "Appearance" section in two clicks.
 
 ## Split editor
 
@@ -62,6 +66,16 @@ Common uses: referencing an earlier scene while writing a later one, or editing 
 Novalist recognises the names of your [Codex](06-codex.md) entities — characters, locations, items, and lore — as you write, matching both the primary name and any aliases.
 
 Type `@` to open the **mention autocomplete**: a picker of matching entities (by name or alias) appears; choose one to insert its name. This is the quickest way to keep names spelled consistently across the manuscript.
+
+### Creating an entity from the name you just typed
+
+The picker never dead-ends on a name that does not exist yet. As soon as you have typed something after the `@`, the last row of the picker is **Create "<name>"** — pick it (click, or select it with the arrow keys and press Enter) and Novalist asks which kind of entry to make: Character, Location, Item, Lore, or any of your custom types. Choose one and:
+
+- the entity is created in the [Codex](06-codex.md) with that name,
+- the text you typed becomes a real mention linked to it, and
+- the name is immediately recognised everywhere else — hover cards, the Inspector, the [Wiki](30-wiki.md) Appearances timeline, and future `@` picks.
+
+You never leave the page or lose your place. If you cancel the type chooser, the text stays exactly as you typed it, as ordinary prose. Fill in the details later in the Codex — the point is to capture the name at the moment you invent it.
 
 ## Entity hover cards
 

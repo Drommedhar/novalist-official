@@ -47,8 +47,7 @@ public class WikiArticleCacheTests : IDisposable
         {
             Summary = "Aldric is a knight.",
             GeneratedAt = "2026-07-22T10:00:00Z",
-            InputHash = "HASH",
-            Model = "test-model"
+            InputHash = "HASH"
         };
 
         await _cache.WriteAsync("hero", entry);
@@ -57,7 +56,7 @@ public class WikiArticleCacheTests : IDisposable
         Assert.NotNull(read);
         Assert.Equal("Aldric is a knight.", read!.Summary);
         Assert.Equal("HASH", read.InputHash);
-        Assert.Equal("test-model", read.Model);
+        Assert.Equal("2026-07-22T10:00:00Z", read.GeneratedAt);
     }
 
     [Fact]

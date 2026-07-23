@@ -34,7 +34,7 @@ public sealed class TimelineRpcTests : IDisposable
         await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Inherits");
         await _rpc.SaveEventAsync(null, "The Comet", "1043-03-01", "Omen", "plot", chapter.Guid);
 
-        var dto = _rpc.Get();
+        var dto = await _rpc.Get();
 
         Assert.Equal("vertical", dto.ViewMode);
         Assert.Equal("month", dto.ZoomLevel);
@@ -64,10 +64,50 @@ public sealed class TimelineRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Get_ResolvesManualEventEntityChipsToArticles()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData
+        {
+            Id = "hero", Name = "Aldric", Surname = "Vane"
+        });
+        await entities.SaveLocationAsync(new Novalist.Core.Models.LocationData { Id = "port", Name = "Harbour" });
+        // Two characters share the first name, so the bare name stays ambiguous.
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData { Id = "t1", Name = "Robin" });
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData { Id = "t2", Name = "Robin" });
+
+        var timeline = _workspace.Projects.ProjectSettings.Timeline;
+        timeline.ManualEvents.Add(new Novalist.Core.Models.TimelineManualEvent
+        {
+            Id = "e1", Title = "Landfall", Date = "1043-03-01",
+            Characters = { "Aldric Vane", "Robin", "Ghost" },
+            Locations = { "Harbour" }
+        });
+        await _workspace.Projects.SaveProjectSettingsAsync();
+
+        var dto = await _rpc.Get();
+
+        Assert.Contains(dto.EntityLinks, l => l.Name == "Aldric Vane" && l.EntityId == "hero" && l.TypeKey == "character");
+        Assert.Contains(dto.EntityLinks, l => l.Name == "Harbour" && l.EntityId == "port" && l.TypeKey == "location");
+        Assert.DoesNotContain(dto.EntityLinks, l => l.Name == "Robin");  // ambiguous
+        Assert.DoesNotContain(dto.EntityLinks, l => l.Name == "Ghost");  // unknown
+    }
+
+    [Fact]
+    public async Task Get_NoManualEventNames_YieldsNoEntityLinks()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Kapitel", "1043-03-01");
+        await _rpc.SaveEventAsync(null, "The Comet", "1043-03-01", "Omen", "plot", chapter.Guid);
+
+        var dto = await _rpc.Get();
+        Assert.Empty(dto.EntityLinks);
+    }
+
+    [Fact]
     public async Task SetView_PersistsModeAndZoom()
     {
         await _rpc.SetViewAsync("horizontal", "year");
-        var dto = _rpc.Get();
+        var dto = await _rpc.Get();
         Assert.Equal("horizontal", dto.ViewMode);
         Assert.Equal("year", dto.ZoomLevel);
         Assert.Empty(dto.Groups);

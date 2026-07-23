@@ -4,6 +4,7 @@ import { ArrowLeftRight, ChevronLeft, ChevronRight, FileDown, Plus, ZoomIn } fro
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
+import { useWikiStore } from '../../stores/wikiStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { TimelineEventEditor, type TimelineEventDraft } from './TimelineEventEditor'
 import './timeline.css'
@@ -23,10 +24,17 @@ export interface TimelineEventDto {
   isManual: boolean
 }
 
+interface TimelineEntityLink {
+  name: string
+  entityId: string
+  typeKey: string
+}
+
 interface TimelineDto {
   viewMode: string
   zoomLevel: string
   groups: { key: string; label: string; events: TimelineEventDto[] }[]
+  entityLinks: TimelineEntityLink[]
 }
 
 const ZOOMS = ['year', 'month', 'day']
@@ -108,6 +116,37 @@ export function TimelineView(): React.JSX.Element {
   const allEvents = data.groups.flatMap((g) => g.events)
   const availableCharacters = [...new Set(allEvents.flatMap((e) => e.characters))].sort()
   const availableLocations = [...new Set(allEvents.flatMap((e) => e.locations))].sort()
+
+  // Names the backend resolved to exactly one entity become links to its article;
+  // ambiguous or unknown names stay plain chips.
+  const entityLinks = new Map(data.entityLinks.map((l) => [l.name.toLowerCase(), l]))
+  const openEntity = (link: TimelineEntityLink): void => {
+    useShellStore.getState().setMainView('wiki')
+    void useWikiStore.getState().openArticle(link.typeKey, link.entityId)
+  }
+  const renderChip = (name: string, key: string): React.JSX.Element => {
+    const link = entityLinks.get(name.trim().toLowerCase())
+    if (!link)
+      return (
+        <span key={key} className="entity-chip">
+          {name}
+        </span>
+      )
+    return (
+      <button
+        key={key}
+        type="button"
+        className="entity-chip entity-chip-link"
+        title={t('timeline.openEntity', { name })}
+        onClick={(e) => {
+          e.stopPropagation()
+          openEntity(link)
+        }}
+      >
+        {name}
+      </button>
+    )
+  }
   const matchesFilters = (event: TimelineEventDto): boolean =>
     (sourceFilter === 'all' || event.source === sourceFilter) &&
     (!characterFilter || event.characters.includes(characterFilter)) &&
@@ -330,16 +369,8 @@ export function TimelineView(): React.JSX.Element {
                   )}
                   {(event.characters.length > 0 || event.locations.length > 0) && (
                     <div className="timeline-event-chips">
-                      {event.characters.map((name) => (
-                        <span key={`c-${name}`} className="entity-chip">
-                          {name}
-                        </span>
-                      ))}
-                      {event.locations.map((name) => (
-                        <span key={`l-${name}`} className="entity-chip">
-                          {name}
-                        </span>
-                      ))}
+                      {event.characters.map((name) => renderChip(name, `c-${name}`))}
+                      {event.locations.map((name) => renderChip(name, `l-${name}`))}
                     </div>
                   )}
                   {event.isManual && event.chapterGuid && (

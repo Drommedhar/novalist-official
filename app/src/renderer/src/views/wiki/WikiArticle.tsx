@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Markdown from 'react-markdown'
+import Markdown, { defaultUrlTransform } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { SquarePen, MapPin, X, Sparkles, Loader2 } from 'lucide-react'
 import { useWikiStore, type WikiArticle as Article, type WikiLead } from '../../stores/wikiStore'
@@ -39,9 +39,14 @@ function descriptor(lead: WikiLead, t: (key: string, opts?: Record<string, strin
   }
 }
 
+// Preserve the custom `nventity:` cross-link scheme (react-markdown's default
+// transform would strip it); everything else goes through the safe default.
+function proseUrlTransform(url: string): string {
+  return url.startsWith('nventity:') ? url : defaultUrlTransform(url)
+}
+
 export function WikiArticle({ article }: { article: Article }): React.JSX.Element {
   const { t } = useTranslation()
-  const index = useWikiStore((s) => s.index)
   const openArticle = useWikiStore((s) => s.openArticle)
   const navigateToMapPin = useShellStore((s) => s.navigateToMapPin)
   const regenerate = useWikiStore((s) => s.regenerate)
@@ -49,15 +54,29 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
   const regenerateError = useWikiStore((s) => s.regenerateError)
   const [lightbox, setLightbox] = useState<string | null>(null)
 
-  // id -> typeKey, so a click on a persisted `nv-entity-mention` span (which
-  // stores only the id) can open the right article.
-  const idToType = useMemo(() => {
-    const map = new Map<string, string>()
-    for (const scope of index ?? [])
-      for (const group of scope.types)
-        for (const entry of group.entries) map.set(entry.id, entry.typeKey)
-    return map
-  }, [index])
+  // Renders section-prose links: an `nventity:{type}/{id}` href (produced by the
+  // backend WikiProseLinker) becomes a click-through to that article; any other
+  // href stays an ordinary external link.
+  const proseComponents = {
+    a: ({ href, children }: { href?: string; children?: React.ReactNode }): React.JSX.Element => {
+      if (href && href.startsWith('nventity:')) {
+        const rest = href.slice('nventity:'.length)
+        const slash = rest.indexOf('/')
+        const type = rest.slice(0, slash)
+        const entityId = rest.slice(slash + 1)
+        return (
+          <button type="button" className="wiki-link wiki-prose-link" onClick={() => void openArticle(type, entityId)}>
+            {children}
+          </button>
+        )
+      }
+      return (
+        <a href={href} target="_blank" rel="noreferrer">
+          {children}
+        </a>
+      )
+    }
+  }
 
   // Close the image lightbox on Escape.
   useEffect(() => {
@@ -68,17 +87,6 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [lightbox])
-
-  const onProseClick = (e: React.MouseEvent<HTMLDivElement>): void => {
-    const el = (e.target as HTMLElement).closest('[data-entity-id]')
-    if (!el) return
-    const id = el.getAttribute('data-entity-id')
-    const type = id ? idToType.get(id) : undefined
-    if (id && type) {
-      e.preventDefault()
-      void openArticle(type, id)
-    }
-  }
 
   const editInCodex = async (): Promise<void> => {
     await useCodexStore.getState().setType(article.typeKey)
@@ -95,9 +103,12 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
   article.sections.forEach((s, i) => toc.push({ id: `sec-${i}`, label: s.title || t('wiki.untitledSection') }))
   if (article.relationships.length > 0) toc.push({ id: 'relationships', label: t('wiki.relationships') })
   if (article.referencedBy.length > 0) toc.push({ id: 'referenced-by', label: t('wiki.referencedBy') })
+  if (article.contains.length > 0) toc.push({ id: 'contains', label: t('wiki.contains') })
   if (article.appearsWith.length > 0) toc.push({ id: 'appears-with', label: t('wiki.appearsWith') })
   if (article.plotlines.length > 0) toc.push({ id: 'plotlines', label: t('wiki.plotlines') })
   if (article.mapPins.length > 0) toc.push({ id: 'maps', label: t('wiki.maps') })
+  if (article.research.length > 0) toc.push({ id: 'research', label: t('wiki.research') })
+  if (article.events.length > 0) toc.push({ id: 'events', label: t('wiki.events') })
   if (article.overrides.length > 0) toc.push({ id: 'overrides', label: t('wiki.changesOverTime') })
   if (article.appearances.length > 0) toc.push({ id: 'appearances', label: t('wiki.appearances') })
 
@@ -123,7 +134,7 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
       </header>
 
       <div className="wiki-article-body">
-        <div className="wiki-article-content" onClick={onProseClick}>
+        <div className="wiki-article-content">
           {/* Lead: bold name, alternate names, one-line descriptor. */}
           <p className="wiki-lead-line">
             <strong>{article.title}</strong>
@@ -216,9 +227,16 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
           {article.sections.map((section, i) => (
             <section className="wiki-section" id={`sec-${i}`} key={`${section.title}-${i}`}>
               {section.title && <h2>{section.title}</h2>}
-              {/* Section content is authored Markdown in the Codex; rendered read-only. */}
+              {/* Section content is authored Markdown in the Codex; rendered read-only.
+                  Entity references are pre-linked by the backend as `nventity:` links. */}
               <div className="wiki-prose">
-                <Markdown remarkPlugins={[remarkGfm]}>{section.content}</Markdown>
+                <Markdown
+                  remarkPlugins={[remarkGfm]}
+                  urlTransform={proseUrlTransform}
+                  components={proseComponents}
+                >
+                  {section.content}
+                </Markdown>
               </div>
             </section>
           ))}
@@ -246,6 +264,24 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
                   </li>
                 ))}
               </ul>
+            </section>
+          )}
+
+          {article.contains.length > 0 && (
+            <section className="wiki-section" id="contains">
+              <h2>{t('wiki.contains')}</h2>
+              <div className="wiki-chips">
+                {article.contains.map((child) => (
+                  <button
+                    key={child.entityId ?? child.name}
+                    type="button"
+                    className="wiki-chip"
+                    onClick={() => void openArticle(child.typeKey!, child.entityId!)}
+                  >
+                    {child.name}
+                  </button>
+                ))}
+              </div>
             </section>
           )}
 
@@ -296,6 +332,51 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
                       <MapPin size={13} strokeWidth={1.75} />
                       {pin.pinLabel || pin.mapName}
                       <span className="wiki-mappin-map">{pin.mapName}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {article.research.length > 0 && (
+            <section className="wiki-section" id="research">
+              <h2>{t('wiki.research')}</h2>
+              <ul className="wiki-references">
+                {article.research.map((item) => (
+                  <li key={item.id}>
+                    <span className="wiki-rel-role">
+                      {t(`research.type${item.type}`, { defaultValue: item.type })}
+                    </span>
+                    <button
+                      type="button"
+                      className="wiki-link"
+                      onClick={() => useShellStore.getState().navigateToResearch(item.id)}
+                    >
+                      {item.title}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {article.events.length > 0 && (
+            <section className="wiki-section" id="events">
+              <h2>{t('wiki.events')}</h2>
+              <ul className="wiki-events">
+                {article.events.map((event) => (
+                  <li key={event.id}>
+                    <button
+                      type="button"
+                      className="wiki-event"
+                      onClick={() => useShellStore.getState().setMainView('timeline')}
+                    >
+                      {event.date && <span className="wiki-event-date">{event.date}</span>}
+                      <span className="wiki-event-title">{event.title}</span>
+                      {event.description && (
+                        <span className="wiki-event-desc">{event.description}</span>
+                      )}
                     </button>
                   </li>
                 ))}
@@ -385,7 +466,18 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
             </section>
           )}
 
-          <WikiAppearances appearances={article.appearances} id="appearances" />
+          <WikiAppearances
+            appearances={article.appearances}
+            id="appearances"
+            bookName={article.bookName}
+            multipleBooks={article.multipleBooks}
+          />
+
+          {/* An article with content but no appearances is easy to misread as
+              broken; say why the timeline is absent. */}
+          {!isEmpty && article.appearances.length === 0 && (
+            <p className="wiki-empty-body">{t('wiki.noAppearances')}</p>
+          )}
 
           {isEmpty && <p className="wiki-empty-body">{t('wiki.emptyArticle')}</p>}
         </div>

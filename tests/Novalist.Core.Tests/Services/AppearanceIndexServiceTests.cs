@@ -175,4 +175,21 @@ public class AppearanceIndexServiceTests : IDisposable
 
         Assert.Empty(index);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("<p>Plain prose with no mention markers at all.</p>")]
+    public void ExtractMentionIds_NoMarkers_ReturnsEmpty(string? html)
+        => Assert.Empty(AppearanceIndexService.ExtractMentionIds(html));
+
+    [Fact]
+    public void ExtractMentionIds_ReturnsIdsInOrderWithoutDuplicates()
+    {
+        var html = "<p><span class=\"nv-entity-mention\" data-entity-id=\"hero\">Amy</span> met "
+                 + "<span class=\"nv-entity-mention\" data-entity-id=\"port\">Harbour</span>, then "
+                 + "<span class=\"nv-entity-mention\" data-entity-id=\"hero\">Amy</span> left.</p>";
+
+        Assert.Equal(["hero", "port"], AppearanceIndexService.ExtractMentionIds(html));
+    }
 }

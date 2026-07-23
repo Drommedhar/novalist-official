@@ -76,7 +76,25 @@ Locale files are compiled into the app, so adding a language means adding a file
 2. Translate every value. **Do not change the keys.**
 3. Set `language.name` to the language's own name ("Français", "Español") and `language.code` to the code.
 4. Add a `relationships` keyword section for your language.
-5. Open a pull request against the project repo. Translations are welcome.
+5. Add a **scene-analysis lexicon** (see below) so the Inspector can analyse prose in your language.
+6. Open a pull request against the project repo. Translations are welcome.
+
+## The scene-analysis lexicon
+
+The [Inspector's](22-context-sidebar.md) automatic emotion, intensity, conflict, and tags are keyword-driven, so they need a word list per writing language. Each language ships one JSON file:
+
+```
+Novalist.Core/Resources/Analysis/analysis.<code>.json
+```
+
+The presence of that file is what makes a language supported — no code change is needed. Copy `analysis.en.json` and:
+
+- Translate `positive`, `negative`, and `conflict` into words (or stems — matching is a substring test, so the German stem `kämpf` also catches `kämpfen`).
+- Translate the `words` of every `emotions` entry, but **keep the `key` values and their order exactly as in the English file**. Keys are stable identifiers that the interface localizes and that scenes store, so a scene's emotion stays valid if you change writing language.
+- Translate `firstPerson` into your language's first-person pronouns; these drive first-person POV detection.
+- Set `wordBoundaries` to `false` for languages that are not written with spaces between words (as `analysis.zh-CN.json` does); leave it `true` otherwise.
+
+A regional tag falls back to its base language, so `de-AT` uses `analysis.de.json`. A language with no lexicon simply leaves those fields blank in the Inspector rather than guessing with another language's words.
 
 ## Extensions and localization
 

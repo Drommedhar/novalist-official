@@ -15,7 +15,10 @@ interface RelationshipRow {
   inverseRole?: string
 }
 
-/** Aliases, sections, and (for characters) relationships of the selected entity. */
+/** Built-in types that carry relationships. Custom types manage their own. */
+const RELATIONSHIP_TYPES = ['character', 'location', 'item', 'lore']
+
+/** Aliases, sections, and relationships of the selected entity. */
 export function EntityListsEditor(): React.JSX.Element | null {
   const { t } = useTranslation()
   const entityType = useCodexStore((s) => s.entityType)
@@ -118,7 +121,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
         />
       </div>
 
-      {entityType === 'character' && (
+      {RELATIONSHIP_TYPES.includes(entityType) && (
         <>
           <div className="inspector-label">{t('entityEditor.relationships')}</div>
           <datalist id="codex-rel-names">

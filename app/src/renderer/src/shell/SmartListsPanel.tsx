@@ -13,6 +13,7 @@ export interface SmartListDto {
   chapterStatus: string | null
   povContains: string | null
   tag: string | null
+  plotlineId: string | null
 }
 
 interface SmartListMatch {
@@ -56,7 +57,8 @@ export function SmartListsPanel(): React.JSX.Element {
       draft.name,
       draft.chapterStatus,
       draft.povContains,
-      draft.tag
+      draft.tag,
+      draft.plotlineId
     ])
     setLists(updated)
     setMatches({})

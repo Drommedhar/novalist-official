@@ -1,5 +1,6 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Search } from 'lucide-react'
 import { useWikiStore, type WikiScopeGroup } from '../../stores/wikiStore'
 import { WikiArticle } from './WikiArticle'
 import { imageSrc } from './WikiInfobox'
@@ -23,20 +24,58 @@ export function WikiView(): React.JSX.Element {
   const articleLoading = useWikiStore((s) => s.articleLoading)
   const loadIndex = useWikiStore((s) => s.loadIndex)
   const openArticle = useWikiStore((s) => s.openArticle)
+  const [filter, setFilter] = useState('')
 
   useEffect(() => {
     void loadIndex()
   }, [loadIndex])
 
+  // Filter the index by name, subtitle, or alias; groups and scopes that end up
+  // empty drop out so the list stays tight while typing.
+  const shown = useMemo(() => {
+    const needle = filter.trim().toLowerCase()
+    if (!index || needle.length === 0) return index
+    return index
+      .map((scope) => ({
+        ...scope,
+        types: scope.types
+          .map((group) => ({
+            ...group,
+            entries: group.entries.filter(
+              (e) =>
+                e.title.toLowerCase().includes(needle) ||
+                (e.subtitle?.toLowerCase().includes(needle) ?? false) ||
+                e.aliases.some((a) => a.toLowerCase().includes(needle))
+            )
+          }))
+          .filter((group) => group.entries.length > 0)
+      }))
+      .filter((scope) => scope.types.length > 0)
+  }, [index, filter])
+
   const isEmpty = index != null && index.length === 0
+  const noMatches = !isEmpty && shown != null && shown.length === 0
 
   return (
     <div className="wiki-view">
       <aside className="wiki-index" aria-label={t('wiki.index')}>
         <div className="wiki-index-title">{t('shell.view.wiki')}</div>
+        {!isEmpty && index != null && (
+          <div className="wiki-index-search">
+            <Search size={13} strokeWidth={1.75} aria-hidden="true" />
+            <input
+              type="search"
+              value={filter}
+              placeholder={t('wiki.filterPlaceholder')}
+              aria-label={t('wiki.filterPlaceholder')}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </div>
+        )}
         {loading && !index && <div className="wiki-index-status">{t('wiki.loading')}</div>}
         {isEmpty && <div className="wiki-index-status">{t('wiki.empty')}</div>}
-        {index?.map((scope) => (
+        {noMatches && <div className="wiki-index-status">{t('wiki.noMatches')}</div>}
+        {shown?.map((scope) => (
           <WikiScopeSection
             key={scope.isWorldBible ? 'wb' : 'book'}
             scope={scope}

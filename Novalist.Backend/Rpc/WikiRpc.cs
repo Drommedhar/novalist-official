@@ -24,12 +24,14 @@ public sealed class WikiRpc
 
     private readonly Workspace _workspace;
     private readonly EntityService _entities;
+    private readonly ResearchService _research;
     private readonly WikiArticleCache _cache;
 
     public WikiRpc(Workspace workspace)
     {
         _workspace = workspace;
         _entities = new EntityService(workspace.Projects);
+        _research = new ResearchService(workspace.Projects, workspace.FileService);
         _cache = new WikiArticleCache(workspace.Projects, workspace.FileService);
     }
 
@@ -113,7 +115,11 @@ public sealed class WikiRpc
             .Select(t => t.EntityId)
             .Where(eid => eid != null)
             .ToHashSet(StringComparer.Ordinal)!;
-        var referencedBy = BuildReferencedBy(id, characters, customTypes, resolve, relatedIds);
+        var referencedBy = BuildReferencedBy(
+            id, characters, locations, items, lore, customTypes, resolve, relatedIds);
+        var contains = BuildContains(id, locations, resolve);
+        var research = BuildResearch(id);
+        var events = BuildEvents(core, resolve);
         var appearsWith = BuildAppearsWith(id, rawAppearances, displayMap);
         var mapPins = await BuildMapPinsAsync(id);
         var plotlines = BuildPlotlines(rawAppearances);
@@ -137,11 +143,19 @@ public sealed class WikiRpc
             $"plots={plotlines.Length} overrides={overrides.Length} " +
             $"genAvail={generatorAvailable} cached={cached != null}.");
 
+        // Cross-link entity references inside authored section prose for the
+        // reader. The AI dossier deliberately keeps the raw (unlinked) sections.
+        var linkedSections = core.Sections
+            .Select(s => new WikiSectionDto(s.Title, WikiProseLinker.Linkify(s.Content, resolve, id)))
+            .ToArray();
+
         return new WikiArticleDto(
             core.Id, core.TypeKey, core.CustomTypeLabel, core.Title, core.IsWorldBible,
             core.Aliases, core.Lead, core.Description,
-            core.Infobox, stats, core.Sections, core.Relationships,
-            referencedBy, appearsWith, mapPins, plotlines, overrides, appearances,
+            core.Infobox, stats, linkedSections, core.Relationships,
+            referencedBy, contains, appearsWith, mapPins, plotlines, research, events,
+            overrides, appearances, _workspace.Projects.ActiveBook?.Name ?? string.Empty,
+            (_workspace.Projects.CurrentProject?.Books.Count ?? 0) > 1,
             generatorAvailable, generated);
     }
 
@@ -311,8 +325,8 @@ public sealed class WikiRpc
                 characters.FirstOrDefault(c => c.Id == id) ?? throw Unknown(id), resolve),
             "location" => BuildLocationCore(
                 locations.FirstOrDefault(l => l.Id == id) ?? throw Unknown(id), resolve),
-            "item" => BuildItemCore(items.FirstOrDefault(i => i.Id == id) ?? throw Unknown(id)),
-            "lore" => BuildLoreCore(lore.FirstOrDefault(l => l.Id == id) ?? throw Unknown(id)),
+            "item" => BuildItemCore(items.FirstOrDefault(i => i.Id == id) ?? throw Unknown(id), resolve),
+            "lore" => BuildLoreCore(lore.FirstOrDefault(l => l.Id == id) ?? throw Unknown(id), resolve),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
     }
@@ -320,9 +334,15 @@ public sealed class WikiRpc
     private ArticleCore BuildCharacterCore(
         CharacterData c, Dictionary<string, (string Id, string TypeKey)> resolve)
     {
-        // The Wiki has no scene reference to compute an age against, so when the
-        // "age" holds a birth date show it labelled as such.
-        var ageIsBirthDate = StoryDateFormatter.ExtractLeadingDate(c.Age) != null;
+        // The Wiki has no scene reference to compute an age against, so a character
+        // kept as a birth date shows the date itself, labelled as such. Prefer the
+        // structured BirthDate/AgeMode fields; older records stored the date in the
+        // free-text Age field, so fall back to sniffing that.
+        var hasStructuredBirthDate =
+            string.Equals(c.AgeMode, "date", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(c.BirthDate);
+        var ageIsBirthDate =
+            hasStructuredBirthDate || StoryDateFormatter.ExtractLeadingDate(c.Age) != null;
         // A family/group name equal to the surname is redundant with it — omit it.
         var group = string.Equals(c.Group.Trim(), c.Surname.Trim(), StringComparison.OrdinalIgnoreCase)
             ? string.Empty
@@ -331,7 +351,10 @@ public sealed class WikiRpc
         var fields = new List<WikiFieldDto>();
         AddField(fields, "entityEditor.surname", c.Surname);
         AddField(fields, "entityEditor.gender", c.Gender);
-        AddField(fields, ageIsBirthDate ? "entityEditor.birthDate" : "entityEditor.age", c.Age);
+        AddField(
+            fields,
+            ageIsBirthDate ? "entityEditor.birthDate" : "entityEditor.age",
+            hasStructuredBirthDate ? c.BirthDate : c.Age);
         AddField(fields, "entityEditor.rolePlaceholder", c.Role);
         AddField(fields, "entityEditor.groupPlaceholder", group);
         AddField(fields, "entityEditor.eyeColor", c.EyeColor);
@@ -365,24 +388,29 @@ public sealed class WikiRpc
         return new ArticleCore(
             l.Id, "location", null, l.Name, l.IsWorldBible,
             l.Aliases.ToArray(), lead, NullIfBlank(l.Description),
-            Infobox(l.Images, fields), Sections(l.Sections), [], null);
+            Infobox(l.Images, fields), Sections(l.Sections),
+            BuildRelationships(l.Relationships, resolve), null);
     }
 
-    private ArticleCore BuildItemCore(ItemData i)
+    private ArticleCore BuildItemCore(
+        ItemData i, Dictionary<string, (string Id, string TypeKey)> resolve)
     {
         var fields = new List<WikiFieldDto>();
         AddField(fields, "entityEditor.itemType", i.Type);
-        AddField(fields, "entityEditor.origin", i.Origin);
+        // An origin naming a known place links to it, like a location's parent does.
+        AddLinkedField(fields, "entityEditor.origin", i.Origin, resolve);
         AddCustomProps(fields, i.CustomProperties);
 
         var lead = new WikiLeadDto(NullIfBlank(i.Type), NullIfBlank(i.Origin), "from");
         return new ArticleCore(
             i.Id, "item", null, i.Name, i.IsWorldBible,
             i.Aliases.ToArray(), lead, NullIfBlank(i.Description),
-            Infobox(i.Images, fields), Sections(i.Sections), [], null);
+            Infobox(i.Images, fields), Sections(i.Sections),
+            BuildRelationships(i.Relationships, resolve), null);
     }
 
-    private ArticleCore BuildLoreCore(LoreData l)
+    private ArticleCore BuildLoreCore(
+        LoreData l, Dictionary<string, (string Id, string TypeKey)> resolve)
     {
         var fields = new List<WikiFieldDto>();
         AddField(fields, "entityEditor.category", l.Category);
@@ -392,8 +420,17 @@ public sealed class WikiRpc
         return new ArticleCore(
             l.Id, "lore", null, l.Name, l.IsWorldBible,
             l.Aliases.ToArray(), lead, NullIfBlank(l.Description),
-            Infobox(l.Images, fields), Sections(l.Sections), [], null);
+            Infobox(l.Images, fields), Sections(l.Sections),
+            BuildRelationships(l.Relationships, resolve), null);
     }
+
+    private WikiRelationshipDto[] BuildRelationships(
+        IReadOnlyList<EntityRelationship> relationships,
+        Dictionary<string, (string Id, string TypeKey)> resolve)
+        => relationships
+            .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
+            .Select(r => BuildRelationship(r.Role, r.Target, resolve))
+            .ToArray();
 
     private ArticleCore BuildCustomCore(
         CustomEntityData entity, string type, Dictionary<string, (string Id, string TypeKey)> resolve)
@@ -472,21 +509,33 @@ public sealed class WikiRpc
     private WikiReferenceDto[] BuildReferencedBy(
         string id,
         IReadOnlyList<CharacterData> characters,
+        IReadOnlyList<LocationData> locations,
+        IReadOnlyList<ItemData> items,
+        IReadOnlyList<LoreData> lore,
         IReadOnlyList<(string TypeKey, IReadOnlyList<CustomEntityData> Entities)> customTypes,
         Dictionary<string, (string Id, string TypeKey)> resolve,
         IReadOnlySet<string> alreadyRelated)
     {
         var refs = new List<WikiReferenceDto>();
 
-        foreach (var c in characters)
+        // Every type that carries relationships contributes reverse links.
+        void Scan(string entityId, string name, string typeKey, IReadOnlyList<EntityRelationship> rels)
         {
             // Skip self and entities already shown in this article's Relationships.
-            if (c.Id == id || alreadyRelated.Contains(c.Id)) continue;
-            foreach (var rel in c.Relationships)
+            if (entityId == id || alreadyRelated.Contains(entityId)) return;
+            foreach (var rel in rels)
                 if (TargetsInclude(rel.Target, id, resolve))
-                    refs.Add(new WikiReferenceDto(
-                        EntityResolveIndex.Compose(c.Name, c.Surname), c.Id, "character", rel.Role));
+                    refs.Add(new WikiReferenceDto(name, entityId, typeKey, rel.Role));
         }
+
+        foreach (var c in characters)
+            Scan(c.Id, EntityResolveIndex.Compose(c.Name, c.Surname), "character", c.Relationships);
+        foreach (var l in locations)
+            Scan(l.Id, l.Name, "location", l.Relationships);
+        foreach (var i in items)
+            Scan(i.Id, i.Name, "item", i.Relationships);
+        foreach (var l in lore)
+            Scan(l.Id, l.Name, "lore", l.Relationships);
 
         foreach (var (typeKey, entities) in customTypes)
         {
@@ -512,6 +561,69 @@ public sealed class WikiRpc
 
         return refs.ToArray();
     }
+
+    /// <summary>The locations directly inside this one — the reverse of the
+    /// "parent location" field, so a region's article lists its cities. Empty for
+    /// every non-location entity.</summary>
+    private static WikiLinkTargetDto[] BuildContains(
+        string id, IReadOnlyList<LocationData> locations,
+        Dictionary<string, (string Id, string TypeKey)> resolve)
+        => locations
+            .Where(l => l.Id != id)
+            .Where(l =>
+            {
+                var parent = EntityResolveIndex.Normalize(l.Parent);
+                return parent.Length > 0
+                    && resolve.TryGetValue(parent, out var hit)
+                    && hit.Id == id;
+            })
+            .OrderBy(l => l.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Select(l => new WikiLinkTargetDto(l.Name, l.Id, "location"))
+            .ToArray();
+
+    /// <summary>
+    /// Manual timeline events that name this entity among their characters or
+    /// locations. The event list stores plain names, so each is resolved through
+    /// the shared index — an ambiguous name matches nothing, exactly as elsewhere.
+    /// Chronological, undated events last.
+    /// </summary>
+    private WikiEventDto[] BuildEvents(
+        ArticleCore core, Dictionary<string, (string Id, string TypeKey)> resolve)
+    {
+        var events = _workspace.Projects.ProjectSettings?.Timeline?.ManualEvents;
+        if (events == null || events.Count == 0)
+            return [];
+
+        bool Mentions(TimelineManualEvent e)
+            => e.Characters.Concat(e.Locations)
+                .Select(EntityResolveIndex.Normalize)
+                .Any(n => n.Length > 0
+                          && resolve.TryGetValue(n, out var hit)
+                          && hit.Id == core.Id);
+
+        return events
+            .Where(Mentions)
+            .Select(e => new
+            {
+                Event = e,
+                Iso = StoryDateFormatter.ExtractLeadingDate(e.Date)
+            })
+            .OrderBy(x => x.Iso == null ? 1 : 0)
+            .ThenBy(x => x.Iso, StringComparer.Ordinal)
+            .ThenBy(x => x.Event.Order)
+            .Select(x => new WikiEventDto(
+                x.Event.Id, x.Event.Title, x.Event.Date, NullIfBlank(x.Event.Description)))
+            .ToArray();
+    }
+
+    /// <summary>The research items the writer linked to this entity, so material
+    /// they collected shows up where they are reading about it.</summary>
+    private WikiResearchDto[] BuildResearch(string id)
+        => _research.GetAll()
+            .Where(r => r.EntityRefs.Contains(id, StringComparer.Ordinal))
+            .OrderBy(r => r.Order)
+            .Select(r => new WikiResearchDto(r.Id, r.Title, r.Type.ToString()))
+            .ToArray();
 
     private static bool TargetsInclude(
         string target, string id, Dictionary<string, (string Id, string TypeKey)> resolve)
@@ -724,11 +836,18 @@ public sealed class WikiRpc
 
     private void AddParentField(
         ICollection<WikiFieldDto> target, string parent, Dictionary<string, (string Id, string TypeKey)> resolve)
+        => AddLinkedField(target, "entityEditor.parentLocation", parent, resolve);
+
+    /// <summary>Adds a field whose value cross-links when it names exactly one
+    /// entity; an ambiguous or unknown name stays plain text.</summary>
+    private static void AddLinkedField(
+        ICollection<WikiFieldDto> target, string labelKey, string? value,
+        Dictionary<string, (string Id, string TypeKey)> resolve)
     {
-        var name = EntityResolveIndex.Normalize(parent);
+        var name = EntityResolveIndex.Normalize(value);
         if (name.Length == 0) return;
         var link = resolve.TryGetValue(name, out var hit) ? hit : (Id: (string?)null, TypeKey: (string?)null);
-        target.Add(new WikiFieldDto("entityEditor.parentLocation", null, name, link.Id, link.TypeKey));
+        target.Add(new WikiFieldDto(labelKey, null, name, link.Id, link.TypeKey));
     }
 
     private static void AddCustomProps(ICollection<WikiFieldDto> target, IReadOnlyDictionary<string, string> props)
@@ -762,9 +881,18 @@ public sealed record WikiArticleDto(
     string[] Aliases, WikiLeadDto Lead, string? Description,
     WikiInfoboxDto Infobox, WikiStatsDto? Stats, WikiSectionDto[] Sections,
     WikiRelationshipDto[] Relationships, WikiReferenceDto[] ReferencedBy,
+    WikiLinkTargetDto[] Contains,
     WikiCoAppearanceDto[] AppearsWith, WikiMapPinDto[] MapPins, WikiPlotlineDto[] Plotlines,
+    WikiResearchDto[] Research, WikiEventDto[] Events,
     WikiOverrideDto[] Overrides, WikiAppearanceDto[] Appearances,
+    string BookName, bool MultipleBooks,
     bool GeneratorAvailable, WikiGeneratedDto? Generated);
+
+/// <summary>A research item the writer linked to this entity.</summary>
+public sealed record WikiResearchDto(string Id, string Title, string Type);
+
+/// <summary>A manual timeline event that names this entity.</summary>
+public sealed record WikiEventDto(string Id, string Title, string Date, string? Description);
 
 /// <summary>A cached AI-generated summary shown at the top of an article.
 /// <see cref="Stale"/> is true when the entity's data changed since it was made.</summary>

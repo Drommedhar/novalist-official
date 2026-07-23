@@ -1,3 +1,4 @@
+using Novalist.Backend.Extensions;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using StreamJsonRpc;
@@ -15,6 +16,28 @@ public sealed class SearchRpc
     }
 
     private FindReplaceService Service => new(_workspace.Projects);
+
+    /// <summary>
+    /// One query across scenes (titles, prose, synopses, notes, comments and
+    /// footnotes), every Codex entry, research items, and manual timeline events.
+    /// Find &amp; Replace only searches scene prose; this powers the quick-open box.
+    /// </summary>
+    [JsonRpcMethod("search/global")]
+    public async Task<GlobalSearchHitDto[]> GlobalAsync(
+        string query, int limit, CancellationToken cancellationToken)
+    {
+        var service = new GlobalSearchService(
+            _workspace.Projects,
+            new EntityService(_workspace.Projects),
+            new ResearchService(_workspace.Projects, _workspace.FileService));
+        var hits = await service.SearchAsync(query, limit <= 0 ? 20 : limit, cancellationToken);
+        Log.Info($"search/global len={query?.Length ?? 0} hits={hits.Count}.");
+        return hits
+            .Select(h => new GlobalSearchHitDto(
+                h.Kind, h.Title, h.Subtitle, h.Snippet,
+                h.ChapterGuid, h.SceneId, h.EntityTypeKey, h.EntityId, h.ResearchId))
+            .ToArray();
+    }
 
     [JsonRpcMethod("search/find")]
     public async Task<FindMatchDto[]> FindAsync(
@@ -70,6 +93,20 @@ public sealed class SearchRpc
         }, snapshots, cancellationToken);
     }
 }
+
+/// <summary>A global-search result. Which id fields are set says how to open it:
+/// chapter+scene opens the editor, entity opens its Wiki article, research opens
+/// the Research view; a timeline hit carries none and just reports the event.</summary>
+public sealed record GlobalSearchHitDto(
+    string Kind,
+    string Title,
+    string? Subtitle,
+    string? Snippet,
+    string? ChapterGuid,
+    string? SceneId,
+    string? EntityTypeKey,
+    string? EntityId,
+    string? ResearchId);
 
 public sealed record FindMatchDto(
     string ChapterGuid,

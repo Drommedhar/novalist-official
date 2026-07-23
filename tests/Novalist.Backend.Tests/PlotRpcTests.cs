@@ -54,6 +54,21 @@ public sealed class PlotRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetCellNote_RoundTripsAndClears()
+    {
+        var created = await _rpc.CreatePlotlineAsync("Main");
+        var plotlineId = created.Plotlines.Single().Id;
+        await _rpc.ToggleAsync(_chapterGuid, _sceneId, plotlineId);
+
+        var withNote = await _rpc.SetCellNoteAsync(
+            _chapterGuid, _sceneId, plotlineId, "Sets up the betrayal.");
+        Assert.Equal("Sets up the betrayal.", withNote.Columns.Single().Notes[plotlineId]);
+
+        var cleared = await _rpc.SetCellNoteAsync(_chapterGuid, _sceneId, plotlineId, "");
+        Assert.Empty(cleared.Columns.Single().Notes);
+    }
+
+    [Fact]
     public async Task RenameUnknownPlotline_Throws()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(

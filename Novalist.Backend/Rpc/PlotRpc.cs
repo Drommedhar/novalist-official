@@ -35,7 +35,8 @@ public sealed class PlotRpc
                     chapter.Title,
                     scene.Id,
                     scene.Title,
-                    scene.PlotlineIds?.ToArray() ?? []));
+                    scene.PlotlineIds?.ToArray() ?? [],
+                    scene.PlotlineNotes ?? []));
             }
         }
 
@@ -50,6 +51,15 @@ public sealed class PlotRpc
     public async Task<PlotGridDto> ToggleAsync(string chapterGuid, string sceneId, string plotlineId)
     {
         await _plotlines.ToggleSceneAsync(chapterGuid, sceneId, plotlineId);
+        return GetGrid();
+    }
+
+    /// <summary>Sets or clears the short note on one plot-grid cell.</summary>
+    [JsonRpcMethod("plot/setCellNote")]
+    public async Task<PlotGridDto> SetCellNoteAsync(
+        string chapterGuid, string sceneId, string plotlineId, string? note)
+    {
+        await _plotlines.SetCellNoteAsync(chapterGuid, sceneId, plotlineId, note);
         return GetGrid();
     }
 
@@ -89,4 +99,6 @@ public sealed record PlotColumnDto(
     string ChapterTitle,
     string SceneId,
     string SceneTitle,
-    IReadOnlyList<string> PlotlineIds);
+    IReadOnlyList<string> PlotlineIds,
+    /// <summary>Per-plotline cell notes for this scene, keyed by plotline id.</summary>
+    IReadOnlyDictionary<string, string> Notes);

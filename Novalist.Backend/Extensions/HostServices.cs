@@ -227,6 +227,37 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         await _settingsService.SaveAsync();
     }
 
+    // ── Scene analysis records ──────────────────────────────────────
+
+    private SceneAnalysisStore AnalysisStore => new(_projectService, _fileService);
+
+    public Task<SceneAnalysisRecord?> GetSceneAnalysisAsync(string sceneId)
+        => AnalysisStore.ReadAsync(sceneId);
+
+    public Task SaveSceneAnalysisAsync(SceneAnalysisRecord record, string sceneText)
+        => AnalysisStore.WriteAsync(record, sceneText);
+
+    public Task<bool> IsSceneAnalysisStaleAsync(string sceneId, string sceneText)
+        => AnalysisStore.IsStaleAsync(sceneId, sceneText);
+
+    public Task<IReadOnlyList<string>> GetStaleSceneIdsAsync(IReadOnlyList<SceneTextPair> scenes)
+        => AnalysisStore.GetStaleSceneIdsAsync(
+            [.. scenes.Select(s => (s.SceneId, s.Text))]);
+
+    public async Task<IReadOnlyList<string>> GetConfirmedMentionIdsAsync(
+        string chapterGuid, string sceneId)
+    {
+        var chapter = _projectService.GetChaptersOrdered()
+            .FirstOrDefault(c => string.Equals(c.Guid, chapterGuid, StringComparison.OrdinalIgnoreCase));
+        if (chapter == null) return [];
+        var scene = _projectService.GetScenesForChapter(chapter.Guid)
+            .FirstOrDefault(s => string.Equals(s.Id, sceneId, StringComparison.OrdinalIgnoreCase));
+        if (scene == null) return [];
+
+        var html = await _projectService.ReadSceneContentAsync(chapter, scene);
+        return AppearanceIndexService.ExtractMentionIds(html);
+    }
+
     // ── Events ──────────────────────────────────────────────────────
 
     public event Action<Sdk.Services.ProjectInfo>? ProjectLoaded;
@@ -476,6 +507,65 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
             }).ToList();
         }
         await _entityService.SaveCustomEntityAsync(data);
+    }
+
+    async Task<string?> IExtensionEntityService.CreateEntityAsync(
+        string typeKey, string name, string description)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        var trimmed = name.Trim();
+
+        switch ((typeKey ?? string.Empty).Trim().ToLowerInvariant())
+        {
+            case "character":
+            {
+                // A character has no description field, so the text becomes a
+                // section — the same place the Codex editor would put it.
+                var parts = trimmed.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+                var data = new CharacterData
+                {
+                    Name = parts.Length > 0 ? parts[0] : trimmed,
+                    Surname = parts.Length > 1 ? parts[1] : string.Empty,
+                };
+                if (!string.IsNullOrWhiteSpace(description))
+                    data.Sections.Add(new EntitySection { Title = "Notes", Content = description });
+                await _entityService.SaveCharacterAsync(data);
+                return data.Id;
+            }
+            case "location":
+            {
+                var data = new LocationData { Name = trimmed, Description = description ?? string.Empty };
+                await _entityService.SaveLocationAsync(data);
+                return data.Id;
+            }
+            case "item":
+            {
+                var data = new ItemData { Name = trimmed, Description = description ?? string.Empty };
+                await _entityService.SaveItemAsync(data);
+                return data.Id;
+            }
+            case "lore":
+            {
+                var data = new LoreData { Name = trimmed, Description = description ?? string.Empty };
+                await _entityService.SaveLoreAsync(data);
+                return data.Id;
+            }
+            default:
+            {
+                // Fall through to a registered custom type; unknown keys return
+                // null rather than silently creating the wrong kind of entry.
+                var types = _entityService.GetCustomEntityTypes();
+                var match = types.FirstOrDefault(t =>
+                    string.Equals(t.TypeKey, typeKey, StringComparison.OrdinalIgnoreCase));
+                if (match == null) return null;
+
+                var data = new CustomEntityData { Name = trimmed, EntityTypeKey = match.TypeKey };
+                if (!string.IsNullOrWhiteSpace(description))
+                    data.Sections = [new EntitySection { Title = "Notes", Content = description }];
+                await _entityService.SaveCustomEntityAsync(data);
+                return data.Id;
+            }
+        }
     }
 
     void IExtensionEntityService.RequestEntityRefresh()

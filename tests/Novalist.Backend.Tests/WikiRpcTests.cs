@@ -119,7 +119,7 @@ public sealed class WikiRpcTests : IDisposable
             {
                 new EntityRelationship { Role = "Seeks", Target = "Nobody" }
             },
-            Sections = { new EntitySection { Title = "History", Content = "<p>Born in the north.</p>" } }
+            Sections = { new EntitySection { Title = "History", Content = "<p>Trained under Mordre in the north.</p>" } }
         });
 
         // A custom entity that references the hero two ways.
@@ -168,6 +168,8 @@ public sealed class WikiRpcTests : IDisposable
         Assert.NotNull(article.Infobox.PrimaryImageUrl);
 
         Assert.Equal("History", article.Sections.Single().Title);
+        // Section prose cross-links a bare entity mention to that entity's article.
+        Assert.Contains("[Mordre](nventity:character/villain)", article.Sections.Single().Content);
         Assert.Equal("Seeks", article.Relationships.Single().Role);
 
         // Stats.
@@ -402,6 +404,146 @@ public sealed class WikiRpcTests : IDisposable
         Assert.Equal("realm", parent.LinkEntityId);
         Assert.NotNull(article.Stats);
         Assert.Null(article.Stats!.PovSceneCount);   // non-character: no POV stat
+        Assert.Empty(article.Contains);              // a leaf location contains nothing
+
+        // The parent's article lists it back as a child.
+        var realm = await _rpc.ArticleAsync("location", "realm");
+        var child = Assert.Single(realm.Contains);
+        Assert.Equal("Harbour", child.Name);
+        Assert.Equal("city", child.EntityId);
+        Assert.Equal("location", child.TypeKey);
+    }
+
+    [Fact]
+    public async Task Article_ListsManualTimelineEventsNamingTheEntity()
+    {
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "hero", Name = "Aldric" });
+        await _entities.SaveLocationAsync(new LocationData { Id = "port", Name = "Harbour" });
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "solo", Name = "Nobody" });
+
+        var timeline = _workspace.Projects.ProjectSettings.Timeline;
+        timeline.ManualEvents.Add(new TimelineManualEvent
+        {
+            Id = "e1", Title = "Landfall", Date = "1043-03-02",
+            Description = "The ship arrives.", Characters = { "Aldric" }
+        });
+        timeline.ManualEvents.Add(new TimelineManualEvent
+        {
+            Id = "e0", Title = "The Comet", Date = "1043-03-01", Locations = { "Harbour" }
+        });
+        timeline.ManualEvents.Add(new TimelineManualEvent
+        {
+            Id = "e2", Title = "Undated omen", Characters = { "Aldric" }
+        });
+        await _workspace.Projects.SaveProjectSettingsAsync();
+
+        var hero = await _rpc.ArticleAsync("character", "hero");
+        Assert.Equal(["Landfall", "Undated omen"], hero.Events.Select(e => e.Title));  // dated first
+        Assert.Equal("The ship arrives.", hero.Events[0].Description);
+        Assert.Null(hero.Events[1].Description);
+
+        // A location named on an event gets it too; an unmentioned entity gets none.
+        Assert.Equal("The Comet", Assert.Single((await _rpc.ArticleAsync("location", "port")).Events).Title);
+        Assert.Empty((await _rpc.ArticleAsync("character", "solo")).Events);
+    }
+
+    [Fact]
+    public async Task Article_SingleBook_DoesNotFlagMultipleBooks()
+    {
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "hero", Name = "Aldric" });
+        var article = await _rpc.ArticleAsync("character", "hero");
+        Assert.False(article.MultipleBooks);
+        Assert.NotEmpty(article.BookName);
+    }
+
+    [Fact]
+    public async Task Article_ListsResearchLinkedToTheEntity()
+    {
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "hero", Name = "Aldric" });
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "other", Name = "Mordre" });
+
+        var library = new LibraryRpc(_workspace);
+        await library.SaveResearchAsync(
+            null, "Knightly orders", "Note", "Sworn brotherhoods.", [], ["hero"]);
+        await library.SaveResearchAsync(null, "Unrelated", "Note", "Nothing.", [], []);
+
+        var article = await _rpc.ArticleAsync("character", "hero");
+        var item = Assert.Single(article.Research);
+        Assert.Equal("Knightly orders", item.Title);
+        Assert.Equal("Note", item.Type);
+
+        Assert.Empty((await _rpc.ArticleAsync("character", "other")).Research);
+    }
+
+    [Fact]
+    public async Task Article_Character_UsesStructuredBirthDateOverFreeTextAge()
+    {
+        await _entities.SaveCharacterAsync(new CharacterData
+        {
+            Id = "dated", Name = "Mira", Age = "30", AgeMode = "date", BirthDate = "1013-05-02"
+        });
+        // No age mode: a date typed straight into the age field is still labelled as one.
+        await _entities.SaveCharacterAsync(new CharacterData
+        {
+            Id = "legacy", Name = "Corin", Age = "1020-01-01"
+        });
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "plain", Name = "Bren", Age = "42" });
+
+        var dated = await _rpc.ArticleAsync("character", "dated");
+        var field = dated.Infobox.Fields.Single(f => f.LabelKey == "entityEditor.birthDate");
+        Assert.Equal("1013-05-02", field.Value);           // structured field wins over "30"
+        Assert.DoesNotContain(dated.Infobox.Fields, f => f.LabelKey == "entityEditor.age");
+
+        var legacy = await _rpc.ArticleAsync("character", "legacy");
+        Assert.Equal("1020-01-01",
+            legacy.Infobox.Fields.Single(f => f.LabelKey == "entityEditor.birthDate").Value);
+
+        var plain = await _rpc.ArticleAsync("character", "plain");
+        Assert.Equal("42", plain.Infobox.Fields.Single(f => f.LabelKey == "entityEditor.age").Value);
+    }
+
+    [Fact]
+    public async Task Article_NonCharacterTypes_CarryRelationships_AndItemOriginLinks()
+    {
+        await _entities.SaveLocationAsync(new LocationData { Id = "forge", Name = "Deepforge" });
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "hero", Name = "Aldric" });
+        await _entities.SaveItemAsync(new ItemData
+        {
+            Id = "blade", Name = "Frostbite", Origin = "Deepforge",
+            Relationships = { new EntityRelationship { Role = "Wielded by", Target = "Aldric" } }
+        });
+        await _entities.SaveLoreAsync(new LoreData
+        {
+            Id = "oath", Name = "Frost Oath",
+            Relationships = { new EntityRelationship { Role = "Sworn at", Target = "Deepforge" } }
+        });
+
+        var item = await _rpc.ArticleAsync("item", "blade");
+        var rel = Assert.Single(item.Relationships);
+        Assert.Equal("Wielded by", rel.Role);
+        Assert.Equal("hero", Assert.Single(rel.Targets).EntityId);
+        // The origin names a known location, so it becomes a link.
+        var origin = item.Infobox.Fields.Single(f => f.LabelKey == "entityEditor.origin");
+        Assert.Equal("forge", origin.LinkEntityId);
+        Assert.Equal("location", origin.LinkTypeKey);
+
+        var lore = await _rpc.ArticleAsync("lore", "oath");
+        Assert.Equal("Sworn at", Assert.Single(lore.Relationships).Role);
+
+        // Reverse links now reach non-character sources too.
+        var forge = await _rpc.ArticleAsync("location", "forge");
+        Assert.Contains(forge.ReferencedBy, r => r.EntityId == "oath" && r.Role == "Sworn at");
+    }
+
+    [Fact]
+    public async Task Article_Contains_SkipsUnresolvedParentsAndNonLocations()
+    {
+        await _entities.SaveLocationAsync(new LocationData { Id = "realm", Name = "Aldland" });
+        await _entities.SaveLocationAsync(new LocationData { Id = "orphan", Name = "Hut", Parent = "Ghostland" });
+        await _entities.SaveCharacterAsync(new CharacterData { Id = "hero", Name = "Aldric" });
+
+        Assert.Empty((await _rpc.ArticleAsync("location", "realm")).Contains);
+        Assert.Empty((await _rpc.ArticleAsync("character", "hero")).Contains);
     }
 
     [Fact]

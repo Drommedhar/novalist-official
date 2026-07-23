@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { ActivityBar } from './ActivityBar'
 import { Binder } from './Binder'
 import { CommandPalette } from './CommandPalette'
+import { QuickOpen } from './QuickOpen'
+import { QuickCapture } from './QuickCapture'
 import { FindReplaceDialog } from './FindReplaceDialog'
 import { HelpOverlay } from './HelpOverlay'
 import { buildDefaultHotkeys, installHotkeys } from './hotkeys'
@@ -74,6 +76,8 @@ export function AppShell(): React.JSX.Element {
   const pickAndOpenProject = useProjectStore((s) => s.pickAndOpenProject)
   const findReplaceOpen = useShellStore((s) => s.findReplaceOpen)
   const commandPaletteOpen = useShellStore((s) => s.commandPaletteOpen)
+  const quickOpenOpen = useShellStore((s) => s.quickOpenOpen)
+  const quickCaptureOpen = useShellStore((s) => s.quickCaptureOpen)
   const helpOpen = useShellStore((s) => s.helpOpen)
   const hotkeys = useMemo(() => buildDefaultHotkeys(), [])
 
@@ -225,6 +229,12 @@ export function AppShell(): React.JSX.Element {
           actions={hotkeys}
           onClose={() => useShellStore.getState().setCommandPaletteOpen(false)}
         />
+      )}
+      {quickOpenOpen && (
+        <QuickOpen onClose={() => useShellStore.getState().setQuickOpenOpen(false)} />
+      )}
+      {quickCaptureOpen && (
+        <QuickCapture onClose={() => useShellStore.getState().setQuickCaptureOpen(false)} />
       )}
       {helpOpen && <HelpOverlay onClose={() => useShellStore.getState().setHelpOpen(false)} />}
     </div>

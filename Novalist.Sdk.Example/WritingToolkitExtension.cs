@@ -24,6 +24,7 @@ public sealed class WritingToolkitExtension :
     IEntityTypeContributor,
     IGrammarCheckContributor,
     IArticleGeneratorContributor,
+    IEntityExtractionContributor,
     IHotkeyContributor,
     IWizardContributor,
     IPropertyTypeContributor,
@@ -368,6 +369,51 @@ public sealed class WritingToolkitExtension :
         {
             Summary = $"{request.EntityName} is a notable {request.TypeKey} in this story."
         });
+    }
+
+    // ── IEntityExtractionContributor ────────────────
+
+    public string EntityExtractorName => "Writing Toolkit Entity Extractor";
+
+    public bool IsEntityExtractorEnabled => true;
+
+    public Task<EntityExtractionResult> ExtractAsync(
+        EntityExtractionRequest request, CancellationToken cancellationToken = default)
+    {
+        // Deterministic stand-in for a real model: prose containing "ExtractFail"
+        // exercises the error path. Otherwise every capitalised word the project
+        // does not already know is proposed as a character — crude, but enough to
+        // drive the host's review flow end to end.
+        if (request.Context.Contains("ExtractFail", StringComparison.OrdinalIgnoreCase))
+            return Task.FromResult(new EntityExtractionResult { Error = "no model configured" });
+
+        var known = new HashSet<string>(request.KnownNames, StringComparer.OrdinalIgnoreCase);
+        var proposals = new List<EntityProposal>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var word in SplitWords(request.Context))
+        {
+            if (word.Length < 2 || !char.IsUpper(word[0])) continue;
+            if (known.Contains(word) || !seen.Add(word)) continue;
+            proposals.Add(new EntityProposal
+            {
+                TypeKey = "character",
+                Name = word,
+                Detail = "Mentioned in this scene."
+            });
+        }
+        return Task.FromResult(new EntityExtractionResult { Proposals = proposals });
+    }
+
+    /// <summary>Letter runs only, so no escaped separator literals are needed.</summary>
+    private static IEnumerable<string> SplitWords(string text)
+    {
+        var buffer = new System.Text.StringBuilder();
+        foreach (var ch in text)
+        {
+            if (char.IsLetter(ch)) { buffer.Append(ch); continue; }
+            if (buffer.Length > 0) { yield return buffer.ToString(); buffer.Clear(); }
+        }
+        if (buffer.Length > 0) yield return buffer.ToString();
     }
 
     // ── IHotkeyContributor ──────────────────────────────────────────

@@ -626,6 +626,15 @@ let mentionState = null;          // {startNode, startOffset, queryNode, query} 
 let mentionCandidates = [];       // full list pushed by host
 let mentionFiltered = [];
 let mentionSelectedIndex = 0;
+let mentionCreateVisible = false; // "Create <name>" row shown as the last entry
+let mentionPendingSeq = 0;        // ids for spans awaiting a host-created entity
+let mentionLabels = { create: 'Create "{name}"', noMatches: 'No matches' };
+
+/** Host pushes localized picker labels. */
+function setMentionLabels(labelsJson) {
+    try { mentionLabels = Object.assign(mentionLabels, JSON.parse(labelsJson) || {}); }
+    catch (_) { /* keep defaults */ }
+}
 
 // Focus scroll prevention state
 let savedScrollTop = 0;
@@ -1130,6 +1139,7 @@ function openMentionPicker() {
 
 function closeMentionPicker(_keepLiteral) {
     mentionState = null;
+    mentionCreateVisible = false;
     mentionPicker.classList.remove('visible');
     mentionPicker.innerHTML = '';
 }
@@ -1206,10 +1216,14 @@ function renderMentionPicker() {
     mentionSelectedIndex = 0;
     mentionPicker.innerHTML = '';
 
-    if (mentionFiltered.length === 0) {
+    // A non-empty query can always be turned into a brand-new entity, so the
+    // picker never dead-ends on an unknown name.
+    mentionCreateVisible = mentionState.query.trim().length > 0;
+
+    if (mentionFiltered.length === 0 && !mentionCreateVisible) {
         const empty = document.createElement('div');
         empty.className = 'nv-mp-empty';
-        empty.textContent = 'No matches';
+        empty.textContent = mentionLabels.noMatches || 'No matches';
         mentionPicker.appendChild(empty);
     } else {
         mentionFiltered.forEach((c, idx) => {
@@ -1239,6 +1253,19 @@ function renderMentionPicker() {
         });
     }
 
+    if (mentionCreateVisible) {
+        const createRow = document.createElement('div');
+        createRow.className = 'nv-mp-create' + (mentionFiltered.length === 0 ? ' selected' : '');
+        const template = mentionLabels.create || 'Create "{name}"';
+        createRow.textContent = template.replace('{name}', mentionState.query.trim());
+        createRow.addEventListener('mousedown', (ev) => {
+            ev.preventDefault();
+            confirmMentionAt(mentionFiltered.length);
+        });
+        mentionPicker.appendChild(createRow);
+        if (mentionFiltered.length === 0) mentionSelectedIndex = 0;
+    }
+
     // Position picker right below the `@` char.
     const rect = getMentionPositionRect();
     if (rect) {
@@ -1249,8 +1276,9 @@ function renderMentionPicker() {
 }
 
 function moveMentionSelection(delta) {
-    if (mentionFiltered.length === 0) return;
-    mentionSelectedIndex = (mentionSelectedIndex + delta + mentionFiltered.length) % mentionFiltered.length;
+    const total = mentionFiltered.length + (mentionCreateVisible ? 1 : 0);
+    if (total === 0) return;
+    mentionSelectedIndex = (mentionSelectedIndex + delta + total) % total;
     Array.from(mentionPicker.children).forEach((row, idx) => {
         row.classList.toggle('selected', idx === mentionSelectedIndex);
     });
@@ -1261,20 +1289,11 @@ function moveMentionSelection(delta) {
 
 function confirmMentionAt(idx) {
     if (!mentionState) return;
+    // The row past the last match is "Create <name>".
+    if (mentionCreateVisible && idx === mentionFiltered.length) { requestMentionCreate(); return; }
     if (idx < 0 || idx >= mentionFiltered.length) return;
     const cand = mentionFiltered[idx];
     const displayText = cand.matchedText || cand.primaryName;
-
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0) { closeMentionPicker(true); return; }
-
-    // Select from `@` to current caret so execCommand replaces the whole token.
-    const range = document.createRange();
-    range.setStart(mentionState.node, mentionState.atOffset);
-    const endRange = sel.getRangeAt(0);
-    range.setEnd(endRange.endContainer, endRange.endOffset);
-    sel.removeAllRanges();
-    sel.addRange(range);
 
     const html = '<span class="nv-entity-mention"'
         + ' data-entity-id="' + escapeAttr(cand.entityId) + '"'
@@ -1283,11 +1302,72 @@ function confirmMentionAt(idx) {
         + escapeHtml(displayText)
         + '</span>&nbsp;';
 
-    // Use execCommand for undo-stack support. Falls back to manual replace.
+    if (!replaceMentionTokenWith(html)) { closeMentionPicker(true); return; }
+
+    closeMentionPicker(false);
+    queueContentChangedSoon();
+}
+
+/**
+ * "Create <name>" was chosen. The typed `@name` token is swapped for a pending
+ * placeholder right away (so the writer keeps typing without waiting), and the
+ * host is asked to create the entity. It answers with resolvePendingMention().
+ */
+function requestMentionCreate() {
+    if (!mentionState) return;
+    const name = mentionState.query.trim();
+    if (name.length === 0) { closeMentionPicker(true); return; }
+
+    const pendingId = 'pm-' + (++mentionPendingSeq) + '-' + Date.now();
+    const html = '<span class="nv-mention-pending" data-pending-id="' + escapeAttr(pendingId) + '">'
+        + escapeHtml(name)
+        + '</span>';
+    if (!replaceMentionTokenWith(html)) { closeMentionPicker(true); return; }
+
+    closeMentionPicker(false);
+    queueContentChangedSoon();
+    sendMessage({ type: 'mentionCreateRequested', name: name, pendingId: pendingId });
+}
+
+/**
+ * Host answer to a create request. With an entityId the placeholder becomes a
+ * real mention span; without one (the writer cancelled, or creation failed) it
+ * collapses back to the plain typed text.
+ */
+function resolvePendingMention(pendingId, entityId, entityType, displayText) {
+    const span = document.querySelector('.nv-mention-pending[data-pending-id="' + cssEscape(pendingId) + '"]');
+    if (!span) return;
+    const text = displayText || span.textContent || '';
+
+    if (!entityId) {
+        span.replaceWith(document.createTextNode(text));
+    } else {
+        const mention = document.createElement('span');
+        mention.className = 'nv-entity-mention';
+        mention.setAttribute('data-entity-id', entityId);
+        mention.setAttribute('data-entity-type', entityType || '');
+        mention.setAttribute('data-mention-source', 'name');
+        mention.textContent = text;
+        span.replaceWith(mention);
+    }
+    queueContentChangedSoon();
+}
+
+/** Replaces the active `@query` token with html. Returns false when the caret
+ *  selection could not be resolved. */
+function replaceMentionTokenWith(html) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    const range = document.createRange();
+    range.setStart(mentionState.node, mentionState.atOffset);
+    const endRange = sel.getRangeAt(0);
+    range.setEnd(endRange.endContainer, endRange.endOffset);
+    sel.removeAllRanges();
+    sel.addRange(range);
+
     let inserted = false;
     try { inserted = document.execCommand('insertHTML', false, html); } catch (_) {}
     if (!inserted) {
-        // Fallback: manual DOM edit (no undo stack).
         range.deleteContents();
         const tmp = document.createElement('div');
         tmp.innerHTML = html;
@@ -1295,9 +1375,12 @@ function confirmMentionAt(idx) {
         while (tmp.firstChild) frag.appendChild(tmp.firstChild);
         range.insertNode(frag);
     }
+    return true;
+}
 
-    closeMentionPicker(false);
-    queueContentChangedSoon();
+/** Minimal CSS attribute-value escape for the ids we generate. */
+function cssEscape(value) {
+    return String(value).replace(/["\\]/g, '\\$&');
 }
 
 function escapeAttr(s) {
@@ -1916,13 +1999,14 @@ editor.addEventListener('keydown', (e) => {
         return;
     }
     if (e.key === 'Enter' || e.key === 'Tab') {
-        if (mentionFiltered.length > 0) {
+        // The "Create <name>" row counts as a confirmable entry too.
+        if (mentionFiltered.length > 0 || mentionCreateVisible) {
             e.preventDefault();
             e.stopPropagation();
             confirmMentionAt(mentionSelectedIndex);
             return;
         }
-        // No matches — fall through; Enter inserts a newline and closes picker.
+        // Nothing to confirm — Enter inserts a newline and closes the picker.
         closeMentionPicker(true);
         return;
     }
@@ -2302,6 +2386,23 @@ editor.addEventListener('focus', () => {
 
 const contextMenu = document.getElementById('context-menu');
 let contextMenuTarget = null;
+// Selection captured when the menu opened (see the contextmenu handler).
+let contextMenuRange = null;
+let contextMenuText = '';
+
+// Same trick the floating toolbar uses: swallowing mousedown keeps focus — and
+// therefore the selection — inside the editor while a menu row is clicked.
+contextMenu.addEventListener('mousedown', (e) => e.preventDefault());
+
+/** Re-selects the range the menu was opened on. False when there was none. */
+function restoreContextMenuSelection() {
+    if (!contextMenuRange) return false;
+    const sel = window.getSelection();
+    if (!sel) return false;
+    sel.removeAllRanges();
+    sel.addRange(contextMenuRange);
+    return true;
+}
 let contextMenuLabels = { cut: 'Cut', copy: 'Copy', paste: 'Paste', selectAll: 'Select All' };
 
 function setContextMenuLabels(labelsJson) {
@@ -2318,6 +2419,12 @@ document.addEventListener('contextmenu', (e) => {
     contextMenuTarget = e.target;
     const sel = window.getSelection();
     const hasSelection = sel && !sel.isCollapsed;
+
+    // Snapshot the selection now. Clicking a menu row moves focus out of the
+    // contenteditable, which collapses the live selection before the click
+    // handler runs — so actions that act on the selection must use this copy.
+    contextMenuRange = hasSelection ? sel.getRangeAt(0).cloneRange() : null;
+    contextMenuText = hasSelection ? sel.toString() : '';
 
     let html = '';
 
@@ -2353,6 +2460,11 @@ document.addEventListener('contextmenu', (e) => {
     html += '<div class="cm-separator"></div>';
     html += '<div class="cm-item' + disabledAttr + '" data-action="addComment"><span>' + escapeHtml(contextMenuLabels.addComment || 'Add comment') + '</span><span class="cm-shortcut">Ctrl+Shift+M</span></div>';
     html += '<div class="cm-item" data-action="addFootnote"><span>' + escapeHtml(contextMenuLabels.addFootnote || 'Add footnote') + '</span><span class="cm-shortcut">Ctrl+Shift+F</span></div>';
+
+    // Capture: turn the selected prose into Codex data without leaving the page.
+    html += '<div class="cm-separator"></div>';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="createEntityFromSelection"><span>' + escapeHtml(contextMenuLabels.createEntity || 'Create entity from selection') + '</span></div>';
+    html += '<div class="cm-item' + disabledAttr + '" data-action="appendToEntitySection"><span>' + escapeHtml(contextMenuLabels.appendToEntity || 'Add selection to entity') + '</span></div>';
 
     console.log('[InlineActions] context menu open. hasSelection=', hasSelection, 'inlineActions.length=', (inlineActions || []).length);
     // Inline actions (extension-contributed). Shown only when selection non-empty.
@@ -2452,12 +2564,39 @@ contextMenu.addEventListener('click', (e) => {
             sendMessage({ type: 'addToDictionary', word: word });
             break;
         }
+        case 'createEntityFromSelection': {
+            // Same round-trip as the @-picker's "Create" row: drop a placeholder
+            // now, let the host create the entity, then upgrade it to a mention.
+            // Acts on the selection captured when the menu opened.
+            if (!restoreContextMenuSelection()) break;
+            const name = contextMenuText.trim();
+            if (name.length === 0) break;
+            const pendingId = 'pm-' + (++mentionPendingSeq) + '-' + Date.now();
+            const html = '<span class="nv-mention-pending" data-pending-id="'
+                + escapeAttr(pendingId) + '">' + escapeHtml(name) + '</span>';
+            let inserted = false;
+            try { inserted = document.execCommand('insertHTML', false, html); } catch (_) {}
+            if (!inserted) break;
+            queueContentChangedSoon();
+            sendMessage({ type: 'mentionCreateRequested', name: name, pendingId: pendingId });
+            break;
+        }
+        case 'appendToEntitySection': {
+            // Copies the passage into a Codex section; the prose is left untouched.
+            const text = contextMenuText.trim();
+            if (text.length === 0) break;
+            sendMessage({ type: 'appendToEntityRequested', text: text });
+            break;
+        }
     }
     hideContextMenu();
 });
 
 function hideContextMenu() {
     contextMenu.classList.remove('visible');
+    // Drop the captured selection so a later action can never act on a stale range.
+    contextMenuRange = null;
+    contextMenuText = '';
 }
 
 function escapeHtml(str) {

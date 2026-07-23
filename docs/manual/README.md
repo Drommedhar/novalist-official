@@ -24,46 +24,47 @@ If you are looking for a specific feature, jump straight to its page from the ta
 5. [Editor](05-editor.md) — WYSIWYG editor, formatting, paragraph styles, focus mode, split editor, auto-replacements, dialogue correction, grammar check, entity hover cards.
 6. [Manuscript view](10-manuscript.md) — read the whole book end-to-end, switch to corkboard or outliner.
 7. [Find & Replace](21-find-replace.md) — project-wide search with scopes and snapshot-guarded replace-all.
+8. [Quick Open](31-quick-open.md) — one search box over scenes, Codex, notes, comments, research, and events.
 
 ### Worldbuilding
 
-8. [Codex (Characters, Locations, Items, Lore)](06-codex.md) — entities, sections, custom properties, chapter overrides, relationships, custom entity types, guided wizards.
-9. [Wiki](30-wiki.md) — a read-only, Wikipedia-style reader over the whole Codex: infobox, sections, cross-links, and a per-entity Appearances timeline.
-10. [Templates](07-templates.md) — entity templates, project templates, story-structure templates, default values.
-11. [Plot Grid & Plotlines](08-plot-grid.md) — track which scenes belong to which threads.
-12. [Relationships graph](14-relationships.md) — auto-clustered family/social graph of your characters.
-13. [Calendar & in-world dates](13-calendar.md) — Gregorian calendar, scene placement, story date ranges.
-14. [Timeline](12-timeline.md) — chronological event view across acts, chapters, scenes, and manual events, with story-structure templates.
-15. [Maps](29-maps.md) — interactive 2D/3D map view with layered images, terrain, roads, buildings, and entity-linked pins.
+9. [Codex (Characters, Locations, Items, Lore)](06-codex.md) — entities, sections, custom properties, chapter overrides, relationships, custom entity types, guided wizards.
+10. [Wiki](30-wiki.md) — a read-only, Wikipedia-style reader over the whole Codex: infobox, sections, cross-links, and a per-entity Appearances timeline.
+11. [Templates](07-templates.md) — entity templates, project templates, story-structure templates, default values.
+12. [Plot Grid & Plotlines](08-plot-grid.md) — track which scenes belong to which threads.
+13. [Relationships graph](14-relationships.md) — auto-clustered family/social graph of your characters.
+14. [Calendar & in-world dates](13-calendar.md) — Gregorian calendar, scene placement, story date ranges.
+15. [Timeline](12-timeline.md) — chronological event view across acts, chapters, scenes, and manual events, with story-structure templates.
+16. [Maps](29-maps.md) — interactive 2D/3D map view with layered images, terrain, roads, buildings, and entity-linked pins.
 
 ### Project management
 
-16. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
-17. [Research](15-research.md) — notes attached to your project.
-18. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline.
-19. [Snapshots](17-snapshots.md) — per-scene version history, taken from the inspector.
-20. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
-21. [Git integration](18-git.md) — commit, push, pull without leaving the app.
+17. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
+18. [Research](15-research.md) — notes attached to your project.
+19. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline.
+20. [Snapshots](17-snapshots.md) — per-scene version history, taken from the inspector.
+21. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
+22. [Git integration](18-git.md) — commit, push, pull without leaving the app.
 
 ### Output
 
-22. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, and more, plus formats added by extensions.
+23. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, and more, plus formats added by extensions.
 
 ### The inspector
 
-23. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
+24. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
 
 ### Customisation
 
-24. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
-25. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
-26. [Command palette](25-command-palette.md) — every shell command in one searchable box.
-27. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
-28. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
+25. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
+26. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
+27. [Command palette](25-command-palette.md) — every shell command in one searchable box.
+28. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
+29. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
 
 ### Help
 
-29. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
+30. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
 
 ## Conventions used in this manual
 

@@ -10,7 +10,7 @@ Open it from the **Plan** group in the activity bar (**Relationships**), from th
 
 ## What you see
 
-- **Nodes** — one per character that has at least one relationship. Characters with no relationships are hidden; if nothing is connected yet, the view tells you to add relationships in the Codex.
+- **Nodes** — one per character that has at least one relationship. Characters with no relationships are hidden; if nothing is connected yet, the view tells you to add relationships in the Codex. **Click a node** to open that character's article in the [Wiki](30-wiki.md) (from there, **Edit in Codex** reaches the editable record). Dragging to pan does not trigger the click.
 - **Edges** — lines between related characters, labeled with the relationship role (e.g. "Father", "Mentor", "Owes a debt to"). When two characters are linked by several roles, the labels combine into one edge ("Father / Mentor"). Family (parent/child) relationships instead render as unlabeled **genealogy T-connectors** — a vertical drop from the parents' mid-point branching out to each child — so a family tree reads at a glance without label clutter.
 - **Family boxes** — related family members are enclosed in a soft box labeled `Family <surname>` (using the family's most common surname). Inside a box, generations are layered top to bottom: parents above children, partners on the same row.
 - **Role-group boxes** — when three or more characters share the same non-family role (for example everyone tied to a "Ring"), their nodes are wrapped in a dashed box labeled with that role, grouping the shared connection visually.

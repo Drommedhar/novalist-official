@@ -17,6 +17,26 @@ The view is a two-pane list-and-editor:
 
 The **search box** filters the list by title, content, or tag (substring match).
 
+## Quick capture and the Inbox
+
+An idea usually arrives mid-sentence, and deciding where it belongs is exactly the thing you do not have time for. **Quick capture** removes that decision:
+
+- Press `Ctrl+Shift+K` (`Cmd+Shift+K` on macOS) from anywhere in the app.
+- Type the thought. `Ctrl+Enter` saves it, `Esc` cancels, and plain `Enter` just makes a new line — captures are often more than one.
+- The note lands in Research as a **Note** carrying the reserved `inbox` tag. Its title is the first line; the body is everything you typed.
+
+Unfiled captures collect in the **Inbox**. When at least one exists, an **Inbox** button appears above the research list showing how many are waiting; click it to show only those, and click again to show everything. Inbox items are also marked with a small **Inbox** badge in the list.
+
+### Filing an inbox note
+
+Select an inbox note and a filing row appears above its title with three choices:
+
+- **Create Codex entry** — makes a new [Codex](06-codex.md) entry named after the note's title (you choose the kind) and puts the note's body into its **Notes** section.
+- **Add to existing entry** — appends the body to a section of an entry you pick, exactly like the editor's "Add selection to entity".
+- **Keep as research note** — the note was already where it belongs; this just clears the inbox flag.
+
+All three are **non-destructive**: filing copies the text and clears the `inbox` tag, leaving the research note itself intact. Delete it yourself if you no longer want the duplicate.
+
 ## Adding items
 
 Three buttons sit at the top of the list:
@@ -24,6 +44,13 @@ Three buttons sit at the top of the list:
 - **Add Note** — creates an empty note.
 - **Add Link** — creates a link item pre-filled with `https://`.
 - **Import File** — opens the system file picker and copies the chosen file into the project. Novalist classifies it by extension: images become **Image** items, PDFs become **Pdf** items, and everything else becomes a **File** item.
+
+You can also **drag and drop** onto the research list:
+
+- Dropping **files** imports them exactly as **Import File** does — several at once is fine.
+- Dropping **text** creates a note from it; if the text is a URL it becomes a **Link** instead.
+
+For a **Link** item, the editor offers **Fetch title**: Novalist reads the page and renames the item to its title, so your list says "Rigging and Knots" instead of a bare address. It only reaches the network when you press the button, and if the lookup fails (you are offline, or the page has no title) the item is simply left as it was.
 
 ## Items
 
@@ -44,6 +71,12 @@ Depending on the type, the editor's action row offers:
 
 Everything saves automatically as you edit — changes are written when you leave a field.
 
+## Linking research to the Codex
+
+Research is most useful at the moment you are writing about the thing it concerns — not when you happen to open the Research view. Each item therefore has a **Linked entries** field: pick any [Codex](06-codex.md) entry from the dropdown to link it, or click the `×` on a chip to unlink.
+
+A linked item appears in a **Research** section on that entity's [Wiki](30-wiki.md) article, and clicking it there brings you straight back here with the item selected. So the article for a city can carry the three pages of notes you gathered about medieval ports.
+
 ## Tags
 
 Tags are comma-separated labels on each item. Useful schemes:
@@ -54,6 +87,7 @@ Tags are comma-separated labels on each item. Useful schemes:
 
 ## Tips
 
+- **Capture first, file later.** `Ctrl+Shift+K` costs four seconds and no decisions. Empty the Inbox when you next take a break, not mid-sentence.
 - **Capture once, in detail.** It is much faster to write while reading research notes inside the app than to alt-tab to a browser.
 - **Tag by chapter when relevant.** A `ch3` tag on every piece of research you needed for chapter 3 makes copy-edits trivial: skim, re-read, fix.
 - **Don't over-organize.** A flat list with sensible titles plus a few tags beats a deep hierarchy.

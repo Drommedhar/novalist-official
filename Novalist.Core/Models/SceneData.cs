@@ -51,6 +51,13 @@ public class SceneData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<string>? PlotlineIds { get; set; }
 
+    /// <summary>Optional short note per plotline this scene belongs to, keyed by
+    /// plotline id — "what this scene does for that thread". Shown in the Plot
+    /// Grid cell. Null when no cell on this scene carries a note.</summary>
+    [JsonPropertyName("plotlineNotes")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? PlotlineNotes { get; set; }
+
     /// <summary>Inline comments anchored to text ranges in the scene HTML.</summary>
     [JsonPropertyName("comments")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

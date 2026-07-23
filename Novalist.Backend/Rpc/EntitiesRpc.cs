@@ -1,7 +1,9 @@
 using System.Text.Json;
+using Novalist.Backend.Extensions;
 using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Novalist.Core.Utilities;
+using Novalist.Sdk.Hooks;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
@@ -245,12 +247,14 @@ public sealed class EntitiesRpc
             target.Clear();
             target.AddRange(sections.Select(s => new EntitySection { Title = s.Title, Content = s.Content }));
         }
-        if (relationships != null && entity is CharacterData character)
+        if (relationships != null)
         {
-            character.Relationships = relationships
+            // Every built-in type carries relationships, not just characters.
+            var rows = relationships
                 .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
                 .Select(r => new EntityRelationship { Role = r.Role, Target = r.Target })
                 .ToList();
+            entity.GetType().GetProperty("Relationships")!.SetValue(entity, rows);
         }
 
         switch (entity)
@@ -269,6 +273,176 @@ public sealed class EntitiesRpc
                 break;
         }
         return WithResolvedImages(entity);
+    }
+
+    /// <summary>
+    /// Appends a block of text to one of an entity's free-form sections, creating
+    /// that section when it does not exist yet. Used by the editor's "send this
+    /// passage to the Codex" capture flow: an atomic append avoids the read/modify/
+    /// write race a client-side rewrite of the whole section list would have.
+    /// Works for every entity type, including custom ones.
+    /// </summary>
+    [JsonRpcMethod("entities/appendToSection")]
+    public async Task<JsonElement> AppendToSectionAsync(
+        string type, string id, string sectionTitle, string text)
+    {
+        var title = (sectionTitle ?? string.Empty).Trim();
+        if (title.Length == 0)
+            throw new InvalidOperationException("A section title is required.");
+        var addition = (text ?? string.Empty).Trim();
+
+        if (IsCustomType(type))
+        {
+            var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
+                ?? throw Unknown(id);
+            AppendSection(custom.Sections, title, addition);
+            await _entities.SaveCustomEntityAsync(custom);
+            return WithResolvedImages(custom);
+        }
+
+        object entity = type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id) as object,
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
+        } ?? throw Unknown(id);
+
+        AppendSection(
+            (List<EntitySection>)entity.GetType().GetProperty("Sections")!.GetValue(entity)!,
+            title, addition);
+
+        switch (entity)
+        {
+            case CharacterData c:
+                await _entities.SaveCharacterAsync(c);
+                break;
+            case LocationData l:
+                await _entities.SaveLocationAsync(l);
+                break;
+            case ItemData i:
+                await _entities.SaveItemAsync(i);
+                break;
+            default:
+                await _entities.SaveLoreAsync((LoreData)entity);
+                break;
+        }
+        return WithResolvedImages(entity);
+    }
+
+    /// <summary>Appends to the named section (case-insensitive), separating the new
+    /// text from existing content by a blank line. Creates the section if missing.</summary>
+    private static void AppendSection(List<EntitySection> sections, string title, string addition)
+    {
+        var section = sections.FirstOrDefault(s =>
+            string.Equals(s.Title, title, StringComparison.OrdinalIgnoreCase));
+        if (section == null)
+        {
+            sections.Add(new EntitySection { Title = title, Content = addition });
+            return;
+        }
+        section.Content = section.Content.Length == 0
+            ? addition
+            : $"{section.Content.TrimEnd()}\n\n{addition}";
+    }
+
+    /// <summary>Whether an extension offers an enabled entity extractor. Drives the
+    /// Inspector's "find new entries in this scene" affordance.</summary>
+    [JsonRpcMethod("entities/extractorAvailable")]
+    public bool ExtractorAvailable()
+        => _workspace.ExtensionHostOrNull?.IsEntityExtractorAvailable ?? false;
+
+    /// <summary>
+    /// Asks an extension to propose Codex entries for the people, places, and
+    /// things a scene mentions that are not in the Codex yet. Returns proposals
+    /// only — nothing is written until the caller creates them via
+    /// <c>entities/create</c>. Names the project already knows, and proposals with
+    /// an unknown type key, are filtered out here rather than trusted.
+    /// </summary>
+    [JsonRpcMethod("entities/extractFromScene")]
+    public async Task<EntityProposalsDto> ExtractFromSceneAsync(
+        string chapterGuid, string sceneId, CancellationToken cancellationToken)
+    {
+        var host = _workspace.ExtensionHostOrNull;
+        if (host == null || !host.IsEntityExtractorAvailable)
+            return new EntityProposalsDto([], null);
+
+        var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        var prose = TextDiff.StripHtml(
+            await _workspace.Projects.ReadSceneContentAsync(chapter, scene));
+        if (string.IsNullOrWhiteSpace(prose))
+            return new EntityProposalsDto([], null);
+
+        var known = await BuildKnownNamesAsync();
+        var typeKeys = new List<string> { "character", "location", "item", "lore" };
+        typeKeys.AddRange(_entities.GetCustomEntityTypes().Select(t => t.TypeKey));
+
+        // Non-null: availability was just checked above.
+        var result = (await host.ExtractEntitiesAsync(
+            new EntityExtractionRequest
+            {
+                Context = prose,
+                KnownNames = known.ToArray(),
+                AvailableTypeKeys = typeKeys
+            },
+            cancellationToken))!;
+
+        if (!string.IsNullOrEmpty(result.Error))
+            return new EntityProposalsDto([], result.Error);
+
+        var proposals = result.Proposals
+            .Where(p => !string.IsNullOrWhiteSpace(p.Name))
+            .Where(p => typeKeys.Contains(p.TypeKey, StringComparer.OrdinalIgnoreCase))
+            .Where(p => !known.Contains(EntityResolveIndex.Normalize(p.Name)))
+            .GroupBy(p => EntityResolveIndex.Normalize(p.Name), StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First())
+            .Select(p => new EntityProposalDto(p.TypeKey, p.Name.Trim(), p.Detail))
+            .ToArray();
+
+        Log.Info($"entities/extractFromScene returned={result.Proposals.Count} kept={proposals.Length}.");
+        return new EntityProposalsDto(proposals, null);
+    }
+
+    /// <summary>Every name and alias the Codex already knows, normalized — used to
+    /// drop redundant proposals.</summary>
+    private async Task<HashSet<string>> BuildKnownNamesAsync()
+    {
+        var known = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        void Add(string? value)
+        {
+            var normalized = EntityResolveIndex.Normalize(value);
+            if (normalized.Length > 0) known.Add(normalized);
+        }
+
+        foreach (var c in await _entities.LoadCharactersAsync())
+        {
+            Add(Compose(c.Name, c.Surname));
+            Add(c.Name);
+            foreach (var alias in c.Aliases) Add(alias);
+        }
+        foreach (var l in await _entities.LoadLocationsAsync())
+        {
+            Add(l.Name);
+            foreach (var alias in l.Aliases) Add(alias);
+        }
+        foreach (var i in await _entities.LoadItemsAsync())
+        {
+            Add(i.Name);
+            foreach (var alias in i.Aliases) Add(alias);
+        }
+        foreach (var l in await _entities.LoadLoreAsync())
+        {
+            Add(l.Name);
+            foreach (var alias in l.Aliases) Add(alias);
+        }
+        foreach (var typeDef in _entities.GetCustomEntityTypes())
+            foreach (var e in await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey))
+            {
+                Add(e.Name);
+                foreach (var alias in e.Aliases) Add(alias);
+            }
+        return known;
     }
 
     [JsonRpcMethod("entities/relationshipSuggestions")]
@@ -859,10 +1033,12 @@ public sealed class EntitiesRpc
         {
             var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
                 ?? throw Unknown(id);
-            return BuildCustomPeek(custom, type, resolveIndex, pins);
+            return await WithAiFindingsAsync(
+                BuildCustomPeek(custom, type, resolveIndex, pins),
+                chapterGuid, [custom.Name, .. custom.Aliases]);
         }
 
-        return type switch
+        var peek = type switch
         {
             "character" => BuildCharacterPeek(
                 characters.FirstOrDefault(c => c.Id == id) ?? throw Unknown(id), resolveIndex, pins,
@@ -873,6 +1049,88 @@ public sealed class EntitiesRpc
             "lore" => BuildLorePeek(lore.FirstOrDefault(l => l.Id == id) ?? throw Unknown(id), pins),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
+
+        return await WithAiFindingsAsync(
+            peek, chapterGuid, PeekNames(type, id, characters, locations, items, lore));
+    }
+
+    /// <summary>Every name a cached finding might refer to this entity by.</summary>
+    private static string[] PeekNames(
+        string type, string id,
+        IReadOnlyList<CharacterData> characters, IReadOnlyList<LocationData> locations,
+        IReadOnlyList<ItemData> items, IReadOnlyList<LoreData> lore)
+    {
+        switch (type)
+        {
+            case "character":
+                var c = characters.First(e => e.Id == id);
+                return [Compose(c.Name, c.Surname), c.Name, .. c.Aliases];
+            case "location":
+                var l = locations.First(e => e.Id == id);
+                return [l.Name, .. l.Aliases];
+            case "item":
+                var i = items.First(e => e.Id == id);
+                return [i.Name, .. i.Aliases];
+            default:
+                var lo = lore.First(e => e.Id == id);
+                return [lo.Name, .. lo.Aliases];
+        }
+    }
+
+    /// <summary>
+    /// Attaches the cached AI-analysis findings that name this entity within the
+    /// open chapter. The host only <em>reads</em> what an extension's chapter
+    /// analysis stored in <see cref="ProjectSettings.ChapterAnalysis"/> — it never
+    /// generates findings itself, so this carries no AI dependency. Empty when no
+    /// analysis has been run for the chapter.
+    /// </summary>
+    private async Task<EntityPeekDto> WithAiFindingsAsync(
+        EntityPeekDto peek, string? chapterGuid, string[] names)
+    {
+        if (string.IsNullOrWhiteSpace(chapterGuid)) return peek;
+
+        var wanted = names
+            .Select(EntityResolveIndex.Normalize)
+            .Where(n => n.Length > 0)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (wanted.Count == 0) return peek;
+
+        var legacy = _workspace.Projects.ProjectSettings?.ChapterAnalysis is { } map
+                     && map.TryGetValue(chapterGuid, out var stored)
+            ? stored
+            : null;
+
+        // Walk the chapter's scenes in order. A scene analysed under the current
+        // per-scene store wins; anything only present in the legacy settings blob
+        // still shows, so existing projects keep their findings.
+        var store = new SceneAnalysisStore(_workspace.Projects, _workspace.FileService);
+        var chapter = _workspace.Projects.GetChaptersOrdered()
+            .FirstOrDefault(c => string.Equals(c.Guid, chapterGuid, StringComparison.OrdinalIgnoreCase));
+        var sceneIds = chapter == null
+            ? (legacy?.Scenes.Keys.ToArray() ?? [])
+            : _workspace.Projects.GetScenesForChapter(chapter.Guid).Select(s => s.Id).ToArray();
+
+        var findings = new List<PeekFindingDto>();
+        foreach (var sceneId in sceneIds)
+        {
+            var record = await store.ReadAsync(sceneId);
+            IEnumerable<Sdk.Models.CachedAiFinding> sceneFindings =
+                record?.Findings
+                ?? (legacy != null && legacy.Scenes.TryGetValue(sceneId, out var legacyScene)
+                    ? legacyScene.Findings
+                    : []);
+
+            foreach (var f in sceneFindings)
+            {
+                // "scene_stats" carries the per-scene POV/emotion numbers, not a
+                // remark about an entity — the desktop card skipped it and so do we.
+                if (string.Equals(f.Type, "scene_stats", StringComparison.Ordinal)) continue;
+                if (!wanted.Contains(EntityResolveIndex.Normalize(f.EntityName))) continue;
+                findings.Add(new PeekFindingDto(f.Type, f.Title, f.Description, f.Excerpt));
+            }
+        }
+
+        return findings.Count == 0 ? peek : peek with { AiFindings = [.. findings] };
     }
 
     /// <summary>
@@ -1396,7 +1654,15 @@ public sealed record EntityPeekDto(
     PeekRelationshipDto[] Relationships,
     EntitySectionDto[] Sections,
     PeekMapPinDto[] MapPins,
-    string? ScopeLabel = null);
+    string? ScopeLabel = null,
+    PeekFindingDto[]? AiFindings = null);
+
+/// <summary>One cached AI analysis finding about this entity in the open chapter.
+/// Read-only: the host never generates these, it only surfaces what an extension's
+/// chapter analysis previously stored in the project. <see cref="Type"/> is the
+/// finding kind ("reference", "inconsistency", "suggestion"), which the renderer
+/// turns into a marker.</summary>
+public sealed record PeekFindingDto(string Type, string Title, string Description, string Excerpt);
 
 /// <summary>A single framed image; <c>Url</c> is project-root-relative for the
 /// novalist-project:// protocol.</summary>
@@ -1419,3 +1685,11 @@ public sealed record PeekRelationshipDto(string Role, PeekRelationshipTargetDto[
 public sealed record PeekRelationshipTargetDto(string Name, string? EntityId, string? TypeKey);
 
 public sealed record PeekMapPinDto(string MapId, string MapName, string PinId, string PinLabel);
+
+/// <summary>A proposed Codex entry from an extension's entity extractor. Nothing
+/// is written until the writer accepts it.</summary>
+public sealed record EntityProposalDto(string TypeKey, string Name, string Detail);
+
+/// <summary>The result of a scene scan: the proposals that survived filtering, or
+/// a short error when the extractor failed.</summary>
+public sealed record EntityProposalsDto(EntityProposalDto[] Proposals, string? Error);

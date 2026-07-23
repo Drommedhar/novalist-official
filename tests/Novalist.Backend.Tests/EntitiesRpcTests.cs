@@ -838,6 +838,221 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task Peek_SurfacesCachedChapterAnalysisFindingsForTheEntity()
+    {
+        var hero = await _rpc.CreateAsync("character", "Amy");
+        var heroId = hero.GetProperty("id").GetString()!;
+        await _rpc.UpdateAsync("character", heroId, new Dictionary<string, string>
+        {
+            ["surname"] = "Calder"
+        });
+        var other = await _rpc.CreateAsync("character", "Dana Harrow");
+
+        // Shape mirrors what a chapter analysis stores: chapter -> scene -> findings,
+        // each naming the entity it is about.
+        _workspace.Projects.ProjectSettings.ChapterAnalysis = new()
+        {
+            ["ch-1"] = new Novalist.Sdk.Models.ChapterAnalysisResult
+            {
+                Scenes = new()
+                {
+                    ["s1"] = new Novalist.Sdk.Models.SceneAnalysisResult
+                    {
+                        Findings =
+                        [
+                            new() { Type = "reference", Title = "Amy meets Mina",
+                                    Description = "Amy interacts with Mina.",
+                                    Excerpt = "Amy trifft Mina Bryton", EntityName = "Amy Calder" },
+                            new() { Type = "reference", Title = "About Dana",
+                                    Description = "Not this entity.", EntityName = "Dana Harrow" },
+                            new() { Type = "reference", Title = "Unattributed", EntityName = "" },
+                            // Per-scene stats are not a remark about the entity.
+                            new() { Type = "scene_stats", Title = "Stats", EntityName = "Amy Calder" }
+                        ]
+                    }
+                }
+            }
+        };
+
+        var peek = await _rpc.PeekAsync("character", heroId, "ch-1", "Chapter One", "Scene One");
+        var finding = Assert.Single(peek.AiFindings!);   // scene_stats excluded
+        Assert.Equal("Amy meets Mina", finding.Title);
+        Assert.Equal("reference", finding.Type);
+        Assert.Equal("Amy trifft Mina Bryton", finding.Excerpt);
+
+        // Findings for a different entity, and unattributed ones, stay out.
+        Assert.Null((await _rpc.PeekAsync("character", other.GetProperty("id").GetString()!,
+            "ch-2", null, null)).AiFindings);
+    }
+
+    [Fact]
+    public async Task Peek_NoAnalysisOrNoChapter_HasNoFindings()
+    {
+        var created = await _rpc.CreateAsync("character", "Mira");
+        var id = created.GetProperty("id").GetString()!;
+
+        // No analysis stored at all.
+        Assert.Null((await _rpc.PeekAsync("character", id, "ch-1", null, null)).AiFindings);
+
+        // Analysis exists, but the peek carries no chapter scope.
+        _workspace.Projects.ProjectSettings.ChapterAnalysis = new()
+        {
+            ["ch-1"] = new Novalist.Sdk.Models.ChapterAnalysisResult
+            {
+                Scenes = new()
+                {
+                    ["s1"] = new Novalist.Sdk.Models.SceneAnalysisResult
+                    {
+                        Findings = [new() { Title = "x", EntityName = "Mira" }]
+                    }
+                }
+            }
+        };
+        Assert.Null((await _rpc.PeekAsync("character", id)).AiFindings);
+
+        // A chapter with no stored analysis, and one analysed but with no scenes.
+        Assert.Null((await _rpc.PeekAsync("character", id, "ch-other", null, null)).AiFindings);
+        _workspace.Projects.ProjectSettings.ChapterAnalysis["ch-empty"] =
+            new Novalist.Sdk.Models.ChapterAnalysisResult();
+        Assert.Null((await _rpc.PeekAsync("character", id, "ch-empty", null, null)).AiFindings);
+    }
+
+    [Fact]
+    public async Task Peek_PrefersPerSceneRecords_AndFallsBackToLegacyPerScene()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var analysed = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Analysed");
+        var legacyOnly = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "LegacyOnly");
+
+        var created = await _rpc.CreateAsync("character", "Amy");
+        var id = created.GetProperty("id").GetString()!;
+
+        // Legacy blob covers both scenes...
+        _workspace.Projects.ProjectSettings.ChapterAnalysis = new()
+        {
+            [chapter.Guid] = new Novalist.Sdk.Models.ChapterAnalysisResult
+            {
+                Scenes = new()
+                {
+                    [analysed.Id] = new Novalist.Sdk.Models.SceneAnalysisResult
+                    {
+                        Findings = [new() { Type = "reference", Title = "stale legacy", EntityName = "Amy" }]
+                    },
+                    [legacyOnly.Id] = new Novalist.Sdk.Models.SceneAnalysisResult
+                    {
+                        Findings = [new() { Type = "reference", Title = "legacy kept", EntityName = "Amy" }]
+                    }
+                }
+            }
+        };
+
+        // ...but one scene has a newer per-scene record, which must win for it.
+        var store = new Novalist.Core.Services.SceneAnalysisStore(
+            _workspace.Projects, _workspace.FileService);
+        await store.WriteAsync(new Novalist.Sdk.Models.SceneAnalysisRecord
+        {
+            SceneId = analysed.Id,
+            ChapterGuid = chapter.Guid,
+            Findings = [new() { Type = "reference", Title = "fresh record", EntityName = "Amy" }]
+        }, "scene text");
+
+        var titles = (await _rpc.PeekAsync("character", id, chapter.Guid, "C", null))
+            .AiFindings!.Select(f => f.Title).ToArray();
+
+        Assert.Contains("fresh record", titles);
+        Assert.DoesNotContain("stale legacy", titles);   // superseded per scene
+        Assert.Contains("legacy kept", titles);          // no record for that scene yet
+    }
+
+    [Fact]
+    public async Task Peek_FindingsMatchAliasesAndNonCharacterTypes()
+    {
+        var place = await _rpc.CreateAsync("location", "Harbour");
+        var placeId = place.GetProperty("id").GetString()!;
+        await _rpc.UpdateListsAsync("location", placeId, ["The Docks"], null, null);
+
+        _workspace.Projects.ProjectSettings.ChapterAnalysis = new()
+        {
+            ["ch-1"] = new Novalist.Sdk.Models.ChapterAnalysisResult
+            {
+                Scenes = new()
+                {
+                    ["s1"] = new Novalist.Sdk.Models.SceneAnalysisResult
+                    {
+                        // Refers to the location by its alias.
+                        Findings = [new() { Title = "Dock scene", EntityName = "The Docks" }]
+                    }
+                }
+            }
+        };
+
+        var peek = await _rpc.PeekAsync("location", placeId, "ch-1", null, null);
+        Assert.Equal("Dock scene", Assert.Single(peek.AiFindings!).Title);
+    }
+
+    [Fact]
+    public async Task AppendToSection_CreatesSectionThenAppendsWithBlankLine()
+    {
+        var created = await _rpc.CreateAsync("character", "Mira");
+        var id = created.GetProperty("id").GetString()!;
+
+        var first = await _rpc.AppendToSectionAsync("character", id, "Notes", " She hums when nervous. ");
+        Assert.Equal("Notes", first.GetProperty("sections")[0].GetProperty("title").GetString());
+        Assert.Equal(
+            "She hums when nervous.",
+            first.GetProperty("sections")[0].GetProperty("content").GetString());
+
+        // A second append reuses the section (matched case-insensitively).
+        var second = await _rpc.AppendToSectionAsync("character", id, "notes", "She fears deep water.");
+        Assert.Single(second.GetProperty("sections").EnumerateArray());
+        Assert.Equal(
+            "She hums when nervous.\n\nShe fears deep water.",
+            second.GetProperty("sections")[0].GetProperty("content").GetString());
+    }
+
+    [Fact]
+    public async Task AppendToSection_WorksForEveryBuiltInTypeAndCustomTypes()
+    {
+        foreach (var type in new[] { "location", "item", "lore" })
+        {
+            var created = await _rpc.CreateAsync(type, $"Thing-{type}");
+            var updated = await _rpc.AppendToSectionAsync(
+                type, created.GetProperty("id").GetString()!, "Notes", "Captured.");
+            Assert.Equal("Captured.", updated.GetProperty("sections")[0].GetProperty("content").GetString());
+        }
+
+        var types = await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            TypeKey: null,
+            DisplayName: "Faction",
+            DisplayNamePlural: null,
+            Fields: null,
+            IncludeImages: false,
+            IncludeRelationships: false,
+            IncludeSections: true));
+        var factionKey = types.Single(t => t.DisplayName == "Faction").TypeKey;
+        var faction = await _rpc.CreateAsync(factionKey, "Grey Order");
+        var appended = await _rpc.AppendToSectionAsync(
+            factionKey, faction.GetProperty("id").GetString()!, "Notes", "Sworn to the crown.");
+        Assert.Equal(
+            "Sworn to the crown.",
+            appended.GetProperty("sections")[0].GetProperty("content").GetString());
+    }
+
+    [Fact]
+    public async Task AppendToSection_BlankTitleOrUnknownTarget_Throws()
+    {
+        var created = await _rpc.CreateAsync("character", "Mira");
+        var id = created.GetProperty("id").GetString()!;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.AppendToSectionAsync("character", id, "   ", "text"));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.AppendToSectionAsync("character", "missing", "Notes", "text"));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.AppendToSectionAsync("dragon", id, "Notes", "text"));
+    }
+
+    [Fact]
     public async Task CreateUpdateDelete_UnknownType_Throws()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.CreateAsync("dragon", "x"));

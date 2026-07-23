@@ -81,6 +81,7 @@ Extensions implement hook interfaces from the Novalist SDK. The main contributio
 | `IContextMenuContributor` | Extra items in the editor context menu that act on the current scene (e.g. "generate synopsis"). |
 | `IGrammarCheckContributor` | Custom grammar / style checkers, merged with the built-in check in the editor. |
 | `IArticleGeneratorContributor` | Generates the AI summary shown at the top of a [Wiki](30-wiki.md) article, from a deterministic dossier the host assembles for the entity. |
+| `IEntityExtractionContributor` | Proposes new [Codex](06-codex.md) entries for the people, places, and things a scene mentions but the Codex does not have yet. The extension only ever *suggests*: Novalist assembles the passage, filters out names it already knows, shows you a review list, and does the writing itself. |
 | `IHotkeyContributor` | Keyboard shortcuts that fire the extension's own commands. |
 | `IThemeContributor` | Selectable accent themes, applied from the Extensions view. |
 | `IStatusBarContributor` | Live text items in the status bar, with optional click commands. |
@@ -96,6 +97,8 @@ Extensions can register **multiple** hooks — a single extension might add a pa
 - **Context-menu items** for a scene appear in the editor menu regardless of selection and act on the scene you are editing (the AI Assistant's "generate synopsis" is one).
 - **Grammar contributors** run alongside the built-in grammar check after a typing pause; their issues are underlined and merged with the built-in results.
 - **Article generators** produce the optional AI summary on a [Wiki](30-wiki.md) article. The host builds a deterministic, plain-text dossier of the entity (its fields, sections, relationships, and appearances) and hands it to the generator; the returned prose is cached per entity and shown at the top of the article. With no such extension installed, the Wiki simply omits the summary — everything else works unchanged. (The AI Assistant provides one.)
+
+- **Entity extractors** power the Inspector's **Find new entries in this scene** button. The host sends the scene's plain text plus every name the Codex already knows; the extension returns a list of *proposals* (a name, a suggested kind, and a one-line note). Novalist drops anything it already knows or that carries an unknown type, then shows you a review list with a checkbox per proposal — nothing is created until you tick it and confirm, and you can change the suggested kind before accepting. The extension is never given write access to the project. With no such extension installed the button does not appear. (The AI Assistant provides one.)
 
 ### Hotkeys, themes, and the status bar
 
@@ -115,12 +118,33 @@ Extension-contributed **settings categories** are listed in that same Extension 
 
 ## AI integration
 
-The AI Assistant extension integrates large-language-model providers (for example LM Studio and the GitHub Copilot CLI). Typical settings exposed by an AI extension:
+The AI Assistant extension integrates large-language-model providers (for example LM Studio, the GitHub Copilot CLI, and the Claude Code CLI). Typical settings exposed by an AI extension:
 
 - **Provider** and **endpoint URL** — for self-hosted or local servers.
 - **Model name** and **API token** — stored locally.
 - **Response language** and **system prompt** overrides.
 - **Analysis checks** — toggles for the individual analysis passes.
+
+The CLI-based providers run whichever `copilot` or `claude` binary you already have on your PATH, using the subscription (or API key) you logged that tool into — Novalist never stores a credential of its own. The **Claude Code CLI** provider is a good fit when local models are too slow for the first full analysis pass: it reaches hosted Claude models (pick a model alias — `sonnet`, `opus`, `haiku`, or `fable`) at the speed of a remote service, while the per-scene analysis cache means that expensive pass only runs once. Like the Copilot CLI, it drives a single subprocess and so runs one scene at a time regardless of the parallel-prompts setting.
+
+A finding that names something your Codex does not contain yet — a person, place, item or piece of lore the prose introduced — carries an **Add to Codex** button. It creates the entry with the finding's description and disappears once the entry exists, so you can act on a suggestion where you read it instead of retyping it in the Codex. Entries land under the type the analysis identified, falling back to Lore when it is unsure.
+
+### Scene analysis and character knowledge
+
+Each scene is analysed **once**, producing a record under `.novalist/analysis/<sceneId>.json` that holds the entities the scene involves (each marked as physically present or only mentioned), what every present character observed, learned, said and now wants, and any findings. Story Analysis, character knowledge, and the focus peek all read that same record, so whichever feature reaches a scene first pays for it and the others get it free. A scene whose text has not changed is never re-analysed.
+
+Because the record already describes every character in the scene, the **character-knowledge scan** derives each character's knowledge from it rather than asking the model once per character — a scan costs one pass per scene instead of characters multiplied by scenes.
+
+These records are part of your project (not ignored by version control), so a scan run on one machine travels with the project even to a machine with no AI configured.
+
+The **Knowledge** view (View tab of the ribbon, alongside AI Chat and Analysis) is where this data lives. It lists every character with how many scenes they are recorded as present in — distinguishing "not scanned yet" from "scanned, but not in any scene" — and shows, per scene, exactly what the model concluded: what the character observed, learned, said, was uncertain about, their emotion, location, companions, goals, relationship changes, secrets and inventory changes, plus which model produced it. Scenes the character was absent from are listed too, since "not present here" is itself information. The scan is started (and stopped) from the same view.
+
+Reading this before relying on "Talk as character" is worth the minute it takes: the roleplay is only as good as what the scan concluded, and this is the only place to check it.
+
+Two related options live in the **Character Knowledge** settings group:
+
+- **Analyse scenes in the background** — after you save a scene, analyse it quietly so the results are ready before a feature asks. Off by default, since it uses the model without you starting it. While it runs, the status bar shows which scene is being analysed.
+- If you already had character knowledge from an older Novalist version, you are asked once per project whether to **keep it as a fallback** or **clear it and re-run**; the old data was generated per character and does not agree with a shared scene record.
 
 The AI Assistant walks you through provider, endpoint, model, token, and response-language on **first project open** via its setup wizard. You can re-run the wizard later from the **Extension settings** section of the Extensions view.
 
