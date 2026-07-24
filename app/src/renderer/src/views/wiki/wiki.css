@@ -904,3 +904,45 @@
   color: var(--nl-text-subtle);
   font-size: var(--nl-font-body-sm);
 }
+
+/* ===== Mobile drill-down (phone Codex tab -> Wiki) ===== */
+
+.wiki-mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.wiki-mobile-bar {
+  flex: 0 0 auto;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border);
+  background: var(--nl-surface-sidebar);
+}
+
+.wiki-mobile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  border: none;
+  background: none;
+  color: var(--nl-accent);
+  font-size: var(--nl-font-body-lg);
+  padding: var(--nl-space-tighter);
+  cursor: pointer;
+}
+
+.wiki-mobile-article {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* The index fills the width on a phone (no side article pane). */
+.wiki-index-mobile {
+  flex: 1 1 auto;
+  width: 100%;
+  border-right: none;
+  overflow-y: auto;
+}

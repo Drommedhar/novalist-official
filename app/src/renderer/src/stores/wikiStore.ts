@@ -187,7 +187,7 @@ interface WikiState {
   articleLoading: boolean
   regenerating: boolean
   regenerateError: string | null
-  loadIndex(): Promise<void>
+  loadIndex(autoOpenFirst?: boolean): Promise<void>
   openArticle(type: string, id: string): Promise<void>
   regenerate(): Promise<void>
   clear(): void
@@ -203,13 +203,14 @@ export const useWikiStore = create<WikiState>((set, get) => ({
   regenerating: false,
   regenerateError: null,
 
-  loadIndex: async () => {
+  // autoOpenFirst keeps the desktop two-pane article populated on entry; the
+  // mobile drill-down passes false so it starts on the full-width list.
+  loadIndex: async (autoOpenFirst = true) => {
     set({ loading: true })
     const result = await rpc.request<WikiIndex>('wiki/index', [])
     set({ index: result.scopes, loading: false })
 
-    // Auto-open the first entry so the article pane is never empty on entry.
-    if (!get().currentId) {
+    if (autoOpenFirst && !get().currentId) {
       const first = result.scopes.flatMap((s) => s.types).flatMap((t) => t.entries)[0]
       if (first) await get().openArticle(first.typeKey, first.id)
     }

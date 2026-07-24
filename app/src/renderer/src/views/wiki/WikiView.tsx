@@ -97,7 +97,7 @@ export function WikiView(): React.JSX.Element {
   )
 }
 
-function WikiScopeSection({
+export function WikiScopeSection({
   scope,
   scopeLabel,
   currentId,

@@ -5,6 +5,7 @@ import { Binder } from './Binder'
 import { EditorFrame } from '../views/editor/EditorFrame'
 import { DashboardView } from '../views/dashboard/DashboardView'
 import { CodexView } from '../views/codex/CodexView'
+import { MobileWikiView } from '../views/wiki/MobileWikiView'
 import { SettingsView } from '../views/settings/SettingsView'
 import { TimelineView } from '../views/timeline/TimelineView'
 import { PlotGridView } from '../views/plotgrid/PlotGridView'
@@ -47,6 +48,8 @@ export function MobileShell(): React.JSX.Element {
   // Plan tab: which planning mode is showing, and whether the picker drawer is up.
   const [planningView, setPlanningView] = useState<MainView>('timeline')
   const [planningDrawerOpen, setPlanningDrawerOpen] = useState(false)
+  // Codex tab: switch between editing (Codex) and reading (Wiki).
+  const [codexMode, setCodexMode] = useState<'codex' | 'wiki'>('codex')
 
   // Localize the native iOS tab bar: the native side ships English fallbacks; the
   // web owns i18n, so push translated titles (in the native tab order) on mount
@@ -154,7 +157,34 @@ export function MobileShell(): React.JSX.Element {
 
   let content: React.JSX.Element
   if (tab === 'dashboard') content = <DashboardView />
-  else if (tab === 'codex') content = <CodexView />
+  else if (tab === 'codex')
+    content = (
+      <div className="mobile-codex">
+        <div className="mobile-segment" role="tablist" aria-label={t('shell.view.codex')}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={codexMode === 'codex'}
+            className={`mobile-segment-btn${codexMode === 'codex' ? ' active' : ''}`}
+            onClick={() => setCodexMode('codex')}
+          >
+            {t('shell.view.codex')}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={codexMode === 'wiki'}
+            className={`mobile-segment-btn${codexMode === 'wiki' ? ' active' : ''}`}
+            onClick={() => setCodexMode('wiki')}
+          >
+            {t('shell.view.wiki')}
+          </button>
+        </div>
+        <div className="mobile-codex-body">
+          {codexMode === 'codex' ? <CodexView /> : <MobileWikiView />}
+        </div>
+      </div>
+    )
   else if (tab === 'settings') content = <SettingsView />
   else if (tab === 'planning')
     content =

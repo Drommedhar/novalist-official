@@ -318,3 +318,47 @@
   width: 100%;
   min-height: 120px;
 }
+
+/* Codex tab: Codex/Wiki segmented toggle + the switched body. */
+.mobile-codex {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.mobile-segment {
+  display: flex;
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  background: var(--nl-surface-sidebar);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.mobile-segment-btn {
+  flex: 1;
+  padding: var(--nl-space-sm);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body);
+}
+
+.mobile-segment-btn.active {
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
+}
+
+.mobile-codex-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mobile-codex-body > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
