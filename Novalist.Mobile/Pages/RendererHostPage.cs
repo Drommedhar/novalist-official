@@ -429,18 +429,28 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     /// </summary>
     private void AddSidebarPan(UIView parent)
     {
-        UIScreenEdgePanGestureRecognizer pan = null!;
-        pan = new UIScreenEdgePanGestureRecognizer(() => HandleSidebarPan(pan, parent))
+        // Attached to the SIDEBAR, not the screen edge. A screen-edge recogniser
+        // on the parent never received the touch: the sidebar and the web view sit
+        // above it and claimed the gesture first. Hanging the recogniser on the
+        // panel itself means the drag starts on the view it moves, so nothing can
+        // intercept it - and grabbing the rail is what people reach for anyway.
+        if (_sidebar == null) return;
+        UIPanGestureRecognizer pan = null!;
+        pan = new UIPanGestureRecognizer(() => HandleSidebarPan(pan, parent));
+        // Only claim horizontal drags, so a vertical swipe still scrolls the
+        // destination list.
+        pan.ShouldBegin = recognizer =>
         {
-            Edges = UIRectEdge.Left
+            if (recognizer is not UIPanGestureRecognizer p) return false;
+            var v = p.VelocityInView(parent);
+            return Math.Abs((double)v.X) > Math.Abs((double)v.Y);
         };
-        parent.AddGestureRecognizer(pan);
-        // The drag starts ON the sidebar (the rail is 64pt wide), so its scroll
-        // view would otherwise claim the pan and nothing would move.
+        _sidebar.AddGestureRecognizer(pan);
+        // The list would otherwise swallow the drag before we see it.
         _sidebarScroll?.PanGestureRecognizer.RequireGestureRecognizerToFail(pan);
     }
 
-    private void HandleSidebarPan(UIScreenEdgePanGestureRecognizer pan, UIView parent)
+    private void HandleSidebarPan(UIPanGestureRecognizer pan, UIView parent)
     {
         // Phone layout and the welcome screen have no sidebar to drag.
         if (_sidebarWidth == null || _isRegularWidth != true || !_navVisible) return;
