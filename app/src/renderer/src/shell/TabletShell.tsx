@@ -60,6 +60,18 @@ export function TabletShell(): React.JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // The expanded sidebar overlays the content, so the native side collapses it on
+  // a tap outside or once a destination is picked. Mirror that back or the
+  // toggle's pressed state would drift from the sidebar actually on screen.
+  useEffect(() => {
+    const w = window as unknown as { __novalistSidebarCollapsed?: (collapsed: boolean) => void }
+    w.__novalistSidebarCollapsed = (collapsed: boolean) =>
+      useShellStore.getState().setSidebarCollapsed(collapsed)
+    return () => {
+      delete w.__novalistSidebarCollapsed
+    }
+  }, [])
+
   // The inspector only has content for a scene, so close it when the user
   // navigates away rather than leaving an empty slide-over up.
   useEffect(() => {

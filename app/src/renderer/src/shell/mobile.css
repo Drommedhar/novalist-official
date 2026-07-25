@@ -833,8 +833,9 @@
   height: 100%;
   min-height: 0;
   background: var(--nl-surface-window);
-  /* Clear the native sidebar overlay (it spans the full height, under the top
-     bar as well, so the inset belongs on the whole shell). */
+  /* Reserve only the collapsed RAIL width. Expanding the sidebar slides it over
+     this content rather than reflowing it, so the Liquid Glass refracts the
+     manuscript underneath. RendererHostPage pushes the rail width here. */
   padding-left: var(--nl-mobile-sidebar-w);
 }
 

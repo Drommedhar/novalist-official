@@ -143,6 +143,8 @@ public sealed class RendererHostPage : ContentPage, IDisposable
 
     private UIVisualEffectView? _sidebar;
     private NSLayoutConstraint? _sidebarWidth;
+    private UIView? _sidebarScrim;
+    private UIScrollView? _sidebarScroll;
     private bool _sidebarCollapsed;
     private readonly List<SidebarRow> _sidebarRows = new();
     private string[]? _sidebarTitles;
@@ -242,7 +244,12 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     private void PushChromeMetrics()
     {
         var regular = _isRegularWidth == true;
-        var sidebar = regular && _navVisible ? CurrentSidebarWidth : 0;
+        // The web only ever reserves the RAIL width. Expanding the sidebar slides
+        // it OVER the content rather than reflowing the layout, so the glass
+        // refracts the manuscript underneath instead of a flat background - which
+        // is the whole reason to use the material. The rail stays reserved so no
+        // content is permanently hidden behind it.
+        var sidebar = regular && _navVisible ? SidebarRailWidth : 0;
         var w = sidebar.ToString(System.Globalization.CultureInfo.InvariantCulture);
         _lastPushedTabH = -1;      // force the next tab-bar measurement through
         var js = $"document.documentElement.style.setProperty('--nl-mobile-sidebar-w','{w}px')";
@@ -300,6 +307,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         // Scrollable: 14 destinations plus separators exceed the short side of an
         // iPad mini in landscape.
         var scroll = new UIScrollView { TranslatesAutoresizingMaskIntoConstraints = false };
+        _sidebarScroll = scroll;
         scroll.AddSubview(stack);
         _sidebar.ContentView.AddSubview(scroll);
 
@@ -326,6 +334,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
             stack.WidthAnchor.ConstraintEqualTo(scroll.FrameLayoutGuide.WidthAnchor, 1, -16),
         });
 
+        AddSidebarPan(parent);
         ApplySidebarTitles();
         // Set the initial presentation WITHOUT forcing a layout pass: this runs
         // inside OnHandlerChanged, and driving parent.LayoutIfNeeded() there
@@ -346,6 +355,7 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     {
         foreach (var row in _sidebarRows) row.Compact = _sidebarCollapsed;
         if (_sidebarWidth != null) _sidebarWidth.Constant = CurrentSidebarWidth;
+        UpdateSidebarScrim();
         // Only the user-driven toggle animates. At construction time the layout
         // must be left to UIKit's own first pass (see AddNativeSidebar).
         if (animated && Handler?.PlatformView is UIView parent)
@@ -353,10 +363,133 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         PushChromeMetrics();
     }
 
+    /// <summary>
+    /// While the sidebar is expanded it floats over the content, so a tap outside
+    /// it must put it away - otherwise the expanded panel sits on top of the view
+    /// with no obvious way back. Transparent: dimming the content would defeat the
+    /// refraction the glass exists for.
+    /// </summary>
+    private void UpdateSidebarScrim()
+    {
+        var wanted = !_sidebarCollapsed && _navVisible && _isRegularWidth == true;
+        if (!wanted)
+        {
+            _sidebarScrim?.RemoveFromSuperview();
+            _sidebarScrim = null;
+            return;
+        }
+        if (_sidebarScrim != null) return;
+        if (Handler?.PlatformView is not UIView parent || _sidebar == null) return;
+
+        var scrim = new UIView
+        {
+            BackgroundColor = UIColor.Clear,
+            TranslatesAutoresizingMaskIntoConstraints = false
+        };
+        scrim.AddGestureRecognizer(new UITapGestureRecognizer(() => SetSidebarCollapsed(true)));
+        // Below the sidebar so taps on the sidebar itself still reach its rows.
+        parent.InsertSubviewBelow(scrim, _sidebar);
+        NSLayoutConstraint.ActivateConstraints(new[]
+        {
+            scrim.LeadingAnchor.ConstraintEqualTo(parent.LeadingAnchor),
+            scrim.TrailingAnchor.ConstraintEqualTo(parent.TrailingAnchor),
+            scrim.TopAnchor.ConstraintEqualTo(parent.TopAnchor),
+            scrim.BottomAnchor.ConstraintEqualTo(parent.BottomAnchor),
+        });
+        _sidebarScrim = scrim;
+    }
+
+    /// <summary>Collapse/expand from the native side, keeping the web's toggle in step.</summary>
+    private void SetSidebarCollapsed(bool collapsed)
+    {
+        if (_sidebarCollapsed == collapsed) return;
+        _sidebarCollapsed = collapsed;
+        ApplySidebarCollapsed();
+        NotifyWebSidebarCollapsed();
+    }
+
+    private void NotifyWebSidebarCollapsed() =>
+        _ = EvalOnMainAsync(
+            "window.__novalistSidebarCollapsed && window.__novalistSidebarCollapsed("
+            + (_sidebarCollapsed ? "true" : "false") + ")");
+
+    // ---- Interactive edge drag (rail <-> expanded) ---------------------------
+
+    private double _panStartWidth;
+
+    /// <summary>
+    /// Drag the sidebar out from the leading edge, and back. The width is a single
+    /// constraint, so the pan maps straight onto it and the panel tracks the
+    /// finger instead of snapping.
+    ///
+    /// Deliberately a SCREEN EDGE recogniser: several views scroll horizontally
+    /// (codex tabs, timeline toolbar) and the editor is contenteditable where a
+    /// horizontal drag selects text - an edge gesture never sees any of those. The
+    /// trailing edge is left alone because iPadOS uses it for Slide Over.
+    /// </summary>
+    private void AddSidebarPan(UIView parent)
+    {
+        UIScreenEdgePanGestureRecognizer pan = null!;
+        pan = new UIScreenEdgePanGestureRecognizer(() => HandleSidebarPan(pan, parent))
+        {
+            Edges = UIRectEdge.Left
+        };
+        parent.AddGestureRecognizer(pan);
+        // The drag starts ON the sidebar (the rail is 64pt wide), so its scroll
+        // view would otherwise claim the pan and nothing would move.
+        _sidebarScroll?.PanGestureRecognizer.RequireGestureRecognizerToFail(pan);
+    }
+
+    private void HandleSidebarPan(UIScreenEdgePanGestureRecognizer pan, UIView parent)
+    {
+        // Phone layout and the welcome screen have no sidebar to drag.
+        if (_sidebarWidth == null || _isRegularWidth != true || !_navVisible) return;
+
+        switch (pan.State)
+        {
+            case UIGestureRecognizerState.Began:
+                _panStartWidth = (double)_sidebarWidth.Constant;
+                break;
+
+            case UIGestureRecognizerState.Changed:
+            {
+                var width = _panStartWidth + (double)pan.TranslationInView(parent).X;
+                width = Math.Clamp(width, SidebarRailWidth, SidebarWidth);
+                _sidebarWidth.Constant = (System.Runtime.InteropServices.NFloat)width;
+                // Labels appear past the halfway point so the rail does not show
+                // clipped text mid-drag.
+                var showLabels = width > (SidebarRailWidth + SidebarWidth) / 2.0;
+                foreach (var row in _sidebarRows) row.Compact = !showLabels;
+                parent.LayoutIfNeeded();
+                break;
+            }
+
+            case UIGestureRecognizerState.Ended:
+            case UIGestureRecognizerState.Cancelled:
+            {
+                var width = (double)_sidebarWidth.Constant;
+                var velocity = (double)pan.VelocityInView(parent).X;
+                // A decisive flick wins over position, so a short fast drag still
+                // completes; otherwise settle to whichever end is nearer.
+                var expand = velocity > 250
+                    || (velocity > -250 && width > (SidebarRailWidth + SidebarWidth) / 2.0);
+                var changed = _sidebarCollapsed == expand;
+                _sidebarCollapsed = !expand;
+                ApplySidebarCollapsed();
+                if (changed) NotifyWebSidebarCollapsed();
+                break;
+            }
+        }
+    }
+
     private void OnSidebarSelected(string key)
     {
         SelectSidebarKey(key);
         _ = EvalOnMainAsync($"window.__novalistTab && window.__novalistTab('{key}')");
+        // Overlay semantics: picking a destination puts the sidebar away, or the
+        // expanded panel and its tap-catcher would sit on top of the very view
+        // that was just chosen.
+        SetSidebarCollapsed(true);
     }
 
     // Highlight the row for a destination key (no-op for keys not in the list).
