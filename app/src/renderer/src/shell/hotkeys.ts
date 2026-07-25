@@ -299,6 +299,7 @@ export function dispatchForwardedHotkey(payload: {
   key: string
   code: string
   ctrlKey: boolean
+  metaKey?: boolean
   shiftKey: boolean
   altKey: boolean
 }): boolean {
@@ -306,7 +307,9 @@ export function dispatchForwardedHotkey(payload: {
     key: payload.key,
     code: payload.code,
     ctrlKey: payload.ctrlKey,
-    metaKey: false,
+    // Cmd must survive the trip: matchGesture reads Ctrl as "ctrlKey || metaKey",
+    // so dropping it here silently disabled every Cmd shortcut typed in the editor.
+    metaKey: payload.metaKey === true,
     shiftKey: payload.shiftKey,
     altKey: payload.altKey
   } as KeyboardEvent

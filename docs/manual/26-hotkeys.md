@@ -49,6 +49,7 @@ The number keys switch the main area between views, in this order:
 
 - While the cursor is in a text field or the editor, only gestures that include `Ctrl` (or `Cmd`) fire, so plain typing and `Alt` shortcuts never interrupt your writing. `Alt+F` works whenever focus is outside a text field.
 - Standard text-editing shortcuts — copy, cut, paste, select all, undo, redo (`Ctrl+C/X/V/A/Z/Y`, `Ctrl+Shift+Z`) — are handled natively by the writing surface.
+- On Apple keyboards `Cmd+B`, `Cmd+I` and `Cmd+U` stay with the writing surface as bold, italic and underline, so they apply formatting rather than triggering the app actions bound to `Ctrl+B` and friends.
 - Every action listed here is also available by name in the [Command Palette](25-command-palette.md).
 
 ## Dialog conventions

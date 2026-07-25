@@ -16,7 +16,9 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Keyboard shortcuts that use the Command key now work while you are typing in the editor. Previously any Command shortcut pressed with the cursor in your text was ignored, so you had to click out of the editor first. Command-B, Command-I and Command-U still apply bold, italic and underline as before.
 
 ---
 
