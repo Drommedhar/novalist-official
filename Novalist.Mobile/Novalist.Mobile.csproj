@@ -21,9 +21,15 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Novalist.Mobile</RootNamespace>
 
-    <!-- App identity -->
+    <!-- App identity.
+         The bundle ID deliberately matches the desktop/Mac App Store appId in
+         app/electron-builder.yml. An App Store Connect record is keyed to a
+         single bundle ID across every platform it carries, so sharing the ID is
+         what lets iOS ship as a platform of the existing macOS app record
+         (universal purchase) instead of a second, separate app. Do not "fix"
+         this to a mobile-specific ID — that would split the record in two. -->
     <ApplicationTitle>Novalist</ApplicationTitle>
-    <ApplicationId>com.novalist.mobile</ApplicationId>
+    <ApplicationId>com.novalist.app</ApplicationId>
     <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
 

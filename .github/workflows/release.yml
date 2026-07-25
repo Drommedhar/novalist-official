@@ -301,7 +301,14 @@ jobs:
   # (the unified "Apple Distribution" cert signs iOS too) and the App Store Connect
   # API key; the only new secret is the iOS App Store provisioning profile. A manual
   # workflow_dispatch is a dry-run: it builds the IPA (and uploads it as an
-  # artifact) but skips the App Store Connect upload. See docs/ios-signing.md.
+  # artifact) but skips the App Store Connect upload.
+  #
+  # iOS is a PLATFORM OF THE MAC APP RECORD, not a separate app: Novalist.Mobile
+  # builds with the same bundle ID as the desktop app (com.novalist.app), which is
+  # what App Store Connect requires to carry both platforms under one record. So
+  # the provisioning profile in IOS_APPSTORE_PROVISION_BASE64 must be an iOS App
+  # Store profile issued against com.novalist.app — a profile for any other App ID
+  # will fail to match at signing time.
   ios-app-store:
     name: iOS TestFlight
     if: startsWith(github.ref, 'refs/tags/ios-') || github.event_name == 'workflow_dispatch'
