@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [2.3] - 2026-07-25
+
 ### Added
 
 - **Exposé view** - a per-book pitch document with its own editor, reachable from the Publish
@@ -505,7 +511,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v2.2...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v2.3...HEAD
+[2.3]: https://github.com/Drommedhar/novalist-official/compare/v2.2...v2.3
 [2.2]: https://github.com/Drommedhar/novalist-official/compare/v2.1...v2.2
 [2.1.1]: https://github.com/Drommedhar/novalist-official/releases/tag/v2.1.1
 [2.1]: https://github.com/Drommedhar/novalist-official/compare/v2.0...v2.1
