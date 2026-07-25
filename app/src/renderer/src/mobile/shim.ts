@@ -162,6 +162,24 @@ const novalist: Window['novalist'] = {
   setPlanningMenuOpen: (open: boolean, labels: string[]) => {
     void hostCall('setPlanningMenuOpen', [open, labels])
   },
+  // Tablet-only: localized titles for the native iPad sidebar, in the order the
+  // native SidebarItems table declares (see TABLET_DESTINATIONS).
+  setSidebarTitles: (titles: string[]) => {
+    void hostCall('setSidebarTitles', [titles])
+  },
+  // Tablet-only: move the sidebar highlight to a destination key.
+  setSidebarSelection: (key: string) => {
+    void hostCall('setSidebarSelection', [key])
+  },
+  // Tablet-only: collapse the sidebar to an icon-only rail, or expand it back.
+  setSidebarCollapsed: (collapsed: boolean) => {
+    void hostCall('setSidebarCollapsed', [collapsed])
+  },
+  // Ask the native side to re-push the current size class through
+  // window.__novalistLayout; the first pass can run before the bundle loads.
+  requestLayout: () => {
+    void hostCall('requestLayout', [])
+  },
   readClipboardImage: () => hostCall<string | null>('readClipboardImage', []),
   // Track the open project's folder natively so project images can be read, and
   // drop the resolved-image cache so a new project can't reuse the old one's.

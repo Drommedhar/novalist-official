@@ -2199,6 +2199,7 @@
   },
   "shell": {
     "toggleBinder": "切换项目栏",
+    "toggleSidebar": "切换边栏",
     "toggleInspector": "切换检查器",
     "newChapter": "章节",
     "newScene": "场景",

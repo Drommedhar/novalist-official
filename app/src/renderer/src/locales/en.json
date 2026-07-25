@@ -2164,6 +2164,7 @@
   },
   "shell": {
     "toggleBinder": "Toggle binder",
+    "toggleSidebar": "Toggle sidebar",
     "toggleInspector": "Toggle inspector",
     "toggleSceneNotes": "Toggle scene notes",
     "snapshots": "Scene snapshots",

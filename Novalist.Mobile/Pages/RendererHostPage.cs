@@ -107,11 +107,357 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         ("settings", "Settings", "gearshape"),
     };
 
+    // iPad (regular horizontal size class) replaces the compact bottom tab bar
+    // with a leading Liquid Glass sidebar. It carries the full desktop
+    // destination set minus Git (no `git` binary in the iOS sandbox), grouped
+    // exactly like the desktop activity bar (shellStore.activityGroups).
+    //
+    // Keys are the shellStore MainView values and go straight back to the web
+    // through window.__novalistTab. English titles are only the pre-localization
+    // fallback; the web pushes localized ones (in this order) via
+    // setSidebarTitles. Group starts a new section above the row.
+    private static readonly (string Key, string Title, string Symbol, bool Group)[] SidebarItems =
+    {
+        ("dashboard", "Dashboard", "square.grid.2x2", false),
+        ("write", "Write", "square.and.pencil", false),
+        ("manuscript", "Manuscript", "rectangle.split.1x2", false),
+        ("timeline", "Timeline", "chart.bar.xaxis", true),
+        ("plotGrid", "Plot Grid", "tablecells", false),
+        ("calendar", "Calendar", "calendar", false),
+        ("relationships", "Relationships", "point.3.connected.trianglepath.dotted", false),
+        ("codex", "Codex", "person.2", true),
+        ("wiki", "Wiki", "newspaper", false),
+        ("maps", "Maps", "map", false),
+        ("research", "Research", "doc.text", false),
+        ("gallery", "Gallery", "photo.on.rectangle", false),
+        ("export", "Export", "paperplane", true),
+        ("settings", "Settings", "gearshape", true),
+    };
+
+    // Expanded shows icon + label; collapsed keeps the same Liquid Glass panel but
+    // narrows it to an icon-only rail, so every destination stays one tap away
+    // while the text column gets the difference back. Portrait on any iPad is the
+    // case that needs it - sidebar + binder + editor do not all fit comfortably.
+    private const int SidebarWidth = 240;
+    private const int SidebarRailWidth = 64;
+
+    private UIVisualEffectView? _sidebar;
+    private NSLayoutConstraint? _sidebarWidth;
+    private bool _sidebarCollapsed;
+    private readonly List<SidebarRow> _sidebarRows = new();
+    private string[]? _sidebarTitles;
+    private LayoutProbe? _probe;
+    // Whether the last applied layout was the regular-width (iPad) one. Null until
+    // the first size-class pass, so the first pass always pushes.
+    private bool? _isRegularWidth;
+    // Set false on the welcome screen (setNavVisible) - no chrome until a project
+    // is open, in either size class.
+    private bool _navVisible = true;
+
     protected override void OnHandlerChanged()
     {
         base.OnHandlerChanged();
-        if (_tabBar == null && Handler?.PlatformView is UIView native)
-            AddNativeTabBar(native);
+        if (Handler?.PlatformView is not UIView native) return;
+        if (_tabBar == null) AddNativeTabBar(native);
+        if (_sidebar == null) AddNativeSidebar(native);
+        if (_probe == null) AddLayoutProbe(native);
+    }
+
+    // ---- Size-class adaptation (iPad sidebar <-> iPhone tab bar) -------------
+
+    /// <summary>
+    /// Invisible full-bleed view whose LayoutSubviews fires on every parent
+    /// resize - rotation, Split View / Stage Manager drags, and the first
+    /// appearance. Cheaper and less brittle than the deprecated
+    /// TraitCollectionDidChange override, and it catches plain rotations (which
+    /// keep the size class) as well as size-class flips.
+    /// </summary>
+    private sealed class LayoutProbe : UIView
+    {
+        public Action? LayoutChanged;
+
+        public override void LayoutSubviews()
+        {
+            base.LayoutSubviews();
+            LayoutChanged?.Invoke();
+        }
+    }
+
+    private void AddLayoutProbe(UIView parent)
+    {
+        _probe = new LayoutProbe
+        {
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            BackgroundColor = UIColor.Clear,
+            // Never swallow a touch meant for the web content underneath.
+            UserInteractionEnabled = false
+        };
+        _probe.LayoutChanged = ApplySizeClass;
+        parent.AddSubview(_probe);
+        NSLayoutConstraint.ActivateConstraints(new[]
+        {
+            _probe.LeadingAnchor.ConstraintEqualTo(parent.LeadingAnchor),
+            _probe.TrailingAnchor.ConstraintEqualTo(parent.TrailingAnchor),
+            _probe.TopAnchor.ConstraintEqualTo(parent.TopAnchor),
+            _probe.BottomAnchor.ConstraintEqualTo(parent.BottomAnchor),
+        });
+    }
+
+    /// <summary>
+    /// Picks the chrome for the current horizontal size class and tells the web
+    /// which layout it is in. Regular (iPad full screen, and half-screen Split
+    /// View on the large iPads) gets the leading sidebar; compact (iPhone, and a
+    /// narrow Split View / Slide Over window) falls back to the bottom tab bar,
+    /// so a resized iPad window collapses to the phone layout automatically.
+    /// </summary>
+    private void ApplySizeClass()
+    {
+        if (Handler?.PlatformView is not UIView parent) return;
+        var regular = parent.TraitCollection.HorizontalSizeClass == UIUserInterfaceSizeClass.Regular;
+        var changed = _isRegularWidth != regular;
+        _isRegularWidth = regular;
+
+        if (_sidebar != null) _sidebar.Hidden = !regular || !_navVisible;
+        if (_tabBar != null) _tabBar.Hidden = regular || !_navVisible;
+        // The Plan popover belongs to the compact tab bar; the sidebar lists the
+        // planning modes directly, so it must not survive a rotation into regular.
+        if (regular) HidePlanMenu();
+
+        if (changed)
+        {
+            PushChromeMetrics();
+            _ = EvalOnMainAsync(
+                $"window.__novalistLayout && window.__novalistLayout('{(regular ? "tablet" : "phone")}')");
+        }
+        else
+        {
+            // Same size class, but the frame may still have moved (rotation).
+            PushTabBarMetrics();
+        }
+    }
+
+    // Push both chrome insets at once so the web never insets for chrome that is
+    // not showing. The tab-bar height is re-measured by PushTabBarMetrics once
+    // the bar has laid out.
+    private void PushChromeMetrics()
+    {
+        var regular = _isRegularWidth == true;
+        var sidebar = regular && _navVisible ? CurrentSidebarWidth : 0;
+        var w = sidebar.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        _lastPushedTabH = -1;      // force the next tab-bar measurement through
+        var js = $"document.documentElement.style.setProperty('--nl-mobile-sidebar-w','{w}px')";
+        if (regular)
+            js += ";document.documentElement.style.setProperty('--nl-mobile-tabbar-h','0px')";
+        _ = EvalOnMainAsync(js);
+        if (!regular) PushTabBarMetrics();
+    }
+
+    private void AddNativeSidebar(UIView parent)
+    {
+        // Same Liquid Glass material as the tab bar and the Plan popover (falls
+        // back to a chrome blur on any pre-glass runtime).
+        UIVisualEffect effect;
+        try { effect = new UIGlassEffect(); }
+        catch { effect = UIBlurEffect.FromStyle(UIBlurEffectStyle.SystemChromeMaterial); }
+        _sidebar = new UIVisualEffectView(effect)
+        {
+            TranslatesAutoresizingMaskIntoConstraints = false,
+            Hidden = true
+        };
+        // The app is dark-only; without this the glass renders in its light variant.
+        _sidebar.OverrideUserInterfaceStyle = UIUserInterfaceStyle.Dark;
+
+        var stack = new UIStackView
+        {
+            Axis = UILayoutConstraintAxis.Vertical,
+            Spacing = 2,
+            TranslatesAutoresizingMaskIntoConstraints = false
+        };
+
+        _sidebarRows.Clear();
+        for (var i = 0; i < SidebarItems.Length; i++)
+        {
+            var item = SidebarItems[i];
+            if (item.Group && i > 0)
+            {
+                var sep = new UIView { BackgroundColor = UIColor.Label.ColorWithAlpha(0.18f) };
+                sep.HeightAnchor.ConstraintEqualTo(1).Active = true;
+                var pad = new UIView();
+                pad.HeightAnchor.ConstraintEqualTo(8).Active = true;
+                stack.AddArrangedSubview(pad);
+                stack.AddArrangedSubview(sep);
+                var pad2 = new UIView();
+                pad2.HeightAnchor.ConstraintEqualTo(8).Active = true;
+                stack.AddArrangedSubview(pad2);
+            }
+            var key = item.Key;
+            var row = new SidebarRow(item.Symbol, item.Title);
+            row.TouchUpInside += (_, _) => OnSidebarSelected(key);
+            _sidebarRows.Add(row);
+            stack.AddArrangedSubview(row);
+        }
+
+        // Scrollable: 14 destinations plus separators exceed the short side of an
+        // iPad mini in landscape.
+        var scroll = new UIScrollView { TranslatesAutoresizingMaskIntoConstraints = false };
+        scroll.AddSubview(stack);
+        _sidebar.ContentView.AddSubview(scroll);
+
+        parent.AddSubview(_sidebar);
+        _sidebarWidth = _sidebar.WidthAnchor.ConstraintEqualTo(CurrentSidebarWidth);
+        _sidebarWidth.Active = true;
+        NSLayoutConstraint.ActivateConstraints(new[]
+        {
+            _sidebar.LeadingAnchor.ConstraintEqualTo(parent.LeadingAnchor),
+            _sidebar.TopAnchor.ConstraintEqualTo(parent.TopAnchor),
+            _sidebar.BottomAnchor.ConstraintEqualTo(parent.BottomAnchor),
+
+            // Inset the list by the safe area so it clears the status bar and the
+            // home indicator; the glass itself still runs edge to edge.
+            scroll.LeadingAnchor.ConstraintEqualTo(_sidebar.ContentView.LeadingAnchor),
+            scroll.TrailingAnchor.ConstraintEqualTo(_sidebar.ContentView.TrailingAnchor),
+            scroll.TopAnchor.ConstraintEqualTo(parent.SafeAreaLayoutGuide.TopAnchor, 8),
+            scroll.BottomAnchor.ConstraintEqualTo(parent.SafeAreaLayoutGuide.BottomAnchor, -8),
+
+            stack.LeadingAnchor.ConstraintEqualTo(scroll.ContentLayoutGuide.LeadingAnchor, 8),
+            stack.TrailingAnchor.ConstraintEqualTo(scroll.ContentLayoutGuide.TrailingAnchor, -8),
+            stack.TopAnchor.ConstraintEqualTo(scroll.ContentLayoutGuide.TopAnchor),
+            stack.BottomAnchor.ConstraintEqualTo(scroll.ContentLayoutGuide.BottomAnchor),
+            stack.WidthAnchor.ConstraintEqualTo(scroll.FrameLayoutGuide.WidthAnchor, 1, -16),
+        });
+
+        ApplySidebarTitles();
+        // Set the initial presentation WITHOUT forcing a layout pass: this runs
+        // inside OnHandlerChanged, and driving parent.LayoutIfNeeded() there
+        // laid the (not yet sized) UITabBar out early and left its items
+        // permanently compressed to "Da..." instead of "Dashboard".
+        ApplySidebarCollapsed(animated: false);
+        SelectSidebarKey("dashboard");
+    }
+
+    private int CurrentSidebarWidth => _sidebarCollapsed ? SidebarRailWidth : SidebarWidth;
+
+    /// <summary>
+    /// Animate between the labelled sidebar and the icon-only rail. The glass panel
+    /// is the same view either way - only its width and the rows' labels change -
+    /// so the material and the selection survive the transition.
+    /// </summary>
+    private void ApplySidebarCollapsed(bool animated = true)
+    {
+        foreach (var row in _sidebarRows) row.Compact = _sidebarCollapsed;
+        if (_sidebarWidth != null) _sidebarWidth.Constant = CurrentSidebarWidth;
+        // Only the user-driven toggle animates. At construction time the layout
+        // must be left to UIKit's own first pass (see AddNativeSidebar).
+        if (animated && Handler?.PlatformView is UIView parent)
+            UIView.Animate(0.22, () => parent.LayoutIfNeeded());
+        PushChromeMetrics();
+    }
+
+    private void OnSidebarSelected(string key)
+    {
+        SelectSidebarKey(key);
+        _ = EvalOnMainAsync($"window.__novalistTab && window.__novalistTab('{key}')");
+    }
+
+    // Highlight the row for a destination key (no-op for keys not in the list).
+    private void SelectSidebarKey(string key)
+    {
+        for (var i = 0; i < _sidebarRows.Count && i < SidebarItems.Length; i++)
+            _sidebarRows[i].Selected = SidebarItems[i].Key == key;
+    }
+
+    private void ApplySidebarTitles()
+    {
+        if (_sidebarTitles == null) return;
+        var count = Math.Min(_sidebarRows.Count, _sidebarTitles.Length);
+        for (var i = 0; i < count; i++)
+            _sidebarRows[i].Title = _sidebarTitles[i];
+    }
+
+    /// <summary>
+    /// One sidebar destination: an SF Symbol plus a label in a rounded, tappable
+    /// row. A plain UIControl rather than a configured UIButton so the selected
+    /// background and the 44pt touch target are explicit.
+    /// </summary>
+    private sealed class SidebarRow : UIControl
+    {
+        private readonly UILabel _label;
+        // Swapped when collapsing: the icon moves from "leading, label beside it"
+        // to "centred, no label". The label's own constraints are deactivated in
+        // the rail - left active they would demand a negative width at 64pt.
+        private readonly NSLayoutConstraint _iconLeading;
+        private readonly NSLayoutConstraint _iconCentre;
+        private readonly NSLayoutConstraint[] _labelConstraints;
+
+        public SidebarRow(string symbol, string title)
+        {
+            TranslatesAutoresizingMaskIntoConstraints = false;
+            Layer.CornerRadius = 10;
+
+            var icon = new UIImageView(UIImage.GetSystemImage(symbol))
+            {
+                TranslatesAutoresizingMaskIntoConstraints = false,
+                ContentMode = UIViewContentMode.ScaleAspectFit,
+                TintColor = UIColor.Label
+            };
+            _label = new UILabel
+            {
+                Text = title,
+                TranslatesAutoresizingMaskIntoConstraints = false,
+                Font = UIFont.SystemFontOfSize(16),
+                TextColor = UIColor.Label,
+                LineBreakMode = UILineBreakMode.TailTruncation
+            };
+            // The row handles the tap; the children must not intercept it.
+            icon.UserInteractionEnabled = false;
+            _label.UserInteractionEnabled = false;
+            AddSubview(icon);
+            AddSubview(_label);
+
+            _iconLeading = icon.LeadingAnchor.ConstraintEqualTo(LeadingAnchor, 12);
+            _iconCentre = icon.CenterXAnchor.ConstraintEqualTo(CenterXAnchor);
+            _labelConstraints = new[]
+            {
+                _label.LeadingAnchor.ConstraintEqualTo(icon.TrailingAnchor, 12),
+                _label.TrailingAnchor.ConstraintEqualTo(TrailingAnchor, -12),
+            };
+
+            NSLayoutConstraint.ActivateConstraints(new[]
+            {
+                HeightAnchor.ConstraintEqualTo(44),
+                icon.CenterYAnchor.ConstraintEqualTo(CenterYAnchor),
+                icon.WidthAnchor.ConstraintEqualTo(22),
+                icon.HeightAnchor.ConstraintEqualTo(22),
+                _label.CenterYAnchor.ConstraintEqualTo(CenterYAnchor),
+            });
+            _iconLeading.Active = true;
+            NSLayoutConstraint.ActivateConstraints(_labelConstraints);
+        }
+
+        public string Title
+        {
+            set => _label.Text = value;
+        }
+
+        /// <summary>Icon-only rail presentation (no label, icon centred).</summary>
+        public bool Compact
+        {
+            set
+            {
+                _label.Hidden = value;
+                _iconLeading.Active = !value;
+                NSLayoutConstraint.DeactivateConstraints(_labelConstraints);
+                _iconCentre.Active = value;
+                if (!value) NSLayoutConstraint.ActivateConstraints(_labelConstraints);
+            }
+        }
+
+        public bool Selected
+        {
+            set => BackgroundColor = value
+                ? UIColor.Label.ColorWithAlpha(0.16f)
+                : UIColor.Clear;
+        }
     }
 
     private void AddNativeTabBar(UIView parent)
@@ -178,7 +524,9 @@ public sealed class RendererHostPage : ContentPage, IDisposable
 
     private void PushTabBarMetrics()
     {
-        if (_tabBar == null) return;
+        // In regular width the bar is hidden and the sidebar owns the inset;
+        // PushChromeMetrics already pinned the height to 0.
+        if (_tabBar == null || _isRegularWidth == true) return;
         var h = Math.Round(_tabBar.Frame.Height);
         if (h <= 0 || Math.Abs(h - _lastPushedTabH) < 0.5) return;   // unchanged layout
         _lastPushedTabH = h;
@@ -513,15 +861,80 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 return null;           // MAUI Clipboard is text-only
             case "setNavVisible":
             {
-                // Show the native Liquid Glass tab bar only inside a project
-                // (hidden on the welcome/start screen).
+                // Show the native Liquid Glass navigation only inside a project
+                // (hidden on the welcome/start screen). Whichever chrome the
+                // current size class uses - bottom tab bar or leading sidebar -
+                // follows this flag, and the web's inset follows with it.
                 var visible = args.ValueKind == JsonValueKind.Array
                     && args.GetArrayLength() > 0
                     && args[0].ValueKind == JsonValueKind.True;
 #if IOS
                 await MainThread.InvokeOnMainThreadAsync(() =>
                 {
-                    if (_tabBar != null) _tabBar.Hidden = !visible;
+                    _navVisible = visible;
+                    var regular = _isRegularWidth == true;
+                    if (_tabBar != null) _tabBar.Hidden = regular || !visible;
+                    if (_sidebar != null) _sidebar.Hidden = !regular || !visible;
+                    PushChromeMetrics();
+                });
+#endif
+                return null;
+            }
+            case "setSidebarTitles":
+            {
+                // args[0] = localized titles in SidebarItems order. Same contract as
+                // setTabTitles, for the iPad sidebar.
+                var titles = new List<string>();
+                if (args.ValueKind == JsonValueKind.Array && args.GetArrayLength() > 0
+                    && args[0].ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var el in args[0].EnumerateArray())
+                        titles.Add(el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "");
+                }
+#if IOS
+                _sidebarTitles = titles.ToArray();
+                await MainThread.InvokeOnMainThreadAsync(ApplySidebarTitles);
+#endif
+                return null;
+            }
+            case "setSidebarCollapsed":
+            {
+                // Collapse the iPad sidebar to an icon-only rail (or expand it).
+                // Driven from the web so the toggle lives with the other pane
+                // controls in the tablet top bar.
+                var collapsed = args.ValueKind == JsonValueKind.Array
+                    && args.GetArrayLength() > 0
+                    && args[0].ValueKind == JsonValueKind.True;
+#if IOS
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (_sidebarCollapsed == collapsed) return;
+                    _sidebarCollapsed = collapsed;
+                    ApplySidebarCollapsed();
+                });
+#endif
+                return null;
+            }
+            case "setSidebarSelection":
+            {
+                // Keep the sidebar highlight on the destination the web actually
+                // shows (e.g. opening a scene from the binder switches to Write).
+                var key = ArgString(args, 0);
+#if IOS
+                await MainThread.InvokeOnMainThreadAsync(() => SelectSidebarKey(key));
+#endif
+                return null;
+            }
+            case "requestLayout":
+            {
+                // The web asks which layout it is in on mount. The size-class pass
+                // may have run before the bundle finished loading, so re-push it
+                // unconditionally rather than only on change.
+#if IOS
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    _isRegularWidth = null;      // force ApplySizeClass to re-push
+                    ApplySizeClass();
                 });
 #endif
                 return null;
@@ -618,6 +1031,10 @@ public sealed class RendererHostPage : ContentPage, IDisposable
     public void Dispose()
     {
         _cts.Cancel();
+#if IOS
+        // The probe outlives the page otherwise and would keep calling back.
+        if (_probe != null) _probe.LayoutChanged = null;
+#endif
         _web.RawMessageReceived -= OnRawMessageReceived;
         _host.Dispose();
         _bridge.Dispose();

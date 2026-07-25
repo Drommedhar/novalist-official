@@ -2172,6 +2172,7 @@
   },
   "shell": {
     "toggleBinder": "Binder umschalten",
+    "toggleSidebar": "Seitenleiste umschalten",
     "toggleInspector": "Inspektor umschalten",
     "toggleSceneNotes": "Szenennotizen umschalten",
     "snapshots": "Szenen-Schnappschüsse",

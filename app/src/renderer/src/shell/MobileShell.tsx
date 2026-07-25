@@ -11,6 +11,7 @@ import { TimelineView } from '../views/timeline/TimelineView'
 import { PlotGridView } from '../views/plotgrid/PlotGridView'
 import { CalendarView } from '../views/calendar/CalendarView'
 import { MobileInspectorSheet } from './MobileInspectorSheet'
+import { TabletShell } from './TabletShell'
 import { useShellStore, type MobileTab, type MainView } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { useCodexStore } from '../stores/codexStore'
@@ -38,18 +39,54 @@ const PLANNING_LABEL_KEYS = [
 ]
 
 /**
- * Single-pane mobile layout. The desktop multi-pane shell (activity bar + binder
- * + main + inspector) collapses to one full-screen view at a time; navigation is
- * the native iOS Liquid Glass UITabBar overlaid by RendererHostPage, which calls
- * window.__novalistTab to switch tabs here. v1 scope: dashboard, manuscript
- * (chapter/scene list -> editor), codex, and a More sheet (settings). Planning /
- * world / publish views are feature-flagged off (see ActivityBar mobileHiddenViews).
+ * iPad sidebar destinations, in the order the native side lists them. MUST stay
+ * in step with the SidebarItems table in RendererHostPage.cs: the web pushes
+ * localized titles positionally, and taps come back as these keys.
+ *
+ * This is the desktop activity bar (shellStore.activityGroups) plus Write and
+ * Settings, minus Git - no `git` binary in the iOS sandbox.
+ */
+const TABLET_DESTINATIONS: MainView[] = [
+  'dashboard',
+  'write',
+  'manuscript',
+  'timeline',
+  'plotGrid',
+  'calendar',
+  'relationships',
+  'codex',
+  'wiki',
+  'maps',
+  'research',
+  'gallery',
+  'export',
+  'settings'
+]
+
+/**
+ * Mobile layout root. Picks between two shells based on the native horizontal
+ * size class, which RendererHostPage announces through window.__novalistLayout:
+ *
+ *   - compact (iPhone, and a narrow iPad Split View / Slide Over window): the
+ *     single-pane layout below. The desktop multi-pane shell collapses to one
+ *     full-screen view at a time; navigation is the native iOS Liquid Glass
+ *     UITabBar, which calls window.__novalistTab to switch tabs here. Scope:
+ *     dashboard, manuscript (chapter/scene list -> editor), codex, a Plan drawer,
+ *     and settings.
+ *   - regular (iPad): TabletShell - a persistent binder beside the real MainArea,
+ *     switched by a native Liquid Glass sidebar carrying every desktop view.
+ *
+ * Because the size class drives both, resizing an iPad window moves the app
+ * between the two layouts without a reload, and the web's chrome insets always
+ * match the chrome actually on screen.
  */
 export function MobileShell(): React.JSX.Element {
   const { t, i18n } = useTranslation()
+  const layout = useShellStore((s) => s.mobileLayout)
   const tab = useShellStore((s) => s.mobileTab)
   const setTab = useShellStore((s) => s.setMobileTab)
   const setFindReplaceOpen = useShellStore((s) => s.setFindReplaceOpen)
+  const mainView = useShellStore((s) => s.mainView)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const closeTab = useProjectStore((s) => s.closeTab)
@@ -61,9 +98,29 @@ export function MobileShell(): React.JSX.Element {
   // Codex tab: switch between editing (Codex) and reading (Wiki).
   const [codexMode, setCodexMode] = useState<'codex' | 'wiki'>('codex')
 
-  // Localize the native iOS tab bar: the native side ships English fallbacks; the
-  // web owns i18n, so push translated titles (in the native tab order) on mount
-  // and whenever the language changes.
+  // The native side owns the size class, so it also owns which layout we render.
+  // requestLayout covers the case where the first size-class pass ran before this
+  // bundle finished loading and its announcement was therefore lost.
+  useEffect(() => {
+    const w = window as unknown as { __novalistLayout?: (mode: string) => void }
+    w.__novalistLayout = (mode: string) =>
+      useShellStore.getState().setMobileLayout(mode === 'tablet' ? 'tablet' : 'phone')
+    window.novalist.requestLayout?.()
+    return () => {
+      delete w.__novalistLayout
+    }
+  }, [])
+
+  // Expose the layout to CSS. On documentElement rather than a class on the shell
+  // so overlays that escape the shell subtree (sheets, dialogs) are scoped too.
+  useEffect(() => {
+    document.documentElement.dataset.mobileLayout = layout
+  }, [layout])
+
+  // Localize the native iOS chrome: the native side ships English fallbacks; the
+  // web owns i18n, so push translated titles (in the native tab / sidebar order)
+  // on mount and whenever the language changes. Both are pushed regardless of the
+  // current size class, so a rotation into the other layout finds them ready.
   useEffect(() => {
     const push = (): void => {
       window.novalist.setTabTitles?.([
@@ -73,6 +130,7 @@ export function MobileShell(): React.JSX.Element {
         t('mobile.tab.planning'),
         t('mobile.tab.settings')
       ])
+      window.novalist.setSidebarTitles?.(TABLET_DESTINATIONS.map((v) => t(`shell.view.${v}`)))
     }
     push()
     i18n.on('languageChanged', push)
@@ -81,10 +139,17 @@ export function MobileShell(): React.JSX.Element {
     }
   }, [t, i18n])
 
-  // Bridge for the native UITabBar (RendererHostPage -> EvaluateJavaScript).
+  // Bridge for the native tab bar / sidebar (RendererHostPage -> EvaluateJavaScript).
   useEffect(() => {
     const w = window as unknown as { __novalistTab?: (key: string) => void }
     w.__novalistTab = (key: string) => {
+      // The iPad sidebar sends MainView keys straight through - it has one entry
+      // per destination, so there is no tab-to-view mapping and no Plan drawer.
+      if (layout === 'tablet') {
+        if (key === 'codex') useCodexStore.setState({ selectedId: null, selectedRecord: null })
+        useShellStore.getState().setMainView(key as MainView)
+        return
+      }
       // Plan only pops (toggles) its menu over the current view; it does NOT switch
       // the view until a mode is picked (that happens in selectPlanning).
       if (key === 'planning') {
@@ -102,19 +167,34 @@ export function MobileShell(): React.JSX.Element {
     return () => {
       delete w.__novalistTab
     }
-  }, [setTab])
+  }, [setTab, layout])
 
   // The native Liquid Glass tab bar floats above web content and would occlude the
   // writing-hub bottom sheet, so hide it while that sheet is up. The planning menu
-  // sits ABOVE the tab bar, so the bar stays visible for it.
+  // sits ABOVE the tab bar, so the bar stays visible for it. The iPad sidebar is
+  // on the leading edge and never overlaps the slide-over, so it stays put.
   useEffect(() => {
+    if (layout === 'tablet') return
     window.novalist.setNavVisible?.(!inspectorOpen)
-  }, [inspectorOpen])
+  }, [inspectorOpen, layout])
 
-  // Mobile navigates via the tab rather than the pane tree, so mainView is kept
-  // in sync with it - the status bar, the palette and the menu commands all
-  // describe where the writer is by reading it.
+  // Keep the sidebar highlight on the destination actually shown: the web can
+  // change mainView on its own (opening a scene from the binder switches to
+  // Write), not only through a sidebar tap.
   useEffect(() => {
+    if (layout !== 'tablet') return
+    window.novalist.setSidebarSelection?.(mainView)
+  }, [layout, mainView])
+
+  // The phone navigates via the tab rather than the pane tree, so mainView is
+  // kept in sync with it for two reasons: the status bar, the palette and the
+  // menu commands all describe where the writer is by reading it, and several
+  // views gate their data fetch on it (DashboardView only fetches when mainView
+  // is 'dashboard'), so a stale value leaves them on "Connecting to core". The
+  // tablet drives mainView directly, so this must not run there and overwrite
+  // the sidebar's choice.
+  useEffect(() => {
+    if (layout === 'tablet') return
     const map: Record<MobileTab, MainView> = {
       dashboard: 'dashboard',
       manuscript: 'write',
@@ -123,7 +203,7 @@ export function MobileShell(): React.JSX.Element {
       settings: 'settings'
     }
     useShellStore.getState().setMainView(map[tab])
-  }, [tab, planningView])
+  }, [tab, planningView, layout])
 
   // The native bar highlights what was tapped, so a tab switched from here (the
   // first-run tour walks them) has to be pushed across, or the bar names one
@@ -175,10 +255,18 @@ export function MobileShell(): React.JSX.Element {
   // tab, so its offset outlived the view in it: leaving a scrolled Dashboard for
   // Settings dropped the writer into the middle of Settings. It only appeared to
   // behave when the next tab was too short to hold the offset.
+  //
+  // Declared above the tablet return: it is a hook, and React counts hooks per
+  // render. Rotating an iPad between the two layouts changes which branch runs,
+  // so a hook below the return would change the count and tear the tree down.
   const contentRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (contentRef.current) contentRef.current.scrollTop = 0
   }, [tab, planningView, codexMode, inEditor])
+
+  // iPad: the two-pane layout takes over completely. Every hook above has already
+  // run, so a resize that flips the layout never changes the hook order.
+  if (layout === 'tablet') return <TabletShell />
 
   let content: React.JSX.Element
   if (tab === 'dashboard') content = <DashboardView />

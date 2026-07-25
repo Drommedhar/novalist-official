@@ -89,6 +89,19 @@
      content can inset its bottom padding to sit above it. */
   --nl-mobile-tabbar-h: 49px;
 
+  /* Tablet (iPad, regular width): width of the native leading Liquid Glass
+     sidebar overlay, so web content can inset its left padding to clear it.
+     0 while the compact tab-bar layout is in use. */
+  --nl-mobile-sidebar-w: 0px;
+
+  /* Web approximation of the iOS Liquid Glass material, for panels that live
+     inside the WebView and therefore cannot be a real UIVisualEffectView (the
+     tablet slide-over). Composed against --nl-base so it tracks the theme, and
+     paired with a backdrop blur to pick up the content behind it. */
+  --nl-glass-surface: rgb(var(--nl-base) / 0.58);
+  --nl-glass-blur: blur(30px) saturate(180%);
+  --nl-glass-hairline: rgb(255 255 255 / 0.12);
+
   /* ===== Typography =====
      Anchored on the brand body size of 17px, and deliberately short: nine
      steps, none of them below 13px. Each one answers to a surface class, and
