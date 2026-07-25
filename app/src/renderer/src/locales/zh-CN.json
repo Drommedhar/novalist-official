@@ -1560,6 +1560,21 @@
     "selectedOfTotal": "已选择 {{selected}} / {{total}}",
     "smfToggle": "Shunn 手稿格式"
   },
+  "expose": {
+    "chars": "{{value}} 字符",
+    "charsOfLimit": "{{value}} / {{limit}} 字符",
+    "pages": "{{value}} 标准页",
+    "pagesOfLimit": "{{value}} / {{limit}} 标准页",
+    "charLimit": "字符上限",
+    "pageLimit": "页数上限",
+    "noLimit": "无限制",
+    "exportAction": "导出标准页",
+    "exportEmpty": "无内容可导出 — 提案仍为空。",
+    "styleGroup": "段落样式",
+    "styleTitle": "标题",
+    "styleSection": "章节",
+    "styleBody": "正文"
+  },
   "imageGallery": {
     "search": "搜索图像...",
     "gridView": "网格视图",
@@ -1767,6 +1782,7 @@
       "maps": "地图",
       "research": "资料",
       "gallery": "图库",
+      "expose": "提案",
       "export": "导出",
       "git": "Git",
       "settings": "设置"

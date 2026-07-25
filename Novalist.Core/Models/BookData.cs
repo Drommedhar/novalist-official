@@ -123,4 +123,13 @@ public class BookData
     /// per-map JSON under the active draft's Maps/ folder.</summary>
     [JsonPropertyName("maps")]
     public List<MapReference> Maps { get; set; } = new();
+
+    /// <summary>Character budget for this book's exposé, spaces included.
+    /// 0 means no limit. The exposé editor warns past it but never blocks.</summary>
+    [JsonPropertyName("exposeCharLimit")]
+    public int ExposeCharLimit { get; set; }
+
+    /// <summary>Normseiten budget for this book's exposé. 0 means no limit.</summary>
+    [JsonPropertyName("exposePageLimit")]
+    public int ExposePageLimit { get; set; }
 }

@@ -57,6 +57,10 @@ body { display: flex; justify-content: center; }
 #editor p { margin: 0; }
 #editor.book-spacing p { padding-bottom: 0.75em; }
 #editor.book-spacing p:empty { padding-bottom: 0; min-height: 1em; }
+/* Named paragraph styles. Exporters read the class; these rules are what make
+   a styled paragraph recognisable on screen instead of invisible state. */
+#editor .nv-style-heading { font-size: 1.5em; font-weight: 700; line-height: 1.3; }
+#editor .nv-style-subheading { font-size: 1.2em; font-weight: 600; line-height: 1.35; }
 #editor ::selection { background: var(--selection-bg); }
 
 /* Themed scrollbars for every scroller in this document (the text wrapper, the
@@ -772,6 +776,64 @@ function alignJustify() {
     notifyFormattingChanged();
 }
 
+// ── Paragraph Styles ────────────────────────────────────────────
+// Named paragraph styles live as an `nv-style-<id>` class on the block. The
+// exporters read that class to turn a paragraph into a heading; the editor
+// paints it so the writer can see which paragraphs carry one.
+
+const PARAGRAPH_STYLE_PREFIX = 'nv-style-';
+
+/** Block elements (top-level children of the editor) touched by the selection. */
+function selectedBlocks() {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return [];
+    const range = selection.getRangeAt(0);
+    const blocks = [];
+    for (const block of editor.children) {
+        if (range.intersectsNode(block)) blocks.push(block);
+    }
+    // A collapsed caret inside a block still has to resolve to that block.
+    if (blocks.length === 0) {
+        let node = range.startContainer;
+        while (node && node.parentNode !== editor) node = node.parentNode;
+        if (node) blocks.push(node);
+    }
+    return blocks;
+}
+
+/** The style id shared by the selected blocks, or '' for plain body text. */
+function getParagraphStyle() {
+    const blocks = selectedBlocks();
+    if (blocks.length === 0) return '';
+    const styleOf = (block) => {
+        for (const cls of block.classList || []) {
+            if (cls.startsWith(PARAGRAPH_STYLE_PREFIX)) return cls.slice(PARAGRAPH_STYLE_PREFIX.length);
+        }
+        return '';
+    };
+    const first = styleOf(blocks[0]);
+    return blocks.every((b) => styleOf(b) === first) ? first : '';
+}
+
+/** Applies a named paragraph style to the selection; '' clears it. */
+function setParagraphStyle(style) {
+    editor.focus({ preventScroll: true });
+    const blocks = selectedBlocks();
+    if (blocks.length === 0) return;
+    for (const block of blocks) {
+        if (!block.classList) continue;
+        for (const cls of [...block.classList]) {
+            if (cls.startsWith(PARAGRAPH_STYLE_PREFIX)) block.classList.remove(cls);
+        }
+        if (style) block.classList.add(PARAGRAPH_STYLE_PREFIX + style);
+        if (block.classList.length === 0) block.removeAttribute('class');
+    }
+    notifyFormattingChanged();
+    // A class change is not typing, so no input event fires on its own — but
+    // the host still has to hear about it or the style would never be saved.
+    editor.dispatchEvent(new Event('input'));
+}
+
 // ── Formatting State ────────────────────────────────────────────
 
 function getFormattingState() {
@@ -782,7 +844,7 @@ function getFormattingState() {
     if (document.queryCommandState('justifyCenter')) alignment = 'center';
     else if (document.queryCommandState('justifyRight')) alignment = 'right';
     else if (document.queryCommandState('justifyFull')) alignment = 'justify';
-    return { bold, italic, underline, alignment };
+    return { bold, italic, underline, alignment, paragraphStyle: getParagraphStyle() };
 }
 
 function notifyFormattingChanged() {

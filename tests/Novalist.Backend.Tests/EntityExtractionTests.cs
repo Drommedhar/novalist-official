@@ -15,7 +15,7 @@ namespace Novalist.Backend.Tests;
 /// stands in for a model. Nothing here writes entities — extraction proposes,
 /// the writer accepts.
 /// </summary>
-[Collection("Avalonia")]
+[Collection("BackendStatics")]
 public sealed class EntityExtractionTests
 {
     private const string SampleId = "com.novalist.writingtoolkit";

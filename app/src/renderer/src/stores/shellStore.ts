@@ -16,6 +16,7 @@ export type MainView =
   | 'maps'
   | 'research'
   | 'gallery'
+  | 'expose'
   | 'export'
   | 'git'
   | 'extensions'
@@ -31,7 +32,7 @@ export const activityGroups: { key: string; views: MainView[] }[] = [
   { key: 'shell.groupWrite', views: ['dashboard', 'manuscript'] },
   { key: 'shell.groupPlan', views: ['timeline', 'plotGrid', 'calendar', 'relationships'] },
   { key: 'shell.groupWorld', views: ['codex', 'wiki', 'maps', 'research', 'gallery'] },
-  { key: 'shell.groupPublish', views: ['export', 'git'] }
+  { key: 'shell.groupPublish', views: ['expose', 'export', 'git'] }
 ]
 
 export type BinderTab = 'chapters' | 'smartLists'

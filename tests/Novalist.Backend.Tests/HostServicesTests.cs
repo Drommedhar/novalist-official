@@ -10,7 +10,7 @@ using Xunit;
 
 namespace Novalist.Backend.Tests;
 
-[Collection("Avalonia")]
+[Collection("BackendStatics")]
 public class HostServicesTests
 {
     private static (HostServices Host, IFileService File, IProjectService Proj, IEntityService Ent, AppSettings App) Build()

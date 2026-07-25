@@ -7,6 +7,7 @@ using Xunit;
 
 namespace Novalist.Backend.Tests;
 
+[Collection("BackendStatics")]
 public class BackendHostTests
 {
     private static JsonRpc CreateClient(Stream duplex)

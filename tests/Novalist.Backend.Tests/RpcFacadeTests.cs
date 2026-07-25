@@ -9,6 +9,7 @@ namespace Novalist.Backend.Tests;
 
 /// <summary>Exercises the facades through a real JSON-RPC pair so wire naming
 /// (camelCase, method routes) is asserted, not assumed.</summary>
+[Collection("BackendStatics")]
 public sealed class RpcFacadeTests : IAsyncDisposable
 {
     private readonly string _root;

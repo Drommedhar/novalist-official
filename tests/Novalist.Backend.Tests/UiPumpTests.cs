@@ -6,7 +6,7 @@ namespace Novalist.Backend.Tests;
 
 /// <summary>
 /// Behavior of the backend-owned single-threaded UI pump. Plain [Fact] tests
-/// (no Avalonia collection): the pump is a raw <see cref="System.Threading.Thread"/>.
+/// (no BackendStatics collection): the pump is a raw <see cref="System.Threading.Thread"/>.
 /// </summary>
 public class UiPumpTests
 {

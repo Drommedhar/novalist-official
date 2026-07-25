@@ -1154,6 +1154,21 @@
     "selectedOfTotal": "{{selected}} von {{total}} ausgewählt",
     "smfToggle": "Shunn-Manuskriptformat"
   },
+  "expose": {
+    "chars": "{{value}} Zeichen",
+    "charsOfLimit": "{{value}} / {{limit}} Zeichen",
+    "pages": "{{value}} Normseiten",
+    "pagesOfLimit": "{{value}} / {{limit}} Normseiten",
+    "charLimit": "Zeichenlimit",
+    "pageLimit": "Seitenlimit",
+    "noLimit": "kein Limit",
+    "exportAction": "Normseiten exportieren",
+    "exportEmpty": "Nichts zu exportieren — das Exposé ist noch leer.",
+    "styleGroup": "Absatzstil",
+    "styleTitle": "Titel",
+    "styleSection": "Abschnitt",
+    "styleBody": "Fliesstext"
+  },
   "imageGallery": {
     "search": "Bilder suchen…",
     "gridView": "Rasteransicht",
@@ -1743,6 +1758,7 @@
       "maps": "Karten",
       "research": "Recherche",
       "gallery": "Galerie",
+      "expose": "Exposé",
       "export": "Export",
       "git": "Git",
       "settings": "Einstellungen"

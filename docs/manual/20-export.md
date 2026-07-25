@@ -22,6 +22,7 @@ In the activity bar, click **Export** in the **Publish** group.
   - **Default** — Georgia 12pt, 1.5 line spacing; a readable PDF/EPUB.
   - **Shunn Manuscript Format** — the industry-standard submission format: Courier 12pt, double-spaced, with the Shunn header.
   - **Ebook Flow** — tighter spacing for digital reading: Georgia 11pt, 1.4 line spacing, narrower margins.
+  - **Normseiten** — German standard pages: Courier New 12pt, 60 characters per line, 30 lines per page. **DOCX only** — the other formats ignore it.
 
   A short description of the selected preset is shown beneath the drop-down. Extensions can contribute additional presets.
 - **Shunn Manuscript Format** — for **DOCX** and **PDF** only, a toggle that switches the export straight to the Shunn submission preset (and disables the Preset drop-down while it is on).
@@ -49,6 +50,20 @@ Click **Export**. The system file save dialog asks where to save; pick a locatio
   - Quote — blockquote.
 - Comments are dropped.
 - Footnotes preserved as Word footnotes.
+
+#### Normseiten (DOCX)
+
+Selecting the **Normseiten** preset switches DOCX to the German standard-page layout, which German agents and publishers ask for by name. Rather than letting Word reflow the text, Novalist lays it out on a fixed grid so the page count in the document is exact and countable:
+
+- Courier New 12pt with exactly 20pt line spacing.
+- A4, with 3.0 cm top, 4.5 cm bottom, 2.5 cm left, and 3.2 cm right margins.
+- Every line hard-wrapped at 60 characters — words are never split, so an over-long word takes a line of its own.
+- A page break forced every 30 lines.
+- A running header with the title and "Seite *x* von *y*".
+
+Because pagination comes from the grid, chapters do not start on a fresh page: chapter titles appear as upper-case headings in the flow, with a blank line above and below, and scenes are separated by a centred `* * *`. Bold and italic are dropped — a Normseite is monospace plain text by definition.
+
+To write and export a pitch document in the same layout, see [Exposé](32-expose.md).
 
 ### PDF
 
@@ -88,5 +103,6 @@ For chapter-based formats the list shows all chapters regardless of status — y
 
 ## Where to go next
 
+- [Exposé](32-expose.md) — write the pitch document with live Normseiten counts, and export it in the same layout.
 - [Settings](23-settings.md) — editor and appearance settings.
 - [Manuscript view](10-manuscript.md) — read the whole book before you export it.

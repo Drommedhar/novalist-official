@@ -5,6 +5,7 @@ using Xunit;
 namespace Novalist.Backend.Tests;
 
 /// <summary>Extension host-event raising and lifetime on <see cref="Workspace"/>.</summary>
+[Collection("BackendStatics")]
 public sealed class WorkspaceEventsTests : IDisposable
 {
     private readonly string _root;

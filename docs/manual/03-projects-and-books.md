@@ -53,6 +53,7 @@ This is the on-disk shape of a project. **Do not edit the `.json` cache files by
 │   └── ...
 ├── <BookFolder>/               # one folder per book, named after the book
 │   ├── .book/                  # per-book metadata (book.json, acts, etc.)
+│   ├── Expose.novalist         # the book's exposé; HTML inside
 │   ├── Drafts/
 │   │   └── <DraftFolder>/      # one folder per draft
 │   │       └── <ChapterFolder>/

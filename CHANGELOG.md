@@ -16,7 +16,32 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Exposé view** - a per-book pitch document with its own editor, reachable from the Publish
+  group in the activity bar. Above the writing surface, two live counters show how many characters
+  and how many Normseiten you have used. Set a character limit, a page limit, or both: the counter
+  turns amber as you approach a limit and red once you pass it, but typing is never blocked. The
+  exposé and its limits are stored with the book, so they are there the next time you open the
+  project.
+- **Paragraph styles in the Exposé** - Title, Section, and Body buttons above the editor mark the
+  paragraph the caret is in (or every paragraph in the selection). The active button follows the
+  caret, and styled paragraphs are drawn larger and bolder so the structure is visible while you
+  write. Title and Section are what become upper-case headings in the export.
+- **Export Normseiten** from the Exposé view - a DOCX laid out as German standard pages, ready to
+  send to an agent or publisher. The exposé exports line for line: consecutive paragraphs stay on
+  adjacent lines and only an empty paragraph opens a blank one, so what you laid out is what the
+  page shows.
+- **Normseiten export preset** for the manuscript - Courier New 12pt at exactly 20pt line spacing
+  on A4, every line hard-wrapped at 60 characters and a page break forced every 30 lines, with a
+  running header carrying the title and the page count. Because the pagination comes from the grid
+  rather than from Word's reflow, the page count in the document is the count a lector will read
+  off it. DOCX only.
+
+### Changed
+
+- Paragraphs carrying a heading style - imported projects can have them - are now drawn as headings
+  in the editor instead of looking like ordinary text.
 
 ---
 

@@ -1525,6 +1525,21 @@
     "selectedOfTotal": "{{selected}} of {{total}} selected",
     "smfToggle": "Shunn manuscript format"
   },
+  "expose": {
+    "chars": "{{value}} characters",
+    "charsOfLimit": "{{value}} / {{limit}} characters",
+    "pages": "{{value}} Normseiten",
+    "pagesOfLimit": "{{value}} / {{limit}} Normseiten",
+    "charLimit": "Character limit",
+    "pageLimit": "Page limit",
+    "noLimit": "none",
+    "exportAction": "Export Normseiten",
+    "exportEmpty": "Nothing to export — the exposé is still empty.",
+    "styleGroup": "Paragraph style",
+    "styleTitle": "Title",
+    "styleSection": "Section",
+    "styleBody": "Body"
+  },
   "imageGallery": {
     "search": "Search images…",
     "gridView": "Grid view",
@@ -1735,6 +1750,7 @@
       "maps": "Maps",
       "research": "Research",
       "gallery": "Gallery",
+      "expose": "Exposé",
       "export": "Export",
       "git": "Git",
       "settings": "Settings"

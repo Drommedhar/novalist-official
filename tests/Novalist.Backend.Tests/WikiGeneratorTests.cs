@@ -13,7 +13,7 @@ namespace Novalist.Backend.Tests;
 /// availability, generate + cache, the article's cached summary, and the error
 /// path. The deterministic sample generator stands in for a model.
 /// </summary>
-[Collection("Avalonia")]
+[Collection("BackendStatics")]
 public sealed class WikiGeneratorTests
 {
     private const string SampleId = "com.novalist.writingtoolkit";

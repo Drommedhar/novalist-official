@@ -93,7 +93,8 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 ### Output
 
 - Export to **EPUB**, **DOCX**, **PDF**, **Markdown**, **Final Draft**, **LaTeX**, and **Codex Markdown**.
-- **Layout presets** — Default, **Shunn Manuscript Format** (industry-standard submission format), and Ebook Flow set fonts, spacing, and margins; a one-click Shunn toggle for DOCX and PDF.
+- **Layout presets** — Default, **Shunn Manuscript Format** (industry-standard submission format), Ebook Flow, and **Normseiten** (German standard pages: 60 characters per line, 30 lines per page, exact page count) set fonts, spacing, and margins; a one-click Shunn toggle for DOCX and PDF.
+- **Exposé** — a per-book pitch document with its own editor, live character and Normseiten counts against limits you set, and a Normseiten DOCX export.
 - Chapter-level selection with select-all / select-none, optional title page, custom title and author.
 - Extensions can contribute additional formats and presets.
 

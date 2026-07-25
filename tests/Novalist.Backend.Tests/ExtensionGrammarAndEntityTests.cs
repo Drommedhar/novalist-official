@@ -13,7 +13,7 @@ namespace Novalist.Backend.Tests;
 /// Covers merging extension grammar contributors into <see cref="GrammarRpc"/>
 /// and registering extension-contributed entity types into the loaded project.
 /// </summary>
-[Collection("Avalonia")]
+[Collection("BackendStatics")]
 public sealed class ExtensionGrammarAndEntityTests
 {
     private const string SampleId = "com.novalist.writingtoolkit";

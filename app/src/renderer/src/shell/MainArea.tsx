@@ -13,6 +13,7 @@ import { RelationshipsView } from '../views/relationships/RelationshipsView'
 import { GalleryView } from '../views/library/GalleryView'
 import { ResearchView } from '../views/library/ResearchView'
 import { ExportView } from '../views/export/ExportView'
+import { ExposeView } from '../views/expose/ExposeView'
 import { GitView } from '../views/git/GitView'
 import { SettingsView } from '../views/settings/SettingsView'
 import { MapsView } from '../views/maps/MapsView'
@@ -152,6 +153,14 @@ function MainAreaContent(): React.JSX.Element {
     return (
       <main className="main-area">
         <ResearchView />
+      </main>
+    )
+  }
+
+  if (mainView === 'expose') {
+    return (
+      <main className="main-area">
+        <ExposeView />
       </main>
     )
   }

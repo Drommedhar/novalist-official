@@ -13,7 +13,7 @@ namespace Novalist.Backend.Tests;
 /// <see cref="ExtensionManager"/> for the Electron host, exercised against the
 /// real sample extension (Novalist.Sdk.Example).
 /// </summary>
-[Collection("Avalonia")]
+[Collection("BackendStatics")]
 public class ExtensionContribManagerTests
 {
     private const string SampleId = "com.novalist.writingtoolkit";

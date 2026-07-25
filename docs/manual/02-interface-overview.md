@@ -48,7 +48,7 @@ On the right:
 
 ## The activity bar
 
-The slim icon rail on the far left is the top-level view switcher. From top to bottom it groups: **Write** (Dashboard, Manuscript); **Plan** (Timeline, Plot Grid, Calendar, Relationships); **World** (Codex, Maps, Research, Gallery); and **Publish** (Export, Git). **Extensions** and **Settings** sit at the bottom. Extension views that contribute to the main area appear as extra icons. Hover any icon for its name; the active view is highlighted.
+The slim icon rail on the far left is the top-level view switcher. From top to bottom it groups: **Write** (Dashboard, Manuscript); **Plan** (Timeline, Plot Grid, Calendar, Relationships); **World** (Codex, Maps, Research, Gallery); and **Publish** (Exposé, Export, Git). **Extensions** and **Settings** sit at the bottom. Extension views that contribute to the main area appear as extra icons. Hover any icon for its name; the active view is highlighted.
 
 The **Editor** has no icon of its own — you reach it by opening a scene from the binder. The same destinations are also listed in the **Go** menu in the menu bar, and `Ctrl+1` through `Ctrl+9` jump to the most-used views — see [Hotkeys](26-hotkeys.md).
 

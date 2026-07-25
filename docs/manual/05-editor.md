@@ -42,6 +42,16 @@ The strip above the page:
 
 The active formatting of the text under the caret is highlighted in the toolbar.
 
+## Paragraph styles
+
+Beyond inline formatting, a paragraph can carry a **named style** — *heading* or *subheading*. Styled paragraphs are drawn larger and bolder in the editor, and the [export](20-export.md) formats that have a notion of headings treat them as one instead of as body text: Markdown writes them as `#` and `##`, LaTeX as `\section*` and `\subsection*`, and the Normseiten layout upper-cases them and sets them off with blank lines. (The Exposé applies a slightly different rule to its title line — see [Exposé](32-expose.md).)
+
+The scene toolbar has **no control for applying a style**. Scene paragraphs carry one only if the content already had it — projects written in an older version of Novalist, whose editor offered a style dropdown.
+
+Pasting a heading from a web page or a Word document does not create one. The paste keeps the heading tag, but every export reads text out of paragraphs, so a pasted heading is dropped from the exported file entirely. If you paste a structured document into a scene, re-type its headings as ordinary paragraphs.
+
+Where paragraph styles are applied by hand is the [Exposé](32-expose.md) view, which has Title / Section / Body buttons above its editor. That is the document type whose structure depends on them.
+
 ## The editor context menu
 
 Right-click inside the text for:
@@ -146,6 +156,7 @@ The centre of the status bar shows whole-project totals (words, chapters, scenes
 ## Where to go next
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — the binder tree around the editor.
+- [Exposé](32-expose.md) — the same writing surface with paragraph-style buttons and length counters.
 - [Snapshots](17-snapshots.md) — revert a single scene to a previous state.
 - [Find & Replace](21-find-replace.md) — search across scene, chapter, book, or project.
 - [Settings](23-settings.md) — fonts, theme, writing assistance.

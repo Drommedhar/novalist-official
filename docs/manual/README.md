@@ -21,7 +21,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 ### Writing
 
 4. [Chapters & Scenes](04-chapters-and-scenes.md) — the unit of writing in Novalist. Status, dates, plotlines, favorites, reordering, archiving.
-5. [Editor](05-editor.md) — WYSIWYG editor, formatting, paragraph styles, focus mode, split editor, auto-replacements, dialogue correction, grammar check, entity hover cards.
+5. [Editor](05-editor.md) — WYSIWYG editor, inline formatting, paragraph styles, focus mode, split editor, auto-replacements, dialogue correction, grammar check, entity hover cards.
 6. [Manuscript view](10-manuscript.md) — read the whole book end-to-end, switch to corkboard or outliner.
 7. [Find & Replace](21-find-replace.md) — project-wide search with scopes and snapshot-guarded replace-all.
 8. [Quick Open](31-quick-open.md) — one search box over scenes, Codex, notes, comments, research, and events.
@@ -48,27 +48,28 @@ If you are looking for a specific feature, jump straight to its page from the ta
 
 ### Output
 
-23. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, and more, plus formats added by extensions.
+23. [Exposé](32-expose.md) — the per-book pitch document, with live character and Normseiten counts against your limits.
+24. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, Normseiten, and more, plus formats added by extensions.
 
 ### The inspector
 
-24. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
+25. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
 
 ### Customisation
 
-25. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
-26. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
-27. [Command palette](25-command-palette.md) — every shell command in one searchable box.
-28. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
-29. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
+26. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
+27. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
+28. [Command palette](25-command-palette.md) — every shell command in one searchable box.
+29. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
+30. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
 
 ### Help
 
-30. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
+31. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
 
 ## Conventions used in this manual
 
-- **Activity bar** is the slim icon rail on the far left that switches the main area between views (Dashboard, Manuscript, Timeline, Plot Grid, Calendar, Relationships, Codex, Wiki, Maps, Research, Gallery, Export, Git, Settings, plus extension views).
+- **Activity bar** is the slim icon rail on the far left that switches the main area between views (Dashboard, Manuscript, Timeline, Plot Grid, Calendar, Relationships, Codex, Wiki, Maps, Research, Gallery, Exposé, Export, Git, Settings, plus extension views).
 - **Binder** is the left pane next to the activity bar: the chapter/scene tree, with a Smart Lists tab.
 - **Main area** is the center pane showing the active view, with an optional **scene-notes dock** (Synopsis + Notes) beneath the editor.
 - **Inspector** is the right pane: Context and Footnotes tabs for the open scene.

@@ -13,6 +13,7 @@ import {
   Map,
   Network,
   Newspaper,
+  ScrollText,
   Send,
   Settings
 } from 'lucide-react'
@@ -40,6 +41,7 @@ const viewIcons: Partial<Record<MainView, IconComponent>> = {
   maps: Map,
   research: FileText,
   gallery: Images,
+  expose: ScrollText,
   export: Send,
   git: FolderGit2
 }
@@ -76,6 +78,7 @@ export function ActivityBar(): React.JSX.Element {
                   key={view}
                   type="button"
                   className={`activity-bar-item${active ? ' active' : ''}`}
+                  data-view={view}
                   data-tip={t(`shell.view.${view}`)}
                   aria-label={t(`shell.view.${view}`)}
                   aria-current={active ? 'page' : undefined}

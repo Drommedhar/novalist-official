@@ -20,6 +20,32 @@ public sealed class ExportPreset
     public string SceneSeparator { get; init; } = "* * *";
     public bool DoubleSpaced { get; init; }
     public bool ShunnHeader { get; init; }
+
+    /// <summary>
+    /// Lays the text out on the German Normseite grid: every line hard-wrapped
+    /// to <see cref="GridColumns"/> monospace columns and a page break forced
+    /// every <see cref="GridLines"/> lines, so the page count is exact.
+    /// Honoured by the DOCX writer only.
+    /// </summary>
+    public bool NormseitenGrid { get; init; }
+    /// <summary>Monospace columns per line on the Normseite grid.</summary>
+    public int GridColumns { get; init; } = 60;
+    /// <summary>Lines per page on the Normseite grid.</summary>
+    public int GridLines { get; init; } = 30;
+    /// <summary>Exact line height in points. 0 keeps the multiplier-based spacing.</summary>
+    public double LineHeightPt { get; init; }
+
+    /// <summary>Page geometry in centimetres, used by the Normseite grid.</summary>
+    public double PageWidthCm { get; init; } = 21.0;
+    public double PageHeightCm { get; init; } = 29.7;
+    public double MarginTopCm { get; init; } = 2.5;
+    public double MarginBottomCm { get; init; } = 2.5;
+    public double MarginLeftCm { get; init; } = 2.5;
+    public double MarginRightCm { get; init; } = 2.5;
+    public double HeaderDistanceCm { get; init; } = 1.5;
+
+    /// <summary>Usable text width in centimetres (page width less both margins).</summary>
+    public double TextWidthCm => PageWidthCm - MarginLeftCm - MarginRightCm;
 }
 
 public static class ExportPresets
@@ -27,6 +53,7 @@ public static class ExportPresets
     public const string DefaultId = "default";
     public const string ShunnId = "shunn-manuscript";
     public const string EbookFlowId = "ebook-flow";
+    public const string NormseitenId = "normseiten";
 
     public static IReadOnlyList<ExportPreset> All { get; } =
     [
@@ -70,6 +97,29 @@ public static class ExportPresets
             FirstLineIndentInches = 0.25,
             ChapterTopMarginInches = 1.4,
             SceneSeparator = "* * *"
+        },
+        new ExportPreset
+        {
+            Id = NormseitenId,
+            DisplayName = "Normseiten",
+            Description = "German standard pages: Courier New 12pt, 60 characters per line, 30 lines per page (DOCX only).",
+            BodyFontFamily = "Courier New",
+            BodyFontSizePt = 12,
+            LineSpacingMultiplier = 2.0,
+            FirstLineIndentInches = 0,
+            ChapterTopMarginInches = 0,
+            SceneSeparator = "* * *",
+            NormseitenGrid = true,
+            GridColumns = 60,
+            GridLines = 30,
+            LineHeightPt = 20,
+            PageWidthCm = 21.0,
+            PageHeightCm = 29.7,
+            MarginTopCm = 3.0,
+            MarginBottomCm = 4.5,
+            MarginLeftCm = 2.5,
+            MarginRightCm = 3.2,
+            HeaderDistanceCm = 1.5
         }
     ];
 

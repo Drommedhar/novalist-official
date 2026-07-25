@@ -12,7 +12,7 @@ namespace Novalist.Backend.Tests;
 /// inline actions, editor context-menu items, hotkeys, themes, status-bar items,
 /// and declarative settings schemas to the renderer, plus the callback routing.
 /// </summary>
-[Collection("Avalonia")]
+[Collection("BackendStatics")]
 public sealed class ExtensionContribRpcTests : IDisposable
 {
     private const string SampleId = "com.novalist.writingtoolkit";

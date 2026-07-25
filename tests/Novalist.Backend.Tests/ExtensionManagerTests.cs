@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Novalist.Backend.Tests;
 
-[Collection("Avalonia")]
+[Collection("BackendStatics")]
 public class ExtensionManagerTests
 {
     private const string SampleId = "com.novalist.writingtoolkit";
