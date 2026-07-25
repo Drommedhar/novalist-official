@@ -2,6 +2,13 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<!-- Export-compliance declaration, so App Store Connect / TestFlight never
+	     prompts per build. false = only exempt encryption (standard HTTPS and
+	     OS-provided crypto); no custom cryptography. Mirrors the desktop app's
+	     `extendInfo` in app/electron-builder.yml — same codebase, same answer.
+	     Revisit if Novalist ever ships proprietary encryption. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIDeviceFamily</key>

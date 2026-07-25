@@ -11,8 +11,14 @@ env:
   NODE_VERSION: "20"
 
 jobs:
-  # Tag routing: normal tags (v*) run the desktop release; ios-v* tags run ONLY the
-  # iOS TestFlight job, so mobile builds can ship without cutting a desktop release.
+  # Tag routing:
+  #   v*      -> everything. Desktop (Windows/macOS/Linux), Mac App Store, AND iOS
+  #              TestFlight, all built from the one tag so every platform ships the
+  #              same version — each job derives it from the tag with identical logic.
+  #   ios-v*  -> iOS TestFlight only, for shipping a mobile fix without cutting a
+  #              desktop release. The desktop jobs below opt out via !startsWith(ios-).
+  # The store jobs are deliberately absent from the `release` job's `needs`, so a
+  # failed App Store or TestFlight upload never blocks the GitHub release.
   publish:
     name: Publish ${{ matrix.label }}
     # Tags do a real release; a manual workflow_dispatch is a dry-run that builds
@@ -155,7 +161,7 @@ jobs:
   # Mac Installer Distribution), an embedded provisioning profile, the sandbox
   # entitlements, and uploads to App Store Connect instead of a GitHub release.
   # Gated on the MAS secrets being present so the release still works before the
-  # App Store side is fully set up. See docs/macos-signing.md.
+  # App Store side is fully set up.
   mac-app-store:
     name: Mac App Store ${{ matrix.arch }}
     # Dry-run on manual dispatch: builds and signs the .pkg but skips the App
@@ -172,7 +178,7 @@ jobs:
         # version, so shipping a single Apple Silicon build avoids the "two builds,
         # submit one" problem. Intel users are still covered natively by the DMG.
         # To go universal later, ship both backends + pick by process.arch and
-        # build the Electron app with --universal (see docs/macos-signing.md).
+        # build the Electron app with --universal.
         include:
           - arch: arm64
             rid: osx-arm64
@@ -311,7 +317,10 @@ jobs:
   # will fail to match at signing time.
   ios-app-store:
     name: iOS TestFlight
-    if: startsWith(github.ref, 'refs/tags/ios-') || github.event_name == 'workflow_dispatch'
+    # Every tag, not just ios-v*: a normal v* release now ships iOS alongside the
+    # desktop builds off the same tag, so the versions cannot drift. ios-v* still
+    # works and still skips the desktop jobs, for a mobile-only ship.
+    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     permissions:
       contents: read
