@@ -96,8 +96,14 @@ tools/screenshots/build-all.sh "$WORK" ~/Desktop/Novalist-Screenshots
 ```
 
 Writes upload-ready store screenshots at Apple's exact sizes — macOS
-2880×1800, iPhone 6.9" 1320×2868, iPad 13" 2752×2064 landscape — each framed by
-`frame.sh` with a headline over a gradient drawn from the app's colour tokens.
+2880×1800, iPhone 6.9" 1320×2868, iPhone 6.5" 1284×2778, iPad 13" 2752×2064
+landscape — each framed by `frame.sh` with a headline over a gradient drawn from
+the app's colour tokens.
+
+Both phone classes come from the same captures. Because the device screenshot is
+inset in the frame rather than full-bleed, a new phone aspect ratio only needs a
+re-run of the framing step — never a re-shoot, and nothing is ever stretched.
+
 It also writes the 1440×900 manual set; copy that into place:
 
 ```sh

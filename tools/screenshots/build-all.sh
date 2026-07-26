@@ -13,7 +13,8 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 WORK="${1:?usage: build-all.sh <work-dir> <out-dir>}"
 OUT="${2:?usage: build-all.sh <work-dir> <out-dir>}"
 rm -rf "$OUT"
-mkdir -p "$OUT/App Store/macOS" "$OUT/App Store/iPhone 6.9" "$OUT/App Store/iPad 13" "$OUT/Manual"
+mkdir -p "$OUT/App Store/macOS" "$OUT/App Store/iPhone 6.9" "$OUT/App Store/iPhone 6.5" \
+         "$OUT/App Store/iPad 13" "$OUT/Manual"
 
 # --- macOS: flatten the glass alpha first, everything downstream reuses it ----
 echo "compositing macOS captures..."
@@ -45,19 +46,28 @@ mac 09 relationships "See how everyone connects" \
 mac 10 command-palette "Every command, one keystroke away" \
     "Jump to any view, scene or entity without leaving the keyboard"
 
-# --- 2. App Store: iPhone 6.9" (1320x2868) -----------------------------------
+# --- 2. App Store: iPhone ----------------------------------------------------
+# Rendered at both phone classes App Store Connect asks for: 6.9" (1320x2868)
+# and 6.5" (1284x2778). The artwork is inset rather than full-bleed, so the two
+# aspect ratios need no re-shoot and nothing is stretched - only the frame
+# around the device capture changes.
 echo "framing iPhone store screenshots..."
-ip() { "$HERE/frame.sh" "$WORK/raw/iphone/$2.png" "$OUT/App Store/iPhone 6.9/$1.png" 1320 2868 "$3" "$4"; }
-ip 01 03-editor "Write anywhere" "The same editor, sized for one hand"
-ip 02 01-dashboard "See the shape of your progress" "Goals and streaks, kept in sync"
-ip 03 02-write "Your whole outline, one tap away" "Acts, chapters and scenes"
-ip 04 04-codex "A codex that remembers your world" "Characters, locations, items and lore"
-ip 05 05-codex-entity "Every detail where you left it" "Full entity sheets on the phone"
-ip 06 06-wiki-article "Your story bible, written for you" "Cross-linked from your own notes"
-ip 07 08-timeline "Every event on one timeline" "Backstory and plot in order"
-ip 08 07-plan-menu "Plan on the move" "Timeline, plot grid and calendar"
-ip 09 06-wiki "Browse the whole world" "Every entity, one search away"
-ip 10 00-welcome "Pick up where you left off" "The same project as on your Mac"
+phone_shots() { # <dest-subdir> <canvas-w> <canvas-h>
+  local dir="$1" w="$2" h="$3"
+  ip() { "$HERE/frame.sh" "$WORK/raw/iphone/$2.png" "$OUT/App Store/$dir/$1.png" "$w" "$h" "$3" "$4"; }
+  ip 01 03-editor "Write anywhere" "The same editor, sized for one hand"
+  ip 02 01-dashboard "See the shape of your progress" "Goals and streaks, kept in sync"
+  ip 03 02-write "Your whole outline, one tap away" "Acts, chapters and scenes"
+  ip 04 04-codex "A codex that remembers your world" "Characters, locations, items and lore"
+  ip 05 05-codex-entity "Every detail where you left it" "Full entity sheets on the phone"
+  ip 06 06-wiki-article "Your story bible, written for you" "Cross-linked from your own notes"
+  ip 07 08-timeline "Every event on one timeline" "Backstory and plot in order"
+  ip 08 07-plan-menu "Plan on the move" "Timeline, plot grid and calendar"
+  ip 09 06-wiki "Browse the whole world" "Every entity, one search away"
+  ip 10 00-welcome "Pick up where you left off" "The same project as on your Mac"
+}
+phone_shots "iPhone 6.9" 1320 2868
+phone_shots "iPhone 6.5" 1284 2778
 
 # --- 3. App Store: iPad 13" landscape (2752x2064) ----------------------------
 echo "framing iPad store screenshots..."
