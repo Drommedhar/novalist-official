@@ -1,6 +1,6 @@
 # Export
 
-The Export view turns your book into a file you can send to a beta reader, an editor, or a publisher. Seven formats are built in: EPUB, DOCX, PDF, Markdown, Final Draft, LaTeX, and Codex Markdown.
+The Export view turns your book into a file you can send to a beta reader, an editor, or a publisher. Eight formats are built in: EPUB, DOCX, PDF, Markdown, Final Draft, LaTeX, Codex Markdown, and Codex PDF.
 
 ## Opening Export
 
@@ -15,7 +15,8 @@ In the activity bar, click **Export** in the **Publish** group.
   - **Markdown**
   - **Final Draft (.fdx)**
   - **LaTeX**
-  - **Codex (Markdown)** — manuscript plus your codex entries as an appendix.
+  - **Codex (Markdown)** — your codex entries as a Markdown world bible, with images written to a folder beside the file.
+  - **Codex (PDF)** — the same world bible as a single PDF with the images drawn into the document.
 
   Any formats contributed by installed [extensions](24-extensions.md) appear below the built-in ones in the same drop-down.
 - **Preset** — a layout preset that sets fonts, spacing, and margins. Built-in presets are:
@@ -29,7 +30,11 @@ In the activity bar, click **Export** in the **Publish** group.
 - **Title** — the title of the exported document. Defaults to the project's name.
 - **Author** — author name printed on the title page and in document metadata.
 - **Title page** — toggle. Include or omit a generated title page.
-- **Chapter selection** — a checkbox per chapter, with **Select All** and **Select None** buttons and a running "*n* of *m*" count. All chapters are included by default; untick chapters to exclude them. This list is hidden for the **Codex** format and for extension-contributed formats, which always cover the whole project.
+- **Chapter selection** — a checkbox per chapter, with **Select All** and **Select None** buttons and a running "*n* of *m*" count. All chapters are included by default; untick chapters to exclude them. This list is hidden for the **Codex** formats and for extension-contributed formats.
+- **Codex entry selection** — for the two **Codex** formats the chapter list is replaced by a checkbox per codex entry, grouped by Characters, Locations, Items, and Lore and sorted by name inside each group, exactly as the exported file is ordered. Everything is ticked by default; untick the entries you do not want in the file — for example, to send a collaborator only the characters they are writing.
+  - A **search box** above the list filters entries by name as you type.
+  - **Select All** and **Select None** apply to the entries currently shown, so you can search for a group of entries and tick or untick them in one click without disturbing the rest of your selection.
+  - The "*n* of *m*" count below the list always reports your whole selection, not just the filtered part.
 
 Click **Export**. The system file save dialog asks where to save; pick a location and filename (the extension is pre-filled to match the format). The button shows "Exporting…" while the job runs and a result line reports success or failure.
 
@@ -83,7 +88,22 @@ To write and export a pitch document in the same layout, see [Exposé](32-expose
 
 ### Codex Markdown
 
-- Markdown export with an appendix containing your codex entries (characters, locations, items, lore). Useful for delivering a "world bible" version of the project to a collaborator.
+- A `.md` world bible of your codex entries (characters, locations, items, lore) — fields, custom properties, relationships, and section text, with entries sorted by name inside each group.
+- Group headings and fixed field labels (Role, Age, Type, Relationships, …) are written in your interface language. Your own custom property names are used exactly as you typed them.
+- Characters whose age is set as a birth date omit the Age line, which would otherwise just repeat the date.
+- Entry images are copied into a `<filename>_images` folder next to the file and linked from the Markdown. The folder is not created when none of the exported entries has an image.
+- Useful when the recipient wants to edit the text, or feed it into another tool.
+
+### Codex PDF
+
+- The same world bible as a single, self-contained PDF: entry images are drawn into the document, so there is no sidecar folder and nothing to lose when the file is forwarded.
+- Every entry starts on its own page, so a printed copy can be handed out or filed entry by entry. Images are scaled to fit within three inches.
+- **PDF bookmarks** — the reader's outline pane lists Characters, Locations, Items, and Lore, with every entry nested under its group, so you can jump straight to a character in any PDF reader.
+- Section text keeps its shape: line breaks, blank lines, `#` headings, `*` bullet lists, and `**bold**` spans are laid out as formatted text rather than printed as raw markers.
+- Labels and the birth-date rule work the same as in the Markdown export above.
+- A title page is included when the **Title page** toggle is on.
+- Images Novalist cannot read are skipped rather than failing the export.
+- Useful for handing a finished reference document to a collaborator, cover artist, or editor.
 
 ## Selecting chapters
 
@@ -93,7 +113,7 @@ Use cases for partial exports:
 - The first three chapters as a submission packet.
 - Only chapters at Final status, to publish a polished excerpt.
 
-For chapter-based formats the list shows all chapters regardless of status — you pick what you want via the checkboxes, or use **Select All** / **Select None**. The Codex and extension formats export the whole project and hide the list.
+For chapter-based formats the list shows all chapters regardless of status — you pick what you want via the checkboxes, or use **Select All** / **Select None**. The Codex formats swap this list for the codex entry picker, and extension formats export the whole project and hide the list entirely.
 
 ## Tips
 

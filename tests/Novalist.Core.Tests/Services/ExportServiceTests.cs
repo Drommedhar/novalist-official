@@ -251,6 +251,253 @@ public class ExportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task Codex_SelectedEntityKeys_FilterEveryKind()
+    {
+        var alice = new CharacterData { Name = "Alice" };
+        var bob = new CharacterData { Name = "Bob" };
+        var city = new LocationData { Name = "City" };
+        var farm = new LocationData { Name = "Farm" };
+        _entity.LoadCharactersAsync().Returns(new List<CharacterData> { alice, bob });
+        _entity.LoadLocationsAsync().Returns(new List<LocationData> { city, farm });
+        _entity.LoadItemsAsync().Returns(new List<ItemData> { new() { Name = "Sword" } });
+        _entity.LoadLoreAsync().Returns(new List<LoreData> { new() { Name = "Magic" } });
+
+        var sut = Build();
+        await sut.ExportCodexAsync(
+            new ExportOptions
+            {
+                Title = "C",
+                SelectedEntityKeys = [$"character:{alice.Id}", $"location:{city.Id}"]
+            },
+            Out(".md"));
+
+        var md = await File.ReadAllTextAsync(Out(".md"));
+        Assert.Contains("### Alice", md);
+        Assert.Contains("### City", md);
+        Assert.DoesNotContain("Bob", md);
+        Assert.DoesNotContain("Farm", md);
+        Assert.DoesNotContain("## Items", md);   // nothing selected -> heading omitted
+        Assert.DoesNotContain("## Lore", md);
+    }
+
+    [Fact]
+    public async Task Codex_UsesSuppliedLabels_AndHidesDateModeAge()
+    {
+        _entity.LoadCharactersAsync().Returns(new List<CharacterData>
+        {
+            new()
+            {
+                Name = "Elias", Role = "Antagonist", Age = "1976-04-10", AgeMode = "date",
+                Relationships = [new EntityRelationship { Role = "Tochter", Target = "Nora" }]
+            }
+        });
+        _entity.LoadLocationsAsync().Returns(new List<LocationData>
+        {
+            new() { Name = "Hillsford", Type = "Schule" }
+        });
+        _entity.LoadItemsAsync().Returns(new List<ItemData>());
+        _entity.LoadLoreAsync().Returns(new List<LoreData>());
+
+        var sut = Build();
+        await sut.ExportCodexAsync(
+            new ExportOptions
+            {
+                Title = "C",
+                Labels = new Dictionary<string, string>
+                {
+                    ["characters"] = "Charaktere",
+                    ["locations"] = "Orte",
+                    ["relationships"] = "Beziehungen",
+                    ["role"] = "Rolle",
+                    ["age"] = "Alter",
+                    ["type"] = "Typ",
+                    ["description"] = "   "   // blank translation falls back
+                }
+            },
+            Out(".md"));
+
+        var md = await File.ReadAllTextAsync(Out(".md"));
+        Assert.Contains("## Charaktere", md);
+        Assert.Contains("## Orte", md);
+        Assert.Contains("- **Rolle:** Antagonist", md);
+        Assert.Contains("**Beziehungen**", md);
+        Assert.Contains("- **Typ:** Schule", md);
+        // Date age mode stores the birth date in Age — it is dropped, not printed.
+        Assert.DoesNotContain("Alter", md);
+        Assert.DoesNotContain("1976-04-10", md);
+    }
+
+    [Fact]
+    public async Task Codex_NumericAge_IsKept()
+    {
+        _entity.LoadCharactersAsync().Returns(new List<CharacterData>
+        {
+            new() { Name = "Nora", Age = "17" }
+        });
+        _entity.LoadLocationsAsync().Returns(new List<LocationData>());
+        _entity.LoadItemsAsync().Returns(new List<ItemData>());
+        _entity.LoadLoreAsync().Returns(new List<LoreData>());
+
+        var sut = Build();
+        await sut.ExportCodexAsync(new ExportOptions { Title = "C" }, Out(".md"));
+        Assert.Contains("- **Age:** 17", await File.ReadAllTextAsync(Out(".md")));
+    }
+
+    // ── Codex PDF ──
+
+    // 1x1 PNG — the smallest file PdfSharpCore will actually decode.
+    private static readonly byte[] OnePixelPng = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==");
+
+    [Fact]
+    public void ParseCodexProse_SplitsLines_AndReadsMarkdownMarkers()
+    {
+        var lines = ExportService.ParseCodexProse(
+            "# Look\r\n* Plain face\n\nNormal\ttext here");
+
+        Assert.Equal(4, lines.Count);
+        Assert.True(lines[0].Heading);
+        Assert.Equal("Look", lines[0].Segments[0].Text);
+        Assert.True(lines[1].Bullet);
+        Assert.Equal("Plain face", lines[1].Segments[0].Text);
+        Assert.Empty(lines[2].Segments);                      // blank line -> gap
+        // Control characters render as boxes in a PDF, so they are dropped.
+        Assert.Equal("Normal text here", lines[3].Segments[0].Text);
+    }
+
+    [Fact]
+    public void ParseCodexProse_TurnsBlockTagsIntoLines()
+    {
+        var lines = ExportService.ParseCodexProse("<p>First</p><p>Second<br/>Third</p>");
+
+        var text = lines.Where(l => l.Segments.Count > 0)
+            .Select(l => l.Segments[0].Text).ToList();
+        Assert.Equal(new[] { "First", "Second", "Third" }, text);
+    }
+
+    [Fact]
+    public void ParseInlineMarkdown_SplitsBoldRuns()
+    {
+        var segments = ExportService.ParseInlineMarkdown("Plain **bold** tail");
+
+        Assert.Equal(3, segments.Count);
+        Assert.False(segments[0].Bold);
+        Assert.Equal("bold", segments[1].Text);
+        Assert.True(segments[1].Bold);
+        Assert.False(segments[2].Bold);
+    }
+
+    [Fact]
+    public async Task CodexPdf_NoEntityService_WritesNotice()
+    {
+        var sut = new ExportService(_project); // no entity service
+        await sut.ExportCodexPdfAsync(new ExportOptions { Title = "X" }, Out(".pdf"));
+        Assert.Contains("requires entity service", await File.ReadAllTextAsync(Out(".pdf")));
+    }
+
+    [Fact]
+    public async Task CodexPdf_InlinesImagesAndRendersEveryKind()
+    {
+        var portrait = Path.Combine(_dir.Path, "portrait.png");
+        await File.WriteAllBytesAsync(portrait, OnePixelPng);
+        _entity.GetImageFullPath("img/portrait.png").Returns(portrait);
+
+        // Not a decodable image: must be skipped, not fail the export.
+        var broken = Path.Combine(_dir.Path, "broken.png");
+        await File.WriteAllBytesAsync(broken, new byte[] { 1, 2, 3 });
+        _entity.GetImageFullPath("img/broken.png").Returns(broken);
+        _entity.GetImageFullPath("img/missing.png").Returns(Path.Combine(_dir.Path, "gone.png"));
+
+        // Long enough to wrap onto further lines and spill over a page.
+        var longText = string.Join(' ', Enumerable.Repeat("wraps", 400));
+
+        _entity.LoadCharactersAsync().Returns(new List<CharacterData>
+        {
+            new()
+            {
+                Name = "Alice", Surname = "Vance", Role = "Hero", Age = "30", Gender = "female",
+                Group = "Crew", EyeColor = "Green", HairColor = "Black", Height = "170cm",
+                Build = "Slim", SkinTone = "Pale", DistinguishingFeatures = longText,
+                CustomProperties = new() { ["mood"] = "happy", ["blank"] = "   " },
+                Images =
+                [
+                    new EntityImage { Name = "portrait", Path = "img/portrait.png" },
+                    new EntityImage { Name = "broken", Path = "img/broken.png" },
+                    new EntityImage { Name = "missing", Path = "img/missing.png" },
+                    new EntityImage { Name = "unset", Path = "" }
+                ],
+                Relationships = [new EntityRelationship { Role = "Sister", Target = "Mira" }],
+                Sections =
+                [
+                    // Markdown-ish prose: headings, bullets, bold spans, blank
+                    // lines, a control character, and a word that cannot fit on
+                    // a line — all of which used to render as one runaway line.
+                    new EntitySection
+                    {
+                        Title = "Traits",
+                        Content = "# Look\n* Plain face\n* Neutral clothing\n\nNormal line with **bold** emphasis.\n"
+                                  + new string('x', 400)
+                    },
+                    new EntitySection { Title = "Bio", Content = "<p>Born in the north</p><p>Left young</p>" },
+                    new EntitySection { Title = "Empty", Content = "" }
+                ]
+            },
+            // A second entry: every entry after the first opens its own page.
+            new() { Name = "Bob", Role = "Sidekick" }
+        });
+        _entity.LoadLocationsAsync().Returns(new List<LocationData>
+        {
+            new() { Name = "City", Type = "Urban", Description = "Big", CustomProperties = new() { ["pop"] = "1M" } }
+        });
+        _entity.LoadItemsAsync().Returns(new List<ItemData> { new() { Name = "Sword", Type = "Weapon" } });
+        _entity.LoadLoreAsync().Returns(new List<LoreData> { new() { Name = "Magic", Category = "System" } });
+
+        var sut = Build();
+        await sut.ExportCodexPdfAsync(
+            new ExportOptions { Title = "Codex", Author = "Me", IncludeTitlePage = true }, Out(".pdf"));
+
+        var bytes = await File.ReadAllBytesAsync(Out(".pdf"));
+        Assert.Equal("%PDF", Encoding.ASCII.GetString(bytes, 0, 4));
+        // No sidecar folder: a codex PDF carries its images inside the document.
+        Assert.False(Directory.Exists(Path.Combine(_dir.Path, "export_images")));
+    }
+
+    [Fact]
+    public async Task CodexPdf_EmptySelection_StillWritesPdf()
+    {
+        _entity.LoadCharactersAsync().Returns(new List<CharacterData> { new() { Name = "Alice" } });
+        _entity.LoadLocationsAsync().Returns(new List<LocationData>());
+        _entity.LoadItemsAsync().Returns(new List<ItemData>());
+        _entity.LoadLoreAsync().Returns(new List<LoreData>());
+
+        var sut = Build();
+        await sut.ExportCodexPdfAsync(
+            new ExportOptions { Title = "", IncludeTitlePage = false, SelectedEntityKeys = [] },
+            Out(".pdf"));
+
+        var bytes = await File.ReadAllBytesAsync(Out(".pdf"));
+        Assert.Equal("%PDF", Encoding.ASCII.GetString(bytes, 0, 4));
+    }
+
+    [Fact]
+    public async Task ExportAsync_CodexPdfFormat_Dispatches()
+    {
+        _entity.LoadCharactersAsync().Returns(new List<CharacterData> { new() { Name = "A" } });
+        _entity.LoadLocationsAsync().Returns(new List<LocationData>());
+        _entity.LoadItemsAsync().Returns(new List<ItemData>());
+        _entity.LoadLoreAsync().Returns(new List<LoreData>());
+        SetupChapter("C", ("S", "<p>x</p>"));
+
+        var sut = Build();
+        await sut.ExportAsync(
+            new ExportOptions { Format = ExportFormat.CodexPdf, Title = "Cdx", IncludeTitlePage = false },
+            Out(".pdf"));
+
+        var bytes = await File.ReadAllBytesAsync(Out(".pdf"));
+        Assert.Equal("%PDF", Encoding.ASCII.GetString(bytes, 0, 4));
+    }
+
+    [Fact]
     public async Task Codex_NoImages_RemovesEmptyImagesFolder()
     {
         _entity.LoadCharactersAsync().Returns(new List<CharacterData> { new() { Name = "Bob" } });

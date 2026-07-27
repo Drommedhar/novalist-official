@@ -1,5 +1,6 @@
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Services;
 using Novalist.Sdk.Models;
 using Xunit;
 
@@ -32,10 +33,10 @@ public sealed class ExportRpcTests : IDisposable
     }
 
     [Fact]
-    public void Formats_ListsAllSeven()
+    public void Formats_ListsAllBuiltIns()
     {
         Assert.Equal(
-            new[] { "Epub", "Docx", "Pdf", "Markdown", "FinalDraft", "LaTeX", "Codex" },
+            new[] { "Epub", "Docx", "Pdf", "Markdown", "FinalDraft", "LaTeX", "Codex", "CodexPdf" },
             _rpc.Formats());
     }
 
@@ -80,6 +81,7 @@ public sealed class ExportRpcTests : IDisposable
     [InlineData("FinalDraft", ".fdx")]
     [InlineData("LaTeX", ".tex")]
     [InlineData("Codex", ".md")]
+    [InlineData("CodexPdf", ".pdf")]
     public async Task Run_ProducesNonEmptyFile(string format, string extension)
     {
         var output = Path.Combine(_root, $"out-{format}{extension}");
@@ -115,6 +117,28 @@ public sealed class ExportRpcTests : IDisposable
         var result = await _rpc.RunAsync("fountain", output, "", "Tester", true, []);
         Assert.True(result.Success);
         Assert.Contains("Untitled", await File.ReadAllTextAsync(output));
+    }
+
+    [Fact]
+    public async Task Run_Codex_HonoursEntitySelection()
+    {
+        var entities = new EntityService(_workspace.Projects);
+        var kept = new Novalist.Core.Models.CharacterData { Name = "Mira" };
+        var dropped = new Novalist.Core.Models.CharacterData { Name = "Jonas" };
+        await entities.SaveCharacterAsync(kept);
+        await entities.SaveCharacterAsync(dropped);
+
+        var output = Path.Combine(_root, "selected-codex.md");
+        var result = await _rpc.RunAsync(
+            "Codex", output, "ExpNovel", "Tester", true, [], null, false,
+            [$"character:{kept.Id}"],
+            new Dictionary<string, string> { ["characters"] = "Charaktere" });
+
+        Assert.True(result.Success);
+        var md = await File.ReadAllTextAsync(output);
+        Assert.Contains("Mira", md);
+        Assert.DoesNotContain("Jonas", md);
+        Assert.Contains("## Charaktere", md);   // labels arrive in the UI language
     }
 
     [Fact]

@@ -5,7 +5,7 @@ using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
 
-/// <summary>Manuscript export to the seven supported formats.</summary>
+/// <summary>Manuscript and codex export to the built-in formats.</summary>
 public sealed class ExportRpc
 {
     private readonly Workspace _workspace;
@@ -50,7 +50,9 @@ public sealed class ExportRpc
         bool includeTitlePage,
         string[] selectedChapterGuids,
         string? presetId = null,
-        bool smf = false)
+        bool smf = false,
+        string[]? selectedEntityKeys = null,
+        Dictionary<string, string>? labels = null)
     {
         if (Enum.TryParse<ExportFormat>(format, out var parsedFormat))
         {
@@ -63,11 +65,17 @@ public sealed class ExportRpc
                 IncludeTitlePage = includeTitlePage,
                 PresetId = presetId,
                 SmfPreset = smf,
-                SelectedChapterGuids = selectedChapterGuids.ToList()
+                SelectedChapterGuids = selectedChapterGuids.ToList(),
+                SelectedEntityKeys = selectedEntityKeys?.ToList(),
+                Labels = labels
             };
             if (parsedFormat == ExportFormat.Codex)
             {
                 await service.ExportCodexAsync(options, outputPath);
+            }
+            else if (parsedFormat == ExportFormat.CodexPdf)
+            {
+                await service.ExportCodexPdfAsync(options, outputPath);
             }
             else
             {

@@ -12,8 +12,22 @@ const FORMATS: { format: string; extension: string; labelKey: string }[] = [
   { format: 'Markdown', extension: '.md', labelKey: 'export.formatMarkdown' },
   { format: 'FinalDraft', extension: '.fdx', labelKey: 'export.formatFinalDraft' },
   { format: 'LaTeX', extension: '.tex', labelKey: 'export.formatLatex' },
-  { format: 'Codex', extension: '.md', labelKey: 'export.formatCodex' }
+  { format: 'Codex', extension: '.md', labelKey: 'export.formatCodex' },
+  { format: 'CodexPdf', extension: '.pdf', labelKey: 'export.formatCodexPdf' }
 ]
+
+/** Codex entity kinds, in the order the export renders them. */
+const ENTITY_KINDS: { kind: string; labelKey: string }[] = [
+  { kind: 'character', labelKey: 'codexHub.characters' },
+  { kind: 'location', labelKey: 'codexHub.locations' },
+  { kind: 'item', labelKey: 'codexHub.items' },
+  { kind: 'lore', labelKey: 'codexHub.lore' }
+]
+
+interface EntityOption {
+  key: string
+  name: string
+}
 
 interface PresetDto {
   id: string
@@ -41,6 +55,10 @@ export function ExportView(): React.JSX.Element {
   const [includeTitlePage, setIncludeTitlePage] = useState(true)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [initialized, setInitialized] = useState(false)
+  const [entities, setEntities] = useState<Record<string, EntityOption[]>>({})
+  const [entitiesLoaded, setEntitiesLoaded] = useState(false)
+  const [selectedEntities, setSelectedEntities] = useState<Set<string>>(new Set())
+  const [entityQuery, setEntityQuery] = useState('')
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<string | null>(null)
 
@@ -57,10 +75,41 @@ export function ExportView(): React.JSX.Element {
     }
   }, [chapters, initialized])
 
-  const isCodex = format === 'Codex'
+  const isCodex = format === 'Codex' || format === 'CodexPdf'
   const isDocxPdf = format === 'Docx' || format === 'Pdf'
   const extFormat = extFormats.find((f) => f.formatKey === format)
   const chaptersVisible = !isCodex && extFormat === undefined
+
+  // Load the codex entities the first time a codex format is picked; every
+  // entry starts selected so the default export matches the old behaviour.
+  useEffect(() => {
+    if (!isCodex || entitiesLoaded) return
+    setEntitiesLoaded(true)
+    void Promise.all(
+      ENTITY_KINDS.map(async ({ kind }) => {
+        const list = await rpc
+          .request<{ id: string; name: string }[]>('entities/list', [kind])
+          .catch(() => [])
+        const sorted = list
+          .map((e) => ({ key: `${kind}:${e.id}`, name: e.name }))
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+        return [kind, sorted] as const
+      })
+    ).then((loaded) => {
+      setEntities(Object.fromEntries(loaded))
+      setSelectedEntities(new Set(loaded.flatMap(([, list]) => list.map((e) => e.key))))
+    })
+  }, [isCodex, entitiesLoaded])
+
+  const allEntities = ENTITY_KINDS.flatMap(({ kind }) => entities[kind] ?? [])
+  // Same grouping and name order the export itself writes, filtered by the search box.
+  const needle = entityQuery.trim().toLocaleLowerCase()
+  const visibleEntities = ENTITY_KINDS.map(({ kind, labelKey }) => ({
+    kind,
+    labelKey,
+    list: (entities[kind] ?? []).filter((e) => e.name.toLocaleLowerCase().includes(needle))
+  })).filter((group) => group.list.length > 0)
+  const visibleKeys = visibleEntities.flatMap((group) => group.list.map((e) => e.key))
   const preset = smf && isDocxPdf ? 'shunn-manuscript' : presetId
   const activePreset = presets.find((p) => p.id === preset)
 
@@ -69,6 +118,37 @@ export function ExportView(): React.JSX.Element {
       const next = new Set(prev)
       if (checked) next.add(guid)
       else next.delete(guid)
+      return next
+    })
+  }
+
+  // The codex writers have no translations of their own; the fixed labels they
+  // print come from here, in the interface language.
+  const codexLabels = (): Record<string, string> => ({
+    characters: t('codexHub.characters'),
+    locations: t('codexHub.locations'),
+    items: t('codexHub.items'),
+    lore: t('codexHub.lore'),
+    relationships: t('export.codexLabel.relationships'),
+    role: t('export.codexLabel.role'),
+    age: t('export.codexLabel.age'),
+    gender: t('export.codexLabel.gender'),
+    group: t('export.codexLabel.group'),
+    eyes: t('export.codexLabel.eyes'),
+    hair: t('export.codexLabel.hair'),
+    height: t('export.codexLabel.height'),
+    build: t('export.codexLabel.build'),
+    skin: t('export.codexLabel.skin'),
+    notable: t('export.codexLabel.notable'),
+    type: t('export.codexLabel.type'),
+    description: t('export.codexLabel.description')
+  })
+
+  const toggleEntity = (key: string, checked: boolean): void => {
+    setSelectedEntities((prev) => {
+      const next = new Set(prev)
+      if (checked) next.add(key)
+      else next.delete(key)
       return next
     })
   }
@@ -88,7 +168,9 @@ export function ExportView(): React.JSX.Element {
         includeTitlePage,
         chaptersVisible ? [...selected] : [],
         preset,
-        smf && isDocxPdf
+        smf && isDocxPdf,
+        isCodex ? [...selectedEntities] : null,
+        isCodex ? codexLabels() : null
       ])
       setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
     } catch {
@@ -98,7 +180,10 @@ export function ExportView(): React.JSX.Element {
     }
   }
 
-  const exportDisabled = busy || (chaptersVisible && selected.size === 0)
+  const exportDisabled =
+    busy ||
+    (chaptersVisible && selected.size === 0) ||
+    (isCodex && allEntities.length > 0 && selectedEntities.size === 0)
 
   return (
     <div className="dashboard export-view">
@@ -217,6 +302,67 @@ export function ExportView(): React.JSX.Element {
             </div>
             <span className="export-count">
               {t('export.selectedOfTotal', { selected: selected.size, total: chapters.length })}
+            </span>
+          </>
+        )}
+
+        {isCodex && allEntities.length > 0 && (
+          <>
+            <div className="export-chapters-header">
+              <div className="inspector-label">{t('export.selectEntities')}</div>
+              <div className="export-select-buttons">
+                <button
+                  className="export-inline-btn"
+                  onClick={() => setSelectedEntities((prev) => new Set([...prev, ...visibleKeys]))}
+                >
+                  {t('export.selectAll')}
+                </button>
+                <button
+                  className="export-inline-btn"
+                  onClick={() =>
+                    setSelectedEntities((prev) => {
+                      const next = new Set(prev)
+                      for (const key of visibleKeys) next.delete(key)
+                      return next
+                    })
+                  }
+                >
+                  {t('export.selectNone')}
+                </button>
+              </div>
+            </div>
+            <input
+              className="dialog-input export-entity-search"
+              type="search"
+              value={entityQuery}
+              placeholder={t('export.searchEntities')}
+              onChange={(e) => setEntityQuery(e.target.value)}
+            />
+            <div className="export-chapters">
+              {visibleEntities.map(({ kind, labelKey, list }) => (
+                <div key={kind} className="export-entity-group">
+                  <div className="export-entity-group-title">{t(labelKey)}</div>
+                  {list.map((entity) => (
+                    <label key={entity.key} className="relationships-toggle">
+                      <input
+                        type="checkbox"
+                        checked={selectedEntities.has(entity.key)}
+                        onChange={(e) => toggleEntity(entity.key, e.target.checked)}
+                      />
+                      {entity.name}
+                    </label>
+                  ))}
+                </div>
+              ))}
+              {visibleEntities.length === 0 && (
+                <span className="export-count">{t('export.noEntityMatches')}</span>
+              )}
+            </div>
+            <span className="export-count">
+              {t('export.selectedOfTotal', {
+                selected: selectedEntities.size,
+                total: allEntities.length
+              })}
             </span>
           </>
         )}

@@ -35,6 +35,24 @@
   color: var(--nl-text);
 }
 
+/* Codex entity picker: search box above one block per entity kind. */
+.export-entity-search {
+  margin-top: var(--nl-space-tighter);
+}
+
+
+.export-entity-group + .export-entity-group {
+  margin-top: var(--nl-space-sm);
+}
+
+.export-entity-group-title {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--nl-space-tightest);
+}
+
 .export-count {
   font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
