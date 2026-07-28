@@ -19,11 +19,13 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("recentProjects")]
     public List<RecentProject> RecentProjects { get; set; } = new();
 
+    // Newsreader at 17 is the identity's text face and body size. Both ship
+    // with the app, so the default renders the same on every machine.
     [JsonPropertyName("editorFontFamily")]
-    public string EditorFontFamily { get; set; } = "Inter";
+    public string EditorFontFamily { get; set; } = "Newsreader";
 
     [JsonPropertyName("editorFontSize")]
-    public double EditorFontSize { get; set; } = 14;
+    public double EditorFontSize { get; set; } = 17;
 
     [JsonPropertyName("enableBookParagraphSpacing")]
     public bool EnableBookParagraphSpacing { get; set; }

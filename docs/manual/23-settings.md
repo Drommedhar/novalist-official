@@ -30,17 +30,19 @@ The **Templates** and **Writing Goals** sections are per-project (they only appl
 
 - **Interface Language** — UI language. English, German, and Chinese (Simplified) ship built in. Changes apply immediately without restart.
 - **Theme** — the active color scheme:
-  - **Default** — follows your operating system's light/dark preference.
+  - **Default** — Novalist's own identity. A deep "Ink Night" page with parchment-coloured text and gilt accents; panels are the one raised surface, edges are hairlines rather than grey rules, and primary buttons carry a gold foil fill. Headings are set in Fraunces, text and interface labels in Newsreader, and anything the app computed for you — word counts, versions, file sizes, timestamps — in Courier Prime. All three typefaces ship inside the app, so the interface looks the same offline and on a machine that has none of them installed.
   - **Discord**
   - **Catppuccin Mocha**
-- **Accent Color** — pick a custom highlight color used throughout the interface. A **Reset** button next to the color picker clears the custom accent and returns to the theme's default.
+- **Accent Color** — pick a custom highlight color used throughout the interface. A **Reset** button next to the color picker clears the custom accent and returns to the theme's default. A custom accent also flattens the gold foil on primary buttons to a single fill in your colour.
+
+The alternate themes change colour only. Type, spacing, and corner radii belong to the Novalist identity and stay the same whichever palette you pick.
 
 On macOS 26 and later the window uses the native Liquid Glass material; older macOS versions get standard vibrancy.
 
 ## Editor
 
-- **Font Family** — typeface used in the editor. Type any installed family; a list of common typefaces is offered as suggestions.
-- **Font Size** — editor font size in pixels (8-36).
+- **Font Family** — typeface used in the editor. Defaults to **Newsreader**, which ships with the app. Type any installed family; a list of common typefaces is offered as suggestions, with the three bundled faces (Newsreader, Fraunces, Courier Prime) listed first because those are guaranteed to be present.
+- **Font Size** — editor font size in pixels (8-36). Defaults to 17.
 - **Typewriter Scrolling** — keeps the active line at a fixed vertical position so you don't write near the bottom of the page. When on, an anchor choice appears: **Top**, **Middle**, or **Bottom**.
 - **Page View** — renders the editor as a printed-book-style page with paper background, margins, and shadow.
 - **Book Paragraph Spacing** — adds extra vertical space between lines for a book-like reading experience.
@@ -123,7 +125,7 @@ A read-only list of the extensions installed for Novalist. Each row shows the ex
 
 ## Tips
 
-- **Switch theme by light.** Dark for evening sessions, light for daylight; with the Default theme this follows your OS automatically.
+- **Set the editor font to taste, not to the theme.** The interface keeps the identity's faces whatever you choose, so picking your own writing typeface in Editor → Font Family changes only the page you write on.
 - **Disable grammar check if it slows you down.** It calls a remote API; some networks are slow enough that the underlines lag.
 - **Use a self-hosted LanguageTool for offline use.** A `docker-compose` LanguageTool image takes minutes and removes the cloud dependency — point the API URL at it.
 - **Preview your trim size early.** Turning on Book Width with your real page format and book font shows the characters-per-line you will actually get in print.

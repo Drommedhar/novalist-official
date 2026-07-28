@@ -55,6 +55,9 @@ interface Window {
     checkAppUpdate(): Promise<AppUpdate | null>
     downloadAppUpdate(info: AppUpdate): Promise<string>
     updatesChecked(): void
+    /** Repaints the system window controls to match the theme. Desktop only;
+     *  a no-op on macOS and on the mobile build. */
+    setTitleBarColors?(color: string, symbolColor: string): void
   }
 }
 

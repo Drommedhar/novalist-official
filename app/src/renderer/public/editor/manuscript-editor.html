@@ -3,18 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- The CI typefaces. This page sits outside the bundler's module graph, so it
+     links the vendored sheet directly; without it the host's chosen prose face
+     would not resolve inside the frame. -->
+<link rel="stylesheet" href="../fonts/fonts.css">
 <style>
 :root {
     color-scheme: dark;
-    --bg: #1e1e2e;
-    --fg: #cdd6f4;
-    --caret: #cdd6f4;
-    --selection-bg: #45475a;
-    --accent: #89b4fa;
-    --subtle: #6c7086;
-    --divider: #313244;
-    --font-family: 'Segoe UI', sans-serif;
-    --font-size: 16px;
+    /* Identity defaults, used for the frame's first paint only - setTheme
+       replaces them with the live host tokens as soon as the bridge is up. */
+    --bg: #0F1219;
+    --fg: #ECE5D2;
+    --caret: #ECE5D2;
+    --selection-bg: rgb(210 167 79 / 0.3);
+    --accent: #D2A74F;
+    --subtle: #756F62;
+    --divider: rgb(237 230 211 / 0.1);
+    --font-family: 'Newsreader', Georgia, serif;
+    --font-size: 17px;
     /* Scrollbar colours mirror the host's --nl-scrollbar-* tokens; setTheme
        overwrites them whenever the app theme changes. */
     --scrollbar-size: 10px;

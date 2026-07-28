@@ -19,7 +19,7 @@
   height: min(760px, 92vh);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-lg);
+  border-radius: var(--nl-radius-xl);
   box-shadow: var(--nl-elevation-high);
   overflow: hidden;
 }
@@ -118,7 +118,21 @@
   padding: var(--nl-space-xxl);
   color: var(--nl-text);
   font-size: var(--nl-font-body-lg);
-  line-height: 1.6;
+  line-height: var(--nl-leading-body);
+  max-width: var(--nl-measure-text);
+}
+
+/* A manual page is a long passage, so it opens with a drop cap in the display
+   face and Candlelight, per the identity's prose rules. */
+.help-content > p:first-of-type::first-letter {
+  float: left;
+  font-family: var(--nl-font-display-face);
+  font-weight: var(--nl-weight-title);
+  color: var(--nv-gold-light);
+  font-size: 3.1em;
+  line-height: 0.86;
+  padding-right: var(--nl-space-sm);
+  padding-top: 0.04em;
 }
 
 /* Screenshots embedded in manual pages. */

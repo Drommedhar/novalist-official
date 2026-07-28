@@ -11,7 +11,7 @@ import { ChapterDialog } from './ChapterDialog'
 import { SceneDialog } from './SceneDialog'
 import { StoryDateRangeDialog } from './StoryDateRangeDialog'
 import { SmartListsPanel } from './SmartListsPanel'
-import { useShellStore } from '../stores/shellStore'
+import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { PanelResizer } from './PanelResizer'
 
 const STATUS_CYCLE = ['Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']
@@ -247,7 +247,12 @@ export function Binder(): React.JSX.Element {
 
   return (
     <nav className="binder" style={{ width: binderWidth }}>
-      <PanelResizer edge="right" width={binderWidth} onResize={setBinderWidth} />
+      <PanelResizer
+        edge="right"
+        width={binderWidth}
+        onResize={setBinderWidth}
+        onResizeEnd={(px) => savePanelSize({ binderWidth: px })}
+      />
       <div className="binder-tabs">
         <button
           className={`binder-tab${binderTab === 'chapters' ? ' active' : ''}`}

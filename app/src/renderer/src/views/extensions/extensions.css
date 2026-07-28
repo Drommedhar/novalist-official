@@ -122,92 +122,132 @@
 .ext-theme-list {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--nl-space-2, 8px);
+  gap: var(--nl-space-sm);
 }
 
 .ext-theme-chip {
   display: inline-flex;
   align-items: center;
-  gap: var(--nl-space-2, 6px);
-  padding: var(--nl-space-1, 4px) var(--nl-space-3, 10px);
-  border: 1px solid var(--nl-border, #2a2d34);
-  border-radius: var(--nl-radius-pill, 999px);
-  background: var(--nl-surface-card, #1c1e24);
-  color: var(--nl-text, #e8eaed);
-  font-size: var(--nl-font-body-small, 12px);
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-tighter) var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  font-size: var(--nl-font-body-sm);
   cursor: pointer;
 }
 
 .ext-theme-chip.active {
-  border-color: var(--nl-accent, #0e8bdf);
-  color: var(--nl-accent, #0e8bdf);
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
 }
 
 .ext-theme-swatch {
   width: 12px;
   height: 12px;
-  border-radius: var(--nl-radius-pill, 999px);
-  border: 1px solid var(--nl-border, #2a2d34);
+  border-radius: var(--nl-radius-pill);
+  border: 1px solid var(--nl-border);
 }
 
-/* Declarative extension settings form (ISettingsSchemaContributor). */
+/* Declarative extension settings form (ISettingsSchemaContributor).
+   Composed to match the app's own Settings surface: a panel card holding a
+   two-column field grid, so an extension's options read like the built-in ones
+   instead of as a single stack of full-width inputs. */
 .ext-schema-form {
-  border: 1px solid var(--nl-border, #2a2d34);
-  border-radius: var(--nl-radius-md, 6px);
-  background: var(--nl-surface-card, #1c1e24);
-  padding: var(--nl-space-3, 12px);
-  margin-bottom: var(--nl-space-3, 12px);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-xl);
+  background: var(--nl-surface-card);
+  padding: var(--nl-space-xxl);
+  margin-bottom: var(--nl-space-lg);
 }
 
 .ext-schema-head {
   display: flex;
   flex-direction: column;
-  margin-bottom: var(--nl-space-3, 10px);
+  gap: var(--nl-space-tightest);
+  margin-bottom: var(--nl-space-xl);
+  padding-bottom: var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border-subtle);
 }
 
 .ext-schema-fields {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nl-space-2, 8px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--nl-space-lg) var(--nl-space-xl);
+  align-items: start;
 }
 
 .ext-schema-field {
   display: flex;
   flex-direction: column;
-  gap: var(--nl-space-1, 4px);
+  gap: var(--nl-space-tighter);
+  min-width: 0;
+}
+
+/* Free-text and multi-line fields want the full row; a short value does not. */
+.ext-schema-field:has(.ext-schema-textarea) {
+  grid-column: 1 / -1;
 }
 
 .ext-schema-label {
-  font-size: var(--nl-font-body-small, 12px);
-  color: var(--nl-text-dim, #9aa0a6);
+  font-size: var(--nl-font-body-sm);
+  font-weight: var(--nl-weight-label);
+  color: var(--nl-text-dim);
 }
 
 .ext-schema-input {
-  padding: var(--nl-space-1, 4px) var(--nl-space-2, 8px);
-  border: 1px solid var(--nl-border, #2a2d34);
-  border-radius: var(--nl-radius-sm, 4px);
-  background: var(--nl-surface-editor, #14161a);
-  color: var(--nl-text, #e8eaed);
+  width: 100%;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-input);
+  color: var(--nl-text);
   font: inherit;
-  font-size: var(--nl-font-body, 12px);
+  font-size: var(--nl-font-body);
+}
+
+.ext-schema-input:focus-visible {
+  outline: 2px solid var(--nl-focus-ring);
+  outline-offset: 1px;
 }
 
 .ext-schema-textarea {
   resize: vertical;
-  min-height: 64px;
+  min-height: 96px;
+  line-height: var(--nl-leading-body);
+}
+
+/* A boolean is a box and its label on one line, not a stacked field. The label
+   span is authored before the input, so the box is pulled ahead of it and any
+   help text wraps to a second line, indented under the label. */
+.ext-schema-field:has(> .ext-schema-checkbox) {
+  flex-flow: row wrap;
+  align-items: center;
+  gap: var(--nl-space-sm);
 }
 
 .ext-schema-checkbox {
-  align-self: flex-start;
+  order: -1;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.ext-schema-field:has(> .ext-schema-checkbox) > .ext-schema-help {
+  flex-basis: 100%;
+  margin-left: calc(16px + var(--nl-space-sm));
 }
 
 .ext-schema-help {
-  font-size: var(--nl-font-caption, 11px);
-  color: var(--nl-text-dim, #9aa0a6);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
 }
 
 .ext-schema-actions {
-  margin-top: var(--nl-space-3, 10px);
+  grid-column: 1 / -1;
+  margin-top: var(--nl-space-md);
 }
 
 .ext-schema-autosave {

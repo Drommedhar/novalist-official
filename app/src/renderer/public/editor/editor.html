@@ -3,15 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- The CI typefaces. This page sits outside the bundler's module graph, so it
+     links the vendored sheet directly; without it the host's chosen prose face
+     would not resolve inside the frame. -->
+<link rel="stylesheet" href="../fonts/fonts.css">
 <style>
 :root {
     color-scheme: dark;
-    --bg: #1e1e2e;
-    --fg: #cdd6f4;
-    --caret: #cdd6f4;
-    --selection-bg: #45475a;
-    --font-family: 'Segoe UI', sans-serif;
-    --font-size: 16px;
+    /* Identity defaults, used for the frame's first paint only - setTheme
+       replaces them with the live host tokens as soon as the bridge is up. */
+    --bg: #0F1219;
+    --fg: #ECE5D2;
+    --caret: #ECE5D2;
+    --selection-bg: rgb(210 167 79 / 0.3);
+    --font-family: 'Newsreader', Georgia, serif;
+    --font-size: 17px;
     --padding-h: 24px;
     --padding-v: 8px;
     --book-width: none;
@@ -45,7 +51,8 @@ body { display: flex; justify-content: center; }
     padding: var(--padding-v) var(--padding-h);
     outline: none;
     caret-color: var(--caret);
-    line-height: 1.6;
+    /* The identity's body leading. */
+    line-height: 1.7;
     word-wrap: break-word;
     overflow-wrap: break-word;
     white-space: pre-wrap;
@@ -669,6 +676,9 @@ let typewriterFrame = 0;
 let typewriterLastY = -9999;
 let typewriterMouseDown = false;
 let typewriterSuspendUntil = 0;   // ms epoch — suppress recenter until then
+// ms epoch — a scroll the editor issued itself (caret recentring), which must
+// not be mistaken for the user scrolling away from an open context menu.
+let programmaticScrollUntil = 0;
 
 // ── C#→JS Bridge ────────────────────────────────────────────────
 
@@ -1115,6 +1125,10 @@ function scheduleTypewriterRecenter() {
 // Mouse interaction pauses typewriter so drag-select works.
 document.addEventListener('mousedown', (e) => {
     if (e.button === 0) typewriterMouseDown = true;
+    // A right- or middle-click opens a menu over the text. Recentring the caret
+    // underneath it would scroll the page out from under the menu, so suspend
+    // the same way a wheel scroll does.
+    else typewriterSuspendUntil = Date.now() + 1200;
 }, true);
 document.addEventListener('mouseup', () => {
     if (typewriterMouseDown) {
@@ -1165,6 +1179,7 @@ function recenterCaret() {
         const caretRelative = top - wrapperRect.top;
         const delta = caretRelative - targetY;
         if (Math.abs(delta) < 2) return;
+        programmaticScrollUntil = Date.now() + 150;
         wrapper.scrollTop = wrapper.scrollTop + delta;
     } else {
         // Typewriter is disabled: just keep caret in view (standard scroll-into-view)
@@ -1180,7 +1195,8 @@ function recenterCaret() {
         }
 
         if (Math.abs(delta) > 1) {
-            wrapper.scrollTop = wrapper.scrollTop + delta;
+            programmaticScrollUntil = Date.now() + 150;
+        wrapper.scrollTop = wrapper.scrollTop + delta;
         }
     }
 }
@@ -2693,7 +2709,13 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') hideContextMenu();
 });
-wrapper.addEventListener('scroll', hideContextMenu);
+// Only a scroll the *user* made dismisses the menu. Caret recentring scrolls
+// the wrapper too, and letting that through closed the menu in the same frame
+// it opened.
+wrapper.addEventListener('scroll', () => {
+    if (Date.now() < programmaticScrollUntil) return;
+    hideContextMenu();
+});
 
 // ── Grammar Check ───────────────────────────────────────────────
 

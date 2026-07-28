@@ -28,9 +28,11 @@ Novalist uses an activity-bar layout: a slim icon rail switches views, and the b
 
 Navigation happens through the **activity bar**, the **Go** menu in the menu bar, and the command palette. The binder, the inspector, and the bottom scene-notes dock can each be hidden.
 
+On Windows and Linux the menu bar is hidden so the toolbar can serve as the window's title bar; press `Alt` to show it. On macOS the menu bar sits in the system bar as usual.
+
 ## The toolbar
 
-The slim bar at the top of the window. On the left, from left to right:
+The slim bar at the top of the window — it doubles as the window's title bar, so it is also where you drag the window and where the minimise, maximise, and close buttons sit. On the left, from left to right:
 
 - **Menu (burger)** — opens the **backstage drawer** (see below).
 - **Project name** — double-click it to rename the project.
@@ -63,13 +65,15 @@ The left pane is the chapter/scene tree only — view navigation lives in the ac
 
 Click a scene to open it in the editor; the open scene is highlighted. Right-click chapters and scenes for their context menus.
 
+Drag the binder's right edge to resize it. It opens at a width proportional to your display, and once you drag it Novalist keeps that width for future sessions. The inspector and the scene-notes dock work the same way.
+
 ## The main area
 
 The big region in the middle shows the active view: the scene **Editor** by default, or whichever view you picked in the activity bar (Dashboard, Timeline, Codex, Export, Settings, and so on). When a second scene is opened in the split editor, the main area shows two editor panes side by side. See [Editor](05-editor.md).
 
 ### The scene-notes dock
 
-Below the editor sits an optional **scene-notes dock**, toggled from the toolbar or `Ctrl+Shift+N`. It holds the open scene's **Synopsis** and freeform **Notes** side by side, saved when you click away. Drag its top edge to resize it. The dock only appears in the editor.
+Below the editor sits an optional **scene-notes dock**, toggled from the toolbar or `Ctrl+Shift+N`. It holds the open scene's **Synopsis** and freeform **Notes** side by side, saved when you click away. Drag its top edge to resize it — the height you set is remembered. The dock only appears in the editor.
 
 ## The inspector
 

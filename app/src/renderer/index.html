@@ -8,6 +8,10 @@
       content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: novalist-project:; frame-src 'self' novalist-asset: novalist-ext:"
     />
     <title>Novalist</title>
+    <!-- The CI typefaces, vendored under public/fonts. Linked here rather than
+         imported from tokens.css so they resolve against the served root and
+         are already in flight before the renderer boots. -->
+    <link rel="stylesheet" href="./fonts/fonts.css" />
   </head>
   <body>
     <div id="root"></div>

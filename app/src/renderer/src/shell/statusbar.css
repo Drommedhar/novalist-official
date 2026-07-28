@@ -1,4 +1,7 @@
-/* Live editor statistics shown in the status bar's left segment. */
+/* Live editor statistics shown in the status bar's left segment.
+   Everything here is machine-written - counts, times, scores - so it wears the
+   record face. The scene title is the writer's own text and deliberately does
+   not; it stays in the text face below. */
 
 .status-stats {
   display: inline-flex;
@@ -10,6 +13,8 @@
 
 .status-stats > span {
   white-space: nowrap;
+  font-family: var(--nl-font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .status-stats > span + span::before {
@@ -28,8 +33,20 @@
   color: var(--nl-text-dim);
 }
 
+/* The bar is a 1fr / auto / 1fr grid; these place each segment in its column.
+   No overflow clipping on the side columns - the git and overview popovers
+   escape their segment by design. */
+.status-left {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-lg);
+  min-width: 0;
+}
+
 /* ===== Centre overview trigger + popover ===== */
 .status-center-wrap {
+  justify-self: center;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -59,6 +76,7 @@
 }
 
 .status-metric {
+  font-family: var(--nl-font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -164,7 +182,7 @@
   display: block;
   height: 100%;
   border-radius: var(--nl-radius-pill);
-  background: var(--nl-accent, #4f8cff);
+  background: var(--nl-accent);
 }
 
 .status-overview-read {
@@ -173,6 +191,7 @@
 
 /* ===== Right segment: goals + git indicator + backend ===== */
 .status-right {
+  justify-self: end;
   display: inline-flex;
   align-items: center;
   gap: var(--nl-space-lg);
@@ -193,6 +212,7 @@
 }
 
 .status-goal-label {
+  font-family: var(--nl-font-mono);
   font-variant-numeric: tabular-nums;
 }
 
@@ -208,7 +228,7 @@
   display: block;
   height: 100%;
   border-radius: var(--nl-radius-pill);
-  background: var(--nl-accent, #4f8cff);
+  background: var(--nl-accent);
 }
 
 .status-git {
@@ -232,11 +252,15 @@
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-family: var(--nl-font-mono);
 }
 
+/* A fact, so: record face in a hairline pill. */
 .status-git-count {
+  font-family: var(--nl-font-mono);
   font-variant-numeric: tabular-nums;
-  background: var(--nl-surface-hover);
+  background: transparent;
+  border: 1px solid var(--nl-border-firm);
   border-radius: var(--nl-radius-pill);
   padding: 0 var(--nl-space-sm);
 }
@@ -248,10 +272,32 @@
   min-width: 20px;
   padding: 0 var(--nl-space-tightest);
   border-radius: var(--nl-radius-sm);
-  color: #fff;
+  /* Parchment, never pure white, over whichever pigment the level carries. */
+  color: var(--nv-text);
+  font-family: var(--nl-font-mono);
   font-size: var(--nl-font-tiny);
   font-weight: var(--nl-weight-title);
   font-variant-numeric: tabular-nums;
+}
+
+.status-readability-badge.level-very-easy {
+  background: var(--nl-readability-very-easy);
+}
+
+.status-readability-badge.level-easy {
+  background: var(--nl-readability-easy);
+}
+
+.status-readability-badge.level-moderate {
+  background: var(--nl-readability-moderate);
+}
+
+.status-readability-badge.level-difficult {
+  background: var(--nl-readability-difficult);
+}
+
+.status-readability-badge.level-very-difficult {
+  background: var(--nl-readability-very-difficult);
 }
 
 .status-dim {
@@ -272,36 +318,36 @@
 }
 
 .status-backend.connected .status-backend-dot {
-  background: #16a34a;
+  background: var(--nl-success);
 }
 
 /* Extension-contributed status-bar items (IStatusBarContributor). */
 .status-ext-items {
   display: inline-flex;
   align-items: center;
-  gap: var(--nl-space-2, 6px);
-  margin-left: var(--nl-space-2, 6px);
+  gap: var(--nl-space-tighter);
+  margin-left: var(--nl-space-tighter);
 }
 
 .status-ext-item {
   display: inline-flex;
   align-items: center;
-  padding: 0 var(--nl-space-2, 6px);
+  padding: 0 var(--nl-space-tighter);
   height: 100%;
   border: none;
   background: transparent;
-  color: var(--nl-text-dim, #9aa0a6);
+  color: var(--nl-text-dim);
   font: inherit;
-  font-size: var(--nl-font-caption, 11px);
+  font-size: var(--nl-font-caption);
   cursor: default;
 }
 
 button.status-ext-item {
   cursor: pointer;
-  border-radius: var(--nl-radius-sm, 4px);
+  border-radius: var(--nl-radius-sm);
 }
 
 button.status-ext-item:hover {
-  background: var(--nl-surface-hover, rgba(255, 255, 255, 0.06));
-  color: var(--nl-text, #e8eaed);
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
 }

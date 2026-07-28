@@ -74,6 +74,26 @@ export function applyThemeTokens(theme: string, accentColor: string | null): voi
     root.style.removeProperty('--nl-accent')
     root.style.removeProperty('--nl-accent-hover')
   }
+  syncTitleBarColors()
+}
+
+/**
+ * Repaints the system-drawn window controls to match the theme. On Windows and
+ * Linux the title bar is hidden and the app's own toolbar stands in for it, so
+ * the minimise/maximise/close buttons have to be told the toolbar's colours or
+ * they stay light grey against a dark strip. Reads the tokens back off the
+ * document so a theme or custom accent needs no separate colour table.
+ */
+function syncTitleBarColors(): void {
+  if (typeof window.novalist?.setTitleBarColors !== 'function') return
+  const style = getComputedStyle(document.documentElement)
+  const color = style.getPropertyValue('--nl-surface-toolbar').trim()
+  const symbol = style.getPropertyValue('--nl-text').trim()
+  // The overlay API takes only opaque colours; under the macOS material layer
+  // the toolbar token resolves to a translucent value, and that path has native
+  // traffic lights anyway, so there is nothing to repaint.
+  if (!color.startsWith('#') || !symbol.startsWith('#')) return
+  window.novalist.setTitleBarColors(color, symbol)
 }
 
 function applySideEffects(view: SettingsView): void {

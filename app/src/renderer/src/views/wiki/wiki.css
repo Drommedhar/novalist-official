@@ -230,11 +230,25 @@
   min-width: 0;
 }
 
+/* The article's opening passage, so it carries the drop cap. The per-section
+   prose below it deliberately does not - one cap opens the article, not each
+   heading. */
 .wiki-lead {
   font-size: var(--nl-font-body-lg);
-  line-height: 1.6;
+  line-height: var(--nl-leading-body);
   white-space: pre-wrap;
   margin: 0 0 var(--nl-space-lg);
+}
+
+.wiki-lead::first-letter {
+  float: left;
+  font-family: var(--nl-font-display-face);
+  font-weight: var(--nl-weight-title);
+  color: var(--nv-gold-light);
+  font-size: 3.1em;
+  line-height: 0.86;
+  padding-right: var(--nl-space-sm);
+  padding-top: 0.04em;
 }
 
 /* Lead line: bold name, alternate names, one-line descriptor. */

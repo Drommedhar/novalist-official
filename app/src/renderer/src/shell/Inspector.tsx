@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/projectStore'
-import { useShellStore } from '../stores/shellStore'
+import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { rpc } from '../rpc/client'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
@@ -52,7 +52,12 @@ export function Inspector(): React.JSX.Element {
   if (!openSceneId || !openChapterGuid || !scene) {
     return (
       <aside className="inspector" style={{ width: inspectorWidth }}>
-        <PanelResizer edge="left" width={inspectorWidth} onResize={setInspectorWidth} />
+        <PanelResizer
+          edge="left"
+          width={inspectorWidth}
+          onResize={setInspectorWidth}
+          onResizeEnd={(px) => savePanelSize({ inspectorWidth: px })}
+        />
         <div className="inspector-header">{t('shell.inspector')}</div>
         <div className="inspector-placeholder">{t('shell.inspectorEmpty')}</div>
       </aside>
@@ -75,7 +80,12 @@ export function Inspector(): React.JSX.Element {
 
   return (
     <aside className="inspector" style={{ width: inspectorWidth }}>
-      <PanelResizer edge="left" width={inspectorWidth} onResize={setInspectorWidth} />
+      <PanelResizer
+          edge="left"
+          width={inspectorWidth}
+          onResize={setInspectorWidth}
+          onResizeEnd={(px) => savePanelSize({ inspectorWidth: px })}
+        />
       <div className="inspector-tabs">
         <button
           type="button"

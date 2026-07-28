@@ -2,7 +2,12 @@ import { app, BrowserWindow, MessageChannelMain, ipcMain, shell, nativeImage } f
 import { join } from 'node:path'
 import { existsSync } from 'node:fs'
 import { BackendProcess } from './backend-process'
-import { attachLiquidGlass, detectMaterial, materialWindowOptions } from './glass'
+import {
+  attachLiquidGlass,
+  detectMaterial,
+  materialWindowOptions,
+  DEFAULT_TITLE_BAR_OVERLAY
+} from './glass'
 import { registerDialogHandlers } from './dialogs'
 import { installAppMenu } from './menu'
 import { checkAppUpdate, downloadAndInstall } from './appUpdater'
@@ -84,6 +89,20 @@ ipcMain.handle('novalist:download-app-update', (event, info) => {
   return downloadAndInstall(info, win)
 })
 
+// Repaints the system-drawn window controls when the renderer's theme changes.
+// Only meaningful where the title bar is hidden behind an overlay; setting it
+// on a window without one throws, so the material gates the call.
+ipcMain.on('novalist:set-titlebar-colors', (event, color: string, symbolColor: string) => {
+  if (material !== 'opaque') return
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win || win.isDestroyed()) return
+  try {
+    win.setTitleBarOverlay({ color, symbolColor, height: DEFAULT_TITLE_BAR_OVERLAY.height })
+  } catch {
+    // Linux builds without overlay support: the toolbar still themes itself.
+  }
+})
+
 void app.whenReady().then(() => {
   installAppMenu()
   // Dock icon for the dev run (packaged builds get it from the app bundle).
@@ -103,10 +122,18 @@ void app.whenReady().then(() => {
   const splash = process.env.NOVALIST_NO_SPLASH ? null : createSplashWindow(resolveIconPath())
   setSplashStatus(splash, 'Checking for updates…')
 
+  // Open maximised. maximize() also shows the window, so it has to wait until
+  // the splash is out of the way - calling it at construction would reveal the
+  // main window behind the splash. The constructor's width/height stay as the
+  // restore-down size, so un-maximising gives a sensible window rather than one
+  // still filling the screen.
   const reveal = (): void => {
     if (win.isDestroyed()) return
     if (splash && !splash.isDestroyed()) splash.close()
-    if (!win.isVisible()) win.show()
+    if (!win.isVisible()) {
+      win.maximize()
+      win.show()
+    }
   }
   if (splash) {
     // The renderer signals when the app+extension update check has finished;
@@ -114,7 +141,7 @@ void app.whenReady().then(() => {
     ipcMain.once('novalist:updates-checked', reveal)
     setTimeout(reveal, 15000)
   } else {
-    win.once('ready-to-show', () => win.show())
+    win.once('ready-to-show', reveal)
   }
 
   app.on('activate', () => {

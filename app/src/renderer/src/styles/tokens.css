@@ -1,114 +1,209 @@
 /*
- * Novalist design tokens. Three tiers:
- *  1. sizing/typography scales (ported 1:1 from DesignTokens.axaml)
+ * Novalist design tokens. Four tiers:
+ *  0. the brand layer (--nv-*) - the Novalist colophon reproduced verbatim.
+ *     This is the corporate identity, shared with the website; treat the values
+ *     as fixed and change them only when the colophon itself changes.
+ *  1. sizing/typography scales (--nl-*), derived from the brand geometry
  *  2. semantic color tokens per theme ([data-theme])
  *  3. material layer ([data-material]) - translucent chrome under native
  *     glass/vibrancy on macOS; opaque elsewhere. Editor surface is always opaque.
- * This file is the public styling contract for themes and extensions.
+ * Tiers 1-3 are the public styling contract for themes and extensions.
+ *
+ * The three CI typefaces are vendored under public/fonts and pulled in by a
+ * <link> in index.html (and by the editor iframes), not from here - an @import
+ * would resolve through the bundler rather than against the served root.
  */
 
+/* ===== 0. Brand layer: the Novalist colophon ===== */
 :root {
-  /* Spacing scale */
-  --nl-space-none: 0px;
-  --nl-space-tightest: 2px;
-  --nl-space-tighter: 4px;
-  --nl-space-sm: 6px;
-  --nl-space-md: 8px;
-  --nl-space-normal: 10px;
-  --nl-space-lg: 12px;
-  --nl-space-xl: 16px;
-  --nl-space-xxl: 20px;
+  /* ground & surface */
+  --nv-ground: #0f1219; /* Ink Night - the page. Nothing lighter is ever the ground. */
+  --nv-panel: #171c2b; /* Vellum Panel - cards and panels. The only raised surface. */
 
-  /* Corner radius scale */
+  /* ink */
+  --nv-text: #ece5d2; /* Parchment - primary text. Never pure white. */
+  --nv-muted: #a8a193; /* Faded Ink - body prose, nav links, secondary copy. */
+  --nv-faint: #756f62; /* Marginalia - meta and captions. Never essential reading. */
+
+  /* gold */
+  --nv-gold: #d2a74f; /* Gilt - the accent. Eyebrows, rules, fleurons, selection. */
+  --nv-gold-light: #ecc97c; /* Candlelight - hover, prose links, card titles, drop caps. */
+  --nv-on-gold: #171206; /* Pressed Ink - the only correct label colour on foil. */
+  --nv-foil: linear-gradient(180deg, #ecc97c, #d2a74f);
+
+  /* edges - always parchment alpha, never solid grey */
+  --nv-line: rgb(237 230 211 / 0.055); /* nav and section dividers */
+  --nv-border: rgb(237 230 211 / 0.1); /* card and panel borders */
+  --nv-border-firm: rgb(237 230 211 / 0.14); /* chips and pills */
+  --nv-shadow: 0 30px 80px -40px rgb(0 0 0 / 0.8);
+
+  /* type */
+  --nv-display: 'Fraunces', Georgia, serif;
+  --nv-text-face: 'Newsreader', Georgia, serif;
+  --nv-mono: 'Courier Prime', monospace;
+
+  /* geometry */
+  --nv-radius-card: 18px;
+  --nv-radius-btn: 10px;
+  --nv-radius-pill: 99px;
+  --nv-measure: 1120px;
+  --nv-gutter: 24px;
+}
+
+:root {
+  /* ===== 1. Scales, derived from the brand geometry =====
+     Spacing steps out from the brand gutter (24px = --nl-space-xl) so panel
+     padding lands inside the colophon's 26-34px card band at --nl-space-xxl. */
+  --nl-space-none: 0px;
+  --nl-space-tightest: 3px;
+  --nl-space-tighter: 6px;
+  --nl-space-sm: 8px;
+  --nl-space-md: 12px;
+  --nl-space-normal: 14px;
+  --nl-space-lg: 18px;
+  --nl-space-xl: 24px;
+  --nl-space-xxl: 30px;
+
+  /* Corner radius. The brand fixes three of these - button, card and pill; the
+     remaining two interpolate so nested controls still step down cleanly. */
   --nl-radius-none: 0px;
-  --nl-radius-sm: 4px;
-  --nl-radius-md: 6px;
-  --nl-radius-lg: 8px;
-  --nl-radius-xl: 10px;
-  --nl-radius-pill: 999px;
+  --nl-radius-sm: 6px;
+  --nl-radius-md: var(--nv-radius-btn); /* 10px - buttons and inputs */
+  --nl-radius-lg: 14px;
+  --nl-radius-xl: var(--nv-radius-card); /* 18px - cards and panels */
+  --nl-radius-pill: var(--nv-radius-pill); /* 99px - chips and pills, never 18 */
+
+  /* Content measure: the brand column and the 66ch prose limit. */
+  --nl-measure: var(--nv-measure);
+  --nl-gutter: var(--nv-gutter);
+  --nl-measure-text: 66ch;
 
   /* Mobile: height of the native iOS UITabBar (Liquid Glass) overlay, so web
      content can inset its bottom padding to sit above it. */
   --nl-mobile-tabbar-h: 49px;
 
-  /* Typography scale */
-  --nl-font-tiny: 9px;
-  --nl-font-caption: 10px;
-  --nl-font-body-sm: 11px;
-  --nl-font-body: 12px;
-  --nl-font-body-lg: 13px;
-  --nl-font-title-sm: 14px;
-  --nl-font-title: 16px;
-  --nl-font-display-sm: 18px;
-  --nl-font-display: 26px;
-  --nl-font-display-lg: 32px;
-  --nl-weight-title: 600;
-  --nl-font-family:
-    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  --nl-font-mono: 'Cascadia Mono', ui-monospace, Consolas, monospace;
+  /* Typography, anchored on the brand body size of 17px. The two display steps
+     are the colophon's own clamps, so a wide window gets the hero proportions
+     the identity specifies and a narrow one degrades to the floor. */
+  --nl-font-tiny: 10px;
+  --nl-font-caption: 11.5px; /* record floor */
+  --nl-font-body-sm: 13px; /* record ceiling, eyebrow */
+  --nl-font-body: 17px; /* brand body */
+  --nl-font-body-lg: 18px;
+  --nl-font-title-sm: 20px;
+  --nl-font-title: 24px;
+  --nl-font-display-sm: 30px;
+  --nl-font-display: clamp(30px, 3.8vw, 44px); /* section */
+  --nl-font-display-lg: clamp(38px, 5.6vw, 64px); /* hero */
+
+  --nl-weight-label: 500; /* UI labels */
+  --nl-weight-title: 600; /* headings, card titles, active labels */
+
+  /* Leading and tracking the colophon calls out by name. */
+  --nl-leading-body: 1.7;
+  --nl-leading-tight: 1.35;
+  --nl-leading-section: 1.12;
+  --nl-leading-display: 1.08;
+  --nl-tracking-display: -0.01em;
+  --nl-tracking-eyebrow: 0.34em;
+
+  /* Font stacks. The brand stacks end in a generic family, which always
+     resolves and so terminates fallback; the app stacks interleave a CJK serif
+     before the generic instead, because none of the three CI faces cover CJK
+     and Chinese would otherwise render in the browser default. */
+  --nl-font-display-face: 'Fraunces', Georgia, 'Songti SC', 'SimSun', serif;
+  --nl-font-family: 'Newsreader', Georgia, 'Songti SC', 'SimSun', serif;
+  --nl-font-mono: 'Courier Prime', 'Cascadia Mono', ui-monospace, Consolas, monospace;
 
   /* Native controls the browser paints itself (scrollbars above all). They are
      the one surface the theme cannot reach through normal styling, so the
      colours live here and base.css feeds them to the scrollbar pseudo-elements.
-     The defaults are neutral white-alpha so they sit correctly on any theme -
-     including extension themes that only override the surface tokens. */
+     Parchment alpha rather than white alpha, per the brand's edge rule; the
+     active state takes gilt so a grabbed thumb reads as the accent. */
   --nl-scrollbar-size: 10px;
   --nl-scrollbar-track: transparent;
-  --nl-scrollbar-thumb: rgb(255 255 255 / 0.16);
-  --nl-scrollbar-thumb-hover: rgb(255 255 255 / 0.3);
-  --nl-scrollbar-thumb-active: rgb(255 255 255 / 0.42);
+  --nl-scrollbar-thumb: rgb(237 230 211 / 0.14);
+  --nl-scrollbar-thumb-hover: rgb(237 230 211 / 0.24);
+  --nl-scrollbar-thumb-active: rgb(210 167 79 / 0.5);
 
-  /* Elevation */
-  --nl-elevation-low: 0 1px 3px 0 rgb(0 0 0 / 0.13);
-  --nl-elevation-md: 0 4px 12px 0 rgb(0 0 0 / 0.25);
-  --nl-elevation-high: 0 8px 24px 0 rgb(0 0 0 / 0.31);
+  /* Elevation. The brand publishes one shadow - the deep, wide, almost-black
+     cast used on panels; it is --nl-elevation-high. The two lighter steps are
+     the same cast scaled down for controls and popovers. */
+  --nl-elevation-low: 0 2px 8px -4px rgb(0 0 0 / 0.6);
+  --nl-elevation-md: 0 12px 32px -16px rgb(0 0 0 / 0.7);
+  --nl-elevation-high: var(--nv-shadow);
 }
 
-/* ===== Dark theme (default; ported from NovalistTheme.axaml) ===== */
+/* ===== 2. Default theme: the Novalist identity =====
+   Only two grounds exist - Ink Night and Vellum Panel. Hover and selection are
+   deliberately alpha washes rather than a third and fourth ground, so they
+   composite correctly over either one. */
 :root,
 :root[data-theme='dark'] {
-  --nl-base: 24 24 24; /* raw rgb for alpha composition in the material layer */
-  --nl-surface-window: #181818;
-  --nl-surface-sidebar: #1e1e1e;
-  --nl-surface-toolbar: #252526;
-  --nl-surface-inspector: #1e1e1e;
-  --nl-surface-editor: #181818;
-  --nl-surface-card: #252526;
-  --nl-surface-input: #1b1b1c;
-  --nl-surface-overlay: rgb(0 0 0 / 0.5);
-  --nl-surface-hover: #262a30;
-  --nl-surface-selected: #2e353d;
+  --nl-base: 15 18 25; /* raw rgb of Ink Night, for the material layer */
+  --nl-surface-window: var(--nv-ground);
+  --nl-surface-sidebar: var(--nv-ground);
+  --nl-surface-toolbar: var(--nv-ground);
+  --nl-surface-inspector: var(--nv-ground);
+  --nl-surface-editor: var(--nv-ground);
+  --nl-surface-card: var(--nv-panel);
+  /* Inputs recess to the page ground, so a field on a Vellum Panel card reads
+     as cut into it rather than floating on it. Still only two grounds. */
+  --nl-surface-input: var(--nv-ground);
+  --nl-surface-overlay: rgb(6 8 12 / 0.66);
+  --nl-surface-hover: rgb(237 230 211 / 0.05);
+  --nl-surface-selected: rgb(210 167 79 / 0.16);
 
-  --nl-text: #e6edf3;
-  --nl-text-dim: #b9bac5;
-  --nl-text-subtle: #848b91;
+  --nl-text: var(--nv-text);
+  --nl-text-dim: var(--nv-muted);
+  --nl-text-subtle: var(--nv-faint);
 
-  --nl-accent: #0e8bdf;
-  --nl-accent-hover: #2d9ee6;
-  --nl-accent-ink: #ffffff;
-  --nl-focus-ring: rgb(14 139 223 / 0.6);
+  --nl-accent: var(--nv-gold);
+  --nl-accent-hover: var(--nv-gold-light);
+  --nl-accent-ink: var(--nv-on-gold);
+  --nl-focus-ring: rgb(210 167 79 / 0.6);
 
-  --nl-border: #333333;
-  --nl-border-subtle: #303030;
+  --nl-border: var(--nv-border);
+  --nl-border-subtle: var(--nv-line);
+  --nl-border-firm: var(--nv-border-firm);
 
-  --nl-success: #1db954;
-  --nl-warning: #f5a623;
-  --nl-danger: #e74c3c;
+  /* Pigments, not signal colours: mixed to sit on Ink Night and to stay clear
+     of gilt in hue so a warning never reads as an accent. */
+  --nl-success: #7bae7f;
+  --nl-warning: #d98e3d;
+  --nl-danger: #d4635a;
 
-  --nl-status-outline: #6c7086;
-  --nl-status-first-draft: #fab387;
-  --nl-status-revised: #89b4fa;
-  --nl-status-edited: #a6e3a1;
-  --nl-status-final: #94e2d5;
+  /* Manuscript progress, drafting through to gilded. */
+  --nl-status-outline: var(--nv-faint);
+  --nl-status-first-draft: #c98a5a;
+  --nl-status-revised: #8798b8;
+  --nl-status-edited: #7bae7f;
+  --nl-status-final: var(--nv-gold);
 
-  --nl-git-dirty: #e5c07b;
-  --nl-git-clean: #98c379;
-  --nl-favorite: #e5c07b;
+  --nl-git-dirty: #c98a5a;
+  --nl-git-clean: #7bae7f;
+  --nl-favorite: var(--nv-gold);
+
+  /* Readability ramp, easiest to hardest. Pigments again rather than a traffic
+     light, and each one dark enough to carry a Parchment label. */
+  --nl-readability-very-easy: #5f8f63;
+  --nl-readability-easy: #74914f;
+  --nl-readability-moderate: #a8813a;
+  --nl-readability-difficult: #b4643a;
+  --nl-readability-very-difficult: #a44a41;
 }
 
-/* The light theme was removed; Default resolves to the dark palette above. */
+/* The light theme was removed; Default resolves to the identity palette above. */
 
-/* ===== Material layer: chrome goes translucent under native blur ===== */
+/* Foil follows whichever accent is in play, so the gradient stays coherent
+   under the alternate themes and under a user-set accent colour. On the default
+   theme this resolves to the brand foil exactly. A custom accent sets both
+   stops to one value, which lands on the flat fill the colophon sanctions. */
+:root {
+  --nl-foil: linear-gradient(180deg, var(--nl-accent-hover), var(--nl-accent));
+}
+
+/* ===== 3. Material layer: chrome goes translucent under native blur ===== */
 :root[data-material='vibrancy'],
 :root[data-material='glass'] {
   --nl-surface-window: transparent;
@@ -118,7 +213,9 @@
   /* --nl-surface-editor deliberately untouched: text always sits on opaque ground */
 }
 
-/* ===== Migrated color themes (ported from the Avalonia theme files) ===== */
+/* ===== Alternate colour themes =====
+   These restate the palette only. Geometry, type and spacing are brand-level
+   and stay as set above, so a colour theme cannot drift from the identity. */
 :root[data-theme='discord'] {
   --nl-base: 43 45 49;
   --nl-surface-window: #313338;
@@ -139,9 +236,13 @@
   --nl-focus-ring: rgb(88 101 242 / 0.6);
   --nl-border: #3f4147;
   --nl-border-subtle: #1e1f22;
+  --nl-border-firm: #4a4d55;
   --nl-success: #57f287;
   --nl-warning: #faa61a;
   --nl-danger: #ed4245;
+  --nl-scrollbar-thumb: rgb(255 255 255 / 0.16);
+  --nl-scrollbar-thumb-hover: rgb(255 255 255 / 0.3);
+  --nl-scrollbar-thumb-active: rgb(255 255 255 / 0.42);
 }
 
 :root[data-theme='catppuccin-mocha'] {
@@ -164,6 +265,7 @@
   --nl-focus-ring: rgb(137 180 250 / 0.6);
   --nl-border: #313244;
   --nl-border-subtle: #11111b;
+  --nl-border-firm: #45475a;
   --nl-success: #a6e3a1;
   --nl-warning: #f9e2af;
   --nl-danger: #f38ba8;

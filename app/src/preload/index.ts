@@ -80,6 +80,14 @@ contextBridge.exposeInMainWorld('novalist', {
   // Tells main the startup update check finished, so it can close the splash.
   updatesChecked(): void {
     ipcRenderer.send('novalist:updates-checked')
+  },
+  /**
+   * Repaints the system-drawn window controls to match the active theme. Only
+   * does anything where the title bar is hidden behind an overlay (Windows and
+   * Linux); a no-op on macOS, which draws its own traffic lights.
+   */
+  setTitleBarColors(color: string, symbolColor: string): void {
+    ipcRenderer.send('novalist:set-titlebar-colors', color, symbolColor)
   }
 })
 

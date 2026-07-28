@@ -136,6 +136,12 @@ jobs:
       - name: Locale doctor (new UI keys)
         run: python3 tools/locale-doctor.py --target react --no-fail-on-dead
 
+      # A var() on a token that does not exist invalidates the whole
+      # declaration and the property silently falls back to its initial value,
+      # so a broken layout ships looking like a design decision.
+      - name: Token doctor (undefined design tokens)
+        run: python3 tools/token-doctor.py
+
       - name: Build renderer
         working-directory: app
         run: npm run build

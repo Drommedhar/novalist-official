@@ -145,7 +145,7 @@
   padding: var(--nl-space-xl);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-lg);
+  border-radius: var(--nl-radius-xl);
   box-shadow: var(--nl-elevation-high);
 }
 

@@ -153,10 +153,12 @@
   color: var(--nl-text);
 }
 
+/* A choice, so it fills with foil when active and takes the label weight. */
 .gallery-viewtoggle-btn.active {
-  background: var(--nl-accent);
-  border-color: var(--nl-accent);
+  background: var(--nl-foil);
+  border-color: transparent;
   color: var(--nl-accent-ink);
+  font-weight: var(--nl-weight-title);
 }
 
 /* ===== Gallery: list view ===== */
@@ -240,7 +242,7 @@
 }
 
 .gallery-lightbox-name {
-  color: #fff;
+  color: var(--nv-text);
   font-size: var(--nl-font-title-sm);
   text-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
 }

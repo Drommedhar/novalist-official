@@ -68,11 +68,63 @@ body,
 body {
   font-family: var(--nl-font-family);
   font-size: var(--nl-font-body);
+  line-height: var(--nl-leading-tight);
   color: var(--nl-text);
   background: var(--nl-surface-window);
   overflow: hidden;
   user-select: none;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ===== Brand typography floor =====
+   Headings take the display face; wrapped in :where() so the whole selector
+   weighs nothing and any component class still wins. Weight and tracking are
+   the colophon's - Fraunces 600 at -.01em - and the two largest steps carry
+   the tighter display leading the identity specifies. */
+:where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--nl-font-display-face);
+  font-weight: var(--nl-weight-title);
+  letter-spacing: var(--nl-tracking-display);
+  line-height: var(--nl-leading-section);
+  margin: 0;
+}
+
+:where(h1) {
+  font-size: var(--nl-font-display-lg);
+  line-height: var(--nl-leading-display);
+}
+
+:where(h2) {
+  font-size: var(--nl-font-display);
+}
+
+:where(h3) {
+  font-size: var(--nl-font-display-sm);
+}
+
+:where(h4) {
+  font-size: var(--nl-font-title);
+}
+
+:where(h5) {
+  font-size: var(--nl-font-title-sm);
+}
+
+:where(h6) {
+  font-size: var(--nl-font-body-lg);
+}
+
+/* Anything the machine wrote - versions, files, sizes, timestamps - wears the
+   record face. */
+:where(code, kbd, samp, pre) {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-body-sm);
+}
+
+/* Selection is gilt, per the accent's stated duties. */
+::selection {
+  background: rgb(210 167 79 / 0.3);
+  color: var(--nl-text);
 }
 
 button {
@@ -108,7 +160,7 @@ button:focus-visible,
   color: var(--nl-text);
   background: var(--nl-surface-input);
   border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-sm);
+  border-radius: var(--nl-radius-md);
 }
 
 /* The select popup is drawn by the browser; these are the only hooks it honours. */

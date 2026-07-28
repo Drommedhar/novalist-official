@@ -128,7 +128,7 @@ In [Settings](23-settings.md) → Editor:
 - **Page View** renders the editor as a book-style page (also toggleable from the formatting toolbar).
 - **Book Page Width** constrains the text column to a printed page width, with selectable page formats, and **Book Font** / **Book Font Size** set the typeface for that mode.
 - **Book Paragraph Spacing** adds book-like vertical spacing.
-- **Font Family** and **Font Size** control the regular editing view.
+- **Font Family** and **Font Size** control the regular editing view. New projects start on Newsreader at 17px — the app's own text face, bundled so it is always available — but the field takes any family installed on your machine.
 
 All of this is purely visual — it doesn't change what gets exported. For export styling see [Export](20-export.md).
 

@@ -15,8 +15,12 @@ const THEMES = ['Default', 'Discord', 'Catppuccin Mocha']
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
 
 /** Common typographic fonts offered as a datalist; the field stays free-text so
- * any installed family can be typed. */
+ * any installed family can be typed. The first three ship with the app and so
+ * render identically everywhere; the rest depend on what the machine has. */
 const SYSTEM_FONTS = [
+  'Newsreader',
+  'Fraunces',
+  'Courier Prime',
   'Inter',
   'Times New Roman',
   'Georgia',

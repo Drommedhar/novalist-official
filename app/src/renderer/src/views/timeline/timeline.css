@@ -38,7 +38,9 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   white-space: nowrap;
-  color: #fff;
+  /* A filled mark, so it takes the pressed-ink label the identity specifies for
+     anything sitting on gold - which .source-chapter below is. */
+  color: var(--nl-accent-ink);
   background: var(--nl-text-subtle);
 }
 

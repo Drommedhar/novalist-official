@@ -28,12 +28,12 @@ export function StartScreen({
           <FilePlus2 size={16} strokeWidth={1.75} />
           {t('welcome.newProject')}
         </button>
-        <button className="start-open" onClick={onPickProject}>
+        <button className="start-open secondary" onClick={onPickProject}>
           <FolderOpen size={16} strokeWidth={1.75} />
           {t('welcome.browseFolder')}
         </button>
         {createOpen && <CreateProjectDialog onClose={() => setCreateOpen(false)} />}
-        <button className="start-open" onClick={() => setImportOpen(true)}>
+        <button className="start-open secondary" onClick={() => setImportOpen(true)}>
           <Import size={16} strokeWidth={1.75} />
           {t('welcome.importPlugin')}
         </button>

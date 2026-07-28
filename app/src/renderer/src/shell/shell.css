@@ -26,6 +26,13 @@
   padding-left: 78px; /* traffic-light inset under hiddenInset title bar */
 }
 
+/* Windows and Linux hide the native title bar, so this strip is the title bar
+   and has to leave room for the system-drawn minimise / maximise / close
+   buttons overlaid at its right edge. */
+.toolbar-overlay {
+  padding-right: 148px;
+}
+
 .toolbar button {
   -webkit-app-region: no-drag;
 }
@@ -93,8 +100,9 @@
   left: -3px;
 }
 
-.panel-resizer:hover {
-  background: var(--nl-accent, #4f8cff);
+.panel-resizer:hover,
+.panel-resizer:active {
+  background: var(--nl-accent);
   opacity: 0.35;
 }
 
@@ -285,8 +293,12 @@
   background: transparent;
 }
 
-.notes-dock-resize:hover {
-  background: var(--nl-surface-hover);
+/* Matches the binder and inspector handles: gilt while grabbed, not a grey
+   wash. Pointer capture holds :active for the whole drag. */
+.notes-dock-resize:hover,
+.notes-dock-resize:active {
+  background: var(--nl-accent);
+  opacity: 0.35;
 }
 
 .notes-dock-body {
@@ -335,8 +347,11 @@
   border-color: var(--nl-accent);
 }
 
+/* The synopsis grows with the dock exactly as the notes column does. It used to
+   stop at 120px, so dragging the dock taller gave the extra height to notes
+   alone and left the two columns visibly out of step. */
 .notes-dock-synopsis {
-  max-height: 120px;
+  max-height: none;
 }
 
 .notes-dock-empty {
@@ -748,11 +763,11 @@
 
 /* Uncommitted Git changes: a dirty accent bar + tinted title. */
 .binder-scene-row.changed {
-  box-shadow: inset 2px 0 0 0 var(--nl-git-dirty, #b8860b);
+  box-shadow: inset 2px 0 0 0 var(--nl-git-dirty);
 }
 
 .binder-scene-row.changed .binder-scene-title {
-  color: var(--nl-git-dirty, #b8860b);
+  color: var(--nl-git-dirty);
 }
 
 .binder-scene-title {
@@ -820,15 +835,17 @@
   z-index: 200;
 }
 
+/* Cut for the identity's 17px body: at the old 360px a version string or a
+   release-note URL broke across three lines. */
 .dialog-card {
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-lg);
-  width: min(360px, 85vw);
-  padding: var(--nl-space-xl);
+  width: min(520px, 85vw);
+  padding: var(--nl-space-xxl);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-lg);
+  border-radius: var(--nl-radius-xl);
   box-shadow: var(--nl-elevation-high);
 }
 
@@ -839,7 +856,7 @@
 
 /* Capture dialogs that need room for a picker list. */
 .dialog-card-wide {
-  width: min(520px, 90vw);
+  width: min(760px, 90vw);
 }
 
 .capture-excerpt {
@@ -960,14 +977,17 @@
   color: var(--nl-text);
 }
 
+/* Primary action: foil plate, Pressed Ink label, brightened on hover rather
+   than recoloured - the gradient has to survive the hover state. */
 .dialog-button.primary {
-  background: var(--nl-accent);
-  border-color: var(--nl-accent);
+  background: var(--nl-foil);
+  border-color: transparent;
   color: var(--nl-accent-ink);
+  font-weight: var(--nl-weight-title);
 }
 
 .dialog-button.primary:hover {
-  background: var(--nl-accent-hover);
+  filter: brightness(1.07);
 }
 
 /* ===== Start screen ===== */
@@ -1004,13 +1024,29 @@
   gap: var(--nl-space-md);
   padding: var(--nl-space-md) var(--nl-space-xl);
   border-radius: var(--nl-radius-md);
-  background: var(--nl-accent);
+  background: var(--nl-foil);
   color: var(--nl-accent-ink);
   font-size: var(--nl-font-body-lg);
+  font-weight: var(--nl-weight-title);
 }
 
 .start-open:hover {
-  background: var(--nl-accent-hover);
+  filter: brightness(1.07);
+}
+
+/* Only one action per screen wears foil. The rest are secondary: a hairline
+   outline on the page ground, no fill. */
+.start-open.secondary {
+  background: transparent;
+  border: 1px solid var(--nl-border-firm);
+  color: var(--nl-text);
+  font-weight: var(--nl-weight-label);
+}
+
+.start-open.secondary:hover {
+  filter: none;
+  background: var(--nl-surface-hover);
+  border-color: var(--nl-accent);
 }
 
 .start-recents {
@@ -1202,13 +1238,13 @@
   flex-direction: column;
   border-right: 1px solid var(--nl-border);
   padding: var(--nl-space-md);
-  gap: var(--nl-space-tight);
+  gap: var(--nl-space-tighter);
 }
 
 .codex-nav-head {
   display: flex;
   align-items: center;
-  gap: var(--nl-space-tight);
+  gap: var(--nl-space-tighter);
 }
 
 .codex-search {
@@ -1280,19 +1316,30 @@
   max-width: 120px;
 }
 
+/* Fields flow into as many columns as the panel is wide instead of stacking one
+   per row - a dozen short values like Eye Colour or Role used to run the card
+   down the page while leaving most of its width empty. */
 .codex-field-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--nl-space-tight);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--nl-space-lg) var(--nl-space-xl);
+  align-items: start;
   margin-bottom: var(--nl-space-lg);
-  padding: var(--nl-space-md) var(--nl-space-lg) var(--nl-space-lg);
+  padding: var(--nl-space-lg) var(--nl-space-xl) var(--nl-space-xl);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border-subtle);
-  border-radius: var(--nl-radius-lg);
+  border-radius: var(--nl-radius-xl);
 }
 
-.codex-field-section .inspector-label {
-  padding: var(--nl-space-tighter) 0 var(--nl-space-tightest);
+/* The section heading, and any field holding a multi-line control, take the
+   whole row rather than a single column. */
+.codex-field-section > .inspector-label {
+  grid-column: 1 / -1;
+  padding: 0;
+}
+
+.codex-field:has(textarea) {
+  grid-column: 1 / -1;
 }
 
 .codex-row {
@@ -1387,10 +1434,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-tightest);
-}
-
-.codex-field + .codex-field {
-  margin-top: var(--nl-space-md);
+  min-width: 0;
 }
 
 .codex-field dt {
@@ -1448,7 +1492,8 @@
 .dialog-button.danger {
   background: var(--nl-danger);
   border-color: var(--nl-danger);
-  color: #ffffff;
+  color: var(--nl-accent-ink);
+  font-weight: var(--nl-weight-title);
 }
 
 .binder-chapter-row {
@@ -1466,7 +1511,7 @@
 .codex-tab-manage {
   display: inline-flex;
   align-items: center;
-  gap: var(--nl-space-tight);
+  gap: var(--nl-space-tighter);
   margin-left: auto;
 }
 
@@ -1485,14 +1530,14 @@
 .type-manager-list {
   display: flex;
   flex-direction: column;
-  gap: var(--nl-space-tight);
+  gap: var(--nl-space-tighter);
 }
 
 .type-manager-row {
   display: flex;
   align-items: center;
-  gap: var(--nl-space-tight);
-  padding: var(--nl-space-tight) var(--nl-space-md);
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-tighter) var(--nl-space-md);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-md);
 }
@@ -1505,13 +1550,13 @@
 .type-manager-fields {
   display: flex;
   flex-direction: column;
-  gap: var(--nl-space-tight);
+  gap: var(--nl-space-tighter);
 }
 
 .type-manager-field {
   display: flex;
   align-items: center;
-  gap: var(--nl-space-tight);
+  gap: var(--nl-space-tighter);
 }
 
 .type-manager-field .dialog-input {
@@ -1527,7 +1572,7 @@
 .type-manager-check {
   display: inline-flex;
   align-items: center;
-  gap: var(--nl-space-tight);
+  gap: var(--nl-space-tighter);
   font-size: var(--nl-font-body-sm);
   white-space: nowrap;
 }
@@ -1547,13 +1592,13 @@
 .wizard-choices {
   display: flex;
   flex-direction: column;
-  gap: var(--nl-space-tight);
+  gap: var(--nl-space-tighter);
 }
 
 .template-group {
   display: flex;
   flex-direction: column;
-  gap: var(--nl-space-tight);
+  gap: var(--nl-space-tighter);
   margin-top: var(--nl-space-md);
 }
 
@@ -1584,27 +1629,34 @@
   margin: 0;
 }
 
+/* Wide enough to hold a six-figure word count at the tile size below. */
 .dashboard-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: var(--nl-space-lg);
 }
 
 .dashboard-card {
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-lg);
-  padding: var(--nl-space-xl);
+  border-radius: var(--nl-radius-xl);
+  padding: var(--nl-space-xxl);
 }
 
 .dashboard-metric {
   text-align: center;
 }
 
+/* A figure, not a section heading, so it takes the fixed display step rather
+   than the viewport clamp - the tile has to stay one line at any window width. */
 .dashboard-metric-value {
-  font-size: var(--nl-font-display);
+  font-family: var(--nl-font-display-face);
+  font-size: var(--nl-font-display-sm);
   font-weight: var(--nl-weight-title);
+  letter-spacing: var(--nl-tracking-display);
+  line-height: var(--nl-leading-display);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .dashboard-metric-label {
@@ -1670,10 +1722,12 @@
   font-size: var(--nl-font-caption);
 }
 
+/* A choice, so it fills with foil when active and takes the label weight. */
 .dashboard-range.active {
-  background: var(--nl-accent);
-  border-color: var(--nl-accent);
+  background: var(--nl-foil);
+  border-color: transparent;
   color: var(--nl-accent-ink);
+  font-weight: var(--nl-weight-title);
 }
 
 .dashboard-history {
@@ -1825,7 +1879,7 @@
   height: 160px;
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-lg);
+  border-radius: var(--nl-radius-xl);
   padding: var(--nl-space-md);
   box-shadow: var(--nl-elevation-low);
 }
@@ -1896,24 +1950,41 @@
   color: var(--nl-text-subtle);
 }
 
+/* A field has to read as a field before it is clicked. This used to sit fully
+   transparent until hover, which on the identity's low-contrast grounds left
+   codex values looking like plain text. It now rests recessed to the page
+   ground behind a hairline - the same treatment every other input gets - and
+   firms up on hover and focus. */
 .outliner-input {
   font: inherit;
   font-size: var(--nl-font-body);
   color: var(--nl-text);
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--nl-radius-sm);
-  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
 }
 
 .outliner-input:hover {
-  border-color: var(--nl-border);
+  border-color: var(--nl-border-firm);
 }
 
 .outliner-input:focus {
   outline: none;
-  border-color: var(--nl-focus-ring);
+  border-color: var(--nl-accent);
+}
+
+/* An inline heading edit is the exception: a title that looked like a form
+   field would read as chrome rather than as the heading it is. */
+.outliner-input.entity-section-title {
+  background: transparent;
+  border-color: transparent;
+}
+
+.outliner-input.entity-section-title:hover,
+.outliner-input.entity-section-title:focus {
   background: var(--nl-surface-input);
+  border-color: var(--nl-border);
 }
 
 /* ===== Plot grid ===== */
@@ -2319,15 +2390,21 @@
 }
 
 /* ===== Status bar ===== */
+/* Sits at the record scale's floor rather than its ceiling: almost everything
+   in here is set in the monospaced record face, which runs much wider than the
+   text face, and the bar has to hold the full stat run without truncating. */
+/* Three columns rather than space-between: the two side columns share the
+   leftover width equally, which is what actually pins the stats block to the
+   centre of the bar. Under space-between it drifted with the side widths. */
 .status-bar {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   height: 24px;
   padding: 0 var(--nl-space-normal);
   background: var(--nl-surface-toolbar);
   border-top: 1px solid var(--nl-border);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
 }
 .codex-detail-actions { display: flex; justify-content: flex-end; margin-bottom: var(--nl-space-md); }
@@ -2587,8 +2664,8 @@
 
 .findreplace-snippet mark {
   background: var(--nl-warning);
-  color: #000000;
-  border-radius: 2px;
+  color: var(--nl-accent-ink);
+  border-radius: var(--nl-radius-sm);
   padding: 0 2px;
 }
 
@@ -2771,7 +2848,7 @@
   max-width: 240px;
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-lg);
+  border-radius: var(--nl-radius-xl);
   box-shadow: var(--nl-elevation-md);
   padding: var(--nl-space-md);
   pointer-events: none;

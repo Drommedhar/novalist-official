@@ -22,13 +22,16 @@
 
 /* Update dialog release-notes block. */
 .update-notes {
-  max-height: 180px;
+  max-height: 280px;
   overflow-y: auto;
   white-space: pre-wrap;
+  /* Release notes carry bare compare URLs, which have no break opportunity and
+     would otherwise push the panel wider than the dialog. */
+  overflow-wrap: anywhere;
   color: var(--nl-text-dim);
   font-size: var(--nl-font-body-sm);
-  line-height: 1.5;
-  padding: var(--nl-space-md);
+  line-height: var(--nl-leading-body);
+  padding: var(--nl-space-lg);
   background: var(--nl-surface-input);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-md);
@@ -40,7 +43,7 @@
   position: fixed;
   inset: 0;
   z-index: 60;
-  background: var(--nl-overlay-scrim, rgba(0, 0, 0, 0.32));
+  background: var(--nl-surface-overlay);
 }
 
 .start-drawer {
@@ -195,7 +198,7 @@
 .update-progress-fill {
   height: 100%;
   border-radius: var(--nl-radius-pill);
-  background: var(--nl-accent, #4f8cff);
+  background: var(--nl-accent);
   transition: width 0.2s ease;
 }
 

@@ -1,10 +1,17 @@
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { SceneNotesFields } from './SceneNotesFields'
+import {
+  NOTES_DOCK_DEFAULT,
+  NOTES_DOCK_MAX,
+  NOTES_DOCK_MIN,
+  savePanelSize
+} from '../stores/shellStore'
 
-const MIN_HEIGHT = 80
-const MAX_HEIGHT = 480
-const DEFAULT_HEIGHT = 180
+const MIN_HEIGHT = NOTES_DOCK_MIN
+const MAX_HEIGHT = NOTES_DOCK_MAX
+// A share of the window on first run, then whatever the user last dragged it to.
+const DEFAULT_HEIGHT = NOTES_DOCK_DEFAULT
 
 /**
  * Bottom-docked scene notes panel (Synopsis + Notes), mirroring the desktop
@@ -29,6 +36,7 @@ export function SceneNotesDock(): React.JSX.Element {
     setHeight(next)
   }
   const onResizePointerUp = (e: React.PointerEvent): void => {
+    if (dragState.current) savePanelSize({ notesDockHeight: height })
     dragState.current = null
     e.currentTarget.releasePointerCapture(e.pointerId)
   }

@@ -34,12 +34,19 @@ export function Toolbar(): React.JSX.Element {
     null
   )
   const isMac = window.novalist.platform === 'darwin'
+  // Desktop Windows/Linux hide the native title bar and overlay the system
+  // window controls on this strip, so it needs room for them at its right edge.
+  const hasControlsOverlay = !isMac && !window.novalist.isMobile
 
   const targetChapter = openChapterGuid ?? chapters[chapters.length - 1]?.guid ?? null
   const activeDraft = drafts.find((d) => d.isActive) ?? null
 
   return (
-    <header className={`toolbar${isMac ? ' toolbar-mac' : ''}`}>
+    <header
+      className={`toolbar${isMac ? ' toolbar-mac' : ''}${
+        hasControlsOverlay ? ' toolbar-overlay' : ''
+      }`}
+    >
       {isLoaded && (
         <button className="toolbar-button" title={t('shell.menu')} onClick={() => setStartMenuOpen(true)}>
           <Menu size={16} strokeWidth={1.75} />
@@ -98,51 +105,63 @@ export function Toolbar(): React.JSX.Element {
           </button>
         </div>
       )}
-      <button className="toolbar-button toolbar-action" onClick={() => setDialog('chapter')}>
-        <Plus size={14} strokeWidth={2} />
-        {t('shell.newChapter')}
-      </button>
-      <button
-        className="toolbar-button toolbar-action"
-        disabled={targetChapter === null}
-        onClick={() => setDialog('scene')}
-      >
-        <Plus size={14} strokeWidth={2} />
-        {t('shell.newScene')}
-      </button>
+      {/* Everything past the wordmark acts on an open project - adding a chapter
+          or scene, searching it, or toggling panels that the welcome screen does
+          not have. The spacer stays either way so the strip keeps its drag
+          region and its room for the window controls. */}
+      {isLoaded && (
+        <>
+          <button className="toolbar-button toolbar-action" onClick={() => setDialog('chapter')}>
+            <Plus size={14} strokeWidth={2} />
+            {t('shell.newChapter')}
+          </button>
+          <button
+            className="toolbar-button toolbar-action"
+            disabled={targetChapter === null}
+            onClick={() => setDialog('scene')}
+          >
+            <Plus size={14} strokeWidth={2} />
+            {t('shell.newScene')}
+          </button>
+        </>
+      )}
       <div className="toolbar-spacer" />
-      <button
-        className="toolbar-button"
-        title={t('findReplace.title')}
-        onClick={() => useShellStore.getState().setFindReplaceOpen(true)}
-      >
-        <Search size={15} strokeWidth={1.75} />
-      </button>
-      <button
-        className="toolbar-button"
-        title={t('shell.snapshots')}
-        disabled={!openChapterGuid || !openSceneId}
-        onClick={() => setSnapshotsOpen(true)}
-      >
-        <History size={15} strokeWidth={1.75} />
-      </button>
-      <button className="toolbar-button" title={t('shell.toggleBinder')} onClick={toggleBinder}>
-        <PanelLeft size={16} strokeWidth={1.75} />
-      </button>
-      <button
-        className={`toolbar-button${notesDockVisible ? ' active' : ''}`}
-        title={t('shell.toggleSceneNotes')}
-        onClick={toggleNotesDock}
-      >
-        <PanelBottom size={16} strokeWidth={1.75} />
-      </button>
-      <button
-        className="toolbar-button"
-        title={t('shell.toggleInspector')}
-        onClick={toggleInspector}
-      >
-        <PanelRight size={16} strokeWidth={1.75} />
-      </button>
+      {isLoaded && (
+        <>
+          <button
+            className="toolbar-button"
+            title={t('findReplace.title')}
+            onClick={() => useShellStore.getState().setFindReplaceOpen(true)}
+          >
+            <Search size={15} strokeWidth={1.75} />
+          </button>
+          <button
+            className="toolbar-button"
+            title={t('shell.snapshots')}
+            disabled={!openChapterGuid || !openSceneId}
+            onClick={() => setSnapshotsOpen(true)}
+          >
+            <History size={15} strokeWidth={1.75} />
+          </button>
+          <button className="toolbar-button" title={t('shell.toggleBinder')} onClick={toggleBinder}>
+            <PanelLeft size={16} strokeWidth={1.75} />
+          </button>
+          <button
+            className={`toolbar-button${notesDockVisible ? ' active' : ''}`}
+            title={t('shell.toggleSceneNotes')}
+            onClick={toggleNotesDock}
+          >
+            <PanelBottom size={16} strokeWidth={1.75} />
+          </button>
+          <button
+            className="toolbar-button"
+            title={t('shell.toggleInspector')}
+            onClick={toggleInspector}
+          >
+            <PanelRight size={16} strokeWidth={1.75} />
+          </button>
+        </>
+      )}
       {startMenuOpen && <StartMenuOverlay onClose={() => setStartMenuOpen(false)} />}
       {snapshotsOpen && openChapterGuid && openSceneId && (
         <SnapshotsDialog

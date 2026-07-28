@@ -11,8 +11,8 @@
 .map-toolbar {
   display: flex;
   align-items: center;
-  gap: var(--nl-space-tight);
-  padding: var(--nl-space-tight) var(--nl-space-sm);
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
   border-bottom: 1px solid var(--nl-border);
   background: var(--nl-surface-toolbar);
   flex: 0 0 auto;

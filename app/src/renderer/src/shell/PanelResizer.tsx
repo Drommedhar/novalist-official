@@ -8,11 +8,15 @@ import { useRef } from 'react'
 export function PanelResizer({
   edge,
   width,
-  onResize
+  onResize,
+  onResizeEnd
 }: {
   edge: 'left' | 'right'
   width: number
   onResize: (px: number) => void
+  /** Fired once when the drag finishes, with the width the store settled on -
+   *  the hook for persisting the size rather than writing on every move. */
+  onResizeEnd?: (px: number) => void
 }): React.JSX.Element {
   const drag = useRef<{ startX: number; startWidth: number } | null>(null)
 
@@ -26,6 +30,7 @@ export function PanelResizer({
     onResize(drag.current.startWidth + (edge === 'right' ? delta : -delta))
   }
   const onPointerUp = (e: React.PointerEvent): void => {
+    if (drag.current) onResizeEnd?.(width)
     drag.current = null
     e.currentTarget.releasePointerCapture(e.pointerId)
   }

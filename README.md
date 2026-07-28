@@ -114,7 +114,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Hotkeys** — every action is rebindable; defaults documented in [`docs/manual/26-hotkeys.md`](docs/manual/26-hotkeys.md).
 - **Command Palette** (`Ctrl+Shift+P`) — every action by name.
 - **Localization** — drop-in JSON locale files; English, German, and Simplified Chinese ship in the box.
-- **Theme** — light/dark following the OS, plus bundled Discord and Catppuccin Mocha palettes and a custom accent color; on macOS 26+ the window uses native Liquid Glass, with a vibrancy fallback on older macOS.
+- **Theme** — the default palette is Novalist's own: deep "Ink Night" paper, parchment text, and gilt accents, set in Fraunces, Newsreader, and Courier Prime (all three ship with the app, so it looks the same offline and on every machine). Bundled Discord and Catppuccin Mocha palettes and a custom accent color are also available; on macOS 26+ the window uses native Liquid Glass, with a vibrancy fallback on older macOS.
 - **Global or per-project settings** — appearance, editor, and writing-assistance settings default to global but can be overridden per project (e.g. an English book and a German book each with their own language, quotes, and theme); project overrides live in `.novalist/` and sync via git.
 - **Book preview** — render the editor as a printed page with configurable trim size and book font.
 

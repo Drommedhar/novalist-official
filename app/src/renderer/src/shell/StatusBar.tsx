@@ -177,12 +177,14 @@ function readabilityLevel(score: number, language: string): Level {
   return 'veryDifficult'
 }
 
-const LEVEL_COLOR: Record<Level, string> = {
-  veryEasy: '#16A34A',
-  easy: '#22863A',
-  moderate: '#B08800',
-  difficult: '#C05621',
-  veryDifficult: '#B91C1C'
+/** Modifier class per level; the pigments themselves are theme tokens, so the
+ * badge follows whichever theme is active instead of pinning its own hex. */
+const LEVEL_CLASS: Record<Level, string> = {
+  veryEasy: 'level-very-easy',
+  easy: 'level-easy',
+  moderate: 'level-moderate',
+  difficult: 'level-difficult',
+  veryDifficult: 'level-very-difficult'
 }
 
 function computeStats(plainText: string, language: string): EditorStats {
@@ -350,8 +352,7 @@ export function StatusBar(): React.JSX.Element {
             )}
             {stats && stats.readabilityScore > 0 && (
               <span
-                className="status-readability-badge"
-                style={{ backgroundColor: LEVEL_COLOR[stats.readabilityLevel] }}
+                className={`status-readability-badge ${LEVEL_CLASS[stats.readabilityLevel]}`}
                 title={`${t('statusBar.readability', { score: stats.readabilityScore })} - ${t(
                   `statusBar.readabilityLevel.${stats.readabilityLevel}`
                 )}`}
@@ -430,11 +431,9 @@ export function StatusBar(): React.JSX.Element {
                       <span className="status-overview-read">
                         {chapter.readabilityLevel ? (
                           <span
-                            className="status-readability-badge"
-                            style={{
-                              backgroundColor:
-                                LEVEL_COLOR[LEVEL_BY_LABEL[chapter.readabilityLevel] ?? 'moderate']
-                            }}
+                            className={`status-readability-badge ${
+                              LEVEL_CLASS[LEVEL_BY_LABEL[chapter.readabilityLevel] ?? 'moderate']
+                            }`}
                             title={chapter.readabilityLevel}
                           >
                             {chapter.readability}

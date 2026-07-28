@@ -139,12 +139,14 @@
   font-size: var(--nl-font-body-lg);
 }
 
+/* Sized for the identity's 17px body: the old 360x440 box was cut for a 12px
+   scale and left the card holding about twenty characters a line. */
 .peek-card {
   display: flex;
   flex-direction: column;
-  width: 360px;
-  max-width: 360px;
-  max-height: 440px;
+  width: 460px;
+  max-width: 460px;
+  max-height: 580px;
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-xl);
@@ -175,7 +177,7 @@
   align-items: center;
   gap: var(--nl-space-tighter);
   padding: var(--nl-space-tighter) var(--nl-space-lg);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-body-sm);
   color: var(--nl-text-subtle);
   background: var(--nl-surface-hover);
   border-bottom: 1px solid var(--nl-border-subtle);
@@ -188,8 +190,8 @@
   flex-shrink: 0;
   padding: 1px var(--nl-space-sm);
   border-radius: var(--nl-radius-pill);
-  color: #cdd6f4;
-  font-size: var(--nl-font-tiny);
+  color: var(--nv-text);
+  font-size: var(--nl-font-caption);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -201,8 +203,8 @@
 }
 
 .peek-action {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -273,13 +275,13 @@
   gap: var(--nl-space-tightest);
   padding: 1px var(--nl-space-sm);
   border-radius: var(--nl-radius-pill);
-  color: #cdd6f4;
-  font-size: var(--nl-font-tiny);
+  color: var(--nv-text);
+  font-size: var(--nl-font-caption);
 }
 
 .peek-pill-icon {
-  width: 11px;
-  height: 11px;
+  width: 13px;
+  height: 13px;
 }
 
 .peek-section {
@@ -289,7 +291,7 @@
 }
 
 .peek-caption {
-  font-size: var(--nl-font-tiny);
+  font-size: var(--nl-font-body-sm);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--nl-text-subtle);

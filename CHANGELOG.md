@@ -20,11 +20,37 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - **Codex PDF export** — a new export format that writes your world bible as a single, self-contained PDF with entry images drawn into the document, so there is no image folder to send alongside it. Headings, bullet lists, bold text, and line breaks in your entry text are laid out as formatted prose. Every entry starts on its own page, and PDF bookmarks list each entry under its group so any reader can jump straight to a character.
 - **Codex entry selection** — the Codex exports now show a checkbox per entry, grouped by Characters, Locations, Items, and Lore and sorted by name, with a search box, select-all and select-none buttons, and a running count. Untick the entries you do not want in the file; everything is included by default. Select all and select none apply to whatever the search currently shows, so you can tick or untick a group of entries in one click.
+- **Bundled typefaces** — Fraunces, Newsreader, and Courier Prime now ship inside the app. The interface and the default writing face look identical on every machine, with no network and nothing to install, and all three are offered at the top of the editor's font list.
 
 ### Changed
 
+- **A new default look** — the Default theme is now Novalist's own identity: a deep, near-black page with parchment-coloured text and gilt accents. Panels are the one raised surface, edges are fine parchment hairlines instead of grey rules, and primary buttons carry a gold foil fill with a dark pressed-ink label. The active choice in a set of options fills the same way, and selecting text tints it gilt.
+- Headings are set in Fraunces and interface text in Newsreader. Anything the app worked out for you — word counts, reading times, file sizes, version numbers, timestamps, branch names — is now set in Courier Prime, so figures read as the record they are and stay in step in a column.
+- Interface text is larger and panels sit on more generous spacing, following the identity's own type, spacing, and corner-radius scale rather than the old compact one.
+- New projects open the editor in Newsreader at 17px, instead of Inter at 14px. Projects you have already set up keep the font and size you chose.
+- Long passages now open with a gilded drop cap — a manual page, or the opening description of a Wiki article.
+- Choosing the Discord or Catppuccin Mocha theme now changes colour only. Type, spacing, and corner radii belong to the Novalist identity and stay put whichever palette you pick.
+- Setting a custom accent colour flattens the gold foil on primary buttons to a single fill in your colour, rather than leaving a gradient that no longer matches.
+- Readability scores in the status bar are drawn from the theme's own palette and follow whichever theme is active, instead of a fixed set of traffic-light colours.
+- **Codex entry fields sit side by side** — short properties like Eye Colour, Role, and Build now flow into as many columns as the panel is wide instead of one per row, so an entry that used to run well past the bottom of the window fits on a single screen. Long text fields still take the full width.
+- Novalist opens maximised. Restoring the window down still gives you the previous, smaller size.
+- **Panels remember their size** — drag the binder, the inspector, or the scene-notes panel to the width or height you want and it is still there next time you open Novalist.
+- The binder and inspector now open at a width proportional to your display instead of a fixed 240 and 280 pixels, so on a large screen a scene title fits on one line out of the box rather than being cut off. They can also be dragged considerably wider than before.
+- Dialogs are wider, and update release notes have more room. The update notice used to break a version number across three lines.
+- The welcome screen's toolbar now shows only the Novalist wordmark. It used to carry Add Chapter, Add Scene, search, snapshots, and the three panel toggles, none of which do anything before a project is open.
+- On Windows and Linux the window no longer shows the grey system title bar and menu strip above the app. Novalist's own toolbar is the title bar, and the minimise, maximise, and close buttons are painted to match the theme — the same integrated look macOS already had. Press `Alt` for the File / Edit / Go / View menus.
+- The focus peek card is larger, so an entry's sections, relationships, and description no longer read as a narrow column of fine print.
+- The live statistics in the status bar sit in the true centre of the bar rather than drifting with whatever is beside them.
 - Codex exports now write their group headings and fixed field labels (Role, Age, Type, Relationships, …) in your interface language instead of always in English.
 - Characters whose age is set as a birth date no longer get an Age line in codex exports, where it only repeated the date.
+
+### Fixed
+
+- With typewriter scrolling on, right-clicking in the editor could dismiss the context menu the instant it opened: the click recentred the caret, and that scroll counted as scrolling away from the menu. The menu now stays put, and a right-click no longer moves the page under it.
+- Text fields in the Codex, the outliner, and the notes panel now look like text fields before you click them. They previously showed no border or background until hovered, so a value read as plain text.
+- Extension settings pages rendered as an unstyled stack of full-width controls with no spacing. Their fields now lay out in two columns inside a proper panel, matching the built-in Settings.
+- The divider above the scene notes panel now highlights in the accent colour while you drag it, like the binder and inspector dividers already did.
+- Dragging the scene notes panel taller now grows the Summary box as well; the extra height used to go to Notes alone while Summary stayed capped.
 
 ---
 

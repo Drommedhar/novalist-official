@@ -167,10 +167,13 @@
 
 /* ===== Extension settings surface ===== */
 
+/* Capped to the same measure as the Settings view, so extension options do not
+   stretch across the full window while the built-in ones stay in a column. */
 .ext-settings-section {
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-md);
+  max-width: 1080px;
 }
 
 .ext-settings-card {
