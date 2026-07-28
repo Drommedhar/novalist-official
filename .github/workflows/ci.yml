@@ -142,6 +142,14 @@ jobs:
       - name: Token doctor (undefined design tokens)
         run: python3 tools/token-doctor.py
 
+      # The renderer and the backend agree on method names by convention only,
+      # and the C# coverage gate cannot see either side of that seam: a call to
+      # a method that does not exist compiles and typechecks, and a method the
+      # renderer never calls can sit at 100% coverage while its feature is
+      # wired to nothing.
+      - name: RPC doctor (renderer/backend method surface)
+        run: python3 tools/rpc-doctor.py
+
       - name: Build renderer
         working-directory: app
         run: npm run build
