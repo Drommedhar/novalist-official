@@ -18,6 +18,15 @@ public sealed class EmotionLexiconEntry
     public IReadOnlyList<string> Words { get; init; } = [];
 }
 
+/// <summary>Grammatical gender, used to match a pronoun in a dialogue tag
+/// against the cast.</summary>
+public enum DialogueGender
+{
+    Unknown,
+    Male,
+    Female
+}
+
 /// <summary>
 /// The keyword lists behind the Inspector's scene analysis — intensity, emotion,
 /// conflict, tags, and first-person POV detection — for one writing language.
@@ -47,6 +56,55 @@ public sealed class SceneAnalysisLexicon
     public IReadOnlyList<string> Negative { get; private init; } = [];
     public IReadOnlyList<string> Conflict { get; private init; } = [];
     public IReadOnlyList<EmotionLexiconEntry> Emotions { get; private init; } = [];
+
+    /// <summary>Verbs that introduce or follow a line of dialogue ("said",
+    /// "flüsterte", "说"). Used by the Dialogue view to decide which name near a
+    /// quote is the speaker rather than someone merely being talked about.</summary>
+    public IReadOnlyList<string> SpeechVerbs { get; private init; } = [];
+
+    /// <summary>Whether the language separates words with spaces. Chinese does
+    /// not, so name and verb matching there is a plain substring test.</summary>
+    public bool WordBoundaries { get; private init; } = true;
+
+    /// <summary>Third-person singular pronouns, by grammatical gender. The
+    /// Dialogue view uses these to resolve a tag like "brummte er" back to the
+    /// character the narration last named.</summary>
+    public Regex MalePronouns { get; private init; } = MatchNothing;
+
+    public Regex FemalePronouns { get; private init; } = MatchNothing;
+
+    /// <summary>Words a writer might put in a character's Gender field, so a
+    /// pronoun can be matched against the cast. Free text, so both the formal
+    /// word and the common shorthand are listed.</summary>
+    public IReadOnlyList<string> GenderMale { get; private init; } = [];
+
+    public IReadOnlyList<string> GenderFemale { get; private init; } = [];
+
+    private static Regex MatchNothing => new("(?!)", RegexOptions.CultureInvariant);
+
+    /// <summary>
+    /// Classifies a character's free-text Gender field as male, female, or
+    /// neither. Every shipped lexicon's word lists are consulted, not just the
+    /// writing language's: the Gender field is typed in whatever language the
+    /// writer uses for the interface, which need not be the manuscript's.
+    /// </summary>
+    public static DialogueGender ClassifyGender(string? gender)
+    {
+        var value = (gender ?? string.Empty).Trim().ToLowerInvariant();
+        if (value.Length == 0)
+            return DialogueGender.Unknown;
+
+        foreach (var tag in AvailableLanguages)
+        {
+            var lexicon = For(tag);
+            if (lexicon == null) continue;
+            if (lexicon.GenderMale.Contains(value, StringComparer.Ordinal))
+                return DialogueGender.Male;
+            if (lexicon.GenderFemale.Contains(value, StringComparer.Ordinal))
+                return DialogueGender.Female;
+        }
+        return DialogueGender.Unknown;
+    }
 
     /// <summary>The emotion keys, in the order the file declares them — this is
     /// what the UI's emotion dropdown offers.</summary>
@@ -140,6 +198,12 @@ public sealed class SceneAnalysisLexicon
             Conflict = Clean(file.Conflict),
             Emotions = emotions,
             EmotionKeys = emotions.Select(e => e.Key).ToArray(),
+            SpeechVerbs = Clean(file.SpeechVerbs),
+            WordBoundaries = file.WordBoundaries,
+            MalePronouns = BuildPronounRegex(Clean(file.PronounsMale), file.WordBoundaries),
+            FemalePronouns = BuildPronounRegex(Clean(file.PronounsFemale), file.WordBoundaries),
+            GenderMale = Clean(file.GenderMale),
+            GenderFemale = Clean(file.GenderFemale),
             FirstPerson = BuildPronounRegex(Clean(file.FirstPerson), file.WordBoundaries)
         };
     }
@@ -182,6 +246,21 @@ public sealed class SceneAnalysisLexicon
 
         [JsonPropertyName("conflict")]
         public IReadOnlyList<string> Conflict { get; init; } = [];
+
+        [JsonPropertyName("speechVerbs")]
+        public IReadOnlyList<string> SpeechVerbs { get; init; } = [];
+
+        [JsonPropertyName("pronounsMale")]
+        public IReadOnlyList<string> PronounsMale { get; init; } = [];
+
+        [JsonPropertyName("pronounsFemale")]
+        public IReadOnlyList<string> PronounsFemale { get; init; } = [];
+
+        [JsonPropertyName("genderMale")]
+        public IReadOnlyList<string> GenderMale { get; init; } = [];
+
+        [JsonPropertyName("genderFemale")]
+        public IReadOnlyList<string> GenderFemale { get; init; } = [];
 
         [JsonPropertyName("emotions")]
         public IReadOnlyList<EmotionLexiconEntry> Emotions { get; init; } = [];

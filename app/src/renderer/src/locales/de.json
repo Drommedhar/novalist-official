@@ -1747,6 +1747,32 @@
     "fpLabel": "Beschriftung",
     "fpPin": "Pin"
   },
+  "dialogue": {
+      "roster": "Sprecher",
+      "filterPlaceholder": "Sprecher filtern…",
+      "loading": "Dialoge werden gesammelt…",
+      "empty": "In diesem Buch wurden noch keine Dialoge gefunden.",
+      "noLines": "Keine Zeilen für diesen Sprecher.",
+      "unassigned": "Nicht zugeordnet",
+      "undated": "Kein Story-Datum",
+      "lineSummary": "{{lines}} Zeilen an {{groups}} Punkten der Erzählzeit",
+      "openScene": "Szene öffnen",
+      "editLine": "Diese Zeile bearbeiten",
+      "lockedHint": "Diese Zeile enthält Formatierungen und kann nur in der Szene bearbeitet werden.",
+      "reassign": "Neu zuordnen…",
+      "mightBe": "Vielleicht:",
+      "assignTo": "Diese Zeile {{name}} zuordnen",
+      "staleWarning": "Die Szene hat sich seit dem Aufbau der Liste geändert, die Änderung wurde nicht gespeichert.",
+      "reload": "Neu laden",
+      "confidence": {
+        "manual": "Von dir gesetzt",
+        "high": "Genannt",
+        "inferred": "Erschlossen",
+        "medium": "In der Nähe",
+        "low": "Geraten",
+        "none": "Unbekannt"
+      }
+    },
   "shell": {
     "toggleBinder": "Binder umschalten",
     "toggleInspector": "Inspektor umschalten",
@@ -1773,6 +1799,7 @@
       "plotGrid": "Plot-Raster",
       "calendar": "Kalender",
       "relationships": "Beziehungen",
+      "dialogue": "Dialoge",
       "codex": "Codex",
       "wiki": "Wiki",
       "maps": "Karten",

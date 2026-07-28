@@ -147,4 +147,77 @@ public class SceneAnalysisLexiconTests
     [Fact]
     public void Parse_JsonNull_ReturnsNull()
         => Assert.Null(SceneAnalysisLexicon.Parse("null", "test"));
+
+    [Theory]
+    [InlineData("en", "said")]
+    [InlineData("de", "sagte")]
+    [InlineData("zh-CN", "说")]
+    public void ShippedLexicons_CarrySpeechVerbs(string tag, string expected)
+    {
+        var lexicon = SceneAnalysisLexicon.For(tag);
+
+        Assert.NotNull(lexicon);
+        Assert.Contains(expected, lexicon!.SpeechVerbs);
+    }
+
+    [Fact]
+    public void Parse_SpeechVerbsAreTrimmedLowercasedAndDeduped()
+    {
+        var lexicon = SceneAnalysisLexicon.Parse(
+            """{ "speechVerbs": ["Said", " said ", "", "asked"], "emotions": [] }""",
+            "test");
+
+        Assert.NotNull(lexicon);
+        Assert.Equal(["said", "asked"], lexicon!.SpeechVerbs);
+    }
+
+    [Fact]
+    public void Parse_MissingSpeechVerbs_LeavesTheListEmpty()
+    {
+        var lexicon = SceneAnalysisLexicon.Parse("""{ "emotions": [] }""", "test");
+
+        Assert.NotNull(lexicon);
+        Assert.Empty(lexicon!.SpeechVerbs);
+    }
+
+    [Theory]
+    [InlineData("en", true)]
+    [InlineData("zh-CN", false)]
+    public void ShippedLexicons_DeclareWhetherWordsAreSpaceDelimited(string tag, bool expected)
+        => Assert.Equal(expected, SceneAnalysisLexicon.For(tag)!.WordBoundaries);
+
+    [Theory]
+    [InlineData("en", "he waited", "she waited")]
+    [InlineData("de", "er wartete", "sie wartete")]
+    [InlineData("zh-CN", "他等着", "她等着")]
+    public void ShippedLexicons_CarryGenderedPronouns(string tag, string male, string female)
+    {
+        var lexicon = SceneAnalysisLexicon.For(tag)!;
+
+        Assert.Matches(lexicon.MalePronouns, male);
+        Assert.Matches(lexicon.FemalePronouns, female);
+        Assert.DoesNotMatch(lexicon.MalePronouns, female);
+    }
+
+    [Fact]
+    public void Parse_MissingPronounLists_MatchNothing()
+    {
+        var lexicon = SceneAnalysisLexicon.Parse("""{ "emotions": [] }""", "test")!;
+
+        Assert.DoesNotMatch(lexicon.MalePronouns, "he him his she her");
+        Assert.DoesNotMatch(lexicon.FemalePronouns, "he him his she her");
+    }
+
+    [Theory]
+    [InlineData("male", DialogueGender.Male)]
+    [InlineData("Female", DialogueGender.Female)]
+    [InlineData("  m  ", DialogueGender.Male)]
+    [InlineData("männlich", DialogueGender.Male)]     // written in the UI language,
+    [InlineData("weiblich", DialogueGender.Female)]   // not the manuscript's
+    [InlineData("女", DialogueGender.Female)]
+    [InlineData("nonbinary", DialogueGender.Unknown)]
+    [InlineData("", DialogueGender.Unknown)]
+    [InlineData(null, DialogueGender.Unknown)]
+    public void ClassifyGender_ReadsTheFieldInAnyShippedLanguage(string? value, DialogueGender expected)
+        => Assert.Equal(expected, SceneAnalysisLexicon.ClassifyGender(value));
 }

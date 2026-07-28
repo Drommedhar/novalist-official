@@ -1739,6 +1739,32 @@
     "updateAction": "Update",
     "updating": "Updating…"
   },
+  "dialogue": {
+      "roster": "Speakers",
+      "filterPlaceholder": "Filter speakers…",
+      "loading": "Gathering dialogue…",
+      "empty": "No dialogue found in this book yet.",
+      "noLines": "No lines for this speaker.",
+      "unassigned": "Unassigned",
+      "undated": "No story date",
+      "lineSummary": "{{lines}} lines across {{groups}} points in story time",
+      "openScene": "Open the scene",
+      "editLine": "Edit this line",
+      "lockedHint": "This line contains formatting, so it can only be edited in the scene.",
+      "reassign": "Reassign…",
+      "mightBe": "Might be:",
+      "assignTo": "Assign this line to {{name}}",
+      "staleWarning": "This scene changed since the list was built, so the edit was not saved.",
+      "reload": "Reload",
+      "confidence": {
+        "manual": "Set by you",
+        "high": "Named",
+        "inferred": "Inferred",
+        "medium": "Nearby",
+        "low": "Guessed",
+        "none": "Unknown"
+      }
+    },
   "shell": {
     "toggleBinder": "Toggle binder",
     "toggleInspector": "Toggle inspector",
@@ -1765,6 +1791,7 @@
       "plotGrid": "Plot Grid",
       "calendar": "Calendar",
       "relationships": "Relationships",
+      "dialogue": "Dialogue",
       "codex": "Codex",
       "wiki": "Wiki",
       "maps": "Maps",

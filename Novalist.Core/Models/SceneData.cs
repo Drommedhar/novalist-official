@@ -70,6 +70,15 @@ public class SceneData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<SceneFootnote>? Footnotes { get; set; }
 
+    /// <summary>Speakers the writer assigned by hand in the Dialogue view, keyed
+    /// by the line key <c>DialogueScanner</c> derives from the spoken text. The
+    /// value is a character id, or an empty string when the writer cleared a
+    /// wrong guess without naming a replacement. Null when every line in the
+    /// scene is left to automatic attribution.</summary>
+    [JsonPropertyName("dialogueSpeakers")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? DialogueSpeakers { get; set; }
+
     [JsonPropertyName("analysisOverrides")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SceneAnalysisOverrides? AnalysisOverrides { get; set; }

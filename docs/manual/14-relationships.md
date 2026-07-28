@@ -51,3 +51,4 @@ Return to the Relationships view and the graph updates.
 
 - [Codex](06-codex.md) — where character relationships are edited.
 - [Timeline](12-timeline.md) — track where those characters appear over story time.
+- [Dialogue](33-dialogue.md) — every line one of those characters speaks, in story order.

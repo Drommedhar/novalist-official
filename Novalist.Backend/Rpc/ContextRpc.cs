@@ -26,9 +26,8 @@ namespace Novalist.Backend.Rpc;
 /// </summary>
 public sealed class ContextRpc
 {
-    private static readonly Regex DialogueRegex = new(
-        "(?:\"[^\"]*\"|“[^”]*”|„[^“]*“|«[^»]*»|»[^«]*«|‹[^›]*›|‚[^‘]*‘)",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Singleline);
+    // Shared with the Dialogue view so both agree on what counts as a quoted line.
+    private static readonly Regex DialogueRegex = DialogueScanner.QuoteRegex;
 
     // Terminators include the CJK forms so Chinese prose splits into sentences too.
     private static readonly Regex SentenceRegex = new(

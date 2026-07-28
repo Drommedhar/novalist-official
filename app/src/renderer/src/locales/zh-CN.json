@@ -1774,6 +1774,32 @@
     "updateAction": "更新",
     "updating": "正在更新…"
   },
+  "dialogue": {
+      "roster": "说话人",
+      "filterPlaceholder": "筛选说话人…",
+      "loading": "正在收集对话…",
+      "empty": "本书中尚未找到对话。",
+      "noLines": "该说话人没有台词。",
+      "unassigned": "未归属",
+      "undated": "无故事日期",
+      "lineSummary": "共 {{lines}} 句，分布在 {{groups}} 个故事时间点",
+      "openScene": "打开场景",
+      "editLine": "编辑这句台词",
+      "lockedHint": "这句台词含有格式，只能在场景中编辑。",
+      "reassign": "重新归属…",
+      "mightBe": "可能是：",
+      "assignTo": "将这句台词归给 {{name}}",
+      "staleWarning": "列表生成后场景已变更，本次修改未保存。",
+      "reload": "重新加载",
+      "confidence": {
+        "manual": "由你设定",
+        "high": "明确点名",
+        "inferred": "推断得出",
+        "medium": "附近提及",
+        "low": "推测",
+        "none": "未知"
+      }
+    },
   "shell": {
     "toggleBinder": "切换项目栏",
     "toggleInspector": "切换检查器",
@@ -1797,6 +1823,7 @@
       "plotGrid": "情节网格",
       "calendar": "日历",
       "relationships": "人物关系",
+      "dialogue": "对话",
       "codex": "百科",
       "wiki": "维基",
       "maps": "地图",

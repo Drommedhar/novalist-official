@@ -10,6 +10,7 @@ import { PlotGridView } from '../views/plotgrid/PlotGridView'
 import { TimelineView } from '../views/timeline/TimelineView'
 import { CalendarView } from '../views/calendar/CalendarView'
 import { RelationshipsView } from '../views/relationships/RelationshipsView'
+import { DialogueView } from '../views/dialogue/DialogueView'
 import { GalleryView } from '../views/library/GalleryView'
 import { ResearchView } from '../views/library/ResearchView'
 import { ExportView } from '../views/export/ExportView'
@@ -137,6 +138,14 @@ function MainAreaContent(): React.JSX.Element {
     return (
       <main className="main-area">
         <RelationshipsView />
+      </main>
+    )
+  }
+
+  if (mainView === 'dialogue') {
+    return (
+      <main className="main-area">
+        <DialogueView />
       </main>
     )
   }

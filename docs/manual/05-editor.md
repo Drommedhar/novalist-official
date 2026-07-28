@@ -160,3 +160,4 @@ The centre of the status bar shows whole-project totals (words, chapters, scenes
 - [Snapshots](17-snapshots.md) — revert a single scene to a previous state.
 - [Find & Replace](21-find-replace.md) — search across scene, chapter, book, or project.
 - [Settings](23-settings.md) — fonts, theme, writing assistance.
+- [Dialogue](33-dialogue.md) — read one character's lines end to end, and edit them without leaving the list.

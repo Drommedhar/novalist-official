@@ -81,3 +81,4 @@ Per-scene snapshots are taken and managed from the toolbar **Snapshots** button,
 - [Snapshots](17-snapshots.md) — per-scene version history.
 - [Codex](06-codex.md) — where the entity cards open.
 - [Manuscript view](10-manuscript.md) — where synopses show up on cards and in the outliner.
+- [Dialogue](33-dialogue.md) — the same quote detection behind the dialogue percentage, per character across the book.
