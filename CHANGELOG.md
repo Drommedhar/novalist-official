@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [2.5] - 2026-07-28
+
 ### Added
 
 - **Custom themes** — write your own colour scheme and drop it into the Themes folder beside your settings, and it joins the theme picker in Settings, Appearance. Two formats work: a JSON file listing just the design tokens you want to change, where everything you leave out keeps its default, or a CSS stylesheet for a theme that needs rules a colour table cannot express. A stylesheet applies only while its theme is selected, so it can never bleed into another one. Type, spacing, and corner radii stay as Novalist sets them whichever palette you pick.
@@ -578,7 +584,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v2.4...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v2.5...HEAD
+[2.5]: https://github.com/Drommedhar/novalist-official/compare/v2.4...v2.5
 [2.4]: https://github.com/Drommedhar/novalist-official/compare/v2.3.1...v2.4
 [2.3.1]: https://github.com/Drommedhar/novalist-official/compare/v2.3...v2.3.1
 [2.3]: https://github.com/Drommedhar/novalist-official/compare/v2.2...v2.3
