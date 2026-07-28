@@ -1974,23 +1974,39 @@ function replaceInTextNodes(element, oldText, diffStart, diffEnd, replacement) {
     }
 }
 
+function placeCaret(node, offset) {
+    const sel = window.getSelection();
+    if (!sel) return;
+    const range = document.createRange();
+    try {
+        range.setStart(node, offset);
+    } catch (_) {
+        return;
+    }
+    range.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
 function restoreCaretInElement(element, textOffset) {
     const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null, false);
     let accumulated = 0;
     let node;
+    let lastNode = null;
     while ((node = walker.nextNode())) {
         const len = (node.textContent || '').length;
         if (accumulated + len >= textOffset) {
-            const sel = window.getSelection();
-            const range = document.createRange();
-            range.setStart(node, textOffset - accumulated);
-            range.collapse(true);
-            sel.removeAllRanges();
-            sel.addRange(range);
+            placeCaret(node, textOffset - accumulated);
             return;
         }
         accumulated += len;
+        lastNode = node;
     }
+    // No text node reached the offset. An empty block (<p><br></p>) holds no
+    // text at all, so collapsing into the element itself is what keeps the caret
+    // on that line — returning here would strand it wherever the DOM surgery
+    // left it, which is typically the end of the preceding block.
+    placeCaret(lastNode || element, lastNode ? (lastNode.textContent || '').length : 0);
 }
 
 function escapeRegex(str) {
@@ -2836,23 +2852,53 @@ function buildGrammarPlainTextMap() {
     return { plainText: parts.join(''), textNodes };
 }
 
+function isCaretInEditor(sel) {
+    // Grammar results land seconds after the request, long after the user may
+    // have clicked away. Only touch the selection when it is still a collapsed
+    // caret inside the focused editor — otherwise restoring would yank focus
+    // back out of whatever the user moved on to.
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return false;
+    const active = document.activeElement;
+    if (active !== editor && !editor.contains(active)) return false;
+    return editor.contains(sel.getRangeAt(0).startContainer);
+}
+
 function applyGrammarHighlights() {
-    // Save caret position
+    // Save the caret relative to its own block, not to the whole editor. A flat
+    // offset over the editor cannot tell "end of block N" from "start of block
+    // N+1" or from an empty block between them, because Range.toString() puts no
+    // separator between blocks — all three collapse onto the same number, and
+    // restoring it drags the caret back to the end of the previous paragraph.
+    // Within a single block the offset is unambiguous, and the block element
+    // survives the unwrap/re-wrap below (only text nodes are split and merged).
     const sel = window.getSelection();
-    let savedRange = null;
-    let caretTextOffset = -1;
-    if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
+    let caretBlock = null;
+    let caretOffsetInBlock = -1;
+    if (isCaretInEditor(sel)) {
         const r = sel.getRangeAt(0);
+        caretBlock = getContainingBlock(r.startContainer) || editor;
         const preRange = document.createRange();
-        preRange.selectNodeContents(editor);
+        preRange.selectNodeContents(caretBlock);
         preRange.setEnd(r.startContainer, r.startOffset);
-        caretTextOffset = preRange.toString().length;
+        caretOffsetInBlock = preRange.toString().length;
     }
+
+    const restoreCaret = () => {
+        if (!caretBlock || caretOffsetInBlock < 0) return;
+        if (!editor.contains(caretBlock)) return; // block was replaced meanwhile
+        restoreCaretInElement(caretBlock, caretOffsetInBlock);
+    };
 
     // Remove existing highlights
     clearGrammarHighlights();
 
-    if (!grammarIssues || grammarIssues.length === 0) return;
+    // clearGrammarHighlights() normalizes the editor, merging adjacent text
+    // nodes, which invalidates the live caret even when there is nothing to
+    // highlight — so this path needs the restore too.
+    if (!grammarIssues || grammarIssues.length === 0) {
+        restoreCaret();
+        return;
+    }
 
     // Use the same plain-text builder that fed LanguageTool so issue offsets
     // align exactly with text-node positions.
@@ -2902,10 +2948,7 @@ function applyGrammarHighlights() {
         }
     }
 
-    // Restore caret
-    if (caretTextOffset >= 0) {
-        restoreCaretInElement(editor, caretTextOffset);
-    }
+    restoreCaret();
 }
 
 function showGrammarPopup(issueIndex, x, y) {

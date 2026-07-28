@@ -25,6 +25,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **Correcting who said what** — reassign any line to another character from the dropdown beside it. The list offers your whole cast, not just the characters who already have lines, so somebody whose every line was misattributed is still pickable. Your choice is kept, marked as yours, and survives later edits to the scene; picking Unassigned clears a wrong guess without naming a replacement.
 - **Editing dialogue in place** — click a line in the Dialogue view to rewrite it, and the change is written straight into the scene file. You edit only the words inside the quote marks; the dialogue tag and the narration around it are left exactly as they were, and are shown greyed beside the line so you can tell two similar lines apart. A snapshot is taken before every edit, a line containing formatting is shown read-only rather than risking its markup, and an edit is refused with an offer to reload if you changed the same scene in the editor meanwhile.
 
+### Fixed
+
+- The cursor no longer jumps backwards to the end of the previous paragraph a few seconds after you click or arrow onto a line. It happened when the spelling and grammar check finished in the background: an empty line, or the very start of a line, was indistinguishable from the end of the paragraph above it, so restoring your position landed you one paragraph too far back. Your place on the line is now kept exactly, and a check that finishes after you have clicked away no longer pulls the cursor back into the text.
+
 ---
 
 ## [2.4] - 2026-07-28
