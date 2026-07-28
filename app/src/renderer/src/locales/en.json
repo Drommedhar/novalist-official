@@ -371,7 +371,12 @@
     "accentColor": "Accent Color",
     "accentColorDesc": "Primary highlight color used throughout the interface.",
     "accentColorReset": "Reset",
+    "customAssetsHint": "Themes and interface languages can also be dropped into folders on disk. Novalist reads them when it starts, so restart after adding a file.",
+    "openThemesFolder": "Themes folder",
+    "openLocalesFolder": "Languages folder",
     "scopeProjectOverride": "Override for this project",
+    "scopeEditingGlobal": "Editing your global defaults. This project follows them.",
+    "scopeEditingProject": "Editing this project only. Your global defaults are unchanged.",
     "scopeProjectHint": "When on, this section's values are saved with the project (in its .novalist folder) and override your global settings. Open a project to enable.",
     "writingGoals": "WRITING GOALS",
     "goalsDesc": "These goals drive the status bar progress indicators for the active project.",
@@ -1667,6 +1672,7 @@
     "settingsAutoSaved": "Changes are saved automatically",
     "settingsWorking": "Working…",
     "themesTitle": "Extension themes",
+    "themesMovedHint": "Themes from your extensions ({{names}}) are listed in Settings, Appearance, Theme along with the built-in ones.",
     "updateTo": "Update to {0}"
   },
   "codexHub": {

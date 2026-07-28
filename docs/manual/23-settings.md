@@ -17,10 +17,14 @@ The Settings view has a **search box** in the header and a **category navigation
 
 The **Appearance**, **Editor**, and **Writing Assistance** cards each have an **Override for this project** checkbox at the top. It appears only while a project is open.
 
-- **Off (default)** — that section uses your global settings, shared by every project.
+- **Off (default)** — that section uses your global settings, shared by every project. The controls stay editable, and what you change is your global defaults; a line under the checkbox says so, so it is never ambiguous which one you are editing.
 - **On** — the section's values are saved with the project, in its `.novalist` folder, and override the global values whenever this project is open. Because they live inside the project folder, the overrides travel with the project through Git and across devices.
 
-Switching a section back to global clears that section's overrides and the values revert to your global settings immediately.
+Ticking the checkbox pins the section's **current** values to the project straight away, so the project keeps looking exactly as it does at that moment and later changes to your global defaults no longer reach it. You do not have to edit a field for the override to exist.
+
+Unticking clears that section's overrides, and the values revert to your **global** settings immediately.
+
+The checkbox reflects what is actually stored with the project, so it reads the same every time you open Settings.
 
 This lets you, for example, keep one book in English with English quotation marks and another in German with German quotes and a German interface, without changing your global defaults. Switching projects re-applies the effective theme, accent color, and interface language for the project you open.
 
@@ -28,14 +32,15 @@ The **Templates** and **Writing Goals** sections are per-project (they only appl
 
 ## Appearance
 
-- **Interface Language** — UI language. English, German, and Chinese (Simplified) ship built in. Changes apply immediately without restart.
-- **Theme** — the active color scheme:
+- **Interface Language** — UI language. English, German, and Chinese (Simplified) ship built in, and any language you dropped into your `Locales/` folder is listed too. Changes apply immediately without restart.
+- **Theme** — the active color scheme. Built-in themes come first, then your own, then any contributed by extensions:
   - **Default** — Novalist's own identity. A deep "Ink Night" page with parchment-coloured text and gilt accents; panels are the one raised surface, edges are hairlines rather than grey rules, and primary buttons carry a gold foil fill. Headings are set in Fraunces, text and interface labels in Newsreader, and anything the app computed for you — word counts, versions, file sizes, timestamps — in Courier Prime. All three typefaces ship inside the app, so the interface looks the same offline and on a machine that has none of them installed.
   - **Discord**
   - **Catppuccin Mocha**
 - **Accent Color** — pick a custom highlight color used throughout the interface. A **Reset** button next to the color picker clears the custom accent and returns to the theme's default. A custom accent also flattens the gold foil on primary buttons to a single fill in your colour.
+- **Themes folder** / **Languages folder** — open the folders you drop your own colour schemes and interface languages into. Novalist scans them at startup, so restart after adding a file. See [Custom themes & language packs](34-custom-themes-and-languages.md) for the file formats.
 
-The alternate themes change colour only. Type, spacing, and corner radii belong to the Novalist identity and stay the same whichever palette you pick.
+The alternate themes change colour only. Type, spacing, and corner radii belong to the Novalist identity and stay the same whichever palette you pick — that holds for themes you write yourself as well.
 
 On macOS 26 and later the window uses the native Liquid Glass material; older macOS versions get standard vibrancy.
 

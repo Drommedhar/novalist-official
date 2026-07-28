@@ -65,6 +65,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new SearchRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SnapshotsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SettingsRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new AppearanceRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new MapsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new GrammarRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new TemplatesRpc(_workspace), targetOptions);

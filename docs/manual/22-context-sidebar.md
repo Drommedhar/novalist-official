@@ -48,7 +48,7 @@ Each value is auto-computed but fully editable, and every field carries a **rese
 
 If you write in a language that has no list yet, Novalist does **not** guess — it leaves those fields blank and says so at the top of the section, rather than scoring your prose against another language's words. You can still set every field yourself, and the language-independent parts (POV from character names, word count, dialogue percentage, sentence length) work in every language.
 
-Adding a language is a data change, not a code change: drop an `analysis.<tag>.json` into `Novalist.Core/Resources/Analysis/` with the same emotion keys and translated word lists. See [Localization](27-localization.md).
+Adding a language is a data change, not a code change: drop an `analysis.<tag>.json` into the `Analysis/` folder beside your settings, with the same emotion keys and translated word lists, and restart. See [Custom themes & language packs](34-custom-themes-and-languages.md) and [Localization](27-localization.md).
 
 - **POV** — the point-of-view character, chosen from a dropdown.
 - **Emotion** — the scene's dominant emotion, chosen from a dropdown.

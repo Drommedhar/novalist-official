@@ -232,15 +232,46 @@ public sealed class WritingToolkitExtension :
 
     public IReadOnlyList<ThemeOverride> GetThemeOverrides() =>
     [
+        // A token map: the usual form. Every --nl-* left out keeps its default,
+        // so a theme can restate the whole palette or just a corner of it.
         new ThemeOverride
         {
             Name = "Sepia",
-            AccentColor = "#8a6d3b"
+            AccentColor = "#8a6d3b",
+            Tokens = new Dictionary<string, string>
+            {
+                ["--nl-base"] = "244 236 216",
+                ["--nl-surface-window"] = "#f4ecd8",
+                ["--nl-surface-sidebar"] = "#ece0c8",
+                ["--nl-surface-toolbar"] = "#ece0c8",
+                ["--nl-surface-inspector"] = "#ece0c8",
+                ["--nl-surface-editor"] = "#faf4e6",
+                ["--nl-surface-card"] = "#ece0c8",
+                ["--nl-surface-input"] = "#faf4e6",
+                ["--nl-surface-overlay"] = "rgb(59 47 47 / 0.4)",
+                ["--nl-surface-hover"] = "rgb(59 47 47 / 0.06)",
+                ["--nl-surface-selected"] = "rgb(138 109 59 / 0.2)",
+                ["--nl-text"] = "#3b2f2f",
+                ["--nl-text-dim"] = "#6b5b4b",
+                ["--nl-text-subtle"] = "#8a7a68",
+                ["--nl-accent-hover"] = "#a8854a",
+                ["--nl-accent-ink"] = "#faf4e6",
+                ["--nl-focus-ring"] = "rgb(138 109 59 / 0.6)",
+                ["--nl-border"] = "#d8c8a8",
+                ["--nl-border-subtle"] = "#e4d8bd",
+                ["--nl-border-firm"] = "#c4b08a",
+                ["--nl-scrollbar-thumb"] = "rgb(59 47 47 / 0.2)",
+                ["--nl-scrollbar-thumb-hover"] = "rgb(59 47 47 / 0.32)",
+                ["--nl-scrollbar-thumb-active"] = "rgb(138 109 59 / 0.6)"
+            }
         },
+        // A stylesheet: for themes that need rules a token map cannot hold. The
+        // path is relative to the extension folder.
         new ThemeOverride
         {
             Name = "Dark Ocean",
-            AccentColor = "#1b6ca8"
+            AccentColor = "#1b6ca8",
+            ResourcePath = "Themes/dark-ocean.css"
         }
     ];
 

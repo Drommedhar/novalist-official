@@ -7,7 +7,7 @@ import {
 } from '../views/editor/editorBridge'
 import { setExtensionHotkeys } from '../shell/hotkeys'
 import { useProjectStore } from './projectStore'
-import { applyExtensionTheme, selectedExtensionTheme } from './extensionThemes'
+import { useThemeCatalog } from './themeCatalog'
 
 export interface ExtensionWebView {
   extensionId: string
@@ -32,7 +32,10 @@ export interface ExtensionInfo {
 export interface ExtensionTheme {
   extensionId: string
   name: string
+  slug: string
   accentColor: string | null
+  tokens: Record<string, string>
+  css: string | null
 }
 
 /** A gallery extension plus its installed/update state (backend `store/index`). */
@@ -214,11 +217,19 @@ export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
       }))
     )
 
-    // Re-apply the persisted extension theme selection if it still exists.
-    const selected = selectedExtensionTheme()
-    const match = selected ? themes.find((th) => th.name === selected) : undefined
-    if (match) applyExtensionTheme(match.name, match.accentColor)
-    else if (selected) applyExtensionTheme(null, null)
+    // Contributed themes join the same catalog the Settings dropdown reads.
+    // Registering re-applies the current selection, so a theme from an extension
+    // that loads after settings still takes effect without a restart.
+    useThemeCatalog.getState().setSource(
+      'extension',
+      themes.map((th) => ({
+        name: th.name,
+        slug: th.slug,
+        tokens: th.tokens ?? {},
+        css: th.css,
+        origin: 'extension' as const
+      }))
+    )
 
     set({ themes })
   },

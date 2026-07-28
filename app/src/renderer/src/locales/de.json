@@ -272,7 +272,12 @@
     "accentColor": "Akzentfarbe",
     "accentColorDesc": "Primäre Hervorhebungsfarbe der Benutzeroberfläche.",
     "accentColorReset": "Zurücksetzen",
+    "customAssetsHint": "Farbschemata und Oberflächensprachen können auch als Dateien in Ordnern abgelegt werden. Novalist liest sie beim Start, starte die App nach dem Hinzufügen einer Datei also neu.",
+    "openThemesFolder": "Ordner für Farbschemata",
+    "openLocalesFolder": "Ordner für Sprachen",
     "scopeProjectOverride": "Für dieses Projekt überschreiben",
+    "scopeEditingGlobal": "Du bearbeitest deine globalen Standardwerte. Dieses Projekt übernimmt sie.",
+    "scopeEditingProject": "Du bearbeitest nur dieses Projekt. Deine globalen Standardwerte bleiben unverändert.",
     "scopeProjectHint": "Wenn aktiviert, werden die Werte dieses Abschnitts mit dem Projekt (im Ordner .novalist) gespeichert und überschreiben die globalen Einstellungen. Zum Aktivieren ein Projekt öffnen.",
     "writingGoals": "SCHREIBZIELE",
     "goalsDesc": "Diese Ziele steuern die Fortschrittsanzeigen in der Statusleiste für das aktive Projekt.",
@@ -1296,6 +1301,7 @@
     "settingsAutoSaved": "Änderungen werden automatisch gespeichert",
     "settingsWorking": "Wird ausgeführt…",
     "themesTitle": "Erweiterungs-Designs",
+    "themesMovedHint": "Farbschemata deiner Erweiterungen ({{names}}) stehen unter Einstellungen, Darstellung, Farbschema zusammen mit den mitgelieferten zur Auswahl.",
     "updateTo": "Auf {0} aktualisieren"
   },
   "codexHub": {

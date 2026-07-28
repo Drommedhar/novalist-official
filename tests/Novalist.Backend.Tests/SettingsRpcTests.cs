@@ -92,6 +92,108 @@ public sealed class SettingsRpcTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _rpc.UpdateProjectAsync(Patch("""{"language": "de"}""")));
         await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.ClearSectionAsync("editor"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.PinSectionAsync("editor"));
+    }
+
+    // ── Per-section project-override switch ─────────────────────────────
+
+    private static bool Overridden(JsonElement view, string section)
+        => view.GetProperty("overriddenSections").GetProperty(section).GetBoolean();
+
+    [Fact]
+    public async Task OverriddenSections_IsNullWithoutProject()
+    {
+        var view = await _rpc.GetAsync();
+        Assert.Equal(JsonValueKind.Null, view.GetProperty("overriddenSections").ValueKind);
+    }
+
+    [Fact]
+    public async Task OverriddenSections_StartFalse_AndFollowWhatIsStored()
+    {
+        await OpenProjectAsync();
+
+        var fresh = await _rpc.GetAsync();
+        Assert.False(Overridden(fresh, "appearance"));
+        Assert.False(Overridden(fresh, "editor"));
+        Assert.False(Overridden(fresh, "writing"));
+
+        var edited = await _rpc.UpdateProjectAsync(Patch("""{"language": "de"}"""));
+        Assert.True(Overridden(edited, "appearance"));
+        Assert.False(Overridden(edited, "editor"));
+    }
+
+    [Fact]
+    public async Task OverriddenSections_SurviveReopeningTheProject()
+    {
+        await OpenProjectAsync();
+        await _rpc.PinSectionAsync("appearance");
+        var root = _workspace.Projects.ProjectRoot!;
+
+        // Reopen from disk: the switch must reflect the stored override, which is
+        // what a fresh Settings visit reads.
+        await _workspace.OpenProjectAsync(root);
+
+        Assert.True(Overridden(await _rpc.GetAsync(), "appearance"));
+    }
+
+    [Fact]
+    public async Task PinSection_CopiesTheValuesInEffect_AndDetachesFromGlobal()
+    {
+        await OpenProjectAsync();
+        await _rpc.UpdateGlobalAsync(Patch("""{"editorFontFamily": "Inter", "editorFontSize": 14}"""));
+
+        var pinned = await _rpc.PinSectionAsync("editor");
+        Assert.True(Overridden(pinned, "editor"));
+        Assert.Equal("Inter", pinned.GetProperty("overrides").GetProperty("editorFontFamily").GetString());
+
+        // The point of pinning: a later change to the global default no longer
+        // reaches this project.
+        var afterGlobal = await _rpc.UpdateGlobalAsync(Patch("""{"editorFontFamily": "Georgia"}"""));
+        Assert.Equal("Inter",
+            afterGlobal.GetProperty("effective").GetProperty("editorFontFamily").GetString());
+    }
+
+    [Fact]
+    public async Task PinSection_ThenClear_RestoresTheGlobalValues()
+    {
+        await OpenProjectAsync();
+        await _rpc.UpdateGlobalAsync(Patch(
+            """{"language": "en", "theme": "Default", "editorFontSize": 14, "grammarCheckEnabled": true}"""));
+
+        await _rpc.PinSectionAsync("appearance");
+        await _rpc.PinSectionAsync("editor");
+        await _rpc.PinSectionAsync("writing");
+        await _rpc.UpdateProjectAsync(Patch(
+            """{"language": "de", "editorFontSize": 20, "grammarCheckEnabled": false}"""));
+
+        var overridden = await _rpc.GetAsync();
+        Assert.Equal("de", overridden.GetProperty("effective").GetProperty("language").GetString());
+
+        await _rpc.ClearSectionAsync("appearance");
+        await _rpc.ClearSectionAsync("editor");
+        var view = await _rpc.ClearSectionAsync("writing");
+
+        // Unticking every switch puts the project back on the global values.
+        var effective = view.GetProperty("effective");
+        Assert.Equal("en", effective.GetProperty("language").GetString());
+        Assert.Equal("Default", effective.GetProperty("theme").GetString());
+        Assert.Equal(14, effective.GetProperty("editorFontSize").GetDouble());
+        Assert.True(effective.GetProperty("grammarCheckEnabled").GetBoolean());
+        Assert.False(Overridden(view, "appearance"));
+        Assert.False(Overridden(view, "editor"));
+        Assert.False(Overridden(view, "writing"));
+    }
+
+    [Fact]
+    public async Task PinSection_IsIdempotent_AndRejectsAnUnknownSection()
+    {
+        await OpenProjectAsync();
+
+        await _rpc.PinSectionAsync("writing");
+        var twice = await _rpc.PinSectionAsync("writing");
+        Assert.True(Overridden(twice, "writing"));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.PinSectionAsync("bogus"));
     }
 
     [Fact]

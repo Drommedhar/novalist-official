@@ -54,6 +54,37 @@ export function availableLanguages(): { code: string; name: string }[] {
   }))
 }
 
+/** A language file the user dropped into their Locales folder. */
+export interface UserLocale {
+  code: string
+  name: string
+  translation: Record<string, unknown>
+}
+
+/**
+ * Merges user-supplied locale files into the bundled set. A file whose code
+ * matches a bundled language patches it key by key rather than replacing it, so
+ * a user can correct a handful of strings without maintaining a full
+ * translation; a new code adds a language to the dropdown. Anything still
+ * missing falls back to English, as it does for the bundled languages.
+ *
+ * Called once at startup, before settings pick the active language.
+ */
+export function registerUserLocales(locales: UserLocale[]): void {
+  for (const locale of locales) {
+    const flat = flatten(locale.translation)
+    // The dropdown reads language.name; default it to the name the backend read
+    // off the file (which falls back to the code) so the entry is never blank.
+    if (!flat['language.name']) flat['language.name'] = locale.name
+    resources[locale.code] = {
+      translation: { ...(resources[locale.code]?.translation ?? {}), ...flat }
+    }
+    rawLocales[locale.code] = { ...(rawLocales[locale.code] ?? {}), ...locale.translation }
+    // deep=false, overwrite=true: the flattened keys are already leaf values.
+    i18next.addResourceBundle(locale.code, 'translation', flat, false, true)
+  }
+}
+
 void i18next.use(initReactI18next).init({
   resources,
   lng: navigator.language.startsWith('de') ? 'de' : navigator.language.startsWith('zh') ? 'zh-CN' : 'en',

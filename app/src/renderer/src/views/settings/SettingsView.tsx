@@ -1,17 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ExternalLink } from 'lucide-react'
+import { ExternalLink, FolderOpen } from 'lucide-react'
 import { availableLanguages } from '../../i18n'
 import { rpc } from '../../rpc/client'
-import { useSettingsStore } from '../../stores/settingsStore'
+import { useSettingsStore, type SettingsSection } from '../../stores/settingsStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
+import { useThemeCatalog } from '../../stores/themeCatalog'
+import { assetDirectories } from '../../stores/userAssets'
 import { TemplatesCard } from './TemplatesCard'
 import { HotkeysCard } from './HotkeysCard'
 import { ExtensionsCard } from './ExtensionsCard'
 import './settings.css'
 
-const THEMES = ['Default', 'Discord', 'Catppuccin Mocha']
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
 
 /** Common typographic fonts offered as a datalist; the field stays free-text so
@@ -155,17 +156,19 @@ export function SettingsView(): React.JSX.Element {
   const view = useSettingsStore((s) => s.view)
   const load = useSettingsStore((s) => s.load)
   const update = useSettingsStore((s) => s.update)
+  const pinSection = useSettingsStore((s) => s.pinSection)
   const clearSection = useSettingsStore((s) => s.clearSection)
   const updateProjectMeta = useSettingsStore((s) => s.updateProjectMeta)
+  // Built-in, folder, and extension themes in one list. Subscribed rather than
+  // read once, because contributed themes register after the first render.
+  const themes = useThemeCatalog((s) => s.themes)
+  const assetDirs = assetDirectories()
   const isLoaded = useProjectStore((s) => s.isLoaded)
   // On mobile, hide sections/controls that only make sense on desktop: physical
   // keyboard shortcuts, store-delivered self-update, extensions (deferred), the
   // GitHub token (Git is external on mobile), desktop file-watching, and the
   // file-manager log-folder reveal (no-op in the iOS sandbox).
   const isMobile = window.novalist.isMobile === true
-  const [appearanceScope, setAppearanceScope] = useState<Scope>('global')
-  const [editorScope, setEditorScope] = useState<Scope>('global')
-  const [writingScope, setWritingScope] = useState<Scope>('global')
   const settingsSearch = useShellStore((s) => s.settingsSearch)
   const [search, setSearch] = useState('')
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -189,27 +192,43 @@ export function SettingsView(): React.JSX.Element {
   const eff = view.effective
   const project = view.project
 
-  const scopeToggle = (
-    scope: Scope,
-    setScope: (s: Scope) => void,
-    section: 'appearance' | 'editor' | 'writing'
-  ): React.JSX.Element | null =>
-    view.hasProject ? (
-      <label className="relationships-toggle settings-scope">
-        <input
-          type="checkbox"
-          checked={scope === 'project'}
-          onChange={(e) => {
-            const next = e.target.checked ? 'project' : 'global'
-            setScope(next)
-            if (next === 'global') void clearSection(section)
-          }}
-        />
-        {t('settings.scopeProjectOverride')}
-      </label>
-    ) : null
+  /** Whether the open project overrides a section. Read from what is stored, so
+   * the switch survives leaving and re-entering Settings. */
+  const isOverridden = (section: SettingsSection): boolean =>
+    view.overriddenSections?.[section] === true
 
-  const scopeFor = (scope: Scope): Scope => (view.hasProject ? scope : 'global')
+  /**
+   * The per-section Global / This-project switch. Ticking pins the values in
+   * effect now to the project, so the override exists from that moment rather
+   * than only once a field is edited; unticking drops it and the section falls
+   * back to the global values.
+   */
+  const scopeToggle = (section: SettingsSection): React.JSX.Element | null => {
+    if (!view.hasProject) return null
+    const overridden = isOverridden(section)
+    return (
+      <>
+        <label className="relationships-toggle settings-scope">
+          <input
+            type="checkbox"
+            checked={overridden}
+            onChange={(e) => {
+              void (e.target.checked ? pinSection(section) : clearSection(section))
+            }}
+          />
+          {t('settings.scopeProjectOverride')}
+        </label>
+        <p className="settings-hint settings-scope-hint">
+          {t(overridden ? 'settings.scopeEditingProject' : 'settings.scopeEditingGlobal')}
+        </p>
+      </>
+    )
+  }
+
+  /** Where an edit in a section is written. With no project open, or with the
+   * section not overridden, edits go to the global defaults. */
+  const scopeFor = (section: SettingsSection): Scope =>
+    view.hasProject && isOverridden(section) ? 'project' : 'global'
 
   const fontDatalist = (
     <datalist id="settings-fonts">
@@ -226,7 +245,7 @@ export function SettingsView(): React.JSX.Element {
       keywords: ['appearance', 'language', 'theme', 'accent', 'color', 'interface'],
       body: (
         <>
-          {scopeToggle(appearanceScope, setAppearanceScope, 'appearance')}
+          {scopeToggle('appearance')}
           <label className="inspector-label" htmlFor="set-language">
             {t('settings.uiLanguage')}
           </label>
@@ -234,7 +253,7 @@ export function SettingsView(): React.JSX.Element {
             id="set-language"
             className="dialog-input"
             value={eff.language}
-            onChange={(e) => void update(scopeFor(appearanceScope), { language: e.target.value })}
+            onChange={(e) => void update(scopeFor('appearance'), { language: e.target.value })}
           >
             {availableLanguages().map((lang) => (
               <option key={lang.code} value={lang.code}>
@@ -249,14 +268,31 @@ export function SettingsView(): React.JSX.Element {
             id="set-theme"
             className="dialog-input"
             value={eff.theme === 'system' ? 'Default' : eff.theme}
-            onChange={(e) => void update(scopeFor(appearanceScope), { theme: e.target.value })}
+            onChange={(e) => void update(scopeFor('appearance'), { theme: e.target.value })}
           >
-            {THEMES.map((theme) => (
-              <option key={theme} value={theme}>
-                {theme}
+            {themes.map((theme) => (
+              <option key={`${theme.origin}:${theme.slug}`} value={theme.name}>
+                {theme.name}
               </option>
             ))}
           </select>
+          <p className="settings-hint">{t('settings.customAssetsHint')}</p>
+          <div className="settings-accent-row">
+            <button
+              className="dialog-button"
+              disabled={!assetDirs}
+              onClick={() => void window.novalist.revealPath(assetDirs!.themes)}
+            >
+              <FolderOpen size={13} strokeWidth={2} /> {t('settings.openThemesFolder')}
+            </button>
+            <button
+              className="dialog-button"
+              disabled={!assetDirs}
+              onClick={() => void window.novalist.revealPath(assetDirs!.locales)}
+            >
+              <FolderOpen size={13} strokeWidth={2} /> {t('settings.openLocalesFolder')}
+            </button>
+          </div>
           <label className="inspector-label" htmlFor="set-accent">
             {t('settings.accentColor')}
           </label>
@@ -267,12 +303,12 @@ export function SettingsView(): React.JSX.Element {
               type="color"
               value={eff.accentColor ?? '#0e8bdf'}
               onChange={(e) =>
-                void update(scopeFor(appearanceScope), { accentColor: e.target.value })
+                void update(scopeFor('appearance'), { accentColor: e.target.value })
               }
             />
             <button
               className="dialog-button"
-              onClick={() => void update(scopeFor(appearanceScope), { accentColor: null })}
+              onClick={() => void update(scopeFor('appearance'), { accentColor: null })}
             >
               {t('settings.accentColorReset')}
             </button>
@@ -286,7 +322,7 @@ export function SettingsView(): React.JSX.Element {
       keywords: ['editor', 'font', 'book', 'width', 'page', 'paragraph', 'spacing', 'typewriter'],
       body: (
         <>
-          {scopeToggle(editorScope, setEditorScope, 'editor')}
+          {scopeToggle('editor')}
           {fontDatalist}
           <label className="inspector-label" htmlFor="set-font">
             {t('settings.fontFamily')}
@@ -295,7 +331,7 @@ export function SettingsView(): React.JSX.Element {
             id="set-font"
             list="settings-fonts"
             value={eff.editorFontFamily}
-            onCommit={(v) => void update(scopeFor(editorScope), { editorFontFamily: v })}
+            onCommit={(v) => void update(scopeFor('editor'), { editorFontFamily: v })}
           />
           <label className="inspector-label" htmlFor="set-fontsize">
             {t('settings.fontSize')}
@@ -308,7 +344,7 @@ export function SettingsView(): React.JSX.Element {
             max={36}
             value={eff.editorFontSize}
             onChange={(e) =>
-              void update(scopeFor(editorScope), {
+              void update(scopeFor('editor'), {
                 editorFontSize: Math.min(36, Math.max(8, Number(e.target.value)))
               })
             }
@@ -322,7 +358,7 @@ export function SettingsView(): React.JSX.Element {
                   type="checkbox"
                   checked={eff.typewriterScrollEnabled}
                   onChange={(e) =>
-                    void update(scopeFor(editorScope), { typewriterScrollEnabled: e.target.checked })
+                    void update(scopeFor('editor'), { typewriterScrollEnabled: e.target.checked })
                   }
                 />
                 {t('settings.typewriterScroll')}
@@ -336,7 +372,7 @@ export function SettingsView(): React.JSX.Element {
                         name="typewriter-anchor"
                         checked={eff.typewriterScrollAnchor === anchor}
                         onChange={() =>
-                          void update(scopeFor(editorScope), { typewriterScrollAnchor: anchor })
+                          void update(scopeFor('editor'), { typewriterScrollAnchor: anchor })
                         }
                       />
                       {t(
@@ -353,7 +389,7 @@ export function SettingsView(): React.JSX.Element {
               type="checkbox"
               checked={eff.pageViewEnabled}
               onChange={(e) =>
-                void update(scopeFor(editorScope), { pageViewEnabled: e.target.checked })
+                void update(scopeFor('editor'), { pageViewEnabled: e.target.checked })
               }
             />
             {t('settings.pageView')}
@@ -363,7 +399,7 @@ export function SettingsView(): React.JSX.Element {
               type="checkbox"
               checked={eff.enableBookParagraphSpacing}
               onChange={(e) =>
-                void update(scopeFor(editorScope), { enableBookParagraphSpacing: e.target.checked })
+                void update(scopeFor('editor'), { enableBookParagraphSpacing: e.target.checked })
               }
             />
             {t('settings.bookSpacing')}
@@ -378,7 +414,7 @@ export function SettingsView(): React.JSX.Element {
               type="checkbox"
               checked={eff.enableBookWidth}
               onChange={(e) =>
-                void update(scopeFor(editorScope), { enableBookWidth: e.target.checked })
+                void update(scopeFor('editor'), { enableBookWidth: e.target.checked })
               }
             />
             {t('settings.bookWidth')}
@@ -393,7 +429,7 @@ export function SettingsView(): React.JSX.Element {
                 className="dialog-input"
                 value={eff.bookPageFormat}
                 onChange={(e) =>
-                  void update(scopeFor(editorScope), { bookPageFormat: e.target.value })
+                  void update(scopeFor('editor'), { bookPageFormat: e.target.value })
                 }
               >
                 {PAGE_FORMATS.map((f) => (
@@ -416,7 +452,7 @@ export function SettingsView(): React.JSX.Element {
                     step={0.05}
                     value={eff.bookTextBlockWidth ?? 4.75}
                     onChange={(e) =>
-                      void update(scopeFor(editorScope), {
+                      void update(scopeFor('editor'), {
                         bookTextBlockWidth: Number(e.target.value)
                       })
                     }
@@ -430,7 +466,7 @@ export function SettingsView(): React.JSX.Element {
                 id="set-bookfont"
                 list="settings-fonts"
                 value={eff.bookFontFamily}
-                onCommit={(v) => void update(scopeFor(editorScope), { bookFontFamily: v })}
+                onCommit={(v) => void update(scopeFor('editor'), { bookFontFamily: v })}
               />
               <label className="inspector-label" htmlFor="set-bookfontsize">
                 {t('settings.bookWidthFontSize')}
@@ -443,7 +479,7 @@ export function SettingsView(): React.JSX.Element {
                 max={24}
                 value={eff.bookFontSize}
                 onChange={(e) =>
-                  void update(scopeFor(editorScope), {
+                  void update(scopeFor('editor'), {
                     bookFontSize: Math.min(24, Math.max(6, Number(e.target.value)))
                   })
                 }
@@ -519,7 +555,7 @@ export function SettingsView(): React.JSX.Element {
       keywords: ['auto', 'replacement', 'quote', 'dialogue', 'grammar', 'spelling'],
       body: (
         <>
-          {scopeToggle(writingScope, setWritingScope, 'writing')}
+          {scopeToggle('writing')}
           <label className="inspector-label" htmlFor="set-quotes">
             {t('settings.quoteStyle')}
           </label>
@@ -528,7 +564,7 @@ export function SettingsView(): React.JSX.Element {
             className="dialog-input"
             value={eff.autoReplacementLanguage}
             onChange={(e) =>
-              void update(scopeFor(writingScope), { autoReplacementLanguage: e.target.value })
+              void update(scopeFor('writing'), { autoReplacementLanguage: e.target.value })
             }
           >
             {QUOTE_LANGUAGES.map((lang) => (
@@ -545,7 +581,7 @@ export function SettingsView(): React.JSX.Element {
               type="checkbox"
               checked={eff.dialogueCorrectionEnabled}
               onChange={(e) =>
-                void update(scopeFor(writingScope), { dialogueCorrectionEnabled: e.target.checked })
+                void update(scopeFor('writing'), { dialogueCorrectionEnabled: e.target.checked })
               }
             />
             {t('settings.dialogueCorrection')}
@@ -555,7 +591,7 @@ export function SettingsView(): React.JSX.Element {
               type="checkbox"
               checked={eff.grammarCheckEnabled}
               onChange={(e) =>
-                void update(scopeFor(writingScope), { grammarCheckEnabled: e.target.checked })
+                void update(scopeFor('writing'), { grammarCheckEnabled: e.target.checked })
               }
             />
             {t('settings.grammarCheck')}
@@ -570,7 +606,7 @@ export function SettingsView(): React.JSX.Element {
                 value={eff.grammarCheckApiUrl ?? ''}
                 placeholder="https://api.languagetool.org/v2/check"
                 onCommit={(v) =>
-                  void update(scopeFor(writingScope), { grammarCheckApiUrl: v.trim() || null })
+                  void update(scopeFor('writing'), { grammarCheckApiUrl: v.trim() || null })
                 }
               />
               <label className="inspector-label" htmlFor="set-gc-user">
@@ -581,7 +617,7 @@ export function SettingsView(): React.JSX.Element {
                 value={eff.grammarCheckUsername ?? ''}
                 placeholder={t('settings.grammarCheckUsernamePlaceholder')}
                 onCommit={(v) =>
-                  void update(scopeFor(writingScope), { grammarCheckUsername: v.trim() || null })
+                  void update(scopeFor('writing'), { grammarCheckUsername: v.trim() || null })
                 }
               />
               <label className="inspector-label" htmlFor="set-gc-key">
@@ -592,7 +628,7 @@ export function SettingsView(): React.JSX.Element {
                 type="password"
                 value={eff.grammarCheckApiKey ?? ''}
                 onCommit={(v) =>
-                  void update(scopeFor(writingScope), { grammarCheckApiKey: v.trim() || null })
+                  void update(scopeFor('writing'), { grammarCheckApiKey: v.trim() || null })
                 }
               />
               <button
@@ -610,7 +646,7 @@ export function SettingsView(): React.JSX.Element {
                   type="checkbox"
                   checked={eff.grammarCheckPickyMode}
                   onChange={(e) =>
-                    void update(scopeFor(writingScope), { grammarCheckPickyMode: e.target.checked })
+                    void update(scopeFor('writing'), { grammarCheckPickyMode: e.target.checked })
                   }
                 />
                 {t('settings.grammarCheckPickyMode')}
@@ -623,7 +659,7 @@ export function SettingsView(): React.JSX.Element {
                 className="dialog-input"
                 value={eff.grammarCheckMotherTongue ?? ''}
                 onChange={(e) =>
-                  void update(scopeFor(writingScope), {
+                  void update(scopeFor('writing'), {
                     grammarCheckMotherTongue: e.target.value || null
                   })
                 }

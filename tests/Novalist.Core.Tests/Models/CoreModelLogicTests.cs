@@ -138,6 +138,112 @@ public class SettingsOverridesTests
         o.ClearWriting();
         Assert.False(o.HasWritingOverride);
     }
+
+    /// <summary>The values a pin copies from — a global settings object, which
+    /// implements the same effective-settings interface the project resolver does.</summary>
+    private static AppSettings PinSource() => new()
+    {
+        Language = "de",
+        Theme = "Discord",
+        AccentColor = "#5865f2",
+        EditorFontFamily = "Georgia",
+        EditorFontSize = 19,
+        TypewriterScrollEnabled = true,
+        TypewriterScrollAnchor = "center",
+        PageViewEnabled = true,
+        EnableBookParagraphSpacing = true,
+        EnableBookWidth = true,
+        BookPageFormat = "A5",
+        BookTextBlockWidth = 4.5,
+        BookFontFamily = "Fraunces",
+        BookFontSize = 12,
+        AutoReplacementLanguage = "de-low",
+        AutoReplacements = [new AutoReplacementPair { Start = "\"", StartReplace = "„" }],
+        DialogueCorrectionEnabled = true,
+        GrammarCheckEnabled = true,
+        GrammarCheckApiUrl = "https://example.invalid",
+        GrammarCheckApiKey = "key",
+        GrammarCheckUsername = "user",
+        GrammarCheckPickyMode = true,
+        GrammarCheckMotherTongue = "de"
+    };
+
+    [Fact]
+    public void PinAppearance_CopiesTheValuesInEffect()
+    {
+        var o = new SettingsOverrides();
+        o.PinAppearance(PinSource());
+
+        Assert.True(o.HasAppearanceOverride);
+        Assert.Equal("de", o.Language);
+        Assert.Equal("Discord", o.Theme);
+        Assert.Equal("#5865f2", o.AccentColor);
+        // Pinning one section leaves the others inheriting.
+        Assert.False(o.HasEditorOverride);
+        Assert.False(o.HasWritingOverride);
+    }
+
+    [Fact]
+    public void PinEditor_CopiesEveryEditorAndBookKey()
+    {
+        var o = new SettingsOverrides();
+        o.PinEditor(PinSource());
+
+        Assert.True(o.HasEditorOverride);
+        Assert.Equal("Georgia", o.EditorFontFamily);
+        Assert.Equal(19, o.EditorFontSize);
+        Assert.True(o.TypewriterScrollEnabled);
+        Assert.Equal("center", o.TypewriterScrollAnchor);
+        Assert.True(o.PageViewEnabled);
+        Assert.True(o.EnableBookParagraphSpacing);
+        Assert.True(o.EnableBookWidth);
+        Assert.Equal("A5", o.BookPageFormat);
+        Assert.Equal(4.5, o.BookTextBlockWidth);
+        Assert.Equal("Fraunces", o.BookFontFamily);
+        Assert.Equal(12, o.BookFontSize);
+        Assert.False(o.HasAppearanceOverride);
+    }
+
+    [Fact]
+    public void PinWriting_CopiesEveryWritingKey_AndSnapshotsTheReplacementList()
+    {
+        var source = PinSource();
+        var o = new SettingsOverrides();
+        o.PinWriting(source);
+
+        Assert.True(o.HasWritingOverride);
+        Assert.Equal("de-low", o.AutoReplacementLanguage);
+        Assert.True(o.DialogueCorrectionEnabled);
+        Assert.True(o.GrammarCheckEnabled);
+        Assert.Equal("https://example.invalid", o.GrammarCheckApiUrl);
+        Assert.Equal("key", o.GrammarCheckApiKey);
+        Assert.Equal("user", o.GrammarCheckUsername);
+        Assert.True(o.GrammarCheckPickyMode);
+        Assert.Equal("de", o.GrammarCheckMotherTongue);
+
+        // The list is copied, not shared: editing the globals afterwards must not
+        // reach through into the project's pinned copy.
+        Assert.Single(o.AutoReplacements!);
+        source.AutoReplacements.Add(new AutoReplacementPair { Start = "'", StartReplace = "‚" });
+        Assert.Single(o.AutoReplacements!);
+    }
+
+    [Fact]
+    public void Pin_ThenClear_ReturnsTheSectionToInheriting()
+    {
+        var o = new SettingsOverrides();
+        o.PinAppearance(PinSource());
+        o.PinEditor(PinSource());
+        o.PinWriting(PinSource());
+
+        o.ClearAppearance();
+        o.ClearEditor();
+        o.ClearWriting();
+
+        Assert.False(o.HasAppearanceOverride);
+        Assert.False(o.HasEditorOverride);
+        Assert.False(o.HasWritingOverride);
+    }
 }
 
 public class CharacterOverrideTests

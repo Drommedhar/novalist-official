@@ -406,7 +406,12 @@
     "accentColor": "强调色",
     "accentColorDesc": "贯穿整个界面的主要高亮颜色。",
     "accentColorReset": "重置",
+    "customAssetsHint": "主题和界面语言也可以作为文件放入磁盘上的文件夹。Novalist 在启动时读取它们，因此添加文件后请重启应用。",
+    "openThemesFolder": "主题文件夹",
+    "openLocalesFolder": "语言文件夹",
     "scopeProjectOverride": "覆盖当前项目设置",
+    "scopeEditingGlobal": "正在编辑全局默认值，当前项目会沿用这些设置。",
+    "scopeEditingProject": "仅编辑当前项目，全局默认值保持不变。",
     "scopeProjectHint": "开启后，此部分的值将保存在该项目中（在其 .novalist 文件夹内），并覆盖你的全局设置。打开一个项目以启用此功能。",
     "writingGoals": "写作目标",
     "goalsDesc": "这些目标将驱动当前活动项目状态栏上的进度指示器。",
@@ -1702,6 +1707,7 @@
     "settingsAutoSaved": "更改会自动保存",
     "settingsWorking": "处理中…",
     "themesTitle": "扩展主题",
+    "themesMovedHint": "来自扩展的主题（{{names}}）与内置主题一起列在“设置 - 外观 - 主题”中。",
     "updateTo": "更新到 {0}"
   },
   "codexHub": {

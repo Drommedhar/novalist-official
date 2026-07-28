@@ -83,7 +83,7 @@ Extensions implement hook interfaces from the Novalist SDK. The main contributio
 | `IArticleGeneratorContributor` | Generates the AI summary shown at the top of a [Wiki](30-wiki.md) article, from a deterministic dossier the host assembles for the entity. |
 | `IEntityExtractionContributor` | Proposes new [Codex](06-codex.md) entries for the people, places, and things a scene mentions but the Codex does not have yet. The extension only ever *suggests*: Novalist assembles the passage, filters out names it already knows, shows you a review list, and does the writing itself. |
 | `IHotkeyContributor` | Keyboard shortcuts that fire the extension's own commands. |
-| `IThemeContributor` | Selectable accent themes, applied from the Extensions view. |
+| `IThemeContributor` | Colour themes, listed in Settings alongside the built-in ones. |
 | `IStatusBarContributor` | Live text items in the status bar, with optional click commands. |
 | `ISettingsContributor` | Registers a settings category (shown in the Extensions view). |
 | `ISettingsSchemaContributor` | A declarative settings form rendered inline in the Extensions view. |
@@ -103,7 +103,7 @@ Extensions can register **multiple** hooks — a single extension might add a pa
 ### Hotkeys, themes, and the status bar
 
 - **Hotkeys** contributed by an extension fire globally (and from inside the editor). Their default gestures are shown together with the built-in shortcuts.
-- **Themes** contributed by an extension are listed under **Extension themes** in the Extensions view. Selecting one applies its accent colour; selecting it again clears it. (A contributed theme carries an accent colour, applied when selected.)
+- **Themes** contributed by an extension are listed in **Settings, Appearance, Theme** together with the built-in themes and any you dropped into your own Themes folder; the Extensions view names the ones your extensions provide and points there. A contributed theme carries a table of design tokens, a stylesheet shipped in the extension folder, or simply an accent colour — the same formats described in [Custom themes & language packs](34-custom-themes-and-languages.md).
 - **Status-bar items** render at the left of the status bar and refresh about once a second; clicking one runs the extension's command.
 
 ## Host UI an extension can drive

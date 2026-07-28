@@ -573,14 +573,14 @@ public sealed class ExtensionManager
     }
 
     /// <summary>Enumerates contributed theme overrides with their owning extension
-    /// id. Only the portable <see cref="ThemeOverride.AccentColor"/> is meaningful
-    /// on the Electron host; Avalonia <c>Styles</c>/<c>ResourcePath</c> are ignored.</summary>
-    public IEnumerable<(string ExtensionId, ThemeOverride Theme)> EnumerateThemes()
+    /// id and folder. The folder is what a theme's
+    /// <see cref="ThemeOverride.ResourcePath"/> resolves against.</summary>
+    public IEnumerable<(string ExtensionId, string FolderPath, ThemeOverride Theme)> EnumerateThemes()
     {
         foreach (var e in Extensions.Where(e => e.IsLoaded && e.Instance is IThemeContributor))
         {
             foreach (var theme in ((IThemeContributor)e.Instance!).GetThemeOverrides())
-                yield return (e.Manifest.Id, theme);
+                yield return (e.Manifest.Id, e.FolderPath, theme);
         }
     }
 

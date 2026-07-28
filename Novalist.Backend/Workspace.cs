@@ -21,12 +21,22 @@ public sealed partial class Workspace : IDisposable
         Projects = new ProjectService(FileService);
         Settings = new SettingsService(settingsDirectory);
         WordHistory = new WordHistoryService(FileService, Projects);
+        UserAssets = new Appearance.UserAssetsService(settingsDirectory);
+        UserAssets.EnsureDirectories();
+        // A dropped analysis.<tag>.json makes the Inspector's keyword analysis
+        // work for a writing language Novalist does not ship, and overrides a
+        // shipped one. Registered before any scene is analysed.
+        SceneAnalysisLexicon.RegisterUserDirectory(UserAssets.AnalysisDirectory);
     }
 
     public FileService FileService { get; }
     public ProjectService Projects { get; }
     public SettingsService Settings { get; }
     public WordHistoryService WordHistory { get; }
+
+    /// <summary>User-supplied themes, interface locales, and analysis lexicons
+    /// dropped into folders beside the extensions directory.</summary>
+    public Appearance.UserAssetsService UserAssets { get; }
 
     private Extensions.ExtensionManager? _extensions;
     private Extensions.HostServices? _hostServices;

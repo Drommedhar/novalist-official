@@ -7,6 +7,7 @@
   <ItemGroup>
     <Content Include="extension.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Locales\*.json" CopyToOutputDirectory="PreserveNewest" Link="Locales\%(Filename)%(Extension)" />
+    <Content Include="Themes\*.css" CopyToOutputDirectory="PreserveNewest" Link="Themes\%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Novalist.Sdk\Novalist.Sdk.csproj" />
@@ -15,11 +16,13 @@
     <PropertyGroup>
       <ExtensionDeployDir>$(APPDATA)\Novalist\Extensions\Sample</ExtensionDeployDir>
     </PropertyGroup>
-    <MakeDir Directories="$(ExtensionDeployDir)\Locales" />
+    <MakeDir Directories="$(ExtensionDeployDir)\Locales;$(ExtensionDeployDir)\Themes" />
     <Copy SourceFiles="$(OutputPath)Novalist.Sdk.Example.dll;$(OutputPath)Novalist.Sdk.dll;$(OutputPath)extension.json" DestinationFolder="$(ExtensionDeployDir)" SkipUnchangedFiles="true" />
     <ItemGroup>
       <_LocaleFiles Include="$(OutputPath)Locales\*.*" />
+      <_ThemeFiles Include="$(OutputPath)Themes\*.*" />
     </ItemGroup>
     <Copy SourceFiles="@(_LocaleFiles)" DestinationFolder="$(ExtensionDeployDir)\Locales" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(_ThemeFiles)" DestinationFolder="$(ExtensionDeployDir)\Themes" SkipUnchangedFiles="true" />
   </Target>
 </Project>

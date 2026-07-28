@@ -28,6 +28,11 @@ public sealed class SettingsRpc
             hasProject,
             global = _workspace.Settings.Settings,
             overrides = hasProject ? _workspace.Projects.ProjectSettings.Overrides : null,
+            // Which sections the open project has pinned. The Settings view
+            // derives its per-section project-override switch from these, so the
+            // switch reflects what is actually stored rather than what was last
+            // clicked in this session.
+            overriddenSections = hasProject ? BuildOverriddenSections() : null,
             effective = BuildEffective(),
             project = hasProject ? BuildProjectMeta() : null
         };
@@ -74,6 +79,10 @@ public sealed class SettingsRpc
         {
             throw new InvalidOperationException("No project open.");
         }
+        // Dropping an Appearance override reverts the effective UI language to
+        // the global one, so extensions have to hear about it just as they do
+        // for a direct settings write.
+        var beforeLanguage = _workspace.Settings.Effective.Language;
         var overrides = _workspace.Projects.ProjectSettings.Overrides;
         switch (section)
         {
@@ -85,6 +94,41 @@ public sealed class SettingsRpc
                 break;
             case "writing":
                 overrides.ClearWriting();
+                break;
+            default:
+                throw new InvalidOperationException($"Unknown settings section '{section}'.");
+        }
+        await _workspace.Projects.SaveProjectSettingsAsync();
+        RaiseLanguageIfChanged(beforeLanguage);
+        return await GetAsync();
+    }
+
+    /// <summary>
+    /// Pins a settings section to the open project by copying the values in
+    /// effect right now into the project's overrides — what turning the
+    /// section's project-override switch on does. The inverse of
+    /// <see cref="ClearSectionAsync"/>, and idempotent: pinning an already
+    /// pinned section rewrites the same values.
+    /// </summary>
+    [JsonRpcMethod("settings/pinSection")]
+    public async Task<JsonElement> PinSectionAsync(string section)
+    {
+        if (!_workspace.Projects.IsProjectLoaded)
+        {
+            throw new InvalidOperationException("No project open.");
+        }
+        var overrides = _workspace.Projects.ProjectSettings.Overrides;
+        var effective = _workspace.Settings.Effective;
+        switch (section)
+        {
+            case "appearance":
+                overrides.PinAppearance(effective);
+                break;
+            case "editor":
+                overrides.PinEditor(effective);
+                break;
+            case "writing":
+                overrides.PinWriting(effective);
                 break;
             default:
                 throw new InvalidOperationException($"Unknown settings section '{section}'.");
@@ -214,6 +258,20 @@ public sealed class SettingsRpc
             ["deadline"] = settings.WordCountGoals.Deadline,
             ["dailyGoal"] = settings.WordCountGoals.DailyGoal,
             ["projectGoal"] = settings.WordCountGoals.ProjectGoal
+        };
+    }
+
+    /// <summary>Per-section "this project overrides the global value" flags,
+    /// keyed by the same section names <see cref="ClearSectionAsync"/> and
+    /// <see cref="PinSectionAsync"/> take.</summary>
+    private Dictionary<string, bool> BuildOverriddenSections()
+    {
+        var overrides = _workspace.Projects.ProjectSettings.Overrides;
+        return new Dictionary<string, bool>
+        {
+            ["appearance"] = overrides.HasAppearanceOverride,
+            ["editor"] = overrides.HasEditorOverride,
+            ["writing"] = overrides.HasWritingOverride
         };
     }
 

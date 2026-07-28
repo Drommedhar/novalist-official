@@ -152,7 +152,13 @@ public class SdkDtoDefaultsTests
     {
         Assert.Equal(string.Empty, new ActivityBarItem().Label);
         Assert.Equal(string.Empty, new ContextMenuItem().Label);
-        Assert.Null(new ThemeOverride().AccentColor);
+        var theme = new ThemeOverride();
+        Assert.Null(theme.AccentColor);
+        // A theme carries its palette either way, and neither is required: a
+        // contribution that sets only AccentColor is still a valid theme.
+        Assert.Null(theme.Tokens);
+        Assert.Null(theme.ResourcePath);
+        Assert.Equal(string.Empty, theme.Name);
         Assert.Equal(string.Empty, new ExportFormatDescriptor().FileExtension);
         Assert.Equal(string.Empty, new ExportContext().BookName);
         Assert.Equal(string.Empty, new SettingsPage().Category);

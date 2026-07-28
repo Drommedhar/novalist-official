@@ -132,6 +132,50 @@ public class SettingsOverrides
         || GrammarCheckApiUrl != null || GrammarCheckApiKey != null || GrammarCheckUsername != null
         || GrammarCheckPickyMode != null || GrammarCheckMotherTongue != null;
 
+    /// <summary>
+    /// Pins the Appearance section to the project by copying the values in
+    /// effect right now into the overrides. This is what turning the section's
+    /// project-override switch on does: the project keeps what it currently
+    /// looks like, and later edits to the global defaults no longer reach it.
+    /// The inverse of <see cref="ClearAppearance"/>.
+    /// </summary>
+    public void PinAppearance(Services.IEffectiveSettings source)
+    {
+        Language = source.Language;
+        Theme = source.Theme;
+        AccentColor = source.AccentColor;
+    }
+
+    /// <summary>Pins the Editor section to the project. See <see cref="PinAppearance"/>.</summary>
+    public void PinEditor(Services.IEffectiveSettings source)
+    {
+        EditorFontFamily = source.EditorFontFamily;
+        EditorFontSize = source.EditorFontSize;
+        TypewriterScrollEnabled = source.TypewriterScrollEnabled;
+        TypewriterScrollAnchor = source.TypewriterScrollAnchor;
+        PageViewEnabled = source.PageViewEnabled;
+        EnableBookParagraphSpacing = source.EnableBookParagraphSpacing;
+        EnableBookWidth = source.EnableBookWidth;
+        BookPageFormat = source.BookPageFormat;
+        BookTextBlockWidth = source.BookTextBlockWidth;
+        BookFontFamily = source.BookFontFamily;
+        BookFontSize = source.BookFontSize;
+    }
+
+    /// <summary>Pins the Writing-assistance section to the project. See <see cref="PinAppearance"/>.</summary>
+    public void PinWriting(Services.IEffectiveSettings source)
+    {
+        AutoReplacementLanguage = source.AutoReplacementLanguage;
+        AutoReplacements = [.. source.AutoReplacements];
+        DialogueCorrectionEnabled = source.DialogueCorrectionEnabled;
+        GrammarCheckEnabled = source.GrammarCheckEnabled;
+        GrammarCheckApiUrl = source.GrammarCheckApiUrl;
+        GrammarCheckApiKey = source.GrammarCheckApiKey;
+        GrammarCheckUsername = source.GrammarCheckUsername;
+        GrammarCheckPickyMode = source.GrammarCheckPickyMode;
+        GrammarCheckMotherTongue = source.GrammarCheckMotherTongue;
+    }
+
     /// <summary>Clears every Appearance override (revert section to global).</summary>
     public void ClearAppearance()
     {

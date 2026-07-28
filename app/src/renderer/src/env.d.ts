@@ -18,6 +18,7 @@ interface Window {
     shell: typeof import('./stores/shellStore').useShellStore
     codex: typeof import('./stores/codexStore').useCodexStore
     wiki: typeof import('./stores/wikiStore').useWikiStore
+    settings: typeof import('./stores/settingsStore').useSettingsStore
   }
   novalistRpc: import('./rpc/client').RpcClient
   novalist: {

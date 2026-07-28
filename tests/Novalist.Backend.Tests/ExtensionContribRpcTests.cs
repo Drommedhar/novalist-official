@@ -188,6 +188,114 @@ public sealed class ExtensionContribRpcTests : IDisposable
         using (ws) Assert.Empty(rpc.Themes());
     }
 
+    [Fact]
+    public void Themes_CarryTokensAndAStableSlug()
+    {
+        // The sample contributes Sepia as a token map and Dark Ocean as a
+        // stylesheet; both must reach the renderer ready to apply.
+        var sepia = Assert.Single(_rpc.Themes(), t => t.Name == "Sepia");
+
+        Assert.Equal("user-com-novalist-writingtoolkit-sepia", sepia.Slug);
+        Assert.Equal("#8a6d3b", sepia.AccentColor);
+        Assert.Equal("#f4ecd8", sepia.Tokens["--nl-surface-window"]);
+        // AccentColor is folded in as the accent tokens so a theme that sets
+        // only an accent still recolours the app; Sepia states its own hover
+        // shade, which wins over the one derived from AccentColor.
+        Assert.Equal("#8a6d3b", sepia.Tokens["--nl-accent"]);
+        Assert.Equal("#a8854a", sepia.Tokens["--nl-accent-hover"]);
+        Assert.Null(sepia.Css);
+    }
+
+    [Fact]
+    public void Themes_StylesheetIsNullWhenTheFileIsNotDeployed()
+    {
+        // The test deployment copies the assembly and manifest only, so Dark
+        // Ocean's ResourcePath resolves to a file that is not there.
+        var darkOcean = Assert.Single(_rpc.Themes(), t => t.Name == "Dark Ocean");
+        Assert.Null(darkOcean.Css);
+        Assert.Equal("#1b6ca8", darkOcean.Tokens["--nl-accent"]);
+    }
+
+    [Fact]
+    public void BuildThemeDto_DropsTokensThatCouldEscapeTheDeclaration()
+    {
+        var dto = ExtensionContribRpc.BuildThemeDto((
+            "ext.id",
+            string.Empty,
+            new ThemeOverride
+            {
+                Name = "Risky",
+                AccentColor = "#fff; } body { display: none",
+                Tokens = new Dictionary<string, string>
+                {
+                    ["--nl-text"] = "  #123456  ",
+                    ["--nv-gold"] = "#000",
+                    ["--nl-border"] = "red; } html { }"
+                }
+            }));
+
+        Assert.Equal("Risky", dto.Name);
+        Assert.Equal("user-ext-id-risky", dto.Slug);
+        Assert.Equal("#123456", Assert.Single(dto.Tokens).Value);
+    }
+
+    [Fact]
+    public void BuildThemeDto_AnExplicitAccentTokenWinsOverAccentColor()
+    {
+        var dto = ExtensionContribRpc.BuildThemeDto((
+            "ext.id",
+            string.Empty,
+            new ThemeOverride
+            {
+                Name = "Two Accents",
+                AccentColor = "#111111",
+                Tokens = new Dictionary<string, string> { ["--nl-accent"] = "#222222" }
+            }));
+
+        Assert.Equal("#222222", dto.Tokens["--nl-accent"]);
+        Assert.Equal("#111111", dto.Tokens["--nl-accent-hover"]);
+    }
+
+    [Fact]
+    public void ReadThemeStylesheet_ReadsAFileInsideTheExtensionFolder()
+    {
+        var folder = Path.Combine(_root, "themed-ext");
+        Directory.CreateDirectory(Path.Combine(folder, "Themes"));
+        File.WriteAllText(Path.Combine(folder, "Themes", "x.css"), ":root { --nl-text: #fff; }");
+
+        Assert.Equal(
+            ":root { --nl-text: #fff; }",
+            ExtensionContribRpc.ReadThemeStylesheet(folder, "Themes/x.css"));
+    }
+
+    [Fact]
+    public void ReadThemeStylesheet_RefusesToLeaveTheExtensionFolder()
+    {
+        var folder = Path.Combine(_root, "escape-ext");
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(_root, "outside.css"), "body { }");
+
+        Assert.Null(ExtensionContribRpc.ReadThemeStylesheet(folder, "../outside.css"));
+        Assert.Null(ExtensionContribRpc.ReadThemeStylesheet(folder, Path.Combine(_root, "outside.css")));
+    }
+
+    [Fact]
+    public void ReadThemeStylesheet_IsNullWhenThereIsNothingToRead()
+    {
+        Assert.Null(ExtensionContribRpc.ReadThemeStylesheet(_root, null));
+        Assert.Null(ExtensionContribRpc.ReadThemeStylesheet(_root, "   "));
+        Assert.Null(ExtensionContribRpc.ReadThemeStylesheet(string.Empty, "x.css"));
+        Assert.Null(ExtensionContribRpc.ReadThemeStylesheet(_root, "missing.css"));
+    }
+
+    [Fact]
+    public void ReadThemeStylesheet_SwallowsAnUnusablePath()
+    {
+        // A path with an invalid character throws inside Path.Combine/GetFullPath;
+        // a broken theme must not take down the theme list.
+        Assert.Null(ExtensionContribRpc.ReadThemeStylesheet(_root, "bad\0name.css"));
+    }
+
     // ── Status bar ──────────────────────────────────────────────────
 
     [Fact]

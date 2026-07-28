@@ -4,7 +4,6 @@ import { FolderOpen, FolderPlus, RefreshCw } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useExtensionsStore } from '../../stores/extensionsStore'
 import { useShellStore } from '../../stores/shellStore'
-import { applyExtensionTheme, selectedExtensionTheme } from '../../stores/extensionThemes'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { ExtensionSettings } from './ExtensionSettings'
 import { ExtensionStore } from './ExtensionStore'
@@ -32,7 +31,6 @@ export function ExtensionsView(): React.JSX.Element {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmId, setConfirmId] = useState<string | null>(null)
-  const [activeTheme, setActiveTheme] = useState<string | null>(selectedExtensionTheme())
   const [tab, setTab] = useState<'installed' | 'store'>('installed')
 
   useEffect(() => {
@@ -222,29 +220,11 @@ export function ExtensionsView(): React.JSX.Element {
       {themes.length > 0 && (
         <div className="ext-settings-section">
           <h2 className="dashboard-title">{t('extensions.themesTitle')}</h2>
-          <div className="ext-theme-list">
-            {themes.map((theme) => {
-              const active = activeTheme === theme.name
-              return (
-                <button
-                  key={`${theme.extensionId}:${theme.name}`}
-                  type="button"
-                  className={`ext-theme-chip${active ? ' active' : ''}`}
-                  onClick={() => {
-                    applyExtensionTheme(active ? null : theme.name, active ? null : theme.accentColor)
-                    setActiveTheme(active ? null : theme.name)
-                  }}
-                >
-                  <span
-                    className="ext-theme-swatch"
-                    style={{ backgroundColor: theme.accentColor ?? 'transparent' }}
-                    aria-hidden
-                  />
-                  {theme.name}
-                </button>
-              )
+          <p className="ext-theme-hint">
+            {t('extensions.themesMovedHint', {
+              names: themes.map((theme) => theme.name).join(', ')
             })}
-          </div>
+          </p>
         </div>
       )}
 

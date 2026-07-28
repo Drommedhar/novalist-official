@@ -68,9 +68,13 @@ Buckets:
 - `parent` / `child` / `partner` / `sibling` drive family clustering and edge typing in the graph.
 - `pseudo` covers extended family (cousin, uncle, in-laws, grandparents) used to anchor non-immediate family characters next to the right node.
 
+## Adding a language yourself
+
+You do not have to wait for a release to use Novalist in another language. Drop a `<code>.json` locale file into the `Locales/` folder beside your settings and it joins the language dropdown on the next launch — including a partial translation, which falls back to English for anything it leaves out, and including a file that patches a language Novalist already ships. See [Custom themes & language packs](34-custom-themes-and-languages.md) for the format and the folder location.
+
 ## Contributing translations
 
-Locale files are compiled into the app, so adding a language means adding a file to the source tree and building. If you'd like your translation included in a future Novalist release:
+The bundled locale files are compiled into the app, so getting a language *shipped* means adding a file to the source tree and building. If you'd like your translation included in a future Novalist release:
 
 1. Copy the English locale file (`app/src/renderer/src/locales/en.json` in the repository) to `<code>.json` for your language code (e.g. `fr`, `es`, `pt-BR`).
 2. Translate every value. **Do not change the keys.**
@@ -81,13 +85,13 @@ Locale files are compiled into the app, so adding a language means adding a file
 
 ## The scene-analysis lexicon
 
-The [Inspector's](22-context-sidebar.md) automatic emotion, intensity, conflict, and tags are keyword-driven, so they need a word list per writing language. Each language ships one JSON file:
+The [Inspector's](22-context-sidebar.md) automatic emotion, intensity, conflict, and tags are keyword-driven, so they need a word list per writing language. Each bundled language ships one JSON file:
 
 ```
 Novalist.Core/Resources/Analysis/analysis.<code>.json
 ```
 
-The presence of that file is what makes a language supported — no code change is needed. Copy `analysis.en.json` and:
+The presence of that file is what makes a language supported — no code change is needed. To use one without rebuilding, drop the same file into the `Analysis/` folder beside your settings; a file there also overrides a bundled list of the same code. Copy `analysis.en.json` and:
 
 - Translate `positive`, `negative`, and `conflict` into words (or stems — matching is a substring test, so the German stem `kämpf` also catches `kämpfen`).
 - Translate the `words` of every `emotions` entry, but **keep the `key` values and their order exactly as in the English file**. Keys are stable identifiers that the interface localizes and that scenes store, so a scene's emotion stays valid if you change writing language.
@@ -103,4 +107,5 @@ Extensions ship their own locale files in their `Locales/` folder. The active ap
 ## Where to go next
 
 - [Settings](23-settings.md) — pick a language here.
+- [Custom themes & language packs](34-custom-themes-and-languages.md) — add a language without rebuilding the app.
 - [Extensions](24-extensions.md) — extensions have their own locale files.

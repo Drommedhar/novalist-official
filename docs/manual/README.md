@@ -63,10 +63,11 @@ If you are looking for a specific feature, jump straight to its page from the ta
 29. [Command palette](25-command-palette.md) — every shell command in one searchable box.
 30. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
 31. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
+32. [Custom themes & language packs](34-custom-themes-and-languages.md) — add your own colour schemes and interface languages by dropping a file into a folder.
 
 ### Help
 
-32. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
+33. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
 
 ## Conventions used in this manual
 

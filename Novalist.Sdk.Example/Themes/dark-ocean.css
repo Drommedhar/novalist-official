@@ -1,0 +1,56 @@
+/*
+ * Dark Ocean - the stylesheet form of a contributed theme.
+ *
+ * A theme that only restates the palette should use ThemeOverride.Tokens (see
+ * Sepia in WritingToolkitExtension.cs); this file exists to show the other form:
+ * ThemeOverride.ResourcePath points at a .css file inside the extension folder,
+ * and Novalist injects it while the theme is selected and removes it when the
+ * user picks something else. That makes it the right choice when a theme needs
+ * rules a token map cannot express - the gradient below, for instance.
+ *
+ * Only the --nl-* tier is the styling contract. The --nv-* brand layer is the
+ * Novalist corporate identity; leave it alone.
+ */
+
+:root {
+  --nl-base: 13 27 42; /* raw rgb of the window ground, for the material layer */
+
+  --nl-surface-window: #0d1b2a;
+  --nl-surface-sidebar: #08131f;
+  --nl-surface-toolbar: #08131f;
+  --nl-surface-inspector: #08131f;
+  --nl-surface-editor: #0d1b2a;
+  --nl-surface-card: #132a3e;
+  --nl-surface-input: #061019;
+  --nl-surface-overlay: rgb(3 8 13 / 0.7);
+  --nl-surface-hover: rgb(224 231 238 / 0.06);
+  --nl-surface-selected: rgb(27 108 168 / 0.28);
+
+  --nl-text: #e0e7ee;
+  --nl-text-dim: #a8bccd;
+  --nl-text-subtle: #7590a6;
+
+  --nl-accent: #1b6ca8;
+  --nl-accent-hover: #2a86c9;
+  --nl-accent-ink: #f2f8fc;
+  --nl-focus-ring: rgb(42 134 201 / 0.6);
+
+  --nl-border: #1e3d57;
+  --nl-border-subtle: #12293c;
+  --nl-border-firm: #2b5476;
+
+  --nl-success: #4fb286;
+  --nl-warning: #d99a3d;
+  --nl-danger: #d4635a;
+
+  --nl-scrollbar-thumb: #1e3d57;
+  --nl-scrollbar-thumb-hover: #2b5476;
+  --nl-scrollbar-thumb-active: #2a86c9;
+}
+
+/* The reason this theme is a stylesheet rather than a token map: the window
+   ground gets a depth gradient, which is a rule, not a value. */
+body {
+  background-image: radial-gradient(120% 90% at 50% 0%, #123146 0%, transparent 60%);
+  background-attachment: fixed;
+}

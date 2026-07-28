@@ -8,6 +8,7 @@ import { useProjectStore } from './stores/projectStore'
 import { useShellStore } from './stores/shellStore'
 import { useCodexStore } from './stores/codexStore'
 import { useWikiStore } from './stores/wikiStore'
+import { useSettingsStore } from './stores/settingsStore'
 import { rpc } from './rpc/client'
 
 // Store/RPC access for end-to-end tests (Playwright drives the real app through these).
@@ -15,7 +16,8 @@ window.novalistStores = {
   project: useProjectStore,
   shell: useShellStore,
   codex: useCodexStore,
-  wiki: useWikiStore
+  wiki: useWikiStore,
+  settings: useSettingsStore
 }
 window.novalistRpc = rpc
 

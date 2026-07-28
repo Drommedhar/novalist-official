@@ -115,8 +115,8 @@ public sealed class SceneAnalysisLexicon
     /// space-delimited (Chinese, for instance, is not).</summary>
     public Regex FirstPerson { get; private init; } = new("(?!)", RegexOptions.CultureInvariant);
 
-    /// <summary>Every language tag that ships a lexicon.</summary>
-    public static IReadOnlyList<string> AvailableLanguages { get; } = Assembly
+    /// <summary>Language tags shipped as embedded resources.</summary>
+    private static IReadOnlyList<string> BuiltInLanguages { get; } = Assembly
         .GetExecutingAssembly()
         .GetManifestResourceNames()
         .Where(name => name.StartsWith(ResourcePrefix, StringComparison.Ordinal)
@@ -124,6 +124,53 @@ public sealed class SceneAnalysisLexicon
         .Select(name => name[ResourcePrefix.Length..^ResourceSuffix.Length])
         .OrderBy(tag => tag, StringComparer.OrdinalIgnoreCase)
         .ToArray();
+
+    private static string? _userDirectory;
+
+    /// <summary>Every language tag with a lexicon — shipped, plus any dropped
+    /// into the registered user directory.</summary>
+    public static IReadOnlyList<string> AvailableLanguages { get; private set; } = BuiltInLanguages;
+
+    /// <summary>
+    /// Points the lexicon loader at a folder of user-supplied
+    /// <c>analysis.&lt;tag&gt;.json</c> files. A user file wins over a shipped
+    /// one of the same tag, so a writer can correct or extend a bundled lexicon
+    /// as well as add a language Novalist does not ship. Rescans and drops the
+    /// cache, so it is safe to call more than once; pass null to go back to the
+    /// shipped set only.
+    /// </summary>
+    public static void RegisterUserDirectory(string? directory)
+    {
+        _userDirectory = string.IsNullOrWhiteSpace(directory) ? null : directory;
+        Cache.Clear();
+        AvailableLanguages = BuiltInLanguages
+            .Concat(DiscoverUserLanguages())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(tag => tag, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    /// <summary>Language tags with a lexicon file in the user directory. Empty
+    /// when no directory is registered or it cannot be listed — a missing or
+    /// unreadable folder degrades to the shipped set rather than throwing.</summary>
+    private static IEnumerable<string> DiscoverUserLanguages()
+    {
+        if (_userDirectory == null) return [];
+        try
+        {
+            return Directory
+                .EnumerateFiles(_userDirectory, $"analysis.*{ResourceSuffix}", SearchOption.TopDirectoryOnly)
+                .Select(Path.GetFileName)
+                .OfType<string>()
+                .Select(name => name["analysis.".Length..^ResourceSuffix.Length])
+                .Where(tag => tag.Length > 0)
+                .ToArray();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return [];
+        }
+    }
 
     /// <summary>
     /// The lexicon for a writing language, or null when that language ships none
@@ -162,12 +209,33 @@ public sealed class SceneAnalysisLexicon
     {
         if (tag.Length == 0) return null;
 
+        // The user directory is consulted first so a dropped file overrides the
+        // shipped lexicon for the same tag.
+        var userJson = ReadUserFile(tag);
+        if (userJson != null) return Parse(userJson, tag);
+
         var assembly = Assembly.GetExecutingAssembly();
         using var stream = assembly.GetManifestResourceStream($"{ResourcePrefix}{tag}{ResourceSuffix}");
         if (stream == null) return null;
 
         using var reader = new StreamReader(stream);
         return Parse(reader.ReadToEnd(), tag);
+    }
+
+    /// <summary>The user lexicon file's contents for a tag, or null when no user
+    /// directory is registered, the file is absent, or it cannot be read.</summary>
+    private static string? ReadUserFile(string tag)
+    {
+        if (_userDirectory == null) return null;
+        var path = Path.Combine(_userDirectory, $"analysis.{tag}{ResourceSuffix}");
+        try
+        {
+            return File.Exists(path) ? File.ReadAllText(path) : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
     }
 
     /// <summary>Builds a lexicon from raw JSON. Separate from resource loading so

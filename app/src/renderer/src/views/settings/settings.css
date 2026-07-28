@@ -63,7 +63,13 @@
 }
 
 .settings-scope {
-  margin-bottom: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-tightest);
+}
+
+/* Says which scope the controls below are writing to, so an edit is never
+   ambiguous between the global defaults and this project. */
+.settings-scope-hint {
+  margin: 0 0 var(--nl-space-md);
 }
 
 .settings-accent-row,

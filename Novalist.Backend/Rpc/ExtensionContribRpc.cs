@@ -107,10 +107,65 @@ public sealed class ExtensionContribRpc
 
     [JsonRpcMethod("extensions/themes")]
     public ExtensionThemeInfoDto[] Themes()
-        => Host?.EnumerateThemes()
-               .Select(x => new ExtensionThemeInfoDto(x.ExtensionId, x.Theme.Name, x.Theme.AccentColor))
-               .ToArray()
-           ?? [];
+        => Host?.EnumerateThemes().Select(BuildThemeDto).ToArray() ?? [];
+
+    /// <summary>
+    /// Flattens a contributed theme into the shape the renderer applies: a token
+    /// map plus, when the theme points at one, the text of its stylesheet.
+    /// AccentColor is folded in as the accent tokens so a theme that sets only an
+    /// accent still works, and an explicit token wins over it.
+    /// </summary>
+    internal static ExtensionThemeInfoDto BuildThemeDto(
+        (string ExtensionId, string FolderPath, ThemeOverride Theme) source)
+    {
+        var (extensionId, folderPath, theme) = source;
+        var tokens = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!string.IsNullOrWhiteSpace(theme.AccentColor)
+            && Appearance.UserAssetsService.IsTokenValue(theme.AccentColor))
+        {
+            tokens["--nl-accent"] = theme.AccentColor.Trim();
+            tokens["--nl-accent-hover"] = theme.AccentColor.Trim();
+        }
+        foreach (var (key, value) in theme.Tokens ?? new Dictionary<string, string>())
+        {
+            if (!Appearance.UserAssetsService.IsTokenName(key)
+                || !Appearance.UserAssetsService.IsTokenValue(value))
+                continue;
+            tokens[key] = value.Trim();
+        }
+        return new ExtensionThemeInfoDto(
+            extensionId,
+            theme.Name,
+            Appearance.UserAssetsService.Slugify($"{extensionId}-{theme.Name}"),
+            theme.AccentColor,
+            tokens,
+            ReadThemeStylesheet(folderPath, theme.ResourcePath));
+    }
+
+    /// <summary>
+    /// Reads a theme's stylesheet from the extension folder. Null when the theme
+    /// declares none, the path escapes the folder, or the file cannot be read —
+    /// a missing stylesheet costs the theme its extra rules, not its place in
+    /// the dropdown.
+    /// </summary>
+    internal static string? ReadThemeStylesheet(string folderPath, string? resourcePath)
+    {
+        if (string.IsNullOrWhiteSpace(resourcePath) || string.IsNullOrWhiteSpace(folderPath))
+            return null;
+        try
+        {
+            var root = Path.GetFullPath(folderPath);
+            var full = Path.GetFullPath(Path.Combine(root, resourcePath));
+            if (!full.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+                return null;
+            return File.Exists(full) ? File.ReadAllText(full) : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or ArgumentException)
+        {
+            Extensions.Log.Warn($"Could not read an extension theme stylesheet: {ex.GetType().Name}");
+            return null;
+        }
+    }
 
     // ── Status bar (item 6) ─────────────────────────────────────────────
 
@@ -181,7 +236,13 @@ public sealed record InlineActionInfoDto(string Id, string Label, string Group, 
 public sealed record InlineActionResultDto(string Text, string Disposition, string? Error);
 public sealed record ContextMenuInfoDto(string Id, string Label, string Icon, string? IconPath, string Context);
 public sealed record ExtensionHotkeyInfoDto(string ActionId, string DisplayName, string Category, string DefaultGesture);
-public sealed record ExtensionThemeInfoDto(string ExtensionId, string Name, string? AccentColor);
+public sealed record ExtensionThemeInfoDto(
+    string ExtensionId,
+    string Name,
+    string Slug,
+    string? AccentColor,
+    IReadOnlyDictionary<string, string> Tokens,
+    string? Css);
 public sealed record StatusBarInfoDto(string Id, string Alignment, int Order, string Text, string? Tooltip, bool HasCommand);
 public sealed record SettingsSchemaDto(string ExtensionId, string ExtensionName, string Title, IReadOnlyList<SettingsFieldDto> Fields);
 public sealed record SettingsFieldDto(

@@ -118,36 +118,12 @@
   flex-shrink: 0;
 }
 
-/* Extension-contributed themes (IThemeContributor). */
-.ext-theme-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--nl-space-sm);
-}
-
-.ext-theme-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--nl-space-sm);
-  padding: var(--nl-space-tighter) var(--nl-space-md);
-  border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-pill);
-  background: var(--nl-surface-card);
-  color: var(--nl-text);
+/* Extension-contributed themes (IThemeContributor). They are picked in Settings
+   alongside the built-in ones; this section only points there. */
+.ext-theme-hint {
+  margin: 0;
   font-size: var(--nl-font-body-sm);
-  cursor: pointer;
-}
-
-.ext-theme-chip.active {
-  border-color: var(--nl-accent);
-  color: var(--nl-accent);
-}
-
-.ext-theme-swatch {
-  width: 12px;
-  height: 12px;
-  border-radius: var(--nl-radius-pill);
-  border: 1px solid var(--nl-border);
+  color: var(--nl-text-subtle);
 }
 
 /* Declarative extension settings form (ISettingsSchemaContributor).

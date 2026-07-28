@@ -44,7 +44,7 @@ Implement any of these interfaces alongside `IExtension` to integrate with the h
 | `IHotkeyContributor` | Register keyboard shortcuts |
 | `IExportFormatContributor` | Add export formats |
 | `IEntityTypeContributor` | Add custom entity types |
-| `IThemeContributor` | Override theme styles |
+| `IThemeContributor` | Contribute colour themes to the Settings theme picker |
 | `IAiHook` | Intercept AI prompts and responses |
 
 ## Documentation

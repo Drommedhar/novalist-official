@@ -3,6 +3,7 @@ using Xunit;
 
 namespace Novalist.Core.Tests.Services;
 
+[Collection(LexiconStaticsCollection.Name)]
 public class SceneAnalysisLexiconTests
 {
     [Fact]

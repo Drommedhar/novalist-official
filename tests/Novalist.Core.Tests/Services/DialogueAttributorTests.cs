@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Novalist.Core.Tests.Services;
 
+[Collection(LexiconStaticsCollection.Name)]
 public class DialogueAttributorTests
 {
     private static readonly CharacterData Aldric = new()
