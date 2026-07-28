@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
+import { MarkdownEditor } from '../../shell/MarkdownEditor'
 
 interface SectionRow {
   title: string
@@ -222,14 +223,11 @@ export function EntityListsEditor(): React.JSX.Element | null {
               <X size={12} strokeWidth={2} />
             </button>
           </div>
-          <textarea
-            className="inspector-textarea"
-            rows={3}
+          <MarkdownEditor
             value={section.content}
-            onChange={(e) =>
-              setSections(
-                sections.map((s, i) => (i === index ? { ...s, content: e.target.value } : s))
-              )
+            ariaLabel={section.title}
+            onChange={(next) =>
+              setSections(sections.map((s, i) => (i === index ? { ...s, content: next } : s)))
             }
             onBlur={() => persist(null, sections, null)}
           />

@@ -1,0 +1,183 @@
+/* Live-styled Markdown field (MarkdownEditor.tsx).
+ *
+ * The document is Markdown source, styled in place - so the rules below dress
+ * the syntax rather than replace it. Sizes and colours all come from the design
+ * tokens so a field matches the Wiki's rendering of the same text as closely as
+ * a source view can. */
+
+.md-editor {
+  display: flex;
+  flex-direction: column;
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  overflow: hidden;
+}
+
+.md-editor:focus-within {
+  border-color: var(--nl-accent);
+}
+
+.md-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter) var(--nl-space-tighter);
+  border-bottom: 1px solid var(--nl-border-subtle);
+  /* Sits on the page ground so the writing surface below is the raised one. */
+  background: var(--nl-surface-card);
+}
+
+.md-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-subtle);
+}
+
+.md-toolbar-btn:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.md-surface {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== CodeMirror shell =====
+   The editor paints its own chrome by default; strip it back to the field. */
+.md-surface .cm-editor {
+  flex: 1;
+  background: transparent;
+  color: var(--nl-text);
+  font-family: var(--nl-font-family);
+  font-size: var(--nl-font-body);
+}
+
+.md-surface .cm-editor.cm-focused {
+  outline: none;
+}
+
+.md-surface .cm-scroller {
+  font-family: inherit;
+  line-height: var(--nl-leading-body);
+  overflow-y: auto;
+}
+
+.md-surface .cm-content {
+  padding: var(--nl-space-md) var(--nl-space-normal);
+  caret-color: var(--nl-accent);
+}
+
+.md-surface .cm-line {
+  padding: 0;
+}
+
+.md-surface .cm-cursor {
+  border-left-color: var(--nl-accent);
+}
+
+.md-surface .cm-selectionBackground,
+.md-surface .cm-content ::selection {
+  background: rgb(210 167 79 / 0.3);
+}
+
+.md-surface .cm-placeholder {
+  color: var(--nl-text-subtle);
+}
+
+/* ===== Markdown, styled in place ===== */
+.cm-md-h1,
+.cm-md-h2,
+.cm-md-h3,
+.cm-md-h4 {
+  font-family: var(--nl-font-display-face);
+  font-weight: var(--nl-weight-title);
+  letter-spacing: var(--nl-tracking-display);
+  color: var(--nl-text);
+}
+
+.cm-md-h1 {
+  font-size: var(--nl-font-title);
+}
+
+.cm-md-h2 {
+  font-size: var(--nl-font-title-sm);
+}
+
+.cm-md-h3 {
+  font-size: var(--nl-font-body-lg);
+}
+
+.cm-md-h4 {
+  font-size: var(--nl-font-body);
+}
+
+.cm-md-strong {
+  font-weight: 700;
+  color: var(--nl-text);
+}
+
+.cm-md-em {
+  font-style: italic;
+}
+
+.cm-md-strike {
+  text-decoration: line-through;
+  color: var(--nl-text-subtle);
+}
+
+.cm-md-link {
+  color: var(--nl-accent-hover);
+}
+
+.cm-md-url {
+  color: var(--nl-text-subtle);
+}
+
+.cm-md-code {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-accent-hover);
+}
+
+.cm-md-quote {
+  color: var(--nl-text-dim);
+  font-style: italic;
+}
+
+/* Markdown punctuation is concealed except on the line being edited (see
+   concealSyntax). This dims what is left showing, so revealing a line reads as
+   "here is the syntax" rather than as a jump in the prose. The weight is left
+   to inherit so a ** around bold text does not change thickness mid-word. */
+.cm-md-mark {
+  color: var(--nl-text-subtle);
+}
+
+/* Stands in for a hidden -, * or + so a list still looks like a list. */
+.cm-md-bullet {
+  color: var(--nl-accent);
+}
+
+/* All Markdown punctuation dims uniformly, list bullets included. Accenting
+   just the bullet is not reliably expressible here: the `list` tag spans the
+   whole item, so a bullet and a ** inside that item carry the same classes and
+   only a brittle :not() chain could tell them apart. */
+
+/* A compact variant for the tighter fields (timeline events, wizard answers). */
+.md-editor.md-compact .md-toolbar {
+  padding: var(--nl-space-tightest) var(--nl-space-tightest);
+}
+
+.md-editor.md-compact .md-toolbar-btn {
+  width: 22px;
+  height: 22px;
+}
+
+.md-editor.md-compact .md-surface .cm-content {
+  padding: var(--nl-space-sm) var(--nl-space-md);
+}

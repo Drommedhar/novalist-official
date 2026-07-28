@@ -73,6 +73,7 @@
     "deleteItem": "Delete",
     "titleWatermark": "Title",
     "contentWatermark": "Notes / URL / file path",
+    "content": "Content",
     "empty": "No research item selected. Add one or pick from the list.",
     "confirmDeleteTitle": "Delete research item?",
     "confirmDelete": "Delete \"{0}\"?",
@@ -1860,5 +1861,16 @@
     "kindEntity": "Codex",
     "kindResearch": "Research",
     "kindTimeline": "Timeline events"
+  },
+  "markdown": {
+    "toolbar": "Formatting",
+    "bold": "Bold",
+    "italic": "Italic",
+    "strikethrough": "Strikethrough",
+    "heading": "Heading",
+    "bulletList": "Bulleted list",
+    "orderedList": "Numbered list",
+    "quote": "Quote",
+    "link": "Link"
   }
 }

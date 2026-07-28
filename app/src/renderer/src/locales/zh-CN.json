@@ -66,6 +66,7 @@
     "deleteItem": "删除",
     "titleWatermark": "标题",
     "contentWatermark": "笔记 / URL / 文件路径",
+    "content": "内容",
     "empty": "未选择任何资料。请添加一项或从列表中选择。",
     "confirmDeleteTitle": "删除此资料？",
     "confirmDelete": "确定要删除“{0}”吗？",
@@ -1902,5 +1903,16 @@
     "kindEntity": "典藏",
     "kindResearch": "研究",
     "kindTimeline": "时间线事件"
+  },
+  "markdown": {
+    "toolbar": "格式",
+    "bold": "粗体",
+    "italic": "斜体",
+    "strikethrough": "删除线",
+    "heading": "标题",
+    "bulletList": "项目符号列表",
+    "orderedList": "编号列表",
+    "quote": "引用",
+    "link": "链接"
   }
 }

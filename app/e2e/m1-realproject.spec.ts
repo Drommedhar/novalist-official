@@ -208,7 +208,14 @@ test('real project renders binder and scene content', async () => {
   for (let i = 0; i < 4; i += 1) {
     await page.locator('.dialog-card .dialog-button', { hasText: /^(Skip|Überspringen)$/ }).click()
   }
-  await page.locator('.dialog-card .inspector-textarea').fill('Born in the e2e harness.')
+  // The wizard's long-answer step is a live-styled Markdown editor now, so its
+  // writing surface is a contenteditable rather than a textarea: type into it
+  // instead of filling, and confirm the text actually landed.
+  const wizardAnswer = page.locator('.dialog-card .md-editor .cm-content')
+  await expect(wizardAnswer).toBeVisible({ timeout: 10_000 })
+  await wizardAnswer.click()
+  await page.keyboard.type('Born in the e2e harness.')
+  await expect(wizardAnswer).toContainText('Born in the e2e harness.')
   await page.locator('.dialog-card .dialog-button.primary').click()
   await page.locator('.codex-row', { hasText: 'Wizardborn' }).click()
   await expect

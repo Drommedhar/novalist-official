@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import type { CustomTypeDefinition } from './CustomTypeManager'
+import { MarkdownEditor } from '../../shell/MarkdownEditor'
 
 const LORE_CATEGORIES = ['Organization', 'Culture', 'History', 'Other']
 const REF_TYPES = ['character', 'location', 'item', 'lore']
@@ -133,22 +134,15 @@ export function EntityDetailFields({
     key: string,
     control: Control,
     isCustom: boolean,
-    options?: string[]
+    options?: string[],
+    label?: string
   ): React.JSX.Element => {
     const value = readValue(key, isCustom)
     const commit = (v: string): void => {
       if (v !== value) void updateField(key, v)
     }
     if (control === 'textarea') {
-      return (
-        <textarea
-          className="inspector-textarea"
-          rows={3}
-          defaultValue={value}
-          key={`${key}:${value}`}
-          onBlur={(e) => commit(e.target.value)}
-        />
-      )
+      return <MarkdownField key={key} value={value} ariaLabel={label} onCommit={commit} />
     }
     if (control === 'category' || (options && options.length > 0)) {
       const opts = options ?? LORE_CATEGORIES
@@ -247,12 +241,39 @@ export function EntityDetailFields({
             return (
               <div key={field.key} className="codex-field">
                 <dt>{label}</dt>
-                <dd>{renderControl(field.key, field.control, custom, options)}</dd>
+                <dd>{renderControl(field.key, field.control, custom, options, label)}</dd>
               </div>
             )
           })}
         </div>
       ))}
     </div>
+  )
+}
+
+/**
+ * Long-text entity fields commit on blur rather than on every keystroke, so the
+ * draft is held here and only reaches the store when focus leaves - matching
+ * the textarea this replaced.
+ */
+function MarkdownField({
+  value,
+  ariaLabel,
+  onCommit
+}: {
+  value: string
+  ariaLabel?: string
+  onCommit: (next: string) => void
+}): React.JSX.Element {
+  const [draft, setDraft] = useState(value)
+  // Adopt the stored value when a different entity is selected.
+  useEffect(() => setDraft(value), [value])
+  return (
+    <MarkdownEditor
+      value={draft}
+      ariaLabel={ariaLabel}
+      onChange={setDraft}
+      onBlur={() => onCommit(draft)}
+    />
   )
 }

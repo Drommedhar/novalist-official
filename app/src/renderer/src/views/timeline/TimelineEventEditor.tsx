@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { useProjectStore } from '../../stores/projectStore'
 import type { TimelineEventDto } from './TimelineView'
 
@@ -100,15 +101,15 @@ export function TimelineEventEditor({
             </option>
           ))}
         </select>
-        <label className="inspector-label" htmlFor="tl-desc">
-          {t('timeline.eventDescription')}
-        </label>
-        <textarea
-          id="tl-desc"
-          className="inspector-textarea"
-          rows={3}
+        {/* Not a <label for>: the editor's writing surface is a contenteditable,
+            not a form control, so it carries the name via aria-label instead. */}
+        <div className="inspector-label">{t('timeline.eventDescription')}</div>
+        <MarkdownEditor
+          className="md-compact"
+          minRows={3}
+          ariaLabel={t('timeline.eventDescription')}
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={setDescription}
         />
         <div className="dialog-actions">
           {onDelete && (

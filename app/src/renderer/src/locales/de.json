@@ -73,6 +73,7 @@
     "deleteItem": "Löschen",
     "titleWatermark": "Titel",
     "contentWatermark": "Notiz / URL / Dateipfad",
+    "content": "Inhalt",
     "empty": "Kein Recherche-Eintrag ausgewählt. Lege einen an oder wähle aus der Liste.",
     "confirmDeleteTitle": "Recherche-Eintrag löschen?",
     "confirmDelete": "\"{0}\" löschen?",
@@ -1868,5 +1869,16 @@
     "kindEntity": "Kodex",
     "kindResearch": "Recherche",
     "kindTimeline": "Zeitstrahl-Ereignisse"
+  },
+  "markdown": {
+    "toolbar": "Formatierung",
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "strikethrough": "Durchgestrichen",
+    "heading": "Überschrift",
+    "bulletList": "Aufzählung",
+    "orderedList": "Nummerierte Liste",
+    "quote": "Zitat",
+    "link": "Link"
   }
 }

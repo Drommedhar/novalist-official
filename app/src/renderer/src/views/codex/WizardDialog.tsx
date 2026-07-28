@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { rpc } from '../../rpc/client'
 import type { WizardStepDef } from './wizards'
 
@@ -81,12 +82,11 @@ export function WizardDialog({
             {choices.length === 0 && <p className="codex-empty">{t('codexHub.emptyHint')}</p>}
           </div>
         ) : step.multiline ? (
-          <textarea
-            className="inspector-textarea"
-            rows={5}
-            autoFocus
+          <MarkdownEditor
+            minRows={5}
+            ariaLabel={step.title}
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={setValue}
           />
         ) : (
           <input

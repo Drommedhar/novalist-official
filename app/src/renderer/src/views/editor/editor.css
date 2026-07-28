@@ -373,13 +373,54 @@
   padding: 1px var(--nl-space-sm);
 }
 
+/* Holds rendered Markdown now, so pre-wrap is gone - it would reintroduce the
+   authored line breaks on top of the block layout. */
 .peek-section-body {
   border: 1px solid var(--nl-border-subtle);
   border-radius: var(--nl-radius-md);
   padding: var(--nl-space-sm) var(--nl-space-md);
   font-size: var(--nl-font-body-sm);
   color: var(--nl-text);
-  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.peek-section-body > :first-child {
+  margin-top: 0;
+}
+
+.peek-section-body > :last-child {
+  margin-bottom: 0;
+}
+
+.peek-section-body h1,
+.peek-section-body h2,
+.peek-section-body h3,
+.peek-section-body h4 {
+  font-size: var(--nl-font-body);
+  margin: var(--nl-space-md) 0 var(--nl-space-tighter);
+}
+
+.peek-section-body p {
+  margin: 0 0 var(--nl-space-sm);
+}
+
+.peek-section-body ul,
+.peek-section-body ol {
+  margin: var(--nl-space-tighter) 0;
+  padding-left: var(--nl-space-lg);
+}
+
+.peek-section-body li {
+  margin: var(--nl-space-tightest) 0;
+}
+
+.peek-section-body a {
+  color: var(--nl-accent-hover);
+}
+
+.peek-section-body code {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
 }
 
 

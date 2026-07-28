@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { ExternalLink, FolderOpen, Inbox, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
@@ -433,12 +434,13 @@ export function ResearchView(): React.JSX.Element {
                   )}
                 </dl>
               )}
-              <textarea
-                className="inspector-textarea research-content"
-                rows={12}
+              <MarkdownEditor
+                className="research-content"
+                minRows={12}
                 placeholder={t('research.contentWatermark')}
+                ariaLabel={t('research.content')}
                 value={selected.content}
-                onChange={(e) => patchSelected({ content: e.target.value })}
+                onChange={(next) => patchSelected({ content: next })}
                 onBlur={() => void save(selected)}
               />
               <div className="research-tags">

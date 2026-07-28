@@ -21,6 +21,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **Codex PDF export** — a new export format that writes your world bible as a single, self-contained PDF with entry images drawn into the document, so there is no image folder to send alongside it. Headings, bullet lists, bold text, and line breaks in your entry text are laid out as formatted prose. Every entry starts on its own page, and PDF bookmarks list each entry under its group so any reader can jump straight to a character.
 - **Codex entry selection** — the Codex exports now show a checkbox per entry, grouped by Characters, Locations, Items, and Lore and sorted by name, with a search box, select-all and select-none buttons, and a running count. Untick the entries you do not want in the file; everything is included by default. Select all and select none apply to whatever the search currently shows, so you can tick or untick a group of entries in one click.
 - **Bundled typefaces** — Fraunces, Newsreader, and Courier Prime now ship inside the app. The interface and the default writing face look identical on every machine, with no network and nothing to install, and all three are offered at the top of the editor's font list.
+- **Formatted text fields** — Codex sections and per-scope overrides, entity long-text fields, research notes, timeline event descriptions, and wizard answers are now formatted as you write them: headings set larger, bold actually bold, list items bulleted, links and quotes picked out. The formatting marks are hidden, so a finished entry reads as clean prose; they reappear on whichever line your cursor is on, in case you want to edit them by hand. Each field carries a toolbar — bold, italic, strikethrough, heading, bulleted and numbered lists, quote, link — with `Ctrl+B` and `Ctrl+I`, so you never have to know the Markdown syntax to use it. What is saved is still plain Markdown, exactly as before: nothing is rewritten behind your back and existing entries open unchanged.
 
 ### Changed
 
@@ -46,6 +47,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- The focus peek card showed a Codex section's raw Markdown — `# Strengths` and `* Brave` as typed — where the Wiki has always rendered it. It now renders the same way.
 - With typewriter scrolling on, right-clicking in the editor could dismiss the context menu the instant it opened: the click recentred the caret, and that scroll counted as scrolling away from the menu. The menu now stays put, and a right-click no longer moves the page under it.
 - Text fields in the Codex, the outliner, and the notes panel now look like text fields before you click them. They previously showed no border or background until hovered, so a value read as plain text.
 - Extension settings pages rendered as an unstyled stack of full-width controls with no spacing. Their fields now lay out in two columns inside a proper panel, matching the built-in Settings.

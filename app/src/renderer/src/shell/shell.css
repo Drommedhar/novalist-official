@@ -1177,21 +1177,9 @@
   padding: var(--nl-space-md) var(--nl-space-sm) var(--nl-space-tighter);
 }
 
-.inspector-textarea {
-  width: 100%;
-  resize: vertical;
-  font: inherit;
-  color: var(--nl-text);
-  background: var(--nl-surface-input);
-  border: 1px solid var(--nl-border);
-  border-radius: var(--nl-radius-md);
-  padding: var(--nl-space-sm) var(--nl-space-md);
-}
-
-.inspector-textarea:focus {
-  outline: 2px solid var(--nl-focus-ring);
-  outline-offset: -1px;
-}
+/* .inspector-textarea lived here. Every field that used it now renders a
+   MarkdownEditor instead, so the rule matched nothing and only invited someone
+   to reach for a textarea style the app no longer has. */
 
 /* ===== Codex ===== */
 .codex {
@@ -1338,7 +1326,10 @@
   padding: 0;
 }
 
-.codex-field:has(textarea) {
+/* .md-editor as well as textarea: long-text fields are Markdown editors now,
+   and their writing surface is a contenteditable rather than a form control. */
+.codex-field:has(textarea),
+.codex-field:has(.md-editor) {
   grid-column: 1 / -1;
 }
 

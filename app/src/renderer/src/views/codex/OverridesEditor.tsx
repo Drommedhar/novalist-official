@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ClipboardPaste, ImagePlus, Link, Plus, Pencil, RotateCcw, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
+import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { useProjectStore } from '../../stores/projectStore'
 import './entity-images.css'
 
@@ -490,12 +491,11 @@ function OverrideSections({
               <X size={12} strokeWidth={2} />
             </button>
           </div>
-          <textarea
-            className="inspector-textarea"
-            rows={3}
+          <MarkdownEditor
             value={section.content}
-            onChange={(e) =>
-              setSections(sections.map((s, i) => (i === index ? { ...s, content: e.target.value } : s)))
+            ariaLabel={section.title}
+            onChange={(next) =>
+              setSections(sections.map((s, i) => (i === index ? { ...s, content: next } : s)))
             }
             onBlur={() => persist(sections)}
           />
@@ -651,12 +651,13 @@ export function OverridesEditor(): React.JSX.Element | null {
                   <dt>{t(field.labelKey)}</dt>
                   <dd>
                     {field.multiline ? (
-                      <textarea
-                        className="inspector-textarea"
-                        rows={2}
+                      <MarkdownEditor
+                        className="md-compact"
+                        minRows={2}
                         placeholder={String(record[field.key] ?? '')}
+                        ariaLabel={t(field.labelKey)}
                         value={draft[field.key] ?? ''}
-                        onChange={(e) => setDraft({ ...draft, [field.key]: e.target.value })}
+                        onChange={(next) => setDraft({ ...draft, [field.key]: next })}
                       />
                     ) : (
                       <input

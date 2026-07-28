@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import type { TFunction } from 'i18next'
 import { useShellStore } from '../../stores/shellStore'
 import { rpc } from '../../rpc/client'
@@ -379,7 +381,14 @@ export function PeekCard({
                 ))}
               </select>
             </div>
-            {section?.content && <div className="peek-section-body">{section.content}</div>}
+            {section?.content && (
+              /* Section bodies are authored Markdown. The Wiki has always
+                 rendered them; here they used to be dumped as raw source, so a
+                 peeked entity showed "# Strengths" and "* Brave" verbatim. */
+              <div className="peek-section-body">
+                <Markdown remarkPlugins={[remarkGfm]}>{section.content}</Markdown>
+              </div>
+            )}
           </div>
         )}
 

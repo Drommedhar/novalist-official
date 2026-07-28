@@ -73,6 +73,14 @@ The right pane holds the editors for the selected entity, from top to bottom:
   For **characters**, role and target autocomplete against the existing cast and the roles already in use. When you set a role, Novalist suggests its inverse and, on save, writes the reciprocal relationship back onto the target character automatically — and learns the role/inverse pair so it can suggest it next time. This powers the [Relationships graph](14-relationships.md), which clusters families from parent/child/partner/sibling roles. The other three types have no inverse concept, so their rows are stored exactly as written.
 - **Sections** — free-form titled text blocks ("Background", "Motivation", "Voice", ...). Add, retitle, edit, and remove; this is where long-form prose about an entity lives.
 
+### Formatting
+
+Sections, the multi-line entity fields, per-scope overrides, research notes, timeline event descriptions, and wizard answers are all formatted text. Each box has a toolbar — bold, italic, strikethrough, heading, bulleted list, numbered list, quote, link — and `Ctrl+B` / `Ctrl+I` work as you would expect. You do not need to know any syntax: select some text and press the button.
+
+The formatting is shown in the box as you write: a heading looks like a heading, bold text looks bold, and list items get a bullet. The formatting marks themselves are hidden, so a finished section reads as clean prose — except on the line your cursor is on, where they reappear so you can edit them by hand if you want to. Click away and they disappear again.
+
+Underneath, the text is still plain **Markdown**. Hiding the marks changes only how the box draws them, never what is saved: entries are stored exactly as written, stay readable in any text editor, and render the same way in the [Wiki](30-wiki.md) and in the editor's focus peek card.
+
 ## Chapter overrides (characters)
 
 A character can restate its identity or appearance for a specific chapter — optionally a single scene within it. Example uses:
