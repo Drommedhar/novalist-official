@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [2.4] - 2026-07-28
+
 ### Added
 
 - **Codex PDF export** — a new export format that writes your world bible as a single, self-contained PDF with entry images drawn into the document, so there is no image folder to send alongside it. Headings, bullet lists, bold text, and line breaks in your entry text are laid out as formatted prose. Every entry starts on its own page, and PDF bookmarks list each entry under its group so any reader can jump straight to a character.
@@ -553,7 +559,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v2.3.1...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v2.4...HEAD
+[2.4]: https://github.com/Drommedhar/novalist-official/compare/v2.3.1...v2.4
 [2.3.1]: https://github.com/Drommedhar/novalist-official/compare/v2.3...v2.3.1
 [2.3]: https://github.com/Drommedhar/novalist-official/compare/v2.2...v2.3
 [2.2]: https://github.com/Drommedhar/novalist-official/compare/v2.1...v2.2
