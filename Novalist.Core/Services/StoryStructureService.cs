@@ -47,12 +47,31 @@ public sealed class StoryStructureService
         _projectService = projectService;
     }
 
+    /// <summary>
+    /// Every structure on offer: the ones Novalist ships, then the ones the
+    /// writer authored or imported. A custom structure sharing a built-in's id
+    /// wins, which is how somebody adjusts a shipped method rather than being
+    /// stuck with it.
+    /// </summary>
+    public IReadOnlyList<StoryStructureTemplate> Available()
+    {
+        var custom = _projectService.CurrentProject?.CustomStructures ?? [];
+        var customIds = custom.Select(t => t.Id).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return [.. custom, .. StoryStructureTemplates.All.Where(t => !customIds.Contains(t.Id))];
+    }
+
+    /// <summary>Resolves a structure by id across both lists.</summary>
+    public StoryStructureTemplate? Find(string? id)
+    {
+        var key = (id ?? string.Empty).Trim();
+        return key.Length == 0
+            ? null
+            : Available().FirstOrDefault(t => string.Equals(t.Id, key, StringComparison.OrdinalIgnoreCase));
+    }
+
     /// <summary>The structure this book is written against, or null for none.</summary>
     public StoryStructureTemplate? ActiveTemplate()
-    {
-        var id = _projectService.ActiveBook?.StructureTemplateId ?? string.Empty;
-        return id.Length == 0 ? null : StoryStructureTemplates.GetById(id);
-    }
+        => Find(_projectService.ActiveBook?.StructureTemplateId);
 
     /// <summary>Chooses the structure. An unknown id clears it rather than
     /// leaving the book pointing at something that does not exist.</summary>
@@ -62,7 +81,7 @@ public sealed class StoryStructureService
         if (book == null) return;
 
         var id = (templateId ?? string.Empty).Trim();
-        book.StructureTemplateId = StoryStructureTemplates.GetById(id) != null ? id : string.Empty;
+        book.StructureTemplateId = Find(id) != null ? id : string.Empty;
         await _projectService.SaveProjectAsync();
     }
 

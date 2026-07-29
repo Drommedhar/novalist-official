@@ -2310,7 +2310,22 @@
     "drifted": "Lands at {{actual}}%, which is {{direction}}.",
     "early": "earlier than the structure expects",
     "late": "later than the structure expects",
-    "fillGaps": "Create {{count}} placeholder scenes"
+    "fillGaps": "Create {{count}} placeholder scenes",
+    "editTitle": "Story structure",
+    "name": "Name",
+    "description": "Description",
+    "beats": "Beats",
+    "beatTitle": "Beat",
+    "beatTitlePlaceholder": "Midpoint, All Is Lost, ...",
+    "beatPercent": "Where it belongs (%)",
+    "addBeat": "Add a beat",
+    "removeBeat": "Remove this beat",
+    "newStructure": "New structure",
+    "editStructure": "Edit this structure",
+    "deleteStructure": "Delete this structure",
+    "exportStructure": "Export as a file",
+    "importStructure": "Import a structure",
+    "importTitle": "Choose a structure file"
   },
   "stateOverride": {
     "title": "How this changes through the story",

@@ -46,3 +46,13 @@
 .structure-drift.off {
   color: var(--nl-warning);
 }
+
+/* One beat while a structure is being authored: what it is called and where
+   in the book it belongs. */
+.structure-beat-row {
+  align-items: center;
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 1fr 90px auto;
+  margin-bottom: var(--nl-space-tightest);
+}

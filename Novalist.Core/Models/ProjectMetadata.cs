@@ -26,6 +26,14 @@ public class ProjectMetadata
     [JsonPropertyName("books")]
     public List<BookData> Books { get; set; } = new();
 
+    /// <summary>
+    /// Structures the writer authored or imported, on top of the ones Novalist
+    /// ships. Per project rather than per book: a method is how somebody
+    /// writes, not something one book has and the next does not.
+    /// </summary>
+    [JsonPropertyName("customStructures")]
+    public List<StoryStructureTemplate> CustomStructures { get; set; } = [];
+
     [JsonPropertyName("worldBibleFolder")]
     public string WorldBibleFolder { get; set; } = "World Bible";
 

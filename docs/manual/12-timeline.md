@@ -109,6 +109,18 @@ A beat can only be claimed by one scene — binding a second releases the first,
 
 Applying a structure from the toolbar's other drop-down still adds timeline events, which is separate — those mark the structure on the timeline, while this binds it to the manuscript.
 
+### Writing your own structure
+
+Novalist ships four structures. If you write to a method it has not heard of, the panel's toolbar lets you add your own:
+
+- **+** starts a new structure: a name, a description, and a list of beats. Each beat has a title and the point in the book it belongs at, as a percentage — that percentage is what makes a structure more than a checklist.
+- **Pencil** edits the structure currently chosen. Editing one of the four built-ins saves your version under the same name, which is how you adjust a shipped method instead of being stuck with it; deleting your version brings the original back.
+- **Export** writes the structure to a `.json` file you can send to somebody else.
+- **Import** reads one back. A structure whose name clashes with one you already have is imported as a separate copy rather than replacing it.
+- **Trash** deletes a structure you authored. A book written against it stops pointing at something that no longer exists.
+
+Structures you author are stored with the project, so every book in it can use them.
+
 ## Where to go next
 
 - [Calendar](13-calendar.md) — the day/week/month calendar view of the same dates.

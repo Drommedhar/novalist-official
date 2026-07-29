@@ -7,10 +7,17 @@ namespace Novalist.Core.Models;
 /// </summary>
 public sealed class StoryStructureTemplate
 {
-    public string Id { get; init; } = string.Empty;
-    public string DisplayName { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
-    public IReadOnlyList<StoryStructureBeat> Beats { get; init; } = [];
+    [System.Text.Json.Serialization.JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+
+    [System.Text.Json.Serialization.JsonPropertyName("displayName")]
+    public string DisplayName { get; set; } = string.Empty;
+
+    [System.Text.Json.Serialization.JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
+
+    [System.Text.Json.Serialization.JsonPropertyName("beats")]
+    public IReadOnlyList<StoryStructureBeat> Beats { get; set; } = [];
 }
 
 public static class StoryStructureBeatKeys
@@ -39,10 +46,14 @@ public sealed class StoryStructureBeat
     /// ever renamed should carry its own, or every scene bound to it comes
     /// loose.
     /// </summary>
-    public string Key { get; init; } = string.Empty;
+    [System.Text.Json.Serialization.JsonPropertyName("key")]
+    public string Key { get; set; } = string.Empty;
 
-    public string Title { get; init; } = string.Empty;
-    public string Description { get; init; } = string.Empty;
+    [System.Text.Json.Serialization.JsonPropertyName("title")]
+    public string Title { get; set; } = string.Empty;
+
+    [System.Text.Json.Serialization.JsonPropertyName("description")]
+    public string Description { get; set; } = string.Empty;
 
     /// <summary>
     /// Where this beat belongs, as a percentage through the manuscript.
@@ -51,9 +62,12 @@ public sealed class StoryStructureBeat
     /// Cat says the midpoint is at 50%, so a midpoint scene sitting at 30% is
     /// worth telling the writer about. Zero means the template does not say.
     /// </summary>
-    public int TargetPercent { get; init; }
+    [System.Text.Json.Serialization.JsonPropertyName("targetPercent")]
+    public int TargetPercent { get; set; }
+
     /// <summary>"plot" | "character" | "world" — maps to TimelineCategory.</summary>
-    public string CategoryId { get; init; } = "plot";
+    [System.Text.Json.Serialization.JsonPropertyName("categoryId")]
+    public string CategoryId { get; set; } = "plot";
 }
 
 public static class StoryStructureTemplates

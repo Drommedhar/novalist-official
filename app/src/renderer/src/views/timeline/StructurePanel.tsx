@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Wand2 } from 'lucide-react'
+import { Download, Pencil, Plus, Trash2, Upload, Wand2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../../stores/projectStore'
+import { StructureEditor } from './StructureEditor'
 import './structure.css'
 
 interface StructureBeat {
@@ -24,6 +25,8 @@ interface StructureTemplate {
   displayName: string
   description: string
   beatCount: number
+  /** False for one Novalist ships that the writer has not replaced. */
+  isCustom: boolean
 }
 
 /** How far off a beat can sit before it is worth saying so. Structures are not
@@ -44,6 +47,7 @@ export function StructurePanel(): React.JSX.Element {
   const [templates, setTemplates] = useState<StructureTemplate[]>([])
   const [templateId, setTemplateId] = useState('')
   const [beats, setBeats] = useState<StructureBeat[]>([])
+  const [editing, setEditing] = useState<string | null>(null)
   const chapters = useProjectStore((s) => s.chapters)
 
   const load = useCallback(async () => {
@@ -98,9 +102,33 @@ export function StructurePanel(): React.JSX.Element {
   }
 
   const unfilled = beats.filter((b) => !b.isFilled).length
+  const chosen = templates.find((tpl) => tpl.id === templateId)
+
+  /** A structure as a shareable file. The backend does the writing: file I/O
+   *  belongs there, and the renderer only knows where to put it. */
+  const exportStructure = async (): Promise<void> => {
+    const path = await window.novalist.saveFile(`${chosen?.displayName ?? 'structure'}.json`)
+    if (path) await rpc.request('structure/exportTemplate', [templateId, path])
+  }
+
+  const importStructure = async (): Promise<void> => {
+    const path = await window.novalist.pickFile(t('structure.importTitle'), 'all')
+    if (!path) return
+    await rpc.request('structure/importTemplate', [path])
+    await load()
+  }
 
   return (
     <div className="structure-panel">
+      {editing !== null && (
+        <StructureEditor
+          templateId={editing}
+          onDone={() => {
+            setEditing(null)
+            void load()
+          }}
+        />
+      )}
       <div className="settings-button-row">
         <select
           className="inspector-input"
@@ -117,6 +145,51 @@ export function StructurePanel(): React.JSX.Element {
         {beats.length > 0 && unfilled > 0 && (
           <button className="dialog-button" onClick={() => void fillGaps()}>
             <Wand2 size={14} /> {t('structure.fillGaps', { count: unfilled })}
+          </button>
+        )}
+        {/* Four hardcoded structures with no way to add a fifth meant a writer
+            following any other method could not use this at all. */}
+        <button
+          className="dialog-button"
+          title={t('structure.newStructure')}
+          onClick={() => setEditing('')}
+        >
+          <Plus size={14} />
+        </button>
+        {templateId && (
+          <button
+            className="dialog-button"
+            title={t('structure.editStructure')}
+            onClick={() => setEditing(templateId)}
+          >
+            <Pencil size={14} />
+          </button>
+        )}
+        {templateId && (
+          <button
+            className="dialog-button"
+            title={t('structure.exportStructure')}
+            onClick={() => void exportStructure()}
+          >
+            <Download size={14} />
+          </button>
+        )}
+        <button
+          className="dialog-button"
+          title={t('structure.importStructure')}
+          onClick={() => void importStructure()}
+        >
+          <Upload size={14} />
+        </button>
+        {chosen?.isCustom && (
+          <button
+            className="dialog-button danger"
+            title={t('structure.deleteStructure')}
+            onClick={() =>
+              void rpc.request('structure/deleteTemplate', [templateId]).then(() => load())
+            }
+          >
+            <Trash2 size={14} />
           </button>
         )}
       </div>

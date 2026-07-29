@@ -2318,7 +2318,22 @@
     "drifted": "Liegt bei {{actual}}%, also {{direction}}.",
     "early": "früher als die Struktur erwartet",
     "late": "später als die Struktur erwartet",
-    "fillGaps": "{{count}} Platzhalterszenen anlegen"
+    "fillGaps": "{{count}} Platzhalterszenen anlegen",
+    "editTitle": "Erzählstruktur",
+    "name": "Name",
+    "description": "Beschreibung",
+    "beats": "Beats",
+    "beatTitle": "Beat",
+    "beatTitlePlaceholder": "Mittelpunkt, Alles verloren, ...",
+    "beatPercent": "Position im Buch (%)",
+    "addBeat": "Beat hinzufügen",
+    "removeBeat": "Diesen Beat entfernen",
+    "newStructure": "Neue Struktur",
+    "editStructure": "Diese Struktur bearbeiten",
+    "deleteStructure": "Diese Struktur löschen",
+    "exportStructure": "Als Datei exportieren",
+    "importStructure": "Struktur importieren",
+    "importTitle": "Strukturdatei wählen"
   },
   "stateOverride": {
     "title": "Wie sich das im Lauf der Geschichte ändert",

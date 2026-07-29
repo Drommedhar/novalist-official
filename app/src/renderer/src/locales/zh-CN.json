@@ -2352,7 +2352,22 @@
     "drifted": "位于 {{actual}}%，比结构预期{{direction}}。",
     "early": "更早",
     "late": "更晚",
-    "fillGaps": "创建 {{count}} 个占位场景"
+    "fillGaps": "创建 {{count}} 个占位场景",
+    "editTitle": "故事结构",
+    "name": "名称",
+    "description": "描述",
+    "beats": "节点",
+    "beatTitle": "节点",
+    "beatTitlePlaceholder": "中点、一无所有…",
+    "beatPercent": "在书中的位置（%）",
+    "addBeat": "添加节点",
+    "removeBeat": "删除此节点",
+    "newStructure": "新建结构",
+    "editStructure": "编辑此结构",
+    "deleteStructure": "删除此结构",
+    "exportStructure": "导出为文件",
+    "importStructure": "导入结构",
+    "importTitle": "选择结构文件"
   },
   "stateOverride": {
     "title": "它在故事中如何变化",
