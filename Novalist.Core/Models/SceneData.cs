@@ -47,6 +47,17 @@ public class SceneData
     /// writer has not set one, which is not the same as being at the first
     /// stage - a scene nobody has triaged should not claim to be outlined.
     /// </summary>
+
+    /// <summary>
+    /// Word target for this scene, or null for none. A target set here is the
+    /// writer's own intention, never derived - a chapter without one aggregates
+    /// its scenes' targets instead, so setting a few scene targets is enough to
+    /// see where the chapter stands.
+    /// </summary>
+    [JsonPropertyName("wordTarget")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? WordTarget { get; set; }
+
     [JsonPropertyName("stage")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Stage { get; set; }

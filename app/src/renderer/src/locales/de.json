@@ -2197,5 +2197,13 @@
     "setTo": "Stufe",
     "clear": "Stufe entfernen",
     "untriaged": "Keine Stufe gesetzt"
+  },
+  "targets": {
+    "column": "Ziel",
+    "none": "keins",
+    "progress": "{{words}} von {{target}} Wörtern",
+    "setScene": "Wortziel setzen...",
+    "setChapter": "Kapitel-Wortziel setzen...",
+    "prompt": "Wortziel (leer lassen für keins)"
   }
 }

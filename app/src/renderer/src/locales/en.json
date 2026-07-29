@@ -2189,5 +2189,13 @@
     "setTo": "Stage",
     "clear": "Clear stage",
     "untriaged": "No stage set"
+  },
+  "targets": {
+    "column": "Target",
+    "none": "none",
+    "progress": "{{words}} of {{target}} words",
+    "setScene": "Set word target...",
+    "setChapter": "Set chapter word target...",
+    "prompt": "Word target (leave empty for none)"
   }
 }

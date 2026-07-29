@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useManuscriptStore, type ManuscriptMode } from '../../stores/manuscriptStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
+import { useTargetStore } from '../../stores/targetStore'
 import { SceneBulkBar } from '../../shell/SceneBulkBar'
 
 interface ManuscriptWindow extends Window {
@@ -233,6 +234,11 @@ function Outliner(): React.JSX.Element {
   const setSynopsis = useManuscriptStore((s) => s.setSynopsis)
   const setPov = useManuscriptStore((s) => s.setPov)
   const selectedIds = useSelectionStore((s) => s.sceneIds)
+  const targets = useTargetStore((s) => s.targets)
+
+  useEffect(() => {
+    void useTargetStore.getState().load()
+  }, [])
 
   return (
     <div className="outliner">
@@ -242,6 +248,7 @@ function Outliner(): React.JSX.Element {
         <span>{t('sceneNotes.synopsisTitle')}</span>
         <span>{t('common.povWatermark')}</span>
         <span>{t('shell.words')}</span>
+        <span>{t('targets.column')}</span>
       </div>
       {sections.flatMap((section) =>
         section.scenes.map((scene) => (
@@ -273,6 +280,22 @@ function Outliner(): React.JSX.Element {
             <span className="outliner-cell outliner-words">
               {scene.wordCount.toLocaleString()}
             </span>
+            {/* Editable in place: the Outliner is where a writer sets targets
+                across a run of scenes, and a dialog per scene would be worse. */}
+            <input
+              className="outliner-input outliner-target"
+              type="number"
+              min={0}
+              defaultValue={
+                targets.find((tg) => tg.kind === 'scene' && tg.id === scene.sceneId)?.target ?? ''
+              }
+              placeholder={t('targets.none')}
+              onBlur={(e) =>
+                void useTargetStore
+                  .getState()
+                  .setScene(section.chapterGuid, scene.sceneId, Number(e.target.value) || null)
+              }
+            />
           </div>
         ))
       )}

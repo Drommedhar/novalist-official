@@ -115,6 +115,20 @@ Archiving removes a scene from the manuscript without deleting its text — usef
 - Click **ARCHIVE** at the bottom of the binder tree to show the list of archived scenes.
 - Click **Restore** next to an archived scene to bring it back into the manuscript (it is restored into the first chapter; drag it from there to where it belongs).
 
+## Word targets
+
+Novalist has always had two targets — a daily one and a whole-project one, both on the [Dashboard](11-dashboard.md). A target can now also sit on a single scene, a chapter, or an act.
+
+Set one by right-clicking the scene or chapter in the binder and choosing **Set word target**, or by typing straight into the **Target** column of the Manuscript view's [outliner](10-manuscript.md), which is the fastest way to set targets across a run of scenes. Leave it empty for no target.
+
+A scene with a target shows a small bar beside its word count in the binder, reading `written/target`. Past the target the bar stays full and turns green rather than overflowing.
+
+### Targets roll up
+
+A chapter with no target of its own uses **the sum of its scenes' targets**; an act with none uses the sum of its chapters'. So putting targets on a handful of scenes already tells you where the chapter stands — you do not have to restate the same number at three levels.
+
+Setting a target on the chapter itself overrides that sum, which is what you want when the chapter has a length in mind and the scenes inside it do not yet. Clearing it falls back to the scenes again.
+
 ## Scene stages
 
 A chapter has a **status** — one of five fixed values, described below. A scene has a **stage**, which is whatever you say it is.

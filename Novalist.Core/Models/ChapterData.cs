@@ -34,6 +34,17 @@ public class ChapterData
     /// <summary>
     /// The folder name on disk for this chapter (e.g. "01 - First Chapter").
     /// </summary>
+
+    /// <summary>
+    /// Word target for this chapter, or null for none. A target set here is the
+    /// writer's own intention, never derived - a chapter without one aggregates
+    /// its scenes' targets instead, so setting a few scene targets is enough to
+    /// see where the chapter stands.
+    /// </summary>
+    [JsonPropertyName("wordTarget")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? WordTarget { get; set; }
+
     [JsonPropertyName("folderName")]
     public string FolderName { get; set; } = string.Empty;
 }

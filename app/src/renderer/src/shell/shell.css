@@ -1925,7 +1925,7 @@
 
 .outliner-row {
   display: grid;
-  grid-template-columns: 180px 160px 1fr 100px 70px;
+  grid-template-columns: 180px 160px 1fr 100px 70px 80px;
   gap: var(--nl-space-md);
   align-items: center;
   padding: var(--nl-space-tighter) 0;
@@ -3132,4 +3132,35 @@
   height: 7px;
   margin-right: var(--nl-space-tightest);
   width: 7px;
+}
+
+.outliner-target {
+  text-align: right;
+}
+
+/* The target bar sits behind the count rather than beside it, so a row with a
+   target is no taller than one without. */
+.binder-scene-target {
+  align-items: center;
+  display: inline-flex;
+  gap: var(--nl-space-tightest);
+}
+
+.binder-target-track {
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-pill);
+  display: inline-block;
+  height: 3px;
+  overflow: hidden;
+  width: 28px;
+}
+
+.binder-target-fill {
+  background: var(--nl-accent);
+  display: block;
+  height: 100%;
+}
+
+.binder-target-fill.over {
+  background: var(--nl-success);
 }

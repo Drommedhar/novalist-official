@@ -14,6 +14,7 @@ import { SmartListsPanel } from './SmartListsPanel'
 import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { handleSceneClick, useSelectionStore } from '../stores/selectionStore'
 import { useStageStore } from '../stores/stageStore'
+import { useTargetStore } from '../stores/targetStore'
 import { SceneBulkBar } from './SceneBulkBar'
 import { PanelResizer } from './PanelResizer'
 
@@ -33,6 +34,9 @@ type PendingAction =
   | { kind: 'deleteScene'; chapterGuid: string; sceneId: string; title: string }
   | { kind: 'setDate'; chapterGuid: string; sceneId: string }
   | { kind: 'setAct'; chapterGuid: string; current: string }
+  | { kind: 'sceneTarget'; chapterGuid: string; sceneId: string; current: string }
+  | { kind: 'chapterTarget'; chapterGuid: string; current: string }
+  | { kind: 'actTarget'; actName: string; current: string }
 
 interface ArchivedScene {
   id: string
@@ -51,10 +55,16 @@ export function Binder(): React.JSX.Element {
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const stages = useStageStore((s) => s.stages)
 
+  const targets = useTargetStore((s) => s.targets)
+
   // Loaded per project, not per row: the binder paints a dot for every scene.
   useEffect(() => {
-    if (projectPath) void useStageStore.getState().load()
+    if (projectPath) {
+      void useStageStore.getState().load()
+      void useTargetStore.getState().load()
+    }
   }, [projectPath])
+
 
   // Poll which scenes have uncommitted Git changes so their rows can be marked
   // in the explorer (matches the desktop change markers). Quiet no-op outside a repo.
@@ -76,6 +86,12 @@ export function Binder(): React.JSX.Element {
     }
   }, [projectPath])
   const chapters = useProjectStore((s) => s.chapters)
+
+  // Word counts move on every save, so the bars follow the chapter list rather
+  // than only refreshing when a target is edited.
+  useEffect(() => {
+    if (projectPath) void useTargetStore.getState().load()
+  }, [chapters, projectPath])
 
   // A deleted, archived or moved-away scene must leave the selection with it,
   // otherwise the bulk bar keeps offering to act on something that is gone.
@@ -195,6 +211,16 @@ export function Binder(): React.JSX.Element {
         ...sceneMoves,
         ...stageItems,
         {
+          label: t('targets.setScene'),
+          onClick: () =>
+            setPending({
+              kind: 'sceneTarget',
+              chapterGuid: chapter.guid,
+              sceneId: scene.id,
+              current: String(useTargetStore.getState().find('scene', scene.id)?.target ?? '')
+            })
+        },
+        {
           label: t('explorer.contextArchive'),
           onClick: () => {
             void rpc
@@ -274,6 +300,37 @@ export function Binder(): React.JSX.Element {
         onClick: () =>
           setPending({ kind: 'setAct', chapterGuid: chapter.guid, current: chapter.act })
       },
+      {
+        label: t('targets.setChapter'),
+        onClick: () =>
+          setPending({
+            kind: 'chapterTarget',
+            chapterGuid: chapter.guid,
+            current: String(
+              useTargetStore.getState().find('chapter', chapter.guid)?.explicit
+                ? (useTargetStore.getState().find('chapter', chapter.guid)?.target ?? '')
+                : ''
+            )
+          })
+      },
+      // Only offered where an act exists to set it on.
+      ...(chapter.act
+        ? [
+            {
+              label: `${t('targets.setChapter')} (${chapter.act})`,
+              onClick: () =>
+                setPending({
+                  kind: 'actTarget',
+                  actName: chapter.act,
+                  current: String(
+                    useTargetStore.getState().find('act', chapter.act)?.explicit
+                      ? (useTargetStore.getState().find('act', chapter.act)?.target ?? '')
+                      : ''
+                  )
+                })
+            }
+          ]
+        : []),
       {
         label: t('explorer.renameChapter'),
         onClick: () => setPending({ kind: 'editChapter', chapterGuid: chapter.guid })
@@ -437,9 +494,36 @@ export function Binder(): React.JSX.Element {
                     />
                   )}
                   <span className="binder-scene-title">{scene.title}</span>
-                  <span className="binder-scene-words">
-                    {scene.wordCount > 0 ? scene.wordCount.toLocaleString() : ''}
-                  </span>
+                  {(() => {
+                    const target = targets.find((tg) => tg.kind === 'scene' && tg.id === scene.id)
+                    if (!target) {
+                      return (
+                        <span className="binder-scene-words">
+                          {scene.wordCount > 0 ? scene.wordCount.toLocaleString() : ''}
+                        </span>
+                      )
+                    }
+                    // Past the target the bar stays full and the count says so,
+                    // rather than the bar overflowing its track.
+                    const pct = Math.min(100, Math.round((target.words / target.target) * 100))
+                    return (
+                      <span
+                        className="binder-scene-words binder-scene-target"
+                        title={t('targets.progress', {
+                          words: target.words.toLocaleString(),
+                          target: target.target.toLocaleString()
+                        })}
+                      >
+                        <span className="binder-target-track">
+                          <span
+                            className={`binder-target-fill${target.overrun > 0 ? ' over' : ''}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </span>
+                        {target.words.toLocaleString()}/{target.target.toLocaleString()}
+                      </span>
+                    )
+                  })()}
                 </button>
                 {isMobile && (
                   <button
@@ -525,6 +609,44 @@ export function Binder(): React.JSX.Element {
           chapterGuid={pending.chapterGuid}
           sceneId={pending.sceneId}
           onClose={() => setPending(null)}
+        />
+      )}
+      {pending?.kind === 'sceneTarget' && (
+        <InputDialog
+          title={t('targets.prompt')}
+          placeholder={pending.current}
+          onCancel={() => setPending(null)}
+          onSubmit={(value) => {
+            const p = pending
+            setPending(null)
+            void useTargetStore
+              .getState()
+              .setScene(p.chapterGuid, p.sceneId, Number(value) || null)
+          }}
+        />
+      )}
+      {pending?.kind === 'chapterTarget' && (
+        <InputDialog
+          title={t('targets.prompt')}
+          placeholder={pending.current}
+          onCancel={() => setPending(null)}
+          onSubmit={(value) => {
+            const p = pending
+            setPending(null)
+            void useTargetStore.getState().setChapter(p.chapterGuid, Number(value) || null)
+          }}
+        />
+      )}
+      {pending?.kind === 'actTarget' && (
+        <InputDialog
+          title={t('targets.prompt')}
+          placeholder={pending.current}
+          onCancel={() => setPending(null)}
+          onSubmit={(value) => {
+            const p = pending
+            setPending(null)
+            void useTargetStore.getState().setAct(p.actName, Number(value) || null)
+          }}
         />
       )}
       {pending?.kind === 'setAct' && (
