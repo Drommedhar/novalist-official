@@ -20,6 +20,10 @@ export interface EditorWindow extends Window {
     scrollbarThumbActive?: string
   ): void
   setFont(family: string, size: number): void
+  /** Tints each sentence by how hard it is to read. */
+  setReadabilityEnabled(enabled: boolean): void
+  /** Graded sentences plus the band colours, as JSON. */
+  setReadability(json: string): void
   /** Speaks the scene, from the caret's paragraph or from the top. */
   startReadAloud(fromCaret: boolean, rate: number, voiceUri: string | null): void
   stopReadAloud(): void

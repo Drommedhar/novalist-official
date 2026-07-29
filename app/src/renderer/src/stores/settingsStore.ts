@@ -11,6 +11,7 @@ export interface EffectiveSettings {
   editorFontFamily: string
   editorFontSize: number
   editorLineHeight: number
+  readabilityHighlighting: boolean
   readAloudRate: number
   readAloudVoiceUri: string | null
   editorLetterSpacing: number

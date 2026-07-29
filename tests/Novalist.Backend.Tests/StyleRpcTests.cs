@@ -149,4 +149,22 @@ public sealed class StyleRpcTests : IDisposable
             (await _rpc.SceneAsync(chapter.Guid, scene.Id)).Findings,
             f => f.Key == "watchWords");
     }
+
+    [Fact]
+    public void SentenceReadability_GradesEachSentenceAtItsOwnOffset()
+    {
+        const string text = "The cat sat on the mat. Notwithstanding the aforementioned "
+            + "considerations, the extraordinarily convoluted bureaucratic procedures "
+            + "necessitated substantial reconsideration of every prior determination.";
+
+        var graded = _rpc.SentenceReadabilityAsync(text);
+
+        Assert.Equal(2, graded.Length);
+        Assert.Equal("The cat sat on the mat.", text.Substring(graded[0].Offset, graded[0].Length));
+        Assert.NotEqual(graded[0].Level, graded[1].Level);
+    }
+
+    [Fact]
+    public void SentenceReadability_NoText_IsEmpty()
+        => Assert.Empty(_rpc.SentenceReadabilityAsync(null));
 }

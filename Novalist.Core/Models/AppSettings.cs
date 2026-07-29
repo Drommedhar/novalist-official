@@ -36,6 +36,14 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("editorLineHeight")]
     public double EditorLineHeight { get; set; } = 1.7;
 
+    /// <summary>
+    /// Tints each sentence in the editor by how hard it is to read. Off by
+    /// default: it is a revision tool, and a coloured page while drafting is
+    /// the opposite of what drafting needs.
+    /// </summary>
+    [JsonPropertyName("readabilityHighlighting")]
+    public bool ReadabilityHighlighting { get; set; }
+
     /// <summary>How fast read-aloud speaks, as a multiple of the voice's own pace.</summary>
     [JsonPropertyName("readAloudRate")]
     public double ReadAloudRate { get; set; } = 1;

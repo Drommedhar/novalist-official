@@ -2300,7 +2300,8 @@
     "justify": "两端对齐",
     "pageView": "页面视图",
     "readAloud": "朗读",
-    "readAloudStop": "停止朗读"
+    "readAloudStop": "停止朗读",
+    "readability": "标记难读的句子"
   },
   "aiPolicy": {
     "title": "AI 可以看到该条目的哪些内容",

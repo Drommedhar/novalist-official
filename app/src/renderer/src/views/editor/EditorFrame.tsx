@@ -23,6 +23,22 @@ import { rpc } from '../../rpc/client'
 import { useEntityPeek, type PeekScope } from './PeekCard'
 import './editor.css'
 
+/**
+ * The two hard bands of the readability ramp, as a wash rather than a fill -
+ * the words still have to be readable through it. Read off the design tokens
+ * because the editor is a separate document with no access to them, which also
+ * means a theme that restates the ramp is honoured for free.
+ */
+function hardBandColors(): Record<string, string> {
+  const style = getComputedStyle(document.documentElement)
+  const wash = (token: string, percent: number): string =>
+    `color-mix(in srgb, ${style.getPropertyValue(token).trim()} ${percent}%, transparent)`
+  return {
+    Difficult: wash('--nl-readability-difficult', 22),
+    VeryDifficult: wash('--nl-readability-very-difficult', 30)
+  }
+}
+
 function pushEditorSettings(editor: EditorWindow, initial = false): void {
   const view = useSettingsStore.getState().view
   if (!view) return
@@ -30,6 +46,9 @@ function pushEditorSettings(editor: EditorWindow, initial = false): void {
   editor.setFont(eff.editorFontFamily, eff.editorFontSize)
   editor.setReadingComfort(
     eff.editorLineHeight, eff.editorLetterSpacing, eff.editorParagraphSpacing)
+  if (!initial || eff.readabilityHighlighting) {
+    editor.setReadabilityEnabled(eff.readabilityHighlighting)
+  }
   // Typewriter scroll makes no sense on a phone, so force it off on mobile even
   // if a (desktop) project has it enabled - the setting is also hidden there.
   const typewriter = window.novalist.isMobile === true ? false : eff.typewriterScrollEnabled
@@ -766,6 +785,26 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
         }
         case 'addToDictionary': {
           void rpc.request<boolean>('grammar/addToDictionary', [String(message.word ?? '')])
+          break
+        }
+        case 'readabilityRequest': {
+          void rpc
+            .request<{ level: string }[]>('style/sentenceReadability', [
+              String(message.plainText ?? '')
+            ])
+            .then((sentences) => {
+              // Only the two hard bands are painted. Tinting every sentence
+              // turns the page into a heat map you stop reading; what a writer
+              // needs is the handful of sentences that fight the reader.
+              const colors = hardBandColors()
+              editorRef.current?.setReadability(
+                JSON.stringify({
+                  sentences: sentences.filter((s) => s.level in colors),
+                  colors
+                })
+              )
+            })
+            .catch(() => editorRef.current?.setReadability('{"sentences":[]}'))
           break
         }
         case 'readAloudStateChanged': {

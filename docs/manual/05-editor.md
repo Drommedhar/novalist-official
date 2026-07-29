@@ -40,6 +40,7 @@ The strip above the page:
 - **Bold**, **Italic**, **Underline** — toggle inline formatting on the selection.
 - **Bulleted list** and **Numbered list** — turn the selected paragraphs into a list, or turn a list back into paragraphs.
 - **Align left / center / right / justify** — set paragraph alignment.
+- **Mark hard-to-read sentences** (gauge icon, right) — tints the sentences that fight the reader. See [Readability marking](#readability-marking) below.
 - **Read aloud** (speaker icon, right) — reads the scene back to you from the caret's paragraph. See [Read aloud](#read-aloud) below.
 - **Page view toggle** (book icon, far right) — switches the editor between a plain writing surface and a printed-book-style page with paper background, margins, and shadow. This is the same setting as **Page View** in [Settings](23-settings.md) → Editor.
 
@@ -201,6 +202,17 @@ While a scene is open, the left of the status bar shows live figures for that sc
 - The **scene title**.
 
 The centre of the status bar shows whole-project totals (words, chapters, scenes); click it for a project overview popover. The right side shows daily and project goal progress when goals are set (see [Dashboard](11-dashboard.md)).
+
+## Readability marking
+
+The gauge button on the toolbar tints each sentence Novalist judges hard to read: a light wash for **difficult**, a stronger one for **very difficult**. Everything easier is left alone on purpose — tinting every sentence produces a heat map you stop seeing, and what you actually want is the handful of sentences that fight the reader.
+
+- Each sentence is graded on its own, with the same readability method the [style report](36-style-report.md) uses for the scene, chosen from your writing language.
+- Sentences under four words are never marked. A two-word line is a beat or a piece of dialogue, not a readability signal.
+- The marking updates as you type, shortly after you stop.
+- Nothing is written to the scene: the tint is painted over the text, so a marked-up chapter is not a modified chapter.
+
+The toggle is remembered, and can be pinned per project like the rest of the editor settings. It is a revision tool — a coloured page while drafting is the opposite of what drafting needs — so it starts off.
 
 ## Read aloud
 

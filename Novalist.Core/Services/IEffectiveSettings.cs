@@ -18,6 +18,7 @@ public interface IEffectiveSettings
     string EditorFontFamily { get; }
     double EditorFontSize { get; }
     double EditorLineHeight { get; }
+    bool ReadabilityHighlighting { get; }
     double ReadAloudRate { get; }
     string? ReadAloudVoiceUri { get; }
     double EditorLetterSpacing { get; }

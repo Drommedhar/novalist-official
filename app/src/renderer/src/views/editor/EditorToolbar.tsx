@@ -5,6 +5,7 @@ import {
   AlignRight,
   Bold,
   BookOpen,
+  Gauge,
   Italic,
   List,
   ListOrdered,
@@ -78,6 +79,9 @@ export function EditorToolbar({
   ]
 
   const pageView = useSettingsStore((s) => s.view?.effective.pageViewEnabled ?? false)
+  const readability = useSettingsStore(
+    (s) => s.view?.effective.readabilityHighlighting ?? false
+  )
 
   return (
     <div className="editor-toolbar">
@@ -104,6 +108,17 @@ export function EditorToolbar({
         </button>
       ))}
       <span className="toolbar-spacer" />
+      <button
+        className={`editor-toolbar-button${readability ? ' active' : ''}`}
+        title={t('blockStyle.readability')}
+        onClick={() =>
+          void useSettingsStore
+            .getState()
+            .update('global', { readabilityHighlighting: !readability })
+        }
+      >
+        <Gauge size={15} strokeWidth={1.75} />
+      </button>
       <button
         className={`editor-toolbar-button${speaking ? ' active' : ''}`}
         title={t(speaking ? 'blockStyle.readAloudStop' : 'blockStyle.readAloud')}

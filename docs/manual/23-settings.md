@@ -55,6 +55,7 @@ On macOS 26 and later the window uses the native Liquid Glass material; older ma
 
 All three apply to the scene editor, to Manuscript mode, and to the Expose.
 
+- **Mark hard-to-read sentences** — tints difficult and very difficult sentences in the editor. Toggled from the gauge button on the editor toolbar; the setting is where it is remembered. See [Readability marking](05-editor.md#readability-marking).
 - **Read-aloud speed** — how fast the speaker button reads the scene back (0.5-2). Defaults to 1.
 - **Read-aloud voice** — which installed system voice to use. The default, **Match the writing language**, asks for a voice in the language the scene is written in.
 

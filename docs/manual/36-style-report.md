@@ -52,6 +52,10 @@ You can add or correct a language yourself by dropping an `analysis.<tag>.json` 
 
 These are prompts to look again, not rules. A high adverb count in a first draft is information, not an error, and some of the best sentences in your book will trip several reports at once. The numbers are most useful compared against yourself over time — the same chapter before and after a revision pass — rather than against an absolute target.
 
+## Sentence by sentence, in the editor
+
+The report grades a whole scene. For the same judgement one sentence at a time, turn on **Mark hard-to-read sentences** in the editor toolbar: it tints the difficult and very difficult sentences in place, using the same readability method. See [Readability marking](05-editor.md#readability-marking).
+
 ## Where to go next
 
 - [Editor](05-editor.md) — grammar and spelling as you type, which is a different job from these reports.

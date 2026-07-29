@@ -142,4 +142,56 @@ public class TextStatisticsTests
         var r = TextStatistics.Calculate(complex, "en");
         Assert.InRange(r.Readability.Score, 0, 100);
     }
+
+    [Fact]
+    public void GradeSentences_PositionsEachSentenceInTheTextAsGiven()
+    {
+        const string text = "The cat sat on the mat. Notwithstanding the aforementioned "
+            + "considerations, the extraordinarily convoluted bureaucratic procedures "
+            + "necessitated substantial reconsideration of every prior determination.";
+
+        var graded = TextStatistics.GradeSentences(text, "en");
+
+        Assert.Equal(2, graded.Count);
+        Assert.Equal("The cat sat on the mat.", text.Substring(graded[0].Offset, graded[0].Length));
+        // The second is the harder of the two, whatever the exact numbers are.
+        Assert.True(graded[1].Score < graded[0].Score);
+    }
+
+    [Fact]
+    public void GradeSentences_SkipsSentencesTooShortToJudge()
+    {
+        var graded = TextStatistics.GradeSentences("Yes. No. Stop it.", "en");
+        Assert.Empty(graded);
+    }
+
+    [Fact]
+    public void GradeSentences_KeepsATailWithNoTerminator()
+    {
+        const string text = "She left. He stayed behind and watched her go";
+        var graded = TextStatistics.GradeSentences(text, "en");
+        Assert.Equal("He stayed behind and watched her go",
+            text.Substring(graded[^1].Offset, graded[^1].Length));
+    }
+
+    [Fact]
+    public void GradeSentences_EndsASentenceAfterItsClosingQuote()
+    {
+        const string text = "“Stop that at once!” She turned away from him.";
+        var graded = TextStatistics.GradeSentences(text, "en");
+        Assert.Equal("“Stop that at once!”",
+            text.Substring(graded[0].Offset, graded[0].Length));
+    }
+
+    [Fact]
+    public void GradeSentences_SplitsOnLineBreaksSoAParagraphIsNotOneSentence()
+    {
+        const string text = "The rain had not let up all morning\nHe waited by the window";
+        var graded = TextStatistics.GradeSentences(text, "en");
+        Assert.Equal(2, graded.Count);
+    }
+
+    [Fact]
+    public void GradeSentences_EmptyText_IsEmpty()
+        => Assert.Empty(TextStatistics.GradeSentences("   ", "en"));
 }

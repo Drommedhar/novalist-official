@@ -707,6 +707,113 @@ let programmaticScrollUntil = 0;
 
 // ── C#→JS Bridge ────────────────────────────────────────────────
 
+// ── Readability marking ─────────────────────────────────────────
+// A sentence at a time, tinted by how hard it is to read. Painted with the
+// Custom Highlight API for the same reason read-aloud is: a report about the
+// prose must never edit the prose.
+
+let readabilityEnabled = false;
+let readabilityTimer = null;
+const READABILITY_BANDS = ['VeryEasy', 'Easy', 'Moderate', 'Difficult', 'VeryDifficult'];
+const readabilityHighlights = {};
+if (typeof Highlight === 'function' && typeof CSS !== 'undefined' && CSS.highlights) {
+    READABILITY_BANDS.forEach(function (band) {
+        readabilityHighlights[band] = new Highlight();
+        CSS.highlights.set('nv-read-' + band, readabilityHighlights[band]);
+    });
+}
+
+function setReadabilityEnabled(enabled) {
+    readabilityEnabled = !!enabled;
+    if (!readabilityEnabled) {
+        clearReadability();
+        return;
+    }
+    requestReadability(0);
+}
+
+function clearReadability() {
+    READABILITY_BANDS.forEach(function (band) {
+        if (readabilityHighlights[band]) readabilityHighlights[band].clear();
+    });
+}
+
+/**
+ * Asks the host to grade the text. Debounced, because the grading walks every
+ * sentence and the writer is usually still typing the one they are on.
+ */
+function requestReadability(delay) {
+    if (!readabilityEnabled) return;
+    if (readabilityTimer) clearTimeout(readabilityTimer);
+    readabilityTimer = setTimeout(function () {
+        const map = buildGrammarPlainTextMap();
+        sendMessage({ type: 'readabilityRequest', plainText: map.plainText });
+    }, delay === 0 ? 0 : 700);
+}
+
+/**
+ * Paints the graded sentences. The payload carries the band colours too: this
+ * document has no access to the shell's design tokens, and hardcoding five
+ * colours here would put them outside the token scale.
+ */
+function setReadability(json) {
+    clearReadability();
+    if (!readabilityEnabled) return;
+    let payload;
+    try { payload = JSON.parse(json); } catch (_) { return; }
+    if (!payload || !payload.sentences) return;
+
+    if (payload.colors) {
+        const rules = READABILITY_BANDS
+            .filter(function (band) { return payload.colors[band]; })
+            .map(function (band) {
+                return '::highlight(nv-read-' + band + ') { background-color: '
+                    + payload.colors[band] + '; }';
+            })
+            .join('\n');
+        let sheet = document.getElementById('novalist-readability-colors');
+        if (!sheet) {
+            sheet = document.createElement('style');
+            sheet.id = 'novalist-readability-colors';
+            document.head.appendChild(sheet);
+        }
+        sheet.textContent = rules;
+    }
+
+    const map = buildGrammarPlainTextMap();
+    payload.sentences.forEach(function (sentence) {
+        const highlight = readabilityHighlights[sentence.level];
+        if (!highlight) return;
+        const range = rangeForPlainTextSpan(map.textNodes, sentence.offset, sentence.length);
+        if (range) highlight.add(range);
+    });
+}
+
+/** A DOM range covering [offset, offset+length) of the flattened plain text. */
+function rangeForPlainTextSpan(textNodes, offset, length) {
+    const end = offset + length;
+    let from = null;
+    let to = null;
+    for (let i = 0; i < textNodes.length; i++) {
+        const entry = textNodes[i];
+        if (!from && offset >= entry.start && offset < entry.end) {
+            from = { node: entry.node, offset: offset - entry.start };
+        }
+        if (end > entry.start && end <= entry.end) {
+            to = { node: entry.node, offset: end - entry.start };
+        }
+    }
+    if (!from || !to) return null;
+    const range = document.createRange();
+    try {
+        range.setStart(from.node, from.offset);
+        range.setEnd(to.node, to.offset);
+    } catch (_) {
+        return null;
+    }
+    return range;
+}
+
 // ── Read aloud ──────────────────────────────────────────────────
 // Sentence by sentence, so the highlight has something to sit on and so
 // stopping lands between sentences rather than mid-word.
@@ -867,6 +974,10 @@ function setContent(html) {
 
     // Trigger grammar check for the new content
     requestGrammarCheck();
+    // A different scene needs its own grading; the old marks belong to prose
+    // that is no longer on screen.
+    clearReadability();
+    requestReadability(0);
 
     // If page view is on, paginate synchronously before paint so users never
     // see the unpaginated layout flash.
@@ -2361,6 +2472,7 @@ editor.addEventListener('input', () => {
     if (isSettingContent) return;
     // Typing over a passage being read back is the writer taking over.
     if (readAloudActive) stopReadAloud();
+    requestReadability();
 
     // Debounced dialogue correction — runs after typing pauses
     if (dialogueCorrectionConfig) {

@@ -2258,7 +2258,8 @@
     "justify": "Justify",
     "pageView": "Page view",
     "readAloud": "Read aloud",
-    "readAloudStop": "Stop reading"
+    "readAloudStop": "Stop reading",
+    "readability": "Mark hard-to-read sentences"
   },
   "aiPolicy": {
     "title": "What AI may see of this entry",

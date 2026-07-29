@@ -32,9 +32,91 @@ public enum ReadabilityLevel
     VeryDifficult
 }
 
+/// <summary>
+/// One sentence graded on its own, positioned in the text it came from so a
+/// caller can decorate it without searching for it again.
+/// </summary>
+public sealed class SentenceReadability
+{
+    public int Offset { get; init; }
+    public int Length { get; init; }
+    public int Score { get; init; }
+    public ReadabilityLevel Level { get; init; } = ReadabilityLevel.Moderate;
+}
+
 public static partial class TextStatistics
 {
     private const int DefaultWordsPerMinute = 200;
+
+    /// <summary>
+    /// Grades each sentence separately, keeping its offset in the text exactly
+    /// as passed in - no normalising, because the caller decorates the same
+    /// string and a collapsed space would shift every mark after it.
+    /// </summary>
+    /// <param name="minimumWords">
+    /// Sentences shorter than this are skipped. A two-word line is dialogue or
+    /// a beat, not a readability signal, and grading "Yes." as very difficult
+    /// would teach the writer to ignore the whole layer.
+    /// </param>
+    public static List<SentenceReadability> GradeSentences(
+        string text, string language, int minimumWords = 4)
+    {
+        var results = new List<SentenceReadability>();
+        if (string.IsNullOrWhiteSpace(text)) return results;
+
+        foreach (var (offset, length) in SentenceSpans(text))
+        {
+            var sentence = text.Substring(offset, length);
+            var stats = Calculate(sentence, language);
+            if (stats.WordCount < minimumWords) continue;
+            results.Add(new SentenceReadability
+            {
+                Offset = offset,
+                Length = length,
+                Score = stats.Readability.Score,
+                Level = stats.Readability.Level
+            });
+        }
+        return results;
+    }
+
+    /// <summary>
+    /// Sentence spans over the raw text, trimmed of surrounding whitespace. The
+    /// tail after the last terminator counts as a sentence: a paragraph that
+    /// ends without one is still something the writer wrote.
+    /// </summary>
+    private static IEnumerable<(int Offset, int Length)> SentenceSpans(string text)
+    {
+        var start = 0;
+        for (var i = 0; i < text.Length; i++)
+        {
+            var c = text[i];
+            if (c != '.' && c != '!' && c != '?' && c != '…' && c != '\n') continue;
+
+            // Run past a train of terminators and the quote marks closing them,
+            // so "he said. " and "'Stop!'" each end where they read as ending.
+            var end = i + 1;
+            while (end < text.Length && (text[end] == '.' || text[end] == '!'
+                || text[end] == '?' || text[end] == '…' || text[end] == '"'
+                || text[end] == '\'' || text[end] == '”' || text[end] == '’'
+                || text[end] == '»')) end++;
+
+            var span = Trimmed(text, start, end);
+            if (span.Length > 0) yield return span;
+            start = end;
+            i = end - 1;
+        }
+
+        var tail = Trimmed(text, start, text.Length);
+        if (tail.Length > 0) yield return tail;
+    }
+
+    private static (int Offset, int Length) Trimmed(string text, int start, int end)
+    {
+        while (start < end && char.IsWhiteSpace(text[start])) start++;
+        while (end > start && char.IsWhiteSpace(text[end - 1])) end--;
+        return (start, end - start);
+    }
 
     public static TextStatisticsResult Calculate(string text, string language)
     {

@@ -16,6 +16,18 @@ public sealed class StyleRpc
 
     private string Language => _workspace.Settings.Effective.AutoReplacementLanguage;
 
+    /// <summary>
+    /// Grades every sentence in the text the editor is showing. Offsets are
+    /// into the string as passed, because the editor decorates that same string
+    /// and any normalising here would shift every mark after it.
+    /// </summary>
+    [JsonRpcMethod("style/sentenceReadability")]
+    public SentenceReadabilityDto[] SentenceReadabilityAsync(string? text)
+        => [.. TextStatistics
+            .GradeSentences(text ?? string.Empty, Language)
+            .Select(s => new SentenceReadabilityDto(
+                s.Offset, s.Length, s.Score, s.Level.ToString()))];
+
     /// <summary>The writer's own flagged words, counted alongside the bundled checks.</summary>
     private IReadOnlyCollection<string> WatchWords
         => _workspace.Settings.Settings.StyleWatchWords;
@@ -95,6 +107,9 @@ public sealed class StyleRpc
 }
 
 public sealed record StyleHitDto(string Text, int Offset, string Context);
+
+/// <summary>One graded sentence: where it is, how it scored, and which band.</summary>
+public sealed record SentenceReadabilityDto(int Offset, int Length, int Score, string Level);
 
 public sealed record StyleFindingDto(
     string Key, int Count, double Per1000Words, bool Supported, StyleHitDto[] Examples);

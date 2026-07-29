@@ -2266,7 +2266,8 @@
     "justify": "Blocksatz",
     "pageView": "Seitenansicht",
     "readAloud": "Vorlesen",
-    "readAloudStop": "Vorlesen beenden"
+    "readAloudStop": "Vorlesen beenden",
+    "readability": "Schwer lesbare Sätze markieren"
   },
   "aiPolicy": {
     "title": "Was die KI von diesem Eintrag sehen darf",
