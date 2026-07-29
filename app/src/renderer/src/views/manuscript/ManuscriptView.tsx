@@ -240,6 +240,11 @@ function Corkboard(): React.JSX.Element {
   const sections = useManuscriptStore((s) => s.sections)
   const setSynopsis = useManuscriptStore((s) => s.setSynopsis)
   const selectedIds = useSelectionStore((s) => s.sceneIds)
+  const chapters = useProjectStore((s) => s.chapters)
+
+  /** The colour of whatever label a scene carries, if any. */
+  const labelColor = (sceneId: string): string | undefined =>
+    chapters.flatMap((c) => c.scenes).find((s) => s.id === sceneId)?.labelColor ?? undefined
 
   return (
     <div className="corkboard">
@@ -251,6 +256,13 @@ function Corkboard(): React.JSX.Element {
               <div
                 key={scene.sceneId}
                 className={`corkboard-card${selectedIds.includes(scene.sceneId) ? ' selected' : ''}`}
+                // A label the writer named, drawn as the edge of the card. The
+                // colour has been on the model for years with nothing reading it.
+                style={
+                  labelColor(scene.sceneId)
+                    ? { borderLeft: `3px solid ${labelColor(scene.sceneId)}` }
+                    : undefined
+                }
               >
                 {/* The title is the selection handle: the synopsis box under it
                     must stay a plain text field, modifier keys and all. */}

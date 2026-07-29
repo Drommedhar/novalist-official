@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronRight, MoreHorizontal, Plus } from 'lucide-react'
-import { useProjectStore } from '../stores/projectStore'
+import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
 import { MobileBookDraftBar } from './MobileBookDraftBar'
@@ -57,12 +57,17 @@ export function Binder(): React.JSX.Element {
   const stages = useStageStore((s) => s.stages)
 
   const targets = useTargetStore((s) => s.targets)
+  const [labelList, setLabelList] = useState<{ key: string; label: string; color: string }[]>([])
 
   // Loaded per project, not per row: the binder paints a dot for every scene.
   useEffect(() => {
     if (projectPath) {
       void useStageStore.getState().load()
       void useTargetStore.getState().load()
+      void rpc
+        .request<{ key: string; label: string; color: string }[]>('labels/list')
+        .then(setLabelList)
+        .catch(() => setLabelList([]))
     }
   }, [projectPath])
 
@@ -194,6 +199,7 @@ export function Binder(): React.JSX.Element {
       // Right-clicking inside a selection acts on all of it. Right-clicking
       // outside one replaced the selection when the menu opened, so this is
       // always the scenes the writer just pointed at.
+      const labels = labelList
       const selection = useSelectionStore.getState().sceneIds
       const targets: { chapterGuid: string; sceneId: string }[] =
         selection.length > 1 && selection.includes(scene.id)
@@ -207,6 +213,38 @@ export function Binder(): React.JSX.Element {
       /** Appends "(N scenes)" so a menu row never silently does more than it says. */
       const scoped = (label: string): string =>
         targets.length > 1 ? `${label} (${t('bulk.scopeCount', { count: targets.length })})` : label
+
+      // One entry per label the book defines, plus a way back to none.
+      const labelItems: ContextMenuItem[] = [
+        ...labels.map((label) => ({
+          label: scoped(`${t('labels.set')}: ${label.label}`),
+          onClick: () => {
+            void (async () => {
+              for (const target of targets)
+                await rpc.request('labels/setScene', [target.sceneId, label.key])
+              useProjectStore
+                .getState()
+                .applyState(await rpc.request<ProjectStateDto>('project/getState'))
+            })()
+          }
+        })),
+        ...(labels.length > 0
+          ? [
+              {
+                label: scoped(t('labels.none')),
+                onClick: () => {
+                  void (async () => {
+                    for (const target of targets)
+                      await rpc.request('labels/setScene', [target.sceneId, null])
+                    useProjectStore
+                      .getState()
+                      .applyState(await rpc.request<ProjectStateDto>('project/getState'))
+                  })()
+                }
+              }
+            ]
+          : [])
+      ]
 
       // One entry per stage, plus a way back to untriaged. A submenu would be
       // better, but ContextMenu is a flat list and prefixing keeps it readable.
@@ -241,6 +279,7 @@ export function Binder(): React.JSX.Element {
 
       return [
         ...sceneMoves,
+        ...labelItems,
         ...stageItems,
         // Only where there is a next scene to merge into this one.
         ...(sceneIndex < chapter.scenes.length - 1

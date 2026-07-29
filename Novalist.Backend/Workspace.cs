@@ -223,6 +223,19 @@ public sealed partial class Workspace : IDisposable
             chapters);
     }
 
+    /// <summary>
+    /// The colour a scene's label paints it, or the bare colour a project
+    /// saved before labels had names still carries. A label key whose label is
+    /// gone paints nothing, which reads as no label rather than as a mistake.
+    /// </summary>
+    private string? ResolveLabelColor(Core.Models.SceneData scene)
+    {
+        if (scene.LabelKey == null) return scene.LabelColor;
+        return (Projects.ActiveBook?.SceneLabels ?? [])
+            .FirstOrDefault(l => string.Equals(l.Key, scene.LabelKey, StringComparison.OrdinalIgnoreCase))
+            ?.Color;
+    }
+
     private SceneDto[] ScenesOf(string chapterGuid)
     {
         var manifest = Projects.ScenesManifest;
@@ -234,7 +247,7 @@ public sealed partial class Workspace : IDisposable
             .Where(s => s.ArchivedAt == null)
             .OrderBy(s => s.Order)
             .Select(s => new SceneDto(
-                s.Id, s.Title, s.Order, s.WordCount, s.LabelColor, s.IsFavorite, s.Synopsis,
+                s.Id, s.Title, s.Order, s.WordCount, ResolveLabelColor(s), s.IsFavorite, s.Synopsis,
                 s.Stage))
             .ToArray();
     }

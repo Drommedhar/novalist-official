@@ -114,6 +114,13 @@ public class BookData
     public List<SceneStage> SceneStages { get; set; } = [];
 
     /// <summary>
+    /// Labels a scene in this book can carry. Per book, like the stages: what
+    /// is worth flagging in a thriller and in a collection differ.
+    /// </summary>
+    [JsonPropertyName("sceneLabels")]
+    public List<SceneLabel> SceneLabels { get; set; } = [];
+
+    /// <summary>
     /// Fields the writer added to every scene or chapter of this book. Per book
     /// for the same reason the stages are: the things worth tracking differ
     /// between a thriller and a short-story collection.

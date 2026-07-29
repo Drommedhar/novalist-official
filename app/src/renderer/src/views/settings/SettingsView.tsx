@@ -17,6 +17,7 @@ import { SpellCheckCard } from './SpellCheckCard'
 import { LanguagePacksCard } from './LanguagePacksCard'
 import { SceneStagesCard } from './SceneStagesCard'
 import { ManuscriptPropertiesCard } from './ManuscriptPropertiesCard'
+import { SceneLabelsCard } from './SceneLabelsCard'
 import './settings.css'
 
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
@@ -798,6 +799,12 @@ export function SettingsView(): React.JSX.Element {
       titleKey: 'stages.title',
       keywords: ['stage', 'status', 'revision', 'draft', 'progress', 'scene'],
       body: <SceneStagesCard />
+    },
+    {
+      key: 'sceneLabels',
+      titleKey: 'labels.title',
+      keywords: ['label', 'labels', 'colour', 'color', 'flag', 'scene', 'corkboard'],
+      body: <SceneLabelsCard />
     },
     {
       key: 'manuscriptProperties',

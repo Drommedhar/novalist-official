@@ -71,6 +71,18 @@ public class SceneData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Stage { get; set; }
 
+    /// <summary>
+    /// Key of the <see cref="SceneLabel"/> this scene carries, or null for
+    /// none. Replaces the bare colour below, which nothing ever read.
+    /// </summary>
+    [JsonPropertyName("label")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? LabelKey { get; set; }
+
+    /// <summary>
+    /// A raw hex colour stored before labels had names. Read when present so a
+    /// project saved by an older build keeps its colours; nothing writes it.
+    /// </summary>
     [JsonPropertyName("labelColor")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? LabelColor { get; set; }

@@ -70,6 +70,14 @@ The outliner's last built-in column is each scene's [word target](04-chapters-an
 
 Any [scene field](#your-own-scene-and-chapter-fields) you marked **Show as a column in the outliner** gets its own column after this one, editable the same way.
 
+## Scene labels
+
+**Settings → Scene labels** defines the labels a scene in this book can carry — "needs a beta read", "cut but keeping", one per thread, whatever you find yourself wanting to flag. Each has a name and a colour.
+
+Right-click a scene in the binder and pick a label, or **No label** to clear it. With several scenes selected, the entry labels all of them and says how many. A labelled scene's corkboard card is drawn with that colour down its edge.
+
+Removing a label from the list takes it off every scene carrying it, so a colour never outlives the thing it meant.
+
 ## Reading a chosen set of scenes
 
 Manuscript mode normally stitches the whole book (or one chapter status) into continuous text. Select scenes anywhere — the binder, the corkboard, the outliner, the Calendar — and the bulk bar gains **Read as one**: the Manuscript view switches to just those scenes, in reading order, as continuous prose.

@@ -2467,5 +2467,16 @@
     "dashboardTitle": "Entwicklungsbögen",
     "dashboardIntro": "Die Wendepunkte jeder Figur in Lesereihenfolge. Häufen sie sich an einer Stelle, lohnt ein zweiter Blick.",
     "noPoints": "Noch keine Wendepunkte."
+  },
+  "labels": {
+    "title": "Szenen-Etiketten",
+    "intro": "Etiketten, die eine Szene dieses Buchs tragen kann – „braucht Testleser“, „gestrichen, aber behalten“, eines je Strang. Jedes hat einen Namen und eine Farbe; die Farbe erscheint auf der Karteikarte der Szene. Ein entferntes Etikett verschwindet auch von den Szenen, die es tragen.",
+    "namePlaceholder": "Ihre Bezeichnung",
+    "colour": "Farbe",
+    "add": "Etikett hinzufügen",
+    "remove": "Dieses Etikett entfernen",
+    "none": "Kein Etikett",
+    "set": "Etikett",
+    "unsaved": "Nicht gespeicherte Änderungen."
   }
 }

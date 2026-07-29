@@ -2459,5 +2459,16 @@
     "dashboardTitle": "Character arcs",
     "dashboardIntro": "Each character’s turning points in reading order. Turns bunched into one stretch of the book are worth a second look.",
     "noPoints": "No turning points yet."
+  },
+  "labels": {
+    "title": "Scene labels",
+    "intro": "Labels a scene in this book can carry - \"needs a beta read\", \"cut but keeping\", one per thread. Each has a name and a colour, and the colour appears on the scene’s corkboard card. Removing a label takes it off the scenes carrying it.",
+    "namePlaceholder": "What you call it",
+    "colour": "Colour",
+    "add": "Add a label",
+    "remove": "Remove this label",
+    "none": "No label",
+    "set": "Label",
+    "unsaved": "Unsaved changes."
   }
 }

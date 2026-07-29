@@ -69,6 +69,12 @@ Per-project targets that feed the Dashboard's goal cards.
 
 The two word goals can also be edited on the Dashboard by clicking a goal card's title; it is the same setting either way.
 
+## Scene Labels
+
+The labels a scene in the open book can carry: a name and a colour each. See [Scene labels](10-manuscript.md#scene-labels) for how they are used.
+
+Labels live with the book, like the scene stages. Removing one takes it off the scenes carrying it.
+
 ## Scene and Chapter Fields
 
 Fields of your own on every scene or every chapter of the open book, beyond the fixed set Novalist ships. Each has a label, a scope (scene or chapter) and a type:
