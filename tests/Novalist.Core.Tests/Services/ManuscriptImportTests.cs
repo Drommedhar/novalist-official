@@ -570,4 +570,42 @@ public class ManuscriptImportTests
 
         Assert.Equal("Alpha", Assert.Single(plan.Chapters).Title);
     }
+
+    // ── RTF metadata ──
+
+    [Fact]
+    public void Rtf_TheFontTableDoesNotLeakIntoTheProse()
+    {
+        // Every real RTF opens with one, so without this the writer's first
+        // paragraph arrives with "Times New Roman;" glued to the front.
+        var rtf = @"{\rtf1\ansi\deff0{\fonttbl{\f0 Times New Roman;}{\f1 Arial;}}\f0\fs24 She opened the door.\par}";
+
+        var document = ManuscriptReader.ReadRtf(rtf);
+
+        Assert.Equal("She opened the door.", document.Paragraphs.Single().Text);
+    }
+
+    [Fact]
+    public void Rtf_ColourTablesAndStylesheetsAreSkippedToo()
+    {
+        var rtf = @"{\rtf1{\fonttbl{\f0 Times;}}{\colortbl;\red0\green0\blue0;}{\stylesheet{\s0 Normal;}}{\info{\title Draft}}\f0 Real prose.\par}";
+
+        var document = ManuscriptReader.ReadRtf(rtf);
+
+        Assert.Equal("Real prose.", document.Paragraphs.Single().Text);
+    }
+
+    [Fact]
+    public void Rtf_ProseAfterASkippedGroupStillReadsInFull()
+    {
+        // The skip has to end at the group's closing brace rather than swallow
+        // the rest of the document.
+        // Written across lines, as a word processor emits it - the reader has
+        // to drop the line breaks rather than fold them into the prose.
+        var rtf = "{\\rtf1{\\fonttbl{\\f0 Times;}}\r\n\\f0 One.\\par\r\nTwo.\\par}";
+
+        var document = ManuscriptReader.ReadRtf(rtf);
+
+        Assert.Equal(["One.", "Two."], document.Paragraphs.Select(pg => pg.Text));
+    }
 }

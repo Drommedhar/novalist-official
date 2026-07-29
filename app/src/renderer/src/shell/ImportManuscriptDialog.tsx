@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { FileInput, Import } from 'lucide-react'
+import { FileInput, FolderInput, Import } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 
@@ -20,6 +20,9 @@ interface ImportPlan {
   sceneCount: number
   wordCount: number
   chapters: ImportChapter[]
+  /** What this import will not bring across. Empty for the single-file
+   *  formats; populated for a Scrivener project. */
+  losses: string[]
 }
 
 interface ImportResult {
@@ -49,6 +52,24 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
   useEffect(() => {
     void rpc.request<string[]>('manuscriptImport/formats').then(setFormats)
   }, [])
+
+  const preview = async (chosen: string): Promise<void> => {
+    setBusy(true)
+    setResult(null)
+    try {
+      setPath(chosen)
+      setPlan(await rpc.request<ImportPlan>('manuscriptImport/preview', [chosen]))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  /** A Scrivener project is a folder, not a file, so it needs the folder
+   *  picker - the file picker cannot select one. */
+  const pickProject = async (): Promise<void> => {
+    const chosen = await window.novalist.pickFolder(t('manuscriptImport.chooseScrivener'))
+    if (chosen) await preview(chosen)
+  }
 
   const pick = async (): Promise<void> => {
     const chosen = await window.novalist.pickFile(t('manuscriptImport.choose'), 'all')
@@ -101,8 +122,18 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
           <button className="dialog-button" disabled={busy} onClick={() => void pick()}>
             <FileInput size={14} /> {t('manuscriptImport.choose')}
           </button>
+          <button className="dialog-button" disabled={busy} onClick={() => void pickProject()}>
+            <FolderInput size={14} /> {t('manuscriptImport.chooseScrivener')}
+          </button>
           {fileName && <span className="settings-hint">{fileName}</span>}
         </div>
+
+        {/* Named before the import runs, not discovered afterwards. */}
+        {plan && plan.losses.length > 0 && (
+          <p className="settings-hint">
+            {t('manuscriptImport.losses', { items: plan.losses.join(', ') })}
+          </p>
+        )}
 
         {plan && plan.chapterCount === 0 && (
           <p className="settings-hint">{t('manuscriptImport.nothingFound')}</p>

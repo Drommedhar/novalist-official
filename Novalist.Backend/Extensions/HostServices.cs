@@ -383,6 +383,39 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         await _projectService.SaveScenesAsync();
     }
 
+    async Task<string> IExtensionProjectService.CreateChapterAsync(string title)
+    {
+        var chapter = await _projectService.CreateChapterAsync(title ?? string.Empty);
+        return chapter.Guid;
+    }
+
+    async Task<string> IExtensionProjectService.CreateSceneAsync(string chapterGuid, string title)
+    {
+        // A scene under a chapter that does not exist would be unreachable, so
+        // the caller gets an empty id rather than an orphan.
+        if (!_projectService.GetChaptersOrdered().Any(c => c.Guid == chapterGuid))
+            return string.Empty;
+
+        var scene = await _projectService.CreateSceneAsync(chapterGuid, title ?? string.Empty);
+        return scene.Id;
+    }
+
+    async Task IExtensionProjectService.WriteSceneContentAsync(
+        string chapterGuid, string sceneId, string html)
+    {
+        var chapter = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);
+        var scene = chapter == null
+            ? null
+            : _projectService.GetScenesForChapter(chapterGuid).FirstOrDefault(sc => sc.Id == sceneId);
+        if (chapter == null || scene == null) return;
+
+        await _projectService.WriteSceneContentAsync(chapter, scene, html ?? string.Empty);
+        // The manifest carries the word count the binder shows, so it has to
+        // catch up with what was just written.
+        scene.WordCount = Workspace.CountWords(Core.Utilities.TextDiff.StripHtml(html ?? string.Empty));
+        await _projectService.SaveScenesAsync();
+    }
+
     IReadOnlyList<Sdk.Services.ChapterInfo> IExtensionProjectService.GetChaptersOrdered()
     {
         return _projectService.GetChaptersOrdered()

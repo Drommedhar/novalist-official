@@ -341,6 +341,17 @@ public static partial class ManuscriptReader
     /// manuscript imports as clean prose, which is what the structure heuristics
     /// need and what a writer would have to re-style anyway.
     /// </summary>
+    /// <summary>
+    /// Control words that open a group of metadata rather than prose. RTF has
+    /// many; these are the ones a word processor actually emits ahead of the
+    /// body, and the ones whose contents are plain text that would otherwise be
+    /// mistaken for the manuscript.
+    /// </summary>
+    private static bool IsSkippableGroup(string control) => control
+        is "fonttbl" or "colortbl" or "stylesheet" or "info" or "listtable"
+        or "listoverridetable" or "rsidtbl" or "generator" or "pict"
+        or "themedata" or "colorschememapping" or "latentstyles" or "datastore";
+
     internal static ManuscriptDocument ReadRtf(string content)
     {
         var text = new StringBuilder();
@@ -357,6 +368,12 @@ public static partial class ManuscriptReader
                 ? new ImportedParagraph { IsSceneBreak = true }
                 : Build(line, 0));
         }
+
+        // Header groups whose contents are metadata, not prose. Every real RTF
+        // opens with a font table, so without this the writer's first paragraph
+        // arrives with "Times New Roman;" glued to the front of it.
+        var skipDepth = 0;
+        var depth = 0;
 
         for (var i = 0; i < content.Length; i++)
         {
@@ -376,19 +393,40 @@ public static partial class ManuscriptReader
                     j++;
 
                 var control = word.ToString();
-                if (control is "par" or "pard" or "line")
-                    EndParagraph();
-                else if (control == "tab")
-                    text.Append(' ');
+                if (skipDepth == 0 && IsSkippableGroup(control))
+                {
+                    // Everything to this group's closing brace is metadata.
+                    skipDepth = depth;
+                }
+                else if (skipDepth == 0)
+                {
+                    if (control is "par" or "pard" or "line")
+                        EndParagraph();
+                    else if (control == "tab")
+                        text.Append(' ');
+                }
 
                 i = j - 1;
                 continue;
             }
 
-            if (c is '{' or '}' or '\r' or '\n')
+            if (c == '{')
+            {
+                depth++;
+                continue;
+            }
+
+            if (c == '}')
+            {
+                depth--;
+                if (skipDepth > 0 && depth < skipDepth) skipDepth = 0;
+                continue;
+            }
+
+            if (c is '\r' or '\n')
                 continue;
 
-            text.Append(c);
+            if (skipDepth == 0) text.Append(c);
         }
 
         EndParagraph();

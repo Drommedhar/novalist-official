@@ -2088,7 +2088,9 @@
     "run": "Importieren",
     "appendHint": "Kapitel werden am Ende des Buches angehaengt. Vorhandenes wird nicht ersetzt.",
     "done": "{{chapters}} Kapitel, {{scenes}} Szenen und {{words}} Woerter importiert.",
-    "formats": "Lesbare Formate: {{formats}}"
+    "formats": "Lesbare Formate: {{formats}}",
+    "chooseScrivener": "Scrivener-Projekt wählen...",
+    "losses": "Wird nicht übernommen: {{items}}. Novalist hat dafür keine Entsprechung, es bleibt in Scrivener."
   },
   "match": {
     "title": "Wie dieser Name im Text erkannt wird",

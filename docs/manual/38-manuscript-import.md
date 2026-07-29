@@ -14,8 +14,23 @@ The dialog lists the extensions it can read, so you know what to look for before
 | Markdown | `.md`, `.markdown` | `#` headings, paragraphs, and `***` / `---` scene breaks. |
 | Plain text | `.txt` | Paragraphs, "Chapter N" lines, and ornament scene breaks. |
 | Rich text | `.rtf` | Paragraphs only. Formatting is not recovered. |
+| Scrivener | `.scriv` | The binder as chapters and scenes, with synopsis cards. See below. |
 
 Import is **prose only**. Bold and italic, images, footnotes and comments are not carried over — the goal is to get your words into Novalist with the right structure, not to reproduce another program's layout.
+
+## Scrivener projects
+
+A Scrivener project is a folder rather than a file, so it has its own button: **Choose a Scrivener project**. Point it at the `.scriv` folder. Both Scrivener 2 and Scrivener 3 projects are read.
+
+Novalist takes the binder at its word rather than guessing from headings — the binder already says where the chapters are. Folders become chapters, the text documents inside them become scenes, and a document's **synopsis card** becomes the scene's synopsis, which is the one piece of Scrivener metadata Novalist has an exact home for.
+
+Scrivener's binder nests as deep as you like; Novalist is two levels. A three-level binder is flattened into its outermost folder, so nesting is lost rather than text.
+
+### What does not come across
+
+The preview names what will be left behind before you commit, so you find out here rather than by noticing something missing later. **Research**, **Trash**, **Templates** and **Front Matter** folders stay in Scrivener — as do labels, statuses, collections, keywords, compile settings and snapshot history, none of which Novalist has an equivalent for.
+
+Your Scrivener project is never modified. If the import is not what you wanted, delete the imported chapters and the original is untouched.
 
 ## How chapters and scenes are worked out
 

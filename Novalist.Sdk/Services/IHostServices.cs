@@ -40,6 +40,29 @@ public interface IExtensionProjectService
     /// <summary>Updates the scene synopsis and persists the scenes manifest.</summary>
     Task SetSceneSynopsisAsync(string chapterGuid, string sceneId, string synopsis);
 
+    /// <summary>
+    /// Creates a chapter at the end of the active book and returns its guid.
+    ///
+    /// This and the two below are what a format importer needs: a .scriv or
+    /// .fdx reader is ideal third-party territory, but until now an extension
+    /// could read a project and not build one, so every importer had to be
+    /// written into core.
+    /// </summary>
+    Task<string> CreateChapterAsync(string title);
+
+    /// <summary>Creates a scene at the end of a chapter and returns its id.
+    /// Empty when the chapter does not exist.</summary>
+    Task<string> CreateSceneAsync(string chapterGuid, string title);
+
+    /// <summary>
+    /// Replaces a scene's content.
+    ///
+    /// The one call in this interface that overwrites prose the writer may have
+    /// authored, so an extension should be sure it owns the scene - normally
+    /// because it just created it.
+    /// </summary>
+    Task WriteSceneContentAsync(string chapterGuid, string sceneId, string html);
+
     /// <summary>Get chapters in order.</summary>
     IReadOnlyList<ChapterInfo> GetChaptersOrdered();
 

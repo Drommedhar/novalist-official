@@ -2080,7 +2080,9 @@
     "run": "Import",
     "appendHint": "Chapters are added to the end of the book. Nothing already in it is replaced.",
     "done": "Imported {{chapters}} chapters, {{scenes}} scenes and {{words}} words.",
-    "formats": "Readable formats: {{formats}}"
+    "formats": "Readable formats: {{formats}}",
+    "chooseScrivener": "Choose a Scrivener project...",
+    "losses": "Not brought across: {{items}}. Novalist has no equivalent for these, so they stay in Scrivener."
   },
   "match": {
     "title": "How this name is detected in prose",

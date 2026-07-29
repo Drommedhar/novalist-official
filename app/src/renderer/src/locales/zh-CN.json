@@ -2122,7 +2122,9 @@
     "run": "导入",
     "appendHint": "章节会追加到书末，不会替换已有内容。",
     "done": "已导入 {{chapters}} 章、{{scenes}} 个场景、{{words}} 字。",
-    "formats": "可读取的格式：{{formats}}"
+    "formats": "可读取的格式：{{formats}}",
+    "chooseScrivener": "选择 Scrivener 项目...",
+    "losses": "不会导入：{{items}}。Novalist 没有对应的位置，它们会留在 Scrivener 中。"
   },
   "match": {
     "title": "该名称在正文中的识别方式",
