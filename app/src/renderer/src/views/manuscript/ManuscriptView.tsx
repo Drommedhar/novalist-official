@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore, type ManuscriptMode } from '../../stores/manuscriptStore'
 import { useProjectStore } from '../../stores/projectStore'
+import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
+import { SceneBulkBar } from '../../shell/SceneBulkBar'
 
 interface ManuscriptWindow extends Window {
   setManuscript(sectionsJson: string): void
@@ -68,6 +70,7 @@ export function ManuscriptView(): React.JSX.Element {
       {sections.length === 0 && mode !== 'manuscript' && (
         <p className="codex-empty">{t('shell.binderEmpty')}</p>
       )}
+      {mode !== 'manuscript' && <SceneBulkBar />}
     </div>
   )
 }
@@ -180,6 +183,7 @@ function Corkboard(): React.JSX.Element {
   const { t } = useTranslation()
   const sections = useManuscriptStore((s) => s.sections)
   const setSynopsis = useManuscriptStore((s) => s.setSynopsis)
+  const selectedIds = useSelectionStore((s) => s.sceneIds)
 
   return (
     <div className="corkboard">
@@ -188,8 +192,21 @@ function Corkboard(): React.JSX.Element {
           <div className="corkboard-chapter">{section.chapterTitle}</div>
           <div className="corkboard-cards">
             {section.scenes.map((scene) => (
-              <div key={scene.sceneId} className="corkboard-card">
-                <div className="corkboard-card-title">{scene.title}</div>
+              <div
+                key={scene.sceneId}
+                className={`corkboard-card${selectedIds.includes(scene.sceneId) ? ' selected' : ''}`}
+              >
+                {/* The title is the selection handle: the synopsis box under it
+                    must stay a plain text field, modifier keys and all. */}
+                <button
+                  className="corkboard-card-title"
+                  onClick={(e) => {
+                    if (handleSceneClick(scene.sceneId, e)) return
+                    void useProjectStore.getState().openScene(section.chapterGuid, scene.sceneId)
+                  }}
+                >
+                  {scene.title}
+                </button>
                 <textarea
                   className="corkboard-synopsis"
                   placeholder={t('sceneNotes.synopsisPlaceholder')}
@@ -215,6 +232,7 @@ function Outliner(): React.JSX.Element {
   const sections = useManuscriptStore((s) => s.sections)
   const setSynopsis = useManuscriptStore((s) => s.setSynopsis)
   const setPov = useManuscriptStore((s) => s.setPov)
+  const selectedIds = useSelectionStore((s) => s.sceneIds)
 
   return (
     <div className="outliner">
@@ -227,9 +245,20 @@ function Outliner(): React.JSX.Element {
       </div>
       {sections.flatMap((section) =>
         section.scenes.map((scene) => (
-          <div key={scene.sceneId} className="outliner-row">
+          <div
+            key={scene.sceneId}
+            className={`outliner-row${selectedIds.includes(scene.sceneId) ? ' selected' : ''}`}
+          >
             <span className="outliner-cell">{section.chapterTitle}</span>
-            <span className="outliner-cell">{scene.title}</span>
+            <button
+              className="outliner-cell outliner-scene-title"
+              onClick={(e) => {
+                if (handleSceneClick(scene.sceneId, e)) return
+                void useProjectStore.getState().openScene(section.chapterGuid, scene.sceneId)
+              }}
+            >
+              {scene.title}
+            </button>
             <input
               className="outliner-input"
               defaultValue={scene.synopsis ?? ''}

@@ -2091,5 +2091,20 @@
     "removeExclusion": "Remove this phrase",
     "addExclusion": "Add phrase",
     "ignoreHere": "Stop detecting this entry in this scene"
+  },
+  "bulk": {
+    "selected": "{{count}} scenes selected",
+    "clear": "Clear the selection",
+    "moveToChapter": "Move to chapter...",
+    "addTags": "Add tags",
+    "addTagsPrompt": "Tags to add to {{count}} scenes",
+    "addTagsPlaceholder": "flashback, night",
+    "shiftDates": "Shift dates",
+    "shiftBy": "Shift by (days)",
+    "shiftSummary": "{{moved}} of {{total}} scenes move.",
+    "applyShift": "Apply",
+    "noDate": "no date",
+    "confirmArchive": "Archive {{count}} scenes? They can be restored from the archive.",
+    "confirmDelete": "Delete {{count}} scenes? This cannot be undone."
   }
 }

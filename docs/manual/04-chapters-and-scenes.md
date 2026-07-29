@@ -82,6 +82,31 @@ Right-click → **Toggle split editor** opens the scene in a second editor pane 
 
 Right-click → **Delete**. Asks to confirm. Snapshots of the deleted scene survive in the book's `Snapshots/` folder. If you might want the scene back, prefer **Archive**.
 
+## Selecting several scenes at once
+
+Scenes can be worked on as a group rather than one at a time.
+
+- **Ctrl-click** (Cmd-click on macOS) a scene to add it to the selection, or click it again to take it back out.
+- **Shift-click** selects everything from the last scene you clicked through to the one you just clicked, replacing the selection.
+- A plain click opens the scene as it always did, and drops the selection.
+
+Selecting works the same way in the binder, on the Manuscript view's corkboard cards and outliner rows, and on Calendar chips — and it is one selection shared between them, so you can pick scenes in the binder and act on them from the corkboard.
+
+Once two or more scenes are selected, a bar appears at the bottom of the view with everything you can do to all of them at once:
+
+- **Move to chapter** — pick a chapter and the whole selection is appended to it.
+- **Add tags** — type a comma-separated list; the tags are added to every selected scene, keeping the tags they already had.
+- **Shift dates** — moves every selected scene's in-world date by a number of days. See below.
+- **Archive** and **Delete** — as for a single scene, and both ask first.
+
+Dragging one of the selected scenes in the binder carries the whole selection with it.
+
+### Shifting dates in bulk
+
+**Shift dates** opens a preview: every selected scene, the date it reads now, and the date it would read after the shift. Nothing is written until you press Apply, and scenes with no date are listed unchanged rather than hidden, so a selection of ten never previews as three. The arithmetic uses your book's own [in-world calendar](13-calendar.md#in-world-calendars), so a shift across a month boundary lands where your calendar says it should — not where the Gregorian one would.
+
+Dragging a selected scene on the Calendar shifts the entire selection by the same number of days, keeping the gaps between the scenes intact.
+
 ## Archiving scenes
 
 Archiving removes a scene from the manuscript without deleting its text — useful for cut scenes you are not ready to throw away.

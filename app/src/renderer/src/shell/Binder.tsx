@@ -12,6 +12,8 @@ import { SceneDialog } from './SceneDialog'
 import { StoryDateRangeDialog } from './StoryDateRangeDialog'
 import { SmartListsPanel } from './SmartListsPanel'
 import { savePanelSize, useShellStore } from '../stores/shellStore'
+import { handleSceneClick, useSelectionStore } from '../stores/selectionStore'
+import { SceneBulkBar } from './SceneBulkBar'
 import { PanelResizer } from './PanelResizer'
 
 const STATUS_CYCLE = ['Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']
@@ -45,6 +47,7 @@ export function Binder(): React.JSX.Element {
   const setBinderWidth = useShellStore((s) => s.setBinderWidth)
   const projectPath = useProjectStore((s) => s.projectPath)
   const [changedIds, setChangedIds] = useState<Set<string>>(new Set())
+  const selectedIds = useSelectionStore((s) => s.sceneIds)
 
   // Poll which scenes have uncommitted Git changes so their rows can be marked
   // in the explorer (matches the desktop change markers). Quiet no-op outside a repo.
@@ -66,6 +69,15 @@ export function Binder(): React.JSX.Element {
     }
   }, [projectPath])
   const chapters = useProjectStore((s) => s.chapters)
+
+  // A deleted, archived or moved-away scene must leave the selection with it,
+  // otherwise the bulk bar keeps offering to act on something that is gone.
+  useEffect(() => {
+    useSelectionStore
+      .getState()
+      .prune(chapters.flatMap((chapter) => chapter.scenes.map((scene) => scene.id)))
+  }, [chapters])
+
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const openScene = useProjectStore((s) => s.openScene)
   const store = useProjectStore
@@ -81,12 +93,19 @@ export function Binder(): React.JSX.Element {
     | null
   >(null)
 
+  /** Dragging a scene that is part of the selection carries the whole selection;
+   *  dragging one outside it moves only that scene. */
+  const dragPayload = (sceneId: string): string[] => {
+    const selection = useSelectionStore.getState().sceneIds
+    return selection.includes(sceneId) ? selection : [sceneId]
+  }
+
   const onChapterDrop = (target: { guid: string; order: number }): void => {
     if (!drag) return
     if (drag.kind === 'chapter' && drag.chapterGuid !== target.guid) {
       void store.getState().reorderChapter(drag.chapterGuid, target.order)
     } else if (drag.kind === 'scene' && drag.chapterGuid !== target.guid) {
-      void store.getState().moveScenes([drag.sceneId], target.guid, 0)
+      void store.getState().moveScenes(dragPayload(drag.sceneId), target.guid, 0)
     }
     setDrag(null)
   }
@@ -94,10 +113,13 @@ export function Binder(): React.JSX.Element {
   const onSceneDrop = (chapterGuid: string, target: { id: string; order: number }, index: number): void => {
     if (!drag || drag.kind !== 'scene') return
     if (drag.sceneId === target.id) { setDrag(null); return }
-    if (drag.chapterGuid === chapterGuid) {
+    const payload = dragPayload(drag.sceneId)
+    // Reordering within a chapter moves one scene at a time; a multi-scene drag
+    // goes through the cross-chapter move, which inserts them as a block.
+    if (drag.chapterGuid === chapterGuid && payload.length === 1) {
       void store.getState().reorderScene(chapterGuid, drag.sceneId, target.order)
     } else {
-      void store.getState().moveScenes([drag.sceneId], chapterGuid, index)
+      void store.getState().moveScenes(payload, chapterGuid, index)
     }
     setDrag(null)
   }
@@ -350,16 +372,24 @@ export function Binder(): React.JSX.Element {
                 <button
                   className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}${
                     changedIds.has(scene.id) ? ' changed' : ''
-                  }`}
+                  }${selectedIds.includes(scene.id) ? ' selected' : ''}`}
                   draggable
                   onDragStart={() =>
                     setDrag({ kind: 'scene', chapterGuid: chapter.guid, sceneId: scene.id })
                   }
                   onDragOver={(e) => e.preventDefault()}
                   onDrop={() => onSceneDrop(chapter.guid, { id: scene.id, order: scene.order }, sceneIndex)}
-                  onClick={() => void openScene(chapter.guid, scene.id)}
+                  onClick={(e) => {
+                    // Ctrl/shift build a selection; a plain click still opens the
+                    // scene and drops whatever was selected.
+                    if (handleSceneClick(scene.id, e)) return
+                    void openScene(chapter.guid, scene.id)
+                  }}
                   onContextMenu={(e) => {
                     e.preventDefault()
+                    // A right-click outside the selection replaces it, so the
+                    // menu always acts on what the writer just pointed at.
+                    if (!selectedIds.includes(scene.id)) useSelectionStore.getState().clear()
                     setMenu({
                       x: e.clientX,
                       y: e.clientY,
@@ -427,6 +457,7 @@ export function Binder(): React.JSX.Element {
           </div>
         )}
       </div>
+      <SceneBulkBar />
       {menu && <ContextMenu x={menu.x} y={menu.y} items={menuItems()} onClose={() => setMenu(null)} />}
       {addChapterOpen && <ChapterDialog onClose={() => setAddChapterOpen(false)} />}
       {addSceneChapter && (

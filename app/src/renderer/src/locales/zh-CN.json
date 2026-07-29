@@ -2133,5 +2133,20 @@
     "removeExclusion": "移除该短语",
     "addExclusion": "添加短语",
     "ignoreHere": "在本场景中不再识别该条目"
+  },
+  "bulk": {
+    "selected": "已选中 {{count}} 个场景",
+    "clear": "取消选择",
+    "moveToChapter": "移动到章节...",
+    "addTags": "添加标签",
+    "addTagsPrompt": "为 {{count}} 个场景添加的标签",
+    "addTagsPlaceholder": "回忆，夜晚",
+    "shiftDates": "平移日期",
+    "shiftBy": "平移天数",
+    "shiftSummary": "{{total}} 个场景中有 {{moved}} 个会移动。",
+    "applyShift": "应用",
+    "noDate": "无日期",
+    "confirmArchive": "归档 {{count}} 个场景？可从归档中恢复。",
+    "confirmDelete": "删除 {{count}} 个场景？此操作无法撤销。"
   }
 }

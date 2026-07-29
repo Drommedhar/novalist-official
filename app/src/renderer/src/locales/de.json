@@ -2099,5 +2099,20 @@
     "removeExclusion": "Diese Wendung entfernen",
     "addExclusion": "Wendung hinzufügen",
     "ignoreHere": "Diesen Eintrag in dieser Szene nicht mehr erkennen"
+  },
+  "bulk": {
+    "selected": "{{count}} Szenen ausgewählt",
+    "clear": "Auswahl aufheben",
+    "moveToChapter": "In Kapitel verschieben...",
+    "addTags": "Tags hinzufügen",
+    "addTagsPrompt": "Tags für {{count}} Szenen",
+    "addTagsPlaceholder": "Rückblende, Nacht",
+    "shiftDates": "Daten verschieben",
+    "shiftBy": "Verschieben um (Tage)",
+    "shiftSummary": "{{moved}} von {{total}} Szenen bewegen sich.",
+    "applyShift": "Anwenden",
+    "noDate": "kein Datum",
+    "confirmArchive": "{{count}} Szenen archivieren? Sie können aus dem Archiv wiederhergestellt werden.",
+    "confirmDelete": "{{count}} Szenen löschen? Das lässt sich nicht rückgängig machen."
   }
 }

@@ -5,6 +5,8 @@ import { rpc } from '../../rpc/client'
 import { CalendarConfigPanel } from './CalendarConfigPanel'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
+import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
+import { SceneBulkBar } from '../../shell/SceneBulkBar'
 import './calendar.css'
 
 interface CalendarEventDto {
@@ -169,7 +171,18 @@ export function CalendarView(): React.JSX.Element {
 
   const reschedule = async (target: string): Promise<void> => {
     if (!dragging) return
-    await rpc.request('calendar/reschedule', [dragging.chapterGuid, dragging.sceneId, target])
+    const selection = useSelectionStore.getState().sceneIds
+    // Dragging one chip out of a selection moves the whole selection, keeping
+    // the gaps between the scenes. Dropping them all on the target day would
+    // collapse a week of story into one afternoon.
+    if (selection.length > 1 && selection.includes(dragging.sceneId)) {
+      const days = Math.round(
+        (Date.parse(target) - Date.parse(dragging.date)) / 86_400_000
+      )
+      if (days !== 0) await rpc.request('sceneBulk/shiftDates', [selection, days])
+    } else {
+      await rpc.request('calendar/reschedule', [dragging.chapterGuid, dragging.sceneId, target])
+    }
     setDragging(null)
     await load()
   }
@@ -465,6 +478,7 @@ export function CalendarView(): React.JSX.Element {
           })}
         </div>
       )}
+      <SceneBulkBar />
     </div>
   )
 }
@@ -478,15 +492,19 @@ function EventChip({
   compact?: boolean
   onDragStart?(event: CalendarEventDto): void
 }): React.JSX.Element {
+  const selected = useSelectionStore((s) => s.sceneIds).includes(event.sceneId)
   const time = event.allDay ? '' : `${eventTime(event)} `
   return (
     <button
-      className={`calendar-event${compact ? ' compact' : ''}`}
+      className={`calendar-event${compact ? ' compact' : ''}${
+        selected ? ' selected' : ''
+      }`}
       draggable={Boolean(onDragStart)}
       onDragStart={() => onDragStart?.(event)}
       title={eventTooltip(event)}
       onClick={(e) => {
         e.stopPropagation()
+        if (handleSceneClick(event.sceneId, e)) return
         openScene(event)
       }}
     >

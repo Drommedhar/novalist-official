@@ -3,6 +3,9 @@ import { useTranslation } from 'react-i18next'
 interface ConfirmDialogProps {
   title: string
   message: string
+  /** What the confirming button says. Defaults to "Delete", which is what every
+   *  caller wanted until archiving started asking too. */
+  confirmLabel?: string
   onConfirm(): void
   onCancel(): void
 }
@@ -10,6 +13,7 @@ interface ConfirmDialogProps {
 export function ConfirmDialog({
   title,
   message,
+  confirmLabel,
   onConfirm,
   onCancel
 }: ConfirmDialogProps): React.JSX.Element {
@@ -24,7 +28,7 @@ export function ConfirmDialog({
             {t('dialog.cancel')}
           </button>
           <button className="dialog-button danger" onClick={onConfirm}>
-            {t('explorer.contextDelete')}
+            {confirmLabel ?? t('explorer.contextDelete')}
           </button>
         </div>
       </div>

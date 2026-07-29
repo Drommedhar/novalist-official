@@ -49,6 +49,12 @@ A scene's **note** shows on its calendar chip and timed event alongside the titl
 
 In Week and Month view, **drag a scene chip onto another day** to reschedule it — the scene's story date is set to that day. This is the quickest way to shuffle the in-world schedule without editing dates by hand.
 
+## Rescheduling several scenes at once
+
+Ctrl-click (Cmd-click) chips to build a selection, or bring one over from the binder — it is the same selection. Dragging any chip in the selection shifts every selected scene by the same number of days, so a whole sequence moves without losing the gaps between its scenes. Dragging a chip that is not in the selection still moves just that one scene to the day you drop it on.
+
+The bulk bar at the bottom of the Calendar also offers **Shift dates**, which asks for a number of days and shows a before/after list before writing anything. See [Chapters and scenes](04-chapters-and-scenes.md#selecting-several-scenes-at-once).
+
 ## Navigation and the anchor date
 
 A **Today** button jumps back to the current date. The **Previous / Next** arrows step by one week, month, or year depending on the mode; the label between them shows the visible range. The date the calendar is centered on — the **anchor date** — is saved with the project, so the Calendar reopens where you left it.

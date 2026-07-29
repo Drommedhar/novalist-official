@@ -1,0 +1,101 @@
+.scene-bulk-bar {
+  align-items: center;
+  background: var(--nl-surface-card);
+  border-top: 1px solid var(--nl-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-sm);
+}
+
+.scene-bulk-count {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  margin-right: var(--nl-space-tighter);
+  white-space: nowrap;
+}
+
+.scene-bulk-move {
+  max-width: 140px;
+}
+
+/* A selected scene reads as selected wherever it is listed, so a selection made
+   in the binder is recognisable after switching to the corkboard. */
+.binder-scene-row.selected,
+.corkboard-card.selected,
+.outliner-row.selected,
+.calendar-event.selected {
+  background: var(--nl-surface-selected);
+  box-shadow: inset 2px 0 0 var(--nl-accent);
+}
+
+.shift-dates-dialog {
+  max-width: 520px;
+  width: 90vw;
+}
+
+.shift-dates-controls {
+  align-items: center;
+  display: flex;
+  gap: var(--nl-space-sm);
+}
+
+.shift-dates-days {
+  width: 96px;
+}
+
+.shift-dates-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-bottom: var(--nl-space-md);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.shift-dates-row {
+  align-items: baseline;
+  display: flex;
+  font-size: var(--nl-font-body-sm);
+  gap: var(--nl-space-sm);
+}
+
+.shift-dates-row.unchanged {
+  color: var(--nl-text-subtle);
+}
+
+.shift-dates-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.shift-dates-before,
+.shift-dates-after {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.shift-dates-arrow {
+  color: var(--nl-text-subtle);
+}
+
+/* The scene title doubles as the selection handle in the corkboard and the
+   outliner, so it is a button that has to keep reading as text. */
+.corkboard-card-title,
+.outliner-scene-title {
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: var(--nl-space-none);
+  text-align: left;
+  width: 100%;
+}
+
+.corkboard-card-title:hover,
+.outliner-scene-title:hover {
+  color: var(--nl-accent);
+}

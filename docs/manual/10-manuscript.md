@@ -62,6 +62,10 @@ The outliner is useful for:
 - Auditing and correcting POV assignments (Smart Lists filter on this field).
 - Eyeballing word counts to find unusually short or long scenes.
 
+## Selecting several scenes
+
+Corkboard cards and outliner rows carry the same multi-select as the binder: ctrl-click (Cmd-click) a scene title to add it to the selection, shift-click to extend the range, and a bulk bar appears at the bottom once two or more are selected. The selection is shared with the binder and the Calendar. See [Chapters and scenes](04-chapters-and-scenes.md#selecting-several-scenes-at-once).
+
 ## Where to go next
 
 - [Editor](05-editor.md) — for actually writing the scenes.
