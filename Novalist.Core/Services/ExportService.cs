@@ -83,11 +83,21 @@ public class ExportOptions
     /// </summary>
     public List<MatterExportContent> Matter { get; set; } = [];
 
+    /// <summary>
+    /// Layouts the writer authored, so a custom preset id resolves to theirs
+    /// rather than silently falling back to the default.
+    /// </summary>
+    public List<ExportPreset> CustomPresets { get; set; } = [];
+
     /// <summary>Resolves to the configured preset (or default).</summary>
     public ExportPreset ResolvePreset()
     {
         if (!string.IsNullOrWhiteSpace(PresetId))
+        {
+            var custom = CustomPresets.FirstOrDefault(p => p.Id == PresetId);
+            if (custom != null) return custom;
             return ExportPresets.GetById(PresetId);
+        }
         return SmfPreset ? ExportPresets.GetById(ExportPresets.ShunnId) : ExportPresets.GetById(ExportPresets.DefaultId);
     }
 }
@@ -187,6 +197,7 @@ public partial class ExportService
         // Publishing metadata belongs to the book, so the caller never has to
         // assemble it - every export path gets it by opening the project.
         options.Publishing = _projectService.ActiveBook?.Publishing ?? new Models.PublishingMetadata();
+        options.CustomPresets = [.. _projectService.ActiveBook?.ExportPresets ?? []];
 
         // Matter pages come from the book, not the chapter selection: they frame
         // the whole book rather than belonging to any chapter.
@@ -1435,7 +1446,7 @@ public partial class ExportService
             """);
 
         // Stylesheet
-        await WriteEntryAsync(zip, "OEBPS/styles.css", GenerateEpubStylesheet());
+        await WriteEntryAsync(zip, "OEBPS/styles.css", GenerateEpubStylesheet(options));
 
         // Cover: the image itself plus the XHTML page that displays it. Both are
         // skipped when no cover is set or the file cannot be read, so a missing
@@ -1458,7 +1469,9 @@ public partial class ExportService
 
         // Chapter files
         for (var i = 0; i < chapters.Count; i++)
-            await WriteEntryAsync(zip, $"OEBPS/chapter-{i + 1}.xhtml", GenerateChapterXhtml(chapters[i]));
+            await WriteEntryAsync(
+                zip, $"OEBPS/chapter-{i + 1}.xhtml",
+                GenerateChapterXhtml(chapters[i], options, i + 1));
 
         // Navigation
         await WriteEntryAsync(zip, "OEBPS/nav.xhtml", GenerateNavXhtml(chapters, options));
@@ -1546,9 +1559,20 @@ public partial class ExportService
             """;
     }
 
-    private static string GenerateEpubStylesheet()
+    private static string GenerateEpubStylesheet(ExportOptions options)
     {
-        return """
+        var preset = options.ResolvePreset();
+        // Appended rather than merged, so the writer's rules win by cascade
+        // order - which is the only way they can override anything above.
+        var extra = string.IsNullOrWhiteSpace(preset.EbookCss)
+            ? string.Empty
+            : "\n\n/* From your export layout */\n" + preset.EbookCss;
+        // Concatenated rather than interpolated: the stylesheet below is full of
+        // CSS braces, every one of which an interpolated string reads as a hole.
+        return BaseEpubStylesheet + extra;
+    }
+
+    private const string BaseEpubStylesheet = """
             @page { margin: 1in; }
 
             body {
@@ -1639,17 +1663,24 @@ public partial class ExportService
               text-indent: 0;
             }
             """;
-    }
 
-    private static string GenerateChapterXhtml(ChapterExportContent chapter)
+    private static string GenerateChapterXhtml(
+        ChapterExportContent chapter, ExportOptions options, int number)
     {
+        var preset = options.ResolvePreset();
         var bodyHtml = new StringBuilder();
         for (var si = 0; si < chapter.Scenes.Count; si++)
         {
             if (si > 0)
-                bodyHtml.AppendLine($"    <p class=\"scene-break\">{SceneBreakText}</p>");
+                bodyHtml.AppendLine(
+                    $"    <p class=\"scene-break\">{EscapeXml(preset.SceneSeparator)}</p>");
 
             var scene = chapter.Scenes[si];
+            // Off for a novel, where an ornament is the whole separator; on for
+            // a collection, where the titles are how a reader navigates.
+            if (preset.ShowSceneTitles && !string.IsNullOrWhiteSpace(scene.Title))
+                bodyHtml.AppendLine($"    <h3 class=\"scene-title\">{EscapeXml(scene.Title)}</h3>");
+
             var isFirst = si == 0;
             var openList = ListKind.None;
 
@@ -1702,7 +1733,7 @@ public partial class ExportService
             </head>
             <body>
               <section epub:type="chapter">
-                <h1 class="chapter-title">{EscapeXml(chapter.Title)}</h1>
+                <h1 class="chapter-title">{EscapeXml(preset.ChapterHeading(number, chapter.Title))}</h1>
             {bodyHtml}
               </section>
             </body>

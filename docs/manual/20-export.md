@@ -158,6 +158,26 @@ For chapter-based formats the list shows all chapters regardless of status — y
 - **Embed a cover image.** EPUB readers display the cover prominently; a missing cover signals "amateur".
 - **Re-export every release.** Re-run the export for any new beta reader instead of sending an old file — it's the only way to be sure they see the latest revisions.
 
+## Export layouts
+
+Novalist ships four layouts — Default, Shunn manuscript, Ebook flow, Normseiten — and **Export layouts** on the Export view lets you make your own.
+
+Built-in layouts cannot be edited, only duplicated. That is deliberate: a layout named after a submission standard that no longer matches it is worse than no layout at all, and nothing would tell you. **Duplicate** gives you a copy carrying all of the original's settings, which is a far better starting point than an empty one.
+
+A layout controls:
+
+| Setting | What it does |
+| --- | --- |
+| **Body font** and **size** | The typeface and point size of the prose. |
+| **Line spacing** | As a multiplier of the font size. |
+| **Margin**, **first-line indent**, **space above a chapter title** | Page geometry, in inches. |
+| **Scene separator** | What is printed between scenes. Defaults to `* * *`; make it anything, including blank. |
+| **Chapter heading** | Use `{number}` and `{title}`. `Chapter {number}: {title}` gives "Chapter 3: The Fall"; the default is the title alone, which is what a novel with named chapters wants. |
+| **Print scene titles** | Off for a novel, where the separator is the whole break. On for a collection, or a draft going to someone who needs to name the scenes back to you. |
+| **Extra ebook CSS** | Appended to the EPUB stylesheet, so your rules win over Novalist's by cascade order. The one place you can reach the look of the ebook itself rather than of the page. |
+
+Layouts are stored with the book, not globally — a submission format for a novel and one for a short-story collection have no reason to share a list. Values that would produce a file nobody can open (a zero font size, a margin wider than the page) fall back to something sane rather than being stored.
+
 ## Publishing metadata
 
 **Publishing metadata** on the Export view holds what a shop, a library and a distributor need to know about the book, beyond its title and author. All of it is optional, and anything left blank is simply not written into the exported file.

@@ -5,6 +5,7 @@ import { rpc } from '../../rpc/client'
 import { ReviewImportDialog } from '../../shell/ReviewImportDialog'
 import { BookMatterPanel } from './BookMatterPanel'
 import { PublishingPanel } from './PublishingPanel'
+import { ExportLayoutPanel } from './ExportLayoutPanel'
 import { useProjectStore } from '../../stores/projectStore'
 import './export.css'
 
@@ -403,6 +404,12 @@ export function ExportView(): React.JSX.Element {
         <details className="export-matter">
           <summary>{t('publishing.title')}</summary>
           <PublishingPanel />
+        </details>
+
+        {/* Page geometry, separators and ebook CSS, authorable rather than fixed. */}
+        <details className="export-matter">
+          <summary>{t('layout.title')}</summary>
+          <ExportLayoutPanel />
         </details>
 
         {/* The other half of the round trip: a DOCX goes out to an editor and

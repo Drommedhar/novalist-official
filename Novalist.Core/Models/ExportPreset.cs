@@ -5,7 +5,7 @@ namespace Novalist.Core.Models;
 /// Built-ins live in <see cref="ExportPresets"/>; users can future-extend
 /// with custom presets stored alongside <see cref="ProjectMetadata"/>.
 /// </summary>
-public sealed class ExportPreset
+public sealed record ExportPreset
 {
     public string Id { get; init; } = string.Empty;
     public string DisplayName { get; init; } = string.Empty;
@@ -46,6 +46,42 @@ public sealed class ExportPreset
 
     /// <summary>Usable text width in centimetres (page width less both margins).</summary>
     public double TextWidthCm => PageWidthCm - MarginLeftCm - MarginRightCm;
+
+    /// <summary>
+    /// Print each scene's title above it. Off for a novel, where scenes are
+    /// separated by an ornament and nothing else; on for a collection or a
+    /// working draft where the titles are how the writer navigates.
+    /// </summary>
+    public bool ShowSceneTitles { get; init; }
+
+    /// <summary>
+    /// How a chapter heading reads. <c>{number}</c> and <c>{title}</c> are
+    /// substituted; the default is the title alone, which is what a novel
+    /// whose chapters are named wants.
+    /// </summary>
+    public string ChapterTitleFormat { get; init; } = "{title}";
+
+    /// <summary>
+    /// Extra CSS appended to the EPUB stylesheet. The one place a writer can
+    /// reach the look of the ebook itself rather than of the page.
+    /// </summary>
+    public string EbookCss { get; init; } = string.Empty;
+
+    /// <summary>
+    /// False for a built-in. User presets are stored on the book and can be
+    /// edited or deleted; built-ins can only be copied.
+    /// </summary>
+    public bool IsCustom { get; init; }
+
+    /// <summary>The chapter heading for one chapter, with the format applied.</summary>
+    public string ChapterHeading(int number, string title)
+    {
+        var format = string.IsNullOrWhiteSpace(ChapterTitleFormat) ? "{title}" : ChapterTitleFormat;
+        return format
+            .Replace("{number}", number.ToString())
+            .Replace("{title}", title ?? string.Empty)
+            .Trim();
+    }
 }
 
 public static class ExportPresets

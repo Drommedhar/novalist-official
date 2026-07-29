@@ -126,6 +126,14 @@ public class BookData
     [JsonPropertyName("structureTemplateId")]
     public string StructureTemplateId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Export layouts the writer authored. Stored on the book rather than
+    /// globally: a submission format for a novel and one for a short-story
+    /// collection have no reason to share a list.
+    /// </summary>
+    [JsonPropertyName("exportPresets")]
+    public List<ExportPreset> ExportPresets { get; set; } = [];
+
     /// <summary>Named drafts of this book. The active draft's chapters / acts
     /// live in BookData.Chapters / Acts at runtime; on switch, the outgoing
     /// draft is flushed to draft.json and the incoming draft loaded.</summary>

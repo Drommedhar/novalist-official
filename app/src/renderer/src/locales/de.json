@@ -2251,5 +2251,25 @@
     "notePlaceholder": "Warum (Notiz für Sie selbst)",
     "add": "An einem Punkt neu fassen",
     "remove": "Diese Neufassung entfernen"
+  },
+  "layout": {
+    "title": "Export-Layouts",
+    "builtIn": "mitgeliefert",
+    "builtInHint": "Eines der vier mitgelieferten Layouts und daher nicht änderbar — ein nach einem Einreichungsstandard benanntes Layout sollte diesen Standard auch weiterhin bedeuten. Duplizieren Sie es und ändern Sie die Kopie.",
+    "duplicate": "Duplizieren",
+    "name": "Name",
+    "bodyFont": "Textschrift",
+    "fontSize": "Schriftgröße (pt)",
+    "lineSpacing": "Zeilenabstand",
+    "margin": "Rand (Zoll)",
+    "indent": "Erstzeileneinzug (Zoll)",
+    "chapterTopMargin": "Abstand über der Kapitelüberschrift (Zoll)",
+    "separator": "Szenentrenner",
+    "chapterTitleFormat": "Kapitelüberschrift",
+    "chapterTitleFormatHint": "{{number}} und {{title}} verwenden. \"Kapitel {{number}}: {{title}}\" ergibt \"Kapitel 3: Der Fall\"; voreingestellt ist nur der Titel.",
+    "showSceneTitles": "Szenentitel drucken",
+    "showSceneTitlesHint": "Aus für einen Roman, wo der Trenner die ganze Zäsur ist. An für eine Sammlung oder einen Entwurf für jemanden, der Ihnen die Szenen benennen können muss.",
+    "ebookCss": "Zusätzliches E-Book-CSS",
+    "ebookCssHint": "Wird an das EPUB-Stylesheet angehängt, Ihre Regeln gewinnen also. Die einzige Stelle, an der Sie das Aussehen des E-Books selbst statt der Seite erreichen."
   }
 }

@@ -2285,5 +2285,25 @@
     "notePlaceholder": "原因（给自己的备注）",
     "add": "在某个点重新描述",
     "remove": "移除该重新描述"
+  },
+  "layout": {
+    "title": "导出版式",
+    "builtIn": "内置",
+    "builtInHint": "这是 Novalist 自带的四种版式之一，因此无法编辑 — 以投稿标准命名的版式应始终符合该标准。请复制后修改副本。",
+    "duplicate": "复制",
+    "name": "名称",
+    "bodyFont": "正文字体",
+    "fontSize": "字号（pt）",
+    "lineSpacing": "行距",
+    "margin": "页边距（英寸）",
+    "indent": "首行缩进（英寸）",
+    "chapterTopMargin": "章节标题上方留白（英寸）",
+    "separator": "场景分隔符",
+    "chapterTitleFormat": "章节标题",
+    "chapterTitleFormatHint": "可使用 {{number}} 和 {{title}}。\"第 {{number}} 章：{{title}}\" 会得到\"第 3 章：倡台\"；默认仅显示标题。",
+    "showSceneTitles": "打印场景标题",
+    "showSceneTitlesHint": "小说请关闭，分隔符即是全部断开。合集或需要对方能指名场景的草稿请打开。",
+    "ebookCss": "额外的电子书 CSS",
+    "ebookCssHint": "追加到 EPUB 样式表末尾，因此您的规则优先。这是您能触及电子书本身（而非页面）外观的唯一地方。"
   }
 }

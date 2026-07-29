@@ -2243,5 +2243,25 @@
     "notePlaceholder": "Why (a note to yourself)",
     "add": "Restate at a point",
     "remove": "Remove this restatement"
+  },
+  "layout": {
+    "title": "Export layouts",
+    "builtIn": "built in",
+    "builtInHint": "This is one of the four layouts Novalist ships, so it cannot be edited — a layout named after a submission standard should keep meaning that standard. Duplicate it and change the copy.",
+    "duplicate": "Duplicate",
+    "name": "Name",
+    "bodyFont": "Body font",
+    "fontSize": "Font size (pt)",
+    "lineSpacing": "Line spacing",
+    "margin": "Margin (inches)",
+    "indent": "First-line indent (inches)",
+    "chapterTopMargin": "Space above a chapter title (inches)",
+    "separator": "Scene separator",
+    "chapterTitleFormat": "Chapter heading",
+    "chapterTitleFormatHint": "Use {{number}} and {{title}}. \"Chapter {{number}}: {{title}}\" gives \"Chapter 3: The Fall\"; the default is the title alone.",
+    "showSceneTitles": "Print scene titles",
+    "showSceneTitlesHint": "Off for a novel, where the separator is the whole break. On for a collection, or a draft you are sending to someone who needs to name the scenes back to you.",
+    "ebookCss": "Extra ebook CSS",
+    "ebookCssHint": "Appended to the EPUB stylesheet, so your rules win over Novalist’s. The one place you can reach the look of the ebook itself rather than the page."
   }
 }
