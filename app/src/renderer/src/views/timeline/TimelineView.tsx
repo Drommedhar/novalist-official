@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftRight, ChevronLeft, ChevronRight, FileDown, Plus, ZoomIn } from 'lucide-react'
+import { ArrowLeftRight, ChevronLeft, ChevronRight, FileDown, Plus, ZoomIn, Milestone } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { StructurePanel } from './StructurePanel'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { useWikiStore } from '../../stores/wikiStore'
@@ -73,6 +74,7 @@ export function TimelineView(): React.JSX.Element {
   const [sourceFilter, setSourceFilter] = useState('all')
   const [characterFilter, setCharacterFilter] = useState('')
   const [locationFilter, setLocationFilter] = useState('')
+  const [structureOpen, setStructureOpen] = useState(false)
   const [structures, setStructures] = useState<
     { id: string; displayName: string; description: string }[]
   >([])
@@ -228,6 +230,13 @@ export function TimelineView(): React.JSX.Element {
             </option>
           ))}
         </select>
+        <button
+          className={`toolbar-button toolbar-action${structureOpen ? ' active' : ''}`}
+          onClick={() => setStructureOpen(!structureOpen)}
+        >
+          <Milestone size={14} strokeWidth={2} />
+          {t('structure.title')}
+        </button>
         <div className="toolbar-spacer" />
         {availableCharacters.length > 0 && (
           <select
@@ -327,6 +336,10 @@ export function TimelineView(): React.JSX.Element {
           />
         </div>
       </div>
+
+      {/* A sub-view of the Timeline rather than its own place: structure is
+          what the timeline is about, and it has no meaning without one. */}
+      {structureOpen && <StructurePanel />}
       <div className={`timeline-body ${data.viewMode}`}>
         {data.groups.map((group) => (
           <div

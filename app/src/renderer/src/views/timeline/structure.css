@@ -1,0 +1,48 @@
+.structure-panel {
+  border-top: 1px solid var(--nl-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  max-height: 45vh;
+  overflow-y: auto;
+  padding: var(--nl-space-md);
+}
+
+.structure-beat {
+  border-left: 2px solid var(--nl-accent);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding-left: var(--nl-space-sm);
+}
+
+/* A beat nothing fulfils is a hole in the structure, which is the thing worth
+   noticing at a glance. */
+.structure-beat.unfilled {
+  border-left-color: var(--nl-text-subtle);
+}
+
+.structure-beat-head {
+  align-items: baseline;
+  display: flex;
+  gap: var(--nl-space-sm);
+}
+
+.structure-beat-title {
+  font-size: var(--nl-font-body);
+  font-weight: var(--nl-weight-title);
+}
+
+.structure-beat-target {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.structure-drift {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.structure-drift.off {
+  color: var(--nl-warning);
+}

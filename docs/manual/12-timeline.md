@@ -75,6 +75,22 @@ Act, chapter, and scene entries cannot be edited from the timeline — change th
 - **Use a template as a checklist, not a mold.** Apply Save the Cat, then delete the beats your story genuinely does not have — the ones left undated at the end are your gaps.
 - **Filter by character to spot off-screen time.** A character filter shows where someone was "on screen" and where they were not — an easy way to catch a character who disappears for half the book.
 
+## Structure
+
+**Structure** in the toolbar opens a panel listing every beat of the story structure your book is written against, and — the part a checklist cannot do — where the manuscript actually puts each one.
+
+Pick a structure from the drop-down: Three-Act, Save the Cat, Hero's Journey or 7-Point. Every beat then appears with the point in the book it belongs at, and a picker for the scene that fulfils it.
+
+- A beat with no scene is shown greyed — that is a hole in the structure, and it is the thing worth noticing.
+- A beat with a scene reports where that scene lands, measured in **words** rather than scene count. "The midpoint" means halfway through the reading; a book of three long scenes and twenty short ones does not turn over at scene eleven.
+- When a scene sits more than a few points off where the structure expects, the panel says so: *"Lands at 90%, which is later than the structure expects."* Structures are not precise instruments, so a small drift is reported as on target rather than flagged.
+
+A beat can only be claimed by one scene — binding a second releases the first, because two scenes cannot both be the midpoint.
+
+**Create placeholder scenes** makes one empty scene per unfilled beat, each already bound to its beat and carrying the beat's description as its synopsis. They go at the end of the last chapter rather than being scattered at their target positions: guessing where a beat belongs among your existing scenes would reorder a manuscript you did not ask to have reordered.
+
+Applying a structure from the toolbar's other drop-down still adds timeline events, which is separate — those mark the structure on the timeline, while this binds it to the manuscript.
+
 ## Where to go next
 
 - [Calendar](13-calendar.md) — the day/week/month calendar view of the same dates.

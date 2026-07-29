@@ -58,6 +58,15 @@ public class SceneData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? WordTarget { get; set; }
 
+    /// <summary>
+    /// Key of the story-structure beat this scene fulfils, or null when it
+    /// fulfils none. A beat with no scene bound to it is a hole in the
+    /// structure, which is the thing worth being told about.
+    /// </summary>
+    [JsonPropertyName("beat")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? BeatKey { get; set; }
+
     [JsonPropertyName("stage")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Stage { get; set; }

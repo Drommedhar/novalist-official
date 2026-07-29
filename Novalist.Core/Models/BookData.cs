@@ -118,6 +118,14 @@ public class BookData
     [JsonPropertyName("publishing")]
     public PublishingMetadata Publishing { get; set; } = new();
 
+    /// <summary>
+    /// Id of the story structure this book is written against, or empty for
+    /// none. Chosen rather than derived: a writer using Save the Cat should not
+    /// have Novalist guess that from their chapter count.
+    /// </summary>
+    [JsonPropertyName("structureTemplateId")]
+    public string StructureTemplateId { get; set; } = string.Empty;
+
     /// <summary>Named drafts of this book. The active draft's chapters / acts
     /// live in BookData.Chapters / Acts at runtime; on switch, the outgoing
     /// draft is flushed to draft.json and the incoming draft loaded.</summary>

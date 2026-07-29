@@ -2229,5 +2229,17 @@
   },
   "splitMerge": {
     "mergeWithNext": "Mit nächster zusammenführen: {{title}}"
+  },
+  "structure": {
+    "title": "Struktur",
+    "none": "Keine Struktur",
+    "pickOne": "Wählen Sie eine Erzählstruktur, und jeder ihrer Beats erscheint hier, bereit, auf die Szene zu zeigen, die ihn erfüllt.",
+    "unfilled": "Noch nicht geschrieben",
+    "target": "gehört bei {{percent}}%",
+    "onTarget": "Liegt bei {{actual}}% — ungefähr dort, wo er hingehört.",
+    "drifted": "Liegt bei {{actual}}%, also {{direction}}.",
+    "early": "früher als die Struktur erwartet",
+    "late": "später als die Struktur erwartet",
+    "fillGaps": "{{count}} Platzhalterszenen anlegen"
   }
 }

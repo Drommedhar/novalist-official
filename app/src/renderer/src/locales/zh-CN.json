@@ -2263,5 +2263,17 @@
   },
   "splitMerge": {
     "mergeWithNext": "与下一个合并：{{title}}"
+  },
+  "structure": {
+    "title": "结构",
+    "none": "无结构",
+    "pickOne": "选择一种故事结构，其每个节拍都会在此处列出，等待指向完成它的场景。",
+    "unfilled": "尚未写",
+    "target": "应在 {{percent}}%",
+    "onTarget": "位于 {{actual}}% — 大致在应在的位置。",
+    "drifted": "位于 {{actual}}%，比结构预期{{direction}}。",
+    "early": "更早",
+    "late": "更晚",
+    "fillGaps": "创建 {{count}} 个占位场景"
   }
 }

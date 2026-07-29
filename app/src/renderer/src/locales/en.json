@@ -2221,5 +2221,17 @@
   },
   "splitMerge": {
     "mergeWithNext": "Merge with next: {{title}}"
+  },
+  "structure": {
+    "title": "Structure",
+    "none": "No structure",
+    "pickOne": "Pick a story structure and every one of its beats appears here, ready to be pointed at the scene that fulfils it.",
+    "unfilled": "Not written yet",
+    "target": "belongs at {{percent}}%",
+    "onTarget": "Lands at {{actual}}% - about where it should.",
+    "drifted": "Lands at {{actual}}%, which is {{direction}}.",
+    "early": "earlier than the structure expects",
+    "late": "later than the structure expects",
+    "fillGaps": "Create {{count}} placeholder scenes"
   }
 }
