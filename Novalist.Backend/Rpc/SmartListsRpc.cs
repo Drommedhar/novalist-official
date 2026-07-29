@@ -84,6 +84,16 @@ public sealed class SmartListsRpc
             .OrderBy(t => t, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
+        // Everyone any scene says is present, so the picker offers what the
+        // book actually uses rather than the whole Codex.
+        var castIds = scenes
+            .SelectMany(s => s.Cast ?? [])
+            .Concat(scenes.Select(s => s.FocusEntityId ?? string.Empty))
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
         var fields = new List<SmartListFieldDto>
         {
             new("chapterStatus", "chapterStatus", "choice",
@@ -104,6 +114,10 @@ public sealed class SmartListsRpc
             new("synopsis", "synopsis", "text", []),
             new("notes", "notes", "text", []),
             new("beat", "beat", "text", []),
+            // Ids rather than names: the cast is stored by id, and a name that
+            // changes would silently stop matching.
+            new("cast", "cast", "choice", [.. castIds]),
+            new("focus", "focus", "choice", [.. castIds]),
             new("words", "words", "number", []),
             new("target", "target", "number", [])
         };

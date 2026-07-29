@@ -1862,6 +1862,12 @@
   gap: var(--nl-space-tighter);
 }
 
+/* The saved-list filter sits with the mode buttons, and never grows into the
+   toolbar - a list name can be a sentence. */
+.manuscript-list-filter {
+  max-width: 220px;
+}
+
 .manuscript-filters {
   display: flex;
   gap: var(--nl-space-tighter);

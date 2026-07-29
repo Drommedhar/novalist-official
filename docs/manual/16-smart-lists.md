@@ -57,6 +57,21 @@ Right-click a list in the panel:
 
 Smart Lists are stored in the project file and travel with the project. Anyone who opens the project sees the same lists.
 
+## Who is in the scene
+
+Two rule fields ask about people and places rather than words:
+
+- **cast** — matches the [cast and locations](04-chapters-and-scenes.md) you recorded on the scene. "Every scene Mira is in" is a cast rule, and it finds the scenes where she is present but never named — which a search of the prose cannot.
+- **focus** — matches the one entry the scene is *about*, rather than everyone in it.
+
+Both match on entity id rather than name, so renaming a character does not quietly stop the list matching.
+
+## Narrowing the Manuscript view to a list
+
+The Manuscript view's toolbar has a **saved-list** drop-down beside the mode buttons. Pick a list and every mode narrows to its scenes: the continuous prose, the corkboard, the outliner and the board. Pick **The whole book** to clear it.
+
+A saved list that only the binder could apply is a question you can ask in one place and nowhere else, which is most of the reason to save it.
+
 ## Where to go next
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — status lives on chapters; scenes carry POV and tags.

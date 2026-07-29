@@ -1449,7 +1449,9 @@
     "viewModeOutliner": "Übersicht",
     "viewModeBoard": "Board",
     "composedCount": "{{count}} ausgewählte Szenen",
-    "showWholeBook": "Ganzes Buch zeigen"
+    "showWholeBook": "Ganzes Buch zeigen",
+    "filterList": "Auf eine gespeicherte Liste eingrenzen",
+    "filterListNone": "Das ganze Buch"
   },
   "entityTypeManager": {
     "displayName": "Anzeigename",

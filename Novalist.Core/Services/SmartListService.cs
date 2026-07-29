@@ -96,6 +96,11 @@ public sealed class SmartListService : ISmartListService
             return Holds(rule, scene.AnalysisOverrides?.Tags ?? []);
         if (rule.Field == "plotline")
             return Holds(rule, scene.PlotlineIds ?? []);
+        // Who and what the writer said is in this scene. A saved list that can
+        // only read the prose cannot answer "every scene Mira is in", which is
+        // the question a writer following one thread actually asks.
+        if (rule.Field == "cast")
+            return Holds(rule, scene.Cast ?? []);
 
         var value = rule.Field switch
         {
@@ -106,6 +111,7 @@ public sealed class SmartListService : ISmartListService
             "notes" => scene.Notes ?? string.Empty,
             "stage" => scene.Stage ?? string.Empty,
             "beat" => scene.BeatKey ?? string.Empty,
+            "focus" => scene.FocusEntityId ?? string.Empty,
             "words" => scene.WordCount.ToString(),
             "target" => scene.WordTarget?.ToString() ?? string.Empty,
             "pov" => await ResolvePovAsync(chapter, scene, characters).ConfigureAwait(false),

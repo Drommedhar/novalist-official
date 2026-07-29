@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore, type ManuscriptMode } from '../../stores/manuscriptStore'
+import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
@@ -35,6 +36,15 @@ export function ManuscriptView(): React.JSX.Element {
   const { t } = useTranslation()
   const mode = useManuscriptStore((s) => s.mode)
   const filterStatus = useManuscriptStore((s) => s.filterStatus)
+  const filterListId = useManuscriptStore((s) => s.filterListId)
+  const [savedLists, setSavedLists] = useState<{ id: string; name: string }[]>([])
+
+  useEffect(() => {
+    void rpc
+      .request<{ id: string; name: string }[]>('smartLists/list')
+      .then(setSavedLists)
+      .catch(() => setSavedLists([]))
+  }, [])
   const sections = useManuscriptStore((s) => s.sections)
   const setMode = useManuscriptStore((s) => s.setMode)
   const setFilter = useManuscriptStore((s) => s.setFilter)
@@ -108,6 +118,21 @@ export function ManuscriptView(): React.JSX.Element {
               {t('manuscript.showWholeBook')}
             </button>
           </div>
+        )}
+        {savedLists.length > 0 && (
+          <select
+            className="dialog-input manuscript-list-filter"
+            value={filterListId}
+            aria-label={t('manuscript.filterList')}
+            onChange={(e) => void useManuscriptStore.getState().applyList(e.target.value)}
+          >
+            <option value="">{t('manuscript.filterListNone')}</option>
+            {savedLists.map((list) => (
+              <option key={list.id} value={list.id}>
+                {list.name}
+              </option>
+            ))}
+          </select>
         )}
         <div className="manuscript-filters">
           {FILTERS.map((f) => (

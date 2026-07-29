@@ -33,12 +33,16 @@ interface ManuscriptState {
   /** What the board groups by: 'chapter', 'stage', 'pov', or 'prop:<key>'. */
   groupBy: string
   filterStatus: string
+  /** A saved list narrowing every mode, or '' for the whole book. */
+  filterListId: string
   sections: ManuscriptSectionDto[]
   loaded: boolean
   setMode(mode: ManuscriptMode): void
   setGroupBy(groupBy: string): void
   compose(sceneIds: string[] | null): Promise<void>
   setFilter(status: string): Promise<void>
+  /** Narrows every mode to a saved list's scenes; '' is the whole book. */
+  applyList(filterListId: string): Promise<void>
   load(): Promise<void>
   onSceneContentChanged(sceneId: string, html: string, plainText: string, wordCount: number): void
   cycleStatus(chapterGuid: string): Promise<void>
@@ -51,6 +55,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   composed: null,
   groupBy: 'stage',
   filterStatus: 'All',
+  filterListId: '',
   sections: [],
   loaded: false,
 
@@ -60,6 +65,25 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
 
   setFilter: async (filterStatus) => {
     set({ filterStatus })
+    await get().load()
+  },
+
+  /**
+   * Narrows every mode to the scenes a saved list finds - the outliner, the
+   * corkboard and the board as well as the prose. A saved list that only the
+   * binder could apply is a question you can ask in one place and nowhere
+   * else, which is most of the point of saving it.
+   */
+  applyList: async (filterListId) => {
+    if (!filterListId) {
+      set({ filterListId: '', composed: [] })
+      await get().load()
+      return
+    }
+    const matches = await rpc
+      .request<{ sceneId: string }[]>('smartLists/evaluate', [filterListId])
+      .catch(() => [])
+    set({ filterListId, composed: matches.map((m) => m.sceneId) })
     await get().load()
   },
 

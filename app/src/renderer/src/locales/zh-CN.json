@@ -1860,7 +1860,9 @@
     "viewModeOutliner": "大纲视图",
     "viewModeBoard": "看板",
     "composedCount": "正在阅读 {{count}} 个所选场景",
-    "showWholeBook": "显示全书"
+    "showWholeBook": "显示全书",
+    "filterList": "缩小到已保存的列表",
+    "filterListNone": "整本书"
   },
   "entityTypeManager": {
     "displayName": "显示名称",

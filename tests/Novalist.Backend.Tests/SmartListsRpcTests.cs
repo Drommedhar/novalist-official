@@ -111,6 +111,8 @@ public sealed class SmartListsRpcTests : IDisposable
         {
             Tags = ["action", "quiet"]
         };
+        scene.Cast = ["halden", "mira"];
+        scene.FocusEntityId = "mira";
         await _workspace.Projects.SaveScenesAsync();
         await new ManuscriptPropertyRpc(_workspace).SetDefinitionsAsync([
             new ManuscriptPropertyDto("tension", "Tension", "Int", [], "Scene", false)
@@ -123,6 +125,10 @@ public sealed class SmartListsRpcTests : IDisposable
         Assert.Equal(["action", "quiet"], fields.Single(f => f.Field == "tag").Options);
         Assert.Equal(["Act One"], fields.Single(f => f.Field == "act").Options);
         Assert.Equal(["p1"], fields.Single(f => f.Field == "plotline").Options);
+        // Everyone any scene says is present, deduped and in order - the focus
+        // is one of them rather than a separate list.
+        Assert.Equal(["halden", "mira"], fields.Single(f => f.Field == "cast").Options);
+        Assert.Equal(["halden", "mira"], fields.Single(f => f.Field == "focus").Options);
         Assert.Contains("firstDraft", fields.Single(f => f.Field == "stage").Options);
         var mine = fields.Single(f => f.Field == "prop:tension");
         Assert.Equal("Tension", mine.Label);

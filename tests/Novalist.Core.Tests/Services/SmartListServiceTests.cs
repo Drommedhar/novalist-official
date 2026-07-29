@@ -400,4 +400,58 @@ public class SmartListServiceTests
         legacy.Rules.Add(Rule("title", SmartListOperator.Is, "x"));
         Assert.Single(legacy.EffectiveRules());
     }
+
+    // -- Who is in the scene --
+
+    [Fact]
+    public async Task ACastRuleFindsEverySceneSomeoneIsIn()
+    {
+        var (sut, project, _) = Build();
+        var chapter = new ChapterData { Guid = "c1" };
+        var withMira = new SceneData { Id = "s1", Cast = ["mira", "halden"] };
+        var without = new SceneData { Id = "s2", Cast = ["halden"] };
+        project.GetChaptersOrdered().Returns([chapter]);
+        project.GetScenesForChapter("c1").Returns([withMira, without]);
+
+        var matches = await sut.EvaluateAsync(new SmartList
+        {
+            Rules = [new SmartListRule { Field = "cast", Op = SmartListOperator.Is, Value = "mira" }]
+        });
+
+        Assert.Equal(["s1"], matches.Select(m => m.Scene.Id));
+    }
+
+    [Fact]
+    public async Task AFocusRuleFindsTheScenesThatAreAboutSomeone()
+    {
+        var (sut, project, _) = Build();
+        var chapter = new ChapterData { Guid = "c1" };
+        var about = new SceneData { Id = "s1", Cast = ["mira"], FocusEntityId = "mira" };
+        var merelyPresent = new SceneData { Id = "s2", Cast = ["mira"] };
+        project.GetChaptersOrdered().Returns([chapter]);
+        project.GetScenesForChapter("c1").Returns([about, merelyPresent]);
+
+        var matches = await sut.EvaluateAsync(new SmartList
+        {
+            Rules = [new SmartListRule { Field = "focus", Op = SmartListOperator.Is, Value = "mira" }]
+        });
+
+        Assert.Equal(["s1"], matches.Select(m => m.Scene.Id));
+    }
+
+    [Fact]
+    public async Task ASceneWithNobodyInItMatchesNoCastRule()
+    {
+        var (sut, project, _) = Build();
+        var chapter = new ChapterData { Guid = "c1" };
+        project.GetChaptersOrdered().Returns([chapter]);
+        project.GetScenesForChapter("c1").Returns([new SceneData { Id = "s1" }]);
+
+        var matches = await sut.EvaluateAsync(new SmartList
+        {
+            Rules = [new SmartListRule { Field = "cast", Op = SmartListOperator.IsSet, Value = "" }]
+        });
+
+        Assert.Empty(matches);
+    }
 }

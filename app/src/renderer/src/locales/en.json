@@ -1825,7 +1825,9 @@
     "viewModeOutliner": "Outliner",
     "viewModeBoard": "Board",
     "composedCount": "Reading {{count}} chosen scenes",
-    "showWholeBook": "Show the whole book"
+    "showWholeBook": "Show the whole book",
+    "filterList": "Narrow to a saved list",
+    "filterListNone": "The whole book"
   },
   "entityTypeManager": {
     "displayName": "Display Name",
