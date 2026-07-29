@@ -1,5 +1,31 @@
 import { useShellStore, type MainView } from '../stores/shellStore'
 
+/**
+ * Prints what the writer is looking at.
+ *
+ * A prose iframe prints itself: the editor and Manuscript mode each hold their
+ * text in a document of their own, and printing the shell around them would
+ * clip everything below the visible area. Every other view prints through the
+ * shell's own print stylesheet, which drops the chrome and leaves the main
+ * area - so a timeline, a plot grid or a calendar prints as it reads.
+ */
+export function printCurrentView(): void {
+  // With the editor split in two, the pane the writer is in is the one they
+  // mean; activeElement is the iframe itself while a frame has focus.
+  const active = document.activeElement
+  const frame =
+    active instanceof HTMLIFrameElement && active.classList.contains('editor-frame')
+      ? active
+      : document.querySelector<HTMLIFrameElement>('.editor-frame')
+  const inner = frame?.contentWindow
+  if (inner) {
+    inner.focus()
+    inner.print()
+    return
+  }
+  window.print()
+}
+
 export interface HotkeyAction {
   actionId: string
   /** Currently active gesture (persisted override, else {@link defaultGesture}). */
@@ -166,6 +192,15 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
       categoryKey: 'hotkeys.category.general',
       labelKey: 'quickOpen.placeholder',
       run: () => shell().setQuickOpenOpen(true)
+    },
+    {
+      actionId: 'app.print',
+      // Ctrl+P is Quick Open here and has been since before there was
+      // anything to print, so moving it would cost more than it is worth.
+      defaultGesture: 'Ctrl+Alt+P',
+      categoryKey: 'hotkeys.category.general',
+      labelKey: 'print.title',
+      run: () => printCurrentView()
     },
     {
       actionId: 'app.quickCapture',

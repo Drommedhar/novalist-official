@@ -179,6 +179,19 @@ A layout controls:
 | **Print scene titles** | Off for a novel, where the separator is the whole break. On for a collection, or a draft going to someone who needs to name the scenes back to you. |
 | **Extra ebook CSS** | Appended to the EPUB stylesheet, so your rules win over Novalist's by cascade order. The one place you can reach the look of the ebook itself rather than of the page. |
 
+## Printing
+
+`Ctrl+Alt+P`, or **Print** in the [command palette](25-command-palette.md), prints what you are looking at.
+
+- In the **editor**, that is the open scene. With the editor split, it is the pane your caret is in.
+- In **Manuscript mode**, it is the whole book as the view lays it out — the closest thing to a printed draft without exporting first.
+- In the **Exposé**, it is the exposé.
+- In any other view — Timeline, Plot Grid, Calendar, Relationships, Dashboard — it is that view, with the toolbar, activity bar, binder, inspector and status bar dropped and the content given the page.
+
+Printing prose leaves the working apparatus out: no floating toolbar, no grammar underlines, no readability tint, no word counts between scenes. Your printer's own dialog handles paper size, margins and "print to PDF", which is why Novalist does not ask you about any of them.
+
+`Ctrl+P` is [Quick Open](31-quick-open.md) and has been since before there was anything to print, so Print took `Ctrl+Alt+P`. Both are rebindable in **Settings → Hotkeys**.
+
 ## Choosing what goes in
 
 Beyond the chapter checkboxes:

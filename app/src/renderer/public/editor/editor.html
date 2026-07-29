@@ -86,6 +86,25 @@ body.dim-others #editor > .nv-focus-block { opacity: 1; }
 #editor ul, #editor ol { margin: 0.6em 0 0.6em 2em; padding: 0; }
 #editor li { margin-bottom: 0.2em; text-indent: 0; text-align: left; }
 #editor ::selection { background: var(--selection-bg); }
+
+/* ===== Print =====
+   The prose, on paper. Everything that helps while writing - the floating
+   toolbar, the comment gutter, popups, the marked-up sentences - is working
+   apparatus and has no business on a printed page. The scroller has to open
+   up too, or printing stops at the fold. */
+@media print {
+    html, body { height: auto; overflow: visible; background: #fff; color: #000; }
+    #editor-wrapper { height: auto; overflow: visible; }
+    #editor { color: #000; padding: 0; }
+    #floating-toolbar,
+    #grammar-popup,
+    #context-menu,
+    #mention-picker,
+    #grammar-status-bar { display: none !important; }
+    .grammar-issue { text-decoration: none !important; background: none !important; }
+    ::highlight(nv-speaking) { background-color: transparent; }
+}
+
 /* The sentence being read aloud. Painted with the Custom Highlight API rather
    than by wrapping the text in a span - a read-aloud pass must not touch the
    document, or listening to your own chapter would mark it as edited. */

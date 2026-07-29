@@ -120,6 +120,15 @@ body { display: flex; justify-content: center; }
     font-size: 11px;
     color: var(--subtle);
 }
+/* ===== Print =====
+   Manuscript mode is the whole book in one document, which is exactly what
+   printing it should produce. */
+@media print {
+    html, body { height: auto; overflow: visible; background: #fff; color: #000; }
+    .scene-editor, .chapter-title, .scene-title { color: #000; }
+    .scene-wordcount { display: none !important; }
+}
+
 .scene-editor {
     outline: none;
     caret-color: var(--caret);

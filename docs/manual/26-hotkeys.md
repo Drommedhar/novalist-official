@@ -34,6 +34,7 @@ The number keys switch the main area between views, in this order:
 | Command Palette | `Ctrl+Shift+P` |
 | Quick Open (search everything) | `Ctrl+P` |
 | Quick capture (jot a note) | `Ctrl+Shift+K` |
+| Print | `Ctrl+Alt+P` |
 
 ## Notes
 

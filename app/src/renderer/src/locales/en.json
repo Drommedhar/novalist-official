@@ -2549,5 +2549,8 @@
     "scan": "Scan the book",
     "none": "Every Codex name in your prose is already linked.",
     "link": "Link every occurrence in this scene"
+  },
+  "print": {
+    "title": "Print"
   }
 }

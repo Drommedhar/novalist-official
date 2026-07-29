@@ -2557,5 +2557,8 @@
     "scan": "Buch durchsuchen",
     "none": "Alle Codex-Namen in Ihrem Text sind bereits verknüpft.",
     "link": "Alle Vorkommen in dieser Szene verknüpfen"
+  },
+  "print": {
+    "title": "Drucken"
   }
 }

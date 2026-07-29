@@ -3436,3 +3436,31 @@
   grid-template-columns: 1fr 110px auto auto;
   margin-bottom: var(--nl-space-tightest);
 }
+
+/* ===== Print =====
+   Printing a view means printing what the view shows, not the application
+   around it. The chrome goes, the main area gets the page, and colours are
+   left to the printer's own handling of a dark theme. */
+@media print {
+  .toolbar,
+  .activity-bar,
+  .binder,
+  .inspector,
+  .status-bar {
+    display: none !important;
+  }
+
+  .shell,
+  .shell-body,
+  .main-area {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  /* A scroller prints only what it is showing, so every one of them has to
+     open up or the page stops at the fold. */
+  .main-area * {
+    overflow: visible !important;
+  }
+}
