@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
@@ -146,7 +147,7 @@ public sealed class SceneAnalysisLexicon
     public IReadOnlyList<string> Cliches { get; private init; } = [];
 
     /// <summary>Language tags shipped as embedded resources.</summary>
-    private static IReadOnlyList<string> BuiltInLanguages { get; } = Assembly
+    public static IReadOnlyList<string> BuiltInLanguages { get; } = Assembly
         .GetExecutingAssembly()
         .GetManifestResourceNames()
         .Where(name => name.StartsWith(ResourcePrefix, StringComparison.Ordinal)
@@ -178,6 +179,37 @@ public sealed class SceneAnalysisLexicon
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(tag => tag, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    /// <summary>
+    /// A starting point for a new language's lexicon: the shipped English file,
+    /// with a header naming the language and saying what to do with it.
+    ///
+    /// Seeded from English rather than left blank because the useful work is
+    /// translating a real list of emotion and conflict words, not guessing which
+    /// keys exist. Every value is meant to be replaced; the shape is the gift.
+    /// </summary>
+    public static string TemplateFor(string languageTag)
+    {
+        using var stream = Assembly
+            .GetExecutingAssembly()
+            .GetManifestResourceStream($"{ResourcePrefix}en{ResourceSuffix}")
+            ?? throw new InvalidOperationException("The English lexicon is missing.");
+        using var reader = new StreamReader(stream);
+
+        var node = JsonNode.Parse(reader.ReadToEnd())!.AsObject();
+        node["_comment"] =
+            $"Scene-analysis lexicon for '{languageTag}'. Every list below is the English one, "
+            + "left here as a starting point - replace the words with the equivalents in your "
+            + "language rather than translating them one for one, since what counts as a filter "
+            + "word or a cliche differs. Delete a list to leave that detection off. Then press "
+            + "Rescan in Settings; no restart is needed.";
+
+        return node.ToJsonString(new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        });
     }
 
     /// <summary>Language tags with a lexicon file in the user directory. Empty

@@ -68,9 +68,22 @@ Buckets:
 - `parent` / `child` / `partner` / `sibling` drive family clustering and edge typing in the graph.
 - `pseudo` covers extended family (cousin, uncle, in-laws, grandparents) used to anchor non-immediate family characters next to the right node.
 
+## What Novalist speaks: the Language packs panel
+
+**Settings → Language packs** lists every language Novalist knows about and, for each one, two separate answers:
+
+- **Interface** — whether the menus are available in it. `Bundled` for the three that ship (English, German, Chinese), `Yours` for a file you dropped in, `Not available` otherwise.
+- **Scene analysis** — whether a [lexicon](#the-scene-analysis-lexicon) exists so the Inspector can detect POV, emotion, intensity, conflict and tags in prose written in it.
+
+The two are deliberately separate, because reading the menus in English while writing a French novel is a normal thing to do and one combined "supported" flag would be wrong for half the people asking. The list includes every language the Quote Style picker offers, so a writing language with no lexicon is stated rather than left to be discovered.
+
+The panel has buttons to open both folders, and a **Rescan** that picks up a file you just dropped in without restarting Novalist. Beside any language with no lexicon there is a button that writes a starting one into the analysis folder, seeded with the English word lists so the work is translating a real list rather than guessing which keys exist.
+
+Novalist bundles three interface languages and three lexicons. Everything past that is a file you or a contributor supplies — that has always been true, and the panel is there so it is visible rather than something you find out by wondering why your scenes have no detected emotion.
+
 ## Adding a language yourself
 
-You do not have to wait for a release to use Novalist in another language. Drop a `<code>.json` locale file into the `Locales/` folder beside your settings and it joins the language dropdown on the next launch — including a partial translation, which falls back to English for anything it leaves out, and including a file that patches a language Novalist already ships. See [Custom themes & language packs](34-custom-themes-and-languages.md) for the format and the folder location.
+You do not have to wait for a release to use Novalist in another language. Drop a `<code>.json` locale file into the `Locales/` folder beside your settings, press **Rescan** in Settings → Language packs, and it joins the language dropdown — including a partial translation, which falls back to English for anything it leaves out, and including a file that patches a language Novalist already ships. See [Custom themes & language packs](34-custom-themes-and-languages.md) for the format and the folder location.
 
 ## Contributing translations
 
@@ -91,14 +104,14 @@ The [Inspector's](22-context-sidebar.md) automatic emotion, intensity, conflict,
 Novalist.Core/Resources/Analysis/analysis.<code>.json
 ```
 
-The presence of that file is what makes a language supported — no code change is needed. To use one without rebuilding, drop the same file into the `Analysis/` folder beside your settings; a file there also overrides a bundled list of the same code. Copy `analysis.en.json` and:
+The presence of that file is what makes a language supported — no code change is needed. To use one without rebuilding, drop the same file into the `Analysis/` folder beside your settings and press **Rescan** in Settings → Language packs; a file there also overrides a bundled list of the same code. The quickest start is the button beside a language in that panel, which writes a seeded `analysis.<code>.json` for you; otherwise copy `analysis.en.json`. Either way:
 
 - Translate `positive`, `negative`, and `conflict` into words (or stems — matching is a substring test, so the German stem `kämpf` also catches `kämpfen`).
 - Translate the `words` of every `emotions` entry, but **keep the `key` values and their order exactly as in the English file**. Keys are stable identifiers that the interface localizes and that scenes store, so a scene's emotion stays valid if you change writing language.
 - Translate `firstPerson` into your language's first-person pronouns; these drive first-person POV detection.
 - Set `wordBoundaries` to `false` for languages that are not written with spaces between words (as `analysis.zh-CN.json` does); leave it `true` otherwise.
 
-A regional tag falls back to its base language, so `de-AT` uses `analysis.de.json`. A language with no lexicon simply leaves those fields blank in the Inspector rather than guessing with another language's words.
+A regional tag falls back to its base language, so `de-AT` uses `analysis.de.json`. A language with no lexicon simply leaves those fields blank in the Inspector rather than guessing with another language's words — writing and exporting are unaffected, and you can set POV, emotion, intensity, conflict and tags by hand on any scene.
 
 ## Extensions and localization
 

@@ -2160,5 +2160,21 @@
   "spell": {
     "addToDictionary": "加入词典",
     "noSuggestions": "无建议"
+  },
+  "languagePacks": {
+    "title": "语言包",
+    "intro": "Novalist 自带三种界面语言和三套场景分析词典。其他语言均为您或贡献者放入这些文件夹的文件 — 无需重启，点击重新扫描即可。",
+    "rescan": "重新扫描",
+    "openLocales": "打开界面文件夹",
+    "openAnalysis": "打开分析文件夹",
+    "language": "语言",
+    "interfaceColumn": "界面",
+    "lexiconColumn": "场景分析",
+    "bundled": "内置",
+    "user": "您的",
+    "missing": "不可用",
+    "startLexicon": "为该语言新建词典",
+    "templateWritten": "已在分析文件夹中为 {{code}} 创建起始词典。请翻译其中的词表，然后点击重新扫描。",
+    "lexiconHint": "没有场景分析词典，该语言仍可正常写作和导出 — 只是失去了对 POV、情绪、强度、冲突和标签的自动识别，以及基于动词的对话归属。这些值可以在每个场景中手动设置。"
   }
 }

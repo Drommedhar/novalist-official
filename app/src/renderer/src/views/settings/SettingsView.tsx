@@ -13,6 +13,7 @@ import { HotkeysCard } from './HotkeysCard'
 import { ExtensionsCard } from './ExtensionsCard'
 import { BackupsCard } from './BackupsCard'
 import { SpellCheckCard } from './SpellCheckCard'
+import { LanguagePacksCard } from './LanguagePacksCard'
 import './settings.css'
 
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
@@ -766,6 +767,12 @@ export function SettingsView(): React.JSX.Element {
       titleKey: 'backup.title',
       keywords: ['backup', 'archive', 'restore', 'zip', 'recovery', 'safety'],
       body: <BackupsCard />
+    },
+    {
+      key: 'languagePacks',
+      titleKey: 'languagePacks.title',
+      keywords: ['language', 'locale', 'translation', 'lexicon', 'analysis', 'i18n', 'pack'],
+      body: <LanguagePacksCard />
     },
     {
       key: 'diagnostics',

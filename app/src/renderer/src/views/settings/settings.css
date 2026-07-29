@@ -280,3 +280,48 @@
   max-height: 220px;
   overflow-y: auto;
 }
+
+.language-pack-table {
+  display: flex;
+  flex-direction: column;
+  margin: var(--nl-space-sm) var(--nl-space-none);
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.language-pack-row {
+  align-items: center;
+  border-bottom: 1px solid var(--nl-border);
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 2fr 1fr 1fr auto;
+  padding: var(--nl-space-tightest) var(--nl-space-none);
+}
+
+.language-pack-head {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  text-transform: uppercase;
+}
+
+.language-pack-code {
+  font-size: var(--nl-font-body-sm);
+}
+
+.language-pack-name {
+  color: var(--nl-text-subtle);
+}
+
+.language-pack-state {
+  font-size: var(--nl-font-caption);
+}
+
+/* A missing pack is stated plainly rather than flagged as an error - it is a
+   normal state for most of the world's languages, not a fault. */
+.language-pack-state.missing {
+  color: var(--nl-text-subtle);
+}
+
+.language-pack-state.user {
+  color: var(--nl-accent);
+}

@@ -2118,5 +2118,21 @@
   "spell": {
     "addToDictionary": "Add to dictionary",
     "noSuggestions": "No suggestions"
+  },
+  "languagePacks": {
+    "title": "Language packs",
+    "intro": "Novalist bundles three interface languages and three scene-analysis lexicons. Any other language is a file you or a contributor drops into these folders — no restart needed, just press Rescan.",
+    "rescan": "Rescan",
+    "openLocales": "Open interface folder",
+    "openAnalysis": "Open analysis folder",
+    "language": "Language",
+    "interfaceColumn": "Interface",
+    "lexiconColumn": "Scene analysis",
+    "bundled": "Bundled",
+    "user": "Yours",
+    "missing": "Not available",
+    "startLexicon": "Start a lexicon for this language",
+    "templateWritten": "A starting lexicon for {{code}} was written to the analysis folder. Translate the word lists in it, then press Rescan.",
+    "lexiconHint": "Without a scene-analysis lexicon, a language still writes and exports normally — what it loses is automatic POV, emotion, intensity, conflict and tag detection, and verb-based dialogue attribution. You can set those by hand on any scene."
   }
 }

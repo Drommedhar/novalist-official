@@ -2126,5 +2126,21 @@
   "spell": {
     "addToDictionary": "Zum Wörterbuch hinzufügen",
     "noSuggestions": "Keine Vorschläge"
+  },
+  "languagePacks": {
+    "title": "Sprachpakete",
+    "intro": "Novalist bringt drei Oberflächensprachen und drei Szenenanalyse-Lexika mit. Jede weitere Sprache ist eine Datei, die Sie oder jemand anderes in diese Ordner legt — ohne Neustart, einfach Neu einlesen drücken.",
+    "rescan": "Neu einlesen",
+    "openLocales": "Oberflächen-Ordner öffnen",
+    "openAnalysis": "Analyse-Ordner öffnen",
+    "language": "Sprache",
+    "interfaceColumn": "Oberfläche",
+    "lexiconColumn": "Szenenanalyse",
+    "bundled": "Mitgeliefert",
+    "user": "Von Ihnen",
+    "missing": "Nicht verfügbar",
+    "startLexicon": "Lexikon für diese Sprache anlegen",
+    "templateWritten": "Ein Start-Lexikon für {{code}} wurde im Analyse-Ordner angelegt. Übersetzen Sie die Wortlisten darin und drücken Sie dann Neu einlesen.",
+    "lexiconHint": "Ohne Szenenanalyse-Lexikon lässt sich eine Sprache trotzdem normal schreiben und exportieren — es fehlt lediglich die automatische Erkennung von POV, Emotion, Intensität, Konflikt und Tags sowie die verbbasierte Dialogzuordnung. Diese Werte lassen sich pro Szene von Hand setzen."
   }
 }
