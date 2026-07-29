@@ -363,6 +363,17 @@ export function SettingsView(): React.JSX.Element {
               <label className="relationships-toggle">
                 <input
                   type="checkbox"
+                  checked={eff.composeDimming}
+                  onChange={(e) =>
+                    void update(scopeFor('editor'), { composeDimming: e.target.checked })
+                  }
+                />
+                {t('settings.composeDimming')}
+              </label>
+              <div className="settings-hint">{t('settings.composeDimmingDesc')}</div>
+              <label className="relationships-toggle">
+                <input
+                  type="checkbox"
                   checked={eff.typewriterScrollEnabled}
                   onChange={(e) =>
                     void update(scopeFor('editor'), { typewriterScrollEnabled: e.target.checked })

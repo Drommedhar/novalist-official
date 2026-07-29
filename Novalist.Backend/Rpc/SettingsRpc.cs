@@ -293,6 +293,7 @@ public sealed class SettingsRpc
             ["accentColor"] = effective.AccentColor,
             ["editorFontFamily"] = effective.EditorFontFamily,
             ["editorFontSize"] = effective.EditorFontSize,
+            ["composeDimming"] = effective.ComposeDimming,
             ["typewriterScrollEnabled"] = effective.TypewriterScrollEnabled,
             ["typewriterScrollAnchor"] = effective.TypewriterScrollAnchor,
             ["pageViewEnabled"] = effective.PageViewEnabled,

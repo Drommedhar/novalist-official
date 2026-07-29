@@ -88,6 +88,13 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("spellCheckCustomWords")]
     public List<string> SpellCheckCustomWords { get; set; } = new();
 
+    /// <summary>
+    /// Whether composition mode dims every paragraph but the one the caret is
+    /// in. Off by default: dimming is a strong preference, not a default.
+    /// </summary>
+    [JsonPropertyName("composeDimming")]
+    public bool ComposeDimming { get; set; }
+
     [JsonPropertyName("typewriterScrollEnabled")]
     public bool TypewriterScrollEnabled { get; set; }
 

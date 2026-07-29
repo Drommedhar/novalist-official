@@ -36,6 +36,9 @@ function pushEditorSettings(editor: EditorWindow, initial = false): void {
   if (!initial || typewriter) {
     editor.setTypewriterScroll(typewriter, eff.typewriterScrollAnchor)
   }
+  if (!initial || eff.composeDimming) {
+    editor.setComposeDimming(eff.composeDimming)
+  }
   if (!initial || eff.pageViewEnabled) {
     editor.setPageView(eff.pageViewEnabled)
   }

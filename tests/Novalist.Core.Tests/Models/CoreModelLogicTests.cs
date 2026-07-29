@@ -148,6 +148,7 @@ public class SettingsOverridesTests
         AccentColor = "#5865f2",
         EditorFontFamily = "Georgia",
         EditorFontSize = 19,
+        ComposeDimming = true,
         TypewriterScrollEnabled = true,
         TypewriterScrollAnchor = "center",
         PageViewEnabled = true,
@@ -192,6 +193,7 @@ public class SettingsOverridesTests
         Assert.True(o.HasEditorOverride);
         Assert.Equal("Georgia", o.EditorFontFamily);
         Assert.Equal(19, o.EditorFontSize);
+        Assert.True(o.ComposeDimming);
         Assert.True(o.TypewriterScrollEnabled);
         Assert.Equal("center", o.TypewriterScrollAnchor);
         Assert.True(o.PageViewEnabled);

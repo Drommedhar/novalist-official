@@ -104,6 +104,10 @@ public class SettingsOverrides
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? AccentColor { get; set; }
 
+    [JsonPropertyName("composeDimming")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? ComposeDimming { get; set; }
+
     [JsonPropertyName("typewriterScrollEnabled")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? TypewriterScrollEnabled { get; set; }
@@ -128,6 +132,7 @@ public class SettingsOverrides
     [JsonIgnore]
     public bool HasEditorOverride =>
         EditorFontFamily != null || EditorFontSize != null
+        || ComposeDimming != null
         || TypewriterScrollEnabled != null || TypewriterScrollAnchor != null || PageViewEnabled != null
         || EnableBookParagraphSpacing != null || EnableBookWidth != null || BookPageFormat != null
         || BookTextBlockWidth != null || BookFontFamily != null || BookFontSize != null;
@@ -160,6 +165,7 @@ public class SettingsOverrides
     {
         EditorFontFamily = source.EditorFontFamily;
         EditorFontSize = source.EditorFontSize;
+        ComposeDimming = source.ComposeDimming;
         TypewriterScrollEnabled = source.TypewriterScrollEnabled;
         TypewriterScrollAnchor = source.TypewriterScrollAnchor;
         PageViewEnabled = source.PageViewEnabled;
@@ -200,6 +206,7 @@ public class SettingsOverrides
     {
         EditorFontFamily = null;
         EditorFontSize = null;
+        ComposeDimming = null;
         TypewriterScrollEnabled = null;
         TypewriterScrollAnchor = null;
         PageViewEnabled = null;

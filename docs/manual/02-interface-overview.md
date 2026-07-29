@@ -102,7 +102,7 @@ The thin strip across the bottom:
 
 ## Focus mode
 
-`Alt+F` toggles **focus mode**, which hides both side panes so only the toolbar, main area, and status bar remain. Press `Alt+F` again to bring the panes back.
+`Alt+F` toggles **focus mode**, which gives the window to the main area: both side panes, the toolbar and the status bar are hidden. Press `Alt+F` again to bring them back. Pair it with **Dim other paragraphs while writing** in [Settings](23-settings.md) → Editor for a full composition mode.
 
 ## Dialogs and overlays
 

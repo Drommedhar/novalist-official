@@ -184,7 +184,10 @@ export function AppShell(): React.JSX.Element {
 
   return (
     <div className={`shell${isMobile ? ' mobile' : ''}`}>
-      {!isMobile && <Toolbar />}
+      {/* Composition mode is the whole screen. Leaving the toolbar and the
+          status bar in place made it a wider editor rather than a place to
+          write. Everything is a keystroke away again. */}
+      {!isMobile && !focusMode && <Toolbar />}
       <div className="shell-body">
         {isLoaded ? (
           isMobile ? (
@@ -229,7 +232,7 @@ export function AppShell(): React.JSX.Element {
           }}
         />
       )}
-      {!isMobile && <StatusBar />}
+      {!isMobile && !focusMode && <StatusBar />}
       {findReplaceOpen && (
         <FindReplaceDialog onClose={() => useShellStore.getState().setFindReplaceOpen(false)} />
       )}

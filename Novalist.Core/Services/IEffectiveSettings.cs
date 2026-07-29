@@ -17,6 +17,9 @@ public interface IEffectiveSettings
 
     string EditorFontFamily { get; }
     double EditorFontSize { get; }
+    /// <summary>Whether the editor dims every paragraph but the current one.</summary>
+    bool ComposeDimming { get; }
+
     bool TypewriterScrollEnabled { get; }
     string TypewriterScrollAnchor { get; }
     bool PageViewEnabled { get; }

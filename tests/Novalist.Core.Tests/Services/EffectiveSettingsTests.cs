@@ -16,6 +16,7 @@ public class EffectiveSettingsTests
             AccentColor = "#111",
             EditorFontFamily = "Inter",
             EditorFontSize = 13,
+            ComposeDimming = true,
             TypewriterScrollEnabled = true,
             TypewriterScrollAnchor = "center",
             PageViewEnabled = true,
@@ -41,6 +42,7 @@ public class EffectiveSettingsTests
         Assert.Equal("#111", sut.AccentColor);
         Assert.Equal("Inter", sut.EditorFontFamily);
         Assert.Equal(13, sut.EditorFontSize);
+        Assert.True(sut.ComposeDimming);
         Assert.True(sut.TypewriterScrollEnabled);
         Assert.Equal("center", sut.TypewriterScrollAnchor);
         Assert.True(sut.PageViewEnabled);
@@ -72,6 +74,7 @@ public class EffectiveSettingsTests
             AccentColor = "#abc",
             EditorFontFamily = "Mono",
             EditorFontSize = 20,
+            ComposeDimming = false,
             TypewriterScrollEnabled = false,
             TypewriterScrollAnchor = "top",
             PageViewEnabled = false,
@@ -98,6 +101,7 @@ public class EffectiveSettingsTests
         Assert.Equal("#abc", sut.AccentColor);
         Assert.Equal("Mono", sut.EditorFontFamily);
         Assert.Equal(20, sut.EditorFontSize);
+        Assert.False(sut.ComposeDimming);
         Assert.False(sut.TypewriterScrollEnabled);
         Assert.Equal("top", sut.TypewriterScrollAnchor);
         Assert.False(sut.PageViewEnabled);

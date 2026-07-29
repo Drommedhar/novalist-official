@@ -404,7 +404,9 @@
     "spellCheckDictionary": "Ihr Wörterbuch",
     "spellCheckDictionaryHint": "Wörter, die Novalist akzeptieren soll. Sie wandern mit Ihren Einstellungen mit.",
     "spellCheckDictionaryEmpty": "Noch keine Wörter. Rechtsklick auf ein rot unterringeltes Wort im Text fügt eines hinzu.",
-    "spellCheckForget": "Dieses Wort vergessen"
+    "spellCheckForget": "Dieses Wort vergessen",
+    "composeDimming": "Andere Absätze beim Schreiben abdunkeln",
+    "composeDimmingDesc": "Alles außer dem Absatz mit dem Cursor tritt zurück. Wirkt im Editor und ist besonders im Fokusmodus (Alt+F) nützlich, der jetzt auch Werkzeugleiste und Statusleiste ausblendet."
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",

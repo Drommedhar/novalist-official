@@ -503,7 +503,9 @@
     "spellCheckDictionary": "Your dictionary",
     "spellCheckDictionaryHint": "Words you told Novalist to accept. They travel with your settings.",
     "spellCheckDictionaryEmpty": "No words added yet. Right-click a red-underlined word in your prose to add one.",
-    "spellCheckForget": "Forget this word"
+    "spellCheckForget": "Forget this word",
+    "composeDimming": "Dim other paragraphs while writing",
+    "composeDimmingDesc": "Everything but the paragraph your caret is in fades back. Takes effect in the editor, and is most useful with focus mode (Alt+F), which now hides the toolbar and status bar as well as the side panes."
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",

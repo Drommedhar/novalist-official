@@ -203,7 +203,9 @@ The centre of the status bar shows whole-project totals (words, chapters, scenes
 
 ## Focus mode
 
-`Alt+F` hides both side panes so only the toolbar, the page, and the status bar remain. Press `Alt+F` again to bring the panes back. The command palette (`Ctrl+Shift+P`) keeps working, so every command stays reachable while focused.
+`Alt+F` gives the whole window to the page: both side panes, the toolbar and the status bar all go, leaving the scene tabs and your prose. Press `Alt+F` again to bring everything back. The command palette (`Ctrl+Shift+P`) keeps working, so every command stays reachable while focused — nothing is lost, only hidden.
+
+**Dim other paragraphs while writing** (Settings → Editor) fades every paragraph but the one your caret is in. It works everywhere, but it is what turns focus mode into a composition mode rather than a wider editor. The dimming follows the caret as you move, and fades rather than cutting, because a hard change between paragraphs is more distracting than the dimming solves.
 
 ## Where to go next
 

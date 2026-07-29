@@ -51,6 +51,8 @@ export interface EditorWindow extends Window {
   addCommentToSelection(id: string): void
   /** Turns the selection into a link, or unlinks it when the address is empty. */
   applyLink(href: string): void
+  /** Dims every paragraph but the one the caret is in. */
+  setComposeDimming(enabled: boolean): void
   removeCommentById(id: string): void
   scrollToCommentById(id: string): void
   insertFootnoteAtSelection(id: string): void

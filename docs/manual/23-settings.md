@@ -57,6 +57,10 @@ On macOS 26 and later the window uses the native Liquid Glass material; older ma
   - **Book Font Family** and **Book Font Size** — the typeface and size used to measure the column.
   - A live **characters-per-line** estimate updates as you change the format, width, font, and size, so you can tune the layout to a target line length.
 
+### Editor extras
+
+- **Dim other paragraphs while writing** — fades every paragraph but the one your caret is in. See [Focus mode](05-editor.md#focus-mode).
+
 ## Writing Goals
 
 Per-project targets that feed the Dashboard's goal cards.

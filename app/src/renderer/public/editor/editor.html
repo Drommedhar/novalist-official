@@ -73,6 +73,11 @@ body { display: flex; justify-content: center; }
    colour, so a theme can restyle it and an export can decide what it means. */
 #editor .nv-highlight { background: rgba(210, 167, 79, 0.28); border-radius: 2px; }
 #editor a { color: inherit; text-decoration: underline; }
+/* Composition dimming: everything but the paragraph the caret is in fades
+   back, so the eye has one place to be. A transition, because a hard cut
+   between paragraphs is more distracting than the dimming solves. */
+body.dim-others #editor > * { opacity: 0.28; transition: opacity 120ms ease; }
+body.dim-others #editor > .nv-focus-block { opacity: 1; }
 /* Verse keeps the line breaks the writer typed, and is never justified - that
    would stretch a short line across the measure. */
 #editor .nv-style-poetry { margin: 0 0 0.2em 2em; text-indent: 0; text-align: left; white-space: pre-wrap; }
@@ -1248,6 +1253,27 @@ window.addEventListener('resize', () => {
     if (pageViewEnabled) schedulePageViewRepaginate();
 });
 
+/**
+ * Dims everything but the paragraph the caret is in.
+ *
+ * A class on an existing block rather than any rewriting of the prose: the
+ * editor is a live document with undo, mentions and grammar decorations in it,
+ * and none of them survive having their nodes replaced under them.
+ */
+let dimOthers = false;
+
+function setComposeDimming(enabled) {
+    dimOthers = !!enabled;
+    document.body.classList.toggle('dim-others', dimOthers);
+    updateFocusBlock();
+}
+
+function updateFocusBlock() {
+    for (const block of editor.children) block.classList.remove('nv-focus-block');
+    if (!dimOthers) return;
+    for (const block of selectedBlocks()) block.classList.add('nv-focus-block');
+}
+
 function setTypewriterScroll(enabled, anchor) {
     typewriterEnabled = !!enabled;
     typewriterAnchor = (anchor === 'top' || anchor === 'bottom') ? anchor : 'middle';
@@ -2303,6 +2329,7 @@ editor.addEventListener('input', () => {
 });
 
 document.addEventListener('selectionchange', () => {
+    if (dimOthers) updateFocusBlock();
     if (isSettingContent) return;
     notifyFormattingChanged();
     const pos = getCaretPosition();
