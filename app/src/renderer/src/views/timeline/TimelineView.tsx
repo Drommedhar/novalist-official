@@ -100,8 +100,7 @@ export function TimelineView(): React.JSX.Element {
       .catch(() => setStructures([]))
   }, [mainView])
 
-  if (!data) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
-
+  // Plotlines are stored by id; a lane headed with a GUID says nothing.
   useEffect(() => {
     void rpc
       .request<{ plotlines: { id: string; name: string }[] }>('plot/grid')
@@ -110,6 +109,8 @@ export function TimelineView(): React.JSX.Element {
       )
       .catch(() => setPlotlineNames({}))
   }, [])
+
+  if (!data) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
   const setView = async (viewMode: string, zoomLevel: string): Promise<void> => {
     await rpc.request('timeline/setView', [viewMode, zoomLevel])
