@@ -7,6 +7,13 @@
   gap: var(--nl-space-tighter);
 }
 
+/* What this export will contain: a quiet line, not a panel. */
+.export-preview {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body-sm);
+  margin: var(--nl-space-sm) 0 0;
+}
+
 /* The stage filter reads as one row of choices, not a stack of settings. */
 .export-stage-filter {
   display: flex;

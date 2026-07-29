@@ -35,6 +35,30 @@ public sealed class ExportRpc
         return new ExportResultDto(outputPath, info.Exists, info.Exists ? info.Length : 0);
     }
 
+    /// <summary>
+    /// What this export would contain, without writing anything. Runs the same
+    /// compile the export runs, so held-back scenes and the stage filter are
+    /// counted rather than assumed.
+    /// </summary>
+    [JsonRpcMethod("export/preview")]
+    public async Task<ExportPreviewDto> PreviewAsync(
+        string[] selectedChapterGuids,
+        string? presetId = null,
+        string[]? includedStages = null)
+    {
+        var service = new ExportService(_workspace.Projects);
+        var preview = await service.PreviewAsync(new ExportOptions
+        {
+            PresetId = presetId,
+            CustomPresets = [.. _workspace.Projects.ActiveBook?.ExportPresets ?? []],
+            SelectedChapterGuids = selectedChapterGuids.ToList(),
+            IncludedStages = includedStages?.ToList()
+        });
+        return new ExportPreviewDto(
+            preview.Chapters, preview.Scenes, preview.Words,
+            preview.Characters, preview.Pages, preview.PagesAreExact);
+    }
+
     [JsonRpcMethod("export/run")]
     public async Task<ExportResultDto> RunAsync(
         string format,
@@ -105,5 +129,13 @@ public sealed class ExportRpc
 }
 
 public sealed record ExportResultDto(string OutputPath, bool Success, long SizeBytes);
+
+/// <summary>
+/// Counts for an export that has not run yet. <c>PagesAreExact</c> is true only
+/// on the Normseite grid; everywhere else the page count is an estimate and the
+/// interface has to say so.
+/// </summary>
+public sealed record ExportPreviewDto(
+    int Chapters, int Scenes, int Words, int Characters, int Pages, bool PagesAreExact);
 
 public sealed record ExportExtensionFormatDto(string FormatKey, string DisplayName, string FileExtension);

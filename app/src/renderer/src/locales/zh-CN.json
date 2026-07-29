@@ -1676,7 +1676,10 @@
     "includeScene": "重新纳入导出",
     "stageFilter": "仅导出这些阶段的场景",
     "stageFilterAll": "所有阶段",
-    "excludedNote": "被不导出标记的场景始终不会导出，无论筛选如何。"
+    "excludedNote": "被不导出标记的场景始终不会导出，无论筛选如何。",
+    "previewCounts": "{{chapters}} 章、{{scenes}} 个场景、{{words}} 词。",
+    "previewPages": "在此版式下约 {{pages}} 页。",
+    "previewPagesExact": "{{pages}} 个标准页。"
   },
   "expose": {
     "chars": "{{value}} 字符",

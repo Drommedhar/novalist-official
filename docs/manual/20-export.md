@@ -179,6 +179,12 @@ A layout controls:
 | **Print scene titles** | Off for a novel, where the separator is the whole break. On for a collection, or a draft going to someone who needs to name the scenes back to you. |
 | **Extra ebook CSS** | Appended to the EPUB stylesheet, so your rules win over Novalist's by cascade order. The one place you can reach the look of the ebook itself rather than of the page. |
 
+## What this export will contain
+
+Above the chapter list, Novalist reports what the current choices would produce: how many chapters and scenes, how many words, and how long the book runs in the chosen layout. It is recomputed as you change the selection, the layout or the stage filter, and it runs the same compile the export runs — so held-back scenes and filtered stages are counted exactly as they will be, not estimated.
+
+The page count is an estimate for every layout except **Normseiten**, which reports "N standard pages" because that grid fixes the columns and the lines, so the count is arithmetic rather than a guess. Elsewhere it reads "about N pages": real pagination depends on hyphenation and widow control in whatever renders the file.
+
 ## Printing
 
 `Ctrl+Alt+P`, or **Print** in the [command palette](25-command-palette.md), prints what you are looking at.

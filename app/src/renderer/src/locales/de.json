@@ -1265,7 +1265,10 @@
     "includeScene": "Wieder in Exporte aufnehmen",
     "stageFilter": "Nur Szenen in diesen Phasen",
     "stageFilterAll": "Alle Phasen",
-    "excludedNote": "Zurückgehaltene Szenen werden nie exportiert, unabhängig vom Filter."
+    "excludedNote": "Zurückgehaltene Szenen werden nie exportiert, unabhängig vom Filter.",
+    "previewCounts": "{{chapters}} Kapitel, {{scenes}} Szenen, {{words}} Wörter.",
+    "previewPages": "Etwa {{pages}} Seiten in diesem Layout.",
+    "previewPagesExact": "{{pages}} Normseiten."
   },
   "expose": {
     "chars": "{{value}} Zeichen",

@@ -370,4 +370,25 @@ public sealed class ExportRpcTests : IDisposable
         // middle of the sentence.
         Assert.Contains("bells again", await File.ReadAllTextAsync(output));
     }
+
+    [Fact]
+    public async Task PreviewReportsWhatTheExportWouldContain()
+    {
+        var preview = await _rpc.PreviewAsync(AllChapterGuids());
+
+        Assert.True(preview.Chapters > 0);
+        Assert.True(preview.Scenes > 0);
+        Assert.True(preview.Words > 0);
+        Assert.True(preview.Pages >= 1);
+        Assert.False(preview.PagesAreExact);
+    }
+
+    [Fact]
+    public async Task PreviewOfNoChaptersIsEmpty()
+    {
+        var preview = await _rpc.PreviewAsync([]);
+
+        Assert.Equal(0, preview.Chapters);
+        Assert.Equal(0, preview.Words);
+    }
 }

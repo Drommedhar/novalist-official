@@ -203,4 +203,56 @@ public class ExportChapterHeadingTests : IDisposable
 
         Assert.Equal(["Draft"], compiled[0].Scenes.Select(s => s.Title));
     }
+
+    // ── What the export would contain ──
+
+    [Fact]
+    public async Task PreviewCountsWhatWouldBeCompiled()
+    {
+        var options = SetupScenes();
+
+        var preview = await new ExportService(_project).PreviewAsync(options);
+
+        Assert.Equal(1, preview.Chapters);
+        // The held-back scene is not counted, because it would not be written.
+        Assert.Equal(2, preview.Scenes);
+        Assert.Equal(4, preview.Words);
+        Assert.True(preview.Pages >= 1);
+        Assert.False(preview.PagesAreExact);
+    }
+
+    [Fact]
+    public async Task PreviewFollowsTheStageFilter()
+    {
+        var options = SetupScenes();
+        options.IncludedStages = ["final"];
+
+        var preview = await new ExportService(_project).PreviewAsync(options);
+
+        Assert.Equal(1, preview.Scenes);
+    }
+
+    [Fact]
+    public async Task PreviewOnTheNormseiteGridIsExact()
+    {
+        var options = SetupScenes();
+        options.PresetId = ExportPresets.NormseitenId;
+
+        var preview = await new ExportService(_project).PreviewAsync(options);
+
+        Assert.True(preview.PagesAreExact);
+        Assert.True(preview.Pages >= 1);
+    }
+
+    [Fact]
+    public async Task PreviewOfNothingIsNoPages()
+    {
+        _project.GetChaptersOrdered().Returns([]);
+
+        var preview = await new ExportService(_project).PreviewAsync(
+            new ExportOptions { Format = ExportFormat.Markdown });
+
+        Assert.Equal(0, preview.Pages);
+        Assert.Equal(0, preview.Words);
+    }
 }

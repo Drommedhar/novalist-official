@@ -54,6 +54,17 @@ interface PresetDto {
   isCustom: boolean
 }
 
+/** What the current selection would produce, from the same compile the export runs. */
+interface PreviewDto {
+  chapters: number
+  scenes: number
+  words: number
+  characters: number
+  pages: number
+  /** Exact only on the Normseite grid; an estimate everywhere else. */
+  pagesAreExact: boolean
+}
+
 interface ExtensionFormatDto {
   formatKey: string
   displayName: string
@@ -85,6 +96,7 @@ export function ExportView(): React.JSX.Element {
   // always done and has to keep doing.
   const [stageFilter, setStageFilter] = useState<Set<string>>(new Set())
   const stages = useStageStore((st) => st.stages)
+  const [preview, setPreview] = useState<PreviewDto | null>(null)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [initialized, setInitialized] = useState(false)
@@ -113,6 +125,27 @@ export function ExportView(): React.JSX.Element {
   const isCodex = content === 'codex'
   const extFormat = extFormats.find((f) => f.formatKey === format)
   const chaptersVisible = !isCodex && extFormat === undefined
+
+  // What the current selection would actually produce. Recomputed whenever a
+  // choice that changes it changes, so the writer never exports blind.
+  useEffect(() => {
+    if (!chaptersVisible) {
+      setPreview(null)
+      return
+    }
+    let current = true
+    void rpc
+      .request<PreviewDto>('export/preview', [[...selected], presetId, [...stageFilter]])
+      .then((result) => {
+        if (current) setPreview(result)
+      })
+      .catch(() => {
+        if (current) setPreview(null)
+      })
+    return () => {
+      current = false
+    }
+  }, [chaptersVisible, selected, presetId, stageFilter])
 
   // Load the codex entities the first time a codex format is picked; every
   // entry starts selected so the default export matches the old behaviour.
@@ -333,6 +366,19 @@ export function ExportView(): React.JSX.Element {
             />
             {t('export.includeCover')}
           </label>
+        )}
+
+        {preview && (
+          <p className="export-preview" aria-live="polite">
+            {t('export.previewCounts', {
+              chapters: preview.chapters,
+              scenes: preview.scenes,
+              words: preview.words.toLocaleString()
+            })}{' '}
+            {t(preview.pagesAreExact ? 'export.previewPagesExact' : 'export.previewPages', {
+              pages: preview.pages
+            })}
+          </p>
         )}
 
         {chaptersVisible && stages.length > 0 && (

@@ -1641,7 +1641,10 @@
     "includeScene": "Include in exports again",
     "stageFilter": "Only scenes at these stages",
     "stageFilterAll": "Every stage",
-    "excludedNote": "Scenes held back from exports are never included, whatever the filter says."
+    "excludedNote": "Scenes held back from exports are never included, whatever the filter says.",
+    "previewCounts": "{{chapters}} chapters, {{scenes}} scenes, {{words}} words.",
+    "previewPages": "About {{pages}} pages in this layout.",
+    "previewPagesExact": "{{pages}} standard pages."
   },
   "expose": {
     "chars": "{{value}} characters",
