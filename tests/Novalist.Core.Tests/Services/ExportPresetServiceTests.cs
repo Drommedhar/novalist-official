@@ -209,6 +209,42 @@ public class ExportPresetServiceTests : IDisposable
     private static ExportPreset Custom()
         => ExportPresets.GetById(ExportPresets.DefaultId) with { Id = "custom-x", IsCustom = true };
 
+    [Theory]
+    [InlineData(ChapterNumberStyle.Arabic, 7, "7")]
+    [InlineData(ChapterNumberStyle.RomanUpper, 7, "VII")]
+    [InlineData(ChapterNumberStyle.RomanUpper, 1994, "MCMXCIV")]
+    [InlineData(ChapterNumberStyle.RomanLower, 4, "iv")]
+    [InlineData(ChapterNumberStyle.Words, 7, "Seven")]
+    [InlineData(ChapterNumberStyle.Words, 21, "Twenty-one")]
+    [InlineData(ChapterNumberStyle.Words, 100, "One Hundred")]
+    [InlineData(ChapterNumberStyle.Words, 342, "Three Hundred forty-two")]
+    public void ChapterNumbersAreWrittenInTheLayoutsNumerals(
+        ChapterNumberStyle style, int number, string expected)
+        => Assert.Equal(expected, ExportPreset.FormatNumber(number, style));
+
+    [Theory]
+    // Nothing sensible to write: the digit stands in rather than the heading
+    // quietly losing its number.
+    [InlineData(ChapterNumberStyle.RomanUpper, 0, "0")]
+    [InlineData(ChapterNumberStyle.Words, -1, "-1")]
+    [InlineData(ChapterNumberStyle.Words, 1000, "1000")]
+    public void OutOfRangeChapterNumbersFallBackToDigits(
+        ChapterNumberStyle style, int number, string expected)
+        => Assert.Equal(expected, ExportPreset.FormatNumber(number, style));
+
+    [Fact]
+    public void TheHeadingCanBeSetInCapitals()
+    {
+        var preset = ExportPresets.GetById(ExportPresets.DefaultId) with
+        {
+            ChapterTitleFormat = "Chapter {number}: {title}",
+            ChapterNumberStyle = ChapterNumberStyle.Words,
+            ChapterHeadingUppercase = true
+        };
+
+        Assert.Equal("CHAPTER SEVEN: THE FALL", preset.ChapterHeading(7, "The Fall"));
+    }
+
     [Fact]
     public async Task TheEpubUsesTheChapterHeadingFormat()
     {

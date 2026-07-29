@@ -358,9 +358,12 @@ public partial class ExportService
                 sb.AppendLine("    <Paragraph Type=\"General\"><Text>" + XmlEscape(options.Author) + "</Text></Paragraph>");
         }
 
-        foreach (var chapter in chapters)
+        var fdxPreset = options.ResolvePreset();
+        for (var ci = 0; ci < chapters.Count; ci++)
         {
-            sb.AppendLine($"    <Paragraph Type=\"Scene Heading\"><Text>{XmlEscape(chapter.Title.ToUpperInvariant())}</Text></Paragraph>");
+            var chapter = chapters[ci];
+            var fdxHeading = fdxPreset.ChapterHeading(ci + 1, chapter.Title).ToUpperInvariant();
+            sb.AppendLine($"    <Paragraph Type=\"Scene Heading\"><Text>{XmlEscape(fdxHeading)}</Text></Paragraph>");
             foreach (var scene in chapter.Scenes)
             {
                 sb.AppendLine($"    <Paragraph Type=\"Scene Heading\"><Text>{XmlEscape(scene.Title.ToUpperInvariant())}</Text></Paragraph>");
@@ -398,9 +401,13 @@ public partial class ExportService
         sb.AppendLine("\\begin{document}");
         if (options.IncludeTitlePage) sb.AppendLine("\\maketitle");
 
-        foreach (var chapter in chapters)
+        var latexPreset = options.ResolvePreset();
+        for (var ci = 0; ci < chapters.Count; ci++)
         {
-            sb.AppendLine($"\\chapter{{{LatexEscape(chapter.Title)}}}");
+            var chapter = chapters[ci];
+            // Starred, because the heading already carries whatever numbering
+            // the layout asks for and LaTeX's own would print a second one.
+            sb.AppendLine($"\\chapter*{{{LatexEscape(latexPreset.ChapterHeading(ci + 1, chapter.Title))}}}");
             for (int si = 0; si < chapter.Scenes.Count; si++)
             {
                 if (si > 0) sb.AppendLine("\\begin{center}* * *\\end{center}");
@@ -2329,10 +2336,11 @@ public partial class ExportService
             var needsPageBreak = i > 0 || options.IncludeTitlePage || matterPrecedesChapters;
 
             // Chapter heading
+            var docxHeading = options.ResolvePreset().ChapterHeading(i + 1, chapter.Title);
             if (needsPageBreak)
-                body.Append($"<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/><w:pageBreakBefore/></w:pPr><w:r><w:t>{EscapeXml(chapter.Title)}</w:t></w:r></w:p>");
+                body.Append($"<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/><w:pageBreakBefore/></w:pPr><w:r><w:t>{EscapeXml(docxHeading)}</w:t></w:r></w:p>");
             else
-                body.Append($"<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr><w:r><w:t>{EscapeXml(chapter.Title)}</w:t></w:r></w:p>");
+                body.Append($"<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr><w:r><w:t>{EscapeXml(docxHeading)}</w:t></w:r></w:p>");
 
             // Scenes
             for (var si = 0; si < chapter.Scenes.Count; si++)
@@ -2874,9 +2882,11 @@ public partial class ExportService
             blocks.Add(NormseitenBlock.Blank());
         }
 
-        foreach (var chapter in chapters)
+        var normseitenPreset = options.ResolvePreset();
+        for (var ci = 0; ci < chapters.Count; ci++)
         {
-            blocks.Add(NormseitenBlock.Heading(chapter.Title));
+            var chapter = chapters[ci];
+            blocks.Add(NormseitenBlock.Heading(normseitenPreset.ChapterHeading(ci + 1, chapter.Title)));
             for (var si = 0; si < chapter.Scenes.Count; si++)
             {
                 if (si > 0)
@@ -3140,8 +3150,9 @@ public partial class ExportService
         }
 
         // Chapters
-        foreach (var chapter in chapters)
+        for (var chapterIndex = 0; chapterIndex < chapters.Count; chapterIndex++)
         {
+            var chapter = chapters[chapterIndex];
             var gfx = NewPage(out var y);
             y = margin + chapterTopMargin;
             var chapterNotes = new List<string>();
@@ -3150,7 +3161,8 @@ public partial class ExportService
             var chTitleFont = smf ? bodyFont : boldFont;
             var chTitleSize = smf ? fontSize : 18;
             var chTitleFontActual = smf ? bodyFont : new PdfSharpCore.Drawing.XFont(bodyFontName, chTitleSize, PdfSharpCore.Drawing.XFontStyle.Bold);
-            var chTitleText = smf ? chapter.Title.ToUpperInvariant() : chapter.Title;
+            var pdfHeading = options.ResolvePreset().ChapterHeading(chapterIndex + 1, chapter.Title);
+            var chTitleText = smf ? pdfHeading.ToUpperInvariant() : pdfHeading;
             var ctW = gfx.MeasureString(chTitleText, chTitleFontActual);
             gfx.DrawString(chTitleText, chTitleFontActual, PdfSharpCore.Drawing.XBrushes.Black,
                 new PdfSharpCore.Drawing.XPoint((pageWidth - ctW.Width) / 2, y));
@@ -3349,7 +3361,7 @@ public partial class ExportService
                 sb.AppendLine();
             }
 
-            sb.AppendLine($"## {chapter.Title}");
+            sb.AppendLine($"## {options.ResolvePreset().ChapterHeading(i + 1, chapter.Title)}");
             sb.AppendLine();
 
             for (var si = 0; si < chapter.Scenes.Count; si++)

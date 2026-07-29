@@ -57,9 +57,20 @@ public sealed record ExportPreset
     /// <summary>
     /// How a chapter heading reads. <c>{number}</c> and <c>{title}</c> are
     /// substituted; the default is the title alone, which is what a novel
-    /// whose chapters are named wants.
+    /// whose chapters are named wants. Leaving <c>{title}</c> out of the
+    /// format is how a chapter ships numbered and untitled.
     /// </summary>
     public string ChapterTitleFormat { get; init; } = "{title}";
+
+    /// <summary>
+    /// Which numerals <c>{number}</c> writes. A print edition that reads
+    /// "Chapter Seven" and an ebook that reads "7" are the same book in two
+    /// layouts, which is the whole reason this sits on the layout.
+    /// </summary>
+    public ChapterNumberStyle ChapterNumberStyle { get; init; } = ChapterNumberStyle.Arabic;
+
+    /// <summary>Sets the finished heading in capitals, as print editions often do.</summary>
+    public bool ChapterHeadingUppercase { get; init; }
 
     /// <summary>
     /// Extra CSS appended to the EPUB stylesheet. The one place a writer can
@@ -77,11 +88,83 @@ public sealed record ExportPreset
     public string ChapterHeading(int number, string title)
     {
         var format = string.IsNullOrWhiteSpace(ChapterTitleFormat) ? "{title}" : ChapterTitleFormat;
-        return format
-            .Replace("{number}", number.ToString())
+        var heading = format
+            .Replace("{number}", FormatNumber(number, ChapterNumberStyle))
             .Replace("{title}", title ?? string.Empty)
             .Trim();
+        return ChapterHeadingUppercase ? heading.ToUpperInvariant() : heading;
     }
+
+    /// <summary>One chapter number, in the layout's numerals.</summary>
+    public static string FormatNumber(int number, ChapterNumberStyle style) => style switch
+    {
+        ChapterNumberStyle.RomanUpper => ToRoman(number),
+        ChapterNumberStyle.RomanLower => ToRoman(number).ToLowerInvariant(),
+        ChapterNumberStyle.Words => ToWords(number),
+        _ => number.ToString()
+    };
+
+    private static readonly (int Value, string Numeral)[] RomanNumerals =
+    [
+        (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"), (100, "C"), (90, "XC"),
+        (50, "L"), (40, "XL"), (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I")
+    ];
+
+    private static string ToRoman(int number)
+    {
+        // Below one there is no numeral to write, so the digit stands in rather
+        // than the heading silently losing its number.
+        if (number <= 0) return number.ToString();
+        var sb = new System.Text.StringBuilder();
+        foreach (var (value, numeral) in RomanNumerals)
+        {
+            while (number >= value)
+            {
+                sb.Append(numeral);
+                number -= value;
+            }
+        }
+        return sb.ToString();
+    }
+
+    private static readonly string[] Ones =
+    [
+        "Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+        "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+        "Seventeen", "Eighteen", "Nineteen"
+    ];
+
+    private static readonly string[] Tens =
+    [
+        "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"
+    ];
+
+    /// <summary>
+    /// English words for a chapter number. Deliberately English only: this is
+    /// the numeral on a heading a writer chose to spell out, and getting it
+    /// wrong in another language is worse than not offering it.
+    /// </summary>
+    private static string ToWords(int number)
+    {
+        if (number < 0 || number > 999) return number.ToString();
+        if (number < 20) return Ones[number];
+        if (number < 100)
+        {
+            var tens = Tens[number / 10];
+            return number % 10 == 0 ? tens : $"{tens}-{Ones[number % 10].ToLowerInvariant()}";
+        }
+        var hundreds = $"{Ones[number / 100]} Hundred";
+        return number % 100 == 0 ? hundreds : $"{hundreds} {ToWords(number % 100).ToLowerInvariant()}";
+    }
+}
+
+/// <summary>Which numerals a chapter heading writes its number in.</summary>
+public enum ChapterNumberStyle
+{
+    Arabic,
+    RomanUpper,
+    RomanLower,
+    Words
 }
 
 public static class ExportPresets

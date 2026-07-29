@@ -2420,11 +2420,17 @@
     "chapterTopMargin": "章节标题上方留白（英寸）",
     "separator": "场景分隔符",
     "chapterTitleFormat": "章节标题",
-    "chapterTitleFormatHint": "可使用 {{number}} 和 {{title}}。\"第 {{number}} 章：{{title}}\" 会得到\"第 3 章：倡台\"；默认仅显示标题。",
+    "chapterTitleFormatHint": "可使用 {{number}} 和 {{title}}。\"第 {{number}} 章：{{title}}\" 会得到\"第 3 章：倡台\"；默认仅显示标题。若希望章节仅编号不带标题，则在格式中省略标题。",
     "showSceneTitles": "打印场景标题",
     "showSceneTitlesHint": "小说请关闭，分隔符即是全部断开。合集或需要对方能指名场景的草稿请打开。",
     "ebookCss": "额外的电子书 CSS",
-    "ebookCssHint": "追加到 EPUB 样式表末尾，因此您的规则优先。这是您能触及电子书本身（而非页面）外观的唯一地方。"
+    "ebookCssHint": "追加到 EPUB 样式表末尾，因此您的规则优先。这是您能触及电子书本身（而非页面）外观的唯一地方。",
+    "chapterNumberStyle": "章节编号形式",
+    "numberStyleArabic": "1, 2, 3",
+    "numberStyleRomanUpper": "I, II, III",
+    "numberStyleRomanLower": "i, ii, iii",
+    "numberStyleWords": "One, Two, Three（英文）",
+    "chapterHeadingUppercase": "章节标题使用大写"
   },
   "analytics": {
     "povTitle": "全书的叙事视角",

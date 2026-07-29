@@ -52,7 +52,8 @@ public sealed class ExportPresetRpc
         p.BodyFontFamily, p.BodyFontSizePt, p.LineSpacingMultiplier,
         p.MarginInches, p.FirstLineIndentInches, p.ChapterTopMarginInches,
         p.SceneSeparator, p.DoubleSpaced, p.ShowSceneTitles,
-        p.ChapterTitleFormat, p.EbookCss);
+        p.ChapterTitleFormat, p.ChapterNumberStyle.ToString(), p.ChapterHeadingUppercase,
+        p.EbookCss);
 
     private static ExportPreset FromDto(ExportLayoutDto d) => new()
     {
@@ -74,6 +75,10 @@ public sealed class ExportPresetRpc
         ChapterTitleFormat = string.IsNullOrWhiteSpace(d.ChapterTitleFormat)
             ? "{title}"
             : d.ChapterTitleFormat,
+        ChapterNumberStyle = Enum.TryParse<ChapterNumberStyle>(d.ChapterNumberStyle, out var style)
+            ? style
+            : ChapterNumberStyle.Arabic,
+        ChapterHeadingUppercase = d.ChapterHeadingUppercase,
         EbookCss = d.EbookCss ?? string.Empty
     };
 
@@ -101,4 +106,7 @@ public sealed record ExportLayoutDto(
     bool DoubleSpaced,
     bool ShowSceneTitles,
     string ChapterTitleFormat,
+    /// <summary>Arabic, RomanUpper, RomanLower or Words.</summary>
+    string ChapterNumberStyle,
+    bool ChapterHeadingUppercase,
     string EbookCss);

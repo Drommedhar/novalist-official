@@ -26,8 +26,13 @@ interface ExportLayout {
   doubleSpaced: boolean
   showSceneTitles: boolean
   chapterTitleFormat: string
+  chapterNumberStyle: string
+  chapterHeadingUppercase: boolean
   ebookCss: string
 }
+
+/** The numerals a chapter heading can write its number in. */
+const NUMBER_STYLES = ['Arabic', 'RomanUpper', 'RomanLower', 'Words'] as const
 
 /**
  * Authoring an export layout.
@@ -172,6 +177,36 @@ export function ExportLayoutPanel({
             onBlur={() => void save()}
           />
           <div className="match-hint">{t('layout.chapterTitleFormatHint')}</div>
+
+          <label className="inspector-label">{t('layout.chapterNumberStyle')}</label>
+          <select
+            className="inspector-input"
+            disabled={!selected.isCustom}
+            value={selected.chapterNumberStyle}
+            onChange={(e) => {
+              edit({ chapterNumberStyle: e.target.value })
+              void save()
+            }}
+          >
+            {NUMBER_STYLES.map((style) => (
+              <option key={style} value={style}>
+                {t(`layout.numberStyle${style}`)}
+              </option>
+            ))}
+          </select>
+
+          <label className="match-toggle">
+            <input
+              type="checkbox"
+              disabled={!selected.isCustom}
+              checked={selected.chapterHeadingUppercase}
+              onChange={(e) => {
+                edit({ chapterHeadingUppercase: e.target.checked })
+                void save()
+              }}
+            />
+            {t('layout.chapterHeadingUppercase')}
+          </label>
 
           <label className="match-toggle">
             <input

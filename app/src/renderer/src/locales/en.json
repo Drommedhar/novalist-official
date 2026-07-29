@@ -2378,11 +2378,17 @@
     "chapterTopMargin": "Space above a chapter title (inches)",
     "separator": "Scene separator",
     "chapterTitleFormat": "Chapter heading",
-    "chapterTitleFormatHint": "Use {{number}} and {{title}}. \"Chapter {{number}}: {{title}}\" gives \"Chapter 3: The Fall\"; the default is the title alone.",
+    "chapterTitleFormatHint": "Use {{number}} and {{title}}. \"Chapter {{number}}: {{title}}\" gives \"Chapter 3: The Fall\"; the default is the title alone. Leave the title out of the format for chapters that ship numbered and untitled.",
     "showSceneTitles": "Print scene titles",
     "showSceneTitlesHint": "Off for a novel, where the separator is the whole break. On for a collection, or a draft you are sending to someone who needs to name the scenes back to you.",
     "ebookCss": "Extra ebook CSS",
-    "ebookCssHint": "Appended to the EPUB stylesheet, so your rules win over Novalist’s. The one place you can reach the look of the ebook itself rather than the page."
+    "ebookCssHint": "Appended to the EPUB stylesheet, so your rules win over Novalist’s. The one place you can reach the look of the ebook itself rather than the page.",
+    "chapterNumberStyle": "Chapter numerals",
+    "numberStyleArabic": "1, 2, 3",
+    "numberStyleRomanUpper": "I, II, III",
+    "numberStyleRomanLower": "i, ii, iii",
+    "numberStyleWords": "One, Two, Three",
+    "chapterHeadingUppercase": "Set chapter headings in capitals"
   },
   "analytics": {
     "povTitle": "Point of view across the book",

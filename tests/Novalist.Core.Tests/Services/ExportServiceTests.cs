@@ -149,7 +149,8 @@ public class ExportServiceTests : IDisposable
         var tex = await File.ReadAllTextAsync(Out(".tex"));
 
         Assert.Contains("\\documentclass", tex);
-        Assert.Contains("\\chapter{Ch\\_1 \\& 50\\%}", tex); // escaped
+        // Starred: the layout owns the numbering, so LaTeX must not add its own.
+        Assert.Contains("\\chapter*{Ch\\_1 \\& 50\\%}", tex); // escaped
         Assert.Contains("\\section*{", tex);
         Assert.Contains("\\subsection*{", tex);
         Assert.Contains("\\begin{quote}", tex);

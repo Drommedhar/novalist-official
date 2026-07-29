@@ -2386,11 +2386,17 @@
     "chapterTopMargin": "Abstand über der Kapitelüberschrift (Zoll)",
     "separator": "Szenentrenner",
     "chapterTitleFormat": "Kapitelüberschrift",
-    "chapterTitleFormatHint": "{{number}} und {{title}} verwenden. \"Kapitel {{number}}: {{title}}\" ergibt \"Kapitel 3: Der Fall\"; voreingestellt ist nur der Titel.",
+    "chapterTitleFormatHint": "{{number}} und {{title}} verwenden. \"Kapitel {{number}}: {{title}}\" ergibt \"Kapitel 3: Der Fall\"; voreingestellt ist nur der Titel. Lassen Sie den Titel im Format weg, wenn Kapitel nur nummeriert und ohne Titel erscheinen sollen.",
     "showSceneTitles": "Szenentitel drucken",
     "showSceneTitlesHint": "Aus für einen Roman, wo der Trenner die ganze Zäsur ist. An für eine Sammlung oder einen Entwurf für jemanden, der Ihnen die Szenen benennen können muss.",
     "ebookCss": "Zusätzliches E-Book-CSS",
-    "ebookCssHint": "Wird an das EPUB-Stylesheet angehängt, Ihre Regeln gewinnen also. Die einzige Stelle, an der Sie das Aussehen des E-Books selbst statt der Seite erreichen."
+    "ebookCssHint": "Wird an das EPUB-Stylesheet angehängt, Ihre Regeln gewinnen also. Die einzige Stelle, an der Sie das Aussehen des E-Books selbst statt der Seite erreichen.",
+    "chapterNumberStyle": "Kapitelnummern",
+    "numberStyleArabic": "1, 2, 3",
+    "numberStyleRomanUpper": "I, II, III",
+    "numberStyleRomanLower": "i, ii, iii",
+    "numberStyleWords": "One, Two, Three (englisch)",
+    "chapterHeadingUppercase": "Überschriften in Großbuchstaben setzen"
   },
   "analytics": {
     "povTitle": "Erzählperspektive über das Buch",
