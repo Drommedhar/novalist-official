@@ -4,6 +4,8 @@ import { useManuscriptStore, type ManuscriptMode } from '../../stores/manuscript
 import { useProjectStore } from '../../stores/projectStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
 import { useTargetStore } from '../../stores/targetStore'
+import { useManuscriptPropsStore } from '../../stores/manuscriptPropsStore'
+import { ManuscriptPropertyField } from '../../shell/ManuscriptPropertyField'
 import { SceneBulkBar } from '../../shell/SceneBulkBar'
 
 interface ManuscriptWindow extends Window {
@@ -235,26 +237,40 @@ function Outliner(): React.JSX.Element {
   const setPov = useManuscriptStore((s) => s.setPov)
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const targets = useTargetStore((s) => s.targets)
+  const definitions = useManuscriptPropsStore((s) => s.definitions)
+  const sceneValues = useManuscriptPropsStore((s) => s.sceneValues)
 
   useEffect(() => {
     void useTargetStore.getState().load()
+    void useManuscriptPropsStore.getState().load()
   }, [])
+
+  // The writer picks which of their fields is worth a column; a dozen fields
+  // is not a dozen columns anybody wants to read.
+  const columns = definitions.filter((d) => d.scope === 'Scene' && d.showInOutliner)
+  const grid = {
+    gridTemplateColumns: `180px 160px 1fr 100px 70px 80px${' 120px'.repeat(columns.length)}`
+  }
 
   return (
     <div className="outliner">
-      <div className="outliner-row outliner-head">
+      <div className="outliner-row outliner-head" style={grid}>
         <span>{t('shell.chapters')}</span>
         <span>{t('shell.scenes')}</span>
         <span>{t('sceneNotes.synopsisTitle')}</span>
         <span>{t('common.povWatermark')}</span>
         <span>{t('shell.words')}</span>
         <span>{t('targets.column')}</span>
+        {columns.map((property) => (
+          <span key={property.key}>{property.label}</span>
+        ))}
       </div>
       {sections.flatMap((section) =>
         section.scenes.map((scene) => (
           <div
             key={scene.sceneId}
             className={`outliner-row${selectedIds.includes(scene.sceneId) ? ' selected' : ''}`}
+            style={grid}
           >
             <span className="outliner-cell">{section.chapterTitle}</span>
             <button
@@ -296,6 +312,19 @@ function Outliner(): React.JSX.Element {
                   .setScene(section.chapterGuid, scene.sceneId, Number(e.target.value) || null)
               }
             />
+            {columns.map((property) => (
+              <ManuscriptPropertyField
+                key={property.key}
+                className="outliner-input"
+                property={property}
+                value={sceneValues[scene.sceneId]?.[property.key] ?? ''}
+                onCommit={(value) =>
+                  void useManuscriptPropsStore
+                    .getState()
+                    .setSceneValue(scene.sceneId, property.key, value)
+                }
+              />
+            ))}
           </div>
         ))
       )}

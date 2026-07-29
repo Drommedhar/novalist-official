@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/projectStore'
+import { useManuscriptPropsStore } from '../stores/manuscriptPropsStore'
+import { ManuscriptPropertyField } from './ManuscriptPropertyField'
 import { rpc } from '../rpc/client'
 
 interface SceneMeta {
@@ -23,6 +25,13 @@ export function SceneNotesFields(): React.JSX.Element {
 
   const [synopsis, setSynopsis] = useState('')
   const [notes, setNotes] = useState('')
+  const definitions = useManuscriptPropsStore((s) => s.definitions)
+  const sceneValues = useManuscriptPropsStore((s) => s.sceneValues)
+  const sceneProps = definitions.filter((d) => d.scope === 'Scene')
+
+  useEffect(() => {
+    void useManuscriptPropsStore.getState().load()
+  }, [])
 
   useEffect(() => {
     setSynopsis(scene?.synopsis ?? '')
@@ -69,6 +78,27 @@ export function SceneNotesFields(): React.JSX.Element {
           onBlur={() => void rpc.request('scenes/setNotes', [openChapterGuid, openSceneId, notes])}
         />
       </div>
+      {/* The book's own scene fields. Nothing shows when the writer has
+          defined none, which is the state every project starts in. */}
+      {sceneProps.length > 0 && (
+        <div className="notes-dock-col notes-dock-props">
+          <label className="notes-dock-label">{t('props.sceneTitle')}</label>
+          {sceneProps.map((property) => (
+            <div key={property.key} className="notes-dock-prop">
+              <span className="notes-dock-prop-label">{property.label}</span>
+              <ManuscriptPropertyField
+                property={property}
+                value={sceneValues[openSceneId]?.[property.key] ?? ''}
+                onCommit={(value) =>
+                  void useManuscriptPropsStore
+                    .getState()
+                    .setSceneValue(openSceneId, property.key, value)
+                }
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

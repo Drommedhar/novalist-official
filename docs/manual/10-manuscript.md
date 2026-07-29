@@ -64,7 +64,23 @@ The outliner is useful for:
 
 ## The Target column
 
-The outliner's last column is each scene's [word target](04-chapters-and-scenes.md#word-targets). Type a number to set one, clear the field for none. This is the fastest place to set targets across a run of scenes, since you can tab straight down the column.
+The outliner's last built-in column is each scene's [word target](04-chapters-and-scenes.md#word-targets). Type a number to set one, clear the field for none. This is the fastest place to set targets across a run of scenes, since you can tab straight down the column.
+
+Any [scene field](#your-own-scene-and-chapter-fields) you marked **Show as a column in the outliner** gets its own column after this one, editable the same way.
+
+## Your own scene and chapter fields
+
+Novalist ships a fixed set of things it knows about a scene - title, synopsis, POV, date, word count, stage. **Settings -> Scene and chapter fields** lets you add your own to every scene or every chapter of the book: tension as a number, which revision pass it is on, a yes/no for "needs a fact check", a date, or a pick from a list you define.
+
+Fields are typed, which is the point of having them rather than overloading tags. A number sorts and totals as a number; a choice stays one of your choices; a date is a date. Values live with the scene or chapter in the project, so they travel through Git and to another machine like everything else.
+
+Fill them in from:
+
+- The **Fields** column of the scene notes dock, under the editor, for the scene you have open.
+- The **Chapter** dialog, for chapter fields.
+- The outliner, for any scene field you ticked **Show as a column in the outliner**.
+
+Removing a field also removes what you filled in for it, everywhere. That is deliberate: a value with no field left to explain it is invisible in every view yet still travels with your project, and would reappear under any later field that happened to reuse its name.
 
 ## Selecting several scenes
 

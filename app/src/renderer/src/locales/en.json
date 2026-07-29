@@ -2298,5 +2298,25 @@
     "historyTitle": "Past sprints",
     "summary": "{{count}} sprints, {{words}} words, {{wpm}} words per minute on average.",
     "clearHistory": "Clear history"
+  },
+  "props": {
+    "title": "Scene and chapter fields",
+    "intro": "Fields of your own on every scene or chapter of this book - tension, a revision pass, a note to yourself. Typed, so a number sorts as a number and a choice stays one of your choices. Scene fields can be shown as a column in the Manuscript outliner.",
+    "labelPlaceholder": "What you call it",
+    "optionsPlaceholder": "Choices, separated by commas",
+    "scopeScene": "On each scene",
+    "scopeChapter": "On each chapter",
+    "typeString": "Text",
+    "typeInt": "Number",
+    "typeBool": "Yes / no",
+    "typeDate": "Date",
+    "typeEnum": "One of a list",
+    "showInOutliner": "Show as a column in the outliner",
+    "add": "Add a field",
+    "remove": "Remove this field",
+    "unset": "Not set",
+    "unsaved": "Unsaved changes. Removing a field also removes what you filled in for it.",
+    "sceneTitle": "Fields",
+    "none": "No fields defined for this book yet."
   }
 }

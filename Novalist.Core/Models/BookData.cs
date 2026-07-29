@@ -113,6 +113,14 @@ public class BookData
     [JsonPropertyName("sceneStages")]
     public List<SceneStage> SceneStages { get; set; } = [];
 
+    /// <summary>
+    /// Fields the writer added to every scene or chapter of this book. Per book
+    /// for the same reason the stages are: the things worth tracking differ
+    /// between a thriller and a short-story collection.
+    /// </summary>
+    [JsonPropertyName("manuscriptProperties")]
+    public List<ManuscriptPropertyDefinition> ManuscriptProperties { get; set; } = [];
+
     /// <summary>What a shop, a library and a distributor need to know about this
     /// book. Written into the EPUB metadata block on export.</summary>
     [JsonPropertyName("publishing")]

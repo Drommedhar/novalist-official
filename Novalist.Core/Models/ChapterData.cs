@@ -45,6 +45,14 @@ public class ChapterData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? WordTarget { get; set; }
 
+    /// <summary>
+    /// Values for the book's chapter-scoped <see cref="ManuscriptPropertyDefinition"/>s,
+    /// keyed by property key. Null when the writer has filled none in.
+    /// </summary>
+    [JsonPropertyName("properties")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Properties { get; set; }
+
     [JsonPropertyName("folderName")]
     public string FolderName { get; set; } = string.Empty;
 }

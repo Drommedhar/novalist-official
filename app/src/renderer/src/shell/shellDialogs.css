@@ -244,3 +244,17 @@
   align-items: center;
   gap: var(--nl-space-tightest);
 }
+
+/* One chapter field: its label above the typed input, matching the other
+   labelled controls in the dialog. */
+.chapter-prop-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-bottom: var(--nl-space-sm);
+}
+
+.chapter-prop-label {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}

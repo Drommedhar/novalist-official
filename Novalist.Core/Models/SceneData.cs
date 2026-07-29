@@ -112,6 +112,14 @@ public class SceneData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SceneAnalysisOverrides? AnalysisOverrides { get; set; }
 
+    /// <summary>
+    /// Values for the book's scene-scoped <see cref="ManuscriptPropertyDefinition"/>s,
+    /// keyed by property key. Null when the writer has filled none in.
+    /// </summary>
+    [JsonPropertyName("properties")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Properties { get; set; }
+
     /// <summary>UTC timestamp when the scene was moved to the archive. Null = active.</summary>
     [JsonPropertyName("archivedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

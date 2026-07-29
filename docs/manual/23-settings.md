@@ -69,6 +69,20 @@ Per-project targets that feed the Dashboard's goal cards.
 
 The two word goals can also be edited on the Dashboard by clicking a goal card's title; it is the same setting either way.
 
+## Scene and Chapter Fields
+
+Fields of your own on every scene or every chapter of the open book, beyond the fixed set Novalist ships. Each has a label, a scope (scene or chapter) and a type:
+
+- **Text** - free text.
+- **Number** - sorts and totals as a number.
+- **Yes / no** - a checkbox.
+- **Date** - a date picker.
+- **One of a list** - a drop-down of choices you type in, comma separated.
+
+Scene fields can be ticked **Show as a column in the outliner** to appear in the [Manuscript outliner](10-manuscript.md#your-own-scene-and-chapter-fields), editable in place. They are always editable in the scene notes dock under the editor; chapter fields are edited in the Chapter dialog.
+
+Definitions live with the book, not globally - the things worth tracking in a thriller and in a short-story collection are rarely the same list. **Removing a field removes the values you filled in for it**, in every scene and chapter.
+
 ## Writing Assistance
 
 - **Quote Style** — the language preset for smart quotes, em-dashes, and ellipsis replacement as you type. Presets: `en`, `de-low`, `de-guillemet`, `fr`, `es`, `it`, `pt`, `ru`, `pl`, `cs`, `sk`. A preview line shows the exact replacements for the chosen preset.

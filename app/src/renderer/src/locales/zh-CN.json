@@ -2340,5 +2340,25 @@
     "historyTitle": "往期冲刺",
     "summary": "{{count}} 次冲刺，{{words}} 字，平均每分钟 {{wpm}} 字。",
     "clearHistory": "清除记录"
+  },
+  "props": {
+    "title": "场景与章节字段",
+    "intro": "为本书的每个场景或章节添加自定义字段 — 张力、修订轮次、给自己的备忘。字段带类型，因此数字按数字排序，选项始终限于您设定的选项。场景字段可作为列显示在稿件大纲中。",
+    "labelPlaceholder": "字段名称",
+    "optionsPlaceholder": "选项，用逗号分隔",
+    "scopeScene": "每个场景",
+    "scopeChapter": "每个章节",
+    "typeString": "文本",
+    "typeInt": "数字",
+    "typeBool": "是 / 否",
+    "typeDate": "日期",
+    "typeEnum": "从列表中选择",
+    "showInOutliner": "在大纲中作为列显示",
+    "add": "添加字段",
+    "remove": "删除此字段",
+    "unset": "未设置",
+    "unsaved": "有未保存的更改。删除字段会一并删除已填写的内容。",
+    "sceneTitle": "字段",
+    "none": "本书尚未定义任何字段。"
   }
 }

@@ -345,3 +345,19 @@
   padding: var(--nl-space-none);
   width: 34px;
 }
+
+/* One manuscript-property definition: label, scope, type, delete - with the
+   choice list and the outliner toggle wrapping underneath when they apply. */
+.props-row {
+  align-items: center;
+  border-bottom: 1px solid var(--nl-border-subtle);
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 1fr 120px 120px auto;
+  padding: var(--nl-space-sm) var(--nl-space-none);
+}
+
+.props-options,
+.props-outliner-toggle {
+  grid-column: 1 / -1;
+}

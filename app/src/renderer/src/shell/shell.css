@@ -3170,3 +3170,21 @@
 .binder-target-fill.over {
   background: var(--nl-success);
 }
+
+/* The open scene's own fields, beside its synopsis and notes in the dock. */
+.notes-dock-props {
+  min-width: 200px;
+}
+
+.notes-dock-prop {
+  align-items: center;
+  display: flex;
+  gap: var(--nl-space-sm);
+  justify-content: space-between;
+  margin-bottom: var(--nl-space-tightest);
+}
+
+.notes-dock-prop-label {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}

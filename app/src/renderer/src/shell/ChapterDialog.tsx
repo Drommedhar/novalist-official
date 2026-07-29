@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ChapterDto, type ProjectStateDto } from '../stores/projectStore'
+import { useManuscriptPropsStore } from '../stores/manuscriptPropsStore'
+import { ManuscriptPropertyField } from './ManuscriptPropertyField'
 import './shellDialogs.css'
 
 /** Chapter status enum values (mirrors Novalist.Core ChapterStatus) with the
@@ -32,8 +34,22 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
   const [act, setAct] = useState(chapter?.act ?? '')
   const [busy, setBusy] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const definitions = useManuscriptPropsStore((s) => s.definitions)
+  const chapterProps = definitions.filter((d) => d.scope === 'Chapter')
+  const [values, setValues] = useState<Record<string, string>>({})
 
   useEffect(() => inputRef.current?.focus(), [])
+
+  useEffect(() => {
+    void useManuscriptPropsStore.getState().load()
+    // A chapter that does not exist yet has no values to read; the fields
+    // appear once it does, which is why they are only offered on edit.
+    if (!chapter) return
+    void rpc
+      .request<Record<string, string>>('manuscriptProps/chapterValues', [chapter.guid])
+      .then(setValues)
+      .catch(() => setValues({}))
+  }, [chapter])
 
   const submit = async (): Promise<void> => {
     const name = title.trim()
@@ -117,6 +133,31 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
           onChange={(e) => setAct(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && void submit()}
         />
+
+        {/* The book's own chapter fields, written straight through rather
+            than on submit: they are independent of the title and status this
+            dialog otherwise commits together. */}
+        {isEdit && chapter && chapterProps.length > 0 && (
+          <>
+            <label className="inspector-label">{t('props.sceneTitle')}</label>
+            {chapterProps.map((property) => (
+              <div key={property.key} className="chapter-prop-row">
+                <span className="chapter-prop-label">{property.label}</span>
+                <ManuscriptPropertyField
+                  property={property}
+                  className="dialog-input"
+                  value={values[property.key] ?? ''}
+                  onCommit={(value) => {
+                    setValues({ ...values, [property.key]: value ?? '' })
+                    void useManuscriptPropsStore
+                      .getState()
+                      .setChapterValue(chapter.guid, property.key, value)
+                  }}
+                />
+              </div>
+            ))}
+          </>
+        )}
 
         <div className="dialog-actions">
           <button className="dialog-button" disabled={busy} onClick={onClose}>
