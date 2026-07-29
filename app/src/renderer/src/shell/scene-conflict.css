@@ -1,0 +1,61 @@
+.scene-conflict-card {
+  max-height: 86vh;
+  width: min(980px, 94vw);
+}
+
+.scene-conflict-actions {
+  display: flex;
+  gap: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-sm);
+}
+
+.scene-conflict-heads {
+  color: var(--nl-text-subtle);
+  display: grid;
+  font-size: var(--nl-font-caption);
+  gap: var(--nl-space-sm);
+  grid-template-columns: 1fr 1fr;
+  text-transform: uppercase;
+}
+
+.scene-conflict-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin: var(--nl-space-tighter) var(--nl-space-none) var(--nl-space-md);
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.scene-conflict-row {
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 1fr 1fr;
+}
+
+.scene-conflict-cell {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-sm);
+  color: inherit;
+  font-family: inherit;
+  font-size: var(--nl-font-body-sm);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  text-align: left;
+  white-space: pre-wrap;
+}
+
+/* A row both sides agree on is context, not a choice. */
+.scene-conflict-row.equal .scene-conflict-cell {
+  color: var(--nl-text-subtle);
+}
+
+.scene-conflict-row:not(.equal) .scene-conflict-cell {
+  background: var(--nl-surface-hover);
+  cursor: pointer;
+}
+
+.scene-conflict-row:not(.equal) .scene-conflict-cell.chosen {
+  background: var(--nl-surface-selected);
+  border-color: var(--nl-accent);
+}

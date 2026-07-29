@@ -423,8 +423,6 @@
     "projectDeadlineDesc": "可选的截止日期（格式：YYYY-MM-DD）。",
     "projectAuthor": "作者",
     "projectAuthorDesc": "仪表板标题和导出内容中默认使用的作者名称。",
-    "watchFilesystem": "监控文件系统",
-    "watchFilesystemDesc": "在 Novalist 开启时，自动同步你在文件管理器中添加、移动、重命名或删除的场景和章节。若使用不稳定的网络或云盘请关闭此选项；重新打开项目时仍会同步这些更改。",
     "writingAssistance": "写作辅助",
     "autoReplacement": "自动替换",
     "quoteStyle": "引号样式",
@@ -2176,5 +2174,16 @@
     "startLexicon": "为该语言新建词典",
     "templateWritten": "已在分析文件夹中为 {{code}} 创建起始词典。请翻译其中的词表，然后点击重新扫描。",
     "lexiconHint": "没有场景分析词典，该语言仍可正常写作和导出 — 只是失去了对 POV、情绪、强度、冲突和标签的自动识别，以及基于动词的对话归属。这些值可以在每个场景中手动设置。"
+  },
+  "conflict": {
+    "title": "该场景在其他地方被修改过",
+    "explain": "您的版本和磁盘上的版本都有修改，共 {{count}} 处。目前尚未保存。请逐行选择您想保留的版本 — Novalist 不会自动合并您的文字，因为由两稿拼接而成的句子读起来两边都不像。",
+    "mine": "您写的",
+    "theirs": "磁盘上的",
+    "takeAllMine": "全部采用我的",
+    "takeAllTheirs": "全部采用磁盘的",
+    "snapshotNote": "保存前会为两个版本各创建快照，因此随时可以回到任一版本。",
+    "decideLater": "稍后决定",
+    "save": "保存此版本"
   }
 }

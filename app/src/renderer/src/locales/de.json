@@ -289,8 +289,6 @@
     "projectDeadlineDesc": "Optionale Frist im Format JJJJ-MM-TT.",
     "projectAuthor": "Autor",
     "projectAuthorDesc": "Standardname für Autor im Dashboard-Header und beim Export.",
-    "watchFilesystem": "Dateisystem überwachen",
-    "watchFilesystemDesc": "Szenen und Kapitel abgleichen, die du bei geöffnetem Novalist im Dateimanager hinzufügst, verschiebst, umbenennst oder löschst. Bei unzuverlässigen Netzwerk- oder Cloud-Laufwerken abschalten; Änderungen werden weiterhin beim erneuten Öffnen des Projekts übernommen.",
     "writingAssistance": "SCHREIBHILFE",
     "autoReplacement": "AUTO-ERSETZUNG",
     "quoteStyle": "Anführungszeichen-Stil",
@@ -2142,5 +2140,16 @@
     "startLexicon": "Lexikon für diese Sprache anlegen",
     "templateWritten": "Ein Start-Lexikon für {{code}} wurde im Analyse-Ordner angelegt. Übersetzen Sie die Wortlisten darin und drücken Sie dann Neu einlesen.",
     "lexiconHint": "Ohne Szenenanalyse-Lexikon lässt sich eine Sprache trotzdem normal schreiben und exportieren — es fehlt lediglich die automatische Erkennung von POV, Emotion, Intensität, Konflikt und Tags sowie die verbbasierte Dialogzuordnung. Diese Werte lassen sich pro Szene von Hand setzen."
+  },
+  "conflict": {
+    "title": "Diese Szene wurde anderswo geändert",
+    "explain": "Ihre Fassung und die auf der Festplatte haben sich beide geändert, an {{count}} Stellen. Es wurde noch nichts gespeichert. Wählen Sie pro Zeile die gewünschte Fassung — Novalist führt Ihren Text nicht selbst zusammen, denn ein aus zwei Fassungen zusammengesetzter Satz liest sich wie keiner von beiden.",
+    "mine": "Was Sie geschrieben haben",
+    "theirs": "Was auf der Festplatte steht",
+    "takeAllMine": "Alles von mir übernehmen",
+    "takeAllTheirs": "Alles von der Festplatte übernehmen",
+    "snapshotNote": "Von beiden Fassungen wird vor dem Speichern ein Schnappschuss angelegt, Sie können also zu jeder zurück.",
+    "decideLater": "Später entscheiden",
+    "save": "Diese Fassung speichern"
   }
 }

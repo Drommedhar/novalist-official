@@ -22,7 +22,9 @@ public sealed class ScenesRpc
         // Opening a scene in the editor is a scenes/read; notify extensions so the
         // AI Assistant tracks the current-scene context and knowledge cache.
         _workspace.RaiseSceneOpened(chapter, scene);
-        return new SceneContentDto(sceneId, html);
+        // The hash rides along so the editor can prove, at save time, that it is
+        // overwriting the version it actually read.
+        return new SceneContentDto(sceneId, html, Core.Services.ContentHasher.Hash(html));
     }
 
     [JsonRpcMethod("scenes/getMeta")]
@@ -151,19 +153,52 @@ public sealed class ScenesRpc
         await _workspace.Projects.SaveScenesAsync();
     }
 
+    /// <summary>
+    /// Saves a scene. <paramref name="expectedHash"/> is what the editor read;
+    /// when it no longer matches the file, the save is refused and the result
+    /// carries what is on disk instead. Omitting it skips the check, which is
+    /// how callers with no editor behind them keep working.
+    /// </summary>
     [JsonRpcMethod("scenes/write")]
     public async Task<SceneWriteResultDto> WriteAsync(
         string chapterGuid,
         string sceneId,
         string html,
-        string plainText)
+        string plainText,
+        string? expectedHash = null)
     {
-        var wordCount = await _workspace.WriteSceneAsync(chapterGuid, sceneId, html, plainText);
-        return new SceneWriteResultDto(sceneId, wordCount);
+        var (outcome, wordCount) = await _workspace.WriteSceneCheckedAsync(
+            chapterGuid, sceneId, html, plainText, expectedHash);
+        return new SceneWriteResultDto(
+            sceneId, wordCount, outcome.Hash, outcome.Conflicted, outcome.DiskHtml);
     }
+
+    /// <summary>The writer's chosen resolution. Both versions are snapshotted
+    /// before it lands, so a wrong click at the merge dialog is recoverable.</summary>
+    [JsonRpcMethod("scenes/resolveConflict")]
+    public async Task<SceneWriteResultDto> ResolveConflictAsync(
+        string chapterGuid, string sceneId, string html, string plainText)
+    {
+        var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        var hash = await _workspace.SceneConflicts.ResolveAsync(chapter, scene, html);
+        // Re-save through the unchecked path so the word count, history and
+        // manifest catch up with the resolved text.
+        var wordCount = await _workspace.WriteSceneAsync(chapterGuid, sceneId, html, plainText);
+        return new SceneWriteResultDto(sceneId, wordCount, hash, false, null);
+    }
+
+    /// <summary>The two versions lined up row by row for the merge dialog.</summary>
+    [JsonRpcMethod("scenes/mergeRows")]
+    public MergeRowDto[] MergeRows(string mineHtml, string theirsHtml)
+        => [.. Core.Services.SceneConflictGuard.Rows(mineHtml, theirsHtml)
+            .Select(r => new MergeRowDto(r.Mine, r.Theirs, r.State))];
 }
 
-public sealed record SceneContentDto(string SceneId, string Html);
+/// <summary>One row of the merge view. <c>State</c> is "equal", "changed",
+/// "mine" (only the writer has it) or "theirs" (only the file has it).</summary>
+public sealed record MergeRowDto(string? Mine, string? Theirs, string State);
+
+public sealed record SceneContentDto(string SceneId, string Html, string Hash);
 
 public sealed record SceneMetaDto(
     string SceneId,
@@ -191,4 +226,12 @@ public sealed record SceneCommentDto(string Id, string AnchorText, string Text, 
 
 public sealed record SceneFootnoteDto(string Id, int Number, string Text);
 
-public sealed record SceneWriteResultDto(string SceneId, int WordCount);
+/// <summary>The result of a scene save. <c>Conflicted</c> means nothing was
+/// written because the file changed underneath, and <c>DiskHtml</c> carries what
+/// is actually there.</summary>
+public sealed record SceneWriteResultDto(
+    string SceneId,
+    int WordCount,
+    string Hash,
+    bool Conflicted,
+    string? DiskHtml);

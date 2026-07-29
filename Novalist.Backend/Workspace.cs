@@ -329,12 +329,44 @@ public sealed partial class Workspace : IDisposable
     {
         var (chapter, scene) = ResolveScene(chapterGuid, sceneId);
         await Projects.WriteSceneContentAsync(chapter, scene, html);
-        var wordCount = CountWords(plainText.Length > 0 ? plainText : StripHtml(html));
-        scene.WordCount = wordCount;
-        await WordHistory.RecordSaveAsync(Projects.ActiveBook?.Id ?? string.Empty, scene.Id, wordCount);
+        await AfterSceneWriteAsync(chapter, scene, html, plainText);
+        return scene.WordCount;
+    }
+
+    /// <summary>The guard that refuses a save when the file changed underneath
+    /// it, wired to the snapshot service so resolving a conflict keeps both
+    /// sides.</summary>
+    public SceneConflictGuard SceneConflicts
+        => new(Projects, new SnapshotService(Projects, FileService));
+
+    /// <summary>
+    /// Saves a scene unless it changed on disk since the editor read it. A
+    /// conflicting save is refused rather than merged, and the outcome carries
+    /// what is on disk so the writer can be shown both.
+    /// </summary>
+    public async Task<(SceneSaveOutcome Outcome, int WordCount)> WriteSceneCheckedAsync(
+        string chapterGuid, string sceneId, string html, string plainText, string? expectedHash)
+    {
+        var (chapter, scene) = ResolveScene(chapterGuid, sceneId);
+        var outcome = await SceneConflicts.SaveAsync(chapter, scene, html, expectedHash);
+        // A refused save must not touch the word history or the manifest: nothing
+        // was written, so recording it would report progress that did not happen.
+        if (outcome.Conflicted) return (outcome, scene.WordCount);
+
+        await AfterSceneWriteAsync(chapter, scene, html, plainText);
+        return (outcome, scene.WordCount);
+    }
+
+    /// <summary>The bookkeeping every successful scene write does: word count,
+    /// history, manifest, and the extension event.</summary>
+    private async Task AfterSceneWriteAsync(
+        ChapterData chapter, SceneData scene, string html, string plainText)
+    {
+        scene.WordCount = CountWords(plainText.Length > 0 ? plainText : StripHtml(html));
+        await WordHistory.RecordSaveAsync(
+            Projects.ActiveBook?.Id ?? string.Empty, scene.Id, scene.WordCount);
         await Projects.SaveScenesAsync();
         RaiseSceneSaved(chapter, scene);
-        return wordCount;
     }
 
     // Same regex the Avalonia EditorViewModel uses, so persisted word counts stay identical.

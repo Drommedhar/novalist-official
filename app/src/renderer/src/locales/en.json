@@ -388,8 +388,6 @@
     "projectDeadlineDesc": "Optional deadline in YYYY-MM-DD format.",
     "projectAuthor": "Author",
     "projectAuthorDesc": "Author name used as default on the dashboard header and in exports.",
-    "watchFilesystem": "Watch filesystem",
-    "watchFilesystemDesc": "Reconcile scenes and chapters you add, move, rename, or delete with a file manager while Novalist is open. Turn off for flaky network or cloud drives; changes are still picked up when you reopen the project.",
     "writingAssistance": "WRITING ASSISTANCE",
     "autoReplacement": "AUTO-REPLACEMENT",
     "quoteStyle": "Quote Style",
@@ -2134,5 +2132,16 @@
     "startLexicon": "Start a lexicon for this language",
     "templateWritten": "A starting lexicon for {{code}} was written to the analysis folder. Translate the word lists in it, then press Rescan.",
     "lexiconHint": "Without a scene-analysis lexicon, a language still writes and exports normally — what it loses is automatic POV, emotion, intensity, conflict and tag detection, and verb-based dialogue attribution. You can set those by hand on any scene."
+  },
+  "conflict": {
+    "title": "This scene changed somewhere else",
+    "explain": "Your copy and the one on disk both changed, in {{count}} places. Nothing has been saved yet. Pick the version you want for each line — Novalist will not merge your prose for you, because a sentence spliced from two drafts reads like neither.",
+    "mine": "What you wrote",
+    "theirs": "What is on disk",
+    "takeAllMine": "Take all of mine",
+    "takeAllTheirs": "Take all from disk",
+    "snapshotNote": "Both versions are snapshotted before this is saved, so you can go back to either one.",
+    "decideLater": "Decide later",
+    "save": "Save this version"
   }
 }

@@ -120,7 +120,23 @@ If you want a chapter's act to follow a chapter move, change the act inside Nova
 Two ways reconciliation runs:
 
 - **On load** — when you open a project, Novalist scans the active draft and applies any external changes made while it was closed.
-- **Live** — while the app is open, Novalist watches the active draft folder and reconciles changes shortly after they happen, so moving a file in a file manager updates the manuscript without a restart. If a file you have open in the editor changes on disk, Novalist asks before discarding unsaved edits. Live watching can be turned off in [Settings](23-settings.md) (for example on flaky network drives); load-time reconciliation still runs.
+- **On save** — when you save a scene whose file changed on disk since Novalist read it, the save is refused rather than overwriting the other version, and you are shown both. See [When a scene changed somewhere else](#when-a-scene-changed-somewhere-else) below.
+
+## When a scene changed somewhere else
+
+Novalist keeps your project in a plain folder, which means people put it in Dropbox, iCloud Drive, OneDrive or Syncthing and write on more than one machine. Two machines editing the same scene is not exotic — it is what happens when a sync arrives while you had the scene open, or when you close the laptop before it finishes uploading.
+
+When you save a scene whose file changed since Novalist read it, **the save is refused**. Nothing is written and the other version stays intact. A dialog shows the two versions side by side:
+
+- The left column is what you wrote; the right is what is in the file.
+- Lines both versions agree on are shown greyed out for context and cannot be picked.
+- Every line they differ on is a pair of buttons; click the side you want. Your own text is preselected, because you were the one typing.
+- **Take all of mine** and **Take all from disk** set every differing line at once, for when one version is simply the right one.
+- **Decide later** closes the dialog and changes nothing. Your text stays in the editor, still unsaved, and the file is untouched.
+
+Novalist deliberately does **not** merge prose automatically. A sentence spliced from two drafts reads like neither, and a writer would rather choose than discover the splice three chapters later.
+
+Saving your resolution takes a [snapshot](17-snapshots.md) of both versions first, so a wrong click here is recoverable — either original can be restored from the scene's snapshot list.
 
 Migration to this model happens automatically the first time you open an older project: scene files are stamped, markers and the index are written. It adds about 30 bytes per scene and one small file per chapter folder — no content is rewritten.
 

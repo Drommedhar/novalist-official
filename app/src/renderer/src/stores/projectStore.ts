@@ -65,6 +65,18 @@ interface ProjectState {
   openChapterGuid: string | null
   openSceneId: string | null
   openSceneHtml: string | null
+  /** Fingerprint of what was read from disk, per scene id. A save carries it so
+   *  the backend can refuse to overwrite an edit that arrived meanwhile. */
+  sceneHashes: Record<string, string>
+  /** A save the backend refused because the file changed underneath. Drives the
+   *  merge dialog; null when there is nothing to resolve. */
+  sceneConflict: {
+    chapterGuid: string
+    sceneId: string
+    mine: string
+    theirs: string
+    plainText: string
+  } | null
   openScenePlainText: string | null
   openTabs: SceneTabRef[]
   splitChapterGuid: string | null
@@ -103,6 +115,11 @@ interface ProjectState {
   reorderChapter(chapterGuid: string, newOrder: number): Promise<void>
   reorderScene(chapterGuid: string, sceneId: string, newOrder: number): Promise<void>
   moveScenes(sceneIds: string[], targetChapterGuid: string, targetIndex: number): Promise<void>
+  /** Writes the writer's chosen text and clears the conflict. */
+  resolveSceneConflict(html: string): Promise<void>
+  /** Leaves the file alone and keeps the writer's text in the editor, still
+   *  unsaved, so dismissing the dialog never decides anything for them. */
+  dismissSceneConflict(): void
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -117,6 +134,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   openChapterGuid: null,
   openSceneId: null,
   openSceneHtml: null,
+  sceneHashes: {},
+  sceneConflict: null,
   openScenePlainText: null,
   openTabs: [],
   splitChapterGuid: null,
@@ -214,14 +233,15 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   openScene: async (chapterGuid, sceneId) => {
     await get().flushPendingSave()
-    const content = await rpc.request<{ sceneId: string; html: string }>('scenes/read', [
-      chapterGuid,
-      sceneId
-    ])
+    const content = await rpc.request<{ sceneId: string; html: string; hash: string }>(
+      'scenes/read',
+      [chapterGuid, sceneId]
+    )
     const tabs = get().openTabs
     set({
       openChapterGuid: chapterGuid,
       openSceneId: sceneId,
+      sceneHashes: { ...get().sceneHashes, [sceneId]: content.hash },
       openSceneHtml: content.html,
       openScenePlainText: stripHtml(content.html),
       openTabs: tabs.some((t) => t.sceneId === sceneId) ? tabs : [...tabs, { chapterGuid, sceneId }]
@@ -230,19 +250,49 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   openSceneInSplit: async (chapterGuid, sceneId) => {
-    const content = await rpc.request<{ sceneId: string; html: string }>('scenes/read', [
-      chapterGuid,
-      sceneId
-    ])
+    const content = await rpc.request<{ sceneId: string; html: string; hash: string }>(
+      'scenes/read',
+      [chapterGuid, sceneId]
+    )
     const tabs = get().splitTabs
     set({
       splitChapterGuid: chapterGuid,
       splitSceneId: sceneId,
+      sceneHashes: { ...get().sceneHashes, [sceneId]: content.hash },
       splitSceneHtml: content.html,
       splitTabs: tabs.some((t) => t.sceneId === sceneId) ? tabs : [...tabs, { chapterGuid, sceneId }]
     })
     useShellStore.getState().setMainView('write')
   },
+
+  resolveSceneConflict: async (html) => {
+    const conflict = get().sceneConflict
+    if (!conflict) return
+    const result = await rpc.request<{ wordCount: number; hash: string }>(
+      'scenes/resolveConflict',
+      [conflict.chapterGuid, conflict.sceneId, html, stripHtml(html)]
+    )
+    set((state) => ({
+      sceneConflict: null,
+      sceneHashes: { ...state.sceneHashes, [conflict.sceneId]: result.hash },
+      openSceneHtml: state.openSceneId === conflict.sceneId ? html : state.openSceneHtml,
+      splitSceneHtml: state.splitSceneId === conflict.sceneId ? html : state.splitSceneHtml,
+      isDirty: state.openSceneId === conflict.sceneId ? false : state.isDirty,
+      dirtyMap: { ...state.dirtyMap, [conflict.sceneId]: false },
+      chapters: state.chapters.map((c) =>
+        c.guid === conflict.chapterGuid
+          ? {
+              ...c,
+              scenes: c.scenes.map((sc) =>
+                sc.id === conflict.sceneId ? { ...sc, wordCount: result.wordCount } : sc
+              )
+            }
+          : c
+      )
+    }))
+  },
+
+  dismissSceneConflict: () => set({ sceneConflict: null }),
 
   closeSplit: () =>
     set({ splitChapterGuid: null, splitSceneId: null, splitSceneHtml: null, splitTabs: [] }),
@@ -484,13 +534,37 @@ async function saveScene(
   html: string,
   plainText: string
 ): Promise<void> {
-  const result = await rpc.request<{ sceneId: string; wordCount: number }>('scenes/write', [
+  const result = await rpc.request<{
+    sceneId: string
+    wordCount: number
+    hash: string
+    conflicted: boolean
+    diskHtml: string | null
+  }>('scenes/write', [
     chapterGuid,
     sceneId,
     html,
-    plainText
+    plainText,
+    useProjectStore.getState().sceneHashes[sceneId] ?? null
   ])
+
+  // Refused: the file changed under us and nothing was written. The scene stays
+  // dirty so the writer's text is still in the editor while they decide.
+  if (result.conflicted) {
+    useProjectStore.setState({
+      sceneConflict: {
+        chapterGuid,
+        sceneId,
+        mine: html,
+        theirs: result.diskHtml ?? '',
+        plainText
+      }
+    })
+    return
+  }
+
   useProjectStore.setState((state) => ({
+    sceneHashes: { ...state.sceneHashes, [sceneId]: result.hash },
     isDirty: state.openSceneId === sceneId ? false : state.isDirty,
     dirtyMap: state.dirtyMap[sceneId] ? { ...state.dirtyMap, [sceneId]: false } : state.dirtyMap,
     chapters: state.chapters.map((c) =>

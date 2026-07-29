@@ -533,17 +533,7 @@ export function SettingsView(): React.JSX.Element {
               />
               {/* Desktop-only file-watching: irrelevant in the mobile sandbox. */}
               {!isMobile && (
-                <>
-                  <label className="relationships-toggle">
-                    <input
-                      type="checkbox"
-                      checked={project.watchFilesystem}
-                      onChange={(e) => void updateProjectMeta({ watchFilesystem: e.target.checked })}
-                    />
-                    {t('settings.watchFilesystem')}
-                  </label>
-                  <div className="settings-hint">{t('settings.watchFilesystemDesc')}</div>
-                </>
+                <></>
               )}
             </>
           ) : (

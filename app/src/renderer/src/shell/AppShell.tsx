@@ -17,6 +17,7 @@ import { StartScreen } from './StartScreen'
 import { UpdateDialog } from './UpdateDialog'
 import { useBackupScheduler } from './useBackupScheduler'
 import { useSpellCheck } from './useSpellCheck'
+import { SceneConflictDialog } from './SceneConflictDialog'
 import { useShellStore, type MainView } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
@@ -245,6 +246,9 @@ export function AppShell(): React.JSX.Element {
         <QuickCapture onClose={() => useShellStore.getState().setQuickCaptureOpen(false)} />
       )}
       {helpOpen && <HelpOverlay onClose={() => useShellStore.getState().setHelpOpen(false)} />}
+      {/* Raised by the store when a save was refused because the scene changed
+          on disk. Renders nothing until there is something to resolve. */}
+      <SceneConflictDialog />
     </div>
   )
 }

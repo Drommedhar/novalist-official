@@ -63,7 +63,6 @@ Per-project targets that feed the Dashboard's goal cards.
 
 - **Project Deadline** — the date you aim to finish; pacing on the Dashboard is measured against it.
 - **Author** — the author name stored with the project (also used as the default author when exporting).
-- **Watch Filesystem** — when on, Novalist watches the project folder and reconciles scenes and chapters that are added, moved, renamed, or deleted with an external tool while the app is running.
 
 Daily and project word goals themselves are edited on the [Dashboard](11-dashboard.md) by clicking a goal card's title.
 
