@@ -10,15 +10,31 @@ Each saved list appears as a row. Click the chevron to expand it: the list is ev
 
 ## Creating a Smart List
 
-Click **+ New smart list** at the top of the panel. The Smart List editor opens with these fields:
+Click **+ New smart list** at the top of the panel. The Smart List editor opens with a **name**, a **match** setting, and as many **rules** as you want to add.
 
-- **Name** — required; the label shown in the panel.
-- **Chapter status** — match scenes whose chapter is at a specific status (**Outline / Draft / Revised / Edited / Final**). Leave at **Any status** to ignore.
-- **POV contains** — substring match against the scene's POV field. Set or fix POV values in the [Manuscript outliner](10-manuscript.md).
-- **Tag** — match scenes carrying a specific tag.
-- **Plotline** — match scenes that belong to a specific plot thread, as marked in the [Plot Grid](08-plot-grid.md). The dropdown only appears once the book has at least one plotline; leave it at **Any plotline** to ignore.
+**Match** decides how the rules combine:
 
-Filters combine as **AND**; leave a field empty to ignore it. **Save** and the list appears in the panel.
+- **All of these rules** — a scene has to satisfy every one of them.
+- **Any of these rules** — one is enough. This is what answers "either of these two POVs", which no number of ANDed filters can express.
+
+Each rule is a field, a comparison, and a value.
+
+**Fields** are:
+
+- **Chapter status**, **Act** — from the scene's chapter.
+- **POV** — the POV you set, or the one Novalist detects from the prose.
+- **Tag**, **Plotline**, **Scene stage**, **Structure beat**.
+- **Scene title**, **Synopsis**, **Notes**.
+- **Words**, **Word target**.
+- Any [scene field of your own](10-manuscript.md#your-own-scene-and-chapter-fields), listed under its label.
+
+**Comparisons** depend on the field: text fields offer **contains** and **is**, number fields offer **is**, **is more than** and **is less than**, and every field offers **is set** and **is not set** — which is how you find the scenes still missing a synopsis, a target or a POV.
+
+Fields whose values are known — tags, stages, plotlines, chapter statuses, and your own choice fields — offer a drop-down of what this book actually uses rather than asking you to type it exactly.
+
+A list with no rules matches every scene in the book. **Save** and it appears in the panel.
+
+Lists saved by an older version of Novalist keep working: their four filters are read as four **All** rules, and re-saving stores them as rules.
 
 ## Editing and deleting
 
@@ -30,6 +46,9 @@ Right-click a list in the panel:
 ## Use cases
 
 - **Revision queues.** "Draft chapters with Alice POV" — your weekly revision list.
+- **Gaps.** "Synopsis is not set" — every scene you have not summarised yet.
+- **Either / or.** Match **any**, with one rule per POV — read two threads side by side.
+- **Your own fields.** "Tension is more than 7" — if you track tension as a scene field, the list can ask about it.
 - **Tag-based reading.** "Scenes tagged combat" — beta-read all the action without the connective tissue.
 - **Status audit.** "Chapters in Outline status" — find what still needs writing.
 - **Thread check.** "Scenes on the Betrayal plotline" — read one subplot end to end to check its setup and payoff.

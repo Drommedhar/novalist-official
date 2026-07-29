@@ -217,15 +217,41 @@
     "loading": "Loading...",
     "editTitle": "Smart list",
     "name": "Name",
-    "chapterStatus": "Chapter status",
-    "povContains": "POV contains",
-    "tag": "Tag",
     "confirmDeleteTitle": "Delete smart list?",
     "confirmDelete": "Delete \"{0}\"? This cannot be undone.",
     "noMatches": "No matching scenes.",
-    "anyStatus": "Any status",
-    "plotline": "Plotline",
-    "anyPlotline": "Any plotline"
+    "match": "Match",
+    "matchAll": "All of these rules",
+    "matchAny": "Any of these rules",
+    "addRule": "Add a rule",
+    "removeRule": "Remove this rule",
+    "noRules": "No rules yet - this list would hold every scene in the book.",
+    "ruleField": "Field",
+    "ruleOperator": "Comparison",
+    "ruleValue": "Value",
+    "chooseValue": "Choose...",
+    "op": {
+      "Is": "is",
+      "Contains": "contains",
+      "GreaterThan": "is more than",
+      "LessThan": "is less than",
+      "IsSet": "is set",
+      "IsNotSet": "is not set"
+    },
+    "field": {
+      "chapterStatus": "Chapter status",
+      "act": "Act",
+      "pov": "POV",
+      "tag": "Tag",
+      "plotline": "Plotline",
+      "stage": "Scene stage",
+      "title": "Scene title",
+      "synopsis": "Synopsis",
+      "notes": "Notes",
+      "beat": "Structure beat",
+      "words": "Words",
+      "target": "Word target"
+    }
   },
   "findReplace": {
     "title": "Find and Replace",
@@ -1511,7 +1537,8 @@
     "sourceChapter": "Chapters",
     "sourceScene": "Scenes",
     "sourceManual": "Events",
-    "openEntity": "Open {{name}}"
+    "openEntity": "Open {{name}}",
+    "noChapter": "No chapter"
   },
   "export": {
     "header": "Export Novel",

@@ -53,6 +53,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Changed
 
+- **Smart Lists are now rules rather than four fixed filters.** A saved list can hold as many rules as you like, over chapter status, act, POV, tag, plotline, scene stage, structure beat, title, synopsis, notes, words, word target, and any scene field of your own - and it can match **any** of them instead of all, which is what answers "either of these two POVs". Every field also offers **is set** / **is not set**, so "which scenes still have no synopsis" is a list you can save. Lists you already had keep working and become rules when you next save them.
+
 - **The Export view asks what to export separately from what file to write.** "Codex (Markdown)" and "Codex (PDF)" used to sit in the format list as though a world bible were a file type. There is now a **What to export** drop-down - the manuscript or the codex - and the format list shows only the formats that make sense for it.
 - **The Export view has one list of layouts instead of three ways to pick one.** The Preset drop-down now lists the built-in layouts alongside every layout you have authored, the Export layouts panel edits whichever one is picked there rather than carrying its own second drop-down, and the separate Shunn toggle is gone - Shunn Manuscript Format is in the same list as everything else.
 - **Right-clicking a scene inside a multi-scene selection now acts on all of it.** Stage, archive, word target and delete apply to every selected scene, and each menu row says how many it will affect. Right-clicking outside a selection still acts on just that scene.

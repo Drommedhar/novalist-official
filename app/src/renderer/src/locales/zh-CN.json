@@ -252,15 +252,41 @@
     "loading": "正在加载...",
     "editTitle": "智能列表",
     "name": "名称",
-    "chapterStatus": "章节状态",
-    "povContains": "视角包含",
-    "tag": "标签",
     "confirmDeleteTitle": "删除智能列表？",
     "confirmDelete": "确定要删除“{0}”吗？此操作无法撤销。",
     "noMatches": "没有匹配的场景。",
-    "anyStatus": "任意状态",
-    "plotline": "情节线",
-    "anyPlotline": "任意情节线"
+    "match": "匹配",
+    "matchAll": "满足全部规则",
+    "matchAny": "满足任一规则",
+    "addRule": "添加规则",
+    "removeRule": "删除此规则",
+    "noRules": "尚无规则 — 此列表将包含全书所有场景。",
+    "ruleField": "字段",
+    "ruleOperator": "比较",
+    "ruleValue": "值",
+    "chooseValue": "选择...",
+    "op": {
+      "Is": "等于",
+      "Contains": "包含",
+      "GreaterThan": "大于",
+      "LessThan": "小于",
+      "IsSet": "已设置",
+      "IsNotSet": "未设置"
+    },
+    "field": {
+      "chapterStatus": "章节状态",
+      "act": "幕",
+      "pov": "视角",
+      "tag": "标签",
+      "plotline": "情节线",
+      "stage": "场景阶段",
+      "title": "场景标题",
+      "synopsis": "简介",
+      "notes": "备注",
+      "beat": "结构节点",
+      "words": "字数",
+      "target": "字数目标"
+    }
   },
   "findReplace": {
     "title": "查找与替换",
@@ -1546,7 +1572,8 @@
     "sourceChapter": "章节",
     "sourceScene": "场景",
     "sourceManual": "事件",
-    "openEntity": "打开 {{name}}"
+    "openEntity": "打开 {{name}}",
+    "noChapter": "无章节"
   },
   "export": {
     "header": "导出小说",

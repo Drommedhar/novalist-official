@@ -1,17 +1,29 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../rpc/client'
-import type { SmartListDto } from './SmartListsPanel'
+import type { SmartListDto, SmartListRule } from './SmartListsPanel'
 
 export interface SmartListDraft {
   name: string
-  chapterStatus: string | null
-  povContains: string | null
-  tag: string | null
-  plotlineId: string | null
+  match: 'All' | 'Any'
+  rules: SmartListRule[]
 }
 
-const STATUSES = ['', 'Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']
+/** One field a rule can test, and what is worth offering for it. */
+interface FieldDto {
+  field: string
+  label: string
+  kind: 'text' | 'number' | 'choice'
+  options: string[]
+}
+
+/** Which comparisons make sense for which kind of field. */
+const OPERATORS: Record<FieldDto['kind'], string[]> = {
+  text: ['Contains', 'Is', 'IsSet', 'IsNotSet'],
+  number: ['Is', 'GreaterThan', 'LessThan', 'IsSet', 'IsNotSet'],
+  choice: ['Is', 'IsSet', 'IsNotSet']
+}
 
 interface SmartListEditorProps {
   initial: SmartListDto | null
@@ -19,6 +31,14 @@ interface SmartListEditorProps {
   onCancel(): void
 }
 
+/**
+ * A saved list as a set of rules rather than four fixed filters.
+ *
+ * The old editor was chapter status, POV, tag and plotline, all ANDed. That
+ * cannot express "either of these two POVs", "no synopsis yet", or anything
+ * about a field the writer added themselves - which are the questions a
+ * collection is usually for.
+ */
 export function SmartListEditor({
   initial,
   onSubmit,
@@ -26,43 +46,53 @@ export function SmartListEditor({
 }: SmartListEditorProps): React.JSX.Element {
   const { t } = useTranslation()
   const [name, setName] = useState(initial?.name ?? '')
-  const [status, setStatus] = useState(initial?.chapterStatus ?? '')
-  const [pov, setPov] = useState(initial?.povContains ?? '')
-  const [tag, setTag] = useState(initial?.tag ?? '')
-  const [plotlineId, setPlotlineId] = useState(initial?.plotlineId ?? '')
+  const [match, setMatch] = useState<'All' | 'Any'>(initial?.match ?? 'All')
+  const [rules, setRules] = useState<SmartListRule[]>(initial?.rules ?? [])
+  const [fields, setFields] = useState<FieldDto[]>([])
   const [plotlines, setPlotlines] = useState<{ id: string; name: string }[]>([])
 
-  // The plotline filter is only meaningful once the book has plotlines.
+  // Only the backend knows this book's tags, stages, plotlines and the
+  // writer's own scene fields, so the choices come from there.
   useEffect(() => {
-    let cancelled = false
+    void rpc.request<FieldDto[]>('smartLists/fields').then(setFields).catch(() => setFields([]))
     void rpc
       .request<{ plotlines: { id: string; name: string }[] }>('plot/grid')
-      .then((grid) => {
-        if (!cancelled) setPlotlines(grid.plotlines)
-      })
-      .catch(() => {
-        // No plotlines available — the dropdown simply stays hidden.
-      })
-    return () => {
-      cancelled = true
-    }
+      .then((grid) => setPlotlines(grid.plotlines))
+      .catch(() => setPlotlines([]))
   }, [])
+
+  const definition = (field: string): FieldDto | undefined => fields.find((f) => f.field === field)
+
+  /** Plotlines are stored by id; showing the id would be unreadable. */
+  const optionLabel = (field: string, option: string): string => {
+    if (field === 'plotline') return plotlines.find((p) => p.id === option)?.name ?? option
+    if (field === 'chapterStatus') return t(`dashboard.status${option}`)
+    return option
+  }
+
+  const fieldLabel = (field: FieldDto): string =>
+    field.field.startsWith('prop:') ? field.label : t(`smartList.field.${field.field}`)
+
+  const edit = (index: number, patch: Partial<SmartListRule>): void =>
+    setRules(rules.map((r, i) => (i === index ? { ...r, ...patch } : r)))
+
+  const add = (): void =>
+    setRules([...rules, { field: fields[0]?.field ?? 'title', op: 'Contains', value: '' }])
 
   const submit = (): void => {
     if (name.trim().length === 0) return
-    onSubmit({
-      name: name.trim(),
-      chapterStatus: status || null,
-      povContains: pov.trim() || null,
-      tag: tag.trim() || null,
-      plotlineId: plotlineId || null
-    })
+    onSubmit({ name: name.trim(), match, rules })
   }
 
   return (
     <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && onCancel()}>
-      <div className="dialog-card" role="dialog" aria-label={t('smartList.editTitle')}>
+      <div
+        className="dialog-card smart-list-card"
+        role="dialog"
+        aria-label={t('smartList.editTitle')}
+      >
         <div className="dialog-title">{t('smartList.editTitle')}</div>
+
         <label className="inspector-label" htmlFor="sl-name">
           {t('smartList.name')}
         </label>
@@ -73,59 +103,103 @@ export function SmartListEditor({
           onChange={(e) => setName(e.target.value)}
           autoFocus
         />
-        <label className="inspector-label" htmlFor="sl-status">
-          {t('smartList.chapterStatus')}
+
+        <label className="inspector-label" htmlFor="sl-match">
+          {t('smartList.match')}
         </label>
         <select
-          id="sl-status"
+          id="sl-match"
           className="dialog-input"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          value={match}
+          onChange={(e) => setMatch(e.target.value as 'All' | 'Any')}
         >
-          {STATUSES.map((s) => (
-            <option key={s} value={s}>
-              {s === '' ? t('smartList.anyStatus') : t(`dashboard.status${s}`)}
-            </option>
-          ))}
+          <option value="All">{t('smartList.matchAll')}</option>
+          <option value="Any">{t('smartList.matchAny')}</option>
         </select>
-        <label className="inspector-label" htmlFor="sl-pov">
-          {t('smartList.povContains')}
-        </label>
-        <input
-          id="sl-pov"
-          className="dialog-input"
-          value={pov}
-          onChange={(e) => setPov(e.target.value)}
-        />
-        <label className="inspector-label" htmlFor="sl-tag">
-          {t('smartList.tag')}
-        </label>
-        <input
-          id="sl-tag"
-          className="dialog-input"
-          value={tag}
-          onChange={(e) => setTag(e.target.value)}
-        />
-        {plotlines.length > 0 && (
-          <>
-            <label className="inspector-label" htmlFor="sl-plotline">
-              {t('smartList.plotline')}
-            </label>
-            <select
-              id="sl-plotline"
-              className="dialog-input"
-              value={plotlineId}
-              onChange={(e) => setPlotlineId(e.target.value)}
-            >
-              <option value="">{t('smartList.anyPlotline')}</option>
-              {plotlines.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
+
+        {rules.map((rule, index) => {
+          const field = definition(rule.field)
+          const kind = field?.kind ?? 'text'
+          const needsValue = rule.op !== 'IsSet' && rule.op !== 'IsNotSet'
+          return (
+            <div key={index} className="smart-list-rule">
+              <select
+                className="dialog-input"
+                aria-label={t('smartList.ruleField')}
+                value={rule.field}
+                onChange={(e) => {
+                  // Operators differ by kind, so a field change that leaves an
+                  // impossible comparison behind resets it to a valid one.
+                  const next = definition(e.target.value)
+                  const allowed = OPERATORS[next?.kind ?? 'text']
+                  edit(index, {
+                    field: e.target.value,
+                    op: allowed.includes(rule.op) ? rule.op : allowed[0],
+                    value: ''
+                  })
+                }}
+              >
+                {fields.map((f) => (
+                  <option key={f.field} value={f.field}>
+                    {fieldLabel(f)}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="dialog-input"
+                aria-label={t('smartList.ruleOperator')}
+                value={rule.op}
+                onChange={(e) => edit(index, { op: e.target.value })}
+              >
+                {OPERATORS[kind].map((op) => (
+                  <option key={op} value={op}>
+                    {t(`smartList.op.${op}`)}
+                  </option>
+                ))}
+              </select>
+              {needsValue &&
+                (field && field.options.length > 0 ? (
+                  <select
+                    className="dialog-input"
+                    aria-label={t('smartList.ruleValue')}
+                    value={rule.value}
+                    onChange={(e) => edit(index, { value: e.target.value })}
+                  >
+                    <option value="">{t('smartList.chooseValue')}</option>
+                    {field.options.map((option) => (
+                      <option key={option} value={option}>
+                        {optionLabel(rule.field, option)}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    className="dialog-input"
+                    aria-label={t('smartList.ruleValue')}
+                    type={kind === 'number' ? 'number' : 'text'}
+                    value={rule.value}
+                    onChange={(e) => edit(index, { value: e.target.value })}
+                  />
+                ))}
+              <button
+                className="dialog-button danger"
+                title={t('smartList.removeRule')}
+                onClick={() => setRules(rules.filter((_, i) => i !== index))}
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          )
+        })}
+
+        {rules.length === 0 && <div className="settings-hint">{t('smartList.noRules')}</div>}
+
+        <div className="settings-button-row">
+          <button className="dialog-button" onClick={add}>
+            <Plus size={14} /> {t('smartList.addRule')}
+          </button>
+        </div>
+
         <div className="dialog-actions">
           <button className="dialog-button" onClick={onCancel}>
             {t('dialog.cancel')}

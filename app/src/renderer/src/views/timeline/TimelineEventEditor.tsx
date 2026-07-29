@@ -94,7 +94,7 @@ export function TimelineEventEditor({
           value={linkedChapter}
           onChange={(e) => setLinkedChapter(e.target.value)}
         >
-          <option value="">{t('smartList.anyStatus')}</option>
+          <option value="">{t('timeline.noChapter')}</option>
           {chapters.map((c) => (
             <option key={c.guid} value={c.guid}>
               {c.title}

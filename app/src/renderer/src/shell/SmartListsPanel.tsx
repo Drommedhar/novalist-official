@@ -7,13 +7,18 @@ import { ContextMenu } from './ContextMenu'
 import { ConfirmDialog } from './ConfirmDialog'
 import { SmartListEditor, type SmartListDraft } from './SmartListEditor'
 
+/** One condition in a saved list. */
+export interface SmartListRule {
+  field: string
+  op: string
+  value: string
+}
+
 export interface SmartListDto {
   id: string
   name: string
-  chapterStatus: string | null
-  povContains: string | null
-  tag: string | null
-  plotlineId: string | null
+  match: 'All' | 'Any'
+  rules: SmartListRule[]
 }
 
 interface SmartListMatch {
@@ -55,10 +60,8 @@ export function SmartListsPanel(): React.JSX.Element {
     const updated = await rpc.request<SmartListDto[]>('smartLists/save', [
       id,
       draft.name,
-      draft.chapterStatus,
-      draft.povContains,
-      draft.tag,
-      draft.plotlineId
+      draft.match,
+      draft.rules
     ])
     setLists(updated)
     setMatches({})

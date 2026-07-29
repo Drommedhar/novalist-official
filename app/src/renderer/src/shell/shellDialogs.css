@@ -258,3 +258,18 @@
   color: var(--nl-text-subtle);
   font-size: var(--nl-font-caption);
 }
+
+/* A saved list can have several rules, each of them field / comparison /
+   value, so the dialog needs room the one-filter-per-line version did not. */
+.smart-list-card {
+  max-width: 720px;
+  width: 92vw;
+}
+
+.smart-list-rule {
+  align-items: center;
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 1fr 140px 1fr auto;
+  margin-bottom: var(--nl-space-sm);
+}

@@ -44,68 +44,114 @@ public sealed class SmartListService : ISmartListService
     {
         var result = new List<(ChapterData, SceneData)>();
         var chapters = _projectService.GetChaptersOrdered();
+        var rules = list.EffectiveRules();
 
         // Cache characters once for POV resolution; cheap.
         var characters = await _entityService.LoadCharactersAsync().ConfigureAwait(false);
 
         foreach (var chapter in chapters)
         {
-            if (!ChapterStatusMatches(list, chapter)) continue;
-
             var scenes = _projectService.GetScenesForChapter(chapter.Guid);
             foreach (var scene in scenes)
             {
-                if (!await SceneMatchesAsync(list, chapter, scene, characters).ConfigureAwait(false))
-                    continue;
-
-                result.Add((chapter, scene));
+                if (await MatchesAsync(list, rules, chapter, scene, characters).ConfigureAwait(false))
+                    result.Add((chapter, scene));
             }
         }
 
         return result;
     }
 
-    private static bool ChapterStatusMatches(SmartList list, ChapterData chapter)
-    {
-        if (string.IsNullOrEmpty(list.ChapterStatus)) return true;
-        return string.Equals(list.ChapterStatus, chapter.Status.ToString(), StringComparison.OrdinalIgnoreCase);
-    }
-
-    private async Task<bool> SceneMatchesAsync(
+    /// <summary>
+    /// A list with no rules matches everything, which is what an unfiltered
+    /// collection of the whole book should be rather than an empty one.
+    /// </summary>
+    private async Task<bool> MatchesAsync(
         SmartList list,
+        IReadOnlyList<SmartListRule> rules,
         ChapterData chapter,
         SceneData scene,
         IReadOnlyList<CharacterData> characters)
     {
-        if (!string.IsNullOrEmpty(list.Tag))
-        {
-            var tags = scene.AnalysisOverrides?.Tags;
-            if (tags == null || !tags.Any(t => string.Equals(t, list.Tag, StringComparison.OrdinalIgnoreCase)))
-                return false;
-        }
+        if (rules.Count == 0) return true;
 
-        if (!string.IsNullOrEmpty(list.PlotlineId))
+        foreach (var rule in rules)
         {
-            var plotlines = scene.PlotlineIds;
-            if (plotlines == null || !plotlines.Contains(list.PlotlineId, StringComparer.OrdinalIgnoreCase))
-                return false;
+            var holds = await RuleHoldsAsync(rule, chapter, scene, characters).ConfigureAwait(false);
+            if (list.Match == SmartListMatch.Any && holds) return true;
+            if (list.Match == SmartListMatch.All && !holds) return false;
         }
-
-        if (!string.IsNullOrEmpty(list.PovContains))
-        {
-            var pov = scene.AnalysisOverrides?.Pov;
-            if (string.IsNullOrEmpty(pov))
-            {
-                // Fall back to auto-detected POV via plain text.
-                var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
-                var plain = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
-                pov = PovDetector.Detect(plain, characters);
-            }
-            if (string.IsNullOrEmpty(pov)
-                || pov.IndexOf(list.PovContains, StringComparison.OrdinalIgnoreCase) < 0)
-                return false;
-        }
-
-        return true;
+        return list.Match == SmartListMatch.All;
     }
+
+    private async Task<bool> RuleHoldsAsync(
+        SmartListRule rule,
+        ChapterData chapter,
+        SceneData scene,
+        IReadOnlyList<CharacterData> characters)
+    {
+        // Membership fields are lists rather than single values, so they answer
+        // "is one of these" instead of being compared as text.
+        if (rule.Field == "tag")
+            return Holds(rule, scene.AnalysisOverrides?.Tags ?? []);
+        if (rule.Field == "plotline")
+            return Holds(rule, scene.PlotlineIds ?? []);
+
+        var value = rule.Field switch
+        {
+            "chapterStatus" => chapter.Status.ToString(),
+            "act" => chapter.Act,
+            "title" => scene.Title,
+            "synopsis" => scene.Synopsis ?? string.Empty,
+            "notes" => scene.Notes ?? string.Empty,
+            "stage" => scene.Stage ?? string.Empty,
+            "beat" => scene.BeatKey ?? string.Empty,
+            "words" => scene.WordCount.ToString(),
+            "target" => scene.WordTarget?.ToString() ?? string.Empty,
+            "pov" => await ResolvePovAsync(chapter, scene, characters).ConfigureAwait(false),
+            _ => rule.Field.StartsWith("prop:", StringComparison.Ordinal)
+                && scene.Properties != null
+                && scene.Properties.TryGetValue(rule.Field[5..], out var prop)
+                    ? prop
+                    : string.Empty
+        };
+
+        return Holds(rule, value);
+    }
+
+    /// <summary>The POV the writer set, or the one the prose gives away.</summary>
+    private async Task<string> ResolvePovAsync(
+        ChapterData chapter, SceneData scene, IReadOnlyList<CharacterData> characters)
+    {
+        var pov = scene.AnalysisOverrides?.Pov;
+        if (!string.IsNullOrEmpty(pov)) return pov;
+
+        var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
+        var plain = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]+>", " ");
+        return PovDetector.Detect(plain, characters) ?? string.Empty;
+    }
+
+    private static bool Holds(SmartListRule rule, string value) => rule.Op switch
+    {
+        SmartListOperator.IsSet => !string.IsNullOrWhiteSpace(value),
+        SmartListOperator.IsNotSet => string.IsNullOrWhiteSpace(value),
+        SmartListOperator.Is => string.Equals(value, rule.Value, StringComparison.OrdinalIgnoreCase),
+        SmartListOperator.Contains => value.Contains(rule.Value, StringComparison.OrdinalIgnoreCase),
+        // A comparison against something that is not a number is not true of
+        // anything, rather than quietly comparing as text.
+        SmartListOperator.GreaterThan => Numeric(value, rule.Value, (a, b) => a > b),
+        _ => Numeric(value, rule.Value, (a, b) => a < b)
+    };
+
+    private static bool Holds(SmartListRule rule, IReadOnlyList<string> values) => rule.Op switch
+    {
+        SmartListOperator.IsSet => values.Count > 0,
+        SmartListOperator.IsNotSet => values.Count == 0,
+        _ => values.Any(v => Holds(rule, v))
+    };
+
+    private static bool Numeric(string value, string other, Func<double, double, bool> compare)
+        => double.TryParse(value, out var a)
+           && double.TryParse(other, out var b)
+           && compare(a, b);
 }

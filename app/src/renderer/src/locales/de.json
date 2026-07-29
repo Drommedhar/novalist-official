@@ -118,15 +118,41 @@
     "loading": "Lade...",
     "editTitle": "Smart-Liste",
     "name": "Name",
-    "chapterStatus": "Kapitelstatus",
-    "povContains": "POV enthält",
-    "tag": "Tag",
     "confirmDeleteTitle": "Smart-Liste löschen?",
     "confirmDelete": "\"{0}\" löschen? Kann nicht rückgängig gemacht werden.",
     "noMatches": "Keine passenden Szenen.",
-    "anyStatus": "Beliebiger Status",
-    "plotline": "Handlungsstrang",
-    "anyPlotline": "Beliebiger Strang"
+    "match": "Treffer",
+    "matchAll": "Alle diese Regeln",
+    "matchAny": "Eine dieser Regeln",
+    "addRule": "Regel hinzufügen",
+    "removeRule": "Diese Regel entfernen",
+    "noRules": "Noch keine Regeln – diese Liste enthielte jede Szene des Buchs.",
+    "ruleField": "Feld",
+    "ruleOperator": "Vergleich",
+    "ruleValue": "Wert",
+    "chooseValue": "Auswählen...",
+    "op": {
+      "Is": "ist",
+      "Contains": "enthält",
+      "GreaterThan": "ist größer als",
+      "LessThan": "ist kleiner als",
+      "IsSet": "ist gesetzt",
+      "IsNotSet": "ist nicht gesetzt"
+    },
+    "field": {
+      "chapterStatus": "Kapitelstatus",
+      "act": "Akt",
+      "pov": "Perspektive",
+      "tag": "Schlagwort",
+      "plotline": "Handlungsstrang",
+      "stage": "Szenenphase",
+      "title": "Szenentitel",
+      "synopsis": "Zusammenfassung",
+      "notes": "Notizen",
+      "beat": "Struktur-Beat",
+      "words": "Wörter",
+      "target": "Wortziel"
+    }
   },
   "findReplace": {
     "title": "Suchen und Ersetzen",
@@ -1135,7 +1161,8 @@
     "sourceChapter": "Kapitel",
     "sourceScene": "Szenen",
     "sourceManual": "Ereignisse",
-    "openEntity": "{{name}} öffnen"
+    "openEntity": "{{name}} öffnen",
+    "noChapter": "Kein Kapitel"
   },
   "export": {
     "header": "Roman exportieren",
