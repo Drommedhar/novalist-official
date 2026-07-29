@@ -76,6 +76,16 @@ Intensity is set per scene in the [context sidebar](22-context-sidebar.md); Nova
 
 This is where a long flat stretch, or a peak in the wrong place, is visible — the number on its own in the Inspector never said that.
 
+### Your rating axes
+
+The same chart, for a number of your own rather than one of ours.
+
+Any scene field you defined as **Number** in [Settings → Your Own Fields](23-settings.md#your-own-fields) can be charted here: stakes, pace, how much the viewpoint character knows, how far a subplot has moved — whatever you decided is worth a number. Define more than one and a picker appears to switch between them.
+
+The chart scales to the largest value you actually used, so an axis that runs 1 to 5 and one that runs 0 to 100 both fill the height. A scene where you left the field blank is a hairline, not a zero. Click a bar to open that scene.
+
+The card only appears once you have at least one numeric scene field, and the chart once at least two scenes carry a value.
+
 ### Character arcs
 
 One row per character who has an [arc](06-codex.md#arc-characters): their name, the two ends of the change, and their turning points in reading order. Turns bunched into one stretch of the book are worth a second look. A turn you have not placed in a scene yet sorts last and is drawn as an outline.

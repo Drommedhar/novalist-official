@@ -1,3 +1,4 @@
+using Novalist.Core.Models;
 using Novalist.Core.Services;
 using StreamJsonRpc;
 
@@ -53,6 +54,44 @@ public sealed class AnalyticsRpc
                     chapter.Guid, chapter.Title, scene.Id, scene.Title,
                     scene.AnalysisOverrides?.Intensity,
                     scene.AnalysisOverrides?.Emotion ?? string.Empty));
+
+        return [.. points];
+    }
+
+    /// <summary>
+    /// One of the writer's own numeric scene fields, scene by scene in reading
+    /// order.
+    ///
+    /// A number per scene only says something as a shape: a rating axis for
+    /// stakes, or pace, or how much a viewpoint character knows, is the kind of
+    /// thing that reads flat in a column and obvious as a curve. Which axes
+    /// exist is the writer's business - these are their fields, not a fixed set
+    /// of ours.
+    /// </summary>
+    [JsonRpcMethod("analytics/sceneFieldCurve")]
+    public TensionPointDto[] SceneFieldCurve(string key)
+    {
+        var definition = new ManuscriptPropertyService(_workspace.Projects)
+            .Definitions(ManuscriptPropertyScope.Scene)
+            .FirstOrDefault(d =>
+                string.Equals(d.Key, key, StringComparison.OrdinalIgnoreCase)
+                && d.Type == CustomPropertyType.Int);
+        if (definition == null) return [];
+
+        var points = new List<TensionPointDto>();
+        foreach (var chapter in _workspace.Projects.GetChaptersOrdered())
+            foreach (var scene in _workspace.Projects.GetScenesForChapter(chapter.Guid))
+            {
+                // A value that will not parse is no value. It cannot get in
+                // through the field editor, but a hand-edited file can hold one.
+                int? value = scene.Properties != null
+                    && scene.Properties.TryGetValue(definition.Key, out var raw)
+                    && int.TryParse(raw, out var parsed)
+                    ? parsed
+                    : null;
+                points.Add(new TensionPointDto(
+                    chapter.Guid, chapter.Title, scene.Id, scene.Title, value, string.Empty));
+            }
 
         return [.. points];
     }

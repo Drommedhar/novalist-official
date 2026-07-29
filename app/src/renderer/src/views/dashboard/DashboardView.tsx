@@ -6,6 +6,7 @@ import { TargetsCard } from './TargetsCard'
 import { PremiseCard } from './PremiseCard'
 import { ArcsCard } from './ArcsCard'
 import { TensionCard } from './TensionCard'
+import { SceneAxisCard } from './SceneAxisCard'
 import { InputDialog } from '../../shell/InputDialog'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
@@ -419,6 +420,7 @@ export function DashboardView(): React.JSX.Element {
       {/* What the book's tension does across its length - the one shape the
           per-scene intensity figure has anything to say in. */}
       <TensionCard />
+      <SceneAxisCard />
 
       {/* Every character's arc against the book: the Codex holds one at a
           time, which cannot say whether the turns are spread or bunched. */}

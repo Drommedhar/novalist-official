@@ -2706,5 +2706,11 @@
     "freeform": "Frei anordnen",
     "freeformHint": "Karten beliebig ziehen. Die Anordnung wird mit dem Buch gespeichert.",
     "arrange": "Zurück zur Lesereihenfolge"
+  },
+  "sceneAxis": {
+    "title": "Eigene Bewertungsachsen",
+    "intro": "Ein beliebiges numerisches Szenenfeld, über das Buch aufgetragen. Balken anklicken, um die Szene zu öffnen.",
+    "pick": "Welche Achse",
+    "notEnough": "Füllen Sie dieses Feld in mindestens zwei Szenen aus, um den Verlauf zu sehen."
   }
 }
