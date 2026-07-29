@@ -2036,7 +2036,8 @@
       "passiveVoice": "Passive voice",
       "cliches": "Stock phrases",
       "stickySentences": "Sticky sentences",
-      "repeatedOpeners": "Repeated sentence openers"
+      "repeatedOpeners": "Repeated sentence openers",
+      "watchWords": "Your flagged words"
     },
     "reportDesc": {
       "adverbs": "Words ending in an adverb suffix. Often a sign the verb is doing too little on its own.",
@@ -2046,7 +2047,10 @@
       "cliches": "Stock phrases matched literally against a bundled list.",
       "stickySentences": "Sentences where function words crowd out the images.",
       "repeatedOpeners": "Three or more sentences in a row opening on the same word."
-    }
+    },
+    "watchWords": "Your flagged words",
+    "watchWordsDesc": "Words you want counted in the style report - your own crutches (\"suddenly\", \"just\"), or the spelling a series bible fixes. One per line. They are reported as their own row, separately from Novalist’s bundled checks, and follow you from book to book.",
+    "watchWordsPlaceholder": "One word per line"
   },
   "review": {
     "title": "Import an editor's changes",

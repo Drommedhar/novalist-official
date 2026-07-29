@@ -2044,7 +2044,8 @@
       "passiveVoice": "Passiv",
       "cliches": "Floskeln",
       "stickySentences": "Zähe Sätze",
-      "repeatedOpeners": "Wiederholte Satzanfänge"
+      "repeatedOpeners": "Wiederholte Satzanfänge",
+      "watchWords": "Ihre markierten Wörter"
     },
     "reportDesc": {
       "adverbs": "Wörter mit Adverbendung. Oft ein Zeichen, dass das Verb allein zu wenig leistet.",
@@ -2054,7 +2055,10 @@
       "cliches": "Floskeln, wörtlich gegen eine mitgelieferte Liste geprüft.",
       "stickySentences": "Sätze, in denen Funktionswörter die Bilder verdrängen.",
       "repeatedOpeners": "Drei oder mehr Sätze in Folge, die mit demselben Wort beginnen."
-    }
+    },
+    "watchWords": "Ihre markierten Wörter",
+    "watchWordsDesc": "Wörter, die der Stilbericht zählen soll – Ihre eigenen Krücken („plötzlich“, „einfach“) oder die Schreibweise, die eine Reihenbibel festlegt. Eines pro Zeile. Sie erscheinen als eigene Zeile, getrennt von Novalists mitgelieferten Prüfungen, und folgen Ihnen von Buch zu Buch.",
+    "watchWordsPlaceholder": "Ein Wort pro Zeile"
   },
   "review": {
     "title": "Änderungen der Lektorin importieren",

@@ -114,4 +114,39 @@ public sealed class StyleRpcTests : IDisposable
         Assert.NotEmpty(adverbs.Examples);
         Assert.False(string.IsNullOrWhiteSpace(adverbs.Examples[0].Context));
     }
+
+    // ── The writer's own flagged words ──
+
+    [Fact]
+    public async Task WatchWords_RoundTripAndReachTheReport()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _workspace.WriteSceneAsync(chapter.Guid, scene.Id,
+            "<p>Suddenly it closed. Suddenly it opened.</p>",
+            "Suddenly it closed. Suddenly it opened.");
+
+        var saved = await _rpc.SetWatchWordsAsync(["  suddenly  ", "SUDDENLY", "  "]);
+
+        // Blanks dropped, repeats counted once - a repeat would count the same
+        // word twice in the report.
+        Assert.Equal(["suddenly"], saved);
+        Assert.Equal(["suddenly"], await _rpc.GetWatchWordsAsync());
+
+        var report = await _rpc.SceneAsync(chapter.Guid, scene.Id);
+        var finding = Assert.Single(report.Findings, f => f.Key == "watchWords");
+        Assert.Equal(2, finding.Count);
+    }
+
+    [Fact]
+    public async Task WatchWords_WithNoListTheReportHasNoSuchRow()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, "<p>Suddenly.</p>", "Suddenly.");
+
+        Assert.DoesNotContain(
+            (await _rpc.SceneAsync(chapter.Guid, scene.Id)).Findings,
+            f => f.Key == "watchWords");
+    }
 }

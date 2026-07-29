@@ -16,12 +16,40 @@ public sealed class StyleRpc
 
     private string Language => _workspace.Settings.Effective.AutoReplacementLanguage;
 
+    /// <summary>The writer's own flagged words, counted alongside the bundled checks.</summary>
+    private IReadOnlyCollection<string> WatchWords
+        => _workspace.Settings.Settings.StyleWatchWords;
+
+    /// <summary>The words the style report is watching for this writer.</summary>
+    [JsonRpcMethod("style/watchWords")]
+    public async Task<string[]> GetWatchWordsAsync()
+    {
+        await _workspace.Settings.LoadAsync();
+        return [.. WatchWords];
+    }
+
+    /// <summary>
+    /// Replaces the list. Blanks and repeats are dropped: an empty entry
+    /// matches nothing and a repeat would count the same word twice.
+    /// </summary>
+    [JsonRpcMethod("style/setWatchWords")]
+    public async Task<string[]> SetWatchWordsAsync(string[]? words)
+    {
+        await _workspace.Settings.LoadAsync();
+        _workspace.Settings.Settings.StyleWatchWords = [.. (words ?? [])
+            .Select(w => (w ?? string.Empty).Trim())
+            .Where(w => w.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)];
+        await _workspace.Settings.SaveAsync();
+        return [.. WatchWords];
+    }
+
     [JsonRpcMethod("style/scene")]
     public async Task<StyleReportDto> SceneAsync(string chapterGuid, string sceneId)
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
         var html = await _workspace.Projects.ReadSceneContentAsync(chapter, scene);
-        return ToDto(ProseStyleAnalyzer.Analyze(TextDiff.StripHtml(html), Language));
+        return ToDto(ProseStyleAnalyzer.Analyze(TextDiff.StripHtml(html), Language, WatchWords));
     }
 
     /// <summary>
@@ -45,7 +73,7 @@ public sealed class StyleRpc
             }
         }
 
-        return ToDto(ProseStyleAnalyzer.Analyze(text.ToString(), Language));
+        return ToDto(ProseStyleAnalyzer.Analyze(text.ToString(), Language, WatchWords));
     }
 
     private static StyleReportDto ToDto(ProseStyleReport r) =>

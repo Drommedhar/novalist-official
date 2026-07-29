@@ -94,7 +94,17 @@ public static partial class ProseStyleAnalyzer
     [GeneratedRegex(@"\p{L}[\p{L}\p{M}'’-]*", RegexOptions.Compiled)]
     private static partial Regex WordRegex();
 
-    public static ProseStyleReport Analyze(string? text, string language)
+    /// <summary>
+    /// Runs the craft checks over some prose.
+    /// </summary>
+    /// <param name="watchWords">
+    /// Words the writer asked to be told about - their own crutches, or the
+    /// spellings a series bible fixes. Counted like any other word list, and
+    /// reported under its own key so it can be shown as theirs rather than as
+    /// one of ours.
+    /// </param>
+    public static ProseStyleReport Analyze(
+        string? text, string language, IReadOnlyCollection<string>? watchWords = null)
     {
         var plain = (text ?? string.Empty).Trim();
         var lexicon = SceneAnalysisLexicon.For(language);
@@ -115,6 +125,17 @@ public static partial class ProseStyleAnalyzer
             StickyFinding(sentences, wordCount, lexicon),
             RepeatedOpenersFinding(sentences, wordCount)
         };
+
+        // Only when the writer has a list. An empty "your words" row reporting
+        // zero would read as a check that found nothing rather than one that
+        // was never set up.
+        var watch = (watchWords ?? [])
+            .Select(w => (w ?? string.Empty).Trim())
+            .Where(w => w.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (watch.Count > 0)
+            findings.Add(WordListFinding("watchWords", plain, words, SetMatcher(watch), true));
 
         return new ProseStyleReport
         {

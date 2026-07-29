@@ -14,6 +14,7 @@ import { HotkeysCard } from './HotkeysCard'
 import { ExtensionsCard } from './ExtensionsCard'
 import { BackupsCard } from './BackupsCard'
 import { SpellCheckCard } from './SpellCheckCard'
+import { WatchWordsCard } from './WatchWordsCard'
 import { LanguagePacksCard } from './LanguagePacksCard'
 import { SceneStagesCard } from './SceneStagesCard'
 import { ManuscriptPropertiesCard } from './ManuscriptPropertiesCard'
@@ -646,6 +647,9 @@ export function SettingsView(): React.JSX.Element {
               void update(scopeFor('writing'), { spellCheckLanguages: languages })
             }
           />
+          {/* Words the writer wants counted, beside the checks Novalist
+              brings. Their habits follow them, so this is a global list. */}
+          <WatchWordsCard />
           <label className="relationships-toggle">
             <input
               type="checkbox"

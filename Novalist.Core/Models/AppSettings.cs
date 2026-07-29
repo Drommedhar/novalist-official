@@ -89,6 +89,14 @@ public class AppSettings : IEffectiveSettings
     public List<string> SpellCheckCustomWords { get; set; } = new();
 
     /// <summary>
+    /// Words the writer wants the style report to count: their own crutches,
+    /// or the spellings a series bible fixes. Kept with the settings rather
+    /// than the project - a writer's habits follow them from book to book.
+    /// </summary>
+    [JsonPropertyName("styleWatchWords")]
+    public List<string> StyleWatchWords { get; set; } = new();
+
+    /// <summary>
     /// Whether composition mode dims every paragraph but the one the caret is
     /// in. Off by default: dimming is a strong preference, not a default.
     /// </summary>

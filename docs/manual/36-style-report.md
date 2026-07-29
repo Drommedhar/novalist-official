@@ -27,6 +27,14 @@ Each report shows a count and a rate per 1000 words. Click one to see examples w
 - **Sticky sentences** — sentences where function words crowd out the images. Short sentences are ignored, since a high function-word share is normal there and says nothing.
 - **Repeated sentence openers** — three or more sentences in a row starting with the same word.
 
+## Your own flagged words
+
+Every check above is one Novalist brings. **Settings → Writing Assistance → Your flagged words** adds one of yours: a list, one word per line, counted exactly like the bundled checks and reported as its own row.
+
+It is for the two things a bundled lexicon cannot know — your own crutches (*suddenly*, *just*, *somehow*) and the spelling a series bible fixes, where you want to be told every time the other one appears.
+
+The list is per writer, not per project: habits follow you from book to book. Matching ignores case, and a word repeated in the list is counted once. With no words in the list the row does not appear at all — an empty row reading zero would look like a check that found nothing rather than one that was never set up.
+
 ## Language support
 
 The word lists live in the same per-language analysis file as the Inspector's scene analysis, so a language is supported exactly when that file exists. English and German ship with full lists.

@@ -280,4 +280,37 @@ public class ProseStyleAnalyzerTests
         Assert.Contains("horse", adverbs.Examples[0].Context);
         Assert.True(adverbs.Examples[0].Offset > 0);
     }
+
+    // ── The writer's own flagged words ──
+    //
+    // Novalist had no local flagged-word list at all: no way to catch every
+    // "suddenly", or to hold one spelling of a series-bible term.
+
+    [Fact]
+    public void WatchWords_AreCountedAndReportedUnderTheirOwnKey()
+    {
+        var report = ProseStyleAnalyzer.Analyze(
+            "Suddenly the door opened. She just stood there, and suddenly it closed.",
+            "en",
+            ["suddenly", "  just  ", "SUDDENLY", "   "]);
+
+        var finding = Assert.Single(report.Findings, f => f.Key == "watchWords");
+        // Case-insensitive, repeats in the list counted once, blanks ignored.
+        Assert.Equal(3, finding.Count);
+        Assert.True(finding.Supported);
+        Assert.NotEmpty(finding.Examples);
+    }
+
+    [Fact]
+    public void WatchWords_WithNoListThereIsNoRow()
+    {
+        // An empty "your words" row reporting zero would read as a check that
+        // found nothing rather than one that was never set up.
+        Assert.DoesNotContain(
+            ProseStyleAnalyzer.Analyze("Suddenly it closed.", "en").Findings,
+            f => f.Key == "watchWords");
+        Assert.DoesNotContain(
+            ProseStyleAnalyzer.Analyze("Suddenly it closed.", "en", ["  "]).Findings,
+            f => f.Key == "watchWords");
+    }
 }

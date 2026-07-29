@@ -2078,7 +2078,8 @@
       "passiveVoice": "被动语态",
       "cliches": "套语",
       "stickySentences": "黏滞句",
-      "repeatedOpeners": "重复的句首"
+      "repeatedOpeners": "重复的句首",
+      "watchWords": "您标记的词"
     },
     "reportDesc": {
       "adverbs": "带副词后缀的词。常表示动词本身承担得不够。",
@@ -2088,7 +2089,10 @@
       "cliches": "按内置词表逐字匹配的套语。",
       "stickySentences": "功能词挤占了意象的句子。",
       "repeatedOpeners": "连续三句或以上以同一个词开头。"
-    }
+    },
+    "watchWords": "您标记的词",
+    "watchWordsDesc": "希望文风报告统计的词 — 您自己的口头禅（“突然”、“只是”），或系列设定集固定的拼写。每行一个。它们会单独成行显示，与 Novalist 自带的检查分开，并且跨书籍保留。",
+    "watchWordsPlaceholder": "每行一个词"
   },
   "review": {
     "title": "导入编辑的修改",
