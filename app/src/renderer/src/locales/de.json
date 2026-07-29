@@ -2058,7 +2058,10 @@
     "bulletList": "Aufzählung",
     "orderedList": "Nummerierte Liste",
     "quote": "Zitat",
-    "link": "Link"
+    "link": "Link",
+    "table": "Tabelle",
+    "code": "Codeblock",
+    "callout": "Hinweisblock"
   },
   "backup": {
     "title": "Sicherungen",

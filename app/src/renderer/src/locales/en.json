@@ -2050,7 +2050,10 @@
     "bulletList": "Bulleted list",
     "orderedList": "Numbered list",
     "quote": "Quote",
-    "link": "Link"
+    "link": "Link",
+    "table": "Table",
+    "code": "Code block",
+    "callout": "Callout"
   },
   "backup": {
     "title": "Backups",

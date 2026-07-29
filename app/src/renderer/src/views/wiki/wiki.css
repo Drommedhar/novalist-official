@@ -960,3 +960,74 @@
   border-right: none;
   overflow-y: auto;
 }
+
+/* ===== Callouts and tables in a section =====
+   A callout is a note about the entry rather than part of its description, so
+   it reads as an aside: a tinted block with a rule down its edge. The kinds
+   differ only in colour, because inventing an icon per kind is where a note
+   stops being a note. */
+.wiki-callout {
+  border-left: 3px solid var(--nl-accent);
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-sm);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  margin: var(--nl-space-md) 0;
+}
+
+.wiki-callout[data-kind='warning'],
+.wiki-callout[data-kind='caution'] {
+  border-left-color: var(--nl-warning);
+}
+
+.wiki-callout[data-kind='danger'],
+.wiki-callout[data-kind='error'] {
+  border-left-color: var(--nl-danger);
+}
+
+.wiki-callout[data-kind='tip'],
+.wiki-callout[data-kind='success'] {
+  border-left-color: var(--nl-success);
+}
+
+.wiki-callout-title {
+  color: var(--nl-text);
+  font-weight: 600;
+  margin-bottom: var(--nl-space-tightest);
+}
+
+.wiki-callout-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* A table in a section is data - a cost table, a roster, ship stats - so it is
+   ruled and readable rather than styled like prose. */
+.wiki-prose table {
+  border-collapse: collapse;
+  margin: var(--nl-space-md) 0;
+  width: 100%;
+}
+
+.wiki-prose th,
+.wiki-prose td {
+  border: 1px solid var(--nl-border);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  text-align: left;
+}
+
+.wiki-prose th {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.wiki-prose pre {
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  overflow-x: auto;
+  padding: var(--nl-space-sm);
+}
+
+.wiki-prose code {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+}

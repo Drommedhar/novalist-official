@@ -1,6 +1,18 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bold, Heading, Italic, Link2, List, ListOrdered, Quote, Strikethrough } from 'lucide-react'
+import {
+  Bold,
+  Code,
+  Heading,
+  Info,
+  Italic,
+  Link2,
+  List,
+  ListOrdered,
+  Quote,
+  Strikethrough,
+  Table
+} from 'lucide-react'
 import { EditorState, RangeSetBuilder, type ChangeSpec, type Range } from '@codemirror/state'
 import {
   Decoration,
@@ -166,6 +178,9 @@ export type MarkdownAction =
   | 'ordered'
   | 'quote'
   | 'link'
+  | 'table'
+  | 'code'
+  | 'callout'
 
 /** Wraps the selection in `mark`, or unwraps it when it is already wrapped. */
 function toggleWrap(view: EditorView, mark: string): void {
@@ -223,6 +238,32 @@ function insertLink(view: EditorView): void {
   view.focus()
 }
 
+/**
+ * Puts a block on its own lines, keeping whatever is around it. Written at the
+ * start of the caret's line rather than in the middle of a sentence: a table
+ * spliced into a paragraph is not a table.
+ */
+function insertBlock(view: EditorView, text: string): void {
+  const { state } = view
+  const line = state.doc.lineAt(state.selection.main.head)
+  const needsBlankBefore = line.from > 0 && line.text.trim().length > 0
+  const insert = (needsBlankBefore ? '\n\n' : '') + text + '\n'
+  view.dispatch({
+    changes: { from: line.to, insert },
+    selection: { anchor: line.to + insert.length },
+    scrollIntoView: true
+  })
+  view.focus()
+}
+
+/** A pipe table with a header row and two body rows to fill in. */
+const TABLE_SKELETON = [
+  '| Name | Value |',
+  '| --- | --- |',
+  '|  |  |',
+  '|  |  |'
+].join('\n')
+
 export function applyMarkdownAction(view: EditorView, action: MarkdownAction): void {
   switch (action) {
     case 'bold':
@@ -241,6 +282,14 @@ export function applyMarkdownAction(view: EditorView, action: MarkdownAction): v
       return toggleLinePrefix(view, '> ')
     case 'link':
       return insertLink(view)
+    case 'table':
+      return insertBlock(view, TABLE_SKELETON)
+    case 'code':
+      return insertBlock(view, '```\n\n```')
+    // Obsidian's callout syntax, which is a blockquote anywhere that does not
+    // understand it - so a note stays readable rather than becoming noise.
+    case 'callout':
+      return insertBlock(view, '> [!note] Note\n> ')
   }
 }
 
@@ -344,7 +393,10 @@ export function MarkdownEditor({
       labelKey: 'markdown.orderedList'
     },
     { action: 'quote', icon: <Quote size={14} strokeWidth={2} />, labelKey: 'markdown.quote' },
-    { action: 'link', icon: <Link2 size={14} strokeWidth={2} />, labelKey: 'markdown.link' }
+    { action: 'link', icon: <Link2 size={14} strokeWidth={2} />, labelKey: 'markdown.link' },
+    { action: 'table', icon: <Table size={14} strokeWidth={2} />, labelKey: 'markdown.table' },
+    { action: 'code', icon: <Code size={14} strokeWidth={2} />, labelKey: 'markdown.code' },
+    { action: 'callout', icon: <Info size={14} strokeWidth={2} />, labelKey: 'markdown.callout' }
   ]
 
   return (

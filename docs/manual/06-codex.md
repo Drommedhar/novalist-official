@@ -200,6 +200,16 @@ By default an entity belongs to the active book. Entities stored in the project'
 
 On disk, World Bible entities live in `<Project>/WorldBible/<type>/` instead of the book folder; see [Projects & Books](03-projects-and-books.md#the-folder-layout). If you keep all your work in a single book, ignore the World Bible — it adds nothing for single-book projects.
 
+## What a section can hold
+
+Sections are Markdown, and the toolbar above one writes the pieces that are awkward to type by hand:
+
+- **Table** — inserts a pipe table with a header row. A magic-system cost table, a house roster, ship stats: things that were bulleted lists before, because a list was the only structure on offer.
+- **Code block** — a fenced block, for anything that must keep its exact shape: a conlang paradigm, a cipher, a formula.
+- **Callout** — `> [!note] Title`, the convention Obsidian uses. It renders in the [Wiki](30-wiki.md) as a tinted aside with a rule down its edge, and the kind (`note`, `warning`, `danger`, `tip`) picks the colour. Anywhere that does not know the syntax it is still a plain block quote, so a note never turns into noise.
+
+All three survive a Markdown Codex export as themselves. The PDF Codex export lays prose out line by line, so a table prints as its pipe characters rather than as a grid — the content is there, the ruling is not.
+
 ## Arranging the sheet
 
 **Arrange fields...** at the top of an entry opens a list of every field that entry type shows, with a tick box and up/down buttons.

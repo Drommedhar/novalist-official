@@ -131,6 +131,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Snapshots** — per-scene version history that restores the whole scene (synopsis, notes, POV, stage, dates, plotlines), plus a project-wide manager with renaming and pruning.
 - **Export preview** — how many chapters, scenes and words the current selection would produce, and how long the book runs in the chosen layout, before you write the file.
 - **Print** — `Ctrl+Alt+P` prints the open scene, the whole book in Manuscript mode, or whatever view is on screen, without the application chrome.
+- **Rich Codex sections** — pipe tables, fenced code and Obsidian-style callouts, written from the toolbar and rendered in the Wiki.
 - **Arrangeable Codex sheets** — hide the fields a project does not use (values kept) and reorder the rest, per entry type.
 - **Research media** — read PDFs, play audio and watch video inside the Research view rather than in another application.
 - **Accessible output** — describe every image, see before exporting how many are undescribed, and ship an EPUB whose accessibility metadata reflects what the file actually contains.

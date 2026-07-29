@@ -45,6 +45,41 @@ function proseUrlTransform(url: string): string {
   return url.startsWith('nventity:') ? url : defaultUrlTransform(url)
 }
 
+/** The text of a blockquote's first paragraph, for spotting a callout marker. */
+function calloutText(children: React.ReactNode): string | null {
+  const first = Array.isArray(children)
+    ? children.find((c) => typeof c === 'object' && c !== null)
+    : children
+  const props = (first as { props?: { children?: React.ReactNode } } | undefined)?.props
+  const inner = props?.children
+  const text = Array.isArray(inner) ? inner[0] : inner
+  return typeof text === 'string' ? text : null
+}
+
+/**
+ * The same children with the `[!kind] Title` line taken off the front. The
+ * marker is shown as the callout's own heading, so leaving it in the body
+ * would print it twice.
+ */
+function stripCalloutMarker(children: React.ReactNode): React.ReactNode {
+  const list = Array.isArray(children) ? children : [children]
+  return list.map((child, index) => {
+    if (index !== list.findIndex((c) => typeof c === 'object' && c !== null)) return child
+    const element = child as {
+      props?: { children?: React.ReactNode }
+      type?: unknown
+    }
+    const inner = element?.props?.children
+    const parts = Array.isArray(inner) ? [...inner] : [inner]
+    if (typeof parts[0] === 'string') {
+      const stripped = parts[0].replace(/^\[!\w+\]\s*.*(\n|$)/, '')
+      if (stripped.trim().length === 0) parts.shift()
+      else parts[0] = stripped
+    }
+    return <p key={index}>{parts}</p>
+  })
+}
+
 export function WikiArticle({ article }: { article: Article }): React.JSX.Element {
   const { t } = useTranslation()
   const openArticle = useWikiStore((s) => s.openArticle)
@@ -58,6 +93,22 @@ export function WikiArticle({ article }: { article: Article }): React.JSX.Elemen
   // backend WikiProseLinker) becomes a click-through to that article; any other
   // href stays an ordinary external link.
   const proseComponents = {
+    /**
+     * A blockquote whose first line reads `[!note] Title` is a callout - the
+     * convention Obsidian uses, which stays a plain quote anywhere that does
+     * not know it, so a note is never turned into noise.
+     */
+    blockquote: ({ children }: { children?: React.ReactNode }): React.JSX.Element => {
+      const text = calloutText(children)
+      const match = text ? /^\[!(\w+)\]\s*(.*)$/.exec(text.trim()) : null
+      if (!match) return <blockquote>{children}</blockquote>
+      return (
+        <div className="wiki-callout" data-kind={match[1].toLowerCase()}>
+          {match[2].length > 0 && <div className="wiki-callout-title">{match[2]}</div>}
+          <div className="wiki-callout-body">{stripCalloutMarker(children)}</div>
+        </div>
+      )
+    },
     a: ({ href, children }: { href?: string; children?: React.ReactNode }): React.JSX.Element => {
       if (href && href.startsWith('nventity:')) {
         const rest = href.slice('nventity:'.length)

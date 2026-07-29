@@ -2092,7 +2092,10 @@
     "bulletList": "项目符号列表",
     "orderedList": "编号列表",
     "quote": "引用",
-    "link": "链接"
+    "link": "链接",
+    "table": "表格",
+    "code": "代码块",
+    "callout": "提示框"
   },
   "backup": {
     "title": "备份",
