@@ -11,6 +11,9 @@
 		{
 			"name": "The-Silent-Shadows",
 			"path": "../The-Silent-Shadows"
+		},
+		{
+			"path": "../novalist-extension"
 		}
 	],
 	"settings": {

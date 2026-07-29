@@ -17,7 +17,15 @@ namespace Novalist.Backend.Extensions;
 /// Concrete implementation of <see cref="IHostServices"/> that wraps the host's
 /// static App services and exposes read-only facades to extensions.
 /// </summary>
-public sealed class HostServices : IHostServices, IExtensionFileService, IExtensionProjectService, IExtensionEntityService, IDisposable
+public sealed partial class HostServices :
+    IHostServices,
+    IExtensionFileService,
+    IExtensionProjectService,
+    IExtensionEntityService,
+    IExtensionResearchService,
+    IExtensionReviewService,
+    IExtensionStoryService,
+    IDisposable
 {
     private readonly IFileService _fileService;
     private readonly IProjectService _projectService;
@@ -54,6 +62,9 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
     public IExtensionFileService FileService => this;
     public IExtensionProjectService ProjectService => this;
     public IExtensionEntityService EntityService => this;
+    public IExtensionResearchService ResearchService => this;
+    public IExtensionReviewService ReviewService => this;
+    public IExtensionStoryService StoryService => this;
     public string HostVersion => VersionInfo.Version;
     public string CurrentLanguage => Loc.Instance.CurrentLanguage;
 

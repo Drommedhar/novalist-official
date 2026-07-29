@@ -63,6 +63,48 @@ public interface IExtensionProjectService
     /// </summary>
     Task WriteSceneContentAsync(string chapterGuid, string sceneId, string html);
 
+    /// <summary>
+    /// Renames a chapter. False when the guid is unknown.
+    ///
+    /// This and the calls below finish what CreateChapterAsync started: an
+    /// importer that can add a chapter and not title it, or add scenes and not
+    /// order them, produces a project the writer has to repair by hand.
+    /// </summary>
+    Task<bool> RenameChapterAsync(string chapterGuid, string title);
+
+    /// <summary>Renames a scene. False when it does not exist.</summary>
+    Task<bool> RenameSceneAsync(string chapterGuid, string sceneId, string title);
+
+    /// <summary>
+    /// Moves a scene to a position in a chapter, its own or another. An index
+    /// past the end lands it at the end. False when either does not exist.
+    /// </summary>
+    Task<bool> MoveSceneAsync(string sceneId, string targetChapterGuid, int index);
+
+    /// <summary>
+    /// Moves a chapter to a one-based position in the book. False when the guid
+    /// is unknown.
+    /// </summary>
+    Task<bool> MoveChapterAsync(string chapterGuid, int order);
+
+    /// <summary>
+    /// Sets a chapter's act label, which is how acts are made - there is no
+    /// separate act to create. An empty label takes the chapter out of any act.
+    /// </summary>
+    Task<bool> SetChapterActAsync(string chapterGuid, string act);
+
+    /// <summary>
+    /// Sends a chapter and its scenes to the trash, where the writer can get
+    /// them back. There is no call here that erases anything: an extension
+    /// should not be able to destroy a chapter, only to put it aside.
+    /// </summary>
+    Task<bool> TrashChapterAsync(string chapterGuid);
+
+    /// <summary>
+    /// Archives a scene, which is the recoverable half of deleting one.
+    /// </summary>
+    Task<bool> ArchiveSceneAsync(string chapterGuid, string sceneId);
+
     /// <summary>Get chapters in order.</summary>
     IReadOnlyList<ChapterInfo> GetChaptersOrdered();
 
@@ -119,6 +161,26 @@ public interface IExtensionEntityService
     /// not mention are included only when set to always.</param>
     Task<IReadOnlyList<AiContextEntryInfo>> GetAiContextAsync(string chapterGuid, string sceneId);
 
+    /// <summary>
+    /// Writes name, description and sections onto an existing Codex entry of
+    /// any kind, built-in or custom. False when the id is unknown.
+    ///
+    /// CreateEntityAsync could make an entry and nothing could fill one in, so
+    /// a questionnaire extension could ask a writer twenty questions about a
+    /// character and then had nowhere to put the answers.
+    /// </summary>
+    /// <param name="sections">
+    /// Sections to write. A section whose title already exists is replaced;
+    /// anything else is appended. Sections the caller does not mention are left
+    /// alone, so filling in one part of an entry does not wipe the rest.
+    /// </param>
+    Task<bool> SaveEntityAsync(
+        string typeKey,
+        string entityId,
+        string? name = null,
+        string? description = null,
+        IReadOnlyList<CustomEntitySectionInfo>? sections = null);
+
     /// <summary>Notifies the host that entities have changed and the UI should refresh.</summary>
     void RequestEntityRefresh();
 
@@ -158,6 +220,15 @@ public interface IHostServices
 
     /// <summary>Entity data access.</summary>
     IExtensionEntityService EntityService { get; }
+
+    /// <summary>Research items, readable and writable.</summary>
+    IExtensionResearchService ResearchService { get; }
+
+    /// <summary>Comments and suggested edits on scenes.</summary>
+    IExtensionReviewService ReviewService { get; }
+
+    /// <summary>Scene metadata, acts, plot threads and timeline events.</summary>
+    IExtensionStoryService StoryService { get; }
 
     /// <summary>Current host version.</summary>
     string HostVersion { get; }
@@ -298,6 +369,44 @@ public interface IHostServices
     /// Returns the display name of the current UI language (e.g. "English", "Deutsch").
     /// </summary>
     string CurrentLanguageDisplayName { get; }
+
+    /// <summary>
+    /// Every command the host or another extension has registered, by id.
+    ///
+    /// This plus <see cref="InvokeCommandAsync"/> is what a scripting extension
+    /// needs to be worth having: a macro that can only call the one extension
+    /// hosting it is not automation.
+    /// </summary>
+    IReadOnlyList<HostCommandInfo> GetCommands();
+
+    /// <summary>
+    /// Runs a registered command by id. Returns false when no such command
+    /// exists, so a script can check rather than guess.
+    /// </summary>
+    /// <param name="argumentsJson">
+    /// A JSON object of arguments, or null. What a command accepts is described
+    /// by its <see cref="HostCommandInfo.ArgumentsSchema"/>.
+    /// </param>
+    Task<bool> InvokeCommandAsync(string commandId, string? argumentsJson = null);
+
+    /// <summary>
+    /// Registers a command other extensions and scripts can invoke. Replaces
+    /// any command already registered under the same id.
+    /// </summary>
+    void RegisterCommand(HostCommandInfo command, Func<string?, Task> handler);
+
+    /// <summary>Removes a command this extension registered.</summary>
+    void UnregisterCommand(string commandId);
+
+    /// <summary>
+    /// Registers a hook that runs after an export has been written, with the
+    /// path of the file. Used for validation and preflight - the check belongs
+    /// with whoever knows the format, not in the exporter.
+    /// </summary>
+    void RegisterExportPostProcessor(Hooks.IExportPostProcessor processor);
+
+    /// <summary>Removes a previously registered export post-processor.</summary>
+    void UnregisterExportPostProcessor(Hooks.IExportPostProcessor processor);
 
     /// <summary>
     /// Reads a named JSON section from the host settings.

@@ -88,6 +88,9 @@ Extensions implement hook interfaces from the Novalist SDK. The main contributio
 | `ISettingsContributor` | Registers a settings category (shown in the Extensions view). |
 | `ISettingsSchemaContributor` | A declarative settings form rendered inline in the Extensions view. |
 | `IWizardContributor` | Adds guided setup wizards the extension (or the user) can run. |
+| `IExportPostProcessor` | Checks a finished export and reports problems before you send it. Validating an EPUB properly means knowing the EPUB specification, which does not have to live in Novalist to be available in it. A check reads the file and reports; it never rewrites it. |
+
+An extension can also **propose an edit** to your prose. It appears as a [suggested edit](05-editor.md) with the extension's name on it, and you take it or turn it down like any other. Nothing an extension does rewrites a sentence you wrote without asking, and nothing an extension does deletes a chapter, a scene or a Codex entry for good — the strongest verbs available to one are moving a chapter to the trash and archiving a scene, both of which you can undo.
 
 Extensions can register **multiple** hooks — a single extension might add a panel, an export format, and a custom entity type. The manifest's `minHostVersion` / `maxHostVersion` fields declare which Novalist versions the extension supports.
 

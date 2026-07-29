@@ -120,4 +120,27 @@ public sealed class InlineActionResult
 
     /// <summary>Optional error message. Null on success.</summary>
     public string? Error { get; init; }
+
+    /// <summary>
+    /// Further wordings of the same answer, best first, with
+    /// <see cref="Text"/> as the first of them.
+    ///
+    /// When an action returns more than one, the host shows them for the writer
+    /// to pick from before anything lands in the prose. Generated text that
+    /// writes itself into the manuscript and leaves undo as the only way back
+    /// is the wrong shape for something that is wrong a fair amount of the
+    /// time; three wordings and a discard button is the right one.
+    ///
+    /// Empty means the single <see cref="Text"/> applies as it always did.
+    /// </summary>
+    public IReadOnlyList<string> Alternatives { get; init; } = [];
+
+    /// <summary>
+    /// Whether the host should offer this as a suggested edit rather than
+    /// writing it into the prose.
+    ///
+    /// A rewrite the writer has not read yet is a proposal, and marking it as
+    /// one costs nothing while it is being considered.
+    /// </summary>
+    public bool AsSuggestion { get; init; }
 }

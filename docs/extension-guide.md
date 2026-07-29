@@ -112,6 +112,18 @@ An extension whose `minHostVersion` is above the running Novalist is skipped wit
 
 Use **`GetAiContextAsync`** rather than the `Load*` methods when you are assembling context for a model. The `Load*` methods return everything, because the Codex has to show everything. `GetAiContextAsync` applies the writer's per-entry AI inclusion setting and their per-section withholding — which your extension cannot reconstruct on its own. A writer who marks an entry "never" means it.
 
+**`ProjectService`, structural editing** — `RenameChapterAsync`, `RenameSceneAsync`, `MoveSceneAsync`, `MoveChapterAsync`, `SetChapterActAsync`, `TrashChapterAsync`, `ArchiveSceneAsync`. An importer that could add a chapter but not title or order it produced a project the writer had to repair by hand. Note the two destructive verbs are **trash** and **archive** — both recoverable from the binder. There is deliberately no call that erases anything.
+
+**`ResearchService`** — research items, readable and writable, plus `ImportFileAsync` to copy a file into the project. This is what a web-capture extension needs: somewhere to put what it fetched.
+
+**`ReviewService`** — comments on a scene with an author, and `SuggestEditAsync`. That last one is the important one: it is how an extension changes prose it did not write. The proposal lands as a [suggested edit](manual/05-editor.md) the writer takes or turns down, marked with who suggested it. There is no call that silently rewrites a sentence, and there will not be.
+
+**`StoryService`** — what a scene *is* rather than what it says: point of view, intensity, emotion, conflict, stage, tags, plot threads, story dates, narrative mode, act, and the writer's own typed fields. Plus acts, plot threads (readable and creatable) and hand-entered timeline events. A pacing curve or a continuity rule needs this and could not be written without it.
+
+**`EntityService.SaveEntityAsync`** — writes name, description and sections onto an existing entry of any kind. Sections you do not mention are left alone, so filling in one part of an entry does not wipe the rest.
+
+**Commands** — `GetCommands`, `InvokeCommandAsync`, `RegisterCommand`. A command is a stable id, a title and an optional JSON Schema for its arguments. This is what makes a scripting extension worth having: a macro that can only call the extension hosting it is not automation.
+
 **`FileService`** — file I/O, so you are not reaching for `System.IO` paths the host may relocate.
 
 **Scene analysis storage** — `GetSceneAnalysisAsync`, `SaveSceneAnalysisAsync`, `IsSceneAnalysisStaleAsync`, `GetStaleSceneIdsAsync`. The host owns storage, staleness and the schema; you supply the analysis. Anything cumulative (what a character knows by chapter nine) is a roll-up over these records and needs no further model calls.
@@ -144,6 +156,7 @@ Implement any of these alongside `IExtension`; the host finds them by type.
 | `IWizardContributor` | Multi-step wizards |
 | `IWebViewContributor` | Message handling for a contributed web view |
 | `IAiHook` | Intercepts AI prompts and responses |
+| `IExportPostProcessor` | Checks a written export and reports what is wrong |
 
 Each interface's XML documentation on the SDK type is the contract; read it before implementing.
 
@@ -189,13 +202,15 @@ Never put an API key in the project folder. Projects get committed and shared.
 
 Being explicit about the ceiling saves you finding it the hard way:
 
-- **Editing prose in place.** `WriteSceneContentAsync` replaces a scene's content wholesale. There is no API for a diff, a range edit, or a tracked change, so an extension should only write scenes it created — normally as part of an import.
-- **Restructuring the manuscript.** You can create chapters and scenes at the end of the book. Reordering, moving, merging, splitting, archiving and deleting are the host's.
-- **Writing directly to the Codex model.** `CreateEntityAsync` and `SaveCustomEntityAsync` exist; everything else about an entry is host-owned. Entity extraction returns *proposals*, and the writer confirms them.
+- **Silently rewriting prose.** `WriteSceneContentAsync` replaces a scene wholesale and should only be used on scenes you created, normally during an import. To change prose the writer authored, use `ReviewService.SuggestEditAsync` and let them answer. This is a deliberate wall, not a gap: a machine's opinion belongs in the manuscript only once a person has agreed to it.
+- **Erasing anything.** You can trash a chapter and archive a scene, both of which the writer can undo. Nothing in the SDK deletes a chapter, a scene or an entry for good.
+- **Merging or splitting scenes.** Create, rename, move, trash and archive are yours; merge and split are the host's.
+- **Replacing the Codex's own rules.** You can create entries and write their names, descriptions and sections. Match settings, AI inclusion, state overrides and per-context resolution stay host-owned, and entity extraction returns *proposals* the writer confirms.
 - **Drawing native UI.** All extension interface is HTML in a frame. There is no Avalonia or React surface to attach to.
 - **Reaching the network from a web view.** The frame is sandboxed. Do network work in .NET.
+- **Modifying an export you were handed.** `IExportPostProcessor` gets a path so it can *read* the file and report on it. Rewriting an export the writer is about to send is the worst possible moment to be clever.
 
-If a feature you want needs one of these, say so in an issue rather than working around it — several of these are known gaps rather than deliberate walls.
+If a feature you want needs one of these, say so in an issue rather than working around it.
 
 ## Packaging
 
