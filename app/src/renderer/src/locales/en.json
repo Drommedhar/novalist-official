@@ -2197,5 +2197,23 @@
     "setScene": "Set word target...",
     "setChapter": "Set chapter word target...",
     "prompt": "Word target (leave empty for none)"
+  },
+  "publishing": {
+    "title": "Publishing metadata",
+    "intro": "What a shop, a library and a distributor need to know about this book, beyond its title and author. All of it is optional — anything you leave blank is simply not written into the exported file.",
+    "isbn": "ISBN",
+    "isbnResolved": "Exported as {{isbn}}.",
+    "isbnUnusable": "That is not a usable ISBN — an ISBN is 10 or 13 digits. Nothing will be written until it is.",
+    "publisher": "Publisher",
+    "seriesName": "Series",
+    "seriesPosition": "Position in the series",
+    "seriesHint": "A trilogy that does not state its position shelves as three unrelated books. Use 2.5 for a novella between two books.",
+    "description": "Description",
+    "subjects": "Subjects",
+    "subjectsPlaceholder": "Fantasy, Epic, Coming of Age",
+    "subjectsHint": "Comma-separated. Genre words, or BISAC codes if you have them — shops use these to shelve the book.",
+    "rights": "Rights",
+    "publicationDate": "Publication date",
+    "save": "Save metadata"
   }
 }

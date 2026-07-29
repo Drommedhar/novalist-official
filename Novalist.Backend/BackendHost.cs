@@ -72,6 +72,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new SpellRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SceneStageRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new WordTargetRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new PublishingRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new MatterRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SettingsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new AppearanceRpc(_workspace), targetOptions);

@@ -197,3 +197,8 @@
   min-height: 120px;
   resize: vertical;
 }
+
+.publishing-textarea {
+  min-height: 72px;
+  resize: vertical;
+}

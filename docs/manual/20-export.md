@@ -158,6 +158,22 @@ For chapter-based formats the list shows all chapters regardless of status — y
 - **Embed a cover image.** EPUB readers display the cover prominently; a missing cover signals "amateur".
 - **Re-export every release.** Re-run the export for any new beta reader instead of sending an old file — it's the only way to be sure they see the latest revisions.
 
+## Publishing metadata
+
+**Publishing metadata** on the Export view holds what a shop, a library and a distributor need to know about the book, beyond its title and author. All of it is optional, and anything left blank is simply not written into the exported file.
+
+| Field | What it does |
+| --- | --- |
+| **ISBN** | Becomes the EPUB's package identifier — the number a retailer keys the book on. Type it however it is printed; the hyphens are stripped on the way out. The panel shows you the digits that will actually be written, or tells you when what you typed is not a usable ISBN so you find out here rather than at ingestion. |
+| **Publisher** | `dc:publisher`, and a line on the title page. |
+| **Series** and **Position in the series** | Stated as an EPUB collection, so a trilogy shelves as a trilogy instead of three unrelated books. Position takes `2.5` for a novella between two volumes. Also printed under the title as "The Ravens, Book 2". |
+| **Description** | The blurb. `dc:description`. |
+| **Subjects** | Comma-separated genre words, or BISAC codes if you have them. One `dc:subject` each; shops use these to shelve the book. |
+| **Rights** | Your copyright line. `dc:rights`. |
+| **Publication date** | `dc:date`. ISO format (`2026-03-01`) is the safest. |
+
+Until now an exported EPUB carried author, title, identifier and language and nothing else, so there was no ISBN for a retailer to key on and no way for a book to say it was the second of a trilogy.
+
 ## Where to go next
 
 - [Exposé](32-expose.md) — write the pitch document with live Normseiten counts, and export it in the same layout.

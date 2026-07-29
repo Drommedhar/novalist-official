@@ -42,6 +42,10 @@ public class ExportOptions
     public string? PresetId { get; set; }
     public List<string> SelectedChapterGuids { get; set; } = [];
 
+    /// <summary>ISBN, publisher, series and the rest. Never null; an empty one
+    /// simply writes nothing extra.</summary>
+    public Models.PublishingMetadata Publishing { get; set; } = new();
+
     /// <summary>
     /// Absolute path of the book's cover image. When set and readable, EPUB gets
     /// a real cover (manifest item with <c>properties="cover-image"</c>, the
@@ -179,6 +183,10 @@ public partial class ExportService
             .Where(c => options.SelectedChapterGuids.Contains(c.Guid))
             .OrderBy(c => c.Order)
             .ToList();
+
+        // Publishing metadata belongs to the book, so the caller never has to
+        // assemble it - every export path gets it by opening the project.
+        options.Publishing = _projectService.ActiveBook?.Publishing ?? new Models.PublishingMetadata();
 
         // Matter pages come from the book, not the chapter selection: they frame
         // the whole book rather than belonging to any chapter.
@@ -1607,6 +1615,12 @@ public partial class ExportService
               text-align: left;
             }
 
+            p.series, p.publisher {
+              text-align: center;
+              font-style: italic;
+              margin: 0.4em 0;
+            }
+
             div.title-page {
               text-align: center;
               padding-top: 30%;
@@ -1770,6 +1784,16 @@ public partial class ExportService
             ? $"<p class=\"author\">{EscapeXml(options.Author)}</p>"
             : "";
 
+        // "Book Two of The Ravens" under the title, the way a printed series
+        // states it. Only when there is a series to state.
+        var seriesHtml = string.IsNullOrWhiteSpace(options.Publishing.SeriesName)
+            ? ""
+            : $"<p class=\"series\">{EscapeXml(SeriesLine(options.Publishing))}</p>";
+
+        var publisherHtml = string.IsNullOrWhiteSpace(options.Publishing.Publisher)
+            ? ""
+            : $"<p class=\"publisher\">{EscapeXml(options.Publishing.Publisher.Trim())}</p>";
+
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE html>
@@ -1782,11 +1806,25 @@ public partial class ExportService
             <body>
               <div class="title-page" epub:type="titlepage">
                 <h1>{EscapeXml(options.Title)}</h1>
+                {seriesHtml}
                 {authorHtml}
+                {publisherHtml}
               </div>
             </body>
             </html>
             """;
+    }
+
+    /// <summary>
+    /// The series line for a title page. "The Ravens, Book 2" when there is a
+    /// position, the series name alone when there is not - a book whose place in
+    /// its series the writer has not decided still belongs to the series.
+    /// </summary>
+    internal static string SeriesLine(Models.PublishingMetadata publishing)
+    {
+        var name = publishing.SeriesName.Trim();
+        var position = publishing.SeriesPosition.Trim();
+        return position.Length > 0 ? $"{name}, Book {position}" : name;
     }
 
     private static string GenerateNavXhtml(List<ChapterExportContent> chapters, ExportOptions options)
@@ -1951,14 +1989,24 @@ public partial class ExportService
 
         var language = string.IsNullOrWhiteSpace(options.Language) ? "en" : options.Language.Trim();
 
+        // An ISBN is the identifier a retailer keys on, so when there is one it
+        // becomes the package's unique identifier rather than sitting beside a
+        // generated UUID that means nothing outside this file.
+        var publishing = options.Publishing;
+        var isbn = publishing.NormalizedIsbn();
+        var identifierXml = isbn.Length > 0
+            ? $"<dc:identifier id=\"BookId\">urn:isbn:{EscapeXml(isbn)}</dc:identifier>"
+            : $"<dc:identifier id=\"BookId\">{EscapeXml(bookId)}</dc:identifier>";
+
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
             <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId">
               <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-                <dc:identifier id="BookId">{EscapeXml(bookId)}</dc:identifier>
+                {identifierXml}
                 <dc:title>{EscapeXml(options.Title)}</dc:title>
                 {authorXml}
                 <dc:language>{EscapeXml(language)}</dc:language>
+            {PublishingMetadataXml(publishing)}
                 {coverMetaXml}
                 <meta property="dcterms:modified">{modifiedDate}</meta>
               </metadata>
@@ -1970,6 +2018,56 @@ public partial class ExportService
               </spine>
             </package>
             """;
+    }
+
+    /// <summary>
+    /// The optional Dublin Core elements, plus the EPUB 3 collection markup that
+    /// states a book's place in its series.
+    ///
+    /// Series is the one that is not a plain element: EPUB 3 expresses it as a
+    /// <c>belongs-to-collection</c> meta refined by <c>collection-type</c> and
+    /// <c>group-position</c>. Retailers that do not read it fall back to the
+    /// title, which is why the book still reads correctly without it.
+    /// </summary>
+    private static string PublishingMetadataXml(Models.PublishingMetadata publishing)
+    {
+        if (!publishing.HasAny) return string.Empty;
+
+        var sb = new StringBuilder();
+        void Element(string name, string value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+                sb.AppendLine($"    <dc:{name}>{EscapeXml(value.Trim())}</dc:{name}>");
+        }
+
+        Element("publisher", publishing.Publisher);
+        Element("description", publishing.Description);
+        Element("rights", publishing.Rights);
+        Element("date", publishing.PublicationDate);
+
+        foreach (var subject in publishing.Subjects)
+            Element("subject", subject);
+
+        if (!string.IsNullOrWhiteSpace(publishing.SeriesName))
+        {
+            sb.AppendLine(
+                $"    <meta property=\"belongs-to-collection\" id=\"series\">{EscapeXml(publishing.SeriesName.Trim())}</meta>");
+            sb.AppendLine(
+                "    <meta refines=\"#series\" property=\"collection-type\">series</meta>");
+            if (!string.IsNullOrWhiteSpace(publishing.SeriesPosition))
+                sb.AppendLine(
+                    $"    <meta refines=\"#series\" property=\"group-position\">{EscapeXml(publishing.SeriesPosition.Trim())}</meta>");
+        }
+
+        // An ISBN promoted to the package identifier is still worth stating as
+        // its own element: some ingestion pipelines look for the scheme-tagged
+        // form rather than parsing the urn.
+        var isbn = publishing.NormalizedIsbn();
+        if (isbn.Length > 0)
+            sb.AppendLine(
+                $"    <dc:identifier opf:scheme=\"ISBN\" xmlns:opf=\"http://www.idpf.org/2007/opf\">{EscapeXml(isbn)}</dc:identifier>");
+
+        return sb.ToString().TrimEnd();
     }
 
     // ─── DOCX Export ─────────────────────────────────────────────────

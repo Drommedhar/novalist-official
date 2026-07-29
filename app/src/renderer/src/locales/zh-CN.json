@@ -2239,5 +2239,23 @@
     "setScene": "设置字数目标...",
     "setChapter": "设置章节字数目标...",
     "prompt": "字数目标（留空则无）"
+  },
+  "publishing": {
+    "title": "出版元数据",
+    "intro": "书店、图书馆和发行商需要了解的信息，除标题和作者之外。全部可选 — 留空的内容不会写入导出文件。",
+    "isbn": "ISBN",
+    "isbnResolved": "导出为 {{isbn}}。",
+    "isbnUnusable": "这不是可用的 ISBN — ISBN 为 10 位或 13 位数字。在此之前不会写入任何内容。",
+    "publisher": "出版商",
+    "seriesName": "系列",
+    "seriesPosition": "系列中的位置",
+    "seriesHint": "未标明位置的三部曲会被当作三本无关的书上架。两卷之间的中篇可用 2.5。",
+    "description": "简介",
+    "subjects": "主题",
+    "subjectsPlaceholder": "奇幻，史诗，成长",
+    "subjectsHint": "以逗号分隔。可填类型词，或 BISAC 代码 — 书店据此上架。",
+    "rights": "权利声明",
+    "publicationDate": "出版日期",
+    "save": "保存元数据"
   }
 }

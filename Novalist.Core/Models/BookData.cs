@@ -113,6 +113,11 @@ public class BookData
     [JsonPropertyName("sceneStages")]
     public List<SceneStage> SceneStages { get; set; } = [];
 
+    /// <summary>What a shop, a library and a distributor need to know about this
+    /// book. Written into the EPUB metadata block on export.</summary>
+    [JsonPropertyName("publishing")]
+    public PublishingMetadata Publishing { get; set; } = new();
+
     /// <summary>Named drafts of this book. The active draft's chapters / acts
     /// live in BookData.Chapters / Acts at runtime; on switch, the outgoing
     /// draft is flushed to draft.json and the incoming draft loaded.</summary>

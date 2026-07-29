@@ -2205,5 +2205,23 @@
     "setScene": "Wortziel setzen...",
     "setChapter": "Kapitel-Wortziel setzen...",
     "prompt": "Wortziel (leer lassen für keins)"
+  },
+  "publishing": {
+    "title": "Veröffentlichungsdaten",
+    "intro": "Was ein Shop, eine Bibliothek und ein Vertrieb über dieses Buch wissen müssen — über Titel und Autor hinaus. Alles ist optional; was Sie leer lassen, wird schlicht nicht in die Exportdatei geschrieben.",
+    "isbn": "ISBN",
+    "isbnResolved": "Wird als {{isbn}} exportiert.",
+    "isbnUnusable": "Das ist keine verwendbare ISBN — eine ISBN hat 10 oder 13 Ziffern. Bis dahin wird nichts geschrieben.",
+    "publisher": "Verlag",
+    "seriesName": "Reihe",
+    "seriesPosition": "Position in der Reihe",
+    "seriesHint": "Eine Trilogie ohne Positionsangabe steht wie drei unabhängige Bücher im Regal. 2.5 für eine Novelle zwischen zwei Bänden.",
+    "description": "Beschreibung",
+    "subjects": "Schlagworte",
+    "subjectsPlaceholder": "Fantasy, Epos, Coming of Age",
+    "subjectsHint": "Kommagetrennt. Genrebegriffe oder BISAC-Codes, falls vorhanden — Shops sortieren das Buch danach ein.",
+    "rights": "Rechte",
+    "publicationDate": "Veröffentlichungsdatum",
+    "save": "Daten speichern"
   }
 }

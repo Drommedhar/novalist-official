@@ -4,6 +4,7 @@ import { FileDown } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { ReviewImportDialog } from '../../shell/ReviewImportDialog'
 import { BookMatterPanel } from './BookMatterPanel'
+import { PublishingPanel } from './PublishingPanel'
 import { useProjectStore } from '../../stores/projectStore'
 import './export.css'
 
@@ -396,6 +397,12 @@ export function ExportView(): React.JSX.Element {
         <details className="export-matter">
           <summary>{t('matter.title')}</summary>
           <BookMatterPanel />
+        </details>
+
+        {/* What a shop and a distributor need, beyond title and author. */}
+        <details className="export-matter">
+          <summary>{t('publishing.title')}</summary>
+          <PublishingPanel />
         </details>
 
         {/* The other half of the round trip: a DOCX goes out to an editor and
