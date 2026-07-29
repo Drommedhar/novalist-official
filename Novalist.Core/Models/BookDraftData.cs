@@ -41,4 +41,13 @@ public sealed class BookDraftData
 
     [JsonPropertyName("acts")]
     public List<ActData> Acts { get; set; } = new();
+
+    /// <summary>
+    /// Chapters the writer deleted. Kept with their scenes so a confirmed
+    /// delete is recoverable - it was the one structural action with no way
+    /// back short of a backup.
+    /// </summary>
+    [JsonPropertyName("trash")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<ChapterData> Trash { get; set; } = [];
 }

@@ -82,6 +82,12 @@ public interface IProjectService
     string GetArchivedSceneFilePath(SceneData scene);
     Task<string> ReadArchivedSceneContentAsync(SceneData scene);
 
+    // Chapter trash. Deleting a chapter moves it and its scenes here rather
+    // than erasing them; only PurgeChapterAsync destroys anything.
+    IReadOnlyList<ChapterData> GetTrashedChapters();
+    Task<bool> RestoreChapterAsync(string chapterGuid);
+    Task<bool> PurgeChapterAsync(string chapterGuid);
+
     string GetChapterFolderPath(ChapterData chapter);
     string GetSceneFilePath(ChapterData chapter, SceneData scene);
     Task<string> ReadSceneContentAsync(ChapterData chapter, SceneData scene);

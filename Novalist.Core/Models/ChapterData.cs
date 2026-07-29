@@ -71,6 +71,15 @@ public class ChapterData
 
     [JsonPropertyName("folderName")]
     public string FolderName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// When this chapter was deleted, for a chapter sitting in the trash.
+    /// Null for every chapter in the manuscript, which is how the two lists
+    /// stay one list on disk and two everywhere else.
+    /// </summary>
+    [JsonPropertyName("deletedAt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTime? DeletedAt { get; set; }
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

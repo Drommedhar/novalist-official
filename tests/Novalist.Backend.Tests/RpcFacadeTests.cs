@@ -263,5 +263,29 @@ public sealed class RpcFacadeTests : IAsyncDisposable
 
         var chapterDeleted = await InvokeAsync<ProjectStateDto>("project/deleteChapter", chapter.Guid);
         Assert.Empty(chapterDeleted.Chapters);
+
+        // Deleted, not erased: it is in the trash and comes back with a press.
+        var trashed = await InvokeAsync<TrashedChapterDto[]>("project/trashedChapters");
+        Assert.Equal(chapter.Guid, Assert.Single(trashed).Guid);
+
+        var restored = await InvokeAsync<ProjectStateDto>("project/restoreChapter", chapter.Guid);
+        Assert.Single(restored.Chapters);
+        Assert.Empty(await InvokeAsync<TrashedChapterDto[]>("project/trashedChapters"));
+    }
+
+    [Fact]
+    public async Task PurgeChapter_ErasesATrashedChapterAndRefusesAnUnknownOne()
+    {
+        await InvokeAsync<ProjectStateDto>(
+            "project/create", Path.Combine(_root, "purge"), "PurgeNovel", "Book");
+        var chapter = await InvokeAsync<ProjectStateDto>("project/createChapter", "Doomed");
+        var guid = chapter.Chapters.Single().Guid;
+        await InvokeAsync<ProjectStateDto>("project/createScene", guid, "A scene");
+        await InvokeAsync<ProjectStateDto>("project/deleteChapter", guid);
+
+        Assert.Equal(1, (await InvokeAsync<TrashedChapterDto[]>("project/trashedChapters"))[0].SceneCount);
+        Assert.True(await InvokeAsync<bool>("project/purgeChapter", guid));
+        Assert.Empty(await InvokeAsync<TrashedChapterDto[]>("project/trashedChapters"));
+        Assert.False(await InvokeAsync<bool>("project/purgeChapter", guid));
     }
 }

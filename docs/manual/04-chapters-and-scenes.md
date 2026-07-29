@@ -47,7 +47,15 @@ Drag the chapter onto the chapter you want it to take the place of. The order is
 
 ### Deleting a chapter
 
-Right-click → **Delete**. You are asked to confirm; deletion removes the chapter, its scenes, and the on-disk folder. Snapshots of the deleted scenes survive in the book's `Snapshots/` folder until you delete them manually.
+Right-click → **Delete**. You are asked to confirm.
+
+The chapter is **not erased**. It moves to the trash at the bottom of the binder, and its scenes go to the archive alongside it. Nothing you wrote is lost by deleting a chapter, and nothing has to be recovered from a backup.
+
+To get it back, open **ARCHIVE** at the bottom of the binder tree and press **Restore** next to the chapter. It comes back with every scene it had, in the order it had them, at the end of the manuscript — not at its old position, because the chapters around it have moved on and renumbering them again would disturb work you have done since.
+
+**Delete forever** next to a trashed chapter erases it and its scenes for good. That is the only action in the binder that destroys anything, and it asks first.
+
+Snapshots of the chapter's scenes survive in the book's `Snapshots/` folder either way, until you delete them manually.
 
 ## Scenes
 
@@ -130,8 +138,8 @@ Dragging a selected scene on the Calendar shifts the entire selection by the sam
 Archiving removes a scene from the manuscript without deleting its text — useful for cut scenes you are not ready to throw away.
 
 - Right-click a scene → **Archive**. The scene leaves its chapter; it no longer counts toward totals or exports.
-- Click **ARCHIVE** at the bottom of the binder tree to show the list of archived scenes.
-- Click **Restore** next to an archived scene to bring it back into the manuscript (it is restored into the first chapter; drag it from there to where it belongs).
+- Click **ARCHIVE** at the bottom of the binder tree to show what is there. Deleted chapters are listed first, then archived scenes.
+- Pick a chapter in **Restore into**, then press **Restore** next to an archived scene to bring it back there. It lands at the end of that chapter; drag it from there if it belongs elsewhere.
 
 ## How a scene sits in time
 

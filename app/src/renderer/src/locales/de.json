@@ -568,7 +568,11 @@
     "chapterHideHeading": "Dieses Kapitel ohne Überschrift drucken",
     "saveAsTemplate": "Als Szenenvorlage speichern...",
     "templateNameTitle": "Diese Szenenvorlage benennen",
-    "templateNamePlaceholder": "Was für eine Szene ist das?"
+    "templateNamePlaceholder": "Was für eine Szene ist das?",
+    "trashScenes": "({{count}} Szenen)",
+    "restoreInto": "Wiederherstellen in",
+    "purge": "Endgültig löschen",
+    "purgeConfirm": "„{{title}}“ und die zugehörigen Szenen endgültig löschen? Das lässt sich nicht rückgängig machen."
   },
   "entityPanel": {
     "charactersTooltip": "Charaktere",

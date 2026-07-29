@@ -673,7 +673,11 @@
     "chapterHideHeading": "Print this chapter with no heading",
     "saveAsTemplate": "Save as scene template...",
     "templateNameTitle": "Name this scene template",
-    "templateNamePlaceholder": "What kind of scene is this?"
+    "templateNamePlaceholder": "What kind of scene is this?",
+    "trashScenes": "({{count}} scenes)",
+    "restoreInto": "Restore into",
+    "purge": "Delete forever",
+    "purgeConfirm": "Permanently delete \"{{title}}\" and its scenes? This cannot be undone."
   },
   "entityPanel": {
     "charactersTooltip": "Characters",

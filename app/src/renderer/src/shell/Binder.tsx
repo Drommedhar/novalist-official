@@ -46,6 +46,13 @@ interface ArchivedScene {
   wordCount: number
 }
 
+interface TrashedChapter {
+  guid: string
+  title: string
+  deletedAt: string
+  sceneCount: number
+}
+
 export function Binder(): React.JSX.Element {
   const { t } = useTranslation()
   const binderTab = useShellStore((s) => s.binderTab)
@@ -155,9 +162,15 @@ export function Binder(): React.JSX.Element {
   }
   const [menu, setMenu] = useState<MenuState | null>(null)
   const [archived, setArchived] = useState<ArchivedScene[] | null>(null)
+  const [trashed, setTrashed] = useState<TrashedChapter[]>([])
+  // Where a restored scene lands. Empty means the first chapter, which is what
+  // it always used to be - except it was that whether the writer wanted it or
+  // not, with no way to say otherwise.
+  const [restoreInto, setRestoreInto] = useState('')
 
   const loadArchived = async (): Promise<void> => {
     setArchived(await rpc.request<ArchivedScene[]>('scenes/archived'))
+    setTrashed(await rpc.request<TrashedChapter[]>('project/trashedChapters'))
   }
   const [pending, setPending] = useState<PendingAction | null>(null)
 
@@ -678,13 +691,73 @@ export function Binder(): React.JSX.Element {
             >
               {t('explorer.archive')}
             </button>
+            {archived !== null && trashed.length > 0 && (
+              <div className="binder-trash-chapters">
+                {trashed.map((chapter) => (
+                  <div key={chapter.guid} className="binder-scene-row">
+                    <span className="binder-scene-title">
+                      {chapter.title}
+                      <span className="binder-trash-meta">
+                        {' '}
+                        {t('explorer.trashScenes', { count: chapter.sceneCount })}
+                      </span>
+                    </span>
+                    <button
+                      className="snapshot-restore"
+                      onClick={() => {
+                        void rpc
+                          .request<import('../stores/projectStore').ProjectStateDto>(
+                            'project/restoreChapter',
+                            [chapter.guid]
+                          )
+                          .then((state) => {
+                            store.getState().applyState(state)
+                            void loadArchived()
+                          })
+                      }}
+                    >
+                      {t('snapshots.restore')}
+                    </button>
+                    <button
+                      className="snapshot-restore"
+                      onClick={() => {
+                        // The only action in the binder that destroys anything.
+                        if (!window.confirm(t('explorer.purgeConfirm', { title: chapter.title })))
+                          return
+                        void rpc
+                          .request('project/purgeChapter', [chapter.guid])
+                          .then(() => loadArchived())
+                      }}
+                    >
+                      {t('explorer.purge')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {archived !== null && archived.length > 0 && chapters.length > 0 && (
+              <label className="binder-restore-target">
+                {t('explorer.restoreInto')}
+                <select
+                  className="inspector-input"
+                  value={restoreInto}
+                  onChange={(e) => setRestoreInto(e.target.value)}
+                >
+                  {chapters.map((c) => (
+                    <option key={c.guid} value={c.guid}>
+                      {c.title}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             {archived?.map((scene) => (
               <div key={scene.id} className="binder-scene-row">
                 <span className="binder-scene-title">{scene.title}</span>
                 <button
                   className="snapshot-restore"
                   onClick={() => {
-                    const target = chapters[0]?.guid
+                    const target = restoreInto || chapters[0]?.guid
                     if (!target) return
                     void rpc
                       .request('scenes/restoreArchived', [scene.id, target])
@@ -701,7 +774,7 @@ export function Binder(): React.JSX.Element {
                 </button>
               </div>
             ))}
-            {archived !== null && archived.length === 0 && (
+            {archived !== null && archived.length === 0 && trashed.length === 0 && (
               <div className="binder-placeholder">{t('explorer.archiveEmpty')}</div>
             )}
           </div>

@@ -708,7 +708,11 @@
     "chapterHideHeading": "本章不印标题",
     "saveAsTemplate": "存为场景模板...",
     "templateNameTitle": "为此场景模板命名",
-    "templateNamePlaceholder": "这是哪一类场景？"
+    "templateNamePlaceholder": "这是哪一类场景？",
+    "trashScenes": "（{{count}} 个场景）",
+    "restoreInto": "恢复到",
+    "purge": "永久删除",
+    "purgeConfirm": "永久删除“{{title}}”及其场景？此操作无法撤销。"
   },
   "entityPanel": {
     "charactersTooltip": "角色",

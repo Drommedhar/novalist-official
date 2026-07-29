@@ -792,6 +792,12 @@ public partial class ProjectService : IProjectService
         await SaveScenesAsync();
     }
 
+    /// <summary>
+    /// Moves a chapter and its scenes to the trash. Nothing is erased: the
+    /// scenes go to the archive that already backs scene-level restore, and
+    /// the chapter record is kept so it can come back with them. Deleting a
+    /// chapter was the one structural action with no way back.
+    /// </summary>
     public async Task DeleteChapterAsync(string chapterGuid)
     {
         if (ActiveBook == null) return;
@@ -801,8 +807,16 @@ public partial class ProjectService : IProjectService
 
         var chapterFolderPath = GetChapterFolderPath(chapter);
 
+        // Archive scenes before the chapter goes, or ArchiveSceneAsync cannot
+        // find the folder their files are still sitting in.
+        foreach (var scene in GetScenesForChapter(chapterGuid).ToList())
+            await ArchiveSceneAsync(chapterGuid, scene.Id);
+
         ActiveBook.Chapters.Remove(chapter);
         ScenesManifest?.Chapters.Remove(chapterGuid);
+
+        chapter.DeletedAt = DateTime.UtcNow;
+        ActiveBook.Trash.Insert(0, chapter);
 
         var ordered = ActiveBook.Chapters.OrderBy(c => c.Order).ToList();
         for (int i = 0; i < ordered.Count; i++)
@@ -811,6 +825,69 @@ public partial class ProjectService : IProjectService
         await SaveProjectAsync();
         await SaveScenesAsync();
         await _fileService.DeleteDirectoryAsync(chapterFolderPath);
+    }
+
+    /// <summary>Chapters sitting in the trash, most recently deleted first.</summary>
+    public IReadOnlyList<ChapterData> GetTrashedChapters()
+        => ActiveBook?.Trash ?? [];
+
+    /// <summary>
+    /// Brings a chapter back from the trash, at the end of the manuscript, with
+    /// every scene that was archived with it in the order it had. Returns false
+    /// when the id is not in the trash.
+    ///
+    /// It lands at the end rather than at its old position because the numbers
+    /// around it have moved on; putting it back where it was would renumber
+    /// chapters the writer has since been working in.
+    /// </summary>
+    public async Task<bool> RestoreChapterAsync(string chapterGuid)
+    {
+        if (ActiveBook == null || ScenesManifest == null) return false;
+
+        var chapter = ActiveBook.Trash.FirstOrDefault(c => c.Guid == chapterGuid);
+        if (chapter == null) return false;
+
+        ActiveBook.Trash.Remove(chapter);
+        chapter.DeletedAt = null;
+        chapter.Order = ActiveBook.Chapters.Count == 0
+            ? 1
+            : ActiveBook.Chapters.Max(c => c.Order) + 1;
+        ActiveBook.Chapters.Add(chapter);
+        ScenesManifest.Chapters.TryAdd(chapterGuid, []);
+
+        await _fileService.CreateDirectoryAsync(GetChapterFolderPath(chapter));
+        await SaveProjectAsync();
+
+        var theirs = ScenesManifest.Archived
+            .Where(s => s.OriginChapterGuid == chapterGuid)
+            .OrderBy(s => s.Order)
+            .ToList();
+        foreach (var scene in theirs)
+            await RestoreArchivedSceneAsync(scene.Id, chapterGuid, null);
+
+        await SaveScenesAsync();
+        return true;
+    }
+
+    /// <summary>
+    /// Erases a chapter in the trash and every scene archived with it, files
+    /// and all. Returns false when the id is not in the trash. This is the only
+    /// destructive path, and nothing calls it on the writer's behalf.
+    /// </summary>
+    public async Task<bool> PurgeChapterAsync(string chapterGuid)
+    {
+        if (ActiveBook == null || ScenesManifest == null) return false;
+
+        var chapter = ActiveBook.Trash.FirstOrDefault(c => c.Guid == chapterGuid);
+        if (chapter == null) return false;
+
+        foreach (var scene in ScenesManifest.Archived
+                     .Where(s => s.OriginChapterGuid == chapterGuid).ToList())
+            await DeleteArchivedSceneAsync(scene.Id);
+
+        ActiveBook.Trash.Remove(chapter);
+        await SaveProjectAsync();
+        return true;
     }
 
     public async Task DeleteSceneAsync(string chapterGuid, string sceneId)
@@ -1431,6 +1508,7 @@ public partial class ProjectService : IProjectService
         var data = JsonSerializer.Deserialize<BookDraftData>(raw, JsonOptions) ?? new BookDraftData();
         ActiveBook.Chapters = data.Chapters;
         ActiveBook.Acts = data.Acts;
+        ActiveBook.Trash = data.Trash;
     }
 
     private async Task SaveActiveDraftDataAsync()
@@ -1447,6 +1525,7 @@ public partial class ProjectService : IProjectService
         {
             Chapters = ActiveBook.Chapters,
             Acts = ActiveBook.Acts,
+            Trash = ActiveBook.Trash,
         };
         await _fileService.WriteTextAsync(path, JsonSerializer.Serialize(data, JsonOptions));
 

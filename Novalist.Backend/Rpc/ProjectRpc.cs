@@ -105,6 +105,28 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 
+    /// <summary>Chapters in the trash, most recently deleted first.</summary>
+    [JsonRpcMethod("project/trashedChapters")]
+    public TrashedChapterDto[] TrashedChapters() =>
+        _workspace.Projects.GetTrashedChapters()
+            .Select(c => new TrashedChapterDto(
+                c.Guid, c.Title, c.DeletedAt?.ToString("o") ?? string.Empty,
+                _workspace.Projects.GetArchivedScenes().Count(s => s.OriginChapterGuid == c.Guid)))
+            .ToArray();
+
+    /// <summary>Brings a chapter back from the trash with its scenes.</summary>
+    [JsonRpcMethod("project/restoreChapter")]
+    public async Task<ProjectStateDto> RestoreChapterAsync(string chapterGuid)
+    {
+        await _workspace.Projects.RestoreChapterAsync(chapterGuid);
+        return _workspace.BuildState();
+    }
+
+    /// <summary>Erases a trashed chapter and its scenes. The only path that destroys anything.</summary>
+    [JsonRpcMethod("project/purgeChapter")]
+    public Task<bool> PurgeChapterAsync(string chapterGuid) =>
+        _workspace.Projects.PurgeChapterAsync(chapterGuid);
+
     [JsonRpcMethod("project/deleteScene")]
     public async Task<ProjectStateDto> DeleteSceneAsync(string chapterGuid, string sceneId)
     {
@@ -238,3 +260,7 @@ public sealed record DraftDto(string Id, string Name, bool IsActive);
 public sealed record ProjectTemplateDto(string Id, string Name, string Description);
 
 public sealed record SceneEditDto(string Pov, string DateStart, string DateEnd, string DateNote);
+
+/// <summary>One chapter in the trash, with how many scenes came with it.</summary>
+public sealed record TrashedChapterDto(
+    string Guid, string Title, string DeletedAt, int SceneCount);

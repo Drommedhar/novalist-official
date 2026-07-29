@@ -3026,6 +3026,33 @@
   color: var(--nl-text);
 }
 
+/* Deleted chapters sit above archived scenes: a chapter is the larger thing
+   to have lost, so it is the first thing the trash shows. */
+.binder-trash-chapters {
+  border-bottom: 1px solid var(--nl-border-subtle);
+  padding-bottom: var(--nl-space-tightest);
+  margin-bottom: var(--nl-space-tightest);
+}
+
+.binder-trash-meta {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.binder-restore-target {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.binder-restore-target select {
+  flex: 1;
+  min-width: 0;
+}
+
 .split-editors {
   display: flex;
   height: 100%;

@@ -172,6 +172,14 @@ public class BookData
     [JsonPropertyName("activeDraftId")]
     public string ActiveDraftId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Chapters deleted from the active draft, newest first. Per-draft like
+    /// the chapters themselves: emptying the trash in one draft has no business
+    /// touching another.
+    /// </summary>
+    [JsonIgnore]
+    public List<ChapterData> Trash { get; set; } = [];
+
     [JsonIgnore]
     public BookDraftMetadata? ActiveDraft
         => Drafts.FirstOrDefault(d => string.Equals(d.Id, ActiveDraftId, StringComparison.OrdinalIgnoreCase))
