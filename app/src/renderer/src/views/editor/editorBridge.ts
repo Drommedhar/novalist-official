@@ -49,6 +49,8 @@ export interface EditorWindow extends Window {
   setGrammarCheckEnabled(enabled: boolean): void
   setGrammarIssues(issuesJson: string): void
   addCommentToSelection(id: string): void
+  /** Turns the selection into a link, or unlinks it when the address is empty. */
+  applyLink(href: string): void
   removeCommentById(id: string): void
   scrollToCommentById(id: string): void
   insertFootnoteAtSelection(id: string): void

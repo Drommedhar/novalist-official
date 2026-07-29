@@ -18,6 +18,7 @@ import { useWikiStore } from '../../stores/wikiStore'
 import { dispatchForwardedHotkey } from '../../shell/hotkeys'
 import { EntityTypeDialog } from '../../shell/EntityTypeDialog'
 import { AppendToEntityDialog } from '../../shell/AppendToEntityDialog'
+import { InputDialog } from '../../shell/InputDialog'
 import { rpc } from '../../rpc/client'
 import { useEntityPeek, type PeekScope } from './PeekCard'
 import './editor.css'
@@ -254,6 +255,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   const { t, i18n } = useTranslation()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const editorRef = useRef<EditorWindow | null>(null)
+  const [linkPrompt, setLinkPrompt] = useState(false)
   const openSceneId = useProjectStore((s) => (pane === 'split' ? s.splitSceneId : s.openSceneId))
   const sceneHtml = useProjectStore((s) => (pane === 'split' ? s.splitSceneHtml : s.openSceneHtml))
   const chapters = useProjectStore((s) => s.chapters)
@@ -598,6 +600,12 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
             })
           break
         }
+        case 'requestLink': {
+          // The frame owns no dialogs, so it asks and the host answers. An
+          // empty address unlinks, which is how a link is removed.
+          setLinkPrompt(true)
+          break
+        }
         case 'requestAddComment': {
           editorRef.current?.addCommentToSelection(crypto.randomUUID())
           break
@@ -828,6 +836,19 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           text={pendingAppend}
           onConfirm={(target) => void appendSelectionToEntity(target)}
           onCancel={() => setPendingAppend(null)}
+        />
+      )}
+      {/* The frame owns no dialogs, so it asks and the host answers. An empty
+          address unlinks, which is how a link is taken off again. */}
+      {linkPrompt && (
+        <InputDialog
+          title={t('editor.linkPrompt')}
+          placeholder="https://"
+          onCancel={() => setLinkPrompt(false)}
+          onSubmit={(value) => {
+            setLinkPrompt(false)
+            editorRef.current?.applyLink(value.trim())
+          }}
         />
       )}
     </div>

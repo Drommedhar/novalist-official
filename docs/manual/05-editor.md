@@ -44,6 +44,16 @@ The strip above the page:
 
 The active formatting of the text under the caret is highlighted in the toolbar.
 
+### Selection toolbar
+
+Selecting text pops up a small toolbar over it with the inline formatting that only makes sense on a selection:
+
+- **Bold**, **Italic**, **Underline**.
+- **Strikethrough** — for a line you have cut but are not ready to delete. It **is** carried into exports: DOCX, EPUB, Markdown and LaTeX all render it struck, because a struck line was meant to be seen struck.
+- **Highlight** — marks a passage to come back to. Pressing it again on a highlighted passage removes the mark. A highlight is a note to yourself, so it is **not** exported: the words come through, the colour does not.
+- **Link** — asks for an address and links the selection. Leave the address empty to remove a link.
+- **Comment** and **Footnote** — see below.
+
 ## Paragraph styles
 
 Beyond inline formatting, a paragraph can carry a **named style**. Pick one from the drop-down at the left of the toolbar; it applies to every paragraph the selection touches, and shows what the paragraph under the caret currently is.

@@ -168,6 +168,13 @@ internal sealed class InlineSegment
     public bool Italic { get; set; }
 
     /// <summary>
+    /// Struck-through prose. Kept because a writer who struck a line meant the
+    /// reader to see it struck; a highlight, by contrast, is a working mark and
+    /// is dropped on the way out.
+    /// </summary>
+    public bool Strike { get; set; }
+
+    /// <summary>
     /// When set, this segment is a footnote anchor rather than prose: the text
     /// of the note, which each format renders in its own way. The prose it was
     /// anchored to is the segment before it.
@@ -383,6 +390,8 @@ public partial class ExportService
         sb.AppendLine("\\usepackage[utf8]{inputenc}");
         sb.AppendLine("\\usepackage{csquotes}");
         sb.AppendLine("\\usepackage{setspace}");
+        // \sout comes from ulem; without it a struck line fails to compile.
+        sb.AppendLine("\\usepackage[normalem]{ulem}");
         sb.AppendLine("\\doublespacing");
         if (!string.IsNullOrWhiteSpace(options.Title)) sb.AppendLine($"\\title{{{LatexEscape(options.Title)}}}");
         if (!string.IsNullOrWhiteSpace(options.Author)) sb.AppendLine($"\\author{{{LatexEscape(options.Author)}}}");
@@ -409,6 +418,7 @@ public partial class ExportService
                         if (seg.FootnoteText != null)
                             return $"\\footnote{{{LatexEscape(seg.FootnoteText)}}}";
                         var t = LatexEscape(seg.Text);
+                        if (seg.Strike) t = $"\\sout{{{t}}}";
                         if (seg.Bold && seg.Italic) return $"\\textbf{{\\textit{{{t}}}}}";
                         if (seg.Bold) return $"\\textbf{{{t}}}";
                         if (seg.Italic) return $"\\textit{{{t}}}";
@@ -1291,7 +1301,7 @@ public partial class ExportService
 
     private static void ParseInlineRecursive(
         string html, bool bold, bool italic, List<InlineSegment> segments,
-        IReadOnlyDictionary<string, string>? footnotes = null)
+        IReadOnlyDictionary<string, string>? footnotes = null, bool strike = false)
     {
         var pos = 0;
         while (pos < html.Length)
@@ -1302,7 +1312,10 @@ public partial class ExportService
                 // Remaining text
                 var text = WebUtility.HtmlDecode(html[pos..]);
                 if (!string.IsNullOrEmpty(text))
-                    segments.Add(new InlineSegment { Text = text, Bold = bold, Italic = italic });
+                    segments.Add(new InlineSegment
+                    {
+                        Text = text, Bold = bold, Italic = italic, Strike = strike
+                    });
                 break;
             }
 
@@ -1311,7 +1324,10 @@ public partial class ExportService
             {
                 var text = WebUtility.HtmlDecode(html[pos..tagStart]);
                 if (!string.IsNullOrEmpty(text))
-                    segments.Add(new InlineSegment { Text = text, Bold = bold, Italic = italic });
+                    segments.Add(new InlineSegment
+                    {
+                        Text = text, Bold = bold, Italic = italic, Strike = strike
+                    });
             }
 
             var tagEnd = html.IndexOf('>', tagStart);
@@ -1323,7 +1339,10 @@ public partial class ExportService
             // Self-closing tags
             if (tag is "br" or "br/" or "br /")
             {
-                segments.Add(new InlineSegment { Text = "\n", Bold = bold, Italic = italic });
+                segments.Add(new InlineSegment
+                {
+                    Text = "\n", Bold = bold, Italic = italic, Strike = strike
+                });
                 continue;
             }
 
@@ -1359,22 +1378,27 @@ public partial class ExportService
             switch (tagName)
             {
                 case "b" or "strong":
-                    ParseInlineRecursive(innerContent, true, italic, segments, footnotes);
+                    ParseInlineRecursive(innerContent, true, italic, segments, footnotes, strike);
                     break;
                 case "i" or "em":
-                    ParseInlineRecursive(innerContent, bold, true, segments, footnotes);
+                    ParseInlineRecursive(innerContent, bold, true, segments, footnotes, strike);
+                    break;
+                case "s" or "strike" or "del":
+                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes, true);
                     break;
                 case "u":
                     // Underline treated as regular text in export (no underline in most book formats)
-                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes);
+                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes, strike);
                     break;
                 case "span":
-                    // Spans may carry style info but for export we just recurse
-                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes);
+                    // Spans may carry style info but for export we just recurse.
+                    // A highlight is one of them: it is a working mark the
+                    // writer left themselves, not something to print.
+                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes, strike);
                     break;
                 default:
                     // Unknown tag - just extract text
-                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes);
+                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes, strike);
                     break;
             }
         }
@@ -1383,6 +1407,30 @@ public partial class ExportService
     // The trailing `return -1` after the loop is compiler-required but
     // unreachable: the loop only exits by returning (depth hits 0) or via the
     // inner `nextClose < 0` return. Excluded so that dead line doesn't block 100%.
+    /// <summary>
+    /// The next opening tag of exactly this name.
+    ///
+    /// A plain IndexOf on "&lt;s" also matches "&lt;span", which made the
+    /// nesting count wrong and dropped a struck phrase that happened to share a
+    /// paragraph with a span - and the same for b/blockquote and i/img.
+    /// </summary>
+    private static int NextOpenTag(string html, int from, string openPattern)
+    {
+        // Unconditional: the only ways out are a match or running off the end,
+        // both of which return. A bounded loop would leave an unreachable line
+        // after it.
+        var pos = from;
+        while (true)
+        {
+            var at = html.IndexOf(openPattern, pos, StringComparison.OrdinalIgnoreCase);
+            if (at < 0) return -1;
+            var after = at + openPattern.Length;
+            if (after >= html.Length || !char.IsAsciiLetterOrDigit(html[after]))
+                return at;
+            pos = at + 1;
+        }
+    }
+
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static int FindMatchingCloseTag(string html, int startPos, string tagName)
     {
@@ -1393,7 +1441,7 @@ public partial class ExportService
 
         while (pos < html.Length && depth > 0)
         {
-            var nextOpen = html.IndexOf(openPattern, pos, StringComparison.OrdinalIgnoreCase);
+            var nextOpen = NextOpenTag(html, pos, openPattern);
             var nextClose = html.IndexOf(closePattern, pos, StringComparison.OrdinalIgnoreCase);
 
             if (nextClose < 0) return -1;
@@ -1799,6 +1847,7 @@ public partial class ExportService
                 continue;
             }
             var text = EscapeXml(seg.Text);
+            if (seg.Strike) text = $"<s>{text}</s>";
             if (seg.Bold && seg.Italic)
                 sb.Append($"<strong><em>{text}</em></strong>");
             else if (seg.Bold)
@@ -2759,11 +2808,12 @@ public partial class ExportService
                 continue;
             }
             var rPr = "";
-            if (seg.Bold || seg.Italic)
+            if (seg.Bold || seg.Italic || seg.Strike)
             {
                 var b = seg.Bold ? "<w:b/><w:bCs/>" : "";
                 var i = seg.Italic ? "<w:i/><w:iCs/>" : "";
-                rPr = $"<w:rPr>{b}{i}</w:rPr>";
+                var s = seg.Strike ? "<w:strike/>" : "";
+                rPr = $"<w:rPr>{b}{i}{s}</w:rPr>";
             }
             sb.Append($"<w:r>{rPr}<w:t xml:space=\"preserve\">{EscapeXml(seg.Text)}</w:t></w:r>");
         }
@@ -3371,14 +3421,15 @@ public partial class ExportService
                 sb.Append("[^").Append(footnoteDefs.Count).Append(']');
                 continue;
             }
+            var body = seg.Strike ? $"~~{seg.Text}~~" : seg.Text;
             if (seg.Bold && seg.Italic)
-                sb.Append($"***{seg.Text}***");
+                sb.Append($"***{body}***");
             else if (seg.Bold)
-                sb.Append($"**{seg.Text}**");
+                sb.Append($"**{body}**");
             else if (seg.Italic)
-                sb.Append($"*{seg.Text}*");
+                sb.Append($"*{body}*");
             else
-                sb.Append(seg.Text);
+                sb.Append(body);
         }
         return sb.ToString();
     }

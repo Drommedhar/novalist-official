@@ -1272,7 +1272,8 @@
       "createEntity": "Create entity from selection",
       "appendToEntity": "Add selection to entity",
       "splitScene": "Split scene here"
-    }
+    },
+    "linkPrompt": "Link address (leave empty to remove the link)"
   },
   "section": {
     "newSection": "New Section"

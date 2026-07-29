@@ -994,6 +994,51 @@ public class ExportServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task StrikethroughSurvives_AndAHighlightDeliberatelyDoesNot()
+    {
+        var (chapter, _) = SetupChapter("C", ("S",
+            "<p>She kept <s>most of</s> the <span class=\"nv-highlight\">letter</span>.</p>"));
+        var path = Out(".md");
+
+        await Build().ExportAsync(Opts(ExportFormat.Markdown, [chapter.Guid]), path);
+
+        var md = await File.ReadAllTextAsync(path);
+        // A writer who struck a line meant the reader to see it struck.
+        Assert.Contains("~~most of~~", md);
+        // A highlight is a working mark left for themselves, not something to
+        // print - the words stay, the mark does not.
+        Assert.Contains("the letter", md);
+        Assert.DoesNotContain("nv-highlight", md);
+    }
+
+    [Fact]
+    public async Task StrikethroughReachesDocxAndEpub()
+    {
+        var (chapter, _) = SetupChapter("C", ("S", "<p>She kept <del>most of</del> it.</p>"));
+        var docx = Out(".docx");
+        var options = Opts(ExportFormat.Docx, [chapter.Guid]);
+        options.Format = ExportFormat.Docx;
+
+        await Build().ExportAsync(options, docx);
+
+        using (var zip = ZipFile.OpenRead(docx))
+        {
+            using var reader = new StreamReader(
+                zip.Entries.Single(e => e.FullName == "word/document.xml").Open());
+            Assert.Contains("<w:strike/>", await reader.ReadToEndAsync());
+        }
+
+        options.Format = ExportFormat.Epub;
+        var epub = Out(".epub");
+        await Build().ExportAsync(options, epub);
+
+        using var epubZip = ZipFile.OpenRead(epub);
+        using var chapterReader = new StreamReader(
+            epubZip.Entries.Single(e => e.FullName == "OEBPS/chapter-1.xhtml").Open());
+        Assert.Contains("<s>most of</s>", await chapterReader.ReadToEndAsync());
+    }
+
+    [Fact]
     public async Task AnAnchorWhoseNoteIsGoneLeavesNoStrayDigit()
     {
         var (chapter, _) = SetupChapter("C", ("S", ProseWithAnchor));

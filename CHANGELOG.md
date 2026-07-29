@@ -67,6 +67,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **Writing days, an adaptive daily goal, and a history worth reading.** Tick the weekdays you write on: days off are left out of every figure and never break a streak. Turn on **Recalculate today's goal from what is left** and the daily target becomes the words remaining spread over the writing days to your deadline, instead of the same flat number every day. The Dashboard also now reports longest streak, how often the goal was met, your best day, and your average per writing day - all from a per-day journal that was already being kept and shown only as a bar chart.
 - **Story structures you can write, share and import.** The Structure panel's toolbar adds, edits, exports and imports structures - a name, a description, and beats with the point in the book each belongs at. Novalist shipped four in a hardcoded list with no way to add a fifth, so writing to any other method meant not using the feature at all. Editing a built-in saves your version under the same name, and deleting your version brings the original back.
 - **Unlinked names.** A scan in the Codex lists every Codex name your prose uses as plain text - which entry, which scene, how many times, and the line it sits in - and links them all in one click. Only a real mention counts towards appearances and co-appearance figures, so an imported or hand-typed manuscript was under-reporting all of them and the only fix was retyping each name through the @-picker.
+- **Strikethrough, highlighting and links in the editor.** Bold, italic and underline were the whole of inline formatting: a passage to come back to had nothing to mark it with, a cut line had to be deleted or left, and a reference could not be a link. Strikethrough is carried into DOCX, EPUB, Markdown and LaTeX exports - a struck line was meant to be seen struck. A highlight is a note to yourself, so the words export and the colour does not.
 
 ### Changed
 
@@ -84,6 +85,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+
+- **A struck or bold phrase no longer disappears from an export when it shares a paragraph with a span.** The export's tag matcher counted `<span>` as an opening `<s>`, and `<blockquote>` as a `<b>`, so it lost track of where the tag ended and dropped the text inside it.
 
 - **Whole-project find and replace really does span every book.** The scope has always been advertised as "every scene in every book" and quietly searched only the open one. Results now say which book each match is in, and you are left in the book you started in.
 - **Exported EPUBs no longer say "Title Page" in English regardless of the language you write in**, and each chapter file declares your book's language rather than `en`.

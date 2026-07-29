@@ -789,7 +789,8 @@
       "createEntity": "Eintrag aus Auswahl erstellen",
       "appendToEntity": "Auswahl zu Eintrag hinzufügen",
       "splitScene": "Szene hier teilen"
-    }
+    },
+    "linkPrompt": "Link-Adresse (leer lassen, um den Link zu entfernen)"
   },
   "section": {
     "newSection": "Neuer Abschnitt"

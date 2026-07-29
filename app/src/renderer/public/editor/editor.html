@@ -69,6 +69,10 @@ body { display: flex; justify-content: center; }
 #editor .nv-style-heading { font-size: 1.5em; font-weight: 700; line-height: 1.3; }
 #editor .nv-style-subheading { font-size: 1.2em; font-weight: 600; line-height: 1.35; }
 #editor .nv-style-blockquote { margin: 0.6em 2em; font-style: italic; text-indent: 0; }
+/* A passage the writer marked to come back to. A class rather than an inline
+   colour, so a theme can restyle it and an export can decide what it means. */
+#editor .nv-highlight { background: rgba(210, 167, 79, 0.28); border-radius: 2px; }
+#editor a { color: inherit; text-decoration: underline; }
 /* Verse keeps the line breaks the writer typed, and is never justified - that
    would stretch a short line across the measure. */
 #editor .nv-style-poetry { margin: 0 0 0.2em 2em; text-indent: 0; text-align: left; white-space: pre-wrap; }
@@ -627,6 +631,9 @@ body.page-view.typewriter-on #editor { padding-top: 70vh; }
     <button id="ft-bold" title="Bold (Ctrl+B)"><b>B</b></button>
     <button id="ft-italic" title="Italic (Ctrl+I)"><i>I</i></button>
     <button id="ft-underline" title="Underline (Ctrl+U)" style="text-decoration:underline">U</button>
+    <button id="ft-strike" title="Strikethrough" style="text-decoration:line-through">S</button>
+    <button id="ft-highlight" title="Highlight">H</button>
+    <button id="ft-link" title="Link">&#128279;</button>
     <div class="ft-sep"></div>
     <button id="ft-align-left" title="Align Left">&#8676;</button>
     <button id="ft-align-center" title="Center">&#8677;</button>
@@ -769,6 +776,67 @@ function toggleUnderline() {
     notifyFormattingChanged();
 }
 
+function toggleStrikethrough() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('strikeThrough', false, null);
+    notifyFormattingChanged();
+}
+
+/**
+ * Marks a passage to come back to.
+ *
+ * A class rather than an inline colour, so a theme can restyle it and an
+ * export can decide whether a highlight means anything in that format.
+ */
+function toggleHighlight() {
+    editor.focus({ preventScroll: true });
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+
+    const existing = highlightAncestor(sel.anchorNode);
+    if (existing) {
+        // Unwrap: the writer is done with that passage.
+        const parent = existing.parentNode;
+        while (existing.firstChild) parent.insertBefore(existing.firstChild, existing);
+        parent.removeChild(existing);
+        notifyFormattingChanged();
+        return;
+    }
+
+    const range = sel.getRangeAt(0);
+    const mark = document.createElement('span');
+    mark.className = 'nv-highlight';
+    try {
+        mark.appendChild(range.extractContents());
+        range.insertNode(mark);
+    } catch (e) {
+        // A selection spanning block boundaries cannot be wrapped in one span;
+        // leaving the prose untouched beats producing broken markup.
+        return;
+    }
+    notifyFormattingChanged();
+}
+
+function highlightAncestor(node) {
+    while (node && node !== editor) {
+        if (node.nodeType === 1 && node.classList && node.classList.contains('nv-highlight'))
+            return node;
+        node = node.parentNode;
+    }
+    return null;
+}
+
+/** Turns the selection into a link, or removes the link it already is. */
+function applyLink(href) {
+    editor.focus({ preventScroll: true });
+    if (!href) {
+        document.execCommand('unlink', false, null);
+    } else {
+        document.execCommand('createLink', false, href);
+    }
+    notifyFormattingChanged();
+}
+
 function alignLeft() {
     editor.focus({ preventScroll: true });
     document.execCommand('justifyLeft', false, null);
@@ -881,6 +949,8 @@ function getFormattingState() {
         bold,
         italic,
         underline,
+        strikethrough: document.queryCommandState('strikeThrough'),
+        highlight: !!highlightAncestor(window.getSelection() && window.getSelection().anchorNode),
         alignment,
         paragraphStyle: getParagraphStyle(),
         bulletList: document.queryCommandState('insertUnorderedList'),
@@ -3354,6 +3424,9 @@ function updateFloatingToolbar() {
     document.getElementById('ft-bold').classList.toggle('active', document.queryCommandState('bold'));
     document.getElementById('ft-italic').classList.toggle('active', document.queryCommandState('italic'));
     document.getElementById('ft-underline').classList.toggle('active', document.queryCommandState('underline'));
+    document.getElementById('ft-strike').classList.toggle('active', document.queryCommandState('strikeThrough'));
+    document.getElementById('ft-highlight').classList.toggle('active',
+        !!highlightAncestor(window.getSelection() && window.getSelection().anchorNode));
     document.getElementById('ft-align-left').classList.toggle('active', document.queryCommandState('justifyLeft'));
     document.getElementById('ft-align-center').classList.toggle('active', document.queryCommandState('justifyCenter'));
     document.getElementById('ft-align-right').classList.toggle('active', document.queryCommandState('justifyRight'));
@@ -3388,6 +3461,10 @@ floatingToolbar.addEventListener('mousedown', (e) => {
     else if (id === 'ft-align-center') document.execCommand('justifyCenter', false, null);
     else if (id === 'ft-align-right') document.execCommand('justifyRight', false, null);
     else if (id === 'ft-align-justify') document.execCommand('justifyFull', false, null);
+    else if (id === 'ft-strike') document.execCommand('strikeThrough', false, null);
+    else if (id === 'ft-highlight') toggleHighlight();
+    // The host owns dialogs, so it asks for the address and calls back.
+    else if (id === 'ft-link') sendMessage({ type: 'requestLink' });
     else if (id === 'ft-comment') sendMessage({ type: 'requestAddComment' });
     else if (id === 'ft-footnote') sendMessage({ type: 'requestAddFootnote' });
     updateFloatingToolbar();

@@ -1307,7 +1307,8 @@
       "createEntity": "从所选内容创建条目",
       "appendToEntity": "将所选内容添加到条目",
       "splitScene": "在此处拆分场景"
-    }
+    },
+    "linkPrompt": "链接地址（留空则移除链接）"
   },
   "section": {
     "newSection": "新建版块"
