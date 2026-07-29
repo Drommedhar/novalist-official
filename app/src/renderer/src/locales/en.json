@@ -2233,5 +2233,15 @@
     "early": "earlier than the structure expects",
     "late": "later than the structure expects",
     "fillGaps": "Create {{count}} placeholder scenes"
+  },
+  "stateOverride": {
+    "title": "How this changes through the story",
+    "intro": "Restate this entry at a point in the story - a city razed in act two, an artefact that changes hands, a faction that falls. Anything you leave blank keeps reading from the entry itself. The Codex and the hover card show the restated version when you are reading that part of the book.",
+    "wholeChapter": "The whole chapter",
+    "namePlaceholder": "Called what, from here",
+    "descriptionPlaceholder": "What it is like, from here",
+    "notePlaceholder": "Why (a note to yourself)",
+    "add": "Restate at a point",
+    "remove": "Remove this restatement"
   }
 }

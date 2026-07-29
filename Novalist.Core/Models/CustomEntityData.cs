@@ -22,6 +22,13 @@ public class CustomEntityData : IEntityData
     [JsonPropertyName("ai")]
     public AiInclusion Ai { get; set; } = AiInclusion.WhenMentioned;
 
+    /// <summary>What this entry is like at particular points in the story - a
+    /// razed city, an artefact that changed hands. Empty means unchanging.</summary>
+    [JsonPropertyName("stateOverrides")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<EntityStateOverride> StateOverrides { get; set; } = [];
+
+
     /// <summary>
     /// The type key that identifies which custom entity type this belongs to (e.g. "faction").
     /// </summary>

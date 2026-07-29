@@ -2275,5 +2275,15 @@
     "early": "更早",
     "late": "更晚",
     "fillGaps": "创建 {{count}} 个占位场景"
+  },
+  "stateOverride": {
+    "title": "它在故事中如何变化",
+    "intro": "在故事的某个点重新描述该条目 — 第二幕被毁的城市、易主的圣物、倡台的阵营。留空的内容仍从条目本身读取。阅读到那部分时，图鉴和悬停卡片会显示新的描述。",
+    "wholeChapter": "整个章节",
+    "namePlaceholder": "从此处起的称呼",
+    "descriptionPlaceholder": "从此处起的样子",
+    "notePlaceholder": "原因（给自己的备注）",
+    "add": "在某个点重新描述",
+    "remove": "移除该重新描述"
   }
 }

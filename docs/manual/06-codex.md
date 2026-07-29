@@ -115,6 +115,18 @@ If you use an AI extension, each entry decides what of itself may reach a model,
 
 Individual **sections** can be withheld on their own, so the section naming the killer stays back while the rest of the character's profile still goes. Novalist enforces this in the host rather than trusting each extension, and it only affects what is sent to a model — everything stays fully visible to you here, in exports, and in search. See [Extensions](24-extensions.md#controlling-what-ai-sees-of-your-codex).
 
+## How an entry changes through the story
+
+A city razed in act two, an artefact that changes hands, a faction that falls: the entry as it is at the end is not the entry as it is in chapter three, and describing only the end means the Codex tells you the ending.
+
+**How this changes through the story** in the detail pane restates an entry at a point in the book. Pick a chapter (and optionally a single scene inside it), then give the name, the description, or any field as it stands from there. Anything left blank keeps reading from the entry itself — a restatement is a patch, not a replacement.
+
+Restating in a narrower scope wins: a scene override beats a chapter one, which beats an act one. That is how you say "and by this scene, it is worse."
+
+While you are reading that part of the book, the entry's hover card shows the restated version with the scope it came from, and your note about why. Everywhere else it reads as itself.
+
+Characters have their own richer version of this — see [Chapter overrides](#chapter-overrides-characters) below — which restates the full profile rather than a description and a few fields.
+
 ## Chapter overrides (characters)
 
 A character can restate its identity or appearance for a specific chapter — optionally a single scene within it. Example uses:

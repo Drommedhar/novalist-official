@@ -563,6 +563,69 @@ public sealed class EntitiesRpc
             _ => []
         };
 
+    /// <summary>What this entry is like at particular points in the story.</summary>
+    [JsonRpcMethod("entities/getStateOverrides")]
+    public async Task<StateOverrideDto[]> GetStateOverridesAsync(string type, string id)
+    {
+        var entity = await FindEntityAsync(type, id);
+        return [.. (entity?.StateOverrides ?? []).Select(ToDto)];
+    }
+
+    /// <summary>
+    /// Replaces the entry's state overrides. One that restates nothing is
+    /// dropped, since an empty override would claim the entry differs at that
+    /// point while saying nothing about how.
+    /// </summary>
+    [JsonRpcMethod("entities/setStateOverrides")]
+    public async Task<StateOverrideDto[]> SetStateOverridesAsync(
+        string type, string id, StateOverrideDto[] overrides)
+    {
+        var entity = await FindEntityAsync(type, id) ?? throw Unknown(id);
+
+        entity.StateOverrides = [.. (overrides ?? [])
+            .Select(o => new Core.Models.EntityStateOverride
+            {
+                Act = NullIfEmpty(o.Act),
+                Chapter = o.Chapter ?? string.Empty,
+                Scene = NullIfEmpty(o.Scene),
+                Name = NullIfEmpty(o.Name),
+                Description = NullIfEmpty(o.Description),
+                Note = NullIfEmpty(o.Note),
+                Fields = o.Fields is { Count: > 0 }
+                    ? o.Fields.Where(kv => !string.IsNullOrWhiteSpace(kv.Key))
+                        .ToDictionary(kv => kv.Key.Trim(), kv => kv.Value ?? string.Empty)
+                    : null
+            })
+            .Where(o => o.HasValues)];
+
+        await SaveEntityAsync(entity);
+        return await GetStateOverridesAsync(type, id);
+    }
+
+    /// <summary>
+    /// What the entry is like in the given context. Returns the restated values
+    /// and the scope they came from, so a reader can be told they are seeing
+    /// the entry at a point in the story rather than in general.
+    /// </summary>
+    [JsonRpcMethod("entities/resolveState")]
+    public async Task<ResolvedStateDto> ResolveStateAsync(
+        string type, string id, string? act, string? chapterGuid,
+        string? chapterTitle, string? sceneTitle)
+    {
+        var entity = await FindEntityAsync(type, id);
+        var resolved = Core.Services.EntityStateResolver.Resolve(
+            entity?.StateOverrides ?? [], act, chapterGuid, chapterTitle, sceneTitle);
+
+        return new ResolvedStateDto(
+            resolved.Name, resolved.Description,
+            resolved.Fields.ToDictionary(kv => kv.Key, kv => kv.Value),
+            resolved.Note, resolved.ScopeLabel, resolved.IsOverridden);
+    }
+
+    private static StateOverrideDto ToDto(Core.Models.EntityStateOverride o)
+        => new(o.Act, o.Chapter, o.Scene, o.Name, o.Description,
+            o.Fields?.ToDictionary(kv => kv.Key, kv => kv.Value), o.Note);
+
     /// <summary>How an entry's name is recognised in prose.</summary>
     [JsonRpcMethod("entities/getMatchSettings")]
     public async Task<MatchSettingsDto> GetMatchSettingsAsync(string type, string id)
@@ -1826,6 +1889,26 @@ public sealed record EntitySummaryDto(
 /// <summary>How this entry's name is recognised in prose. Rides along with the
 /// summary so the editor can apply the rules without a second round trip per
 /// entity. Null when the entry uses the defaults, which is the common case.</summary>
+/// <summary>One time-scoped restatement of an entry.</summary>
+public sealed record StateOverrideDto(
+    string? Act,
+    string? Chapter,
+    string? Scene,
+    string? Name,
+    string? Description,
+    Dictionary<string, string>? Fields,
+    string? Note);
+
+/// <summary>What an entry is like in one context. <c>IsOverridden</c> false
+/// means the entry reads as itself and nothing else here is meaningful.</summary>
+public sealed record ResolvedStateDto(
+    string? Name,
+    string? Description,
+    Dictionary<string, string> Fields,
+    string? Note,
+    string ScopeLabel,
+    bool IsOverridden);
+
 /// <summary>An entry's AI-inclusion setting plus which of its sections are
 /// withheld from a model.</summary>
 public sealed record AiPolicyDto(string Inclusion, AiSectionDto[] Sections);

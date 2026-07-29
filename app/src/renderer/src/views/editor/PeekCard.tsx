@@ -133,6 +133,14 @@ export function PeekCard({
   const [data, setData] = useState<EntityPeek | null>(null)
   const [imageIndex, setImageIndex] = useState(0)
   const [sectionIndex, setSectionIndex] = useState(0)
+  // What the entry is like at this point in the story, for the types that are
+  // not characters - characters resolve their own richer overrides server-side.
+  const [state, setState] = useState<{
+    description: string | null
+    note: string | null
+    scopeLabel: string
+    isOverridden: boolean
+  } | null>(null)
 
   // A fresh hover (new prop target) resets in-place navigation.
   useEffect(() => {
@@ -158,6 +166,27 @@ export function PeekCard({
       .catch(() => {
         // Peek fetch is best-effort; a failed load simply shows nothing.
       })
+    void rpc
+      .request<{
+        description: string | null
+        note: string | null
+        scopeLabel: string
+        isOverridden: boolean
+      }>('entities/resolveState', [
+        nav.entityType,
+        nav.entityId,
+        null,
+        scope.chapterGuid,
+        scope.chapterTitle,
+        scope.sceneTitle
+      ])
+      .then((resolved) => {
+        if (alive) setState(resolved.isOverridden ? resolved : null)
+      })
+      .catch(() => {
+        // Best-effort: an entry with no restatements simply reads as itself.
+      })
+
     return () => {
       alive = false
     }
@@ -243,6 +272,16 @@ export function PeekCard({
       {data.scopeLabel && (
         <div className="peek-scope" title={t('focusPeek.overrideScopeHint')}>
           {t('focusPeek.overrideScope').replace('{0}', data.scopeLabel)}
+        </div>
+      )}
+
+      {/* Read as it is here rather than as it is in general - a city razed in
+          act two should not describe itself as standing. */}
+      {state && (
+        <div className="peek-scope" title={t('stateOverride.title')}>
+          {t('focusPeek.overrideScope').replace('{0}', state.scopeLabel)}
+          {state.description && <div className="peek-state-text">{state.description}</div>}
+          {state.note && <div className="settings-hint">{state.note}</div>}
         </div>
       )}
 

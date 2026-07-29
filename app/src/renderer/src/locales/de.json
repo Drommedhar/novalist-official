@@ -2241,5 +2241,15 @@
     "early": "früher als die Struktur erwartet",
     "late": "später als die Struktur erwartet",
     "fillGaps": "{{count}} Platzhalterszenen anlegen"
+  },
+  "stateOverride": {
+    "title": "Wie sich das im Lauf der Geschichte ändert",
+    "intro": "Diesen Eintrag an einem Punkt der Geschichte neu fassen — eine im zweiten Akt zerstörte Stadt, ein Artefakt, das den Besitzer wechselt, eine Fraktion, die fällt. Leer Gelassenes wird weiter aus dem Eintrag selbst gelesen. Codex und Kurzinfo zeigen die neue Fassung, während Sie diesen Teil des Buches lesen.",
+    "wholeChapter": "Das ganze Kapitel",
+    "namePlaceholder": "Ab hier genannt",
+    "descriptionPlaceholder": "Wie es ab hier ist",
+    "notePlaceholder": "Warum (Notiz für Sie selbst)",
+    "add": "An einem Punkt neu fassen",
+    "remove": "Diese Neufassung entfernen"
   }
 }

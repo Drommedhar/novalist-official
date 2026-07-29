@@ -83,6 +83,10 @@ public interface IEntityData
 
     /// <summary>Whether this entry may be sent to an AI model, and when.</summary>
     AiInclusion Ai { get; set; }
+
+    /// <summary>What this entry is like at particular points in the story.
+    /// Never null; empty means it is the same throughout.</summary>
+    List<EntityStateOverride> StateOverrides { get; set; }
 }
 
 /// <summary>

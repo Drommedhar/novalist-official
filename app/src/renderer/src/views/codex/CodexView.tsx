@@ -17,6 +17,7 @@ import { EntityImages } from './EntityImages'
 import { CustomPropsEditor } from './CustomPropsEditor'
 import { MatchSettingsEditor } from './MatchSettingsEditor'
 import { AiPolicyEditor } from './AiPolicyEditor'
+import { StateOverridesEditor } from './StateOverridesEditor'
 import { OverridesEditor } from './OverridesEditor'
 import { CodexNav } from './CodexNav'
 import { EntityDetailFields } from './EntityDetailFields'
@@ -220,6 +221,15 @@ export function CodexView(): React.JSX.Element {
                 <details className="codex-match">
                   <summary>{t('match.title')}</summary>
                   <MatchSettingsEditor entityType={entityType} entityId={selectedId} />
+                </details>
+              )}
+              {/* What this entry is like at points in the story. Characters
+                  have their own richer editor below; this is for everything
+                  else, which had none at all. */}
+              {selectedId && entityType !== 'character' && (
+                <details className="codex-match">
+                  <summary>{t('stateOverride.title')}</summary>
+                  <StateOverridesEditor entityType={entityType} entityId={selectedId} />
                 </details>
               )}
               {/* What an AI extension may see of this entry. Collapsed by

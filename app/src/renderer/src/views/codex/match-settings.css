@@ -55,3 +55,17 @@
   font-size: var(--nl-font-body-sm);
   gap: var(--nl-space-sm);
 }
+
+.state-override {
+  border-left: 2px solid var(--nl-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-bottom: var(--nl-space-sm);
+  padding-left: var(--nl-space-sm);
+}
+
+.state-override textarea {
+  min-height: 48px;
+  resize: vertical;
+}
