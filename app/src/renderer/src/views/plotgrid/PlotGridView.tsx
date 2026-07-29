@@ -33,34 +33,67 @@ type Pending =
       current: string
     }
 
+/** What the grid's rows can be. Plotlines first, because that is the default. */
+const ROW_SOURCES = ['plotline', 'character', 'location', 'item', 'lore'] as const
+
 export function PlotGridView(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
   const [grid, setGrid] = useState<PlotGridDto | null>(null)
   const [menu, setMenu] = useState<{ x: number; y: number; id: string; name: string } | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
+  // Which rows the grid is crossing the scenes with. Plotlines by default:
+  // that is what a plot grid means before it means anything else.
+  const [rowSource, setRowSource] = useState('plotline')
 
   useEffect(() => {
     if (mainView !== 'plotGrid') return
-    void rpc.request<PlotGridDto>('plot/grid').then(setGrid)
-  }, [mainView])
+    void rpc.request<PlotGridDto>('plot/grid', [rowSource]).then(setGrid)
+  }, [mainView, rowSource])
 
   if (!grid) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
+  const byCodex = rowSource !== 'plotline'
+
   const toggle = async (chapterGuid: string, sceneId: string, plotlineId: string): Promise<void> => {
-    setGrid(await rpc.request<PlotGridDto>('plot/toggle', [chapterGuid, sceneId, plotlineId]))
+    // A Codex row says who is in the scene, so ticking one writes the cast
+    // rather than plotline membership.
+    setGrid(
+      byCodex
+        ? await rpc.request<PlotGridDto>('plot/toggleCast', [
+            chapterGuid,
+            sceneId,
+            plotlineId,
+            rowSource
+          ])
+        : await rpc.request<PlotGridDto>('plot/toggle', [chapterGuid, sceneId, plotlineId])
+    )
   }
 
   return (
     <div className="plotgrid">
       <div className="plotgrid-toolbar">
-        <button
-          className="toolbar-button toolbar-action"
-          onClick={() => setPending({ kind: 'create' })}
+        <select
+          className="dialog-input plotgrid-rowsource"
+          value={rowSource}
+          aria-label={t('plotGrid.rowSource')}
+          onChange={(e) => setRowSource(e.target.value)}
         >
-          <Plus size={14} strokeWidth={2} />
-          {t('plotGrid.addPlotline')}
-        </button>
+          {ROW_SOURCES.map((source) => (
+            <option key={source} value={source}>
+              {t(`plotGrid.rows${source}`)}
+            </option>
+          ))}
+        </select>
+        {!byCodex && (
+          <button
+            className="toolbar-button toolbar-action"
+            onClick={() => setPending({ kind: 'create' })}
+          >
+            <Plus size={14} strokeWidth={2} />
+            {t('plotGrid.addPlotline')}
+          </button>
+        )}
       </div>
       {/* Threads and promises are the same kind of thinking, so the promises
           live here rather than in a view of their own. */}
@@ -68,6 +101,7 @@ export function PlotGridView(): React.JSX.Element {
         <summary>{t('promises.title')}</summary>
         <PromisesPanel />
       </details>
+      {byCodex && <div className="settings-hint">{t('plotGrid.codexHint')}</div>}
       {grid.plotlines.length === 0 ? (
         <p className="codex-empty">{t('plotGrid.emptyHint')}</p>
       ) : (
@@ -97,6 +131,9 @@ export function PlotGridView(): React.JSX.Element {
                   <th
                     className="plotgrid-rowlabel"
                     onContextMenu={(e) => {
+                      // Renaming and deleting belong to plotlines. A Codex row
+                      // is an entry, and it is renamed where it lives.
+                      if (byCodex) return
                       e.preventDefault()
                       setMenu({ x: e.clientX, y: e.clientY, id: plotline.id, name: plotline.name })
                     }}

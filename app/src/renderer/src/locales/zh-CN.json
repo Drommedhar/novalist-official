@@ -100,7 +100,14 @@
     "confirmDelete": "确定要删除“{0}”吗？其关联的场景分配也将被移除。",
     "emptyHint": "暂无情节线。添加一条以跟踪故事线中的场景。",
     "cellNoteTitle": "{{scene}} 的备注",
-    "cellNotePlaceholder": "本场景对该线索的作用"
+    "cellNotePlaceholder": "本场景对该线索的作用",
+    "rowSource": "行的含义",
+    "rowsplotline": "情节线",
+    "rowscharacter": "人物",
+    "rowslocation": "地点",
+    "rowsitem": "物品",
+    "rowslore": "设定",
+    "codexHint": "在此勾选会记录该条目出现在那个场景 — 与百科、保存的列表和时间线读取的是同一份名单。"
   },
   "comments": {
     "noSelection": "请先在场景中选择一些文本。",

@@ -74,4 +74,92 @@ public sealed class PlotRpcTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _rpc.RenamePlotlineAsync("missing", "x"));
     }
+
+    // -- Rows from the Codex --
+
+    [Fact]
+    public async Task RowsCanComeFromTheCharactersInsteadOfThePlotlines()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData
+        {
+            Id = "mira", Name = "Mira", Surname = "Vance"
+        });
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData
+        {
+            Id = "halden", Name = "Halden"
+        });
+
+        var grid = _rpc.GetGrid("character");
+
+        // In name order, whatever order they were written in.
+        Assert.Equal(["Halden", "Mira Vance"], grid.Plotlines.Select(p => p.Name));
+    }
+
+    [Fact]
+    public async Task TickingACodexCellRecordsWhoIsInTheScene()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData
+        {
+            Id = "mira", Name = "Mira"
+        });
+        var column = _rpc.GetGrid("character").Columns[0];
+
+        var grid = await _rpc.ToggleCastAsync(
+            column.ChapterGuid, column.SceneId, "mira", "character");
+
+        Assert.Contains("mira", grid.Columns[0].PlotlineIds);
+        var (_, scene) = _workspace.ResolveScene(column.ChapterGuid, column.SceneId);
+        Assert.Equal(["mira"], scene.Cast);
+
+        // Ticking it again takes them back out, and leaves no empty list behind.
+        grid = await _rpc.ToggleCastAsync(column.ChapterGuid, column.SceneId, "mira", "character");
+        Assert.Empty(grid.Columns[0].PlotlineIds);
+        Assert.Null(_workspace.ResolveScene(column.ChapterGuid, column.SceneId).scene.Cast);
+    }
+
+    [Fact]
+    public async Task ACodexGridReadsTheCastRatherThanThePlotlines()
+    {
+        var column = _rpc.GetGrid().Columns[0];
+        await _rpc.CreatePlotlineAsync("Thread");
+        var plotlineId = _rpc.GetGrid().Plotlines[0].Id;
+        await _rpc.ToggleAsync(column.ChapterGuid, column.SceneId, plotlineId);
+
+        var codex = _rpc.GetGrid("character");
+
+        // The plotline is on the scene, but a Codex grid is not asking that.
+        Assert.Empty(codex.Columns[0].PlotlineIds);
+        Assert.NotEmpty(_rpc.GetGrid().Columns[0].PlotlineIds);
+    }
+
+    [Fact]
+    public async Task ACustomEntryTypeCanBeRowsToo()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        await entities.SaveCustomEntityTypeAsync(new Novalist.Core.Models.CustomEntityTypeDefinition
+        {
+            TypeKey = "faction",
+            DisplayName = "Factions"
+        });
+        await entities.SaveCustomEntityAsync(new Novalist.Core.Models.CustomEntityData
+        {
+            Id = "guild", Name = "The Guild", EntityTypeKey = "faction"
+        });
+
+        var grid = _rpc.GetGrid("faction");
+
+        Assert.Equal(["The Guild"], grid.Plotlines.Select(p => p.Name));
+    }
+
+    [Theory]
+    [InlineData("location")]
+    [InlineData("item")]
+    [InlineData("lore")]
+    [InlineData("faction")]
+    public void EveryEntryKindCanBeRows(string typeKey)
+        // No entries of these kinds yet: an empty row list rather than a throw,
+        // which is what a book that has not written any should get.
+        => Assert.Empty(_rpc.GetGrid(typeKey).Plotlines);
 }

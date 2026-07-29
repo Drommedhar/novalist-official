@@ -107,7 +107,14 @@
     "confirmDelete": "\"{0}\" löschen? Szenenzuweisungen werden entfernt.",
     "emptyHint": "Noch keine Plotlinien. Lege eine an, um Szenen über deine Handlungsbögen zu verfolgen.",
     "cellNoteTitle": "Notiz zu {{scene}}",
-    "cellNotePlaceholder": "Was diese Szene für den Strang leistet"
+    "cellNotePlaceholder": "Was diese Szene für den Strang leistet",
+    "rowSource": "Was die Zeilen sind",
+    "rowsplotline": "Handlungsstränge",
+    "rowscharacter": "Figuren",
+    "rowslocation": "Orte",
+    "rowsitem": "Gegenstände",
+    "rowslore": "Wissen",
+    "codexHint": "Ein Häkchen hält hier fest, dass der Eintrag in dieser Szene vorkommt – dieselbe Besetzung, die Wiki, gespeicherte Listen und Zeitleiste lesen."
   },
   "smartList": {
     "section": "Smart-Listen",

@@ -15,12 +15,20 @@ public sealed class PlotRpc
         _plotlines = new PlotlineService(workspace.Projects);
     }
 
+    /// <param name="rowSource">
+    /// <c>plotline</c> for the plotlines, or a Codex type key - <c>character</c>,
+    /// <c>location</c>, <c>item</c>, <c>lore</c>, or a custom type - for a row
+    /// per entry. A grid whose rows are only plotlines cannot answer "which
+    /// scenes is she in", which is the same shape of question.
+    /// </param>
     [JsonRpcMethod("plot/grid")]
-    public PlotGridDto GetGrid()
+    public PlotGridDto GetGrid(string rowSource = "plotline")
     {
         var projects = _workspace.Projects;
         var book = projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
         var manifest = projects.ScenesManifest;
+
+        var byCodex = !string.Equals(rowSource, "plotline", StringComparison.OrdinalIgnoreCase);
 
         var columns = new List<PlotColumnDto>();
         foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
@@ -35,16 +43,73 @@ public sealed class PlotRpc
                     chapter.Title,
                     scene.Id,
                     scene.Title,
-                    scene.PlotlineIds?.ToArray() ?? [],
-                    scene.PlotlineNotes ?? []));
+                    // With Codex rows a cell says who is in the scene, which is
+                    // the cast the writer recorded rather than plotline
+                    // membership. The notes belong to the plotlines either way.
+                    byCodex
+                        ? scene.Cast?.ToArray() ?? []
+                        : scene.PlotlineIds?.ToArray() ?? [],
+                    byCodex ? [] : scene.PlotlineNotes ?? []));
             }
         }
 
-        var plotlines = _plotlines.GetPlotlines()
-            .Select(p => new PlotlineDto(p.Id, p.Name, p.Color, p.Order))
-            .ToArray();
+        var rows = byCodex
+            ? CodexRows(rowSource)
+            : [.. _plotlines.GetPlotlines().Select(p => new PlotlineDto(p.Id, p.Name, p.Color, p.Order))];
 
-        return new PlotGridDto(plotlines, columns.ToArray());
+        return new PlotGridDto(rows, columns.ToArray());
+    }
+
+    /// <summary>
+    /// A row per Codex entry of one type, in name order. They carry no colour
+    /// of their own, so the row takes the neutral one and the grid stays
+    /// readable rather than inventing five palettes.
+    /// </summary>
+    private PlotlineDto[] CodexRows(string typeKey)
+    {
+        var entities = new EntityService(_workspace.Projects);
+        var names = typeKey.ToLowerInvariant() switch
+        {
+            "character" => entities.LoadCharactersAsync().GetAwaiter().GetResult()
+                .Select(c => (c.Id, Name: EntityResolveIndex.Compose(c.Name, c.Surname))),
+            "location" => entities.LoadLocationsAsync().GetAwaiter().GetResult()
+                .Select(l => (l.Id, l.Name)),
+            "item" => entities.LoadItemsAsync().GetAwaiter().GetResult()
+                .Select(i => (i.Id, i.Name)),
+            "lore" => entities.LoadLoreAsync().GetAwaiter().GetResult()
+                .Select(l => (l.Id, l.Name)),
+            // A custom type that is gone - deleted since the writer last chose
+            // it - is no rows rather than a broken view.
+            _ => entities.GetCustomEntityTypes().Any(t =>
+                    string.Equals(t.TypeKey, typeKey, StringComparison.OrdinalIgnoreCase))
+                ? entities.LoadCustomEntitiesAsync(typeKey).GetAwaiter().GetResult()
+                    .Select(e => (e.Id, e.Name))
+                : []
+        };
+
+        return [.. names
+            .OrderBy(n => n.Name, StringComparer.OrdinalIgnoreCase)
+            .Select((n, index) => new PlotlineDto(n.Id, n.Name, "#7f7f7f", index))];
+    }
+
+    /// <summary>
+    /// Puts an entry in a scene, or takes it out. The same gesture as toggling
+    /// a plotline, writing to the cast the rest of the app already reads.
+    /// </summary>
+    [JsonRpcMethod("plot/toggleCast")]
+    public async Task<PlotGridDto> ToggleCastAsync(
+        string chapterGuid, string sceneId, string entityId, string rowSource)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        var cast = scene.Cast ?? [];
+        if (cast.Any(id => string.Equals(id, entityId, StringComparison.OrdinalIgnoreCase)))
+            cast = [.. cast.Where(id => !string.Equals(id, entityId, StringComparison.OrdinalIgnoreCase))];
+        else
+            cast = [.. cast, entityId];
+
+        scene.Cast = cast.Count > 0 ? cast : null;
+        await _workspace.Projects.SaveScenesAsync();
+        return GetGrid(rowSource);
     }
 
     [JsonRpcMethod("plot/toggle")]

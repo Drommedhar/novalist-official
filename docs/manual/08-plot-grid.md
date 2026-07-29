@@ -73,6 +73,14 @@ Click a promise's scene name to open that scene. A scene cannot pay off its own 
 - **Have a thin plotline for everything.** Even the protagonist's internal arc benefits from being a row — you can spot stretches where you forgot to advance it.
 - **Re-plot after a draft.** After finishing a draft, walk the grid scene by scene and tick what each scene actually did. The resulting grid is the truth of the manuscript, not your outline's prediction.
 
+## Rows from the Codex
+
+The drop-down at the head of the toolbar chooses what the rows are: **Plotlines** (the default), or **Characters**, **Locations**, **Items** or **Lore**. With a Codex row source the grid crosses your scenes with your Codex entries, and a ticked cell means *this entry is in this scene*.
+
+That tick writes the scene's cast — the same record the [Wiki](30-wiki.md) reads for appearances, that [saved lists](16-smart-lists.md#who-is-in-the-scene) match on, and that the Timeline shows. Ticking a row of cells across the grid is the fastest way there is to say who is in which scene, and none of it depends on the name appearing in the prose.
+
+Plotline rows keep their right-click menu for renaming and deleting; a Codex row does not, because an entry is renamed where it lives.
+
 ## Where to go next
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — scenes hold the plotline assignments.

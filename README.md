@@ -131,6 +131,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Snapshots** — per-scene version history that restores the whole scene (synopsis, notes, POV, stage, dates, plotlines), plus a project-wide manager with renaming and pruning.
 - **Export preview** — how many chapters, scenes and words the current selection would produce, and how long the book runs in the chosen layout, before you write the file.
 - **Print** — `Ctrl+Alt+P` prints the open scene, the whole book in Manuscript mode, or whatever view is on screen, without the application chrome.
+- **Plot grid** — cross your scenes with plotlines, or with characters, locations, items or lore; a ticked Codex cell records who is in the scene.
 - **Saved lists** — rules with AND/OR over status, POV, tags, plotlines, your own fields, and who is in the scene; apply one to narrow the whole Manuscript view.
 - **Scene templates** — capture a scene that reads the way you want and start new ones from it: synopsis, prose skeleton, POV, stage, label, tags and plotlines.
 - **Tags** — one vocabulary across scenes, Codex entries and research notes, with colours, counts, and rename/merge that reaches every holder at once.

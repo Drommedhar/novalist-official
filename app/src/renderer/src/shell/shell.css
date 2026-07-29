@@ -2014,6 +2014,11 @@
   height: 100%;
 }
 
+/* The row-source picker heads the toolbar and stays narrow. */
+.plotgrid-rowsource {
+  max-width: 200px;
+}
+
 .plotgrid-toolbar {
   display: flex;
   padding: var(--nl-space-md) var(--nl-space-normal);
