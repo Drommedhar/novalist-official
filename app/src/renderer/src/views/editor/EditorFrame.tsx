@@ -649,7 +649,13 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
         case 'inlineActionRequested': {
           const actionId = String(message.actionId ?? '')
           const selected = String(message.selectedText ?? '')
-          void runInlineAction(actionId, selected).then((result) => {
+          // Carried so an action invoked at a bare caret has something to work
+          // from: the prose before it, and whatever the writer typed after the
+          // slash as a directive.
+          void runInlineAction(actionId, selected, {
+            precedingText: String(message.precedingText ?? ''),
+            directive: String(message.directive ?? '')
+          }).then((result) => {
             editorRef.current?.applyInlineActionResult(JSON.stringify({ actionId, ...result }))
           })
           break

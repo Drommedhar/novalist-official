@@ -32,14 +32,27 @@ public sealed class ExtensionContribRpc
     [JsonRpcMethod("extensions/inlineActions")]
     public InlineActionInfoDto[] InlineActions()
         => Host?.GetInlineActionDescriptors()
-               .Select(a => new InlineActionInfoDto(a.Id, a.Label, a.Group, a.Icon, a.Priority))
+               .Select(a => new InlineActionInfoDto(
+                   a.Id, a.Label, a.Group, a.Icon, a.Priority,
+                   a.AllowsEmptySelection, SlashKeyword(a)))
                .ToArray()
            ?? [];
+
+    /// <summary>The word typed after the slash. Falls back to the part of the id
+    /// after the last dot, so "ai.continue" is "/continue" without every
+    /// contributor having to restate it.</summary>
+    internal static string SlashKeyword(InlineActionDescriptor action)
+    {
+        if (!string.IsNullOrWhiteSpace(action.SlashKeyword)) return action.SlashKeyword.Trim();
+        var dot = action.Id.LastIndexOf('.');
+        return dot >= 0 && dot < action.Id.Length - 1 ? action.Id[(dot + 1)..] : action.Id;
+    }
 
     [JsonRpcMethod("extensions/inlineAction/execute")]
     public async Task<InlineActionResultDto?> ExecuteInlineActionAsync(
         string actionId, string selectedText, string? chapterGuid, string? sceneId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? precedingText = null, string? directive = null)
     {
         if (Host == null) return null;
         var request = new InlineActionRequest
@@ -47,14 +60,20 @@ public sealed class ExtensionContribRpc
             SelectedText = selectedText ?? string.Empty,
             SceneId = sceneId ?? string.Empty,
             ChapterGuid = chapterGuid ?? string.Empty,
+            PrecedingText = precedingText ?? string.Empty,
+            Directive = directive ?? string.Empty,
         };
         var result = await Host.ExecuteInlineActionAsync(actionId, request, cancellationToken);
         if (result == null) return null;
-        return new InlineActionResultDto(
-            result.Text,
-            result.Disposition == InlineActionDisposition.InsertAfterSelection ? "insertAfter" : "replace",
-            result.Error);
+        return new InlineActionResultDto(result.Text, DispositionName(result.Disposition), result.Error);
     }
+
+    internal static string DispositionName(InlineActionDisposition disposition) => disposition switch
+    {
+        InlineActionDisposition.InsertAfterSelection => "insertAfter",
+        InlineActionDisposition.InsertAtCaret => "insertAtCaret",
+        _ => "replace"
+    };
 
     // ── Context menu (item 2) ───────────────────────────────────────────
     // The AI Assistant's "generate synopsis" uses Context="Scene"; the desktop
@@ -232,7 +251,12 @@ public sealed class ExtensionContribRpc
                 f.VisibleWhenKey, f.VisibleWhenValues?.ToArray(), f.Suggestions?.ToArray())).ToArray());
 }
 
-public sealed record InlineActionInfoDto(string Id, string Label, string Group, string Icon, int Priority);
+/// <summary>An inline action as the editor sees it. <c>AllowsEmptySelection</c>
+/// decides whether it is offered at a bare caret and listed in the slash menu;
+/// <c>SlashKeyword</c> is what the writer types after the slash.</summary>
+public sealed record InlineActionInfoDto(
+    string Id, string Label, string Group, string Icon, int Priority,
+    bool AllowsEmptySelection, string SlashKeyword);
 public sealed record InlineActionResultDto(string Text, string Disposition, string? Error);
 public sealed record ContextMenuInfoDto(string Id, string Label, string Icon, string? IconPath, string Context);
 public sealed record ExtensionHotkeyInfoDto(string ActionId, string DisplayName, string Category, string DefaultGesture);

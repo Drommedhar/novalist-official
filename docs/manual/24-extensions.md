@@ -136,6 +136,21 @@ There are two shapes of provider, and the difference matters for what you have t
 
 A finding that names something your Codex does not contain yet — a person, place, item or piece of lore the prose introduced — carries an **Add to Codex** button. It creates the entry with the finding's description and disappears once the entry exists, so you can act on a suggestion where you read it instead of retyping it in the Codex. Entries land under the type the analysis identified, falling back to Lore when it is unsure.
 
+### Writing from the caret: slash commands
+
+Most inline actions transform a passage you have selected. Two things a writer wants have no selection at all: carrying on from where they stopped, and writing towards a beat they can describe in a few words.
+
+Type **`/`** at the start of an empty line in the editor. A menu appears listing the actions that work without a selection; type to filter, arrow up and down, Enter to run. The slash and everything you typed after it are removed before the action runs, so you are left with the prose rather than the instruction.
+
+The AI Assistant contributes two:
+
+- **`/continue`** — writes the next 80–150 words from where you stopped, picking up mid-flow from your last sentence rather than restating it.
+- **`/beat <what happens>`** — everything after the keyword is the beat to write towards. `/beat she finally admits it` dramatizes that beat in 80–200 words and stops there rather than running on into the next one.
+
+Both read the prose before the caret, plus the same scene context and character roster the brainstorm actions use, so a continuation stays consistent with what came before. Both insert at the caret and replace nothing.
+
+Actions that allow an empty selection also appear in the right-click menu with nothing selected — the slash menu is a faster way to reach the same thing while your hands are on the keys.
+
 ### Controlling what AI sees of your Codex
 
 Every Codex entry decides for itself whether an AI extension may see it, under **What AI may see of this entry** in the [Codex](06-codex.md) detail pane:

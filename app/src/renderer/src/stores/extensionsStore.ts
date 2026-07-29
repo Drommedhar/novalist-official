@@ -87,6 +87,8 @@ interface InlineActionInfo {
   group: string
   icon: string
   priority: number
+  allowsEmptySelection: boolean
+  slashKeyword: string
 }
 
 interface ContextMenuInfo {
@@ -177,19 +179,28 @@ export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
 
     for (const dispose of inlineDisposers) dispose()
     inlineDisposers = inline.map((a) =>
-      registerInlineAction({ id: a.id, label: a.label, group: a.group, icon: a.icon }, async (
-        selectedText
-      ): Promise<InlineActionResult> => {
+      registerInlineAction(
+        {
+          id: a.id,
+          label: a.label,
+          group: a.group,
+          icon: a.icon,
+          allowsEmptySelection: a.allowsEmptySelection,
+          slashKeyword: a.slashKeyword
+        },
+        async (selectedText, context): Promise<InlineActionResult> => {
         const proj = useProjectStore.getState()
         const result = await rpc.request<{
           text: string
-          disposition: 'replace' | 'insertAfter'
+          disposition: 'replace' | 'insertAfter' | 'insertAtCaret'
           error: string | null
         } | null>('extensions/inlineAction/execute', [
           a.id,
           selectedText,
           proj.openChapterGuid ?? '',
-          proj.openSceneId ?? ''
+          proj.openSceneId ?? '',
+          context?.precedingText ?? '',
+          context?.directive ?? ''
         ])
         if (!result) return { text: '', disposition: 'replace', error: `Unknown inline action: ${a.id}` }
         return { text: result.text, disposition: result.disposition, error: result.error ?? undefined }

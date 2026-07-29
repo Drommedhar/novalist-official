@@ -138,6 +138,12 @@ Spell check catches misspelt words; grammar check catches the rest. When **Gramm
 
 By default the free public LanguageTool endpoint is used; the URL is configurable to point at a self-hosted server (to keep your text local), and Premium credentials, picky mode, and a mother-tongue setting for false-friend detection are available in the same settings section.
 
+## Slash commands
+
+Typing **`/`** at the start of an empty line opens a menu of extension actions that work with nothing selected — chiefly, with the AI Assistant installed, continuing the prose from where you stopped or writing towards a beat you describe. Type to filter, arrow to choose, Enter to run; Escape closes it and leaves what you typed alone. See [Extensions](24-extensions.md#writing-from-the-caret-slash-commands).
+
+A slash anywhere else is just a slash — "and/or" and "24/7" do not open anything.
+
 ## Auto-replacements
 
 As you type, certain character sequences are converted automatically based on the **Quote Style** language preset in Settings → Writing assistance:

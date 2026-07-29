@@ -2203,6 +2203,19 @@ editor.addEventListener('keydown', (e) => {
 }, true);
 
 editor.addEventListener('input', () => {
+
+    if (slashState) {
+        if (e.key === 'Escape') { closeSlashMenu(); e.preventDefault(); e.stopPropagation(); return; }
+        if (e.key === 'ArrowDown') { moveSlashSelection(1); e.preventDefault(); e.stopPropagation(); return; }
+        if (e.key === 'ArrowUp') { moveSlashSelection(-1); e.preventDefault(); e.stopPropagation(); return; }
+        if (e.key === 'Enter' || e.key === 'Tab') {
+            confirmSlashAt(slashSelectedIndex);
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+    }
+
     if (mentionState) {
         updateMentionQuery();
         return;
@@ -2211,7 +2224,12 @@ editor.addEventListener('input', () => {
     // freshly-typed `@` that should open the picker.
     if (detectMentionAtCaret()) {
         openMentionPicker();
+        return;
     }
+    // Slash commands follow the same hooks as the mention picker: detect on
+    // input, filter as the writer types, close when the caret leaves.
+    if (slashState) updateSlashQuery();
+    else if (detectSlashAtCaret()) openSlashMenu();
 });
 
 document.addEventListener('selectionchange', () => {
@@ -2224,7 +2242,7 @@ document.addEventListener('selectionchange', () => {
         const sel = window.getSelection();
         if (sel && sel.rangeCount > 0) {
             const r = sel.getRangeAt(0);
-            if (!mentionState.span.contains(r.startContainer)) {
+            if (mentionState.node !== r.startContainer) {
                 closeMentionPicker(true);
             }
         }
@@ -2613,7 +2631,9 @@ document.addEventListener('contextmenu', (e) => {
     // Snapshot the selection now. Clicking a menu row moves focus out of the
     // contenteditable, which collapses the live selection before the click
     // handler runs — so actions that act on the selection must use this copy.
-    contextMenuRange = hasSelection ? sel.getRangeAt(0).cloneRange() : null;
+    // With nothing selected the caret itself is the anchor: an action that
+    // allows an empty selection still has to know where to write.
+    contextMenuRange = sel && sel.rangeCount > 0 ? sel.getRangeAt(0).cloneRange() : null;
     contextMenuText = hasSelection ? sel.toString() : '';
 
     let html = '';
@@ -2658,7 +2678,10 @@ document.addEventListener('contextmenu', (e) => {
 
     console.log('[InlineActions] context menu open. hasSelection=', hasSelection, 'inlineActions.length=', (inlineActions || []).length);
     // Inline actions (extension-contributed). Shown only when selection non-empty.
-    if (hasSelection && inlineActions && inlineActions.length > 0) {
+    const offerableActions = (inlineActions || []).filter(function (a) {
+        return hasSelection || a.allowsEmptySelection;
+    });
+    if (offerableActions.length > 0) {
         const grouped = {};
         for (const a of inlineActions) {
             const g = a.group || '';
@@ -3525,14 +3548,209 @@ window.setInlineActions = function (json) {
     }
 };
 
-function triggerInlineAction(id) {
+function inlineActionById(id) {
+    for (const action of inlineActions || []) {
+        if (action.id === id) return action;
+    }
+    return null;
+}
+
+// The prose before a point, capped so a long scene does not push a whole
+// chapter through the RPC. This is what a continue-writing action continues
+// from, and at a bare caret it is the only context there is.
+const PRECEDING_TEXT_LIMIT = 4000;
+
+function precedingTextBefore(range) {
+    try {
+        const scope = document.createRange();
+        scope.selectNodeContents(editor);
+        scope.setEnd(range.startContainer, range.startOffset);
+        const text = scope.toString();
+        return text.length > PRECEDING_TEXT_LIMIT ? text.slice(-PRECEDING_TEXT_LIMIT) : text;
+    } catch (e) {
+        return '';
+    }
+}
+
+function triggerInlineAction(id, directive) {
+    const action = inlineActionById(id);
     const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+    if (!sel || sel.rangeCount === 0) return;
+
+    const collapsed = sel.isCollapsed;
+    // An action written before empty selections were a thing still needs one:
+    // it would receive an empty SelectedText it was never written to handle.
+    if (collapsed && !(action && action.allowsEmptySelection)) return;
+
     const range = sel.getRangeAt(0).cloneRange();
-    const text = sel.toString();
-    if (!text) return;
+    const text = collapsed ? '' : sel.toString();
+    if (!collapsed && !text) return;
+
     pendingInlineAction = { id: id, range: range };
-    sendMessage({ type: 'inlineActionRequested', actionId: id, selectedText: text });
+    sendMessage({
+        type: 'inlineActionRequested',
+        actionId: id,
+        selectedText: text,
+        precedingText: precedingTextBefore(range),
+        directive: directive || ''
+    });
+}
+
+
+// ── Slash commands ──────────────────────────────────────────────
+//
+// A slash at the start of a line opens a menu of the inline actions that work
+// with nothing selected. This is the surface a "continue writing" or a typed
+// beat directive needs: there is no selection to right-click, so the context
+// menu cannot reach them.
+//
+// Mirrors the @-mention picker's shape (detect at caret, filter as you type,
+// arrow/enter to commit) because the writer has already learned that gesture.
+
+let slashState = null;   // { node, atOffset, query }
+let slashFiltered = [];
+let slashSelectedIndex = 0;
+
+function slashActions() {
+    return (inlineActions || []).filter(function (a) { return a.allowsEmptySelection; });
+}
+
+/** The keyword typed after the slash; falls back to the id's last segment. */
+function slashKeywordOf(action) {
+    if (action.slashKeyword) return action.slashKeyword;
+    const dot = action.id.lastIndexOf('.');
+    return dot >= 0 ? action.id.slice(dot + 1) : action.id;
+}
+
+/**
+ * A slash that starts a command rather than one inside a word or a date. Only
+ * at the very start of a line, so "and/or" and "24/7" are left alone.
+ */
+function detectSlashAtCaret() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || !sel.isCollapsed) return null;
+    const range = sel.getRangeAt(0);
+    if (range.startContainer.nodeType !== Node.TEXT_NODE) return null;
+    const text = range.startContainer.textContent || '';
+    const offset = range.startOffset;
+    if (offset === 0) return null;
+
+    // Walk back to the slash that opened this command, stopping at anything
+    // that means it was not a command after all.
+    let at = -1;
+    for (let i = offset - 1; i >= 0; i--) {
+        const ch = text.charAt(i);
+        if (ch === '/') { at = i; break; }
+        if (ch === '\n') return null;
+    }
+    if (at < 0) return null;
+    // Everything before the slash on this line has to be blank.
+    if (text.slice(0, at).trim().length > 0) return null;
+    return { node: range.startContainer, atOffset: at, query: text.slice(at + 1, offset) };
+}
+
+function openSlashMenu() {
+    slashState = detectSlashAtCaret();
+    if (!slashState || slashActions().length === 0) { slashState = null; return; }
+    slashSelectedIndex = 0;
+    renderSlashMenu();
+}
+
+function closeSlashMenu() {
+    slashState = null;
+    slashFiltered = [];
+    const picker = document.getElementById('slash-picker');
+    if (picker) picker.style.display = 'none';
+}
+
+function updateSlashQuery() {
+    const found = detectSlashAtCaret();
+    if (!found) { closeSlashMenu(); return; }
+    slashState = found;
+    renderSlashMenu();
+}
+
+function renderSlashMenu() {
+    let picker = document.getElementById('slash-picker');
+    if (!picker) {
+        picker = document.createElement('div');
+        picker.id = 'slash-picker';
+        picker.className = 'mention-picker';
+        document.body.appendChild(picker);
+    }
+
+    // The query is everything after the slash, but only its first word selects
+    // the command - the rest is the directive the action writes towards.
+    const raw = slashState.query || '';
+    const space = raw.indexOf(' ');
+    const keyword = (space < 0 ? raw : raw.slice(0, space)).toLowerCase();
+
+    slashFiltered = slashActions().filter(function (a) {
+        return keyword.length === 0 || slashKeywordOf(a).toLowerCase().indexOf(keyword) === 0;
+    });
+
+    if (slashFiltered.length === 0) { closeSlashMenu(); return; }
+    if (slashSelectedIndex >= slashFiltered.length) slashSelectedIndex = 0;
+
+    let html = '';
+    for (let i = 0; i < slashFiltered.length; i++) {
+        const action = slashFiltered[i];
+        html += '<div class="mention-item' + (i === slashSelectedIndex ? ' selected' : '') +
+            '" data-slash-index="' + i + '">' +
+            '<span class="mention-name">/' + slashKeywordOf(action) + '</span>' +
+            '<span class="mention-detail">' + action.label + '</span></div>';
+    }
+    picker.innerHTML = html;
+    picker.style.display = 'block';
+
+    const rect = getCaretRect();
+    if (rect) {
+        picker.style.left = rect.left + 'px';
+        picker.style.top = (rect.bottom + 4) + 'px';
+    }
+
+    picker.querySelectorAll('[data-slash-index]').forEach(function (row) {
+        row.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            confirmSlashAt(parseInt(row.getAttribute('data-slash-index'), 10));
+        });
+    });
+}
+
+function moveSlashSelection(delta) {
+    if (slashFiltered.length === 0) return;
+    slashSelectedIndex = (slashSelectedIndex + delta + slashFiltered.length) % slashFiltered.length;
+    renderSlashMenu();
+}
+
+/**
+ * Runs the chosen command. The typed text - slash, keyword and directive - is
+ * removed first, so the writer is left with the prose the action produces and
+ * not with the instruction they typed to get it.
+ */
+function confirmSlashAt(index) {
+    if (!slashState || index < 0 || index >= slashFiltered.length) return;
+    const action = slashFiltered[index];
+    const raw = slashState.query || '';
+    const space = raw.indexOf(' ');
+    const directive = space < 0 ? '' : raw.slice(space + 1).trim();
+
+    const node = slashState.node;
+    const atOffset = slashState.atOffset;
+    closeSlashMenu();
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const caret = sel.getRangeAt(0);
+    const range = document.createRange();
+    range.setStart(node, atOffset);
+    range.setEnd(caret.startContainer, caret.startOffset);
+    range.deleteContents();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    editor.dispatchEvent(new Event('input'));
+    triggerInlineAction(action.id, directive);
 }
 
 // Extension context-menu items (IContextMenuContributor): not selection-gated;
@@ -3561,7 +3779,12 @@ window.applyInlineActionResult = function (json) {
         sel.removeAllRanges();
         sel.addRange(range);
 
-        if (disposition === 'insertAfter') {
+        if (disposition === 'insertAtCaret') {
+            // Replaces nothing. With a selection this collapses to its end,
+            // which is what "carry on from here" means either way.
+            range.collapse(false);
+            document.execCommand('insertText', false, text);
+        } else if (disposition === 'insertAfter') {
             range.collapse(false);
             document.execCommand('insertText', false, '\n' + text);
         } else {

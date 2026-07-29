@@ -111,19 +111,33 @@ export interface InlineActionDescriptor {
   label: string
   group?: string
   icon?: string
+  /** Offered at a bare caret and listed in the slash menu. */
+  allowsEmptySelection?: boolean
+  /** What the writer types after the slash, without the slash. */
+  slashKeyword?: string
 }
 
 export interface InlineActionResult {
   /** Text to insert. */
   text: string
-  /** 'replace' swaps the selection; 'insertAfter' appends on a new line. */
-  disposition: 'replace' | 'insertAfter'
+  /** 'replace' swaps the selection, 'insertAfter' appends on a new line after
+   *  it, 'insertAtCaret' writes at the caret and replaces nothing. */
+  disposition: 'replace' | 'insertAfter' | 'insertAtCaret'
   /** Non-empty aborts the edit; editor.html leaves the selection untouched. */
   error?: string
 }
 
+/** What the editor knows about where the action was invoked. */
+export interface InlineActionContext {
+  /** Prose before the selection, or before the caret when nothing is selected. */
+  precedingText?: string
+  /** What was typed after the slash, when the action came from the slash menu. */
+  directive?: string
+}
+
 export type InlineActionHandler = (
-  selectedText: string
+  selectedText: string,
+  context?: InlineActionContext
 ) => InlineActionResult | Promise<InlineActionResult>
 
 const inlineActions = new Map<
@@ -148,14 +162,15 @@ export function inlineActionDescriptorsJson(): string {
 /** Runs an inline action by id; unknown ids resolve to an error result. */
 export async function runInlineAction(
   actionId: string,
-  selectedText: string
+  selectedText: string,
+  context?: InlineActionContext
 ): Promise<InlineActionResult> {
   const entry = inlineActions.get(actionId)
   if (!entry) {
     return { text: '', disposition: 'replace', error: `Unknown inline action: ${actionId}` }
   }
   try {
-    return await entry.run(selectedText)
+    return await entry.run(selectedText, context)
   } catch (err) {
     return { text: '', disposition: 'replace', error: String(err) }
   }
