@@ -2701,5 +2701,10 @@
       "added": "Nur in der späteren Fassung",
       "removed": "Nur in der früheren Fassung"
     }
+  },
+  "corkboard": {
+    "freeform": "Frei anordnen",
+    "freeformHint": "Karten beliebig ziehen. Die Anordnung wird mit dem Buch gespeichert.",
+    "arrange": "Zurück zur Lesereihenfolge"
   }
 }

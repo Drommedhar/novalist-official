@@ -48,6 +48,18 @@ Each scene becomes a card on a board, grouped under its chapter title. Each card
 
 Corkboard mode is ideal for planning passes: skim the whole book as synopses and fill in the summaries you skipped while drafting.
 
+### Arranging cards freely
+
+By default the cards sit in reading order, grouped by chapter — which is the arrangement the binder already shows you. Tick **Arrange freely** in the toolbar to put them where you like instead.
+
+- Drag a card anywhere by its body. The title and the synopsis box stay clickable, so dragging never eats an edit.
+- Cards from every chapter share one board. Putting scenes from three different chapters side by side is the point.
+- Positions are saved with the book, per scene, so the arrangement is still there next week and on your other machine.
+- A scene you have never placed takes the slot it would have had in reading order, so turning the mode on shows you the book as it stands rather than a pile in the corner. New scenes appear the same way.
+- **Back to reading order** forgets the arrangement entirely. The board goes back to tracking reading order, including for scenes you add or reorder later.
+
+Arranging cards never changes the order of the book. It is a place to think, not an edit to the manuscript — to actually reorder scenes, drag them in the [binder](02-interface-tour.md) or use the [Board](#board-mode).
+
 ## Outliner mode
 
 A table with one row per scene and these columns:

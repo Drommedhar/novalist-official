@@ -193,6 +193,20 @@ public class SceneData
     [JsonPropertyName("originChapterGuid")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? OriginChapterGuid { get; set; }
+
+    /// <summary>
+    /// Where the writer put this card on the freeform corkboard, in pixels from
+    /// the top left of the board. Null means it has never been placed, and the
+    /// board falls back to laying it out in reading order - so switching to
+    /// freeform shows the book as it stands rather than a pile at the origin.
+    /// </summary>
+    [JsonPropertyName("boardX")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? BoardX { get; set; }
+
+    [JsonPropertyName("boardY")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? BoardY { get; set; }
 }
 
 /// <summary>

@@ -131,6 +131,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Snapshots** — per-scene version history that restores the whole scene (synopsis, notes, POV, stage, dates, plotlines), plus a project-wide manager with renaming and pruning.
 - **Export preview** — how many chapters, scenes and words the current selection would produce, and how long the book runs in the chosen layout, before you write the file.
 - **Print** — `Ctrl+Alt+P` prints the open scene, the whole book in Manuscript mode, or whatever view is on screen, without the application chrome.
+- **Freeform corkboard** — drag scene cards anywhere; the arrangement is saved with the book.
 - **Your own typed fields** — on scenes, chapters, plotlines, timeline events and research items, not just Codex entries.
 - **Chapter trash** — a deleted chapter and its scenes are recoverable, with restore and an explicit delete-forever.
 - **Draft comparison** — two drafts side by side, scene by scene, with a line diff and per-scene cherry-pick back into the draft you are in.

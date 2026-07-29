@@ -38,6 +38,13 @@ interface ManuscriptState {
   sections: ManuscriptSectionDto[]
   loaded: boolean
   setMode(mode: ManuscriptMode): void
+  /**
+   * Whether the corkboard is arranged by the writer rather than by reading
+   * order. Session state, not a setting: it is a way of looking at the book,
+   * and the arrangement itself is what persists.
+   */
+  freeform: boolean
+  setFreeform(freeform: boolean): void
   setGroupBy(groupBy: string): void
   compose(sceneIds: string[] | null): Promise<void>
   setFilter(status: string): Promise<void>
@@ -52,6 +59,7 @@ interface ManuscriptState {
 
 export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   mode: 'manuscript',
+  freeform: false,
   composed: null,
   groupBy: 'stage',
   filterStatus: 'All',
@@ -60,6 +68,7 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   loaded: false,
 
   setMode: (mode) => set({ mode }),
+  setFreeform: (freeform) => set({ freeform }),
 
   setGroupBy: (groupBy) => set({ groupBy }),
 

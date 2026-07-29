@@ -2693,5 +2693,10 @@
       "added": "Only in the later draft",
       "removed": "Only in the earlier draft"
     }
+  },
+  "corkboard": {
+    "freeform": "Arrange freely",
+    "freeformHint": "Drag cards anywhere. The arrangement is saved with the book.",
+    "arrange": "Back to reading order"
   }
 }

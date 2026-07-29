@@ -2735,5 +2735,10 @@
       "added": "仅在较新稿本中",
       "removed": "仅在较早稿本中"
     }
+  },
+  "corkboard": {
+    "freeform": "自由排列",
+    "freeformHint": "任意拖动卡片，排列会随书一起保存。",
+    "arrange": "恢复阅读顺序"
   }
 }

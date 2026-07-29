@@ -3525,3 +3525,34 @@
     overflow: visible !important;
   }
 }
+
+/* ===== Freeform corkboard ===== */
+.corkboard-freeform {
+  /* The surface is wider and taller than the viewport once cards are spread
+     out, so the board scrolls both ways rather than reflowing them. */
+  overflow: auto;
+}
+
+.corkboard-freeform-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  margin-bottom: var(--nl-space-md);
+}
+
+.corkboard-surface {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+}
+
+.corkboard-card-placed {
+  position: absolute;
+  margin: 0;
+  cursor: grab;
+  touch-action: none;
+}
+
+.corkboard-card-placed:active {
+  cursor: grabbing;
+}
