@@ -2518,7 +2518,11 @@
     "unset": "Not set",
     "unsaved": "Unsaved changes. Removing a field also removes what you filled in for it.",
     "sceneTitle": "Fields",
-    "none": "No fields defined for this book yet."
+    "none": "No fields defined for this book yet.",
+    "scopePlotline": "Plotline",
+    "scopeEvent": "Timeline event",
+    "scopeResearch": "Research item",
+    "yourFields": "Your fields"
   },
   "board": {
     "groupBy": "Group by",

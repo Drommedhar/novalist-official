@@ -5,6 +5,7 @@ import { ExternalLink, FolderOpen, Inbox, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
+import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
 import { EntityTypeDialog } from '../../shell/EntityTypeDialog'
 import { AppendToEntityDialog } from '../../shell/AppendToEntityDialog'
 import './library.css'
@@ -543,6 +544,7 @@ export function ResearchView(): React.JSX.Element {
                   </select>
                 </div>
               </div>
+              <CustomFieldsPanel scope="Research" id={selected.id} />
             </div>
           ) : (
             <p className="codex-empty">{t('research.empty')}</p>

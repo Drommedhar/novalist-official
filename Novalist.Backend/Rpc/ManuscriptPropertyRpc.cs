@@ -5,12 +5,13 @@ using StreamJsonRpc;
 namespace Novalist.Backend.Rpc;
 
 /// <summary>
-/// Fields the writer added to scenes and chapters, and the values on each one.
+/// Fields the writer added to scenes, chapters, plotlines, timeline events and
+/// research items, and the values on each one.
 ///
-/// The Codex has had typed custom properties for a long time; the manuscript
-/// had a closed field set, so anything the writer wanted to track about a scene
-/// had to be smuggled through tags - where nothing downstream could sort, group
-/// or total it.
+/// The Codex has had typed custom properties for a long time; nothing else did,
+/// so anything the writer wanted to track about a scene or a source had to be
+/// smuggled through tags - where nothing downstream could sort, group or total
+/// it.
 /// </summary>
 public sealed class ManuscriptPropertyRpc
 {
@@ -21,7 +22,9 @@ public sealed class ManuscriptPropertyRpc
         _workspace = workspace;
     }
 
-    private ManuscriptPropertyService Service => new(_workspace.Projects);
+    private ManuscriptPropertyService Service => new(
+        _workspace.Projects,
+        new ResearchService(_workspace.Projects, _workspace.FileService));
 
     [JsonRpcMethod("manuscriptProps/definitions")]
     public ManuscriptPropertyDto[] Definitions() => [.. Service.Definitions().Select(ToDto)];
@@ -50,6 +53,42 @@ public sealed class ManuscriptPropertyRpc
         string chapterGuid, string key, string? value)
     {
         var values = await Service.SetChapterValueAsync(chapterGuid, key, value);
+        return values.ToDictionary(kv => kv.Key, kv => kv.Value);
+    }
+
+    [JsonRpcMethod("manuscriptProps/plotlineValues")]
+    public Dictionary<string, string> PlotlineValues(string plotlineId)
+        => Service.PlotlineValues(plotlineId).ToDictionary(kv => kv.Key, kv => kv.Value);
+
+    [JsonRpcMethod("manuscriptProps/setPlotlineValue")]
+    public async Task<Dictionary<string, string>> SetPlotlineValueAsync(
+        string plotlineId, string key, string? value)
+    {
+        var values = await Service.SetPlotlineValueAsync(plotlineId, key, value);
+        return values.ToDictionary(kv => kv.Key, kv => kv.Value);
+    }
+
+    [JsonRpcMethod("manuscriptProps/eventValues")]
+    public Dictionary<string, string> EventValues(string eventId)
+        => Service.EventValues(eventId).ToDictionary(kv => kv.Key, kv => kv.Value);
+
+    [JsonRpcMethod("manuscriptProps/setEventValue")]
+    public async Task<Dictionary<string, string>> SetEventValueAsync(
+        string eventId, string key, string? value)
+    {
+        var values = await Service.SetEventValueAsync(eventId, key, value);
+        return values.ToDictionary(kv => kv.Key, kv => kv.Value);
+    }
+
+    [JsonRpcMethod("manuscriptProps/researchValues")]
+    public Dictionary<string, string> ResearchValues(string itemId)
+        => Service.ResearchValues(itemId).ToDictionary(kv => kv.Key, kv => kv.Value);
+
+    [JsonRpcMethod("manuscriptProps/setResearchValue")]
+    public async Task<Dictionary<string, string>> SetResearchValueAsync(
+        string itemId, string key, string? value)
+    {
+        var values = await Service.SetResearchValueAsync(itemId, key, value);
         return values.ToDictionary(kv => kv.Key, kv => kv.Value);
     }
 

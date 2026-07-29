@@ -316,3 +316,27 @@
   grid-template-columns: 1fr 1fr;
   gap: var(--nl-space-sm);
 }
+
+/* ===== The writer's own fields, on a plotline, event or research item ===== */
+.custom-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-md);
+  padding-top: var(--nl-space-sm);
+  border-top: 1px solid var(--nl-border-subtle);
+}
+
+.custom-field {
+  display: grid;
+  grid-template-columns: minmax(90px, 30%) 1fr;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.custom-field-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

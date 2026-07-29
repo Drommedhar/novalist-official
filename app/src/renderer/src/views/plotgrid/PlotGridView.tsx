@@ -7,6 +7,7 @@ import { useProjectStore } from '../../stores/projectStore'
 import { ContextMenu } from '../../shell/ContextMenu'
 import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
+import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
 import { PromisesPanel } from './PromisesPanel'
 
 interface PlotGridDto {
@@ -22,6 +23,7 @@ interface PlotGridDto {
 
 type Pending =
   | { kind: 'create' }
+  | { kind: 'fields'; id: string; name: string }
   | { kind: 'rename'; id: string; current: string }
   | { kind: 'delete'; id: string; name: string }
   | {
@@ -170,6 +172,10 @@ export function PlotGridView(): React.JSX.Element {
               onClick: () => setPending({ kind: 'rename', id: menu.id, current: menu.name })
             },
             {
+              label: t('props.yourFields'),
+              onClick: () => setPending({ kind: 'fields', id: menu.id, name: menu.name })
+            },
+            {
               label: t('explorer.contextDelete'),
               danger: true,
               onClick: () => setPending({ kind: 'delete', id: menu.id, name: menu.name })
@@ -196,6 +202,22 @@ export function PlotGridView(): React.JSX.Element {
               .then(setGrid)
           }}
         />
+      )}
+      {pending?.kind === 'fields' && (
+        <div
+          className="dialog-overlay"
+          onPointerDown={(e) => e.target === e.currentTarget && setPending(null)}
+        >
+          <div className="dialog-card" role="dialog" aria-label={pending.name}>
+            <span className="dialog-title">{pending.name}</span>
+            <CustomFieldsPanel scope="Plotline" id={pending.id} />
+            <div className="dialog-actions">
+              <button className="dialog-button" onClick={() => setPending(null)}>
+                {t('dialog.close')}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {pending?.kind === 'create' && (
         <InputDialog

@@ -62,4 +62,9 @@ public sealed class ResearchItem
 
     [JsonPropertyName("order")]
     public int Order { get; set; }
+
+    /// <summary>Values for the writer's own fields, keyed by property key.</summary>
+    [JsonPropertyName("properties")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Properties { get; set; }
 }

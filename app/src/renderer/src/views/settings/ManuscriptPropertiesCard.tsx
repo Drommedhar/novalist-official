@@ -77,6 +77,9 @@ export function ManuscriptPropertiesCard(): React.JSX.Element {
           >
             <option value="Scene">{t('props.scopeScene')}</option>
             <option value="Chapter">{t('props.scopeChapter')}</option>
+            <option value="Plotline">{t('props.scopePlotline')}</option>
+            <option value="Event">{t('props.scopeEvent')}</option>
+            <option value="Research">{t('props.scopeResearch')}</option>
           </select>
           <select
             className="inspector-input"

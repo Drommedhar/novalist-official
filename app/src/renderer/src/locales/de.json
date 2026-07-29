@@ -2526,7 +2526,11 @@
     "unset": "Nicht gesetzt",
     "unsaved": "Nicht gespeicherte Änderungen. Ein entferntes Feld nimmt die dafür eingetragenen Werte mit.",
     "sceneTitle": "Felder",
-    "none": "Für dieses Buch sind noch keine Felder definiert."
+    "none": "Für dieses Buch sind noch keine Felder definiert.",
+    "scopePlotline": "Handlungsstrang",
+    "scopeEvent": "Zeitstrahl-Ereignis",
+    "scopeResearch": "Recherche-Eintrag",
+    "yourFields": "Eigene Felder"
   },
   "board": {
     "groupBy": "Gruppieren nach",

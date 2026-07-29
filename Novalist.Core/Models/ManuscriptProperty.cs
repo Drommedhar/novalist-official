@@ -2,20 +2,30 @@ using System.Text.Json.Serialization;
 
 namespace Novalist.Core.Models;
 
-/// <summary>Whether a manuscript property is asked of scenes or of chapters.</summary>
+/// <summary>What kind of thing a property is asked of.</summary>
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum ManuscriptPropertyScope
 {
     Scene,
-    Chapter
+    Chapter,
+
+    /// <summary>A plot thread: what promise it makes, which act it resolves in.</summary>
+    Plotline,
+
+    /// <summary>A manual timeline event: who ordered it, whether it is on the page.</summary>
+    Event,
+
+    /// <summary>A research item: where it came from, whether it has been checked.</summary>
+    Research
 }
 
 /// <summary>
-/// One field the writer added to every scene or every chapter.
+/// One field the writer added to every scene, chapter, plotline, timeline
+/// event or research item.
 ///
-/// Codex entries have had typed custom properties for a long time; the
-/// manuscript never did, so a writer who wanted to track tension, a draft note
-/// or which pass a scene was on had to overload tags - and nothing downstream
+/// Codex entries have had typed custom properties for a long time; nothing else
+/// did, so a writer who wanted to track tension, a source's reliability or
+/// which act a thread resolves in had to overload tags - and nothing downstream
 /// could tell a tension of 7 from the word "7".
 /// </summary>
 public sealed class ManuscriptPropertyDefinition

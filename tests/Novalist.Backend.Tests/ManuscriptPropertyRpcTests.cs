@@ -121,4 +121,44 @@ public sealed class ManuscriptPropertyRpcTests : IDisposable
 
         Assert.Empty(await _rpc.SetDefinitionsAsync(null!));
     }
+
+    [Fact]
+    public async Task PlotlineEventAndResearchValuesRoundTrip()
+    {
+        var plotline = new Novalist.Core.Models.PlotlineData { Name = "The betrayal" };
+        _workspace.Projects.ActiveBook!.Plotlines.Add(plotline);
+        var story = new Novalist.Core.Models.TimelineManualEvent
+        {
+            Id = Guid.NewGuid().ToString(),
+            Title = "The fire"
+        };
+        _workspace.Projects.ProjectSettings.Timeline.ManualEvents.Add(story);
+        var research = new Novalist.Core.Models.ResearchItem { Title = "Ship logs" };
+        await new Novalist.Core.Services.ResearchService(
+            _workspace.Projects, _workspace.FileService).SaveAsync(research);
+
+        await _rpc.SetDefinitionsAsync([
+            new ManuscriptPropertyDto("resolvesIn", "Resolves in", "String", [], "Plotline", false),
+            new ManuscriptPropertyDto("onThePage", "On the page", "Bool", [], "Event", false),
+            new ManuscriptPropertyDto("checked", "Checked", "Date", [], "Research", false)
+        ]);
+
+        await _rpc.SetPlotlineValueAsync(plotline.Id, "resolvesIn", "Act III");
+        await _rpc.SetEventValueAsync(story.Id, "onThePage", "true");
+        await _rpc.SetResearchValueAsync(research.Id, "checked", "2026-03-14");
+
+        Assert.Equal("Act III", _rpc.PlotlineValues(plotline.Id)["resolvesIn"]);
+        Assert.Equal("true", _rpc.EventValues(story.Id)["onThePage"]);
+        Assert.Equal("2026-03-14", _rpc.ResearchValues(research.Id)["checked"]);
+    }
+
+    [Fact]
+    public async Task AScopeTheRendererDoesNotKnowFallsBackToScene()
+    {
+        var saved = await _rpc.SetDefinitionsAsync([
+            new ManuscriptPropertyDto("mood", "Mood", "String", [], "Somewhere", false)
+        ]);
+
+        Assert.Equal("Scene", Assert.Single(saved).Scope);
+    }
 }

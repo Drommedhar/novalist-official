@@ -2560,7 +2560,11 @@
     "unset": "未设置",
     "unsaved": "有未保存的更改。删除字段会一并删除已填写的内容。",
     "sceneTitle": "字段",
-    "none": "本书尚未定义任何字段。"
+    "none": "本书尚未定义任何字段。",
+    "scopePlotline": "情节线",
+    "scopeEvent": "时间线事件",
+    "scopeResearch": "资料条目",
+    "yourFields": "自定义字段"
   },
   "board": {
     "groupBy": "分组依据",

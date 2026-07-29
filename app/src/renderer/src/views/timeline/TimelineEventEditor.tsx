@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { useProjectStore } from '../../stores/projectStore'
 import type { TimelineEventDto } from './TimelineView'
+import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
 
 export interface TimelineEventDraft {
   title: string
@@ -34,6 +35,10 @@ export function TimelineEventEditor({
   const [description, setDescription] = useState(initial?.description ?? '')
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? 'plot')
   const [linkedChapter, setLinkedChapter] = useState(initial?.chapterGuid ?? '')
+  // The timeline prefixes a manual event's id to keep it apart from the
+  // generated ones; the stored event knows itself by the bare id.
+  const eventId =
+    initial?.isManual && initial.id.startsWith('manual-') ? initial.id.slice('manual-'.length) : ''
 
   const submit = (): void => {
     if (title.trim().length === 0) return
@@ -111,6 +116,9 @@ export function TimelineEventEditor({
           value={description}
           onChange={setDescription}
         />
+        {/* Only for an event that exists: a field written against a draft
+            would have nothing to be stored on. */}
+        {eventId && <CustomFieldsPanel scope="Event" id={eventId} />}
         <div className="dialog-actions">
           {onDelete && (
             <button className="dialog-button danger" onClick={onDelete}>

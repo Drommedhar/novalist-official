@@ -14,10 +14,13 @@ namespace Novalist.Core.Services;
 public sealed class ManuscriptPropertyService
 {
     private readonly IProjectService _projectService;
+    private readonly IResearchService? _research;
 
-    public ManuscriptPropertyService(IProjectService projectService)
+    public ManuscriptPropertyService(
+        IProjectService projectService, IResearchService? research = null)
     {
         _projectService = projectService;
+        _research = research;
     }
 
     /// <summary>Every defined property, optionally narrowed to one scope.</summary>
@@ -111,6 +114,54 @@ public sealed class ManuscriptPropertyService
         return scene.Properties ?? new Dictionary<string, string>();
     }
 
+    /// <summary>Values on one plotline, keyed by property key.</summary>
+    public IReadOnlyDictionary<string, string> PlotlineValues(string plotlineId)
+        => FindPlotline(plotlineId)?.Properties ?? new Dictionary<string, string>();
+
+    /// <summary>Values on one manual timeline event.</summary>
+    public IReadOnlyDictionary<string, string> EventValues(string eventId)
+        => FindEvent(eventId)?.Properties ?? new Dictionary<string, string>();
+
+    /// <summary>Values on one research item.</summary>
+    public IReadOnlyDictionary<string, string> ResearchValues(string itemId)
+        => FindResearch(itemId)?.Properties ?? new Dictionary<string, string>();
+
+    /// <summary>Sets one value on a plotline.</summary>
+    public async Task<IReadOnlyDictionary<string, string>> SetPlotlineValueAsync(
+        string plotlineId, string key, string? value)
+    {
+        var plotline = FindPlotline(plotlineId)
+            ?? throw new InvalidOperationException($"Unknown plotline '{plotlineId}'.");
+        plotline.Properties = Apply(
+            plotline.Properties, ManuscriptPropertyScope.Plotline, key, value);
+        await _projectService.SaveProjectAsync();
+        return plotline.Properties ?? new Dictionary<string, string>();
+    }
+
+    /// <summary>Sets one value on a manual timeline event.</summary>
+    public async Task<IReadOnlyDictionary<string, string>> SetEventValueAsync(
+        string eventId, string key, string? value)
+    {
+        var story = FindEvent(eventId)
+            ?? throw new InvalidOperationException($"Unknown event '{eventId}'.");
+        story.Properties = Apply(story.Properties, ManuscriptPropertyScope.Event, key, value);
+        await _projectService.SaveProjectSettingsAsync();
+        return story.Properties ?? new Dictionary<string, string>();
+    }
+
+    /// <summary>Sets one value on a research item.</summary>
+    public async Task<IReadOnlyDictionary<string, string>> SetResearchValueAsync(
+        string itemId, string key, string? value)
+    {
+        var item = FindResearch(itemId)
+            ?? throw new InvalidOperationException($"Unknown research item '{itemId}'.");
+        item.Properties = Apply(item.Properties, ManuscriptPropertyScope.Research, key, value);
+        // Research items are saved one at a time, and only through the service
+        // that owns their file.
+        if (_research != null) await _research.SaveAsync(item);
+        return item.Properties ?? new Dictionary<string, string>();
+    }
+
     /// <summary>Sets one value on a chapter.</summary>
     public async Task<IReadOnlyDictionary<string, string>> SetChapterValueAsync(
         string chapterGuid, string key, string? value)
@@ -176,12 +227,33 @@ public sealed class ManuscriptPropertyService
     /// </summary>
     private async Task PruneValuesAsync(IReadOnlyList<ManuscriptPropertyDefinition> definitions)
     {
-        var sceneKeys = definitions
-            .Where(d => d.Scope == ManuscriptPropertyScope.Scene)
-            .Select(d => d.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var chapterKeys = definitions
-            .Where(d => d.Scope == ManuscriptPropertyScope.Chapter)
-            .Select(d => d.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var sceneKeys = KeysFor(definitions, ManuscriptPropertyScope.Scene);
+        var chapterKeys = KeysFor(definitions, ManuscriptPropertyScope.Chapter);
+
+        // Plotlines live in the project file with the chapters, events in the
+        // project settings, and research one file per item - so each kind is
+        // pruned in place and only the files that changed are written.
+        var plotlinesTouched = PruneEach(
+            _projectService.ActiveBook?.Plotlines ?? [],
+            p => p.Properties, (p, v) => p.Properties = v,
+            KeysFor(definitions, ManuscriptPropertyScope.Plotline));
+
+        if (PruneEach(
+                _projectService.ProjectSettings?.Timeline?.ManualEvents ?? [],
+                e => e.Properties, (e, v) => e.Properties = v,
+                KeysFor(definitions, ManuscriptPropertyScope.Event)))
+            await _projectService.SaveProjectSettingsAsync();
+
+        if (_research != null)
+        {
+            var researchKeys = KeysFor(definitions, ManuscriptPropertyScope.Research);
+            foreach (var item in _research.GetAll())
+            {
+                if (!PruneOne(item.Properties, researchKeys, out var pruned)) continue;
+                item.Properties = pruned;
+                await _research.SaveAsync(item);
+            }
+        }
 
         var scenesTouched = false;
         foreach (var scene in AllScenes())
@@ -195,7 +267,8 @@ public sealed class ManuscriptPropertyService
             if (scene.Properties.Count == 0) scene.Properties = null;
         }
 
-        var chaptersTouched = false;
+        // Plotlines sit in the same file as the chapters, so one write covers both.
+        var chaptersTouched = plotlinesTouched;
         foreach (var chapter in _projectService.ActiveBook?.Chapters ?? [])
         {
             if (chapter.Properties == null) continue;
@@ -210,6 +283,55 @@ public sealed class ManuscriptPropertyService
         if (scenesTouched) await _projectService.SaveScenesAsync();
         if (chaptersTouched) await _projectService.SaveProjectAsync();
     }
+
+    private static HashSet<string> KeysFor(
+        IReadOnlyList<ManuscriptPropertyDefinition> definitions, ManuscriptPropertyScope scope)
+        => definitions.Where(d => d.Scope == scope).Select(d => d.Key)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Drops values with no definition from every item in a list. Returns
+    /// whether anything changed, so the caller only writes the file if it did.
+    /// </summary>
+    private static bool PruneEach<T>(
+        IEnumerable<T> items,
+        Func<T, Dictionary<string, string>?> read,
+        Action<T, Dictionary<string, string>?> write,
+        HashSet<string> keep)
+    {
+        var touched = false;
+        foreach (var item in items)
+        {
+            if (!PruneOne(read(item), keep, out var pruned)) continue;
+            write(item, pruned);
+            touched = true;
+        }
+        return touched;
+    }
+
+    private static bool PruneOne(
+        Dictionary<string, string>? values, HashSet<string> keep,
+        out Dictionary<string, string>? pruned)
+    {
+        pruned = values;
+        if (values == null) return false;
+
+        var gone = values.Keys.Where(k => !keep.Contains(k)).ToList();
+        if (gone.Count == 0) return false;
+
+        foreach (var key in gone) values.Remove(key);
+        pruned = values.Count > 0 ? values : null;
+        return true;
+    }
+
+    private PlotlineData? FindPlotline(string id)
+        => _projectService.ActiveBook?.Plotlines.FirstOrDefault(p => p.Id == id);
+
+    private TimelineManualEvent? FindEvent(string id)
+        => _projectService.ProjectSettings?.Timeline?.ManualEvents.FirstOrDefault(e => e.Id == id);
+
+    private ResearchItem? FindResearch(string id)
+        => _research?.GetAll().FirstOrDefault(i => i.Id == id);
 
     private IEnumerable<SceneData> AllScenes()
     {

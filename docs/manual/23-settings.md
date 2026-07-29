@@ -103,9 +103,9 @@ The labels a scene in the open book can carry: a name and a colour each. See [Sc
 
 Labels live with the book, like the scene stages. Removing one takes it off the scenes carrying it.
 
-## Scene and Chapter Fields
+## Your Own Fields
 
-Fields of your own on every scene or every chapter of the open book, beyond the fixed set Novalist ships. Each has a label, a scope (scene or chapter) and a type:
+Fields of your own on the open book's scenes, chapters, plotlines, timeline events and research items, beyond the fixed set Novalist ships. Each has a label, a scope and a type:
 
 - **Text** - free text.
 - **Number** - sorts and totals as a number.
@@ -113,9 +113,21 @@ Fields of your own on every scene or every chapter of the open book, beyond the 
 - **Date** - a date picker.
 - **One of a list** - a drop-down of choices you type in, comma separated.
 
-Scene fields can be ticked **Show as a column in the outliner** to appear in the [Manuscript outliner](10-manuscript.md#your-own-scene-and-chapter-fields), editable in place. They are always editable in the scene notes dock under the editor; chapter fields are edited in the Chapter dialog.
+The scope decides where the field is asked for:
 
-Definitions live with the book, not globally - the things worth tracking in a thriller and in a short-story collection are rarely the same list. **Removing a field removes the values you filled in for it**, in every scene and chapter.
+| Scope | Edited in |
+| --- | --- |
+| Scene | The scene notes dock, and the [Manuscript outliner](10-manuscript.md#your-own-scene-and-chapter-fields) when ticked as a column |
+| Chapter | The Chapter dialog |
+| Plotline | Right-click a plotline in the [Plot Grid](08-plot-grid.md) and pick **Your fields** |
+| Timeline event | The event editor in the [Timeline](12-timeline.md), once the event exists |
+| Research item | Under the item in the [Research](15-research.md) view |
+
+Scene fields can be ticked **Show as a column in the outliner**, editable in place. A dozen fields is not a dozen columns anybody wants to read, so it is off by default.
+
+The same key means different things in different scopes: a plotline's "status" and a research item's "status" are two separate questions and neither overwrites the other.
+
+Definitions live with the book, not globally - the things worth tracking in a thriller and in a short-story collection are rarely the same list. **Removing a field removes the values you filled in for it**, everywhere it reached.
 
 ## Writing Assistance
 
