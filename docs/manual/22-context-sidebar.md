@@ -4,6 +4,7 @@ The **Inspector** is the right-hand context sidebar of the Novalist window. For 
 
 - **Context** — scene context and analysis (entities, mention matrix, editable POV/emotion/intensity/conflict/tags).
 - **Footnotes** — the footnotes and comments anchored in the open scene.
+- **Inbox** — every open note in the book, with replies and to-dos.
 
 The scene's **synopsis** and freeform **notes** live in the [scene-notes dock](02-interface-overview.md) beneath the editor (`Ctrl+Shift+N`), and the scene's **snapshot history** is opened from the toolbar Snapshots button. (This pane was called the context sidebar in earlier versions.)
 
@@ -57,6 +58,18 @@ Adding a language is a data change, not a code change: drop an `analysis.<tag>.j
 - **Tags** — a comma-separated list; the current tags also appear as chips below the field.
 
 Beneath the analysis, a stats line reports the scene's **word count**, **dialogue percentage**, and **average sentence length**.
+
+## Inbox tab
+
+The **Inbox** tab lists every open note in the whole book, not just the open scene — because a note you cannot find again is a note you did not leave.
+
+Each entry shows which chapter and scene it is in (click to open that scene), the text it was anchored to, the note itself, and who left it. From the row you can:
+
+- **Mark done** — resolve it. Resolved notes drop out of the list; tick **Include resolved** to see them again, or reopen one.
+- **Make this a to-do** — flag it as a job rather than a remark. Tick **To-dos only** to see just those.
+- **Reply** — type an answer and press Enter. Replies stack under the note, each with its author, which is how a note becomes a conversation.
+
+Authors come from the project's **Author** setting, stamped when a note is created.
 
 ## Footnotes and comments (Footnotes tab)
 

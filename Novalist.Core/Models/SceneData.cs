@@ -209,6 +209,45 @@ public class SceneComment
 
     [JsonPropertyName("resolved")]
     public bool Resolved { get; set; }
+
+    /// <summary>
+    /// Who left it. Stamped from the project's author when a comment arrives
+    /// without one, so a file that came back from an editor keeps saying whose
+    /// note is whose.
+    /// </summary>
+    [JsonPropertyName("author")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Author { get; set; }
+
+    /// <summary>
+    /// Whether this is a job rather than a remark - "check the timetable",
+    /// "this paragraph needs cutting". Both live in the same inbox; only one
+    /// of them is a task.
+    /// </summary>
+    [JsonPropertyName("isTodo")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IsTodo { get; set; }
+
+    /// <summary>Answers to the comment, oldest first. Null when nobody replied.</summary>
+    [JsonPropertyName("replies")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<CommentReply>? Replies { get; set; }
+}
+
+/// <summary>One answer in a comment thread.</summary>
+public class CommentReply
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = System.Guid.NewGuid().ToString();
+
+    [JsonPropertyName("author")]
+    public string Author { get; set; } = string.Empty;
+
+    [JsonPropertyName("text")]
+    public string Text { get; set; } = string.Empty;
+
+    [JsonPropertyName("createdAt")]
+    public System.DateTime CreatedAt { get; set; } = System.DateTime.UtcNow;
 }
 
 public class SceneAnalysisOverrides

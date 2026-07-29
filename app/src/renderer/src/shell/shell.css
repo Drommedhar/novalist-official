@@ -3324,3 +3324,90 @@
 .promise-scene:hover {
   color: var(--nl-accent);
 }
+
+/* Every open note in the book, with where it is and who left it. */
+.inbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm);
+}
+
+.inbox-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.inbox-empty {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-body-sm);
+}
+
+.inbox-item {
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter);
+}
+
+.inbox-item.resolved {
+  opacity: 0.6;
+}
+
+.inbox-where {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox-where:hover {
+  color: var(--nl-accent);
+}
+
+.inbox-anchor {
+  border-left: 2px solid var(--nl-border);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  padding-left: var(--nl-space-tighter);
+}
+
+.inbox-text {
+  font-size: var(--nl-font-body-sm);
+}
+
+.inbox-author {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.inbox-reply {
+  align-items: baseline;
+  color: var(--nl-text-dim);
+  display: flex;
+  gap: var(--nl-space-tightest);
+  padding-left: var(--nl-space-tighter);
+}
+
+.inbox-reply-text {
+  font-size: var(--nl-font-caption);
+}
+
+.inbox-actions {
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.inbox-action {
+  color: var(--nl-text-subtle);
+}
+
+.inbox-action:hover,
+.inbox-action.active {
+  color: var(--nl-accent);
+}

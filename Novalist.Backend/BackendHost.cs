@@ -89,6 +89,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new ManuscriptPropertyRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new PremiseRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new PromiseRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new InboxRpc(_workspace), targetOptions);
         var extensionsRpc = new ExtensionsRpc(_workspace);
         rpc.AddLocalRpcTarget(extensionsRpc, targetOptions);
         rpc.AddLocalRpcTarget(new ExtensionContribRpc(_workspace), targetOptions);

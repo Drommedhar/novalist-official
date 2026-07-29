@@ -2404,5 +2404,17 @@
     "stateUnpaid": "Unpaid",
     "stateBroken": "Payoff gone",
     "stateOutOfOrder": "Out of order"
+  },
+  "inbox": {
+    "tab": "Inbox",
+    "empty": "No open notes in this book.",
+    "todosOnly": "To-dos only",
+    "showResolved": "Include resolved",
+    "resolve": "Mark done",
+    "reopen": "Reopen",
+    "makeTodo": "Make this a to-do",
+    "notATodo": "No longer a to-do",
+    "reply": "Reply",
+    "replyPlaceholder": "Reply, then press Enter"
   }
 }

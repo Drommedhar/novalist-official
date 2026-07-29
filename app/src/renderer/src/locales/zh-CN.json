@@ -2446,5 +2446,17 @@
     "stateUnpaid": "未回收",
     "stateBroken": "回收场景已删除",
     "stateOutOfOrder": "顺序错乱"
+  },
+  "inbox": {
+    "tab": "收件箱",
+    "empty": "本书没有未处理的批注。",
+    "todosOnly": "仅显示待办",
+    "showResolved": "包含已解决",
+    "resolve": "标记为完成",
+    "reopen": "重新打开",
+    "makeTodo": "设为待办",
+    "notATodo": "不再是待办",
+    "reply": "回复",
+    "replyPlaceholder": "输入回复，按回车"
   }
 }

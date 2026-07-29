@@ -153,14 +153,27 @@ public sealed class ScenesRpc
         SceneFootnoteDto[] footnotes)
     {
         var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        // The panel only knows about the text and the resolved flag. Rebuilding
+        // each comment from that alone would throw away its author, its replies
+        // and whether it is a to-do every time somebody edited one.
+        var existing = (scene.Comments ?? []).ToDictionary(c => c.Id, StringComparer.Ordinal);
+        var author = _workspace.Projects.ProjectSettings.Author;
         scene.Comments = comments.Length == 0
             ? null
-            : comments.Select(c => new Novalist.Core.Models.SceneComment
+            : comments.Select(c =>
             {
-                Id = c.Id,
-                AnchorText = c.AnchorText,
-                Text = c.Text,
-                Resolved = c.Resolved
+                var kept = existing.GetValueOrDefault(c.Id);
+                return new Novalist.Core.Models.SceneComment
+                {
+                    Id = c.Id,
+                    AnchorText = c.AnchorText,
+                    Text = c.Text,
+                    Resolved = c.Resolved,
+                    CreatedAt = kept?.CreatedAt ?? DateTime.UtcNow,
+                    Author = kept?.Author ?? (string.IsNullOrWhiteSpace(author) ? null : author),
+                    IsTodo = kept?.IsTodo ?? false,
+                    Replies = kept?.Replies
+                };
             }).ToList();
         scene.Footnotes = footnotes.Length == 0
             ? null

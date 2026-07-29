@@ -46,7 +46,7 @@ export interface ActiveExtView {
 }
 
 /** Right context sidebar tabs, mirroring the desktop Context / Footnotes tabs. */
-export type InspectorTab = 'context' | 'footnotes'
+export type InspectorTab = 'context' | 'footnotes' | 'inbox'
 
 /** Active destination in the mobile bottom (native Liquid Glass) tab bar. */
 export type MobileTab = 'dashboard' | 'manuscript' | 'codex' | 'planning' | 'settings'

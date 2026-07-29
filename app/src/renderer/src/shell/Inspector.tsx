@@ -5,6 +5,7 @@ import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { rpc } from '../rpc/client'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
+import { InboxPanel } from './InboxPanel'
 import { PanelResizer } from './PanelResizer'
 import './inspector.css'
 
@@ -101,6 +102,15 @@ export function Inspector(): React.JSX.Element {
         >
           {t('footnotes.tab')}
         </button>
+        {/* Every open note in the book, not only this scene's: a note you
+            cannot find again is a note you did not leave. */}
+        <button
+          type="button"
+          className={`inspector-tab${inspectorTab === 'inbox' ? ' active' : ''}`}
+          onClick={() => setInspectorTab('inbox')}
+        >
+          {t('inbox.tab')}
+        </button>
       </div>
       <div className="inspector-body">
         {inspectorTab === 'context' && (
@@ -117,6 +127,7 @@ export function Inspector(): React.JSX.Element {
         {inspectorTab === 'footnotes' && (
           <AnnotationsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
         )}
+        {inspectorTab === 'inbox' && <InboxPanel />}
       </div>
     </aside>
   )

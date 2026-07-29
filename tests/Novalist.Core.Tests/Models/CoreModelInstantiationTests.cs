@@ -28,6 +28,10 @@ public class CoreModelInstantiationTests
         Assert.NotEmpty(new TimelineData().Categories);
         Assert.NotNull(new ResearchItem());
         Assert.NotNull(new SceneFootnote());
+        // A reply carries its own id so a thread can be edited in place
+        // rather than only appended to.
+        Assert.NotEmpty(new CommentReply().Id);
+        Assert.NotEmpty(new ScenePromise().Id);
         Assert.NotNull(new SceneComment());
     }
 
