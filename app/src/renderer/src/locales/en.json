@@ -1743,7 +1743,8 @@
     "filterFinal": "Final",
     "viewModeManuscript": "Manuscript",
     "viewModeCorkboard": "Corkboard",
-    "viewModeOutliner": "Outliner"
+    "viewModeOutliner": "Outliner",
+    "viewModeBoard": "Board"
   },
   "entityTypeManager": {
     "displayName": "Display Name",
@@ -2345,5 +2346,10 @@
     "unsaved": "Unsaved changes. Removing a field also removes what you filled in for it.",
     "sceneTitle": "Fields",
     "none": "No fields defined for this book yet."
+  },
+  "board": {
+    "groupBy": "Group by",
+    "unset": "Not set",
+    "yes": "Yes"
   }
 }

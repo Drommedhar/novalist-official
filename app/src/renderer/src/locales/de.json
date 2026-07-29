@@ -1367,7 +1367,8 @@
     "filterFinal": "Fertig",
     "viewModeManuscript": "Manuskript",
     "viewModeCorkboard": "Pinnwand",
-    "viewModeOutliner": "Übersicht"
+    "viewModeOutliner": "Übersicht",
+    "viewModeBoard": "Board"
   },
   "entityTypeManager": {
     "displayName": "Anzeigename",
@@ -2353,5 +2354,10 @@
     "unsaved": "Nicht gespeicherte Änderungen. Ein entferntes Feld nimmt die dafür eingetragenen Werte mit.",
     "sceneTitle": "Felder",
     "none": "Für dieses Buch sind noch keine Felder definiert."
+  },
+  "board": {
+    "groupBy": "Gruppieren nach",
+    "unset": "Nicht gesetzt",
+    "yes": "Ja"
   }
 }

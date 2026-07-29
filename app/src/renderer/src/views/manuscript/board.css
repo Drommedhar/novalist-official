@@ -1,0 +1,67 @@
+/* Scene cards in columns, grouped by whatever the writer picked. Columns
+   scroll sideways as a set; each column scrolls its own cards. */
+.board {
+  display: flex;
+  flex: 1;
+  gap: var(--nl-space-md);
+  min-height: 0;
+  overflow-x: auto;
+  padding: var(--nl-space-md);
+}
+
+.board-column {
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  overflow-y: auto;
+  padding: var(--nl-space-sm);
+  width: 260px;
+}
+
+.board-column.over {
+  border-color: var(--nl-accent);
+}
+
+.board-column-head {
+  align-items: center;
+  display: flex;
+  gap: var(--nl-space-sm);
+  justify-content: space-between;
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  position: sticky;
+  top: 0;
+}
+
+.board-column-title {
+  font-size: var(--nl-font-body-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-column-count {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.board-card {
+  cursor: grab;
+}
+
+.board-card-chapter,
+.board-card-synopsis {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.board-card-synopsis {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}

@@ -23,6 +23,8 @@ At the top-right, a status filter limits which chapters are included in all thre
 
 Chapters at Revised or Edited status appear under **All**.
 
+Four modes share the toolbar: **Manuscript**, **Corkboard**, **Outliner** and **Board**.
+
 ## Manuscript mode
 
 The default mode. All chapters and scenes render top-to-bottom as one scrollable document:
@@ -67,6 +69,21 @@ The outliner is useful for:
 The outliner's last built-in column is each scene's [word target](04-chapters-and-scenes.md#word-targets). Type a number to set one, clear the field for none. This is the fastest place to set targets across a run of scenes, since you can tab straight down the column.
 
 Any [scene field](#your-own-scene-and-chapter-fields) you marked **Show as a column in the outliner** gets its own column after this one, editable the same way.
+
+## Board mode
+
+**Board** lays the book out as columns of scene cards, grouped by something you choose rather than always by chapter:
+
+- **Scene stage** (the default) - one column per [stage](04-chapters-and-scenes.md#scene-stages). This is the revision view: what is drafted, what is revised, what nobody has looked at.
+- **Chapters** - one column per chapter.
+- **POV** - one column per point-of-view character in the book.
+- **Any scene field of your own** that is text, a number, yes/no or a choice.
+
+There is always a **Not set** column at the end holding the scenes that have no value for whatever you grouped by. It is deliberately never hidden: a board that quietly drops the untriaged scenes reads as though the work is finished.
+
+**Dragging a card into another column writes that field.** Drop a scene in Revised and its stage becomes Revised; drop it in another chapter and the scene moves there; drop it in a POV column and its POV is set. That is what makes the board different from a filter - you rearrange the book by rearranging the cards.
+
+Clicking a card's title opens the scene; ctrl-click and shift-click select cards the same way they do everywhere else, and the bulk bar appears once two are selected.
 
 ## Your own scene and chapter fields
 

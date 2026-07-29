@@ -19,7 +19,7 @@ export interface ManuscriptSectionDto {
   scenes: ManuscriptSceneDto[]
 }
 
-export type ManuscriptMode = 'manuscript' | 'corkboard' | 'outliner'
+export type ManuscriptMode = 'manuscript' | 'corkboard' | 'outliner' | 'board'
 
 // Matches the Avalonia ManuscriptViewModel autosave debounce.
 const MANUSCRIPT_AUTOSAVE_MS = 800
@@ -28,10 +28,13 @@ const saveTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 interface ManuscriptState {
   mode: ManuscriptMode
+  /** What the board groups by: 'chapter', 'stage', 'pov', or 'prop:<key>'. */
+  groupBy: string
   filterStatus: string
   sections: ManuscriptSectionDto[]
   loaded: boolean
   setMode(mode: ManuscriptMode): void
+  setGroupBy(groupBy: string): void
   setFilter(status: string): Promise<void>
   load(): Promise<void>
   onSceneContentChanged(sceneId: string, html: string, plainText: string, wordCount: number): void
@@ -42,11 +45,14 @@ interface ManuscriptState {
 
 export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   mode: 'manuscript',
+  groupBy: 'stage',
   filterStatus: 'All',
   sections: [],
   loaded: false,
 
   setMode: (mode) => set({ mode }),
+
+  setGroupBy: (groupBy) => set({ groupBy }),
 
   setFilter: async (filterStatus) => {
     set({ filterStatus })

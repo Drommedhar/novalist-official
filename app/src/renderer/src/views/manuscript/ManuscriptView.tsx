@@ -7,6 +7,7 @@ import { useTargetStore } from '../../stores/targetStore'
 import { useManuscriptPropsStore } from '../../stores/manuscriptPropsStore'
 import { ManuscriptPropertyField } from '../../shell/ManuscriptPropertyField'
 import { SceneBulkBar } from '../../shell/SceneBulkBar'
+import { Board } from './Board'
 
 interface ManuscriptWindow extends Window {
   setManuscript(sectionsJson: string): void
@@ -25,7 +26,7 @@ interface ManuscriptWindow extends Window {
   setFont(family: string, size: number): void
 }
 
-const MODES: ManuscriptMode[] = ['manuscript', 'corkboard', 'outliner']
+const MODES: ManuscriptMode[] = ['manuscript', 'corkboard', 'outliner', 'board']
 const FILTERS = ['All', 'Outline', 'FirstDraft', 'Final']
 
 export function ManuscriptView(): React.JSX.Element {
@@ -36,10 +37,27 @@ export function ManuscriptView(): React.JSX.Element {
   const setMode = useManuscriptStore((s) => s.setMode)
   const setFilter = useManuscriptStore((s) => s.setFilter)
   const load = useManuscriptStore((s) => s.load)
+  const groupBy = useManuscriptStore((s) => s.groupBy)
+  const definitions = useManuscriptPropsStore((s) => s.definitions)
 
   useEffect(() => {
     void load()
   }, [load, filterStatus])
+
+  useEffect(() => {
+    void useManuscriptPropsStore.getState().load()
+  }, [])
+
+  // Only single-valued things a scene actually carries: dropping a card has to
+  // be able to write the answer, which a chapter's status or act is not.
+  const groupings = [
+    { key: 'stage', label: t('stages.title') },
+    { key: 'chapter', label: t('shell.chapters') },
+    { key: 'pov', label: t('common.povWatermark') },
+    ...definitions
+      .filter((d) => d.scope === 'Scene' && d.type !== 'Date')
+      .map((d) => ({ key: `prop:${d.key}`, label: d.label }))
+  ]
 
   return (
     <div className="manuscript">
@@ -55,6 +73,25 @@ export function ManuscriptView(): React.JSX.Element {
             </button>
           ))}
         </div>
+        {mode === 'board' && (
+          <div className="manuscript-filters">
+            <label className="settings-hint" htmlFor="board-group">
+              {t('board.groupBy')}
+            </label>
+            <select
+              id="board-group"
+              className="inspector-input"
+              value={groupBy}
+              onChange={(e) => useManuscriptStore.getState().setGroupBy(e.target.value)}
+            >
+              {groupings.map((g) => (
+                <option key={g.key} value={g.key}>
+                  {g.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="manuscript-filters">
           {FILTERS.map((f) => (
             <button
@@ -70,6 +107,7 @@ export function ManuscriptView(): React.JSX.Element {
       {mode === 'manuscript' && <ManuscriptFrame />}
       {mode === 'corkboard' && <Corkboard />}
       {mode === 'outliner' && <Outliner />}
+      {mode === 'board' && <Board />}
       {sections.length === 0 && mode !== 'manuscript' && (
         <p className="codex-empty">{t('shell.binderEmpty')}</p>
       )}

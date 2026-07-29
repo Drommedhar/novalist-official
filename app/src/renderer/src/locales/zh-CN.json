@@ -1778,7 +1778,8 @@
     "filterFinal": "定稿",
     "viewModeManuscript": "书稿视图",
     "viewModeCorkboard": "软木板视图",
-    "viewModeOutliner": "大纲视图"
+    "viewModeOutliner": "大纲视图",
+    "viewModeBoard": "看板"
   },
   "entityTypeManager": {
     "displayName": "显示名称",
@@ -2387,5 +2388,10 @@
     "unsaved": "有未保存的更改。删除字段会一并删除已填写的内容。",
     "sceneTitle": "字段",
     "none": "本书尚未定义任何字段。"
+  },
+  "board": {
+    "groupBy": "分组依据",
+    "unset": "未设置",
+    "yes": "是"
   }
 }
