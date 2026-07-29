@@ -78,6 +78,22 @@ Drag within the same chapter to change order. Drop the scene onto another chapte
 
 Right-click → **Toggle split editor** opens the scene in a second editor pane beside the one you are writing in — for example to reference an earlier scene. See [Editor](05-editor.md#split-editor).
 
+### Splitting a scene in two
+
+Put the caret where the scene should divide, right-click, and choose **Split scene here**. Everything from the caret onwards becomes a new scene directly below the original, named "Arrival (2)" by default — split that again and you get "(3)", not "(2) (2)".
+
+The first half keeps the original scene, so its id, its [snapshots](17-snapshots.md) and its history stay where they are. The new half inherits the metadata that still describes it: the same in-world date, the same [stage](#scene-stages), the same plotlines, the same label colour, and the same POV and analysis overrides. It does **not** inherit the synopsis — that described the whole scene, and copying it would leave two scenes claiming to be about the same thing.
+
+Splitting at the very start or the very end of a scene does nothing, since one half would be empty.
+
+### Merging two scenes
+
+Right-click a scene and choose **Merge with next**. The following scene's text is appended, and it is deleted.
+
+The surviving scene wins every conflict, because it is the one that remains and you chose the direction. Two exceptions, both because losing something is worse than keeping it: a synopsis or notes that only the second scene had are kept, and plotlines are **unioned** — a merged scene genuinely serves both threads.
+
+Doing this by hand meant creating a scene, cutting, pasting and then repairing order, date, plotlines, stage and overrides one at a time, which is where the mistakes came from.
+
 ### Deleting a scene
 
 Right-click → **Delete**. Asks to confirm. Snapshots of the deleted scene survive in the book's `Snapshots/` folder. If you might want the scene back, prefer **Archive**.

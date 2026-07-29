@@ -1244,7 +1244,8 @@
     "mentionNoMatches": "No matches",
     "contextMenu": {
       "createEntity": "Create entity from selection",
-      "appendToEntity": "Add selection to entity"
+      "appendToEntity": "Add selection to entity",
+      "splitScene": "Split scene here"
     }
   },
   "section": {
@@ -2217,5 +2218,8 @@
     "rights": "Rights",
     "publicationDate": "Publication date",
     "save": "Save metadata"
+  },
+  "splitMerge": {
+    "mergeWithNext": "Merge with next: {{title}}"
   }
 }

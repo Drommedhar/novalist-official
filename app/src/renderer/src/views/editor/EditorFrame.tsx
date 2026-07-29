@@ -11,7 +11,7 @@ import {
   type EditorWindow
 } from './editorBridge'
 import { EditorToolbar, type FormattingState } from './EditorToolbar'
-import { useProjectStore, type SceneTabRef, type EditorPane } from '../../stores/projectStore'
+import { useProjectStore, type ProjectStateDto, type SceneTabRef, type EditorPane } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useWikiStore } from '../../stores/wikiStore'
@@ -109,7 +109,8 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
       addFootnote: t('editor.contextMenu.addFootnote'),
       addToDictionary: t('editor.contextMenu.addToDictionary'),
       createEntity: t('editor.contextMenu.createEntity'),
-      appendToEntity: t('editor.contextMenu.appendToEntity')
+      appendToEntity: t('editor.contextMenu.appendToEntity'),
+      splitScene: t('editor.contextMenu.splitScene')
     })
   )
   editor.setMentionLabels(
@@ -644,6 +645,30 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
             text: ''
           })
           persistAnnotations()
+          break
+        }
+        case 'splitSceneRequested': {
+          // Everything after the caret becomes a new scene right below this
+          // one, carrying the date, stage, plotlines and POV that still
+          // describe it.
+          const proj = useProjectStore.getState()
+          const chapterGuid = pane === 'split' ? proj.splitChapterGuid : proj.openChapterGuid
+          const sceneId = pane === 'split' ? proj.splitSceneId : proj.openSceneId
+          if (!chapterGuid || !sceneId) break
+          void rpc
+            .request<{ sceneId: string | null; state: ProjectStateDto }>('sceneSplit/split', [
+              chapterGuid,
+              sceneId,
+              String(message.before ?? ''),
+              String(message.after ?? ''),
+              null
+            ])
+            .then((result) => {
+              useProjectStore.getState().applyState(result.state)
+              // The scene shrank under the editor, so it has to be re-read
+              // rather than left showing both halves.
+              void useProjectStore.getState().openScene(chapterGuid, sceneId)
+            })
           break
         }
         case 'inlineActionRequested': {

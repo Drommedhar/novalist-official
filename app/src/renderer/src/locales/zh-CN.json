@@ -1279,7 +1279,8 @@
     "mentionNoMatches": "无匹配项",
     "contextMenu": {
       "createEntity": "从所选内容创建条目",
-      "appendToEntity": "将所选内容添加到条目"
+      "appendToEntity": "将所选内容添加到条目",
+      "splitScene": "在此处拆分场景"
     }
   },
   "section": {
@@ -2259,5 +2260,8 @@
     "rights": "权利声明",
     "publicationDate": "出版日期",
     "save": "保存元数据"
+  },
+  "splitMerge": {
+    "mergeWithNext": "与下一个合并：{{title}}"
   }
 }

@@ -2673,6 +2673,9 @@ document.addEventListener('contextmenu', (e) => {
 
     // Capture: turn the selected prose into Codex data without leaving the page.
     html += '<div class="cm-separator"></div>';
+    // Splitting acts on the caret, so it is offered whether or not anything is
+    // selected - unlike everything above it in this block.
+    html += '<div class="cm-item" data-action="splitAtCaret"><span>' + escapeHtml(contextMenuLabels.splitScene || 'Split scene here') + '</span></div>';
     html += '<div class="cm-item' + disabledAttr + '" data-action="createEntityFromSelection"><span>' + escapeHtml(contextMenuLabels.createEntity || 'Create entity from selection') + '</span></div>';
     html += '<div class="cm-item' + disabledAttr + '" data-action="appendToEntitySection"><span>' + escapeHtml(contextMenuLabels.appendToEntity || 'Add selection to entity') + '</span></div>';
 
@@ -2775,6 +2778,16 @@ contextMenu.addEventListener('click', (e) => {
         case 'addToDictionary': {
             const word = item.getAttribute('data-word');
             sendMessage({ type: 'addToDictionary', word: word });
+            break;
+        }
+        case 'splitAtCaret': {
+            // Acts on the caret captured when the menu opened, since opening it
+            // moved focus out of the editor.
+            restoreContextMenuSelection();
+            const halves = window.splitAtCaret();
+            if (!halves) break;
+            const parsed = JSON.parse(halves);
+            sendMessage({ type: 'splitSceneRequested', before: parsed.before, after: parsed.after });
             break;
         }
         case 'createEntityFromSelection': {
@@ -3533,6 +3546,49 @@ editor.addEventListener('click', function (e) {
         if (id) sendMessage({ type: 'footnoteClicked', footnoteId: id });
     }
 });
+
+
+// ── Split at the caret ──────────────────────────────────────────
+//
+// Returns the document either side of the caret so the host can turn one scene
+// into two. The split happens at block granularity: the block the caret sits in
+// is divided at the caret, and whole blocks fall to one side or the other. That
+// keeps both halves valid markup, which splitting the raw HTML string at a
+// character offset would not.
+
+window.splitAtCaret = function () {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+
+    const caret = sel.getRangeAt(0);
+    if (!editor.contains(caret.startContainer)) return null;
+
+    const before = document.createRange();
+    before.setStart(editor, 0);
+    before.setEnd(caret.startContainer, caret.startOffset);
+
+    const after = document.createRange();
+    after.setStart(caret.startContainer, caret.startOffset);
+    after.setEnd(editor, editor.childNodes.length);
+
+    const wrap = function (fragment) {
+        const holder = document.createElement('div');
+        holder.appendChild(fragment);
+        // A caret mid-paragraph leaves each side holding a partial block; the
+        // browser closes the tags for us when the fragment is cloned.
+        return holder.innerHTML;
+    };
+
+    const beforeHtml = wrap(before.cloneContents());
+    const afterHtml = wrap(after.cloneContents());
+
+    // Splitting at the very start or the very end would leave one scene empty,
+    // which is never what the writer meant.
+    if (beforeHtml.replace(/<[^>]*>/g, '').trim().length === 0) return null;
+    if (afterHtml.replace(/<[^>]*>/g, '').trim().length === 0) return null;
+
+    return JSON.stringify({ before: beforeHtml, after: afterHtml });
+};
 
 // ── Inline actions (extension-contributed) ──────────────────────
 let inlineActions = [];

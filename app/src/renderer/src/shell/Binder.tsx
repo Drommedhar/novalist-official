@@ -210,6 +210,30 @@ export function Binder(): React.JSX.Element {
       return [
         ...sceneMoves,
         ...stageItems,
+        // Only where there is a next scene to merge into this one.
+        ...(sceneIndex < chapter.scenes.length - 1
+          ? [
+              {
+                label: t('splitMerge.mergeWithNext', {
+                  title: chapter.scenes[sceneIndex + 1].title
+                }),
+                onClick: () => {
+                  const next = chapter.scenes[sceneIndex + 1]
+                  void rpc
+                    .request<{
+                      sceneId: string | null
+                      state: import('../stores/projectStore').ProjectStateDto
+                    }>('sceneSplit/merge', [chapter.guid, scene.id, next.id])
+                    .then((result) => {
+                      store.getState().applyState(result.state)
+                      // The merged scene grew, so whatever the editor is
+                      // showing of it is now short.
+                      void store.getState().openScene(chapter.guid, scene.id)
+                    })
+                }
+              }
+            ]
+          : []),
         {
           label: t('targets.setScene'),
           onClick: () =>

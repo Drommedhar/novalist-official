@@ -761,7 +761,8 @@
     "mentionNoMatches": "Keine Treffer",
     "contextMenu": {
       "createEntity": "Eintrag aus Auswahl erstellen",
-      "appendToEntity": "Auswahl zu Eintrag hinzufügen"
+      "appendToEntity": "Auswahl zu Eintrag hinzufügen",
+      "splitScene": "Szene hier teilen"
     }
   },
   "section": {
@@ -2225,5 +2226,8 @@
     "rights": "Rechte",
     "publicationDate": "Veröffentlichungsdatum",
     "save": "Daten speichern"
+  },
+  "splitMerge": {
+    "mergeWithNext": "Mit nächster zusammenführen: {{title}}"
   }
 }

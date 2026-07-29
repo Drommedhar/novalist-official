@@ -87,6 +87,10 @@ Right-click inside the text for:
 
 The last two exist so that worldbuilding you invent mid-sentence can reach the Codex without breaking your writing flow. A description of a city you just wrote can become that location's "Appearance" section in two clicks.
 
+## Splitting a scene
+
+The context menu's **Split scene here** divides the scene at the caret: everything below it becomes a new scene directly after this one, carrying the date, stage, plotlines and POV that still describe it. See [Chapters and scenes](04-chapters-and-scenes.md#splitting-a-scene-in-two).
+
 ## Split editor
 
 To see two scenes at once, right-click a scene in the binder and choose **Toggle split editor**. The main area splits into two editor panes: your current scene on the left, the chosen scene on the right. Both panes are fully editable, auto-save independently, and each keeps its own [tab strip](#scene-tabs) of open scenes. Use **Move to other split** on a tab to hand a scene from one pane to the other.
