@@ -27,6 +27,12 @@ public sealed class FindOptions
 
 public sealed class FindMatch
 {
+    /// <summary>
+    /// The book the match is in. Only interesting for a whole-project search,
+    /// where two books can hold a scene of the same name.
+    /// </summary>
+    public string BookTitle { get; init; } = string.Empty;
+
     public string ChapterGuid { get; init; } = string.Empty;
     public string ChapterTitle { get; init; } = string.Empty;
     public string SceneId { get; init; } = string.Empty;

@@ -1763,7 +1763,7 @@ public partial class ExportService
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE html>
-            <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en">
+            <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{EscapeXml(options.Language)}">
             <head>
               <meta charset="UTF-8"/>
               <title>{EscapeXml(chapter.Title)}</title>
@@ -1880,7 +1880,7 @@ public partial class ExportService
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE html>
-            <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en">
+            <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{EscapeXml(options.Language)}">
             <head>
               <meta charset="UTF-8"/>
               <title>{EscapeXml(options.Title)}</title>
@@ -1914,7 +1914,8 @@ public partial class ExportService
     {
         var items = new StringBuilder();
         if (options.IncludeTitlePage)
-            items.AppendLine("      <li><a href=\"title.xhtml\">Title Page</a></li>");
+            items.AppendLine(
+                $"      <li><a href=\"title.xhtml\">{EscapeXml(Label(options, "titlePage", "Title Page"))}</a></li>");
 
         // Only matter the writer marked for the contents is listed. A copyright
         // page in the table of contents is a mistake, not a feature.
@@ -1944,7 +1945,7 @@ public partial class ExportService
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE html>
-            <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en">
+            <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{EscapeXml(options.Language)}">
             <head>
               <meta charset="UTF-8"/>
               <title>Table of Contents</title>
@@ -1970,7 +1971,7 @@ public partial class ExportService
         {
             navPoints.AppendLine($"""
                     <navPoint id="title" playOrder="{playOrder}">
-                      <navLabel><text>Title Page</text></navLabel>
+                      <navLabel><text>{EscapeXml(Label(options, "titlePage", "Title Page"))}</text></navLabel>
                       <content src="title.xhtml"/>
                     </navPoint>
                 """);

@@ -42,6 +42,51 @@ public sealed class SpellRpc
         return [.. Words];
     }
 
+    /// <summary>
+    /// Every name the Codex holds, plus the writer's own words.
+    ///
+    /// A secondary-world manuscript is a wall of red underlines otherwise: the
+    /// Codex knows every name in the book and the checker knew none of them, so
+    /// each one had to be taught by hand before the underlines meant anything.
+    /// Names are not stored in the settings - they follow the Codex, so a
+    /// renamed character stops being spelled the old way.
+    /// </summary>
+    [JsonRpcMethod("spell/dictionary")]
+    public async Task<string[]> GetDictionaryAsync()
+    {
+        await _workspace.Settings.LoadAsync();
+        var names = new List<string>();
+        // The dictionary is fetched at startup, before any project is open -
+        // asking the Codex then would throw and take spell check with it.
+        if (!_workspace.Projects.IsProjectLoaded)
+            return [.. Words.Where(w => w.Length > 1).Distinct(StringComparer.Ordinal)];
+
+        var entities = new Core.Services.EntityService(_workspace.Projects);
+        // A character's surname is a separate field, and their aliases are
+        // names the prose actually uses - both are words a checker will flag.
+        foreach (var character in await entities.LoadCharactersAsync())
+        {
+            names.Add(Core.Services.EntityResolveIndex.Compose(character.Name, character.Surname));
+            names.AddRange(character.Aliases);
+        }
+        names.AddRange((await entities.LoadLocationsAsync()).Select(l => l.Name));
+        names.AddRange((await entities.LoadItemsAsync()).Select(i => i.Name));
+        names.AddRange((await entities.LoadLoreAsync()).Select(l => l.Name));
+
+        return [.. Words
+            .Concat(names.SelectMany(SplitName))
+            .Where(w => w.Length > 1)
+            .Distinct(StringComparer.Ordinal)];
+    }
+
+    /// <summary>
+    /// A name is checked word by word, so "Mira Vance" has to teach the checker
+    /// both halves - and a one-letter fragment teaches it nothing.
+    /// </summary>
+    private static IEnumerable<string> SplitName(string name)
+        => name.Split([' ', '-', '’', '\''], StringSplitOptions.RemoveEmptyEntries)
+            .Select(part => part.Trim());
+
     [JsonRpcMethod("spell/removeWord")]
     public async Task<string[]> RemoveWordAsync(string word)
     {

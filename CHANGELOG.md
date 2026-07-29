@@ -59,6 +59,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **A scene can say how it sits in time, and the Timeline can be read either way.** Mark a scene as a flashback, flash-forward, parallel, frame, dream or time skip in the scene notes dock - a parallel scene can also name the strand it runs on. The Timeline gains a **By date / In reading order** switch: reading order lays the book out as the reader meets it, with each scene's date and mode beside it, so a flashback stops sorting as though it happened at that point in the story.
 - **Character arcs.** A character can record where they start, where they end, and the scenes that turn them - each turning point in your own words, and placed in a scene when you know which one it is. A **Character arcs** card on the Dashboard lays every arc out in reading order, which is where you see whether the turns are spread through the book or bunched into one stretch of it.
 - **Read a chosen set of scenes as one text.** Select scenes anywhere and press **Read as one** in the bulk bar: the Manuscript view composes just those, in reading order, as continuous prose. Manuscript mode could only ever show the whole book or one chapter status, so reading a single POV's thread end to end was not possible.
+- **Codex names are never spell-checked as mistakes.** Every character name, surname and alias, and every location, item and lore entry, is handed to the spell checker automatically - a secondary-world manuscript used to be a wall of red underlines despite the Codex holding every one of those names. They follow the Codex rather than being added to your dictionary, so renaming a character stops the old spelling being accepted.
+- **An extension developer guide.** `docs/extension-guide.md` - referenced from the README and the manual and missing from the repository - now exists: the SDK surface, the hook interfaces, web views, storage, packaging, gallery submission, and an honest account of what the SDK will not let an extension do.
 
 ### Changed
 
@@ -76,6 +78,9 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+
+- **Whole-project find and replace really does span every book.** The scope has always been advertised as "every scene in every book" and quietly searched only the open one. Results now say which book each match is in, and you are left in the book you started in.
+- **Exported EPUBs no longer say "Title Page" in English regardless of the language you write in**, and each chapter file declares your book's language rather than `en`.
 
 - **Footnotes are real notes in every export, not a block of text at the end of the scene.** DOCX now writes actual Word footnotes at the foot of the page, which Word renumbers for you; Markdown writes `[^n]` footnote syntax with the definitions at the end of the file; EPUB writes popup notes a reader can show in place; LaTeX writes `ootnote`; and PDF sets them as endnotes under their chapter. The number in your prose is a real reference now too - it used to be printed as a loose digit in the middle of the sentence.
 

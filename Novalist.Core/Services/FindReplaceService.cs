@@ -20,28 +20,33 @@ public sealed class FindReplaceService : IFindReplaceService
         var regex = BuildRegex(options);
         var results = new List<FindMatch>();
 
-        foreach (var (chapter, scene) in EnumerateScopedScenes(options))
+        await ForEachBookInScopeAsync(options, async () =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
-            var plain = StripHtml(html);
-            foreach (Match m in regex.Matches(plain))
+            foreach (var (chapter, scene) in EnumerateScopedScenes(options))
             {
-                results.Add(new FindMatch
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
+                var plain = StripHtml(html);
+                var bookTitle = _projectService.ActiveBook?.Name ?? string.Empty;
+                foreach (Match m in regex.Matches(plain))
                 {
-                    ChapterGuid = chapter.Guid,
-                    ChapterTitle = chapter.Title,
-                    SceneId = scene.Id,
-                    SceneTitle = scene.Title,
-                    Index = m.Index,
-                    Length = m.Length,
-                    Before = SnippetBefore(plain, m.Index),
-                    MatchedText = m.Value,
-                    After = SnippetAfter(plain, m.Index + m.Length)
-                });
+                    results.Add(new FindMatch
+                    {
+                        BookTitle = bookTitle,
+                        ChapterGuid = chapter.Guid,
+                        ChapterTitle = chapter.Title,
+                        SceneId = scene.Id,
+                        SceneTitle = scene.Title,
+                        Index = m.Index,
+                        Length = m.Length,
+                        Before = SnippetBefore(plain, m.Index),
+                        MatchedText = m.Value,
+                        After = SnippetAfter(plain, m.Index + m.Length)
+                    });
+                }
             }
-        }
+        }).ConfigureAwait(false);
 
         return results;
     }
@@ -54,28 +59,67 @@ public sealed class FindReplaceService : IFindReplaceService
         var regex = BuildRegex(options);
         int totalReplacements = 0;
 
-        foreach (var (chapter, scene) in EnumerateScopedScenes(options))
+        await ForEachBookInScopeAsync(options, async () =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var replacedHere = 0;
+            foreach (var (chapter, scene) in EnumerateScopedScenes(options))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-            var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
-            // Replace inside the raw HTML — patterns may inadvertently span tags
-            // but for typical word-level edits this is safe enough.
-            var (newHtml, count) = ReplaceWithCount(regex, html, options.Replacement);
-            if (count == 0) continue;
+                var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
+                // Replace inside the raw HTML — patterns may inadvertently span tags
+                // but for typical word-level edits this is safe enough.
+                var (newHtml, count) = ReplaceWithCount(regex, html, options.Replacement);
+                if (count == 0) continue;
 
-            if (snapshotService != null)
-                await snapshotService.TakeAsync(chapter, scene, "Auto-snapshot before find/replace").ConfigureAwait(false);
+                if (snapshotService != null)
+                    await snapshotService.TakeAsync(chapter, scene, "Auto-snapshot before find/replace").ConfigureAwait(false);
 
-            await _projectService.WriteSceneContentAsync(chapter, scene, newHtml).ConfigureAwait(false);
-            scene.WordCount = CountWords(StripHtml(newHtml));
-            totalReplacements += count;
-        }
+                await _projectService.WriteSceneContentAsync(chapter, scene, newHtml).ConfigureAwait(false);
+                scene.WordCount = CountWords(StripHtml(newHtml));
+                replacedHere += count;
+            }
 
-        if (totalReplacements > 0)
-            await _projectService.SaveScenesAsync().ConfigureAwait(false);
+            // Saved per book: the manifest belongs to whichever book is open,
+            // so leaving it until the end would write it into the wrong one.
+            if (replacedHere > 0)
+                await _projectService.SaveScenesAsync().ConfigureAwait(false);
+            totalReplacements += replacedHere;
+        }).ConfigureAwait(false);
 
         return totalReplacements;
+    }
+
+    /// <summary>
+    /// Runs the body once per book the scope covers, restoring the book that
+    /// was open before. Reaching another book's scenes means opening it: their
+    /// paths hang off the active book's folder, so there is no read-only way in.
+    /// </summary>
+    private async Task ForEachBookInScopeAsync(FindOptions options, Func<Task> body)
+    {
+        var project = _projectService.CurrentProject;
+        if (options.Scope != FindScope.Project || project == null || project.Books.Count <= 1)
+        {
+            await body().ConfigureAwait(false);
+            return;
+        }
+
+        var openedWith = project.ActiveBookId;
+        try
+        {
+            foreach (var book in project.Books.ToList())
+            {
+                await _projectService.SwitchBookAsync(book.Id).ConfigureAwait(false);
+                await body().ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            // Even if a book fails to open, the writer is left where they were
+            // rather than in whichever book the sweep stopped on.
+            if (_projectService.CurrentProject?.ActiveBookId != openedWith)
+                await _projectService.SwitchBookAsync(openedWith).ConfigureAwait(false);
+        }
     }
 
     private IEnumerable<(ChapterData Chapter, SceneData Scene)> EnumerateScopedScenes(FindOptions options)
@@ -104,7 +148,9 @@ public sealed class FindReplaceService : IFindReplaceService
                 break;
             }
             case FindScope.ActiveBook:
-            case FindScope.Project: // No multi-book reach yet — same as ActiveBook.
+            // Project scope is handled a book at a time by the caller, so from
+            // in here it is the same walk over whichever book is open.
+            case FindScope.Project:
             {
                 foreach (var chapter in chapters)
                 {

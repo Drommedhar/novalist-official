@@ -175,4 +175,61 @@ public sealed class SpellRpcTests : IDisposable
 
     private static Dictionary<string, JsonElement> Patch(string key, string json) =>
         new() { [key] = JsonDocument.Parse(json).RootElement };
+
+    // ── The Codex feeds the dictionary ──
+    //
+    // A secondary-world manuscript was a wall of red underlines: the Codex knew
+    // every name in the book and the checker knew none of them.
+
+    [Fact]
+    public async Task Dictionary_CarriesEveryCodexNameAndTheWritersOwnWords()
+    {
+        _workspace.Projects.CreateProjectAsync(_root, "SpellNovel", "Book").GetAwaiter().GetResult();
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData
+        {
+            Name = "Mira",
+            Surname = "Vance",
+            Aliases = ["Blackthorn"]
+        });
+        await entities.SaveLocationAsync(new Novalist.Core.Models.LocationData { Name = "Hillsford" });
+        await entities.SaveItemAsync(new Novalist.Core.Models.ItemData { Name = "Skyglass" });
+        await entities.SaveLoreAsync(new Novalist.Core.Models.LoreData { Name = "The Sundering" });
+        await _rpc.AddWordAsync("thaumic");
+
+        var dictionary = await _rpc.GetDictionaryAsync();
+
+        // A name is checked word by word, so both halves have to be taught.
+        Assert.Contains("Mira", dictionary);
+        Assert.Contains("Vance", dictionary);
+        Assert.Contains("Blackthorn", dictionary);
+        Assert.Contains("Hillsford", dictionary);
+        Assert.Contains("Skyglass", dictionary);
+        Assert.Contains("Sundering", dictionary);
+        Assert.Contains("thaumic", dictionary);
+        // "The" is a word the checker already knows; one-letter fragments teach
+        // it nothing at all.
+        Assert.DoesNotContain(dictionary, w => w.Length <= 1);
+    }
+
+    [Fact]
+    public async Task Dictionary_WithNoProjectOpen_IsJustTheWritersOwnWords()
+    {
+        await _rpc.AddWordAsync("thaumic");
+
+        Assert.Equal(["thaumic"], await _rpc.GetDictionaryAsync());
+    }
+
+    [Fact]
+    public async Task Dictionary_DoesNotRepeatANameTheWriterAlsoTaught()
+    {
+        _workspace.Projects.CreateProjectAsync(_root, "SpellNovel", "Book").GetAwaiter().GetResult();
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        await new Novalist.Core.Services.EntityService(_workspace.Projects)
+            .SaveCharacterAsync(new Novalist.Core.Models.CharacterData { Name = "Mira" });
+        await _rpc.AddWordAsync("Mira");
+
+        Assert.Single(await _rpc.GetDictionaryAsync(), w => w == "Mira");
+    }
 }

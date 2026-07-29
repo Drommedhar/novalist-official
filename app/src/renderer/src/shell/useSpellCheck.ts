@@ -20,7 +20,9 @@ export function useSpellCheck(): void {
 
   useEffect(() => {
     void (async () => {
-      const words = await rpc.request<string[]>('spell/words')
+      // Every name the Codex holds as well as the writer's own words: a
+      // secondary-world manuscript is a wall of underlines otherwise.
+      const words = await rpc.request<string[]>('spell/dictionary')
       await window.novalist.applySpellCheck(
         enabled,
         languages.length > 0 ? languages.split(',') : [],

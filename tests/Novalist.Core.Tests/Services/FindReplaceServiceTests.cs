@@ -252,4 +252,114 @@ public class FindReplaceServiceTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
             sut.FindAsync(new FindOptions { Pattern = "x" }, cts.Token));
     }
+
+    // ── Whole-project scope ──
+    //
+    // The manual has always advertised this as "every scene in every book".
+    // The service treated it as the active book and said so in a comment.
+
+    /// <summary>
+    /// A project of two books where switching books swaps what the chapter and
+    /// scene accessors return, which is what the real service does.
+    /// </summary>
+    private static (FindReplaceService Sut, IProjectService Project) TwoBooks()
+    {
+        var (sut, project) = Build();
+        var one = new BookData { Id = "b1", Name = "Book One" };
+        var two = new BookData { Id = "b2", Name = "Book Two" };
+        var meta = new ProjectMetadata { ActiveBookId = "b1", Books = { one, two } };
+        project.CurrentProject.Returns(meta);
+
+        var first = Chapter("c1", "First");
+        var second = Chapter("c2", "Second");
+        var sceneOne = Scene("s1", "Opening");
+        var sceneTwo = Scene("s2", "Later");
+
+        void Apply()
+        {
+            var inBookOne = meta.ActiveBookId == "b1";
+            project.ActiveBook.Returns(inBookOne ? one : two);
+            project.GetChaptersOrdered().Returns([inBookOne ? first : second]);
+            project.GetScenesForChapter(inBookOne ? "c1" : "c2")
+                .Returns([inBookOne ? sceneOne : sceneTwo]);
+        }
+
+        project.SwitchBookAsync(Arg.Any<string>()).Returns(call =>
+        {
+            meta.ActiveBookId = call.Arg<string>();
+            Apply();
+            return Task.CompletedTask;
+        });
+        project.ReadSceneContentAsync(first, sceneOne).Returns("<p>the bell rings</p>");
+        project.ReadSceneContentAsync(second, sceneTwo).Returns("<p>the bell again</p>");
+        Apply();
+        return (sut, project);
+    }
+
+    [Fact]
+    public async Task FindAsync_ProjectScope_SpansEveryBook()
+    {
+        var (sut, project) = TwoBooks();
+
+        var matches = await sut.FindAsync(
+            new FindOptions { Pattern = "bell", Scope = FindScope.Project });
+
+        Assert.Equal(2, matches.Count);
+        Assert.Equal(["Book One", "Book Two"], matches.Select(m => m.BookTitle));
+        // And the writer is left in the book they started in.
+        Assert.Equal("b1", project.CurrentProject!.ActiveBookId);
+    }
+
+    [Fact]
+    public async Task FindAsync_ActiveBookScope_StaysInOneBook()
+    {
+        var (sut, _) = TwoBooks();
+
+        var matches = await sut.FindAsync(
+            new FindOptions { Pattern = "bell", Scope = FindScope.ActiveBook });
+
+        Assert.Equal("Book One", Assert.Single(matches).BookTitle);
+    }
+
+    [Fact]
+    public async Task ReplaceAllAsync_ProjectScope_ReachesEveryBook()
+    {
+        var (sut, project) = TwoBooks();
+
+        var replaced = await sut.ReplaceAllAsync(new FindOptions
+        {
+            Pattern = "bell",
+            Replacement = "chime",
+            Scope = FindScope.Project
+        });
+
+        Assert.Equal(2, replaced);
+        // Saved once per book: the manifest belongs to whichever book is open,
+        // so one save at the end would write it into the wrong one.
+        await project.Received(2).SaveScenesAsync();
+        Assert.Equal("b1", project.CurrentProject!.ActiveBookId);
+    }
+
+    [Fact]
+    public async Task FindAsync_ProjectScope_WithOneBook_DoesNotSwitchAtAll()
+    {
+        var (sut, project) = Build();
+        var meta = new ProjectMetadata
+        {
+            ActiveBookId = "b1",
+            Books = { new BookData { Id = "b1", Name = "Only" } }
+        };
+        project.CurrentProject.Returns(meta);
+        var ch = Chapter("c1");
+        var sc = Scene("s1");
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([sc]);
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>the bell</p>");
+
+        Assert.Single(await sut.FindAsync(
+            new FindOptions { Pattern = "bell", Scope = FindScope.Project }));
+
+        // Reopening the only book would be a pointless round trip through disk.
+        await project.DidNotReceive().SwitchBookAsync(Arg.Any<string>());
+    }
 }

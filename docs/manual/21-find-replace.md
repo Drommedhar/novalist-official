@@ -60,6 +60,7 @@ Common patterns:
 - Find searches **scene content**. Markup tags themselves are not searched.
 - Find does not search entity fields, sections, custom properties, research notes, or comments. Those are accessible via their own views.
 - Replace All takes one snapshot per modified scene, so a project-wide replace can produce many snapshots.
+- **Whole project** opens each book in turn to read it, and puts you back in the book you started in when it finishes. On a large multi-book project that takes a moment; a search of the active book does not.
 
 ## Tips
 
