@@ -2280,5 +2280,21 @@
     "unusedTitle": "Im Codex, nie im Manuskript",
     "unusedHint": "{{names}}. Entweder kommen sie noch, oder sie waren geplant und sind still verschwunden.",
     "unset": "Nicht gesetzt"
+  },
+  "sprint": {
+    "title": "Schreibsprint",
+    "start": "Sprint",
+    "pause": "Pause",
+    "resume": "Fortsetzen",
+    "finish": "Beenden",
+    "target": "Wie lange (Minuten)",
+    "openEnded": "Ohne Limit",
+    "remaining": "verbleibend",
+    "elapsed": "vergangen",
+    "wordsThisSitting": "Wörter in dieser Sitzung",
+    "wpm": "Wörter pro Minute",
+    "historyTitle": "Frühere Sprints",
+    "summary": "{{count}} Sprints, {{words}} Wörter, im Schnitt {{wpm}} Wörter pro Minute.",
+    "clearHistory": "Verlauf löschen"
   }
 }

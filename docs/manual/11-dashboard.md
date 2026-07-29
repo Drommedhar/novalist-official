@@ -86,6 +86,16 @@ Goals are per-project.
 - **Use status as truth.** A draft is not "done" until every chapter is at least at First Draft; revision is not done until everything is at Revised. The Progress Breakdown is a useful forcing function.
 - **Watch the echo phrases.** A unique stylistic flourish becomes a tic on the third repetition. The Echo Finder is the cheap version of a copy-edit pass.
 
+## Writing sprints
+
+The Dashboard counts days. A **sprint** counts a sitting, which is the only figure that means anything while you are still in the chair.
+
+The status bar's timer starts one. Pick how long — 10, 15, 25, 45, 60 minutes, or no limit — and the status bar shows the time left and the words you have added since you started, live. Pause and resume without losing the clock; **Finish** records it.
+
+Words are counted against the whole project as it was when the sprint began, so words added anywhere count and a deletion pass reads as zero rather than as going backwards. The pace is only shown once a sprint has run half a minute: below that the number says more about the arithmetic than about the writing.
+
+Finished sprints are kept with the project — the last two hundred of them — with a running total and an average pace weighted by time, so a two-minute sprint does not count as much as an hour. The list and the totals are in the sprint panel, along with a way to clear them.
+
 ## Across the whole book
 
 Everything above counts words. This section counts *where things are*, which Novalist could compute per scene but only ever showed one scene at a time — so "which character is this book actually about" had no answer anywhere.

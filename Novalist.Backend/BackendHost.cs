@@ -77,6 +77,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new StructureRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ExportPresetRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new AnalyticsRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new SprintRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new MatterRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SettingsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new AppearanceRpc(_workspace), targetOptions);

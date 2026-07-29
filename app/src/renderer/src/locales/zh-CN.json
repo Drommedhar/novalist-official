@@ -2314,5 +2314,21 @@
     "unusedTitle": "在图鉴中，但从未出现在正文",
     "unusedHint": "{{names}}。要么它们尚未登场，要么是计划过后惄惄放下了。",
     "unset": "未设置"
+  },
+  "sprint": {
+    "title": "写作冲刺",
+    "start": "冲刺",
+    "pause": "暂停",
+    "resume": "继续",
+    "finish": "结束",
+    "target": "时长（分钟）",
+    "openEnded": "不限时",
+    "remaining": "剩余",
+    "elapsed": "已用",
+    "wordsThisSitting": "本次写作字数",
+    "wpm": "每分钟字数",
+    "historyTitle": "往期冲刺",
+    "summary": "{{count}} 次冲刺，{{words}} 字，平均每分钟 {{wpm}} 字。",
+    "clearHistory": "清除记录"
   }
 }

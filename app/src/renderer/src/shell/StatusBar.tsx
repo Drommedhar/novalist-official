@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { GitBranch } from 'lucide-react'
+import { GitBranch, Timer } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { ExtensionStatusItems } from './ExtensionStatusItems'
 import { useShellStore } from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
+import { elapsedSeconds, formatDuration, sprintWords, useSprintStore } from '../stores/sprintStore'
+import { SprintPanel } from './SprintPanel'
 import { useSettingsStore } from '../stores/settingsStore'
 import './statusbar.css'
 
@@ -254,6 +256,13 @@ export function StatusBar(): React.JSX.Element {
       ?.scenes.find((sc) => sc.id === s.openSceneId)
   )
 
+  const [sprintOpen, setSprintOpen] = useState(false)
+  const sprintRunning = useSprintStore((s) => s.running)
+  const sprintBanked = useSprintStore((s) => s.bankedSeconds)
+  const sprintTarget = useSprintStore((s) => s.targetMinutes)
+  // Subscribed so the status bar clock re-renders every second.
+  useSprintStore((s) => s.tick)
+
   const [overview, setOverview] = useState<ProjectOverview | null>(null)
   const [git, setGit] = useState<GitIndicator | null | undefined>(undefined)
   const [overviewOpen, setOverviewOpen] = useState(false)
@@ -363,6 +372,33 @@ export function StatusBar(): React.JSX.Element {
           </span>
         )}
         <ExtensionStatusItems />
+      </span>
+
+      <span className="status-sprint-wrap">
+        {isLoaded && (
+          <button
+            type="button"
+            className={`status-sprint${sprintRunning ? ' running' : ''}`}
+            onClick={() => setSprintOpen(true)}
+            title={t('sprint.title')}
+          >
+            <Timer size={13} strokeWidth={2} />
+            {sprintRunning || sprintBanked > 0 ? (
+              <>
+                {formatDuration(
+                  sprintTarget > 0
+                    ? Math.max(0, sprintTarget * 60 - elapsedSeconds())
+                    : elapsedSeconds()
+                )}
+                <span className="status-dim">
+                  {sprintWords().toLocaleString()} {t('shell.words')}
+                </span>
+              </>
+            ) : (
+              t('sprint.start')
+            )}
+          </button>
+        )}
       </span>
 
       <span className="status-center-wrap">
@@ -535,6 +571,7 @@ export function StatusBar(): React.JSX.Element {
           <span className="status-backend-dot" aria-hidden />
         </span>
       </span>
+      {sprintOpen && <SprintPanel onClose={() => setSprintOpen(false)} />}
     </footer>
   )
 }

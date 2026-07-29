@@ -2272,5 +2272,21 @@
     "unusedTitle": "In the Codex, never in the manuscript",
     "unusedHint": "{{names}}. Either they are still to come, or they were planned and quietly dropped.",
     "unset": "Not set"
+  },
+  "sprint": {
+    "title": "Writing sprint",
+    "start": "Sprint",
+    "pause": "Pause",
+    "resume": "Resume",
+    "finish": "Finish",
+    "target": "How long (minutes)",
+    "openEnded": "No limit",
+    "remaining": "left",
+    "elapsed": "elapsed",
+    "wordsThisSitting": "words this sitting",
+    "wpm": "words per minute",
+    "historyTitle": "Past sprints",
+    "summary": "{{count}} sprints, {{words}} words, {{wpm}} words per minute on average.",
+    "clearHistory": "Clear history"
   }
 }

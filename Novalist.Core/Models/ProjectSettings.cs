@@ -19,6 +19,13 @@ public class ProjectSettings
     [JsonPropertyName("overrides")]
     public SettingsOverrides Overrides { get; set; } = new();
 
+    /// <summary>
+    /// Finished writing sprints, newest last. Per project rather than global,
+    /// because "how fast do I write" is a question about a particular book.
+    /// </summary>
+    [JsonPropertyName("sprints")]
+    public List<WritingSprint> Sprints { get; set; } = [];
+
     [JsonPropertyName("viewState")]
     public ProjectViewState ViewState { get; set; } = new();
 

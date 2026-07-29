@@ -60,6 +60,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - Chapters with status tracking (Outline → First Draft → Revised → Edited → Final), optional acts, optional in-world date ranges, label colors, and favorites.
 - Scenes with synopsis, notes, label color, plotline membership, in-world date range, POV / emotion / intensity / conflict / tags (auto-detected with manual overrides).
 - **Smart Lists** — saved scene queries by status, POV, tag, or plotline.
+- **Writing sprints** — a status-bar timer with words-this-sitting, live pace, and a per-project history.
 - **Manuscript import** — bring an existing book in from Word, OpenDocument, EPUB, Markdown, plain text, RTF, or a **Scrivener** project. Chapters and scenes are worked out from the document's own heading styles, with a preview of the whole plan before anything is written; imports append rather than replace.
 - **Filesystem is the source of truth** — add, move, rename, or delete scenes and chapters with any file manager and Novalist reconciles the changes, both on open and live while running. Scene identity travels in a one-line comment in each file; chapter identity in a hidden folder marker.
 

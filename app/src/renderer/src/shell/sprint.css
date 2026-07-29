@@ -1,0 +1,72 @@
+.status-sprint-wrap {
+  display: flex;
+}
+
+.status-sprint {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: var(--nl-text-dim);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: var(--nl-font-caption);
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-none) var(--nl-space-sm);
+}
+
+.status-sprint:hover {
+  color: var(--nl-text);
+}
+
+/* A running sprint is the one thing in the status bar the writer glances at
+   mid-sentence, so it earns the accent. */
+.status-sprint.running {
+  color: var(--nl-accent);
+}
+
+.sprint-card {
+  max-width: 460px;
+  width: 90vw;
+}
+
+.sprint-clock {
+  font-size: var(--nl-font-display);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.sprint-figures {
+  display: grid;
+  gap: var(--nl-space-md);
+  grid-template-columns: 1fr 1fr;
+  margin: var(--nl-space-md) var(--nl-space-none);
+  text-align: center;
+}
+
+.sprint-figure {
+  font-size: var(--nl-font-title);
+  font-variant-numeric: tabular-nums;
+}
+
+.sprint-figure-label {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.sprint-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-bottom: var(--nl-space-sm);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.sprint-history-row {
+  color: var(--nl-text-dim);
+  display: grid;
+  font-size: var(--nl-font-caption);
+  font-variant-numeric: tabular-nums;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
