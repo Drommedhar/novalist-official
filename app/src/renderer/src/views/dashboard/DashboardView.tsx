@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
+import { BookAnalyticsCard } from './BookAnalyticsCard'
 import { InputDialog } from '../../shell/InputDialog'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
@@ -346,6 +347,9 @@ export function DashboardView(): React.JSX.Element {
           ))}
         </div>
       )}
+
+      {/* Where things sit across the whole book rather than one scene at a time. */}
+      <BookAnalyticsCard />
 
       {data.chapterPacing.length > 0 && (
         <div className="dashboard-card">

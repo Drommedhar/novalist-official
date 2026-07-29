@@ -86,6 +86,17 @@ Goals are per-project.
 - **Use status as truth.** A draft is not "done" until every chapter is at least at First Draft; revision is not done until everything is at Revised. The Progress Breakdown is a useful forcing function.
 - **Watch the echo phrases.** A unique stylistic flourish becomes a tic on the third repetition. The Echo Finder is the cheap version of a copy-edit pass.
 
+## Across the whole book
+
+Everything above counts words. This section counts *where things are*, which Novalist could compute per scene but only ever showed one scene at a time — so "which character is this book actually about" had no answer anywhere.
+
+- **Point of view across the book** — how many scenes each POV character carries, and what share of the book that is. The share is by scene count rather than words, because that is what the question means: one very long scene should not read as dominance. Scenes with no POV set are listed too, since how much of the book that is worth knowing.
+- **Scenes per act** — the same, grouped by act.
+- **Where each character appears** and **Where each location appears** — one strip per entity with a cell per chapter, darker where they appear more. A gap in the middle of a strip is a character who leaves the book for six chapters, which is very hard to see any other way.
+- **In the Codex, never in the manuscript** — entries nothing mentions. Either they are still to come, or they were planned and quietly dropped; this is the only place that difference becomes visible.
+
+Presence is counted from confirmed [@-mentions](05-editor.md#entity-mentions-and-autocomplete), by entity id rather than by name — so two characters sharing a first name are never confused for one another.
+
 ## Where to go next
 
 - [Settings](23-settings.md) — set goals and the project deadline.

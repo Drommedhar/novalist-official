@@ -1,0 +1,42 @@
+.analytics-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-bottom: var(--nl-space-md);
+}
+
+.analytics-row {
+  align-items: center;
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 140px 1fr 32px;
+}
+
+.analytics-label {
+  font-size: var(--nl-font-body-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* One cell per chapter, so a character's row reads as a strip across the book
+   and a gap in the middle is visible at a glance. */
+.analytics-cells {
+  display: flex;
+  gap: 1px;
+}
+
+.analytics-cell {
+  background: var(--nl-accent);
+  border-radius: var(--nl-radius-sm);
+  flex: 1;
+  height: 12px;
+  min-width: 3px;
+}
+
+.analytics-total {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}

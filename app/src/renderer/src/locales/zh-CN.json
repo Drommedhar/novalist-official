@@ -2305,5 +2305,14 @@
     "showSceneTitlesHint": "小说请关闭，分隔符即是全部断开。合集或需要对方能指名场景的草稿请打开。",
     "ebookCss": "额外的电子书 CSS",
     "ebookCssHint": "追加到 EPUB 样式表末尾，因此您的规则优先。这是您能触及电子书本身（而非页面）外观的唯一地方。"
+  },
+  "analytics": {
+    "povTitle": "全书的叙事视角",
+    "actTitle": "每幕的场景数",
+    "charactersTitle": "每个人物出现的位置",
+    "locationsTitle": "每个地点出现的位置",
+    "unusedTitle": "在图鉴中，但从未出现在正文",
+    "unusedHint": "{{names}}。要么它们尚未登场，要么是计划过后惄惄放下了。",
+    "unset": "未设置"
   }
 }

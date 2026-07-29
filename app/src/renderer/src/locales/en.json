@@ -2263,5 +2263,14 @@
     "showSceneTitlesHint": "Off for a novel, where the separator is the whole break. On for a collection, or a draft you are sending to someone who needs to name the scenes back to you.",
     "ebookCss": "Extra ebook CSS",
     "ebookCssHint": "Appended to the EPUB stylesheet, so your rules win over Novalist’s. The one place you can reach the look of the ebook itself rather than the page."
+  },
+  "analytics": {
+    "povTitle": "Point of view across the book",
+    "actTitle": "Scenes per act",
+    "charactersTitle": "Where each character appears",
+    "locationsTitle": "Where each location appears",
+    "unusedTitle": "In the Codex, never in the manuscript",
+    "unusedHint": "{{names}}. Either they are still to come, or they were planned and quietly dropped.",
+    "unset": "Not set"
   }
 }

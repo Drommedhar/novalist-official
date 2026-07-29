@@ -2271,5 +2271,14 @@
     "showSceneTitlesHint": "Aus für einen Roman, wo der Trenner die ganze Zäsur ist. An für eine Sammlung oder einen Entwurf für jemanden, der Ihnen die Szenen benennen können muss.",
     "ebookCss": "Zusätzliches E-Book-CSS",
     "ebookCssHint": "Wird an das EPUB-Stylesheet angehängt, Ihre Regeln gewinnen also. Die einzige Stelle, an der Sie das Aussehen des E-Books selbst statt der Seite erreichen."
+  },
+  "analytics": {
+    "povTitle": "Erzählperspektive über das Buch",
+    "actTitle": "Szenen pro Akt",
+    "charactersTitle": "Wo jede Figur vorkommt",
+    "locationsTitle": "Wo jeder Ort vorkommt",
+    "unusedTitle": "Im Codex, nie im Manuskript",
+    "unusedHint": "{{names}}. Entweder kommen sie noch, oder sie waren geplant und sind still verschwunden.",
+    "unset": "Nicht gesetzt"
   }
 }
