@@ -31,6 +31,21 @@ You can point backups somewhere else in **Settings → Backups → Backup folder
 | On close | When you quit with the project open |
 | Manual | When you press **Back up now** |
 | Before restore | Automatically, immediately before restoring another backup |
+| Milestone | When you name a version and press **Keep this version** |
+
+## Milestones
+
+Rotating backups answer "what did this look like an hour ago". They cannot answer "what did the first draft look like", because by then it has been rotated out.
+
+A **milestone** is an archive you name and Novalist never deletes. Type a name in **Settings → Backups → Milestone** and press **Keep this version**. Use it for the moments you will want to come back to: `First draft`, `Sent to agent`, `Before the rewrite`.
+
+- Milestones are **exempt from retention** entirely. They are neither counted against the *Archives to keep* limit nor rotated out by it, so keeping ten of them does not push out a single ordinary backup.
+- They are taken **even when automatic backups are switched off**. Asking to keep a version is deliberate, and a rotating schedule you disabled should not override it.
+- They restore exactly like any other archive.
+- Because retention will never clear one, the only way to remove a milestone is the delete button on its row.
+- The name is stored in the archive's file name, so it is still readable if you copy the ZIP somewhere else. Punctuation is dropped and spaces become dashes; capitals are kept. Names longer than 60 characters are shortened.
+
+Milestones are listed above their date with a flag, so they stand apart from the rotating archives around them.
 
 ## Settings
 
@@ -56,7 +71,9 @@ Two things restoring does not do:
 
 ## Housekeeping
 
-**Delete old archives** applies the retention limit immediately rather than waiting for the next backup. Use it after lowering the limit.
+**Delete old archives** applies the retention limit immediately rather than waiting for the next backup. Use it after lowering the limit. Milestones are left alone.
+
+The delete button on a row removes that one archive, milestone or not. There is no undo for it, so it asks first.
 
 **Open backup folder** reveals the archives in your file manager. They are ordinary ZIP files — you can copy them elsewhere, open them without Novalist, or delete them by hand.
 

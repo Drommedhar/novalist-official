@@ -21,6 +21,7 @@ public sealed class BackupService : IBackupService
     internal const int MaxIntervalMinutes = 1440;
     internal const int MinRetention = 1;
     internal const int MaxRetention = 100;
+    internal const int MaxLabelLength = 60;
 
     private const string Stamp = "yyyyMMdd-HHmmss";
 
@@ -75,16 +76,26 @@ public sealed class BackupService : IBackupService
         return _fileService.CombinePath(baseDir, SafeFolderName(_fileService.GetFileName(projectRoot)));
     }
 
-    public async Task<BackupInfo?> CreateAsync(string trigger)
+    public Task<BackupInfo?> CreateAsync(string trigger) => CreateAsync(trigger, null);
+
+    public async Task<BackupInfo?> CreateAsync(string trigger, string? milestoneName)
     {
         var projectRoot = _projectService.ProjectRoot;
-        if (string.IsNullOrWhiteSpace(projectRoot) || !Settings.BackupEnabled)
+
+        // A milestone is deliberate, so it is taken even when the automatic
+        // backups behind it are switched off. Refusing "keep this version"
+        // because a rotating schedule is disabled would be the wrong reading of
+        // both settings.
+        var milestone = !string.IsNullOrWhiteSpace(milestoneName);
+        if (string.IsNullOrWhiteSpace(projectRoot) || (!Settings.BackupEnabled && !milestone))
             return null;
 
         var folder = ResolveBackupFolder(projectRoot);
         await _fileService.CreateDirectoryAsync(folder);
 
-        var safeTrigger = SafeTrigger(trigger);
+        var safeTrigger = milestone
+            ? BackupInfo.MilestonePrefix + SafeLabel(milestoneName!)
+            : SafeTrigger(trigger);
         var id = $"{DateTime.UtcNow.ToString(Stamp, CultureInfo.InvariantCulture)}-{safeTrigger}";
         var path = _fileService.CombinePath(folder, id + ".zip");
 
@@ -153,13 +164,27 @@ public sealed class BackupService : IBackupService
 
     public async Task PruneAsync()
     {
-        var backups = await ListAsync();
+        // Milestones are outside retention entirely - they neither fill the
+        // quota nor get rotated out. A named version that quietly disappeared
+        // after ten more saves would be worse than never offering to keep it.
+        var backups = (await ListAsync()).Where(b => !b.IsMilestone).ToList();
         var keep = EffectiveRetention;
         if (backups.Count <= keep)
             return;
 
         foreach (var stale in backups.Skip(keep))
             await _fileService.DeleteFileAsync(stale.Path);
+    }
+
+    public async Task<bool> DeleteAsync(string backupId)
+    {
+        var target = (await ListAsync()).FirstOrDefault(
+            b => string.Equals(b.Id, backupId, StringComparison.OrdinalIgnoreCase));
+        if (target == null)
+            return false;
+
+        await _fileService.DeleteFileAsync(target.Path);
+        return true;
     }
 
     public async Task<bool> IsDueAsync(DateTime utcNow)
@@ -211,6 +236,22 @@ public sealed class BackupService : IBackupService
 
         var cleaned = new string(trigger.Where(char.IsLetterOrDigit).ToArray());
         return cleaned.Length == 0 ? "manual" : cleaned.ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// A milestone name reduced to what can live in a file name, keeping the
+    /// writer's capitals: "Draft two, revised" becomes "Draft-two-revised". The
+    /// name is stored in the archive name rather than an index so that it
+    /// survives the archive being copied somewhere else.
+    /// </summary>
+    private static string SafeLabel(string name)
+    {
+        var cleaned = new string(name
+            .Select(c => char.IsLetterOrDigit(c) ? c : ' ')
+            .ToArray());
+        var words = cleaned.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var label = string.Join('-', words);
+        return label.Length <= MaxLabelLength ? label : label[..MaxLabelLength].TrimEnd('-');
     }
 
     private static string SafeFolderName(string name)

@@ -322,6 +322,140 @@ public class BackupServiceTests
         Assert.Contains("Backups", sut.GetBackupFolder());
     }
 
+    // -- Milestones --
+
+    [Fact]
+    public async Task CreateAsync_Named_KeepsTheNameOnTheArchive()
+    {
+        var (sut, _, _, _) = Build();
+
+        var info = await sut.CreateAsync("milestone", "Draft two, revised");
+
+        Assert.NotNull(info);
+        Assert.True(info!.IsMilestone);
+        Assert.Equal("Draft two revised", info.Name);
+        // The name lives in the file name, so it survives the archive being
+        // copied somewhere else.
+        Assert.Contains("milestone-Draft-two-revised", info.Path);
+    }
+
+    [Fact]
+    public async Task CreateAsync_Named_KeepsCapitalsButNotPunctuation()
+    {
+        var (sut, _, _, _) = Build();
+        var info = await sut.CreateAsync("milestone", "  Sent  to:  Agent!  ");
+        Assert.Equal("Sent to Agent", info!.Name);
+    }
+
+    [Fact]
+    public async Task CreateAsync_Named_TruncatesAVeryLongName()
+    {
+        var (sut, _, _, _) = Build();
+
+        var info = await sut.CreateAsync("milestone", new string('x', 200));
+
+        Assert.Equal(BackupService.MaxLabelLength, info!.Name.Length);
+    }
+
+    [Fact]
+    public async Task CreateAsync_Named_WorksWithAutomaticBackupsOff()
+    {
+        // Asking to keep a version is deliberate; refusing because a rotating
+        // schedule is switched off would be the wrong reading of both settings.
+        var (sut, _, _, settings) = Build();
+        settings.Settings.BackupEnabled = false;
+
+        Assert.NotNull(await sut.CreateAsync("milestone", "First draft"));
+        Assert.Null(await sut.CreateAsync("interval"));
+    }
+
+    [Fact]
+    public async Task CreateAsync_BlankName_IsAnOrdinaryArchive()
+    {
+        var (sut, _, _, _) = Build();
+        var info = await sut.CreateAsync("manual", "   ");
+        Assert.False(info!.IsMilestone);
+        Assert.Equal("manual", info.Trigger);
+        Assert.Equal(string.Empty, info.Name);
+    }
+
+    [Fact]
+    public async Task PruneAsync_NeverDeletesAMilestone()
+    {
+        var (sut, files, _, settings) = Build();
+        settings.Settings.BackupRetentionCount = 1;
+        var folder = sut.GetBackupFolder()!;
+        await files.CreateDirectoryAsync(folder);
+        foreach (var name in new[]
+                 {
+                     "20260101-100000-milestone-First-draft",
+                     "20260102-100000-manual",
+                     "20260103-100000-manual"
+                 })
+            await files.WriteTextAsync(files.CombinePath(folder, name + ".zip"), "x");
+
+        await sut.PruneAsync();
+
+        var list = await sut.ListAsync();
+        Assert.Equal(2, list.Count);
+        Assert.Contains(list, b => b.Name == "First draft");
+    }
+
+    [Fact]
+    public async Task PruneAsync_MilestonesDoNotFillTheQuota()
+    {
+        // Two milestones and one ordinary archive with retention 1: the ordinary
+        // one stays, because the milestones were never counted against it.
+        var (sut, files, _, settings) = Build();
+        settings.Settings.BackupRetentionCount = 1;
+        var folder = sut.GetBackupFolder()!;
+        await files.CreateDirectoryAsync(folder);
+        foreach (var name in new[]
+                 {
+                     "20260101-100000-milestone-One",
+                     "20260102-100000-milestone-Two",
+                     "20260103-100000-manual"
+                 })
+            await files.WriteTextAsync(files.CombinePath(folder, name + ".zip"), "x");
+
+        await sut.PruneAsync();
+
+        Assert.Equal(3, (await sut.ListAsync()).Count);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_RemovesTheArchive()
+    {
+        var (sut, files, _, _) = Build();
+        var folder = sut.GetBackupFolder()!;
+        await files.CreateDirectoryAsync(folder);
+        await files.WriteTextAsync(
+            files.CombinePath(folder, "20260101-100000-milestone-One.zip"), "x");
+
+        Assert.True(await sut.DeleteAsync("20260101-100000-milestone-One"));
+        Assert.Empty(await sut.ListAsync());
+    }
+
+    [Fact]
+    public async Task DeleteAsync_UnknownId_ReturnsFalse()
+    {
+        var (sut, _, _, _) = Build();
+        Assert.False(await sut.DeleteAsync("nothing-like-this"));
+    }
+
+    [Fact]
+    public async Task ListAsync_AnOrdinaryArchiveIsNotAMilestone()
+    {
+        var (sut, files, _, _) = Build();
+        var folder = sut.GetBackupFolder()!;
+        await files.CreateDirectoryAsync(folder);
+        await files.WriteTextAsync(files.CombinePath(folder, "20260101-100000-manual.zip"), "x");
+
+        var only = Assert.Single(await sut.ListAsync());
+        Assert.False(only.IsMilestone);
+        Assert.Equal(string.Empty, only.Name);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("short")]

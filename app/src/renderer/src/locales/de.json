@@ -2103,7 +2103,14 @@
       "interval": "Automatisch",
       "manual": "Manuell",
       "prerestore": "Vor Wiederherstellung"
-    }
+    },
+    "milestone": "Meilenstein",
+    "milestonePlaceholder": "Diese Fassung benennen",
+    "milestoneDesc": "Ein benanntes Archiv des gesamten Projekts, das nie automatisch gelöscht wird. Gedacht für „erste Fassung“, „an Agentur geschickt“ oder alles, worauf Sie in Monaten noch zurückgreifen wollen.",
+    "keepVersion": "Fassung behalten",
+    "kept": "Behalten",
+    "delete": "Löschen",
+    "deleteConfirm": "Archiv „{{name}}“ löschen? Das lässt sich nicht rückgängig machen."
   },
   "style": {
     "title": "Stilbericht",

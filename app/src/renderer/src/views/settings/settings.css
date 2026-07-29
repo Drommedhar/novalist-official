@@ -249,8 +249,21 @@
 }
 
 .backup-row-date {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
   font-size: var(--nl-font-body);
   color: var(--nl-text);
+}
+
+/* A milestone is what the writer chose to keep, so it reads as a name rather
+   than a timestamp and is visibly not one of the rotating archives. */
+.backup-row-milestone {
+  border-color: var(--nl-accent);
+}
+
+.backup-row-milestone .backup-row-date {
+  font-weight: 600;
 }
 
 .backup-row-meta {

@@ -2137,7 +2137,14 @@
       "interval": "自动",
       "manual": "手动",
       "prerestore": "恢复前"
-    }
+    },
+    "milestone": "里程碑",
+    "milestonePlaceholder": "为此版本命名",
+    "milestoneDesc": "为整个项目保存一份具名存档，永不被自动清理。适用于“初稿”“已投稿”等日后还需要回溯的版本。",
+    "keepVersion": "保留此版本",
+    "kept": "已保留",
+    "delete": "删除",
+    "deleteConfirm": "删除存档“{{name}}”？此操作无法撤销。"
   },
   "style": {
     "title": "文风报告",

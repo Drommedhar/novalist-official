@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Archive, FolderOpen, RotateCcw } from 'lucide-react'
+import { Archive, FolderOpen, Flag, RotateCcw, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
@@ -11,6 +11,10 @@ export interface BackupDto {
   createdAt: string
   sizeBytes: number
   trigger: string
+  /** A named archive the writer asked to keep. Exempt from retention. */
+  isMilestone: boolean
+  /** The name they gave it, or empty for an ordinary rotating archive. */
+  name: string
 }
 
 /** Bytes to a short human string. Archives run from a few KB to hundreds of MB. */
@@ -35,6 +39,7 @@ export function BackupsCard(): React.JSX.Element {
   const [backups, setBackups] = useState<BackupDto[]>([])
   const [folder, setFolder] = useState('')
   const [busy, setBusy] = useState(false)
+  const [milestoneName, setMilestoneName] = useState('')
 
   const refresh = useCallback(async () => {
     if (!hasProject) {
@@ -60,6 +65,35 @@ export function BackupsCard(): React.JSX.Element {
     }
   }
 
+  const formatDate = (iso: string): string => new Date(iso).toLocaleString()
+
+  const keepThisVersion = async (): Promise<void> => {
+    const name = milestoneName.trim()
+    if (!name) return
+    setBusy(true)
+    try {
+      await rpc.request<BackupDto | null>('backup/createMilestone', [name])
+      setMilestoneName('')
+      await refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const remove = async (backup: BackupDto): Promise<void> => {
+    // Retention will never clear a milestone, so deleting one is deliberate and
+    // gets asked about rather than assumed.
+    const label = backup.name || formatDate(backup.createdAt)
+    if (!window.confirm(t('backup.deleteConfirm', { name: label }))) return
+    setBusy(true)
+    try {
+      await rpc.request<boolean>('backup/delete', [backup.id])
+      await refresh()
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const prune = async (): Promise<void> => {
     setBusy(true)
     try {
@@ -68,8 +102,6 @@ export function BackupsCard(): React.JSX.Element {
       setBusy(false)
     }
   }
-
-  const formatDate = (iso: string): string => new Date(iso).toLocaleString()
 
   const restore = async (backup: BackupDto): Promise<void> => {
     // Overwriting the project folder is the most destructive action in the app.
@@ -176,6 +208,32 @@ export function BackupsCard(): React.JSX.Element {
         )}
       </div>
 
+      <label className="inspector-label" htmlFor="set-backup-milestone">
+        {t('backup.milestone')}
+      </label>
+      <div className="settings-button-row">
+        <input
+          id="set-backup-milestone"
+          className="inspector-input"
+          type="text"
+          value={milestoneName}
+          disabled={!hasProject || busy}
+          placeholder={t('backup.milestonePlaceholder')}
+          onChange={(e) => setMilestoneName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') void keepThisVersion()
+          }}
+        />
+        <button
+          className="dialog-button"
+          disabled={!hasProject || busy || milestoneName.trim().length === 0}
+          onClick={() => void keepThisVersion()}
+        >
+          <Flag size={14} /> {t('backup.keepVersion')}
+        </button>
+      </div>
+      <div className="settings-hint">{t('backup.milestoneDesc')}</div>
+
       {!hasProject && <div className="settings-hint">{t('backup.noProject')}</div>}
 
       {hasProject && (
@@ -184,16 +242,30 @@ export function BackupsCard(): React.JSX.Element {
             <div className="settings-hint">{t('backup.none')}</div>
           ) : (
             backups.map((b) => (
-              <div key={b.id} className="backup-row">
+              <div key={b.id} className={`backup-row${b.isMilestone ? ' backup-row-milestone' : ''}`}>
                 <div className="backup-row-main">
-                  <span className="backup-row-date">{formatDate(b.createdAt)}</span>
+                  <span className="backup-row-date">
+                    {b.isMilestone && <Flag size={12} aria-hidden />}
+                    {b.isMilestone ? b.name : formatDate(b.createdAt)}
+                  </span>
                   <span className="backup-row-meta">
-                    {t(`backup.trigger.${b.trigger}`, { defaultValue: b.trigger })} ·{' '}
-                    {formatSize(b.sizeBytes)}
+                    {b.isMilestone
+                      ? `${formatDate(b.createdAt)} · ${t('backup.kept')}`
+                      : t(`backup.trigger.${b.trigger}`, { defaultValue: b.trigger })}{' '}
+                    · {formatSize(b.sizeBytes)}
                   </span>
                 </div>
                 <button className="dialog-button" disabled={busy} onClick={() => void restore(b)}>
                   <RotateCcw size={14} /> {t('backup.restore')}
+                </button>
+                <button
+                  className="dialog-button"
+                  disabled={busy}
+                  title={t('backup.delete')}
+                  aria-label={t('backup.delete')}
+                  onClick={() => void remove(b)}
+                >
+                  <Trash2 size={14} />
                 </button>
               </div>
             ))

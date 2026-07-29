@@ -26,6 +26,20 @@ public sealed class BackupRpc
         return info == null ? null : ToDto(info);
     }
 
+    /// <summary>
+    /// Archives the project under a name the writer chose. Named archives are
+    /// milestones and survive retention.
+    /// </summary>
+    [JsonRpcMethod("backup/createMilestone")]
+    public async Task<BackupDto?> CreateMilestoneAsync(string name)
+    {
+        var info = await Service.CreateAsync("milestone", name);
+        return info == null ? null : ToDto(info);
+    }
+
+    [JsonRpcMethod("backup/delete")]
+    public Task<bool> DeleteAsync(string backupId) => Service.DeleteAsync(backupId);
+
     [JsonRpcMethod("backup/list")]
     public async Task<BackupDto[]> ListAsync()
     {
@@ -71,8 +85,9 @@ public sealed class BackupRpc
         Task.FromResult(Service.GetBackupFolder() ?? string.Empty);
 
     private static BackupDto ToDto(Core.Models.BackupInfo b) =>
-        new(b.Id, b.Path, b.CreatedAt.ToString("o"), b.SizeBytes, b.Trigger);
+        new(b.Id, b.Path, b.CreatedAt.ToString("o"), b.SizeBytes, b.Trigger, b.IsMilestone, b.Name);
 }
 
 public sealed record BackupDto(
-    string Id, string Path, string CreatedAt, long SizeBytes, string Trigger);
+    string Id, string Path, string CreatedAt, long SizeBytes, string Trigger,
+    bool IsMilestone = false, string Name = "");

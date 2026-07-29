@@ -131,6 +131,45 @@ public sealed class BackupRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task CreateMilestone_NamesTheArchiveAndSurvivesPruning()
+    {
+        var milestone = await _rpc.CreateMilestoneAsync("First draft");
+
+        Assert.NotNull(milestone);
+        Assert.True(milestone!.IsMilestone);
+        Assert.Equal("First draft", milestone.Name);
+
+        // Retention of one, and an ordinary archive to fill it: the milestone
+        // still has to be there afterwards.
+        await _rpc.CreateAsync("manual");
+        _workspace.Settings.Settings.BackupRetentionCount = 1;
+        var remaining = await _rpc.PruneAsync();
+
+        Assert.Contains(remaining, b => b.Id == milestone.Id);
+    }
+
+    [Fact]
+    public async Task Delete_RemovesAMilestoneRetentionWouldNotTouch()
+    {
+        var milestone = await _rpc.CreateMilestoneAsync("Sent to agent");
+
+        Assert.True(await _rpc.DeleteAsync(milestone!.Id));
+        Assert.DoesNotContain(await _rpc.ListAsync(), b => b.Id == milestone.Id);
+        Assert.False(File.Exists(milestone.Path));
+    }
+
+    [Fact]
+    public async Task Delete_UnknownId_ReturnsFalse()
+        => Assert.False(await _rpc.DeleteAsync("20260101-000000-nope"));
+
+    [Fact]
+    public async Task CreateMilestone_NoProjectOpen_ReturnsNull()
+    {
+        using var bare = new Workspace(Path.Combine(_root, "settings3"));
+        Assert.Null(await new BackupRpc(bare).CreateMilestoneAsync("Anything"));
+    }
+
+    [Fact]
     public async Task Create_ExcludesGitDirectoryFromTheArchive()
     {
         var gitDir = Path.Combine(_workspace.Projects.ProjectRoot!, ".git");
