@@ -159,7 +159,7 @@ export function CodexView(): React.JSX.Element {
         {/* Names the prose uses without linking them. Book-wide rather than
             per-entry: the scan reads every scene once either way. */}
         <button
-          className="codex-tab codex-tab-manage"
+          className="codex-tab codex-tab-unlinked"
           onClick={() => setUnlinkedOpen(!unlinkedOpen)}
         >
           {t('unlinked.title')}

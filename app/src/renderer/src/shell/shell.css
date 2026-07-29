@@ -1521,7 +1521,8 @@
 
 /* ===== Custom entity type manager ===== */
 
-.codex-tab-manage {
+.codex-tab-manage,
+.codex-tab-unlinked {
   display: inline-flex;
   align-items: center;
   gap: var(--nl-space-tighter);
