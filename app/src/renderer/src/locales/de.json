@@ -2439,5 +2439,22 @@
     "normal": "Passiert als Nächstes",
     "strand": "Strang",
     "strandPlaceholder": "Welcher Strang, z. B. „die Belagerung“"
+  },
+  "arc": {
+    "title": "Entwicklungsbogen",
+    "intro": "Wo diese Figur beginnt, wo sie endet und welche Szenen sie wenden. Die Kapitelüberschreibungen sagen, wie sie an einer Stelle des Buchs ist; das hier sagt, wozu die Veränderung dient.",
+    "start": "Am Anfang",
+    "startPlaceholder": "Wer sie ist, bevor etwas sie zur Veränderung zwingt",
+    "end": "Am Ende",
+    "endPlaceholder": "Wer sie danach ist",
+    "points": "Wendepunkte",
+    "pointPlaceholder": "Was sich ändert – „hört auf, sich zu belügen“",
+    "addPoint": "Wendepunkt hinzufügen",
+    "remove": "Diesen Wendepunkt entfernen",
+    "scene": "Szene",
+    "noScene": "Noch nicht verortet",
+    "dashboardTitle": "Entwicklungsbögen",
+    "dashboardIntro": "Die Wendepunkte jeder Figur in Lesereihenfolge. Häufen sie sich an einer Stelle, lohnt ein zweiter Blick.",
+    "noPoints": "Noch keine Wendepunkte."
   }
 }

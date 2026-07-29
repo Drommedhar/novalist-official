@@ -18,6 +18,7 @@ import { CustomPropsEditor } from './CustomPropsEditor'
 import { MatchSettingsEditor } from './MatchSettingsEditor'
 import { AiPolicyEditor } from './AiPolicyEditor'
 import { StateOverridesEditor } from './StateOverridesEditor'
+import { ArcEditor } from './ArcEditor'
 import { OverridesEditor } from './OverridesEditor'
 import { CodexNav } from './CodexNav'
 import { EntityDetailFields } from './EntityDetailFields'
@@ -230,6 +231,14 @@ export function CodexView(): React.JSX.Element {
                 <details className="codex-match">
                   <summary>{t('stateOverride.title')}</summary>
                   <StateOverridesEditor entityType={entityType} entityId={selectedId} />
+                </details>
+              )}
+              {/* Where the character starts, ends, and turns. Characters only:
+                  a location does not have an arc, it has a state. */}
+              {selectedId && entityType === 'character' && (
+                <details className="codex-match">
+                  <summary>{t('arc.title')}</summary>
+                  <ArcEditor characterId={selectedId} />
                 </details>
               )}
               {/* What an AI extension may see of this entry. Collapsed by

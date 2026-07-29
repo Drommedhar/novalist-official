@@ -127,6 +127,16 @@ While you are reading that part of the book, the entry's hover card shows the re
 
 Characters have their own richer version of this — see [Chapter overrides](#chapter-overrides-characters) below — which restates the full profile rather than a description and a few fields.
 
+## Arc (characters)
+
+An **Arc** panel on a character records where they start, where they end, and the scenes that turn them.
+
+The [chapter overrides](#chapter-overrides-characters) below it say what a character is *like* at a point in the book. An arc says what the change is *for*: **At the start**, **At the end**, and a list of **turning points**, each in your own words and each optionally bound to the scene where it happens.
+
+A turning point can be written down before you know which scene it belongs in — leave it at **Not placed yet**. That is half the use of writing it down.
+
+Every character with an arc also appears on the [Dashboard](11-dashboard.md) under **Character arcs**, with their turning points laid out in reading order — which is where you can see whether the turns are spread through the book or bunched into one stretch of it. Unplaced turns sort last and are drawn as outlines rather than solid chips.
+
 ## Chapter overrides (characters)
 
 A character can restate its identity or appearance for a specific chapter — optionally a single scene within it. Example uses:

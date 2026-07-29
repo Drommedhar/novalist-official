@@ -2431,5 +2431,22 @@
     "normal": "Happens next",
     "strand": "Strand",
     "strandPlaceholder": "Which thread, e.g. \"the siege\""
+  },
+  "arc": {
+    "title": "Arc",
+    "intro": "Where this character starts, where they end, and the scenes that turn them. The per-chapter overrides say what they are like at a point in the book; this says what the change is for.",
+    "start": "At the start",
+    "startPlaceholder": "Who they are before anything forces them to change",
+    "end": "At the end",
+    "endPlaceholder": "Who they are once it has",
+    "points": "Turning points",
+    "pointPlaceholder": "What changes - \"stops lying to herself\"",
+    "addPoint": "Add a turning point",
+    "remove": "Remove this turning point",
+    "scene": "Scene",
+    "noScene": "Not placed yet",
+    "dashboardTitle": "Character arcs",
+    "dashboardIntro": "Each character’s turning points in reading order. Turns bunched into one stretch of the book are worth a second look.",
+    "noPoints": "No turning points yet."
   }
 }

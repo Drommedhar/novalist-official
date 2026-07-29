@@ -53,6 +53,12 @@ The act boxes follow the acts your chapters are actually in, so a book in two ac
 
 You can fill this in at any time; Novalist also offers it when you create a project (see [Projects and books](03-projects-and-books.md#starting-from-a-premise)).
 
+### Character arcs
+
+One row per character who has an [arc](06-codex.md#arc-characters): their name, the two ends of the change, and their turning points in reading order. Turns bunched into one stretch of the book are worth a second look. A turn you have not placed in a scene yet sorts last and is drawn as an outline.
+
+The card only appears once at least one character has an arc.
+
 ### Word targets
 
 Every [word target](04-chapters-and-scenes.md#word-targets) you have set, in one place: a row per act, chapter, and scene with a progress bar and `written / target`. Click a row to change or clear that target.

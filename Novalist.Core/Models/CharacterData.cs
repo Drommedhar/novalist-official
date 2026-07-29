@@ -24,6 +24,15 @@ public class CharacterData : IEntityData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public List<EntityStateOverride> StateOverrides { get; set; } = [];
 
+    /// <summary>
+    /// Where this character starts, where they end, and the scenes that turn
+    /// them. Per-scope overrides already say what a character is like at a
+    /// point in the book; an arc says what the change is for.
+    /// </summary>
+    [JsonPropertyName("arc")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CharacterArc? Arc { get; set; }
+
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;

@@ -2473,5 +2473,22 @@
     "normal": "接着发生",
     "strand": "线索",
     "strandPlaceholder": "哪条线索，例如“围城”"
+  },
+  "arc": {
+    "title": "人物弧线",
+    "intro": "这个人物从哪里开始、到哪里结束，以及哪些场景使其转变。章节覆盖说明她在某一刻的状态；这里说明这些变化是为了什么。",
+    "start": "开头时",
+    "startPlaceholder": "在被迫改变之前她是谁",
+    "end": "结尾时",
+    "endPlaceholder": "改变之后她是谁",
+    "points": "转折点",
+    "pointPlaceholder": "什么发生了改变 — “不再自欺”",
+    "addPoint": "添加转折点",
+    "remove": "删除此转折点",
+    "scene": "场景",
+    "noScene": "尚未定位",
+    "dashboardTitle": "人物弧线",
+    "dashboardIntro": "每个人物的转折点，按阅读顺序排列。若集中在一段，值得再看一眼。",
+    "noPoints": "尚无转折点。"
   }
 }

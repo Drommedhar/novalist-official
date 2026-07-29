@@ -4,6 +4,7 @@ import { rpc } from '../../rpc/client'
 import { BookAnalyticsCard } from './BookAnalyticsCard'
 import { TargetsCard } from './TargetsCard'
 import { PremiseCard } from './PremiseCard'
+import { ArcsCard } from './ArcsCard'
 import { InputDialog } from '../../shell/InputDialog'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
@@ -327,6 +328,10 @@ export function DashboardView(): React.JSX.Element {
 
       {/* What the book is, before what is left to write of it. */}
       <PremiseCard />
+
+      {/* Every character's arc against the book: the Codex holds one at a
+          time, which cannot say whether the turns are spread or bunched. */}
+      <ArcsCard />
 
       {/* Word targets, which had no home outside the binder's context menu. */}
       <TargetsCard />

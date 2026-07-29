@@ -331,3 +331,41 @@
   resize: vertical;
   width: 100%;
 }
+
+/* One row per character with an arc: their name, the ends of the change, and
+   the turns in reading order. */
+.arc-row {
+  border-bottom: 1px solid var(--nl-border-subtle);
+  padding: var(--nl-space-tighter) var(--nl-space-none);
+}
+
+.arc-name {
+  font-size: var(--nl-font-body-sm);
+  font-weight: 600;
+}
+
+.arc-ends {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.arc-points {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-tightest);
+}
+
+.arc-point {
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-pill);
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+}
+
+/* A turn the writer has not placed in a scene yet reads as provisional
+   rather than as something that happens nowhere. */
+.arc-point.unplaced {
+  background: none;
+  border: 1px dashed var(--nl-border);
+}

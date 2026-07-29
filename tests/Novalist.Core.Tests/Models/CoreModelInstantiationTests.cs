@@ -32,6 +32,10 @@ public class CoreModelInstantiationTests
         // rather than only appended to.
         Assert.NotEmpty(new CommentReply().Id);
         Assert.NotEmpty(new ScenePromise().Id);
+        // An arc point keeps its id so a turn can be moved between scenes
+        // without becoming a different turn.
+        Assert.NotEmpty(new ArcPoint().Id);
+        Assert.NotNull(new CharacterArc().Points);
         Assert.NotNull(new SceneComment());
     }
 
