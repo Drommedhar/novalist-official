@@ -28,6 +28,17 @@ public record GitFileEntry(string RelativePath, GitFileStatus IndexStatus, GitFi
     public bool IsStaged => IndexStatus is not (GitFileStatus.Unmodified or GitFileStatus.Untracked or GitFileStatus.Ignored);
 }
 
+/// <summary>One commit in the log.</summary>
+public record GitCommit(
+    string Sha,
+    string ShortSha,
+    string Author,
+    DateTimeOffset Date,
+    string Subject);
+
+/// <summary>One branch, and whether it is the one checked out.</summary>
+public record GitBranch(string Name, bool IsCurrent);
+
 public record GitRepoInfo(
     string BranchName,
     bool HasRemote,

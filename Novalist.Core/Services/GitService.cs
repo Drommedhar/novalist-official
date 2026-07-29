@@ -162,6 +162,100 @@ public class GitService : IGitService
         return null;
     }
 
+    public async Task<IReadOnlyList<GitCommit>> GetLogAsync(int limit)
+    {
+        if (_repoRoot == null) return [];
+
+        // A record separator no commit subject will contain, so a subject with
+        // a tab or a pipe in it cannot split the line.
+        var (exitCode, output, _) = await RunGitAsync(
+            _repoRoot, "log", $"-n{(limit <= 0 ? 50 : limit)}", "--date=iso-strict",
+            "--pretty=format:%H\u001f%h\u001f%an\u001f%ad\u001f%s");
+        if (exitCode != 0) return [];
+
+        var commits = new List<GitCommit>();
+        foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = line.Split('\u001f');
+            if (parts.Length < 5) continue;
+            DateTimeOffset.TryParse(parts[3], out var date);
+            commits.Add(new GitCommit(parts[0], parts[1], parts[2], date, parts[4].TrimEnd('\r')));
+        }
+        return commits;
+    }
+
+    public async Task<IReadOnlyList<string>> GetCommitFilesAsync(string sha)
+    {
+        if (_repoRoot == null || string.IsNullOrWhiteSpace(sha)) return [];
+
+        var (exitCode, output, _) = await RunGitAsync(
+            _repoRoot, "show", "--name-only", "--pretty=format:", sha);
+        if (exitCode != 0) return [];
+
+        return [.. output
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(l => l.TrimEnd('\r'))
+            .Where(l => l.Length > 0)];
+    }
+
+    public async Task<string> GetDiffAsync(string? sha, string relativePath)
+    {
+        if (_repoRoot == null || string.IsNullOrWhiteSpace(relativePath)) return string.Empty;
+
+        var (exitCode, output, _) = string.IsNullOrWhiteSpace(sha)
+            ? await RunGitAsync(_repoRoot, "diff", "HEAD", "--", relativePath)
+            : await RunGitAsync(_repoRoot, "show", sha, "--", relativePath);
+        return exitCode == 0 ? output : string.Empty;
+    }
+
+    public async Task<IReadOnlyList<GitBranch>> GetBranchesAsync()
+    {
+        if (_repoRoot == null) return [];
+
+        var (exitCode, output, _) = await RunGitAsync(
+            _repoRoot, "branch", "--format=%(refname:short)\u001f%(HEAD)");
+        if (exitCode != 0) return [];
+
+        var branches = new List<GitBranch>();
+        foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var parts = line.TrimEnd('\r').Split('\u001f');
+            if (parts.Length < 2 || parts[0].Length == 0) continue;
+            branches.Add(new GitBranch(parts[0], parts[1].Trim() == "*"));
+        }
+        return branches;
+    }
+
+    public async Task<string?> CreateBranchAsync(string name)
+    {
+        if (_repoRoot == null) return "Not a Git repository";
+        if (string.IsNullOrWhiteSpace(name)) return "A branch needs a name";
+
+        var (exitCode, _, error) = await RunGitAsync(_repoRoot, "checkout", "-b", name.Trim());
+        return exitCode == 0 ? null : error.Trim();
+    }
+
+    public async Task<string?> SwitchBranchAsync(string name)
+    {
+        if (_repoRoot == null) return "Not a Git repository";
+        if (string.IsNullOrWhiteSpace(name)) return "A branch needs a name";
+
+        var (exitCode, _, error) = await RunGitAsync(_repoRoot, "checkout", name.Trim());
+        return exitCode == 0 ? null : error.Trim();
+    }
+
+    public async Task<string?> InitRepositoryAsync(string projectRoot)
+    {
+        if (!_isGitInstalled) return "Git is not installed";
+        if (_repoRoot != null) return "This project is already in a repository";
+
+        var (exitCode, _, error) = await RunGitAsync(projectRoot, "init");
+        if (exitCode != 0) return error.Trim();
+
+        await InitializeAsync(projectRoot);
+        return null;
+    }
+
     private async Task<string> GetBranchNameAsync()
     {
         var (exitCode, output, _) = await RunGitAsync(_repoRoot!, "branch", "--show-current");

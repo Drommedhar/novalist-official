@@ -190,4 +190,67 @@ public sealed class GitRpcTests : IDisposable
             TestHelpers.TempDir.ForceDelete(root);
         }
     }
+
+    [Fact]
+    public async Task LogListsCommitsNewestFirst()
+    {
+        await File.WriteAllTextAsync(Path.Combine(_workspace.Projects.ProjectRoot!, "a.txt"), "one");
+        RunGit("add -A");
+        RunGit("commit -m first");
+        await File.WriteAllTextAsync(Path.Combine(_workspace.Projects.ProjectRoot!, "a.txt"), "two");
+        RunGit("add -A");
+        RunGit("commit -m second");
+
+        var log = await _rpc.LogAsync(10);
+
+        Assert.True(log.Length >= 2);
+        Assert.Equal("second", log[0].Subject);
+        Assert.NotEmpty(log[0].ShortSha);
+    }
+
+    [Fact]
+    public async Task CommitFilesAndDiffReadOneCommit()
+    {
+        await File.WriteAllTextAsync(Path.Combine(_workspace.Projects.ProjectRoot!, "a.txt"), "one");
+        RunGit("add -A");
+        RunGit("commit -m first");
+        var sha = (await _rpc.LogAsync(1))[0].Sha;
+
+        var files = await _rpc.CommitFilesAsync(sha);
+
+        Assert.Contains("a.txt", files);
+        Assert.Contains("one", await _rpc.DiffAsync(sha, "a.txt"));
+    }
+
+    [Fact]
+    public async Task DiffWithNoShaShowsTheWorkingTree()
+    {
+        var path = Path.Combine(_workspace.Projects.ProjectRoot!, "a.txt");
+        await File.WriteAllTextAsync(path, "one");
+        RunGit("add -A");
+        RunGit("commit -m first");
+        await File.WriteAllTextAsync(path, "two");
+
+        Assert.Contains("two", await _rpc.DiffAsync(null, "a.txt"));
+    }
+
+    [Fact]
+    public async Task BranchesListTheCurrentOneAndSwitchingWorks()
+    {
+        await File.WriteAllTextAsync(Path.Combine(_workspace.Projects.ProjectRoot!, "a.txt"), "one");
+        RunGit("add -A");
+        RunGit("commit -m first");
+
+        Assert.Null(await _rpc.CreateBranchAsync("revision"));
+        var branches = await _rpc.BranchesAsync();
+        Assert.Contains(branches, b => b.Name == "revision" && b.IsCurrent);
+
+        var previous = branches.First(b => !b.IsCurrent).Name;
+        Assert.Null(await _rpc.SwitchBranchAsync(previous));
+        Assert.Contains(await _rpc.BranchesAsync(), b => b.Name == previous && b.IsCurrent);
+    }
+
+    [Fact]
+    public async Task InitOnAFolderThatIsAlreadyARepositorySaysSo()
+        => Assert.Equal("This project is already in a repository", await _rpc.InitAsync());
 }

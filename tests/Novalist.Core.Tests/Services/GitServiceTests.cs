@@ -421,6 +421,311 @@ public class GitServiceTests
         var info = await sut.GetStatusAsync();
         Assert.Equal(expectedIndex, info!.ChangedFiles[0].IndexStatus);
     }
+
+    // -- History --
+
+    [Fact]
+    public async Task GetLogAsync_ParsesCommitsNewestFirst()
+    {
+        const string log =
+            "abc123short1Mira Vance2026-01-02T10:00:00+00:00Fixed the bell\n"
+            + "def456short2Halden2026-01-01T09:00:00+00:00First draft";
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "log" ? (0, log, "") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        var commits = await sut.GetLogAsync(10);
+
+        Assert.Equal(2, commits.Count);
+        Assert.Equal("abc123", commits[0].Sha);
+        Assert.Equal("short1", commits[0].ShortSha);
+        Assert.Equal("Mira Vance", commits[0].Author);
+        Assert.Equal("Fixed the bell", commits[0].Subject);
+        Assert.Equal(2026, commits[0].Date.Year);
+    }
+
+    [Fact]
+    public async Task GetLogAsync_SkipsLinesItCannotRead()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "log"
+                ? (0, "not a record\nabcab2026-01-01T00:00:00Zsubject", "")
+                : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Single(await sut.GetLogAsync(10));
+    }
+
+    [Fact]
+    public async Task GetLogAsync_GitFailing_IsAnEmptyLog()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "log" ? (128, "", "fatal") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Empty(await sut.GetLogAsync(10));
+    }
+
+    [Fact]
+    public async Task GetLogAsync_NoRepo_IsEmpty()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "rev-parse" ? (128, "", "") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Empty(await sut.GetLogAsync(0));
+    }
+
+    [Fact]
+    public async Task GetCommitFilesAsync_ListsThePathsTouched()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "show" ? (0, "Books/one.html\nBooks/two.html\n", "") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Equal(["Books/one.html", "Books/two.html"], await sut.GetCommitFilesAsync("abc"));
+    }
+
+    [Fact]
+    public async Task GetCommitFilesAsync_NoShaIsEmpty()
+    {
+        var sut = await InitializedRepo(new FakeProcessRunner(DefaultResponder));
+        Assert.Empty(await sut.GetCommitFilesAsync("  "));
+    }
+
+    [Fact]
+    public async Task GetCommitFilesAsync_GitFailingIsEmpty()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "show" ? (128, "", "fatal") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Empty(await sut.GetCommitFilesAsync("abc"));
+    }
+
+    [Fact]
+    public async Task GetDiffAsync_WithNoShaComparesTheWorkingTree()
+    {
+        string[]? seen = null;
+        var runner = new FakeProcessRunner(args =>
+        {
+            if (args[0] == "diff") { seen = args; return (0, "@@ -1 +1 @@", ""); }
+            return DefaultResponder(args);
+        });
+        var sut = await InitializedRepo(runner);
+
+        Assert.Equal("@@ -1 +1 @@", await sut.GetDiffAsync(null, "a.html"));
+        Assert.NotNull(seen);
+        Assert.Equal(["diff", "HEAD", "--", "a.html"], seen);
+    }
+
+    [Fact]
+    public async Task GetDiffAsync_WithAShaShowsThatCommit()
+    {
+        string[]? seen = null;
+        var runner = new FakeProcessRunner(args =>
+        {
+            if (args[0] == "show") { seen = args; return (0, "diff body", ""); }
+            return DefaultResponder(args);
+        });
+        var sut = await InitializedRepo(runner);
+
+        Assert.Equal("diff body", await sut.GetDiffAsync("abc", "a.html"));
+        Assert.NotNull(seen);
+        Assert.Equal(["show", "abc", "--", "a.html"], seen);
+    }
+
+    [Fact]
+    public async Task GetDiffAsync_NoPathIsEmpty()
+    {
+        var sut = await InitializedRepo(new FakeProcessRunner(DefaultResponder));
+        Assert.Equal(string.Empty, await sut.GetDiffAsync(null, " "));
+    }
+
+    [Fact]
+    public async Task GetDiffAsync_GitFailingIsEmpty()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "diff" ? (128, "", "fatal") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Equal(string.Empty, await sut.GetDiffAsync(null, "a.html"));
+    }
+
+    // -- Branches --
+
+    [Fact]
+    public async Task GetBranchesAsync_MarksTheCheckedOutOne()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "branch" ? (0, "main*\nrevision \n", "") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        var branches = await sut.GetBranchesAsync();
+
+        Assert.Equal(2, branches.Count);
+        Assert.True(branches[0].IsCurrent);
+        Assert.False(branches[1].IsCurrent);
+        Assert.Equal("revision", branches[1].Name);
+    }
+
+    [Fact]
+    public async Task GetBranchesAsync_GitFailingIsEmpty()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "branch" ? (128, "", "fatal") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Empty(await sut.GetBranchesAsync());
+    }
+
+    [Fact]
+    public async Task GetBranchesAsync_NoRepoIsEmpty()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "rev-parse" ? (128, "", "") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Empty(await sut.GetBranchesAsync());
+    }
+
+    [Fact]
+    public async Task CreateBranchAsync_CheckoutMinusB()
+    {
+        string[]? seen = null;
+        var runner = new FakeProcessRunner(args =>
+        {
+            if (args[0] == "checkout") { seen = args; return (0, "", ""); }
+            return DefaultResponder(args);
+        });
+        var sut = await InitializedRepo(runner);
+
+        Assert.Null(await sut.CreateBranchAsync(" revision "));
+        Assert.NotNull(seen);
+        Assert.Equal(["checkout", "-b", "revision"], seen);
+    }
+
+    [Fact]
+    public async Task CreateBranchAsync_ReportsWhatGitSaid()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "checkout" ? (128, "", "already exists\n") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Equal("already exists", await sut.CreateBranchAsync("revision"));
+    }
+
+    [Fact]
+    public async Task CreateBranchAsync_NeedsAName()
+    {
+        var sut = await InitializedRepo(new FakeProcessRunner(DefaultResponder));
+        Assert.Equal("A branch needs a name", await sut.CreateBranchAsync("  "));
+    }
+
+    [Fact]
+    public async Task CreateBranchAsync_NeedsARepo()
+    {
+        var noRepo = new FakeProcessRunner(args =>
+            args[0] == "rev-parse" ? (128, "", "") : DefaultResponder(args));
+        var sut = await InitializedRepo(noRepo);
+
+        Assert.Equal("Not a Git repository", await sut.CreateBranchAsync("x"));
+    }
+
+    [Fact]
+    public async Task SwitchBranchAsync_ChecksOutTheName()
+    {
+        string[]? seen = null;
+        var runner = new FakeProcessRunner(args =>
+        {
+            if (args[0] == "checkout") { seen = args; return (0, "", ""); }
+            return DefaultResponder(args);
+        });
+        var sut = await InitializedRepo(runner);
+
+        Assert.Null(await sut.SwitchBranchAsync("main"));
+        Assert.NotNull(seen);
+        Assert.Equal(["checkout", "main"], seen);
+    }
+
+    [Fact]
+    public async Task SwitchBranchAsync_NeedsAName()
+    {
+        var sut = await InitializedRepo(new FakeProcessRunner(DefaultResponder));
+        Assert.Equal("A branch needs a name", await sut.SwitchBranchAsync(""));
+    }
+
+    [Fact]
+    public async Task SwitchBranchAsync_NeedsARepo()
+    {
+        var noRepo = new FakeProcessRunner(args =>
+            args[0] == "rev-parse" ? (128, "", "") : DefaultResponder(args));
+        var sut = await InitializedRepo(noRepo);
+
+        Assert.Equal("Not a Git repository", await sut.SwitchBranchAsync("x"));
+    }
+
+    [Fact]
+    public async Task SwitchBranchAsync_ReportsWhatGitSaid()
+    {
+        var runner = new FakeProcessRunner(args =>
+            args[0] == "checkout" ? (1, "", "would be overwritten\n") : DefaultResponder(args));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Equal("would be overwritten", await sut.SwitchBranchAsync("main"));
+    }
+
+    // -- Making a repository --
+
+    [Fact]
+    public async Task InitRepositoryAsync_CreatesAndThenFindsTheRepo()
+    {
+        var created = false;
+        var runner = new FakeProcessRunner(args =>
+        {
+            if (args[0] == "init") { created = true; return (0, "", ""); }
+            if (args[0] == "rev-parse" && args.Length > 1 && args[1] == "--show-toplevel")
+                return created ? (0, "/repo\n", "") : (128, "", "");
+            return DefaultResponder(args);
+        });
+        var sut = new GitService(runner);
+        await sut.InitializeAsync("/repo");
+        Assert.False(sut.IsGitRepo);
+
+        Assert.Null(await sut.InitRepositoryAsync("/repo"));
+        Assert.True(sut.IsGitRepo);
+    }
+
+    [Fact]
+    public async Task InitRepositoryAsync_AlreadyARepoSaysSo()
+    {
+        var sut = await InitializedRepo(new FakeProcessRunner(DefaultResponder));
+        Assert.Equal("This project is already in a repository", await sut.InitRepositoryAsync("/repo"));
+    }
+
+    [Fact]
+    public async Task InitRepositoryAsync_NoGitSaysSo()
+    {
+        var runner = new FakeProcessRunner(args => args[0] == "--version" ? (1, "", "") : (0, "", ""));
+        var sut = await InitializedRepo(runner);
+
+        Assert.Equal("Git is not installed", await sut.InitRepositoryAsync("/repo"));
+    }
+
+    [Fact]
+    public async Task InitRepositoryAsync_ReportsWhatGitSaid()
+    {
+        var runner = new FakeProcessRunner(args =>
+        {
+            if (args[0] == "init") return (1, "", "permission denied\n");
+            if (args[0] == "rev-parse" && args.Length > 1 && args[1] == "--show-toplevel")
+                return (128, "", "");
+            return DefaultResponder(args);
+        });
+        var sut = await InitializedRepo(runner);
+
+        Assert.Equal("permission denied", await sut.InitRepositoryAsync("/repo"));
+    }
 }
 
 public class ProcessRunnerTests
@@ -457,4 +762,5 @@ public class ProcessRunnerTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => runner.RunAsync(file, null, cts.Token, args));
     }
+
 }

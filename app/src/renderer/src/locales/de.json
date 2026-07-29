@@ -1330,7 +1330,14 @@
     "confirmDiscard": "Änderungen in {{count}} Dateien verwerfen? Das kann nicht rückgängig gemacht werden.",
     "stagedChanges": "Bereitgestellte Änderungen",
     "stage": "Bereitstellen",
-    "unstage": "Zurücknehmen"
+    "unstage": "Zurücknehmen",
+    "init": "Hier ein Repository anlegen",
+    "history": "Verlauf",
+    "noHistory": "Noch keine Commits.",
+    "noFilesInCommit": "Dieser Commit hat keine Dateien geändert.",
+    "branches": "Branches",
+    "newBranch": "Neuer Branch",
+    "branchName": "Branch-Name"
   },
   "toast": {
     "saved": "Gespeichert",

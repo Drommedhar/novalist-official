@@ -112,3 +112,80 @@
   min-height: 100%;
   box-sizing: border-box;
 }
+
+/* ===== History, branches and diffs ===== */
+.git-branch-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter);
+}
+
+.git-inline-btn.active {
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
+}
+
+.git-commit-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--nl-space-tightest);
+  width: 100%;
+  padding: var(--nl-space-sm);
+  border-radius: var(--nl-radius-sm);
+  text-align: left;
+}
+
+.git-commit-row:hover {
+  background: var(--nl-surface-hover);
+}
+
+.git-commit-subject {
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+}
+
+.git-commit-meta {
+  color: var(--nl-text-subtle);
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+}
+
+.git-commit-files {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border-left: 2px solid var(--nl-border);
+  margin-left: var(--nl-space-sm);
+  padding-left: var(--nl-space-sm);
+}
+
+.git-commit-file {
+  color: var(--nl-text-dim);
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-tightest) 0;
+}
+
+.git-commit-file:hover {
+  color: var(--nl-accent);
+}
+
+/* A diff is read, not edited: monospace, its own scroller, and colours that
+   say added and removed without needing the +/- to be counted. */
+.git-diff {
+  max-height: 40vh;
+  overflow: auto;
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+  white-space: pre;
+}
+
+.git-diff-add {
+  color: var(--nl-success);
+}
+
+.git-diff-del {
+  color: var(--nl-danger);
+}

@@ -1706,7 +1706,14 @@
     "confirmDiscard": "Discard changes in {{count}} files? This cannot be undone.",
     "stagedChanges": "Staged Changes",
     "stage": "Stage",
-    "unstage": "Unstage"
+    "unstage": "Unstage",
+    "init": "Create a repository here",
+    "history": "History",
+    "noHistory": "No commits yet.",
+    "noFilesInCommit": "This commit touched no files.",
+    "branches": "Branches",
+    "newBranch": "New branch",
+    "branchName": "Branch name"
   },
   "toast": {
     "saved": "Saved",

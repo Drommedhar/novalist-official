@@ -54,4 +54,39 @@ public interface IGitService
     /// Returns null on success, or an error message on failure.
     /// </summary>
     Task<string?> DiscardChangesAsync(IEnumerable<string> relativePaths);
+
+    /// <summary>
+    /// The most recent commits, newest first. The one long-history path the
+    /// product ships was write-only in the app: commits went in and nothing
+    /// could read them back out.
+    /// </summary>
+    Task<IReadOnlyList<GitCommit>> GetLogAsync(int limit);
+
+    /// <summary>Paths a commit touched, relative to the repository root.</summary>
+    Task<IReadOnlyList<string>> GetCommitFilesAsync(string sha);
+
+    /// <summary>
+    /// A unified diff for one path. With <paramref name="sha"/> given, the
+    /// change that commit made; without it, the working tree against HEAD.
+    /// </summary>
+    Task<string> GetDiffAsync(string? sha, string relativePath);
+
+    /// <summary>Local branches, with the checked-out one marked.</summary>
+    Task<IReadOnlyList<GitBranch>> GetBranchesAsync();
+
+    /// <summary>
+    /// Creates a branch and switches to it. Returns null on success, or the
+    /// error git reported.
+    /// </summary>
+    Task<string?> CreateBranchAsync(string name);
+
+    /// <summary>Switches to an existing branch. Null on success.</summary>
+    Task<string?> SwitchBranchAsync(string name);
+
+    /// <summary>
+    /// Turns the project folder into a repository. Null on success. This is
+    /// the one thing a writer cannot do from inside the app without it, and
+    /// the point where every other Git feature becomes reachable.
+    /// </summary>
+    Task<string?> InitRepositoryAsync(string projectRoot);
 }

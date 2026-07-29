@@ -1741,7 +1741,14 @@
     "confirmDiscard": "丢弃 {{count}} 个文件的更改？此操作无法撤销。",
     "stagedChanges": "已暂存的更改",
     "stage": "暂存",
-    "unstage": "取消暂存"
+    "unstage": "取消暂存",
+    "init": "在此创建仓库",
+    "history": "历史",
+    "noHistory": "还没有提交。",
+    "noFilesInCommit": "此提交未改动任何文件。",
+    "branches": "分支",
+    "newBranch": "新建分支",
+    "branchName": "分支名称"
   },
   "toast": {
     "saved": "已保存",

@@ -5,7 +5,7 @@ Novalist has a built-in Git client that lets you commit, push, and pull without 
 ## Requirements
 
 - **Git installed on your system.** Novalist calls the `git` executable in the background and parses its output. If `git` is not found, the Git view shows **"Git is not installed"** with a hint to install it — distinct from the "not a repository" message below.
-- **A Git repository at the project root.** Initialize one with `git init` from a terminal in the project folder. Until then, the Git view shows **"Not a Git repository"** with a hint.
+- **A Git repository at the project root.** If there is none, the Git view says so and offers **Create a repository here**, which runs `git init` in the project folder. Nothing else in the view works until there is a repository, which is why that button is the whole of the empty state.
 
 ## Opening the Git view
 
@@ -27,6 +27,24 @@ In the activity bar, click **Git** in the **Publish** group.
 - **Commit All** — commits every changed file, staged or not, with the entered message. Enabled once a message is entered.
 - **Discard Unstaged** — throws away the changes in the unstaged files. A confirmation dialog warns you first; this cannot be undone.
 - A **status line** shows the last operation's result or any error.
+
+## History
+
+Below the working-tree card, **History** lists the last 30 commits, newest first: the subject line, the short hash, who made it and when.
+
+- Click a commit to expand the files it touched.
+- Click one of those files to read the change as a unified diff, added lines in green and removed lines in red.
+- The diff panel has a **Close** button; opening another file replaces it.
+
+Novalist's Git support was write-only before this: commits went in and nothing could read them back out, so the one long-history path the app ships could not answer "what did I change last Tuesday" without a terminal.
+
+## Branches
+
+**Branches** lists the local branches with the checked-out one marked. Click another to switch to it, or **New branch** to create one and switch to it in the same step.
+
+Switching branches rewrites the files on disk, so Novalist reloads what it is showing afterwards. Git refuses to switch when uncommitted changes would be overwritten, and the message it gives is shown as-is rather than being reworded — it is the message that tells you which file is in the way.
+
+A branch is the right tool for "what if this chapter went differently": the alternative lives in the repository rather than in a copy of the folder, and merging or abandoning it is a decision you can make later.
 
 ## The staging model
 

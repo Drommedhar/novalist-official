@@ -177,6 +177,70 @@ public sealed class GitRpc
         return await _git.DiscardChangesAsync(relativePaths);
     }
 
+    /// <summary>The most recent commits, newest first.</summary>
+    [JsonRpcMethod("git/log")]
+    public async Task<GitCommitDto[]> LogAsync(int limit)
+    {
+        await EnsureInitializedAsync();
+        return [.. (await _git.GetLogAsync(limit)).Select(c => new GitCommitDto(
+            c.Sha, c.ShortSha, c.Author, c.Date.ToString("o"), c.Subject))];
+    }
+
+    /// <summary>The paths one commit touched.</summary>
+    [JsonRpcMethod("git/commitFiles")]
+    public async Task<string[]> CommitFilesAsync(string sha)
+    {
+        await EnsureInitializedAsync();
+        return [.. await _git.GetCommitFilesAsync(sha)];
+    }
+
+    /// <summary>
+    /// A unified diff for one path - the change a commit made, or the working
+    /// tree against HEAD when no commit is named.
+    /// </summary>
+    [JsonRpcMethod("git/diff")]
+    public async Task<string> DiffAsync(string? sha, string relativePath)
+    {
+        await EnsureInitializedAsync();
+        return await _git.GetDiffAsync(sha, relativePath);
+    }
+
+    [JsonRpcMethod("git/branches")]
+    public async Task<GitBranchDto[]> BranchesAsync()
+    {
+        await EnsureInitializedAsync();
+        return [.. (await _git.GetBranchesAsync()).Select(b => new GitBranchDto(b.Name, b.IsCurrent))];
+    }
+
+    [JsonRpcMethod("git/createBranch")]
+    public async Task<string?> CreateBranchAsync(string name)
+    {
+        await EnsureInitializedAsync();
+        return await _git.CreateBranchAsync(name);
+    }
+
+    [JsonRpcMethod("git/switchBranch")]
+    public async Task<string?> SwitchBranchAsync(string name)
+    {
+        await EnsureInitializedAsync();
+        return await _git.SwitchBranchAsync(name);
+    }
+
+    /// <summary>
+    /// Turns the project folder into a repository. Everything else here needs
+    /// one, and a writer had no way to make one without a terminal.
+    /// </summary>
+    [JsonRpcMethod("git/init")]
+    public async Task<string?> InitAsync()
+    {
+        await EnsureInitializedAsync();
+        var root = _workspace.Projects.ProjectRoot!;
+        var error = await _git.InitRepositoryAsync(root);
+        // The cached repo root was resolved before the repository existed.
+        if (error == null) _repoRoot = null;
+        return error;
+    }
+
     private async Task<string?> RunPathspecAsync(string[] relativePaths, params string[] verb)
     {
         var repoRoot = await EnsureRepoRootAsync();
@@ -197,3 +261,9 @@ public sealed record GitStatusDto(
     IReadOnlyList<GitFileDto> ChangedFiles);
 
 public sealed record GitFileDto(string RelativePath, string Status, bool IsStaged);
+
+/// <summary>One commit in the log. The date is ISO-8601 for the renderer to format.</summary>
+public sealed record GitCommitDto(
+    string Sha, string ShortSha, string Author, string Date, string Subject);
+
+public sealed record GitBranchDto(string Name, bool IsCurrent);

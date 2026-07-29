@@ -4,6 +4,7 @@ import { ArrowDownToLine, ArrowUpFromLine, Minus, Plus, RefreshCw, Undo2 } from 
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
+import { InputDialog } from '../../shell/InputDialog'
 import './git.css'
 
 interface GitFileDto {
@@ -18,6 +19,20 @@ interface GitStatusDto {
   aheadBy: number
   behindBy: number
   changedFiles: GitFileDto[]
+}
+
+/** One commit in the log. */
+interface GitCommitDto {
+  sha: string
+  shortSha: string
+  author: string
+  date: string
+  subject: string
+}
+
+interface GitBranchDto {
+  name: string
+  isCurrent: boolean
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -45,11 +60,24 @@ export function GitView(): React.JSX.Element {
   const [busy, setBusy] = useState(false)
   const [feedback, setFeedback] = useState<string | null>(null)
   const [confirmDiscard, setConfirmDiscard] = useState(false)
+  const [log, setLog] = useState<GitCommitDto[]>([])
+  const [openCommit, setOpenCommit] = useState<string | null>(null)
+  const [commitFiles, setCommitFiles] = useState<string[]>([])
+  const [diff, setDiff] = useState<{ path: string; text: string } | null>(null)
+  const [branches, setBranches] = useState<GitBranchDto[]>([])
+  const [newBranch, setNewBranch] = useState(false)
 
   const refresh = useCallback(async (): Promise<void> => {
     const result = await rpc.request<GitStatusDto | null>('git/status')
     if (result === null) {
       setGitInstalled(await rpc.request<boolean>('git/installed'))
+      setLog([])
+      setBranches([])
+    } else {
+      // The history is why a writer opens this view at all; loading it with
+      // the status means it is never a second click away.
+      setLog(await rpc.request<GitCommitDto[]>('git/log', [30]).catch(() => []))
+      setBranches(await rpc.request<GitBranchDto[]>('git/branches').catch(() => []))
     }
     setStatus(result)
   }, [])
@@ -68,6 +96,25 @@ export function GitView(): React.JSX.Element {
       <div className="main-placeholder">
         <h1>{gitInstalled ? t('git.notARepo') : t('git.notInstalled')}</h1>
         <p>{gitInstalled ? t('git.notARepoHint') : t('git.notInstalledHint')}</p>
+        {gitInstalled && (
+          <button
+            className="dialog-button primary"
+            disabled={busy}
+            onClick={() => {
+              setBusy(true)
+              void rpc
+                .request<string | null>('git/init')
+                .then((error) => setFeedback(error))
+                .finally(() => {
+                  setBusy(false)
+                  void refresh()
+                })
+            }}
+          >
+            {t('git.init')}
+          </button>
+        )}
+        {feedback && <p className="inspector-meta">{feedback}</p>}
       </div>
     )
   }
@@ -139,6 +186,27 @@ export function GitView(): React.JSX.Element {
         )}
       </div>
     )
+  }
+
+  const openCommitFiles = (sha: string): void => {
+    setDiff(null)
+    if (openCommit === sha) {
+      setOpenCommit(null)
+      setCommitFiles([])
+      return
+    }
+    setOpenCommit(sha)
+    void rpc
+      .request<string[]>('git/commitFiles', [sha])
+      .then(setCommitFiles)
+      .catch(() => setCommitFiles([]))
+  }
+
+  const showDiff = (sha: string | null, path: string): void => {
+    void rpc
+      .request<string>('git/diff', [sha, path])
+      .then((text) => setDiff({ path, text }))
+      .catch(() => setDiff({ path, text: '' }))
   }
 
   return (
@@ -256,6 +324,102 @@ export function GitView(): React.JSX.Element {
         )}
         {feedback && <p className="inspector-meta export-result">{feedback}</p>}
       </div>
+      <div className="dashboard-card">
+        <div className="git-section-header">
+          <span className="git-section-title">{t('git.branches')}</span>
+          <button className="git-inline-btn" disabled={busy} onClick={() => setNewBranch(true)}>
+            {t('git.newBranch')}
+          </button>
+        </div>
+        <div className="git-branch-row">
+          {branches.map((branch) => (
+            <button
+              key={branch.name}
+              className={`git-inline-btn${branch.isCurrent ? ' active' : ''}`}
+              disabled={busy || branch.isCurrent}
+              onClick={() =>
+                void mutate(() => rpc.request<string | null>('git/switchBranch', [branch.name]))
+              }
+            >
+              {branch.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="dashboard-card">
+        <div className="git-section-header">
+          <span className="git-section-title">{t('git.history')}</span>
+        </div>
+        {log.length === 0 && <p className="codex-empty">{t('git.noHistory')}</p>}
+        {log.map((commit) => (
+          <div key={commit.sha}>
+            <button className="git-commit-row" onClick={() => openCommitFiles(commit.sha)}>
+              <span className="git-commit-subject">{commit.subject}</span>
+              <span className="git-commit-meta">
+                {commit.shortSha} - {commit.author} - {new Date(commit.date).toLocaleDateString()}
+              </span>
+            </button>
+            {openCommit === commit.sha && (
+              <div className="git-commit-files">
+                {commitFiles.length === 0 && (
+                  <p className="codex-empty">{t('git.noFilesInCommit')}</p>
+                )}
+                {commitFiles.map((path) => (
+                  <button
+                    key={path}
+                    className="git-commit-file"
+                    onClick={() => showDiff(commit.sha, path)}
+                  >
+                    {path}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {diff && (
+        <div className="dashboard-card">
+          <div className="git-section-header">
+            <span className="git-section-title">{diff.path}</span>
+            <button className="git-inline-btn" onClick={() => setDiff(null)}>
+              {t('dialog.close')}
+            </button>
+          </div>
+          <pre className="git-diff">
+            {diff.text.split('\n').map((line, index) => (
+              <span
+                key={index}
+                className={
+                  line.startsWith('+') && !line.startsWith('+++')
+                    ? 'git-diff-add'
+                    : line.startsWith('-') && !line.startsWith('---')
+                      ? 'git-diff-del'
+                      : undefined
+                }
+              >
+                {line}
+                {'\n'}
+              </span>
+            ))}
+          </pre>
+        </div>
+      )}
+
+      {newBranch && (
+        <InputDialog
+          title={t('git.newBranch')}
+          placeholder={t('git.branchName')}
+          onCancel={() => setNewBranch(false)}
+          onSubmit={(name) => {
+            setNewBranch(false)
+            void mutate(() => rpc.request<string | null>('git/createBranch', [name]))
+          }}
+        />
+      )}
+
       {confirmDiscard && (
         <ConfirmDialog
           title={t('git.discardUnstaged')}
