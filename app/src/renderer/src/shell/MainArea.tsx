@@ -14,6 +14,7 @@ import { DialogueView } from '../views/dialogue/DialogueView'
 import { StyleView } from '../views/style/StyleView'
 import { CanvasView } from '../views/canvas/CanvasView'
 import { GalleryView } from '../views/library/GalleryView'
+import { SeriesView } from '../views/series/SeriesView'
 import { ResearchView } from '../views/library/ResearchView'
 import { ExportView } from '../views/export/ExportView'
 import { ExposeView } from '../views/expose/ExposeView'
@@ -164,6 +165,14 @@ function MainAreaContent(): React.JSX.Element {
     return (
       <main className="main-area">
         <StyleView />
+      </main>
+    )
+  }
+
+  if (mainView === 'series') {
+    return (
+      <main className="main-area">
+        <SeriesView />
       </main>
     )
   }

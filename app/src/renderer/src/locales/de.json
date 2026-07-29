@@ -1953,7 +1953,8 @@
     "chapters": "Kapitel",
     "scenes": "Szenen",
     "groupApp": "Anwendung",
-    "menu": "Menü"
+    "menu": "Menü",
+    "view.series": "Reihe"
   },
   "hostBridge": {
     "toastRegion": "Benachrichtigungen",
@@ -2621,5 +2622,19 @@
     "empty": "Noch keine Szenenvorlagen.",
     "summary": "{{tags}} Schlagwörter, {{plotlines}} Handlungsstränge",
     "delete": "Diese Vorlage löschen"
+  },
+  "series": {
+    "title": "Die Reihe",
+    "intro": "Alle Bücher dieses Projekts auf einmal und wo die geteilten Weltenbibel-Einträge darin vorkommen. Alles andere in Novalist liest das geöffnete Buch; dies liest alle.",
+    "books": "Bücher",
+    "chapters": "Kapitel",
+    "scenes": "Szenen",
+    "words": "Wörter",
+    "staged": "mit Phase",
+    "appearances": "Geteilte Einträge über die Bücher",
+    "appearancesIntro": "Ein Weltenbibel-Eintrag und die Bücher, in denen er auftaucht – nach der erfassten Besetzung und den bestätigten Erwähnungen. Eines von drei Büchern heißt: Nebenrolle oder fallengelassener Strang.",
+    "inBooks": "in {{count}} von {{total}}",
+    "empty": "Noch erscheinen keine geteilten Einträge in einem Buch.",
+    "oneBook": "Dieses Projekt hat ein Buch. Eine Reihenansicht sagt erst ab zwei etwas aus."
   }
 }

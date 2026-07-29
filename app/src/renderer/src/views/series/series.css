@@ -1,0 +1,43 @@
+/* ===== Series view =====
+   A book is a row, and a shared entry is a row of cells - one per book, filled
+   when the entry appears in it. A gap in the middle of a row is a thread that
+   was dropped, which is very hard to see any other way. */
+
+.series-book,
+.series-entity {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-sm) 0;
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.series-book-name,
+.series-entity-name {
+  color: var(--nl-text);
+  flex: 1;
+  font-size: var(--nl-font-body);
+}
+
+.series-book-meta {
+  color: var(--nl-text-subtle);
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+}
+
+.series-entity-books {
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.series-cell {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+}
+
+.series-cell.present {
+  background: var(--nl-accent);
+  border-color: var(--nl-accent);
+}

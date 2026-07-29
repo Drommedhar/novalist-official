@@ -39,44 +39,45 @@ If you are looking for a specific feature, jump straight to its page from the ta
 17. [Style report](36-style-report.md) — offline craft checks: adverbs, filter words, passive voice, sticky sentences, repeated openers, sentence-length variation.
 18. [Calendar & in-world dates](13-calendar.md) — Gregorian calendar, scene placement, story date ranges.
 19. [Timeline](12-timeline.md) — chronological event view across acts, chapters, scenes, and manual events, with story-structure templates.
-20. [Maps](29-maps.md) — interactive 2D/3D map view with layered images, terrain, roads, buildings, and entity-linked pins.
+20. [Series](40-series.md) — every book in the project at once, and where the shared World Bible entries appear across them.
+21. [Maps](29-maps.md) — interactive 2D/3D map view with layered images, terrain, roads, buildings, and entity-linked pins.
 
 ### Project management
 
-21. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
-22. [Research](15-research.md) — notes attached to your project.
-23. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline.
-24. [Snapshots](17-snapshots.md) — per-scene version history, taken from the inspector.
-25. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
-26. [Git integration](18-git.md) — commit, push, pull without leaving the app.
-27. [Backups](35-backups.md) — automatic whole-project archives with in-app restore.
+22. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
+23. [Research](15-research.md) — notes attached to your project.
+24. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline.
+25. [Snapshots](17-snapshots.md) — per-scene version history, taken from the inspector.
+26. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
+27. [Git integration](18-git.md) — commit, push, pull without leaving the app.
+28. [Backups](35-backups.md) — automatic whole-project archives with in-app restore.
 
 ### Output
 
-28. [Exposé](32-expose.md) — the per-book pitch document, with live character and Normseiten counts against your limits.
-29. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, Normseiten, and more, plus formats added by extensions.
+29. [Exposé](32-expose.md) — the per-book pitch document, with live character and Normseiten counts against your limits.
+30. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, Normseiten, and more, plus formats added by extensions.
 
 ### The inspector
 
-30. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
+31. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
 
 ### Customisation
 
-31. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
-32. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
-33. [Command palette](25-command-palette.md) — every shell command in one searchable box.
-34. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
-35. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
-36. [Custom themes & language packs](34-custom-themes-and-languages.md) — add your own colour schemes and interface languages by dropping a file into a folder.
-37. [Accessibility](39-accessibility.md) — reading-comfort settings, the High Contrast theme, read-aloud, and what is honestly still missing.
+32. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
+33. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
+34. [Command palette](25-command-palette.md) — every shell command in one searchable box.
+35. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
+36. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
+37. [Custom themes & language packs](34-custom-themes-and-languages.md) — add your own colour schemes and interface languages by dropping a file into a folder.
+38. [Accessibility](39-accessibility.md) — reading-comfort settings, the High Contrast theme, read-aloud, and what is honestly still missing.
 
 ### Help
 
-38. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
+39. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
 
 ## Conventions used in this manual
 
-- **Activity bar** is the slim icon rail on the far left that switches the main area between views (Dashboard, Manuscript, Timeline, Plot Grid, Calendar, Relationships, Dialogue, Style report, Planning board, Codex, Wiki, Maps, Research, Gallery, Exposé, Export, Git, Settings, plus extension views).
+- **Activity bar** is the slim icon rail on the far left that switches the main area between views (Dashboard, Manuscript, Timeline, Plot Grid, Calendar, Relationships, Dialogue, Style report, Planning board, Series, Codex, Wiki, Maps, Research, Gallery, Exposé, Export, Git, Settings, plus extension views).
 - **Binder** is the left pane next to the activity bar: the chapter/scene tree, with a Smart Lists tab.
 - **Main area** is the center pane showing the active view, with an optional **scene-notes dock** (Synopsis + Notes) beneath the editor.
 - **Inspector** is the right pane: Context and Footnotes tabs for the open scene.

@@ -94,6 +94,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new SceneLabelRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new TagsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SceneTemplateRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new SeriesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new UnlinkedMentionRpc(_workspace), targetOptions);
         var extensionsRpc = new ExtensionsRpc(_workspace);
         rpc.AddLocalRpcTarget(extensionsRpc, targetOptions);

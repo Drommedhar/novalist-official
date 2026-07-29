@@ -1980,7 +1980,8 @@
     "menu": "菜单",
     "toggleSceneNotes": "切换场景笔记",
     "snapshots": "场景快照",
-    "activityBar": "视图"
+    "activityBar": "视图",
+    "view.series": "系列"
   },
   "help": {
     "title": "Novalist 手册",
@@ -2655,5 +2656,19 @@
     "empty": "还没有场景模板。",
     "summary": "{{tags}} 个标签、{{plotlines}} 条情节线",
     "delete": "删除此模板"
+  },
+  "series": {
+    "title": "本系列",
+    "intro": "一次看到本项目的所有书，以及共享的世界设定条目在其中的分布。Novalist 其他地方只读当前打开的书；这里读全部。",
+    "books": "书",
+    "chapters": "章",
+    "scenes": "场景",
+    "words": "词",
+    "staged": "已标阶段",
+    "appearances": "跨书的共享条目",
+    "appearancesIntro": "一个世界设定条目以及它出现的书 — 依据您记录的名单与确认的提及。三本中只出现一本，不是配角，就是被丢下的线。",
+    "inBooks": "在 {{total}} 本中的 {{count}} 本",
+    "empty": "还没有共享条目出现在任何书中。",
+    "oneBook": "本项目只有一本书。系列视图在有两本以后才有意义。"
   }
 }

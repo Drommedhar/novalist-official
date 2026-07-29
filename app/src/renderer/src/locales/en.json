@@ -1945,7 +1945,8 @@
     "chapters": "chapters",
     "scenes": "scenes",
     "groupApp": "Application",
-    "menu": "Menu"
+    "menu": "Menu",
+    "view.series": "Series"
   },
   "hostBridge": {
     "toastRegion": "Notifications",
@@ -2613,5 +2614,19 @@
     "empty": "No scene templates yet.",
     "summary": "{{tags}} tags, {{plotlines}} plotlines",
     "delete": "Delete this template"
+  },
+  "series": {
+    "title": "The series",
+    "intro": "Every book in this project at once, and where the shared World Bible entries appear across them. Everything else in Novalist reads the book you have open; this reads all of them.",
+    "books": "Books",
+    "chapters": "chapters",
+    "scenes": "scenes",
+    "words": "words",
+    "staged": "staged",
+    "appearances": "Shared entries across the books",
+    "appearancesIntro": "A World Bible entry and the books it turns up in - by the cast you recorded and the mentions you confirmed. One book out of three is either a walk-on or a thread you dropped.",
+    "inBooks": "in {{count}} of {{total}}",
+    "empty": "No shared entries appear in any book yet.",
+    "oneBook": "This project has one book. A series view starts to say something once there are two."
   }
 }
