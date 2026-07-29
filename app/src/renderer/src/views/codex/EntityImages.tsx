@@ -7,6 +7,8 @@ import './entity-images.css'
 
 interface EntityImage {
   name: string
+  /** What the picture shows, for a reader who cannot see it. */
+  alt: string
   path: string
   /** Project-root-relative display URL resolved by the backend. */
   url: string
@@ -127,7 +129,10 @@ export function EntityImages(): React.JSX.Element | null {
       <div className="entity-images-strip">
         {images.map((image) => (
           <figure key={image.path} className="entity-image">
-            <img src={`novalist-project://nl/${encodeURI(image.url)}`} alt={image.name} />
+            <img
+              src={`novalist-project://nl/${encodeURI(image.url)}`}
+              alt={image.alt || image.name}
+            />
             <div className="entity-image-actions">
               <button
                 aria-label={`${t('entityEditor.chooseImageTooltip')} ${image.name}`}
@@ -160,6 +165,27 @@ export function EntityImages(): React.JSX.Element | null {
               defaultValue={image.name}
               key={`${image.path}:${image.name}`}
               onBlur={(e) => renameImage(image.path, image.name, e.target.value)}
+            />
+            {/* The name says which image this is; the description says what it
+                shows. Only the second is any use read aloud, and only the
+                second reaches an export. */}
+            <input
+              className="entity-image-namefield"
+              aria-label={t('entityEditor.imageAlt')}
+              placeholder={t('entityEditor.imageAltPlaceholder')}
+              defaultValue={image.alt}
+              key={`alt:${image.path}:${image.alt}`}
+              onBlur={(e) => {
+                if (e.target.value === image.alt) return
+                void rpc
+                  .request<Record<string, unknown>>('entities/setImageAlt', [
+                    entityType,
+                    selectedId,
+                    image.path,
+                    e.target.value
+                  ])
+                  .then(applyResult)
+              }}
             />
           </figure>
         ))}

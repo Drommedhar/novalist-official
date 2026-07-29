@@ -56,7 +56,8 @@ public sealed class ExportRpc
         });
         return new ExportPreviewDto(
             preview.Chapters, preview.Scenes, preview.Words,
-            preview.Characters, preview.Pages, preview.PagesAreExact);
+            preview.Characters, preview.Pages, preview.PagesAreExact,
+            preview.UndescribedImages);
     }
 
     [JsonRpcMethod("export/run")]
@@ -136,6 +137,8 @@ public sealed record ExportResultDto(string OutputPath, bool Success, long SizeB
 /// interface has to say so.
 /// </summary>
 public sealed record ExportPreviewDto(
-    int Chapters, int Scenes, int Words, int Characters, int Pages, bool PagesAreExact);
+    int Chapters, int Scenes, int Words, int Characters, int Pages, bool PagesAreExact,
+    /// <summary>Pictures with nothing written about what they show.</summary>
+    int UndescribedImages);
 
 public sealed record ExportExtensionFormatDto(string FormatKey, string DisplayName, string FileExtension);

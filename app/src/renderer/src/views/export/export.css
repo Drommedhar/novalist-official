@@ -217,3 +217,8 @@
   min-height: 72px;
   resize: vertical;
 }
+
+/* A preflight warning is read, not decoration: it takes the danger colour. */
+.export-warning {
+  color: var(--nl-danger);
+}

@@ -306,4 +306,52 @@ public class ExportImageTests : IDisposable
 
         Assert.True(new FileInfo(path).Length > 0);
     }
+
+    // -- Accessible output --
+
+    [Fact]
+    public async Task Epub_DeclaresWhatItContainsForAccessibility()
+    {
+        var path = Path.Combine(_dir.Path, "a11y.epub");
+        await new ExportService(_project).ExportAsync(Setup(ExportFormat.Epub, WithImage), path);
+
+        using var zip = ZipFile.OpenRead(path);
+        using var reader = new StreamReader(zip.GetEntry("OEBPS/content.opf")!.Open(), Encoding.UTF8);
+        var opf = await reader.ReadToEndAsync();
+
+        Assert.Contains("schema:accessMode\">textual", opf);
+        Assert.Contains("schema:accessMode\">visual", opf);
+        Assert.Contains("schema:accessibilityFeature\">alternativeText", opf);
+        Assert.Contains("schema:accessibilityHazard\">none", opf);
+        Assert.Contains("schema:accessibilitySummary", opf);
+    }
+
+    [Fact]
+    public async Task Epub_WithNoImagesSaysItIsTextOnly()
+    {
+        var path = Path.Combine(_dir.Path, "textonly.epub");
+        await new ExportService(_project).ExportAsync(
+            Setup(ExportFormat.Epub, "<p>Only words here.</p>"), path);
+
+        using var zip = ZipFile.OpenRead(path);
+        using var reader = new StreamReader(zip.GetEntry("OEBPS/content.opf")!.Open(), Encoding.UTF8);
+        var opf = await reader.ReadToEndAsync();
+
+        Assert.DoesNotContain("schema:accessMode\">visual", opf);
+        Assert.DoesNotContain("alternativeText", opf);
+        Assert.Contains("no images to describe", opf);
+    }
+
+    [Fact]
+    public async Task ThePreviewCountsPicturesNobodyDescribed()
+    {
+        var described = await new ExportService(_project)
+            .PreviewAsync(Setup(ExportFormat.Epub, WithImage));
+        Assert.Equal(0, described.UndescribedImages);
+
+        var silent = await new ExportService(_project).PreviewAsync(Setup(
+            ExportFormat.Epub,
+            "<p><img src=\"Images/map.png\" alt=\"\"></p><p><img src=\"Images/map.png\"></p>"));
+        Assert.Equal(2, silent.UndescribedImages);
+    }
 }

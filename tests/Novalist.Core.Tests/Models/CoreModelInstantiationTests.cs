@@ -79,8 +79,11 @@ public class EntityImageBranchTests
         var img = new EntityImage();
         img.Name = "x";
         img.Path = "y";
+        // What the picture shows, which is not what it is called.
+        img.Alt = "a woman on a harbour wall";
         Assert.Equal("x", img.Name);
         Assert.Equal("y", img.Path);
+        Assert.Equal("a woman on a harbour wall", img.Alt);
     }
 
     [Fact]

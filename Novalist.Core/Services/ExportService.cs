@@ -36,6 +36,14 @@ public sealed class ExportPreview
     public int Pages { get; init; }
 
     /// <summary>
+    /// Pictures in the prose with nothing written about what they show. A
+    /// reader who cannot see them gets nothing at all, and an EPUB that
+    /// carries one cannot honestly claim to be accessible - so the count is
+    /// reported before the export runs rather than discovered afterwards.
+    /// </summary>
+    public int UndescribedImages { get; init; }
+
+    /// <summary>
     /// True only on the Normseite grid, where the layout fixes the columns and
     /// the lines so the count is arithmetic rather than a guess. Everywhere
     /// else the number is an estimate and has to be shown as one.
@@ -2251,6 +2259,36 @@ public partial class ExportService
             """;
     }
 
+    /// <summary>
+    /// What a reading system and a retailer need to know about how accessible
+    /// this book is. Declared from what the file actually contains rather than
+    /// asserted: a book with an undescribed picture says so, because claiming
+    /// alt text that is not there is worse than claiming nothing.
+    /// </summary>
+    private static string AccessibilityMetadataXml(IReadOnlyDictionary<string, string>? images)
+    {
+        var hasImages = images is { Count: > 0 };
+        var features = new List<string> { "structuralNavigation", "tableOfContents" };
+        if (hasImages) features.Add("alternativeText");
+
+        var lines = new List<string>
+        {
+            "    <meta property=\"schema:accessMode\">textual</meta>"
+        };
+        if (hasImages) lines.Add("    <meta property=\"schema:accessMode\">visual</meta>");
+        lines.Add("    <meta property=\"schema:accessModeSufficient\">textual</meta>");
+        foreach (var feature in features)
+            lines.Add($"    <meta property=\"schema:accessibilityFeature\">{feature}</meta>");
+        lines.Add("    <meta property=\"schema:accessibilityHazard\">none</meta>");
+        lines.Add(
+            "    <meta property=\"schema:accessibilitySummary\">"
+            + (hasImages
+                ? "Reflowable text with a table of contents. Images carry the descriptions the author wrote."
+                : "Reflowable text with a table of contents, and no images to describe.")
+            + "</meta>");
+        return string.Join("\n", lines);
+    }
+
     private static string GenerateContentOpf(
         List<ChapterExportContent> chapters,
         ExportOptions options,
@@ -2341,7 +2379,7 @@ public partial class ExportService
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
             <package version="3.0" xmlns="http://www.idpf.org/2007/opf" unique-identifier="BookId">
-              <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+              <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:schema="http://schema.org/">
                 {identifierXml}
                 <dc:title>{EscapeXml(options.Title)}</dc:title>
                 {authorXml}
@@ -2349,6 +2387,7 @@ public partial class ExportService
             {PublishingMetadataXml(publishing)}
                 {coverMetaXml}
                 <meta property="dcterms:modified">{modifiedDate}</meta>
+            {AccessibilityMetadataXml(images)}
               </metadata>
               <manifest>
             {manifestItems}
@@ -3333,12 +3372,15 @@ public partial class ExportService
         var words = 0;
         var characters = 0;
         var scenes = 0;
+        var undescribed = 0;
         foreach (var scene in chapters.SelectMany(c => c.Scenes))
         {
             scenes++;
             var plain = StripHtml(scene.HtmlContent);
             characters += plain.Length;
             words += CountWordsIn(plain);
+            undescribed += ParseHtmlToBlocks(scene.HtmlContent)
+                .Count(b => b.ImagePath != null && b.ImageAlt.Length == 0);
         }
 
         // On the Normseite grid the page count is not an estimate: the layout
@@ -3354,6 +3396,7 @@ public partial class ExportService
                 Words = words,
                 Characters = characters,
                 Pages = metrics.Pages,
+                UndescribedImages = undescribed,
                 PagesAreExact = true
             };
         }
@@ -3365,6 +3408,7 @@ public partial class ExportService
             Words = words,
             Characters = characters,
             Pages = EstimatePages(characters, chapters.Count, preset),
+            UndescribedImages = undescribed,
             PagesAreExact = false
         };
     }

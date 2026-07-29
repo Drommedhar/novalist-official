@@ -189,6 +189,8 @@ Pictures placed in the prose are carried into EPUB, DOCX, PDF, Markdown and LaTe
 
 Above the chapter list, Novalist reports what the current choices would produce: how many chapters and scenes, how many words, and how long the book runs in the chosen layout. It is recomputed as you change the selection, the layout or the stage filter, and it runs the same compile the export runs — so held-back scenes and filtered stages are counted exactly as they will be, not estimated.
 
+If any picture in the export has no description, the line says so: a reader who cannot see it gets nothing, and an EPUB carrying one cannot honestly claim to be accessible. See [Accessibility](39-accessibility.md#describing-images).
+
 The page count is an estimate for every layout except **Normseiten**, which reports "N standard pages" because that grid fixes the columns and the lines, so the count is arithmetic rather than a guess. Elsewhere it reads "about N pages": real pagination depends on hyphenation and widow control in whatever renders the file.
 
 ## Printing

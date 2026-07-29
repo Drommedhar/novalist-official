@@ -63,6 +63,7 @@ interface PreviewDto {
   pages: number
   /** Exact only on the Normseite grid; an estimate everywhere else. */
   pagesAreExact: boolean
+  undescribedImages: number
 }
 
 interface ExtensionFormatDto {
@@ -378,6 +379,14 @@ export function ExportView(): React.JSX.Element {
             {t(preview.pagesAreExact ? 'export.previewPagesExact' : 'export.previewPages', {
               pages: preview.pages
             })}
+            {preview.undescribedImages > 0 && (
+              <>
+                {' '}
+                <span className="export-warning">
+                  {t('export.previewUndescribed', { count: preview.undescribedImages })}
+                </span>
+              </>
+            )}
           </p>
         )}
 

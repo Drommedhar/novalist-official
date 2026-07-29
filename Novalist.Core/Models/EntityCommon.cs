@@ -23,6 +23,22 @@ public class EntityImage : INotifyPropertyChanged
         set => SetField(ref _path, value);
     }
 
+    private string _alt = string.Empty;
+
+    /// <summary>
+    /// What the picture shows, for a reader who cannot see it. Distinct from
+    /// the display name on purpose: "Mira Vance" names the image, "a woman in
+    /// a soaked coat on a harbour wall" describes it, and only the second is
+    /// any use read aloud. Empty means undescribed, which is a thing the
+    /// export preflight reports rather than papers over.
+    /// </summary>
+    [JsonPropertyName("alt")]
+    public string Alt
+    {
+        get => _alt;
+        set => SetField(ref _alt, value);
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

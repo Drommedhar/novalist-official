@@ -54,14 +54,30 @@ Novalist does not yet claim screen-reader support, and we would rather say so th
 
 If you use a screen reader with Novalist, please open an issue describing what broke; that is the fastest route to it being fixed.
 
+## Describing images
+
+Every picture gets two pieces of text, and they are not the same thing:
+
+- **Name** — which image this is, for you. "Mira Vance".
+- **What this image shows** — what a reader who cannot see it gets instead. "A woman in a soaked coat on a harbour wall."
+
+Only the second is any use read aloud, and only the second reaches an export. Codex images have both fields; an [image in the prose](05-editor.md#images-in-the-prose) is asked for its description when you insert it.
+
+Before an export runs, the [Export view](20-export.md#what-this-export-will-contain) reports how many pictures have no description, so an undescribed image is something you decide about rather than something you discover afterwards.
+
+## Accessible EPUB metadata
+
+An exported EPUB declares what it actually contains: `schema:accessMode`, `accessModeSufficient`, `accessibilityFeature`, `accessibilityHazard` and a plain-language `accessibilitySummary`. A book with no images says it is text only; a book with images says its pictures carry the descriptions the author wrote.
+
+The declaration is built from the file rather than asserted, because claiming alt text that is not there is worse than claiming nothing — and under the European Accessibility Act it is a claim a distributor relies on.
+
 ## What is missing
 
 Stated so nobody has to discover it the hard way:
 
 - No screen-reader support statement beyond the section above, and no accessibility conformance report.
 - No dictation.
-- Entity images carry a display name but no separately authored alt text, and exports carry no accessibility metadata. An EPUB out of Novalist is therefore not yet an accessible publication in the European Accessibility Act sense.
-- No automated accessibility check over an export.
+- No EPUBCheck or DAISY Ace validation of an exported file, and no tagged PDF/UA output.
 
 ## Where to go next
 

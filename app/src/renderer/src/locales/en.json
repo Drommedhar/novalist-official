@@ -779,7 +779,9 @@
     "fromUrl": "From URL",
     "fromUrlTitle": "Add image from URL",
     "fromUrlPlaceholder": "https://example.com/image.png",
-    "fromUrlError": "Could not load image from that URL."
+    "fromUrlError": "Could not load image from that URL.",
+    "imageAlt": "What this image shows",
+    "imageAltPlaceholder": "For a reader who cannot see it"
   },
   "context": {
     "title": "NOVALIST CONTEXT",
@@ -1667,7 +1669,8 @@
     "excludedNote": "Scenes held back from exports are never included, whatever the filter says.",
     "previewCounts": "{{chapters}} chapters, {{scenes}} scenes, {{words}} words.",
     "previewPages": "About {{pages}} pages in this layout.",
-    "previewPagesExact": "{{pages}} standard pages."
+    "previewPagesExact": "{{pages}} standard pages.",
+    "previewUndescribed": "{{count}} images have no description, so a reader who cannot see them gets nothing."
   },
   "expose": {
     "chars": "{{value}} characters",

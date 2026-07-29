@@ -814,7 +814,9 @@
     "overridesNoneSet": "未覆盖任何字段",
     "overrideInheriting": "沿用基础值",
     "overrideResetToInherit": "重置为继承",
-    "overrideMediaHint": "请先保存此范围，才能覆盖其图片、关系和章节。"
+    "overrideMediaHint": "请先保存此范围，才能覆盖其图片、关系和章节。",
+    "imageAlt": "这张图片展示什么",
+    "imageAltPlaceholder": "给看不到它的读者"
   },
   "context": {
     "title": "NOVALIST 上下文",
@@ -1702,7 +1704,8 @@
     "excludedNote": "被不导出标记的场景始终不会导出，无论筛选如何。",
     "previewCounts": "{{chapters}} 章、{{scenes}} 个场景、{{words}} 词。",
     "previewPages": "在此版式下约 {{pages}} 页。",
-    "previewPagesExact": "{{pages}} 个标准页。"
+    "previewPagesExact": "{{pages}} 个标准页。",
+    "previewUndescribed": "有 {{count}} 张图片没有描述，看不到它们的读者什么也得不到。"
   },
   "expose": {
     "chars": "{{value}} 字符",

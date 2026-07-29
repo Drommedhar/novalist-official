@@ -680,7 +680,9 @@
     "fromUrl": "Von URL",
     "fromUrlTitle": "Bild von URL hinzufügen",
     "fromUrlPlaceholder": "https://example.com/bild.png",
-    "fromUrlError": "Bild konnte von dieser URL nicht geladen werden."
+    "fromUrlError": "Bild konnte von dieser URL nicht geladen werden.",
+    "imageAlt": "Was dieses Bild zeigt",
+    "imageAltPlaceholder": "Für Leser, die es nicht sehen können"
   },
   "context": {
     "title": "NOVALIST KONTEXT",
@@ -1291,7 +1293,8 @@
     "excludedNote": "Zurückgehaltene Szenen werden nie exportiert, unabhängig vom Filter.",
     "previewCounts": "{{chapters}} Kapitel, {{scenes}} Szenen, {{words}} Wörter.",
     "previewPages": "Etwa {{pages}} Seiten in diesem Layout.",
-    "previewPagesExact": "{{pages}} Normseiten."
+    "previewPagesExact": "{{pages}} Normseiten.",
+    "previewUndescribed": "{{count}} Bilder haben keine Beschreibung – wer sie nicht sehen kann, bekommt nichts."
   },
   "expose": {
     "chars": "{{value}} Zeichen",

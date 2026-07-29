@@ -1000,6 +1000,19 @@ public sealed class EntitiesRpc
 
     /// <summary>Renames the stored image whose <c>Path</c> matches, leaving its
     /// path (and on-disk file) untouched so add/remove still match on it.</summary>
+    /// <summary>
+    /// Sets what the picture shows, for a reader who cannot see it. Separate
+    /// from the display name: one names the image, the other describes it, and
+    /// only the second is any use read aloud.
+    /// </summary>
+    [JsonRpcMethod("entities/setImageAlt")]
+    public Task<JsonElement> SetImageAltAsync(string type, string id, string path, string alt) =>
+        MutateImagesAsync(type, id, images =>
+        {
+            var image = images.FirstOrDefault(i => i.Path == path);
+            if (image != null) image.Alt = alt ?? string.Empty;
+        });
+
     [JsonRpcMethod("entities/renameImage")]
     public Task<JsonElement> RenameImageAsync(string type, string id, string path, string newName) =>
         MutateImagesAsync(type, id, images =>
