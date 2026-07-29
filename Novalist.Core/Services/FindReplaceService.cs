@@ -6,10 +6,16 @@ namespace Novalist.Core.Services;
 public sealed class FindReplaceService : IFindReplaceService
 {
     private readonly IProjectService _projectService;
+    private readonly IEntityService? _entityService;
 
-    public FindReplaceService(IProjectService projectService)
+    /// <param name="entityService">
+    /// Supplied when the caller wants Codex entries searchable. Optional so a
+    /// caller that only ever searches prose does not have to build one.
+    /// </param>
+    public FindReplaceService(IProjectService projectService, IEntityService? entityService = null)
     {
         _projectService = projectService;
+        _entityService = entityService;
     }
 
     public async Task<IReadOnlyList<FindMatch>> FindAsync(FindOptions options, CancellationToken cancellationToken = default)
@@ -29,26 +35,75 @@ public sealed class FindReplaceService : IFindReplaceService
                 var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
                 var plain = StripHtml(html);
                 var bookTitle = _projectService.ActiveBook?.Name ?? string.Empty;
-                foreach (Match m in regex.Matches(plain))
+                Collect(results, regex, plain, "prose", bookTitle, chapter, scene);
+
+                // The places a writer leaves what they mean to come back to.
+                if (options.IncludeSceneNotes)
                 {
-                    results.Add(new FindMatch
-                    {
-                        BookTitle = bookTitle,
-                        ChapterGuid = chapter.Guid,
-                        ChapterTitle = chapter.Title,
-                        SceneId = scene.Id,
-                        SceneTitle = scene.Title,
-                        Index = m.Index,
-                        Length = m.Length,
-                        Before = SnippetBefore(plain, m.Index),
-                        MatchedText = m.Value,
-                        After = SnippetAfter(plain, m.Index + m.Length)
-                    });
+                    Collect(results, regex, scene.Synopsis ?? string.Empty, "synopsis",
+                        bookTitle, chapter, scene);
+                    Collect(results, regex, scene.Notes ?? string.Empty, "notes",
+                        bookTitle, chapter, scene);
+                    foreach (var comment in scene.Comments ?? [])
+                        Collect(results, regex, comment.Text ?? string.Empty, "comment",
+                            bookTitle, chapter, scene);
                 }
             }
         }).ConfigureAwait(false);
 
+        if (options.IncludeCodex) await CollectCodexAsync(results, regex).ConfigureAwait(false);
         return results;
+    }
+
+    /// <summary>
+    /// Matches in Codex entries - a name, a description, a section. Reported
+    /// only: renaming an entry has its own command, which carries the change
+    /// through every reference to it, and a blind replace here would not.
+    /// </summary>
+    private async Task CollectCodexAsync(List<FindMatch> results, Regex regex)
+    {
+        if (_entityService == null) return;
+
+        var bookTitle = _projectService.ActiveBook?.Name ?? string.Empty;
+        void Add(string where, string text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            foreach (Match m in regex.Matches(text))
+                results.Add(new FindMatch
+                {
+                    BookTitle = bookTitle,
+                    Field = "codex",
+                    ChapterTitle = where,
+                    SceneTitle = where,
+                    Index = m.Index,
+                    Length = m.Length,
+                    Before = SnippetBefore(text, m.Index),
+                    MatchedText = m.Value,
+                    After = SnippetAfter(text, m.Index + m.Length)
+                });
+        }
+
+        foreach (var c in await _entityService.LoadCharactersAsync().ConfigureAwait(false))
+        {
+            var name = EntityResolveIndex.Compose(c.Name, c.Surname);
+            Add(name, name);
+            foreach (var section in c.Sections) Add(name, StripHtml(section.Content));
+        }
+        foreach (var l in await _entityService.LoadLocationsAsync().ConfigureAwait(false))
+        {
+            Add(l.Name, l.Name);
+            foreach (var section in l.Sections) Add(l.Name, StripHtml(section.Content));
+        }
+        foreach (var i in await _entityService.LoadItemsAsync().ConfigureAwait(false))
+        {
+            Add(i.Name, i.Name);
+            foreach (var section in i.Sections) Add(i.Name, StripHtml(section.Content));
+        }
+        foreach (var l in await _entityService.LoadLoreAsync().ConfigureAwait(false))
+        {
+            Add(l.Name, l.Name);
+            foreach (var section in l.Sections) Add(l.Name, StripHtml(section.Content));
+        }
     }
 
     public async Task<int> ReplaceAllAsync(FindOptions options, ISnapshotService? snapshotService = null, CancellationToken cancellationToken = default)
@@ -65,6 +120,21 @@ public sealed class FindReplaceService : IFindReplaceService
             foreach (var (chapter, scene) in EnumerateScopedScenes(options))
             {
                 cancellationToken.ThrowIfCancellationRequested();
+
+                // A synopsis and a note are plain text the writer owns, so a
+                // replace can reach them. A comment is a conversation and a
+                // Codex entry has a rename of its own that carries references
+                // with it; neither is rewritten from here.
+                if (options.IncludeSceneNotes)
+                {
+                    var (synopsis, synopsisCount) =
+                        ReplaceWithCount(regex, scene.Synopsis ?? string.Empty, options.Replacement);
+                    if (synopsisCount > 0) scene.Synopsis = synopsis;
+                    var (notes, notesCount) =
+                        ReplaceWithCount(regex, scene.Notes ?? string.Empty, options.Replacement);
+                    if (notesCount > 0) scene.Notes = notes;
+                    replacedHere += synopsisCount + notesCount;
+                }
 
                 var html = await _projectService.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
                 // Replace inside the raw HTML — patterns may inadvertently span tags
@@ -119,6 +189,31 @@ public sealed class FindReplaceService : IFindReplaceService
             // rather than in whichever book the sweep stopped on.
             if (_projectService.CurrentProject?.ActiveBookId != openedWith)
                 await _projectService.SwitchBookAsync(openedWith).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>Adds every match in one field, tagged with which field it was.</summary>
+    private static void Collect(
+        List<FindMatch> results, Regex regex, string text, string field,
+        string bookTitle, ChapterData chapter, SceneData scene)
+    {
+        if (text.Length == 0) return;
+        foreach (Match m in regex.Matches(text))
+        {
+            results.Add(new FindMatch
+            {
+                BookTitle = bookTitle,
+                Field = field,
+                ChapterGuid = chapter.Guid,
+                ChapterTitle = chapter.Title,
+                SceneId = scene.Id,
+                SceneTitle = scene.Title,
+                Index = m.Index,
+                Length = m.Length,
+                Before = SnippetBefore(text, m.Index),
+                MatchedText = m.Value,
+                After = SnippetAfter(text, m.Index + m.Length)
+            });
         }
     }
 

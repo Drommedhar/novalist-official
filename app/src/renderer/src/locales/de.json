@@ -167,7 +167,13 @@
     "scopeCurrentScene": "Aktuelle Szene",
     "scopeCurrentChapter": "Aktuelles Kapitel",
     "scopeActiveBook": "Aktives Buch",
-    "scopeProject": "Gesamtes Projekt"
+    "scopeProject": "Gesamtes Projekt",
+    "includeNotes": "Zusammenfassungen, Notizen und Kommentare",
+    "includeCodex": "Kodex-Einträge",
+    "field_synopsis": "Zusammenfassung",
+    "field_notes": "Notizen",
+    "field_comment": "Kommentar",
+    "field_codex": "Kodex"
   },
   "app": {
     "title": "Novalist",
@@ -2218,7 +2224,8 @@
     "missing": "Nicht verfügbar",
     "startLexicon": "Lexikon für diese Sprache anlegen",
     "templateWritten": "Ein Start-Lexikon für {{code}} wurde im Analyse-Ordner angelegt. Übersetzen Sie die Wortlisten darin und drücken Sie dann Neu einlesen.",
-    "lexiconHint": "Ohne Szenenanalyse-Lexikon lässt sich eine Sprache trotzdem normal schreiben und exportieren — es fehlt lediglich die automatische Erkennung von POV, Emotion, Intensität, Konflikt und Tags sowie die verbbasierte Dialogzuordnung. Diese Werte lassen sich pro Szene von Hand setzen."
+    "lexiconHint": "Ohne Szenenanalyse-Lexikon lässt sich eine Sprache trotzdem normal schreiben und exportieren — es fehlt lediglich die automatische Erkennung von POV, Emotion, Intensität, Konflikt und Tags sowie die verbbasierte Dialogzuordnung. Diese Werte lassen sich pro Szene von Hand setzen.",
+    "rescanned": "Neu eingelesen. Neue Themes, Sprachen und Lexika stehen jetzt zur Verfügung."
   },
   "conflict": {
     "title": "Diese Szene wurde anderswo geändert",

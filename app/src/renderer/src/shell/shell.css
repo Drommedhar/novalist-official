@@ -2667,8 +2667,22 @@
   text-align: left;
 }
 
-.findreplace-result:hover {
+.findreplace-result:hover:not(:disabled) {
   background: var(--nl-surface-hover);
+}
+
+/* A Codex hit is a report, not a place to go - it does not offer a cursor. */
+.findreplace-result:disabled {
+  cursor: default;
+}
+
+.findreplace-field {
+  margin-left: var(--nl-space-tighter);
+  padding: 0 var(--nl-space-tightest);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
 }
 
 .findreplace-snippet {

@@ -301,7 +301,13 @@
     "scopeCurrentScene": "当前场景",
     "scopeCurrentChapter": "当前章节",
     "scopeActiveBook": "当前书籍",
-    "scopeProject": "整个项目"
+    "scopeProject": "整个项目",
+    "includeNotes": "概要、笔记与批注",
+    "includeCodex": "设定集条目",
+    "field_synopsis": "概要",
+    "field_notes": "笔记",
+    "field_comment": "批注",
+    "field_codex": "设定集"
   },
   "app": {
     "title": "Novalist",
@@ -2252,7 +2258,8 @@
     "missing": "不可用",
     "startLexicon": "为该语言新建词典",
     "templateWritten": "已在分析文件夹中为 {{code}} 创建起始词典。请翻译其中的词表，然后点击重新扫描。",
-    "lexiconHint": "没有场景分析词典，该语言仍可正常写作和导出 — 只是失去了对 POV、情绪、强度、冲突和标签的自动识别，以及基于动词的对话归属。这些值可以在每个场景中手动设置。"
+    "lexiconHint": "没有场景分析词典，该语言仍可正常写作和导出 — 只是失去了对 POV、情绪、强度、冲突和标签的自动识别，以及基于动词的对话归属。这些值可以在每个场景中手动设置。",
+    "rescanned": "已重新扫描。新的主题、语言和词典现已可用。"
   },
   "conflict": {
     "title": "该场景在其他地方被修改过",

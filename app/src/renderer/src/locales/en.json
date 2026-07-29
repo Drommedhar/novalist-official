@@ -266,7 +266,13 @@
     "scopeCurrentScene": "Current scene",
     "scopeCurrentChapter": "Current chapter",
     "scopeActiveBook": "Active book",
-    "scopeProject": "Whole project"
+    "scopeProject": "Whole project",
+    "includeNotes": "Synopses, notes and comments",
+    "includeCodex": "Codex entries",
+    "field_synopsis": "Synopsis",
+    "field_notes": "Notes",
+    "field_comment": "Comment",
+    "field_codex": "Codex"
   },
   "app": {
     "title": "Novalist",
@@ -2210,7 +2216,8 @@
     "missing": "Not available",
     "startLexicon": "Start a lexicon for this language",
     "templateWritten": "A starting lexicon for {{code}} was written to the analysis folder. Translate the word lists in it, then press Rescan.",
-    "lexiconHint": "Without a scene-analysis lexicon, a language still writes and exports normally — what it loses is automatic POV, emotion, intensity, conflict and tag detection, and verb-based dialogue attribution. You can set those by hand on any scene."
+    "lexiconHint": "Without a scene-analysis lexicon, a language still writes and exports normally — what it loses is automatic POV, emotion, intensity, conflict and tag detection, and verb-based dialogue attribution. You can set those by hand on any scene.",
+    "rescanned": "Rescanned. New themes, languages and lexicons are available now."
   },
   "conflict": {
     "title": "This scene changed somewhere else",

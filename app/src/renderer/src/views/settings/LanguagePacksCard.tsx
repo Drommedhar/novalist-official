@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FolderOpen, RefreshCw, FilePlus2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { loadUserAssets } from '../../stores/userAssets'
 
 interface LanguagePack {
   code: string
@@ -47,6 +48,11 @@ export function LanguagePacksCard(): React.JSX.Element {
     setMessage(null)
     try {
       setPacks(await rpc.request<LanguagePack[]>('appearance/rescan'))
+      // Re-registering is what makes the rescan mean anything on this side:
+      // the theme catalogue and the locale registry are both built at startup,
+      // so without this a dropped-in theme still needed a restart to appear.
+      await loadUserAssets()
+      setMessage(t('languagePacks.rescanned'))
     } finally {
       setBusy(false)
     }

@@ -17,6 +17,8 @@ The Find and Replace dialog opens in-window.
 - **Match case** — case-sensitive search when on.
 - **Whole word** — only match whole words.
 - **Regex** — treat the find pattern as a regex.
+- **Synopses, notes and comments** — search each scene's synopsis, its notes, and the text of its comments alongside the prose. Off by default.
+- **Codex entries** — search Codex entry names and the prose in their sections. Off by default.
 
 ## Scopes
 
@@ -34,13 +36,14 @@ The default is **Active book**.
 Click **Find** or press `Enter`. The result list shows every match with:
 
 - The **chapter and scene** the match is in.
+- A **label** — Synopsis, Notes, Comment or Codex — when the match is not in the prose.
 - A **snippet** of surrounding text with the match highlighted.
 
-Click a result to close the dialog and open that scene in the editor.
+Click a result to close the dialog and open that scene in the editor. A Codex result reports where the entry is rather than opening a scene — open the entry from the Codex or the Wiki.
 
 ## Replacing
 
-Click **Replace All** to replace every match in the selected scope. Before any scene is modified, an **automatic snapshot** of that scene is taken, so a bad Replace All can always be undone by restoring the snapshot from the toolbar Snapshots dialog. After the run, the dialog reports how many occurrences were replaced, and the open scene reloads with the new content.
+Click **Replace All** to replace every match in the selected scope. With **Synopses, notes and comments** on, a replace also rewrites synopses and notes. Comments are left alone — a comment is a conversation, and rewriting someone's words in it is not a search-and-replace decision. Before any scene is modified, an **automatic snapshot** of that scene is taken, so a bad Replace All can always be undone by restoring the snapshot from the toolbar Snapshots dialog. After the run, the dialog reports how many occurrences were replaced, and the open scene reloads with the new content.
 
 ## Regex notes
 
@@ -57,8 +60,9 @@ Common patterns:
 
 ## Limitations
 
-- Find searches **scene content**. Markup tags themselves are not searched.
-- Find does not search entity fields, sections, custom properties, research notes, or comments. Those are accessible via their own views.
+- Find searches **scene content**, and — when the matching options are on — synopses, notes, comments, and Codex entries. Markup tags themselves are not searched.
+- Find does not search custom properties or research notes. Those are accessible via their own views, and by Quick Open.
+- **Codex matches are reported, never replaced.** Renaming a Codex entry has its own command, which carries the change through every reference to it; a blind replace here would not.
 - Replace All takes one snapshot per modified scene, so a project-wide replace can produce many snapshots.
 - **Whole project** opens each book in turn to read it, and puts you back in the book you started in when it finishes. On a large multi-book project that takes a moment; a search of the active book does not.
 

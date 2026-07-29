@@ -15,7 +15,8 @@ public sealed class SearchRpc
         _workspace = workspace;
     }
 
-    private FindReplaceService Service => new(_workspace.Projects);
+    private FindReplaceService Service
+        => new(_workspace.Projects, new EntityService(_workspace.Projects));
 
     /// <summary>
     /// One query across scenes (titles, prose, synopses, notes, comments and
@@ -48,6 +49,8 @@ public sealed class SearchRpc
         string scope,
         string? anchorChapterGuid,
         string? anchorSceneId,
+        bool includeSceneNotes,
+        bool includeCodex,
         CancellationToken cancellationToken)
     {
         var matches = await Service.FindAsync(new FindOptions
@@ -58,12 +61,14 @@ public sealed class SearchRpc
             UseRegex = useRegex,
             Scope = Enum.Parse<FindScope>(scope),
             AnchorChapterGuid = anchorChapterGuid,
-            AnchorSceneId = anchorSceneId
+            AnchorSceneId = anchorSceneId,
+            IncludeSceneNotes = includeSceneNotes,
+            IncludeCodex = includeCodex
         }, cancellationToken);
         return matches
             .Select(m => new FindMatchDto(
                 m.ChapterGuid, m.ChapterTitle, m.SceneId, m.SceneTitle,
-                m.Index, m.Length, m.Before, m.MatchedText, m.After))
+                m.Index, m.Length, m.Before, m.MatchedText, m.After, m.Field))
             .ToArray();
     }
 
@@ -77,6 +82,7 @@ public sealed class SearchRpc
         string scope,
         string? anchorChapterGuid,
         string? anchorSceneId,
+        bool includeSceneNotes,
         CancellationToken cancellationToken)
     {
         var snapshots = new SnapshotService(_workspace.Projects, _workspace.FileService);
@@ -89,7 +95,8 @@ public sealed class SearchRpc
             UseRegex = useRegex,
             Scope = Enum.Parse<FindScope>(scope),
             AnchorChapterGuid = anchorChapterGuid,
-            AnchorSceneId = anchorSceneId
+            AnchorSceneId = anchorSceneId,
+            IncludeSceneNotes = includeSceneNotes
         }, snapshots, cancellationToken);
     }
 }
@@ -108,6 +115,9 @@ public sealed record GlobalSearchHitDto(
     string? EntityId,
     string? ResearchId);
 
+/// <summary>One match. <c>Field</c> says where it was found - prose, synopsis,
+/// notes, comment or codex - so the writer knows what they are looking at, and
+/// a Codex hit can be shown without pretending it opens a scene.</summary>
 public sealed record FindMatchDto(
     string ChapterGuid,
     string ChapterTitle,
@@ -117,4 +127,5 @@ public sealed record FindMatchDto(
     int Length,
     string Before,
     string MatchedText,
-    string After);
+    string After,
+    string Field);

@@ -13,6 +13,17 @@ public class FindReplaceServiceTests
         return (new FindReplaceService(project), project);
     }
 
+    private static (FindReplaceService Sut, IProjectService Project, IEntityService Entities) BuildWithCodex()
+    {
+        var project = Substitute.For<IProjectService>();
+        var entities = Substitute.For<IEntityService>();
+        entities.LoadCharactersAsync().Returns([]);
+        entities.LoadLocationsAsync().Returns([]);
+        entities.LoadItemsAsync().Returns([]);
+        entities.LoadLoreAsync().Returns([]);
+        return (new FindReplaceService(project, entities), project, entities);
+    }
+
     private static ChapterData Chapter(string guid, string title = "Ch") => new() { Guid = guid, Title = title };
     private static SceneData Scene(string id, string title = "Sc") => new() { Id = id, Title = title };
 
@@ -361,5 +372,148 @@ public class FindReplaceServiceTests
 
         // Reopening the only book would be a pointless round trip through disk.
         await project.DidNotReceive().SwitchBookAsync(Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task FindAsync_IncludeSceneNotes_SearchesSynopsisNotesAndComments()
+    {
+        var (sut, project) = Build();
+        var ch = Chapter("c1");
+        var sc = Scene("s1");
+        sc.Synopsis = "The bell tolls";
+        sc.Notes = "check the bell";
+        sc.Comments = [new SceneComment { Text = "which bell?" }];
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([sc]);
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>a bell</p>");
+
+        var matches = await sut.FindAsync(
+            new FindOptions { Pattern = "bell", IncludeSceneNotes = true });
+
+        Assert.Equal(
+            new[] { "prose", "synopsis", "notes", "comment" },
+            matches.Select(m => m.Field).ToArray());
+    }
+
+    [Fact]
+    public async Task FindAsync_WithoutIncludeSceneNotes_SearchesProseOnly()
+    {
+        var (sut, project) = Build();
+        var ch = Chapter("c1");
+        var sc = Scene("s1");
+        sc.Synopsis = "The bell tolls";
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([sc]);
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>nothing here</p>");
+
+        Assert.Empty(await sut.FindAsync(new FindOptions { Pattern = "bell" }));
+    }
+
+    [Fact]
+    public async Task FindAsync_IncludeSceneNotes_SkipsEmptyFields()
+    {
+        var (sut, project) = Build();
+        var ch = Chapter("c1");
+        var sc = Scene("s1");
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([sc]);
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>a bell</p>");
+
+        var matches = await sut.FindAsync(
+            new FindOptions { Pattern = "bell", IncludeSceneNotes = true });
+
+        Assert.Single(matches);
+    }
+
+    [Fact]
+    public async Task ReplaceAllAsync_IncludeSceneNotes_RewritesSynopsisAndNotes()
+    {
+        var (sut, project) = Build();
+        var ch = Chapter("c1");
+        var sc = Scene("s1");
+        sc.Synopsis = "The bell tolls";
+        sc.Notes = "check the bell";
+        sc.Comments = [new SceneComment { Text = "which bell?" }];
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([sc]);
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>a bell</p>");
+
+        var count = await sut.ReplaceAllAsync(
+            new FindOptions { Pattern = "bell", Replacement = "horn", IncludeSceneNotes = true },
+            null);
+
+        Assert.Equal(3, count);
+        Assert.Equal("The horn tolls", sc.Synopsis);
+        Assert.Equal("check the horn", sc.Notes);
+        // A comment is a conversation - a blind rewrite would put words in a mouth.
+        Assert.Equal("which bell?", sc.Comments[0].Text);
+    }
+
+    [Fact]
+    public async Task ReplaceAllAsync_IncludeSceneNotes_NotesOnlyStillSaves()
+    {
+        var (sut, project) = Build();
+        var ch = Chapter("c1");
+        var sc = Scene("s1");
+        sc.Synopsis = "The bell tolls";
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([sc]);
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>nothing here</p>");
+
+        var count = await sut.ReplaceAllAsync(
+            new FindOptions { Pattern = "bell", Replacement = "horn", IncludeSceneNotes = true },
+            null);
+
+        Assert.Equal(1, count);
+        Assert.Equal("The horn tolls", sc.Synopsis);
+        await project.Received().SaveScenesAsync();
+    }
+
+    [Fact]
+    public async Task FindAsync_IncludeCodex_SearchesNamesAndSections()
+    {
+        var (sut, project, entities) = BuildWithCodex();
+        project.GetChaptersOrdered().Returns([]);
+        project.ActiveBook.Returns(new BookData { Id = "b1", Name = "Only" });
+        entities.LoadCharactersAsync().Returns([
+            new CharacterData
+            {
+                Id = "e1",
+                Name = "Bell",
+                Surname = "Harrow",
+                Sections = { new EntitySection { Content = "<p>rings the bell</p>" } }
+            }
+        ]);
+        entities.LoadLocationsAsync().Returns([
+            new LocationData { Id = "l1", Name = "Bell Tower" }
+        ]);
+        entities.LoadItemsAsync().Returns([
+            new ItemData
+            {
+                Id = "i1",
+                Name = "Rope",
+                Sections = { new EntitySection { Content = "for the bell" } }
+            }
+        ]);
+        entities.LoadLoreAsync().Returns([
+            new LoreData { Id = "o1", Name = "The Bell Rite" }
+        ]);
+
+        var matches = await sut.FindAsync(
+            new FindOptions { Pattern = "bell", IncludeCodex = true });
+
+        Assert.Equal(5, matches.Count);
+        Assert.All(matches, m => Assert.Equal("codex", m.Field));
+        Assert.Equal("Only", matches[0].BookTitle);
+        Assert.Equal("Bell Harrow", matches[0].SceneTitle);
+    }
+
+    [Fact]
+    public async Task FindAsync_IncludeCodex_WithoutEntityService_IsIgnored()
+    {
+        var (sut, project) = Build();
+        project.GetChaptersOrdered().Returns([]);
+
+        Assert.Empty(await sut.FindAsync(new FindOptions { Pattern = "bell", IncludeCodex = true }));
     }
 }

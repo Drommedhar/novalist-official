@@ -11,6 +11,8 @@ interface FindMatchDto {
   before: string
   matchedText: string
   after: string
+  /** prose | synopsis | notes | comment | codex - where the hit was found. */
+  field: string
 }
 
 const SCOPES = ['CurrentScene', 'CurrentChapter', 'ActiveBook', 'Project']
@@ -25,6 +27,8 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
   const [wholeWord, setWholeWord] = useState(false)
   const [useRegex, setUseRegex] = useState(false)
   const [scope, setScope] = useState('ActiveBook')
+  const [includeNotes, setIncludeNotes] = useState(false)
+  const [includeCodex, setIncludeCodex] = useState(false)
   const [matches, setMatches] = useState<FindMatchDto[] | null>(null)
   const [busy, setBusy] = useState(false)
   const [replacedCount, setReplacedCount] = useState<number | null>(null)
@@ -36,7 +40,9 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
     useRegex,
     scope,
     openChapterGuid,
-    openSceneId
+    openSceneId,
+    includeNotes,
+    includeCodex
   ]
 
   const find = async (): Promise<void> => {
@@ -62,7 +68,8 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
         useRegex,
         scope,
         openChapterGuid,
-        openSceneId
+        openSceneId,
+        includeNotes
       ])
       setReplacedCount(count)
       setMatches(null)
@@ -109,6 +116,22 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
             <input type="checkbox" checked={useRegex} onChange={(e) => setUseRegex(e.target.checked)} />
             {t('findReplace.regex')}
           </label>
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={includeNotes}
+              onChange={(e) => setIncludeNotes(e.target.checked)}
+            />
+            {t('findReplace.includeNotes')}
+          </label>
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={includeCodex}
+              onChange={(e) => setIncludeCodex(e.target.checked)}
+            />
+            {t('findReplace.includeCodex')}
+          </label>
           <select className="dialog-input findreplace-scope" value={scope} onChange={(e) => setScope(e.target.value)}>
             {SCOPES.map((s) => (
               <option key={s} value={s}>
@@ -133,8 +156,10 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
             {matches.length === 0 && <p className="codex-empty">{t('findReplace.noMatches')}</p>}
             {matches.map((match, index) => (
               <button
-                key={`${match.sceneId}-${index}`}
+                key={`${match.sceneId}-${match.field}-${index}`}
                 className="findreplace-result"
+                // A Codex hit has no scene behind it, so it reports and stays put.
+                disabled={!match.chapterGuid}
                 onClick={() => {
                   onClose()
                   void useProjectStore.getState().openScene(match.chapterGuid, match.sceneId)
@@ -142,6 +167,9 @@ export function FindReplaceDialog({ onClose }: { onClose(): void }): React.JSX.E
               >
                 <span className="codex-row-detail">
                   {match.chapterTitle} - {match.sceneTitle}
+                  {match.field !== 'prose' && (
+                    <span className="findreplace-field">{t(`findReplace.field_${match.field}`)}</span>
+                  )}
                 </span>
                 <span className="findreplace-snippet">
                   {match.before}

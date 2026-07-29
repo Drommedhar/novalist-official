@@ -23,6 +23,21 @@ public sealed class FindOptions
     /// <summary>Optional anchor for CurrentScene / CurrentChapter scopes.</summary>
     public string? AnchorChapterGuid { get; init; }
     public string? AnchorSceneId { get; init; }
+
+    /// <summary>
+    /// Also search a scene's synopsis, its notes and its comments.
+    ///
+    /// Those are where a writer leaves the things they mean to come back to,
+    /// and a search that cannot see them will not find them.
+    /// </summary>
+    public bool IncludeSceneNotes { get; init; }
+
+    /// <summary>
+    /// Also search Codex entries - names, descriptions and section prose.
+    /// Reported only: renaming an entry is the Codex's own job, which carries
+    /// the change through every reference.
+    /// </summary>
+    public bool IncludeCodex { get; init; }
 }
 
 public sealed class FindMatch
@@ -32,6 +47,13 @@ public sealed class FindMatch
     /// where two books can hold a scene of the same name.
     /// </summary>
     public string BookTitle { get; init; } = string.Empty;
+
+    /// <summary>
+    /// What the match is in: <c>prose</c>, <c>synopsis</c>, <c>notes</c>,
+    /// <c>comment</c> or <c>codex</c>. Only prose, synopses and notes can be
+    /// replaced; the rest are reported so the writer can go and look.
+    /// </summary>
+    public string Field { get; init; } = "prose";
 
     public string ChapterGuid { get; init; } = string.Empty;
     public string ChapterTitle { get; init; } = string.Empty;
