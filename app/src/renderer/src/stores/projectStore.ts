@@ -18,6 +18,10 @@ export interface SceneDto {
 }
 
 export interface ChapterDto {
+  /** A second line under the chapter title in the finished book. */
+  subtitle: string | null
+  /** True when the chapter opens straight into its prose. */
+  hideHeading: boolean
   guid: string
   title: string
   order: number

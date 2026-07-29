@@ -144,6 +144,11 @@ public class ChapterExportContent
 {
     public string Title { get; set; } = string.Empty;
     public int Order { get; set; }
+    public string? Subtitle { get; set; }
+
+    /// <summary>True when this chapter opens straight into its prose.</summary>
+    public bool HideHeading { get; set; }
+
     public List<SceneExportContent> Scenes { get; set; } = [];
 }
 
@@ -302,6 +307,8 @@ public partial class ExportService
             {
                 Title = chapter.Title,
                 Order = chapter.Order,
+                Subtitle = chapter.Subtitle,
+                HideHeading = chapter.HideHeading,
                 Scenes = sceneContents
             });
         }
@@ -427,6 +434,8 @@ public partial class ExportService
         sb.AppendLine("\\usepackage{setspace}");
         // \sout comes from ulem; without it a struck line fails to compile.
         sb.AppendLine("\\usepackage[normalem]{ulem}");
+        // Real drop caps, for a layout that asks for one.
+        sb.AppendLine("\\usepackage{lettrine}");
         sb.AppendLine("\\doublespacing");
         if (!string.IsNullOrWhiteSpace(options.Title)) sb.AppendLine($"\\title{{{LatexEscape(options.Title)}}}");
         if (!string.IsNullOrWhiteSpace(options.Author)) sb.AppendLine($"\\author{{{LatexEscape(options.Author)}}}");
@@ -439,7 +448,13 @@ public partial class ExportService
             var chapter = chapters[ci];
             // Starred, because the heading already carries whatever numbering
             // the layout asks for and LaTeX's own would print a second one.
-            sb.AppendLine($"\\chapter*{{{LatexEscape(latexPreset.ChapterHeading(ci + 1, chapter.Title))}}}");
+            if (!chapter.HideHeading)
+            {
+                sb.AppendLine($"\\chapter*{{{LatexEscape(latexPreset.ChapterHeading(ci + 1, chapter.Title))}}}");
+                if (!string.IsNullOrWhiteSpace(chapter.Subtitle))
+                    sb.AppendLine(
+                        $"\\begin{{center}}\\textit{{{LatexEscape(chapter.Subtitle)}}}\\end{{center}}");
+            }
             for (int si = 0; si < chapter.Scenes.Count; si++)
             {
                 if (si > 0) sb.AppendLine("\\begin{center}* * *\\end{center}");
@@ -447,6 +462,7 @@ public partial class ExportService
                 // rather than one per item, which LaTeX renders as a stack of
                 // single-entry lists.
                 var openList = ListKind.None;
+                var latexFirst = si == 0;
                 foreach (var block in ParseHtmlToBlocks(
                     chapter.Scenes[si].HtmlContent, chapter.Scenes[si].Footnotes))
                 {
@@ -491,14 +507,26 @@ public partial class ExportService
                         continue;
                     }
 
-                    sb.AppendLine(block.StyleId switch
-                    {
-                        "heading" => $"\\section*{{{body}}}",
-                        "subheading" => $"\\subsection*{{{body}}}",
-                        "blockquote" => $"\\begin{{quote}}{body}\\end{{quote}}",
-                        "poetry" => $"\\begin{{verse}}{body}\\end{{verse}}",
-                        _ => body,
-                    });
+                    // lettrine sets the initial and the small-caps lead-in in
+                    // one command, which is exactly the opener this describes.
+                    var opener = latexFirst && latexPreset.DropCap && block.StyleId == null
+                        ? SplitOpener(
+                            string.Concat(block.Segments.Select(seg => seg.Text)),
+                            latexPreset.LeadInSmallCapsWords)
+                        : null;
+                    latexFirst = false;
+
+                    sb.AppendLine(opener != null
+                        ? $"\\lettrine{{{LatexEscape(opener.Value.Initial)}}}"
+                            + $"{{{LatexEscape(opener.Value.LeadIn)}}}{LatexEscape(opener.Value.Tail)}"
+                        : block.StyleId switch
+                        {
+                            "heading" => $"\\section*{{{body}}}",
+                            "subheading" => $"\\subsection*{{{body}}}",
+                            "blockquote" => $"\\begin{{quote}}{body}\\end{{quote}}",
+                            "poetry" => $"\\begin{{verse}}{body}\\end{{verse}}",
+                            _ => body,
+                        });
                     sb.AppendLine();
                 }
                 // A scene that ends inside a list still has to close it.
@@ -1749,6 +1777,25 @@ public partial class ExportService
               margin-bottom: 1.5em;
             }
 
+            p.chapter-subtitle {
+              text-align: center;
+              text-indent: 0;
+              font-style: italic;
+              margin-top: -0.6em;
+              margin-bottom: 1.6em;
+            }
+
+            span.drop-cap {
+              float: left;
+              font-size: 3.2em;
+              line-height: 0.85;
+              padding-right: 0.06em;
+            }
+
+            span.lead-in {
+              font-variant: small-caps;
+            }
+
             p.prose-image {
               text-align: center;
               text-indent: 0;
@@ -1818,6 +1865,38 @@ public partial class ExportService
               text-indent: 0;
             }
             """;
+
+    /// <summary>
+    /// The chapter's opening paragraph, with the initial set as a drop cap and
+    /// the words after it in small capitals. Anything the splitter will not
+    /// take - markup first, a number, an opening quotation mark - is returned
+    /// untouched rather than wrapped into something odd.
+    /// </summary>
+    private static string OpenerXhtml(string content, bool isOpener, ExportPreset preset)
+    {
+        if (!isOpener || !preset.DropCap) return content;
+        var split = SplitOpener(content, preset.LeadInSmallCapsWords);
+        if (split == null) return content;
+
+        var (initial, leadIn, tail) = split.Value;
+        var lead = leadIn.Length > 0 ? $"<span class=\"lead-in\">{leadIn}</span>" : string.Empty;
+        return $"<span class=\"drop-cap\">{initial}</span>{lead}{tail}";
+    }
+
+    /// <summary>
+    /// The chapter's heading block: nothing at all when the chapter hides it,
+    /// otherwise the title and, under it, whatever subtitle it carries.
+    /// </summary>
+    private static string ChapterHeadingXhtml(
+        ChapterExportContent chapter, ExportPreset preset, int number)
+    {
+        if (chapter.HideHeading) return string.Empty;
+
+        var heading = $"    <h1 class=\"chapter-title\">{EscapeXml(preset.ChapterHeading(number, chapter.Title))}</h1>";
+        return string.IsNullOrWhiteSpace(chapter.Subtitle)
+            ? heading
+            : heading + $"\n    <p class=\"chapter-subtitle\">{EscapeXml(chapter.Subtitle)}</p>";
+    }
 
     /// <summary>
     /// Every prose image in the book, mapped to the href it will have inside
@@ -1905,7 +1984,7 @@ public partial class ExportService
                     "subheading" => $"    <h3>{content}</h3>",
                     "blockquote" => $"    <blockquote><p>{content}</p></blockquote>",
                     "poetry" => $"    <p class=\"poetry\">{content}</p>",
-                    _ => $"    <p{(isFirst ? " class=\"no-indent\"" : "")}>{content}</p>"
+                    _ => $"    <p{(isFirst ? " class=\"no-indent\"" : "")}>{OpenerXhtml(content, isFirst && si == 0, preset)}</p>"
                 });
                 isFirst = false;
             }
@@ -1935,7 +2014,7 @@ public partial class ExportService
             </head>
             <body>
               <section epub:type="chapter">
-                <h1 class="chapter-title">{EscapeXml(preset.ChapterHeading(number, chapter.Title))}</h1>
+                {ChapterHeadingXhtml(chapter, preset, number)}
             {bodyHtml}
               </section>
             </body>
@@ -2481,10 +2560,19 @@ public partial class ExportService
 
             // Chapter heading
             var docxHeading = options.ResolvePreset().ChapterHeading(i + 1, chapter.Title);
-            if (needsPageBreak)
-                body.Append($"<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/><w:pageBreakBefore/></w:pPr><w:r><w:t>{EscapeXml(docxHeading)}</w:t></w:r></w:p>");
+            var breakBefore = needsPageBreak ? "<w:pageBreakBefore/>" : string.Empty;
+            if (chapter.HideHeading)
+            {
+                // The page still turns; only the words are gone.
+                if (needsPageBreak)
+                    body.Append("<w:p><w:pPr><w:pageBreakBefore/></w:pPr></w:p>");
+            }
             else
-                body.Append($"<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr><w:r><w:t>{EscapeXml(docxHeading)}</w:t></w:r></w:p>");
+            {
+                body.Append($"<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/>{breakBefore}</w:pPr><w:r><w:t>{EscapeXml(docxHeading)}</w:t></w:r></w:p>");
+                if (!string.IsNullOrWhiteSpace(chapter.Subtitle))
+                    body.Append($"<w:p><w:pPr><w:jc w:val=\"center\"/></w:pPr><w:r><w:rPr><w:i/></w:rPr><w:t>{EscapeXml(chapter.Subtitle)}</w:t></w:r></w:p>");
+            }
 
             // Scenes
             for (var si = 0; si < chapter.Scenes.Count; si++)
@@ -2512,6 +2600,25 @@ public partial class ExportService
                     }
 
                     var para = block.Segments;
+
+                    // The chapter's opening paragraph, when the layout asks for
+                    // a drop cap: Word wants the initial in a framed paragraph
+                    // of its own, with the rest following as normal text.
+                    var docxPreset = options.ResolvePreset();
+                    if (isFirstPara && si == 0 && docxPreset.DropCap && block.StyleId == null
+                        && block.List == ListKind.None)
+                    {
+                        var opener = SplitOpener(
+                            string.Concat(para.Select(seg => seg.Text)),
+                            docxPreset.LeadInSmallCapsWords);
+                        if (opener != null)
+                        {
+                            body.Append(DocxDropCapParagraphs(opener.Value, docxPreset));
+                            isFirstPara = false;
+                            continue;
+                        }
+                    }
+
                     var runs = SegmentsToDocxRuns(para, footnoteDefs);
                     var paragraphXml =
                         $"<w:p><w:pPr>{DocxParagraphProperties(block, isFirstPara)}</w:pPr>{runs}</w:p>";
@@ -2665,6 +2772,29 @@ public partial class ExportService
         return paragraphXml[..insertAt]
             + prefix
             + paragraphXml[insertAt..].Replace("</w:p>", suffix + "</w:p>");
+    }
+
+    /// <summary>
+    /// Word's own drop cap: the initial sits in a framed paragraph the text
+    /// wraps around, and the rest of the opener follows as ordinary prose with
+    /// its lead-in words in small capitals.
+    /// </summary>
+    private static string DocxDropCapParagraphs(
+        (string Initial, string LeadIn, string Tail) opener, ExportPreset preset)
+    {
+        var size = (int)Math.Round(preset.BodyFontSizePt * 2 * 3);  // half-points, three lines
+        var initial =
+            "<w:p><w:pPr><w:framePr w:dropCap=\"drop\" w:lines=\"3\" w:wrap=\"around\""
+            + " w:vAnchor=\"text\" w:hAnchor=\"text\"/><w:spacing w:line=\"640\" w:lineRule=\"exact\"/>"
+            + $"</w:pPr><w:r><w:rPr><w:sz w:val=\"{size}\"/></w:rPr>"
+            + $"<w:t xml:space=\"preserve\">{EscapeXml(opener.Initial)}</w:t></w:r></w:p>";
+
+        var lead = opener.LeadIn.Length == 0
+            ? string.Empty
+            : $"<w:r><w:rPr><w:smallCaps/></w:rPr><w:t xml:space=\"preserve\">{EscapeXml(opener.LeadIn)}</w:t></w:r>";
+
+        return initial
+            + $"<w:p>{lead}<w:r><w:t xml:space=\"preserve\">{EscapeXml(opener.Tail)}</w:t></w:r></w:p>";
     }
 
     /// <summary>The content type Word expects for an image part.</summary>
@@ -3121,6 +3251,37 @@ public partial class ExportService
 
     /// <summary>Blocks for a whole-manuscript Normseiten export.</summary>
     /// <summary>
+    /// Splits an opening line into its initial letter, the words that follow
+    /// in small capitals, and the rest. Returns null when there is nothing to
+    /// set - an opener that begins with punctuation or a number is left alone
+    /// rather than dropped into a quotation mark.
+    /// </summary>
+    internal static (string Initial, string LeadIn, string Tail)? SplitOpener(
+        string text, int leadInWords)
+    {
+        if (string.IsNullOrWhiteSpace(text) || !char.IsLetter(text[0])) return null;
+
+        var initial = text[..1];
+        var after = text[1..];
+        if (leadInWords <= 0) return (initial, string.Empty, after);
+
+        // The lead-in runs to the end of the nth word, counting the initial's
+        // own word as the first.
+        var index = 0;
+        var words = 0;
+        while (index < after.Length && words < leadInWords)
+        {
+            while (index < after.Length && !char.IsWhiteSpace(after[index])) index++;
+            words++;
+            if (words < leadInWords)
+            {
+                while (index < after.Length && char.IsWhiteSpace(after[index])) index++;
+            }
+        }
+        return (initial, after[..index], after[index..]);
+    }
+
+    /// <summary>
     /// One attribute's value out of a tag's attribute text, whichever order the
     /// attributes are written in. Empty when the attribute is absent, which for
     /// alt text means decorative rather than undescribed.
@@ -3537,10 +3698,21 @@ public partial class ExportService
             var chTitleFontActual = smf ? bodyFont : new PdfSharpCore.Drawing.XFont(bodyFontName, chTitleSize, PdfSharpCore.Drawing.XFontStyle.Bold);
             var pdfHeading = options.ResolvePreset().ChapterHeading(chapterIndex + 1, chapter.Title);
             var chTitleText = smf ? pdfHeading.ToUpperInvariant() : pdfHeading;
-            var ctW = gfx.MeasureString(chTitleText, chTitleFontActual);
-            gfx.DrawString(chTitleText, chTitleFontActual, PdfSharpCore.Drawing.XBrushes.Black,
-                new PdfSharpCore.Drawing.XPoint((pageWidth - ctW.Width) / 2, y));
-            y += lineSpacing * 2;
+            if (!chapter.HideHeading)
+            {
+                var ctW = gfx.MeasureString(chTitleText, chTitleFontActual);
+                gfx.DrawString(chTitleText, chTitleFontActual, PdfSharpCore.Drawing.XBrushes.Black,
+                    new PdfSharpCore.Drawing.XPoint((pageWidth - ctW.Width) / 2, y));
+                y += lineSpacing * 2;
+
+                if (!string.IsNullOrWhiteSpace(chapter.Subtitle))
+                {
+                    var subW = gfx.MeasureString(chapter.Subtitle, bodyFont);
+                    gfx.DrawString(chapter.Subtitle, bodyFont, PdfSharpCore.Drawing.XBrushes.Black,
+                        new PdfSharpCore.Drawing.XPoint((pageWidth - subW.Width) / 2, y));
+                    y += lineSpacing * 2;
+                }
+            }
 
             // Scenes
             for (var si = 0; si < chapter.Scenes.Count; si++)
@@ -3775,8 +3947,16 @@ public partial class ExportService
                 sb.AppendLine();
             }
 
-            sb.AppendLine($"## {options.ResolvePreset().ChapterHeading(i + 1, chapter.Title)}");
-            sb.AppendLine();
+            if (!chapter.HideHeading)
+            {
+                sb.AppendLine($"## {options.ResolvePreset().ChapterHeading(i + 1, chapter.Title)}");
+                sb.AppendLine();
+                if (!string.IsNullOrWhiteSpace(chapter.Subtitle))
+                {
+                    sb.AppendLine($"*{chapter.Subtitle}*");
+                    sb.AppendLine();
+                }
+            }
 
             for (var si = 0; si < chapter.Scenes.Count; si++)
             {

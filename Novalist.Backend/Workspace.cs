@@ -211,6 +211,8 @@ public sealed partial class Workspace : IDisposable
                 c.Status.ToString(),
                 c.Act,
                 c.IsFavorite,
+                c.Subtitle,
+                c.HideHeading,
                 ScenesOf(c.Guid)))
             .ToArray();
 
@@ -419,6 +421,10 @@ public sealed record ChapterDto(
     string Status,
     string Act,
     bool IsFavorite,
+    /// <summary>A second line under the chapter title in the finished book.</summary>
+    string? Subtitle,
+    /// <summary>True when the chapter opens straight into its prose.</summary>
+    bool HideHeading,
     IReadOnlyList<SceneDto> Scenes);
 
 public sealed record SceneDto(

@@ -552,7 +552,10 @@
     "confirmDeleteChapter": "Kapitel \"{{name}}\" mit allen Szenen löschen?",
     "confirmDeleteScene": "Szene \"{{name}}\" löschen?",
     "deleteTitle": "Löschen bestätigen",
-    "archiveEmpty": "Keine archivierten Szenen."
+    "archiveEmpty": "Keine archivierten Szenen.",
+    "contextChapterOpener": "Kapitelanfang...",
+    "chapterSubtitle": "Untertitel unter dem Kapiteltitel",
+    "chapterHideHeading": "Dieses Kapitel ohne Überschrift drucken"
   },
   "entityPanel": {
     "charactersTooltip": "Charaktere",
@@ -2419,7 +2422,10 @@
     "numberStyleRomanUpper": "I, II, III",
     "numberStyleRomanLower": "i, ii, iii",
     "numberStyleWords": "One, Two, Three (englisch)",
-    "chapterHeadingUppercase": "Überschriften in Großbuchstaben setzen"
+    "chapterHeadingUppercase": "Überschriften in Großbuchstaben setzen",
+    "dropCap": "Initial am Kapitelanfang",
+    "leadInSmallCaps": "Wörter danach in Kapitälchen",
+    "leadInSmallCapsHint": "Zwei oder drei sind üblich – genug, um das Auge vom Initial zurück in die Zeile zu führen. 0 schaltet es ab."
   },
   "analytics": {
     "povTitle": "Erzählperspektive über das Buch",

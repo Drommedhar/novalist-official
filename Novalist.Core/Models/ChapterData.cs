@@ -53,6 +53,22 @@ public class ChapterData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string>? Properties { get; set; }
 
+    /// <summary>
+    /// A second line under the chapter title in the finished book. Novels use
+    /// it for a place and a date, collections for the story's original venue.
+    /// </summary>
+    [JsonPropertyName("subtitle")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Subtitle { get; set; }
+
+    /// <summary>
+    /// Prints this chapter with no heading at all. A prologue that opens
+    /// straight into prose is a real typographic choice, not a chapter whose
+    /// title someone forgot to fill in.
+    /// </summary>
+    [JsonPropertyName("hideHeading")]
+    public bool HideHeading { get; set; }
+
     [JsonPropertyName("folderName")]
     public string FolderName { get; set; } = string.Empty;
 }

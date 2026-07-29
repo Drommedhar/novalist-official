@@ -64,6 +64,25 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 
+    /// <summary>
+    /// The chapter's opener: a subtitle under the title, and whether the
+    /// heading is printed at all. Both are export typography rather than
+    /// binder data, which is why they sit beside the rename rather than in it.
+    /// </summary>
+    [JsonRpcMethod("project/setChapterOpener")]
+    public async Task<ProjectStateDto> SetChapterOpenerAsync(
+        string chapterGuid, string? subtitle, bool hideHeading)
+    {
+        var chapter = _workspace.Projects.GetChaptersOrdered()
+            .FirstOrDefault(c => c.Guid == chapterGuid)
+            ?? throw new InvalidOperationException("Unknown chapter.");
+
+        chapter.Subtitle = string.IsNullOrWhiteSpace(subtitle) ? null : subtitle.Trim();
+        chapter.HideHeading = hideHeading;
+        await _workspace.Projects.SaveProjectAsync();
+        return _workspace.BuildState();
+    }
+
     [JsonRpcMethod("project/renameScene")]
     public async Task<ProjectStateDto> RenameSceneAsync(string chapterGuid, string sceneId, string newTitle)
     {

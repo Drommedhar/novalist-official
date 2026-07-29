@@ -73,6 +73,20 @@ public sealed record ExportPreset
     public bool ChapterHeadingUppercase { get; init; }
 
     /// <summary>
+    /// Sets the first letter of each chapter as a drop cap. Honoured where a
+    /// format has a real one - EPUB, DOCX, PDF and LaTeX; Markdown has no
+    /// typography to carry it and prints the letter normally.
+    /// </summary>
+    public bool DropCap { get; init; }
+
+    /// <summary>
+    /// How many words of the first sentence are set in small capitals after a
+    /// drop cap. Zero is off. The convention is two or three - enough to carry
+    /// the eye out of the initial and back into the line.
+    /// </summary>
+    public int LeadInSmallCapsWords { get; init; }
+
+    /// <summary>
     /// Extra CSS appended to the EPUB stylesheet. The one place a writer can
     /// reach the look of the ebook itself rather than of the page.
     /// </summary>

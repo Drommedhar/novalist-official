@@ -213,6 +213,17 @@ The Timeline's **Add structure...** dropdown can lay out a known story structure
 
 Take a snapshot of the open scene from the toolbar **Snapshots** button (with an optional label such as "Before rewrite") and restore any earlier snapshot from the same list. Automatic snapshots are also taken before destructive operations such as Replace All. See [Snapshots](17-snapshots.md).
 
+## The chapter opener
+
+The chapter dialog (right-click a chapter, **Rename chapter**) carries two settings that only show up in an exported book:
+
+- **Subtitle under the chapter title** — a second line under the title. A novel uses it for a place and a date; a collection uses it for where the story first appeared.
+- **Print this chapter with no heading** — the chapter opens straight into its prose. A prologue that begins without announcing itself is a real typographic choice, and this is how you make it, rather than leaving a chapter with a blank title.
+
+The page still breaks before a chapter whose heading is hidden; only the words are gone.
+
+Drop caps and small-capital lead-ins are set on the [export layout](20-export.md#export-layouts) rather than per chapter, because they belong to the edition rather than the chapter.
+
 ## Holding a scene back from exports
 
 Right-click a scene in the binder and choose **Hold back from exports**. It stays exactly where it is, keeps its words and its place in every count, and simply never reaches a compiled book — for the scene you have written but are not sure belongs, or the one that is research in disguise. The same menu item lets it through again. See [Export](20-export.md#choosing-what-goes-in).

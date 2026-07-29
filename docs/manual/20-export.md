@@ -174,6 +174,8 @@ A layout controls:
 | **Margin**, **first-line indent**, **space above a chapter title** | Page geometry, in inches. |
 | **Scene separator** | What is printed between scenes. Defaults to `* * *`; make it anything, including blank. |
 | **Chapter heading** | Use `{number}` and `{title}`. `Chapter {number}: {title}` gives "Chapter 3: The Fall"; the default is the title alone, which is what a novel with named chapters wants. Leave `{title}` out for chapters that ship numbered and untitled. |
+| **Drop cap on the first letter of each chapter** | Sets the chapter's opening letter as a drop cap. Honoured in EPUB (CSS), DOCX (Word's own framed drop cap) and LaTeX (`lettrine`). The PDF writer lays out lines rather than shapes and prints the opener plainly; Markdown has no typography to carry one. |
+| **Words in small capitals after it** | How many words of the first sentence follow the drop cap in small capitals (0-12). Two or three is the convention. |
 | **Chapter numerals** | What `{number}` is written in: `1, 2, 3`, `I, II, III`, `i, ii, iii`, or `One, Two, Three`. Worded numerals are English only. |
 | **Set chapter headings in capitals** | Sets the finished heading in capitals, so a print layout can read "CHAPTER SEVEN" while the ebook layout of the same book reads "7". |
 | **Print scene titles** | Off for a novel, where the separator is the whole break. On for a collection, or a draft going to someone who needs to name the scenes back to you. |

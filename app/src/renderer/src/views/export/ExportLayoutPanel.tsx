@@ -28,6 +28,8 @@ interface ExportLayout {
   chapterTitleFormat: string
   chapterNumberStyle: string
   chapterHeadingUppercase: boolean
+  dropCap: boolean
+  leadInSmallCapsWords: number
   ebookCss: string
 }
 
@@ -207,6 +209,36 @@ export function ExportLayoutPanel({
             />
             {t('layout.chapterHeadingUppercase')}
           </label>
+
+          <label className="match-toggle">
+            <input
+              type="checkbox"
+              disabled={!selected.isCustom}
+              checked={selected.dropCap}
+              onChange={(e) => {
+                edit({ dropCap: e.target.checked })
+                void save()
+              }}
+            />
+            {t('layout.dropCap')}
+          </label>
+
+          {selected.dropCap && (
+            <>
+              <label className="inspector-label">{t('layout.leadInSmallCaps')}</label>
+              <input
+                className="inspector-input"
+                type="number"
+                min={0}
+                max={12}
+                disabled={!selected.isCustom}
+                value={selected.leadInSmallCapsWords}
+                onChange={(e) => edit({ leadInSmallCapsWords: Number(e.target.value) })}
+                onBlur={() => void save()}
+              />
+              <div className="match-hint">{t('layout.leadInSmallCapsHint')}</div>
+            </>
+          )}
 
           <label className="match-toggle">
             <input

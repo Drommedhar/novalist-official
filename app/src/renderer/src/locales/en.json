@@ -651,7 +651,10 @@
     "confirmDeleteChapter": "Delete chapter \"{{name}}\" and all its scenes?",
     "confirmDeleteScene": "Delete scene \"{{name}}\"?",
     "deleteTitle": "Confirm delete",
-    "archiveEmpty": "No archived scenes."
+    "archiveEmpty": "No archived scenes.",
+    "contextChapterOpener": "Chapter opener...",
+    "chapterSubtitle": "Subtitle under the chapter title",
+    "chapterHideHeading": "Print this chapter with no heading"
   },
   "entityPanel": {
     "charactersTooltip": "Characters",
@@ -2411,7 +2414,10 @@
     "numberStyleRomanUpper": "I, II, III",
     "numberStyleRomanLower": "i, ii, iii",
     "numberStyleWords": "One, Two, Three",
-    "chapterHeadingUppercase": "Set chapter headings in capitals"
+    "chapterHeadingUppercase": "Set chapter headings in capitals",
+    "dropCap": "Drop cap on the first letter of each chapter",
+    "leadInSmallCaps": "Words in small capitals after it",
+    "leadInSmallCapsHint": "Two or three is the convention - enough to carry the eye out of the initial and back into the line. 0 turns it off."
   },
   "analytics": {
     "povTitle": "Point of view across the book",

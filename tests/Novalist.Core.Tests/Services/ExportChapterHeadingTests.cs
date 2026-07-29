@@ -255,4 +255,224 @@ public class ExportChapterHeadingTests : IDisposable
         Assert.Equal(0, preview.Pages);
         Assert.Equal(0, preview.Words);
     }
+
+    // -- The chapter opener --
+
+    [Theory]
+    [InlineData("The bell rang once.", 0, "T", "", "he bell rang once.")]
+    [InlineData("The bell rang once.", 2, "T", "he bell", " rang once.")]
+    [InlineData("The bell rang once.", 3, "T", "he bell rang", " once.")]
+    // More words than the sentence has: the whole of it leads in, and nothing
+    // is left over, rather than the split running off the end.
+    [InlineData("The bell.", 9, "T", "he bell.", "")]
+    public void TheOpenerSplitsIntoAnInitialALeadInAndTheRest(
+        string text, int words, string initial, string leadIn, string tail)
+    {
+        var split = ExportService.SplitOpener(text, words);
+
+        Assert.NotNull(split);
+        Assert.Equal(initial, split!.Value.Initial);
+        Assert.Equal(leadIn, split.Value.LeadIn);
+        Assert.Equal(tail, split.Value.Tail);
+    }
+
+    [Theory]
+    [InlineData("\u201cStop,\u201d she said.")]
+    [InlineData("1893 was the year.")]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void AnOpenerThatCannotCarryADropCapIsLeftAlone(string text)
+        => Assert.Null(ExportService.SplitOpener(text, 2));
+
+    /// <summary>A layout with a drop cap and a two-word lead-in.</summary>
+    private static ExportPreset OpenerLayout() =>
+        ExportPresets.GetById(ExportPresets.DefaultId) with
+        {
+            Id = "custom-opener",
+            IsCustom = true,
+            DropCap = true,
+            LeadInSmallCapsWords = 2
+        };
+
+    private ExportOptions SetupOpener(ExportFormat format, ExportPreset preset)
+    {
+        var chapter = new ChapterData
+        {
+            Title = "The Fall",
+            Order = 1,
+            Subtitle = "Ashport, 1893"
+        };
+        var scene = new SceneData { Title = "Scene", Order = 1, ChapterGuid = chapter.Guid };
+        _project.ReadSceneContentAsync(chapter, scene).Returns("<p>The bell rang once.</p>");
+        _project.GetChaptersOrdered().Returns([chapter]);
+        _project.GetScenesForChapter(chapter.Guid).Returns([scene]);
+        _project.ActiveBook.Returns(new BookData { ExportPresets = [preset] });
+
+        return new ExportOptions
+        {
+            Format = format,
+            Title = "Book",
+            PresetId = preset.Id,
+            SelectedChapterGuids = [chapter.Guid]
+        };
+    }
+
+    [Fact]
+    public async Task Epub_SetsTheDropCapAndTheLeadIn()
+    {
+        var options = SetupOpener(ExportFormat.Epub, OpenerLayout());
+        var path = Path.Combine(_dir.Path, "opener.epub");
+        await new ExportService(_project).ExportAsync(options, path);
+
+        using var zip = ZipFile.OpenRead(path);
+        using var reader = new StreamReader(zip.GetEntry("OEBPS/chapter-1.xhtml")!.Open(), Encoding.UTF8);
+        var xhtml = await reader.ReadToEndAsync();
+
+        Assert.Contains("<span class=\"drop-cap\">T</span>", xhtml);
+        Assert.Contains("<span class=\"lead-in\">he bell</span>", xhtml);
+        Assert.Contains("chapter-subtitle\">Ashport, 1893", xhtml);
+    }
+
+    [Fact]
+    public async Task Epub_AChapterCanHideItsHeadingAndStillBeExported()
+    {
+        var options = SetupOpener(ExportFormat.Epub, OpenerLayout());
+        _project.GetChaptersOrdered()[0].HideHeading = true;
+
+        var path = Path.Combine(_dir.Path, "hidden.epub");
+        await new ExportService(_project).ExportAsync(options, path);
+
+        using var zip = ZipFile.OpenRead(path);
+        using var reader = new StreamReader(zip.GetEntry("OEBPS/chapter-1.xhtml")!.Open(), Encoding.UTF8);
+        var xhtml = await reader.ReadToEndAsync();
+
+        Assert.DoesNotContain("chapter-title", xhtml);
+        Assert.DoesNotContain("<h1", xhtml);
+        // The document still names itself, because that is what a reading
+        // system's navigation reads - it is not printed on the page.
+        Assert.Contains("<title>The Fall</title>", xhtml);
+        // The prose is there; the drop cap splits its opening across spans.
+        Assert.Contains("rang once.", xhtml);
+    }
+
+    [Fact]
+    public async Task Docx_SetsAFramedInitialAndSmallCaps()
+    {
+        var options = SetupOpener(ExportFormat.Docx, OpenerLayout());
+        var path = Path.Combine(_dir.Path, "opener.docx");
+        await new ExportService(_project).ExportAsync(options, path);
+
+        using var zip = ZipFile.OpenRead(path);
+        using var reader = new StreamReader(zip.GetEntry("word/document.xml")!.Open(), Encoding.UTF8);
+        var xml = await reader.ReadToEndAsync();
+
+        Assert.Contains("w:dropCap=\"drop\"", xml);
+        Assert.Contains("<w:smallCaps/>", xml);
+        Assert.Contains("Ashport, 1893", xml);
+    }
+
+    [Fact]
+    public async Task Docx_AnOpenerThatCannotCarryADropCapIsSetNormally()
+    {
+        var chapter = new ChapterData { Title = "The Fall", Order = 1 };
+        var scene = new SceneData { Title = "Scene", Order = 1, ChapterGuid = chapter.Guid };
+        // Opens on a quotation mark, which is not a letter to drop.
+        _project.ReadSceneContentAsync(chapter, scene)
+            .Returns("<p>“Stop,” she said.</p>");
+        _project.GetChaptersOrdered().Returns([chapter]);
+        _project.GetScenesForChapter(chapter.Guid).Returns([scene]);
+        var preset = OpenerLayout();
+        _project.ActiveBook.Returns(new BookData { ExportPresets = [preset] });
+
+        var path = Path.Combine(_dir.Path, "quoted.docx");
+        await new ExportService(_project).ExportAsync(
+            new ExportOptions
+            {
+                Format = ExportFormat.Docx,
+                Title = "Book",
+                PresetId = preset.Id,
+                SelectedChapterGuids = [chapter.Guid]
+            },
+            path);
+
+        using var zip = ZipFile.OpenRead(path);
+        using var reader = new StreamReader(zip.GetEntry("word/document.xml")!.Open(), Encoding.UTF8);
+        var xml = await reader.ReadToEndAsync();
+
+        Assert.DoesNotContain("w:dropCap", xml);
+        Assert.Contains("she said.", xml);
+    }
+
+    [Fact]
+    public async Task Docx_AHiddenHeadingLeavesThePageBreakButNoTitle()
+    {
+        var options = SetupOpener(ExportFormat.Docx, OpenerLayout());
+        _project.GetChaptersOrdered()[0].HideHeading = true;
+
+        var path = Path.Combine(_dir.Path, "hidden.docx");
+        await new ExportService(_project).ExportAsync(options, path);
+
+        using var zip = ZipFile.OpenRead(path);
+        using var reader = new StreamReader(zip.GetEntry("word/document.xml")!.Open(), Encoding.UTF8);
+        var xml = await reader.ReadToEndAsync();
+
+        Assert.DoesNotContain("The Fall", xml);
+        Assert.Contains("<w:pageBreakBefore/>", xml);
+    }
+
+    [Fact]
+    public async Task LaTeX_UsesLettrineForTheOpener()
+    {
+        var options = SetupOpener(ExportFormat.LaTeX, OpenerLayout());
+        var path = Path.Combine(_dir.Path, "opener.tex");
+        await new ExportService(_project).ExportAsync(options, path);
+
+        var tex = await File.ReadAllTextAsync(path);
+        Assert.Contains("\\usepackage{lettrine}", tex);
+        Assert.Contains("\\lettrine{T}{he bell}", tex);
+        Assert.Contains("Ashport, 1893", tex);
+    }
+
+    [Fact]
+    public async Task Markdown_PrintsTheSubtitleAndCanHideTheHeading()
+    {
+        var options = SetupOpener(ExportFormat.Markdown, OpenerLayout());
+        var path = Path.Combine(_dir.Path, "opener.md");
+        await new ExportService(_project).ExportAsync(options, path);
+        Assert.Contains("*Ashport, 1893*", await File.ReadAllTextAsync(path));
+
+        _project.GetChaptersOrdered()[0].HideHeading = true;
+        var hidden = Path.Combine(_dir.Path, "hidden.md");
+        await new ExportService(_project).ExportAsync(options, hidden);
+        Assert.DoesNotContain("The Fall", await File.ReadAllTextAsync(hidden));
+    }
+
+    [Fact]
+    public async Task Pdf_IsWrittenWithASubtitleAndWithoutAHeading()
+    {
+        var options = SetupOpener(ExportFormat.Pdf, OpenerLayout());
+        var withHeading = Path.Combine(_dir.Path, "opener.pdf");
+        await new ExportService(_project).ExportAsync(options, withHeading);
+        Assert.True(new FileInfo(withHeading).Length > 0);
+
+        _project.GetChaptersOrdered()[0].HideHeading = true;
+        var hidden = Path.Combine(_dir.Path, "hidden.pdf");
+        await new ExportService(_project).ExportAsync(options, hidden);
+        Assert.True(new FileInfo(hidden).Length > 0);
+    }
+
+    [Fact]
+    public async Task ALayoutWithNoDropCapLeavesTheOpenerPlain()
+    {
+        var options = SetupOpener(
+            ExportFormat.Epub,
+            ExportPresets.GetById(ExportPresets.DefaultId) with { Id = "plain", IsCustom = true });
+
+        var path = Path.Combine(_dir.Path, "plain.epub");
+        await new ExportService(_project).ExportAsync(options, path);
+
+        using var zip = ZipFile.OpenRead(path);
+        using var reader = new StreamReader(zip.GetEntry("OEBPS/chapter-1.xhtml")!.Open(), Encoding.UTF8);
+        Assert.DoesNotContain("drop-cap", await reader.ReadToEndAsync());
+    }
 }

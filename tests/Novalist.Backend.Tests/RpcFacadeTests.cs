@@ -247,6 +247,16 @@ public sealed class RpcFacadeTests : IAsyncDisposable
             "project/setChapterAct", chapter.Guid, "Act I");
         Assert.Equal("Act I", actSet.Chapters.Single().Act);
 
+        var opener = await InvokeAsync<ProjectStateDto>(
+            "project/setChapterOpener", chapter.Guid, "  Ashport, 1893  ", true);
+        Assert.Equal("Ashport, 1893", opener.Chapters.Single().Subtitle);
+        Assert.True(opener.Chapters.Single().HideHeading);
+
+        // A blank subtitle is no subtitle, not an empty line under the title.
+        var cleared = await InvokeAsync<ProjectStateDto>(
+            "project/setChapterOpener", chapter.Guid, "   ", false);
+        Assert.Null(cleared.Chapters.Single().Subtitle);
+
         var sceneDeleted = await InvokeAsync<ProjectStateDto>(
             "project/deleteScene", chapter.Guid, scene.Id);
         Assert.Empty(sceneDeleted.Chapters.Single().Scenes);

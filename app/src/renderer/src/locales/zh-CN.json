@@ -686,7 +686,10 @@
     "confirmDeleteScene": "删除场景\"{{name}}\"？",
     "deleteTitle": "确认删除",
     "archiveEmpty": "没有已归档的场景。",
-    "changed": "未提交的更改"
+    "changed": "未提交的更改",
+    "contextChapterOpener": "章节开篇...",
+    "chapterSubtitle": "章节标题下的副标题",
+    "chapterHideHeading": "本章不印标题"
   },
   "entityPanel": {
     "charactersTooltip": "角色",
@@ -2453,7 +2456,10 @@
     "numberStyleRomanUpper": "I, II, III",
     "numberStyleRomanLower": "i, ii, iii",
     "numberStyleWords": "One, Two, Three（英文）",
-    "chapterHeadingUppercase": "章节标题使用大写"
+    "chapterHeadingUppercase": "章节标题使用大写",
+    "dropCap": "每章首字母使用下沉大字",
+    "leadInSmallCaps": "其后使用小型大写的词数",
+    "leadInSmallCapsHint": "惯例为两到三个词 — 足以引导视线从首字回到正文。0 表示关闭。"
   },
   "analytics": {
     "povTitle": "全书的叙事视角",

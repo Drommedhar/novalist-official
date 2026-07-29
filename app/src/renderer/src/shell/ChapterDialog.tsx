@@ -32,6 +32,8 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
   const [title, setTitle] = useState(chapter?.title ?? '')
   const [status, setStatus] = useState(chapter?.status ?? DEFAULT_STATUS)
   const [act, setAct] = useState(chapter?.act ?? '')
+  const [subtitle, setSubtitle] = useState(chapter?.subtitle ?? '')
+  const [hideHeading, setHideHeading] = useState(chapter?.hideHeading ?? false)
   const [busy, setBusy] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
@@ -61,6 +63,15 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
         if (name !== chapter.title) await store.renameChapter(chapter.guid, name)
         if (status !== chapter.status) await store.setChapterStatus(chapter.guid, status)
         if (act.trim() !== chapter.act) await store.setChapterAct(chapter.guid, act.trim())
+        if (subtitle.trim() !== (chapter.subtitle ?? '') || hideHeading !== chapter.hideHeading) {
+          store.applyState(
+            await rpc.request<ProjectStateDto>('project/setChapterOpener', [
+              chapter.guid,
+              subtitle.trim(),
+              hideHeading
+            ])
+          )
+        }
       } else {
         const prev = new Set(store.chapters.map((c) => c.guid))
         let state = await rpc.request<ProjectStateDto>('project/createChapter', [name])
@@ -124,6 +135,22 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
             </option>
           ))}
         </select>
+
+        <label className="inspector-label">{t('explorer.chapterSubtitle')}</label>
+        <input
+          className="dialog-input"
+          value={subtitle}
+          onChange={(e) => setSubtitle(e.target.value)}
+        />
+
+        <label className="relationships-toggle">
+          <input
+            type="checkbox"
+            checked={hideHeading}
+            onChange={(e) => setHideHeading(e.target.checked)}
+          />
+          {t('explorer.chapterHideHeading')}
+        </label>
 
         <label className="inspector-label">{t('dialog.act')}</label>
         <input

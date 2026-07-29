@@ -53,7 +53,7 @@ public sealed class ExportPresetRpc
         p.MarginInches, p.FirstLineIndentInches, p.ChapterTopMarginInches,
         p.SceneSeparator, p.DoubleSpaced, p.ShowSceneTitles,
         p.ChapterTitleFormat, p.ChapterNumberStyle.ToString(), p.ChapterHeadingUppercase,
-        p.EbookCss);
+        p.DropCap, p.LeadInSmallCapsWords, p.EbookCss);
 
     private static ExportPreset FromDto(ExportLayoutDto d) => new()
     {
@@ -79,6 +79,9 @@ public sealed class ExportPresetRpc
             ? style
             : ChapterNumberStyle.Arabic,
         ChapterHeadingUppercase = d.ChapterHeadingUppercase,
+        DropCap = d.DropCap,
+        // Clamped: a lead-in longer than a line is not a lead-in.
+        LeadInSmallCapsWords = Math.Clamp(d.LeadInSmallCapsWords, 0, 12),
         EbookCss = d.EbookCss ?? string.Empty
     };
 
@@ -109,4 +112,8 @@ public sealed record ExportLayoutDto(
     /// <summary>Arabic, RomanUpper, RomanLower or Words.</summary>
     string ChapterNumberStyle,
     bool ChapterHeadingUppercase,
+    /// <summary>Sets the chapter's first letter as a drop cap.</summary>
+    bool DropCap,
+    /// <summary>Words after the drop cap set in small capitals; 0 is off.</summary>
+    int LeadInSmallCapsWords,
     string EbookCss);
