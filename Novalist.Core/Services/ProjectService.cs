@@ -608,7 +608,13 @@ public partial class ProjectService : IProjectService
         return chapter;
     }
 
-    public async Task<SceneData> CreateSceneAsync(string chapterGuid, string sceneTitle, string date = "")
+    /// <param name="template">
+    /// A scene to start from. Everything it carries is copied onto the new
+    /// scene - synopsis, prose, point of view, stage, label, tags, plotlines -
+    /// which is the whole difference between a template and a note about one.
+    /// </param>
+    public async Task<SceneData> CreateSceneAsync(
+        string chapterGuid, string sceneTitle, string date = "", SceneTemplate? template = null)
     {
         if (ActiveBook == null || ActiveBookRoot == null)
             throw new InvalidOperationException("No book active.");
@@ -634,15 +640,67 @@ public partial class ProjectService : IProjectService
             Date = date
         };
 
+        if (template != null) ApplyTemplate(scene, template);
         scenes.Add(scene);
 
         var scenePath = GetSceneFilePath(chapter, scene);
-        // Born stamped with its identity front-matter (empty body).
-        await _fileService.WriteTextAsync(scenePath, FileFrontMatter.Build(scene.Id));
+        // Born stamped with its identity front-matter, and with the template's
+        // prose if there is one.
+        await _fileService.WriteTextAsync(
+            scenePath, FileFrontMatter.Build(scene.Id) + (template?.Content ?? string.Empty));
 
         await SaveScenesAsync();
 
         return scene;
+    }
+
+    /// <summary>
+    /// Copies a template onto a new scene. Lists are copied rather than shared,
+    /// or editing the scene's plotlines would rewrite the template.
+    /// </summary>
+    private static void ApplyTemplate(SceneData scene, SceneTemplate template)
+    {
+        scene.Synopsis = string.IsNullOrWhiteSpace(template.Synopsis) ? scene.Synopsis : template.Synopsis;
+        scene.Stage = template.Stage;
+        scene.LabelKey = template.LabelKey;
+        if (template.PlotlineIds.Count > 0) scene.PlotlineIds = [.. template.PlotlineIds];
+
+        if (template.Pov == null && template.Tags.Count == 0) return;
+        scene.AnalysisOverrides ??= new SceneAnalysisOverrides();
+        if (template.Pov != null) scene.AnalysisOverrides.Pov = template.Pov;
+        if (template.Tags.Count > 0) scene.AnalysisOverrides.Tags = [.. template.Tags];
+    }
+
+    /// <summary>
+    /// Captures a scene as a template: what it is, not what it says. The title
+    /// is deliberately not copied - a template named after one scene would put
+    /// that scene's name on every scene made from it.
+    /// </summary>
+    public async Task<SceneTemplate> SaveSceneAsTemplateAsync(
+        string chapterGuid, string sceneId, string name)
+    {
+        if (ActiveBook == null) throw new InvalidOperationException("No book active.");
+
+        var chapter = ActiveBook.Chapters.FirstOrDefault(c => c.Guid == chapterGuid)
+            ?? throw new ArgumentException($"Chapter not found: {chapterGuid}");
+        var scene = GetScenesForChapter(chapterGuid).FirstOrDefault(s => s.Id == sceneId)
+            ?? throw new ArgumentException($"Scene not found: {sceneId}");
+
+        var template = new SceneTemplate
+        {
+            Name = string.IsNullOrWhiteSpace(name) ? scene.Title : name.Trim(),
+            Synopsis = scene.Synopsis ?? string.Empty,
+            Content = await ReadSceneContentAsync(chapter, scene),
+            Pov = scene.AnalysisOverrides?.Pov,
+            Stage = scene.Stage,
+            LabelKey = scene.LabelKey,
+            Tags = [.. scene.AnalysisOverrides?.Tags ?? []],
+            PlotlineIds = [.. scene.PlotlineIds ?? []]
+        };
+
+        ActiveBook.SceneTemplates.Add(template);
+        await SaveProjectAsync();
+        return template;
     }
 
     public async Task SetChapterDateAsync(string chapterGuid, string date)

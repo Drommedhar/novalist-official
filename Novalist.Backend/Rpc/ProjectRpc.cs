@@ -50,10 +50,18 @@ public sealed class ProjectRpc
         return _workspace.BuildState();
     }
 
+    /// <param name="templateId">
+    /// A scene template to start from, or null for a blank scene - which is
+    /// what a new scene has always been and stays by default.
+    /// </param>
     [JsonRpcMethod("project/createScene")]
-    public async Task<ProjectStateDto> CreateSceneAsync(string chapterGuid, string title)
+    public async Task<ProjectStateDto> CreateSceneAsync(
+        string chapterGuid, string title, string? templateId = null)
     {
-        await _workspace.Projects.CreateSceneAsync(chapterGuid, title);
+        var template = string.IsNullOrWhiteSpace(templateId)
+            ? null
+            : _workspace.Projects.ActiveBook?.SceneTemplates.FirstOrDefault(t => t.Id == templateId);
+        await _workspace.Projects.CreateSceneAsync(chapterGuid, title, template: template);
         return _workspace.BuildState();
     }
 

@@ -689,7 +689,10 @@
     "changed": "未提交的更改",
     "contextChapterOpener": "章节开篇...",
     "chapterSubtitle": "章节标题下的副标题",
-    "chapterHideHeading": "本章不印标题"
+    "chapterHideHeading": "本章不印标题",
+    "saveAsTemplate": "存为场景模板...",
+    "templateNameTitle": "为此场景模板命名",
+    "templateNamePlaceholder": "这是哪一类场景？"
   },
   "entityPanel": {
     "charactersTooltip": "角色",
@@ -1390,7 +1393,9 @@
     "newSceneTitle": "新建场景",
     "status": "状态",
     "act": "幕",
-    "actWatermark": "例如：第一幕（可选）"
+    "actWatermark": "例如：第一幕（可选）",
+    "sceneTemplate": "以此为起点",
+    "sceneTemplateNone": "空白场景"
   },
   "book": {
     "pickerTooltip": "切换书籍",
@@ -2634,5 +2639,12 @@
     "renameTitle": "重命名“{{name}}”",
     "renamePlaceholder": "新名称，或要合并到的现有标签",
     "delete": "从所有地方移除此标签"
+  },
+  "sceneTemplates": {
+    "title": "场景模板",
+    "intro": "可作为起点的场景。右键点击一个已经合适的场景，选择“存为场景模板”即可 — 它携带的内容就是新场景的起点。",
+    "empty": "还没有场景模板。",
+    "summary": "{{tags}} 个标签、{{plotlines}} 条情节线",
+    "delete": "删除此模板"
   }
 }

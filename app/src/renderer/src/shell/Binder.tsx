@@ -29,6 +29,7 @@ interface MenuState {
 
 type PendingAction =
   | { kind: 'editChapter'; chapterGuid: string }
+  | { kind: 'sceneTemplate'; chapterGuid: string; sceneId: string; title: string }
   | { kind: 'editScene'; chapterGuid: string; sceneId: string; current: string }
   | { kind: 'deleteChapter'; chapterGuid: string; title: string }
   | { kind: 'deleteScene'; chapterGuid: string; sceneId: string; title: string }
@@ -328,6 +329,18 @@ export function Binder(): React.JSX.Element {
               )
               .then((result) => store.getState().applyState(result.state))
           }
+        },
+        {
+          // Made from a scene that already reads right, rather than described
+          // in a form: pointing at one is easier than writing down what it is.
+          label: t('explorer.saveAsTemplate'),
+          onClick: () =>
+            setPending({
+              kind: 'sceneTemplate',
+              chapterGuid: chapter.guid,
+              sceneId: scene.id,
+              title: scene.title
+            })
         },
         {
           label: scoped(t('explorer.contextArchive')),
@@ -710,6 +723,23 @@ export function Binder(): React.JSX.Element {
             onClose={() => setPending(null)}
           />
         )}
+      {pending?.kind === 'sceneTemplate' && (
+        <InputDialog
+          title={t('explorer.templateNameTitle')}
+          placeholder={t('explorer.templateNamePlaceholder')}
+          initialValue={pending.title}
+          onCancel={() => setPending(null)}
+          onSubmit={(name) => {
+            const target = pending
+            setPending(null)
+            void rpc.request('sceneTemplates/saveFromScene', [
+              target.chapterGuid,
+              target.sceneId,
+              name
+            ])
+          }}
+        />
+      )}
       {pending?.kind === 'editScene' && (
         <SceneDialog
           edit={{

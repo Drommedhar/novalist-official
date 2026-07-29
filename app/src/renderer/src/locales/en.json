@@ -654,7 +654,10 @@
     "archiveEmpty": "No archived scenes.",
     "contextChapterOpener": "Chapter opener...",
     "chapterSubtitle": "Subtitle under the chapter title",
-    "chapterHideHeading": "Print this chapter with no heading"
+    "chapterHideHeading": "Print this chapter with no heading",
+    "saveAsTemplate": "Save as scene template...",
+    "templateNameTitle": "Name this scene template",
+    "templateNamePlaceholder": "What kind of scene is this?"
   },
   "entityPanel": {
     "charactersTooltip": "Characters",
@@ -1355,7 +1358,9 @@
     "newSceneTitle": "New Scene",
     "status": "Status",
     "act": "Act",
-    "actWatermark": "e.g. Act I (optional)"
+    "actWatermark": "e.g. Act I (optional)",
+    "sceneTemplate": "Start from",
+    "sceneTemplateNone": "A blank scene"
   },
   "book": {
     "pickerTooltip": "Switch book",
@@ -2592,5 +2597,12 @@
     "renameTitle": "Rename \"{{name}}\"",
     "renamePlaceholder": "A new name, or an existing tag to merge into",
     "delete": "Remove this tag from everything"
+  },
+  "sceneTemplates": {
+    "title": "Scene templates",
+    "intro": "Scenes worth starting from. Make one by right-clicking a scene that already reads the way you want and choosing \"Save as scene template\" - what it carries becomes what new scenes start with.",
+    "empty": "No scene templates yet.",
+    "summary": "{{tags}} tags, {{plotlines}} plotlines",
+    "delete": "Delete this template"
   }
 }

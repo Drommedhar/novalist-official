@@ -213,6 +213,10 @@ The Timeline's **Add structure...** dropdown can lay out a known story structure
 
 Take a snapshot of the open scene from the toolbar **Snapshots** button (with an optional label such as "Before rewrite") and restore any earlier snapshot from the same list. Automatic snapshots are also taken before destructive operations such as Replace All. See [Snapshots](17-snapshots.md).
 
+## Starting a scene from a template
+
+The New Scene dialog offers **Start from** when the book has scene templates: pick one and the scene is born with its synopsis, prose skeleton, point of view, stage, label, tags and plotlines. Make a template by right-clicking a scene that already reads right and choosing **Save as scene template...**. See [Templates](07-templates.md#scene-templates).
+
 ## The chapter opener
 
 The chapter dialog (right-click a chapter, **Rename chapter**) carries two settings that only show up in an exported book:

@@ -5,6 +5,19 @@ import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import type { SceneEditDto } from './sceneEdit'
 import './shellDialogs.css'
 
+/** A scene worth starting from, as the picker shows it. */
+interface SceneTemplateDto {
+  id: string
+  name: string
+  synopsis: string
+  pov: string | null
+  stage: string | null
+  labelKey: string | null
+  tags: string[]
+  plotlineCount: number
+  contentLength: number
+}
+
 interface SceneDialogProps {
   /** Present = edit an existing scene; absent = create a new one. */
   edit?: { chapterGuid: string; sceneId: string; title: string }
@@ -31,6 +44,8 @@ export function SceneDialog({
     edit?.chapterGuid ?? defaultChapterGuid ?? chapters[0]?.guid ?? ''
   )
   const [busy, setBusy] = useState(false)
+  const [templates, setTemplates] = useState<SceneTemplateDto[]>([])
+  const [templateId, setTemplateId] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => inputRef.current?.focus(), [])
@@ -50,6 +65,16 @@ export function SceneDialog({
     }
   }, [edit])
 
+  // Only offered on a new scene: applying a template to a scene that already
+  // has prose would be a merge, and nobody asked for one.
+  useEffect(() => {
+    if (edit) return
+    void rpc
+      .request<SceneTemplateDto[]>('sceneTemplates/list')
+      .then(setTemplates)
+      .catch(() => setTemplates([]))
+  }, [edit])
+
   const submit = async (): Promise<void> => {
     const name = title.trim()
     if (!name || busy) return
@@ -65,7 +90,11 @@ export function SceneDialog({
         const before = new Set(
           store.chapters.find((c) => c.guid === chapterGuid)?.scenes.map((s) => s.id) ?? []
         )
-        const state = await rpc.request<ProjectStateDto>('project/createScene', [chapterGuid, name])
+        const state = await rpc.request<ProjectStateDto>('project/createScene', [
+          chapterGuid,
+          name,
+          templateId || null
+        ])
         const created = state.chapters
           .find((c) => c.guid === chapterGuid)
           ?.scenes.find((s) => !before.has(s.id))
@@ -120,6 +149,24 @@ export function SceneDialog({
                 </option>
               ))}
             </select>
+
+            {templates.length > 0 && (
+              <>
+                <label className="inspector-label">{t('dialog.sceneTemplate')}</label>
+                <select
+                  className="dialog-input"
+                  value={templateId}
+                  onChange={(e) => setTemplateId(e.target.value)}
+                >
+                  <option value="">{t('dialog.sceneTemplateNone')}</option>
+                  {templates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.name}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
           </>
         )}
 

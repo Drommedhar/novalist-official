@@ -52,7 +52,11 @@ public interface IProjectService
     Task InitializeWorldBibleAsync();
 
     Task<ChapterData> CreateChapterAsync(string title, string date = "");
-    Task<SceneData> CreateSceneAsync(string chapterGuid, string sceneTitle, string date = "");
+    Task<SceneData> CreateSceneAsync(
+        string chapterGuid, string sceneTitle, string date = "", SceneTemplate? template = null);
+
+    /// <summary>Captures an existing scene as a template for new ones.</summary>
+    Task<SceneTemplate> SaveSceneAsTemplateAsync(string chapterGuid, string sceneId, string name);
     Task DeleteChapterAsync(string chapterGuid);
     Task DeleteSceneAsync(string chapterGuid, string sceneId);
     Task SetChapterDateAsync(string chapterGuid, string date);

@@ -555,7 +555,10 @@
     "archiveEmpty": "Keine archivierten Szenen.",
     "contextChapterOpener": "Kapitelanfang...",
     "chapterSubtitle": "Untertitel unter dem Kapiteltitel",
-    "chapterHideHeading": "Dieses Kapitel ohne Überschrift drucken"
+    "chapterHideHeading": "Dieses Kapitel ohne Überschrift drucken",
+    "saveAsTemplate": "Als Szenenvorlage speichern...",
+    "templateNameTitle": "Diese Szenenvorlage benennen",
+    "templateNamePlaceholder": "Was für eine Szene ist das?"
   },
   "entityPanel": {
     "charactersTooltip": "Charaktere",
@@ -872,7 +875,9 @@
     "newSceneTitle": "Neue Szene",
     "status": "Status",
     "act": "Akt",
-    "actWatermark": "z. B. Akt I (optional)"
+    "actWatermark": "z. B. Akt I (optional)",
+    "sceneTemplate": "Ausgehen von",
+    "sceneTemplateNone": "Einer leeren Szene"
   },
   "book": {
     "pickerTooltip": "Buch wechseln",
@@ -2600,5 +2605,12 @@
     "renameTitle": "„{{name}}“ umbenennen",
     "renamePlaceholder": "Ein neuer Name oder ein vorhandenes Schlagwort zum Zusammenführen",
     "delete": "Dieses Schlagwort überall entfernen"
+  },
+  "sceneTemplates": {
+    "title": "Szenenvorlagen",
+    "intro": "Szenen, von denen aus sich starten lässt. Erstellen Sie eine, indem Sie eine passende Szene rechts anklicken und „Als Szenenvorlage speichern“ wählen – was sie trägt, tragen neue Szenen von Anfang an.",
+    "empty": "Noch keine Szenenvorlagen.",
+    "summary": "{{tags}} Schlagwörter, {{plotlines}} Handlungsstränge",
+    "delete": "Diese Vorlage löschen"
   }
 }

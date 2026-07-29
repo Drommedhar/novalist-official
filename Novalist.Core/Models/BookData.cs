@@ -55,6 +55,13 @@ public class BookData
     [JsonPropertyName("bannerImage")]
     public string BannerImage { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Scenes worth starting from. Stored with the book because a scene form
+    /// belongs to a book's way of working, not to the writer's installation.
+    /// </summary>
+    [JsonPropertyName("sceneTemplates")]
+    public List<SceneTemplate> SceneTemplates { get; set; } = [];
+
     [JsonPropertyName("characterTemplates")]
     public List<CharacterTemplate> CharacterTemplates { get; set; } = [];
 

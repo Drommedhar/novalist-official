@@ -801,4 +801,133 @@ public class ProjectServiceTests : IDisposable
             await File.ReadAllTextAsync(Path.Combine(draftChapters, chKeep.FolderName, "scene-01.novalist"))));
         Assert.True(Directory.Exists(Path.Combine(bookRoot, "Drafts", "default", "Snapshots")));
     }
+
+    // -- Scene templates --
+
+    [Fact]
+    public async Task SaveSceneAsTemplate_CapturesWhatTheSceneIsNotWhatItIsCalled()
+    {
+        await Create();
+        var sut = _sut;
+        var chapter = await sut.CreateChapterAsync("C");
+        var scene = await sut.CreateSceneAsync(chapter.Guid, "The bell tolls");
+        scene.Synopsis = "She leaves";
+        scene.Stage = "draft";
+        scene.LabelKey = "red";
+        scene.PlotlineIds = ["p1"];
+        scene.AnalysisOverrides = new SceneAnalysisOverrides { Pov = "Mira", Tags = ["night"] };
+        await sut.WriteSceneContentAsync(chapter, scene, "<p>A shape to fill in.</p>");
+        await sut.SaveScenesAsync();
+
+        var template = await sut.SaveSceneAsTemplateAsync(chapter.Guid, scene.Id, " Interrogation ");
+
+        Assert.Equal("Interrogation", template.Name);
+        Assert.Equal("She leaves", template.Synopsis);
+        Assert.Contains("A shape to fill in.", template.Content);
+        Assert.Equal("Mira", template.Pov);
+        Assert.Equal("draft", template.Stage);
+        Assert.Equal("red", template.LabelKey);
+        Assert.Equal(["night"], template.Tags);
+        Assert.Equal(["p1"], template.PlotlineIds);
+        Assert.Contains(template, sut.ActiveBook!.SceneTemplates);
+    }
+
+    [Fact]
+    public async Task SaveSceneAsTemplate_WithNoNameUsesTheScenesOwn()
+    {
+        await Create();
+        var sut = _sut;
+        var chapter = await sut.CreateChapterAsync("C");
+        var scene = await sut.CreateSceneAsync(chapter.Guid, "The bell tolls");
+
+        var template = await sut.SaveSceneAsTemplateAsync(chapter.Guid, scene.Id, "   ");
+
+        Assert.Equal("The bell tolls", template.Name);
+    }
+
+    [Fact]
+    public async Task SaveSceneAsTemplate_UnknownChapterOrSceneThrows()
+    {
+        await Create();
+        var sut = _sut;
+        var chapter = await sut.CreateChapterAsync("C");
+
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.SaveSceneAsTemplateAsync("nope", "s", "x"));
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.SaveSceneAsTemplateAsync(chapter.Guid, "nope", "x"));
+    }
+
+    [Fact]
+    public async Task CreateScene_FromATemplateStartsWithEverythingItCarried()
+    {
+        await Create();
+        var sut = _sut;
+        var chapter = await sut.CreateChapterAsync("C");
+        var template = new SceneTemplate
+        {
+            Name = "Interrogation",
+            Synopsis = "Someone asks; someone lies",
+            Content = "<p>Who is asking?</p>",
+            Pov = "Mira",
+            Stage = "draft",
+            LabelKey = "red",
+            Tags = ["night"],
+            PlotlineIds = ["p1"]
+        };
+
+        var scene = await sut.CreateSceneAsync(chapter.Guid, "Chapter one", template: template);
+
+        Assert.Equal("Chapter one", scene.Title);
+        Assert.Equal("Someone asks; someone lies", scene.Synopsis);
+        Assert.Equal("draft", scene.Stage);
+        Assert.Equal("red", scene.LabelKey);
+        Assert.Equal(["p1"], scene.PlotlineIds);
+        Assert.Equal("Mira", scene.AnalysisOverrides!.Pov);
+        Assert.Equal(["night"], scene.AnalysisOverrides.Tags);
+        Assert.Contains("Who is asking?", await sut.ReadSceneContentAsync(chapter, scene));
+    }
+
+    [Fact]
+    public async Task CreateScene_FromATemplateCopiesItsListsRatherThanSharingThem()
+    {
+        await Create();
+        var sut = _sut;
+        var chapter = await sut.CreateChapterAsync("C");
+        var template = new SceneTemplate { Name = "T", PlotlineIds = ["p1"], Tags = ["night"] };
+
+        var scene = await sut.CreateSceneAsync(chapter.Guid, "S", template: template);
+        scene.PlotlineIds!.Add("p2");
+        scene.AnalysisOverrides!.Tags!.Add("rain");
+
+        Assert.Equal(["p1"], template.PlotlineIds);
+        Assert.Equal(["night"], template.Tags);
+    }
+
+    [Fact]
+    public async Task CreateScene_FromABareTemplateLeavesTheSceneAsItWouldHaveBeen()
+    {
+        await Create();
+        var sut = _sut;
+        var chapter = await sut.CreateChapterAsync("C");
+
+        var scene = await sut.CreateSceneAsync(
+            chapter.Guid, "S", template: new SceneTemplate { Name = "Empty" });
+
+        Assert.Null(scene.AnalysisOverrides);
+        Assert.Null(scene.Stage);
+    }
+
+    [Fact]
+    public async Task CreateScene_WithNoTemplateIsStillBlank()
+    {
+        await Create();
+        var sut = _sut;
+        var chapter = await sut.CreateChapterAsync("C");
+
+        var scene = await sut.CreateSceneAsync(chapter.Guid, "S");
+
+        Assert.Null(scene.Synopsis);
+        Assert.Null(scene.AnalysisOverrides);
+    }
 }

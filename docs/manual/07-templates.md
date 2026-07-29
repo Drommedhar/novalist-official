@@ -80,6 +80,18 @@ Custom entity types get their own group in the TEMPLATES section automatically, 
 
 Earlier Novalist versions offered story-structure project templates at creation time. In the current interface, story structures live in the [Timeline](12-timeline.md): the **Add structure...** dropdown appends the beats of a known structure (Three-Act, Save the Cat, Hero's Journey, 7-Point) as timeline events you can plot your chapters against.
 
+## Scene templates
+
+A new scene has always been blank: no point of view, no stage, no plotlines, no shape to the prose. If you write a repeatable kind of scene — an interrogation, a battle, a chapter-opening establishing beat — a template starts one already carrying all of that.
+
+**Making one.** Right-click a scene that already reads the way you want and choose **Save as scene template...**. Novalist captures what the scene *is* — its synopsis, its prose, point of view, stage, label, tags and plotlines — and asks for a name. The scene's own title is deliberately not captured: a template named after one scene would put that scene's name on every scene made from it.
+
+**Using one.** The New Scene dialog offers **Start from** whenever the book has at least one template. Pick one and the new scene is born with everything the template carried; leave it on **A blank scene** and nothing changes from how it has always worked.
+
+**Managing them.** Settings has a **Scene templates** section listing what the book has, with a delete button. Deleting a template never touches the scenes made from it — they are ordinary scenes from the moment they exist.
+
+Templates live with the book, because a scene form belongs to a book's way of working rather than to your installation.
+
 ## Where to go next
 
 - [Codex](06-codex.md) — entities are created from templates there.

@@ -131,6 +131,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Snapshots** — per-scene version history that restores the whole scene (synopsis, notes, POV, stage, dates, plotlines), plus a project-wide manager with renaming and pruning.
 - **Export preview** — how many chapters, scenes and words the current selection would produce, and how long the book runs in the chosen layout, before you write the file.
 - **Print** — `Ctrl+Alt+P` prints the open scene, the whole book in Manuscript mode, or whatever view is on screen, without the application chrome.
+- **Scene templates** — capture a scene that reads the way you want and start new ones from it: synopsis, prose skeleton, POV, stage, label, tags and plotlines.
 - **Tags** — one vocabulary across scenes, Codex entries and research notes, with colours, counts, and rename/merge that reaches every holder at once.
 - **Chapter openers** — a subtitle under the title, a heading you can suppress per chapter, and drop caps with small-capital lead-ins set on the export layout.
 - **Images in the prose** — insert a picture into a scene with alt text; it is copied into the book, stored as a portable path, and carried into EPUB, DOCX, PDF, Markdown and LaTeX.
