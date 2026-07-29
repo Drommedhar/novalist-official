@@ -27,6 +27,8 @@ export interface EffectiveSettings {
   bookFontFamily: string
   bookFontSize: number
   autoReplacementLanguage: string
+  /** The name put on a suggested edit. */
+  reviewerName: string
   dialogueCorrectionEnabled: boolean
   grammarCheckEnabled: boolean
   spellCheckEnabled: boolean

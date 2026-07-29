@@ -730,6 +730,18 @@ export function SettingsView(): React.JSX.Element {
           <div className="settings-preview">
             {t('settings.preview')}: {autoReplacementPreview(eff.autoReplacementLanguage)}
           </div>
+          <label className="inspector-label" htmlFor="set-reviewer">
+            {t('settings.reviewerName')}
+          </label>
+          <input
+            id="set-reviewer"
+            className="dialog-input"
+            type="text"
+            value={eff.reviewerName}
+            placeholder={t('settings.reviewerNamePlaceholder')}
+            onChange={(e) => void update(scopeFor('writing'), { reviewerName: e.target.value })}
+          />
+          <div className="settings-hint">{t('settings.reviewerNameHint')}</div>
           <label className="relationships-toggle">
             <input
               type="checkbox"

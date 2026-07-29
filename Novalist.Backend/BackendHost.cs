@@ -67,6 +67,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new BackupRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new DraftCompareRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new CorkboardRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new SuggestionsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new StyleRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ReviewRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new CanvasRpc(_workspace), targetOptions);

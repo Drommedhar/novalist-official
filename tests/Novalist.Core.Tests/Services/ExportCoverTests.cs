@@ -223,4 +223,35 @@ public class ExportCoverTests : IDisposable
         using var doc = PdfSharpCore.Pdf.IO.PdfReader.Open(path, PdfSharpCore.Pdf.IO.PdfDocumentOpenMode.InformationOnly);
         return doc.PageCount;
     }
+
+    [Fact]
+    public async Task SuggestedEditsNeverReachAnExportedBook()
+    {
+        // An export is a finished book. An insertion nobody rejected is in it,
+        // a deletion nobody accepted is not, and the markup itself belongs on
+        // no page anywhere.
+        var ch = new ChapterData { Title = "One", Order = 1 };
+        var sc = new SceneData { Title = "S", Order = 1, ChapterGuid = ch.Guid };
+        _project.ReadSceneContentAsync(ch, sc).Returns(
+            "<p>The bell rang " +
+            Novalist.Core.Utilities.TrackedChanges.Deletion("d", "once", "Mira", "now") +
+            Novalist.Core.Utilities.TrackedChanges.Insertion("i", "twice", "Mira", "now") +
+            ".</p>");
+        _project.GetChaptersOrdered().Returns(new List<ChapterData> { ch });
+        _project.GetScenesForChapter(ch.Guid).Returns(new List<SceneData> { sc });
+
+        var outPath = _dir.Combine("suggested.md");
+        await new ExportService(_project).ExportAsync(new ExportOptions
+        {
+            Format = ExportFormat.Markdown,
+            Title = "T",
+            SelectedChapterGuids = [ch.Guid]
+        }, outPath);
+
+        var text = await File.ReadAllTextAsync(outPath);
+        Assert.Contains("twice", text);
+        Assert.DoesNotContain("once", text);
+        Assert.DoesNotContain("<ins", text);
+        Assert.DoesNotContain("<del", text);
+    }
 }

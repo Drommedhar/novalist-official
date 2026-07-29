@@ -56,6 +56,12 @@ export interface EditorWindow extends Window {
   setAutoReplacements(pairsJson: string): void
   setDialogueCorrectionConfig(configJson: string): void
   setContextMenuLabels(labelsJson: string): void
+  /**
+   * Turns typing into suggesting: new words go in as insertions and deleted
+   * ones are marked rather than removed, so an editor proposes a change
+   * instead of making one.
+   */
+  setSuggestionMode(on: boolean, author: string): void
   setInlineActions(actionsJson: string): void
   setExtensionContextMenuItems(itemsJson: string): void
   applyInlineActionResult(resultJson: string): void

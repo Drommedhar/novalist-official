@@ -537,7 +537,10 @@
     "readAloudRate": "Read-aloud speed",
     "readAloudVoice": "Read-aloud voice",
     "readAloudVoiceAuto": "Match the writing language",
-    "readAloudDesc": "The voices your system has installed. Left on the default, Novalist asks for a voice in the language the scene is written in."
+    "readAloudDesc": "The voices your system has installed. Left on the default, Novalist asks for a voice in the language the scene is written in.",
+    "reviewerName": "Your name on suggested edits",
+    "reviewerNamePlaceholder": "Leave empty if you write alone",
+    "reviewerNameHint": "Put on each edit you make in suggestion mode. Only worth filling in when more than one person is suggesting."
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -2609,7 +2612,9 @@
     "makeTodo": "Make this a to-do",
     "notATodo": "No longer a to-do",
     "reply": "Reply",
-    "replyPlaceholder": "Reply, then press Enter"
+    "replyPlaceholder": "Reply, then press Enter",
+    "suggestionsTitle": "Scenes with suggested edits",
+    "suggestionCount": "{{count}} waiting"
   },
   "narrative": {
     "title": "How it sits in time",
@@ -2728,5 +2733,15 @@
     "intro": "Any numeric scene field of yours, charted across the book. Click a bar to open the scene.",
     "pick": "Which axis",
     "notEnough": "Fill in this field on at least two scenes to see the shape."
+  },
+  "suggestions": {
+    "title": "Suggested edits ({{count}})",
+    "insertion": "Add",
+    "deletion": "Cut",
+    "accept": "Take it",
+    "reject": "Turn it down",
+    "acceptAll": "Take all",
+    "rejectAll": "Turn all down",
+    "mode": "Suggest edits instead of making them"
   }
 }

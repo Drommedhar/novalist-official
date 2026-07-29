@@ -340,3 +340,87 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* ===== Suggested edits ===== */
+.suggestions-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-bottom: var(--nl-space-md);
+}
+
+.suggestion-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm);
+  border: 1px solid var(--nl-border);
+  border-left: 3px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+}
+
+/* An addition and a cut are opposite questions, so they read apart at a
+   glance rather than being told apart by their label. */
+.suggestion-row.insertion {
+  border-left-color: var(--nl-success);
+}
+
+.suggestion-row.deletion {
+  border-left-color: var(--nl-danger);
+}
+
+.suggestion-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  min-width: 0;
+  flex: 1;
+}
+
+.suggestion-text {
+  font-size: var(--nl-font-body-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.suggestion-row.deletion .suggestion-text {
+  text-decoration: line-through;
+}
+
+.suggestion-meta {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.inbox-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-bottom: var(--nl-space-md);
+  padding-bottom: var(--nl-space-sm);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.inbox-suggestion-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  align-items: flex-start;
+  padding: var(--nl-space-sm);
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--nl-border);
+  border-left: 3px solid var(--nl-accent);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text);
+  cursor: pointer;
+}
+
+.inbox-suggestion-row:hover {
+  background: var(--nl-surface-hover);
+}
+
+.inbox-suggestion-scene {
+  font-size: var(--nl-font-body-sm);
+}

@@ -87,6 +87,13 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("autoReplacementLanguage")]
     public string AutoReplacementLanguage { get; set; } = "en";
 
+    /// <summary>
+    /// The name put on a suggested edit. Empty is fine for a writer working
+    /// alone - it is only worth filling in when more than one person is
+    /// suggesting, which is exactly when an unattributed edit is useless.
+    /// </summary>
+    public string ReviewerName { get; set; } = string.Empty;
+
     [JsonPropertyName("autoReplacements")]
     public List<AutoReplacementPair> AutoReplacements { get; set; } = new();
 

@@ -432,7 +432,10 @@
     "readAloudRate": "Vorlesegeschwindigkeit",
     "readAloudVoice": "Vorlesestimme",
     "readAloudVoiceAuto": "Der Schreibsprache folgen",
-    "readAloudDesc": "Die auf Ihrem System installierten Stimmen. In der Standardeinstellung fordert Novalist eine Stimme in der Sprache an, in der die Szene geschrieben ist."
+    "readAloudDesc": "Die auf Ihrem System installierten Stimmen. In der Standardeinstellung fordert Novalist eine Stimme in der Sprache an, in der die Szene geschrieben ist.",
+    "reviewerName": "Ihr Name an Änderungsvorschlägen",
+    "reviewerNamePlaceholder": "Leer lassen, wenn Sie allein schreiben",
+    "reviewerNameHint": "Wird an jede Änderung im Vorschlagsmodus geschrieben. Nur sinnvoll, wenn mehrere Personen Vorschläge machen."
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -2617,7 +2620,9 @@
     "makeTodo": "Zur Aufgabe machen",
     "notATodo": "Keine Aufgabe mehr",
     "reply": "Antworten",
-    "replyPlaceholder": "Antwort schreiben, dann Enter"
+    "replyPlaceholder": "Antwort schreiben, dann Enter",
+    "suggestionsTitle": "Szenen mit Änderungsvorschlägen",
+    "suggestionCount": "{{count}} offen"
   },
   "narrative": {
     "title": "Zeitliche Einordnung",
@@ -2736,5 +2741,15 @@
     "intro": "Ein beliebiges numerisches Szenenfeld, über das Buch aufgetragen. Balken anklicken, um die Szene zu öffnen.",
     "pick": "Welche Achse",
     "notEnough": "Füllen Sie dieses Feld in mindestens zwei Szenen aus, um den Verlauf zu sehen."
+  },
+  "suggestions": {
+    "title": "Änderungsvorschläge ({{count}})",
+    "insertion": "Einfügen",
+    "deletion": "Streichen",
+    "accept": "Übernehmen",
+    "reject": "Ablehnen",
+    "acceptAll": "Alle übernehmen",
+    "rejectAll": "Alle ablehnen",
+    "mode": "Änderungen vorschlagen statt ändern"
   }
 }

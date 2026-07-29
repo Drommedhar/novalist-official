@@ -38,6 +38,9 @@ public interface IEffectiveSettings
     double BookFontSize { get; }
 
     string AutoReplacementLanguage { get; }
+
+    /// <summary>The name put on a suggested edit.</summary>
+    string ReviewerName { get; }
     List<AutoReplacementPair> AutoReplacements { get; }
     bool DialogueCorrectionEnabled { get; }
     bool GrammarCheckEnabled { get; }

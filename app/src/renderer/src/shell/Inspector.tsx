@@ -5,6 +5,7 @@ import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { rpc } from '../rpc/client'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
+import { SuggestionsPanel } from './SuggestionsPanel'
 import { InboxPanel } from './InboxPanel'
 import { PanelResizer } from './PanelResizer'
 import './inspector.css'
@@ -125,7 +126,10 @@ export function Inspector(): React.JSX.Element {
           </>
         )}
         {inspectorTab === 'footnotes' && (
-          <AnnotationsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
+          <>
+            <SuggestionsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
+            <AnnotationsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
+          </>
         )}
         {inspectorTab === 'inbox' && <InboxPanel />}
       </div>

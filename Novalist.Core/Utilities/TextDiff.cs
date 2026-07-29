@@ -263,7 +263,14 @@ public static class TextDiff
     {
         if (string.IsNullOrEmpty(html))
             return string.Empty;
-        var withBreaks = Regex.Replace(html, "</p>|<br ?/?>", "\n", RegexOptions.IgnoreCase);
+
+        // Suggested edits resolve before anything else looks at the words.
+        // Stripping the tags naively would leave a deletion's text in the
+        // prose, so a word count would measure sentences somebody has already
+        // asked to cut and a search would find them.
+        var resolved = TrackedChanges.HasChanges(html) ? TrackedChanges.Final(html) : html;
+
+        var withBreaks = Regex.Replace(resolved, "</p>|<br ?/?>", "\n", RegexOptions.IgnoreCase);
         var stripped = Regex.Replace(withBreaks, "<[^>]+>", string.Empty);
         return System.Net.WebUtility.HtmlDecode(stripped);
     }

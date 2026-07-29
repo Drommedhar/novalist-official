@@ -46,6 +46,27 @@ body { display: flex; justify-content: center; }
     overflow-y: auto;
     overflow-x: hidden;
 }
+/* Suggested edits, drawn as a word processor draws them: an addition
+   underlined, a proposed cut struck through but still readable. The author has
+   to be able to read the sentence both ways to answer the question. */
+#editor ins[data-nl-change] {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+#editor del[data-nl-change] {
+    text-decoration: line-through;
+    opacity: 0.65;
+}
+
+/* Suggestion mode is a different way of typing, so it looks different to be
+   in - a writer who does not notice will wonder why nothing they type sticks. */
+#editor.nv-suggesting {
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
 #editor {
     min-height: 100%;
     padding: var(--padding-v) var(--padding-h);
@@ -4041,6 +4062,144 @@ window.splitAtCaret = function () {
 
     return JSON.stringify({ before: beforeHtml, after: afterHtml });
 };
+
+
+// ── Suggestion mode ─────────────────────────────────────────────
+//
+// With it on, typing does not change the prose - it proposes a change. New
+// words go in as <ins> and deleted ones are marked <del> rather than removed,
+// so the author can see what an editor is asking for and answer it a piece at
+// a time. The marks live in the prose itself, so they travel with the scene.
+
+let suggestionMode = false;
+let suggestionAuthor = '';
+
+window.setSuggestionMode = function (on, author) {
+    suggestionMode = !!on;
+    suggestionAuthor = author || '';
+    editor.classList.toggle('nv-suggesting', suggestionMode);
+};
+
+function newChangeId() {
+    // Unique within the scene, which is all an id has to be: it names one edit
+    // out of the ones in front of the author.
+    return 'c' + Math.random().toString(36).slice(2, 10);
+}
+
+function suggestionAttributes(el) {
+    el.setAttribute('data-nl-change', newChangeId());
+    el.setAttribute('data-nl-author', suggestionAuthor);
+    el.setAttribute('data-nl-at', new Date().toISOString());
+}
+
+/** The <ins> the caret is already inside, if it belongs to this author. */
+function currentInsertion() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    let node = sel.getRangeAt(0).startContainer;
+    if (node.nodeType === 3) node = node.parentNode;
+    const ins = node && node.closest ? node.closest('ins[data-nl-change]') : null;
+    if (!ins) return null;
+    return ins.getAttribute('data-nl-author') === suggestionAuthor ? ins : null;
+}
+
+/** Types text as a suggestion, continuing the current run where there is one. */
+function insertSuggested(text) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+
+    // Typing over a selection is a replacement: the old words are proposed for
+    // deletion rather than thrown away.
+    if (!range.collapsed) markSelectionDeleted();
+
+    const open = currentInsertion();
+    if (open) {
+        document.execCommand('insertText', false, text);
+        return;
+    }
+
+    const ins = document.createElement('ins');
+    suggestionAttributes(ins);
+    ins.textContent = text;
+    const at = window.getSelection().getRangeAt(0);
+    at.insertNode(ins);
+
+    const after = document.createRange();
+    after.setStart(ins.firstChild, ins.firstChild.length);
+    after.collapse(true);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(after);
+}
+
+/**
+ * Marks whatever is selected as deleted, leaving the words in place.
+ *
+ * Text this author just suggested is taken back out instead of being marked:
+ * proposing to delete your own unaccepted insertion is a round trip nobody
+ * wants to read.
+ */
+function markSelectionDeleted() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) return false;
+
+    const range = sel.getRangeAt(0);
+    const contents = range.extractContents();
+    const del = document.createElement('del');
+    suggestionAttributes(del);
+
+    // Drop this author's own pending insertions rather than marking them.
+    contents.querySelectorAll('ins[data-nl-change]').forEach(function (ins) {
+        if (ins.getAttribute('data-nl-author') !== suggestionAuthor) return;
+        const parent = ins.parentNode;
+        while (ins.firstChild) parent.insertBefore(ins.firstChild, ins);
+        parent.removeChild(ins);
+    });
+
+    del.appendChild(contents);
+    if (del.textContent.length === 0) return false;
+
+    range.insertNode(del);
+    const after = document.createRange();
+    after.setStartAfter(del);
+    after.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(after);
+    return true;
+}
+
+/** Extends a collapsed caret over the character a delete key would remove. */
+function selectOneCharacter(backward) {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return false;
+    if (!sel.getRangeAt(0).collapsed) return true;
+    sel.modify('extend', backward ? 'backward' : 'forward', 'character');
+    return !sel.getRangeAt(0).collapsed;
+}
+
+editor.addEventListener('beforeinput', (e) => {
+    if (isSettingContent || !suggestionMode) return;
+
+    if (e.inputType === 'insertText' && e.data) {
+        e.preventDefault();
+        insertSuggested(e.data);
+        return;
+    }
+
+    if (e.inputType === 'deleteContentBackward' || e.inputType === 'deleteContentForward') {
+        e.preventDefault();
+        if (selectOneCharacter(e.inputType === 'deleteContentBackward')) markSelectionDeleted();
+        return;
+    }
+
+    if (e.inputType === 'insertReplacementText' || e.inputType === 'insertFromPaste') {
+        // A paste is many words at once; the same rule applies to all of them.
+        const text = e.dataTransfer ? e.dataTransfer.getData('text/plain') : e.data;
+        if (!text) return;
+        e.preventDefault();
+        insertSuggested(text);
+    }
+}, true);
 
 // ── Inline actions (extension-contributed) ──────────────────────
 let inlineActions = [];

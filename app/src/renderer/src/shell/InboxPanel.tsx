@@ -4,6 +4,15 @@ import { Check, CornerDownRight, ListTodo, RotateCcw } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 
+/** A scene with suggested edits waiting on somebody. */
+interface SuggestionScene {
+  chapterGuid: string
+  chapterTitle: string
+  sceneId: string
+  sceneTitle: string
+  count: number
+}
+
 interface InboxReply {
   id: string
   author: string
@@ -38,6 +47,10 @@ export function InboxPanel(): React.JSX.Element {
   const [items, setItems] = useState<InboxItem[]>([])
   const [showResolved, setShowResolved] = useState(false)
   const [todosOnly, setTodosOnly] = useState(false)
+  // Suggested edits belong here for the same reason comments do: they are
+  // somebody waiting on an answer, and the scene they sit in is the only place
+  // they show otherwise.
+  const [suggestionScenes, setSuggestionScenes] = useState<SuggestionScene[]>([])
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [replyText, setReplyText] = useState('')
 
@@ -50,10 +63,36 @@ export function InboxPanel(): React.JSX.Element {
 
   useEffect(() => load(showResolved), [showResolved])
 
+  useEffect(() => {
+    void rpc
+      .request<SuggestionScene[]>('suggestions/inbox')
+      .then(setSuggestionScenes)
+      .catch(() => setSuggestionScenes([]))
+  }, [])
+
   const shown = todosOnly ? items.filter((i) => i.isTodo) : items
 
   return (
     <div className="inbox">
+      {suggestionScenes.length > 0 && (
+        <div className="inbox-suggestions">
+          <div className="inspector-label">{t('inbox.suggestionsTitle')}</div>
+          {suggestionScenes.map((scene) => (
+            <button
+              key={scene.sceneId}
+              className="inbox-suggestion-row"
+              onClick={() =>
+                void useProjectStore.getState().openScene(scene.chapterGuid, scene.sceneId)
+              }
+            >
+              <span className="inbox-suggestion-scene">{scene.sceneTitle}</span>
+              <span className="suggestion-meta">
+                {scene.chapterTitle} · {t('inbox.suggestionCount', { count: scene.count })}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="inbox-filters">
         <label className="match-toggle">
           <input

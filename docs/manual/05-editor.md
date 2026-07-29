@@ -242,6 +242,37 @@ The highlight is painted without touching the document, so listening to a chapte
 
 **Dim other paragraphs while writing** (Settings → Editor) fades every paragraph but the one your caret is in. It works everywhere, but it is what turns focus mode into a composition mode rather than a wider editor. The dimming follows the caret as you move, and fades rather than cutting, because a hard change between paragraphs is more distracting than the dimming solves.
 
+## Suggesting edits instead of making them
+
+The **pen** button in the editor toolbar turns on **suggestion mode**. With it on, typing does not change the prose — it proposes a change:
+
+- Words you type go in as an **addition**, underlined and in the accent colour.
+- Words you delete are **marked as a cut**, struck through but still readable, rather than removed.
+- Typing over a selection does both: the old words are proposed for deletion and the new ones as an addition.
+- Deleting something you just suggested takes it straight back out. Proposing to cut your own unaccepted addition is a round trip nobody wants to read.
+
+The editor's left edge is marked while the mode is on, because a mode where nothing you type sticks is a confusing one to be in without noticing.
+
+Suggestion mode is not remembered between sessions. It is how you are working right now, not a preference.
+
+### Answering suggestions
+
+Open the **Notes** tab in the inspector. Every suggestion in the scene is listed with what it proposes, who proposed it, and two buttons: take it, or turn it down. **Take all** and **Turn all down** answer the whole scene at once.
+
+Taking an addition keeps the words and drops the marks. Turning one down removes them. A cut is the mirror: taking it removes the words, turning it down puts them back as ordinary prose.
+
+The [Inbox](22-context-sidebar.md) lists every scene in the book with suggestions waiting, so an edit left in a scene you have not opened for a month is still findable.
+
+### Who suggested what
+
+Set **Your name on suggested edits** in [Settings → Writing assistance](23-settings.md). It is only worth filling in when more than one person is suggesting — which is exactly when an unattributed edit is useless.
+
+### What counts as the book
+
+A suggested addition nobody has turned down **is part of the book**: it is in the word count, in a search, and in an export, the way a word processor treats one. A suggested cut is not. Exports never contain the marks themselves — an exported book is a finished book.
+
+One thing suggestion mode is deliberately careful about: a plain strikethrough you applied yourself is **formatting, not a suggested cut**. Novalist only treats marks it made as suggestions, so text you struck on purpose still prints struck.
+
 ## Where to go next
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — the binder tree around the editor.

@@ -572,7 +572,10 @@
     "readAloudRate": "朗读速度",
     "readAloudVoice": "朗读声音",
     "readAloudVoiceAuto": "跟随写作语言",
-    "readAloudDesc": "系统已安装的语音。保持默认时，Novalist 会请求与场景写作语言相同的语音。"
+    "readAloudDesc": "系统已安装的语音。保持默认时，Novalist 会请求与场景写作语言相同的语音。",
+    "reviewerName": "修订建议上的署名",
+    "reviewerNamePlaceholder": "独自写作时可留空",
+    "reviewerNameHint": "写入建议模式下的每一处修改。多人协作时才有必要填写。"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",
@@ -2651,7 +2654,9 @@
     "makeTodo": "设为待办",
     "notATodo": "不再是待办",
     "reply": "回复",
-    "replyPlaceholder": "输入回复，按回车"
+    "replyPlaceholder": "输入回复，按回车",
+    "suggestionsTitle": "含修订建议的场景",
+    "suggestionCount": "{{count}} 条待处理"
   },
   "narrative": {
     "title": "时间上的位置",
@@ -2770,5 +2775,15 @@
     "intro": "将任意数值型场景字段绘制在全书上。点击柱形可打开场景。",
     "pick": "选择轴",
     "notEnough": "至少在两个场景中填写此字段才能看到趋势。"
+  },
+  "suggestions": {
+    "title": "修订建议（{{count}}）",
+    "insertion": "新增",
+    "deletion": "删除",
+    "accept": "接受",
+    "reject": "拒绝",
+    "acceptAll": "全部接受",
+    "rejectAll": "全部拒绝",
+    "mode": "提出建议而非直接修改"
   }
 }

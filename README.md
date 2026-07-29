@@ -131,6 +131,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Snapshots** — per-scene version history that restores the whole scene (synopsis, notes, POV, stage, dates, plotlines), plus a project-wide manager with renaming and pruning.
 - **Export preview** — how many chapters, scenes and words the current selection would produce, and how long the book runs in the chosen layout, before you write the file.
 - **Print** — `Ctrl+Alt+P` prints the open scene, the whole book in Manuscript mode, or whatever view is on screen, without the application chrome.
+- **Suggestion mode** — propose edits instead of making them, with per-edit accept and reject and a project-wide inbox.
 - **Print-spec PDF** — real trim sizes, mirrored inside/outside margins, a gutter scaled to the page count, bleed with trim boxes, and widow control.
 - **Your own rating axes** — chart any numeric scene field of yours across the book, beside the tension curve.
 - **Freeform corkboard** — drag scene cards anywhere; the arrangement is saved with the book.

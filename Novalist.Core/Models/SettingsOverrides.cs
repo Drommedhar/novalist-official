@@ -22,6 +22,10 @@ public class SettingsOverrides
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? AutoReplacementLanguage { get; set; }
 
+    /// <summary>The name put on a suggested edit; per project, because who is
+    /// reviewing is a fact about the project rather than about the machine.</summary>
+    public string? ReviewerName { get; set; }
+
     [JsonPropertyName("autoReplacements")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<AutoReplacementPair>? AutoReplacements { get; set; }
@@ -168,7 +172,7 @@ public class SettingsOverrides
     /// <summary>True when any Writing-assistance key (auto-replace, dialogue, grammar) is overridden.</summary>
     [JsonIgnore]
     public bool HasWritingOverride =>
-        AutoReplacementLanguage != null || AutoReplacements != null
+        AutoReplacementLanguage != null || AutoReplacements != null || ReviewerName != null
         || DialogueCorrectionEnabled != null || GrammarCheckEnabled != null
         || SpellCheckEnabled != null || SpellCheckLanguages != null
         || GrammarCheckApiUrl != null || GrammarCheckApiKey != null || GrammarCheckUsername != null
@@ -215,6 +219,7 @@ public class SettingsOverrides
     public void PinWriting(Services.IEffectiveSettings source)
     {
         AutoReplacementLanguage = source.AutoReplacementLanguage;
+        ReviewerName = source.ReviewerName;
         AutoReplacements = [.. source.AutoReplacements];
         DialogueCorrectionEnabled = source.DialogueCorrectionEnabled;
         GrammarCheckEnabled = source.GrammarCheckEnabled;
@@ -262,6 +267,7 @@ public class SettingsOverrides
     public void ClearWriting()
     {
         AutoReplacementLanguage = null;
+        ReviewerName = null;
         AutoReplacements = null;
         DialogueCorrectionEnabled = null;
         GrammarCheckEnabled = null;

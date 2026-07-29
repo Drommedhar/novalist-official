@@ -9,10 +9,12 @@ import {
   Italic,
   List,
   ListOrdered,
+  PenLine,
   Square,
   Underline,
   Volume2
 } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSettingsStore } from '../../stores/settingsStore'
 import type { EditorWindow } from './editorBridge'
@@ -78,6 +80,11 @@ export function EditorToolbar({
     { key: 'justify', active: formatting.alignment === 'justify', icon: AlignJustify, run: (e) => e.alignJustify() }
   ]
 
+  const [suggesting, setSuggesting] = useState(false)
+  // Whose suggestion it is. The author's own name is the only one Novalist
+  // knows; an editor working in someone else's copy sets it in Settings.
+  const author = useSettingsStore((s) => s.view?.effective.reviewerName ?? '')
+
   const pageView = useSettingsStore((s) => s.view?.effective.pageViewEnabled ?? false)
   const readability = useSettingsStore(
     (s) => s.view?.effective.readabilityHighlighting ?? false
@@ -132,6 +139,21 @@ export function EditorToolbar({
         onClick={() => void useSettingsStore.getState().update('global', { pageViewEnabled: !pageView })}
       >
         <BookOpen size={15} strokeWidth={1.75} />
+      </button>
+      {/* Suggesting rather than editing. Session state, not a setting: it is
+          how you are working right now, and leaving it on across a restart
+          would be a trap. */}
+      <button
+        className={`editor-toolbar-button${suggesting ? ' active' : ''}`}
+        title={t('suggestions.mode')}
+        aria-pressed={suggesting}
+        onClick={() => {
+          const next = !suggesting
+          setSuggesting(next)
+          run((live) => live.setSuggestionMode(next, author))
+        }}
+      >
+        <PenLine size={15} strokeWidth={1.75} />
       </button>
     </div>
   )

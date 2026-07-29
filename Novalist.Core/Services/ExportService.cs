@@ -285,8 +285,12 @@ public partial class ExportService
 
             foreach (var scene in scenes)
             {
-                var html = ResolveImagePaths(
-                    await _projectService.ReadSceneContentAsync(chapter, scene));
+                // Suggested edits resolve here, once, so no writer downstream
+                // has to know they exist. An export is a finished book: an
+                // insertion nobody rejected is in it, a deletion nobody
+                // accepted is not, and the markup itself never reaches a page.
+                var html = TrackedChanges.Final(ResolveImagePaths(
+                    await _projectService.ReadSceneContentAsync(chapter, scene)));
                 sceneContents.Add(new SceneExportContent
                 {
                     Title = scene.Title,
