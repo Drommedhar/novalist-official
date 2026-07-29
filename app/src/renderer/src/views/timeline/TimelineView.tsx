@@ -23,6 +23,8 @@ export interface TimelineEventDto {
   characters: string[]
   locations: string[]
   isManual: boolean
+  pov: string
+  plotlineIds: string[]
 }
 
 interface TimelineEntityLink {
@@ -72,6 +74,11 @@ export function TimelineView(): React.JSX.Element {
   const [data, setData] = useState<TimelineDto | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const [sourceFilter, setSourceFilter] = useState('all')
+  // Filtering hides the threads being compared, which is exactly wrong for
+  // "does this POV vanish for eighty pages". Lanes show them side by side.
+  const [laneBy, setLaneBy] = useState('none')
+  // Plotlines are stored by id; a lane headed with a GUID says nothing.
+  const [plotlineNames, setPlotlineNames] = useState<Record<string, string>>({})
   const [characterFilter, setCharacterFilter] = useState('')
   const [locationFilter, setLocationFilter] = useState('')
   const [structureOpen, setStructureOpen] = useState(false)
@@ -94,6 +101,15 @@ export function TimelineView(): React.JSX.Element {
   }, [mainView])
 
   if (!data) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
+
+  useEffect(() => {
+    void rpc
+      .request<{ plotlines: { id: string; name: string }[] }>('plot/grid')
+      .then((grid) =>
+        setPlotlineNames(Object.fromEntries(grid.plotlines.map((p) => [p.id, p.name])))
+      )
+      .catch(() => setPlotlineNames({}))
+  }, [])
 
   const setView = async (viewMode: string, zoomLevel: string): Promise<void> => {
     await rpc.request('timeline/setView', [viewMode, zoomLevel])
@@ -153,6 +169,47 @@ export function TimelineView(): React.JSX.Element {
     (sourceFilter === 'all' || event.source === sourceFilter) &&
     (!characterFilter || event.characters.includes(characterFilter)) &&
     (!locationFilter || event.locations.includes(locationFilter))
+
+  // One lane per value the chosen dimension takes, in reading order. An event
+  // with several values appears in every lane it belongs to - which is the
+  // point: a scene shared by two POVs is a scene where the threads meet.
+  const laneValues = (event: TimelineEventDto): string[] => {
+    if (laneBy === 'character') return event.characters
+    if (laneBy === 'location') return event.locations
+    if (laneBy === 'pov') return event.pov ? [event.pov] : []
+    if (laneBy === 'plotline') return event.plotlineIds
+    return []
+  }
+
+  const laneLabel = (key: string): string =>
+    laneBy === 'plotline' ? (plotlineNames[key] ?? key) : key
+
+  const lanes = ((): { key: string; label: string; events: TimelineEventDto[] }[] => {
+    if (laneBy === 'none') return []
+    const ordered = data.groups.flatMap((g) => g.events).filter(matchesFilters)
+    const byKey = new Map<string, TimelineEventDto[]>()
+    const ungrouped: TimelineEventDto[] = []
+    for (const event of ordered) {
+      const values = laneValues(event)
+      if (values.length === 0) {
+        ungrouped.push(event)
+        continue
+      }
+      for (const value of values) {
+        const list = byKey.get(value)
+        if (list) list.push(event)
+        else byKey.set(value, [event])
+      }
+    }
+    return [
+      ...[...byKey.entries()]
+        .sort((a, b) => laneLabel(a[0]).localeCompare(laneLabel(b[0])))
+        .map(([key, events]) => ({ key, label: laneLabel(key), events })),
+      // Always shown: a lane view that drops everything unclassified reads as
+      // though the whole book is accounted for.
+      { key: '', label: t('timeline.laneUngrouped'), events: ungrouped }
+    ]
+  })()
 
   // Scroll the visible window to the group matching a date; falls back to the
   // nearest dated group when nothing sits in that exact bucket.
@@ -268,6 +325,18 @@ export function TimelineView(): React.JSX.Element {
         )}
         <select
           className="dialog-input findreplace-scope"
+          aria-label={t('timeline.lanes')}
+          value={laneBy}
+          onChange={(e) => setLaneBy(e.target.value)}
+        >
+          {['none', 'character', 'location', 'pov', 'plotline'].map((key) => (
+            <option key={key} value={key}>
+              {t(`timeline.lane_${key}`)}
+            </option>
+          ))}
+        </select>
+        <select
+          className="dialog-input findreplace-scope"
           value={sourceFilter}
           onChange={(e) => setSourceFilter(e.target.value)}
         >
@@ -340,7 +409,38 @@ export function TimelineView(): React.JSX.Element {
       {/* A sub-view of the Timeline rather than its own place: structure is
           what the timeline is about, and it has no meaning without one. */}
       {structureOpen && <StructurePanel />}
-      <div className={`timeline-body ${data.viewMode}`}>
+      {laneBy !== 'none' && (
+        <div className="timeline-lanes">
+          {lanes.map((lane) => (
+            <div key={lane.key || 'ungrouped'} className="timeline-lane">
+              <div className="timeline-lane-head">
+                <span className="timeline-lane-title">{lane.label}</span>
+                <span className="timeline-lane-count">{lane.events.length}</span>
+              </div>
+              <div className="timeline-lane-events">
+                {lane.events.map((event) => (
+                  <button
+                    key={`${lane.key}-${event.id}`}
+                    className={`timeline-lane-event source-${event.source}`}
+                    title={event.dateStr}
+                    onClick={() => {
+                      if (event.isManual) setPending({ kind: 'edit', event })
+                      else if (event.chapterGuid && event.sceneId)
+                        void useProjectStore
+                          .getState()
+                          .openScene(event.chapterGuid, event.sceneId)
+                      else if (event.chapterGuid) openLinkedChapter(event.chapterGuid)
+                    }}
+                  >
+                    {event.title}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className={`timeline-body ${data.viewMode}`} hidden={laneBy !== 'none'}>
         {data.groups.map((group) => (
           <div
             key={group.key}

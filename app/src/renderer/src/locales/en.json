@@ -1538,7 +1538,14 @@
     "sourceScene": "Scenes",
     "sourceManual": "Events",
     "openEntity": "Open {{name}}",
-    "noChapter": "No chapter"
+    "noChapter": "No chapter",
+    "lanes": "Lanes",
+    "lane_none": "No lanes",
+    "lane_character": "Lanes: character",
+    "lane_location": "Lanes: location",
+    "lane_pov": "Lanes: POV",
+    "lane_plotline": "Lanes: plotline",
+    "laneUngrouped": "Ungrouped"
   },
   "export": {
     "header": "Export Novel",

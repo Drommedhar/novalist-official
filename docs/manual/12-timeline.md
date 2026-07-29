@@ -44,6 +44,18 @@ To the right of the toolbar are controls for moving the visible window along the
 - **Today** — jump to the group nearest today's date.
 - **Jump to date** — pick any date; the timeline scrolls to the matching group, or the nearest dated group when nothing sits in that exact bucket.
 
+## Lanes
+
+The character and location drop-downs *filter* the timeline down to one thread. That is the wrong tool for the question "does this POV disappear for eighty pages?" — filtering hides the very threads you are comparing.
+
+The **Lanes** drop-down splits the timeline instead. Pick **character**, **location**, **POV** or **plotline** and you get one row per value, each holding that thread's events in reading order, so gaps and overlaps are visible at a glance.
+
+- An event belonging to several values appears in every lane it belongs to. A scene shared by two POV characters is a scene where the threads meet, and showing it once would hide that.
+- The last lane is always **Ungrouped** — the events with no value for whatever you split by. It is never hidden, because a lane view that quietly drops them reads as though the whole book is accounted for.
+- Character and location lanes use the scene's [assigned cast](04-chapters-and-scenes.md#who-and-what-is-in-a-scene) and the people and places on manual events.
+
+Set **No lanes** to go back to the dated view.
+
 ## Story-structure templates
 
 The **Add structure...** dropdown appends a bundled set of beats to the timeline as manual events:

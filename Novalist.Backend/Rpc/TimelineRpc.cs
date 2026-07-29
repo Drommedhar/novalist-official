@@ -28,6 +28,12 @@ public sealed class TimelineRpc
 
         var events = new List<TimelineEventDto>();
         var seenActs = new HashSet<string>();
+        // Names for the ids a scene's cast holds, so an event can say who is in
+        // it rather than only which thread it belongs to.
+        var characterNames = (await _entities.LoadCharactersAsync())
+            .ToDictionary(c => c.Id, c => c.Name, StringComparer.Ordinal);
+        var locationNames = (await _entities.LoadLocationsAsync())
+            .ToDictionary(l => l.Id, l => l.Name, StringComparer.Ordinal);
 
         foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
         {
@@ -35,14 +41,15 @@ public sealed class TimelineRpc
             {
                 events.Add(new TimelineEventDto(
                     $"act-{chapter.Act}", chapter.Act, "", null, "", "act",
-                    null, null, null, chapter.Order - 0.5, [], [], false));
+                    null, null, null, chapter.Order - 0.5, [], [], false, string.Empty, []));
             }
 
             if (!string.IsNullOrEmpty(chapter.Date))
             {
                 events.Add(new TimelineEventDto(
                     $"ch-{chapter.Guid}", chapter.Title, chapter.Date, Iso(ParseDate(chapter.Date)),
-                    "", "chapter", null, chapter.Guid, null, chapter.Order, [], [], false));
+                    "", "chapter", null, chapter.Guid, null, chapter.Order, [], [], false,
+                    string.Empty, []));
             }
 
             var scenes = (manifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
@@ -52,10 +59,16 @@ public sealed class TimelineRpc
             {
                 var date = string.IsNullOrEmpty(scene.Date) ? chapter.Date : scene.Date;
                 if (string.IsNullOrEmpty(date)) continue;
+                var cast = scene.Cast ?? [];
                 events.Add(new TimelineEventDto(
                     $"sc-{chapter.Guid}-{scene.Id}", $"{chapter.Title}: {scene.Title}", date,
                     Iso(ParseDate(date)), scene.Synopsis ?? "", "scene",
-                    null, chapter.Guid, scene.Id, chapter.Order, [], [], false));
+                    null, chapter.Guid, scene.Id, chapter.Order,
+                    [.. cast.Where(characterNames.ContainsKey).Select(id => characterNames[id])],
+                    [.. cast.Where(locationNames.ContainsKey).Select(id => locationNames[id])],
+                    false,
+                    scene.AnalysisOverrides?.Pov ?? string.Empty,
+                    scene.PlotlineIds ?? []));
             }
         }
 
@@ -66,7 +79,8 @@ public sealed class TimelineRpc
                 manual.Description, "manual", manual.CategoryId,
                 string.IsNullOrEmpty(manual.LinkedChapterGuid) ? null : manual.LinkedChapterGuid,
                 string.IsNullOrEmpty(manual.LinkedSceneId) ? null : manual.LinkedSceneId,
-                double.MaxValue, manual.Characters.ToArray(), manual.Locations.ToArray(), true));
+                double.MaxValue, manual.Characters.ToArray(), manual.Locations.ToArray(), true,
+                string.Empty, []));
         }
 
         var groups = events
@@ -251,4 +265,9 @@ public sealed record TimelineEventDto(
     double ChapterOrder,
     IReadOnlyList<string> Characters,
     IReadOnlyList<string> Locations,
-    bool IsManual);
+    bool IsManual,
+    /// <summary>The POV the writer set on the scene, for lanes. Empty for
+    /// events that are not scenes.</summary>
+    string Pov,
+    /// <summary>Plotlines the scene belongs to, for lanes.</summary>
+    IReadOnlyList<string> PlotlineIds);

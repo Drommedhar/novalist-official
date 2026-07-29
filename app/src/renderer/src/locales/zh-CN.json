@@ -1573,7 +1573,14 @@
     "sourceScene": "场景",
     "sourceManual": "事件",
     "openEntity": "打开 {{name}}",
-    "noChapter": "无章节"
+    "noChapter": "无章节",
+    "lanes": "泳道",
+    "lane_none": "不分泳道",
+    "lane_character": "泳道：人物",
+    "lane_location": "泳道：地点",
+    "lane_pov": "泳道：视角",
+    "lane_plotline": "泳道：情节线",
+    "laneUngrouped": "未分组"
   },
   "export": {
     "header": "导出小说",

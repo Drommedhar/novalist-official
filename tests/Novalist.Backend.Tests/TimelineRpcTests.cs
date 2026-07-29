@@ -1,5 +1,6 @@
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Services;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -162,5 +163,58 @@ public sealed class TimelineRpcTests : IDisposable
         var unchanged = await _rpc.ApplyStructureTemplateAsync("no-such-structure");
         Assert.Equal(7, unchanged.Groups.SelectMany(g => g.Events).Count(e => e.IsManual));
     }
-}
 
+    // ── Lanes ──
+    //
+    // Filtering the timeline to one character hides the threads being
+    // compared, which is the opposite of what "does this POV disappear for
+    // eighty pages" needs. Lanes need the events to say who and where.
+
+    [Fact]
+    public async Task SceneEvents_CarryTheirCastPovAndPlotlines()
+    {
+        var entities = new EntityService(_workspace.Projects);
+        var mira = new Novalist.Core.Models.CharacterData { Name = "Mira" };
+        var vault = new Novalist.Core.Models.LocationData { Name = "The vault" };
+        await entities.SaveCharacterAsync(mira);
+        await entities.SaveLocationAsync(vault);
+
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Opening");
+        scene.Date = "2024-01-02";
+        scene.Cast = [mira.Id, vault.Id, "long-gone"];
+        scene.PlotlineIds = ["p1"];
+        scene.AnalysisOverrides = new Novalist.Core.Models.SceneAnalysisOverrides { Pov = "Mira" };
+        await _workspace.Projects.SaveScenesAsync();
+
+        var timeline = await _rpc.Get();
+        var sceneEvent = timeline.Groups
+            .SelectMany(g => g.Events)
+            .Single(e => e.Source == "scene");
+
+        Assert.Equal(["Mira"], sceneEvent.Characters);
+        Assert.Equal(["The vault"], sceneEvent.Locations);
+        Assert.Equal("Mira", sceneEvent.Pov);
+        Assert.Equal(["p1"], sceneEvent.PlotlineIds);
+        // An id whose entity is gone contributes no lane rather than one
+        // headed by a GUID.
+        Assert.DoesNotContain("long-gone", sceneEvent.Characters);
+    }
+
+    [Fact]
+    public async Task SceneEvents_WithNoCast_CarryNothing()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Opening");
+        scene.Date = "2024-01-02";
+        await _workspace.Projects.SaveScenesAsync();
+
+        var sceneEvent = (await _rpc.Get()).Groups
+            .SelectMany(g => g.Events)
+            .Single(e => e.Source == "scene");
+
+        Assert.Empty(sceneEvent.Characters);
+        Assert.Empty(sceneEvent.PlotlineIds);
+        Assert.Equal(string.Empty, sceneEvent.Pov);
+    }
+}

@@ -1162,7 +1162,14 @@
     "sourceScene": "Szenen",
     "sourceManual": "Ereignisse",
     "openEntity": "{{name}} öffnen",
-    "noChapter": "Kein Kapitel"
+    "noChapter": "Kein Kapitel",
+    "lanes": "Spuren",
+    "lane_none": "Keine Spuren",
+    "lane_character": "Spuren: Figur",
+    "lane_location": "Spuren: Ort",
+    "lane_pov": "Spuren: Perspektive",
+    "lane_plotline": "Spuren: Handlungsstrang",
+    "laneUngrouped": "Ohne Zuordnung"
   },
   "export": {
     "header": "Roman exportieren",
