@@ -685,7 +685,13 @@
     "fromUrlPlaceholder": "https://example.com/bild.png",
     "fromUrlError": "Bild konnte von dieser URL nicht geladen werden.",
     "imageAlt": "Was dieses Bild zeigt",
-    "imageAltPlaceholder": "Für Leser, die es nicht sehen können"
+    "imageAltPlaceholder": "Für Leser, die es nicht sehen können",
+    "arrangeFields": "Felder anordnen...",
+    "arrangeTitle": "Felder dieses Blattes",
+    "arrangeIntro": "Blenden Sie Felder aus, die dieses Projekt nicht nutzt, und bringen Sie den Rest in die Reihenfolge, in der Sie ihn ausfüllen. Ausblenden löscht nichts – das Feld ist nur nicht im Weg. Der Name wird immer gezeigt.",
+    "arrangeShown": "Sichtbar",
+    "arrangeUp": "Nach oben",
+    "arrangeDown": "Nach unten"
   },
   "context": {
     "title": "NOVALIST KONTEXT",

@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, MessageCircleQuestion, Settings2, Trash2 } from 'lucide-react'
+import {
+  ChevronLeft,
+  MessageCircleQuestion,
+  Settings2,
+  SlidersHorizontal,
+  Trash2
+} from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
 import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
@@ -22,7 +28,12 @@ import { ArcEditor } from './ArcEditor'
 import { UnlinkedMentionsPanel } from './UnlinkedMentionsPanel'
 import { OverridesEditor } from './OverridesEditor'
 import { CodexNav } from './CodexNav'
-import { EntityDetailFields } from './EntityDetailFields'
+import {
+  EntityDetailFields,
+  builtInFieldKeys,
+  builtInFieldLabelKeys
+} from './EntityDetailFields'
+import { ArrangeFieldsDialog } from './ArrangeFieldsDialog'
 import type { EntitySummary } from '../../stores/codexStore'
 
 const TYPES: { type: EntityType; key: string }[] = [
@@ -49,6 +60,7 @@ export function CodexView(): React.JSX.Element {
   const remove = useCodexStore((s) => s.remove)
   const moveWorldBible = useCodexStore((s) => s.moveWorldBible)
   const isMobile = window.novalist.isMobile === true
+  const [arrangeOpen, setArrangeOpen] = useState(false)
   const [pending, setPending] = useState<
     { kind: 'create' } | { kind: 'delete'; entity: EntitySummary } | null
   >(null)
@@ -216,6 +228,12 @@ export function CodexView(): React.JSX.Element {
                     <MessageCircleQuestion size={13} strokeWidth={2} /> {t('wizard.runInterview')}
                   </button>
                 )}
+                {builtInFieldKeys(entityType).length > 0 && (
+                  <button className="dialog-button" onClick={() => setArrangeOpen(true)}>
+                    <SlidersHorizontal size={13} strokeWidth={2} />{' '}
+                    {t('entityEditor.arrangeFields')}
+                  </button>
+                )}
                 <button
                   className="dialog-button danger"
                   onClick={() => selected && setPending({ kind: 'delete', entity: selected })}
@@ -334,6 +352,19 @@ export function CodexView(): React.JSX.Element {
             </div>
           </div>
         </div>
+      )}
+      {arrangeOpen && (
+        <ArrangeFieldsDialog
+          entityType={entityType}
+          fields={builtInFieldKeys(entityType)}
+          labels={Object.fromEntries(
+            Object.entries(builtInFieldLabelKeys(entityType)).map(([key, labelKey]) => [
+              key,
+              t(labelKey)
+            ])
+          )}
+          onClose={() => setArrangeOpen(false)}
+        />
       )}
       {wizard && (
         <WizardDialog

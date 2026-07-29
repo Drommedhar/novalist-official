@@ -20,6 +20,23 @@ interface Section {
   fields: FieldSpec[]
 }
 
+/**
+ * Every field key a built-in sheet can show, in the order Novalist ships them.
+ * The arrange dialog needs the same list the sheet renders from, and reading
+ * it from here is what keeps the two in step.
+ */
+export function builtInFieldKeys(entityType: string): string[] {
+  return (BUILT_IN[entityType] ?? []).flatMap((section) => section.fields.map((f) => f.key))
+}
+
+/** The label each of those keys is shown under. */
+export function builtInFieldLabelKeys(entityType: string): Record<string, string> {
+  const labels: Record<string, string> = {}
+  for (const section of BUILT_IN[entityType] ?? [])
+    for (const field of section.fields) labels[field.key] = field.labelKey
+  return labels
+}
+
 /** Typed, labelled, grouped field layout per entity type (replaces the raw
  * string dumper). Built-in types get curated sections; custom types render
  * their declared fields with type-aware controls. */
@@ -98,6 +115,20 @@ export function EntityDetailFields({
   const { t } = useTranslation()
   const [locationNames, setLocationNames] = useState<string[]>([])
   const [refNames, setRefNames] = useState<string[]>([])
+
+  const [sheet, setSheet] = useState<{ hidden: string[]; order: string[] }>({
+    hidden: [],
+    order: []
+  })
+
+  // How this project arranges this type's sheet. Empty means the default:
+  // every field, in the order Novalist ships them in.
+  useEffect(() => {
+    void rpc
+      .request<{ hidden: string[]; order: string[] }>('sheets/get', [entityType])
+      .then(setSheet)
+      .catch(() => setSheet({ hidden: [], order: [] }))
+  }, [entityType])
 
   const custom = !['character', 'location', 'item', 'lore'].includes(entityType)
   const customFields = record.fields as Record<string, string> | undefined
@@ -219,9 +250,28 @@ export function EntityDetailFields({
       ]
     : (BUILT_IN[entityType] ?? [])
 
+  // The project's own arrangement, applied over the shipped one. A field the
+  // order does not mention keeps its natural place, so a field added to
+  // Novalist later is not invisible in a project arranged before it existed.
+  const arranged = sections
+    .map((section) => ({
+      ...section,
+      fields: section.fields
+        .filter((field) => field.key === 'name' || !sheet.hidden.includes(field.key))
+        .sort((a, b) => {
+          const ai = sheet.order.indexOf(a.key)
+          const bi = sheet.order.indexOf(b.key)
+          if (ai < 0 && bi < 0) return 0
+          if (ai < 0) return 1
+          if (bi < 0) return -1
+          return ai - bi
+        })
+    }))
+    .filter((section) => section.fields.length > 0)
+
   return (
     <div className="codex-fields">
-      {sections.map((section, si) => (
+      {arranged.map((section, si) => (
         <div key={si} className="codex-field-section">
           {section.titleKey && (
             <div className="inspector-label">{t(section.titleKey)}</div>

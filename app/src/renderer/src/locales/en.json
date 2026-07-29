@@ -784,7 +784,13 @@
     "fromUrlPlaceholder": "https://example.com/image.png",
     "fromUrlError": "Could not load image from that URL.",
     "imageAlt": "What this image shows",
-    "imageAltPlaceholder": "For a reader who cannot see it"
+    "imageAltPlaceholder": "For a reader who cannot see it",
+    "arrangeFields": "Arrange fields...",
+    "arrangeTitle": "Fields on this sheet",
+    "arrangeIntro": "Hide the fields this project does not use, and put the rest in the order you want to fill them in. Hiding a field keeps whatever is already written in it - it is out of the way, not gone. The name is always shown.",
+    "arrangeShown": "Shown",
+    "arrangeUp": "Move up",
+    "arrangeDown": "Move down"
   },
   "context": {
     "title": "NOVALIST CONTEXT",

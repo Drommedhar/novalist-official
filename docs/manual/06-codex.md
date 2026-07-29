@@ -200,6 +200,16 @@ By default an entity belongs to the active book. Entities stored in the project'
 
 On disk, World Bible entities live in `<Project>/WorldBible/<type>/` instead of the book folder; see [Projects & Books](03-projects-and-books.md#the-folder-layout). If you keep all your work in a single book, ignore the World Bible — it adds nothing for single-book projects.
 
+## Arranging the sheet
+
+**Arrange fields...** at the top of an entry opens a list of every field that entry type shows, with a tick box and up/down buttons.
+
+- **Untick** a field this project does not use. The field disappears from every entry of that type — and **keeps whatever is already written in it**. It is out of the way, not deleted, and ticking it again brings the contents back. A hidden field that threw its contents away would be a trap rather than a preference.
+- **Reorder** the rest so the sheet reads in the order you actually fill it in.
+- The **name** cannot be hidden. A sheet with no name on it is one you cannot tell from another.
+
+The arrangement belongs to the project and to that entry type, so characters and locations are arranged separately, and a project you open on another machine looks the way you left it. A field Novalist adds in a later version appears at the end of a sheet you arranged before it existed, rather than being invisible.
+
 ## Where to go next
 
 - [Wiki](30-wiki.md) — read your whole Codex as cross-linked, Wikipedia-style articles with per-entity appearance timelines.

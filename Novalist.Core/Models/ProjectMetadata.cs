@@ -83,6 +83,13 @@ public class ProjectMetadata
     [JsonPropertyName("tags")]
     public List<ProjectTag> Tags { get; set; } = [];
 
+    /// <summary>
+    /// How each entry type's sheet is laid out here - which built-in fields
+    /// this project hides, and in what order it shows them.
+    /// </summary>
+    [JsonPropertyName("entitySheets")]
+    public List<EntitySheet> EntitySheets { get; set; } = [];
+
     /// <summary>Research notes / links / imported files attached to the project.</summary>
     [JsonPropertyName("researchItems")]
     public List<ResearchItem> ResearchItems { get; set; } = [];

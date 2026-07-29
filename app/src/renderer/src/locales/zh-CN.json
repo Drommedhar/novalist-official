@@ -819,7 +819,13 @@
     "overrideResetToInherit": "重置为继承",
     "overrideMediaHint": "请先保存此范围，才能覆盖其图片、关系和章节。",
     "imageAlt": "这张图片展示什么",
-    "imageAltPlaceholder": "给看不到它的读者"
+    "imageAltPlaceholder": "给看不到它的读者",
+    "arrangeFields": "排列字段...",
+    "arrangeTitle": "此表的字段",
+    "arrangeIntro": "隐藏本项目不用的字段，并按您填写的顺序排列其余字段。隐藏不会删除已写内容 — 只是不再挡路。名称始终显示。",
+    "arrangeShown": "显示",
+    "arrangeUp": "上移",
+    "arrangeDown": "下移"
   },
   "context": {
     "title": "NOVALIST 上下文",
