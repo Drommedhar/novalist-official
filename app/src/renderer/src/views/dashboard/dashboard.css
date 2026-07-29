@@ -297,3 +297,30 @@
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
+
+/* A target row is clickable, so it needs to stop looking like a table row and
+   start looking like something the writer can press. */
+.dashboard-target-row {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  width: 100%;
+}
+
+.dashboard-target-row:hover {
+  background: var(--nl-surface-hover);
+}
+
+.dashboard-target-add {
+  align-items: center;
+  display: flex;
+  gap: var(--nl-space-sm);
+  margin-top: var(--nl-space-md);
+}
+
+.dashboard-target-add > .inspector-input {
+  flex: 1;
+}

@@ -33,10 +33,12 @@ interface EntityOption {
   name: string
 }
 
+/** Whatever a picker needs; the layout editor reads the rest of the record. */
 interface PresetDto {
   id: string
   displayName: string
   description: string
+  isCustom: boolean
 }
 
 interface ExtensionFormatDto {
@@ -53,7 +55,6 @@ export function ExportView(): React.JSX.Element {
   const [presetId, setPresetId] = useState('default')
   const [presets, setPresets] = useState<PresetDto[]>([])
   const [extFormats, setExtFormats] = useState<ExtensionFormatDto[]>([])
-  const [smf, setSmf] = useState(false)
   const [title, setTitle] = useState(projectName ?? '')
   const [author, setAuthor] = useState('')
   const [includeTitlePage, setIncludeTitlePage] = useState(true)
@@ -70,7 +71,9 @@ export function ExportView(): React.JSX.Element {
   const [result, setResult] = useState<string | null>(null)
 
   useEffect(() => {
-    void rpc.request<PresetDto[]>('export/presets').then(setPresets)
+    // The same list the layout editor writes to, so a layout the writer
+    // authored is pickable here the moment it exists.
+    void rpc.request<PresetDto[]>('exportPresets/list').then(setPresets)
     void rpc.request<ExtensionFormatDto[]>('export/extensionFormats').then(setExtFormats)
   }, [])
 
@@ -83,7 +86,6 @@ export function ExportView(): React.JSX.Element {
   }, [chapters, initialized])
 
   const isCodex = format === 'Codex' || format === 'CodexPdf'
-  const isDocxPdf = format === 'Docx' || format === 'Pdf'
   const extFormat = extFormats.find((f) => f.formatKey === format)
   const chaptersVisible = !isCodex && extFormat === undefined
 
@@ -117,8 +119,7 @@ export function ExportView(): React.JSX.Element {
     list: (entities[kind] ?? []).filter((e) => e.name.toLocaleLowerCase().includes(needle))
   })).filter((group) => group.list.length > 0)
   const visibleKeys = visibleEntities.flatMap((group) => group.list.map((e) => e.key))
-  const preset = smf && isDocxPdf ? 'shunn-manuscript' : presetId
-  const activePreset = presets.find((p) => p.id === preset)
+  const activePreset = presets.find((p) => p.id === presetId)
 
   const toggle = (guid: string, checked: boolean): void => {
     setSelected((prev) => {
@@ -174,8 +175,7 @@ export function ExportView(): React.JSX.Element {
         author,
         includeTitlePage,
         chaptersVisible ? [...selected] : [],
-        preset,
-        smf && isDocxPdf,
+        presetId,
         isCodex ? [...selectedEntities] : null,
         isCodex ? codexLabels() : null,
         includeCover
@@ -227,25 +227,20 @@ export function ExportView(): React.JSX.Element {
           <select
             id="export-preset"
             className="dialog-input"
-            value={preset}
-            disabled={smf && isDocxPdf}
+            value={presetId}
             onChange={(e) => setPresetId(e.target.value)}
           >
             {presets.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.displayName}
+                {p.isCustom ? '' : ` (${t('layout.builtIn')})`}
               </option>
             ))}
           </select>
-          {activePreset && <span className="export-preset-desc">{activePreset.description}</span>}
+          {activePreset?.description && (
+            <span className="export-preset-desc">{activePreset.description}</span>
+          )}
         </div>
-
-        {isDocxPdf && (
-          <label className="relationships-toggle export-toggle">
-            <input type="checkbox" checked={smf} onChange={(e) => setSmf(e.target.checked)} />
-            {t('export.smfToggle')}
-          </label>
-        )}
 
         <div className="export-field">
           <label className="inspector-label" htmlFor="export-title">
@@ -406,10 +401,17 @@ export function ExportView(): React.JSX.Element {
           <PublishingPanel />
         </details>
 
-        {/* Page geometry, separators and ebook CSS, authorable rather than fixed. */}
+        {/* Page geometry, separators and ebook CSS for whichever layout is
+            picked above, rather than a second dropdown listing the same ones. */}
         <details className="export-matter">
           <summary>{t('layout.title')}</summary>
-          <ExportLayoutPanel />
+          <ExportLayoutPanel
+            selectedId={presetId}
+            onLayouts={(all, select) => {
+              setPresets(all)
+              if (select !== undefined) setPresetId(select)
+            }}
+          />
         </details>
 
         {/* The other half of the round trip: a DOCX goes out to an editor and

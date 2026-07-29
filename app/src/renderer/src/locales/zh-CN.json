@@ -1595,7 +1595,6 @@
     "exportFailed": "导出失败：{0}",
     "exportAction": "导出",
     "selectedOfTotal": "已选择 {{selected}} / {{total}}",
-    "smfToggle": "Shunn 手稿格式",
     "includeCover": "包含书籍封面"
   },
   "expose": {
@@ -2156,7 +2155,8 @@
     "applyShift": "应用",
     "noDate": "无日期",
     "confirmArchive": "归档 {{count}} 个场景？可从归档中恢复。",
-    "confirmDelete": "删除 {{count}} 个场景？此操作无法撤销。"
+    "confirmDelete": "删除 {{count}} 个场景？此操作无法撤销。",
+    "scopeCount": "{{count}} 个场景"
   },
   "spell": {
     "addToDictionary": "加入词典",
@@ -2241,7 +2241,16 @@
     "progress": "{{target}} 字中的 {{words}} 字",
     "setScene": "设置字数目标...",
     "setChapter": "设置章节字数目标...",
-    "prompt": "字数目标（留空则无）"
+    "prompt": "字数目标（留空则无）",
+    "setAct": "为幕“{{act}}”设置字数目标...",
+    "dashboardTitle": "字数目标",
+    "dashboardHint": "为单个场景、单个章节或整个幕设定字数目标。可在此处设置，或在章节树中右键单击任意行。",
+    "empty": "尚未设定字数目标。",
+    "kindScene": "场景",
+    "kindChapter": "章节",
+    "kindAct": "幕",
+    "addPlaceholder": "选择章节或幕",
+    "add": "设定目标"
   },
   "publishing": {
     "title": "出版元数据",

@@ -19,14 +19,13 @@ In the activity bar, click **Export** in the **Publish** group.
   - **Codex (PDF)** — the same world bible as a single PDF with the images drawn into the document.
 
   Any formats contributed by installed [extensions](24-extensions.md) appear below the built-in ones in the same drop-down.
-- **Preset** — a layout preset that sets fonts, spacing, and margins. Built-in presets are:
+- **Preset** — the layout that sets fonts, spacing, and margins. The drop-down lists the built-in layouts, marked `(built-in)`, followed by every layout you have authored yourself (see [Export layouts](#export-layouts) below) — one list, so anything you can make is something you can pick. Built-in layouts are:
   - **Default** — Georgia 12pt, 1.5 line spacing; a readable PDF/EPUB.
   - **Shunn Manuscript Format** — the industry-standard submission format: Courier 12pt, double-spaced, with the Shunn header.
   - **Ebook Flow** — tighter spacing for digital reading: Georgia 11pt, 1.4 line spacing, narrower margins.
   - **Normseiten** — German standard pages: Courier New 12pt, 60 characters per line, 30 lines per page. **DOCX only** — the other formats ignore it.
 
-  A short description of the selected preset is shown beneath the drop-down. Extensions can contribute additional presets.
-- **Shunn Manuscript Format** — for **DOCX** and **PDF** only, a toggle that switches the export straight to the Shunn submission preset (and disables the Preset drop-down while it is on).
+  A short description of the selected layout is shown beneath the drop-down when it has one. Extensions can contribute additional layouts.
 - **Title** — the title of the exported document. Defaults to the project's name.
 - **Author** — author name printed on the title page and in document metadata.
 - **Title page** — toggle. Include or omit a generated title page.
@@ -161,6 +160,8 @@ For chapter-based formats the list shows all chapters regardless of status — y
 ## Export layouts
 
 Novalist ships four layouts — Default, Shunn manuscript, Ebook flow, Normseiten — and **Export layouts** on the Export view lets you make your own.
+
+The panel edits whichever layout is picked in the **Preset** drop-down above, so what you are editing and what you are about to export with can never drift apart. **Duplicate** switches the export to the new copy, since that is the one you meant to work on.
 
 Built-in layouts cannot be edited, only duplicated. That is deliberate: a layout named after a submission standard that no longer matches it is worse than no layout at all, and nothing would tell you. **Duplicate** gives you a copy carrying all of the original's settings, which is a far better starting point than an empty one.
 

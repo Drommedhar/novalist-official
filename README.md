@@ -101,7 +101,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - Export to **EPUB**, **DOCX**, **PDF**, **Markdown**, **Final Draft**, **LaTeX**, and the codex world bible as **Markdown** or a self-contained **PDF** with inlined images.
 - **Publishing metadata** — ISBN, publisher, series and position, description, subjects, rights and date, written into the EPUB the way retailers read it.
 - **Front and back matter** as typed book elements — half title, copyright, dedication, epigraph, foreword, prologue, epilogue, acknowledgments, about the author, also-by and custom pages, each laid out per kind rather than faked as a chapter. EPUB gets the correct `epub:type` per page; DOCX starts each on a new page.
-- **Layout presets** — Default, **Shunn Manuscript Format** (industry-standard submission format), Ebook Flow, and **Normseiten** (German standard pages: 60 characters per line, 30 lines per page, exact page count) set fonts, spacing, and margins; a one-click Shunn toggle for DOCX and PDF.
+- **Layout presets** — Default, **Shunn Manuscript Format** (industry-standard submission format), Ebook Flow, and **Normseiten** (German standard pages: 60 characters per line, 30 lines per page, exact page count) set fonts, spacing, and margins, alongside any layout you author yourself.
 - **Exposé** — a per-book pitch document with its own editor, live character and Normseiten counts against limits you set, and a Normseiten DOCX export.
 - Chapter-level selection with select-all / select-none, per-entry selection for codex exports, optional title page, custom title and author.
 - Extensions can contribute additional formats and presets.

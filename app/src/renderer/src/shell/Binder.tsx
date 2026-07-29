@@ -34,7 +34,8 @@ type PendingAction =
   | { kind: 'deleteScene'; chapterGuid: string; sceneId: string; title: string }
   | { kind: 'setDate'; chapterGuid: string; sceneId: string }
   | { kind: 'setAct'; chapterGuid: string; current: string }
-  | { kind: 'sceneTarget'; chapterGuid: string; sceneId: string; current: string }
+  | { kind: 'sceneTarget'; targets: { chapterGuid: string; sceneId: string }[]; current: string }
+  | { kind: 'deleteScenes'; targets: { chapterGuid: string; sceneId: string }[] }
   | { kind: 'chapterTarget'; chapterGuid: string; current: string }
   | { kind: 'actTarget'; actName: string; current: string }
 
@@ -190,19 +191,50 @@ export function Binder(): React.JSX.Element {
               : [])
           ]
         : []
+      // Right-clicking inside a selection acts on all of it. Right-clicking
+      // outside one replaced the selection when the menu opened, so this is
+      // always the scenes the writer just pointed at.
+      const selection = useSelectionStore.getState().sceneIds
+      const targets: { chapterGuid: string; sceneId: string }[] =
+        selection.length > 1 && selection.includes(scene.id)
+          ? chapters.flatMap((c) =>
+              c.scenes
+                .filter((sc) => selection.includes(sc.id))
+                .map((sc) => ({ chapterGuid: c.guid, sceneId: sc.id }))
+            )
+          : [{ chapterGuid: chapter.guid, sceneId: scene.id }]
+
+      /** Appends "(N scenes)" so a menu row never silently does more than it says. */
+      const scoped = (label: string): string =>
+        targets.length > 1 ? `${label} (${t('bulk.scopeCount', { count: targets.length })})` : label
+
       // One entry per stage, plus a way back to untriaged. A submenu would be
       // better, but ContextMenu is a flat list and prefixing keeps it readable.
       const stageItems: ContextMenuItem[] = useStageStore.getState().stages.map((stage) => ({
-        label: `${t('stages.setTo')}: ${stage.label}`,
+        label: scoped(`${t('stages.setTo')}: ${stage.label}`),
         onClick: () => {
-          void useStageStore.getState().setSceneStage(chapter.guid, scene.id, stage.key)
+          void (async () => {
+            for (const target of targets) {
+              await useStageStore
+                .getState()
+                .setSceneStage(target.chapterGuid, target.sceneId, stage.key)
+            }
+          })()
         }
       }))
-      if (scene.stage) {
+      if (targets.some((target) => chapters.some((c) =>
+        c.scenes.some((sc) => sc.id === target.sceneId && sc.stage))))
+      {
         stageItems.push({
-          label: t('stages.clear'),
+          label: scoped(t('stages.clear')),
           onClick: () => {
-            void useStageStore.getState().setSceneStage(chapter.guid, scene.id, null)
+            void (async () => {
+              for (const target of targets) {
+                await useStageStore
+                  .getState()
+                  .setSceneStage(target.chapterGuid, target.sceneId, null)
+              }
+            })()
           }
         })
       }
@@ -235,20 +267,19 @@ export function Binder(): React.JSX.Element {
             ]
           : []),
         {
-          label: t('targets.setScene'),
+          label: scoped(t('targets.setScene')),
           onClick: () =>
             setPending({
               kind: 'sceneTarget',
-              chapterGuid: chapter.guid,
-              sceneId: scene.id,
+              targets,
               current: String(useTargetStore.getState().find('scene', scene.id)?.target ?? '')
             })
         },
         {
-          label: t('explorer.contextArchive'),
+          label: scoped(t('explorer.contextArchive')),
           onClick: () => {
             void rpc
-              .request('scenes/archive', [chapter.guid, scene.id])
+              .request('sceneBulk/archive', [targets.map((target) => target.sceneId)])
               .then(async () => {
                 const state = await rpc.request<import('../stores/projectStore').ProjectStateDto>(
                   'project/getState'
@@ -278,15 +309,19 @@ export function Binder(): React.JSX.Element {
             setPending({ kind: 'setDate', chapterGuid: chapter.guid, sceneId: scene.id })
         },
         {
-          label: t('explorer.contextDelete'),
+          label: scoped(t('explorer.contextDelete')),
           danger: true,
           onClick: () =>
-            setPending({
-              kind: 'deleteScene',
-              chapterGuid: chapter.guid,
-              sceneId: scene.id,
-              title: scene.title
-            })
+            setPending(
+              targets.length > 1
+                ? { kind: 'deleteScenes', targets }
+                : {
+                    kind: 'deleteScene',
+                    chapterGuid: chapter.guid,
+                    sceneId: scene.id,
+                    title: scene.title
+                  }
+            )
         }
       ]
     }
@@ -341,7 +376,7 @@ export function Binder(): React.JSX.Element {
       ...(chapter.act
         ? [
             {
-              label: `${t('targets.setChapter')} (${chapter.act})`,
+              label: t('targets.setAct', { act: chapter.act }),
               onClick: () =>
                 setPending({
                   kind: 'actTarget',
@@ -643,9 +678,13 @@ export function Binder(): React.JSX.Element {
           onSubmit={(value) => {
             const p = pending
             setPending(null)
-            void useTargetStore
-              .getState()
-              .setScene(p.chapterGuid, p.sceneId, Number(value) || null)
+            void (async () => {
+              for (const target of p.targets) {
+                await useTargetStore
+                  .getState()
+                  .setScene(target.chapterGuid, target.sceneId, Number(value) || null)
+              }
+            })()
           }}
         />
       )}
@@ -709,6 +748,23 @@ export function Binder(): React.JSX.Element {
           onConfirm={() => {
             setPending(null)
             void store.getState().deleteScene(pending.chapterGuid, pending.sceneId)
+          }}
+        />
+      )}
+      {pending?.kind === 'deleteScenes' && (
+        <ConfirmDialog
+          title={t('explorer.deleteTitle')}
+          message={t('bulk.confirmDelete', { count: pending.targets.length })}
+          onCancel={() => setPending(null)}
+          onConfirm={() => {
+            const ids = pending.targets.map((target) => target.sceneId)
+            setPending(null)
+            void rpc
+              .request<{ state: import('../stores/projectStore').ProjectStateDto }>(
+                'sceneBulk/delete',
+                [ids]
+              )
+              .then((result) => store.getState().applyState(result.state))
           }}
         />
       )}

@@ -3,6 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { Copy, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 
+interface ExportLayoutPanelProps {
+  /** The layout picked in the export form; this panel edits that one. */
+  selectedId: string
+  /** Hands the refreshed list back, and the id to select when it changed. */
+  onLayouts: (layouts: ExportLayout[], select?: string) => void
+}
+
 interface ExportLayout {
   id: string
   displayName: string
@@ -30,17 +37,20 @@ interface ExportLayout {
  * had nowhere to put it. Built-ins stay read-only and are copied instead: a
  * preset named after a standard that no longer matches it is worse than no
  * preset at all, and nothing would tell them.
+ *
+ * Which layout is edited follows the export form's own dropdown. A second
+ * picker here listed the same layouts and let the two disagree about which one
+ * was about to be used.
  */
-export function ExportLayoutPanel(): React.JSX.Element {
+export function ExportLayoutPanel({
+  selectedId,
+  onLayouts
+}: ExportLayoutPanelProps): React.JSX.Element {
   const { t } = useTranslation()
   const [layouts, setLayouts] = useState<ExportLayout[]>([])
-  const [selectedId, setSelectedId] = useState('')
 
   useEffect(() => {
-    void rpc.request<ExportLayout[]>('exportPresets/list').then((all) => {
-      setLayouts(all)
-      setSelectedId((current) => current || all[0]?.id || '')
-    })
+    void rpc.request<ExportLayout[]>('exportPresets/list').then(setLayouts)
   }, [])
 
   const selected = layouts.find((l) => l.id === selectedId)
@@ -50,26 +60,30 @@ export function ExportLayoutPanel(): React.JSX.Element {
     setLayouts(layouts.map((l) => (l.id === selected.id ? { ...l, ...patch } : l)))
   }
 
-  const save = async (): Promise<void> => {
-    if (!selected?.isCustom) return
-    setLayouts(await rpc.request<ExportLayout[]>('exportPresets/save', [selected]))
+  const publish = (all: ExportLayout[], select?: string): void => {
+    setLayouts(all)
+    onLayouts(all, select)
   }
 
+  const save = async (): Promise<void> => {
+    if (!selected?.isCustom) return
+    publish(await rpc.request<ExportLayout[]>('exportPresets/save', [selected]))
+  }
+
+  // A copy is what the writer meant to work on, so the export switches to it.
   const duplicate = async (): Promise<void> => {
     if (!selected) return
     const all = await rpc.request<ExportLayout[]>('exportPresets/duplicate', [
       selected.id,
       `${selected.displayName} (copy)`
     ])
-    setLayouts(all)
-    setSelectedId(all[all.length - 1]?.id ?? selectedId)
+    publish(all, all[all.length - 1]?.id)
   }
 
   const remove = async (): Promise<void> => {
     if (!selected?.isCustom) return
     const all = await rpc.request<ExportLayout[]>('exportPresets/delete', [selected.id])
-    setLayouts(all)
-    setSelectedId(all[0]?.id ?? '')
+    publish(all, all[0]?.id ?? '')
   }
 
   const number = (
@@ -90,18 +104,7 @@ export function ExportLayoutPanel(): React.JSX.Element {
   return (
     <div className="settings-subgroup">
       <div className="settings-button-row">
-        <select
-          className="inspector-input"
-          value={selectedId}
-          onChange={(e) => setSelectedId(e.target.value)}
-        >
-          {layouts.map((layout) => (
-            <option key={layout.id} value={layout.id}>
-              {layout.displayName}
-              {layout.isCustom ? '' : ` (${t('layout.builtIn')})`}
-            </option>
-          ))}
-        </select>
+        <span className="settings-hint">{selected?.displayName ?? ''}</span>
         <button className="dialog-button" onClick={() => void duplicate()}>
           <Copy size={14} /> {t('layout.duplicate')}
         </button>

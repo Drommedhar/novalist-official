@@ -374,32 +374,6 @@ export function StatusBar(): React.JSX.Element {
         <ExtensionStatusItems />
       </span>
 
-      <span className="status-sprint-wrap">
-        {isLoaded && (
-          <button
-            type="button"
-            className={`status-sprint${sprintRunning ? ' running' : ''}`}
-            onClick={() => setSprintOpen(true)}
-            title={t('sprint.title')}
-          >
-            <Timer size={13} strokeWidth={2} />
-            {sprintRunning || sprintBanked > 0 ? (
-              <>
-                {formatDuration(
-                  sprintTarget > 0
-                    ? Math.max(0, sprintTarget * 60 - elapsedSeconds())
-                    : elapsedSeconds()
-                )}
-                <span className="status-dim">
-                  {sprintWords().toLocaleString()} {t('shell.words')}
-                </span>
-              </>
-            ) : (
-              t('sprint.start')
-            )}
-          </button>
-        )}
-      </span>
 
       <span className="status-center-wrap">
         {isLoaded ? (
@@ -505,6 +479,30 @@ export function StatusBar(): React.JSX.Element {
       </span>
 
       <span className="status-right">
+        {isLoaded && (
+          <button
+            type="button"
+            className={`status-sprint${sprintRunning ? ' running' : ''}`}
+            onClick={() => setSprintOpen(true)}
+            title={t('sprint.title')}
+          >
+            <Timer size={13} strokeWidth={2} />
+            {sprintRunning || sprintBanked > 0 ? (
+              <>
+                {formatDuration(
+                  sprintTarget > 0
+                    ? Math.max(0, sprintTarget * 60 - elapsedSeconds())
+                    : elapsedSeconds()
+                )}
+                <span className="status-dim">
+                  {sprintWords().toLocaleString()} {t('shell.words')}
+                </span>
+              </>
+            ) : (
+              t('sprint.start')
+            )}
+          </button>
+        )}
         {overview && (overview.dailyGoalTarget > 0 || overview.projectGoalTarget > 0) && (
           <span className="status-goals">
             {overview.dailyGoalTarget > 0 && (

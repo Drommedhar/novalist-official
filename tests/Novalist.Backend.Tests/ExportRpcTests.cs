@@ -41,15 +41,6 @@ public sealed class ExportRpcTests : IDisposable
     }
 
     [Fact]
-    public void Presets_ListNamedPresets()
-    {
-        var presets = _rpc.Presets();
-        Assert.Contains(presets, p => p.Id == "default");
-        Assert.Contains(presets, p => p.Id == "shunn-manuscript" && p.DisplayName == "Shunn Manuscript Format");
-        Assert.All(presets, p => Assert.False(string.IsNullOrWhiteSpace(p.Description)));
-    }
-
-    [Fact]
     public void ExtensionFormats_EmptyByDefault_ReflectsContributions()
     {
         Assert.Empty(_rpc.ExtensionFormats());
@@ -97,9 +88,29 @@ public sealed class ExportRpcTests : IDisposable
     {
         var output = Path.Combine(_root, "shunn.docx");
         var result = await _rpc.RunAsync(
-            "Docx", output, "ExpNovel", "Tester", true, [], "shunn-manuscript", smf: true);
+            "Docx", output, "ExpNovel", "Tester", true, [], "shunn-manuscript");
         Assert.True(result.Success);
         Assert.True(result.SizeBytes > 0);
+    }
+
+    [Fact]
+    public async Task Run_CustomLayout_IsUsedRatherThanTheDefault()
+    {
+        // A layout is only worth picking if the file comes out in it. The
+        // export reads custom layouts off the open book, so one saved through
+        // the layout editor has to reach ExportOptions.
+        var presets = new ExportPresetRpc(_workspace);
+        var made = await presets.DuplicateAsync("default", "Wide margins");
+        var mine = made.Single(p => p.IsCustom) with { EbookCss = "p { color: rebeccapurple; }" };
+        await presets.SaveAsync(mine);
+
+        var output = Path.Combine(_root, "custom.epub");
+        await _rpc.RunAsync("Epub", output, "ExpNovel", "Tester", true,
+            AllChapterGuids(), mine.Id);
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(output);
+        using var css = new StreamReader(zip.GetEntry("OEBPS/styles.css")!.Open());
+        Assert.Contains("rebeccapurple", await css.ReadToEndAsync());
     }
 
     [Fact]
@@ -130,7 +141,7 @@ public sealed class ExportRpcTests : IDisposable
 
         var output = Path.Combine(_root, "selected-codex.md");
         var result = await _rpc.RunAsync(
-            "Codex", output, "ExpNovel", "Tester", true, [], null, false,
+            "Codex", output, "ExpNovel", "Tester", true, [], null,
             [$"character:{kept.Id}"],
             new Dictionary<string, string> { ["characters"] = "Charaktere" });
 
@@ -188,7 +199,7 @@ public sealed class ExportRpcTests : IDisposable
         var outPath = Path.Combine(_root, "no-cover.epub");
 
         await _rpc.RunAsync("Epub", outPath, "Titel", "Autor", true, AllChapterGuids(),
-            presetId: null, smf: false, selectedEntityKeys: null, labels: null, includeCover: false);
+            presetId: null, selectedEntityKeys: null, labels: null, includeCover: false);
 
         using var zip = System.IO.Compression.ZipFile.OpenRead(outPath);
         Assert.Null(zip.GetEntry("OEBPS/cover.png"));

@@ -42,8 +42,14 @@ The project name heads the page, with the **author** underneath (when set) and a
 
 **Click the card title to edit your project word goal.** The card shows:
 
-- Total words against the project target, with a progress bar and percentage.
+- Total words against the project target, with a progress bar and percentage. This is the whole-book goal; targets on individual acts, chapters, and scenes live in their own card below.
 - When a **deadline** is set (see below), a detail row with the **deadline** date, the **days left**, and the **words per day** you need to average to hit the target on time.
+
+### Word targets
+
+Every [word target](04-chapters-and-scenes.md#word-targets) you have set, in one place: a row per act, chapter, and scene with a progress bar and `written / target`. Click a row to change or clear that target.
+
+Targets can also be set from here rather than only from the binder — pick a chapter or act from the drop-down at the bottom of the card and press **Set target**. The card is where to look when you want to know which parts of the book have a length in mind and how they are doing against it.
 
 ### Averages
 

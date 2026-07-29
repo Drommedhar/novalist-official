@@ -16,6 +16,8 @@ interface SelectionState {
   anchorId: string | null
 
   clear: () => void
+  /** Drops the selection but keeps the clicked scene as the anchor. */
+  clearKeepingAnchor: (sceneId: string) => void
   selectOnly: (sceneId: string) => void
   toggle: (sceneId: string) => void
   extendTo: (sceneId: string, ordered: string[]) => void
@@ -29,6 +31,10 @@ export const useSelectionStore = create<SelectionState>((set, get) => ({
   anchorId: null,
 
   clear: () => set({ sceneIds: [], anchorId: null }),
+
+  /** Drops the selection but remembers where the writer just clicked, so the
+   *  next shift-click has a range to measure from. */
+  clearKeepingAnchor: (sceneId) => set({ sceneIds: [], anchorId: sceneId }),
 
   selectOnly: (sceneId) => set({ sceneIds: [sceneId], anchorId: sceneId }),
 
@@ -103,6 +109,10 @@ export function handleSceneClick(
     store.toggle(sceneId)
     return true
   }
-  store.clear()
+  // A plain click drops the selection but still sets the anchor, so the
+  // ordinary gesture - click one scene, shift-click another - selects the run
+  // between them. Clearing the anchor too left shift-click with nothing to
+  // measure from, so it could only ever select the one scene.
+  store.clearKeepingAnchor(sceneId)
   return false
 }

@@ -75,8 +75,8 @@ export function ReviewImportDialog(props: { onClose: () => void }): React.JSX.El
   const canApply = Boolean(review?.comments.length && openSceneId)
 
   return (
-    <div className="dialog-backdrop" onClick={props.onClose}>
-      <div className="dialog review-dialog" onClick={(e) => e.stopPropagation()}>
+    <div className="dialog-overlay" onClick={props.onClose}>
+      <div className="dialog-card review-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
           <h3>{t('review.title')}</h3>
           <button className="dialog-close" onClick={props.onClose} aria-label={t('dialog.close')}>

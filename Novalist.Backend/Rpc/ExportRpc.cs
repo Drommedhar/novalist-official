@@ -19,12 +19,6 @@ public sealed class ExportRpc
     public string[] Formats() => Enum.GetNames<ExportFormat>();
 
     /// <summary>Named layout presets (font/spacing/margins), e.g. Shunn Manuscript Format.</summary>
-    [JsonRpcMethod("export/presets")]
-    public ExportPresetDto[] Presets() =>
-        ExportPresets.All
-            .Select(p => new ExportPresetDto(p.Id, p.DisplayName, p.Description))
-            .ToArray();
-
     /// <summary>Export formats contributed by loaded extensions (empty when none).</summary>
     [JsonRpcMethod("export/extensionFormats")]
     public ExportExtensionFormatDto[] ExtensionFormats() =>
@@ -50,7 +44,6 @@ public sealed class ExportRpc
         bool includeTitlePage,
         string[] selectedChapterGuids,
         string? presetId = null,
-        bool smf = false,
         string[]? selectedEntityKeys = null,
         Dictionary<string, string>? labels = null,
         bool includeCover = true)
@@ -65,7 +58,9 @@ public sealed class ExportRpc
                 Author = author,
                 IncludeTitlePage = includeTitlePage,
                 PresetId = presetId,
-                SmfPreset = smf,
+                // Without these a layout the writer authored resolves to
+                // nothing and the export silently comes out in the default.
+                CustomPresets = [.. _workspace.Projects.ActiveBook?.ExportPresets ?? []],
                 SelectedChapterGuids = selectedChapterGuids.ToList(),
                 SelectedEntityKeys = selectedEntityKeys?.ToList(),
                 Labels = labels,
@@ -108,7 +103,5 @@ public sealed class ExportRpc
 }
 
 public sealed record ExportResultDto(string OutputPath, bool Success, long SizeBytes);
-
-public sealed record ExportPresetDto(string Id, string DisplayName, string Description);
 
 public sealed record ExportExtensionFormatDto(string FormatKey, string DisplayName, string FileExtension);

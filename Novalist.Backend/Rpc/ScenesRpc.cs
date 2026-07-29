@@ -93,12 +93,6 @@ public sealed class ScenesRpc
             chapterGuid, sceneId, overrides.HasValues ? overrides : null);
     }
 
-    [JsonRpcMethod("scenes/archive")]
-    public async Task ArchiveAsync(string chapterGuid, string sceneId)
-    {
-        await _workspace.Projects.ArchiveSceneAsync(chapterGuid, sceneId);
-    }
-
     [JsonRpcMethod("scenes/archived")]
     public ArchivedSceneDto[] GetArchived() =>
         _workspace.Projects.GetArchivedScenes()

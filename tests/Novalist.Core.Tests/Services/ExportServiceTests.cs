@@ -52,13 +52,9 @@ public class ExportServiceTests : IDisposable
     [Fact]
     public void ResolvePreset_PresetIdWins()
     {
-        var o = new ExportOptions { PresetId = ExportPresets.ShunnId, SmfPreset = false };
+        var o = new ExportOptions { PresetId = ExportPresets.ShunnId };
         Assert.Equal(ExportPresets.ShunnId, o.ResolvePreset().Id);
     }
-
-    [Fact]
-    public void ResolvePreset_SmfLegacy()
-        => Assert.Equal(ExportPresets.ShunnId, new ExportOptions { SmfPreset = true }.ResolvePreset().Id);
 
     [Fact]
     public void ResolvePreset_Default()

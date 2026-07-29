@@ -82,10 +82,9 @@ public sealed class ExportPresetRpc
 }
 
 /// <summary>
-/// One export layout, in full. Distinct from the summary
-/// <see cref="ExportPresetDto"/> the export dropdown uses, which carries only
-/// what a picker needs. <c>IsCustom</c> false means it is built in, and only
-/// its copy can be edited.
+/// One export layout, in full. This is what both the export dropdown and the
+/// layout editor read, so the two can never disagree about what exists.
+/// <c>IsCustom</c> false means it is built in, and only its copy can be edited.
 /// </summary>
 public sealed record ExportLayoutDto(
     string Id,

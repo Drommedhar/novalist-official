@@ -1106,7 +1106,7 @@ public sealed class EntitiesRpcTests : IDisposable
         await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, "<p>kept text</p>", "kept text");
         var scenes = new ScenesRpc(_workspace);
 
-        await scenes.ArchiveAsync(chapter.Guid, scene.Id);
+        await new SceneBulkRpc(_workspace).ArchiveAsync([scene.Id]);
         var archived = scenes.GetArchived();
         Assert.Single(archived, s => s.Title == "Doomed");
         Assert.DoesNotContain(

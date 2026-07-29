@@ -1,9 +1,8 @@
-.status-sprint-wrap {
-  display: flex;
-}
-
+/* Sits in the right-hand status group rather than as its own grid column: the
+   bar is a three-column grid and a fourth child broke the layout. */
 .status-sprint {
   align-items: center;
+  flex: none;
   background: none;
   border: 0;
   color: var(--nl-text-dim);

@@ -115,6 +115,8 @@ Once two or more scenes are selected, a bar appears at the bottom of the view wi
 - **Shift dates** — moves every selected scene's in-world date by a number of days. See below.
 - **Archive** and **Delete** — as for a single scene, and both ask first.
 
+Right-clicking one of the selected scenes acts on the whole selection too: the menu entries say how many scenes they will affect, so **Archive (3 scenes)** never quietly does more than it says. Right-clicking a scene outside the selection acts on that one scene, as it always did.
+
 Dragging one of the selected scenes in the binder carries the whole selection with it.
 
 ### Shifting dates in bulk
@@ -135,7 +137,13 @@ Archiving removes a scene from the manuscript without deleting its text — usef
 
 Novalist has always had two targets — a daily one and a whole-project one, both on the [Dashboard](11-dashboard.md). A target can now also sit on a single scene, a chapter, or an act.
 
-Set one by right-clicking the scene or chapter in the binder and choosing **Set word target**, or by typing straight into the **Target** column of the Manuscript view's [outliner](10-manuscript.md), which is the fastest way to set targets across a run of scenes. Leave it empty for no target.
+Set one from any of three places:
+
+- The **Word targets** card on the [Dashboard](11-dashboard.md#word-targets), which also lists every target you have already set.
+- Right-click the scene or chapter in the binder and choose **Set word target**. With several scenes selected, this sets the same target on all of them.
+- The **Target** column of the Manuscript view's [outliner](10-manuscript.md), the fastest way across a run of scenes, since you can tab down the column.
+
+Leave it empty, or enter 0, for no target.
 
 A scene with a target shows a small bar beside its word count in the binder, reading `written/target`. Past the target the bar stays full and turns green rather than overflowing.
 

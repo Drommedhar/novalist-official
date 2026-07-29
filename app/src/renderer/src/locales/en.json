@@ -1560,7 +1560,6 @@
     "exportFailed": "Export failed: {0}",
     "exportAction": "Export",
     "selectedOfTotal": "{{selected}} of {{total}} selected",
-    "smfToggle": "Shunn manuscript format",
     "includeCover": "Include the book cover"
   },
   "expose": {
@@ -2114,7 +2113,8 @@
     "applyShift": "Apply",
     "noDate": "no date",
     "confirmArchive": "Archive {{count}} scenes? They can be restored from the archive.",
-    "confirmDelete": "Delete {{count}} scenes? This cannot be undone."
+    "confirmDelete": "Delete {{count}} scenes? This cannot be undone.",
+    "scopeCount": "{{count}} scenes"
   },
   "spell": {
     "addToDictionary": "Add to dictionary",
@@ -2199,7 +2199,16 @@
     "progress": "{{words}} of {{target}} words",
     "setScene": "Set word target...",
     "setChapter": "Set chapter word target...",
-    "prompt": "Word target (leave empty for none)"
+    "prompt": "Word target (leave empty for none)",
+    "setAct": "Set word target for act \"{{act}}\"...",
+    "dashboardTitle": "Word targets",
+    "dashboardHint": "A word count to aim for on one scene, one chapter or a whole act. Set one here, or right-click any row in the binder.",
+    "empty": "No word targets set yet.",
+    "kindScene": "Scene",
+    "kindChapter": "Chapter",
+    "kindAct": "Act",
+    "addPlaceholder": "Choose a chapter or act",
+    "add": "Set target"
   },
   "publishing": {
     "title": "Publishing metadata",

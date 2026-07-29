@@ -6,9 +6,10 @@
 }
 
 .codex-match > summary {
-  color: var(--nl-text-dim);
+  color: var(--nl-text);
   cursor: pointer;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-body);
+  font-weight: 600;
   padding: var(--nl-space-tighter) var(--nl-space-none);
   user-select: none;
 }

@@ -102,8 +102,8 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
   const fileName = path.split(/[\\/]/).pop() ?? ''
 
   return (
-    <div className="dialog-backdrop" onClick={props.onClose}>
-      <div className="dialog import-manuscript-dialog" onClick={(e) => e.stopPropagation()}>
+    <div className="dialog-overlay" onClick={props.onClose}>
+      <div className="dialog-card import-manuscript-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="dialog-header">
           <h3>{t('manuscriptImport.title')}</h3>
           <button className="dialog-close" onClick={props.onClose} aria-label={t('dialog.close')}>

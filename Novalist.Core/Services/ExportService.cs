@@ -32,13 +32,7 @@ public class ExportOptions
     public bool IncludeTitlePage { get; set; } = true;
     public string Title { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
-    /// <summary>
-    /// Legacy boolean — Shunn manuscript format. Kept for backward compat:
-    /// when <see cref="PresetId"/> is unset, <c>SmfPreset=true</c> is treated
-    /// as <see cref="ExportPresets.ShunnId"/>.
-    /// </summary>
-    public bool SmfPreset { get; set; }
-    /// <summary>Optional preset id from <see cref="ExportPresets.All"/>.</summary>
+   /// <summary>Optional preset id from <see cref="ExportPresets.All"/>.</summary>
     public string? PresetId { get; set; }
     public List<string> SelectedChapterGuids { get; set; } = [];
 
@@ -98,7 +92,7 @@ public class ExportOptions
             if (custom != null) return custom;
             return ExportPresets.GetById(PresetId);
         }
-        return SmfPreset ? ExportPresets.GetById(ExportPresets.ShunnId) : ExportPresets.GetById(ExportPresets.DefaultId);
+        return ExportPresets.GetById(ExportPresets.DefaultId);
     }
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { BookAnalyticsCard } from './BookAnalyticsCard'
+import { TargetsCard } from './TargetsCard'
 import { InputDialog } from '../../shell/InputDialog'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
@@ -322,6 +323,9 @@ export function DashboardView(): React.JSX.Element {
           </div>
         </div>
       )}
+
+      {/* Word targets, which had no home outside the binder's context menu. */}
+      <TargetsCard />
 
       {/* Scene stages, which the chapter breakdown above cannot express: a
           chapter mid-revision holds scenes at four different stages. */}
