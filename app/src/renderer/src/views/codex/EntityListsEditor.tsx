@@ -13,8 +13,16 @@ interface SectionRow {
 interface RelationshipRow {
   role: string
   target: string
+  /**
+   * What kind of tie this is. The graph colours by it, and it was previously
+   * guessed from keywords in the role - which only ever worked in English.
+   */
+  category?: string
   inverseRole?: string
 }
+
+/** The kinds the picker offers. Blank is allowed: not every tie has a kind. */
+const TIE_KINDS = ['', 'family', 'ally', 'rival', 'member', 'owner', 'place']
 
 /** Built-in types that carry relationships. Custom types manage their own. */
 const RELATIONSHIP_TYPES = ['character', 'location', 'item', 'lore']
@@ -61,7 +69,12 @@ export function EntityListsEditor(): React.JSX.Element | null {
     void rpc
       .request<Record<string, unknown>>('entities/setRelationships', [
         selectedId,
-        next.map((r) => ({ role: r.role, target: r.target, inverseRole: r.inverseRole ?? '' }))
+        next.map((r) => ({
+          role: r.role,
+          target: r.target,
+          inverseRole: r.inverseRole ?? '',
+          category: r.category ?? ''
+        }))
       ])
       .then((updated) => useCodexStore.setState({ selectedRecord: updated }))
   }
@@ -165,6 +178,24 @@ export function EntityListsEditor(): React.JSX.Element | null {
                   onChange={(e) => patch({ target: e.target.value })}
                   onBlur={() => persistRelationships(relationships)}
                 />
+                <select
+                  className="outliner-input codex-rel-kind"
+                  aria-label={t('entityEditor.tieKind')}
+                  value={rel.category ?? ''}
+                  onChange={(e) => {
+                    const next = relationships.map((r, i) =>
+                      i === index ? { ...r, category: e.target.value } : r
+                    )
+                    setRelationships(next)
+                    persistRelationships(next)
+                  }}
+                >
+                  {TIE_KINDS.map((kind) => (
+                    <option key={kind} value={kind}>
+                      {t(`entityEditor.tieKind${kind}`)}
+                    </option>
+                  ))}
+                </select>
                 <input
                   className="outliner-input codex-rel-inverse"
                   placeholder={t('entityEditor.inverseRole')}
@@ -189,7 +220,12 @@ export function EntityListsEditor(): React.JSX.Element | null {
           })}
           <button
             className="binder-rail-item"
-            onClick={() => setRelationships([...relationships, { role: '', target: '', inverseRole: '' }])}
+            onClick={() =>
+              setRelationships([
+                ...relationships,
+                { role: '', target: '', category: '', inverseRole: '' }
+              ])
+            }
           >
             <Plus size={13} strokeWidth={2} />
             {t('entityEditor.addRelationship')}

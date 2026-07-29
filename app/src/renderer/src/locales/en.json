@@ -200,7 +200,13 @@
     ],
     "emptyHint": "No connected characters yet. Add relationships in the Codex to build the graph.",
     "familyPrefix": "Family {{name}}",
-    "openArticle": "Open {{name}}'s article"
+    "openArticle": "Open {{name}}'s article",
+    "entryKinds": "Show",
+    "kindcharacter": "Characters",
+    "kindlocation": "Locations",
+    "kinditem": "Items",
+    "kindlore": "Lore",
+    "edgeLegend": "Tie colours follow the kind each relationship is given in the Codex."
   },
   "calendar": {
     "title": "Calendar",
@@ -790,7 +796,15 @@
     "arrangeIntro": "Hide the fields this project does not use, and put the rest in the order you want to fill them in. Hiding a field keeps whatever is already written in it - it is out of the way, not gone. The name is always shown.",
     "arrangeShown": "Shown",
     "arrangeUp": "Move up",
-    "arrangeDown": "Move down"
+    "arrangeDown": "Move down",
+    "tieKind": "Kind of tie",
+    "tieKind_": "Unspecified",
+    "tieKindfamily": "Family",
+    "tieKindally": "Ally",
+    "tieKindrival": "Rival",
+    "tieKindmember": "Member of",
+    "tieKindowner": "Owner of",
+    "tieKindplace": "Place"
   },
   "context": {
     "title": "NOVALIST CONTEXT",

@@ -2374,6 +2374,29 @@
   letter-spacing: 0.06em;
 }
 
+/* Ties are coloured by kind, so a marriage and a feud are told apart at a
+   glance. An untyped tie keeps the neutral stroke rather than being guessed
+   at, which is what the old keyword matching did and only did in English. */
+.relationships-edge[data-category='family'] { stroke: var(--nl-accent); }
+.relationships-edge[data-category='ally'] { stroke: var(--nl-success); }
+.relationships-edge[data-category='rival'] { stroke: var(--nl-danger); }
+.relationships-edge[data-category='member'] { stroke: var(--nl-status-revised); }
+.relationships-edge[data-category='owner'] { stroke: var(--nl-warning); }
+.relationships-edge[data-category='place'] { stroke: var(--nl-status-edited); }
+
+/* The kind picker sits between the role and its inverse, and stays narrow. */
+.codex-rel-kind {
+  max-width: 130px;
+}
+
+.relationships-kinds {
+  align-items: center;
+  color: var(--nl-text-dim);
+  display: flex;
+  font-size: var(--nl-font-caption);
+  gap: var(--nl-space-tighter);
+}
+
 .relationships-edge {
   stroke: var(--nl-text-subtle);
   stroke-width: 1.2;

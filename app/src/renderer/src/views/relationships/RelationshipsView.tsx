@@ -21,6 +21,9 @@ const BOX_PALETTE = [
   '#b4befe'
 ]
 
+/** The entry kinds the graph can show. Characters first; it opens on them. */
+const ENTRY_KINDS = ['character', 'location', 'item', 'lore'] as const
+
 export function RelationshipsView(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
@@ -29,22 +32,32 @@ export function RelationshipsView(): React.JSX.Element {
   const [filterGroup, setFilterGroup] = useState('')
   const [filterRole, setFilterRole] = useState('')
   const [hideWorldBible, setHideWorldBible] = useState(false)
+  // Which kinds of entry are on the graph. Characters alone by default: that
+  // is what this view has always been, and a first look at a full Codex with
+  // everything on at once is unreadable.
+  const [types, setTypes] = useState<string[]>(['character'])
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const dragRef = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null)
   const movedRef = useRef(false)
   const viewportRef = useRef<HTMLDivElement>(null)
   const fitPendingRef = useRef(false)
+  const typeOf = useRef(new Map<string, string>())
   const openEntity = useCallback((id: string): void => {
     // Ignore the click that ends a pan drag; only a genuine tap opens the article.
     if (movedRef.current) return
     useShellStore.getState().setMainView('wiki')
-    void useWikiStore.getState().openArticle('character', id)
+    // A node knows what it is, so a location opens its own article rather than
+    // a character article that does not exist.
+    void useWikiStore.getState().openArticle(typeOf.current.get(id) ?? 'character', id)
   }, [])
 
   useEffect(() => {
     if (mainView !== 'relationships') return
-    void rpc.request<GraphCharacter[]>('relationships/graph').then(setCharacters)
+    void rpc.request<GraphCharacter[]>('relationships/graph').then((all) => {
+      typeOf.current = new Map(all.map((n) => [n.id, n.entityType]))
+      setCharacters(all)
+    })
   }, [mainView])
 
   const availableGroups = useMemo(
@@ -76,6 +89,7 @@ export function RelationshipsView(): React.JSX.Element {
     () =>
       characters.filter(
         (c) =>
+          types.includes(c.entityType) &&
           (!hideWorldBible || !c.isWorldBible) &&
           (filterGroup.length === 0 || c.group.toLowerCase() === filterGroup.toLowerCase()) &&
           (filterRole.length === 0 || c.role.toLowerCase() === filterRole.toLowerCase()) &&
@@ -83,7 +97,7 @@ export function RelationshipsView(): React.JSX.Element {
             c.displayName.toLowerCase().includes(search.toLowerCase()) ||
             c.name.toLowerCase().includes(search.toLowerCase()))
       ),
-    [characters, search, filterGroup, filterRole, hideWorldBible]
+    [characters, search, filterGroup, filterRole, hideWorldBible, types]
   )
 
   const layout = useMemo(() => layoutGraph(filtered), [filtered])
@@ -175,6 +189,23 @@ export function RelationshipsView(): React.JSX.Element {
             </option>
           ))}
         </select>
+        <span className="relationships-kinds">
+          {t('relationships.entryKinds')}
+          {ENTRY_KINDS.map((kind) => (
+            <label key={kind} className="relationships-toggle">
+              <input
+                type="checkbox"
+                checked={types.includes(kind)}
+                onChange={(e) =>
+                  setTypes(
+                    e.target.checked ? [...types, kind] : types.filter((k) => k !== kind)
+                  )
+                }
+              />
+              {t(`relationships.kind${kind}`)}
+            </label>
+          ))}
+        </span>
         <label className="relationships-toggle">
           <input
             type="checkbox"
@@ -273,6 +304,7 @@ export function RelationshipsView(): React.JSX.Element {
                   x2={edge.x2}
                   y2={edge.y2}
                   className="relationships-edge"
+                  data-category={edge.category || undefined}
                 />
                 {edge.label && (
                   <text x={edge.labelX} y={edge.labelY} className="relationships-edgelabel">

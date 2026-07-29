@@ -1395,4 +1395,63 @@ public sealed class EntitiesRpcTests : IDisposable
         Assert.True((await _rpc.ListAsync("location")).Single().Match!.CaseSensitive);
         Assert.Contains("Churches", (await _rpc.ListAsync("faction")).Single().Match!.Plurals);
     }
+
+    [Fact]
+    public async Task TheGraphHoldsEveryKindOfEntryNotOnlyCharacters()
+    {
+        await Entities.SaveCharacterAsync(new CharacterData { Id = "mira", Name = "Mira" });
+        await Entities.SaveLocationAsync(new LocationData { Id = "ashport", Name = "Ashport" });
+        await Entities.SaveItemAsync(new ItemData { Id = "rope", Name = "The Rope" });
+        await Entities.SaveLoreAsync(new LoreData { Id = "rite", Name = "The Rite" });
+
+        var graph = await new RelationshipsRpc(_workspace).GetGraphAsync();
+
+        Assert.Equal(
+            ["character", "item", "location", "lore"],
+            graph.Select(n => n.EntityType).OrderBy(t => t, StringComparer.Ordinal));
+    }
+
+    [Fact]
+    public async Task ACustomEntryKindIsOnTheGraphToo()
+    {
+        await Entities.SaveCustomEntityTypeAsync(new CustomEntityTypeDefinition
+        {
+            TypeKey = "faction",
+            DisplayName = "Factions"
+        });
+        await Entities.SaveCustomEntityAsync(new CustomEntityData
+        {
+            Id = "guild", Name = "The Guild", EntityTypeKey = "faction"
+        });
+
+        var graph = await new RelationshipsRpc(_workspace).GetGraphAsync();
+
+        var guild = Assert.Single(graph, n => n.Id == "guild");
+        Assert.Equal("faction", guild.EntityType);
+        // Its group is the type's display name, which is what a node label
+        // needs when the kind is one the writer invented.
+        Assert.Equal("Factions", guild.Group);
+    }
+
+    [Fact]
+    public async Task ATieCarriesTheKindItWasGiven()
+    {
+        await Entities.SaveCharacterAsync(new CharacterData
+        {
+            Id = "mira",
+            Name = "Mira",
+            Relationships =
+            [
+                new EntityRelationship { Role = "sister", Target = "Halden", Category = "family" },
+                // Written before edges could be typed: no kind, and none guessed.
+                new EntityRelationship { Role = "knows", Target = "Ashport" }
+            ]
+        });
+
+        var mira = (await new RelationshipsRpc(_workspace).GetGraphAsync())
+            .Single(n => n.Id == "mira");
+
+        Assert.Equal("family", mira.Relationships[0].Category);
+        Assert.Equal(string.Empty, mira.Relationships[1].Category);
+    }
 }

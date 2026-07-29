@@ -706,7 +706,12 @@ public sealed class EntitiesRpc
 
         character.Relationships = rows
             .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
-            .Select(r => new EntityRelationship { Role = r.Role.Trim(), Target = r.Target.Trim() })
+            .Select(r => new EntityRelationship
+            {
+                Role = r.Role.Trim(),
+                Target = r.Target.Trim(),
+                Category = (r.Category ?? string.Empty).Trim()
+            })
             .ToList();
         await _entities.SaveCharacterAsync(character);
 
@@ -1880,7 +1885,10 @@ public sealed record EntityImageDto(string Name, string Path);
 
 public sealed record RelationshipRowDto(string Role, string Target);
 
-public sealed record RelationshipEditRowDto(string Role, string Target, string? InverseRole);
+public sealed record RelationshipEditRowDto(
+    string Role, string Target, string? InverseRole,
+    /// <summary>What kind of tie it is, for the graph's colour. May be empty.</summary>
+    string? Category = null);
 
 public sealed record RelationshipSuggestionsDto(
     IReadOnlyList<string> CharacterNames,

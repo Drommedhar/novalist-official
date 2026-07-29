@@ -235,7 +235,13 @@
     ],
     "emptyHint": "暂无关联角色。在百科中添加人物关系以生成关系图。",
     "familyPrefix": "{{name}}家族",
-    "openArticle": "打开 {{name}} 的条目"
+    "openArticle": "打开 {{name}} 的条目",
+    "entryKinds": "显示",
+    "kindcharacter": "人物",
+    "kindlocation": "地点",
+    "kinditem": "物品",
+    "kindlore": "设定",
+    "edgeLegend": "连线颜色取决于在设定集中为该关系选定的类型。"
   },
   "calendar": {
     "title": "日历",
@@ -825,7 +831,15 @@
     "arrangeIntro": "隐藏本项目不用的字段，并按您填写的顺序排列其余字段。隐藏不会删除已写内容 — 只是不再挡路。名称始终显示。",
     "arrangeShown": "显示",
     "arrangeUp": "上移",
-    "arrangeDown": "下移"
+    "arrangeDown": "下移",
+    "tieKind": "关系类型",
+    "tieKind_": "未指定",
+    "tieKindfamily": "家人",
+    "tieKindally": "盟友",
+    "tieKindrival": "对手",
+    "tieKindmember": "隔属于",
+    "tieKindowner": "拥有",
+    "tieKindplace": "地点"
   },
   "context": {
     "title": "NOVALIST 上下文",

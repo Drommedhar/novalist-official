@@ -8,7 +8,9 @@ export interface GraphCharacter {
   group: string
   role: string
   isWorldBible: boolean
-  relationships: { role: string; target: string }[]
+  relationships: { role: string; target: string; category: string }[]
+  /** character, location, item, lore, or a custom type key. */
+  entityType: string
 }
 
 export interface LayoutNode {
@@ -31,6 +33,12 @@ export interface LayoutEdge {
   label: string
   labelX: number
   labelY: number
+  /**
+   * What kind of tie this is, for colour. Empty on the genealogy connectors,
+   * which are structure rather than a relationship anyone wrote, and on ties
+   * written before edges could be typed.
+   */
+  category: string
 }
 
 export interface LayoutBox {
@@ -143,13 +151,16 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
     from: GraphCharacter
     to: GraphCharacter
     role: string
+    /** What kind of tie it is, for colour; empty when it was never typed. */
+    category: string
   }
   const edges: Edge[] = []
   for (const c of characters) {
     for (const rel of c.relationships) {
       for (const targetName of rel.target.split(',')) {
         const target = byName.get(targetName.trim().toLowerCase())
-        if (target && target.id !== c.id) edges.push({ from: c, to: target, role: rel.role })
+        if (target && target.id !== c.id)
+          edges.push({ from: c, to: target, role: rel.role, category: rel.category ?? '' })
       }
     }
   }
@@ -516,7 +527,7 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
     const kidsMinX = Math.min(...presentKids.map((k) => positions.get(k)!.x))
     const kidsMaxX = Math.max(...presentKids.map((k) => positions.get(k)!.x))
     const seg = (x1: number, y1: number, x2: number, y2: number): void => {
-      layoutEdges.push({ x1, y1, x2, y2, label: '', labelX: 0, labelY: 0 })
+      layoutEdges.push({ x1, y1, x2, y2, label: '', labelX: 0, labelY: 0, category: '' })
     }
     seg(parentMidX, parentBottomY, parentMidX, midY) // drop from couple midpoint
     seg(Math.min(parentMidX, kidsMinX), midY, Math.max(parentMidX, kidsMaxX), midY) // bar
@@ -525,7 +536,10 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
 
   // Suppress in-family parent/child/partner/sibling edges (implied by the T-tree
   // and family box); merge the rest by unordered pair into one labeled line.
-  const merged = new Map<string, { from: string; to: string; roles: string[] }>()
+  const merged = new Map<
+    string,
+    { from: string; to: string; roles: string[]; category: string }
+  >()
   for (const e of edges) {
     if (!positions.has(e.from.id) || !positions.has(e.to.id)) continue
     const sameFamily =
@@ -535,12 +549,15 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
     if (clusteredPairs.has(key)) continue // already drawn as a role-group box
     let entry = merged.get(key)
     if (!entry) {
-      entry = { from: e.from.id, to: e.to.id, roles: [] }
+      entry = { from: e.from.id, to: e.to.id, roles: [], category: e.category }
       merged.set(key, entry)
     }
+    // Two people can be tied in more than one way; the first typed one colours
+    // the line, because a line cannot be two colours and the label lists both.
+    if (entry.category.length === 0) entry.category = e.category
     if (!entry.roles.some((r) => r.toLowerCase() === e.role.toLowerCase())) entry.roles.push(e.role)
   }
-  for (const { from, to, roles } of merged.values()) {
+  for (const { from, to, roles, category } of merged.values()) {
     const a = positions.get(from)!
     const b = positions.get(to)!
     layoutEdges.push({
@@ -550,7 +567,8 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
       y2: b.y,
       label: roles.join(' / '),
       labelX: (a.x + b.x) / 2,
-      labelY: (a.y + b.y) / 2 - 4
+      labelY: (a.y + b.y) / 2 - 4,
+      category
     })
   }
 

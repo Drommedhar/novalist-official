@@ -75,6 +75,17 @@ public class EntityRelationship
 
     [JsonPropertyName("target")]
     public string Target { get; set; } = string.Empty;
+
+    /// <summary>
+    /// What kind of tie this is - family, ally, rival, member, owner, place -
+    /// so a graph can colour it and a reader can tell a marriage from a feud
+    /// at a glance. Free text with a suggested set rather than an enum: the
+    /// ties a book needs are the book's, and family was previously guessed
+    /// from keywords in the role, which only worked in English.
+    /// </summary>
+    [JsonPropertyName("category")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string Category { get; set; } = string.Empty;
 }
 
 public enum EntityType

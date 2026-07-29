@@ -47,6 +47,18 @@ Return to the Relationships view and the graph updates.
 - **Use ALL CAPS for high-signal roles.** A directed "OWES MONEY TO" edge reads at a glance.
 - **For very large casts, search.** Filtering to a name and its connections is more useful than zooming out over a hundred nodes.
 
+## What the graph shows
+
+**Show** in the toolbar picks which kinds of entry are on the graph: **Characters** (on by default, which is what this view has always been), **Locations**, **Items** and **Lore**. Turning them all on at once in a full Codex is unreadable, which is why it opens on characters alone — but "who holds this city" and "who has the sword" are the same question about a different kind of node, and now they can be asked.
+
+Clicking a node opens that entry's own Wiki article, whatever kind it is.
+
+## Kinds of tie
+
+Each relationship in the Codex has a **kind of tie**: family, ally, rival, member of, owner of, place, or unspecified. The graph colours the line by it, so a marriage and a feud are told apart at a glance.
+
+A tie with no kind draws in the neutral colour. Novalist used to guess "family" from keywords in the role text, which only ever worked in English — an unstated kind is now left unstated rather than guessed at. Setting the kind on the ties you care about is a minute's work and is the only thing that colours them.
+
 ## Where to go next
 
 - [Codex](06-codex.md) — where character relationships are edited.

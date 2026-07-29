@@ -691,7 +691,15 @@
     "arrangeIntro": "Blenden Sie Felder aus, die dieses Projekt nicht nutzt, und bringen Sie den Rest in die Reihenfolge, in der Sie ihn ausfüllen. Ausblenden löscht nichts – das Feld ist nur nicht im Weg. Der Name wird immer gezeigt.",
     "arrangeShown": "Sichtbar",
     "arrangeUp": "Nach oben",
-    "arrangeDown": "Nach unten"
+    "arrangeDown": "Nach unten",
+    "tieKind": "Art der Verbindung",
+    "tieKind_": "Nicht angegeben",
+    "tieKindfamily": "Familie",
+    "tieKindally": "Verbündet",
+    "tieKindrival": "Rivale",
+    "tieKindmember": "Mitglied von",
+    "tieKindowner": "Besitzer von",
+    "tieKindplace": "Ort"
   },
   "context": {
     "title": "NOVALIST KONTEXT",
@@ -1058,7 +1066,13 @@
     ],
     "emptyHint": "Noch keine verbundenen Figuren. Füge im Codex Beziehungen hinzu, um den Graphen aufzubauen.",
     "familyPrefix": "Familie {{name}}",
-    "openArticle": "Artikel zu {{name}} öffnen"
+    "openArticle": "Artikel zu {{name}} öffnen",
+    "entryKinds": "Anzeigen",
+    "kindcharacter": "Figuren",
+    "kindlocation": "Orte",
+    "kinditem": "Gegenstände",
+    "kindlore": "Wissen",
+    "edgeLegend": "Die Farbe einer Verbindung folgt der Art, die im Kodex dafür gewählt wurde."
   },
   "calendar": {
     "title": "Kalender",
