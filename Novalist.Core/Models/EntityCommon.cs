@@ -42,6 +42,14 @@ public class EntitySection
 
     [JsonPropertyName("content")]
     public string Content { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Withhold this section from anything sent to an AI model, while the rest
+    /// of the entry still goes. This is how a writer keeps one twist out of the
+    /// model's context without hiding the character it belongs to.
+    /// </summary>
+    [JsonPropertyName("aiHidden")]
+    public bool AiHidden { get; set; }
 }
 
 public class EntityRelationship
@@ -72,6 +80,31 @@ public interface IEntityData
 
     /// <summary>How this entry's name is matched in prose. Never null.</summary>
     EntityMatchSettings Match { get; set; }
+
+    /// <summary>Whether this entry may be sent to an AI model, and when.</summary>
+    AiInclusion Ai { get; set; }
+}
+
+/// <summary>
+/// When a Codex entry is allowed into what an extension sends to an AI model.
+///
+/// The writer owns this, not the extension: a spoiler they have not written yet
+/// should not reach a model because some extension decided the entry was
+/// relevant. <see cref="WhenMentioned"/> is the default and reproduces what
+/// Novalist always did.
+/// </summary>
+public enum AiInclusion
+{
+    /// <summary>Sent when the scene actually mentions the entry. The default.</summary>
+    WhenMentioned = 0,
+
+    /// <summary>Always sent, mentioned or not. For the things a model needs to
+    /// know about the world in every scene.</summary>
+    Always = 1,
+
+    /// <summary>Never sent, however relevant it looks. For unrevealed twists,
+    /// and for anything the writer simply does not want a model to see.</summary>
+    Never = 2
 }
 
 /// <summary>

@@ -136,6 +136,20 @@ There are two shapes of provider, and the difference matters for what you have t
 
 A finding that names something your Codex does not contain yet — a person, place, item or piece of lore the prose introduced — carries an **Add to Codex** button. It creates the entry with the finding's description and disappears once the entry exists, so you can act on a suggestion where you read it instead of retyping it in the Codex. Entries land under the type the analysis identified, falling back to Lore when it is unsure.
 
+### Controlling what AI sees of your Codex
+
+Every Codex entry decides for itself whether an AI extension may see it, under **What AI may see of this entry** in the [Codex](06-codex.md) detail pane:
+
+- **When a scene mentions it** — the default, and what Novalist always did. The entry goes along when the scene names it.
+- **Always** — sent with every scene, mentioned or not. For the handful of things a model needs to know about your world constantly.
+- **Never** — kept out of anything sent to a model, however relevant it looks. For an unrevealed twist, or for anything you simply do not want a model to see.
+
+Below that, any of the entry's **sections** can be withheld individually. That is how one secret stays hidden while the character it belongs to still reaches the model — mark the section that says who the killer is, and the rest of the profile goes as normal.
+
+Novalist enforces this itself rather than trusting each extension to. The host computes the allowed set and hands an extension only that, with withheld sections already removed, so an extension has to go out of its way to see something you excluded. Set an entry to Never and it stays out.
+
+The setting only affects what is *sent to a model*. Everything is still fully visible to you in the Codex, in exports, and in search.
+
 ### Scene analysis and character knowledge
 
 Each scene is analysed **once**, producing a record under `.novalist/analysis/<sceneId>.json` that holds the entities the scene involves (each marked as physically present or only mentioned), what every present character observed, learned, said and now wants, and any findings. Story Analysis, character knowledge, and the focus peek all read that same record, so whichever feature reaches a scene first pays for it and the others get it free. A scene whose text has not changed is never re-analysed.

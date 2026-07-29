@@ -568,6 +568,70 @@ public sealed class HostServices : IHostServices, IExtensionFileService, IExtens
         }
     }
 
+    /// <summary>
+    /// The entries this scene may put in front of a model. The host resolves
+    /// which entries the scene mentions and applies the writer's inclusion
+    /// setting, so an extension cannot leak an entry marked "never" by
+    /// assembling context from the raw lists instead.
+    /// </summary>
+    async Task<IReadOnlyList<Sdk.Services.AiContextEntryInfo>>
+        IExtensionEntityService.GetAiContextAsync(string chapterGuid, string sceneId)
+    {
+        var chapter = _projectService.GetChaptersOrdered()
+            .FirstOrDefault(c => c.Guid == chapterGuid);
+        var scene = chapter == null
+            ? null
+            : _projectService.GetScenesForChapter(chapterGuid).FirstOrDefault(s => s.Id == sceneId);
+        if (chapter == null || scene == null) return [];
+
+        var html = await _projectService.ReadSceneContentAsync(chapter, scene);
+        var prose = Core.Utilities.TextDiff.StripHtml(html);
+
+        var characters = await _entityService.LoadCharactersAsync();
+        var locations = await _entityService.LoadLocationsAsync();
+        var items = await _entityService.LoadItemsAsync();
+        var lore = await _entityService.LoadLoreAsync();
+
+        var all = new List<Core.Services.AiContextEntry>();
+        all.AddRange(characters.Select(c => new Core.Services.AiContextEntry(
+            c.Id, "character", EntityResolveIndex.Compose(c.Name, c.Surname), c.Ai, c.Sections)));
+        all.AddRange(locations.Select(l => new Core.Services.AiContextEntry(
+            l.Id, "location", l.Name, l.Ai, l.Sections)));
+        all.AddRange(items.Select(i => new Core.Services.AiContextEntry(
+            i.Id, "item", i.Name, i.Ai, i.Sections)));
+        all.AddRange(lore.Select(lo => new Core.Services.AiContextEntry(
+            lo.Id, "lore", lo.Name, lo.Ai, lo.Sections)));
+        foreach (var type in _entityService.GetCustomEntityTypes())
+        {
+            var entities = await _entityService.LoadCustomEntitiesAsync(type.TypeKey);
+            all.AddRange(entities.Select(ce => new Core.Services.AiContextEntry(
+                ce.Id, type.TypeKey, ce.Name, ce.Ai, ce.Sections)));
+        }
+
+        // "Mentioned" is a plain name match against the scene's prose. It is
+        // deliberately generous: a near-miss that includes one extra entry is a
+        // better failure than one that withholds context the model needed.
+        var mentioned = all
+            .Where(e => e.Name.Length > 0
+                        && prose.Contains(e.Name, StringComparison.OrdinalIgnoreCase))
+            .Select(e => e.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+        return [.. Core.Services.AiContextPolicy.Allowed(all, mentioned)
+            .Select(e => new Sdk.Services.AiContextEntryInfo
+            {
+                Id = e.Id,
+                TypeKey = e.TypeKey,
+                Name = e.Name,
+                Inclusion = e.Inclusion.ToString(),
+                Sections = [.. e.Sections.Select(sec => new Sdk.Services.AiContextSectionInfo
+                {
+                    Title = sec.Title,
+                    Content = sec.Content
+                })]
+            })];
+    }
+
     void IExtensionEntityService.RequestEntityRefresh()
     {
         EntityRefreshRequested?.Invoke();

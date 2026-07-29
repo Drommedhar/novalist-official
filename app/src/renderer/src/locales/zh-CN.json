@@ -2203,5 +2203,18 @@
     "right": "右对齐",
     "justify": "两端对齐",
     "pageView": "页面视图"
+  },
+  "aiPolicy": {
+    "title": "AI 可以看到该条目的哪些内容",
+    "inclusion": "将该条目发送给 AI 模型",
+    "WhenMentioned": "当场景提到它时",
+    "WhenMentionedDesc": "默认选项。场景提到时随之发送，否则不发送。",
+    "Always": "总是",
+    "AlwaysDesc": "每个场景都发送，无论是否提到。适用于模型需要始终了解的少数世界设定。",
+    "Never": "从不",
+    "NeverDesc": "无论看上去多相关，都不会发送给模型。适用于尚未揭晓的转折，或任何您不希望模型看到的内容。",
+    "sections": "要保留的章节",
+    "sectionsDesc": "勾选某个章节即可将其保留，而条目的其余部分仍会发送。这样可以隐藏一个秘密，而无需隐藏它所属的人物。",
+    "untitledSection": "无标题章节"
   }
 }

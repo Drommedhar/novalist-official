@@ -14,6 +14,10 @@ public class LoreData : IEntityData
     [JsonPropertyName("match")]
     public EntityMatchSettings Match { get; set; } = new();
 
+    /// <summary>Whether this entry may be sent to an AI model, and when.</summary>
+    [JsonPropertyName("ai")]
+    public AiInclusion Ai { get; set; } = AiInclusion.WhenMentioned;
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 

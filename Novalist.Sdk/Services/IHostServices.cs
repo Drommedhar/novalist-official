@@ -80,6 +80,22 @@ public interface IExtensionEntityService
     /// </summary>
     Task<string?> CreateEntityAsync(string typeKey, string name, string description = "");
 
+    /// <summary>
+    /// The Codex entries this scene is allowed to put in front of an AI model,
+    /// with withheld sections already removed.
+    ///
+    /// Use this rather than the Load* methods when assembling model context.
+    /// Those return everything, because the Codex has to show everything; this
+    /// applies the writer's per-entry inclusion setting and their per-section
+    /// withholding, which the extension has no way to reconstruct on its own.
+    /// A writer who marks an entry "never" means it, and an extension that
+    /// assembles context from the raw lists breaks that promise.
+    /// </summary>
+    /// <param name="chapterGuid">Chapter of the scene the context is for.</param>
+    /// <param name="sceneId">Scene the context is for. Entries the scene does
+    /// not mention are included only when set to always.</param>
+    Task<IReadOnlyList<AiContextEntryInfo>> GetAiContextAsync(string chapterGuid, string sceneId);
+
     /// <summary>Notifies the host that entities have changed and the UI should refresh.</summary>
     void RequestEntityRefresh();
 
@@ -303,6 +319,33 @@ public sealed class SceneInfo
     public string ChapterGuid { get; init; } = string.Empty;
     public string ChapterTitle { get; init; } = string.Empty;
     public int WordCount { get; init; }
+}
+
+/// <summary>
+/// A Codex entry cleared for an AI model. Its sections are already stripped of
+/// anything the writer withheld, so nothing here needs filtering again.
+/// </summary>
+public sealed class AiContextEntryInfo
+{
+    public string Id { get; init; } = string.Empty;
+
+    /// <summary>"character", "location", "item", "lore", or a custom type key.</summary>
+    public string TypeKey { get; init; } = string.Empty;
+
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>Why this entry is here: "Always" for one the writer pinned into
+    /// every scene, "WhenMentioned" for one this scene names.</summary>
+    public string Inclusion { get; init; } = string.Empty;
+
+    public IReadOnlyList<AiContextSectionInfo> Sections { get; init; } = [];
+}
+
+/// <summary>A section of an entry that the writer allowed through.</summary>
+public sealed class AiContextSectionInfo
+{
+    public string Title { get; init; } = string.Empty;
+    public string Content { get; init; } = string.Empty;
 }
 
 /// <summary>Lightweight character info for read-only access.</summary>

@@ -2169,5 +2169,18 @@
     "right": "Rechtsbündig",
     "justify": "Blocksatz",
     "pageView": "Seitenansicht"
+  },
+  "aiPolicy": {
+    "title": "Was die KI von diesem Eintrag sehen darf",
+    "inclusion": "Diesen Eintrag an ein KI-Modell senden",
+    "WhenMentioned": "Wenn eine Szene ihn erwähnt",
+    "WhenMentionedDesc": "Die Voreinstellung. Der Eintrag geht mit, wenn die Szene ihn nennt, und sonst nicht.",
+    "Always": "Immer",
+    "AlwaysDesc": "Wird mit jeder Szene gesendet, ob erwähnt oder nicht. Für die wenigen Dinge, die ein Modell ständig über Ihre Welt wissen muss.",
+    "Never": "Nie",
+    "NeverDesc": "Bleibt aus allem heraus, was an ein Modell geht, wie passend es auch wirkt. Für eine noch nicht enthüllte Wendung — oder für alles, was ein Modell schlicht nicht sehen soll.",
+    "sections": "Zurückzuhaltende Abschnitte",
+    "sectionsDesc": "Häkchen setzen, um einen Abschnitt zurückzuhalten, während der Rest des Eintrags mitgeht. So bleibt ein Geheimnis verborgen, ohne die Figur zu verbergen, zu der es gehört.",
+    "untitledSection": "Abschnitt ohne Titel"
   }
 }

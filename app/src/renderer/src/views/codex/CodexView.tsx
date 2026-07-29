@@ -16,6 +16,7 @@ import {
 import { EntityImages } from './EntityImages'
 import { CustomPropsEditor } from './CustomPropsEditor'
 import { MatchSettingsEditor } from './MatchSettingsEditor'
+import { AiPolicyEditor } from './AiPolicyEditor'
 import { OverridesEditor } from './OverridesEditor'
 import { CodexNav } from './CodexNav'
 import { EntityDetailFields } from './EntityDetailFields'
@@ -219,6 +220,14 @@ export function CodexView(): React.JSX.Element {
                 <details className="codex-match">
                   <summary>{t('match.title')}</summary>
                   <MatchSettingsEditor entityType={entityType} entityId={selectedId} />
+                </details>
+              )}
+              {/* What an AI extension may see of this entry. Collapsed by
+                  default; the default policy is what Novalist always did. */}
+              {selectedId && (
+                <details className="codex-match">
+                  <summary>{t('aiPolicy.title')}</summary>
+                  <AiPolicyEditor entityType={entityType} entityId={selectedId} />
                 </details>
               )}
               <OverridesEditor />

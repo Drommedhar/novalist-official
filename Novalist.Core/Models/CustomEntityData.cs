@@ -18,6 +18,10 @@ public class CustomEntityData : IEntityData
     [JsonPropertyName("match")]
     public EntityMatchSettings Match { get; set; } = new();
 
+    /// <summary>Whether this entry may be sent to an AI model, and when.</summary>
+    [JsonPropertyName("ai")]
+    public AiInclusion Ai { get; set; } = AiInclusion.WhenMentioned;
+
     /// <summary>
     /// The type key that identifies which custom entity type this belongs to (e.g. "faction").
     /// </summary>

@@ -510,6 +510,59 @@ public sealed class EntitiesRpc
     /// relationship on that target and learns the role pair (ported from
     /// EntityEditorViewModel.SyncInverseRelationshipsAsync).
     /// </summary>
+    /// <summary>
+    /// Whether this entry may reach an AI model, and which of its sections are
+    /// withheld. Read by the Codex panel; enforced for extensions by
+    /// <see cref="Core.Services.AiContextPolicy"/>.
+    /// </summary>
+    [JsonRpcMethod("entities/getAiPolicy")]
+    public async Task<AiPolicyDto> GetAiPolicyAsync(string type, string id)
+    {
+        var entity = await FindEntityAsync(type, id);
+        return new AiPolicyDto(
+            (entity?.Ai ?? Core.Models.AiInclusion.WhenMentioned).ToString(),
+            [.. SectionsOf(entity).Select((sec, index) =>
+                new AiSectionDto(index, sec.Title, sec.AiHidden))]);
+    }
+
+    /// <summary>
+    /// Sets the entry's inclusion, and which sections are withheld by index.
+    /// Indices that no longer name a section are ignored rather than throwing:
+    /// the panel's view of the sections can be one edit behind.
+    /// </summary>
+    [JsonRpcMethod("entities/setAiPolicy")]
+    public async Task<AiPolicyDto> SetAiPolicyAsync(string type, string id, string inclusion, int[] hiddenSections)
+    {
+        var entity = await FindEntityAsync(type, id) ?? throw Unknown(id);
+
+        entity.Ai = Enum.TryParse<Core.Models.AiInclusion>(inclusion, ignoreCase: true, out var parsed)
+            ? parsed
+            // An unknown value falls back to the default rather than to Never:
+            // silently hiding an entry the writer expects the model to see is
+            // the more surprising failure of the two.
+            : Core.Models.AiInclusion.WhenMentioned;
+
+        var hidden = (hiddenSections ?? []).ToHashSet();
+        var sections = SectionsOf(entity);
+        for (var i = 0; i < sections.Count; i++) sections[i].AiHidden = hidden.Contains(i);
+
+        await SaveEntityAsync(entity);
+        return await GetAiPolicyAsync(type, id);
+    }
+
+    /// <summary>The entry's rich-text sections, or none for a type that has
+    /// no section support.</summary>
+    private static List<Core.Models.EntitySection> SectionsOf(Core.Models.IEntityData? entity)
+        => entity switch
+        {
+            CharacterData c => c.Sections,
+            LocationData l => l.Sections,
+            ItemData i => i.Sections,
+            LoreData lo => lo.Sections,
+            CustomEntityData ce => ce.Sections,
+            _ => []
+        };
+
     /// <summary>How an entry's name is recognised in prose.</summary>
     [JsonRpcMethod("entities/getMatchSettings")]
     public async Task<MatchSettingsDto> GetMatchSettingsAsync(string type, string id)
@@ -1773,6 +1826,14 @@ public sealed record EntitySummaryDto(
 /// <summary>How this entry's name is recognised in prose. Rides along with the
 /// summary so the editor can apply the rules without a second round trip per
 /// entity. Null when the entry uses the defaults, which is the common case.</summary>
+/// <summary>An entry's AI-inclusion setting plus which of its sections are
+/// withheld from a model.</summary>
+public sealed record AiPolicyDto(string Inclusion, AiSectionDto[] Sections);
+
+/// <summary>One section of an entry, and whether it is withheld. The index is
+/// its position in the entry's section list, which is what the setter takes.</summary>
+public sealed record AiSectionDto(int Index, string Title, bool Hidden);
+
 public sealed record EntityMatchDto(
     bool CaseSensitive,
     bool MatchPlurals,

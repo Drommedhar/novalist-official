@@ -2161,5 +2161,18 @@
     "right": "Align right",
     "justify": "Justify",
     "pageView": "Page view"
+  },
+  "aiPolicy": {
+    "title": "What AI may see of this entry",
+    "inclusion": "Send this entry to an AI model",
+    "WhenMentioned": "When a scene mentions it",
+    "WhenMentionedDesc": "The default. The entry goes along when the scene names it, and stays out otherwise.",
+    "Always": "Always",
+    "AlwaysDesc": "Sent with every scene, mentioned or not. For the handful of things a model needs to know about your world constantly.",
+    "Never": "Never",
+    "NeverDesc": "Kept out of anything sent to a model, however relevant it looks. For an unrevealed twist, or for anything you simply do not want a model to see.",
+    "sections": "Sections to withhold",
+    "sectionsDesc": "Tick a section to keep it back while the rest of the entry still goes. This is how one secret stays hidden without hiding the character it belongs to.",
+    "untitledSection": "Untitled section"
   }
 }

@@ -109,6 +109,12 @@ By default Novalist recognises an entry's name, a character's bare first name, a
 
 An entry silenced in one scene comes back in the next. None of these settings change your prose — they only decide when Novalist offers you the entry.
 
+## What AI may see of an entry
+
+If you use an AI extension, each entry decides what of itself may reach a model, under **What AI may see of this entry** in the detail pane. The default is what Novalist always did — the entry goes along when a scene mentions it. **Always** pins it into every scene; **Never** keeps it out entirely, however relevant it looks.
+
+Individual **sections** can be withheld on their own, so the section naming the killer stays back while the rest of the character's profile still goes. Novalist enforces this in the host rather than trusting each extension, and it only affects what is sent to a model — everything stays fully visible to you here, in exports, and in search. See [Extensions](24-extensions.md#controlling-what-ai-sees-of-your-codex).
+
 ## Chapter overrides (characters)
 
 A character can restate its identity or appearance for a specific chapter — optionally a single scene within it. Example uses:
