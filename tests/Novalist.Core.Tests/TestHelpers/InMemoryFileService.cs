@@ -23,19 +23,50 @@ public sealed class InMemoryFileService : IFileService
     }
 
     public Task<bool> ExistsAsync(string path) => Task.FromResult(Files.ContainsKey(path));
-    public Task<bool> DirectoryExistsAsync(string path) => Task.FromResult(Dirs.Contains(path));
+    public Task<bool> DirectoryExistsAsync(string path)
+        => Task.FromResult(Dirs.Any(d => Same(d, path)));
 
+    /// <summary>
+    /// Adds the directory and every ancestor, because Directory.CreateDirectory
+    /// does - and a service that asks whether the parent exists would otherwise
+    /// be told no on a tree it just created.
+    ///
+    /// Ancestors are derived with GetDirectoryName, which normalises separators;
+    /// the path as given is added too, so a caller that built it with a forward
+    /// slash still finds it.
+    /// </summary>
     public Task CreateDirectoryAsync(string path)
     {
         Dirs.Add(path);
+        for (var dir = GetDirectoryName(path); !string.IsNullOrEmpty(dir); dir = GetDirectoryName(dir))
+        {
+            if (!Dirs.Add(dir)) break;
+        }
         return Task.CompletedTask;
     }
 
     public Task<IReadOnlyList<string>> GetFilesAsync(string directory, string pattern = "*", bool recursive = false)
         => Task.FromResult<IReadOnlyList<string>>(Files.Keys.Where(k => k.StartsWith(directory, StringComparison.OrdinalIgnoreCase)).ToList());
 
+    /// <summary>
+    /// Immediate children only, and never the directory itself - which is what
+    /// Directory.GetDirectories returns, and what a caller walking a folder of
+    /// per-scene subfolders depends on.
+    /// </summary>
     public Task<IReadOnlyList<string>> GetDirectoriesAsync(string directory)
-        => Task.FromResult<IReadOnlyList<string>>(Dirs.Where(d => d.StartsWith(directory, StringComparison.OrdinalIgnoreCase)).ToList());
+        => Task.FromResult<IReadOnlyList<string>>(
+            Dirs.Where(d => Same(GetDirectoryName(d), directory)).ToList());
+
+    /// <summary>
+    /// Two paths naming the same place. Windows accepts either separator, and a
+    /// test that writes "/draft" while the code under test derives "\draft"
+    /// through GetDirectoryName is describing one directory, not two.
+    /// </summary>
+    private static bool Same(string a, string b)
+        => Canonical(a).Equals(Canonical(b), StringComparison.OrdinalIgnoreCase);
+
+    private static string Canonical(string path)
+        => path.Replace('/', Path.DirectorySeparatorChar).TrimEnd(Path.DirectorySeparatorChar);
 
     public Task DeleteFileAsync(string path)
     {
@@ -43,9 +74,21 @@ public sealed class InMemoryFileService : IFileService
         return Task.CompletedTask;
     }
 
+    /// <summary>
+    /// Removes the directory, and recursively everything under it - because
+    /// Directory.Delete(recursive: true) does, and a caller that deletes a
+    /// folder expects its files to be gone rather than merely unreachable.
+    /// </summary>
     public Task DeleteDirectoryAsync(string path, bool recursive = true)
     {
         Dirs.Remove(path);
+        if (!recursive) return Task.CompletedTask;
+
+        var prefix = Canonical(path) + Path.DirectorySeparatorChar;
+        foreach (var key in Files.Keys.Where(k => Canonical(k).StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToList())
+            Files.Remove(key);
+        foreach (var dir in Dirs.Where(d => Canonical(d).StartsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToList())
+            Dirs.Remove(dir);
         return Task.CompletedTask;
     }
 

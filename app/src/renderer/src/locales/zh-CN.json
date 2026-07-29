@@ -1485,7 +1485,14 @@
     "compareSelectAll": "全选",
     "compareSelectNone": "全不选",
     "comparePick": "选择第二个快照进行比较",
-    "compareIdentical": "这两个版本完全相同。"
+    "compareIdentical": "这两个版本完全相同。",
+    "scopeScene": "当前场景",
+    "scopeProject": "整个项目",
+    "rename": "重命名",
+    "pruneDesc": "本书的全部快照。清理时还会删除已删场景遗留的、再也无法访问的文件夹。",
+    "pruneKeepFive": "每个场景保留最新五个",
+    "pruneOld": "删除 90 天前的快照",
+    "pruned": "已删除 {{count}} 个快照。"
   },
   "dashboard": {
     "subtitle": "项目仪表板",

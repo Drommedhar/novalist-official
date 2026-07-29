@@ -193,4 +193,214 @@ public class SnapshotServiceTests
         await sut.TakeAsync(ch, sc, "l");
         Assert.Contains(files.Files.Keys, k => k.Contains(Path.Combine("/book", "Snaps", "s1")) || k.Contains("Snaps"));
     }
+
+    // ── The scene around the prose ──
+
+    [Fact]
+    public async Task TakeAsync_CapturesTheSceneNotOnlyItsWords()
+    {
+        var (sut, project, _) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        sc.Synopsis = "She leaves";
+        sc.Notes = "check the bell";
+        sc.Stage = "draft";
+        sc.LabelKey = "red";
+        sc.Date = "1893-04-02";
+        sc.PlotlineIds = ["p1"];
+        sc.AnalysisOverrides = new SceneAnalysisOverrides { Pov = "Mira", Tags = ["night"] };
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>text</p>");
+
+        var snap = await sut.TakeAsync(ch, sc, "manual");
+
+        Assert.Equal("She leaves", snap.Meta!.Synopsis);
+        Assert.Equal("check the bell", snap.Meta.Notes);
+        Assert.Equal("draft", snap.Meta.Stage);
+        Assert.Equal("red", snap.Meta.LabelKey);
+        Assert.Equal("1893-04-02", snap.Meta.StoryDate);
+        Assert.Equal(["p1"], snap.Meta.PlotlineIds);
+        Assert.Equal("Mira", snap.Meta.Pov);
+        Assert.Equal(["night"], snap.Meta.Tags);
+    }
+
+    [Fact]
+    public async Task TakeAsync_CopiesTheListsRatherThanSharingThem()
+    {
+        var (sut, project, _) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        sc.PlotlineIds = ["p1"];
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>text</p>");
+
+        var snap = await sut.TakeAsync(ch, sc, "manual");
+        sc.PlotlineIds.Add("p2");
+
+        Assert.Equal(["p1"], snap.Meta!.PlotlineIds);
+    }
+
+    [Fact]
+    public async Task RestoreAsync_PutsTheScenesOwnFieldsBack()
+    {
+        var (sut, project, _) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        sc.Synopsis = "She leaves";
+        sc.Stage = "draft";
+        sc.AnalysisOverrides = new SceneAnalysisOverrides { Pov = "Mira" };
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>first</p>");
+        var snap = await sut.TakeAsync(ch, sc, "before");
+
+        sc.Synopsis = "She stays";
+        sc.Stage = "final";
+        sc.AnalysisOverrides.Pov = "Halden";
+
+        Assert.True(await sut.RestoreAsync(ch, sc, snap.Id));
+        Assert.Equal("She leaves", sc.Synopsis);
+        Assert.Equal("draft", sc.Stage);
+        Assert.Equal("Mira", sc.AnalysisOverrides.Pov);
+    }
+
+    [Fact]
+    public async Task RestoreAsync_ASnapshotWithNoMetaLeavesTheSceneAlone()
+    {
+        var (sut, project, files) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>first</p>");
+        var snap = await sut.TakeAsync(ch, sc, "before");
+
+        // Every snapshot taken before this shipped looks exactly like this one.
+        var path = files.Files.Keys.First();
+        files.Files[path] = files.Files[path].Replace(
+            System.Text.Json.JsonSerializer.Serialize(snap.Meta), "null");
+        sc.Synopsis = "written since";
+
+        Assert.True(await sut.RestoreAsync(ch, sc, snap.Id));
+        Assert.Equal("written since", sc.Synopsis);
+    }
+
+    // ── The project-wide list ──
+
+    [Fact]
+    public async Task ListAllAsync_ReturnsEverySnapshotNewestFirst()
+    {
+        var (sut, project, _) = Build();
+        var ch = Ch();
+        var one = new SceneData { Id = "s1", Title = "One" };
+        var two = new SceneData { Id = "s2", Title = "Two" };
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([one, two]);
+        project.ReadSceneContentAsync(ch, one).Returns("<p>a</p>");
+        project.ReadSceneContentAsync(ch, two).Returns("<p>b</p>");
+        await sut.TakeAsync(ch, one, "first");
+        await sut.TakeAsync(ch, two, "second");
+
+        var all = await sut.ListAllAsync();
+
+        Assert.Equal(2, all.Count);
+        Assert.All(all, row => Assert.Equal("c1", row.ChapterGuid));
+        Assert.Contains(all, row => row.SceneTitle == "Two");
+    }
+
+    [Fact]
+    public async Task RenameAsync_ChangesTheLabelOnDisk()
+    {
+        var (sut, project, _) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>a</p>");
+        var snap = await sut.TakeAsync(ch, sc, "before");
+
+        Assert.True(await sut.RenameAsync(sc, snap.Id, "sent to the agent"));
+        Assert.Equal("sent to the agent", (await sut.LoadAsync(sc, snap.Id))!.Label);
+    }
+
+    [Fact]
+    public async Task RenameAsync_UnknownSnapshotIsFalse()
+    {
+        var (sut, project, _) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>a</p>");
+        await sut.TakeAsync(ch, sc, "before");
+
+        Assert.False(await sut.RenameAsync(sc, "nope", "x"));
+    }
+
+    [Fact]
+    public async Task RenameAsync_ACorruptSnapshotFileIsFalse()
+    {
+        var (sut, project, files) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>a</p>");
+        var snap = await sut.TakeAsync(ch, sc, "before");
+        files.Files[files.Files.Keys.First()] = "{ not json";
+
+        Assert.False(await sut.RenameAsync(sc, snap.Id, "x"));
+    }
+
+    [Fact]
+    public async Task RenameAsync_NoSceneFolderIsFalse()
+    {
+        var (sut, _, _) = Build();
+        Assert.False(await sut.RenameAsync(Sc(), "any", "x"));
+    }
+
+    // ── Pruning ──
+
+    [Fact]
+    public async Task PruneAsync_KeepsTheNewestFewPerScene()
+    {
+        var (sut, project, files) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([sc]);
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>a</p>");
+        for (var i = 0; i < 4; i++) await sut.TakeAsync(ch, sc, $"take-{i}");
+
+        var removed = await sut.PruneAsync(keepPerScene: 2, olderThanDays: 0, dropOrphans: false);
+
+        Assert.Equal(2, removed);
+        Assert.Equal(2, (await sut.ListAsync(sc)).Count);
+        Assert.Equal(2, files.Files.Count);
+    }
+
+    [Fact]
+    public async Task PruneAsync_DropsFoldersLeftBehindByDeletedScenes()
+    {
+        var (sut, project, files) = Build();
+        var ch = Ch();
+        var gone = new SceneData { Id = "deleted" };
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([]);
+        project.ReadSceneContentAsync(ch, gone).Returns("<p>a</p>");
+        await sut.TakeAsync(ch, gone, "orphan");
+
+        Assert.Equal(1, await sut.PruneAsync(0, 0, dropOrphans: true));
+        Assert.Empty(files.Files);
+    }
+
+    [Fact]
+    public async Task PruneAsync_LeavesOrphansAloneWhenNotAsked()
+    {
+        var (sut, project, files) = Build();
+        var ch = Ch();
+        var gone = new SceneData { Id = "deleted" };
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([]);
+        project.ReadSceneContentAsync(ch, gone).Returns("<p>a</p>");
+        await sut.TakeAsync(ch, gone, "orphan");
+
+        Assert.Equal(0, await sut.PruneAsync(0, 0, dropOrphans: false));
+        Assert.Single(files.Files);
+    }
+
+    [Fact]
+    public async Task PruneAsync_NoProjectIsNothingToDo()
+    {
+        var (sut, _, _) = Build(withBook: false);
+        Assert.Equal(0, await sut.PruneAsync(1, 1, true));
+    }
 }

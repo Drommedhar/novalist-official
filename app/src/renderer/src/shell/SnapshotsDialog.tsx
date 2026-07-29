@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Camera, GitCompare, RotateCcw, Trash2 } from 'lucide-react'
+import { Camera, GitCompare, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { useProjectStore } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { InputDialog } from './InputDialog'
@@ -12,6 +12,14 @@ interface SnapshotDto {
   label: string
   takenAt: string
   wordCount: number
+}
+
+/** A snapshot in the project-wide list, which knows the scene it came from. */
+interface ProjectSnapshotDto extends SnapshotDto {
+  chapterGuid: string
+  chapterTitle: string
+  sceneId: string
+  sceneTitle: string
 }
 
 interface CompareView {
@@ -44,6 +52,10 @@ export function SnapshotsDialog({
   const [labelPrompt, setLabelPrompt] = useState(false)
   const [compareBase, setCompareBase] = useState<string | null>(null)
   const [compareView, setCompareView] = useState<CompareView | null>(null)
+  const [wholeProject, setWholeProject] = useState(false)
+  const [all, setAll] = useState<ProjectSnapshotDto[]>([])
+  const [renaming, setRenaming] = useState<ProjectSnapshotDto | null>(null)
+  const [pruned, setPruned] = useState<number | null>(null)
 
   useEffect(() => {
     void rpc
@@ -51,6 +63,17 @@ export function SnapshotsDialog({
       .then(setSnapshots)
       .catch(() => setSnapshots([]))
   }, [chapterGuid, sceneId])
+
+  const loadAll = (): void => {
+    void rpc
+      .request<ProjectSnapshotDto[]>('snapshots/all')
+      .then(setAll)
+      .catch(() => setAll([]))
+  }
+
+  useEffect(() => {
+    if (wholeProject) loadAll()
+  }, [wholeProject])
 
   const onCompare = (snapshot: SnapshotDto): void => {
     if (!compareBase) {
@@ -79,12 +102,105 @@ export function SnapshotsDialog({
         onKeyDown={(e) => e.key === 'Escape' && onClose()}
       >
         <div className="dialog-title">{t('snapshots.title')}</div>
-        <button className="dialog-inline-button" onClick={() => setLabelPrompt(true)}>
-          <Camera size={13} strokeWidth={2} />
-          {t('snapshots.take')}
-        </button>
+        <div className="snapshot-scope">
+          <button
+            className={`dialog-inline-button${wholeProject ? '' : ' active'}`}
+            onClick={() => setWholeProject(false)}
+          >
+            {t('snapshots.scopeScene')}
+          </button>
+          <button
+            className={`dialog-inline-button${wholeProject ? ' active' : ''}`}
+            onClick={() => setWholeProject(true)}
+          >
+            {t('snapshots.scopeProject')}
+          </button>
+        </div>
+        {!wholeProject && (
+          <button className="dialog-inline-button" onClick={() => setLabelPrompt(true)}>
+            <Camera size={13} strokeWidth={2} />
+            {t('snapshots.take')}
+          </button>
+        )}
+        {wholeProject && (
+          <>
+            <p className="dialog-empty">{t('snapshots.pruneDesc')}</p>
+            <div className="snapshot-scope">
+              <button
+                className="dialog-inline-button"
+                onClick={() =>
+                  void rpc
+                    .request<number>('snapshots/prune', [5, 0, true])
+                    .then((count) => {
+                      setPruned(count)
+                      loadAll()
+                    })
+                }
+              >
+                <Trash2 size={13} strokeWidth={2} />
+                {t('snapshots.pruneKeepFive')}
+              </button>
+              <button
+                className="dialog-inline-button"
+                onClick={() =>
+                  void rpc
+                    .request<number>('snapshots/prune', [0, 90, true])
+                    .then((count) => {
+                      setPruned(count)
+                      loadAll()
+                    })
+                }
+              >
+                <Trash2 size={13} strokeWidth={2} />
+                {t('snapshots.pruneOld')}
+              </button>
+            </div>
+            {pruned !== null && (
+              <p className="dialog-empty">{t('snapshots.pruned', { count: pruned })}</p>
+            )}
+          </>
+        )}
         {compareBase && <div className="snapshot-compare-hint">{t('snapshots.comparePick')}</div>}
-        <div className="snapshot-list">
+        {wholeProject && (
+          <div className="snapshot-list">
+            {all.length === 0 && <p className="dialog-empty">{t('snapshots.empty')}</p>}
+            {all.map((snapshot) => (
+              <div key={snapshot.id} className="snapshot-row">
+                <span className="binder-scene-title">
+                  {snapshot.chapterTitle} - {snapshot.sceneTitle}: {snapshotLabel(snapshot)}
+                </span>
+                <span className="binder-scene-words">{snapshot.wordCount.toLocaleString()}</span>
+                <div className="snapshot-actions">
+                  <button
+                    className="snapshot-action"
+                    title={t('snapshots.rename')}
+                    aria-label={t('snapshots.rename')}
+                    onClick={() => setRenaming(snapshot)}
+                  >
+                    <Pencil size={13} strokeWidth={2} />
+                  </button>
+                  <button
+                    className="snapshot-action danger"
+                    title={t('snapshots.delete')}
+                    aria-label={t('snapshots.delete')}
+                    onClick={() =>
+                      void rpc
+                        .request('snapshots/delete', [
+                          snapshot.chapterGuid,
+                          snapshot.sceneId,
+                          snapshot.id
+                        ])
+                        .then(loadAll)
+                    }
+                  >
+                    <Trash2 size={13} strokeWidth={2} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="snapshot-list" hidden={wholeProject}>
           {snapshots.length === 0 && (
             <p className="dialog-empty">{t('snapshots.empty')}</p>
           )}
@@ -152,6 +268,26 @@ export function SnapshotsDialog({
             void rpc
               .request<SnapshotDto[]>('snapshots/take', [chapterGuid, sceneId, label])
               .then(setSnapshots)
+          }}
+        />
+      )}
+      {renaming && (
+        <InputDialog
+          title={t('snapshots.rename')}
+          placeholder={t('snapshots.labelWatermark')}
+          initialValue={renaming.label}
+          onCancel={() => setRenaming(null)}
+          onSubmit={(label) => {
+            const target = renaming
+            setRenaming(null)
+            void rpc
+              .request<boolean>('snapshots/rename', [
+                target.chapterGuid,
+                target.sceneId,
+                target.id,
+                label
+              ])
+              .then(loadAll)
           }}
         />
       )}

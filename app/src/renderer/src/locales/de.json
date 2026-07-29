@@ -1074,7 +1074,14 @@
     "compareSelectAll": "Alle auswählen",
     "compareSelectNone": "Keine auswählen",
     "comparePick": "Zweiten Snapshot zum Vergleich wählen",
-    "compareIdentical": "Diese Versionen sind identisch."
+    "compareIdentical": "Diese Versionen sind identisch.",
+    "scopeScene": "Diese Szene",
+    "scopeProject": "Ganzes Projekt",
+    "rename": "Umbenennen",
+    "pruneDesc": "Alle Schnappschüsse des Buchs. Beim Aufräumen werden auch Ordner gelöschter Szenen entfernt, die sonst niemand mehr erreicht.",
+    "pruneKeepFive": "Die neuesten fünf je Szene behalten",
+    "pruneOld": "Älter als 90 Tage löschen",
+    "pruned": "{{count}} Schnappschüsse gelöscht."
   },
   "dashboard": {
     "subtitle": "Projekt-Dashboard",

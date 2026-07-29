@@ -41,13 +41,32 @@ Click **Restore** on a row to replace the current scene content with that snapsh
 
 ## Pruning and disk usage
 
-Snapshots are small JSON files (typically a few KB each) but accumulate on long projects, especially from repeated Replace All operations. There is no built-in auto-prune; to clean up, delete old snapshot files from the `Snapshots` folder on disk while the project is closed.
+Snapshots are small JSON files (typically a few KB each) but accumulate on long projects, especially from repeated Replace All operations. Use the pruning buttons in the dialog's **Whole project** scope to clear them out; there is no automatic pruning, because deciding a version is not worth keeping is the writer's call.
 
 If your project is in Git, snapshots are checked in by default — consider `.gitignore`-ing the snapshot folder if you'd rather rely on Git history instead. Both strategies are valid.
 
 ## When a scene is deleted
 
-When you delete a scene, its snapshot folder remains on disk. To recover the content, open the latest snapshot's JSON file and copy its content into a new scene.
+When you delete a scene, its snapshot folder remains on disk, so the content can still be recovered: open the latest snapshot's JSON file and copy its content into a new scene. Once you no longer need it, pruning from the **Whole project** scope removes those orphaned folders.
+
+## The whole project's snapshots
+
+The dialog has two scopes: **This scene** and **Whole project**. The project view lists every snapshot in the book, newest first, with the chapter and scene it belongs to. From there you can **rename** one — a snapshot called "sent to the agent" is findable a year later in a way that a date is not — or delete it.
+
+Two pruning buttons clear out what has piled up:
+
+- **Keep the newest five per scene** — deletes everything past the five most recent snapshots of each scene.
+- **Delete older than 90 days**.
+
+Both also remove snapshot folders left behind by scenes you deleted. Nothing can reach those any more, so they accumulate silently; this is the only thing that clears them without closing the project and deleting files by hand.
+
+Pruning cannot be undone. It reports how many snapshots went.
+
+## What a snapshot restores
+
+A snapshot carries the scene, not only its words. Restoring puts back the prose **and** the synopsis, notes, point of view, stage, label, story date, plotline membership and tags as they stood when it was taken.
+
+Snapshots taken before this shipped hold only the prose. Restoring one of those leaves the scene's other fields exactly as they are, rather than blanking a synopsis written since.
 
 ## Where to go next
 

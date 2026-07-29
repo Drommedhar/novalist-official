@@ -225,6 +225,18 @@
   background: var(--nl-surface-hover);
 }
 
+.dialog-inline-button.active {
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
+}
+
+/* Which snapshots are being shown: this scene's, or the whole book's. */
+.snapshot-scope {
+  display: flex;
+  gap: var(--nl-space-tighter);
+  margin-bottom: var(--nl-space-tighter);
+}
+
 .snapshot-list {
   display: flex;
   flex-direction: column;

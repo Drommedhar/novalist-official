@@ -1450,7 +1450,14 @@
     "compareSelectAll": "Select all",
     "compareSelectNone": "Select none",
     "comparePick": "Select a second snapshot to compare",
-    "compareIdentical": "These versions are identical."
+    "compareIdentical": "These versions are identical.",
+    "scopeScene": "This scene",
+    "scopeProject": "Whole project",
+    "rename": "Rename",
+    "pruneDesc": "Every snapshot in the book. Pruning also clears folders left behind by scenes you deleted, which nothing can reach any more.",
+    "pruneKeepFive": "Keep the newest five per scene",
+    "pruneOld": "Delete older than 90 days",
+    "pruned": "Deleted {{count}} snapshots."
   },
   "dashboard": {
     "subtitle": "Project Dashboard",

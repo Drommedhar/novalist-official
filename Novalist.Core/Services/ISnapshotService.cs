@@ -9,4 +9,26 @@ public interface ISnapshotService
     Task<SceneSnapshot?> LoadAsync(SceneData scene, string snapshotId);
     Task<bool> RestoreAsync(ChapterData chapter, SceneData scene, string snapshotId);
     Task DeleteAsync(SceneData scene, string snapshotId);
+
+    /// <summary>Every snapshot in the book, newest first, with its scene.</summary>
+    Task<IReadOnlyList<ProjectSnapshot>> ListAllAsync();
+
+    /// <summary>Renames one snapshot in place.</summary>
+    Task<bool> RenameAsync(SceneData scene, string snapshotId, string label);
+
+    /// <summary>
+    /// Deletes snapshots nobody is going to want: everything past the newest
+    /// <paramref name="keepPerScene"/> of each scene, everything older than
+    /// <paramref name="olderThanDays"/>, and folders left behind by scenes that
+    /// no longer exist. Returns how many files went.
+    /// </summary>
+    Task<int> PruneAsync(int keepPerScene, int olderThanDays, bool dropOrphans);
 }
+
+/// <summary>One snapshot with the scene it belongs to, for the project-wide list.</summary>
+public sealed record ProjectSnapshot(
+    SceneSnapshot Snapshot,
+    string ChapterGuid,
+    string ChapterTitle,
+    string SceneId,
+    string SceneTitle);

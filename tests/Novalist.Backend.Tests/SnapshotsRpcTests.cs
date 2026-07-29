@@ -72,4 +72,44 @@ public sealed class SnapshotsRpcTests : IDisposable
         Assert.Contains(missingRight, r => r.State == "left" && r.Left == "only line");
         Assert.DoesNotContain(missingRight, r => r.State == "right");
     }
+
+    [Fact]
+    public async Task AllListsEverySnapshotWithItsScene()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _rpc.TakeAsync(chapter.Guid, scene.Id, "first");
+
+        var all = await _rpc.AllAsync();
+
+        var row = Assert.Single(all);
+        Assert.Equal("first", row.Label);
+        Assert.Equal(chapter.Guid, row.ChapterGuid);
+        Assert.Equal(scene.Id, row.SceneId);
+        Assert.Equal("S", row.SceneTitle);
+    }
+
+    [Fact]
+    public async Task RenamingASnapshotSticks()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        var taken = await _rpc.TakeAsync(chapter.Guid, scene.Id, "first");
+
+        Assert.True(await _rpc.RenameAsync(chapter.Guid, scene.Id, taken[0].Id, "sent to the agent"));
+
+        var all = await _rpc.AllAsync();
+        Assert.Equal("sent to the agent", all[0].Label);
+    }
+
+    [Fact]
+    public async Task PruningKeepsTheNewestFewPerScene()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        for (var i = 0; i < 4; i++) await _rpc.TakeAsync(chapter.Guid, scene.Id, $"take-{i}");
+
+        Assert.Equal(2, await _rpc.PruneAsync(2, 0, false));
+        Assert.Equal(2, (await _rpc.AllAsync()).Length);
+    }
 }

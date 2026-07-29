@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 interface InputDialogProps {
   title: string
   placeholder?: string
+  /** Prefills the field - for renaming something that already has a name. */
+  initialValue?: string
   onSubmit(value: string): void
   onCancel(): void
 }
@@ -12,11 +14,12 @@ interface InputDialogProps {
 export function InputDialog({
   title,
   placeholder,
+  initialValue,
   onSubmit,
   onCancel
 }: InputDialogProps): React.JSX.Element {
   const { t } = useTranslation()
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState(initialValue ?? '')
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => inputRef.current?.focus(), [])

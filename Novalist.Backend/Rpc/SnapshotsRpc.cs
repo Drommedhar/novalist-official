@@ -57,6 +57,39 @@ public sealed class SnapshotsRpc
         return await ListAsync(chapterGuid, sceneId);
     }
 
+    /// <summary>
+    /// Every snapshot in the book, newest first. The per-scene list is only
+    /// reachable from the scene it belongs to, which is no help at all when
+    /// the question is "how much is this project carrying".
+    /// </summary>
+    [JsonRpcMethod("snapshots/all")]
+    public async Task<ProjectSnapshotDto[]> AllAsync()
+        => [.. (await Service.ListAllAsync()).Select(row => new ProjectSnapshotDto(
+            row.Snapshot.Id,
+            row.Snapshot.Label,
+            row.Snapshot.CreatedAt.ToString("o"),
+            row.Snapshot.WordCount,
+            row.ChapterGuid,
+            row.ChapterTitle,
+            row.SceneId,
+            row.SceneTitle))];
+
+    /// <summary>Renames one snapshot. A label is how a writer finds it again.</summary>
+    [JsonRpcMethod("snapshots/rename")]
+    public async Task<bool> RenameAsync(string chapterGuid, string sceneId, string snapshotId, string label)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        return await Service.RenameAsync(scene, snapshotId, label);
+    }
+
+    /// <summary>
+    /// Deletes snapshots past the newest few per scene, older than a cutoff,
+    /// or left behind by deleted scenes. Returns how many went.
+    /// </summary>
+    [JsonRpcMethod("snapshots/prune")]
+    public async Task<int> PruneAsync(int keepPerScene, int olderThanDays, bool dropOrphans)
+        => await Service.PruneAsync(keepPerScene, olderThanDays, dropOrphans);
+
     /// <summary>Line-level side-by-side diff between two snapshots' plain-text
     /// content. A missing snapshot id is treated as empty content.</summary>
     [JsonRpcMethod("snapshots/diff")]
@@ -84,5 +117,16 @@ public sealed class SnapshotsRpc
 }
 
 public sealed record SnapshotDto(string Id, string Label, string TakenAt, int WordCount);
+
+/// <summary>One snapshot in the project-wide list, with the scene it belongs to.</summary>
+public sealed record ProjectSnapshotDto(
+    string Id,
+    string Label,
+    string TakenAt,
+    int WordCount,
+    string ChapterGuid,
+    string ChapterTitle,
+    string SceneId,
+    string SceneTitle);
 
 public sealed record SnapshotDiffRowDto(string? Left, string? Right, string State);
