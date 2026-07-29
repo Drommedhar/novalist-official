@@ -273,3 +273,15 @@
   grid-template-columns: 1fr 140px 1fr auto;
   margin-bottom: var(--nl-space-sm);
 }
+
+/* The premise ladder asks several paragraph-sized questions at once. */
+.snowflake-card {
+  max-height: 86vh;
+  max-width: 640px;
+  overflow-y: auto;
+  width: 92vw;
+}
+
+.snowflake-act-row {
+  margin-top: var(--nl-space-md);
+}

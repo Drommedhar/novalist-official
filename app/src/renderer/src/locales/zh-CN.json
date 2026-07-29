@@ -2393,5 +2393,28 @@
     "groupBy": "分组依据",
     "unset": "未设置",
     "yes": "是"
+  },
+  "premise": {
+    "title": "前提",
+    "intro": "用一句话、一段话，再逐幕说清这本书。写在章节之前，当一个场景失去方向时值得重读。",
+    "logline": "一句话",
+    "loglinePlaceholder": "一名退隐的盗贼必须去偷那个陷害她的人。",
+    "paragraph": "一段话",
+    "paragraphPlaceholder": "世界、赌注、开端，以及大致的结局。",
+    "noActs": "为章节设定幕，每一幕都会在此处获得一个文本框。",
+    "setupTitle": "从前提开始",
+    "setupIntro": "雪花法简述：先用一句话说清这本书，再展开成一段话，然后逐幕说明。一切都可以稍后修改，也可以现在跳过。",
+    "actOne": "第一幕",
+    "actTwo": "第二幕",
+    "actThree": "第三幕",
+    "actName": "幕名称",
+    "summary": "概要",
+    "actHelpOne": "现状，以及主角在被迫改变之前是谁。",
+    "actHelpTwo": "不断升级的麻烦。她尝试了什么，又如何失败。",
+    "actHelpThree": "高潮及其代价。之后有什么不同了。",
+    "scaffold": "为每一幕创建占位章节",
+    "chaptersPerAct": "每幕章节数",
+    "startWithPremise": "从前提开始（雪花法）",
+    "skip": "暂不"
   }
 }

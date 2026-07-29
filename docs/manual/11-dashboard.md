@@ -45,6 +45,14 @@ The project name heads the page, with the **author** underneath (when set) and a
 - Total words against the project target, with a progress bar and percentage. This is the whole-book goal; targets on individual acts, chapters, and scenes live in their own card below.
 - When a **deadline** is set (see below), a detail row with the **deadline** date, the **days left**, and the **words per day** you need to average to hit the target on time.
 
+### Premise
+
+The book in one line, then in one paragraph, then a summary per act - the Snowflake ladder, as project data rather than notes in a scene. Each box saves as you leave it.
+
+The act boxes follow the acts your chapters are actually in, so a book in two acts or five is not asked to pretend it has three. Give a chapter an act and a box for it appears here.
+
+You can fill this in at any time; Novalist also offers it when you create a project (see [Projects and books](03-projects-and-books.md#starting-from-a-premise)).
+
 ### Word targets
 
 Every [word target](04-chapters-and-scenes.md#word-targets) you have set, in one place: a row per act, chapter, and scene with a progress bar and `written / target`. Click a row to change or clear that target.

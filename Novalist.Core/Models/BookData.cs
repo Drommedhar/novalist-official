@@ -121,6 +121,13 @@ public class BookData
     [JsonPropertyName("manuscriptProperties")]
     public List<ManuscriptPropertyDefinition> ManuscriptProperties { get; set; } = [];
 
+    /// <summary>
+    /// The book in one line, one paragraph and one summary per act. Per book:
+    /// the second book of a series has its own premise, not the first one's.
+    /// </summary>
+    [JsonPropertyName("premise")]
+    public StoryPremise Premise { get; set; } = new();
+
     /// <summary>What a shop, a library and a distributor need to know about this
     /// book. Written into the EPUB metadata block on export.</summary>
     [JsonPropertyName("publishing")]

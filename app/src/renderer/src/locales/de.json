@@ -2359,5 +2359,28 @@
     "groupBy": "Gruppieren nach",
     "unset": "Nicht gesetzt",
     "yes": "Ja"
+  },
+  "premise": {
+    "title": "Prämisse",
+    "intro": "Das Buch in einem Satz, dann in einem Absatz, dann Akt für Akt. Vor den Kapiteln geschrieben – und lesenswert, wenn eine Szene nicht mehr weiß, wozu sie da ist.",
+    "logline": "In einem Satz",
+    "loglinePlaceholder": "Eine Diebin im Ruhestand muss den Mann bestehlen, der sie reingelegt hat.",
+    "paragraph": "In einem Absatz",
+    "paragraphPlaceholder": "Die Welt, was auf dem Spiel steht, was es auslöst und ungefähr, wie es endet.",
+    "noActs": "Geben Sie Ihren Kapiteln einen Akt, und jeder bekommt hier ein Feld.",
+    "setupTitle": "Mit einer Prämisse beginnen",
+    "setupIntro": "Die Schneeflocken-Methode in Kürze: Sagen Sie in einem Satz, was das Buch ist, weiten Sie ihn zu einem Absatz und beschreiben Sie dann jeden Akt. Alles lässt sich später ändern und jetzt überspringen.",
+    "actOne": "Erster Akt",
+    "actTwo": "Zweiter Akt",
+    "actThree": "Dritter Akt",
+    "actName": "Aktname",
+    "summary": "Zusammenfassung",
+    "actHelpOne": "Der Ausgangszustand und wer die Hauptfigur ist, bevor sie sich ändern muss.",
+    "actHelpTwo": "Wachsende Schwierigkeiten. Was sie versucht und woran es scheitert.",
+    "actHelpThree": "Höhepunkt und Preis. Was danach anders ist.",
+    "scaffold": "Platzhalter-Kapitel für jeden Akt anlegen",
+    "chaptersPerAct": "Kapitel pro Akt",
+    "startWithPremise": "Mit einer Prämisse beginnen (Schneeflocken-Methode)",
+    "skip": "Jetzt nicht"
   }
 }

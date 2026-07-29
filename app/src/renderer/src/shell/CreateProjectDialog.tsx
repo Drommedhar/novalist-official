@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { FolderOpen } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
+import { SnowflakeSetup } from './SnowflakeSetup'
 
 /**
  * New-project dialog on the start screen: name, first book, parent folder,
@@ -19,6 +20,8 @@ export function CreateProjectDialog({ onClose }: { onClose: () => void }): React
   )
   const [error, setError] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
+  const [snowflake, setSnowflake] = useState(false)
+  const [setupOpen, setSetupOpen] = useState(false)
 
   useEffect(() => {
     void rpc
@@ -40,6 +43,9 @@ export function CreateProjectDialog({ onClose }: { onClose: () => void }): React
       ])
       window.novalist.setProjectRoot(state.projectPath)
       useProjectStore.getState().applyState(state)
+      // The premise ladder is asked once the project exists, because it has to
+      // have somewhere to be saved.
+      if (snowflake) setSetupOpen(true)
     } catch (e) {
       setCreating(false)
       setError(String(e))
@@ -109,6 +115,15 @@ export function CreateProjectDialog({ onClose }: { onClose: () => void }): React
           </>
         )}
 
+        <label className="relationships-toggle">
+          <input
+            type="checkbox"
+            checked={snowflake}
+            onChange={(e) => setSnowflake(e.target.checked)}
+          />
+          {t('premise.startWithPremise')}
+        </label>
+
         {error && <p className="findreplace-result">{error}</p>}
 
         <div className="dialog-actions">
@@ -124,6 +139,7 @@ export function CreateProjectDialog({ onClose }: { onClose: () => void }): React
           </button>
         </div>
       </div>
+      {setupOpen && <SnowflakeSetup onClose={onClose} />}
     </div>
   )
 }

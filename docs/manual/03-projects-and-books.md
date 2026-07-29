@@ -40,6 +40,14 @@ From the [start screen](01-getting-started.md#the-start-screen):
 
 This also covers projects copied from another machine, restored from backup, or cloned from Git — there is no separate "import" step for native projects. For projects from the legacy Obsidian plugin, use **Import from Obsidian Plugin...** instead.
 
+## Starting from a premise
+
+The new-project dialog has a **Start from a premise (Snowflake method)** tick box. With it on, once the project exists Novalist asks for the book in one sentence, then in one paragraph, then act by act - and offers to create a run of placeholder chapters under each act so you have a shape to write into.
+
+Everything it asks is optional and everything it writes is editable afterwards. The answers become the book's [Premise](11-dashboard.md#premise) on the Dashboard, not prose in a scene, so they never end up in an export.
+
+Leave the box off and the project is created exactly as before.
+
 ## The folder layout
 
 This is the on-disk shape of a project. **Do not edit the `.json` cache files by hand while the app is running** — Novalist holds them in memory and will overwrite your changes on the next save. Scene and chapter *structure*, however, is safe to rearrange with a file manager — see [Editing your project outside Novalist](#editing-your-project-outside-novalist) below.

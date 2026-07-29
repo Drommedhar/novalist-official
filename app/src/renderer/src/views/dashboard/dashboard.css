@@ -324,3 +324,10 @@
 .dashboard-target-add > .inspector-input {
   flex: 1;
 }
+
+/* The premise boxes hold a paragraph, not a line. */
+.premise-paragraph {
+  min-height: 72px;
+  resize: vertical;
+  width: 100%;
+}

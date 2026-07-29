@@ -2351,5 +2351,28 @@
     "groupBy": "Group by",
     "unset": "Not set",
     "yes": "Yes"
+  },
+  "premise": {
+    "title": "Premise",
+    "intro": "The book in one line, then in one paragraph, then act by act. Written before the chapters and worth re-reading when a scene stops knowing what it is for.",
+    "logline": "In one sentence",
+    "loglinePlaceholder": "A retired thief must rob the man who framed her.",
+    "paragraph": "In one paragraph",
+    "paragraphPlaceholder": "The world, the stakes, what starts it, and roughly how it ends.",
+    "noActs": "Give your chapters an act and each one gets a box here.",
+    "setupTitle": "Start from a premise",
+    "setupIntro": "The Snowflake method, briefly: say what the book is in a sentence, open that into a paragraph, then say what happens in each act. You can change all of it later, and skip any of it now.",
+    "actOne": "Act One",
+    "actTwo": "Act Two",
+    "actThree": "Act Three",
+    "actName": "Act name",
+    "summary": "summary",
+    "actHelpOne": "The status quo, and who the protagonist is before anything forces them to change.",
+    "actHelpTwo": "Rising trouble. What they try, and how it fails.",
+    "actHelpThree": "The climax and what it costs. What is different afterwards.",
+    "scaffold": "Create placeholder chapters for each act",
+    "chaptersPerAct": "Chapters per act",
+    "startWithPremise": "Start from a premise (Snowflake method)",
+    "skip": "Not now"
   }
 }
