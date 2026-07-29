@@ -42,6 +42,66 @@ public sealed partial class InWorldCalendarService : IInWorldCalendarService
         return ordinal;
     }
 
+    /// <summary>
+    /// The year a date falls in, or null when it cannot be read. Used for
+    /// grouping a chronology into years without re-parsing the whole date.
+    /// </summary>
+    public long? YearOf(string raw, InWorldCalendar? calendar)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        var cal = calendar ?? new InWorldCalendar();
+
+        if (cal.Type == InWorldCalendarType.Gregorian)
+        {
+            return DateTime.TryParse(raw, CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt)
+                ? dt.Year
+                : null;
+        }
+
+        var m = YmdRegex().Match(raw);
+        return m.Success ? long.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture) : null;
+    }
+
+    /// <summary>
+    /// A year written the way the book reckons it: "342 AC", "12 Before the
+    /// Fall". Falls back to the single year label, and to the bare number when
+    /// there is not even one - printing a negative year as "-12" is what makes
+    /// a fantasy chronology unreadable.
+    /// </summary>
+    public string FormatYear(long year, InWorldCalendar? calendar)
+    {
+        var cal = calendar ?? new InWorldCalendar();
+
+        // The latest era that starts at or before this year, so a story
+        // spanning a reckoning change reads correctly on both sides.
+        CalendarEra? era = null;
+        foreach (var candidate in cal.Eras)
+            if (candidate.StartYear <= year && (era == null || candidate.StartYear > era.StartYear))
+                era = candidate;
+
+        if (era == null)
+        {
+            var label = cal.YearLabel.Trim();
+            return label.Length == 0
+                ? year.ToString(CultureInfo.InvariantCulture)
+                : $"{year.ToString(CultureInfo.InvariantCulture)} {label}";
+        }
+
+        // A counting-down era measures backwards from the era that follows it,
+        // which is where "12 Before the Fall" comes from.
+        if (!era.CountsDown)
+            return $"{(year - era.StartYear + 1).ToString(CultureInfo.InvariantCulture)} {era.Name}".Trim();
+
+        long? next = null;
+        foreach (var candidate in cal.Eras)
+            if (candidate.StartYear > era.StartYear && (next == null || candidate.StartYear < next))
+                next = candidate.StartYear;
+
+        var counted = (next ?? 0) - year;
+        return $"{counted.ToString(CultureInfo.InvariantCulture)} {era.Name}".Trim();
+    }
+
     public long? DiffDays(string from, string to, InWorldCalendar? calendar)
     {
         var a = Parse(from, calendar);

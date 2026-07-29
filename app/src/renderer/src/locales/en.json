@@ -2114,7 +2114,15 @@
     "yearLength": "A year is {{days}} days long.",
     "weekdays": "Weekdays",
     "addWeekday": "Add weekday",
-    "dateFormatHint": "Write in-world dates as year.month.day — for example 812.3.14 for the 14th day of the third month of year 812."
+    "dateFormatHint": "Write in-world dates as year.month.day — for example 812.3.14 for the 14th day of the third month of year 812.",
+    "eras": "Eras",
+    "erasDesc": "Named stretches of years. A date takes the latest era that starts at or before it, so a story spanning a change of reckoning reads correctly on both sides of it. Leave this empty to use the single year label above throughout.",
+    "eraName": "Era name",
+    "eraNamePlaceholder": "AC, Fourth Age, Before the Fall",
+    "eraStart": "First year",
+    "eraCountsDown": "Counts down",
+    "addEra": "Add an era",
+    "removeEra": "Remove this era"
   },
   "manuscriptImport": {
     "action": "Import a manuscript...",

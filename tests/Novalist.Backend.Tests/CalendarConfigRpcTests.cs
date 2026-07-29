@@ -155,4 +155,32 @@ public sealed class CalendarConfigRpcTests : IDisposable
 
         Assert.Equal("Gregorian", new CalendarRpc(bare).GetConfig().Type);
     }
+
+    // ── Eras ──
+
+    [Fact]
+    public async Task SetConfig_RoundTripsEras_AndDropsWhatCannotLabelADate()
+    {
+        var config = await _rpc.SetConfigAsync("Custom", "AC", ["Frost"], [40], ["Moonday"], [
+            new CalendarEraDto("  Fourth Age  ", 300, false),
+            new CalendarEraDto("Before the Fall", -500, true),
+            new CalendarEraDto("   ", 100, false),
+            // Two eras starting the same year would make a date ambiguous.
+            new CalendarEraDto("Duplicate", 300, false)
+        ]);
+
+        // Ordered by first year, so the list reads as a chronology.
+        Assert.Equal(["Before the Fall", "Fourth Age"], config.Eras.Select(e => e.Name));
+        Assert.True(config.Eras[0].CountsDown);
+        Assert.Equal(-500, config.Eras[0].StartYear);
+        Assert.Equal(2, _rpc.GetConfig().Eras.Length);
+    }
+
+    [Fact]
+    public async Task SetConfig_WithNoEras_LeavesTheListEmpty()
+    {
+        var config = await _rpc.SetConfigAsync("Custom", "AC", ["Frost"], [40], ["Moonday"]);
+
+        Assert.Empty(config.Eras);
+    }
 }

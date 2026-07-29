@@ -89,13 +89,19 @@ public sealed class TimelineRpc
                 string.Empty, [], string.Empty, 0));
         }
 
-        var groups = events
-            .OrderBy(e => Iso(ParseDate(e.DateStr)) == null ? 1 : 0)
-            .ThenBy(e => e.SortDate, StringComparer.Ordinal)
-            .ThenBy(e => e.ChapterOrder)
-            .GroupBy(e => GroupKey(ParseDate(e.DateStr), zoom))
-            .Select(g => new TimelineGroupDto(g.Key, GroupLabel(g.Key, zoom), g.ToArray()))
-            .ToArray();
+        // A book on its own calendar has dates no Gregorian parser can read,
+        // so every scene used to fall into the undated bucket.
+        var custom = book.Calendar is { Type: Core.Models.InWorldCalendarType.Custom }
+            ? book.Calendar
+            : null;
+        var groups = custom == null
+            ? [.. events
+                .OrderBy(e => Iso(ParseDate(e.DateStr)) == null ? 1 : 0)
+                .ThenBy(e => e.SortDate, StringComparer.Ordinal)
+                .ThenBy(e => e.ChapterOrder)
+                .GroupBy(e => GroupKey(ParseDate(e.DateStr), zoom))
+                .Select(g => new TimelineGroupDto(g.Key, GroupLabel(g.Key, zoom), g.ToArray()))]
+            : GroupByInWorldYear(events, custom);
 
         return new TimelineDto(timeline.ViewMode, zoom, groups, await BuildEntityLinksAsync(events));
     }
@@ -197,6 +203,26 @@ public sealed class TimelineRpc
     private static string? Iso(DateTime? date) => date?.ToString("yyyy-MM-dd");
 
     // Ported verbatim from TimelineViewModel so grouping matches the Avalonia app.
+    /// <summary>
+    /// Groups a chronology by in-world year, ordered by the calendar's own
+    /// day arithmetic. Years are labelled the way the book reckons them, so a
+    /// chronology reads as "342 AC" rather than as a bare number.
+    /// </summary>
+    private static TimelineGroupDto[] GroupByInWorldYear(
+        IReadOnlyList<TimelineEventDto> events, Core.Models.InWorldCalendar calendar)
+    {
+        var service = new InWorldCalendarService();
+        return [.. events
+            .OrderBy(e => service.Parse(e.DateStr ?? string.Empty, calendar) == null ? 1 : 0)
+            .ThenBy(e => service.Parse(e.DateStr ?? string.Empty, calendar) ?? 0)
+            .ThenBy(e => e.ChapterOrder)
+            .GroupBy(e => service.YearOf(e.DateStr ?? string.Empty, calendar))
+            .Select(g => new TimelineGroupDto(
+                g.Key?.ToString(CultureInfo.InvariantCulture) ?? "?",
+                g.Key == null ? "?" : service.FormatYear(g.Key.Value, calendar),
+                [.. g]))];
+    }
+
     internal static DateTime? ParseDate(string? dateStr)
     {
         if (string.IsNullOrWhiteSpace(dateStr)) return null;

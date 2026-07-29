@@ -29,7 +29,8 @@ public sealed class CalendarRpc
             calendar.MonthNames.ToArray(),
             calendar.DaysPerMonth.ToArray(),
             calendar.WeekdayNames.ToArray(),
-            calendar.CustomYearLength);
+            calendar.CustomYearLength,
+            [.. calendar.Eras.Select(e => new CalendarEraDto(e.Name, e.StartYear, e.CountsDown))]);
     }
 
     /// <summary>
@@ -39,7 +40,8 @@ public sealed class CalendarRpc
     /// </summary>
     [JsonRpcMethod("calendar/setConfig")]
     public async Task<CalendarConfigDto> SetConfigAsync(
-        string type, string yearLabel, string[] monthNames, int[] daysPerMonth, string[] weekdayNames)
+        string type, string yearLabel, string[] monthNames, int[] daysPerMonth,
+        string[] weekdayNames, CalendarEraDto[]? eras = null)
     {
         var book = _workspace.Projects.ActiveBook
             ?? throw new InvalidOperationException("No project open.");
@@ -70,7 +72,20 @@ public sealed class CalendarRpc
             WeekdayNames = (weekdayNames ?? [])
                 .Select(w => (w ?? string.Empty).Trim())
                 .Where(w => w.Length > 0)
-                .ToList()
+                .ToList(),
+            // An era with no name cannot label anything, and two eras starting
+            // in the same year would make a date's era ambiguous.
+            Eras = [.. (eras ?? [])
+                .Where(e => !string.IsNullOrWhiteSpace(e.Name))
+                .GroupBy(e => e.StartYear)
+                .Select(g => g.First())
+                .OrderBy(e => e.StartYear)
+                .Select(e => new Core.Models.CalendarEra
+                {
+                    Name = e.Name!.Trim(),
+                    StartYear = e.StartYear,
+                    CountsDown = e.CountsDown
+                })]
         };
 
         await _workspace.Projects.SaveProjectAsync();
@@ -173,10 +188,14 @@ public sealed record CalendarEventDto(
     int EndHour,
     int EndMinute);
 
+/// <summary>A named stretch of years in the book's reckoning.</summary>
+public sealed record CalendarEraDto(string? Name, long StartYear, bool CountsDown);
+
 public sealed record CalendarConfigDto(
     string Type,
     string YearLabel,
     string[] MonthNames,
     int[] DaysPerMonth,
     string[] WeekdayNames,
-    int YearLength);
+    int YearLength,
+    CalendarEraDto[] Eras);

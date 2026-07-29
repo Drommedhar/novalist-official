@@ -3411,3 +3411,13 @@
 .inbox-action.active {
   color: var(--nl-accent);
 }
+
+/* One era: its name, the year it starts, whether it counts down, and a way
+   to remove it. */
+.calendar-config-row {
+  align-items: center;
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 1fr 110px auto auto;
+  margin-bottom: var(--nl-space-tightest);
+}

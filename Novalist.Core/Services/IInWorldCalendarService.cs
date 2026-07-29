@@ -10,6 +10,12 @@ public interface IInWorldCalendarService
 
     /// <summary>Difference in days between two date strings, or null when
     /// either cannot be parsed.</summary>
+    /// <summary>The year a date falls in, for grouping a chronology.</summary>
+    long? YearOf(string raw, InWorldCalendar? calendar);
+
+    /// <summary>A year written the way the book reckons it: "342 AC".</summary>
+    string FormatYear(long year, InWorldCalendar? calendar);
+
     long? DiffDays(string from, string to, InWorldCalendar? calendar);
 
     /// <summary>Add N days to a parsed date and return the formatted result,

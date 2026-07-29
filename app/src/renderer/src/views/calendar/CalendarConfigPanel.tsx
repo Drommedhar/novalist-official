@@ -3,6 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { Plus, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 
+/** A named stretch of years in the book's reckoning. */
+interface CalendarEra {
+  name: string
+  startYear: number
+  countsDown: boolean
+}
+
 interface CalendarConfig {
   type: string
   yearLabel: string
@@ -10,6 +17,7 @@ interface CalendarConfig {
   daysPerMonth: number[]
   weekdayNames: string[]
   yearLength: number
+  eras: CalendarEra[]
 }
 
 /** What a brand-new custom calendar starts from, so the editor is never empty. */
@@ -44,7 +52,8 @@ export function CalendarConfigPanel(): React.JSX.Element {
           next.yearLabel,
           next.monthNames,
           next.daysPerMonth,
-          next.weekdayNames
+          next.weekdayNames,
+          next.eras
         ])
       )
     } finally {
@@ -94,6 +103,12 @@ export function CalendarConfigPanel(): React.JSX.Element {
       daysPerMonth: config.daysPerMonth.filter((_, i) => i !== index)
     })
 
+  const setEra = (index: number, patch: Partial<CalendarEra>): void =>
+    void save({
+      ...config,
+      eras: config.eras.map((era, i) => (i === index ? { ...era, ...patch } : era))
+    })
+
   const setWeekday = (index: number, name: string): void => {
     const weekdayNames = [...config.weekdayNames]
     weekdayNames[index] = name
@@ -126,6 +141,57 @@ export function CalendarConfigPanel(): React.JSX.Element {
             onChange={(e) => void save({ ...config, yearLabel: e.target.value })}
           />
           <div className="settings-hint">{t('calendarConfig.yearLabelDesc')}</div>
+
+          <h4>{t('calendarConfig.eras')}</h4>
+          <div className="settings-hint">{t('calendarConfig.erasDesc')}</div>
+          {config.eras.map((era, index) => (
+            <div key={index} className="calendar-config-row">
+              <input
+                className="inspector-input"
+                aria-label={t('calendarConfig.eraName')}
+                value={era.name}
+                placeholder={t('calendarConfig.eraNamePlaceholder')}
+                onChange={(e) => setEra(index, { name: e.target.value })}
+              />
+              <input
+                className="inspector-input"
+                type="number"
+                aria-label={t('calendarConfig.eraStart')}
+                value={era.startYear}
+                onChange={(e) => setEra(index, { startYear: Number(e.target.value) || 0 })}
+              />
+              {/* What "12 Before the Fall" means: years inside the era count
+                  down towards the one that follows it. */}
+              <label className="match-toggle">
+                <input
+                  type="checkbox"
+                  checked={era.countsDown}
+                  onChange={(e) => setEra(index, { countsDown: e.target.checked })}
+                />
+                {t('calendarConfig.eraCountsDown')}
+              </label>
+              <button
+                className="dialog-button danger"
+                title={t('calendarConfig.removeEra')}
+                onClick={() =>
+                  void save({ ...config, eras: config.eras.filter((_, i) => i !== index) })
+                }
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ))}
+          <button
+            className="dialog-button"
+            onClick={() =>
+              void save({
+                ...config,
+                eras: [...config.eras, { name: '', startYear: 0, countsDown: false }]
+              })
+            }
+          >
+            <Plus size={14} /> {t('calendarConfig.addEra')}
+          </button>
 
           <h4>{t('calendarConfig.months')}</h4>
           {config.monthNames.map((name, i) => (

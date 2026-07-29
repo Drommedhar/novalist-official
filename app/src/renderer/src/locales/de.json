@@ -2122,7 +2122,15 @@
     "yearLength": "Ein Jahr hat {{days}} Tage.",
     "weekdays": "Wochentage",
     "addWeekday": "Wochentag hinzufügen",
-    "dateFormatHint": "Schreibe Weltdaten als Jahr.Monat.Tag — zum Beispiel 812.3.14 für den 14. Tag des dritten Monats im Jahr 812."
+    "dateFormatHint": "Schreibe Weltdaten als Jahr.Monat.Tag — zum Beispiel 812.3.14 für den 14. Tag des dritten Monats im Jahr 812.",
+    "eras": "Ären",
+    "erasDesc": "Benannte Jahresabschnitte. Ein Datum gehört zur letzten Ära, die an oder vor ihm beginnt – so liest sich eine Geschichte über einen Zeitrechnungswechsel hinweg auf beiden Seiten richtig. Leer lassen, um durchgehend die Jahresbezeichnung oben zu verwenden.",
+    "eraName": "Name der Ära",
+    "eraNamePlaceholder": "n. G., Viertes Zeitalter, vor dem Fall",
+    "eraStart": "Erstes Jahr",
+    "eraCountsDown": "Zählt rückwärts",
+    "addEra": "Ära hinzufügen",
+    "removeEra": "Diese Ära entfernen"
   },
   "manuscriptImport": {
     "action": "Manuskript importieren...",

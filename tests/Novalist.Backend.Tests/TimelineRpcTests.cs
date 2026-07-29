@@ -242,4 +242,50 @@ public sealed class TimelineRpcTests : IDisposable
         Assert.Equal("flashback", scenes[1].NarrativeMode);
         Assert.Equal(string.Empty, scenes[0].NarrativeMode);
     }
+
+    [Fact]
+    public async Task ABookOnItsOwnCalendarGroupsByInWorldYear()
+    {
+        _workspace.Projects.ActiveBook!.Calendar = new Novalist.Core.Models.InWorldCalendar
+        {
+            Type = Novalist.Core.Models.InWorldCalendarType.Custom,
+            MonthNames = ["First", "Second"],
+            DaysPerMonth = [30, 30],
+            Eras = [new Novalist.Core.Models.CalendarEra { Name = "Fourth Age", StartYear = 300 }]
+        };
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var early = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Early");
+        var late = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Late");
+        early.Date = "342.1.5";
+        late.Date = "343.2.1";
+        await _workspace.Projects.SaveScenesAsync();
+
+        var timeline = await _rpc.Get();
+
+        // Gregorian parsing cannot read these at all, so every scene used to
+        // land in the undated bucket.
+        var groups = timeline.Groups.Where(g => g.Events.Any(e => e.Source == "scene")).ToList();
+        Assert.Equal(["43 Fourth Age", "44 Fourth Age"], groups.Select(g => g.Label));
+    }
+
+    [Fact]
+    public async Task ABookOnItsOwnCalendarKeepsUnreadableDatesInTheirOwnGroup()
+    {
+        _workspace.Projects.ActiveBook!.Calendar = new Novalist.Core.Models.InWorldCalendar
+        {
+            Type = Novalist.Core.Models.InWorldCalendarType.Custom,
+            MonthNames = ["First"],
+            DaysPerMonth = [30]
+        };
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Vague");
+        scene.Date = "sometime later";
+        await _workspace.Projects.SaveScenesAsync();
+
+        var timeline = await _rpc.Get();
+
+        // Shown rather than dropped: a scene with a date nobody can parse is
+        // still a scene.
+        Assert.Contains(timeline.Groups, g => g.Events.Any(e => e.Title.EndsWith("Vague")));
+    }
 }

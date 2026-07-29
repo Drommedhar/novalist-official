@@ -2156,7 +2156,15 @@
     "yearLength": "一年共 {{days}} 天。",
     "weekdays": "星期",
     "addWeekday": "添加星期",
-    "dateFormatHint": "世界日期写作 年.月.日 — 例如 812.3.14 表示 812 年第三个月第 14 天。"
+    "dateFormatHint": "世界日期写作 年.月.日 — 例如 812.3.14 表示 812 年第三个月第 14 天。",
+    "eras": "纪年",
+    "erasDesc": "命名的年份区间。一个日期归属于不晚于它开始的最后一个纪年，因此跨越纪年更替的故事在两边都能正确阅读。留空则始终使用上方的年份标签。",
+    "eraName": "纪年名称",
+    "eraNamePlaceholder": "如：新历、第四纪元、坠落前",
+    "eraStart": "起始年",
+    "eraCountsDown": "倒数计年",
+    "addEra": "添加纪年",
+    "removeEra": "删除此纪年"
   },
   "manuscriptImport": {
     "action": "导入稿件...",

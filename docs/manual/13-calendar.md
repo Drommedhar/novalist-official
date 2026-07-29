@@ -73,10 +73,15 @@ Press **Calendar setup** in the toolbar and tick **Use a custom in-world calenda
 - **Year label** — printed after a year: "AC", "of the Fourth Age". Leave it empty for none.
 - **Months** — a name and a length for each, in order. Add and remove as many as your world has. The panel shows the resulting year length as you edit.
 - **Weekdays** — names in order. A world with a five-day week gets five.
+- **Eras** — named stretches of years, each with the year it starts in. A date takes the latest era that starts at or before it, so a story that spans a change of reckoning reads correctly on both sides of it. Leave the list empty to use the single year label throughout.
 
 Switching a book to a custom calendar for the first time starts you with three months and a five-day week so there is something to edit rather than an empty form.
 
 Write in-world dates as **year.month.day** — `812.3.14` is the 14th day of the third month of year 812. Durations, "three days later" arithmetic, and the gaps the Timeline shows are then all counted in your world's time.
+
+Years can be negative: `-12.2.3` is a date twelve years before year zero. Tick **Counts down** on an era to have those years printed the way a reader expects them — an era named "Before the Fall" with **Counts down** on renders year -12 as *12 Before the Fall* rather than as *-12*.
+
+The [Timeline](12-timeline.md) reads your calendar too: on a custom calendar it groups by in-world year, labelled with the era, instead of trying to parse your dates as real ones and putting every scene in the undated bucket. A date the calendar cannot read keeps its own group rather than disappearing.
 
 A month cannot be shorter than one day, and a month with no name is dropped, so a half-finished edit can never leave a calendar whose months and lengths disagree.
 

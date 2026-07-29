@@ -113,4 +113,87 @@ public class InWorldCalendarServiceTests
     [Fact]
     public void DurationLabel_Unparseable_ReturnsEmpty()
         => Assert.Equal(string.Empty, _sut.DurationLabel(new StoryDateRange { Start = "x", End = "y" }, Custom()));
+
+    // ── Eras ──
+    //
+    // A single year suffix cannot say that year 342 is "342 AC" while year -12
+    // is "12 Before the Fall", and printing a negative year as "-12" is what
+    // makes a fantasy chronology unreadable.
+
+    private static InWorldCalendar WithEras(params CalendarEra[] eras) => new()
+    {
+        Type = InWorldCalendarType.Custom,
+        YearLabel = "AC",
+        MonthNames = ["First", "Second"],
+        DaysPerMonth = [30, 30],
+        Eras = [.. eras]
+    };
+
+    [Fact]
+    public void FormatYear_WithNoEras_UsesTheSingleLabel()
+    {
+        var sut = new InWorldCalendarService();
+
+        Assert.Equal("342 AC", sut.FormatYear(342, WithEras()));
+        Assert.Equal("342", sut.FormatYear(342, new InWorldCalendar { Type = InWorldCalendarType.Custom }));
+    }
+
+    [Fact]
+    public void FormatYear_TakesTheLatestEraStartingAtOrBeforeTheYear()
+    {
+        var sut = new InWorldCalendarService();
+        var calendar = WithEras(
+            new CalendarEra { Name = "Third Age", StartYear = 0 },
+            new CalendarEra { Name = "Fourth Age", StartYear = 300 });
+
+        // Counted from the era's own first year, not from zero.
+        Assert.Equal("1 Third Age", sut.FormatYear(0, calendar));
+        Assert.Equal("300 Third Age", sut.FormatYear(299, calendar));
+        Assert.Equal("1 Fourth Age", sut.FormatYear(300, calendar));
+        Assert.Equal("43 Fourth Age", sut.FormatYear(342, calendar));
+    }
+
+    [Fact]
+    public void FormatYear_ACountingDownEraMeasuresBackFromTheNextOne()
+    {
+        var sut = new InWorldCalendarService();
+        var calendar = WithEras(
+            new CalendarEra { Name = "Before the Fall", StartYear = -500, CountsDown = true },
+            new CalendarEra { Name = "AF", StartYear = 0 });
+
+        Assert.Equal("12 Before the Fall", sut.FormatYear(-12, calendar));
+        Assert.Equal("500 Before the Fall", sut.FormatYear(-500, calendar));
+        Assert.Equal("1 AF", sut.FormatYear(0, calendar));
+    }
+
+    [Fact]
+    public void FormatYear_ACountingDownEraWithNothingAfterItCountsToZero()
+    {
+        var sut = new InWorldCalendarService();
+        var calendar = WithEras(new CalendarEra { Name = "Before", StartYear = -50, CountsDown = true });
+
+        Assert.Equal("12 Before", sut.FormatYear(-12, calendar));
+    }
+
+    [Fact]
+    public void FormatYear_AYearBeforeEveryEraFallsBackToTheLabel()
+    {
+        var sut = new InWorldCalendarService();
+        var calendar = WithEras(new CalendarEra { Name = "Fourth Age", StartYear = 300 });
+
+        // Nothing claims it, so it reads with the book's plain year label.
+        Assert.Equal("12 AC", sut.FormatYear(12, calendar));
+    }
+
+    [Fact]
+    public void YearOf_ReadsBothCalendars()
+    {
+        var sut = new InWorldCalendarService();
+
+        Assert.Equal(2024, sut.YearOf("2024-05-01", new InWorldCalendar()));
+        Assert.Equal(-12, sut.YearOf("-12.2.3", WithEras()));
+        Assert.Null(sut.YearOf("not a date", WithEras()));
+        Assert.Null(sut.YearOf("   ", WithEras()));
+        Assert.Null(sut.YearOf("rhubarb", new InWorldCalendar()));
+    }
 }
