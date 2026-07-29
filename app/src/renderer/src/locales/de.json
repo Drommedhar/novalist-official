@@ -2673,5 +2673,25 @@
     "inBooks": "in {{count}} von {{total}}",
     "empty": "Noch erscheinen keine geteilten Einträge in einem Buch.",
     "oneBook": "Dieses Projekt hat ein Buch. Eine Reihenansicht sagt erst ab zwei etwas aus."
+  },
+  "draftCompare": {
+    "title": "Fassungen vergleichen",
+    "left": "Frühere Fassung",
+    "right": "Spätere Fassung",
+    "pick": "Fassung wählen",
+    "pickTwo": "Wählen Sie zwei verschiedene Fassungen zum Vergleich.",
+    "pickScene": "Wählen Sie eine Szene, um die Änderungen zu sehen.",
+    "noScenes": "Keine der beiden Fassungen enthält Szenen.",
+    "swap": "Seiten tauschen",
+    "summary": "{{changed}} geändert, {{added}} hinzugefügt, {{removed}} entfernt, {{same}} unverändert",
+    "words": "{{left}} Wörter gegenüber {{right}}",
+    "take": "Diese Szene aus {{draft}} übernehmen",
+    "takeConfirm": "„{{title}}“ in der aktuellen Fassung durch die andere Version ersetzen? Vorher wird ein Schnappschuss angelegt, Sie können also zurück.",
+    "state": {
+      "same": "Unverändert",
+      "changed": "Geändert",
+      "added": "Nur in der späteren Fassung",
+      "removed": "Nur in der früheren Fassung"
+    }
   }
 }

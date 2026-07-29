@@ -173,6 +173,36 @@ Each book has its own drafts, shown in the **draft selector** in the toolbar (ne
 
 Entities, images, plotlines, and templates are per-book, not per-draft — all drafts of a book share them.
 
+### Comparing two drafts
+
+Cloning a draft before a rewrite is easy. Seeing what the rewrite actually changed is the other half, and that is what the **compare-drafts** button next to the draft selector is for. It needs at least two drafts.
+
+Pick a draft on each side. Novalist opens on the pair you most likely want: the draft you are in, against the one it was cloned from.
+
+The left column lists every scene in both drafts, marked as one of:
+
+| Marking | Means |
+| --- | --- |
+| Unchanged | In both drafts, word for word. Formatting differences do not count as changes. |
+| Changed | In both drafts, with different prose. The two word counts are shown. |
+| Only in the later draft | Written after the drafts parted. |
+| Only in the earlier draft | Cut on the way to the later draft. |
+
+Scenes are matched by identity, not by title, so a scene you renamed during the rewrite is still recognised as the same scene rather than showing up as one added and one deleted.
+
+Pick a scene to see a line-by-line diff of it, laid out exactly like the [snapshot](17-snapshots.md) comparison.
+
+### Taking a scene back across
+
+When the right-hand side is the draft you are actually in, a changed scene offers **Take this scene from …**. That replaces the scene's prose in your draft with the version from the other one — the per-scene cherry-pick you would otherwise do by copy and paste.
+
+- A [snapshot](17-snapshots.md) of the scene is taken first, labelled with the draft it came from, so taking the wrong version is undoable from the scene's own history.
+- If the scene does not exist in your draft but its chapter does, it is created there.
+- If the chapter is gone too, nothing happens. Novalist will not recreate structure you deleted while you were asking about one scene.
+- Only prose moves. Synopsis, notes, status and metadata stay as they are in your draft.
+
+Comparing is read-only in both directions until you press that button.
+
 ## Renaming and deleting projects
 
 - To **rename the project**, double-click the project name in the toolbar and enter the new name.

@@ -1,6 +1,16 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { History, Menu, PanelBottom, PanelLeft, PanelRight, Plus, Search, Trash2 } from 'lucide-react'
+import {
+  GitCompare,
+  History,
+  Menu,
+  PanelBottom,
+  PanelLeft,
+  PanelRight,
+  Plus,
+  Search,
+  Trash2
+} from 'lucide-react'
 import { useShellStore } from '../stores/shellStore'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
@@ -10,6 +20,7 @@ import { ChapterDialog } from './ChapterDialog'
 import { SceneDialog } from './SceneDialog'
 import { StartMenuOverlay } from './StartMenuOverlay'
 import { SnapshotsDialog } from './SnapshotsDialog'
+import { DraftCompareDialog } from './DraftCompareDialog'
 
 type PendingDialog = 'chapter' | 'scene' | 'book' | 'draft' | 'renameProject' | null
 
@@ -30,6 +41,7 @@ export function Toolbar(): React.JSX.Element {
   const [dialog, setDialog] = useState<PendingDialog>(null)
   const [startMenuOpen, setStartMenuOpen] = useState(false)
   const [snapshotsOpen, setSnapshotsOpen] = useState(false)
+  const [compareDrafts, setCompareDrafts] = useState(false)
   const [deleteDraftTarget, setDeleteDraftTarget] = useState<{ id: string; name: string } | null>(
     null
   )
@@ -93,6 +105,14 @@ export function Toolbar(): React.JSX.Element {
             ))}
             <option value="__new__">{t('draft.add')}</option>
           </select>
+          <button
+            className="toolbar-button"
+            title={t('draftCompare.title')}
+            disabled={drafts.length < 2}
+            onClick={() => setCompareDrafts(true)}
+          >
+            <GitCompare size={14} strokeWidth={1.75} />
+          </button>
           <button
             className="toolbar-button"
             title={t('draft.deleteTitle')}
@@ -223,6 +243,7 @@ export function Toolbar(): React.JSX.Element {
           }}
         />
       )}
+      {compareDrafts && <DraftCompareDialog onClose={() => setCompareDrafts(false)} />}
     </header>
   )
 }

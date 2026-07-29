@@ -211,3 +211,108 @@
   text-align: center;
   color: var(--nl-text-subtle);
 }
+
+/* ===== Draft compare dialog ===== */
+.draft-compare-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+  width: min(1120px, 94vw);
+  max-height: 88vh;
+  padding: var(--nl-space-xl);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-xl);
+  box-shadow: var(--nl-elevation-high);
+}
+
+.draft-compare-pickers {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.draft-compare-pickers .inspector-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.draft-compare-summary {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+/* Scene list beside the diff: the list answers "what moved", the diff answers
+   "how". Both have to be visible at once or the comparison is a slideshow. */
+.draft-compare-body {
+  display: grid;
+  grid-template-columns: minmax(200px, 280px) 1fr;
+  gap: var(--nl-space-md);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.draft-compare-scenes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  overflow-y: auto;
+  padding-right: var(--nl-space-tightest);
+}
+
+.draft-compare-scene {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-sm);
+  text-align: left;
+  background: transparent;
+  border: 1px solid var(--nl-border);
+  border-left: 3px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text);
+  cursor: pointer;
+}
+
+.draft-compare-scene:hover {
+  background: var(--nl-surface-hover);
+}
+
+.draft-compare-scene.selected {
+  border-color: var(--nl-accent);
+}
+
+.draft-compare-scene.state-changed {
+  border-left-color: var(--nl-accent);
+}
+
+.draft-compare-scene.state-added {
+  border-left-color: var(--nl-success);
+}
+
+.draft-compare-scene.state-removed {
+  border-left-color: var(--nl-danger);
+}
+
+.draft-compare-scene-title {
+  font-size: var(--nl-font-body-sm);
+}
+
+.draft-compare-scene-meta {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.draft-compare-diff {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.draft-compare-diff-head {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--nl-space-sm);
+}

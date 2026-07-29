@@ -2665,5 +2665,25 @@
     "inBooks": "in {{count}} of {{total}}",
     "empty": "No shared entries appear in any book yet.",
     "oneBook": "This project has one book. A series view starts to say something once there are two."
+  },
+  "draftCompare": {
+    "title": "Compare drafts",
+    "left": "Earlier draft",
+    "right": "Later draft",
+    "pick": "Pick a draft",
+    "pickTwo": "Pick two different drafts to compare.",
+    "pickScene": "Pick a scene to see what changed.",
+    "noScenes": "Neither draft has any scenes.",
+    "swap": "Swap sides",
+    "summary": "{{changed}} changed, {{added}} added, {{removed}} removed, {{same}} unchanged",
+    "words": "{{left}} words against {{right}}",
+    "take": "Take this scene from {{draft}}",
+    "takeConfirm": "Replace \"{{title}}\" in the draft you are in with the other version? A snapshot is taken first, so you can go back.",
+    "state": {
+      "same": "Unchanged",
+      "changed": "Changed",
+      "added": "Only in the later draft",
+      "removed": "Only in the earlier draft"
+    }
   }
 }

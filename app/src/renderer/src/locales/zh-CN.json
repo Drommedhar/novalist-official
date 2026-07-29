@@ -2707,5 +2707,25 @@
     "inBooks": "在 {{total}} 本中的 {{count}} 本",
     "empty": "还没有共享条目出现在任何书中。",
     "oneBook": "本项目只有一本书。系列视图在有两本以后才有意义。"
+  },
+  "draftCompare": {
+    "title": "比较稿本",
+    "left": "较早的稿本",
+    "right": "较新的稿本",
+    "pick": "选择稿本",
+    "pickTwo": "请选择两个不同的稿本进行比较。",
+    "pickScene": "选择一个场景以查看变更。",
+    "noScenes": "两个稿本都没有场景。",
+    "swap": "交换两侧",
+    "summary": "变更 {{changed}}，新增 {{added}}，删除 {{removed}}，未变 {{same}}",
+    "words": "{{left}} 字对 {{right}} 字",
+    "take": "从《{{draft}}》取用此场景",
+    "takeConfirm": "用另一个版本替换当前稿本中的“{{title}}”？会先创建快照，可以恢复。",
+    "state": {
+      "same": "未变",
+      "changed": "已变更",
+      "added": "仅在较新稿本中",
+      "removed": "仅在较早稿本中"
+    }
   }
 }
