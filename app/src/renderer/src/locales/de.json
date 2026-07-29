@@ -1260,7 +1260,12 @@
     "includeCover": "Buchcover einbinden",
     "content": "Was exportiert wird",
     "contentManuscript": "Das Manuskript",
-    "contentCodex": "Das Kompendium (Weltenbibel)"
+    "contentCodex": "Das Kompendium (Weltenbibel)",
+    "excludeScene": "Von Exporten zurückhalten",
+    "includeScene": "Wieder in Exporte aufnehmen",
+    "stageFilter": "Nur Szenen in diesen Phasen",
+    "stageFilterAll": "Alle Phasen",
+    "excludedNote": "Zurückgehaltene Szenen werden nie exportiert, unabhängig vom Filter."
   },
   "expose": {
     "chars": "{{value}} Zeichen",

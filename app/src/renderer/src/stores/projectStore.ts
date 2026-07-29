@@ -13,6 +13,8 @@ export interface SceneDto {
   synopsis: string | null
   /** Key of the scene's stage; null when the writer has not set one. */
   stage: string | null
+  /** True while the writer is holding this scene back from exports. */
+  excludeFromExport: boolean
 }
 
 export interface ChapterDto {

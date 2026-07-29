@@ -36,6 +36,13 @@ public class ExportOptions
     public string? PresetId { get; set; }
     public List<string> SelectedChapterGuids { get; set; } = [];
 
+    /// <summary>
+    /// Scene stages this export includes, by key. Null or empty means every
+    /// stage - the common case, and the one an export that names no filter
+    /// has to keep doing.
+    /// </summary>
+    public List<string>? IncludedStages { get; set; }
+
     /// <summary>ISBN, publisher, series and the rest. Never null; an empty one
     /// simply writes nothing extra.</summary>
     public Models.PublishingMetadata Publishing { get; set; } = new();
@@ -236,7 +243,14 @@ public partial class ExportService
 
         foreach (var chapter in chapters)
         {
-            var scenes = _projectService.GetScenesForChapter(chapter.Guid);
+            var scenes = _projectService.GetScenesForChapter(chapter.Guid)
+                // Two ways a scene stays out of the book: the writer held it
+                // back, or it is not at a stage this export asked for.
+                .Where(s => !s.ExcludeFromExport)
+                .Where(s => options.IncludedStages == null
+                    || options.IncludedStages.Count == 0
+                    || options.IncludedStages.Contains(s.Stage ?? string.Empty))
+                .ToList();
             var sceneContents = new List<SceneExportContent>();
 
             foreach (var scene in scenes)

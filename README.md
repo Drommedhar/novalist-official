@@ -127,6 +127,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Custom themes** — write your own palette as a JSON design-token map or a CSS stylesheet, drop it into your `Themes/` folder, and it joins the theme picker. Extensions can contribute themes the same way. See [`docs/manual/34-custom-themes-and-languages.md`](docs/manual/34-custom-themes-and-languages.md).
 - **Global or per-project settings** — appearance, editor, and writing-assistance settings default to global but can be overridden per project (e.g. an English book and a German book each with their own language, quotes, and theme); project overrides live in `.novalist/` and sync via git.
 - **Reading comfort** — line height, letter spacing and paragraph spacing are yours to set, in the editor, in Manuscript mode and in the Expose; a High Contrast theme ships for low vision and for bright rooms. See [`docs/manual/39-accessibility.md`](docs/manual/39-accessibility.md).
+- **Compile control** — hold any scene back from exports without archiving it, and export only the scenes at the stages you name.
 - **Readability marking** — tint the sentences that fight the reader, graded one at a time with the same method the style report uses, without touching the scene.
 - **Read aloud** — the editor reads the scene back from the caret with a system voice, highlighting the sentence it is on, in the language the scene is written in. Nothing leaves the machine.
 - **Book preview** — render the editor as a printed page with configurable trim size and book font.

@@ -315,6 +315,21 @@ export function Binder(): React.JSX.Element {
             })
         },
         {
+          // Reads as what it does to the book, not as a field being set: the
+          // scene stays in the binder either way.
+          label: scoped(
+            scene.excludeFromExport ? t('export.includeScene') : t('export.excludeScene')
+          ),
+          onClick: () => {
+            void rpc
+              .request<{ state: import('../stores/projectStore').ProjectStateDto }>(
+                'sceneBulk/setExportInclusion',
+                [targets.map((target) => target.sceneId), scene.excludeFromExport]
+              )
+              .then((result) => store.getState().applyState(result.state))
+          }
+        },
+        {
           label: scoped(t('explorer.contextArchive')),
           onClick: () => {
             void rpc

@@ -80,6 +80,14 @@ public class SceneData
     public string? LabelKey { get; set; }
 
     /// <summary>
+    /// Holds this scene back from every export. Stored inverted - true means
+    /// excluded - so a project written before this existed carries no new keys
+    /// and every scene in it is exported, which is what it already did.
+    /// </summary>
+    [JsonPropertyName("excludeFromExport")]
+    public bool ExcludeFromExport { get; set; }
+
+    /// <summary>
     /// A raw hex colour stored before labels had names. Read when present so a
     /// project saved by an older build keeps its colours; nothing writes it.
     /// </summary>

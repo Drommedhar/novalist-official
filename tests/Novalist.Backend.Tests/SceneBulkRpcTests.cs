@@ -130,4 +130,16 @@ public sealed class SceneBulkRpcTests : IDisposable
         Assert.Empty(result.State.Chapters.Single(c => c.Guid == _chapter).Scenes);
         Assert.Equal(2, result.State.Chapters.Single(c => c.Guid == target.Guid).Scenes.Count);
     }
+
+    [Fact]
+    public async Task HoldingASceneBackReachesTheStateTheBinderReads()
+    {
+        var result = await _rpc.SetExportInclusionAsync([_sceneA], included: false);
+
+        Assert.Equal(1, result.Count);
+        Assert.True(result.State.Chapters
+            .SelectMany(c => c.Scenes)
+            .Single(s => s.Id == _sceneA)
+            .ExcludeFromExport);
+    }
 }

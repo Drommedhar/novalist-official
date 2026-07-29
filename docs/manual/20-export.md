@@ -179,6 +179,15 @@ A layout controls:
 | **Print scene titles** | Off for a novel, where the separator is the whole break. On for a collection, or a draft going to someone who needs to name the scenes back to you. |
 | **Extra ebook CSS** | Appended to the EPUB stylesheet, so your rules win over Novalist's by cascade order. The one place you can reach the look of the ebook itself rather than of the page. |
 
+## Choosing what goes in
+
+Beyond the chapter checkboxes:
+
+- **Hold back from exports** — right-click a scene in the binder. The scene stays in the binder, keeps its word count and still counts towards your goals; it simply never reaches a compiled book. The menu item reads **Include in exports again** on a scene already held back. With several scenes selected it applies to all of them.
+- **Only scenes at these stages** — tick the [stages](10-manuscript.md#scene-stages) an export should include. Leave **Every stage** ticked to export everything, which is what an export with no filter has always done. This is how a draft export of only the finished scenes, or a revision pass over only the outlined ones, is produced without touching the book.
+
+A scene held back is held back whatever the stage filter says. The filter narrows what is included; it never overrides an explicit exclusion.
+
 The heading is resolved by every writer — EPUB, DOCX, PDF, Markdown, LaTeX, Final Draft and Normseiten — from the chapter's position in the export, not from the folder name on disk. Excluding a chapter renumbers the ones after it, because the numbers describe the book being exported.
 
 Layouts are stored with the book, not globally — a submission format for a novel and one for a short-story collection have no reason to share a list. Values that would produce a file nobody can open (a zero font size, a margin wider than the page) fall back to something sane rather than being stored.

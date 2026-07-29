@@ -142,6 +142,38 @@ public class SceneBulkServiceTests : IDisposable
         Assert.Equal(chapter, _projects.ScenesManifest!.Archived.Single().OriginChapterGuid);
     }
 
+    // ── Holding a scene back from exports ──
+
+    [Fact]
+    public async Task SetExportInclusion_HoldsEveryNamedSceneBack()
+    {
+        var (chapter, a, b) = await TwoScenesAsync();
+
+        var changed = await _sut.SetExportInclusionAsync([a.Id, b.Id], included: false);
+
+        Assert.Equal(2, changed);
+        Assert.All(_projects.GetScenesForChapter(chapter), s => Assert.True(s.ExcludeFromExport));
+    }
+
+    [Fact]
+    public async Task SetExportInclusion_LetsAHeldBackSceneThroughAgain()
+    {
+        var (chapter, a, _) = await TwoScenesAsync();
+        await _sut.SetExportInclusionAsync([a.Id], included: false);
+
+        await _sut.SetExportInclusionAsync([a.Id], included: true);
+
+        Assert.False(_projects.GetScenesForChapter(chapter).First(s => s.Id == a.Id).ExcludeFromExport);
+    }
+
+    [Fact]
+    public async Task SetExportInclusion_ASceneAlreadyInThatStateIsNotCounted()
+    {
+        var (_, a, _) = await TwoScenesAsync();
+
+        Assert.Equal(0, await _sut.SetExportInclusionAsync([a.Id], included: true));
+    }
+
     // ── Tags ──
 
     [Fact]

@@ -36,6 +36,14 @@ public sealed class SceneBulkRpc
 
     /// <summary>Adds tags to every selected scene, or replaces their tags when
     /// <paramref name="replace"/> is set.</summary>
+    /// <summary>Includes these scenes in exports, or holds them back.</summary>
+    [JsonRpcMethod("sceneBulk/setExportInclusion")]
+    public async Task<BulkResultDto> SetExportInclusionAsync(string[] sceneIds, bool included)
+    {
+        var count = await Service.SetExportInclusionAsync(sceneIds, included);
+        return new BulkResultDto(count, _workspace.BuildState());
+    }
+
     [JsonRpcMethod("sceneBulk/setTags")]
     public async Task<BulkResultDto> SetTagsAsync(string[] sceneIds, string[] tags, bool replace)
     {

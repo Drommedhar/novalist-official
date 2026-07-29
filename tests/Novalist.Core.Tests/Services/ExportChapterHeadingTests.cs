@@ -131,4 +131,76 @@ public class ExportChapterHeadingTests : IDisposable
 
         Assert.True(new FileInfo(path).Length > 0);
     }
+
+    // ── What reaches the compiled book ──
+
+    /// <summary>Three scenes: one held back, one drafted, one final.</summary>
+    private ExportOptions SetupScenes()
+    {
+        var chapter = new ChapterData { Title = "One", Order = 1 };
+        var held = new SceneData
+        {
+            Title = "Held", Order = 1, ChapterGuid = chapter.Guid, ExcludeFromExport = true
+        };
+        var draft = new SceneData
+        {
+            Title = "Draft", Order = 2, ChapterGuid = chapter.Guid, Stage = "draft"
+        };
+        var final = new SceneData
+        {
+            Title = "Final", Order = 3, ChapterGuid = chapter.Guid, Stage = "final"
+        };
+        foreach (var scene in new[] { held, draft, final })
+            _project.ReadSceneContentAsync(chapter, scene).Returns($"<p>{scene.Title} prose.</p>");
+        _project.GetChaptersOrdered().Returns([chapter]);
+        _project.GetScenesForChapter(chapter.Guid).Returns([held, draft, final]);
+
+        return new ExportOptions
+        {
+            Format = ExportFormat.Markdown,
+            SelectedChapterGuids = [chapter.Guid]
+        };
+    }
+
+    [Fact]
+    public async Task AHeldBackSceneIsNeverCompiled()
+    {
+        var compiled = await new ExportService(_project).CompileChaptersAsync(SetupScenes());
+
+        Assert.Equal(["Draft", "Final"], compiled[0].Scenes.Select(s => s.Title));
+    }
+
+    [Fact]
+    public async Task OnlyTheStagesTheExportAsksForAreCompiled()
+    {
+        var options = SetupScenes();
+        options.IncludedStages = ["final"];
+
+        var compiled = await new ExportService(_project).CompileChaptersAsync(options);
+
+        Assert.Equal(["Final"], compiled[0].Scenes.Select(s => s.Title));
+    }
+
+    [Fact]
+    public async Task AnEmptyStageFilterMeansEveryStage()
+    {
+        var options = SetupScenes();
+        options.IncludedStages = [];
+
+        var compiled = await new ExportService(_project).CompileChaptersAsync(options);
+
+        Assert.Equal(2, compiled[0].Scenes.Count);
+    }
+
+    [Fact]
+    public async Task AStageFilterStillWillNotBringBackAHeldBackScene()
+    {
+        var options = SetupScenes();
+        // "Untriaged" is the held-back scene's stage, and it stays out anyway.
+        options.IncludedStages = ["", "draft"];
+
+        var compiled = await new ExportService(_project).CompileChaptersAsync(options);
+
+        Assert.Equal(["Draft"], compiled[0].Scenes.Select(s => s.Title));
+    }
 }

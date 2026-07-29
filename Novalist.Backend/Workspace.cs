@@ -248,7 +248,7 @@ public sealed partial class Workspace : IDisposable
             .OrderBy(s => s.Order)
             .Select(s => new SceneDto(
                 s.Id, s.Title, s.Order, s.WordCount, ResolveLabelColor(s), s.IsFavorite, s.Synopsis,
-                s.Stage))
+                s.Stage, s.ExcludeFromExport))
             .ToArray();
     }
 
@@ -431,6 +431,8 @@ public sealed record SceneDto(
     string? Synopsis,
     /// <summary>Key of the scene's stage, or null when the writer has not set
     /// one. Null is untriaged, not "at the first stage".</summary>
-    string? Stage);
+    string? Stage,
+    /// <summary>True when the writer is holding this scene back from exports.</summary>
+    bool ExcludeFromExport);
 
 public sealed record RecentProjectDto(string Name, string Path, string? Cover);

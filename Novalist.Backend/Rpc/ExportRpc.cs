@@ -46,7 +46,8 @@ public sealed class ExportRpc
         string? presetId = null,
         string[]? selectedEntityKeys = null,
         Dictionary<string, string>? labels = null,
-        bool includeCover = true)
+        bool includeCover = true,
+        string[]? includedStages = null)
     {
         if (Enum.TryParse<ExportFormat>(format, out var parsedFormat))
         {
@@ -62,6 +63,7 @@ public sealed class ExportRpc
                 // nothing and the export silently comes out in the default.
                 CustomPresets = [.. _workspace.Projects.ActiveBook?.ExportPresets ?? []],
                 SelectedChapterGuids = selectedChapterGuids.ToList(),
+                IncludedStages = includedStages?.ToList(),
                 SelectedEntityKeys = selectedEntityKeys?.ToList(),
                 Labels = labels,
                 // The cover the Dashboard already collects, and the book's

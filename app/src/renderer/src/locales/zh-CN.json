@@ -1671,7 +1671,12 @@
     "includeCover": "包含书籍封面",
     "content": "导出内容",
     "contentManuscript": "稿件",
-    "contentCodex": "设定集（世界观）"
+    "contentCodex": "设定集（世界观）",
+    "excludeScene": "不导出此场景",
+    "includeScene": "重新纳入导出",
+    "stageFilter": "仅导出这些阶段的场景",
+    "stageFilterAll": "所有阶段",
+    "excludedNote": "被不导出标记的场景始终不会导出，无论筛选如何。"
   },
   "expose": {
     "chars": "{{value}} 字符",

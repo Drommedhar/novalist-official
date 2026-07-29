@@ -7,6 +7,14 @@
   gap: var(--nl-space-tighter);
 }
 
+/* The stage filter reads as one row of choices, not a stack of settings. */
+.export-stage-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-md);
+  margin-bottom: var(--nl-space-tighter);
+}
+
 .export-chapters-header {
   display: flex;
   align-items: center;

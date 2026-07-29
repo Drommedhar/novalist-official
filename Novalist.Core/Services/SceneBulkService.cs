@@ -59,6 +59,26 @@ public sealed class SceneBulkService : ISceneBulkService
         return targets.Count;
     }
 
+    /// <summary>
+    /// Holds scenes back from every export, or lets them through again. The
+    /// scene stays in the binder and keeps counting towards word goals - it is
+    /// still part of the draft, just not part of the book being compiled.
+    /// </summary>
+    public async Task<int> SetExportInclusionAsync(
+        IReadOnlyList<string> sceneIds, bool included)
+    {
+        var targets = Resolve(sceneIds);
+        var changed = 0;
+        foreach (var target in targets)
+        {
+            if (target.Scene.ExcludeFromExport == !included) continue;
+            target.Scene.ExcludeFromExport = !included;
+            changed++;
+        }
+        if (changed > 0) await _projectService.SaveScenesAsync();
+        return changed;
+    }
+
     public async Task<int> SetTagsAsync(
         IReadOnlyList<string> sceneIds, IReadOnlyList<string> tags, bool replace)
     {

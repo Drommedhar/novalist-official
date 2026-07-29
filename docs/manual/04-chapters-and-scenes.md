@@ -213,6 +213,12 @@ The Timeline's **Add structure...** dropdown can lay out a known story structure
 
 Take a snapshot of the open scene from the toolbar **Snapshots** button (with an optional label such as "Before rewrite") and restore any earlier snapshot from the same list. Automatic snapshots are also taken before destructive operations such as Replace All. See [Snapshots](17-snapshots.md).
 
+## Holding a scene back from exports
+
+Right-click a scene in the binder and choose **Hold back from exports**. It stays exactly where it is, keeps its words and its place in every count, and simply never reaches a compiled book — for the scene you have written but are not sure belongs, or the one that is research in disguise. The same menu item lets it through again. See [Export](20-export.md#choosing-what-goes-in).
+
+This is not archiving: an [archived](#archiving-scenes) scene leaves the binder, a held-back scene does not.
+
 ## Where to go next
 
 - [Editor](05-editor.md) — formatting, split editor, comments, footnotes.

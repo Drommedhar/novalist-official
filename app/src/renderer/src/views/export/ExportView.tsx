@@ -7,6 +7,7 @@ import { BookMatterPanel } from './BookMatterPanel'
 import { PublishingPanel } from './PublishingPanel'
 import { ExportLayoutPanel } from './ExportLayoutPanel'
 import { useProjectStore } from '../../stores/projectStore'
+import { useStageStore } from '../../stores/stageStore'
 import './export.css'
 
 /**
@@ -80,6 +81,10 @@ export function ExportView(): React.JSX.Element {
   const [includeTitlePage, setIncludeTitlePage] = useState(true)
   // Off for Shunn: a submission manuscript does not carry a cover.
   const [includeCover, setIncludeCover] = useState(true)
+  // Empty means every stage, which is what an export that names no filter has
+  // always done and has to keep doing.
+  const [stageFilter, setStageFilter] = useState<Set<string>>(new Set())
+  const stages = useStageStore((st) => st.stages)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [initialized, setInitialized] = useState(false)
@@ -198,7 +203,8 @@ export function ExportView(): React.JSX.Element {
         presetId,
         isCodex ? [...selectedEntities] : null,
         isCodex ? codexLabels() : null,
-        includeCover
+        includeCover,
+        [...stageFilter]
       ])
       setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
     } catch {
@@ -327,6 +333,38 @@ export function ExportView(): React.JSX.Element {
             />
             {t('export.includeCover')}
           </label>
+        )}
+
+        {chaptersVisible && stages.length > 0 && (
+          <>
+            <div className="inspector-label">{t('export.stageFilter')}</div>
+            <div className="export-stage-filter">
+              <label className="relationships-toggle">
+                <input
+                  type="checkbox"
+                  checked={stageFilter.size === 0}
+                  onChange={() => setStageFilter(new Set())}
+                />
+                {t('export.stageFilterAll')}
+              </label>
+              {stages.map((stage) => (
+                <label key={stage.key} className="relationships-toggle">
+                  <input
+                    type="checkbox"
+                    checked={stageFilter.has(stage.key)}
+                    onChange={(e) => {
+                      const next = new Set(stageFilter)
+                      if (e.target.checked) next.add(stage.key)
+                      else next.delete(stage.key)
+                      setStageFilter(next)
+                    }}
+                  />
+                  {stage.label}
+                </label>
+              ))}
+            </div>
+            <div className="settings-hint">{t('export.excludedNote')}</div>
+          </>
         )}
 
         {chaptersVisible && (
