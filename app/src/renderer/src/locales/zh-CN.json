@@ -2095,7 +2095,8 @@
     "kindAnnotation": "批注与脚注",
     "kindEntity": "典藏",
     "kindResearch": "研究",
-    "kindTimeline": "时间线事件"
+    "kindTimeline": "时间线事件",
+    "placeholderStructured": "搜索 — 可用 title:bell、tag:night、-draft"
   },
   "markdown": {
     "toolbar": "格式",

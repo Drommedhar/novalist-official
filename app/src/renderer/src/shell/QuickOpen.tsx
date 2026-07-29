@@ -113,7 +113,9 @@ export function QuickOpen({ onClose }: { onClose(): void }): React.JSX.Element {
         <input
           ref={inputRef}
           className="dialog-input"
-          placeholder={t('quickOpen.placeholder')}
+          // The syntax is the feature; a placeholder that shows it is the
+          // only discovery a search box gets.
+          placeholder={t('quickOpen.placeholderStructured')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {

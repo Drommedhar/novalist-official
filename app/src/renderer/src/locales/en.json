@@ -2053,7 +2053,8 @@
     "kindAnnotation": "Comments and footnotes",
     "kindEntity": "Codex",
     "kindResearch": "Research",
-    "kindTimeline": "Timeline events"
+    "kindTimeline": "Timeline events",
+    "placeholderStructured": "Search - try title:bell, tag:night, -draft"
   },
   "markdown": {
     "toolbar": "Formatting",

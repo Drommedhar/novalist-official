@@ -48,6 +48,27 @@ They look similar and are deliberately separate:
 - **Search for a name to reach a character fast.** Codex hits rank near the top, so `Ctrl+P` and a few letters of a name is usually the quickest route to a character's article.
 - **Search your own notes, not just your prose.** Notes, comments, and footnotes are where "fix this later" lives — Quick Open is the only surface that reads them all at once.
 
+## Narrowing the search
+
+A query is more than a word. The syntax is Scrivener's and Obsidian's, so if you know either you already know this:
+
+| Typed | Finds |
+| --- | --- |
+| `bell` | Anything with "bell" in its title, prose or notes. |
+| `bell tower` | Only things with **both** words. |
+| `"the bell tolled"` | The phrase, in that order. |
+| `title:bell` | Only where "bell" is in the title. |
+| `text:bell` | Only in the prose. `body:` works too. |
+| `notes:bell` | Only in a synopsis, notes, comment or footnote. `synopsis:` works too. |
+| `tag:night` | Scenes carrying that tag. |
+| `kind:scene` | Only scenes. Also `entity`, `research`, `timeline`. |
+| `-draft` | Excludes anything with "draft" in it. |
+| `-title:draft` | Excludes it from the title only, leaving the prose alone. |
+
+Anything that is not one of those is searched for as written, so a stray colon looks for itself rather than failing. `chapter:one` finds the literal text "chapter:one".
+
+Results are **ranked**: a title match outranks a match in the prose, an exact title outranks one that merely contains the word, matching every term outranks matching one, and an earlier match outranks a later one. What you were most likely looking for is at the top.
+
 ## Where to go next
 
 - [Find & Replace](21-find-replace.md) — regex, whole-word, scoped search, and replace-all over scene prose.

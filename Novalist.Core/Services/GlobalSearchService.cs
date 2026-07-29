@@ -30,7 +30,13 @@ public sealed record GlobalSearchHit(
     string? SceneId = null,
     string? EntityTypeKey = null,
     string? EntityId = null,
-    string? ResearchId = null);
+    string? ResearchId = null,
+    /// <summary>
+    /// How well this answers the query. A title match outranks a body match,
+    /// and matching every term outranks matching one - which is what makes a
+    /// structured query worth typing.
+    /// </summary>
+    int Score = 0);
 
 /// <summary>
 /// One case-insensitive substring query across everything the writer has
@@ -66,17 +72,40 @@ public sealed class GlobalSearchService
         if (needle.Length == 0)
             return [];
 
+        // Structured first: title:bell, -draft, "the bell tolled". A query with
+        // no syntax in it parses to one plain term, so the simple case is
+        // unchanged and costs nothing.
+        var parsed = SearchQuery.Parse(needle);
+        if (parsed.IsEmpty) return [];
+
+        var kinds = parsed.Kinds;
         var hits = new List<GlobalSearchHit>();
-        await AddSceneHitsAsync(needle, limit, hits, cancellationToken).ConfigureAwait(false);
-        await AddEntityHitsAsync(needle, limit, hits).ConfigureAwait(false);
-        AddResearchHits(needle, limit, hits);
-        AddTimelineHits(needle, limit, hits);
+        if (Wanted(kinds, GlobalSearchKinds.Scene, GlobalSearchKinds.SceneText,
+                GlobalSearchKinds.SceneNote, GlobalSearchKinds.Annotation))
+            await AddSceneHitsAsync(parsed, limit, hits, cancellationToken).ConfigureAwait(false);
+        if (Wanted(kinds, GlobalSearchKinds.Entity))
+            await AddEntityHitsAsync(needle, limit, hits).ConfigureAwait(false);
+        if (Wanted(kinds, GlobalSearchKinds.Research))
+            AddResearchHits(needle, limit, hits);
+        if (Wanted(kinds, GlobalSearchKinds.Timeline))
+            AddTimelineHits(needle, limit, hits);
         return hits;
     }
 
+    /// <summary>
+    /// Whether a query that names kinds asked for any of these. A query that
+    /// names none wants everything, which is what a search box does by default.
+    /// </summary>
+    private static bool Wanted(IReadOnlyList<string> kinds, params string[] any)
+        => kinds.Count == 0
+            || any.Any(k => kinds.Any(w => k.Contains(w, StringComparison.OrdinalIgnoreCase)));
+
     private async Task AddSceneHitsAsync(
-        string needle, int limit, List<GlobalSearchHit> hits, CancellationToken cancellationToken)
+        SearchQuery query, int limit, List<GlobalSearchHit> hits, CancellationToken cancellationToken)
     {
+        // The plain words of the query, for snippets - a snippet has to show
+        // the word that was looked for, not the syntax around it.
+        var needle = query.Terms.FirstOrDefault(t => !t.Negated)?.Value ?? string.Empty;
         var titles = new List<GlobalSearchHit>();
         var texts = new List<GlobalSearchHit>();
         var notes = new List<GlobalSearchHit>();
@@ -88,10 +117,40 @@ public sealed class GlobalSearchService
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                var plainText = await _projects.ReadSceneContentAsync(chapter, scene)
+                    .ConfigureAwait(false);
+                plainText = TextDiff.StripHtml(plainText);
+                // Everything written *about* the scene rather than in it: the
+                // synopsis, the notes, and the margin - a comment is a note,
+                // and a search that could not reach one would miss the place a
+                // writer most often leaves themselves a marker.
+                var sceneNotes = string.Join("\n", new[] { scene.Synopsis, scene.Notes }
+                    .Concat((scene.Comments ?? []).SelectMany(c => new[] { c.Text, c.AnchorText }))
+                    .Concat((scene.Footnotes ?? []).Select(f => f.Text))
+                    .Where(n => !string.IsNullOrEmpty(n)));
+                var sceneTags = scene.AnalysisOverrides?.Tags ?? [];
+
+                // Every term has to hold before a scene is a hit at all; which
+                // list it lands in then says where the words actually were.
+                if (!query.Matches(scene.Title, plainText, sceneNotes, sceneTags, "scene")) continue;
+                var score = query.Score(scene.Title, plainText, sceneNotes);
+
+                // Nothing positive to look for - a query of pure negation -
+                // so there is no field to point at and the scene is reported
+                // once, by name.
+                if (needle.Length == 0)
+                {
+                    if (titles.Count < limit)
+                        titles.Add(new GlobalSearchHit(
+                            GlobalSearchKinds.Scene, scene.Title, chapter.Title, null,
+                            chapter.Guid, scene.Id, null, null, null, score));
+                    continue;
+                }
+
                 if (titles.Count < limit && Contains(scene.Title, needle))
                     titles.Add(new GlobalSearchHit(
                         GlobalSearchKinds.Scene, scene.Title, chapter.Title, null,
-                        chapter.Guid, scene.Id));
+                        chapter.Guid, scene.Id, null, null, null, score));
 
                 if (notes.Count < limit && Contains(scene.Synopsis, needle))
                     notes.Add(new GlobalSearchHit(
@@ -121,22 +180,21 @@ public sealed class GlobalSearchService
                             Snippet(footnote.Text, needle), chapter.Guid, scene.Id));
                 }
 
-                if (texts.Count < limit)
+                if (texts.Count < limit && Contains(plainText, needle))
                 {
-                    var html = await _projects.ReadSceneContentAsync(chapter, scene).ConfigureAwait(false);
-                    var plain = TextDiff.StripHtml(html);
-                    if (Contains(plain, needle))
-                        texts.Add(new GlobalSearchHit(
-                            GlobalSearchKinds.SceneText, scene.Title, chapter.Title,
-                            Snippet(plain, needle), chapter.Guid, scene.Id));
+                    texts.Add(new GlobalSearchHit(
+                        GlobalSearchKinds.SceneText, scene.Title, chapter.Title,
+                        Snippet(plainText, needle), chapter.Guid, scene.Id, null, null, null, score));
                 }
+
             }
         }
 
-        hits.AddRange(titles);
-        hits.AddRange(texts);
-        hits.AddRange(notes);
-        hits.AddRange(annotations);
+        // Ranked rather than grouped by where they were found: a title match
+        // still outranks a body match, but a body match on every term now
+        // beats a title match on one.
+        hits.AddRange(titles.Concat(texts).Concat(notes).Concat(annotations)
+            .OrderByDescending(h => h.Score));
     }
 
     private async Task AddEntityHitsAsync(string needle, int limit, List<GlobalSearchHit> hits)

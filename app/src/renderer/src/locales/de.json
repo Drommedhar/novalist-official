@@ -2061,7 +2061,8 @@
     "kindAnnotation": "Kommentare und Fußnoten",
     "kindEntity": "Kodex",
     "kindResearch": "Recherche",
-    "kindTimeline": "Zeitstrahl-Ereignisse"
+    "kindTimeline": "Zeitstrahl-Ereignisse",
+    "placeholderStructured": "Suchen – z. B. title:Glocke, tag:Nacht, -Entwurf"
   },
   "markdown": {
     "toolbar": "Formatierung",

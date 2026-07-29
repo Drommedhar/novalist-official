@@ -270,4 +270,70 @@ public class GlobalSearchServiceTests
         await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => sut.SearchAsync("anything", 20, cts.Token));
     }
+
+    // -- Structured queries --
+
+    [Fact]
+    public async Task Search_ScopesATermToTheTitle()
+    {
+        var (sut, project, _, _) = Build();
+        WithScene(project, new SceneData { Id = "s1", Title = "Arrival" }, "<p>the bell tolled</p>");
+
+        Assert.Empty(await sut.SearchAsync("title:bell"));
+        Assert.NotEmpty(await sut.SearchAsync("text:bell"));
+    }
+
+    [Fact]
+    public async Task Search_ANegatedTermExcludesTheScene()
+    {
+        var (sut, project, _, _) = Build();
+        WithScene(project, new SceneData { Id = "s1", Title = "Arrival" }, "<p>still a draft</p>");
+
+        Assert.Empty(await sut.SearchAsync("draft -draft"));
+    }
+
+    [Fact]
+    public async Task Search_AQueryOfNothingButANegationStillFindsWhatIsLeft()
+    {
+        var (sut, project, _, _) = Build();
+        WithScene(project, new SceneData { Id = "s1", Title = "Arrival" }, "<p>finished prose</p>");
+
+        // Nothing positive to snippet, so the scene is reported by its title.
+        var hit = Assert.Single(await sut.SearchAsync("-draft"));
+        Assert.Equal(GlobalSearchKinds.Scene, hit.Kind);
+        Assert.Equal("Arrival", hit.Title);
+    }
+
+    [Fact]
+    public async Task Search_AKindTermKeepsTheOtherKindsOut()
+    {
+        var (sut, project, entity, _) = Build();
+        WithScene(project, new SceneData { Id = "s1", Title = "Bell" });
+        entity.LoadCharactersAsync().Returns(new List<CharacterData>
+        {
+            new() { Id = "e1", Name = "Bell" }
+        });
+
+        var scenesOnly = await sut.SearchAsync("kind:scene Bell");
+
+        Assert.All(scenesOnly, h => Assert.NotEqual(GlobalSearchKinds.Entity, h.Kind));
+        Assert.Contains(await sut.SearchAsync("Bell"), h => h.Kind == GlobalSearchKinds.Entity);
+    }
+
+    [Fact]
+    public async Task Search_ATitleMatchIsRankedAboveABodyMatch()
+    {
+        var (sut, project, _, _) = Build();
+        var chapter = new ChapterData { Guid = "c1", Title = "One" };
+        var titled = new SceneData { Id = "s1", Title = "The bell" };
+        var mentioned = new SceneData { Id = "s2", Title = "Arrival" };
+        project.GetChaptersOrdered().Returns(new List<ChapterData> { chapter });
+        project.GetScenesForChapter("c1").Returns(new List<SceneData> { mentioned, titled });
+        project.ReadSceneContentAsync(chapter, titled).Returns("<p>nothing</p>");
+        project.ReadSceneContentAsync(chapter, mentioned).Returns("<p>the bell tolled</p>");
+
+        var hits = await sut.SearchAsync("bell");
+
+        Assert.Equal("The bell", hits[0].Title);
+    }
 }
