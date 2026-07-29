@@ -36,7 +36,7 @@ public static class EntityResolveIndex
         IReadOnlyList<(string TypeKey, IReadOnlyList<CustomEntityData> Entities)> customTypes)
     {
         var candidates = new Dictionary<string, List<(string Id, string TypeKey)>>(StringComparer.OrdinalIgnoreCase);
-        void Add(string? name, string entityId, string typeKey)
+        void Add(string? name, string entityId, string typeKey, EntityMatchSettings? match = null)
         {
             var key = Normalize(name);
             if (key.Length == 0) return;
@@ -46,40 +46,50 @@ public static class EntityResolveIndex
                 candidates[key] = list;
             }
             list.Add((entityId, typeKey));
+
+            // A plural is another way of writing the same reference, so it
+            // becomes its own key rather than changing how the base name
+            // matches. Case sensitivity and exclusions are applied where the
+            // surrounding text is available, not here.
+            if (match == null)
+                return;
+
+            foreach (var plural in match.PluralFormsOf(key))
+                Add(plural, entityId, typeKey);
         }
 
         foreach (var c in characters)
         {
             var display = Compose(c.Name, c.Surname);
-            Add(display, c.Id, "character");
+            Add(display, c.Id, "character", c.Match);
             // The bare first name is an extra target, but only when it differs
             // from the composed name — else a surnameless character would map its
             // one name twice and be wrongly treated as ambiguous (desktop parity).
             if (!string.Equals(c.Name, display, StringComparison.OrdinalIgnoreCase))
-                Add(c.Name, c.Id, "character");
-            foreach (var alias in c.Aliases) Add(alias, c.Id, "character");
+                Add(c.Name, c.Id, "character", c.Match);
+            foreach (var alias in c.Aliases) Add(alias, c.Id, "character", c.Match);
         }
         foreach (var l in locations)
         {
-            Add(l.Name, l.Id, "location");
-            foreach (var alias in l.Aliases) Add(alias, l.Id, "location");
+            Add(l.Name, l.Id, "location", l.Match);
+            foreach (var alias in l.Aliases) Add(alias, l.Id, "location", l.Match);
         }
         foreach (var i in items)
         {
-            Add(i.Name, i.Id, "item");
-            foreach (var alias in i.Aliases) Add(alias, i.Id, "item");
+            Add(i.Name, i.Id, "item", i.Match);
+            foreach (var alias in i.Aliases) Add(alias, i.Id, "item", i.Match);
         }
         foreach (var l in lore)
         {
-            Add(l.Name, l.Id, "lore");
-            foreach (var alias in l.Aliases) Add(alias, l.Id, "lore");
+            Add(l.Name, l.Id, "lore", l.Match);
+            foreach (var alias in l.Aliases) Add(alias, l.Id, "lore", l.Match);
         }
         foreach (var (typeKey, entities) in customTypes)
         {
             foreach (var entity in entities)
             {
-                Add(entity.Name, entity.Id, typeKey);
-                foreach (var alias in entity.Aliases) Add(alias, entity.Id, typeKey);
+                Add(entity.Name, entity.Id, typeKey, entity.Match);
+                foreach (var alias in entity.Aliases) Add(alias, entity.Id, typeKey, entity.Match);
             }
         }
 

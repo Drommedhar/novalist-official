@@ -115,6 +115,36 @@ public sealed class SceneAnalysisLexicon
     /// space-delimited (Chinese, for instance, is not).</summary>
     public Regex FirstPerson { get; private init; } = new("(?!)", RegexOptions.CultureInvariant);
 
+    // ── Prose-style report inputs ───────────────────────────────────
+    // Empty lists are meaningful: a language that does not mark adverbs with a
+    // suffix, or for which no filter-word list exists, has that report reported
+    // as unsupported rather than guessed at.
+
+    /// <summary>Word endings that mark an adverb ("ly"). Empty where the
+    /// language does not form adverbs by suffix, as German does not.</summary>
+    public IReadOnlyList<string> AdverbSuffixes { get; private init; } = [];
+
+    /// <summary>Words ending in an adverb suffix that are not adverbs
+    /// ("only", "family"), so they are not counted.</summary>
+    public IReadOnlyList<string> AdverbExceptions { get; private init; } = [];
+
+    /// <summary>Verbs that put a narrator between the reader and the scene
+    /// ("she saw the door open" over "the door opened").</summary>
+    public IReadOnlyList<string> FilterWords { get; private init; } = [];
+
+    /// <summary>Function words carrying no image. A high proportion makes a
+    /// sentence read as sticky.</summary>
+    public IReadOnlyList<string> GlueWords { get; private init; } = [];
+
+    /// <summary>Auxiliaries that can form the passive voice.</summary>
+    public IReadOnlyList<string> PassiveAuxiliaries { get; private init; } = [];
+
+    /// <summary>Verbs that usually have a more specific alternative.</summary>
+    public IReadOnlyList<string> WeakVerbs { get; private init; } = [];
+
+    /// <summary>Stock phrases, matched literally.</summary>
+    public IReadOnlyList<string> Cliches { get; private init; } = [];
+
     /// <summary>Language tags shipped as embedded resources.</summary>
     private static IReadOnlyList<string> BuiltInLanguages { get; } = Assembly
         .GetExecutingAssembly()
@@ -272,7 +302,14 @@ public sealed class SceneAnalysisLexicon
             FemalePronouns = BuildPronounRegex(Clean(file.PronounsFemale), file.WordBoundaries),
             GenderMale = Clean(file.GenderMale),
             GenderFemale = Clean(file.GenderFemale),
-            FirstPerson = BuildPronounRegex(Clean(file.FirstPerson), file.WordBoundaries)
+            FirstPerson = BuildPronounRegex(Clean(file.FirstPerson), file.WordBoundaries),
+            AdverbSuffixes = Clean(file.AdverbSuffixes),
+            AdverbExceptions = Clean(file.AdverbExceptions),
+            FilterWords = Clean(file.FilterWords),
+            GlueWords = Clean(file.GlueWords),
+            PassiveAuxiliaries = Clean(file.PassiveAuxiliaries),
+            WeakVerbs = Clean(file.WeakVerbs),
+            Cliches = Clean(file.Cliches)
         };
     }
 
@@ -332,5 +369,26 @@ public sealed class SceneAnalysisLexicon
 
         [JsonPropertyName("emotions")]
         public IReadOnlyList<EmotionLexiconEntry> Emotions { get; init; } = [];
+
+        [JsonPropertyName("adverbSuffixes")]
+        public IReadOnlyList<string> AdverbSuffixes { get; init; } = [];
+
+        [JsonPropertyName("adverbExceptions")]
+        public IReadOnlyList<string> AdverbExceptions { get; init; } = [];
+
+        [JsonPropertyName("filterWords")]
+        public IReadOnlyList<string> FilterWords { get; init; } = [];
+
+        [JsonPropertyName("glueWords")]
+        public IReadOnlyList<string> GlueWords { get; init; } = [];
+
+        [JsonPropertyName("passiveAuxiliaries")]
+        public IReadOnlyList<string> PassiveAuxiliaries { get; init; } = [];
+
+        [JsonPropertyName("weakVerbs")]
+        public IReadOnlyList<string> WeakVerbs { get; init; } = [];
+
+        [JsonPropertyName("cliches")]
+        public IReadOnlyList<string> Cliches { get; init; } = [];
     }
 }

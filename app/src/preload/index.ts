@@ -29,6 +29,15 @@ contextBridge.exposeInMainWorld('novalist', {
   pickFolder(title: string): Promise<string | null> {
     return ipcRenderer.invoke('novalist:pick-folder', title)
   },
+  /** Captures a region of the window to a PNG. Used by the map image export,
+   * where the surface is a DOM tree rather than a single canvas. */
+  captureRegion(
+    rect: { x: number; y: number; width: number; height: number },
+    outputPath: string,
+    scale: number
+  ): Promise<boolean> {
+    return ipcRenderer.invoke('novalist:capture-region', rect, outputPath, scale)
+  },
   saveFile(defaultName: string): Promise<string | null> {
     return ipcRenderer.invoke('novalist:save-file', defaultName)
   },

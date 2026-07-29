@@ -1158,4 +1158,220 @@ public sealed class EntitiesRpcTests : IDisposable
         Assert.Null(s2.Synopsis);
         Assert.Null(s2.Notes);
     }
+
+    // ── Cascade rename ──
+
+    [Fact]
+    public async Task Update_RenamingACharacter_RewritesProseMentionsAndRelationships()
+    {
+        var bob = await _rpc.CreateAsync("character", "Bob");
+        var bobId = bob.GetProperty("id").GetString()!;
+        var alice = await _rpc.CreateAsync("character", "Alice");
+        var aliceId = alice.GetProperty("id").GetString()!;
+
+        await _rpc.SetRelationshipsAsync(aliceId, [new RelationshipEditRowDto("brother", "Bob", null)]);
+
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _workspace.WriteSceneAsync(chapter.Guid, scene.Id,
+            $"<p>Then <span class=\"nv-entity-mention\" data-entity-id=\"{bobId}\">Bob</span> spoke.</p>",
+            "Then Bob spoke.");
+
+        await _rpc.UpdateAsync("character", bobId,
+            new Dictionary<string, string> { ["name"] = "Robert" });
+
+        var chapterAfter = _workspace.Projects.GetChaptersOrdered().First(c => c.Guid == chapter.Guid);
+        var sceneAfter = _workspace.Projects.GetScenesForChapter(chapter.Guid).First(s => s.Id == scene.Id);
+        var html = await _workspace.Projects.ReadSceneContentAsync(chapterAfter, sceneAfter);
+        Assert.Contains(">Robert</span>", html);
+        Assert.DoesNotContain(">Bob</span>", html);
+
+        var aliceAfter = (await Entities.LoadCharactersAsync()).First(c => c.Id == aliceId);
+        Assert.Equal("Robert", aliceAfter.Relationships[0].Target);
+    }
+
+    [Fact]
+    public async Task Update_WithoutARename_LeavesReferencesAlone()
+    {
+        var bob = await _rpc.CreateAsync("character", "Bob");
+        var bobId = bob.GetProperty("id").GetString()!;
+        var alice = await _rpc.CreateAsync("character", "Alice");
+        var aliceId = alice.GetProperty("id").GetString()!;
+        await _rpc.SetRelationshipsAsync(aliceId, [new RelationshipEditRowDto("brother", "Bob", null)]);
+
+        await _rpc.UpdateAsync("character", bobId,
+            new Dictionary<string, string> { ["role"] = "Protagonist" });
+
+        var aliceAfter = (await Entities.LoadCharactersAsync()).First(c => c.Id == aliceId);
+        Assert.Equal("Bob", aliceAfter.Relationships[0].Target);
+    }
+
+    // -- Mention-match controls --
+
+    [Fact]
+    public async Task MatchSettings_DefaultToTheOldBehaviour()
+    {
+        var created = await _rpc.CreateAsync("character", "Rose");
+        var id = created.GetProperty("id").GetString()!;
+
+        var settings = await _rpc.GetMatchSettingsAsync("character", id);
+
+        Assert.False(settings.CaseSensitive);
+        Assert.False(settings.MatchPlurals);
+        Assert.Empty(settings.Exclusions);
+        Assert.Empty(settings.IgnoredSceneIds);
+    }
+
+    [Fact]
+    public async Task MatchSettings_RoundTrip()
+    {
+        var created = await _rpc.CreateAsync("character", "Rose");
+        var id = created.GetProperty("id").GetString()!;
+
+        await _rpc.SetMatchSettingsAsync(
+            "character", id, true, true, ["rose garden", "she rose"], ["scene-7"]);
+
+        var settings = await _rpc.GetMatchSettingsAsync("character", id);
+        Assert.True(settings.CaseSensitive);
+        Assert.True(settings.MatchPlurals);
+        Assert.Equal(2, settings.Exclusions.Length);
+        Assert.Equal(["scene-7"], settings.IgnoredSceneIds);
+    }
+
+    [Fact]
+    public async Task MatchSettings_BlankAndDuplicateExclusionsAreDropped()
+    {
+        var created = await _rpc.CreateAsync("character", "Rose");
+        var id = created.GetProperty("id").GetString()!;
+
+        // A blank exclusion matches every context and would suppress every
+        // detection for the entry.
+        var settings = await _rpc.SetMatchSettingsAsync(
+            "character", id, false, false, ["  ", "rose garden", "Rose Garden", ""], []);
+
+        Assert.Equal(["rose garden"], settings.Exclusions);
+    }
+
+    [Fact]
+    public async Task MatchSettings_SurviveAReload()
+    {
+        var created = await _rpc.CreateAsync("location", "Ash");
+        var id = created.GetProperty("id").GetString()!;
+        await _rpc.SetMatchSettingsAsync("location", id, false, true, [], []);
+
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+
+        var reloaded = await new EntitiesRpc(_workspace).GetMatchSettingsAsync("location", id);
+        Assert.True(reloaded.MatchPlurals);
+    }
+
+    [Fact]
+    public async Task MatchSettings_UnknownEntity_Throws()
+    {
+        await Assert.ThrowsAnyAsync<Exception>(
+            () => _rpc.SetMatchSettingsAsync("character", "nope", true, true, [], []));
+    }
+
+    [Fact]
+    public async Task MatchSettings_UnknownEntity_ReadsAsDefaults()
+    {
+        var settings = await _rpc.GetMatchSettingsAsync("character", "nope");
+        Assert.False(settings.CaseSensitive);
+    }
+
+    [Fact]
+    public async Task MatchSettings_UnknownType_ReadsAsDefaults()
+    {
+        // A custom type deleted while a stale renderer still holds its key.
+        var settings = await _rpc.GetMatchSettingsAsync("gone", "x");
+
+        Assert.False(settings.CaseSensitive);
+        Assert.Empty(settings.Exclusions);
+    }
+
+    [Fact]
+    public async Task List_OmitsTheMatchBlockWhenNothingIsCustomised()
+    {
+        await _rpc.CreateAsync("character", "Rose");
+
+        var summary = (await _rpc.ListAsync("character")).Single();
+
+        // The common payload must not grow for the projects that never touch
+        // these controls.
+        Assert.Null(summary.Match);
+    }
+
+    [Fact]
+    public async Task List_CarriesTheMatchBlockWhenSomethingIsCustomised()
+    {
+        var created = await _rpc.CreateAsync("character", "Rose");
+        var id = created.GetProperty("id").GetString()!;
+        await _rpc.SetMatchSettingsAsync("character", id, true, false, ["rose garden"], ["scene-7"]);
+
+        var match = (await _rpc.ListAsync("character")).Single().Match;
+
+        Assert.NotNull(match);
+        Assert.True(match!.CaseSensitive);
+        Assert.Equal(["rose garden"], match.Exclusions);
+        Assert.Equal(["scene-7"], match.IgnoredSceneIds);
+        // Plurals stay empty while the flag is off.
+        Assert.Empty(match.Plurals);
+    }
+
+    [Fact]
+    public async Task List_PrecomputesThePluralOfEveryMatchableText()
+    {
+        var created = await _rpc.CreateAsync("lore", "Raven");
+        var id = created.GetProperty("id").GetString()!;
+        var lore = (await Entities.LoadLoreAsync()).First(l => l.Id == id);
+        lore.Aliases = ["Corvid"];
+        await Entities.SaveLoreAsync(lore);
+        await _rpc.SetMatchSettingsAsync("lore", id, false, true, [], []);
+
+        var match = (await _rpc.ListAsync("lore")).Single().Match;
+
+        Assert.NotNull(match);
+        Assert.Contains("Ravens", match!.Plurals);
+        Assert.Contains("Corvids", match.Plurals);
+    }
+
+    [Fact]
+    public async Task List_PluralsOfACharacterCoverTheBareFirstName()
+    {
+        var created = await _rpc.CreateAsync("character", "Liam");
+        var id = created.GetProperty("id").GetString()!;
+        var character = (await Entities.LoadCharactersAsync()).First(c => c.Id == id);
+        character.Surname = "Calder";
+        await Entities.SaveCharacterAsync(character);
+        await _rpc.SetMatchSettingsAsync("character", id, false, true, [], []);
+
+        var match = (await _rpc.ListAsync("character")).Single().Match;
+
+        Assert.NotNull(match);
+        // The composed display name and the bare first name are both hover
+        // targets, so both need their plural.
+        Assert.Contains("Liam Calders", match!.Plurals);
+        Assert.Contains("Liams", match.Plurals);
+    }
+
+    [Fact]
+    public async Task List_CarriesTheMatchBlockForItemsLocationsAndCustomTypes()
+    {
+        var item = await _rpc.CreateAsync("item", "Glass");
+        await _rpc.SetMatchSettingsAsync(
+            "item", item.GetProperty("id").GetString()!, false, true, [], []);
+        var location = await _rpc.CreateAsync("location", "Ash");
+        await _rpc.SetMatchSettingsAsync(
+            "location", location.GetProperty("id").GetString()!, true, false, [], []);
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            TypeKey: null, DisplayName: "Faction", DisplayNamePlural: null, Fields: [],
+            IncludeImages: false, IncludeRelationships: false, IncludeSections: false));
+        var custom = await _rpc.CreateAsync("faction", "Church");
+        await _rpc.SetMatchSettingsAsync(
+            "faction", custom.GetProperty("id").GetString()!, false, true, [], []);
+
+        Assert.Contains("Glasses", (await _rpc.ListAsync("item")).Single().Match!.Plurals);
+        Assert.True((await _rpc.ListAsync("location")).Single().Match!.CaseSensitive);
+        Assert.Contains("Churches", (await _rpc.ListAsync("faction")).Single().Match!.Plurals);
+    }
 }

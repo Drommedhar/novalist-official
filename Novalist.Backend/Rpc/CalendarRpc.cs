@@ -14,6 +14,69 @@ public sealed class CalendarRpc
         _workspace = workspace;
     }
 
+    /// <summary>
+    /// The book's calendar configuration. Returns Gregorian defaults when the
+    /// book has never been configured, so the editor always has something to
+    /// show rather than a null to special-case.
+    /// </summary>
+    [JsonRpcMethod("calendar/getConfig")]
+    public CalendarConfigDto GetConfig()
+    {
+        var calendar = _workspace.Projects.ActiveBook?.Calendar ?? new Core.Models.InWorldCalendar();
+        return new CalendarConfigDto(
+            calendar.Type.ToString(),
+            calendar.YearLabel,
+            calendar.MonthNames.ToArray(),
+            calendar.DaysPerMonth.ToArray(),
+            calendar.WeekdayNames.ToArray(),
+            calendar.CustomYearLength);
+    }
+
+    /// <summary>
+    /// Replaces the book's calendar. Month names and their day counts are
+    /// zipped to the shorter of the two, so a half-finished edit can never
+    /// produce a calendar whose months and lengths disagree.
+    /// </summary>
+    [JsonRpcMethod("calendar/setConfig")]
+    public async Task<CalendarConfigDto> SetConfigAsync(
+        string type, string yearLabel, string[] monthNames, int[] daysPerMonth, string[] weekdayNames)
+    {
+        var book = _workspace.Projects.ActiveBook
+            ?? throw new InvalidOperationException("No project open.");
+
+        var months = new List<string>();
+        var days = new List<int>();
+        var pairs = Math.Min(monthNames?.Length ?? 0, daysPerMonth?.Length ?? 0);
+        for (var i = 0; i < pairs; i++)
+        {
+            var name = (monthNames![i] ?? string.Empty).Trim();
+            if (name.Length == 0)
+                continue;
+
+            months.Add(name);
+            // A month of zero or negative days would make year length arithmetic
+            // meaningless; one day is the smallest month that can exist.
+            days.Add(Math.Max(1, daysPerMonth![i]));
+        }
+
+        book.Calendar = new Core.Models.InWorldCalendar
+        {
+            Type = string.Equals(type, "Custom", StringComparison.OrdinalIgnoreCase)
+                ? Core.Models.InWorldCalendarType.Custom
+                : Core.Models.InWorldCalendarType.Gregorian,
+            YearLabel = (yearLabel ?? string.Empty).Trim(),
+            MonthNames = months,
+            DaysPerMonth = days,
+            WeekdayNames = (weekdayNames ?? [])
+                .Select(w => (w ?? string.Empty).Trim())
+                .Where(w => w.Length > 0)
+                .ToList()
+        };
+
+        await _workspace.Projects.SaveProjectAsync();
+        return GetConfig();
+    }
+
     [JsonRpcMethod("calendar/get")]
     public CalendarEventDto[] Get(string fromIso, string toIso)
     {
@@ -109,3 +172,11 @@ public sealed record CalendarEventDto(
     int StartMinute,
     int EndHour,
     int EndMinute);
+
+public sealed record CalendarConfigDto(
+    string Type,
+    string YearLabel,
+    string[] MonthNames,
+    int[] DaysPerMonth,
+    string[] WeekdayNames,
+    int YearLength);

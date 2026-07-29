@@ -1,0 +1,410 @@
+using System.Text.RegularExpressions;
+
+namespace Novalist.Core.Services;
+
+/// <summary>One flagged span of prose, with enough context to find it.</summary>
+public sealed class ProseStyleHit
+{
+    /// <summary>The word or phrase that matched, as written.</summary>
+    public string Text { get; init; } = string.Empty;
+
+    /// <summary>Character offset into the plain text the report ran over.</summary>
+    public int Offset { get; init; }
+
+    /// <summary>A short window of surrounding text, for display.</summary>
+    public string Context { get; init; } = string.Empty;
+}
+
+/// <summary>Result of one report over one body of text.</summary>
+public sealed class ProseStyleFinding
+{
+    /// <summary>Stable identifier the renderer localizes
+    /// (<c>proseStyle.report.&lt;key&gt;</c>). Never shown raw.</summary>
+    public string Key { get; init; } = string.Empty;
+
+    /// <summary>How many times the report matched.</summary>
+    public int Count { get; init; }
+
+    /// <summary>Matches per 1000 words, rounded to one decimal. Zero when the
+    /// report is not a density measure.</summary>
+    public double Per1000Words { get; init; }
+
+    /// <summary>
+    /// False when the writing language has no data for this report. The UI says
+    /// so rather than showing a zero, which would read as "clean".
+    /// </summary>
+    public bool Supported { get; init; } = true;
+
+    /// <summary>Example matches, capped.</summary>
+    public IReadOnlyList<ProseStyleHit> Examples { get; init; } = [];
+}
+
+/// <summary>Every report over one body of text.</summary>
+public sealed class ProseStyleReport
+{
+    public string Language { get; init; } = "en";
+    public int WordCount { get; init; }
+    public int SentenceCount { get; init; }
+
+    /// <summary>Mean sentence length in words.</summary>
+    public double MeanSentenceWords { get; init; }
+
+    /// <summary>
+    /// Standard deviation of sentence length. Low variation over a long stretch
+    /// is what makes prose read as monotonous, and it is invisible while writing.
+    /// </summary>
+    public double SentenceLengthStdDev { get; init; }
+
+    public int LongestSentenceWords { get; init; }
+
+    public IReadOnlyList<ProseStyleFinding> Findings { get; init; } = [];
+}
+
+/// <summary>
+/// Deterministic, offline craft reports over a body of prose: adverbs, filter
+/// words, passive voice, weak verbs, cliches, sticky sentences, repeated
+/// sentence openers, and sentence-length variation.
+///
+/// Nothing here is a model call or a network call - the results are the same on
+/// every machine and every run, which is the point. Word lists come from the
+/// per-language analysis lexicon, so a language with no list gets an honest
+/// "not supported for this language" rather than a zero that reads as clean.
+/// </summary>
+public static partial class ProseStyleAnalyzer
+{
+    /// <summary>Matches at most this many examples per report.</summary>
+    internal const int MaxExamples = 25;
+
+    /// <summary>Characters of context shown either side of a hit.</summary>
+    private const int ContextRadius = 40;
+
+    /// <summary>A sentence is flagged sticky above this share of glue words.</summary>
+    internal const double StickyGlueThreshold = 0.45;
+
+    /// <summary>Sticky detection ignores very short sentences, where a high glue
+    /// share is normal and says nothing.</summary>
+    internal const int StickyMinWords = 8;
+
+    /// <summary>How many consecutive sentences must share an opening word.</summary>
+    internal const int RepeatedOpenerRun = 3;
+
+    [GeneratedRegex(@"[^.!?]+[.!?]*", RegexOptions.Compiled)]
+    private static partial Regex SentenceRegex();
+
+    [GeneratedRegex(@"\p{L}[\p{L}\p{M}'’-]*", RegexOptions.Compiled)]
+    private static partial Regex WordRegex();
+
+    public static ProseStyleReport Analyze(string? text, string language)
+    {
+        var plain = (text ?? string.Empty).Trim();
+        var lexicon = SceneAnalysisLexicon.For(language);
+
+        var sentences = SplitSentences(plain);
+        var words = WordRegex().Matches(plain);
+        var wordCount = words.Count;
+
+        var lengths = sentences.Select(s => WordRegex().Matches(s.Text).Count).Where(n => n > 0).ToArray();
+
+        var findings = new List<ProseStyleFinding>
+        {
+            WordListFinding("adverbs", plain, words, AdverbMatcher(lexicon), lexicon?.AdverbSuffixes.Count > 0),
+            WordListFinding("filterWords", plain, words, SetMatcher(lexicon?.FilterWords), lexicon?.FilterWords.Count > 0),
+            WordListFinding("weakVerbs", plain, words, SetMatcher(lexicon?.WeakVerbs), lexicon?.WeakVerbs.Count > 0),
+            PassiveFinding(plain, sentences, wordCount, lexicon),
+            ClicheFinding(plain, wordCount, lexicon),
+            StickyFinding(sentences, wordCount, lexicon),
+            RepeatedOpenersFinding(sentences, wordCount)
+        };
+
+        return new ProseStyleReport
+        {
+            Language = lexicon?.Language ?? language,
+            WordCount = wordCount,
+            SentenceCount = lengths.Length,
+            MeanSentenceWords = lengths.Length == 0 ? 0 : Math.Round(lengths.Average(), 1),
+            SentenceLengthStdDev = StdDev(lengths),
+            LongestSentenceWords = lengths.Length == 0 ? 0 : lengths.Max(),
+            Findings = findings
+        };
+    }
+
+    private sealed record Sentence(string Text, int Offset);
+
+    private static List<Sentence> SplitSentences(string text)
+    {
+        var result = new List<Sentence>();
+        foreach (Match m in SentenceRegex().Matches(text))
+        {
+            var trimmed = m.Value.Trim();
+            if (trimmed.Length > 0)
+                result.Add(new Sentence(trimmed, m.Index));
+        }
+        return result;
+    }
+
+    private static double StdDev(IReadOnlyCollection<int> values)
+    {
+        if (values.Count < 2)
+            return 0;
+
+        var mean = values.Average();
+        var variance = values.Sum(v => (v - mean) * (v - mean)) / values.Count;
+        return Math.Round(Math.Sqrt(variance), 1);
+    }
+
+    private static double Density(int count, int wordCount) =>
+        wordCount == 0 ? 0 : Math.Round(count * 1000.0 / wordCount, 1);
+
+    private static string Context(string text, int offset, int length)
+    {
+        var start = Math.Max(0, offset - ContextRadius);
+        var end = Math.Min(text.Length, offset + length + ContextRadius);
+        var slice = text[start..end].Replace('\n', ' ').Replace('\r', ' ').Trim();
+        return slice;
+    }
+
+    /// <summary>Word-level report driven by a predicate over the lowercased word.</summary>
+    private static ProseStyleFinding WordListFinding(
+        string key, string text, MatchCollection words, Func<string, bool>? predicate, bool? supported)
+    {
+        if (predicate == null || supported != true)
+            return new ProseStyleFinding { Key = key, Supported = false };
+
+        var hits = new List<ProseStyleHit>();
+        var count = 0;
+        foreach (Match w in words)
+        {
+            if (!predicate(w.Value.ToLowerInvariant()))
+                continue;
+
+            count++;
+            if (hits.Count < MaxExamples)
+                hits.Add(new ProseStyleHit
+                {
+                    Text = w.Value,
+                    Offset = w.Index,
+                    Context = Context(text, w.Index, w.Length)
+                });
+        }
+
+        return new ProseStyleFinding
+        {
+            Key = key,
+            Count = count,
+            Per1000Words = Density(count, words.Count),
+            Examples = hits
+        };
+    }
+
+    private static Func<string, bool>? SetMatcher(IReadOnlyList<string>? list)
+    {
+        if (list == null || list.Count == 0)
+            return null;
+        var set = new HashSet<string>(list, StringComparer.Ordinal);
+        return word => set.Contains(word);
+    }
+
+    private static Func<string, bool>? AdverbMatcher(SceneAnalysisLexicon? lexicon)
+    {
+        if (lexicon == null || lexicon.AdverbSuffixes.Count == 0)
+            return null;
+
+        var suffixes = lexicon.AdverbSuffixes;
+        var exceptions = new HashSet<string>(lexicon.AdverbExceptions, StringComparer.Ordinal);
+        return word =>
+            word.Length > 3
+            && !exceptions.Contains(word)
+            && suffixes.Any(s => word.EndsWith(s, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Passive voice, matched as an auxiliary followed within two words by a
+    /// participle-shaped word. A heuristic, not a parser: it is deliberately
+    /// conservative, because a false "you wrote passive voice" is worse than a
+    /// miss when the writer cannot argue with it.
+    /// </summary>
+    private static ProseStyleFinding PassiveFinding(
+        string text, List<Sentence> sentences, int wordCount, SceneAnalysisLexicon? lexicon)
+    {
+        if (lexicon == null || lexicon.PassiveAuxiliaries.Count == 0)
+            return new ProseStyleFinding { Key = "passiveVoice", Supported = false };
+
+        var auxiliaries = new HashSet<string>(lexicon.PassiveAuxiliaries, StringComparer.Ordinal);
+        var hits = new List<ProseStyleHit>();
+        var count = 0;
+
+        foreach (var sentence in sentences)
+        {
+            var words = WordRegex().Matches(sentence.Text);
+            for (var i = 0; i < words.Count; i++)
+            {
+                if (!auxiliaries.Contains(words[i].Value.ToLowerInvariant()))
+                    continue;
+
+                for (var j = i + 1; j < Math.Min(i + 3, words.Count); j++)
+                {
+                    if (!LooksLikeParticiple(words[j].Value.ToLowerInvariant()))
+                        continue;
+
+                    count++;
+                    if (hits.Count < MaxExamples)
+                    {
+                        var offset = sentence.Offset + words[i].Index;
+                        var length = words[j].Index + words[j].Length - words[i].Index;
+                        hits.Add(new ProseStyleHit
+                        {
+                            Text = sentence.Text[words[i].Index..(words[j].Index + words[j].Length)],
+                            Offset = offset,
+                            Context = Context(text, offset, length)
+                        });
+                    }
+                    break;
+                }
+            }
+        }
+
+        return new ProseStyleFinding
+        {
+            Key = "passiveVoice",
+            Count = count,
+            Per1000Words = Density(count, wordCount),
+            Examples = hits
+        };
+    }
+
+    /// <summary>English "-ed"/"-en" and German "ge-" participle shapes.</summary>
+    private static bool LooksLikeParticiple(string word) =>
+        word.Length > 3
+        && (word.EndsWith("ed", StringComparison.Ordinal)
+            || word.EndsWith("en", StringComparison.Ordinal)
+            || word.StartsWith("ge", StringComparison.Ordinal));
+
+    private static ProseStyleFinding ClicheFinding(string text, int wordCount, SceneAnalysisLexicon? lexicon)
+    {
+        if (lexicon == null || lexicon.Cliches.Count == 0)
+            return new ProseStyleFinding { Key = "cliches", Supported = false };
+
+        var lower = text.ToLowerInvariant();
+        var hits = new List<ProseStyleHit>();
+        var count = 0;
+
+        foreach (var phrase in lexicon.Cliches)
+        {
+            var from = 0;
+            while (from < lower.Length)
+            {
+                var at = lower.IndexOf(phrase, from, StringComparison.Ordinal);
+                if (at < 0) break;
+
+                count++;
+                if (hits.Count < MaxExamples)
+                    hits.Add(new ProseStyleHit
+                    {
+                        Text = text.Substring(at, Math.Min(phrase.Length, text.Length - at)),
+                        Offset = at,
+                        Context = Context(text, at, phrase.Length)
+                    });
+                from = at + phrase.Length;
+            }
+        }
+
+        return new ProseStyleFinding
+        {
+            Key = "cliches",
+            Count = count,
+            Per1000Words = Density(count, wordCount),
+            Examples = hits
+        };
+    }
+
+    /// <summary>Sentences whose glue-word share is high enough that the images
+    /// get lost between the function words.</summary>
+    private static ProseStyleFinding StickyFinding(
+        List<Sentence> sentences, int wordCount, SceneAnalysisLexicon? lexicon)
+    {
+        if (lexicon == null || lexicon.GlueWords.Count == 0)
+            return new ProseStyleFinding { Key = "stickySentences", Supported = false };
+
+        var glue = new HashSet<string>(lexicon.GlueWords, StringComparer.Ordinal);
+        var hits = new List<ProseStyleHit>();
+        var count = 0;
+
+        foreach (var sentence in sentences)
+        {
+            var words = WordRegex().Matches(sentence.Text);
+            if (words.Count < StickyMinWords)
+                continue;
+
+            var glueCount = words.Count(w => glue.Contains(w.Value.ToLowerInvariant()));
+            if (glueCount / (double)words.Count < StickyGlueThreshold)
+                continue;
+
+            count++;
+            if (hits.Count < MaxExamples)
+                hits.Add(new ProseStyleHit
+                {
+                    Text = sentence.Text,
+                    Offset = sentence.Offset,
+                    Context = sentence.Text
+                });
+        }
+
+        return new ProseStyleFinding
+        {
+            Key = "stickySentences",
+            Count = count,
+            Per1000Words = Density(count, wordCount),
+            Examples = hits
+        };
+    }
+
+    /// <summary>Runs of consecutive sentences opening on the same word. Language
+    /// neutral, so it is always supported.</summary>
+    private static ProseStyleFinding RepeatedOpenersFinding(List<Sentence> sentences, int wordCount)
+    {
+        var openers = sentences
+            .Select(s => (Sentence: s, First: WordRegex().Match(s.Text)))
+            .Where(x => x.First.Success)
+            .Select(x => (x.Sentence, Word: x.First.Value.ToLowerInvariant()))
+            .ToArray();
+
+        var hits = new List<ProseStyleHit>();
+        var count = 0;
+        var runStart = 0;
+
+        for (var i = 1; i <= openers.Length; i++)
+        {
+            var sameAsPrevious = i < openers.Length
+                && string.Equals(openers[i].Word, openers[runStart].Word, StringComparison.Ordinal);
+            if (sameAsPrevious)
+                continue;
+
+            var runLength = i - runStart;
+            if (runLength >= RepeatedOpenerRun)
+            {
+                count++;
+                if (hits.Count < MaxExamples)
+                {
+                    var first = openers[runStart].Sentence;
+                    hits.Add(new ProseStyleHit
+                    {
+                        Text = openers[runStart].Word,
+                        Offset = first.Offset,
+                        Context = string.Join(
+                            " ",
+                            openers.Skip(runStart).Take(runLength).Select(o => o.Sentence.Text))
+                    });
+                }
+            }
+            runStart = i;
+        }
+
+        return new ProseStyleFinding
+        {
+            Key = "repeatedOpeners",
+            Count = count,
+            Per1000Words = Density(count, wordCount),
+            Examples = hits
+        };
+    }
+}

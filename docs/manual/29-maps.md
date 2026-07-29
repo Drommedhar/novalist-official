@@ -337,6 +337,20 @@ Books/MyBook/Images/
 
 Map images live in the book's regular `Images/` folder — the same place that entity images use. The `path` field on each map image is book-root-relative (for example `Images/town-overview.png`), so backups and Git work the same as any other image.
 
+## Exporting a map as an image
+
+**Export image** in the map toolbar saves the map as a PNG, exactly as it looks on screen — layers, pins, labels, roads, terrain and the clip border all included. The 3D view exports the same way once you are in it.
+
+The drop-down beside the button sets the scale:
+
+- **1x** — what is on screen.
+- **2x** — the default. Comfortable for a full-page map inside an EPUB.
+- **4x** — for print, endpapers, or a poster.
+
+The image captures the map area as it is currently framed, so pan and zoom to the view you want first. To export the whole map rather than the visible part, zoom out until it all fits.
+
+Novalist writes a plain PNG with no metadata attached, so it can be dropped into any layout tool, sent to a cover designer, or added to the project's own [image gallery](19-image-gallery.md) for use as a chapter illustration.
+
 ## Where to go next
 
 - [Image Gallery](19-image-gallery.md) — see every image across the project, including those used by maps.

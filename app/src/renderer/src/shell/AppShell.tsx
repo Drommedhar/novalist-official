@@ -15,6 +15,7 @@ import { MobileShell } from './MobileShell'
 import { SceneNotesDock } from './SceneNotesDock'
 import { StartScreen } from './StartScreen'
 import { UpdateDialog } from './UpdateDialog'
+import { useBackupScheduler } from './useBackupScheduler'
 import { useShellStore, type MainView } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
@@ -67,6 +68,7 @@ async function hydrate(): Promise<void> {
 }
 
 export function AppShell(): React.JSX.Element {
+  useBackupScheduler()
   const binderVisible = useShellStore((s) => s.binderVisible)
   const backendVersion = useShellStore((s) => s.backendVersion)
   const focusMode = useShellStore((s) => s.focusMode)

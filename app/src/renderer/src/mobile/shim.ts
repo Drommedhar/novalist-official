@@ -103,6 +103,9 @@ const novalist: Window['novalist'] = {
   requestBackendPort,
   pickFolder: (title) => hostCall<string | null>('pickFolder', [title]),
   saveFile: (defaultName) => hostCall<string | null>('saveFile', [defaultName]),
+  // Window capture is an Electron capability with no iOS equivalent, so map
+  // image export reports failure rather than pretending to have written a file.
+  captureRegion: () => Promise.resolve(false),
   pickFile: (title, mode) => hostCall<string | null>('pickFile', [title, mode ?? 'all']),
   // Mobile has no desktop-style file drag-and-drop, so dropped-file paths never
   // arise; the picker is the only way in.

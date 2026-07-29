@@ -643,6 +643,7 @@ let lastHtml = '';
 let entityRegex = null;
 let entityNames = [];
 let entityIndex = new Map(); // lowercase name → {entityId, entityType, isAlias}
+let entityMatchRules = new Map(); // lowercase name → {caseSensitive, exact, exclusions[]}
 let autoReplacements = [];
 let lastHoveredAlias = null;
 let lastHoveredMentionId = null;
@@ -926,6 +927,7 @@ function setEntityNames(namesJson) {
     try {
         const parsed = JSON.parse(namesJson);
         entityIndex = new Map();
+        entityMatchRules = new Map();
 
         if (parsed.length === 0) {
             entityNames = [];
@@ -948,6 +950,15 @@ function setEntityNames(namesJson) {
                         isAlias: !!rec.isAlias
                     });
                 }
+                // Only entries that actually customised something get a rule, so
+                // the common path stays a single map miss.
+                if (rec.caseSensitive || (rec.exclusions && rec.exclusions.length > 0)) {
+                    entityMatchRules.set(key, {
+                        caseSensitive: !!rec.caseSensitive,
+                        exact: String(rec.name),
+                        exclusions: (rec.exclusions || []).map(e => String(e).toLowerCase()).filter(e => e.length > 0)
+                    });
+                }
             }
         }
 
@@ -959,6 +970,22 @@ function setEntityNames(namesJson) {
     } catch (_) {
         entityRegex = null;
     }
+}
+
+// The regex always searches case-insensitively so a hit can be found at all;
+// these are the per-entry rules that decide whether the hit counts. Anything
+// without a rule is allowed, which is exactly the old behaviour.
+function entityHitAllowed(matched, contextText) {
+    const rule = entityMatchRules.get(String(matched).toLowerCase());
+    if (!rule) return true;
+    if (rule.caseSensitive && matched !== rule.exact) return false;
+    if (rule.exclusions.length > 0 && contextText) {
+        const haystack = contextText.toLowerCase();
+        for (const phrase of rule.exclusions) {
+            if (haystack.indexOf(phrase) !== -1) return false;
+        }
+    }
+    return true;
 }
 
 // ── Typewriter scroll ───────────────────────────────────────────
@@ -1541,7 +1568,7 @@ function findEntityAtPoint(x, y) {
     let match;
     while ((match = globalRegex.exec(lineText)) !== null) {
         if (charOffset >= match.index && charOffset <= match.index + match[0].length) {
-            return match[0];
+            return entityHitAllowed(match[0], lineText) ? match[0] : null;
         }
     }
     return null;
@@ -1578,7 +1605,7 @@ function findEntityAtCaret() {
     let match;
     while ((match = globalRegex.exec(lineText)) !== null) {
         if (charOffset >= match.index && charOffset <= match.index + match[0].length) {
-            return match[0];
+            return entityHitAllowed(match[0], lineText) ? match[0] : null;
         }
     }
     return null;

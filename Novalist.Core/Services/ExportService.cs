@@ -43,6 +43,22 @@ public class ExportOptions
     public List<string> SelectedChapterGuids { get; set; } = [];
 
     /// <summary>
+    /// Absolute path of the book's cover image. When set and readable, EPUB gets
+    /// a real cover (manifest item with <c>properties="cover-image"</c>, the
+    /// EPUB 2 <c>meta name="cover"</c> retailers still read, and a cover page
+    /// first in the spine) and PDF gets a full-bleed cover page. Empty or
+    /// missing means no cover, which is what every export did before.
+    /// </summary>
+    public string CoverImagePath { get; set; } = string.Empty;
+
+    /// <summary>
+    /// BCP-47 language tag written to EPUB's <c>dc:language</c>. Defaults to
+    /// English only when nothing is supplied; a German or Chinese book that
+    /// ships as <c>en</c> is mis-shelved at retailer ingestion.
+    /// </summary>
+    public string Language { get; set; } = "en";
+
+    /// <summary>
     /// Codex export filter: qualified entity keys of the form <c>type:id</c>
     /// (<c>character:</c>, <c>location:</c>, <c>item:</c>, <c>lore:</c>).
     /// <c>null</c> exports every entity; an empty list exports none.
@@ -57,6 +73,12 @@ public class ExportOptions
     /// </summary>
     public Dictionary<string, string>? Labels { get; set; }
 
+    /// <summary>
+    /// Front- and back-matter pages to write around the story. Compiled from the
+    /// book so the exporter does not need the project service.
+    /// </summary>
+    public List<MatterExportContent> Matter { get; set; } = [];
+
     /// <summary>Resolves to the configured preset (or default).</summary>
     public ExportPreset ResolvePreset()
     {
@@ -64,6 +86,26 @@ public class ExportOptions
             return ExportPresets.GetById(PresetId);
         return SmfPreset ? ExportPresets.GetById(ExportPresets.ShunnId) : ExportPresets.GetById(ExportPresets.DefaultId);
     }
+}
+
+/// <summary>One front- or back-matter page on its way into an export.</summary>
+public class MatterExportContent
+{
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>The <see cref="Models.BookMatterKind"/> name, so writers can key
+    /// per-kind layout off it without referencing the enum.</summary>
+    public string Kind { get; set; } = string.Empty;
+
+    /// <summary>"Front" or "Back".</summary>
+    public string Placement { get; set; } = string.Empty;
+
+    /// <summary>Heading to print. Empty means print no heading.</summary>
+    public string Title { get; set; } = string.Empty;
+
+    public string HtmlContent { get; set; } = string.Empty;
+    public int Order { get; set; }
+    public bool InTableOfContents { get; set; }
 }
 
 public class ChapterExportContent
@@ -78,6 +120,27 @@ public class SceneExportContent
     public string Title { get; set; } = string.Empty;
     public int Order { get; set; }
     public string HtmlContent { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Unresolved inline comments on this scene, carried through so DOCX can
+    /// emit them as real Word comments an editor can reply to. Resolved ones are
+    /// left behind: they are a record of a finished conversation, not a note the
+    /// editor should see.
+    /// </summary>
+    public List<SceneExportComment> Comments { get; set; } = [];
+}
+
+/// <summary>One comment travelling with a scene into an export.</summary>
+public class SceneExportComment
+{
+    public string Id { get; set; } = string.Empty;
+
+    /// <summary>The prose the comment was attached to, used to place the Word
+    /// comment's range.</summary>
+    public string AnchorText { get; set; } = string.Empty;
+
+    public string Text { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
 }
 
 /// <summary>
@@ -117,6 +180,24 @@ public partial class ExportService
             .OrderBy(c => c.Order)
             .ToList();
 
+        // Matter pages come from the book, not the chapter selection: they frame
+        // the whole book rather than belonging to any chapter.
+        options.Matter = (_projectService.ActiveBook?.Matter ?? [])
+            .Where(m => m.Included && !string.IsNullOrWhiteSpace(m.Content))
+            .OrderBy(m => m.Placement)
+            .ThenBy(m => m.Order)
+            .Select(m => new MatterExportContent
+            {
+                Id = m.Id,
+                Kind = m.Kind.ToString(),
+                Placement = m.Placement.ToString(),
+                Title = ResolveMatterTitle(m),
+                HtmlContent = m.Content,
+                Order = m.Order,
+                InTableOfContents = m.InTableOfContents
+            })
+            .ToList();
+
         var result = new List<ChapterExportContent>();
 
         foreach (var chapter in chapters)
@@ -145,7 +226,17 @@ public partial class ExportService
                 {
                     Title = scene.Title,
                     Order = scene.Order,
-                    HtmlContent = html
+                    HtmlContent = html,
+                    Comments = (scene.Comments ?? [])
+                        .Where(c => !c.Resolved && !string.IsNullOrWhiteSpace(c.Text))
+                        .Select(c => new SceneExportComment
+                        {
+                            Id = c.Id,
+                            AnchorText = c.AnchorText ?? string.Empty,
+                            Text = c.Text,
+                            CreatedAt = c.CreatedAt
+                        })
+                        .ToList()
                 });
             }
 
@@ -158,6 +249,35 @@ public partial class ExportService
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// Heading a matter page should print. An explicit title always wins. With
+    /// none, kinds that conventionally carry a heading get their kind name and
+    /// the rest get none - a dedication with the word "Dedication" over it is
+    /// not how books are set.
+    /// </summary>
+    internal static string ResolveMatterTitle(BookMatterElement element)
+    {
+        if (!string.IsNullOrWhiteSpace(element.Title))
+            return element.Title.Trim();
+
+        return BookMatterElement.ShowsHeadingByDefault(element.Kind)
+            ? SpaceCamelCase(element.Kind.ToString())
+            : string.Empty;
+    }
+
+    /// <summary>"AboutTheAuthor" to "About The Author", for a default heading.</summary>
+    internal static string SpaceCamelCase(string value)
+    {
+        var builder = new StringBuilder(value.Length + 4);
+        for (var i = 0; i < value.Length; i++)
+        {
+            if (i > 0 && char.IsUpper(value[i]))
+                builder.Append(' ');
+            builder.Append(value[i]);
+        }
+        return builder.ToString();
     }
 
     /// <summary>
@@ -1261,9 +1381,24 @@ public partial class ExportService
         // Stylesheet
         await WriteEntryAsync(zip, "OEBPS/styles.css", GenerateEpubStylesheet());
 
+        // Cover: the image itself plus the XHTML page that displays it. Both are
+        // skipped when no cover is set or the file cannot be read, so a missing
+        // cover can never fail an export.
+        if (CoverMediaType(options.CoverImagePath) != null)
+        {
+            var ext = Path.GetExtension(options.CoverImagePath);
+            await WriteBinaryEntryAsync(zip, $"OEBPS/cover{ext}", options.CoverImagePath);
+            await WriteEntryAsync(zip, "OEBPS/cover.xhtml", GenerateCoverXhtml(options, ext));
+        }
+
         // Title page
         if (options.IncludeTitlePage)
             await WriteEntryAsync(zip, "OEBPS/title.xhtml", GenerateTitlePageXhtml(options));
+
+        // Matter pages get their own files, each carrying its kind as an
+        // epub:type so a reader can style a copyright page as one.
+        for (var i = 0; i < options.Matter.Count; i++)
+            await WriteEntryAsync(zip, $"OEBPS/matter-{i + 1}.xhtml", GenerateMatterXhtml(options.Matter[i]));
 
         // Chapter files
         for (var i = 0; i < chapters.Count; i++)
@@ -1280,6 +1415,79 @@ public partial class ExportService
         var entry = zip.CreateEntry(path, CompressionLevel.Optimal);
         await using var writer = new StreamWriter(entry.Open(), Encoding.UTF8);
         await writer.WriteAsync(content);
+    }
+
+    private static async Task WriteBinaryEntryAsync(ZipArchive zip, string path, string sourceFile)
+    {
+        var entry = zip.CreateEntry(path, CompressionLevel.Optimal);
+        await using var target = entry.Open();
+        await using var source = File.OpenRead(sourceFile);
+        await source.CopyToAsync(target);
+    }
+
+    /// <summary>
+    /// Reduces a writing-language setting to a BCP-47 primary subtag fit for
+    /// <c>dc:language</c>. The quote-style presets carry typographic variants
+    /// ("de-low", "de-guillemet") that are not language tags, so only the part
+    /// before the first hyphen is kept. Falls back to "en" on anything unusable.
+    /// </summary>
+    public static string NormalizeLanguageTag(string? language)
+    {
+        if (string.IsNullOrWhiteSpace(language))
+            return "en";
+
+        var primary = language.Trim().Split('-')[0].ToLowerInvariant();
+        return primary.Length is >= 2 and <= 3 && primary.All(char.IsAsciiLetter) ? primary : "en";
+    }
+
+    /// <summary>
+    /// EPUB media type for a cover image, or null when there is no usable cover:
+    /// no path set, the file is gone, or the extension is not one readers accept.
+    /// Callers use null as "export without a cover" rather than as an error.
+    /// </summary>
+    internal static string? CoverMediaType(string? coverPath)
+    {
+        if (string.IsNullOrWhiteSpace(coverPath) || !File.Exists(coverPath))
+            return null;
+
+        return Path.GetExtension(coverPath).ToLowerInvariant() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            _ => null
+        };
+    }
+
+    /// <summary>
+    /// Full-bleed cover page. Uses svg preserveAspectRatio rather than a plain
+    /// img so the image scales to the reader's screen without distortion, which
+    /// is the shape Kindle and Apple Books both expect.
+    /// </summary>
+    private static string GenerateCoverXhtml(ExportOptions options, string extension)
+    {
+        // $$ raw string: interpolation holes are {{...}}, so the CSS braces below
+        // stay literal instead of being parsed as format specifiers.
+        return $$"""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE html>
+            <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+            <head>
+              <title>{{EscapeXml(options.Title)}}</title>
+              <style type="text/css">
+                body { margin: 0; padding: 0; text-align: center; }
+                svg { height: 100%; width: 100%; }
+              </style>
+            </head>
+            <body epub:type="cover">
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+                   version="1.1" viewBox="0 0 100 160" preserveAspectRatio="xMidYMid meet">
+                <image width="100" height="160" xlink:href="cover{{extension}}"/>
+              </svg>
+            </body>
+            </html>
+            """;
     }
 
     private static string GenerateEpubStylesheet()
@@ -1394,6 +1602,56 @@ public partial class ExportService
         return sb.ToString();
     }
 
+    /// <summary>
+    /// One matter page as XHTML. The kind rides along as an <c>epub:type</c> and
+    /// a class, which is what lets a reader or a stylesheet set a copyright page
+    /// differently from an epigraph without guessing from the heading.
+    /// </summary>
+    private static string GenerateMatterXhtml(MatterExportContent matter)
+    {
+        var cssClass = "matter matter-" + matter.Kind.ToLowerInvariant();
+        var heading = string.IsNullOrEmpty(matter.Title)
+            ? string.Empty
+            : $"<h1 class=\"matter-title\">{EscapeXml(matter.Title)}</h1>";
+
+        return $"""
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE html>
+            <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+            <head>
+              <title>{EscapeXml(string.IsNullOrEmpty(matter.Title) ? matter.Kind : matter.Title)}</title>
+              <link rel="stylesheet" type="text/css" href="styles.css"/>
+            </head>
+            <body class="{cssClass}" epub:type="{EpubTypeFor(matter.Kind)}">
+              {heading}
+              {matter.HtmlContent}
+            </body>
+            </html>
+            """;
+    }
+
+    /// <summary>
+    /// EPUB structural semantics vocabulary name for a matter kind. Kinds with
+    /// no standard term fall back to "frontmatter"/"backmatter", which is always
+    /// valid.
+    /// </summary>
+    private static string EpubTypeFor(string kind) => kind switch
+    {
+        "HalfTitle" => "halftitlepage",
+        "TitlePage" => "titlepage",
+        "Copyright" => "copyright-page",
+        "Dedication" => "dedication",
+        "Epigraph" => "epigraph",
+        "TableOfContents" => "toc",
+        "Foreword" => "foreword",
+        "Preface" => "preface",
+        "Prologue" => "prologue",
+        "Epilogue" => "epilogue",
+        "Afterword" => "afterword",
+        "Acknowledgments" => "acknowledgments",
+        _ => "frontmatter"
+    };
+
     private static string GenerateTitlePageXhtml(ExportOptions options)
     {
         var authorHtml = !string.IsNullOrWhiteSpace(options.Author)
@@ -1425,8 +1683,30 @@ public partial class ExportService
         if (options.IncludeTitlePage)
             items.AppendLine("      <li><a href=\"title.xhtml\">Title Page</a></li>");
 
+        // Only matter the writer marked for the contents is listed. A copyright
+        // page in the table of contents is a mistake, not a feature.
+        void ListMatter(string placement)
+        {
+            for (var i = 0; i < options.Matter.Count; i++)
+            {
+                var matter = options.Matter[i];
+                if (!matter.InTableOfContents
+                    || !string.Equals(matter.Placement, placement, StringComparison.Ordinal))
+                    continue;
+
+                var label = string.IsNullOrEmpty(matter.Title)
+                    ? SpaceCamelCase(matter.Kind)
+                    : matter.Title;
+                items.AppendLine($"      <li><a href=\"matter-{i + 1}.xhtml\">{EscapeXml(label)}</a></li>");
+            }
+        }
+
+        ListMatter("Front");
+
         for (var i = 0; i < chapters.Count; i++)
             items.AppendLine($"      <li><a href=\"chapter-{i + 1}.xhtml\">{EscapeXml(chapters[i].Title)}</a></li>");
+
+        ListMatter("Back");
 
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
@@ -1512,6 +1792,23 @@ public partial class ExportService
             spineItems.AppendLine("    <itemref idref=\"title\"/>");
         }
 
+        // Front matter precedes the story in the spine; back matter follows it.
+        void AppendMatter(string placement)
+        {
+            for (var i = 0; i < options.Matter.Count; i++)
+            {
+                if (!string.Equals(options.Matter[i].Placement, placement, StringComparison.Ordinal))
+                    continue;
+
+                var matterId = $"matter-{i + 1}";
+                manifestItems.AppendLine(
+                    $"    <item id=\"{matterId}\" href=\"{matterId}.xhtml\" media-type=\"application/xhtml+xml\"/>");
+                spineItems.AppendLine($"    <itemref idref=\"{matterId}\"/>");
+            }
+        }
+
+        AppendMatter("Front");
+
         for (var i = 0; i < chapters.Count; i++)
         {
             var id = $"chapter-{i + 1}";
@@ -1519,9 +1816,28 @@ public partial class ExportService
             spineItems.AppendLine($"    <itemref idref=\"{id}\"/>");
         }
 
+        AppendMatter("Back");
+
         var authorXml = !string.IsNullOrWhiteSpace(options.Author)
             ? $"<dc:creator>{EscapeXml(options.Author)}</dc:creator>"
             : "";
+
+        var coverMetaXml = "";
+        if (CoverMediaType(options.CoverImagePath) is { } coverMedia)
+        {
+            var ext = Path.GetExtension(options.CoverImagePath);
+            manifestItems.AppendLine(
+                $"    <item id=\"cover-image\" href=\"cover{ext}\" media-type=\"{coverMedia}\" properties=\"cover-image\"/>");
+            manifestItems.AppendLine(
+                "    <item id=\"cover\" href=\"cover.xhtml\" media-type=\"application/xhtml+xml\"/>");
+            // The cover page goes first in the spine, ahead of the title page.
+            spineItems.Insert(0, "    <itemref idref=\"cover\" linear=\"no\"/>" + Environment.NewLine);
+            // EPUB 2 style pointer: EPUB 3 uses properties="cover-image", but
+            // Kindle and several retailers still key off this meta tag.
+            coverMetaXml = "<meta name=\"cover\" content=\"cover-image\"/>";
+        }
+
+        var language = string.IsNullOrWhiteSpace(options.Language) ? "en" : options.Language.Trim();
 
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
@@ -1530,7 +1846,8 @@ public partial class ExportService
                 <dc:identifier id="BookId">{EscapeXml(bookId)}</dc:identifier>
                 <dc:title>{EscapeXml(options.Title)}</dc:title>
                 {authorXml}
-                <dc:language>en</dc:language>
+                <dc:language>{EscapeXml(language)}</dc:language>
+                {coverMetaXml}
                 <meta property="dcterms:modified">{modifiedDate}</meta>
               </metadata>
               <manifest>
@@ -1561,6 +1878,19 @@ public partial class ExportService
 
         var smf = options.ResolvePreset().ShunnHeader;
 
+        // Comments travel with the scenes so an editor opening the file sees
+        // them as Word comments they can reply to, rather than as inline prose.
+        var exportComments = chapters
+            .SelectMany(c => c.Scenes)
+            .SelectMany(sc => sc.Comments)
+            .ToList();
+        var hasComments = exportComments.Count > 0;
+        // Word keys comment parts by integer id; this maps Novalist's GUIDs onto
+        // the position each comment occupies in the document-wide list.
+        var commentIds = exportComments
+            .Select((c, i) => (c.Id, i))
+            .ToDictionary(pair => pair.Id, pair => pair.i, StringComparer.Ordinal);
+
         // [Content_Types].xml
         var contentTypesExtra = smf
             ? "\n  <Override PartName=\"/word/header1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml\"/>"
@@ -1572,7 +1902,7 @@ public partial class ExportService
               <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
               <Default Extension="xml" ContentType="application/xml"/>
               <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
-              <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>{contentTypesExtra}
+              <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>{contentTypesExtra}{(hasComments ? "\n  <Override PartName=\"/word/comments.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml\"/>" : "")}
             </Types>
             """);
 
@@ -1592,12 +1922,15 @@ public partial class ExportService
         await WriteEntryAsync(zip, "word/_rels/document.xml.rels", $"""
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-              <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>{headerRel}
+              <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>{headerRel}{(hasComments ? "\n  <Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments\" Target=\"comments.xml\"/>" : "")}
             </Relationships>
             """);
 
         // word/styles.xml
         await WriteEntryAsync(zip, "word/styles.xml", GenerateDocxStyles(options));
+
+        if (hasComments)
+            await WriteEntryAsync(zip, "word/comments.xml", GenerateDocxComments(exportComments));
 
         // SMF header
         if (smf)
@@ -1632,10 +1965,16 @@ public partial class ExportService
                 body.Append($"<w:p><w:pPr><w:pStyle w:val=\"Subtitle\"/></w:pPr><w:r><w:t>{EscapeXml(options.Author)}</w:t></w:r></w:p>");
         }
 
+        // Front matter, each on its own page, before the story.
+        foreach (var matter in options.Matter.Where(m => m.Placement == "Front"))
+            body.Append(BuildDocxMatter(matter, options.IncludeTitlePage || body.Length > 0));
+
+        var matterPrecedesChapters = options.Matter.Any(m => m.Placement == "Front");
+
         for (var i = 0; i < chapters.Count; i++)
         {
             var chapter = chapters[i];
-            var needsPageBreak = i > 0 || options.IncludeTitlePage;
+            var needsPageBreak = i > 0 || options.IncludeTitlePage || matterPrecedesChapters;
 
             // Chapter heading
             if (needsPageBreak)
@@ -1655,16 +1994,33 @@ public partial class ExportService
                 var scene = chapter.Scenes[si];
                 var paragraphs = ParseHtmlToParagraphs(scene.HtmlContent);
                 var isFirstPara = si == 0;
+                // One anchor per comment: a phrase repeated across paragraphs
+                // would otherwise mark every occurrence.
+                var anchored = new HashSet<string>(StringComparer.Ordinal);
 
                 foreach (var para in paragraphs)
                 {
                     var style = isFirstPara ? "NoIndent" : "BodyText";
                     var runs = SegmentsToDocxRuns(para);
-                    body.Append($"<w:p><w:pPr><w:pStyle w:val=\"{style}\"/></w:pPr>{runs}</w:p>");
+                    var paragraphXml = $"<w:p><w:pPr><w:pStyle w:val=\"{style}\"/></w:pPr>{runs}</w:p>";
+
+                    // Skipped when this scene has none, even if other scenes do.
+                    if (scene.Comments.Count > 0)
+                    {
+                        var plain = string.Concat(para.Select(seg => seg.Text));
+                        paragraphXml = WrapDocxCommentRanges(
+                            paragraphXml, plain, commentIds, scene, anchored);
+                    }
+
+                    body.Append(paragraphXml);
                     isFirstPara = false;
                 }
             }
         }
+
+        // Back matter, after the story.
+        foreach (var matter in options.Matter.Where(m => m.Placement == "Back"))
+            body.Append(BuildDocxMatter(matter, true));
 
         // Section properties
         var sectPrHeader = smf
@@ -1684,6 +2040,116 @@ public partial class ExportService
               </w:body>
             </w:document>
             """);
+    }
+
+    /// <summary>
+    /// One matter page as DOCX paragraphs. Kinds without a heading render as
+    /// body text only, which is how a dedication or a copyright page is set.
+    /// </summary>
+    private static string BuildDocxMatter(MatterExportContent matter, bool pageBreakBefore)
+    {
+        var builder = new StringBuilder();
+        var breakBefore = pageBreakBefore ? "<w:pageBreakBefore/>" : string.Empty;
+
+        if (!string.IsNullOrEmpty(matter.Title))
+        {
+            builder.Append(
+                $"<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/>{breakBefore}</w:pPr>"
+                + $"<w:r><w:t>{EscapeXml(matter.Title)}</w:t></w:r></w:p>");
+            breakBefore = string.Empty;
+        }
+
+        var first = true;
+        foreach (var para in ParseHtmlToParagraphs(matter.HtmlContent))
+        {
+            // The break rides on the first paragraph when there is no heading.
+            var pPr = first && breakBefore.Length > 0
+                ? $"<w:pStyle w:val=\"NoIndent\"/>{breakBefore}"
+                : "<w:pStyle w:val=\"BodyText\"/>";
+            builder.Append($"<w:p><w:pPr>{pPr}</w:pPr>{SegmentsToDocxRuns(para)}</w:p>");
+            first = false;
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>
+    /// The <c>word/comments.xml</c> part. Ids are the comment's index rather
+    /// than Novalist's GUID: the schema requires an integer, and the id only has
+    /// to match the anchors in the same document.
+    /// </summary>
+    internal static string GenerateDocxComments(IReadOnlyList<SceneExportComment> comments)
+    {
+        var body = new StringBuilder();
+        for (var i = 0; i < comments.Count; i++)
+        {
+            var comment = comments[i];
+            body.Append($"<w:comment w:id=\"{i}\" w:author=\"{EscapeXml(DocxCommentAuthor)}\" ");
+            body.Append($"w:initials=\"N\" w:date=\"{comment.CreatedAt.ToUniversalTime():yyyy-MM-ddTHH:mm:ssZ}\">");
+            foreach (var line in comment.Text.Replace("\r\n", "\n").Split('\n'))
+                body.Append($"<w:p><w:r><w:t xml:space=\"preserve\">{EscapeXml(line)}</w:t></w:r></w:p>");
+            body.Append("</w:comment>");
+        }
+
+        return $"""
+            <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <w:comments xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+              {body}
+            </w:comments>
+            """;
+    }
+
+    /// <summary>
+    /// Author shown on exported comments. Novalist does not model an author
+    /// identity, and inventing one from the OS user would put a real name into a
+    /// file the writer may be sending to a stranger.
+    /// </summary>
+    private const string DocxCommentAuthor = "Novalist";
+
+    /// <summary>
+    /// Wraps a scene's paragraph in comment range markers when a comment's
+    /// anchor text appears in it. Anchoring by text rather than by offset is
+    /// deliberate: the export pipeline reflows paragraphs, so a stored offset
+    /// would land in the wrong place.
+    /// </summary>
+    private static string WrapDocxCommentRanges(
+        string paragraphXml,
+        string paragraphText,
+        IReadOnlyDictionary<string, int> commentIds,
+        SceneExportContent scene,
+        HashSet<string> alreadyAnchored)
+    {
+        var prefix = new StringBuilder();
+        var suffix = new StringBuilder();
+
+        foreach (var comment in scene.Comments)
+        {
+            if (alreadyAnchored.Contains(comment.Id))
+                continue;
+            if (string.IsNullOrWhiteSpace(comment.AnchorText)
+                || !paragraphText.Contains(comment.AnchorText, StringComparison.Ordinal))
+                continue;
+
+            // Every scene comment is in the map: it is built from the same
+            // scenes, so there is no not-found case to handle.
+            var id = commentIds[comment.Id];
+            alreadyAnchored.Add(comment.Id);
+            prefix.Append($"<w:commentRangeStart w:id=\"{id}\"/>");
+            suffix.Append($"<w:commentRangeEnd w:id=\"{id}\"/>");
+            suffix.Append($"<w:r><w:commentReference w:id=\"{id}\"/></w:r>");
+        }
+
+        if (prefix.Length == 0)
+            return paragraphXml;
+
+        // The markers sit inside the paragraph, after its properties. The caller
+        // always builds the paragraph with a w:pPr, so the marker is present.
+        var insertAt = paragraphXml.IndexOf("</w:pPr>", StringComparison.Ordinal)
+            + "</w:pPr>".Length;
+
+        return paragraphXml[..insertAt]
+            + prefix
+            + paragraphXml[insertAt..].Replace("</w:p>", suffix + "</w:p>");
     }
 
     private static string GenerateDocxStyles(ExportOptions options)
@@ -2076,6 +2542,12 @@ public partial class ExportService
             return gfx;
         }
 
+        // Cover page: full-bleed, aspect-preserved, ahead of the title page.
+        // Skipped silently when there is no usable cover, so a missing or
+        // unreadable image can never fail an export.
+        if (CoverMediaType(options.CoverImagePath) != null)
+            DrawPdfCoverPage(doc, options.CoverImagePath, pageWidth, pageHeight, ref pageNumber);
+
         // Title page
         if (options.IncludeTitlePage)
         {
@@ -2223,6 +2695,48 @@ public partial class ExportService
             lines.Add(currentLine);
 
         return lines;
+    }
+
+    /// <summary>
+    /// Adds a full-page cover, scaled to fit and centred so the image is never
+    /// distorted. Any failure to decode the image is swallowed: an export that
+    /// produces the book without a cover beats one that produces nothing.
+    /// </summary>
+    private static void DrawPdfCoverPage(
+        PdfSharpCore.Pdf.PdfDocument doc,
+        string coverPath,
+        double pageWidth,
+        double pageHeight,
+        ref int pageNumber)
+    {
+        PdfSharpCore.Drawing.XImage? image = null;
+        try
+        {
+            image = PdfSharpCore.Drawing.XImage.FromFile(coverPath);
+        }
+        catch (Exception)
+        {
+            return;
+        }
+
+        using (image)
+        {
+            var page = doc.AddPage();
+            page.Width = pageWidth;
+            page.Height = pageHeight;
+            pageNumber++;
+
+            using var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
+            var scale = Math.Min(pageWidth / image.PixelWidth, pageHeight / image.PixelHeight);
+            var drawWidth = image.PixelWidth * scale;
+            var drawHeight = image.PixelHeight * scale;
+            gfx.DrawImage(
+                image,
+                (pageWidth - drawWidth) / 2,
+                (pageHeight - drawHeight) / 2,
+                drawWidth,
+                drawHeight);
+        }
     }
 
     // ─── Markdown Export ─────────────────────────────────────────────

@@ -52,7 +52,8 @@ public sealed class ExportRpc
         string? presetId = null,
         bool smf = false,
         string[]? selectedEntityKeys = null,
-        Dictionary<string, string>? labels = null)
+        Dictionary<string, string>? labels = null,
+        bool includeCover = true)
     {
         if (Enum.TryParse<ExportFormat>(format, out var parsedFormat))
         {
@@ -67,7 +68,12 @@ public sealed class ExportRpc
                 SmfPreset = smf,
                 SelectedChapterGuids = selectedChapterGuids.ToList(),
                 SelectedEntityKeys = selectedEntityKeys?.ToList(),
-                Labels = labels
+                Labels = labels,
+                // The cover the Dashboard already collects, and the book's
+                // writing language rather than a hardcoded "en".
+                CoverImagePath = includeCover ? _workspace.ActiveCoverAbsolutePath() ?? string.Empty : string.Empty,
+                Language = ExportService.NormalizeLanguageTag(
+                    _workspace.Settings.Effective.AutoReplacementLanguage)
             };
             if (parsedFormat == ExportFormat.Codex)
             {

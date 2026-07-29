@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { CalendarConfigPanel } from './CalendarConfigPanel'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
 import './calendar.css'
@@ -160,6 +161,7 @@ export function CalendarView(): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
   const [mode, setMode] = useState<CalendarMode>('week')
+  const [configOpen, setConfigOpen] = useState(false)
   const [anchor, setAnchor] = useState<Date>(new Date())
   const [events, setEvents] = useState<CalendarEventDto[]>([])
   const [anchorLoaded, setAnchorLoaded] = useState(false)
@@ -294,7 +296,19 @@ export function CalendarView(): React.JSX.Element {
         <button className="toolbar-button" onClick={() => pan(1)} title={t('timeline.next')}>
           <ChevronRight size={15} strokeWidth={2} />
         </button>
+        <button
+          className={`dashboard-range${configOpen ? ' active' : ''}`}
+          onClick={() => setConfigOpen((open) => !open)}
+        >
+          {t('calendarConfig.title')}
+        </button>
       </div>
+
+      {configOpen && (
+        <div className="calendar-config-shell">
+          <CalendarConfigPanel />
+        </div>
+      )}
 
       {mode === 'week' && (
         <div className="calendar-week-grid">

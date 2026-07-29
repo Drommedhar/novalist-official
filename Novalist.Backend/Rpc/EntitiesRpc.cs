@@ -102,22 +102,23 @@ public sealed class EntitiesRpc
                     c.Fields.Values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? string.Empty,
                     c.IsWorldBible,
                     c.Images.FirstOrDefault(),
-                    c.Aliases))
+                    c.Aliases,
+                    match: c.Match))
                 .ToArray();
         }
         return type switch
         {
             "character" => (await _entities.LoadCharactersAsync())
-                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender, firstName: c.Name))
+                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender, firstName: c.Name, match: c.Match))
                 .ToArray(),
             "location" => (await _entities.LoadLocationsAsync())
-                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent))
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent, match: l.Match))
                 .ToArray(),
             "item" => (await _entities.LoadItemsAsync())
-                .Select(i => Summary(i.Id, i.Name, i.Description, i.IsWorldBible, i.Images.FirstOrDefault(), i.Aliases))
+                .Select(i => Summary(i.Id, i.Name, i.Description, i.IsWorldBible, i.Images.FirstOrDefault(), i.Aliases, match: i.Match))
                 .ToArray(),
             "lore" => (await _entities.LoadLoreAsync())
-                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases))
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, match: l.Match))
                 .ToArray(),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
@@ -173,12 +174,14 @@ public sealed class EntitiesRpc
         {
             var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
                 ?? throw Unknown(id);
+            var previousCustomName = custom.Name;
             foreach (var (key, value) in fields)
             {
                 if (key == "name") custom.Name = value;
                 else custom.Fields[key] = value;
             }
             await _entities.SaveCustomEntityAsync(custom);
+            await CascadeRenameAsync(id, previousCustomName, custom.Name);
             return WithResolvedImages(custom);
         }
         object entity = type switch
@@ -189,6 +192,10 @@ public sealed class EntitiesRpc
             "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         } ?? throw Unknown(id);
+
+        // Captured before the write: most references store the display name, not
+        // the id, so the cascade needs the name as it was.
+        var previousName = DisplayNameOf(entity);
 
         foreach (var (key, value) in fields)
         {
@@ -215,7 +222,37 @@ public sealed class EntitiesRpc
                 await _entities.SaveLoreAsync((LoreData)entity);
                 break;
         }
+
+        // Propagate the new name to every name-keyed reference: relationship
+        // targets, location parents, POV overrides, section wiki-links, and the
+        // id-keyed mention spans in prose. Without this a rename silently
+        // orphans everything that pointed at the entity.
+        await CascadeRenameAsync(id, previousName, DisplayNameOf(entity));
+
         return WithResolvedImages(entity);
+    }
+
+    /// <summary>
+    /// Display name as other records would have stored it. Only ever called on
+    /// the four built-in types; custom entities take the earlier branch and use
+    /// their own Name directly. Lore is the default arm, mirroring the save
+    /// switch above.
+    /// </summary>
+    private static string DisplayNameOf(object entity) => entity switch
+    {
+        CharacterData c => c.DisplayName,
+        LocationData l => l.Name,
+        ItemData i => i.Name,
+        _ => ((LoreData)entity).Name
+    };
+
+    private async Task CascadeRenameAsync(string entityId, string oldName, string newName)
+    {
+        if (string.Equals(oldName, newName, StringComparison.Ordinal))
+            return;
+
+        await new EntityRenameService(_workspace.Projects, _entities)
+            .CascadeAsync(entityId, oldName, newName);
     }
 
     [JsonRpcMethod("entities/updateLists")]
@@ -473,6 +510,77 @@ public sealed class EntitiesRpc
     /// relationship on that target and learns the role pair (ported from
     /// EntityEditorViewModel.SyncInverseRelationshipsAsync).
     /// </summary>
+    /// <summary>How an entry's name is recognised in prose.</summary>
+    [JsonRpcMethod("entities/getMatchSettings")]
+    public async Task<MatchSettingsDto> GetMatchSettingsAsync(string type, string id)
+    {
+        var entity = await FindEntityAsync(type, id);
+        var match = entity?.Match ?? new Core.Models.EntityMatchSettings();
+        return new MatchSettingsDto(
+            match.CaseSensitive,
+            match.MatchPlurals,
+            match.Exclusions.ToArray(),
+            match.IgnoredSceneIds.ToArray());
+    }
+
+    /// <summary>
+    /// Replaces an entry's match settings. Blank exclusions are dropped so a
+    /// half-typed row cannot silently suppress every detection.
+    /// </summary>
+    [JsonRpcMethod("entities/setMatchSettings")]
+    public async Task<MatchSettingsDto> SetMatchSettingsAsync(
+        string type, string id, bool caseSensitive, bool matchPlurals,
+        string[] exclusions, string[] ignoredSceneIds)
+    {
+        var entity = await FindEntityAsync(type, id) ?? throw Unknown(id);
+
+        entity.Match = new Core.Models.EntityMatchSettings
+        {
+            CaseSensitive = caseSensitive,
+            MatchPlurals = matchPlurals,
+            Exclusions = (exclusions ?? [])
+                .Select(e => (e ?? string.Empty).Trim())
+                .Where(e => e.Length > 0)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList(),
+            IgnoredSceneIds = (ignoredSceneIds ?? [])
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Distinct(StringComparer.Ordinal)
+                .ToList()
+        };
+
+        await SaveEntityAsync(entity);
+        return await GetMatchSettingsAsync(type, id);
+    }
+
+    /// <summary>Any entity by type and id, built-in or custom.</summary>
+    private async Task<Core.Models.IEntityData?> FindEntityAsync(string type, string id)
+    {
+        if (IsCustomType(type))
+            return (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id);
+
+        return type switch
+        {
+            "character" => (await _entities.LoadCharactersAsync()).FirstOrDefault(c => c.Id == id),
+            "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+            "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+            "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+            _ => null
+        };
+    }
+
+    private async Task SaveEntityAsync(Core.Models.IEntityData entity)
+    {
+        switch (entity)
+        {
+            case CharacterData c: await _entities.SaveCharacterAsync(c); break;
+            case LocationData l: await _entities.SaveLocationAsync(l); break;
+            case ItemData i: await _entities.SaveItemAsync(i); break;
+            case LoreData lo: await _entities.SaveLoreAsync(lo); break;
+            default: await _entities.SaveCustomEntityAsync((CustomEntityData)entity); break;
+        }
+    }
+
     [JsonRpcMethod("entities/setRelationships")]
     public async Task<JsonElement> SetRelationshipsAsync(string id, RelationshipEditRowDto[] rows)
     {
@@ -1536,14 +1644,39 @@ public sealed class EntitiesRpc
     private EntitySummaryDto Summary(
         string id, string name, string detail, bool isWorldBible, EntityImage? image,
         IReadOnlyList<string> aliases,
-        string? group = null, string? gender = null, string? parent = null, string? firstName = null) =>
+        string? group = null, string? gender = null, string? parent = null, string? firstName = null,
+        EntityMatchSettings? match = null) =>
         new(id, name, detail, isWorldBible,
             image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
             aliases,
             NullIfEmpty(group), NullIfEmpty(gender), NullIfEmpty(parent),
             // The bare first name is an extra hover/mention target ("Liam" for
             // "Liam Calder"); null when it equals the composed display name.
-            NullIfEmpty(firstName) is { } fn && !string.Equals(fn, name, StringComparison.Ordinal) ? fn : null);
+            NullIfEmpty(firstName) is { } fn && !string.Equals(fn, name, StringComparison.Ordinal) ? fn : null,
+            MatchDto(match, name, aliases, firstName));
+
+    /// <summary>Projects the stored match settings, precomputing the plural forms
+    /// of every matchable text so the client never has to know English plural
+    /// rules. Null when nothing is customised, which keeps the common payload
+    /// exactly the size it was.</summary>
+    private static EntityMatchDto? MatchDto(
+        EntityMatchSettings? match, string name, IReadOnlyList<string> aliases, string? firstName)
+    {
+        if (match == null) return null;
+        if (!match.CaseSensitive && !match.MatchPlurals
+            && match.Exclusions.Count == 0 && match.IgnoredSceneIds.Count == 0) return null;
+
+        var plurals = new List<string>();
+        foreach (var text in new[] { name, firstName }.Concat(aliases))
+        {
+            if (string.IsNullOrWhiteSpace(text)) continue;
+            plurals.AddRange(match.PluralFormsOf(text));
+        }
+
+        return new EntityMatchDto(
+            match.CaseSensitive, match.MatchPlurals,
+            [.. match.Exclusions], [.. match.IgnoredSceneIds], [.. plurals.Distinct()]);
+    }
 
     private static string? NullIfEmpty(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value;
@@ -1634,7 +1767,18 @@ public sealed record EntitySummaryDto(
     string? Group = null,
     string? Gender = null,
     string? Parent = null,
-    string? FirstName = null);
+    string? FirstName = null,
+    EntityMatchDto? Match = null);
+
+/// <summary>How this entry's name is recognised in prose. Rides along with the
+/// summary so the editor can apply the rules without a second round trip per
+/// entity. Null when the entry uses the defaults, which is the common case.</summary>
+public sealed record EntityMatchDto(
+    bool CaseSensitive,
+    bool MatchPlurals,
+    IReadOnlyList<string> Exclusions,
+    IReadOnlyList<string> IgnoredSceneIds,
+    IReadOnlyList<string> Plurals);
 
 /// <summary>Rich focus-peek card payload. <c>TypeKey</c> is the built-in key
 /// (character/location/item/lore) or a custom type key; <c>CustomTypeLabel</c>
@@ -1693,3 +1837,6 @@ public sealed record EntityProposalDto(string TypeKey, string Name, string Detai
 /// <summary>The result of a scene scan: the proposals that survived filtering, or
 /// a short error when the extractor failed.</summary>
 public sealed record EntityProposalsDto(EntityProposalDto[] Proposals, string? Error);
+
+public sealed record MatchSettingsDto(
+    bool CaseSensitive, bool MatchPlurals, string[] Exclusions, string[] IgnoredSceneIds);

@@ -11,6 +11,7 @@ import { assetDirectories } from '../../stores/userAssets'
 import { TemplatesCard } from './TemplatesCard'
 import { HotkeysCard } from './HotkeysCard'
 import { ExtensionsCard } from './ExtensionsCard'
+import { BackupsCard } from './BackupsCard'
 import './settings.css'
 
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
@@ -738,6 +739,12 @@ export function SettingsView(): React.JSX.Element {
           <div className="settings-hint">{t('settings.githubTokenDesc')}</div>
         </>
       )
+    },
+    {
+      key: 'backups',
+      titleKey: 'backup.title',
+      keywords: ['backup', 'archive', 'restore', 'zip', 'recovery', 'safety'],
+      body: <BackupsCard />
     },
     {
       key: 'diagnostics',

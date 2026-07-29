@@ -81,6 +81,34 @@ The formatting is shown in the box as you write: a heading looks like a heading,
 
 Underneath, the text is still plain **Markdown**. Hiding the marks changes only how the box draws them, never what is saved: entries are stored exactly as written, stay readable in any text editor, and render the same way in the [Wiki](30-wiki.md) and in the editor's focus peek card.
 
+## Renaming an entry
+
+Change an entry's name (or a character's surname) in the detail pane and Novalist updates everything that referred to it by name, in the same save. You do not need to hunt for the old name yourself.
+
+What follows the rename:
+
+- **Mentions in your prose** — every `@`-mention of the entry, in every scene of the active book including archived ones, now reads the new name. These are tracked by identity rather than by text, so they are updated exactly and never confused with another entry that happens to share a name.
+- **Relationships** — any other entry whose relationship pointed at the old name now points at the new one, in both directions.
+- **Parent locations** — a location whose parent was the renamed place follows it, so the hierarchy tree does not break.
+- **POV overrides** — a scene whose POV you set manually to the renamed character keeps naming them.
+- **Wiki links in sections** — `[[Old Name]]` and `[[Old Name|shown text]]` in any entry's sections become `[[New Name]]`. The shown text is your wording and is left exactly as you wrote it.
+
+Two things deliberately do **not** change:
+
+- **A mention you edited by hand.** If you overrode a mention's text yourself, or it came from an alias, Novalist leaves it alone — you meant that wording.
+- **The name written as ordinary prose.** "Bob arrived at the inn" in a section or a scene is writing, not a reference. Renaming an entry never edits your sentences.
+
+## How a name is detected in prose
+
+By default Novalist recognises an entry's name, a character's bare first name, and every alias, ignoring capitalisation. That is right most of the time and wrong in a few specific ways, so each entry carries its own detection rules under **How this name is detected in prose** in the detail pane. Every setting is off by default, so an existing project reads exactly as it always did until you change something.
+
+- **Match only this exact capitalisation** — for a name that is also an ordinary word. Turn it on for a character called Will and "she will go" stops raising his card, while "Will opened the door" still does.
+- **Also match the plural** — recognises "Ravens" for an entry called "Raven", including its aliases and a character's first name. Usually what you want for a faction or a species, and usually wrong for a person.
+- **Never match inside these phrases** — a list of phrases that suppress a detection. With "rose garden" listed, a character called Rose is no longer detected in "they walked in the rose garden", but is still detected everywhere else. Matching ignores capitalisation, and a phrase only suppresses the detection when it appears in the surrounding text.
+- **Scenes where this is never detected** — a per-scene silence list. Add the open scene from the entry's hover card in the editor, using the crossed-out eye button. The Codex panel shows how many scenes are on the list and clears it in one click.
+
+An entry silenced in one scene comes back in the next. None of these settings change your prose — they only decide when Novalist offers you the entry.
+
 ## Chapter overrides (characters)
 
 A character can restate its identity or appearance for a specific chapter — optionally a single scene within it. Example uses:

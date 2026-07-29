@@ -15,6 +15,7 @@ import {
 } from './wizards'
 import { EntityImages } from './EntityImages'
 import { CustomPropsEditor } from './CustomPropsEditor'
+import { MatchSettingsEditor } from './MatchSettingsEditor'
 import { OverridesEditor } from './OverridesEditor'
 import { CodexNav } from './CodexNav'
 import { EntityDetailFields } from './EntityDetailFields'
@@ -212,6 +213,14 @@ export function CodexView(): React.JSX.Element {
               />
               <EntityImages />
               <CustomPropsEditor />
+              {/* How this entry's name is picked up in prose. Collapsed by
+                  default: the defaults are right for most entries. */}
+              {selectedId && (
+                <details className="codex-match">
+                  <summary>{t('match.title')}</summary>
+                  <MatchSettingsEditor entityType={entityType} entityId={selectedId} />
+                </details>
+              )}
               <OverridesEditor />
               <EntityListsEditor />
             </>

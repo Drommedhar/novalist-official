@@ -20,6 +20,7 @@ public sealed partial class Workspace : IDisposable
         FileService = new FileService();
         Projects = new ProjectService(FileService);
         Settings = new SettingsService(settingsDirectory);
+        ArchiveService = new ArchiveService();
         WordHistory = new WordHistoryService(FileService, Projects);
         UserAssets = new Appearance.UserAssetsService(settingsDirectory);
         UserAssets.EnsureDirectories();
@@ -32,6 +33,9 @@ public sealed partial class Workspace : IDisposable
     public FileService FileService { get; }
     public ProjectService Projects { get; }
     public SettingsService Settings { get; }
+
+    /// <summary>ZIP creation and extraction, used by whole-project backups.</summary>
+    public ArchiveService ArchiveService { get; }
     public WordHistoryService WordHistory { get; }
 
     /// <summary>User-supplied themes, interface locales, and analysis lexicons

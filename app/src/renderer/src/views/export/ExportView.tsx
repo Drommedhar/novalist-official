@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FileDown } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { ReviewImportDialog } from '../../shell/ReviewImportDialog'
+import { BookMatterPanel } from './BookMatterPanel'
 import { useProjectStore } from '../../stores/projectStore'
 import './export.css'
 
@@ -53,6 +55,9 @@ export function ExportView(): React.JSX.Element {
   const [title, setTitle] = useState(projectName ?? '')
   const [author, setAuthor] = useState('')
   const [includeTitlePage, setIncludeTitlePage] = useState(true)
+  // Off for Shunn: a submission manuscript does not carry a cover.
+  const [includeCover, setIncludeCover] = useState(true)
+  const [reviewOpen, setReviewOpen] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [initialized, setInitialized] = useState(false)
   const [entities, setEntities] = useState<Record<string, EntityOption[]>>({})
@@ -170,7 +175,8 @@ export function ExportView(): React.JSX.Element {
         preset,
         smf && isDocxPdf,
         isCodex ? [...selectedEntities] : null,
-        isCodex ? codexLabels() : null
+        isCodex ? codexLabels() : null,
+        includeCover
       ])
       setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
     } catch {
@@ -272,6 +278,19 @@ export function ExportView(): React.JSX.Element {
           {t('export.includeTitlePage')}
         </label>
 
+        {/* Only EPUB and PDF render a cover; the other formats have nowhere to
+            put one, so the control would be a lie. */}
+        {(format === 'Epub' || format === 'Pdf') && (
+          <label className="relationships-toggle export-toggle">
+            <input
+              type="checkbox"
+              checked={includeCover}
+              onChange={(e) => setIncludeCover(e.target.checked)}
+            />
+            {t('export.includeCover')}
+          </label>
+        )}
+
         {chaptersVisible && (
           <>
             <div className="export-chapters-header">
@@ -372,7 +391,24 @@ export function ExportView(): React.JSX.Element {
           {busy ? t('export.exporting') : t('export.exportAction')}
         </button>
         {result && <p className="inspector-meta export-result">{result}</p>}
+
+        {/* The pages around the story. Typed, so each is set its own way. */}
+        <details className="export-matter">
+          <summary>{t('matter.title')}</summary>
+          <BookMatterPanel />
+        </details>
+
+        {/* The other half of the round trip: a DOCX goes out to an editor and
+            their marked-up copy comes back here. */}
+        <div className="settings-button-row export-review-row">
+          <button className="dialog-button" onClick={() => setReviewOpen(true)}>
+            {t('review.openAction')}
+          </button>
+          <span className="settings-hint">{t('review.openHint')}</span>
+        </div>
       </div>
+
+      {reviewOpen && <ReviewImportDialog onClose={() => setReviewOpen(false)} />}
     </div>
   )
 }

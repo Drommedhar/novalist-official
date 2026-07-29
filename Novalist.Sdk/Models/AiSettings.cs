@@ -46,6 +46,64 @@ public class AiSettings
     [JsonPropertyName("claudeModel")]
     public string ClaudeModel { get; set; } = "sonnet";
 
+    /// <summary>
+    /// API key for the "anthropic" provider, which talks to the Messages API
+    /// directly rather than driving a CLI subprocess.
+    /// </summary>
+    [JsonPropertyName("anthropicApiKey")]
+    public string AnthropicApiKey { get; set; } = string.Empty;
+
+    [JsonPropertyName("anthropicModel")]
+    public string AnthropicModel { get; set; } = "claude-opus-5";
+
+    /// <summary>Override for self-hosted gateways and proxies. Empty means the
+    /// public API.</summary>
+    [JsonPropertyName("anthropicBaseUrl")]
+    public string AnthropicBaseUrl { get; set; } = "https://api.anthropic.com";
+
+    /// <summary>
+    /// Ceiling on a single response. The Messages API requires this on every
+    /// request, unlike the OpenAI-compatible endpoint where it is optional.
+    /// </summary>
+    [JsonPropertyName("anthropicMaxTokens")]
+    public int AnthropicMaxTokens { get; set; } = 8192;
+
+    /// <summary>
+    /// Named preset for the OpenAI-compatible endpoint. Every one of these
+    /// speaks the same wire format as LM Studio, so they differ only by base
+    /// URL - picking one fills the URL in rather than making the user find it.
+    /// Empty means the URL was set by hand.
+    /// </summary>
+    [JsonPropertyName("openAiCompatiblePreset")]
+    public string OpenAiCompatiblePreset { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Base URLs for <see cref="OpenAiCompatiblePreset"/>. Keys are stable
+    /// identifiers the UI localizes; values are the documented endpoints.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string> OpenAiCompatiblePresets { get; } =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["lmstudio"] = "http://localhost:1234",
+            ["ollama"] = "http://localhost:11434/v1",
+            ["openai"] = "https://api.openai.com/v1",
+            ["openrouter"] = "https://openrouter.ai/api/v1",
+            ["groq"] = "https://api.groq.com/openai/v1",
+            ["deepseek"] = "https://api.deepseek.com",
+            ["mistral"] = "https://api.mistral.ai/v1",
+            ["together"] = "https://api.together.xyz/v1",
+            ["xai"] = "https://api.x.ai/v1"
+        };
+
+    /// <summary>
+    /// Base URL for a preset, or null when the key is unknown. A null result
+    /// means "leave the configured URL alone" rather than an error.
+    /// </summary>
+    public static string? BaseUrlForPreset(string? preset) =>
+        !string.IsNullOrWhiteSpace(preset) && OpenAiCompatiblePresets.TryGetValue(preset, out var url)
+            ? url
+            : null;
+
     [JsonPropertyName("temperature")]
     public double Temperature { get; set; } = 0.7;
 

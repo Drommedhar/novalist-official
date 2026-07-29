@@ -41,6 +41,11 @@ interface Window {
     autoUpdate: boolean
     requestBackendPort(): void
     pickFolder(title: string): Promise<string | null>
+    captureRegion(
+      rect: { x: number; y: number; width: number; height: number },
+      outputPath: string,
+      scale: number
+    ): Promise<boolean>
     saveFile(defaultName: string): Promise<string | null>
     pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null>
     /** Absolute path of a dropped File (Electron removed File.path). */

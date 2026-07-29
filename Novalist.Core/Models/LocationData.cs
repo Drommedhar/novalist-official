@@ -10,6 +10,10 @@ public class LocationData : IEntityData
     [JsonIgnore]
     public bool IsWorldBible { get; set; }
 
+    /// <summary>How this entry's name is recognised in prose.</summary>
+    [JsonPropertyName("match")]
+    public EntityMatchSettings Match { get; set; } = new();
+
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
 

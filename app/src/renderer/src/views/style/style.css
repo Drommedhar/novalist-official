@@ -1,0 +1,134 @@
+/* Style report view: scope switcher, headline stats, and one collapsible block
+ * per report. Shares the card and button primitives from shell.css. */
+
+.style-view {
+  padding: var(--nl-space-lg);
+  overflow-y: auto;
+  max-width: 1080px;
+}
+
+.style-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-lg);
+  flex-wrap: wrap;
+}
+
+.style-scopes {
+  display: flex;
+  gap: var(--nl-space-sm);
+  flex-wrap: wrap;
+}
+
+.style-scopes .dialog-button.active {
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
+}
+
+.style-stats {
+  display: flex;
+  gap: var(--nl-space-md);
+  flex-wrap: wrap;
+  margin: var(--nl-space-lg) 0;
+}
+
+.style-stat {
+  flex: 1 1 120px;
+  padding: var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+  text-align: center;
+}
+
+.style-stat-value {
+  font-size: var(--nl-font-title);
+  color: var(--nl-text);
+}
+
+.style-stat-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.style-findings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+}
+
+.style-finding {
+  padding: var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+}
+
+.style-finding-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--nl-space-md);
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: var(--nl-text);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.style-finding-head:disabled {
+  cursor: default;
+}
+
+.style-finding-name {
+  font-size: var(--nl-font-body);
+}
+
+.style-finding-count {
+  display: flex;
+  align-items: baseline;
+  gap: var(--nl-space-sm);
+  font-size: var(--nl-font-title);
+  color: var(--nl-accent);
+}
+
+.style-finding-density {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.style-finding-unsupported {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.style-examples {
+  list-style: none;
+  margin: var(--nl-space-md) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.style-examples li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-sm);
+  border-radius: var(--nl-radius-sm);
+  background: var(--nl-surface-hover);
+}
+
+.style-example-hit {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-accent);
+}
+
+.style-example-context {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+}

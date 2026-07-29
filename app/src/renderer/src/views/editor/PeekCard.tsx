@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { EyeOff } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { useShellStore } from '../../stores/shellStore'
 import { rpc } from '../../rpc/client'
@@ -83,6 +84,8 @@ export interface PeekScope {
   chapterGuid: string | null
   chapterTitle: string | null
   sceneTitle: string | null
+  /** The open scene, so the card can silence this entry's detection here. */
+  sceneId: string | null
 }
 
 /** Where the peek card sits, plus which entity it currently shows. */
@@ -175,6 +178,29 @@ export function PeekCard({
     setNav({ entityType: targetType, entityId: targetId })
   }
 
+  /** Stops detecting this entry in the open scene. Reversible from the entry's
+   *  Codex panel, which is where the whole ignore list is shown. */
+  const ignoreHere = async (): Promise<void> => {
+    const sceneId = scope.sceneId
+    if (!sceneId) return
+    const current = await rpc.request<{
+      caseSensitive: boolean
+      matchPlurals: boolean
+      exclusions: string[]
+      ignoredSceneIds: string[]
+    }>('entities/getMatchSettings', [data.typeKey, data.id])
+    if (current.ignoredSceneIds.includes(sceneId)) return
+    await rpc.request('entities/setMatchSettings', [
+      data.typeKey,
+      data.id,
+      current.caseSensitive,
+      current.matchPlurals,
+      current.exclusions,
+      [...current.ignoredSceneIds, sceneId]
+    ])
+    onClose()
+  }
+
   return (
     <div className="peek-card" onClick={(e) => e.stopPropagation()}>
       <div className="peek-header">
@@ -199,6 +225,15 @@ export function PeekCard({
           >
             {pinned ? '●' : '○'}
           </button>
+          {scope.sceneId && (
+            <button
+              className="peek-action"
+              title={t('match.ignoreHere')}
+              onClick={() => void ignoreHere()}
+            >
+              <EyeOff size={13} />
+            </button>
+          )}
           <button className="peek-action" title={t('focusPeek.close')} onClick={onClose}>
             ✕
           </button>

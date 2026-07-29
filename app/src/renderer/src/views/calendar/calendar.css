@@ -255,3 +255,28 @@
   overflow-y: auto;
   min-height: 0;
 }
+
+/* In-world calendar editor, opened from the calendar toolbar. */
+.calendar-config-shell {
+  padding: var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.calendar-config {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  max-width: 560px;
+}
+
+.calendar-config-row {
+  display: flex;
+  gap: var(--nl-space-sm);
+  align-items: center;
+}
+
+.calendar-config-days {
+  max-width: 90px;
+}

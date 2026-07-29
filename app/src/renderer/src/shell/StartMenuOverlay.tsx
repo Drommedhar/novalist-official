@@ -5,6 +5,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
 import { CreateProjectDialog } from './CreateProjectDialog'
 import { ImportPluginDialog } from './ImportPluginDialog'
+import { ImportManuscriptDialog } from './ImportManuscriptDialog'
 import './shellDialogs.css'
 
 /**
@@ -22,6 +23,7 @@ export function StartMenuOverlay({ onClose }: { onClose(): void }): React.JSX.El
   const backendVersion = useShellStore((s) => s.backendVersion)
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
+  const [manuscriptImportOpen, setManuscriptImportOpen] = useState(false)
   const initialPath = useRef(projectPath)
 
   useEffect(() => void useProjectStore.getState().loadRecents(), [])
@@ -56,6 +58,10 @@ export function StartMenuOverlay({ onClose }: { onClose(): void }): React.JSX.El
             <button className="start-menu-action" onClick={() => setImportOpen(true)}>
               <Import size={16} strokeWidth={1.75} />
               {t('welcome.importPlugin')}
+            </button>
+            <button className="start-menu-action" onClick={() => setManuscriptImportOpen(true)}>
+              <Import size={16} strokeWidth={1.75} />
+              {t('manuscriptImport.action')}
             </button>
           </div>
 
@@ -128,6 +134,9 @@ export function StartMenuOverlay({ onClose }: { onClose(): void }): React.JSX.El
       </div>
 
       {createOpen && <CreateProjectDialog onClose={() => setCreateOpen(false)} />}
+      {manuscriptImportOpen && (
+        <ImportManuscriptDialog onClose={() => setManuscriptImportOpen(false)} />
+      )}
       {importOpen && (
         <ImportPluginDialog
           onClose={() => setImportOpen(false)}

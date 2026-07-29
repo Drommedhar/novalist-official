@@ -64,12 +64,18 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new GitRpc(_workspace, _processRunner), targetOptions);
         rpc.AddLocalRpcTarget(new SearchRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SnapshotsRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new BackupRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new StyleRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new ReviewRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new CanvasRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new MatterRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SettingsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new AppearanceRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new MapsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new GrammarRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new TemplatesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ImportRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new ManuscriptImportRpc(_workspace), targetOptions);
         var extensionsRpc = new ExtensionsRpc(_workspace);
         rpc.AddLocalRpcTarget(extensionsRpc, targetOptions);
         rpc.AddLocalRpcTarget(new ExtensionContribRpc(_workspace), targetOptions);

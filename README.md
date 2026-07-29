@@ -59,6 +59,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - Chapters with status tracking (Outline → First Draft → Revised → Edited → Final), optional acts, optional in-world date ranges, label colors, and favorites.
 - Scenes with synopsis, notes, label color, plotline membership, in-world date range, POV / emotion / intensity / conflict / tags (auto-detected with manual overrides).
 - **Smart Lists** — saved scene queries by status, POV, tag, or plotline.
+- **Manuscript import** — bring an existing book in from Word, OpenDocument, EPUB, Markdown, plain text or RTF. Chapters and scenes are worked out from the document's own heading styles, with a preview of the whole plan before anything is written; imports append rather than replace.
 - **Filesystem is the source of truth** — add, move, rename, or delete scenes and chapters with any file manager and Novalist reconciles the changes, both on open and live while running. Scene identity travels in a one-line comment in each file; chapter identity in a hidden folder marker.
 
 ### Worldbuilding (Codex)
@@ -78,11 +79,13 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 - **Plot Grid** — spreadsheet view of plotlines (rows) by scenes (columns); toggle scene membership in a thread with a click.
 - **Timeline** — chronological view of acts, chapters, scenes, and manual events with vertical/horizontal layout and day/week/month/year zoom.
-- **In-world Calendar** — Gregorian calendar view with Week, Month, and Year layouts; scenes and events appear on their in-world dates. (Custom-calendar data model exists but no editor UI yet — Gregorian only in the app today.)
+- **In-world Calendar** — Week, Month, and Year layouts; scenes and events appear on their in-world dates. **Custom calendars** let you define your world's own months, month lengths, weekday names and year label, so durations are counted in your world's time rather than forced into Gregorian months and a seven-day week.
 - **Relationships graph** — auto-clustered force-directed graph of characters with family detection in English and German.
 - **Dialogue** — every line one character speaks, gathered across the book and grouped by story time, so voice drift is readable end to end. Speakers are detected offline from entity mentions, speech verbs, same-paragraph continuation, pronoun tags the narration can only mean one way, and back-and-forth alternation; each line is labelled with how it was worked out, and anything less than certain offers its likely speakers with percentage shares you can click to assign. Lines can be rewritten in place and land straight in the scene file.
 - **Manuscript view** — read the whole book end-to-end, switch to Corkboard for index-card planning, or Outliner for a sortable scene table.
-- **Maps** — interactive layered map view: recursive layer tree with drag-and-drop nesting, per-layer opacity / lock / zoom-range / floor-stack mode; per-image rotate, resize, polygon clip mask; entity-linked colour pins; text labels; road & river spline tool with typed profiles (casing, fill, lane markings) and per-point width; terrain shapes (grass, forest, sand, …) with feathered, blendable edges and z-ordering; typed buildings (homes, schools, stations, …) with procedurally-generated footprints that snap to roads and optional multi-floor interior plans (walls, doors, windows, stairs); a freeform clip border that frames the whole map; and a one-click **3D view** — a GPU-rendered, free-fly walkthrough of the whole map with extruded buildings, sloped roofs, interiors, terrain and roads.
+- **Maps** — interactive layered map view: recursive layer tree with drag-and-drop nesting, per-layer opacity / lock / zoom-range / floor-stack mode; per-image rotate, resize, polygon clip mask; entity-linked colour pins; text labels; road & river spline tool with typed profiles (casing, fill, lane markings) and per-point width; terrain shapes (grass, forest, sand, …) with feathered, blendable edges and z-ordering; typed buildings (homes, schools, stations, …) with procedurally-generated footprints that snap to roads and optional multi-floor interior plans (walls, doors, windows, stairs); a freeform clip border that frames the whole map; **PNG export** at 1x/2x/4x for e-book or print, and a one-click **3D view** — a GPU-rendered, free-fly walkthrough of the whole map with extruded buildings, sloped roofs, interiors, terrain and roads.
+- **Planning board** — an infinite canvas of loose cards and author-drawn labelled connectors, for ideas that are not scenes yet. Nothing on a board is part of the manuscript until you promote a card, which creates a scene with the card's text as its synopsis and leaves the card pointing at it. Many boards per project, stored as plain JSON beside the maps.
+- **Style report** — deterministic, offline craft checks over a scene, a chapter, or the whole book: adverbs, filter words, weak verbs, passive voice, stock phrases, sticky sentences, repeated sentence openers, and sentence-length variation. Word lists come from the same per-language analysis file as scene analysis, and a language without a list is reported as unsupported rather than shown as a clean zero. No AI, no network.
 - **Dashboard** — totals, status breakdown, chapter pacing, echo phrases, daily / project word goals with deadlines, plus a wide project banner and a portrait book cover (the cover shows for each project on the welcome screen).
 
 ### Research & assets
@@ -94,6 +97,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 ### Output
 
 - Export to **EPUB**, **DOCX**, **PDF**, **Markdown**, **Final Draft**, **LaTeX**, and the codex world bible as **Markdown** or a self-contained **PDF** with inlined images.
+- **Front and back matter** as typed book elements — half title, copyright, dedication, epigraph, foreword, prologue, epilogue, acknowledgments, about the author, also-by and custom pages, each laid out per kind rather than faked as a chapter. EPUB gets the correct `epub:type` per page; DOCX starts each on a new page.
 - **Layout presets** — Default, **Shunn Manuscript Format** (industry-standard submission format), Ebook Flow, and **Normseiten** (German standard pages: 60 characters per line, 30 lines per page, exact page count) set fonts, spacing, and margins; a one-click Shunn toggle for DOCX and PDF.
 - **Exposé** — a per-book pitch document with its own editor, live character and Normseiten counts against limits you set, and a Normseiten DOCX export.
 - Chapter-level selection with select-all / select-none, per-entry selection for codex exports, optional title page, custom title and author.
@@ -101,6 +105,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Version control
 
+- **Automatic backups** — the whole project folder archived to a rotating ZIP outside the project, on open, on close, and on a timer, with one-click restore from Settings. The `.git` folder is skipped, and restoring archives the current state first so it can be undone.
 - Built-in **Git** client — stage, commit, push, pull from the app; branch and changed-file count in the status bar.
 - Per-scene snapshot history is complementary to Git for fine-grained, per-file recovery.
 

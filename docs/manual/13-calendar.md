@@ -58,6 +58,24 @@ A **Today** button jumps back to the current date. The **Previous / Next** arrow
 - **Even if dates don't matter, give chapters dates.** A coarse date per chapter puts every scene on the calendar; refine individual scenes only where the schedule matters.
 - **For travel-heavy stories use the Week view.** Multi-day journeys plotted day by day quickly reveal whether the travel time is plausible.
 
+## In-world calendars
+
+By default the Calendar runs on the Gregorian calendar: twelve real months and a seven-day week. For a secondary world that is usually wrong, and forcing in-world dates into real months makes every duration Novalist calculates wrong with it.
+
+Press **Calendar setup** in the toolbar and tick **Use a custom in-world calendar** to define your own:
+
+- **Year label** — printed after a year: "AC", "of the Fourth Age". Leave it empty for none.
+- **Months** — a name and a length for each, in order. Add and remove as many as your world has. The panel shows the resulting year length as you edit.
+- **Weekdays** — names in order. A world with a five-day week gets five.
+
+Switching a book to a custom calendar for the first time starts you with three months and a five-day week so there is something to edit rather than an empty form.
+
+Write in-world dates as **year.month.day** — `812.3.14` is the 14th day of the third month of year 812. Durations, "three days later" arithmetic, and the gaps the Timeline shows are then all counted in your world's time.
+
+A month cannot be shorter than one day, and a month with no name is dropped, so a half-finished edit can never leave a calendar whose months and lengths disagree.
+
+Turning the custom calendar back off returns to Gregorian without discarding what you defined.
+
 ## Where to go next
 
 - [Timeline](12-timeline.md) — the other chronological view, including manual events.

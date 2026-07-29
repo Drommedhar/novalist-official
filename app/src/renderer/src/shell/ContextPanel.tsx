@@ -223,7 +223,8 @@ export function ContextPanel({
   const peekScope: PeekScope = {
     chapterGuid,
     chapterTitle: scopeChapter?.title ?? null,
-    sceneTitle: scopeChapter?.scenes.find((s) => s.id === sceneId)?.title ?? null
+    sceneTitle: scopeChapter?.scenes.find((s) => s.id === sceneId)?.title ?? null,
+    sceneId
   }
   // Shared focus-peek overlay — the same card the editor shows on entity hover.
   const entityPeek = useEntityPeek({

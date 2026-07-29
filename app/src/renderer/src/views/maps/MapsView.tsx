@@ -9,6 +9,7 @@ import {
   Box,
   Scissors,
   Spline as SplineIcon,
+  ImageDown,
   Eye,
   X
 } from 'lucide-react'
@@ -96,6 +97,10 @@ export function MapsView(): React.JSX.Element {
   const [peek, setPeek] = useState<PeekData | null>(null)
   const [buildingScale, setBuildingScale] = useState(1)
   const [creating, setCreating] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  // 1x is what is on screen; 2x and 4x give a raster fit for endpapers or an
+  // EPUB rather than whatever size the window happened to be.
+  const [exportScale, setExportScale] = useState(2)
   const [renaming, setRenaming] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [imagePicker, setImagePicker] = useState<{ path: string; url: string }[] | null>(null)
@@ -743,6 +748,33 @@ export function MapsView(): React.JSX.Element {
   const activeMap = maps.find((m) => m.id === activeId) ?? null
   const hasMap = !!activeId
 
+  /**
+   * Writes the map to a PNG.
+   *
+   * The 2D map is a DOM tree with overlays and an SVG border, so there is no
+   * single canvas to rasterise; the window capture sees exactly what the writer
+   * sees, and works identically once the 3D view is showing.
+   */
+  const exportImage = async (): Promise<void> => {
+    const iframe = iframeRef.current
+    if (!iframe || !activeMap) return
+
+    const outputPath = await window.novalist.saveFile(`${activeMap.name || 'map'}.png`)
+    if (!outputPath) return
+
+    setExporting(true)
+    try {
+      const rect = iframe.getBoundingClientRect()
+      await window.novalist.captureRegion(
+        { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+        outputPath,
+        exportScale
+      )
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="mapsview">
       <div className="map-toolbar">
@@ -750,6 +782,27 @@ export function MapsView(): React.JSX.Element {
           <Plus size={14} strokeWidth={2} />
           {t('map.menuNewMap')}
         </button>
+        <button
+          className="map-tb-btn"
+          disabled={!activeId || exporting}
+          onClick={() => void exportImage()}
+          title={t('map.exportImageHint')}
+        >
+          <ImageDown size={14} strokeWidth={2} />
+          {exporting ? t('map.exporting') : t('map.exportImage')}
+        </button>
+        <select
+          className="map-tb-select"
+          value={exportScale}
+          onChange={(e) => setExportScale(Number(e.target.value))}
+          title={t('map.exportScaleHint')}
+        >
+          {[1, 2, 4].map((s) => (
+            <option key={s} value={s}>
+              {t('map.exportScaleOption', { scale: s })}
+            </option>
+          ))}
+        </select>
         <div className="map-tabs">
           {maps.map((map) => (
             <button

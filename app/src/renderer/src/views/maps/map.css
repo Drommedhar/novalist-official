@@ -585,3 +585,13 @@
   color: var(--nl-text-subtle);
   text-align: center;
 }
+
+/* Image export controls in the map toolbar. */
+.map-tb-select {
+  background: var(--nl-surface-input);
+  color: var(--nl-text);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  font-size: var(--nl-font-body-sm);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+}

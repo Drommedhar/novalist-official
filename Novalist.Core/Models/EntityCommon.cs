@@ -69,4 +69,91 @@ public interface IEntityData
 {
     string Id { get; }
     bool IsWorldBible { get; set; }
+
+    /// <summary>How this entry's name is matched in prose. Never null.</summary>
+    EntityMatchSettings Match { get; set; }
+}
+
+/// <summary>
+/// Controls how an entry's name is recognised in prose.
+///
+/// The defaults reproduce the old behaviour exactly - case-insensitive, no
+/// exclusions, no plural matching - so an existing project reads the same until
+/// the writer changes something.
+/// </summary>
+public class EntityMatchSettings
+{
+    /// <summary>
+    /// When true, only an exact-case occurrence counts. Useful for a short name
+    /// that is also an ordinary word: "Will" the character versus "will" the verb.
+    /// </summary>
+    [JsonPropertyName("caseSensitive")]
+    public bool CaseSensitive { get; set; }
+
+    /// <summary>
+    /// When true, an English plural of the name also matches - "Ravens" for a
+    /// faction called "Raven". Off by default because it is wrong for most
+    /// personal names.
+    /// </summary>
+    [JsonPropertyName("matchPlurals")]
+    public bool MatchPlurals { get; set; }
+
+    /// <summary>
+    /// Phrases that must never be treated as a reference to this entry, even
+    /// when they contain its name. "Rose" the character, excluded from "rose
+    /// garden" and "she rose".
+    /// </summary>
+    [JsonPropertyName("exclusions")]
+    public List<string> Exclusions { get; set; } = [];
+
+    /// <summary>
+    /// Scene ids where this entry should never be detected. For the case where
+    /// one scene keeps producing a false positive that is correct everywhere
+    /// else.
+    /// </summary>
+    [JsonPropertyName("ignoredSceneIds")]
+    public List<string> IgnoredSceneIds { get; set; } = [];
+
+    /// <summary>
+    /// Whether a candidate occurrence should count, given the surrounding text
+    /// and the scene it is in. <paramref name="context"/> is the sentence or
+    /// line the match sits in; pass the whole paragraph when unsure.
+    /// </summary>
+    public bool Allows(string name, string matchedText, string? context, string? sceneId)
+    {
+        if (sceneId != null && IgnoredSceneIds.Contains(sceneId, StringComparer.Ordinal))
+            return false;
+
+        if (CaseSensitive && !string.Equals(name, matchedText, StringComparison.Ordinal))
+            return false;
+
+        if (context != null)
+        {
+            foreach (var exclusion in Exclusions)
+            {
+                if (!string.IsNullOrWhiteSpace(exclusion)
+                    && context.Contains(exclusion, StringComparison.OrdinalIgnoreCase))
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Plural forms of a name worth matching, when plural matching is on.
+    /// Deliberately the two regular English rules only - an irregular plural is
+    /// a different word and should be added as an alias.
+    /// </summary>
+    public IEnumerable<string> PluralFormsOf(string name)
+    {
+        if (!MatchPlurals || string.IsNullOrWhiteSpace(name))
+            yield break;
+
+        yield return name + "s";
+        if (name.EndsWith('s') || name.EndsWith("sh", StringComparison.Ordinal)
+            || name.EndsWith("ch", StringComparison.Ordinal) || name.EndsWith('x')
+            || name.EndsWith('z'))
+            yield return name + "es";
+    }
 }

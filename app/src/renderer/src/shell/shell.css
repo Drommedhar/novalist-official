@@ -3076,3 +3076,38 @@
   font-size: var(--nl-font-caption);
   line-height: 1.4;
 }
+
+/* Manuscript import preview: what would be created, before anything is. */
+.import-manuscript-dialog {
+  max-width: 620px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.import-preview {
+  list-style: none;
+  margin: var(--nl-space-sm) 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.import-preview li {
+  padding: var(--nl-space-sm);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  background: var(--nl-surface-card);
+}
+
+.import-preview-chapter {
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}
+
+.import-preview-scenes {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}

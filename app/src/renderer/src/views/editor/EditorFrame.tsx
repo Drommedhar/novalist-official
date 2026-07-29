@@ -323,7 +323,8 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   const peekScope: PeekScope = {
     chapterGuid: scopeChapter?.guid ?? null,
     chapterTitle: scopeChapter?.title ?? null,
-    sceneTitle: scopeChapter?.scenes.find((s) => s.id === openSceneId)?.title ?? null
+    sceneTitle: scopeChapter?.scenes.find((s) => s.id === openSceneId)?.title ?? null,
+    sceneId: openSceneId
   }
   // Shared focus-peek overlay: owns the show/hide debounce, the pointer-over-card
   // guard, pin state, and viewport-clamped positioning. Driven here by the iframe's
@@ -335,22 +336,38 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
 
   const pushEntityNames = async (editor: EditorWindow): Promise<void> => {
     type Hit = { id: string; name: string; detail: string; imagePath: string | null; type: string }
+    // Per-entry rules from the Codex. Absent means the entry uses the defaults,
+    // which is what every project had before these controls existed.
+    type Match = {
+      caseSensitive: boolean
+      matchPlurals: boolean
+      exclusions: string[]
+      ignoredSceneIds: string[]
+      plurals: string[]
+    }
     const index = new Map<string, Hit>()
     // Collect every matchable text -> candidate(s). Names that resolve to more
     // than one entity are dropped (mirrors FocusPeekExtension's Count==1 rule)
     // so an ambiguous first name never peeks the wrong character.
     const byText = new Map<
       string,
-      { hit: Hit; primaryName: string; isAlias: boolean; text: string }[]
+      { hit: Hit; primaryName: string; isAlias: boolean; text: string; match: Match | null }[]
     >()
-    const addText = (text: string, hit: Hit, primaryName: string, isAlias: boolean): void => {
+    const addText = (
+      text: string,
+      hit: Hit,
+      primaryName: string,
+      isAlias: boolean,
+      match: Match | null
+    ): void => {
       const trimmed = text.trim()
       const key = trimmed.toLowerCase()
       if (!key) return
       const list = byText.get(key) ?? []
-      list.push({ hit, primaryName, isAlias, text: trimmed })
+      list.push({ hit, primaryName, isAlias, text: trimmed, match })
       byText.set(key, list)
     }
+    const sceneId = useProjectStore.getState()[pane === 'split' ? 'splitSceneId' : 'openSceneId']
     for (const type of ['character', 'location', 'item', 'lore']) {
       const list = await rpc.request<
         {
@@ -360,17 +377,32 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           imagePath: string | null
           aliases: string[]
           firstName: string | null
+          match: Match | null
         }[]
       >('entities/list', [type])
       for (const entity of list) {
+        const match = entity.match ?? null
+        // Silenced for this scene: the entry stays in the Codex, it just stops
+        // being detected here.
+        if (sceneId && match?.ignoredSceneIds.includes(sceneId)) continue
         const hit: Hit = { ...entity, type }
         index.set(entity.id, hit)
-        addText(entity.name, hit, entity.name, false)
-        if (entity.firstName) addText(entity.firstName, hit, entity.name, true)
-        for (const alias of entity.aliases ?? []) addText(alias, hit, entity.name, true)
+        addText(entity.name, hit, entity.name, false, match)
+        if (entity.firstName) addText(entity.firstName, hit, entity.name, true, match)
+        for (const alias of entity.aliases ?? []) addText(alias, hit, entity.name, true, match)
+        // Plural forms come precomputed from the backend so the renderer never
+        // has to know a language's plural rules.
+        for (const plural of match?.plurals ?? []) addText(plural, hit, entity.name, true, match)
       }
     }
-    const names: { name: string; entityId: string; entityType: string; isAlias: boolean }[] = []
+    const names: {
+      name: string
+      entityId: string
+      entityType: string
+      isAlias: boolean
+      caseSensitive?: boolean
+      exclusions?: string[]
+    }[] = []
     const candidates: {
       entityId: string
       entityType: string
@@ -381,9 +413,16 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
     }[] = []
     for (const [key, list] of byText) {
       if (list.length !== 1) continue // ambiguous — drop, like the desktop app
-      const { hit, primaryName, isAlias, text } = list[0]
+      const { hit, primaryName, isAlias, text, match } = list[0]
       index.set(key, hit)
-      names.push({ name: text, entityId: hit.id, entityType: hit.type, isAlias })
+      names.push({
+        name: text,
+        entityId: hit.id,
+        entityType: hit.type,
+        isAlias,
+        caseSensitive: match?.caseSensitive,
+        exclusions: match?.exclusions
+      })
       candidates.push({
         entityId: hit.id,
         entityType: hit.type,
@@ -455,6 +494,15 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
     void loadAnnotations(editor)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openSceneId, sceneHtml])
+
+  // Detection is scene-scoped: an entry silenced in one scene must come back in
+  // the next, so the name list is rebuilt whenever the open scene changes.
+  useEffect(() => {
+    const editor = editorRef.current
+    if (!editor || !openSceneId) return
+    void pushEntityNames(editor)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openSceneId])
 
   useEffect(() => {
     const iframe = iframeRef.current

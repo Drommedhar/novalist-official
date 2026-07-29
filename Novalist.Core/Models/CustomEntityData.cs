@@ -14,6 +14,10 @@ public class CustomEntityData : IEntityData
     [JsonIgnore]
     public bool IsWorldBible { get; set; }
 
+    /// <summary>How this entry's name is recognised in prose.</summary>
+    [JsonPropertyName("match")]
+    public EntityMatchSettings Match { get; set; } = new();
+
     /// <summary>
     /// The type key that identifies which custom entity type this belongs to (e.g. "faction").
     /// </summary>

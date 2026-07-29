@@ -118,14 +118,21 @@ Extension-contributed **settings categories** are listed in that same Extension 
 
 ## AI integration
 
-The AI Assistant extension integrates large-language-model providers (for example LM Studio, the GitHub Copilot CLI, and the Claude Code CLI). Typical settings exposed by an AI extension:
+The AI Assistant extension integrates large-language-model providers. Typical settings exposed by an AI extension:
 
 - **Provider** and **endpoint URL** — for self-hosted or local servers.
 - **Model name** and **API token** — stored locally.
 - **Response language** and **system prompt** overrides.
 - **Analysis checks** — toggles for the individual analysis passes.
 
-The CLI-based providers run whichever `copilot` or `claude` binary you already have on your PATH, using the subscription (or API key) you logged that tool into — Novalist never stores a credential of its own. The **Claude Code CLI** provider is a good fit when local models are too slow for the first full analysis pass: it reaches hosted Claude models (pick a model alias — `sonnet`, `opus`, `haiku`, or `fable`) at the speed of a remote service, while the per-scene analysis cache means that expensive pass only runs once. Like the Copilot CLI, it drives a single subprocess and so runs one scene at a time regardless of the parallel-prompts setting.
+There are two shapes of provider, and the difference matters for what you have to set up.
+
+**Direct API providers** talk to a service over HTTP with a key you paste in:
+
+- **LM Studio and anything OpenAI-compatible.** An **Endpoint preset** drop-down fills in the address for LM Studio, Ollama, OpenAI, OpenRouter, Groq, DeepSeek, Mistral, Together and xAI — they all speak the same protocol, so only the address differs. Anything not on the list still works: type its address in and leave the preset alone.
+- **Anthropic.** Calls the Messages API directly with your own key. The model list is fetched from the API rather than built into the extension, so a newly released model appears without waiting for an extension update. The generation parameters (temperature, top-P, min-P, frequency penalty, repeat-last-N) are deliberately not sent to this provider — current Claude models reject them outright, so sending them would fail the request rather than being quietly ignored.
+
+**CLI providers** run whichever `copilot` or `claude` binary you already have on your PATH, using the subscription (or API key) you logged that tool into — Novalist never stores a credential of its own. The **Claude Code CLI** provider is a good fit when local models are too slow for the first full analysis pass: it reaches hosted Claude models (pick a model alias — `sonnet`, `opus`, `haiku`, or `fable`) at the speed of a remote service, while the per-scene analysis cache means that expensive pass only runs once. Like the Copilot CLI, it drives a single subprocess and so runs one scene at a time regardless of the parallel-prompts setting.
 
 A finding that names something your Codex does not contain yet — a person, place, item or piece of lore the prose introduced — carries an **Add to Codex** button. It creates the entry with the finding's description and disappears once the entry exists, so you can act on a suggestion where you read it instead of retyping it in the Codex. Entries land under the type the analysis identified, falling back to Lore when it is unsure.
 

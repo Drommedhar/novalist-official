@@ -107,7 +107,41 @@ public class SdkDtoDefaultsTests
         Assert.True(s.GrammarCheckEnabled);
         Assert.False(s.EnableCharacterKnowledge);
         Assert.NotEmpty(AiSettings.DefaultSystemPrompt);
+        Assert.Equal(string.Empty, s.AnthropicApiKey);
+        Assert.Equal("claude-opus-5", s.AnthropicModel);
+        Assert.Equal("https://api.anthropic.com", s.AnthropicBaseUrl);
+        Assert.Equal(8192, s.AnthropicMaxTokens);
+        Assert.Equal(string.Empty, s.OpenAiCompatiblePreset);
     }
+
+    [Fact]
+    public void AiSettings_OpenAiCompatiblePresets_CoverTheCommonEndpoints()
+    {
+        var presets = AiSettings.OpenAiCompatiblePresets;
+
+        Assert.Equal("http://localhost:1234", presets["lmstudio"]);
+        Assert.Equal("https://api.openai.com/v1", presets["openai"]);
+        Assert.Equal("https://openrouter.ai/api/v1", presets["openrouter"]);
+        // Every preset speaks the same wire format, so each must be a usable
+        // absolute base URL - a relative or malformed one would fail only at
+        // request time.
+        Assert.All(presets.Values, url => Assert.True(Uri.IsWellFormedUriString(url, UriKind.Absolute)));
+    }
+
+    [Theory]
+    [InlineData("openai", "https://api.openai.com/v1")]
+    [InlineData("OPENAI", "https://api.openai.com/v1")]
+    [InlineData("ollama", "http://localhost:11434/v1")]
+    public void AiSettings_BaseUrlForPreset_ResolvesKnownKeys(string preset, string expected) =>
+        Assert.Equal(expected, AiSettings.BaseUrlForPreset(preset));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("not-a-preset")]
+    public void AiSettings_BaseUrlForPreset_UnknownKeyLeavesTheUrlAlone(string? preset) =>
+        Assert.Null(AiSettings.BaseUrlForPreset(preset));
 
     [Fact]
     public void AiServiceDtos_Defaults()

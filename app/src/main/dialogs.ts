@@ -1,4 +1,5 @@
 import { dialog, ipcMain, BrowserWindow, shell, clipboard } from 'electron'
+import { writeFile } from 'node:fs/promises'
 import { join, normalize, isAbsolute } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { currentProjectRoot } from './protocols'
@@ -88,4 +89,53 @@ export function registerDialogHandlers(): void {
     const result = await dialog.showSaveDialog(win!, { defaultPath: defaultName })
     return result.canceled ? null : result.filePath
   })
+
+  /**
+   * Captures a rectangle of the window to a PNG.
+   *
+   * The 2D map is a DOM tree with overlays and an SVG border rather than one
+   * canvas, so there is nothing to call toDataURL on. Electron's own capture
+   * sees exactly what the writer sees, needs no rasterising dependency, and
+   * works identically for the 3D view.
+   *
+   * `scale` multiplies the captured pixels, so a map can leave at a resolution
+   * fit for endpapers rather than at whatever size the window happened to be.
+   */
+  ipcMain.handle(
+    'novalist:capture-region',
+    async (
+      event,
+      rect: { x: number; y: number; width: number; height: number },
+      outputPath: string,
+      scale: number
+    ) => {
+      const win = BrowserWindow.fromWebContents(event.sender)
+      if (!win) return false
+
+      const bounds = {
+        x: Math.max(0, Math.round(rect.x)),
+        y: Math.max(0, Math.round(rect.y)),
+        width: Math.max(1, Math.round(rect.width)),
+        height: Math.max(1, Math.round(rect.height))
+      }
+
+      try {
+        const image = await win.webContents.capturePage(bounds)
+        const factor = Math.max(1, Math.min(8, Math.round(scale || 1)))
+        const sized =
+          factor === 1
+            ? image
+            : image.resize({
+                width: bounds.width * factor,
+                height: bounds.height * factor,
+                quality: 'best'
+              })
+        await writeFile(outputPath, sized.toPNG())
+        return true
+      } catch {
+        // A capture that fails must not take the view down with it.
+        return false
+      }
+    }
+  )
 }

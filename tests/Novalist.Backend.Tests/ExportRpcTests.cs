@@ -148,4 +148,74 @@ public sealed class ExportRpcTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _rpc.RunAsync("no-such-format", output, "ExpNovel", "Tester", true, []));
     }
+
+    // ── Cover and language reaching the exported file ──
+
+    /// <summary>Smallest valid PNG: a 1x1 opaque pixel.</summary>
+    private static readonly byte[] OnePixelPng = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+
+    /// <summary>Puts a cover image on the active book, the way the Dashboard does.</summary>
+    private void SetBookCover()
+    {
+        var bookRoot = _workspace.Projects.ActiveBookRoot!;
+        var images = Path.Combine(bookRoot, "Images");
+        Directory.CreateDirectory(images);
+        File.WriteAllBytes(Path.Combine(images, "cover.png"), OnePixelPng);
+        _workspace.Projects.ActiveBook!.CoverImage = "Images/cover.png";
+    }
+
+    private string[] AllChapterGuids() =>
+        _workspace.Projects.GetChaptersOrdered().Select(c => c.Guid).ToArray();
+
+    [Fact]
+    public async Task Run_Epub_EmbedsTheBookCover()
+    {
+        SetBookCover();
+        var outPath = Path.Combine(_root, "with-cover.epub");
+
+        await _rpc.RunAsync("Epub", outPath, "Titel", "Autor", true, AllChapterGuids());
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(outPath);
+        Assert.NotNull(zip.GetEntry("OEBPS/cover.png"));
+        Assert.NotNull(zip.GetEntry("OEBPS/cover.xhtml"));
+    }
+
+    [Fact]
+    public async Task Run_Epub_IncludeCoverFalse_LeavesItOut()
+    {
+        SetBookCover();
+        var outPath = Path.Combine(_root, "no-cover.epub");
+
+        await _rpc.RunAsync("Epub", outPath, "Titel", "Autor", true, AllChapterGuids(),
+            presetId: null, smf: false, selectedEntityKeys: null, labels: null, includeCover: false);
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(outPath);
+        Assert.Null(zip.GetEntry("OEBPS/cover.png"));
+    }
+
+    [Fact]
+    public async Task Run_Epub_NoCoverSet_StillExports()
+    {
+        var outPath = Path.Combine(_root, "plain.epub");
+
+        var result = await _rpc.RunAsync("Epub", outPath, "Titel", "Autor", true, AllChapterGuids());
+
+        Assert.True(result.Success);
+        using var zip = System.IO.Compression.ZipFile.OpenRead(outPath);
+        Assert.Null(zip.GetEntry("OEBPS/cover.xhtml"));
+    }
+
+    [Fact]
+    public async Task Run_Epub_LanguageComesFromTheWritingLanguage()
+    {
+        _workspace.Settings.Settings.AutoReplacementLanguage = "de-guillemet";
+        var outPath = Path.Combine(_root, "german.epub");
+
+        await _rpc.RunAsync("Epub", outPath, "Titel", "Autor", true, AllChapterGuids());
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(outPath);
+        using var reader = new StreamReader(zip.GetEntry("OEBPS/content.opf")!.Open());
+        Assert.Contains("<dc:language>de</dc:language>", await reader.ReadToEndAsync());
+    }
 }

@@ -83,3 +83,117 @@
   width: 100%;
   max-width: 620px;
 }
+
+/* Review import: the return leg of the DOCX round trip. */
+.export-review-row {
+  margin-top: var(--nl-space-lg);
+  padding-top: var(--nl-space-md);
+  border-top: 1px solid var(--nl-border);
+}
+
+.review-dialog {
+  max-width: 640px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.review-list {
+  list-style: none;
+  margin: var(--nl-space-sm) 0 var(--nl-space-md);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.review-list li {
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+}
+
+.review-meta {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.review-text {
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}
+
+.review-deleted {
+  text-decoration: line-through;
+  color: var(--nl-text-dim);
+}
+
+.review-anchor {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+  border-left: 2px solid var(--nl-border-subtle);
+  padding-left: var(--nl-space-sm);
+  margin-top: var(--nl-space-tightest);
+}
+
+/* Front and back matter: the pages around the story. */
+.export-matter {
+  margin-top: var(--nl-space-lg);
+  padding-top: var(--nl-space-md);
+  border-top: 1px solid var(--nl-border);
+}
+
+.export-matter summary {
+  cursor: pointer;
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}
+
+.matter-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  margin-top: var(--nl-space-md);
+}
+
+.matter-row {
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+}
+
+.matter-head {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-sm);
+}
+
+.matter-toggle {
+  flex: 1;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  cursor: pointer;
+  padding: 0;
+}
+
+.matter-custom-title {
+  color: var(--nl-text-dim);
+  margin-left: var(--nl-space-sm);
+  font-size: var(--nl-font-body-sm);
+}
+
+.matter-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: 0 var(--nl-space-sm) var(--nl-space-sm);
+}
+
+.matter-content {
+  min-height: 120px;
+  resize: vertical;
+}

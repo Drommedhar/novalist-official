@@ -124,6 +124,19 @@ public class BookData
     [JsonPropertyName("maps")]
     public List<MapReference> Maps { get; set; } = new();
 
+    /// <summary>Planning-board references. Board content is stored in per-board
+    /// JSON under the active draft's Canvases/ folder, the same way maps are.</summary>
+    [JsonPropertyName("canvases")]
+    public List<CanvasReference> Canvases { get; set; } = new();
+
+    /// <summary>
+    /// Front- and back-matter pages: half title, copyright, dedication,
+    /// acknowledgments and so on. Stored on the book rather than as chapters so
+    /// each kind can be laid out its own way in an export.
+    /// </summary>
+    [JsonPropertyName("matter")]
+    public List<BookMatterElement> Matter { get; set; } = new();
+
     /// <summary>Character budget for this book's exposé, spaces included.
     /// 0 means no limit. The exposé editor warns past it but never blocks.</summary>
     [JsonPropertyName("exposeCharLimit")]

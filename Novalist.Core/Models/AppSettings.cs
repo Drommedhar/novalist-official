@@ -145,6 +145,37 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("diagnosticLoggingEnabled")]
     public bool DiagnosticLoggingEnabled { get; set; }
 
+    /// <summary>
+    /// When true, the whole project folder is archived to a rotating ZIP on
+    /// project open, on project close, and every <see cref="BackupIntervalMinutes"/>
+    /// minutes while it stays open. Default on: this is data safety, not a feature.
+    /// </summary>
+    [JsonPropertyName("backupEnabled")]
+    public bool BackupEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Minutes between automatic backups while a project is open. Clamped to
+    /// [5, 1440] by <see cref="Services.BackupService"/>. Zero disables the
+    /// interval without disabling open/close backups.
+    /// </summary>
+    [JsonPropertyName("backupIntervalMinutes")]
+    public int BackupIntervalMinutes { get; set; } = 30;
+
+    /// <summary>
+    /// How many archives to keep per project before the oldest is pruned.
+    /// Clamped to [1, 100].
+    /// </summary>
+    [JsonPropertyName("backupRetentionCount")]
+    public int BackupRetentionCount { get; set; } = 5;
+
+    /// <summary>
+    /// Folder the per-project archive directories live in. Empty means the
+    /// default, <c>%APPDATA%/Novalist/Backups</c>. Deliberately outside the
+    /// project: a backup stored inside the project dies with it.
+    /// </summary>
+    [JsonPropertyName("backupFolder")]
+    public string BackupFolder { get; set; } = string.Empty;
+
     [JsonPropertyName("checkForUpdates")]
     public bool CheckForUpdates { get; set; } = true;
 

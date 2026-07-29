@@ -1,0 +1,115 @@
+/* Planning board: an infinite surface of loose cards and author-drawn
+ * connectors. Nothing here is part of the manuscript until a card is promoted. */
+
+.canvas-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.canvas-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-md);
+  border-bottom: 1px solid var(--nl-border);
+  flex-wrap: wrap;
+}
+
+.canvas-toolbar .inspector-input {
+  max-width: 220px;
+}
+
+.canvas-toolbar .dialog-button.active {
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
+}
+
+.canvas-empty {
+  padding: var(--nl-space-xl);
+}
+
+.canvas-surface {
+  position: relative;
+  flex: 1;
+  overflow: auto;
+  background: var(--nl-surface-editor);
+}
+
+.canvas-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.canvas-lines line {
+  stroke: var(--nl-border);
+  stroke-width: 2;
+}
+
+.canvas-lines text {
+  fill: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  text-anchor: middle;
+}
+
+.canvas-card {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-sm);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+  cursor: grab;
+  touch-action: none;
+}
+
+.canvas-card.selected {
+  border-color: var(--nl-accent);
+}
+
+.canvas-card.promoted {
+  border-left: 3px solid var(--nl-accent);
+}
+
+.canvas-card-title {
+  background: transparent;
+  border: none;
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  padding: 0;
+}
+
+.canvas-card-text {
+  flex: 1;
+  background: transparent;
+  border: none;
+  resize: none;
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body-sm);
+  padding: 0;
+}
+
+.canvas-card-badge {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-accent);
+}
+
+.canvas-inspector {
+  position: absolute;
+  right: var(--nl-space-md);
+  bottom: var(--nl-space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-md);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-card);
+  max-width: 260px;
+}
