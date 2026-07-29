@@ -222,3 +222,19 @@
 .export-warning {
   color: var(--nl-danger);
 }
+
+/* Trim, margins and bleed read as a set of measurements, so they sit in a
+   grid rather than as a column of unrelated fields. */
+.layout-print-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--nl-space-sm);
+  margin-top: var(--nl-space-sm);
+}
+
+.layout-print-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  min-width: 0;
+}

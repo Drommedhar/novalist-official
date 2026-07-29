@@ -93,6 +93,14 @@ public sealed record ExportPreset
     public string EbookCss { get; init; } = string.Empty;
 
     /// <summary>
+    /// The page as a print shop describes it: trim size, inside and outside
+    /// margins, gutter, bleed. Null keeps the manuscript page - US Letter with
+    /// one symmetric margin - which is right for a submission and wrong for
+    /// anything going to a printer.
+    /// </summary>
+    public PrintSpec? Print { get; init; }
+
+    /// <summary>
     /// False for a built-in. User presets are stored on the book and can be
     /// edited or deleted; built-ins can only be copied.
     /// </summary>

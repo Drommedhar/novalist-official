@@ -107,6 +107,7 @@ To write and export a pitch document in the same layout, see [Exposé](32-expose
 - Print-ready PDF. When a cover is set and **Include the book cover** is on, the cover becomes a full page ahead of the title page, scaled to fit the trim size and centred so it is never stretched.
 - Footnotes are set as **endnotes at the end of their chapter**, numbered from one per chapter, with a matching `[n]` marker in the prose. PDF is the one format where they are not at the foot of the page: the layout engine sets text a line at a time and cannot reserve the bottom of a page part-way through a paragraph.
 - A cover the PDF engine cannot decode is skipped rather than failing the export.
+- By default the page is US Letter with a one-inch margin all round — a manuscript page, right for reading on screen or submitting. For anything going to a printer, turn on **Lay out for a printer** in the layout (see [Laying out for a printer](#laying-out-for-a-printer)).
 
 ### Markdown
 
@@ -180,6 +181,29 @@ A layout controls:
 | **Set chapter headings in capitals** | Sets the finished heading in capitals, so a print layout can read "CHAPTER SEVEN" while the ebook layout of the same book reads "7". |
 | **Print scene titles** | Off for a novel, where the separator is the whole break. On for a collection, or a draft going to someone who needs to name the scenes back to you. |
 | **Extra ebook CSS** | Appended to the EPUB stylesheet, so your rules win over Novalist's by cascade order. The one place you can reach the look of the ebook itself rather than of the page. |
+| **Lay out for a printer** | Turns on the print page below: trim size, inside and outside margins, gutter, bleed and widow control. PDF only. |
+
+### Laying out for a printer
+
+A manuscript is one page size with one margin all round, because it is read on a screen or in a ream on a desk. A bound book is not, and none of the difference is a matter of taste — a file that gets it wrong is rejected by the printer or comes back with text disappearing into the spine.
+
+Tick **Lay out for a printer** in the layout editor and you get:
+
+| Setting | What it does |
+| --- | --- |
+| **Trim size** | The finished page after cutting. Pick a named size — US Trade 6x9, Digest, Mass market, A5, Royal, Crown quarto, A4, US Letter — or type your own measurements. |
+| **Inside** and **outside margin** | The inside margin is at the binding, the outside at the cut edge. They are different numbers because the two edges have different jobs. |
+| **Top** and **bottom margin** | As they sound. |
+| **Mirror margins on facing pages** | On for a bound book: the inside margin is on the left of a right-hand page and on the right of a left-hand one. Turn it off for anything read on screen or printed single-sided. |
+| **Size the gutter from the page count** | Extra room at the binding, scaled to how thick the book is. A 700-page book curves far more at the spine than a 90-page one and swallows nearly a quarter-inch more. The steps are the ones print-on-demand services publish. Turn it off to set the gutter yourself. |
+| **Bleed** | How far artwork runs past the trim, so a cut landing a hair inside the line does not leave a white sliver. Leave it at zero for a text-only interior; a full-page image needs it. |
+| **Keep paragraphs off page edges** | Moves a paragraph whole rather than leaving one line stranded at the foot of a page or carrying one alone onto the next. |
+
+Page one is a right-hand page, as it is in every bound book, so odd pages bind on the left.
+
+When bleed is set, the PDF records **where the printer should cut** as well as how big the sheet is. A file that does not say is the commonest reason a print job comes back.
+
+**What this is not:** Novalist does not claim PDF/X conformance. PDF/X requires an embedded colour profile describing the press the book is going to, which is a decision about your printer rather than about your book. If your printer asks for PDF/X specifically, run the exported file through their preflight or a PDF tool that can attach the profile they want. Everything else on this page — the trim, the margins, the gutter, the bleed and the trim marks — is in the file Novalist writes.
 
 ## Images
 

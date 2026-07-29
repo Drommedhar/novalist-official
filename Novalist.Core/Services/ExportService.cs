@@ -3616,10 +3616,40 @@ public partial class ExportService
 
     // ─── PDF Export ──────────────────────────────────────────────────
 
+    /// <summary>
+    /// Lays the book out as a PDF.
+    ///
+    /// Rendered twice when the gutter is sized from the page count: the gutter
+    /// changes the measure, the measure changes the page count, and the page
+    /// count changes the gutter. One pass to find out how long the book is,
+    /// one to set it with the right gutter. The layout is deterministic, so the
+    /// second pass is exact rather than an approximation of the first.
+    /// </summary>
     private static void ExportToPdf(
         List<ChapterExportContent> chapters,
         ExportOptions options,
         string outputPath)
+    {
+        var spec = options.ResolvePreset().Print ?? new PrintSpec();
+
+        var first = RenderPdf(chapters, options, spec, pageCountForGutter: 0);
+        var settled = first;
+        if (spec.GutterFromPageCount
+            && spec.EffectiveGutterInches(first.PageCount) != spec.EffectiveGutterInches(0))
+        {
+            first.Dispose();
+            settled = RenderPdf(chapters, options, spec, first.PageCount);
+        }
+
+        settled.Save(outputPath);
+        settled.Dispose();
+    }
+
+    private static PdfSharpCore.Pdf.PdfDocument RenderPdf(
+        List<ChapterExportContent> chapters,
+        ExportOptions options,
+        PrintSpec spec,
+        int pageCountForGutter)
     {
         var smf = options.ResolvePreset().ShunnHeader;
         var doc = new PdfSharpCore.Pdf.PdfDocument();
@@ -3627,10 +3657,24 @@ public partial class ExportService
         if (!string.IsNullOrWhiteSpace(options.Author))
             doc.Info.Author = options.Author;
 
-        var pageWidth = PdfSharpCore.Drawing.XUnit.FromInch(8.5);
-        var pageHeight = PdfSharpCore.Drawing.XUnit.FromInch(11);
-        var margin = PdfSharpCore.Drawing.XUnit.FromInch(1);
-        var textWidth = pageWidth - 2 * margin;
+        // The sheet is the trim plus bleed on every edge; the trim sits inside
+        // it, offset by the bleed. A printer cuts the sheet down to the trim,
+        // so anything that has to reach the edge is drawn into the bleed and
+        // then cut off.
+        var bleed = PdfSharpCore.Drawing.XUnit.FromInch(spec.BleedInches);
+        var pageWidth = PdfSharpCore.Drawing.XUnit.FromInch(spec.MediaWidthInches);
+        var pageHeight = PdfSharpCore.Drawing.XUnit.FromInch(spec.MediaHeightInches);
+
+        // Per page, because inside and outside swap on facing pages. Seeded
+        // with page one's values so the first draw before any NewPage - the
+        // cover and the title page - has a measure to use.
+        var margin = PdfSharpCore.Drawing.XUnit.FromInch(
+            spec.LeftMarginInches(1, pageCountForGutter)) + bleed;
+        var rightMargin = PdfSharpCore.Drawing.XUnit.FromInch(
+            spec.RightMarginInches(1, pageCountForGutter)) + bleed;
+        var topMargin = PdfSharpCore.Drawing.XUnit.FromInch(spec.MarginTopInches) + bleed;
+        var bottomMargin = PdfSharpCore.Drawing.XUnit.FromInch(spec.MarginBottomInches) + bleed;
+        var textWidth = pageWidth - margin - rightMargin;
 
         var bodyFontName = smf ? "Courier New" : "Times New Roman";
         var fontSize = 12.0;
@@ -3645,7 +3689,7 @@ public partial class ExportService
         var boldItalicFont = new PdfSharpCore.Drawing.XFont(bodyFontName, fontSize, PdfSharpCore.Drawing.XFontStyle.BoldItalic);
 
         var pageNumber = 0;
-        var headerY = margin / 2;
+        var headerY = (topMargin + bleed) / 2;
 
         var surname = !string.IsNullOrWhiteSpace(options.Author)
             ? options.Author.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()
@@ -3658,6 +3702,16 @@ public partial class ExportService
             page.Width = pageWidth;
             page.Height = pageHeight;
             pageNumber++;
+
+            // Which side of the binding this page falls on decides where the
+            // wide margin goes, so the measure is recomputed rather than fixed.
+            margin = PdfSharpCore.Drawing.XUnit.FromInch(
+                spec.LeftMarginInches(pageNumber, pageCountForGutter)) + bleed;
+            rightMargin = PdfSharpCore.Drawing.XUnit.FromInch(
+                spec.RightMarginInches(pageNumber, pageCountForGutter)) + bleed;
+            textWidth = pageWidth - margin - rightMargin;
+
+            MarkPageBoxes(page, spec);
             var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);
 
             if (smf && pageNumber > 1)
@@ -3667,10 +3721,10 @@ public partial class ExportService
                 gfx.DrawString(headerText,
                     new PdfSharpCore.Drawing.XFont(bodyFontName, 10),
                     PdfSharpCore.Drawing.XBrushes.Black,
-                    new PdfSharpCore.Drawing.XPoint(pageWidth - margin - hw.Width, headerY));
+                    new PdfSharpCore.Drawing.XPoint(pageWidth - rightMargin - hw.Width, headerY));
             }
 
-            y = margin + lineSpacing;
+            y = topMargin + lineSpacing;
             return gfx;
         }
 
@@ -3678,7 +3732,7 @@ public partial class ExportService
         // Skipped silently when there is no usable cover, so a missing or
         // unreadable image can never fail an export.
         if (CoverMediaType(options.CoverImagePath) != null)
-            DrawPdfCoverPage(doc, options.CoverImagePath, pageWidth, pageHeight, ref pageNumber);
+            DrawPdfCoverPage(doc, options.CoverImagePath, pageWidth, pageHeight, ref pageNumber, spec);
 
         // Title page
         if (options.IncludeTitlePage)
@@ -3686,6 +3740,7 @@ public partial class ExportService
             var tp = doc.AddPage();
             tp.Width = pageWidth;
             tp.Height = pageHeight;
+            MarkPageBoxes(tp, spec);
             pageNumber++;
             var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(tp);
 
@@ -3733,7 +3788,7 @@ public partial class ExportService
         {
             var chapter = chapters[chapterIndex];
             var gfx = NewPage(out var y);
-            y = margin + chapterTopMargin;
+            y = topMargin + chapterTopMargin;
             var chapterNotes = new List<string>();
 
             // Chapter title
@@ -3765,7 +3820,7 @@ public partial class ExportService
                 if (si > 0)
                 {
                     y += lineSpacing;
-                    if (y > pageHeight - margin - lineSpacing)
+                    if (y > pageHeight - bottomMargin - lineSpacing)
                     {
                         gfx.Dispose();
                         gfx = NewPage(out y);
@@ -3809,7 +3864,7 @@ public partial class ExportService
                             var width = image.PixelWidth * scale;
                             var height = image.PixelHeight * scale;
 
-                            if (y + height > pageHeight - margin)
+                            if (y + height > pageHeight - bottomMargin)
                             {
                                 gfx.Dispose();
                                 gfx = NewPage(out y);
@@ -3835,9 +3890,18 @@ public partial class ExportService
                     var paraIndent = smf && !isFirstPara ? (double)indent : 0.0;
                     var lines = WordWrap(plainText, bodyFont, gfx, textWidth - paraIndent);
 
+                    // Moved whole rather than split badly. One line stranded at
+                    // the foot of a page, or carried alone onto the next, is the
+                    // mark of a file nobody laid out.
+                    if (BreaksBadly(spec, lines.Count, y, lineSpacing, pageHeight - bottomMargin))
+                    {
+                        gfx.Dispose();
+                        gfx = NewPage(out y);
+                    }
+
                     foreach (var line in lines)
                     {
-                        if (y > pageHeight - margin - lineSpacing)
+                        if (y > pageHeight - bottomMargin - lineSpacing)
                         {
                             gfx.Dispose();
                             gfx = NewPage(out y);
@@ -3864,7 +3928,7 @@ public partial class ExportService
                     foreach (var line in WordWrap(
                         $"[{n + 1}] {chapterNotes[n]}", bodyFont, gfx, textWidth))
                     {
-                        if (y > pageHeight - margin - lineSpacing)
+                        if (y > pageHeight - bottomMargin - lineSpacing)
                         {
                             gfx.Dispose();
                             gfx = NewPage(out y);
@@ -3879,10 +3943,64 @@ public partial class ExportService
             gfx.Dispose();
         }
 
-        doc.Save(outputPath);
+        return doc;
     }
 
-    private static List<string> WordWrap(
+    /// <summary>
+    /// Marks the trim and bleed boxes on a page.
+    ///
+    /// The media box is the sheet; the trim box is where the printer cuts. A
+    /// file that does not say where the cut goes is the single most common
+    /// reason a print job comes back, because the printer has to guess and a
+    /// guess an eighth of an inch out is a white sliver down one edge.
+    ///
+    /// Nothing is written when there is no bleed: with the two boxes equal the
+    /// entries carry no information a reader does not already have.
+    /// </summary>
+    private static void MarkPageBoxes(PdfSharpCore.Pdf.PdfPage page, PrintSpec spec)
+    {
+        if (spec.BleedInches <= 0) return;
+
+        var bleed = PdfSharpCore.Drawing.XUnit.FromInch(spec.BleedInches).Point;
+        var trimWidth = PdfSharpCore.Drawing.XUnit.FromInch(spec.TrimWidthInches).Point;
+        var trimHeight = PdfSharpCore.Drawing.XUnit.FromInch(spec.TrimHeightInches).Point;
+
+        page.TrimBox = new PdfSharpCore.Pdf.PdfRectangle(
+            new PdfSharpCore.Drawing.XRect(bleed, bleed, trimWidth, trimHeight));
+        page.BleedBox = new PdfSharpCore.Pdf.PdfRectangle(
+            new PdfSharpCore.Drawing.XRect(
+                0, 0, trimWidth + bleed * 2, trimHeight + bleed * 2));
+    }
+
+    /// <summary>
+    /// Whether a paragraph should start on the next page rather than here.
+    ///
+    /// A paragraph that leaves one line at the foot of a page (an orphan) or
+    /// carries one line onto the next (a widow) is the mark of a file nobody
+    /// laid out. Moving the whole paragraph is the cheap fix and the one a
+    /// typesetter would make.
+    /// </summary>
+    internal static bool BreaksBadly(
+        PrintSpec spec, int lineCount, double y, double lineSpacing, double pageBottom)
+    {
+        if (!spec.AvoidWidowsAndOrphans || spec.MinLinesTogether < 2) return false;
+
+        var fits = (int)Math.Floor((pageBottom - y) / Math.Max(1.0, lineSpacing));
+        if (fits <= 0) return false;
+
+        // A paragraph shorter than the rule cannot be split badly - wherever it
+        // lands, it lands whole.
+        if (lineCount <= spec.MinLinesTogether) return false;
+
+        // Nor can one that fits where it is: there is no second page to strand
+        // anything on.
+        if (lineCount <= fits) return false;
+
+        // Too few lines left here, or too few carried over.
+        return fits < spec.MinLinesTogether || lineCount - fits < spec.MinLinesTogether;
+    }
+
+        private static List<string> WordWrap(
         string text,
         PdfSharpCore.Drawing.XFont font,
         PdfSharpCore.Drawing.XGraphics gfx,
@@ -3923,7 +4041,8 @@ public partial class ExportService
         string coverPath,
         double pageWidth,
         double pageHeight,
-        ref int pageNumber)
+        ref int pageNumber,
+        PrintSpec spec)
     {
         PdfSharpCore.Drawing.XImage? image = null;
         try
@@ -3940,6 +4059,7 @@ public partial class ExportService
             var page = doc.AddPage();
             page.Width = pageWidth;
             page.Height = pageHeight;
+            MarkPageBoxes(page, spec);
             pageNumber++;
 
             using var gfx = PdfSharpCore.Drawing.XGraphics.FromPdfPage(page);

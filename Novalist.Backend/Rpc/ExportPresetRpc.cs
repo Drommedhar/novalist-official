@@ -53,7 +53,14 @@ public sealed class ExportPresetRpc
         p.MarginInches, p.FirstLineIndentInches, p.ChapterTopMarginInches,
         p.SceneSeparator, p.DoubleSpaced, p.ShowSceneTitles,
         p.ChapterTitleFormat, p.ChapterNumberStyle.ToString(), p.ChapterHeadingUppercase,
-        p.DropCap, p.LeadInSmallCapsWords, p.EbookCss);
+        p.DropCap, p.LeadInSmallCapsWords, p.EbookCss,
+        p.Print == null ? null : ToDto(p.Print));
+
+    private static PrintSpecDto ToDto(PrintSpec p) => new(
+        p.TrimWidthInches, p.TrimHeightInches,
+        p.MarginInsideInches, p.MarginOutsideInches, p.MarginTopInches, p.MarginBottomInches,
+        p.MirrorMargins, p.GutterInches, p.GutterFromPageCount, p.BleedInches,
+        p.AvoidWidowsAndOrphans, p.MinLinesTogether);
 
     private static ExportPreset FromDto(ExportLayoutDto d) => new()
     {
@@ -82,8 +89,39 @@ public sealed class ExportPresetRpc
         DropCap = d.DropCap,
         // Clamped: a lead-in longer than a line is not a lead-in.
         LeadInSmallCapsWords = Math.Clamp(d.LeadInSmallCapsWords, 0, 12),
-        EbookCss = d.EbookCss ?? string.Empty
+        EbookCss = d.EbookCss ?? string.Empty,
+        Print = d.Print == null ? null : FromDto(d.Print)
     };
+
+    /// <summary>
+    /// The page as the writer described it, with every measurement clamped to
+    /// something a printer will accept. A trim of zero or a bleed of a foot is
+    /// a typo, and a file built from one is rejected rather than printed.
+    /// </summary>
+    private static PrintSpec FromDto(PrintSpecDto d) => new()
+    {
+        TrimWidthInches = Clamp(d.TrimWidthInches, 3, 20, 8.5),
+        TrimHeightInches = Clamp(d.TrimHeightInches, 3, 20, 11),
+        MarginInsideInches = Clamp(d.MarginInsideInches, 0.1, 3, 1),
+        MarginOutsideInches = Clamp(d.MarginOutsideInches, 0.1, 3, 1),
+        MarginTopInches = Clamp(d.MarginTopInches, 0.1, 3, 1),
+        MarginBottomInches = Clamp(d.MarginBottomInches, 0.1, 3, 1),
+        MirrorMargins = d.MirrorMargins,
+        GutterInches = Clamp(d.GutterInches, 0, 2, 0),
+        GutterFromPageCount = d.GutterFromPageCount,
+        BleedInches = Clamp(d.BleedInches, 0, 0.5, 0),
+        AvoidWidowsAndOrphans = d.AvoidWidowsAndOrphans,
+        MinLinesTogether = Math.Clamp(d.MinLinesTogether, 0, 5)
+    };
+
+    /// <summary>The trim sizes we know by name, for the picker.</summary>
+    [JsonRpcMethod("exportPresets/trims")]
+    public TrimDto[] Trims() =>
+        [.. PrintSpec.TrimNames.Select(name =>
+        {
+            var size = PrintSpec.NamedTrim(name)!.Value;
+            return new TrimDto(name, size.Width, size.Height);
+        })];
 
     private static double Clamp(double value, double min, double max, double fallback)
         => double.IsFinite(value) && value >= min && value <= max ? value : fallback;
@@ -116,4 +154,28 @@ public sealed record ExportLayoutDto(
     bool DropCap,
     /// <summary>Words after the drop cap set in small capitals; 0 is off.</summary>
     int LeadInSmallCapsWords,
-    string EbookCss);
+    string EbookCss,
+    /// <summary>
+    /// The page as a print shop describes it. Null keeps the manuscript page -
+    /// US Letter with one symmetric margin - which is right for a submission
+    /// and wrong for anything going to a printer.
+    /// </summary>
+    PrintSpecDto? Print = null);
+
+/// <summary>Trim, margins, gutter and bleed, in inches.</summary>
+public sealed record PrintSpecDto(
+    double TrimWidthInches,
+    double TrimHeightInches,
+    double MarginInsideInches,
+    double MarginOutsideInches,
+    double MarginTopInches,
+    double MarginBottomInches,
+    bool MirrorMargins,
+    double GutterInches,
+    bool GutterFromPageCount,
+    double BleedInches,
+    bool AvoidWidowsAndOrphans,
+    int MinLinesTogether);
+
+/// <summary>One trim size we know by name.</summary>
+public sealed record TrimDto(string Name, double WidthInches, double HeightInches);

@@ -10,6 +10,44 @@ interface ExportLayoutPanelProps {
   onLayouts: (layouts: ExportLayout[], select?: string) => void
 }
 
+/** Trim, margins, gutter and bleed, in inches. */
+interface PrintSpec {
+  trimWidthInches: number
+  trimHeightInches: number
+  marginInsideInches: number
+  marginOutsideInches: number
+  marginTopInches: number
+  marginBottomInches: number
+  mirrorMargins: boolean
+  gutterInches: number
+  gutterFromPageCount: boolean
+  bleedInches: number
+  avoidWidowsAndOrphans: boolean
+  minLinesTogether: number
+}
+
+interface Trim {
+  name: string
+  widthInches: number
+  heightInches: number
+}
+
+/** The manuscript page: US Letter, one margin all round, no bleed. */
+const MANUSCRIPT_PAGE: PrintSpec = {
+  trimWidthInches: 8.5,
+  trimHeightInches: 11,
+  marginInsideInches: 1,
+  marginOutsideInches: 1,
+  marginTopInches: 1,
+  marginBottomInches: 1,
+  mirrorMargins: true,
+  gutterInches: 0,
+  gutterFromPageCount: true,
+  bleedInches: 0,
+  avoidWidowsAndOrphans: true,
+  minLinesTogether: 2
+}
+
 interface ExportLayout {
   id: string
   displayName: string
@@ -31,6 +69,8 @@ interface ExportLayout {
   dropCap: boolean
   leadInSmallCapsWords: number
   ebookCss: string
+  /** The page as a print shop describes it; null keeps the manuscript page. */
+  print: PrintSpec | null
 }
 
 /** The numerals a chapter heading can write its number in. */
@@ -56,8 +96,11 @@ export function ExportLayoutPanel({
   const { t } = useTranslation()
   const [layouts, setLayouts] = useState<ExportLayout[]>([])
 
+  const [trims, setTrims] = useState<Trim[]>([])
+
   useEffect(() => {
     void rpc.request<ExportLayout[]>('exportPresets/list').then(setLayouts)
+    void rpc.request<Trim[]>('exportPresets/trims').then(setTrims).catch(() => setTrims([]))
   }, [])
 
   const selected = layouts.find((l) => l.id === selectedId)
@@ -67,14 +110,31 @@ export function ExportLayoutPanel({
     setLayouts(layouts.map((l) => (l.id === selected.id ? { ...l, ...patch } : l)))
   }
 
+  /** Patches the print spec, which is nested and may not exist yet. */
+  const editPrint = (patch: Partial<PrintSpec>): void => {
+    if (!selected?.print) return
+    edit({ print: { ...selected.print, ...patch } })
+  }
+
   const publish = (all: ExportLayout[], select?: string): void => {
     setLayouts(all)
     onLayouts(all, select)
   }
 
-  const save = async (): Promise<void> => {
-    if (!selected?.isCustom) return
-    publish(await rpc.request<ExportLayout[]>('exportPresets/save', [selected]))
+  const persist = async (layout: ExportLayout): Promise<void> => {
+    if (!layout.isCustom) return
+    publish(await rpc.request<ExportLayout[]>('exportPresets/save', [layout]))
+  }
+
+  /**
+   * Saves what is on screen. A control that changes and saves in one gesture -
+   * a checkbox, a dropdown - has to hand over the value it just produced: the
+   * state update has not landed yet, so saving from state would write back the
+   * value the writer just changed away from and snap the control back.
+   */
+  const save = async (patch?: Partial<ExportLayout>): Promise<void> => {
+    if (!selected) return
+    await persist(patch ? { ...selected, ...patch } : selected)
   }
 
   // A copy is what the writer meant to work on, so the export switches to it.
@@ -247,7 +307,7 @@ export function ExportLayoutPanel({
               checked={selected.showSceneTitles}
               onChange={(e) => {
                 edit({ showSceneTitles: e.target.checked })
-                void save()
+                void save({ showSceneTitles: e.target.checked })
               }}
             />
             {t('layout.showSceneTitles')}
@@ -263,6 +323,146 @@ export function ExportLayoutPanel({
             onBlur={() => void save()}
           />
           <div className="match-hint">{t('layout.ebookCssHint')}</div>
+
+          {/* A manuscript is one page size with one margin all round because
+              it is read on a screen. A book is not, and a file that gets it
+              wrong comes back from the printer. */}
+          <label className="match-toggle">
+            <input
+              type="checkbox"
+              disabled={!selected.isCustom}
+              checked={selected.print !== null}
+              onChange={(e) => {
+                const next = e.target.checked ? MANUSCRIPT_PAGE : null
+                edit({ print: next })
+                void save({ print: next })
+              }}
+            />
+            {t('layout.printSpec')}
+          </label>
+          <div className="match-hint">{t('layout.printSpecHint')}</div>
+
+          {selected.print && (
+            <>
+              <label className="inspector-label">{t('layout.trim')}</label>
+              <select
+                className="inspector-input"
+                disabled={!selected.isCustom}
+                value={
+                  trims.find(
+                    (trim) =>
+                      trim.widthInches === selected.print?.trimWidthInches &&
+                      trim.heightInches === selected.print?.trimHeightInches
+                  )?.name ?? ''
+                }
+                onChange={(e) => {
+                  const trim = trims.find((candidate) => candidate.name === e.target.value)
+                  if (!trim || !selected.print) return
+                  const sized = {
+                    ...selected.print,
+                    trimWidthInches: trim.widthInches,
+                    trimHeightInches: trim.heightInches
+                  }
+                  edit({ print: sized })
+                  void save({ print: sized })
+                }}
+              >
+                <option value="">{t('layout.trimCustom')}</option>
+                {trims.map((trim) => (
+                  <option key={trim.name} value={trim.name}>
+                    {t(`layout.trim_${trim.name.replace(/-/g, '_')}`, {
+                      defaultValue: trim.name
+                    })}{' '}
+                    ({trim.widthInches} x {trim.heightInches})
+                  </option>
+                ))}
+              </select>
+
+              <div className="layout-print-grid">
+                {(
+                  [
+                    ['marginInsideInches', 'layout.marginInside'],
+                    ['marginOutsideInches', 'layout.marginOutside'],
+                    ['marginTopInches', 'layout.marginTop'],
+                    ['marginBottomInches', 'layout.marginBottom'],
+                    ['bleedInches', 'layout.bleed']
+                  ] as const
+                ).map(([key, label]) => (
+                  <label key={key} className="layout-print-field">
+                    <span className="inspector-label">{t(label)}</span>
+                    <input
+                      className="inspector-input"
+                      type="number"
+                      step={0.05}
+                      min={0}
+                      disabled={!selected.isCustom}
+                      value={selected.print?.[key] ?? 0}
+                      onChange={(e) => editPrint({ [key]: Number(e.target.value) })}
+                      onBlur={() => void save()}
+                    />
+                  </label>
+                ))}
+              </div>
+
+              <label className="match-toggle">
+                <input
+                  type="checkbox"
+                  disabled={!selected.isCustom}
+                  checked={selected.print.mirrorMargins}
+                  onChange={(e) => {
+                    editPrint({ mirrorMargins: e.target.checked })
+                    void save({ print: { ...selected.print!, mirrorMargins: e.target.checked } })
+                  }}
+                />
+                {t('layout.mirrorMargins')}
+              </label>
+              <div className="match-hint">{t('layout.mirrorMarginsHint')}</div>
+
+              <label className="match-toggle">
+                <input
+                  type="checkbox"
+                  disabled={!selected.isCustom}
+                  checked={selected.print.gutterFromPageCount}
+                  onChange={(e) => {
+                    editPrint({ gutterFromPageCount: e.target.checked })
+                    void save({ print: { ...selected.print!, gutterFromPageCount: e.target.checked } })
+                  }}
+                />
+                {t('layout.gutterAuto')}
+              </label>
+              <div className="match-hint">{t('layout.gutterAutoHint')}</div>
+
+              {!selected.print.gutterFromPageCount && (
+                <>
+                  <label className="inspector-label">{t('layout.gutter')}</label>
+                  <input
+                    className="inspector-input"
+                    type="number"
+                    step={0.05}
+                    min={0}
+                    disabled={!selected.isCustom}
+                    value={selected.print.gutterInches}
+                    onChange={(e) => editPrint({ gutterInches: Number(e.target.value) })}
+                    onBlur={() => void save()}
+                  />
+                </>
+              )}
+
+              <label className="match-toggle">
+                <input
+                  type="checkbox"
+                  disabled={!selected.isCustom}
+                  checked={selected.print.avoidWidowsAndOrphans}
+                  onChange={(e) => {
+                    editPrint({ avoidWidowsAndOrphans: e.target.checked })
+                    void save({ print: { ...selected.print!, avoidWidowsAndOrphans: e.target.checked } })
+                  }}
+                />
+                {t('layout.widows')}
+              </label>
+              <div className="match-hint">{t('layout.widowsHint')}</div>
+            </>
+          )}
         </>
       )}
     </div>
