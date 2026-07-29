@@ -15,6 +15,14 @@ public sealed class LibraryRpc
     private static readonly HashSet<string> ImageExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp" };
 
+    // What the app can actually play. An extension it cannot play is a File,
+    // which opens externally rather than showing dead controls.
+    private static readonly HashSet<string> AudioExtensions =
+        new(StringComparer.OrdinalIgnoreCase) { ".mp3", ".m4a", ".wav", ".ogg", ".flac", ".aac" };
+
+    private static readonly HashSet<string> VideoExtensions =
+        new(StringComparer.OrdinalIgnoreCase) { ".mp4", ".webm", ".m4v", ".mov", ".ogv" };
+
     public LibraryRpc(Workspace workspace)
     {
         _entities = new EntityService(workspace.Projects);
@@ -130,11 +138,14 @@ public sealed class LibraryRpc
     public async Task<ResearchItemDto[]> ImportResearchAsync(string sourcePath)
     {
         var ext = Path.GetExtension(sourcePath).ToLowerInvariant();
-        var type = ext == ".pdf"
-            ? ResearchItemType.Pdf
-            : ImageExtensions.Contains(ext)
-                ? ResearchItemType.Image
-                : ResearchItemType.File;
+        var type = ext switch
+        {
+            ".pdf" => ResearchItemType.Pdf,
+            _ when ImageExtensions.Contains(ext) => ResearchItemType.Image,
+            _ when AudioExtensions.Contains(ext) => ResearchItemType.Audio,
+            _ when VideoExtensions.Contains(ext) => ResearchItemType.Video,
+            _ => ResearchItemType.File
+        };
 
         var rel = await _research.ImportFileAsync(sourcePath);
         var item = new ResearchItem
@@ -156,7 +167,8 @@ public sealed class LibraryRpc
 
     private ResearchItemDto ToDto(ResearchItem r)
     {
-        var isFile = r.Type is ResearchItemType.File or ResearchItemType.Image or ResearchItemType.Pdf;
+        var isFile = r.Type is ResearchItemType.File or ResearchItemType.Image
+            or ResearchItemType.Pdf or ResearchItemType.Audio or ResearchItemType.Video;
         var (size, modified) = isFile && !string.IsNullOrWhiteSpace(r.Content)
             ? ReadMetadata(_research.GetAbsolutePath(r.Content))
             : (string.Empty, string.Empty);

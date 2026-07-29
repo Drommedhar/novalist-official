@@ -91,7 +91,10 @@
     "linkedEntitiesHint": "Noch nichts verknüpft",
     "linkEntity": "Eintrag verknüpfen...",
     "fetchTitle": "Titel abrufen",
-    "fetchingTitle": "Wird abgerufen..."
+    "fetchingTitle": "Wird abgerufen...",
+    "typeAudio": "Audio",
+    "typeVideo": "Video",
+    "pdfFallback": "Dieses PDF kann hier nicht angezeigt werden. Öffnen Sie es extern."
   },
   "plotGrid": {
     "title": "Plot-Raster",

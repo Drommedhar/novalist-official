@@ -92,6 +92,24 @@ Tags are comma-separated labels on each item. Useful schemes:
 - **Tag by chapter when relevant.** A `ch3` tag on every piece of research you needed for chapter 3 makes copy-edits trivial: skim, re-read, fix.
 - **Don't over-organize.** A flat list with sensible titles plus a few tags beats a deep hierarchy.
 
+## Media, in the app
+
+Research items are typed, and the type decides what the view does with them:
+
+| Type | What you get |
+| --- | --- |
+| **Note** | A Markdown note you write in place. |
+| **Link** | A URL, with the page's title fetched when you add it. |
+| **Image** | The picture, shown. |
+| **Pdf** | The document, rendered and scrollable in the panel. |
+| **Audio** | A player: an interview, a field recording, the music a scene is written to. |
+| **Video** | A player: a clip, a reference performance, a location walk-through. |
+| **File** | Anything else — metadata, plus **Open External** and **Reveal**. |
+
+**Import a file** picks the type from the extension. `.mp3`, `.m4a`, `.wav`, `.ogg`, `.flac` and `.aac` become Audio; `.mp4`, `.webm`, `.m4v`, `.mov` and `.ogv` become Video; a format the app cannot play stays a File, so you never get playback controls that do nothing. You can change the type by hand afterwards.
+
+Playing and reading happen inside the Research view on purpose. Opening a reference in another application is how a train of thought gets lost, which is what **Open External** is there for when you genuinely want it.
+
 ## Where to go next
 
 - [Codex](06-codex.md) — for worldbuilding that is structured.

@@ -24,10 +24,14 @@ interface ResearchItemDto {
   entityRefs: string[]
 }
 
-const TYPES = ['Note', 'Link', 'File', 'Image', 'Pdf']
+const TYPES = ['Note', 'Link', 'File', 'Image', 'Pdf', 'Audio', 'Video']
 
 const isFileType = (type: string): boolean =>
-  type === 'File' || type === 'Image' || type === 'Pdf'
+  type === 'File' ||
+  type === 'Image' ||
+  type === 'Pdf' ||
+  type === 'Audio' ||
+  type === 'Video'
 
 export function ResearchView(): React.JSX.Element {
   const { t } = useTranslation()
@@ -422,6 +426,33 @@ export function ResearchView(): React.JSX.Element {
                     alt={selected.title}
                   />
                 </div>
+              )}
+              {/* Read, played and watched in place. The alternative is an
+                  external application and a lost train of thought, which is
+                  what "Open External" already is for the cases below. */}
+              {selected.type === 'Pdf' && selected.content.length > 0 && (
+                <object
+                  className="research-embed"
+                  data={`novalist-project://nl/${encodeURI(selected.content)}`}
+                  type="application/pdf"
+                  aria-label={selected.title}
+                >
+                  <p className="settings-hint">{t('research.pdfFallback')}</p>
+                </object>
+              )}
+              {selected.type === 'Audio' && selected.content.length > 0 && (
+                <audio
+                  className="research-audio"
+                  controls
+                  src={`novalist-project://nl/${encodeURI(selected.content)}`}
+                />
+              )}
+              {selected.type === 'Video' && selected.content.length > 0 && (
+                <video
+                  className="research-embed"
+                  controls
+                  src={`novalist-project://nl/${encodeURI(selected.content)}`}
+                />
               )}
               {isFileType(selected.type) && selected.content.length > 0 && (
                 <dl className="research-meta">

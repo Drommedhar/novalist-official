@@ -67,6 +67,11 @@ public sealed class LibraryRpcTests : IDisposable
     [Theory]
     [InlineData("notes.pdf", "Pdf")]
     [InlineData("diagram.png", "Image")]
+    [InlineData("interview.mp3", "Audio")]
+    [InlineData("walkthrough.mp4", "Video")]
+    // Not something the app can play: a File, which opens externally rather
+    // than showing controls that do nothing.
+    [InlineData("tape.aiff", "File")]
     [InlineData("data.csv", "File")]
     public async Task Research_Import_ClassifiesByExtension(string fileName, string expectedType)
     {

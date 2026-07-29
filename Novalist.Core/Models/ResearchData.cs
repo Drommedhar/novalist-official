@@ -9,7 +9,17 @@ public enum ResearchItemType
     Link,
     File,
     Image,
-    Pdf
+    Pdf,
+
+    /// <summary>
+    /// An interview, a field recording, a piece of music the scene is written
+    /// to. Novalist could hold the file but had no type that said what it was,
+    /// so it could never be played.
+    /// </summary>
+    Audio,
+
+    /// <summary>A clip, a reference performance, a location walk-through.</summary>
+    Video
 }
 
 /// <summary>

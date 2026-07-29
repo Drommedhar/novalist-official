@@ -697,6 +697,27 @@ public sealed class EntitiesRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task SetImageAlt_DescribesTheImageWithoutRenamingIt()
+    {
+        var id = (await _rpc.CreateAsync("character", "Mira")).GetProperty("id").GetString()!;
+        await _rpc.AddImageAsync("character", id, "Images/mira.png", import: false);
+
+        var described = await _rpc.SetImageAltAsync(
+            "character", id, "Images/mira.png", "A woman on a harbour wall");
+
+        var image = described.GetProperty("images")[0];
+        Assert.Equal("A woman on a harbour wall", image.GetProperty("alt").GetString());
+        // The name says which image this is; the description says what it shows.
+        Assert.Equal("mira", image.GetProperty("name").GetString());
+
+        // A path that matches nothing changes nothing, as with renaming.
+        var untouched = await _rpc.SetImageAltAsync("character", id, "Images/none.png", "X");
+        Assert.Equal(
+            "A woman on a harbour wall",
+            untouched.GetProperty("images")[0].GetProperty("alt").GetString());
+    }
+
+    [Fact]
     public async Task RenameImage_SetsNameKeepsPath_AndGuards()
     {
         var id = (await _rpc.CreateAsync("character", "Mira")).GetProperty("id").GetString()!;

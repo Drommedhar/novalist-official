@@ -84,7 +84,10 @@
     "linkedEntitiesHint": "尚未关联任何条目",
     "linkEntity": "关联条目...",
     "fetchTitle": "获取标题",
-    "fetchingTitle": "获取中..."
+    "fetchingTitle": "获取中...",
+    "typeAudio": "音频",
+    "typeVideo": "视频",
+    "pdfFallback": "此 PDF 无法在此处显示。请在外部打开。"
   },
   "plotGrid": {
     "title": "剧情网格",

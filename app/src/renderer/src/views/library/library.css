@@ -37,6 +37,22 @@
   margin-bottom: var(--nl-space-sm);
 }
 
+/* A PDF or a clip is read and watched at a usable size, not as a thumbnail -
+   the point is not leaving the app for it. */
+.research-embed {
+  width: 100%;
+  height: 45vh;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-input);
+  margin-bottom: var(--nl-space-md);
+}
+
+.research-audio {
+  width: 100%;
+  margin-bottom: var(--nl-space-md);
+}
+
 .research-preview {
   display: flex;
   justify-content: center;

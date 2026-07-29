@@ -91,7 +91,10 @@
     "linkedEntitiesHint": "Not linked to anything yet",
     "linkEntity": "Link an entry...",
     "fetchTitle": "Fetch title",
-    "fetchingTitle": "Fetching..."
+    "fetchingTitle": "Fetching...",
+    "typeAudio": "Audio",
+    "typeVideo": "Video",
+    "pdfFallback": "This PDF cannot be shown here. Open it externally instead."
   },
   "plotGrid": {
     "title": "Plot Grid",
