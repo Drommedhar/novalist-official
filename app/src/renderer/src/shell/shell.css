@@ -3253,3 +3253,74 @@
   color: var(--nl-text-subtle);
   font-size: var(--nl-font-caption);
 }
+
+/* Setups and their payoffs, under the plot grid. */
+.plotgrid-promises {
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  margin: var(--nl-space-none) var(--nl-space-md) var(--nl-space-md);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+}
+
+.plotgrid-promises > summary {
+  cursor: pointer;
+  font-size: var(--nl-font-body);
+  font-weight: 600;
+  padding: var(--nl-space-tighter) var(--nl-space-none);
+  user-select: none;
+}
+
+.promises-add {
+  align-items: center;
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 1fr 1fr auto;
+  margin: var(--nl-space-sm) var(--nl-space-none);
+}
+
+.promise-row {
+  align-items: center;
+  border-bottom: 1px solid var(--nl-border-subtle);
+  display: grid;
+  gap: var(--nl-space-sm);
+  grid-template-columns: 96px 1fr 1fr 1fr auto;
+  padding: var(--nl-space-tighter) var(--nl-space-none);
+}
+
+.promise-state {
+  border-radius: var(--nl-radius-pill);
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  text-align: center;
+}
+
+.promise-state.state-unpaid,
+.promise-state.state-broken {
+  background: var(--nl-danger-soft);
+  color: var(--nl-danger);
+}
+
+.promise-state.state-outoforder {
+  background: var(--nl-surface-selected);
+}
+
+.promise-state.state-kept {
+  color: var(--nl-text-subtle);
+}
+
+.promise-label {
+  font-size: var(--nl-font-body-sm);
+}
+
+.promise-scene {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.promise-scene:hover {
+  color: var(--nl-accent);
+}

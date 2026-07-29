@@ -2396,5 +2396,21 @@
     "remove": "Aus dieser Szene entfernen",
     "setFocus": "Darum geht es in der Szene",
     "clearFocus": "Nicht mehr im Mittelpunkt"
+  },
+  "promises": {
+    "title": "Aufbau und Auflösung",
+    "intro": "Was das Buch der Leserschaft versprochen hat und was es einlöst. Ein Versprechen ohne Auflösung ist genau das, wovon man wissen will.",
+    "scene": "Szene, die es aufbaut",
+    "chooseScene": "Welche Szene baut es auf...",
+    "labelPlaceholder": "Was versprochen wird – „das Gewehr über dem Kamin“",
+    "add": "Hinzufügen",
+    "remove": "Dieses Versprechen entfernen",
+    "payoff": "Szene, die es einlöst",
+    "noPayoff": "Noch nichts löst es ein",
+    "none": "Noch keine Versprechen erfasst.",
+    "stateKept": "Eingelöst",
+    "stateUnpaid": "Offen",
+    "stateBroken": "Auflösung fehlt",
+    "stateOutOfOrder": "Falsche Reihenfolge"
   }
 }

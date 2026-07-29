@@ -53,6 +53,21 @@ Once scenes are tagged:
 - A column with no marks is a scene that advances nothing you are tracking.
 - Clusters of one color show where a subplot takes over; long gaps between marks show where it disappears.
 
+## Setups and payoffs
+
+Under the grid is a **Setups and payoffs** panel. A plotline says which scenes belong to a thread; a promise says something more specific — that a scene has told the reader to expect something.
+
+Add one by picking the scene that sets it up and typing what it promises, in your own words: *the gun on the mantel*, *the letter she never opened*. Then, when you write the scene that answers it, pick that scene as the payoff.
+
+Each promise is judged against where its payoff sits in reading order:
+
+- **Unpaid** — nothing pays it off. This is the one worth being told about, so unanswered promises sort to the top.
+- **Paid off** — the payoff comes after the setup. Nothing to do.
+- **Out of order** — the payoff comes *before* the setup. Moving a scene is enough to cause this, which is exactly why it is reported instead of being counted as kept.
+- **Payoff gone** — the scene that paid it off has been deleted.
+
+Click a promise's scene name to open that scene. A scene cannot pay off its own promise; picking it does nothing, because nothing would have been answered.
+
 ## Tips
 
 - **Have a thin plotline for everything.** Even the protagonist's internal arc benefits from being a row — you can spot stretches where you forgot to advance it.

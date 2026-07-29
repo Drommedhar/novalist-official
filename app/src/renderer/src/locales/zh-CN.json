@@ -2430,5 +2430,21 @@
     "remove": "从本场景移除",
     "setFocus": "这是场景的重点",
     "clearFocus": "不再是重点"
+  },
+  "promises": {
+    "title": "铺垫与回收",
+    "intro": "本书向读者做出的承诺，以及什么回应了它。无人回收的铺垫正是值得被提醒的。",
+    "scene": "铺垫所在场景",
+    "chooseScene": "哪个场景做了铺垫...",
+    "labelPlaceholder": "承诺了什么 — “壁炉上的枪”",
+    "add": "添加",
+    "remove": "删除此铺垫",
+    "payoff": "回收所在场景",
+    "noPayoff": "尚无回收",
+    "none": "尚未记录任何铺垫。",
+    "stateKept": "已回收",
+    "stateUnpaid": "未回收",
+    "stateBroken": "回收场景已删除",
+    "stateOutOfOrder": "顺序错乱"
   }
 }

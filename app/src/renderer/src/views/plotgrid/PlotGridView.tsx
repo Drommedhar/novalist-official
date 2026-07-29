@@ -7,6 +7,7 @@ import { useProjectStore } from '../../stores/projectStore'
 import { ContextMenu } from '../../shell/ContextMenu'
 import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
+import { PromisesPanel } from './PromisesPanel'
 
 interface PlotGridDto {
   plotlines: { id: string; name: string; color: string; order: number }[]
@@ -61,6 +62,12 @@ export function PlotGridView(): React.JSX.Element {
           {t('plotGrid.addPlotline')}
         </button>
       </div>
+      {/* Threads and promises are the same kind of thinking, so the promises
+          live here rather than in a view of their own. */}
+      <details className="plotgrid-promises">
+        <summary>{t('promises.title')}</summary>
+        <PromisesPanel />
+      </details>
       {grid.plotlines.length === 0 ? (
         <p className="codex-empty">{t('plotGrid.emptyHint')}</p>
       ) : (

@@ -2388,5 +2388,21 @@
     "remove": "Remove from this scene",
     "setFocus": "This is what the scene is about",
     "clearFocus": "No longer the focus"
+  },
+  "promises": {
+    "title": "Setups and payoffs",
+    "intro": "What the book has promised the reader, and what answers it. A promise nothing pays off is the thing worth being told about.",
+    "scene": "Scene that sets it up",
+    "chooseScene": "Which scene sets it up...",
+    "labelPlaceholder": "What is promised - \"the gun on the mantel\"",
+    "add": "Add",
+    "remove": "Remove this promise",
+    "payoff": "Scene that pays it off",
+    "noPayoff": "Nothing pays this off yet",
+    "none": "No promises tracked yet.",
+    "stateKept": "Paid off",
+    "stateUnpaid": "Unpaid",
+    "stateBroken": "Payoff gone",
+    "stateOutOfOrder": "Out of order"
   }
 }

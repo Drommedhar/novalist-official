@@ -113,6 +113,14 @@ public class SceneData
     public SceneAnalysisOverrides? AnalysisOverrides { get; set; }
 
     /// <summary>
+    /// Things this scene promises the reader, each with the scene that pays it
+    /// off once one exists. Null when the scene promises nothing.
+    /// </summary>
+    [JsonPropertyName("promises")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<ScenePromise>? Promises { get; set; }
+
+    /// <summary>
     /// Entity ids the writer said are in this scene, whether or not the prose
     /// names them. Mentions in the text are author-confirmed but incomplete:
     /// a character who is present and silent leaves no span to find.
@@ -147,6 +155,27 @@ public class SceneData
     [JsonPropertyName("originChapterGuid")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? OriginChapterGuid { get; set; }
+}
+
+/// <summary>
+/// Something a scene sets up, and the scene that answers it.
+///
+/// Held on the setup rather than the payoff so that a promise nothing answers
+/// still exists to be reported - which is the whole point of tracking them.
+/// </summary>
+public class ScenePromise
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = System.Guid.NewGuid().ToString();
+
+    /// <summary>What was promised, in the writer's words: "the gun on the mantel".</summary>
+    [JsonPropertyName("label")]
+    public string Label { get; set; } = string.Empty;
+
+    /// <summary>The scene that pays it off, or null while nothing does.</summary>
+    [JsonPropertyName("payoffSceneId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? PayoffSceneId { get; set; }
 }
 
 public class SceneFootnote

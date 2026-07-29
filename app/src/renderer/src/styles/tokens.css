@@ -172,6 +172,9 @@
   --nl-success: #7bae7f;
   --nl-warning: #d98e3d;
   --nl-danger: #d4635a;
+  /* A wash of the danger pigment, for a chip that has to read as a warning
+     without shouting the way a solid fill would. */
+  --nl-danger-soft: rgb(212 99 90 / 0.16);
 
   /* Manuscript progress, drafting through to gilded. */
   --nl-status-outline: var(--nv-faint);
