@@ -69,6 +69,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- **Footnotes are real notes in every export, not a block of text at the end of the scene.** DOCX now writes actual Word footnotes at the foot of the page, which Word renumbers for you; Markdown writes `[^n]` footnote syntax with the definitions at the end of the file; EPUB writes popup notes a reader can show in place; LaTeX writes `ootnote`; and PDF sets them as endnotes under their chapter. The number in your prose is a real reference now too - it used to be printed as a loose digit in the middle of the sentence.
+
 - **Scene titles in the binder line up in a column again.** Giving a scene a stage pushed its title away from the left edge, so a list of scenes read as ragged rather than as a column - and the titles of scenes without a stage sat a few pixels off from the ones with. Every title now starts at the same place whether or not the scene has been staged.
 - **Shift-click in the binder selects the whole run between two scenes again.** Clicking one scene and shift-clicking another selected only the second, because a plain click forgot where you had clicked.
 - **A layout you authored yourself is now actually used by the export.** Picking a custom layout quietly fell back to the default, so the file came out in Default no matter what the drop-down said.

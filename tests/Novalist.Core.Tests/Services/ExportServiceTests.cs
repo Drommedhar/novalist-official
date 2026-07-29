@@ -63,17 +63,26 @@ public class ExportServiceTests : IDisposable
     // ── CompileChapters ──
 
     [Fact]
-    public async Task Compile_FiltersBySelection_AppendsFootnotes()
+    public async Task Compile_FiltersBySelection_CarriesFootnotesBesideTheProse()
     {
         var (ch, scenes) = SetupChapter("C", ("S", "<p>Body</p>"));
-        scenes[0].Footnotes = new() { new SceneFootnote { Number = 1, Text = "A note" } };
+        scenes[0].Footnotes =
+        [
+            new SceneFootnote { Id = "FN-1", Number = 1, Text = "A note" },
+            new SceneFootnote { Id = "FN-2", Number = 2, Text = "   " }
+        ];
 
         var sut = Build();
         var compiled = await sut.CompileChaptersAsync(Opts(ExportFormat.Markdown, new[] { ch.Guid }));
 
-        Assert.Single(compiled);
-        Assert.Contains("Footnotes", compiled[0].Scenes[0].HtmlContent);
-        Assert.Contains("A note", compiled[0].Scenes[0].HtmlContent);
+        var scene = Assert.Single(compiled).Scenes[0];
+        // The prose is untouched: gluing the notes onto the end of it is what
+        // made every format print them as a paragraph of literal text.
+        Assert.Equal("<p>Body</p>", scene.HtmlContent);
+        // Keyed lowercase, because the inline parser lowercases the tag it
+        // reads the id out of. An empty note is not a note.
+        Assert.Equal("A note", scene.Footnotes["fn-1"]);
+        Assert.DoesNotContain("fn-2", scene.Footnotes.Keys);
     }
 
     [Fact]
@@ -850,7 +859,171 @@ public class ExportServiceTests : IDisposable
         Assert.Contains("EMPTYSCENE", fdx);   // scene heading still emitted
         Assert.DoesNotContain("Type=\"Action\"", fdx); // no body paragraphs
     }
+
+    // -- Footnotes --
+    //
+    // The manual promised Word footnotes and Markdown footnote syntax while
+    // every format got the same thing: a paragraph of literal text glued onto
+    // the end of the scene, with the anchor in the prose left as a bare digit.
+
+    private const string ProseWithAnchor =
+        "<p>She counted the bells<sup class=\"nv-fn\" data-fn-id=\"note-a\">1</sup> again.</p>";
+
+    /// <summary>One chapter, one scene, one real footnote behind its anchor.</summary>
+    private (ChapterData Chapter, ExportOptions Options) WithFootnote()
+    {
+        var (chapter, scenes) = SetupChapter("C", ("S", ProseWithAnchor));
+        scenes[0].Footnotes =
+            [new SceneFootnote { Id = "note-a", Number = 1, Text = "Rebuilt in 1911." }];
+        return (chapter, Opts(ExportFormat.Markdown, [chapter.Guid]));
+    }
+
+    [Fact]
+    public async Task Markdown_WritesFootnoteSyntax()
+    {
+        var (_, options) = WithFootnote();
+        var path = Out(".md");
+
+        await Build().ExportAsync(options, path);
+
+        var md = await File.ReadAllTextAsync(path);
+        Assert.Contains("bells[^1] again", md);
+        Assert.Contains("[^1]: Rebuilt in 1911.", md);
+    }
+
+    [Fact]
+    public async Task Latex_WritesARealFootnote()
+    {
+        var (_, options) = WithFootnote();
+        options.Format = ExportFormat.LaTeX;
+        var path = Out(".tex");
+
+        await Build().ExportAsync(options, path);
+
+        Assert.Contains("\\footnote{Rebuilt in 1911.}", await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task Epub_WritesANoterefAndAnAside()
+    {
+        var (_, options) = WithFootnote();
+        options.Format = ExportFormat.Epub;
+        var path = Out(".epub");
+
+        await Build().ExportAsync(options, path);
+
+        using var zip = ZipFile.OpenRead(path);
+        using var reader = new StreamReader(
+            zip.Entries.Single(e => e.FullName == "OEBPS/chapter-1.xhtml").Open());
+        var xhtml = await reader.ReadToEndAsync();
+
+        Assert.Contains("epub:type=\"noteref\" id=\"fnref1\" href=\"#fn1\"", xhtml);
+        Assert.Contains("epub:type=\"footnote\" id=\"fn1\"", xhtml);
+        Assert.Contains("Rebuilt in 1911.", xhtml);
+    }
+
+    [Fact]
+    public async Task Docx_WritesARealWordFootnote()
+    {
+        var (_, options) = WithFootnote();
+        options.Format = ExportFormat.Docx;
+        var path = Out(".docx");
+
+        await Build().ExportAsync(options, path);
+
+        using var zip = ZipFile.OpenRead(path);
+        async Task<string> ReadAsync(string name)
+        {
+            using var reader = new StreamReader(
+                zip.Entries.Single(e => e.FullName == name).Open());
+            return await reader.ReadToEndAsync();
+        }
+
+        // Part, content type and relationship: Word refuses the file without
+        // all three, however well-formed the note itself is.
+        Assert.Contains("wordprocessingml.footnotes+xml", await ReadAsync("[Content_Types].xml"));
+        Assert.Contains("relationships/footnotes", await ReadAsync("word/_rels/document.xml.rels"));
+
+        var footnotes = await ReadAsync("word/footnotes.xml");
+        Assert.Contains("w:id=\"0\" w:type=\"separator\"", footnotes);
+        Assert.Contains("w:id=\"1\" w:type=\"continuationSeparator\"", footnotes);
+        // The writer's notes start at 2, after Word's two required entries.
+        Assert.Contains("w:id=\"2\"", footnotes);
+        Assert.Contains("Rebuilt in 1911.", footnotes);
+
+        var document = await ReadAsync("word/document.xml");
+        Assert.Contains("<w:footnoteReference w:id=\"2\"/>", document);
+        Assert.DoesNotContain("Rebuilt in 1911.", document);
+    }
+
+    [Fact]
+    public async Task Pdf_SetsNotesUnderTheirChapter()
+    {
+        var (_, options) = WithFootnote();
+        options.Format = ExportFormat.Pdf;
+        var path = Out(".pdf");
+
+        await Build().ExportAsync(options, path);
+
+        // PdfSharpCore sets text a line at a time and cannot reserve the foot
+        // of a page mid-paragraph, so the notes go under the chapter.
+        Assert.True(new FileInfo(path).Length > 0);
+    }
+
+    [Fact]
+    public async Task Pdf_NotesThatOverflowTheirPageContinueOnTheNext()
+    {
+        // Enough notes that the block cannot fit under the chapter, which is
+        // the only path that starts a fresh page mid-note-list.
+        var anchors = string.Concat(Enumerable.Range(0, 60).Select(i =>
+            $"<sup class=\"nv-fn\" data-fn-id=\"n{i}\">{i}</sup>"));
+        var (chapter, scenes) = SetupChapter("C", ("S", $"<p>Bells{anchors}.</p>"));
+        scenes[0].Footnotes = [.. Enumerable.Range(0, 60).Select(i => new SceneFootnote
+        {
+            Id = $"n{i}",
+            Number = i + 1,
+            Text = $"Note {i} " + new string('x', 200)
+        })];
+        var options = Opts(ExportFormat.Pdf, [chapter.Guid]);
+        options.Format = ExportFormat.Pdf;
+        var path = Out(".pdf");
+
+        await Build().ExportAsync(options, path);
+
+        Assert.True(new FileInfo(path).Length > 0);
+    }
+
+    [Fact]
+    public async Task AnAnchorWhoseNoteIsGoneLeavesNoStrayDigit()
+    {
+        var (chapter, _) = SetupChapter("C", ("S", ProseWithAnchor));
+        var path = Out(".md");
+
+        await Build().ExportAsync(Opts(ExportFormat.Markdown, [chapter.Guid]), path);
+
+        var md = await File.ReadAllTextAsync(path);
+        // The number used to be printed into the middle of the sentence.
+        Assert.Contains("bells again", md);
+        Assert.DoesNotContain("[^1]", md);
+    }
+
+    [Fact]
+    public async Task AParagraphHoldingOnlyAnAnchorSurvives()
+    {
+        var (chapter, scenes) = SetupChapter(
+            "C",
+            ("S", "<p><sup class=\"nv-fn\" data-fn-id=\"only\">1</sup></p><p>After.</p>"));
+        scenes[0].Footnotes =
+            [new SceneFootnote { Id = "only", Number = 1, Text = "The whole content." }];
+        var path = Out(".md");
+
+        await Build().ExportAsync(Opts(ExportFormat.Markdown, [chapter.Guid]), path);
+
+        // A paragraph whose only content is a note is not an empty paragraph.
+        Assert.Contains("[^1]: The whole content.", await File.ReadAllTextAsync(path));
+    }
 }
+
 
 internal static class ExportServiceTestConstants
 {

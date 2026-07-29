@@ -136,6 +136,13 @@ public class SceneExportContent
     /// editor should see.
     /// </summary>
     public List<SceneExportComment> Comments { get; set; } = [];
+
+    /// <summary>
+    /// The scene's footnotes, keyed by the id its <c>&lt;sup class="nv-fn"&gt;</c>
+    /// anchor carries. Kept beside the prose rather than appended to it, so each
+    /// format can render a real note where the anchor sits.
+    /// </summary>
+    public Dictionary<string, string> Footnotes { get; set; } = [];
 }
 
 /// <summary>One comment travelling with a scene into an export.</summary>
@@ -159,6 +166,13 @@ internal sealed class InlineSegment
     public string Text { get; set; } = string.Empty;
     public bool Bold { get; set; }
     public bool Italic { get; set; }
+
+    /// <summary>
+    /// When set, this segment is a footnote anchor rather than prose: the text
+    /// of the note, which each format renders in its own way. The prose it was
+    /// anchored to is the segment before it.
+    /// </summary>
+    public string? FootnoteText { get; set; }
 }
 
 /// <summary>
@@ -221,25 +235,17 @@ public partial class ExportService
             foreach (var scene in scenes)
             {
                 var html = await _projectService.ReadSceneContentAsync(chapter, scene);
-                if (scene.Footnotes is { Count: > 0 } notes)
-                {
-                    var fnHtml = new StringBuilder();
-                    fnHtml.Append("<p>&nbsp;</p><p>—— Footnotes ——</p>");
-                    foreach (var fn in notes.OrderBy(n => n.Number))
-                    {
-                        fnHtml.Append("<p>");
-                        fnHtml.Append(fn.Number);
-                        fnHtml.Append(". ");
-                        fnHtml.Append(WebUtility.HtmlEncode(fn.Text ?? string.Empty));
-                        fnHtml.Append("</p>");
-                    }
-                    html += fnHtml.ToString();
-                }
                 sceneContents.Add(new SceneExportContent
                 {
                     Title = scene.Title,
                     Order = scene.Order,
                     HtmlContent = html,
+                    // Ids are lowercased because the inline parser lowercases
+                    // the tag it finds them in.
+                    Footnotes = (scene.Footnotes ?? [])
+                        .Where(n => !string.IsNullOrWhiteSpace(n.Text))
+                        .GroupBy(n => n.Id.ToLowerInvariant())
+                        .ToDictionary(g => g.Key, g => g.First().Text),
                     Comments = (scene.Comments ?? [])
                         .Where(c => !c.Resolved && !string.IsNullOrWhiteSpace(c.Text))
                         .Select(c => new SceneExportComment
@@ -393,10 +399,15 @@ public partial class ExportService
                 // rather than one per item, which LaTeX renders as a stack of
                 // single-entry lists.
                 var openList = ListKind.None;
-                foreach (var block in ParseHtmlToBlocks(chapter.Scenes[si].HtmlContent))
+                foreach (var block in ParseHtmlToBlocks(
+                    chapter.Scenes[si].HtmlContent, chapter.Scenes[si].Footnotes))
                 {
                     var body = string.Concat(block.Segments.Select(seg =>
                     {
+                        // LaTeX has had this all along: a real footnote, set
+                        // at the foot of whatever page the anchor lands on.
+                        if (seg.FootnoteText != null)
+                            return $"\\footnote{{{LatexEscape(seg.FootnoteText)}}}";
                         var t = LatexEscape(seg.Text);
                         if (seg.Bold && seg.Italic) return $"\\textbf{{\\textit{{{t}}}}}";
                         if (seg.Bold) return $"\\textbf{{{t}}}";
@@ -1203,8 +1214,9 @@ public partial class ExportService
     /// Extract plain-text paragraphs from scene HTML content.
     /// Returns a list of paragraphs with inline formatting preserved as segments.
     /// </summary>
-    private static List<List<InlineSegment>> ParseHtmlToParagraphs(string html)
-        => [.. ParseHtmlToBlocks(html).Select(b => b.Segments)];
+    private static List<List<InlineSegment>> ParseHtmlToParagraphs(
+        string html, IReadOnlyDictionary<string, string>? footnotes = null)
+        => [.. ParseHtmlToBlocks(html, footnotes).Select(b => b.Segments)];
 
     /// <summary>
     /// A scene's content as ordered blocks, each carrying its paragraph style
@@ -1214,7 +1226,8 @@ public partial class ExportService
     /// in the editor reaches DOCX, EPUB, Markdown and LaTeX the same way instead
     /// of being honoured by whichever exporter happened to grow a case for it.
     /// </summary>
-    internal static List<ExportBlock> ParseHtmlToBlocks(string html)
+    internal static List<ExportBlock> ParseHtmlToBlocks(
+        string html, IReadOnlyDictionary<string, string>? footnotes = null)
     {
         if (string.IsNullOrWhiteSpace(html)) return [];
 
@@ -1248,8 +1261,12 @@ public partial class ExportService
                 continue;
             }
 
-            var segments = ParseInlineFormatting(match.Groups["body"].Value);
-            if (segments.Count == 0 || segments.All(s => string.IsNullOrWhiteSpace(s.Text))) continue;
+            var segments = ParseInlineFormatting(match.Groups["body"].Value, footnotes);
+            // A paragraph holding nothing but a footnote anchor is still
+            // worth keeping - the note is the content.
+            if (segments.Count == 0
+                || segments.All(s => string.IsNullOrWhiteSpace(s.Text) && s.FootnoteText == null))
+                continue;
 
             blocks.Add(tag == "li"
                 // A stray li outside any list still reads as a bullet rather
@@ -1264,14 +1281,17 @@ public partial class ExportService
     /// <summary>
     /// Parse inline formatting (bold, italic, underline) from HTML content.
     /// </summary>
-    private static List<InlineSegment> ParseInlineFormatting(string html)
+    private static List<InlineSegment> ParseInlineFormatting(
+        string html, IReadOnlyDictionary<string, string>? footnotes = null)
     {
         var segments = new List<InlineSegment>();
-        ParseInlineRecursive(html, false, false, segments);
+        ParseInlineRecursive(html, false, false, segments, footnotes);
         return segments;
     }
 
-    private static void ParseInlineRecursive(string html, bool bold, bool italic, List<InlineSegment> segments)
+    private static void ParseInlineRecursive(
+        string html, bool bold, bool italic, List<InlineSegment> segments,
+        IReadOnlyDictionary<string, string>? footnotes = null)
     {
         var pos = 0;
         while (pos < html.Length)
@@ -1326,25 +1346,35 @@ public partial class ExportService
             var innerContent = html[pos..closeIdx];
             pos = closeIdx + closingTag.Length;
 
+            // A footnote anchor is not prose. Left to the default branch it
+            // became a bare digit sitting in the middle of a sentence.
+            if (tagName == "sup" && tag.Contains("nv-fn"))
+            {
+                var id = FootnoteIdRegex().Match(tag).Groups[1].Value;
+                if (footnotes != null && footnotes.TryGetValue(id, out var noteText))
+                    segments.Add(new InlineSegment { FootnoteText = noteText });
+                continue;
+            }
+
             switch (tagName)
             {
                 case "b" or "strong":
-                    ParseInlineRecursive(innerContent, true, italic, segments);
+                    ParseInlineRecursive(innerContent, true, italic, segments, footnotes);
                     break;
                 case "i" or "em":
-                    ParseInlineRecursive(innerContent, bold, true, segments);
+                    ParseInlineRecursive(innerContent, bold, true, segments, footnotes);
                     break;
                 case "u":
                     // Underline treated as regular text in export (no underline in most book formats)
-                    ParseInlineRecursive(innerContent, bold, italic, segments);
+                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes);
                     break;
                 case "span":
                     // Spans may carry style info but for export we just recurse
-                    ParseInlineRecursive(innerContent, bold, italic, segments);
+                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes);
                     break;
                 default:
                     // Unknown tag - just extract text
-                    ParseInlineRecursive(innerContent, bold, italic, segments);
+                    ParseInlineRecursive(innerContent, bold, italic, segments, footnotes);
                     break;
             }
         }
@@ -1663,6 +1693,10 @@ public partial class ExportService
     {
         var preset = options.ResolvePreset();
         var bodyHtml = new StringBuilder();
+        // Notes are collected as the chapter is laid out and written as asides
+        // at its end, which is where a reading system looks for the target of
+        // a noteref it has to pop up.
+        var footnoteDefs = new List<string>();
         for (var si = 0; si < chapter.Scenes.Count; si++)
         {
             if (si > 0)
@@ -1678,9 +1712,9 @@ public partial class ExportService
             var isFirst = si == 0;
             var openList = ListKind.None;
 
-            foreach (var block in ParseHtmlToBlocks(scene.HtmlContent))
+            foreach (var block in ParseHtmlToBlocks(scene.HtmlContent, scene.Footnotes))
             {
-                var content = SegmentsToXhtml(block.Segments);
+                var content = SegmentsToXhtml(block.Segments, footnoteDefs);
 
                 if (block.List != openList)
                 {
@@ -1716,6 +1750,16 @@ public partial class ExportService
                 bodyHtml.AppendLine(openList == ListKind.Number ? "    </ol>" : "    </ul>");
         }
 
+        if (footnoteDefs.Count > 0)
+        {
+            bodyHtml.AppendLine("    <section epub:type=\"footnotes\" class=\"footnotes\">");
+            for (var n = 1; n <= footnoteDefs.Count; n++)
+                bodyHtml.AppendLine(
+                    $"      <aside epub:type=\"footnote\" id=\"fn{n}\"><p>"
+                    + $"<a href=\"#fnref{n}\">{n}.</a> {EscapeXml(footnoteDefs[n - 1])}</p></aside>");
+            bodyHtml.AppendLine("    </section>");
+        }
+
         return $"""
             <?xml version="1.0" encoding="UTF-8"?>
             <!DOCTYPE html>
@@ -1735,11 +1779,25 @@ public partial class ExportService
             """;
     }
 
-    private static string SegmentsToXhtml(List<InlineSegment> segments)
+    /// <summary>
+    /// EPUB 3 notes: the anchor becomes a <c>noteref</c> link, and the note
+    /// itself an <c>aside</c> a reader can show as a popup. Numbering runs
+    /// across the chapter file the notes are collected into.
+    /// </summary>
+    private static string SegmentsToXhtml(
+        List<InlineSegment> segments, List<string>? footnoteDefs = null)
     {
         var sb = new StringBuilder();
         foreach (var seg in segments)
         {
+            if (seg.FootnoteText != null)
+            {
+                if (footnoteDefs == null) continue;
+                footnoteDefs.Add(seg.FootnoteText);
+                var n = footnoteDefs.Count;
+                sb.Append($"<a class=\"noteref\" epub:type=\"noteref\" id=\"fnref{n}\" href=\"#fn{n}\"><sup>{n}</sup></a>");
+                continue;
+            }
             var text = EscapeXml(seg.Text);
             if (seg.Bold && seg.Italic)
                 sb.Append($"<strong><em>{text}</em></strong>");
@@ -2138,7 +2196,8 @@ public partial class ExportService
               <Default Extension="xml" ContentType="application/xml"/>
               <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
               <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
-              <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>{contentTypesExtra}{(hasComments ? "\n  <Override PartName=\"/word/comments.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml\"/>" : "")}
+              <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>
+              <Override PartName="/word/footnotes.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footnotes+xml"/>{contentTypesExtra}{(hasComments ? "\n  <Override PartName=\"/word/comments.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml\"/>" : "")}
             </Types>
             """);
 
@@ -2159,7 +2218,8 @@ public partial class ExportService
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
               <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
-              <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>{headerRel}{(hasComments ? "\n  <Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments\" Target=\"comments.xml\"/>" : "")}
+              <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>
+              <Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" Target="footnotes.xml"/>{headerRel}{(hasComments ? "\n  <Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments\" Target=\"comments.xml\"/>" : "")}
             </Relationships>
             """);
 
@@ -2195,8 +2255,10 @@ public partial class ExportService
                 """);
         }
 
-        // Build document body
+        // Build document body. Notes are collected as it is laid out; the part
+        // they live in can only be written once their numbers are known.
         var body = new StringBuilder();
+        var footnoteDefs = new List<string>();
 
         if (options.IncludeTitlePage)
         {
@@ -2232,7 +2294,7 @@ public partial class ExportService
                 }
 
                 var scene = chapter.Scenes[si];
-                var blocks = ParseHtmlToBlocks(scene.HtmlContent);
+                var blocks = ParseHtmlToBlocks(scene.HtmlContent, scene.Footnotes);
                 var isFirstPara = si == 0;
                 // One anchor per comment: a phrase repeated across paragraphs
                 // would otherwise mark every occurrence.
@@ -2241,7 +2303,7 @@ public partial class ExportService
                 foreach (var block in blocks)
                 {
                     var para = block.Segments;
-                    var runs = SegmentsToDocxRuns(para);
+                    var runs = SegmentsToDocxRuns(para, footnoteDefs);
                     var paragraphXml =
                         $"<w:p><w:pPr>{DocxParagraphProperties(block, isFirstPara)}</w:pPr>{runs}</w:p>";
 
@@ -2267,6 +2329,9 @@ public partial class ExportService
         var sectPrHeader = smf
             ? "<w:headerReference w:type=\"default\" r:id=\"rId2\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"/>"
             : "";
+
+        // Written after the body: the notes are only known once it is laid out.
+        await WriteEntryAsync(zip, "word/footnotes.xml", GenerateDocxFootnotes(footnoteDefs));
 
         await WriteEntryAsync(zip, "word/document.xml", $"""
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -2489,6 +2554,16 @@ public partial class ExportService
                 </w:pPr>
               </w:style>
 
+              <w:style w:type="character" w:styleId="FootnoteReference">
+                <w:name w:val="footnote reference"/>
+                <w:rPr><w:vertAlign w:val="superscript"/></w:rPr>
+              </w:style>
+              <w:style w:type="paragraph" w:styleId="FootnoteText">
+                <w:name w:val="footnote text"/>
+                <w:basedOn w:val="Normal"/>
+                <w:pPr><w:spacing w:line="240" w:lineRule="auto" w:after="0"/></w:pPr>
+                <w:rPr><w:sz w:val="20"/></w:rPr>
+              </w:style>
               <w:style w:type="paragraph" w:styleId="SceneBreak">
                 <w:name w:val="Scene Break"/>
                 <w:basedOn w:val="Normal"/>
@@ -2559,6 +2634,31 @@ public partial class ExportService
     /// Word expects. Novalist only ever emits level zero, but a definition
     /// missing its deeper levels makes Word treat the whole part as corrupt.
     /// </summary>
+    /// <summary>
+    /// The <c>word/footnotes.xml</c> part. The first two entries are the
+    /// separator and continuation notes Word expects to exist; the writer's own
+    /// notes follow from id 2.
+    /// </summary>
+    private static string GenerateDocxFootnotes(List<string> notes)
+    {
+        var sb = new StringBuilder();
+        for (var i = 0; i < notes.Count; i++)
+        {
+            sb.Append($"<w:footnote w:id=\"{i + 2}\"><w:p><w:pPr><w:pStyle w:val=\"FootnoteText\"/></w:pPr>")
+              .Append("<w:r><w:rPr><w:rStyle w:val=\"FootnoteReference\"/></w:rPr><w:footnoteRef/></w:r>")
+              .Append($"<w:r><w:t xml:space=\"preserve\"> {EscapeXml(notes[i])}</w:t></w:r></w:p></w:footnote>");
+        }
+
+        return $"""
+            <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <w:footnotes xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+              <w:footnote w:id="0" w:type="separator"><w:p><w:r><w:separator/></w:r></w:p></w:footnote>
+              <w:footnote w:id="1" w:type="continuationSeparator"><w:p><w:r><w:continuationSeparator/></w:r></w:p></w:footnote>
+              {sb}
+            </w:footnotes>
+            """;
+    }
+
     private static string GenerateDocxNumbering()
     {
         var bulletLevels = new StringBuilder();
@@ -2634,11 +2734,29 @@ public partial class ExportService
         return $"<w:pStyle w:val=\"{style}\"/>";
     }
 
-    private static string SegmentsToDocxRuns(List<InlineSegment> segments)
+    /// <summary>
+    /// Word runs. A footnote segment becomes a real <c>w:footnoteReference</c>,
+    /// which is what lets an editor see it at the bottom of the page and Word
+    /// renumber it - the manual has promised this for a long time while the
+    /// exporter appended a paragraph of plain text instead.
+    /// </summary>
+    private static string SegmentsToDocxRuns(
+        List<InlineSegment> segments, List<string>? footnoteDefs = null)
     {
         var sb = new StringBuilder();
         foreach (var seg in segments)
         {
+            if (seg.FootnoteText != null)
+            {
+                if (footnoteDefs == null) continue;
+                footnoteDefs.Add(seg.FootnoteText);
+                // Ids 0 and 1 are the separator and continuation notes Word
+                // requires, so the writer's notes start at 2.
+                var id = footnoteDefs.Count + 1;
+                sb.Append("<w:r><w:rPr><w:rStyle w:val=\"FootnoteReference\"/></w:rPr>")
+                  .Append($"<w:footnoteReference w:id=\"{id}\"/></w:r>");
+                continue;
+            }
             var rPr = "";
             if (seg.Bold || seg.Italic)
             {
@@ -2975,6 +3093,7 @@ public partial class ExportService
         {
             var gfx = NewPage(out var y);
             y = margin + chapterTopMargin;
+            var chapterNotes = new List<string>();
 
             // Chapter title
             var chTitleFont = smf ? bodyFont : boldFont;
@@ -3006,12 +3125,20 @@ public partial class ExportService
                 }
 
                 var scene = chapter.Scenes[si];
-                var paragraphs = ParseHtmlToParagraphs(scene.HtmlContent);
+                var paragraphs = ParseHtmlToParagraphs(scene.HtmlContent, scene.Footnotes);
                 var isFirstPara = si == 0;
 
                 foreach (var para in paragraphs)
                 {
-                    var plainText = string.Concat(para.Select(s => s.Text));
+                    // PdfSharpCore lays text out a line at a time, with no way
+                    // to reserve the foot of the page mid-paragraph, so notes
+                    // are marked here and set at the end of the chapter.
+                    var plainText = string.Concat(para.Select(seg =>
+                    {
+                        if (seg.FootnoteText == null) return seg.Text;
+                        chapterNotes.Add(seg.FootnoteText);
+                        return $"[{chapterNotes.Count}]";
+                    }));
                     var paraIndent = smf && !isFirstPara ? (double)indent : 0.0;
                     var lines = WordWrap(plainText, bodyFont, gfx, textWidth - paraIndent);
 
@@ -3031,6 +3158,28 @@ public partial class ExportService
 
                     isFirstPara = false;
                     if (paragraphGap > 0) y += paragraphGap;
+                }
+            }
+
+            // The notes, under the chapter they belong to. Numbering restarts
+            // per chapter, which is what the markers in the prose say.
+            if (chapterNotes.Count > 0)
+            {
+                y += lineSpacing;
+                for (var n = 0; n < chapterNotes.Count; n++)
+                {
+                    foreach (var line in WordWrap(
+                        $"[{n + 1}] {chapterNotes[n]}", bodyFont, gfx, textWidth))
+                    {
+                        if (y > pageHeight - margin - lineSpacing)
+                        {
+                            gfx.Dispose();
+                            gfx = NewPage(out y);
+                        }
+                        gfx.DrawString(line, bodyFont, PdfSharpCore.Drawing.XBrushes.Black,
+                            new PdfSharpCore.Drawing.XPoint(margin, y));
+                        y += lineSpacing;
+                    }
                 }
             }
 
@@ -3121,6 +3270,9 @@ public partial class ExportService
         string outputPath)
     {
         var sb = new StringBuilder();
+        // Numbering runs across the whole file: two scenes each starting at 1
+        // would collide in one document.
+        var footnoteDefs = new List<string>();
 
         if (options.IncludeTitlePage)
         {
@@ -3162,9 +3314,9 @@ public partial class ExportService
                 // Ordered items number from one per run, so two lists in a scene
                 // do not continue each other's count.
                 var ordinal = 0;
-                foreach (var block in ParseHtmlToBlocks(scene.HtmlContent))
+                foreach (var block in ParseHtmlToBlocks(scene.HtmlContent, scene.Footnotes))
                 {
-                    var text = SegmentsToMarkdown(block.Segments);
+                    var text = SegmentsToMarkdown(block.Segments, footnoteDefs);
                     if (block.List != ListKind.None)
                     {
                         ordinal = block.List == ListKind.Number ? ordinal + 1 : 0;
@@ -3187,14 +3339,37 @@ public partial class ExportService
             }
         }
 
+        // Definitions go at the end of the file, which is where every Markdown
+        // renderer expects to find them.
+        if (footnoteDefs.Count > 0)
+        {
+            sb.AppendLine();
+            foreach (var (note, index) in footnoteDefs.Select((n, i) => (n, i)))
+                sb.AppendLine($"[^{index + 1}]: {note.ReplaceLineEndings(" ")}");
+        }
+
         await File.WriteAllTextAsync(outputPath, sb.ToString(), Encoding.UTF8);
     }
 
-    private static string SegmentsToMarkdown(List<InlineSegment> segments)
+    /// <summary>
+    /// Markdown footnote syntax: a <c>[^n]</c> reference where the anchor sat,
+    /// with the note itself collected for the definition list at the end of the
+    /// document. Numbering runs across the whole file, because two scenes each
+    /// starting at 1 would collide in one document.
+    /// </summary>
+    private static string SegmentsToMarkdown(
+        List<InlineSegment> segments, List<string>? footnoteDefs = null)
     {
         var sb = new StringBuilder();
         foreach (var seg in segments)
         {
+            if (seg.FootnoteText != null)
+            {
+                if (footnoteDefs == null) continue;
+                footnoteDefs.Add(seg.FootnoteText);
+                sb.Append("[^").Append(footnoteDefs.Count).Append(']');
+                continue;
+            }
             if (seg.Bold && seg.Italic)
                 sb.Append($"***{seg.Text}***");
             else if (seg.Bold)
@@ -3209,6 +3384,10 @@ public partial class ExportService
 
     [GeneratedRegex(@"<br\s*/?>|</(?:p|div|li|tr|h[1-6])\s*>", RegexOptions.IgnoreCase)]
     private static partial Regex BlockTagRegex();
+
+    /// <summary>The id in a <c>&lt;sup class="nv-fn" data-fn-id="..."&gt;</c> anchor.</summary>
+    [GeneratedRegex(@"data-fn-id=""([^""]*)""")]
+    private static partial Regex FootnoteIdRegex();
 
     [GeneratedRegex(@"^#{1,6}\s+")]
     private static partial Regex MarkdownHeadingRegex();

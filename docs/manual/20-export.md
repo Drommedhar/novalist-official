@@ -82,7 +82,7 @@ A file that is not a Word document, or has no review marks in it, reports "nothi
   - Body Text — paragraph.
   - Quote — blockquote.
 - Comments are dropped.
-- Footnotes preserved as Word footnotes.
+- Footnotes become **real Word footnotes** — they sit at the foot of the page the anchor lands on, and Word renumbers them if you add or delete one.
 
 #### Normseiten (DOCX)
 
@@ -98,14 +98,20 @@ Because pagination comes from the grid, chapters do not start on a fresh page: c
 
 To write and export a pitch document in the same layout, see [Exposé](32-expose.md).
 
+### EPUB
+
+- EPUB 3. Footnotes become **popup notes**: the anchor is a `noteref` link and the note itself an `aside` at the end of the chapter file, which is what lets a reader show it in place instead of jumping away.
+
 ### PDF
 
 - Print-ready PDF. When a cover is set and **Include the book cover** is on, the cover becomes a full page ahead of the title page, scaled to fit the trim size and centred so it is never stretched.
+- Footnotes are set as **endnotes at the end of their chapter**, numbered from one per chapter, with a matching `[n]` marker in the prose. PDF is the one format where they are not at the foot of the page: the layout engine sets text a line at a time and cannot reserve the bottom of a page part-way through a paragraph.
 - A cover the PDF engine cannot decode is skipped rather than failing the export.
 
 ### Markdown
 
-- Single `.md` file. Chapter headings at H1, scenes at H2 (if titled). Footnotes preserved as markdown footnotes.
+- Single `.md` file. Chapter headings at H1, scenes at H2 (if titled).
+- Footnotes use **Markdown footnote syntax**: a `[^n]` reference where the anchor sits, with the definitions collected at the end of the file. Numbering runs across the whole document, since two scenes both starting at one would collide.
 
 ### Final Draft
 
@@ -114,6 +120,7 @@ To write and export a pitch document in the same layout, see [Exposé](32-expose
 ### LaTeX
 
 - `.tex` source you can compile with `pdflatex` or `xelatex`. Includes a basic preamble suitable for novels.
+- Footnotes become `ootnote{...}`, so LaTeX sets and numbers them itself.
 
 ### Codex Markdown
 

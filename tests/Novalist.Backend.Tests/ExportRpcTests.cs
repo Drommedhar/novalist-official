@@ -229,4 +229,145 @@ public sealed class ExportRpcTests : IDisposable
         using var reader = new StreamReader(zip.GetEntry("OEBPS/content.opf")!.Open());
         Assert.Contains("<dc:language>de</dc:language>", await reader.ReadToEndAsync());
     }
+
+    // -- Footnotes --
+    //
+    // The manual has promised Word footnotes in DOCX and Markdown footnote
+    // syntax for a long time. Every format used to get the same thing instead:
+    // a paragraph of literal text glued onto the end of the scene, with the
+    // anchor in the prose reduced to a loose digit.
+
+    /// <summary>A scene whose prose carries one real footnote anchor.</summary>
+    private async Task<string[]> SceneWithAFootnoteAsync()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Kapitel Zwei");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Anfang");
+        scene.Footnotes = [new Novalist.Core.Models.SceneFootnote
+        {
+            Id = "note-a",
+            Number = 1,
+            Text = "The bell tower was rebuilt in 1911."
+        }];
+        await _workspace.Projects.SaveScenesAsync();
+        await _workspace.WriteSceneAsync(
+            chapter.Guid, scene.Id,
+            "<p>She counted the bells<sup class=\"nv-fn\" data-fn-id=\"note-a\">1</sup> again.</p>",
+            "She counted the bells again.");
+        return [chapter.Guid, scene.Id];
+    }
+
+    [Fact]
+    public async Task Markdown_WritesRealFootnoteSyntax()
+    {
+        await SceneWithAFootnoteAsync();
+        var output = Path.Combine(_root, "notes.md");
+
+        await _rpc.RunAsync("Markdown", output, "ExpNovel", "Tester", false, AllChapterGuids());
+
+        var md = await File.ReadAllTextAsync(output);
+        Assert.Contains("bells[^1] again", md);
+        Assert.Contains("[^1]: The bell tower was rebuilt in 1911.", md);
+        // The block that used to be appended to every format is gone.
+        Assert.DoesNotContain("Footnotes", md);
+    }
+
+    [Fact]
+    public async Task LaTeX_WritesARealFootnote()
+    {
+        await SceneWithAFootnoteAsync();
+        var output = Path.Combine(_root, "notes.tex");
+
+        await _rpc.RunAsync("LaTeX", output, "ExpNovel", "Tester", false, AllChapterGuids());
+
+        var tex = await File.ReadAllTextAsync(output);
+        Assert.Contains("\\footnote{The bell tower was rebuilt in 1911.}", tex);
+    }
+
+    [Fact]
+    public async Task Epub_WritesNoterefsAndAsides()
+    {
+        await SceneWithAFootnoteAsync();
+        var output = Path.Combine(_root, "notes.epub");
+
+        await _rpc.RunAsync("Epub", output, "ExpNovel", "Tester", false, AllChapterGuids());
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(output);
+        var entry = zip.Entries.Single(e => e.FullName == "OEBPS/chapter-2.xhtml");
+        using var reader = new StreamReader(entry.Open());
+        var xhtml = await reader.ReadToEndAsync();
+
+        // EPUB 3 popup notes: a noteref pointing at an aside, both in the file.
+        Assert.Contains("epub:type=\"noteref\"", xhtml);
+        Assert.Contains("href=\"#fn1\"", xhtml);
+        Assert.Contains("epub:type=\"footnote\" id=\"fn1\"", xhtml);
+        Assert.Contains("The bell tower was rebuilt in 1911.", xhtml);
+    }
+
+    [Fact]
+    public async Task Docx_WritesRealWordFootnotes()
+    {
+        await SceneWithAFootnoteAsync();
+        var output = Path.Combine(_root, "notes.docx");
+
+        await _rpc.RunAsync("Docx", output, "ExpNovel", "Tester", false, AllChapterGuids());
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(output);
+
+        async Task<string> ReadAsync(string name)
+        {
+            using var stream = zip.Entries.Single(e => e.FullName == name).Open();
+            using var reader = new StreamReader(stream);
+            return await reader.ReadToEndAsync();
+        }
+
+        // The part, its content type and its relationship all have to be there
+        // or Word refuses to open the file at all.
+        Assert.Contains("wordprocessingml.footnotes+xml", await ReadAsync("[Content_Types].xml"));
+        Assert.Contains("relationships/footnotes", await ReadAsync("word/_rels/document.xml.rels"));
+
+        var footnotes = await ReadAsync("word/footnotes.xml");
+        Assert.Contains("w:id=\"0\" w:type=\"separator\"", footnotes);
+        Assert.Contains("w:id=\"1\" w:type=\"continuationSeparator\"", footnotes);
+        // The writer's own notes start at 2, after Word's two required ones.
+        Assert.Contains("w:id=\"2\"", footnotes);
+        Assert.Contains("The bell tower was rebuilt in 1911.", footnotes);
+
+        var document = await ReadAsync("word/document.xml");
+        Assert.Contains("<w:footnoteReference w:id=\"2\"/>", document);
+        // The note text belongs in the footnote part, not in the body.
+        Assert.DoesNotContain("bell tower was rebuilt", document);
+    }
+
+    [Fact]
+    public async Task Pdf_SetsNotesUnderTheChapter()
+    {
+        await SceneWithAFootnoteAsync();
+        var output = Path.Combine(_root, "notes.pdf");
+
+        var result = await _rpc.RunAsync("Pdf", output, "ExpNovel", "Tester", false, AllChapterGuids());
+
+        // PdfSharpCore lays text out a line at a time and cannot reserve the
+        // foot of a page mid-paragraph, so the notes are set as chapter
+        // endnotes. Only that the file is produced is assertable here.
+        Assert.True(result.Success);
+        Assert.True(result.SizeBytes > 0);
+    }
+
+    [Fact]
+    public async Task AnAnchorWithNoNoteBehindItLeavesNoStrayDigit()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Kapitel Drei");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Waise");
+        await _workspace.WriteSceneAsync(
+            chapter.Guid, scene.Id,
+            "<p>She counted the bells<sup class=\"nv-fn\" data-fn-id=\"gone\">4</sup> again.</p>",
+            "She counted the bells again.");
+        var output = Path.Combine(_root, "orphan.md");
+
+        await _rpc.RunAsync("Markdown", output, "ExpNovel", "Tester", false, AllChapterGuids());
+
+        // An anchor whose note was deleted used to print its number into the
+        // middle of the sentence.
+        Assert.Contains("bells again", await File.ReadAllTextAsync(output));
+    }
 }
