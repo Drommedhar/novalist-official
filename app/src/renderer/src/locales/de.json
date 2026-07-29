@@ -2512,5 +2512,12 @@
     "intro": "Die Intensität jeder Szene in Lesereihenfolge. Eine lange flache Strecke oder ein Höhepunkt an der falschen Stelle ist nur hier zu sehen. Balken anklicken, um die Szene zu öffnen.",
     "unrated": "nicht bewertet",
     "rated": "{{rated}} von {{total}} Szenen bewertet"
+  },
+  "unlinked": {
+    "title": "Unverknüpfte Namen",
+    "intro": "Codex-Namen, die Ihr Text als reinen Text verwendet. Novalist erkennt sie fürs Wiki und die Kurzinfo, aber nur eine echte Erwähnung zählt für Auftritte und Ko-Auftritte – ein importiertes oder von Hand getipptes Manuskript meldet also durchweg zu wenig. Verknüpfen ändert nur diesen Namen in dieser Szene.",
+    "scan": "Buch durchsuchen",
+    "none": "Alle Codex-Namen in Ihrem Text sind bereits verknüpft.",
+    "link": "Alle Vorkommen in dieser Szene verknüpfen"
   }
 }

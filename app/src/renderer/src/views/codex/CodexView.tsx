@@ -19,6 +19,7 @@ import { MatchSettingsEditor } from './MatchSettingsEditor'
 import { AiPolicyEditor } from './AiPolicyEditor'
 import { StateOverridesEditor } from './StateOverridesEditor'
 import { ArcEditor } from './ArcEditor'
+import { UnlinkedMentionsPanel } from './UnlinkedMentionsPanel'
 import { OverridesEditor } from './OverridesEditor'
 import { CodexNav } from './CodexNav'
 import { EntityDetailFields } from './EntityDetailFields'
@@ -35,6 +36,7 @@ export function CodexView(): React.JSX.Element {
   const { t } = useTranslation()
   const [customTypes, setCustomTypes] = useState<CustomTypeDefinition[]>([])
   const [typeManagerOpen, setTypeManagerOpen] = useState(false)
+  const [unlinkedOpen, setUnlinkedOpen] = useState(false)
   const entityType = useCodexStore((s) => s.entityType)
   const entities = useCodexStore((s) => s.entities)
   const selectedId = useCodexStore((s) => s.selectedId)
@@ -154,10 +156,23 @@ export function CodexView(): React.JSX.Element {
             {custom.displayNamePlural}
           </button>
         ))}
+        {/* Names the prose uses without linking them. Book-wide rather than
+            per-entry: the scan reads every scene once either way. */}
+        <button
+          className="codex-tab codex-tab-manage"
+          onClick={() => setUnlinkedOpen(!unlinkedOpen)}
+        >
+          {t('unlinked.title')}
+        </button>
         <button className="codex-tab codex-tab-manage" onClick={() => setTypeManagerOpen(true)}>
           <Settings2 size={13} strokeWidth={2} /> {t('codexHub.manageTypes')}
         </button>
       </div>
+      {unlinkedOpen && (
+        <div className="codex-unlinked">
+          <UnlinkedMentionsPanel />
+        </div>
+      )}
       <div className={`codex-body${isMobile ? ' codex-body-mobile' : ''}`}>
         {/* Mobile is single-pane: the entity list, or the detail (with a back
             button) once an entry is selected. Desktop shows both side by side. */}

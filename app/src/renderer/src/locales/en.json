@@ -2504,5 +2504,12 @@
     "intro": "Each scene’s intensity in reading order. A long flat run, or a peak in the wrong place, is visible here and nowhere else. Click a bar to open that scene.",
     "unrated": "not rated",
     "rated": "{{rated}} of {{total}} scenes rated"
+  },
+  "unlinked": {
+    "title": "Unlinked names",
+    "intro": "Codex names your prose uses as plain text. Novalist recognises them for the Wiki and the hover card, but only a real mention counts towards appearances and co-appearance figures - so an imported or hand-typed manuscript under-reports every one of them. Linking rewrites just that name in that scene.",
+    "scan": "Scan the book",
+    "none": "Every Codex name in your prose is already linked.",
+    "link": "Link every occurrence in this scene"
   }
 }

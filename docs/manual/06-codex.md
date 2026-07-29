@@ -81,6 +81,14 @@ The formatting is shown in the box as you write: a heading looks like a heading,
 
 Underneath, the text is still plain **Markdown**. Hiding the marks changes only how the box draws them, never what is saved: entries are stored exactly as written, stay readable in any text editor, and render the same way in the [Wiki](30-wiki.md) and in the editor's focus peek card.
 
+## Unlinked names
+
+Novalist recognises a bare Codex name in your prose — the Wiki links it, the hover card shows it — but only a **real mention**, the kind the `@` picker inserts, counts towards appearances, co-appearance figures and the mention matrix. An imported manuscript, or one typed straight through, therefore under-reports every one of them.
+
+**Unlinked names** in the Codex tab strip scans the whole book and lists each Codex name your prose uses as plain text: which entry, which scene, how many times, and the line it sits in so you can judge a name that is also an ordinary word without opening the scene.
+
+The link button converts every occurrence of that name in that scene into a real mention. It only ever touches prose: markup, attributes and names already linked are left exactly as they are, and the longest name wins, so *Mira Vance* becomes one mention rather than *Mira* with *Vance* left loose beside it.
+
 ## Renaming an entry
 
 Change an entry's name (or a character's surname) in the detail pane and Novalist updates everything that referred to it by name, in the same save. You do not need to hunt for the old name yourself.

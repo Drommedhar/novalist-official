@@ -70,3 +70,51 @@
   min-height: 48px;
   resize: vertical;
 }
+
+/* The unlinked-mentions scan, above the entity list. */
+.codex-unlinked {
+  border-bottom: 1px solid var(--nl-border);
+  max-height: 320px;
+  overflow-y: auto;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+}
+
+.unlinked-row {
+  border-bottom: 1px solid var(--nl-border-subtle);
+  padding: var(--nl-space-tightest) var(--nl-space-none);
+}
+
+.unlinked-head {
+  align-items: center;
+  display: flex;
+  gap: var(--nl-space-sm);
+}
+
+.unlinked-name {
+  font-size: var(--nl-font-body-sm);
+  font-weight: 600;
+}
+
+.unlinked-where {
+  color: var(--nl-text-dim);
+  flex: 1;
+  font-size: var(--nl-font-caption);
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unlinked-where:hover {
+  color: var(--nl-accent);
+}
+
+.unlinked-count {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.unlinked-context {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
