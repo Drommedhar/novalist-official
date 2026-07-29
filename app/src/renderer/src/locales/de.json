@@ -1384,7 +1384,9 @@
     "viewModeManuscript": "Manuskript",
     "viewModeCorkboard": "Pinnwand",
     "viewModeOutliner": "Übersicht",
-    "viewModeBoard": "Board"
+    "viewModeBoard": "Board",
+    "composedCount": "{{count}} ausgewählte Szenen",
+    "showWholeBook": "Ganzes Buch zeigen"
   },
   "entityTypeManager": {
     "displayName": "Anzeigename",
@@ -2167,7 +2169,8 @@
     "noDate": "kein Datum",
     "confirmArchive": "{{count}} Szenen archivieren? Sie können aus dem Archiv wiederhergestellt werden.",
     "confirmDelete": "{{count}} Szenen löschen? Das lässt sich nicht rückgängig machen.",
-    "scopeCount": "{{count}} Szenen"
+    "scopeCount": "{{count}} Szenen",
+    "readAsOne": "Als Fliesstext lesen"
   },
   "spell": {
     "addToDictionary": "Zum Wörterbuch hinzufügen",

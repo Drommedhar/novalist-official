@@ -70,6 +70,14 @@ The outliner's last built-in column is each scene's [word target](04-chapters-an
 
 Any [scene field](#your-own-scene-and-chapter-fields) you marked **Show as a column in the outliner** gets its own column after this one, editable the same way.
 
+## Reading a chosen set of scenes
+
+Manuscript mode normally stitches the whole book (or one chapter status) into continuous text. Select scenes anywhere — the binder, the corkboard, the outliner, the Calendar — and the bulk bar gains **Read as one**: the Manuscript view switches to just those scenes, in reading order, as continuous prose.
+
+This is how you read one POV's thread end to end, or the scenes a [Smart List](16-smart-lists.md) found, and hear whether the run holds together. A status filter is ignored while a chosen set is being read — you picked the scenes, so they are the scenes.
+
+The toolbar shows how many scenes are being read and a **Show the whole book** button to leave.
+
 ## Board mode
 
 **Board** lays the book out as columns of scene cards, grouped by something you choose rather than always by chapter:

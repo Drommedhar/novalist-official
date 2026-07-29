@@ -1760,7 +1760,9 @@
     "viewModeManuscript": "Manuscript",
     "viewModeCorkboard": "Corkboard",
     "viewModeOutliner": "Outliner",
-    "viewModeBoard": "Board"
+    "viewModeBoard": "Board",
+    "composedCount": "Reading {{count}} chosen scenes",
+    "showWholeBook": "Show the whole book"
   },
   "entityTypeManager": {
     "displayName": "Display Name",
@@ -2159,7 +2161,8 @@
     "noDate": "no date",
     "confirmArchive": "Archive {{count}} scenes? They can be restored from the archive.",
     "confirmDelete": "Delete {{count}} scenes? This cannot be undone.",
-    "scopeCount": "{{count}} scenes"
+    "scopeCount": "{{count}} scenes",
+    "readAsOne": "Read as one"
   },
   "spell": {
     "addToDictionary": "Add to dictionary",

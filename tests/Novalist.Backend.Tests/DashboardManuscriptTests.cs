@@ -391,6 +391,45 @@ public sealed class DashboardManuscriptTests : IDisposable
     }
 
     [Fact]
+    public async Task Manuscript_WithChosenScenes_StitchesOnlyThoseInReadingOrder()
+    {
+        var (firstChapter, firstScene) = await SeedSceneAsync("<p>A</p>", "A");
+        var second = await _workspace.Projects.CreateChapterAsync("Two");
+        var later = await _workspace.Projects.CreateSceneAsync(second.Guid, "C");
+        await _workspace.Projects.CreateSceneAsync(firstChapter, "B");
+        var manuscript = new ManuscriptRpc(_workspace);
+
+        // Given out of order on purpose: the answer is reading order.
+        var sections = await manuscript.GetAsync("All", [later.Id, firstScene]);
+
+        Assert.Equal(2, sections.Length);
+        Assert.Equal(firstChapter, sections[0].ChapterGuid);
+        Assert.Equal("S", Assert.Single(sections[0].Scenes).Title);
+        Assert.Equal("C", Assert.Single(sections[1].Scenes).Title);
+    }
+
+    [Fact]
+    public async Task Manuscript_AChosenSetIgnoresTheStatusFilter()
+    {
+        var (_, sceneId) = await SeedSceneAsync("<p>A</p>", "A");
+        var manuscript = new ManuscriptRpc(_workspace);
+
+        // The chapter is at Outline, so a Final filter would normally drop it.
+        // A chosen set says exactly which scenes to read.
+        var sections = await manuscript.GetAsync("Final", [sceneId]);
+
+        Assert.Equal("S", Assert.Single(Assert.Single(sections).Scenes).Title);
+    }
+
+    [Fact]
+    public async Task Manuscript_AnEmptyChosenSetIsTheWholeBook()
+    {
+        await SeedSceneAsync("<p>A</p>", "A");
+
+        Assert.Single(await new ManuscriptRpc(_workspace).GetAsync("All", []));
+    }
+
+    [Fact]
     public async Task SetPov_SetsAndClearsOverrides()
     {
         var (chapterGuid, sceneId) = await SeedSceneAsync("<p>x</p>", "x");

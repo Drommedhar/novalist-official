@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Archive, CalendarClock, Tag, Trash2, X } from 'lucide-react'
+import { Archive, BookOpen, CalendarClock, Tag, Trash2, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { useSelectionStore } from '../stores/selectionStore'
+import { useManuscriptStore } from '../stores/manuscriptStore'
+import { useShellStore } from '../stores/shellStore'
 import { ConfirmDialog } from './ConfirmDialog'
 import { InputDialog } from './InputDialog'
 import { ShiftDatesDialog } from './ShiftDatesDialog'
@@ -74,6 +76,16 @@ export function SceneBulkBar(): React.JSX.Element | null {
           ))}
         </select>
 
+        {/* Reading a chosen run as prose is the point of picking it. */}
+        <button
+          className="dialog-button"
+          onClick={() => {
+            void useManuscriptStore.getState().compose(selected)
+            useShellStore.getState().setMainView('manuscript')
+          }}
+        >
+          <BookOpen size={14} /> {t('bulk.readAsOne')}
+        </button>
         <button className="dialog-button" onClick={() => setPending('tags')}>
           <Tag size={14} /> {t('bulk.addTags')}
         </button>

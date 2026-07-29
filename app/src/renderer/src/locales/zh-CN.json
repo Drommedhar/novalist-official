@@ -1795,7 +1795,9 @@
     "viewModeManuscript": "书稿视图",
     "viewModeCorkboard": "软木板视图",
     "viewModeOutliner": "大纲视图",
-    "viewModeBoard": "看板"
+    "viewModeBoard": "看板",
+    "composedCount": "正在阅读 {{count}} 个所选场景",
+    "showWholeBook": "显示全书"
   },
   "entityTypeManager": {
     "displayName": "显示名称",
@@ -2201,7 +2203,8 @@
     "noDate": "无日期",
     "confirmArchive": "归档 {{count}} 个场景？可从归档中恢复。",
     "confirmDelete": "删除 {{count}} 个场景？此操作无法撤销。",
-    "scopeCount": "{{count}} 个场景"
+    "scopeCount": "{{count}} 个场景",
+    "readAsOne": "连贯阅读"
   },
   "spell": {
     "addToDictionary": "加入词典",

@@ -13,16 +13,27 @@ public sealed class ManuscriptRpc
     }
 
     [JsonRpcMethod("manuscript/get")]
-    public async Task<ManuscriptSectionDto[]> GetAsync(string filterStatus)
+    /// <summary>
+    /// The book as continuous text. With <paramref name="sceneIds"/> it is only
+    /// those scenes instead - one POV's thread, a search result, whatever the
+    /// writer has selected - stitched in reading order. Reading a chosen run as
+    /// prose is the only way to hear whether it holds together.
+    /// </summary>
+    public async Task<ManuscriptSectionDto[]> GetAsync(string filterStatus, string[]? sceneIds = null)
     {
         var projects = _workspace.Projects;
         var book = projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
         var manifest = projects.ScenesManifest;
+        var chosen = sceneIds is { Length: > 0 }
+            ? new HashSet<string>(sceneIds, StringComparer.Ordinal)
+            : null;
 
         var sections = new List<ManuscriptSectionDto>();
         foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
         {
-            if (filterStatus != "All" &&
+            // A chosen set says exactly which scenes to read; a status filter
+            // over the top of it would drop scenes the writer just picked.
+            if (chosen == null && filterStatus != "All" &&
                 !string.Equals(chapter.Status.ToString(), filterStatus, StringComparison.OrdinalIgnoreCase))
             {
                 continue;
@@ -30,6 +41,7 @@ public sealed class ManuscriptRpc
 
             var scenes = (manifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
                 .Where(s => s.ArchivedAt == null)
+                .Where(s => chosen == null || chosen.Contains(s.Id))
                 .OrderBy(s => s.Order)
                 .ToList();
             if (scenes.Count == 0) continue;

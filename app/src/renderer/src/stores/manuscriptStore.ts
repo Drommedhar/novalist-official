@@ -28,6 +28,8 @@ const saveTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
 interface ManuscriptState {
   mode: ManuscriptMode
+  /** When set, only these scenes are composed - a chosen run read as prose. */
+  composed: string[] | null
   /** What the board groups by: 'chapter', 'stage', 'pov', or 'prop:<key>'. */
   groupBy: string
   filterStatus: string
@@ -35,6 +37,7 @@ interface ManuscriptState {
   loaded: boolean
   setMode(mode: ManuscriptMode): void
   setGroupBy(groupBy: string): void
+  compose(sceneIds: string[] | null): Promise<void>
   setFilter(status: string): Promise<void>
   load(): Promise<void>
   onSceneContentChanged(sceneId: string, html: string, plainText: string, wordCount: number): void
@@ -45,6 +48,7 @@ interface ManuscriptState {
 
 export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   mode: 'manuscript',
+  composed: null,
   groupBy: 'stage',
   filterStatus: 'All',
   sections: [],
@@ -61,9 +65,17 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
 
   load: async () => {
     const sections = await rpc.request<ManuscriptSectionDto[]>('manuscript/get', [
-      get().filterStatus
+      get().filterStatus,
+      get().composed
     ])
     set({ sections, loaded: true })
+  },
+
+  // Reading a chosen run as continuous prose - one POV's thread, the scenes a
+  // saved list found - is the only way to hear whether it holds together.
+  compose: async (composed) => {
+    set({ composed, mode: 'manuscript' })
+    await get().load()
   },
 
   onSceneContentChanged: (sceneId, html, plainText, wordCount) => {

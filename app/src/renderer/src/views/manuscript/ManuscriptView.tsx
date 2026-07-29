@@ -38,11 +38,12 @@ export function ManuscriptView(): React.JSX.Element {
   const setFilter = useManuscriptStore((s) => s.setFilter)
   const load = useManuscriptStore((s) => s.load)
   const groupBy = useManuscriptStore((s) => s.groupBy)
+  const composed = useManuscriptStore((s) => s.composed)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
 
   useEffect(() => {
     void load()
-  }, [load, filterStatus])
+  }, [load, filterStatus, composed])
 
   useEffect(() => {
     void useManuscriptPropsStore.getState().load()
@@ -90,6 +91,20 @@ export function ManuscriptView(): React.JSX.Element {
                 </option>
               ))}
             </select>
+          </div>
+        )}
+        {/* A composed run is a state the writer has to be able to leave. */}
+        {composed !== null && (
+          <div className="manuscript-filters">
+            <span className="settings-hint">
+              {t('manuscript.composedCount', { count: composed.length })}
+            </span>
+            <button
+              className="dashboard-range"
+              onClick={() => void useManuscriptStore.getState().compose(null)}
+            >
+              {t('manuscript.showWholeBook')}
+            </button>
           </div>
         )}
         <div className="manuscript-filters">
