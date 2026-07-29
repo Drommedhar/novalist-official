@@ -27,6 +27,32 @@ public sealed class LibraryRpc
             .Select(path => new GalleryImageDto(path, _entities.ResolveProjectRelativeImage(path)))
             .ToArray();
 
+    /// <summary>
+    /// Copies an image into the book's image folder and reports both the path
+    /// a scene stores and the URL the renderer displays. Two forms because the
+    /// stored one has to survive the project moving to another machine.
+    /// </summary>
+    [JsonRpcMethod("gallery/import")]
+    public async Task<GalleryImageDto> ImportImageAsync(string path)
+    {
+        var stored = await _entities.ImportImageAsync(path);
+        return new GalleryImageDto(stored, _entities.ResolveProjectRelativeImage(stored));
+    }
+
+    /// <summary>
+    /// The project-relative path of the active book's folder, which is what a
+    /// book-relative image path hangs off when the editor resolves one.
+    /// </summary>
+    [JsonRpcMethod("gallery/base")]
+    public string ImageBase()
+    {
+        // Resolving a bare file name gives the book folder plus that name;
+        // dropping the name leaves exactly the prefix a stored path hangs off.
+        var url = _entities.ResolveProjectRelativeImage("x.png");
+        var cut = url.LastIndexOf('/');
+        return cut < 0 ? string.Empty : url[..(cut + 1)];
+    }
+
     [JsonRpcMethod("research/list")]
     public ResearchItemDto[] ListResearch() =>
         _research.GetAll()

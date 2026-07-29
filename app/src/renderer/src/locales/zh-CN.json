@@ -1326,7 +1326,8 @@
       "appendToEntity": "将所选内容添加到条目",
       "splitScene": "在此处拆分场景"
     },
-    "linkPrompt": "链接地址（留空则移除链接）"
+    "linkPrompt": "链接地址（留空则移除链接）",
+    "contextMenu.insertImage": "插入图片"
   },
   "section": {
     "newSection": "新建版块"
@@ -2611,5 +2612,10 @@
   },
   "print": {
     "title": "打印"
+  },
+  "editorImage": {
+    "pick": "选择图片",
+    "altTitle": "这张图片展示什么？",
+    "altPlaceholder": "写一句话，给看不到它的读者"
   }
 }

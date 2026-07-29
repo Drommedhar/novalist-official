@@ -155,4 +155,33 @@ public sealed class LibraryRpcTests : IDisposable
         // A leading blank line is skipped in favour of the first real line.
         Assert.Equal("Real title", LibraryRpc.DeriveTitle("\n\nReal title\nmore"));
     }
+
+    [Fact]
+    public async Task ImportingAnImageStoresItInTheBookAndReportsBothForms()
+    {
+        var source = Path.Combine(_root, "map.png");
+        await File.WriteAllBytesAsync(source, [0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0]);
+
+        var image = await _rpc.ImportImageAsync(source);
+
+        // Stored book-relative so the project survives being moved; the URL is
+        // project-relative because that is what the renderer can display.
+        Assert.StartsWith("Images/", image.Path);
+        Assert.EndsWith("map.png", image.Path);
+        Assert.Contains("Images/map.png", image.Url);
+        Assert.True(File.Exists(Path.Combine(
+            _workspace.Projects.ActiveBookRoot!, image.Path.Replace('/', Path.DirectorySeparatorChar))));
+    }
+
+    [Fact]
+    public async Task TheImageBaseIsWhatAStoredPathHangsOff()
+    {
+        var source = Path.Combine(_root, "map2.png");
+        await File.WriteAllBytesAsync(source, [0x89, 0x50, 0x4E, 0x47, 0, 0, 0, 0]);
+        var image = await _rpc.ImportImageAsync(source);
+
+        var url = _rpc.ImageBase() + image.Path;
+
+        Assert.Equal(image.Url, url);
+    }
 }

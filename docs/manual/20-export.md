@@ -179,6 +179,10 @@ A layout controls:
 | **Print scene titles** | Off for a novel, where the separator is the whole break. On for a collection, or a draft going to someone who needs to name the scenes back to you. |
 | **Extra ebook CSS** | Appended to the EPUB stylesheet, so your rules win over Novalist's by cascade order. The one place you can reach the look of the ebook itself rather than of the page. |
 
+## Images
+
+Pictures placed in the prose are carried into EPUB, DOCX, PDF, Markdown and LaTeX. EPUB packages and manifests each file once however many chapters use it; DOCX embeds it with the alt text as the picture's description; PDF draws it scaled to the text measure and never larger than its own size. An image whose file has gone is left out rather than exported as a broken reference.
+
 ## What this export will contain
 
 Above the chapter list, Novalist reports what the current choices would produce: how many chapters and scenes, how many words, and how long the book runs in the chosen layout. It is recomputed as you change the selection, the layout or the stage filter, and it runs the same compile the export runs — so held-back scenes and filtered stages are counted exactly as they will be, not estimated.

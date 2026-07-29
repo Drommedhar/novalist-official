@@ -1291,7 +1291,8 @@
       "appendToEntity": "Add selection to entity",
       "splitScene": "Split scene here"
     },
-    "linkPrompt": "Link address (leave empty to remove the link)"
+    "linkPrompt": "Link address (leave empty to remove the link)",
+    "contextMenu.insertImage": "Insert image"
   },
   "section": {
     "newSection": "New Section"
@@ -2569,5 +2570,10 @@
   },
   "print": {
     "title": "Print"
+  },
+  "editorImage": {
+    "pick": "Choose an image",
+    "altTitle": "What does this image show?",
+    "altPlaceholder": "A sentence for readers who cannot see it"
   }
 }

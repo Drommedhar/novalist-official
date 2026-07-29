@@ -22,6 +22,19 @@ internal sealed record ExportBlock(
     string? StyleId,
     ListKind List)
 {
+    /// <summary>
+    /// Absolute path to an image this block is, rather than text. Resolved
+    /// while compiling, so every writer gets a path it can open rather than a
+    /// project-relative string only the app knows how to follow.
+    /// </summary>
+    public string? ImagePath { get; init; }
+
+    /// <summary>
+    /// What the image shows, for readers who cannot see it. Empty is allowed
+    /// and means decorative; it is not the same as absent.
+    /// </summary>
+    public string ImageAlt { get; init; } = string.Empty;
+
     /// <summary>The block's text with no formatting, for writers that only need
     /// the words.</summary>
     public string Text => string.Concat(Segments.Select(s => s.Text));

@@ -131,6 +131,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Snapshots** — per-scene version history that restores the whole scene (synopsis, notes, POV, stage, dates, plotlines), plus a project-wide manager with renaming and pruning.
 - **Export preview** — how many chapters, scenes and words the current selection would produce, and how long the book runs in the chosen layout, before you write the file.
 - **Print** — `Ctrl+Alt+P` prints the open scene, the whole book in Manuscript mode, or whatever view is on screen, without the application chrome.
+- **Images in the prose** — insert a picture into a scene with alt text; it is copied into the book, stored as a portable path, and carried into EPUB, DOCX, PDF, Markdown and LaTeX.
 - **Compile control** — hold any scene back from exports without archiving it, and export only the scenes at the stages you name.
 - **Readability marking** — tint the sentences that fight the reader, graded one at a time with the same method the style report uses, without touching the scene.
 - **Read aloud** — the editor reads the scene back from the caret with a system voice, highlighting the sentence it is on, in the language the scene is written in. Nothing leaves the machine.

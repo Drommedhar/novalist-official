@@ -808,7 +808,8 @@
       "appendToEntity": "Auswahl zu Eintrag hinzufügen",
       "splitScene": "Szene hier teilen"
     },
-    "linkPrompt": "Link-Adresse (leer lassen, um den Link zu entfernen)"
+    "linkPrompt": "Link-Adresse (leer lassen, um den Link zu entfernen)",
+    "contextMenu.insertImage": "Bild einfügen"
   },
   "section": {
     "newSection": "Neuer Abschnitt"
@@ -2577,5 +2578,10 @@
   },
   "print": {
     "title": "Drucken"
+  },
+  "editorImage": {
+    "pick": "Bild auswählen",
+    "altTitle": "Was zeigt dieses Bild?",
+    "altPlaceholder": "Ein Satz für Leser, die es nicht sehen können"
   }
 }

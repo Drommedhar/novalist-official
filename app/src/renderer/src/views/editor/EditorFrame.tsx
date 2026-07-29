@@ -135,7 +135,8 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
       addToDictionary: t('editor.contextMenu.addToDictionary'),
       createEntity: t('editor.contextMenu.createEntity'),
       appendToEntity: t('editor.contextMenu.appendToEntity'),
-      splitScene: t('editor.contextMenu.splitScene')
+      splitScene: t('editor.contextMenu.splitScene'),
+      insertImage: t('editor.contextMenu.insertImage')
     })
   )
   editor.setMentionLabels(
@@ -291,6 +292,10 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   const lastReportedHtmlRef = useRef<string | null>(null)
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
   const [speaking, setSpeaking] = useState(false)
+  // An image waiting on its alt text. Asked for at insert time, because asking
+  // later means never: a picture in the prose without one is invisible to a
+  // reader using a screen reader and to an accessible export.
+  const [pendingImage, setPendingImage] = useState<string | null>(null)
   // A name typed after `@` that matched no entity, waiting for the writer to pick
   // which kind of entity to create for it.
   const [pendingEntity, setPendingEntity] = useState<{ name: string; pendingId: string } | null>(
@@ -566,6 +571,11 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
       const editor = editorRef.current
       switch (message.type) {
         case 'ready': {
+          // Where a stored image path hangs off, so the frame can show one.
+          void rpc
+            .request<string>('gallery/base')
+            .then((base) => editorRef.current?.setImageBase(`novalist-project://nl/${base}`))
+            .catch(() => undefined)
           const live = editorWindow(iframe)
           if (!live) return
           editorRef.current = live
@@ -623,6 +633,15 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
               // Offline or endpoint unavailable: clear underlines quietly.
               editorRef.current?.setGrammarIssues('[]')
             })
+          break
+        }
+        case 'insertImageRequested': {
+          void (async () => {
+            const path = await window.novalist.pickFile(t('editorImage.pick'))
+            if (!path) return
+            const image = await rpc.request<{ path: string; url: string }>('gallery/import', [path])
+            setPendingImage(image.path)
+          })()
           break
         }
         case 'requestLink': {
@@ -911,6 +930,27 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           onSubmit={(value) => {
             setLinkPrompt(false)
             editorRef.current?.applyLink(value.trim())
+          }}
+        />
+      )}
+
+      {/* Alt text, asked for at insert time. Asking later means never, and a
+          picture nobody described is invisible to a reader who cannot see it. */}
+      {pendingImage && (
+        <InputDialog
+          title={t('editorImage.altTitle')}
+          placeholder={t('editorImage.altPlaceholder')}
+          onCancel={() => {
+            // Cancelling still places the image; a writer who does not want to
+            // describe it should not lose the insert over it.
+            const path = pendingImage
+            setPendingImage(null)
+            editorRef.current?.insertImageAtCaret(path, '')
+          }}
+          onSubmit={(value) => {
+            const path = pendingImage
+            setPendingImage(null)
+            editorRef.current?.insertImageAtCaret(path, value.trim())
           }}
         />
       )}

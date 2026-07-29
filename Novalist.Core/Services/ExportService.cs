@@ -272,7 +272,8 @@ public partial class ExportService
 
             foreach (var scene in scenes)
             {
-                var html = await _projectService.ReadSceneContentAsync(chapter, scene);
+                var html = ResolveImagePaths(
+                    await _projectService.ReadSceneContentAsync(chapter, scene));
                 sceneContents.Add(new SceneExportContent
                 {
                     Title = scene.Title,
@@ -449,6 +450,16 @@ public partial class ExportService
                 foreach (var block in ParseHtmlToBlocks(
                     chapter.Scenes[si].HtmlContent, chapter.Scenes[si].Footnotes))
                 {
+                    if (block.ImagePath != null)
+                    {
+                        sb.AppendLine("\\begin{figure}[h]\\centering");
+                        sb.AppendLine(
+                            $"\\includegraphics[width=\\linewidth]{{{block.ImagePath}}}");
+                        if (block.ImageAlt.Length > 0)
+                            sb.AppendLine($"\\caption*{{{LatexEscape(block.ImageAlt)}}}");
+                        sb.AppendLine("\\end{figure}");
+                        continue;
+                    }
                     var body = string.Concat(block.Segments.Select(seg =>
                     {
                         // LaTeX has had this all along: a real footnote, set
@@ -1309,6 +1320,21 @@ public partial class ExportService
                 continue;
             }
 
+            // An image is a block of its own: the editor only ever puts one in
+            // a paragraph by itself, and a writer that tried to mix it with
+            // runs would have to invent a layout nobody asked for.
+            var image = ImageTagRegex().Match(match.Groups["body"].Value);
+            if (image.Success)
+            {
+                var attrs = image.Groups["attrs"].Value;
+                blocks.Add(new ExportBlock([], null, ListKind.None)
+                {
+                    ImagePath = WebUtility.HtmlDecode(HtmlAttribute(attrs, "src")),
+                    ImageAlt = WebUtility.HtmlDecode(HtmlAttribute(attrs, "alt"))
+                });
+                continue;
+            }
+
             var segments = ParseInlineFormatting(match.Groups["body"].Value, footnotes);
             // A paragraph holding nothing but a footnote anchor is still
             // worth keeping - the note is the content.
@@ -1577,16 +1603,25 @@ public partial class ExportService
         for (var i = 0; i < options.Matter.Count; i++)
             await WriteEntryAsync(zip, $"OEBPS/matter-{i + 1}.xhtml", GenerateMatterXhtml(options.Matter[i]));
 
+        // Images used in the prose. Copied once each however many chapters
+        // reference them, and named by position rather than by file name so a
+        // path with spaces or non-ASCII cannot produce an unopenable package.
+        var images = CollectProseImages(chapters);
+        foreach (var (absolute, href) in images)
+            await WriteBinaryEntryAsync(zip, $"OEBPS/{href}", absolute);
+
         // Chapter files
         for (var i = 0; i < chapters.Count; i++)
             await WriteEntryAsync(
                 zip, $"OEBPS/chapter-{i + 1}.xhtml",
-                GenerateChapterXhtml(chapters[i], options, i + 1));
+                GenerateChapterXhtml(chapters[i], options, i + 1, images));
 
         // Navigation
         await WriteEntryAsync(zip, "OEBPS/nav.xhtml", GenerateNavXhtml(chapters, options));
         await WriteEntryAsync(zip, "OEBPS/toc.ncx", GenerateTocNcx(chapters, options, bookId));
-        await WriteEntryAsync(zip, "OEBPS/content.opf", GenerateContentOpf(chapters, options, bookId, modifiedDate));
+        await WriteEntryAsync(
+            zip, "OEBPS/content.opf",
+            GenerateContentOpf(chapters, options, bookId, modifiedDate, images));
     }
 
     private static async Task WriteEntryAsync(ZipArchive zip, string path, string content)
@@ -1714,6 +1749,16 @@ public partial class ExportService
               margin-bottom: 1.5em;
             }
 
+            p.prose-image {
+              text-align: center;
+              text-indent: 0;
+              margin: 1.5em 0;
+            }
+
+            p.prose-image img {
+              max-width: 100%;
+            }
+
             h2, h3 {
               text-align: left;
               margin-top: 1.6em;
@@ -1774,8 +1819,31 @@ public partial class ExportService
             }
             """;
 
+    /// <summary>
+    /// Every prose image in the book, mapped to the href it will have inside
+    /// the package. Files that are missing are left out rather than producing
+    /// a manifest entry pointing at nothing.
+    /// </summary>
+    private static Dictionary<string, string> CollectProseImages(
+        List<ChapterExportContent> chapters)
+    {
+        var images = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var scene in chapters.SelectMany(c => c.Scenes))
+        {
+            foreach (var block in ParseHtmlToBlocks(scene.HtmlContent, scene.Footnotes))
+            {
+                if (block.ImagePath == null || images.ContainsKey(block.ImagePath)) continue;
+                if (!File.Exists(block.ImagePath)) continue;
+                var ext = Path.GetExtension(block.ImagePath).ToLowerInvariant();
+                images[block.ImagePath] = $"images/image-{images.Count + 1}{ext}";
+            }
+        }
+        return images;
+    }
+
     private static string GenerateChapterXhtml(
-        ChapterExportContent chapter, ExportOptions options, int number)
+        ChapterExportContent chapter, ExportOptions options, int number,
+        IReadOnlyDictionary<string, string>? images = null)
     {
         var preset = options.ResolvePreset();
         var bodyHtml = new StringBuilder();
@@ -1800,6 +1868,16 @@ public partial class ExportService
 
             foreach (var block in ParseHtmlToBlocks(scene.HtmlContent, scene.Footnotes))
             {
+                if (block.ImagePath != null)
+                {
+                    // An image whose file has gone is dropped rather than
+                    // written as a broken reference the reader has to see.
+                    if (images == null || !images.TryGetValue(block.ImagePath, out var href)) continue;
+                    bodyHtml.AppendLine(
+                        $"    <p class=\"prose-image\"><img src=\"{EscapeXml(href)}\" alt=\"{EscapeXml(block.ImageAlt)}\"/></p>");
+                    continue;
+                }
+
                 var content = SegmentsToXhtml(block.Segments, footnoteDefs);
 
                 if (block.List != openList)
@@ -2098,7 +2176,8 @@ public partial class ExportService
         List<ChapterExportContent> chapters,
         ExportOptions options,
         string bookId,
-        string modifiedDate)
+        string modifiedDate,
+        IReadOnlyDictionary<string, string>? images = null)
     {
         var manifestItems = new StringBuilder();
         var spineItems = new StringBuilder();
@@ -2106,6 +2185,17 @@ public partial class ExportService
         manifestItems.AppendLine("    <item id=\"css\" href=\"styles.css\" media-type=\"text/css\"/>");
         manifestItems.AppendLine("    <item id=\"nav\" href=\"nav.xhtml\" media-type=\"application/xhtml+xml\" properties=\"nav\"/>");
         manifestItems.AppendLine("    <item id=\"ncx\" href=\"toc.ncx\" media-type=\"application/x-dtbncx+xml\"/>");
+
+        // Prose images are manifested but never spined: they are shown inside a
+        // chapter, not read as a document of their own.
+        var imageIndex = 0;
+        foreach (var href in images?.Values ?? [])
+        {
+            imageIndex++;
+            var media = CoverMediaType(href) ?? "image/png";
+            manifestItems.AppendLine(
+                $"    <item id=\"prose-image-{imageIndex}\" href=\"{href}\" media-type=\"{media}\"/>");
+        }
 
         if (options.IncludeTitlePage)
         {
@@ -2272,6 +2362,26 @@ public partial class ExportService
             .Select((c, i) => (c.Id, i))
             .ToDictionary(pair => pair.Id, pair => pair.i, StringComparer.Ordinal);
 
+        // Prose images: one media part each, with a relationship the drawing
+        // runs point at. Collected before the package parts so both the content
+        // types and the relationships can declare them.
+        var proseImages = CollectProseImages(chapters);
+        var imageRels = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var imageParts = new List<(string Part, string Absolute)>();
+        foreach (var (absolute, _) in proseImages)
+        {
+            var ext = Path.GetExtension(absolute).ToLowerInvariant().TrimStart('.');
+            var part = $"media/image-{imageParts.Count + 1}.{ext}";
+            imageRels[absolute] = $"rIdImage{imageParts.Count + 1}";
+            imageParts.Add((part, absolute));
+        }
+
+        var imageExtensions = imageParts
+            .Select(p => Path.GetExtension(p.Part).TrimStart('.').ToLowerInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Select(ext => $"\n  <Default Extension=\"{ext}\" ContentType=\"{DocxImageContentType(ext)}\"/>")
+            .ToList();
+
         // [Content_Types].xml
         var contentTypesExtra = smf
             ? "\n  <Override PartName=\"/word/header1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml\"/>"
@@ -2281,7 +2391,7 @@ public partial class ExportService
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
               <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-              <Default Extension="xml" ContentType="application/xml"/>
+              <Default Extension="xml" ContentType="application/xml"/>{string.Concat(imageExtensions)}
               <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
               <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
               <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>
@@ -2307,9 +2417,12 @@ public partial class ExportService
             <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
               <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
               <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>
-              <Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" Target="footnotes.xml"/>{headerRel}{(hasComments ? "\n  <Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments\" Target=\"comments.xml\"/>" : "")}
+              <Relationship Id="rId5" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footnotes" Target="footnotes.xml"/>{ImageRelationshipsXml(imageParts)}{headerRel}{(hasComments ? "\n  <Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments\" Target=\"comments.xml\"/>" : "")}
             </Relationships>
             """);
+
+        foreach (var (part, absolute) in imageParts)
+            await WriteBinaryEntryAsync(zip, $"word/{part}", absolute);
 
         // word/styles.xml
         await WriteEntryAsync(zip, "word/styles.xml", GenerateDocxStyles(options));
@@ -2391,6 +2504,13 @@ public partial class ExportService
 
                 foreach (var block in blocks)
                 {
+                    if (block.ImagePath != null)
+                    {
+                        if (imageRels.TryGetValue(block.ImagePath, out var relId))
+                            body.Append(DocxImageParagraph(block.ImagePath, relId, block.ImageAlt));
+                        continue;
+                    }
+
                     var para = block.Segments;
                     var runs = SegmentsToDocxRuns(para, footnoteDefs);
                     var paragraphXml =
@@ -2545,6 +2665,107 @@ public partial class ExportService
         return paragraphXml[..insertAt]
             + prefix
             + paragraphXml[insertAt..].Replace("</w:p>", suffix + "</w:p>");
+    }
+
+    /// <summary>The content type Word expects for an image part.</summary>
+    private static string DocxImageContentType(string extension) => extension switch
+    {
+        "jpg" or "jpeg" => "image/jpeg",
+        "gif" => "image/gif",
+        "bmp" => "image/bmp",
+        "webp" => "image/webp",
+        _ => "image/png"
+    };
+
+    /// <summary>One relationship per image part, for the document's rels file.</summary>
+    private static string ImageRelationshipsXml(List<(string Part, string Absolute)> parts)
+        => string.Concat(parts.Select((p, i) =>
+            "\n  <Relationship Id=\"rIdImage" + (i + 1) + "\" Type=\""
+            + "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image"
+            + "\" Target=\"" + p.Part + "\"/>"));
+
+    /// <summary>
+    /// One centred paragraph holding an inline drawing. Word measures in EMUs
+    /// (914400 to the inch), so the pixel size is converted at 96dpi and capped
+    /// at six inches - an image wider than the page is a broken document rather
+    /// than a large picture.
+    /// </summary>
+    private static string DocxImageParagraph(string path, string relId, string alt)
+    {
+        var (pixelWidth, pixelHeight) = ImageSize(path);
+        var naturalWidth = Math.Max(0.1, pixelWidth / 96.0);
+        var widthInches = Math.Min(6.0, naturalWidth);
+        var heightInches = pixelHeight / 96.0 * (widthInches / naturalWidth);
+        var cx = (long)(widthInches * 914400);
+        var cy = (long)(heightInches * 914400);
+        var description = EscapeXml(alt);
+        var id = Math.Abs(relId.GetHashCode()) % 100000 + 1;
+
+        return "<w:p><w:pPr><w:jc w:val=\"center\"/></w:pPr><w:r><w:drawing>"
+            + "<wp:inline xmlns:wp=\"http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing\""
+            + " distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\">"
+            + $"<wp:extent cx=\"{cx}\" cy=\"{cy}\"/>"
+            + $"<wp:docPr id=\"{id}\" name=\"Image {id}\" descr=\"{description}\"/>"
+            + "<a:graphic xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\">"
+            + "<a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">"
+            + "<pic:pic xmlns:pic=\"http://schemas.openxmlformats.org/drawingml/2006/picture\">"
+            + $"<pic:nvPicPr><pic:cNvPr id=\"0\" name=\"Image {id}\" descr=\"{description}\"/>"
+            + "<pic:cNvPicPr/></pic:nvPicPr>"
+            + "<pic:blipFill><a:blip xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\""
+            + $" r:embed=\"{relId}\"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill>"
+            + $"<pic:spPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"{cx}\" cy=\"{cy}\"/></a:xfrm>"
+            + "<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom></pic:spPr>"
+            + "</pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>";
+    }
+
+    /// <summary>
+    /// An image's pixel size, read from the file's own header. PNG and JPEG
+    /// cover what the editor accepts; anything else falls back to a square,
+    /// which lays out sensibly even when it is not exact.
+    /// </summary>
+    internal static (int Width, int Height) ImageSize(string path)
+    {
+        try
+        {
+            using var stream = File.OpenRead(path);
+            using var reader = new BinaryReader(stream);
+            var signature = reader.ReadBytes(8);
+
+            // PNG: width and height are big-endian ints at byte 16.
+            if (signature.Length == 8 && signature[0] == 0x89 && signature[1] == 0x50)
+            {
+                stream.Position = 16;
+                var w = System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(reader.ReadBytes(4));
+                var h = System.Buffers.Binary.BinaryPrimitives.ReadInt32BigEndian(reader.ReadBytes(4));
+                return (w, h);
+            }
+
+            // JPEG: walk the segments to the start-of-frame, which carries the size.
+            if (signature.Length >= 2 && signature[0] == 0xFF && signature[1] == 0xD8)
+            {
+                stream.Position = 2;
+                while (stream.Position < stream.Length - 8)
+                {
+                    if (reader.ReadByte() != 0xFF) continue;
+                    var marker = reader.ReadByte();
+                    var length = System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
+                    if (marker is >= 0xC0 and <= 0xCF && marker != 0xC4 && marker != 0xC8 && marker != 0xCC)
+                    {
+                        reader.ReadByte();
+                        var h = System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
+                        var w = System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
+                        return (w, h);
+                    }
+                    stream.Position += length - 2;
+                }
+            }
+        }
+        catch (Exception e) when (e is IOException or EndOfStreamException
+            or ArgumentException or UnauthorizedAccessException)
+        {
+            // Unreadable is not fatal: the fallback below still lays out.
+        }
+        return (600, 600);
     }
 
     private static string GenerateDocxStyles(ExportOptions options)
@@ -2899,6 +3120,44 @@ public partial class ExportService
     }
 
     /// <summary>Blocks for a whole-manuscript Normseiten export.</summary>
+    /// <summary>
+    /// One attribute's value out of a tag's attribute text, whichever order the
+    /// attributes are written in. Empty when the attribute is absent, which for
+    /// alt text means decorative rather than undescribed.
+    /// </summary>
+    private static string HtmlAttribute(string attrs, string name)
+    {
+        foreach (Match attr in HtmlAttributeRegex().Matches(attrs))
+        {
+            if (string.Equals(attr.Groups["name"].Value, name, StringComparison.OrdinalIgnoreCase))
+                return attr.Groups["value"].Value;
+        }
+        return string.Empty;
+    }
+
+    /// <summary>
+    /// Rewrites the book-relative image paths a scene stores into absolute
+    /// ones. The writers each have to open the file; resolving once here means
+    /// none of them needs to know where a book keeps its images.
+    /// </summary>
+    private string ResolveImagePaths(string html)
+    {
+        if (string.IsNullOrEmpty(html) || !html.Contains("<img", StringComparison.OrdinalIgnoreCase))
+            return html;
+
+        var bookRoot = _projectService.ActiveBookRoot;
+        if (bookRoot == null) return html;
+
+        return ImageTagRegex().Replace(html, match =>
+        {
+            var src = HtmlAttribute(match.Groups["attrs"].Value, "src");
+            if (src.Length == 0 || src.Contains("://", StringComparison.Ordinal) || Path.IsPathRooted(src))
+                return match.Value;
+            var absolute = Path.GetFullPath(Path.Combine(bookRoot, src));
+            return match.Value.Replace(src, absolute.Replace(Path.DirectorySeparatorChar, '/'));
+        });
+    }
+
     /// <summary>
     /// What an export would contain, without writing a file. Runs the same
     /// compile the export runs, so the exclusions and the stage filter are
@@ -3303,11 +3562,51 @@ public partial class ExportService
                 }
 
                 var scene = chapter.Scenes[si];
-                var paragraphs = ParseHtmlToParagraphs(scene.HtmlContent, scene.Footnotes);
+                var sceneBlocks = ParseHtmlToBlocks(scene.HtmlContent, scene.Footnotes);
                 var isFirstPara = si == 0;
 
-                foreach (var para in paragraphs)
+                foreach (var block in sceneBlocks)
                 {
+                    if (block.ImagePath != null)
+                    {
+                        if (!File.Exists(block.ImagePath)) continue;
+                        PdfSharpCore.Drawing.XImage image;
+                        try
+                        {
+                            image = PdfSharpCore.Drawing.XImage.FromFile(block.ImagePath);
+                        }
+                        catch (Exception)
+                        {
+                            // Deliberately broad: the decoders behind this throw
+                            // their own exception types, and a picture the
+                            // library will not read must not take the export
+                            // down with it. The image is left out instead.
+                            continue;
+                        }
+
+                        using (image)
+                        {
+                            // Scaled to the measure, never enlarged past its own
+                            // size: a small image blown up to the text width
+                            // prints as a blur.
+                            var scale = Math.Min(1.0, textWidth / image.PixelWidth);
+                            var width = image.PixelWidth * scale;
+                            var height = image.PixelHeight * scale;
+
+                            if (y + height > pageHeight - margin)
+                            {
+                                gfx.Dispose();
+                                gfx = NewPage(out y);
+                            }
+
+                            gfx.DrawImage(image, margin + (textWidth - width) / 2, y, width, height);
+                            y += height + lineSpacing;
+                        }
+                        isFirstPara = false;
+                        continue;
+                    }
+
+                    var para = block.Segments;
                     // PdfSharpCore lays text out a line at a time, with no way
                     // to reserve the foot of the page mid-paragraph, so notes
                     // are marked here and set at the end of the chapter.
@@ -3494,6 +3793,13 @@ public partial class ExportService
                 var ordinal = 0;
                 foreach (var block in ParseHtmlToBlocks(scene.HtmlContent, scene.Footnotes))
                 {
+                    if (block.ImagePath != null)
+                    {
+                        sb.AppendLine($"![{block.ImageAlt}]({block.ImagePath})");
+                        sb.AppendLine();
+                        continue;
+                    }
+
                     var text = SegmentsToMarkdown(block.Segments, footnoteDefs);
                     if (block.List != ListKind.None)
                     {
@@ -3589,6 +3895,14 @@ public partial class ExportService
         @"<(?<tag>p|li)(?<attrs>[^>]*)>(?<body>.*?)</\k<tag>>|<(?<tag>ul|ol)[^>]*>|<(?<tag>/ul|/ol)>",
         RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex BlockRegex();
+
+    [GeneratedRegex(@"<img\b(?<attrs>[^>]*)>", RegexOptions.IgnoreCase)]
+    private static partial Regex ImageTagRegex();
+
+    [GeneratedRegex(
+        @"(?<name>[a-zA-Z-]+)\s*=\s*[""'](?<value>[^""']*)[""']",
+        RegexOptions.IgnoreCase)]
+    private static partial Regex HtmlAttributeRegex();
 
     [GeneratedRegex(@"<p([^>]*)>(.*?)</p>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex ParagraphAnyRegex();

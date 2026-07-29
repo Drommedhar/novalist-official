@@ -86,6 +86,10 @@ body.dim-others #editor > .nv-focus-block { opacity: 1; }
 #editor ul, #editor ol { margin: 0.6em 0 0.6em 2em; padding: 0; }
 #editor li { margin-bottom: 0.2em; text-indent: 0; text-align: left; }
 #editor ::selection { background: var(--selection-bg); }
+/* A picture in the prose sits on its own line, centred, and never wider than
+   the measure - the text is still what the page is for. */
+#editor p.nv-image { text-align: center; text-indent: 0; margin: 0.8em 0; }
+#editor img { max-width: 100%; height: auto; }
 
 /* ===== Print =====
    The prose, on paper. Everything that helps while writing - the floating
@@ -990,6 +994,9 @@ function setContent(html) {
 
     savedScrollTop = 0;
     wrapper.scrollTop = 0;
+
+    // A stored path is not a URL this document can load; resolve before paint.
+    toDisplayImages(editor);
 
     // Trigger grammar check for the new content
     requestGrammarCheck();
@@ -2476,13 +2483,66 @@ function getCaretPosition() {
 
 let contentChangeTimer = null;
 
+// The base URL the display form of an image path hangs off. Scene HTML
+// stores a book-relative path so the project stays portable; the editor is a
+// document of its own and needs a real URL to show anything.
+let imageBaseUrl = '';
+
+function setImageBase(base) {
+    imageBaseUrl = base || '';
+    toDisplayImages(editor);
+}
+
+/** Rewrites stored paths to display URLs, keeping the stored one on the node. */
+function toDisplayImages(root) {
+    if (!imageBaseUrl) return;
+    root.querySelectorAll('img').forEach(function (img) {
+        const stored = img.getAttribute('data-nv-src') || img.getAttribute('src') || '';
+        if (!stored || stored.indexOf('://') >= 0) return;
+        img.setAttribute('data-nv-src', stored);
+        img.setAttribute('src', imageBaseUrl + stored.split('/').map(encodeURIComponent).join('/'));
+    });
+}
+
+/**
+ * Inserts an image at the caret, on a line of its own. The alt text is what a
+ * reader who cannot see it gets, and it travels into every export.
+ */
+function insertImageAtCaret(storedPath, alt) {
+    const paragraph = document.createElement('p');
+    paragraph.className = 'nv-image';
+    const img = document.createElement('img');
+    img.setAttribute('data-nv-src', storedPath);
+    img.setAttribute('alt', alt || '');
+    img.setAttribute('src', imageBaseUrl + storedPath.split('/').map(encodeURIComponent).join('/'));
+    paragraph.appendChild(img);
+
+    const block = caretBlock();
+    if (block && block.parentNode === editor) {
+        editor.insertBefore(paragraph, block.nextSibling);
+    } else {
+        editor.appendChild(paragraph);
+    }
+    // Inserting is a content change the input listener never sees, because
+    // nothing was typed.
+    editor.dispatchEvent(new Event('input'));
+}
+
 function getCleanContentHtml() {
-    if (!pageViewEnabled) return editor.innerHTML;
     const clone = editor.cloneNode(true);
-    clone.querySelectorAll('.nv-page').forEach(p => {
-        const parent = p.parentNode;
-        while (p.firstChild) parent.insertBefore(p.firstChild, p);
-        parent.removeChild(p);
+    if (pageViewEnabled) {
+        clone.querySelectorAll('.nv-page').forEach(p => {
+            const parent = p.parentNode;
+            while (p.firstChild) parent.insertBefore(p.firstChild, p);
+            parent.removeChild(p);
+        });
+    }
+    // Images go back to the path the project stores. The display URL points at
+    // this machine's copy of the project and would be meaningless in anyone
+    // else's, including this writer's after a move.
+    clone.querySelectorAll('img[data-nv-src]').forEach(function (img) {
+        img.setAttribute('src', img.getAttribute('data-nv-src'));
+        img.removeAttribute('data-nv-src');
     });
     return clone.innerHTML;
 }
@@ -3050,6 +3110,7 @@ document.addEventListener('contextmenu', (e) => {
     // Splitting acts on the caret, so it is offered whether or not anything is
     // selected - unlike everything above it in this block.
     html += '<div class="cm-item" data-action="splitAtCaret"><span>' + escapeHtml(contextMenuLabels.splitScene || 'Split scene here') + '</span></div>';
+    html += '<div class="cm-item" data-action="insertImage"><span>' + escapeHtml(contextMenuLabels.insertImage || 'Insert image') + '</span></div>';
     html += '<div class="cm-item' + disabledAttr + '" data-action="createEntityFromSelection"><span>' + escapeHtml(contextMenuLabels.createEntity || 'Create entity from selection') + '</span></div>';
     html += '<div class="cm-item' + disabledAttr + '" data-action="appendToEntitySection"><span>' + escapeHtml(contextMenuLabels.appendToEntity || 'Add selection to entity') + '</span></div>';
 
@@ -3152,6 +3213,13 @@ contextMenu.addEventListener('click', (e) => {
         case 'addToDictionary': {
             const word = item.getAttribute('data-word');
             sendMessage({ type: 'addToDictionary', word: word });
+            break;
+        }
+        case 'insertImage': {
+            // The frame owns no file picker; the host asks and answers with a
+            // stored path, which insertImageAtCaret then places.
+            restoreContextMenuSelection();
+            sendMessage({ type: 'insertImageRequested' });
             break;
         }
         case 'splitAtCaret': {

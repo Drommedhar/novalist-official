@@ -203,6 +203,18 @@ While a scene is open, the left of the status bar shows live figures for that sc
 
 The centre of the status bar shows whole-project totals (words, chapters, scenes); click it for a project overview popover. The right side shows daily and project goal progress when goals are set (see [Dashboard](11-dashboard.md)).
 
+## Images in the prose
+
+Right-click in the editor and choose **Insert image**. Pick a file and Novalist asks what it shows, then places it on a line of its own after the paragraph your caret is in.
+
+- The file is **copied into the book's `Images` folder**, so the project stays self-contained and moving it to another machine takes the pictures along. An image you have already used is not copied twice.
+- The scene stores the path relative to the book, never an address on your disk — which is what makes the project portable.
+- What you type when asked what the image shows becomes its **alt text**, and it travels into every export. Leaving it empty is allowed and means decorative; the question is asked at insert time because asking later means never.
+- Images are carried into **EPUB** (packaged and manifested), **DOCX** (embedded, with the alt text as the picture description), **PDF** (drawn, scaled to the measure and never enlarged past its own size), **Markdown** and **LaTeX**.
+- A picture whose file has gone is left out of the export rather than written as a broken reference.
+
+Delete an image the way you delete anything else: put the caret after it and press Backspace.
+
 ## Readability marking
 
 The gauge button on the toolbar tints each sentence Novalist judges hard to read: a light wash for **difficult**, a stronger one for **very difficult**. Everything easier is left alone on purpose — tinting every sentence produces a heat map you stop seeing, and what you actually want is the handful of sentences that fight the reader.

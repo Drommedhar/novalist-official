@@ -42,6 +42,10 @@ The Gallery itself is read-only — it surfaces images that already exist in the
 
 Images dropped into the project's image folder with a file manager also appear in the Gallery.
 
+## Images used in the prose
+
+Pictures inserted into a scene with [Insert image](05-editor.md#images-in-the-prose) live in the same `Images` folder and appear in this gallery alongside the ones attached to Codex entries.
+
 ## Where to go next
 
 - [Codex](06-codex.md) — entity image strips, where images are attached.
