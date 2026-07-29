@@ -29,6 +29,8 @@ public sealed class EffectiveSettings : IEffectiveSettings
     public string EditorFontFamily => O?.EditorFontFamily ?? G.EditorFontFamily;
     public double EditorFontSize => O?.EditorFontSize ?? G.EditorFontSize;
     public double EditorLineHeight => O?.EditorLineHeight ?? G.EditorLineHeight;
+    public double ReadAloudRate => O?.ReadAloudRate ?? G.ReadAloudRate;
+    public string? ReadAloudVoiceUri => O?.ReadAloudVoiceUri ?? G.ReadAloudVoiceUri;
     public double EditorLetterSpacing => O?.EditorLetterSpacing ?? G.EditorLetterSpacing;
     public double EditorParagraphSpacing => O?.EditorParagraphSpacing ?? G.EditorParagraphSpacing;
     public bool ComposeDimming => O?.ComposeDimming ?? G.ComposeDimming;

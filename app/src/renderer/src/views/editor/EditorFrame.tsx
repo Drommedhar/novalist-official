@@ -271,6 +271,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   // wiping the native undo stack. We only push content the editor did NOT author.
   const lastReportedHtmlRef = useRef<string | null>(null)
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
+  const [speaking, setSpeaking] = useState(false)
   // A name typed after `@` that matched no entity, waiting for the writer to pick
   // which kind of entity to create for it.
   const [pendingEntity, setPendingEntity] = useState<{ name: string; pendingId: string } | null>(
@@ -767,6 +768,10 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           void rpc.request<boolean>('grammar/addToDictionary', [String(message.word ?? '')])
           break
         }
+        case 'readAloudStateChanged': {
+          setSpeaking(Boolean(message.speaking))
+          break
+        }
         case 'formattingChanged': {
           setFormatting({
             bold: Boolean(message.bold),
@@ -820,7 +825,21 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   return (
     <div className="editor-pane">
       <SceneTabStrip pane={pane} />
-      <EditorToolbar formatting={formatting} editor={() => editorRef.current} />
+      <EditorToolbar
+        formatting={formatting}
+        editor={() => editorRef.current}
+        speaking={speaking}
+        onToggleReadAloud={() => {
+          const live = editorRef.current
+          if (!live) return
+          if (speaking) {
+            live.stopReadAloud()
+            return
+          }
+          const eff = useSettingsStore.getState().view?.effective
+          live.startReadAloud(true, eff?.readAloudRate ?? 1, eff?.readAloudVoiceUri ?? null)
+        }}
+      />
       <iframe
         ref={iframeRef}
         className="editor-frame"

@@ -158,6 +158,24 @@ interface SectionDef {
   standalone?: boolean
 }
 
+/**
+ * The voices the platform has installed, for the read-aloud picker. They arrive
+ * asynchronously on every platform and are simply absent on some, so the list
+ * starts empty and fills in - which is also why the picker always offers
+ * "match the writing language" as its first option.
+ */
+function useSpeechVoices(): SpeechSynthesisVoice[] {
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
+  useEffect(() => {
+    if (typeof speechSynthesis === 'undefined') return
+    const read = (): void => setVoices(speechSynthesis.getVoices())
+    read()
+    speechSynthesis.addEventListener('voiceschanged', read)
+    return () => speechSynthesis.removeEventListener('voiceschanged', read)
+  }, [])
+  return voices
+}
+
 export function SettingsView(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
@@ -180,6 +198,7 @@ export function SettingsView(): React.JSX.Element {
   const settingsSearch = useShellStore((s) => s.settingsSearch)
   const [search, setSearch] = useState('')
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const voices = useSpeechVoices()
 
   useEffect(() => {
     if (mainView !== 'settings') return
@@ -328,7 +347,8 @@ export function SettingsView(): React.JSX.Element {
       key: 'editor',
       titleKey: 'settings.editor',
       keywords: ['editor', 'font', 'book', 'width', 'page', 'paragraph', 'spacing', 'typewriter',
-        'line height', 'leading', 'letter spacing', 'accessibility', 'dyslexia'],
+        'line height', 'leading', 'letter spacing', 'accessibility', 'dyslexia',
+        'read aloud', 'speech', 'voice', 'tts'],
       body: (
         <>
           {scopeToggle('editor')}
@@ -412,6 +432,42 @@ export function SettingsView(): React.JSX.Element {
             }
           />
           <div className="settings-hint">{t('settings.paragraphSpacingDesc')}</div>
+          <label className="inspector-label" htmlFor="set-readaloud-rate">
+            {t('settings.readAloudRate')}
+          </label>
+          <input
+            id="set-readaloud-rate"
+            className="dialog-input"
+            type="number"
+            min={0.5}
+            max={2}
+            step={0.1}
+            value={eff.readAloudRate}
+            onChange={(e) =>
+              void update(scopeFor('editor'), {
+                readAloudRate: Math.min(2, Math.max(0.5, Number(e.target.value)))
+              })
+            }
+          />
+          <label className="inspector-label" htmlFor="set-readaloud-voice">
+            {t('settings.readAloudVoice')}
+          </label>
+          <select
+            id="set-readaloud-voice"
+            className="dialog-input"
+            value={eff.readAloudVoiceUri ?? ''}
+            onChange={(e) =>
+              void update(scopeFor('editor'), { readAloudVoiceUri: e.target.value || null })
+            }
+          >
+            <option value="">{t('settings.readAloudVoiceAuto')}</option>
+            {voices.map((v) => (
+              <option key={v.voiceURI} value={v.voiceURI}>
+                {v.name} ({v.lang})
+              </option>
+            ))}
+          </select>
+          <div className="settings-hint">{t('settings.readAloudDesc')}</div>
           {/* Typewriter scroll makes no sense on a phone (and is force-disabled in
               the mobile editor), so hide it there. */}
           {!isMobile && (

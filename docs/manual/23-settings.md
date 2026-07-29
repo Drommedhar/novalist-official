@@ -54,6 +54,11 @@ On macOS 26 and later the window uses the native Liquid Glass material; older ma
 - **Paragraph Spacing** — how large a gap **Book Paragraph Spacing** inserts between paragraphs, in ems (0-3). Defaults to 0.75.
 
 All three apply to the scene editor, to Manuscript mode, and to the Expose.
+
+- **Read-aloud speed** — how fast the speaker button reads the scene back (0.5-2). Defaults to 1.
+- **Read-aloud voice** — which installed system voice to use. The default, **Match the writing language**, asks for a voice in the language the scene is written in.
+
+See [Accessibility](39-accessibility.md) for what these settings are for and what is still missing, and [Read aloud](05-editor.md#read-aloud) for the button that uses them.
 - **Typewriter Scrolling** — keeps the active line at a fixed vertical position so you don't write near the bottom of the page. When on, an anchor choice appears: **Top**, **Middle**, or **Bottom**.
 - **Page View** — renders the editor as a printed-book-style page with paper background, margins, and shadow.
 - **Book Paragraph Spacing** — adds extra vertical space between lines for a book-like reading experience.

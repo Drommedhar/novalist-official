@@ -100,6 +100,14 @@ public class SettingsOverrides
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? EditorLineHeight { get; set; }
 
+    [JsonPropertyName("readAloudRate")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? ReadAloudRate { get; set; }
+
+    [JsonPropertyName("readAloudVoiceUri")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ReadAloudVoiceUri { get; set; }
+
     [JsonPropertyName("editorLetterSpacing")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? EditorLetterSpacing { get; set; }
@@ -145,6 +153,7 @@ public class SettingsOverrides
     public bool HasEditorOverride =>
         EditorFontFamily != null || EditorFontSize != null
         || EditorLineHeight != null || EditorLetterSpacing != null
+        || ReadAloudRate != null || ReadAloudVoiceUri != null
         || EditorParagraphSpacing != null
         || ComposeDimming != null
         || TypewriterScrollEnabled != null || TypewriterScrollAnchor != null || PageViewEnabled != null
@@ -180,6 +189,8 @@ public class SettingsOverrides
         EditorFontFamily = source.EditorFontFamily;
         EditorFontSize = source.EditorFontSize;
         EditorLineHeight = source.EditorLineHeight;
+        ReadAloudRate = source.ReadAloudRate;
+        ReadAloudVoiceUri = source.ReadAloudVoiceUri;
         EditorLetterSpacing = source.EditorLetterSpacing;
         EditorParagraphSpacing = source.EditorParagraphSpacing;
         ComposeDimming = source.ComposeDimming;
@@ -224,6 +235,8 @@ public class SettingsOverrides
         EditorFontFamily = null;
         EditorFontSize = null;
         EditorLineHeight = null;
+        ReadAloudRate = null;
+        ReadAloudVoiceUri = null;
         EditorLetterSpacing = null;
         EditorParagraphSpacing = null;
         ComposeDimming = null;

@@ -36,6 +36,17 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("editorLineHeight")]
     public double EditorLineHeight { get; set; } = 1.7;
 
+    /// <summary>How fast read-aloud speaks, as a multiple of the voice's own pace.</summary>
+    [JsonPropertyName("readAloudRate")]
+    public double ReadAloudRate { get; set; } = 1;
+
+    /// <summary>
+    /// The installed voice read-aloud uses, by its platform URI. Null lets the
+    /// system pick one for the language the scene is written in.
+    /// </summary>
+    [JsonPropertyName("readAloudVoiceUri")]
+    public string? ReadAloudVoiceUri { get; set; }
+
     /// <summary>Extra space between letters, in pixels. Zero is the face's own.</summary>
     [JsonPropertyName("editorLetterSpacing")]
     public double EditorLetterSpacing { get; set; }

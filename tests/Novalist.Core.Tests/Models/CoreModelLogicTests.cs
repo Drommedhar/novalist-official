@@ -116,6 +116,10 @@ public class SettingsOverridesTests
         => Assert.True(new SettingsOverrides { EditorLineHeight = 2 }.HasEditorOverride);
 
     [Fact]
+    public void HasEditorOverride_TrueForReadAloudAlone()
+        => Assert.True(new SettingsOverrides { ReadAloudVoiceUri = "v" }.HasEditorOverride);
+
+    [Fact]
     public void HasWritingOverride_TrueWhenAnySet()
         => Assert.True(new SettingsOverrides { GrammarCheckEnabled = true }.HasWritingOverride);
 
@@ -134,6 +138,8 @@ public class SettingsOverridesTests
         {
             EditorFontSize = 14,
             EditorLineHeight = 2,
+            ReadAloudRate = 1.4,
+            ReadAloudVoiceUri = "urn:voice:en-GB",
             EditorLetterSpacing = 1,
             EditorParagraphSpacing = 0,
             BookFontSize = 12,
@@ -161,6 +167,8 @@ public class SettingsOverridesTests
         EditorFontFamily = "Georgia",
         EditorFontSize = 19,
         EditorLineHeight = 1.9,
+        ReadAloudRate = 1.4,
+        ReadAloudVoiceUri = "urn:voice:en-GB",
         EditorLetterSpacing = 0.5,
         EditorParagraphSpacing = 1.2,
         ComposeDimming = true,
@@ -209,6 +217,8 @@ public class SettingsOverridesTests
         Assert.Equal("Georgia", o.EditorFontFamily);
         Assert.Equal(19, o.EditorFontSize);
         Assert.Equal(1.9, o.EditorLineHeight);
+        Assert.Equal(1.4, o.ReadAloudRate);
+        Assert.Equal("urn:voice:en-GB", o.ReadAloudVoiceUri);
         Assert.Equal(0.5, o.EditorLetterSpacing);
         Assert.Equal(1.2, o.EditorParagraphSpacing);
         Assert.True(o.ComposeDimming);

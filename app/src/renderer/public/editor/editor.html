@@ -86,6 +86,10 @@ body.dim-others #editor > .nv-focus-block { opacity: 1; }
 #editor ul, #editor ol { margin: 0.6em 0 0.6em 2em; padding: 0; }
 #editor li { margin-bottom: 0.2em; text-indent: 0; text-align: left; }
 #editor ::selection { background: var(--selection-bg); }
+/* The sentence being read aloud. Painted with the Custom Highlight API rather
+   than by wrapping the text in a span - a read-aloud pass must not touch the
+   document, or listening to your own chapter would mark it as edited. */
+::highlight(nv-speaking) { background: var(--selection-bg); }
 
 /* Themed scrollbars for every scroller in this document (the text wrapper, the
    comment gutter, the suggestion popups), matching the host shell. */
@@ -640,7 +644,7 @@ body.page-view.typewriter-on #editor { padding-top: 70vh; }
     <button id="ft-underline" title="Underline (Ctrl+U)" style="text-decoration:underline">U</button>
     <button id="ft-strike" title="Strikethrough" style="text-decoration:line-through">S</button>
     <button id="ft-highlight" title="Highlight">H</button>
-    <button id="ft-link" title="Link">&#128279;</button>
+    <button id="ft-link" title="Link">Link</button>
     <div class="ft-sep"></div>
     <button id="ft-align-left" title="Align Left">&#8676;</button>
     <button id="ft-align-center" title="Center">&#8677;</button>
@@ -702,6 +706,131 @@ let typewriterSuspendUntil = 0;   // ms epoch — suppress recenter until then
 let programmaticScrollUntil = 0;
 
 // ── C#→JS Bridge ────────────────────────────────────────────────
+
+// ── Read aloud ──────────────────────────────────────────────────
+// Sentence by sentence, so the highlight has something to sit on and so
+// stopping lands between sentences rather than mid-word.
+
+let readAloudActive = false;
+let readAloudQueue = [];
+let readAloudAt = 0;
+let readAloudRate = 1;
+let readAloudVoiceUri = null;
+const speakingHighlight = typeof Highlight === 'function' ? new Highlight() : null;
+if (speakingHighlight && typeof CSS !== 'undefined' && CSS.highlights) {
+    CSS.highlights.set('nv-speaking', speakingHighlight);
+}
+
+/** Sentence ranges inside one block, in reading order. */
+function sentenceRangesIn(block) {
+    const ranges = [];
+    const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    let flat = '';
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+        nodes.push({ node: n, start: flat.length });
+        flat += n.nodeValue;
+    }
+    if (flat.trim().length === 0) return ranges;
+
+    // A sentence runs to its terminator; the tail with no terminator is one too.
+    const matcher = /[^.!?…]*[.!?…]+["'”’»]*\s*|[^.!?…]+$/g;
+    let m;
+    while ((m = matcher.exec(flat)) !== null) {
+        const text = m[0];
+        if (text.trim().length === 0) continue;
+        const range = document.createRange();
+        const from = locate(nodes, m.index);
+        const to = locate(nodes, m.index + text.replace(/\s+$/, '').length);
+        if (!from || !to) continue;
+        range.setStart(from.node, from.offset);
+        range.setEnd(to.node, to.offset);
+        ranges.push({ range: range, text: text.trim() });
+    }
+    return ranges;
+}
+
+/** Maps an offset in a block's flattened text back to (node, offset). */
+function locate(nodes, offset) {
+    for (let i = nodes.length - 1; i >= 0; i--) {
+        if (offset >= nodes[i].start) {
+            return { node: nodes[i].node, offset: Math.min(offset - nodes[i].start, nodes[i].node.nodeValue.length) };
+        }
+    }
+    return null;
+}
+
+/** The block the caret sits in, so reading can start where the writer is. */
+function caretBlock() {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return null;
+    let node = sel.getRangeAt(0).startContainer;
+    while (node && node.parentNode !== editor) node = node.parentNode;
+    return node && node.parentNode === editor ? node : null;
+}
+
+/**
+ * Speaks the scene. From the caret's paragraph when asked, otherwise from the
+ * top. Voice and rate come from settings; the language comes from the prose,
+ * so a German scene is read by a German voice without being told twice.
+ */
+function startReadAloud(fromCaret, rate, voiceUri) {
+    if (typeof speechSynthesis === 'undefined') return;
+    stopReadAloud();
+    readAloudRate = rate > 0 ? rate : 1;
+    readAloudVoiceUri = voiceUri || null;
+
+    const blocks = Array.from(editor.children);
+    const from = fromCaret ? caretBlock() : null;
+    const startAt = from ? Math.max(0, blocks.indexOf(from)) : 0;
+    readAloudQueue = [];
+    for (let i = startAt; i < blocks.length; i++) {
+        readAloudQueue = readAloudQueue.concat(sentenceRangesIn(blocks[i]));
+    }
+    if (readAloudQueue.length === 0) return;
+
+    readAloudAt = 0;
+    readAloudActive = true;
+    sendMessage({ type: 'readAloudStateChanged', speaking: true });
+    speakNextSentence();
+}
+
+function speakNextSentence() {
+    if (!readAloudActive) return;
+    if (readAloudAt >= readAloudQueue.length) { stopReadAloud(); return; }
+    const item = readAloudQueue[readAloudAt++];
+    const utterance = new SpeechSynthesisUtterance(item.text);
+    utterance.lang = editor.lang || document.documentElement.lang || 'en';
+    utterance.rate = readAloudRate;
+    if (readAloudVoiceUri) {
+        const voice = speechSynthesis.getVoices().find(function (v) { return v.voiceURI === readAloudVoiceUri; });
+        if (voice) utterance.voice = voice;
+    }
+    utterance.onstart = function () { showSpeaking(item.range); };
+    utterance.onend = function () { speakNextSentence(); };
+    utterance.onerror = function () { stopReadAloud(); };
+    speechSynthesis.speak(utterance);
+}
+
+function showSpeaking(range) {
+    if (!speakingHighlight) return;
+    speakingHighlight.clear();
+    speakingHighlight.add(range);
+    const rect = range.getBoundingClientRect();
+    const box = wrapper.getBoundingClientRect();
+    if (rect.bottom > box.bottom - 40 || rect.top < box.top + 40) {
+        wrapper.scrollTop += rect.top - box.top - box.height / 2;
+    }
+}
+
+function stopReadAloud() {
+    const wasActive = readAloudActive;
+    readAloudActive = false;
+    readAloudQueue = [];
+    if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
+    if (speakingHighlight) speakingHighlight.clear();
+    if (wasActive) sendMessage({ type: 'readAloudStateChanged', speaking: false });
+}
 
 function sendMessage(msg) {
     try {
@@ -2230,6 +2359,8 @@ function getCleanContentHtml() {
 
 editor.addEventListener('input', () => {
     if (isSettingContent) return;
+    // Typing over a passage being read back is the writer taking over.
+    if (readAloudActive) stopReadAloud();
 
     // Debounced dialogue correction — runs after typing pauses
     if (dialogueCorrectionConfig) {
@@ -2945,7 +3076,10 @@ document.addEventListener('click', (e) => {
     if (!contextMenu.contains(e.target)) hideContextMenu();
 });
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') hideContextMenu();
+    if (e.key === 'Escape') {
+        hideContextMenu();
+        stopReadAloud();
+    }
 });
 // Only a scroll the *user* made dismisses the menu. Caret recentring scrolls
 // the wrapper too, and letting that through closed the menu in the same frame

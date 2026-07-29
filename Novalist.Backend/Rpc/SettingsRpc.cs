@@ -294,6 +294,8 @@ public sealed class SettingsRpc
             ["editorFontFamily"] = effective.EditorFontFamily,
             ["editorFontSize"] = effective.EditorFontSize,
             ["editorLineHeight"] = effective.EditorLineHeight,
+            ["readAloudRate"] = effective.ReadAloudRate,
+            ["readAloudVoiceUri"] = effective.ReadAloudVoiceUri,
             ["editorLetterSpacing"] = effective.EditorLetterSpacing,
             ["editorParagraphSpacing"] = effective.EditorParagraphSpacing,
             ["composeDimming"] = effective.ComposeDimming,

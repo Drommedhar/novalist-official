@@ -418,7 +418,11 @@
     "letterSpacing": "Zeichenabstand",
     "letterSpacingDesc": "Zusätzlicher Abstand zwischen Buchstaben in Pixeln. 0 lässt die Schrift so, wie ihr Entwerfer sie gesetzt hat.",
     "paragraphSpacing": "Absatzabstand",
-    "paragraphSpacingDesc": "Wie groß die Lücke ist, die Buchabsätze zwischen Absätzen einfügen, in em."
+    "paragraphSpacingDesc": "Wie groß die Lücke ist, die Buchabsätze zwischen Absätzen einfügen, in em.",
+    "readAloudRate": "Vorlesegeschwindigkeit",
+    "readAloudVoice": "Vorlesestimme",
+    "readAloudVoiceAuto": "Der Schreibsprache folgen",
+    "readAloudDesc": "Die auf Ihrem System installierten Stimmen. In der Standardeinstellung fordert Novalist eine Stimme in der Sprache an, in der die Szene geschrieben ist."
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -2260,7 +2264,9 @@
     "center": "Zentriert",
     "right": "Rechtsbündig",
     "justify": "Blocksatz",
-    "pageView": "Seitenansicht"
+    "pageView": "Seitenansicht",
+    "readAloud": "Vorlesen",
+    "readAloudStop": "Vorlesen beenden"
   },
   "aiPolicy": {
     "title": "Was die KI von diesem Eintrag sehen darf",

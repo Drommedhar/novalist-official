@@ -40,6 +40,7 @@ The strip above the page:
 - **Bold**, **Italic**, **Underline** — toggle inline formatting on the selection.
 - **Bulleted list** and **Numbered list** — turn the selected paragraphs into a list, or turn a list back into paragraphs.
 - **Align left / center / right / justify** — set paragraph alignment.
+- **Read aloud** (speaker icon, right) — reads the scene back to you from the caret's paragraph. See [Read aloud](#read-aloud) below.
 - **Page view toggle** (book icon, far right) — switches the editor between a plain writing surface and a printed-book-style page with paper background, margins, and shadow. This is the same setting as **Page View** in [Settings](23-settings.md) → Editor.
 
 The active formatting of the text under the caret is highlighted in the toolbar.
@@ -201,6 +202,16 @@ While a scene is open, the left of the status bar shows live figures for that sc
 
 The centre of the status bar shows whole-project totals (words, chapters, scenes); click it for a project overview popover. The right side shows daily and project goal progress when goals are set (see [Dashboard](11-dashboard.md)).
 
+## Read aloud
+
+The speaker button on the toolbar reads the open scene aloud, starting from the paragraph your caret is in. The sentence being spoken is highlighted and the editor scrolls to keep it in view, so you can follow the reading with your eyes — which is what makes it useful for catching a sentence that does not land, not only for listening.
+
+Stop it by pressing the button again (it becomes a stop square while reading), by pressing `Escape`, or simply by starting to type: typing over a passage being read back is you taking over.
+
+**Settings → Editor** carries the speed and the voice. Left on **Match the writing language**, Novalist asks for a voice in the language the scene is written in, so a German scene is read in German. The voices are the ones your operating system has installed, and nothing leaves the machine.
+
+The highlight is painted without touching the document, so listening to a chapter never marks it as edited.
+
 ## Focus mode
 
 `Alt+F` gives the whole window to the page: both side panes, the toolbar and the status bar all go, leaving the scene tabs and your prose. Press `Alt+F` again to bring everything back. The command palette (`Ctrl+Shift+P`) keeps working, so every command stays reachable while focused — nothing is lost, only hidden.
@@ -214,4 +225,5 @@ The centre of the status bar shows whole-project totals (words, chapters, scenes
 - [Snapshots](17-snapshots.md) — revert a single scene to a previous state.
 - [Find & Replace](21-find-replace.md) — search across scene, chapter, book, or project.
 - [Settings](23-settings.md) — fonts, theme, writing assistance.
+- [Accessibility](39-accessibility.md) — reading comfort, the High Contrast theme, read-aloud.
 - [Dialogue](33-dialogue.md) — read one character's lines end to end, and edit them without leaving the list.

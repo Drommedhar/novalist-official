@@ -8,7 +8,9 @@ import {
   Italic,
   List,
   ListOrdered,
-  Underline
+  Square,
+  Underline,
+  Volume2
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useSettingsStore } from '../../stores/settingsStore'
@@ -28,6 +30,9 @@ export interface FormattingState {
 interface EditorToolbarProps {
   formatting: FormattingState
   editor(): EditorWindow | null
+  /** True while the scene is being read back, so the button offers Stop. */
+  speaking: boolean
+  onToggleReadAloud(): void
 }
 
 /**
@@ -38,7 +43,12 @@ interface EditorToolbarProps {
 const PARAGRAPH_STYLES = ['', 'heading', 'subheading', 'blockquote', 'poetry'] as const
 
 /** Formatting strip above the editor; commands run inside editor.html. */
-export function EditorToolbar({ formatting, editor }: EditorToolbarProps): React.JSX.Element {
+export function EditorToolbar({
+  formatting,
+  editor,
+  speaking,
+  onToggleReadAloud
+}: EditorToolbarProps): React.JSX.Element {
   const { t } = useTranslation()
   const run = (command: (e: EditorWindow) => void): void => {
     const live = editor()
@@ -94,6 +104,13 @@ export function EditorToolbar({ formatting, editor }: EditorToolbarProps): React
         </button>
       ))}
       <span className="toolbar-spacer" />
+      <button
+        className={`editor-toolbar-button${speaking ? ' active' : ''}`}
+        title={t(speaking ? 'blockStyle.readAloudStop' : 'blockStyle.readAloud')}
+        onClick={onToggleReadAloud}
+      >
+        {speaking ? <Square size={15} strokeWidth={1.75} /> : <Volume2 size={15} strokeWidth={1.75} />}
+      </button>
       <button
         className={`editor-toolbar-button${pageView ? ' active' : ''}`}
         title={t('blockStyle.pageView')}

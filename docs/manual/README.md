@@ -68,10 +68,11 @@ If you are looking for a specific feature, jump straight to its page from the ta
 34. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
 35. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
 36. [Custom themes & language packs](34-custom-themes-and-languages.md) — add your own colour schemes and interface languages by dropping a file into a folder.
+37. [Accessibility](39-accessibility.md) — reading-comfort settings, the High Contrast theme, read-aloud, and what is honestly still missing.
 
 ### Help
 
-37. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
+38. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
 
 ## Conventions used in this manual
 

@@ -552,7 +552,11 @@
     "letterSpacing": "字符间距",
     "letterSpacingDesc": "字母之间的额外间距，单位为像素。0 保持字体设计者设定的原样。",
     "paragraphSpacing": "段落间距",
-    "paragraphSpacingDesc": "“书籍段落间距”在段落之间插入的空隙大小，单位为 em。"
+    "paragraphSpacingDesc": "“书籍段落间距”在段落之间插入的空隙大小，单位为 em。",
+    "readAloudRate": "朗读速度",
+    "readAloudVoice": "朗读声音",
+    "readAloudVoiceAuto": "跟随写作语言",
+    "readAloudDesc": "系统已安装的语音。保持默认时，Novalist 会请求与场景写作语言相同的语音。"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",
@@ -2294,7 +2298,9 @@
     "center": "居中",
     "right": "右对齐",
     "justify": "两端对齐",
-    "pageView": "页面视图"
+    "pageView": "页面视图",
+    "readAloud": "朗读",
+    "readAloudStop": "停止朗读"
   },
   "aiPolicy": {
     "title": "AI 可以看到该条目的哪些内容",

@@ -18,6 +18,8 @@ public interface IEffectiveSettings
     string EditorFontFamily { get; }
     double EditorFontSize { get; }
     double EditorLineHeight { get; }
+    double ReadAloudRate { get; }
+    string? ReadAloudVoiceUri { get; }
     double EditorLetterSpacing { get; }
     double EditorParagraphSpacing { get; }
     /// <summary>Whether the editor dims every paragraph but the current one.</summary>

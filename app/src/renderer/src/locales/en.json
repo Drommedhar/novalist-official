@@ -517,7 +517,11 @@
     "letterSpacing": "Letter spacing",
     "letterSpacingDesc": "Extra space between letters, in pixels. 0 leaves the typeface as its designer set it.",
     "paragraphSpacing": "Paragraph spacing",
-    "paragraphSpacingDesc": "How large a gap Book paragraph spacing inserts between paragraphs, in ems."
+    "paragraphSpacingDesc": "How large a gap Book paragraph spacing inserts between paragraphs, in ems.",
+    "readAloudRate": "Read-aloud speed",
+    "readAloudVoice": "Read-aloud voice",
+    "readAloudVoiceAuto": "Match the writing language",
+    "readAloudDesc": "The voices your system has installed. Left on the default, Novalist asks for a voice in the language the scene is written in."
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -2252,7 +2256,9 @@
     "center": "Centre",
     "right": "Align right",
     "justify": "Justify",
-    "pageView": "Page view"
+    "pageView": "Page view",
+    "readAloud": "Read aloud",
+    "readAloudStop": "Stop reading"
   },
   "aiPolicy": {
     "title": "What AI may see of this entry",

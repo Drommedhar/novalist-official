@@ -17,6 +17,8 @@ public class EffectiveSettingsTests
             EditorFontFamily = "Inter",
             EditorFontSize = 13,
             EditorLineHeight = 1.5,
+            ReadAloudRate = 1.3,
+            ReadAloudVoiceUri = "urn:voice:de",
             EditorLetterSpacing = 0.25,
             EditorParagraphSpacing = 0.9,
             ComposeDimming = true,
@@ -46,6 +48,8 @@ public class EffectiveSettingsTests
         Assert.Equal("Inter", sut.EditorFontFamily);
         Assert.Equal(13, sut.EditorFontSize);
         Assert.Equal(1.5, sut.EditorLineHeight);
+        Assert.Equal(1.3, sut.ReadAloudRate);
+        Assert.Equal("urn:voice:de", sut.ReadAloudVoiceUri);
         Assert.Equal(0.25, sut.EditorLetterSpacing);
         Assert.Equal(0.9, sut.EditorParagraphSpacing);
         Assert.True(sut.ComposeDimming);
@@ -81,6 +85,8 @@ public class EffectiveSettingsTests
             EditorFontFamily = "Mono",
             EditorFontSize = 20,
             EditorLineHeight = 2.1,
+            ReadAloudRate = 0.8,
+            ReadAloudVoiceUri = "urn:voice:en",
             EditorLetterSpacing = 1.5,
             EditorParagraphSpacing = 0,
             ComposeDimming = false,
@@ -107,6 +113,8 @@ public class EffectiveSettingsTests
 
         Assert.Equal("de", sut.Language);
         Assert.Equal(2.1, sut.EditorLineHeight);
+        Assert.Equal(0.8, sut.ReadAloudRate);
+        Assert.Equal("urn:voice:en", sut.ReadAloudVoiceUri);
         Assert.Equal(1.5, sut.EditorLetterSpacing);
         Assert.Equal(0, sut.EditorParagraphSpacing);
         Assert.Equal("light", sut.Theme);

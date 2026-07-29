@@ -126,7 +126,8 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Theme** — the default palette is Novalist's own: deep "Ink Night" paper, parchment text, and gilt accents, set in Fraunces, Newsreader, and Courier Prime (all three ship with the app, so it looks the same offline and on every machine). Bundled Discord, High Contrast and Catppuccin Mocha palettes and a custom accent color are also available; on macOS 26+ the window uses native Liquid Glass, with a vibrancy fallback on older macOS.
 - **Custom themes** — write your own palette as a JSON design-token map or a CSS stylesheet, drop it into your `Themes/` folder, and it joins the theme picker. Extensions can contribute themes the same way. See [`docs/manual/34-custom-themes-and-languages.md`](docs/manual/34-custom-themes-and-languages.md).
 - **Global or per-project settings** — appearance, editor, and writing-assistance settings default to global but can be overridden per project (e.g. an English book and a German book each with their own language, quotes, and theme); project overrides live in `.novalist/` and sync via git.
-- **Reading comfort** — line height, letter spacing and paragraph spacing are yours to set, in the editor, in Manuscript mode and in the Expose; a High Contrast theme ships for low vision and for bright rooms.
+- **Reading comfort** — line height, letter spacing and paragraph spacing are yours to set, in the editor, in Manuscript mode and in the Expose; a High Contrast theme ships for low vision and for bright rooms. See [`docs/manual/39-accessibility.md`](docs/manual/39-accessibility.md).
+- **Read aloud** — the editor reads the scene back from the caret with a system voice, highlighting the sentence it is on, in the language the scene is written in. Nothing leaves the machine.
 - **Book preview** — render the editor as a printed page with configurable trim size and book font.
 
 ### Extension system
