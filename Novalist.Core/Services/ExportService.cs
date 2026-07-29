@@ -376,12 +376,13 @@ public partial class ExportService
             for (int si = 0; si < chapter.Scenes.Count; si++)
             {
                 if (si > 0) sb.AppendLine("\\begin{center}* * *\\end{center}");
-                foreach (Match pm in ParagraphAnyRegex().Matches(chapter.Scenes[si].HtmlContent))
+                // A run of list items becomes one itemize/enumerate environment
+                // rather than one per item, which LaTeX renders as a stack of
+                // single-entry lists.
+                var openList = ListKind.None;
+                foreach (var block in ParseHtmlToBlocks(chapter.Scenes[si].HtmlContent))
                 {
-                    var styleId = ExtractStyleClass(pm.Groups[1].Value);
-                    var segments = ParseInlineFormatting(pm.Groups[2].Value);
-                    if (segments.Count == 0 || segments.All(s => string.IsNullOrWhiteSpace(s.Text))) continue;
-                    var body = string.Concat(segments.Select(seg =>
+                    var body = string.Concat(block.Segments.Select(seg =>
                     {
                         var t = LatexEscape(seg.Text);
                         if (seg.Bold && seg.Italic) return $"\\textbf{{\\textit{{{t}}}}}";
@@ -389,17 +390,38 @@ public partial class ExportService
                         if (seg.Italic) return $"\\textit{{{t}}}";
                         return t;
                     }));
-                    string line = styleId switch
+
+                    if (block.List != openList)
+                    {
+                        if (openList != ListKind.None)
+                            sb.AppendLine(openList == ListKind.Number
+                                ? "\\end{enumerate}" : "\\end{itemize}");
+                        if (block.List != ListKind.None)
+                            sb.AppendLine(block.List == ListKind.Number
+                                ? "\\begin{enumerate}" : "\\begin{itemize}");
+                        openList = block.List;
+                    }
+
+                    if (block.List != ListKind.None)
+                    {
+                        sb.AppendLine($"\\item {body}");
+                        continue;
+                    }
+
+                    sb.AppendLine(block.StyleId switch
                     {
                         "heading" => $"\\section*{{{body}}}",
                         "subheading" => $"\\subsection*{{{body}}}",
                         "blockquote" => $"\\begin{{quote}}{body}\\end{{quote}}",
                         "poetry" => $"\\begin{{verse}}{body}\\end{{verse}}",
                         _ => body,
-                    };
-                    sb.AppendLine(line);
+                    });
                     sb.AppendLine();
                 }
+                // A scene that ends inside a list still has to close it.
+                if (openList != ListKind.None)
+                    sb.AppendLine(openList == ListKind.Number
+                        ? "\\end{enumerate}" : "\\end{itemize}");
             }
         }
         sb.AppendLine("\\end{document}");
@@ -1169,35 +1191,61 @@ public partial class ExportService
     /// Returns a list of paragraphs with inline formatting preserved as segments.
     /// </summary>
     private static List<List<InlineSegment>> ParseHtmlToParagraphs(string html)
+        => [.. ParseHtmlToBlocks(html).Select(b => b.Segments)];
+
+    /// <summary>
+    /// A scene's content as ordered blocks, each carrying its paragraph style
+    /// and whether it is a list item.
+    ///
+    /// Every writer parses from here rather than from raw HTML, so a style added
+    /// in the editor reaches DOCX, EPUB, Markdown and LaTeX the same way instead
+    /// of being honoured by whichever exporter happened to grow a case for it.
+    /// </summary>
+    internal static List<ExportBlock> ParseHtmlToBlocks(string html)
     {
-        if (string.IsNullOrWhiteSpace(html))
-            return [];
+        if (string.IsNullOrWhiteSpace(html)) return [];
 
-        var paragraphs = new List<List<InlineSegment>>();
-
-        // The AvRichTextBox stores content as HTML with <p> elements.
-        // Split by paragraph tags, then parse inline formatting.
-        var pRegex = ParagraphRegex();
-        var matches = pRegex.Matches(html);
+        var blocks = new List<ExportBlock>();
+        var matches = BlockRegex().Matches(html);
 
         if (matches.Count == 0)
         {
-            // Fallback: treat entire content as one paragraph
+            // No block markup at all: the whole thing is one paragraph.
             var stripped = StripHtml(html);
             if (!string.IsNullOrWhiteSpace(stripped))
-                paragraphs.Add([new InlineSegment { Text = stripped.Trim() }]);
-            return paragraphs;
+                blocks.Add(new ExportBlock(
+                    [new InlineSegment { Text = stripped.Trim() }], null, ListKind.None));
+            return blocks;
         }
 
+        // A list item's kind comes from the ul/ol it sits in, which the per-item
+        // match cannot see, so the enclosing tag is tracked across the loop.
+        var listKind = ListKind.None;
         foreach (Match match in matches)
         {
-            var innerHtml = match.Groups[1].Value;
-            var segments = ParseInlineFormatting(innerHtml);
-            if (segments.Count > 0 && segments.Any(s => !string.IsNullOrWhiteSpace(s.Text)))
-                paragraphs.Add(segments);
+            var tag = match.Groups["tag"].Value.ToLowerInvariant();
+            if (tag is "ul" or "ol")
+            {
+                listKind = tag == "ul" ? ListKind.Bullet : ListKind.Number;
+                continue;
+            }
+            if (tag is "/ul" or "/ol")
+            {
+                listKind = ListKind.None;
+                continue;
+            }
+
+            var segments = ParseInlineFormatting(match.Groups["body"].Value);
+            if (segments.Count == 0 || segments.All(s => string.IsNullOrWhiteSpace(s.Text))) continue;
+
+            blocks.Add(tag == "li"
+                // A stray li outside any list still reads as a bullet rather
+                // than silently becoming body text.
+                ? new ExportBlock(segments, null, listKind == ListKind.None ? ListKind.Bullet : listKind)
+                : new ExportBlock(segments, ExtractStyleClass(match.Groups["attrs"].Value), ListKind.None));
         }
 
-        return paragraphs;
+        return blocks;
     }
 
     /// <summary>
@@ -1524,6 +1572,41 @@ public partial class ExportService
               margin-bottom: 1.5em;
             }
 
+            h2, h3 {
+              text-align: left;
+              margin-top: 1.6em;
+              margin-bottom: 0.6em;
+            }
+
+            blockquote {
+              margin: 1em 2em;
+              font-style: italic;
+            }
+
+            blockquote p {
+              text-align: left;
+              text-indent: 0;
+            }
+
+            /* Verse keeps its own line breaks and is never justified, which
+               would stretch a short line across the page. */
+            p.poetry {
+              margin: 0 0 0.2em 2em;
+              text-align: left;
+              text-indent: 0;
+              white-space: pre-wrap;
+            }
+
+            ul, ol {
+              margin: 0.8em 0 0.8em 2em;
+              padding: 0;
+            }
+
+            li {
+              margin-bottom: 0.3em;
+              text-align: left;
+            }
+
             div.title-page {
               text-align: center;
               padding-top: 30%;
@@ -1553,16 +1636,45 @@ public partial class ExportService
                 bodyHtml.AppendLine($"    <p class=\"scene-break\">{SceneBreakText}</p>");
 
             var scene = chapter.Scenes[si];
-            var paragraphs = ParseHtmlToParagraphs(scene.HtmlContent);
             var isFirst = si == 0;
+            var openList = ListKind.None;
 
-            foreach (var para in paragraphs)
+            foreach (var block in ParseHtmlToBlocks(scene.HtmlContent))
             {
-                var content = SegmentsToXhtml(para);
-                var cls = isFirst ? " class=\"no-indent\"" : "";
-                bodyHtml.AppendLine($"    <p{cls}>{content}</p>");
+                var content = SegmentsToXhtml(block.Segments);
+
+                if (block.List != openList)
+                {
+                    if (openList != ListKind.None)
+                        bodyHtml.AppendLine(openList == ListKind.Number ? "    </ol>" : "    </ul>");
+                    if (block.List != ListKind.None)
+                        bodyHtml.AppendLine(block.List == ListKind.Number ? "    <ol>" : "    <ul>");
+                    openList = block.List;
+                }
+
+                if (block.List != ListKind.None)
+                {
+                    bodyHtml.AppendLine($"      <li>{content}</li>");
+                    isFirst = false;
+                    continue;
+                }
+
+                // Real heading and blockquote elements rather than styled
+                // paragraphs, so a reading system's navigation and its quote
+                // styling both work on them.
+                bodyHtml.AppendLine(block.StyleId switch
+                {
+                    "heading" => $"    <h2>{content}</h2>",
+                    "subheading" => $"    <h3>{content}</h3>",
+                    "blockquote" => $"    <blockquote><p>{content}</p></blockquote>",
+                    "poetry" => $"    <p class=\"poetry\">{content}</p>",
+                    _ => $"    <p{(isFirst ? " class=\"no-indent\"" : "")}>{content}</p>"
+                });
                 isFirst = false;
             }
+
+            if (openList != ListKind.None)
+                bodyHtml.AppendLine(openList == ListKind.Number ? "    </ol>" : "    </ul>");
         }
 
         return $"""
@@ -1902,7 +2014,8 @@ public partial class ExportService
               <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
               <Default Extension="xml" ContentType="application/xml"/>
               <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
-              <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>{contentTypesExtra}{(hasComments ? "\n  <Override PartName=\"/word/comments.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml\"/>" : "")}
+              <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+              <Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>{contentTypesExtra}{(hasComments ? "\n  <Override PartName=\"/word/comments.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml\"/>" : "")}
             </Types>
             """);
 
@@ -1922,12 +2035,16 @@ public partial class ExportService
         await WriteEntryAsync(zip, "word/_rels/document.xml.rels", $"""
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-              <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>{headerRel}{(hasComments ? "\n  <Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments\" Target=\"comments.xml\"/>" : "")}
+              <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+              <Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>{headerRel}{(hasComments ? "\n  <Relationship Id=\"rId3\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/comments\" Target=\"comments.xml\"/>" : "")}
             </Relationships>
             """);
 
         // word/styles.xml
         await WriteEntryAsync(zip, "word/styles.xml", GenerateDocxStyles(options));
+        // Real Word list numbering rather than a literal bullet character typed
+        // into the text, so an editor can renumber and restyle the list.
+        await WriteEntryAsync(zip, "word/numbering.xml", GenerateDocxNumbering());
 
         if (hasComments)
             await WriteEntryAsync(zip, "word/comments.xml", GenerateDocxComments(exportComments));
@@ -1992,17 +2109,18 @@ public partial class ExportService
                 }
 
                 var scene = chapter.Scenes[si];
-                var paragraphs = ParseHtmlToParagraphs(scene.HtmlContent);
+                var blocks = ParseHtmlToBlocks(scene.HtmlContent);
                 var isFirstPara = si == 0;
                 // One anchor per comment: a phrase repeated across paragraphs
                 // would otherwise mark every occurrence.
                 var anchored = new HashSet<string>(StringComparer.Ordinal);
 
-                foreach (var para in paragraphs)
+                foreach (var block in blocks)
                 {
-                    var style = isFirstPara ? "NoIndent" : "BodyText";
+                    var para = block.Segments;
                     var runs = SegmentsToDocxRuns(para);
-                    var paragraphXml = $"<w:p><w:pPr><w:pStyle w:val=\"{style}\"/></w:pPr>{runs}</w:p>";
+                    var paragraphXml =
+                        $"<w:p><w:pPr>{DocxParagraphProperties(block, isFirstPara)}</w:pPr>{runs}</w:p>";
 
                     // Skipped when this scene has none, even if other scenes do.
                     if (scene.Comments.Count > 0)
@@ -2256,8 +2374,141 @@ public partial class ExportService
                   <w:spacing w:before="360" w:after="360"/>
                 </w:pPr>
               </w:style>
+
+              <w:style w:type="paragraph" w:styleId="Heading2">
+                <w:name w:val="heading 2"/>
+                <w:basedOn w:val="Normal"/>
+                <w:pPr>
+                  <w:outlineLvl w:val="1"/>
+                  <w:ind w:firstLine="0"/>
+                  <w:spacing w:before="360" w:after="180"/>
+                  <w:keepNext/>
+                </w:pPr>
+                <w:rPr><w:b/><w:sz w:val="30"/><w:szCs w:val="30"/></w:rPr>
+              </w:style>
+
+              <w:style w:type="paragraph" w:styleId="Heading3">
+                <w:name w:val="heading 3"/>
+                <w:basedOn w:val="Normal"/>
+                <w:pPr>
+                  <w:outlineLvl w:val="2"/>
+                  <w:ind w:firstLine="0"/>
+                  <w:spacing w:before="280" w:after="140"/>
+                  <w:keepNext/>
+                </w:pPr>
+                <w:rPr><w:b/><w:sz w:val="26"/><w:szCs w:val="26"/></w:rPr>
+              </w:style>
+
+              <w:style w:type="paragraph" w:styleId="Quote">
+                <w:name w:val="Quote"/>
+                <w:basedOn w:val="Normal"/>
+                <w:pPr>
+                  <w:ind w:left="720" w:right="720" w:firstLine="0"/>
+                  <w:spacing w:before="180" w:after="180"/>
+                </w:pPr>
+                <w:rPr><w:i/></w:rPr>
+              </w:style>
+
+              <w:style w:type="paragraph" w:styleId="Verse">
+                <w:name w:val="Verse"/>
+                <w:basedOn w:val="Normal"/>
+                <w:pPr>
+                  <w:ind w:left="720" w:firstLine="0"/>
+                  <w:jc w:val="left"/>
+                </w:pPr>
+              </w:style>
+
+              <w:style w:type="paragraph" w:styleId="ListParagraph">
+                <w:name w:val="List Paragraph"/>
+                <w:basedOn w:val="Normal"/>
+                <w:pPr>
+                  <w:ind w:left="720" w:firstLine="0"/>
+                  <w:contextualSpacing/>
+                  <w:jc w:val="left"/>
+                </w:pPr>
+              </w:style>
             </w:styles>
             """;
+    }
+
+    /// <summary>
+    /// Two list definitions, a bullet and a decimal, each with the nine levels
+    /// Word expects. Novalist only ever emits level zero, but a definition
+    /// missing its deeper levels makes Word treat the whole part as corrupt.
+    /// </summary>
+    private static string GenerateDocxNumbering()
+    {
+        var bulletLevels = new StringBuilder();
+        var decimalLevels = new StringBuilder();
+        for (var level = 0; level < 9; level++)
+        {
+            var indent = 720 * (level + 1);
+            bulletLevels.Append($"""
+                  <w:lvl w:ilvl="{level}">
+                    <w:start w:val="1"/>
+                    <w:numFmt w:val="bullet"/>
+                    <w:lvlText w:val="&#8226;"/>
+                    <w:lvlJc w:val="left"/>
+                    <w:pPr><w:ind w:left="{indent}" w:hanging="360"/></w:pPr>
+                    <w:rPr><w:rFonts w:ascii="Symbol" w:hAnsi="Symbol" w:hint="default"/></w:rPr>
+                  </w:lvl>
+                """);
+            decimalLevels.Append($"""
+                  <w:lvl w:ilvl="{level}">
+                    <w:start w:val="1"/>
+                    <w:numFmt w:val="decimal"/>
+                    <w:lvlText w:val="%{level + 1}."/>
+                    <w:lvlJc w:val="left"/>
+                    <w:pPr><w:ind w:left="{indent}" w:hanging="360"/></w:pPr>
+                  </w:lvl>
+                """);
+        }
+
+        return $"""
+            <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+            <w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+              <w:abstractNum w:abstractNumId="0">
+                <w:multiLevelType w:val="hybridMultilevel"/>
+            {bulletLevels}
+              </w:abstractNum>
+              <w:abstractNum w:abstractNumId="1">
+                <w:multiLevelType w:val="hybridMultilevel"/>
+            {decimalLevels}
+              </w:abstractNum>
+              <w:num w:numId="{DocxBulletNumId}"><w:abstractNumId w:val="0"/></w:num>
+              <w:num w:numId="{DocxNumberNumId}"><w:abstractNumId w:val="1"/></w:num>
+            </w:numbering>
+            """;
+    }
+
+    /// <summary>The numId a bulleted list paragraph points at.</summary>
+    private const int DocxBulletNumId = 1;
+
+    /// <summary>The numId a numbered list paragraph points at.</summary>
+    private const int DocxNumberNumId = 2;
+
+    /// <summary>The paragraph properties for one exported block: its Word style
+    /// and, for a list item, the numbering it belongs to.</summary>
+    private static string DocxParagraphProperties(ExportBlock block, bool firstInScene)
+    {
+        if (block.List != ListKind.None)
+        {
+            var numId = block.List == ListKind.Number ? DocxNumberNumId : DocxBulletNumId;
+            return "<w:pStyle w:val=\"ListParagraph\"/>"
+                   + $"<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"{numId}\"/></w:numPr>";
+        }
+
+        var style = block.StyleId switch
+        {
+            "heading" => "Heading2",
+            "subheading" => "Heading3",
+            "blockquote" => "Quote",
+            "poetry" => "Verse",
+            // The first paragraph of a scene is not indented; typographic
+            // convention, and what the exporter already did.
+            _ => firstInScene ? "NoIndent" : "BodyText"
+        };
+        return $"<w:pStyle w:val=\"{style}\"/>";
     }
 
     private static string SegmentsToDocxRuns(List<InlineSegment> segments)
@@ -2785,23 +3036,29 @@ public partial class ExportService
                 }
 
                 var scene = chapter.Scenes[si];
-                foreach (Match pm in ParagraphAnyRegex().Matches(scene.HtmlContent))
+                // Ordered items number from one per run, so two lists in a scene
+                // do not continue each other's count.
+                var ordinal = 0;
+                foreach (var block in ParseHtmlToBlocks(scene.HtmlContent))
                 {
-                    var styleId = ExtractStyleClass(pm.Groups[1].Value);
-                    var inner = pm.Groups[2].Value;
-                    var segments = ParseInlineFormatting(inner);
-                    if (segments.Count == 0 || segments.All(s => string.IsNullOrWhiteSpace(s.Text)))
+                    var text = SegmentsToMarkdown(block.Segments);
+                    if (block.List != ListKind.None)
+                    {
+                        ordinal = block.List == ListKind.Number ? ordinal + 1 : 0;
+                        sb.AppendLine(block.List == ListKind.Number ? $"{ordinal}. {text}" : $"- {text}");
+                        sb.AppendLine();
                         continue;
-                    var text = SegmentsToMarkdown(segments);
-                    var line = styleId switch
+                    }
+
+                    ordinal = 0;
+                    sb.AppendLine(block.StyleId switch
                     {
                         "heading" => $"# {text}",
                         "subheading" => $"## {text}",
                         "blockquote" => $"> {text}",
                         "poetry" => $"    {text}",
                         _ => text,
-                    };
-                    sb.AppendLine(line);
+                    });
                     sb.AppendLine();
                 }
             }
@@ -2844,6 +3101,13 @@ public partial class ExportService
 
     [GeneratedRegex(@"<p[^>]*\bclass=""([^""]*)""[^>]*>(.*?)</p>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex ParagraphWithClassRegex();
+
+    /// <summary>Paragraphs and list items in document order, plus the bare
+    /// <c>ul</c>/<c>ol</c> boundaries that say which kind of list an item is in.</summary>
+    [GeneratedRegex(
+        @"<(?<tag>p|li)(?<attrs>[^>]*)>(?<body>.*?)</\k<tag>>|<(?<tag>ul|ol)[^>]*>|<(?<tag>/ul|/ol)>",
+        RegexOptions.Singleline | RegexOptions.IgnoreCase)]
+    private static partial Regex BlockRegex();
 
     [GeneratedRegex(@"<p([^>]*)>(.*?)</p>", RegexOptions.Singleline | RegexOptions.IgnoreCase)]
     private static partial Regex ParagraphAnyRegex();

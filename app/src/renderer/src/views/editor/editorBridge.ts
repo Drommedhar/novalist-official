@@ -63,6 +63,8 @@ export interface EditorWindow extends Window {
   alignJustify(): void
   /** Applies a named paragraph style (`nv-style-<id>`) to the selection; '' clears it. */
   setParagraphStyle(style: string): void
+  toggleBulletList(): void
+  toggleNumberList(): void
   focusEditor(): void
 }
 

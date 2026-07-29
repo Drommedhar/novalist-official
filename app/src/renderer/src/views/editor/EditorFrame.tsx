@@ -126,7 +126,10 @@ const DEFAULT_FORMATTING: FormattingState = {
   bold: false,
   italic: false,
   underline: false,
-  alignment: 'left'
+  alignment: 'left',
+  paragraphStyle: '',
+  bulletList: false,
+  numberList: false
 }
 
 interface SceneComment {
@@ -725,7 +728,10 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
             bold: Boolean(message.bold),
             italic: Boolean(message.italic),
             underline: Boolean(message.underline),
-            alignment: (message.alignment as FormattingState['alignment']) ?? 'left'
+            alignment: (message.alignment as FormattingState['alignment']) ?? 'left',
+            paragraphStyle: String(message.paragraphStyle ?? ''),
+            bulletList: Boolean(message.bulletList),
+            numberList: Boolean(message.numberList)
           })
           break
         }

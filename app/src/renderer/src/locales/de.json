@@ -2151,5 +2151,23 @@
     "snapshotNote": "Von beiden Fassungen wird vor dem Speichern ein Schnappschuss angelegt, Sie können also zu jeder zurück.",
     "decideLater": "Später entscheiden",
     "save": "Diese Fassung speichern"
+  },
+  "blockStyle": {
+    "label": "Absatzformat",
+    "body": "Fließtext",
+    "heading": "Überschrift",
+    "subheading": "Zwischenüberschrift",
+    "blockquote": "Blockzitat",
+    "poetry": "Vers",
+    "bold": "Fett",
+    "italic": "Kursiv",
+    "underline": "Unterstrichen",
+    "bulletList": "Aufzählung",
+    "numberList": "Nummerierte Liste",
+    "left": "Linksbündig",
+    "center": "Zentriert",
+    "right": "Rechtsbündig",
+    "justify": "Blocksatz",
+    "pageView": "Seitenansicht"
   }
 }

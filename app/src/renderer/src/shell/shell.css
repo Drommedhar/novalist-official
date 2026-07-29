@@ -798,6 +798,18 @@
   background: var(--nl-surface-toolbar);
 }
 
+/* The style picker sits ahead of the character buttons: it names what the
+   paragraph is, which the buttons then decorate. */
+.editor-toolbar-style {
+  background: var(--nl-surface-input);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  margin-right: var(--nl-space-tighter);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+}
+
 .editor-toolbar-button {
   display: inline-flex;
   padding: var(--nl-space-tighter) var(--nl-space-sm);

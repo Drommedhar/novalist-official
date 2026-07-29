@@ -2143,5 +2143,23 @@
     "snapshotNote": "Both versions are snapshotted before this is saved, so you can go back to either one.",
     "decideLater": "Decide later",
     "save": "Save this version"
+  },
+  "blockStyle": {
+    "label": "Paragraph style",
+    "body": "Body",
+    "heading": "Heading",
+    "subheading": "Subheading",
+    "blockquote": "Block quote",
+    "poetry": "Verse",
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "bulletList": "Bulleted list",
+    "numberList": "Numbered list",
+    "left": "Align left",
+    "center": "Centre",
+    "right": "Align right",
+    "justify": "Justify",
+    "pageView": "Page view"
   }
 }

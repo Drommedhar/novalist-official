@@ -36,7 +36,9 @@ Novalist saves automatically **two seconds** after the last keystroke. Pending c
 
 The strip above the page:
 
+- **Paragraph style** (drop-down, far left) — what the paragraph under the caret *is*: Body, Heading, Subheading, Block quote or Verse. See [Paragraph styles](#paragraph-styles) below.
 - **Bold**, **Italic**, **Underline** — toggle inline formatting on the selection.
+- **Bulleted list** and **Numbered list** — turn the selected paragraphs into a list, or turn a list back into paragraphs.
 - **Align left / center / right / justify** — set paragraph alignment.
 - **Page view toggle** (book icon, far right) — switches the editor between a plain writing surface and a printed-book-style page with paper background, margins, and shadow. This is the same setting as **Page View** in [Settings](23-settings.md) → Editor.
 
@@ -44,13 +46,33 @@ The active formatting of the text under the caret is highlighted in the toolbar.
 
 ## Paragraph styles
 
-Beyond inline formatting, a paragraph can carry a **named style** — *heading* or *subheading*. Styled paragraphs are drawn larger and bolder in the editor, and the [export](20-export.md) formats that have a notion of headings treat them as one instead of as body text: Markdown writes them as `#` and `##`, LaTeX as `\section*` and `\subsection*`, and the Normseiten layout upper-cases them and sets them off with blank lines. (The Exposé applies a slightly different rule to its title line — see [Exposé](32-expose.md).)
+Beyond inline formatting, a paragraph can carry a **named style**. Pick one from the drop-down at the left of the toolbar; it applies to every paragraph the selection touches, and shows what the paragraph under the caret currently is.
 
-The scene toolbar has **no control for applying a style**. Scene paragraphs carry one only if the content already had it — projects written in an older version of Novalist, whose editor offered a style dropdown.
+| Style | What it is for | In the editor |
+| --- | --- | --- |
+| **Body** | Ordinary prose. The absence of a style rather than a style of its own, so a manuscript you never styled carries no markup it did not ask for. | Normal |
+| **Heading** | A section title inside a scene. | Larger and bold |
+| **Subheading** | A section title one level down. | Slightly larger and semibold |
+| **Block quote** | A letter, an inscription, an excerpt from another book. | Indented and italic |
+| **Verse** | A poem, a song, an epigraph — anything whose line breaks are the writer's and must survive. | Indented, never justified, line breaks kept |
 
-Pasting a heading from a web page or a Word document does not create one. The paste keeps the heading tag, but every export reads text out of paragraphs, so a pasted heading is dropped from the exported file entirely. If you paste a structured document into a scene, re-type its headings as ordinary paragraphs.
+**Lists** are separate from paragraph styles because they are real structure rather than a look: the two list buttons turn the selected paragraphs into a bulleted or numbered list, and pressing the same button again turns them back into paragraphs.
 
-Where paragraph styles are applied by hand is the [Exposé](32-expose.md) view, which has Title / Section / Body buttons above its editor. That is the document type whose structure depends on them.
+### How styles reach the exported file
+
+Every format understands every style, so a heading is a heading wherever the manuscript goes:
+
+| | Heading / Subheading | Block quote | Verse | Lists |
+| --- | --- | --- | --- | --- |
+| **DOCX** | Word's Heading 2 / Heading 3 styles, so Word's navigation pane and table of contents find them | Word's Quote style | Indented, left-aligned | Real Word numbering — an editor can renumber and restyle them |
+| **EPUB** | `<h2>` / `<h3>`, so a reading system's navigation works | `<blockquote>` | Its own class, line breaks preserved | `<ul>` / `<ol>` |
+| **Markdown** | `#` / `##` | `>` | Indented block | `-` / `1.` |
+| **LaTeX / PDF** | `\section*` / `\subsection*` | `quote` environment | `verse` environment | `itemize` / `enumerate` |
+| **Normseiten** | Upper-cased and set off with blank lines | As body text — the layout is a fixed submission format | As body text | As body text |
+
+Pasting a heading from a web page or a Word document keeps its structure in the editor. Set it to the style you actually want from the drop-down, so it exports the way you intend rather than however the source page happened to mark it up.
+
+The [Exposé](32-expose.md) view has its own Title / Section / Body buttons, because that document type's structure depends on them differently.
 
 ## The editor context menu
 

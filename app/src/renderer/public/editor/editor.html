@@ -68,6 +68,12 @@ body { display: flex; justify-content: center; }
    a styled paragraph recognisable on screen instead of invisible state. */
 #editor .nv-style-heading { font-size: 1.5em; font-weight: 700; line-height: 1.3; }
 #editor .nv-style-subheading { font-size: 1.2em; font-weight: 600; line-height: 1.35; }
+#editor .nv-style-blockquote { margin: 0.6em 2em; font-style: italic; text-indent: 0; }
+/* Verse keeps the line breaks the writer typed, and is never justified - that
+   would stretch a short line across the measure. */
+#editor .nv-style-poetry { margin: 0 0 0.2em 2em; text-indent: 0; text-align: left; white-space: pre-wrap; }
+#editor ul, #editor ol { margin: 0.6em 0 0.6em 2em; padding: 0; }
+#editor li { margin-bottom: 0.2em; text-indent: 0; text-align: left; }
 #editor ::selection { background: var(--selection-bg); }
 
 /* Themed scrollbars for every scroller in this document (the text wrapper, the
@@ -845,6 +851,22 @@ function setParagraphStyle(style) {
     editor.dispatchEvent(new Event('input'));
 }
 
+// Lists are real ul/ol structure rather than a paragraph style, because that is
+// what every export format wants and what a pasted list already is.
+function toggleBulletList() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('insertUnorderedList');
+    notifyFormattingChanged();
+    editor.dispatchEvent(new Event('input'));
+}
+
+function toggleNumberList() {
+    editor.focus({ preventScroll: true });
+    document.execCommand('insertOrderedList');
+    notifyFormattingChanged();
+    editor.dispatchEvent(new Event('input'));
+}
+
 // ── Formatting State ────────────────────────────────────────────
 
 function getFormattingState() {
@@ -855,7 +877,15 @@ function getFormattingState() {
     if (document.queryCommandState('justifyCenter')) alignment = 'center';
     else if (document.queryCommandState('justifyRight')) alignment = 'right';
     else if (document.queryCommandState('justifyFull')) alignment = 'justify';
-    return { bold, italic, underline, alignment, paragraphStyle: getParagraphStyle() };
+    return {
+        bold,
+        italic,
+        underline,
+        alignment,
+        paragraphStyle: getParagraphStyle(),
+        bulletList: document.queryCommandState('insertUnorderedList'),
+        numberList: document.queryCommandState('insertOrderedList')
+    };
 }
 
 function notifyFormattingChanged() {

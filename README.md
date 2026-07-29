@@ -44,7 +44,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 
 ### Writing
 
-- WYSIWYG editor with formatting, paragraph styles (heading, subheading, blockquote, poetry), inline comments, and numbered footnotes.
+- WYSIWYG editor with inline formatting, paragraph styles (heading, subheading, block quote, verse), bulleted and numbered lists, inline comments, and numbered footnotes — every style carried through to DOCX, EPUB, Markdown and LaTeX.
 - Auto-save with per-scene **snapshot history** and a side-by-side compare view — revert a single scene without touching the rest of the project.
 - **Focus Mode** that hides every panel except the editor.
 - **Split editor** for editing two scenes side by side.
