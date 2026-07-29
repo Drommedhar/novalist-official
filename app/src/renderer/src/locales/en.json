@@ -2581,5 +2581,16 @@
     "pick": "Choose an image",
     "altTitle": "What does this image show?",
     "altPlaceholder": "A sentence for readers who cannot see it"
+  },
+  "tags": {
+    "title": "Tags",
+    "intro": "Every tag in the project, wherever it is used - on scenes, on Codex entries, on research notes. Give one a colour, rename it everywhere, or rename it onto another tag to merge the two.",
+    "empty": "Nothing is tagged yet.",
+    "colour": "Tag colour",
+    "counts": "{{scenes}} scenes, {{entities}} entries, {{research}} notes",
+    "rename": "Rename or merge",
+    "renameTitle": "Rename \"{{name}}\"",
+    "renamePlaceholder": "A new name, or an existing tag to merge into",
+    "delete": "Remove this tag from everything"
   }
 }

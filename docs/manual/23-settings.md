@@ -85,6 +85,18 @@ Per-project targets that feed the Dashboard's goal cards.
 
 The two word goals can also be edited on the Dashboard by clicking a goal card's title; it is the same setting either way.
 
+## Tags
+
+Every tag in the project, wherever it is used: on scenes, on Codex entries, and on research notes. They were three unrelated lists before this — a tag on a scene and the same word on a character were not the same tag, could not be counted, and could not be renamed together.
+
+Each row shows the tag, a colour swatch, and how many scenes, entries and notes carry it.
+
+- **Colour** — click the swatch. A tag can be coloured before anything uses it, which is how a vocabulary gets planned rather than accumulated.
+- **Rename or merge** — click the tag's name. Typing a new name renames it everywhere at once. Typing the name of a tag that **already exists** merges the two: everything that carried either now carries one, and nothing carries it twice.
+- **Remove** — takes the tag off everything that has it. This cannot be undone from here.
+
+Renaming and merging reach scenes, Codex entries and research notes in the same pass, which is the point: a rename that fixed the scenes and left the Codex spelling it the old way is exactly the drift this replaces.
+
 ## Scene Labels
 
 The labels a scene in the open book can carry: a name and a colour each. See [Scene labels](10-manuscript.md#scene-labels) for how they are used.

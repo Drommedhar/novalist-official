@@ -2623,5 +2623,16 @@
     "pick": "选择图片",
     "altTitle": "这张图片展示什么？",
     "altPlaceholder": "写一句话，给看不到它的读者"
+  },
+  "tags": {
+    "title": "标签",
+    "intro": "项目中的所有标签，无论用在何处 — 场景、设定集条目、研究笔记。可以设色、全局重命名，或重命名为另一个已有标签以合并。",
+    "empty": "还没有任何标签。",
+    "colour": "标签颜色",
+    "counts": "{{scenes}} 个场景、{{entities}} 条条目、{{research}} 条笔记",
+    "rename": "重命名或合并",
+    "renameTitle": "重命名“{{name}}”",
+    "renamePlaceholder": "新名称，或要合并到的现有标签",
+    "delete": "从所有地方移除此标签"
   }
 }

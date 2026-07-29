@@ -27,6 +27,15 @@ public class CustomEntityData : IEntityData
     [JsonPropertyName("stateOverrides")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public List<EntityStateOverride> StateOverrides { get; set; } = [];
+    /// <summary>
+    /// Project-wide tags on this entry. The same vocabulary the scenes and the
+    /// research notes use, so a tag means one thing across the project rather
+    /// than three unrelated things that happen to be spelled alike.
+    /// </summary>
+    [JsonPropertyName("tags")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<string> Tags { get; set; } = [];
+
 
 
     /// <summary>

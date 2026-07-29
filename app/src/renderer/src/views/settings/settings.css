@@ -361,3 +361,15 @@
 .props-outliner-toggle {
   grid-column: 1 / -1;
 }
+
+/* A tag reads as a name you can click, not as a disabled label. */
+.tag-name {
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  text-align: left;
+  flex: 1;
+}
+
+.tag-name:hover {
+  color: var(--nl-accent);
+}

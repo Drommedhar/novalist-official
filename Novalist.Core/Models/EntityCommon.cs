@@ -87,6 +87,9 @@ public interface IEntityData
     /// <summary>What this entry is like at particular points in the story.
     /// Never null; empty means it is the same throughout.</summary>
     List<EntityStateOverride> StateOverrides { get; set; }
+
+    /// <summary>Project-wide tags on this entry. Never null.</summary>
+    List<string> Tags { get; set; }
 }
 
 /// <summary>

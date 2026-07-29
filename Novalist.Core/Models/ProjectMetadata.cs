@@ -74,6 +74,15 @@ public class ProjectMetadata
     [JsonPropertyName("smartLists")]
     public List<SmartList> SmartLists { get; set; } = [];
 
+    /// <summary>
+    /// The project's tag vocabulary: every tag that has been given a colour,
+    /// and the colour it has. A tag used on something but never coloured is
+    /// still a tag - this list is what the manager knows about, not what
+    /// exists, which is why the service reads both.
+    /// </summary>
+    [JsonPropertyName("tags")]
+    public List<ProjectTag> Tags { get; set; } = [];
+
     /// <summary>Research notes / links / imported files attached to the project.</summary>
     [JsonPropertyName("researchItems")]
     public List<ResearchItem> ResearchItems { get; set; } = [];

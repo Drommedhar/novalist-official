@@ -2589,5 +2589,16 @@
     "pick": "Bild auswählen",
     "altTitle": "Was zeigt dieses Bild?",
     "altPlaceholder": "Ein Satz für Leser, die es nicht sehen können"
+  },
+  "tags": {
+    "title": "Schlagwörter",
+    "intro": "Alle Schlagwörter des Projekts, wo immer sie verwendet werden – an Szenen, an Kodex-Einträgen, an Recherchenotizen. Geben Sie einem eine Farbe, benennen Sie es überall um, oder benennen Sie es auf ein anderes um, um beide zusammenzuführen.",
+    "empty": "Noch nichts verschlagwortet.",
+    "colour": "Farbe des Schlagworts",
+    "counts": "{{scenes}} Szenen, {{entities}} Einträge, {{research}} Notizen",
+    "rename": "Umbenennen oder zusammenführen",
+    "renameTitle": "„{{name}}“ umbenennen",
+    "renamePlaceholder": "Ein neuer Name oder ein vorhandenes Schlagwort zum Zusammenführen",
+    "delete": "Dieses Schlagwort überall entfernen"
   }
 }

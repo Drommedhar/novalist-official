@@ -19,6 +19,7 @@ import { LanguagePacksCard } from './LanguagePacksCard'
 import { SceneStagesCard } from './SceneStagesCard'
 import { ManuscriptPropertiesCard } from './ManuscriptPropertiesCard'
 import { SceneLabelsCard } from './SceneLabelsCard'
+import { TagsCard } from './TagsCard'
 import './settings.css'
 
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
@@ -931,6 +932,12 @@ export function SettingsView(): React.JSX.Element {
       titleKey: 'labels.title',
       keywords: ['label', 'labels', 'colour', 'color', 'flag', 'scene', 'corkboard'],
       body: <SceneLabelsCard />
+    },
+    {
+      key: 'tags',
+      titleKey: 'tags.title',
+      keywords: ['tag', 'tags', 'label', 'colour', 'color', 'merge', 'rename', 'vocabulary'],
+      body: <TagsCard />
     },
     {
       key: 'manuscriptProperties',
