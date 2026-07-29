@@ -217,4 +217,29 @@ public sealed class TimelineRpcTests : IDisposable
         Assert.Empty(sceneEvent.PlotlineIds);
         Assert.Equal(string.Empty, sceneEvent.Pov);
     }
+
+    [Fact]
+    public async Task SceneEvents_CarryTheirModeAndReadingPosition()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var first = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Now");
+        var second = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Then");
+        first.Date = "2024-05-01";
+        second.Date = "1999-01-01";
+        second.NarrativeMode = "flashback";
+        await _workspace.Projects.SaveScenesAsync();
+
+        var scenes = (await _rpc.Get()).Groups
+            .SelectMany(g => g.Events)
+            .Where(e => e.Source == "scene")
+            .OrderBy(e => e.ReadingIndex)
+            .ToList();
+
+        // Reading order is what the reader meets, whatever the dates say - a
+        // flashback dated 1999 is still the second scene of the book.
+        Assert.Equal(["Now", "Then"], scenes.Select(e => e.Title.Split(": ")[1]));
+        Assert.Equal([1, 2], scenes.Select(e => e.ReadingIndex));
+        Assert.Equal("flashback", scenes[1].NarrativeMode);
+        Assert.Equal(string.Empty, scenes[0].NarrativeMode);
+    }
 }

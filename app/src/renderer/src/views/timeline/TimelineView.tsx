@@ -25,6 +25,8 @@ export interface TimelineEventDto {
   isManual: boolean
   pov: string
   plotlineIds: string[]
+  narrativeMode: string
+  readingIndex: number
 }
 
 interface TimelineEntityLink {
@@ -77,6 +79,9 @@ export function TimelineView(): React.JSX.Element {
   // Filtering hides the threads being compared, which is exactly wrong for
   // "does this POV vanish for eighty pages". Lanes show them side by side.
   const [laneBy, setLaneBy] = useState('none')
+  // A flashback sorts by its date like everything else, which is right for
+  // chronology and wrong for "what does the reader meet next".
+  const [readingOrder, setReadingOrder] = useState(false)
   // Plotlines are stored by id; a lane headed with a GUID says nothing.
   const [plotlineNames, setPlotlineNames] = useState<Record<string, string>>({})
   const [characterFilter, setCharacterFilter] = useState('')
@@ -324,6 +329,12 @@ export function TimelineView(): React.JSX.Element {
             ))}
           </select>
         )}
+        <button
+          className={`toolbar-button toolbar-action${readingOrder ? ' active' : ''}`}
+          onClick={() => setReadingOrder(!readingOrder)}
+        >
+          {t(readingOrder ? 'timeline.orderReading' : 'timeline.orderChronological')}
+        </button>
         <select
           className="dialog-input findreplace-scope"
           aria-label={t('timeline.lanes')}
@@ -441,7 +452,42 @@ export function TimelineView(): React.JSX.Element {
           ))}
         </div>
       )}
-      <div className={`timeline-body ${data.viewMode}`} hidden={laneBy !== 'none'}>
+      {readingOrder && laneBy === 'none' && (
+        <div className="timeline-reading">
+          {data.groups
+            .flatMap((g) => g.events)
+            .filter(matchesFilters)
+            .filter((event) => event.readingIndex > 0)
+            .sort((a, b) => a.readingIndex - b.readingIndex)
+            .map((event) => (
+              <button
+                key={event.id}
+                className="timeline-reading-row"
+                onClick={() => {
+                  if (event.chapterGuid && event.sceneId)
+                    void useProjectStore.getState().openScene(event.chapterGuid, event.sceneId)
+                }}
+              >
+                {/* R is where the reader meets it, C the date it happens on.
+                    Seeing both is the only way to read a flashback correctly. */}
+                <span className="timeline-order-badge">R:{event.readingIndex}</span>
+                <span className="timeline-order-badge chrono">
+                  {event.dateStr || t('timeline.undated')}
+                </span>
+                {event.narrativeMode && (
+                  <span className="timeline-mode-pill">
+                    {t(`timeline.mode_${event.narrativeMode}`)}
+                  </span>
+                )}
+                <span className="timeline-reading-title">{event.title}</span>
+              </button>
+            ))}
+        </div>
+      )}
+      <div
+        className={`timeline-body ${data.viewMode}`}
+        hidden={laneBy !== 'none' || readingOrder}
+      >
         {data.groups.map((group) => (
           <div
             key={group.key}
@@ -476,6 +522,11 @@ export function TimelineView(): React.JSX.Element {
                     <span className={`timeline-source-pill source-${event.source}`}>
                       {t(`timeline.${event.source}Event`)}
                     </span>
+                    {event.narrativeMode && (
+                      <span className="timeline-mode-pill">
+                        {t(`timeline.mode_${event.narrativeMode}`)}
+                      </span>
+                    )}
                   </div>
                   {event.dateStr && <div className="timeline-event-date">{event.dateStr}</div>}
                   {event.description && (

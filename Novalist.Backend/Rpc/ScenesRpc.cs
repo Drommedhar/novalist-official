@@ -39,7 +39,9 @@ public sealed class ScenesRpc
             storyDate,
             StoryDateFormatter.ExtractLeadingDate(storyDate),
             scene.Cast?.ToArray() ?? [],
-            scene.FocusEntityId);
+            scene.FocusEntityId,
+            scene.NarrativeMode,
+            scene.Strand);
     }
 
     /// <summary>
@@ -65,6 +67,26 @@ public sealed class ScenesRpc
         await _workspace.Projects.SaveScenesAsync();
         return GetMeta(chapterGuid, sceneId);
     }
+
+    /// <summary>
+    /// How the scene sits in time, and which strand it belongs to. A scene that
+    /// simply happens next carries neither.
+    /// </summary>
+    [JsonRpcMethod("scenes/setNarrativeMode")]
+    public async Task<SceneMetaDto> SetNarrativeModeAsync(
+        string chapterGuid, string sceneId, string? mode, string? strand)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        scene.NarrativeMode = NullIfBlank(mode);
+        // A strand only means something on a scene running alongside another;
+        // keeping it elsewhere would put lanes on scenes that have no thread.
+        scene.Strand = scene.NarrativeMode == "parallel" ? NullIfBlank(strand) : null;
+        await _workspace.Projects.SaveScenesAsync();
+        return GetMeta(chapterGuid, sceneId);
+    }
+
+    private static string? NullIfBlank(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>
     /// Merge-patches the scene's analysis overrides: only non-null fields on the
@@ -240,7 +262,9 @@ public sealed record SceneMetaDto(
     string StoryDate,
     string? IsoDate,
     string[] Cast,
-    string? FocusEntityId);
+    string? FocusEntityId,
+    string? NarrativeMode,
+    string? Strand);
 
 /// <summary>Partial patch for a scene's analysis overrides. Null fields are
 /// left unchanged; only supplied fields are written.</summary>

@@ -1545,7 +1545,16 @@
     "lane_location": "Lanes: location",
     "lane_pov": "Lanes: POV",
     "lane_plotline": "Lanes: plotline",
-    "laneUngrouped": "Ungrouped"
+    "laneUngrouped": "Ungrouped",
+    "orderChronological": "By date",
+    "orderReading": "In reading order",
+    "undated": "no date",
+    "mode_flashback": "Flashback",
+    "mode_flashforward": "Flash-forward",
+    "mode_parallel": "Parallel",
+    "mode_frame": "Frame",
+    "mode_dream": "Dream",
+    "mode_timeskip": "Time skip"
   },
   "export": {
     "header": "Export Novel",
@@ -2416,5 +2425,11 @@
     "notATodo": "No longer a to-do",
     "reply": "Reply",
     "replyPlaceholder": "Reply, then press Enter"
+  },
+  "narrative": {
+    "title": "How it sits in time",
+    "normal": "Happens next",
+    "strand": "Strand",
+    "strandPlaceholder": "Which thread, e.g. \"the siege\""
   }
 }

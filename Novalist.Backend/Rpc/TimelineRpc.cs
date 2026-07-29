@@ -30,6 +30,7 @@ public sealed class TimelineRpc
         var seenActs = new HashSet<string>();
         // Names for the ids a scene's cast holds, so an event can say who is in
         // it rather than only which thread it belongs to.
+        var readingIndex = 0;
         var characterNames = (await _entities.LoadCharactersAsync())
             .ToDictionary(c => c.Id, c => c.Name, StringComparer.Ordinal);
         var locationNames = (await _entities.LoadLocationsAsync())
@@ -41,7 +42,8 @@ public sealed class TimelineRpc
             {
                 events.Add(new TimelineEventDto(
                     $"act-{chapter.Act}", chapter.Act, "", null, "", "act",
-                    null, null, null, chapter.Order - 0.5, [], [], false, string.Empty, []));
+                    null, null, null, chapter.Order - 0.5, [], [], false, string.Empty, [],
+                    string.Empty, 0));
             }
 
             if (!string.IsNullOrEmpty(chapter.Date))
@@ -49,7 +51,7 @@ public sealed class TimelineRpc
                 events.Add(new TimelineEventDto(
                     $"ch-{chapter.Guid}", chapter.Title, chapter.Date, Iso(ParseDate(chapter.Date)),
                     "", "chapter", null, chapter.Guid, null, chapter.Order, [], [], false,
-                    string.Empty, []));
+                    string.Empty, [], string.Empty, 0));
             }
 
             var scenes = (manifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [])
@@ -68,7 +70,11 @@ public sealed class TimelineRpc
                     [.. cast.Where(locationNames.ContainsKey).Select(id => locationNames[id])],
                     false,
                     scene.AnalysisOverrides?.Pov ?? string.Empty,
-                    scene.PlotlineIds ?? []));
+                    scene.PlotlineIds ?? [],
+                    scene.NarrativeMode ?? string.Empty,
+                    // Reading order is what a reader meets, whatever the dates
+                    // say; numbered here so the two orders can be compared.
+                    ++readingIndex));
             }
         }
 
@@ -80,7 +86,7 @@ public sealed class TimelineRpc
                 string.IsNullOrEmpty(manual.LinkedChapterGuid) ? null : manual.LinkedChapterGuid,
                 string.IsNullOrEmpty(manual.LinkedSceneId) ? null : manual.LinkedSceneId,
                 double.MaxValue, manual.Characters.ToArray(), manual.Locations.ToArray(), true,
-                string.Empty, []));
+                string.Empty, [], string.Empty, 0));
         }
 
         var groups = events
@@ -270,4 +276,11 @@ public sealed record TimelineEventDto(
     /// events that are not scenes.</summary>
     string Pov,
     /// <summary>Plotlines the scene belongs to, for lanes.</summary>
-    IReadOnlyList<string> PlotlineIds);
+    IReadOnlyList<string> PlotlineIds,
+    /// <summary>How the scene sits in time: flashback, parallel and the rest.
+    /// Empty for events that are not scenes, and for scenes that simply happen
+    /// next.</summary>
+    string NarrativeMode,
+    /// <summary>Its place in reading order, from one. Zero for events that are
+    /// not scenes.</summary>
+    int ReadingIndex);

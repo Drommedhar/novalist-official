@@ -44,6 +44,12 @@ To the right of the toolbar are controls for moving the visible window along the
 - **Today** — jump to the group nearest today's date.
 - **Jump to date** — pick any date; the timeline scrolls to the matching group, or the nearest dated group when nothing sits in that exact bucket.
 
+## Reading order
+
+The timeline sorts by date, which is right for a chronology and wrong for the question "what does the reader meet next" — a flashback dated 1999 is still the second scene of the book.
+
+The **By date / In reading order** button switches between them. In reading order the timeline becomes one flat run in manuscript order, each row showing `R:n` (where the reader meets it), the date it happens on, and its [narrative mode](04-chapters-and-scenes.md#how-a-scene-sits-in-time) if it has one. Click a row to open that scene.
+
 ## Lanes
 
 The character and location drop-downs *filter* the timeline down to one thread. That is the wrong tool for the question "does this POV disappear for eighty pages?" — filtering hides the very threads you are comparing.

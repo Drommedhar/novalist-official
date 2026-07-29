@@ -248,4 +248,44 @@ public sealed class ScenesRpcTests : IDisposable
         Assert.Empty(meta.Cast);
         Assert.Null(meta.FocusEntityId);
     }
+
+    // ----- how a scene sits in time -----
+
+    [Fact]
+    public async Task SetNarrativeMode_RoundTrips()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+
+        var meta = await _rpc.SetNarrativeModeAsync(chapterGuid, sceneId, " flashback ", null);
+
+        Assert.Equal("flashback", meta.NarrativeMode);
+        Assert.Equal("flashback", _rpc.GetMeta(chapterGuid, sceneId).NarrativeMode);
+    }
+
+    [Fact]
+    public async Task SetNarrativeMode_AStrandOnlySticksToAParallelScene()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+
+        // A strand on a scene that is not running alongside another would put
+        // it in a lane with no thread to be part of.
+        Assert.Null((await _rpc.SetNarrativeModeAsync(
+            chapterGuid, sceneId, "flashback", "the siege")).Strand);
+        Assert.Equal("the siege", (await _rpc.SetNarrativeModeAsync(
+            chapterGuid, sceneId, "parallel", " the siege ")).Strand);
+        // Changing away from parallel drops the strand with it.
+        Assert.Null((await _rpc.SetNarrativeModeAsync(
+            chapterGuid, sceneId, "dream", "the siege")).Strand);
+    }
+
+    [Fact]
+    public async Task SetNarrativeMode_BlankIsNoMode()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+        await _rpc.SetNarrativeModeAsync(chapterGuid, sceneId, "flashback", null);
+
+        var meta = await _rpc.SetNarrativeModeAsync(chapterGuid, sceneId, "   ", null);
+
+        Assert.Null(meta.NarrativeMode);
+    }
 }

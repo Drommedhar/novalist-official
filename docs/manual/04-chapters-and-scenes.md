@@ -133,6 +133,14 @@ Archiving removes a scene from the manuscript without deleting its text — usef
 - Click **ARCHIVE** at the bottom of the binder tree to show the list of archived scenes.
 - Click **Restore** next to an archived scene to bring it back into the manuscript (it is restored into the first chapter; drag it from there to where it belongs).
 
+## How a scene sits in time
+
+Most scenes simply happen next. Some do not, and a scene that carries a date will otherwise sort as though it happened at that point in the story.
+
+The scene notes dock has a **How it sits in time** picker: **Flashback**, **Flash-forward**, **Parallel**, **Frame**, **Dream** or **Time skip**. A **Parallel** scene also takes a **strand** name — which thread it runs on, so two strands happening at once can be told apart instead of being one undifferentiated pile. The strand only applies to parallel scenes; changing the mode away from Parallel drops it.
+
+The mode appears as a pill on the scene's [Timeline](12-timeline.md) entry, in both the dated and the reading-order views.
+
 ## Who and what is in a scene
 
 Novalist works out who a scene involves from the @-mentions in its prose. Those are never wrong — you confirmed each one — but they are incomplete: a character who is in the room and says nothing leaves no mention behind, and the person a scene is really *about* is often not the one whose name appears most.

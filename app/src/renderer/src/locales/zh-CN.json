@@ -1580,7 +1580,16 @@
     "lane_location": "泳道：地点",
     "lane_pov": "泳道：视角",
     "lane_plotline": "泳道：情节线",
-    "laneUngrouped": "未分组"
+    "laneUngrouped": "未分组",
+    "orderChronological": "按日期",
+    "orderReading": "按阅读顺序",
+    "undated": "无日期",
+    "mode_flashback": "回忆",
+    "mode_flashforward": "闪前",
+    "mode_parallel": "平行",
+    "mode_frame": "框架",
+    "mode_dream": "梦境",
+    "mode_timeskip": "时间跳跃"
   },
   "export": {
     "header": "导出小说",
@@ -2458,5 +2467,11 @@
     "notATodo": "不再是待办",
     "reply": "回复",
     "replyPlaceholder": "输入回复，按回车"
+  },
+  "narrative": {
+    "title": "时间上的位置",
+    "normal": "接着发生",
+    "strand": "线索",
+    "strandPlaceholder": "哪条线索，例如“围城”"
   }
 }

@@ -138,3 +138,52 @@
 .timeline-lane-event:hover {
   border-color: var(--nl-accent);
 }
+
+/* Reading order: one flat run in the order a reader meets the scenes, with
+   the date each one happens on beside it. */
+.timeline-reading {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--nl-space-md);
+}
+
+.timeline-reading-row {
+  align-items: center;
+  border-bottom: 1px solid var(--nl-border-subtle);
+  display: flex;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-tighter) var(--nl-space-none);
+  text-align: left;
+}
+
+.timeline-reading-row:hover {
+  background: var(--nl-surface-hover);
+}
+
+.timeline-order-badge {
+  color: var(--nl-text-subtle);
+  flex: none;
+  font-size: var(--nl-font-caption);
+  min-width: 56px;
+}
+
+.timeline-order-badge.chrono {
+  min-width: 96px;
+}
+
+.timeline-mode-pill {
+  background: var(--nl-surface-selected);
+  border-radius: var(--nl-radius-pill);
+  flex: none;
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+}
+
+.timeline-reading-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

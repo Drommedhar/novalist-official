@@ -113,6 +113,24 @@ public class SceneData
     public SceneAnalysisOverrides? AnalysisOverrides { get; set; }
 
     /// <summary>
+    /// How the scene sits in time relative to the story around it:
+    /// <c>flashback</c>, <c>flashforward</c>, <c>parallel</c>, <c>frame</c>,
+    /// <c>dream</c> or <c>timeskip</c>. Null for a scene that simply happens
+    /// next, which is most of them.
+    /// </summary>
+    [JsonPropertyName("narrativeMode")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? NarrativeMode { get; set; }
+
+    /// <summary>
+    /// The named thread a parallel scene belongs to, so two strands running at
+    /// once can be told apart rather than being one undifferentiated pile.
+    /// </summary>
+    [JsonPropertyName("strand")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Strand { get; set; }
+
+    /// <summary>
     /// Things this scene promises the reader, each with the scene that pays it
     /// off once one exists. Null when the scene promises nothing.
     /// </summary>
