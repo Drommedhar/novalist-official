@@ -99,6 +99,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Changed
 
+- **Corkboard and Outliner open large books quickly.** They built every card and every row of the whole book before showing you anything - thousands of text boxes on a fifty-chapter manuscript, almost none of them on screen. A chapter's cards and rows are now built when you scroll near them, with their space reserved in advance so the scrollbar stays the right length and scrolling lands where you expect. Card colours are also looked up once instead of scanned per card, which was quadratic on books with hundreds of scenes.
 - **Focus mode is a composition mode now.** `Alt+F` hides the toolbar and the status bar as well as the two side panes, so the window belongs to the page. A new **Dim other paragraphs while writing** setting fades everything but the paragraph your caret is in, following it as you move.
 
 - **Smart Lists are now rules rather than four fixed filters.** A saved list can hold as many rules as you like, over chapter status, act, POV, tag, plotline, scene stage, structure beat, title, synopsis, notes, words, word target, and any scene field of your own - and it can match **any** of them instead of all, which is what answers "either of these two POVs". Every field also offers **is set** / **is not set**, so "which scenes still have no synopsis" is a list you can save. Lists you already had keep working and become rules when you next save them.

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore, type ManuscriptMode } from '../../stores/manuscriptStore'
 import { rpc } from '../../rpc/client'
@@ -10,6 +10,17 @@ import { useManuscriptPropsStore } from '../../stores/manuscriptPropsStore'
 import { ManuscriptPropertyField } from '../../shell/ManuscriptPropertyField'
 import { SceneBulkBar } from '../../shell/SceneBulkBar'
 import { Board } from './Board'
+import { LazyBlock } from '../../shell/LazyBlock'
+
+// How many chapter blocks are built up front. Everything past this waits until
+// it is scrolled near, which is what keeps a fifty-chapter book openable.
+const EAGER_SECTIONS = 3
+
+// Reserved height for a block that has not been built yet, so the scrollbar is
+// the right length before anything has been measured.
+const CORKBOARD_ROW_HEIGHT = 190
+const CORKBOARD_CARDS_PER_ROW = 4
+const OUTLINER_ROW_HEIGHT = 34
 
 interface ManuscriptWindow extends Window {
   setManuscript(sectionsJson: string): void
@@ -63,14 +74,14 @@ export function ManuscriptView(): React.JSX.Element {
 
   // Only single-valued things a scene actually carries: dropping a card has to
   // be able to write the answer, which a chapter's status or act is not.
-  const groupings = [
+  const groupings = useMemo(() => [
     { key: 'stage', label: t('stages.title') },
     { key: 'chapter', label: t('shell.chapters') },
     { key: 'pov', label: t('common.povWatermark') },
     ...definitions
       .filter((d) => d.scope === 'Scene' && d.type !== 'Date')
       .map((d) => ({ key: `prop:${d.key}`, label: d.label }))
-  ]
+  ], [definitions, t])
 
   return (
     <div className="manuscript">
@@ -276,14 +287,31 @@ function Corkboard(): React.JSX.Element {
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const chapters = useProjectStore((s) => s.chapters)
 
-  /** The colour of whatever label a scene carries, if any. */
-  const labelColor = (sceneId: string): string | undefined =>
-    chapters.flatMap((c) => c.scenes).find((s) => s.id === sceneId)?.labelColor ?? undefined
+  /**
+   * The colour of whatever label a scene carries, if any. Built once per
+   * chapter change rather than walked per card - the flat scan this replaced
+   * was quadratic, and a five-hundred-scene book paid for it on every render.
+   */
+  const labelColors = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const chapter of chapters)
+      for (const scene of chapter.scenes)
+        if (scene.labelColor) map.set(scene.id, scene.labelColor)
+    return map
+  }, [chapters])
+  const labelColor = (sceneId: string): string | undefined => labelColors.get(sceneId)
 
   return (
     <div className="corkboard">
-      {sections.map((section) => (
-        <div key={section.chapterGuid}>
+      {sections.map((section, index) => (
+        <LazyBlock
+          key={section.chapterGuid}
+          eager={index < EAGER_SECTIONS}
+          estimatedHeight={
+            CORKBOARD_ROW_HEIGHT *
+            Math.max(1, Math.ceil(section.scenes.length / CORKBOARD_CARDS_PER_ROW))
+          }
+        >
           <div className="corkboard-chapter">{section.chapterTitle}</div>
           <div className="corkboard-cards">
             {section.scenes.map((scene) => (
@@ -323,7 +351,7 @@ function Corkboard(): React.JSX.Element {
               </div>
             ))}
           </div>
-        </div>
+        </LazyBlock>
       ))}
     </div>
   )
@@ -364,69 +392,75 @@ function Outliner(): React.JSX.Element {
           <span key={property.key}>{property.label}</span>
         ))}
       </div>
-      {sections.flatMap((section) =>
-        section.scenes.map((scene) => (
-          <div
-            key={scene.sceneId}
-            className={`outliner-row${selectedIds.includes(scene.sceneId) ? ' selected' : ''}`}
-            style={grid}
-          >
-            <span className="outliner-cell">{section.chapterTitle}</span>
-            <button
-              className="outliner-cell outliner-scene-title"
-              onClick={(e) => {
-                if (handleSceneClick(scene.sceneId, e)) return
-                void useProjectStore.getState().openScene(section.chapterGuid, scene.sceneId)
-              }}
+      {sections.map((section, index) => (
+        <LazyBlock
+          key={section.chapterGuid}
+          eager={index < EAGER_SECTIONS}
+          estimatedHeight={OUTLINER_ROW_HEIGHT * Math.max(1, section.scenes.length)}
+        >
+          {section.scenes.map((scene) => (
+            <div
+              key={scene.sceneId}
+              className={`outliner-row${selectedIds.includes(scene.sceneId) ? ' selected' : ''}`}
+              style={grid}
             >
-              {scene.title}
-            </button>
-            <input
-              className="outliner-input"
-              defaultValue={scene.synopsis ?? ''}
-              onBlur={(e) => void setSynopsis(section.chapterGuid, scene.sceneId, e.target.value)}
-            />
-            <input
-              className="outliner-input"
-              defaultValue={scene.pov ?? ''}
-              placeholder={t('common.povWatermark')}
-              onBlur={(e) => void setPov(section.chapterGuid, scene.sceneId, e.target.value)}
-            />
-            <span className="outliner-cell outliner-words">
-              {scene.wordCount.toLocaleString()}
-            </span>
-            {/* Editable in place: the Outliner is where a writer sets targets
-                across a run of scenes, and a dialog per scene would be worse. */}
-            <input
-              className="outliner-input outliner-target"
-              type="number"
-              min={0}
-              defaultValue={
-                targets.find((tg) => tg.kind === 'scene' && tg.id === scene.sceneId)?.target ?? ''
-              }
-              placeholder={t('targets.none')}
-              onBlur={(e) =>
-                void useTargetStore
-                  .getState()
-                  .setScene(section.chapterGuid, scene.sceneId, Number(e.target.value) || null)
-              }
-            />
-            {columns.map((property) => (
-              <ManuscriptPropertyField
-                key={property.key}
+              <span className="outliner-cell">{section.chapterTitle}</span>
+              <button
+                className="outliner-cell outliner-scene-title"
+                onClick={(e) => {
+                  if (handleSceneClick(scene.sceneId, e)) return
+                  void useProjectStore.getState().openScene(section.chapterGuid, scene.sceneId)
+                }}
+              >
+                {scene.title}
+              </button>
+              <input
                 className="outliner-input"
-                property={property}
-                value={sceneValues[scene.sceneId]?.[property.key] ?? ''}
-                onCommit={(value) =>
-                  void useManuscriptPropsStore
+                defaultValue={scene.synopsis ?? ''}
+                onBlur={(e) => void setSynopsis(section.chapterGuid, scene.sceneId, e.target.value)}
+              />
+              <input
+                className="outliner-input"
+                defaultValue={scene.pov ?? ''}
+                placeholder={t('common.povWatermark')}
+                onBlur={(e) => void setPov(section.chapterGuid, scene.sceneId, e.target.value)}
+              />
+              <span className="outliner-cell outliner-words">
+                {scene.wordCount.toLocaleString()}
+              </span>
+              {/* Editable in place: the Outliner is where a writer sets targets
+                  across a run of scenes, and a dialog per scene would be worse. */}
+              <input
+                className="outliner-input outliner-target"
+                type="number"
+                min={0}
+                defaultValue={
+                  targets.find((tg) => tg.kind === 'scene' && tg.id === scene.sceneId)?.target ?? ''
+                }
+                placeholder={t('targets.none')}
+                onBlur={(e) =>
+                  void useTargetStore
                     .getState()
-                    .setSceneValue(scene.sceneId, property.key, value)
+                    .setScene(section.chapterGuid, scene.sceneId, Number(e.target.value) || null)
                 }
               />
-            ))}
-          </div>
-        ))
-      )}
+              {columns.map((property) => (
+                <ManuscriptPropertyField
+                  key={property.key}
+                  className="outliner-input"
+                  property={property}
+                  value={sceneValues[scene.sceneId]?.[property.key] ?? ''}
+                  onCommit={(value) =>
+                    void useManuscriptPropsStore
+                      .getState()
+                      .setSceneValue(scene.sceneId, property.key, value)
+                  }
+                />
+              ))}
+            </div>
+          ))}
+        </LazyBlock>
+      ))}
     </div>
   )
 }

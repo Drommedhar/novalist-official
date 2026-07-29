@@ -118,7 +118,8 @@ Novalist projects work with any file-sync service (Dropbox, OneDrive, iCloud Dri
 
 Novalist is light, but very large projects (50+ chapters, hundreds of scenes, big image gallery) can slow down some views.
 
-- **Manuscript mode** renders every scene at once. On large books, switch to Corkboard or Outliner mode while planning, and use the continuous Manuscript mode for read-throughs.
+- **Corkboard and Outliner** build a chapter's cards and rows when you scroll near it, not all at once, so opening a fifty-chapter book is about as fast as opening a three-chapter one. The space below is already reserved, so the scrollbar is the right length and scrolling lands where you expect.
+- **Manuscript mode** still renders every scene at once, because it is one continuous text. On very large books, use Corkboard or Outliner while planning and Manuscript for read-throughs.
 - **Image gallery** decodes thumbnails lazily. The first scroll through is slower; subsequent ones reuse the cache.
 - **Grammar check** calls a remote API per scene; disable it in Settings if it lags.
 
