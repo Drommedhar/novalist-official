@@ -37,6 +37,13 @@ const BUILT_IN: CatalogTheme[] = [
   { name: 'Default', slug: 'dark', tokens: {}, css: null, origin: 'built-in' },
   { name: 'Discord', slug: 'discord', tokens: {}, css: null, origin: 'built-in' },
   {
+    name: 'High Contrast',
+    slug: 'high-contrast',
+    tokens: {},
+    css: null,
+    origin: 'built-in'
+  },
+  {
     name: 'Catppuccin Mocha',
     slug: 'catppuccin-mocha',
     tokens: {},

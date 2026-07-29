@@ -36,9 +36,10 @@ The **Templates** and **Writing Goals** sections are per-project (they only appl
 - **Theme** — the active color scheme. Built-in themes come first, then your own, then any contributed by extensions:
   - **Default** — Novalist's own identity. A deep "Ink Night" page with parchment-coloured text and gilt accents; panels are the one raised surface, edges are hairlines rather than grey rules, and primary buttons carry a gold foil fill. Headings are set in Fraunces, text and interface labels in Newsreader, and anything the app computed for you — word counts, versions, file sizes, timestamps — in Courier Prime. All three typefaces ship inside the app, so the interface looks the same offline and on a machine that has none of them installed.
   - **Discord**
+  - **High Contrast** — pure black behind pure white text, with borders you can actually see. Built for low vision and for working in a bright room; every text-on-background pair in it clears WCAG AAA, which the other palettes do not attempt.
   - **Catppuccin Mocha**
 - **Accent Color** — pick a custom highlight color used throughout the interface. A **Reset** button next to the color picker clears the custom accent and returns to the theme's default. A custom accent also flattens the gold foil on primary buttons to a single fill in your colour.
-- **Themes folder** / **Languages folder** — open the folders you drop your own colour schemes and interface languages into. Novalist scans them at startup, so restart after adding a file. See [Custom themes & language packs](34-custom-themes-and-languages.md) for the file formats.
+- **Themes folder** / **Languages folder** — open the folders you drop your own colour schemes and interface languages into. **Rescan** in the Language packs panel picks up what you dropped in without a restart. See [Custom themes & language packs](34-custom-themes-and-languages.md) for the file formats.
 
 The alternate themes change colour only. Type, spacing, and corner radii belong to the Novalist identity and stay the same whichever palette you pick — that holds for themes you write yourself as well.
 
@@ -48,6 +49,11 @@ On macOS 26 and later the window uses the native Liquid Glass material; older ma
 
 - **Font Family** — typeface used in the editor. Defaults to **Newsreader**, which ships with the app. Type any installed family; a list of common typefaces is offered as suggestions, with the three bundled faces (Newsreader, Fraunces, Courier Prime) listed first because those are guaranteed to be present.
 - **Font Size** — editor font size in pixels (8-36). Defaults to 17.
+- **Line Height** — the space between lines, as a multiple of the font size (1-2.5). Defaults to 1.7. Opening the lines up is the single most effective change for lines that are hard to track, and no theme can do it — themes are colour only.
+- **Letter Spacing** — extra space between letters in pixels (-1 to 4). Defaults to 0, which leaves the typeface exactly as its designer set it.
+- **Paragraph Spacing** — how large a gap **Book Paragraph Spacing** inserts between paragraphs, in ems (0-3). Defaults to 0.75.
+
+All three apply to the scene editor, to Manuscript mode, and to the Expose.
 - **Typewriter Scrolling** — keeps the active line at a fixed vertical position so you don't write near the bottom of the page. When on, an anchor choice appears: **Top**, **Middle**, or **Bottom**.
 - **Page View** — renders the editor as a printed-book-style page with paper background, margins, and shadow.
 - **Book Paragraph Spacing** — adds extra vertical space between lines for a book-like reading experience.

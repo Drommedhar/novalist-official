@@ -22,7 +22,7 @@ Inside you will find:
 
 **Settings, Appearance** has a **Themes folder** and a **Languages folder** button that open the first two directly, so you never have to remember the path.
 
-Novalist reads all three folders **once, when it starts**. After you add, edit, or delete a file, restart Novalist to see the change.
+Novalist reads all three folders when it starts, and again whenever you press **Rescan** in Settings, Language packs. After you add, edit, or delete a file, press Rescan: the theme list, the interface-language list, and the analysis lexicons are all rebuilt in place, with no restart.
 
 ## Themes
 
@@ -79,7 +79,7 @@ body {
 
 Write your declarations under `:root` — Novalist only injects the file while your theme is active, so you do not need a selector that scopes it yourself.
 
-A stylesheet is unrestricted, which is its point and its risk: a rule that hides a panel really will hide that panel. If a theme leaves the app unusable, delete the file and restart.
+A stylesheet is unrestricted, which is its point and its risk: a rule that hides a panel really will hide that panel. If a theme leaves the app unusable, delete the file and press Rescan (or restart, if the theme hid the button).
 
 ### The token names
 
@@ -151,7 +151,7 @@ An extension can contribute themes as well, and they appear in the same dropdown
 
 ## Sharing what you made
 
-A theme or locale file is a single self-contained file: send it to someone, and they drop it into the same folder and restart. If you would like a translation shipped with Novalist rather than passed around, see [Localization](27-localization.md) for how to contribute it upstream.
+A theme or locale file is a single self-contained file: send it to someone, and they drop it into the same folder and press Rescan. If you would like a translation shipped with Novalist rather than passed around, see [Localization](27-localization.md) for how to contribute it upstream.
 
 ## Where to go next
 

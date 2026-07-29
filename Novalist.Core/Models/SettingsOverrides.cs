@@ -96,6 +96,18 @@ public class SettingsOverrides
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? EditorFontSize { get; set; }
 
+    [JsonPropertyName("editorLineHeight")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? EditorLineHeight { get; set; }
+
+    [JsonPropertyName("editorLetterSpacing")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? EditorLetterSpacing { get; set; }
+
+    [JsonPropertyName("editorParagraphSpacing")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? EditorParagraphSpacing { get; set; }
+
     [JsonPropertyName("theme")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Theme { get; set; }
@@ -132,6 +144,8 @@ public class SettingsOverrides
     [JsonIgnore]
     public bool HasEditorOverride =>
         EditorFontFamily != null || EditorFontSize != null
+        || EditorLineHeight != null || EditorLetterSpacing != null
+        || EditorParagraphSpacing != null
         || ComposeDimming != null
         || TypewriterScrollEnabled != null || TypewriterScrollAnchor != null || PageViewEnabled != null
         || EnableBookParagraphSpacing != null || EnableBookWidth != null || BookPageFormat != null
@@ -165,6 +179,9 @@ public class SettingsOverrides
     {
         EditorFontFamily = source.EditorFontFamily;
         EditorFontSize = source.EditorFontSize;
+        EditorLineHeight = source.EditorLineHeight;
+        EditorLetterSpacing = source.EditorLetterSpacing;
+        EditorParagraphSpacing = source.EditorParagraphSpacing;
         ComposeDimming = source.ComposeDimming;
         TypewriterScrollEnabled = source.TypewriterScrollEnabled;
         TypewriterScrollAnchor = source.TypewriterScrollAnchor;
@@ -206,6 +223,9 @@ public class SettingsOverrides
     {
         EditorFontFamily = null;
         EditorFontSize = null;
+        EditorLineHeight = null;
+        EditorLetterSpacing = null;
+        EditorParagraphSpacing = null;
         ComposeDimming = null;
         TypewriterScrollEnabled = null;
         TypewriterScrollAnchor = null;

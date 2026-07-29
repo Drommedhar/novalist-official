@@ -546,7 +546,13 @@
     "spellCheckDictionaryEmpty": "尚未添加词语。右键单击正文中红色波浪线的单词即可添加。",
     "spellCheckForget": "忘记该词",
     "composeDimming": "写作时淡化其他段落",
-    "composeDimmingDesc": "除光标所在段落外，其余内容都会变淡。在编辑器中生效，配合专注模式（Alt+F）最为有用 — 专注模式现在也会隐藏工具栏和状态栏。"
+    "composeDimmingDesc": "除光标所在段落外，其余内容都会变淡。在编辑器中生效，配合专注模式（Alt+F）最为有用 — 专注模式现在也会隐藏工具栏和状态栏。",
+    "lineHeight": "行高",
+    "lineHeightDesc": "行与行之间的间距，以字号的倍数计。默认为 1.7；若行距难以追踪，可提高至 2 左右。",
+    "letterSpacing": "字符间距",
+    "letterSpacingDesc": "字母之间的额外间距，单位为像素。0 保持字体设计者设定的原样。",
+    "paragraphSpacing": "段落间距",
+    "paragraphSpacingDesc": "“书籍段落间距”在段落之间插入的空隙大小，单位为 em。"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",

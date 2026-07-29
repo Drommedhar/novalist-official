@@ -123,7 +123,8 @@ body { display: flex; justify-content: center; }
 .scene-editor {
     outline: none;
     caret-color: var(--caret);
-    line-height: 1.6;
+    line-height: var(--line-height, 1.6);
+    letter-spacing: var(--letter-spacing, normal);
     word-wrap: break-word;
     overflow-wrap: break-word;
     white-space: pre-wrap;
@@ -368,6 +369,14 @@ function setTheme(bg, fg, caretColor, selectionBg, accent, subtle, divider, scro
     if (scrollbarThumb) root.style.setProperty('--scrollbar-thumb', scrollbarThumb);
     if (scrollbarThumbHover) root.style.setProperty('--scrollbar-thumb-hover', scrollbarThumbHover);
     if (scrollbarThumbActive) root.style.setProperty('--scrollbar-thumb-active', scrollbarThumbActive);
+}
+
+/** Leading and letter spacing, same contract as the scene editor. */
+function setReadingComfort(lineHeight, letterSpacing) {
+    const root = document.documentElement;
+    root.style.setProperty('--line-height', lineHeight > 0 ? String(lineHeight) : '1.6');
+    root.style.setProperty(
+        '--letter-spacing', letterSpacing ? letterSpacing + 'px' : 'normal');
 }
 
 function setFont(family, size) {

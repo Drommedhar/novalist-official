@@ -16,6 +16,9 @@ public class EffectiveSettingsTests
             AccentColor = "#111",
             EditorFontFamily = "Inter",
             EditorFontSize = 13,
+            EditorLineHeight = 1.5,
+            EditorLetterSpacing = 0.25,
+            EditorParagraphSpacing = 0.9,
             ComposeDimming = true,
             TypewriterScrollEnabled = true,
             TypewriterScrollAnchor = "center",
@@ -42,6 +45,9 @@ public class EffectiveSettingsTests
         Assert.Equal("#111", sut.AccentColor);
         Assert.Equal("Inter", sut.EditorFontFamily);
         Assert.Equal(13, sut.EditorFontSize);
+        Assert.Equal(1.5, sut.EditorLineHeight);
+        Assert.Equal(0.25, sut.EditorLetterSpacing);
+        Assert.Equal(0.9, sut.EditorParagraphSpacing);
         Assert.True(sut.ComposeDimming);
         Assert.True(sut.TypewriterScrollEnabled);
         Assert.Equal("center", sut.TypewriterScrollAnchor);
@@ -74,6 +80,9 @@ public class EffectiveSettingsTests
             AccentColor = "#abc",
             EditorFontFamily = "Mono",
             EditorFontSize = 20,
+            EditorLineHeight = 2.1,
+            EditorLetterSpacing = 1.5,
+            EditorParagraphSpacing = 0,
             ComposeDimming = false,
             TypewriterScrollEnabled = false,
             TypewriterScrollAnchor = "top",
@@ -97,6 +106,9 @@ public class EffectiveSettingsTests
         var sut = new EffectiveSettings(() => global, () => ovr);
 
         Assert.Equal("de", sut.Language);
+        Assert.Equal(2.1, sut.EditorLineHeight);
+        Assert.Equal(1.5, sut.EditorLetterSpacing);
+        Assert.Equal(0, sut.EditorParagraphSpacing);
         Assert.Equal("light", sut.Theme);
         Assert.Equal("#abc", sut.AccentColor);
         Assert.Equal("Mono", sut.EditorFontFamily);

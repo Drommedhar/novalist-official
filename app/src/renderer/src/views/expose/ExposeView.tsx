@@ -115,7 +115,14 @@ export function ExposeView(): React.JSX.Element {
       editor.setLanguage(i18n.language.startsWith('de') ? 'de' : 'en')
       editor.setMobile(window.novalist.isMobile === true)
       const view = useSettingsStore.getState().view
-      if (view) editor.setFont(view.effective.editorFontFamily, view.effective.editorFontSize)
+      if (view) {
+        editor.setFont(view.effective.editorFontFamily, view.effective.editorFontSize)
+        editor.setReadingComfort(
+          view.effective.editorLineHeight,
+          view.effective.editorLetterSpacing,
+          view.effective.editorParagraphSpacing
+        )
+      }
       editor.setContextMenuLabels(
         JSON.stringify({
           cut: t('editor.contextMenu.cut'),

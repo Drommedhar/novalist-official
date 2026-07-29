@@ -28,6 +28,9 @@ public sealed class EffectiveSettings : IEffectiveSettings
 
     public string EditorFontFamily => O?.EditorFontFamily ?? G.EditorFontFamily;
     public double EditorFontSize => O?.EditorFontSize ?? G.EditorFontSize;
+    public double EditorLineHeight => O?.EditorLineHeight ?? G.EditorLineHeight;
+    public double EditorLetterSpacing => O?.EditorLetterSpacing ?? G.EditorLetterSpacing;
+    public double EditorParagraphSpacing => O?.EditorParagraphSpacing ?? G.EditorParagraphSpacing;
     public bool ComposeDimming => O?.ComposeDimming ?? G.ComposeDimming;
     public bool TypewriterScrollEnabled => O?.TypewriterScrollEnabled ?? G.TypewriterScrollEnabled;
     public string TypewriterScrollAnchor => O?.TypewriterScrollAnchor ?? G.TypewriterScrollAnchor;

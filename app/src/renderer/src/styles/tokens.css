@@ -248,6 +248,54 @@
   --nl-scrollbar-thumb-active: rgb(255 255 255 / 0.42);
 }
 
+/* High contrast. Not a taste theme: pure black ground, pure white text and
+   borders that are actually visible, for low vision and for a bright room.
+   Every pair here clears WCAG AAA against its ground, which the pigment-based
+   themes deliberately do not attempt. */
+:root[data-theme='high-contrast'] {
+  --nl-base: 0 0 0;
+  --nl-surface-window: #000000;
+  --nl-surface-sidebar: #000000;
+  --nl-surface-toolbar: #000000;
+  --nl-surface-inspector: #000000;
+  --nl-surface-editor: #000000;
+  --nl-surface-card: #0a0a0a;
+  --nl-surface-input: #0a0a0a;
+  --nl-surface-overlay: rgb(0 0 0 / 0.85);
+  --nl-surface-hover: #303030;
+  --nl-surface-selected: #004a7c;
+  --nl-text: #ffffff;
+  --nl-text-dim: #e6e6e6;
+  --nl-text-subtle: #c8c8c8;
+  --nl-accent: #ffd400;
+  --nl-accent-hover: #ffe45c;
+  --nl-accent-ink: #000000;
+  --nl-focus-ring: #ffd400;
+  --nl-border: #ffffff;
+  --nl-border-subtle: #9a9a9a;
+  --nl-border-firm: #ffffff;
+  --nl-success: #4ce04c;
+  --nl-warning: #ffb02e;
+  --nl-danger: #ff5f5f;
+  --nl-danger-soft: rgb(255 95 95 / 0.25);
+  --nl-status-outline: #c8c8c8;
+  --nl-status-first-draft: #ffb02e;
+  --nl-status-revised: #7fc7ff;
+  --nl-status-edited: #4ce04c;
+  --nl-status-final: #ffd400;
+  --nl-git-dirty: #ffb02e;
+  --nl-git-clean: #4ce04c;
+  --nl-favorite: #ffd400;
+  --nl-readability-very-easy: #4ce04c;
+  --nl-readability-easy: #a8e04c;
+  --nl-readability-moderate: #ffd400;
+  --nl-readability-difficult: #ffb02e;
+  --nl-readability-very-difficult: #ff5f5f;
+  --nl-scrollbar-thumb: #9a9a9a;
+  --nl-scrollbar-thumb-hover: #c8c8c8;
+  --nl-scrollbar-thumb-active: #ffffff;
+}
+
 :root[data-theme='catppuccin-mocha'] {
   --nl-base: 24 24 37;
   --nl-surface-window: #1e1e2e;

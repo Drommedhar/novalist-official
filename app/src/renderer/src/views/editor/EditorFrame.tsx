@@ -28,6 +28,8 @@ function pushEditorSettings(editor: EditorWindow, initial = false): void {
   if (!view) return
   const eff = view.effective
   editor.setFont(eff.editorFontFamily, eff.editorFontSize)
+  editor.setReadingComfort(
+    eff.editorLineHeight, eff.editorLetterSpacing, eff.editorParagraphSpacing)
   // Typewriter scroll makes no sense on a phone, so force it off on mobile even
   // if a (desktop) project has it enabled - the setting is also hidden there.
   const typewriter = window.novalist.isMobile === true ? false : eff.typewriterScrollEnabled

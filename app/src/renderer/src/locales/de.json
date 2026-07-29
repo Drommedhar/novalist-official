@@ -412,7 +412,13 @@
     "spellCheckDictionaryEmpty": "Noch keine Wörter. Rechtsklick auf ein rot unterringeltes Wort im Text fügt eines hinzu.",
     "spellCheckForget": "Dieses Wort vergessen",
     "composeDimming": "Andere Absätze beim Schreiben abdunkeln",
-    "composeDimmingDesc": "Alles außer dem Absatz mit dem Cursor tritt zurück. Wirkt im Editor und ist besonders im Fokusmodus (Alt+F) nützlich, der jetzt auch Werkzeugleiste und Statusleiste ausblendet."
+    "composeDimmingDesc": "Alles außer dem Absatz mit dem Cursor tritt zurück. Wirkt im Editor und ist besonders im Fokusmodus (Alt+F) nützlich, der jetzt auch Werkzeugleiste und Statusleiste ausblendet.",
+    "lineHeight": "Zeilenhöhe",
+    "lineHeightDesc": "Abstand zwischen den Zeilen als Vielfaches der Schriftgröße. Standard ist 1,7; erhöhen Sie ihn Richtung 2, wenn Zeilen schwer zu verfolgen sind.",
+    "letterSpacing": "Zeichenabstand",
+    "letterSpacingDesc": "Zusätzlicher Abstand zwischen Buchstaben in Pixeln. 0 lässt die Schrift so, wie ihr Entwerfer sie gesetzt hat.",
+    "paragraphSpacing": "Absatzabstand",
+    "paragraphSpacingDesc": "Wie groß die Lücke ist, die Buchabsätze zwischen Absätzen einfügen, in em."
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",

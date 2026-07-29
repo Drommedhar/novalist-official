@@ -327,7 +327,8 @@ export function SettingsView(): React.JSX.Element {
     {
       key: 'editor',
       titleKey: 'settings.editor',
-      keywords: ['editor', 'font', 'book', 'width', 'page', 'paragraph', 'spacing', 'typewriter'],
+      keywords: ['editor', 'font', 'book', 'width', 'page', 'paragraph', 'spacing', 'typewriter',
+        'line height', 'leading', 'letter spacing', 'accessibility', 'dyslexia'],
       body: (
         <>
           {scopeToggle('editor')}
@@ -357,6 +358,60 @@ export function SettingsView(): React.JSX.Element {
               })
             }
           />
+          <label className="inspector-label" htmlFor="set-lineheight">
+            {t('settings.lineHeight')}
+          </label>
+          <input
+            id="set-lineheight"
+            className="dialog-input"
+            type="number"
+            min={1}
+            max={2.5}
+            step={0.05}
+            value={eff.editorLineHeight}
+            onChange={(e) =>
+              void update(scopeFor('editor'), {
+                editorLineHeight: Math.min(2.5, Math.max(1, Number(e.target.value)))
+              })
+            }
+          />
+          <div className="settings-hint">{t('settings.lineHeightDesc')}</div>
+          <label className="inspector-label" htmlFor="set-letterspacing">
+            {t('settings.letterSpacing')}
+          </label>
+          <input
+            id="set-letterspacing"
+            className="dialog-input"
+            type="number"
+            min={-1}
+            max={4}
+            step={0.1}
+            value={eff.editorLetterSpacing}
+            onChange={(e) =>
+              void update(scopeFor('editor'), {
+                editorLetterSpacing: Math.min(4, Math.max(-1, Number(e.target.value)))
+              })
+            }
+          />
+          <div className="settings-hint">{t('settings.letterSpacingDesc')}</div>
+          <label className="inspector-label" htmlFor="set-paraspacing">
+            {t('settings.paragraphSpacing')}
+          </label>
+          <input
+            id="set-paraspacing"
+            className="dialog-input"
+            type="number"
+            min={0}
+            max={3}
+            step={0.05}
+            value={eff.editorParagraphSpacing}
+            onChange={(e) =>
+              void update(scopeFor('editor'), {
+                editorParagraphSpacing: Math.min(3, Math.max(0, Number(e.target.value)))
+              })
+            }
+          />
+          <div className="settings-hint">{t('settings.paragraphSpacingDesc')}</div>
           {/* Typewriter scroll makes no sense on a phone (and is force-disabled in
               the mobile editor), so hide it there. */}
           {!isMobile && (

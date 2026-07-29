@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useManuscriptStore, type ManuscriptMode } from '../../stores/manuscriptStore'
 import { useProjectStore } from '../../stores/projectStore'
+import { useSettingsStore } from '../../stores/settingsStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
 import { useTargetStore } from '../../stores/targetStore'
 import { useManuscriptPropsStore } from '../../stores/manuscriptPropsStore'
@@ -24,6 +25,7 @@ interface ManuscriptWindow extends Window {
     scrollbarThumbActive?: string
   ): void
   setFont(family: string, size: number): void
+  setReadingComfort(lineHeight: number, letterSpacing: number): void
 }
 
 const MODES: ManuscriptMode[] = ['manuscript', 'corkboard', 'outliner', 'board']
@@ -154,6 +156,13 @@ function ManuscriptFrame(): React.JSX.Element {
       token('--nl-scrollbar-thumb-hover'),
       token('--nl-scrollbar-thumb-active')
     )
+    // Manuscript mode is the same prose in a longer strip, so it reads with the
+    // writer's own face and leading rather than the page's defaults.
+    const eff = useSettingsStore.getState().view?.effective
+    if (eff) {
+      win.setFont(eff.editorFontFamily, eff.editorFontSize)
+      win.setReadingComfort(eff.editorLineHeight, eff.editorLetterSpacing)
+    }
     const payload = sections.map((s) => ({
       chapterGuid: s.chapterGuid,
       chapterTitle: s.chapterTitle,

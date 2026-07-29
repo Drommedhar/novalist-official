@@ -10,6 +10,9 @@ export interface EffectiveSettings {
   accentColor: string | null
   editorFontFamily: string
   editorFontSize: number
+  editorLineHeight: number
+  editorLetterSpacing: number
+  editorParagraphSpacing: number
   composeDimming: boolean
   typewriterScrollEnabled: boolean
   typewriterScrollAnchor: string

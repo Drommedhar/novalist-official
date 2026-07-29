@@ -27,6 +27,26 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("editorFontSize")]
     public double EditorFontSize { get; set; } = 17;
 
+    /// <summary>
+    /// Leading, as a multiple of the font size. A theme cannot change this -
+    /// themes are colour only - so without a setting there is no way to open
+    /// the lines up, which is the single most effective reading-comfort change
+    /// for a dyslexic or low-vision reader.
+    /// </summary>
+    [JsonPropertyName("editorLineHeight")]
+    public double EditorLineHeight { get; set; } = 1.7;
+
+    /// <summary>Extra space between letters, in pixels. Zero is the face's own.</summary>
+    [JsonPropertyName("editorLetterSpacing")]
+    public double EditorLetterSpacing { get; set; }
+
+    /// <summary>
+    /// The gap the book-paragraph-spacing toggle inserts, in ems. The toggle
+    /// says whether there is a gap; this says how big.
+    /// </summary>
+    [JsonPropertyName("editorParagraphSpacing")]
+    public double EditorParagraphSpacing { get; set; } = 0.75;
+
     [JsonPropertyName("enableBookParagraphSpacing")]
     public bool EnableBookParagraphSpacing { get; set; }
 

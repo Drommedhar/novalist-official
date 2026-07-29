@@ -51,8 +51,10 @@ body { display: flex; justify-content: center; }
     padding: var(--padding-v) var(--padding-h);
     outline: none;
     caret-color: var(--caret);
-    /* The identity's body leading. */
-    line-height: 1.7;
+    /* The identity's body leading, overridable from Settings - opening the
+       lines up is the single most effective reading-comfort change there is. */
+    line-height: var(--line-height, 1.7);
+    letter-spacing: var(--letter-spacing, normal);
     word-wrap: break-word;
     overflow-wrap: break-word;
     white-space: pre-wrap;
@@ -62,7 +64,7 @@ body { display: flex; justify-content: center; }
     display: block;
 }
 #editor p { margin: 0; }
-#editor.book-spacing p { padding-bottom: 0.75em; }
+#editor.book-spacing p { padding-bottom: var(--paragraph-spacing, 0.75em); }
 #editor.book-spacing p:empty { padding-bottom: 0; min-height: 1em; }
 /* Named paragraph styles. Exporters read the class; these rules are what make
    a styled paragraph recognisable on screen instead of invisible state. */
@@ -1014,6 +1016,19 @@ function setPadding(horizontal, vertical) {
     const root = document.documentElement;
     if (horizontal != null) root.style.setProperty('--padding-h', horizontal + 'px');
     if (vertical != null) root.style.setProperty('--padding-v', vertical + 'px');
+}
+
+/**
+ * Reading comfort. Leading, letter spacing and the gap between paragraphs,
+ * none of which a theme can reach - themes here are colour only.
+ */
+function setReadingComfort(lineHeight, letterSpacing, paragraphSpacing) {
+    const root = document.documentElement;
+    root.style.setProperty('--line-height', lineHeight > 0 ? String(lineHeight) : '1.7');
+    root.style.setProperty(
+        '--letter-spacing', letterSpacing ? letterSpacing + 'px' : 'normal');
+    root.style.setProperty(
+        '--paragraph-spacing', (paragraphSpacing >= 0 ? paragraphSpacing : 0.75) + 'em');
 }
 
 function setBookParagraphSpacing(enabled) {

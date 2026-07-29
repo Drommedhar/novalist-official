@@ -511,7 +511,13 @@
     "spellCheckDictionaryEmpty": "No words added yet. Right-click a red-underlined word in your prose to add one.",
     "spellCheckForget": "Forget this word",
     "composeDimming": "Dim other paragraphs while writing",
-    "composeDimmingDesc": "Everything but the paragraph your caret is in fades back. Takes effect in the editor, and is most useful with focus mode (Alt+F), which now hides the toolbar and status bar as well as the side panes."
+    "composeDimmingDesc": "Everything but the paragraph your caret is in fades back. Takes effect in the editor, and is most useful with focus mode (Alt+F), which now hides the toolbar and status bar as well as the side panes.",
+    "lineHeight": "Line height",
+    "lineHeightDesc": "Space between lines, as a multiple of the font size. 1.7 is the default; open it up towards 2 if lines are hard to track.",
+    "letterSpacing": "Letter spacing",
+    "letterSpacingDesc": "Extra space between letters, in pixels. 0 leaves the typeface as its designer set it.",
+    "paragraphSpacing": "Paragraph spacing",
+    "paragraphSpacingDesc": "How large a gap Book paragraph spacing inserts between paragraphs, in ems."
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",

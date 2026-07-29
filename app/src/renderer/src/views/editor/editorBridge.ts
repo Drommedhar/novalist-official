@@ -20,6 +20,8 @@ export interface EditorWindow extends Window {
     scrollbarThumbActive?: string
   ): void
   setFont(family: string, size: number): void
+  /** Leading, letter spacing (px) and the gap between paragraphs (em). */
+  setReadingComfort(lineHeight: number, letterSpacing: number, paragraphSpacing: number): void
   setLanguage(lang: string): void
   setSpellCheck(enabled: boolean): void
   /** Mobile mode: full-width text (no margin comment gutter) + touch-sized UI. */

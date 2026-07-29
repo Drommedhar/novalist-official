@@ -112,6 +112,10 @@ public class SettingsOverridesTests
         => Assert.True(new SettingsOverrides { EditorFontSize = 14 }.HasEditorOverride);
 
     [Fact]
+    public void HasEditorOverride_TrueForReadingComfortAlone()
+        => Assert.True(new SettingsOverrides { EditorLineHeight = 2 }.HasEditorOverride);
+
+    [Fact]
     public void HasWritingOverride_TrueWhenAnySet()
         => Assert.True(new SettingsOverrides { GrammarCheckEnabled = true }.HasWritingOverride);
 
@@ -126,7 +130,15 @@ public class SettingsOverridesTests
     [Fact]
     public void ClearEditor_NullsEditorKeys()
     {
-        var o = new SettingsOverrides { EditorFontSize = 14, BookFontSize = 12, EnableBookWidth = true };
+        var o = new SettingsOverrides
+        {
+            EditorFontSize = 14,
+            EditorLineHeight = 2,
+            EditorLetterSpacing = 1,
+            EditorParagraphSpacing = 0,
+            BookFontSize = 12,
+            EnableBookWidth = true
+        };
         o.ClearEditor();
         Assert.False(o.HasEditorOverride);
     }
@@ -148,6 +160,9 @@ public class SettingsOverridesTests
         AccentColor = "#5865f2",
         EditorFontFamily = "Georgia",
         EditorFontSize = 19,
+        EditorLineHeight = 1.9,
+        EditorLetterSpacing = 0.5,
+        EditorParagraphSpacing = 1.2,
         ComposeDimming = true,
         TypewriterScrollEnabled = true,
         TypewriterScrollAnchor = "center",
@@ -193,6 +208,9 @@ public class SettingsOverridesTests
         Assert.True(o.HasEditorOverride);
         Assert.Equal("Georgia", o.EditorFontFamily);
         Assert.Equal(19, o.EditorFontSize);
+        Assert.Equal(1.9, o.EditorLineHeight);
+        Assert.Equal(0.5, o.EditorLetterSpacing);
+        Assert.Equal(1.2, o.EditorParagraphSpacing);
         Assert.True(o.ComposeDimming);
         Assert.True(o.TypewriterScrollEnabled);
         Assert.Equal("center", o.TypewriterScrollAnchor);
