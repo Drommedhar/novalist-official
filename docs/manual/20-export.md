@@ -8,17 +8,10 @@ In the activity bar, click **Export** in the **Publish** group.
 
 ## The export form
 
-- **Format** — drop-down of the available formats:
-  - **EPUB (e-book)**
-  - **DOCX (Word)**
-  - **PDF**
-  - **Markdown**
-  - **Final Draft (.fdx)**
-  - **LaTeX**
-  - **Codex (Markdown)** — your codex entries as a Markdown world bible, with images written to a folder beside the file.
-  - **Codex (PDF)** — the same world bible as a single PDF with the images drawn into the document.
-
-  Any formats contributed by installed [extensions](24-extensions.md) appear below the built-in ones in the same drop-down.
+- **What to export** — **The manuscript** or **The codex (world bible)**. What comes out and what kind of file it comes out as are two different questions, so they are two drop-downs. The codex export writes your codex entries as a world bible, with images written to a folder beside a Markdown file or drawn into the document for a PDF.
+- **Format** — the file the export produces. Which formats are listed depends on what you are exporting:
+  - The manuscript: **EPUB (e-book)**, **DOCX (Word)**, **PDF**, **Markdown**, **Final Draft (.fdx)**, **LaTeX**, plus any formats contributed by installed [extensions](24-extensions.md).
+  - The codex: **Markdown** or **PDF**.
 - **Preset** — the layout that sets fonts, spacing, and margins. The drop-down lists the built-in layouts, marked `(built-in)`, followed by every layout you have authored yourself (see [Export layouts](#export-layouts) below) — one list, so anything you can make is something you can pick. Built-in layouts are:
   - **Default** — Georgia 12pt, 1.5 line spacing; a readable PDF/EPUB.
   - **Shunn Manuscript Format** — the industry-standard submission format: Courier 12pt, double-spaced, with the Shunn header.

@@ -1154,8 +1154,6 @@
     "formatMarkdown": "Markdown",
     "formatFinalDraft": "Final Draft (.fdx)",
     "formatLatex": "LaTeX",
-    "formatCodex": "Codex (Markdown)",
-    "formatCodexPdf": "Codex (PDF)",
     "selectEntities": "Codex-Einträge zum Exportieren auswählen",
     "searchEntities": "Einträge suchen…",
     "noEntityMatches": "Keine Einträge passen zur Suche.",
@@ -1184,7 +1182,10 @@
     "exportFailed": "Export fehlgeschlagen: {0}",
     "exportAction": "Exportieren",
     "selectedOfTotal": "{{selected}} von {{total}} ausgewählt",
-    "includeCover": "Buchcover einbinden"
+    "includeCover": "Buchcover einbinden",
+    "content": "Was exportiert wird",
+    "contentManuscript": "Das Manuskript",
+    "contentCodex": "Das Kompendium (Weltenbibel)"
   },
   "expose": {
     "chars": "{{value}} Zeichen",

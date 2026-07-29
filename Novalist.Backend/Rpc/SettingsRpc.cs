@@ -167,6 +167,14 @@ public sealed class SettingsRpc
                     settings.WordCountGoals.Deadline =
                         string.IsNullOrWhiteSpace(deadline) ? null : deadline;
                     break;
+                // Both goals were readable here but only writable from the
+                // Dashboard, which is not where a writer looks for a setting.
+                case "dailyGoal":
+                    settings.WordCountGoals.DailyGoal = Math.Max(0, value.GetInt32());
+                    break;
+                case "projectGoal":
+                    settings.WordCountGoals.ProjectGoal = Math.Max(0, value.GetInt32());
+                    break;
                 default:
                     throw new InvalidOperationException($"Unknown project meta key '{key}'.");
             }

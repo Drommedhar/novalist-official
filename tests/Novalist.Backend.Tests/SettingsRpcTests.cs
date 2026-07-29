@@ -243,6 +243,24 @@ public sealed class SettingsRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task UpdateProjectMeta_PersistsWordGoals()
+    {
+        await OpenProjectAsync();
+        var view = await _rpc.UpdateProjectMetaAsync(Patch(
+            """{"dailyGoal": 1200, "projectGoal": 90000}"""));
+
+        var project = view.GetProperty("project");
+        Assert.Equal(1200, project.GetProperty("dailyGoal").GetInt32());
+        Assert.Equal(90000, project.GetProperty("projectGoal").GetInt32());
+
+        // A negative goal is nonsense; it clamps rather than being stored.
+        var clamped = await _rpc.UpdateProjectMetaAsync(Patch(
+            """{"dailyGoal": -5, "projectGoal": -1}"""));
+        Assert.Equal(0, clamped.GetProperty("project").GetProperty("dailyGoal").GetInt32());
+        Assert.Equal(0, clamped.GetProperty("project").GetProperty("projectGoal").GetInt32());
+    }
+
+    [Fact]
     public async Task UpdateProjectMeta_UnknownKey_Throws_AndWithoutProject_Throws()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(

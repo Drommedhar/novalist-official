@@ -9,15 +9,27 @@ import { ExportLayoutPanel } from './ExportLayoutPanel'
 import { useProjectStore } from '../../stores/projectStore'
 import './export.css'
 
-const FORMATS: { format: string; extension: string; labelKey: string }[] = [
-  { format: 'Epub', extension: '.epub', labelKey: 'export.formatEpub' },
-  { format: 'Docx', extension: '.docx', labelKey: 'export.formatDocx' },
-  { format: 'Pdf', extension: '.pdf', labelKey: 'export.formatPdf' },
-  { format: 'Markdown', extension: '.md', labelKey: 'export.formatMarkdown' },
-  { format: 'FinalDraft', extension: '.fdx', labelKey: 'export.formatFinalDraft' },
-  { format: 'LaTeX', extension: '.tex', labelKey: 'export.formatLatex' },
-  { format: 'Codex', extension: '.md', labelKey: 'export.formatCodex' },
-  { format: 'CodexPdf', extension: '.pdf', labelKey: 'export.formatCodexPdf' }
+/**
+ * What is being exported, kept apart from what file it comes out as.
+ *
+ * These were one dropdown, which meant "Codex (Markdown)" sat among the file
+ * formats as if it were one - two different questions answered by one control.
+ */
+const CONTENTS = [
+  { key: 'manuscript', labelKey: 'export.contentManuscript' },
+  { key: 'codex', labelKey: 'export.contentCodex' }
+] as const
+type Content = (typeof CONTENTS)[number]['key']
+
+const FORMATS: { format: string; extension: string; labelKey: string; content: Content }[] = [
+  { format: 'Epub', extension: '.epub', labelKey: 'export.formatEpub', content: 'manuscript' },
+  { format: 'Docx', extension: '.docx', labelKey: 'export.formatDocx', content: 'manuscript' },
+  { format: 'Pdf', extension: '.pdf', labelKey: 'export.formatPdf', content: 'manuscript' },
+  { format: 'Markdown', extension: '.md', labelKey: 'export.formatMarkdown', content: 'manuscript' },
+  { format: 'FinalDraft', extension: '.fdx', labelKey: 'export.formatFinalDraft', content: 'manuscript' },
+  { format: 'LaTeX', extension: '.tex', labelKey: 'export.formatLatex', content: 'manuscript' },
+  { format: 'Codex', extension: '.md', labelKey: 'export.formatMarkdown', content: 'codex' },
+  { format: 'CodexPdf', extension: '.pdf', labelKey: 'export.formatPdf', content: 'codex' }
 ]
 
 /** Codex entity kinds, in the order the export renders them. */
@@ -51,7 +63,15 @@ export function ExportView(): React.JSX.Element {
   const { t } = useTranslation()
   const projectName = useProjectStore((s) => s.projectName)
   const chapters = useProjectStore((s) => s.chapters)
-  const [format, setFormat] = useState('Epub')
+  const [content, setContent] = useState<Content>('manuscript')
+  // One remembered format per content, so switching across and back does not
+  // silently reset the writer's choice.
+  const [formats, setFormats] = useState<Record<Content, string>>({
+    manuscript: 'Epub',
+    codex: 'Codex'
+  })
+  const format = formats[content]
+  const setFormat = (next: string): void => setFormats({ ...formats, [content]: next })
   const [presetId, setPresetId] = useState('default')
   const [presets, setPresets] = useState<PresetDto[]>([])
   const [extFormats, setExtFormats] = useState<ExtensionFormatDto[]>([])
@@ -85,7 +105,7 @@ export function ExportView(): React.JSX.Element {
     }
   }, [chapters, initialized])
 
-  const isCodex = format === 'Codex' || format === 'CodexPdf'
+  const isCodex = content === 'codex'
   const extFormat = extFormats.find((f) => f.formatKey === format)
   const chaptersVisible = !isCodex && extFormat === undefined
 
@@ -198,6 +218,24 @@ export function ExportView(): React.JSX.Element {
       <h1 className="dashboard-title">{t('shell.view.export')}</h1>
       <div className="dashboard-card export-card">
         <div className="export-field">
+          <label className="inspector-label" htmlFor="export-content">
+            {t('export.content')}
+          </label>
+          <select
+            id="export-content"
+            className="dialog-input"
+            value={content}
+            onChange={(e) => setContent(e.target.value as Content)}
+          >
+            {CONTENTS.map((c) => (
+              <option key={c.key} value={c.key}>
+                {t(c.labelKey)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="export-field">
           <label className="inspector-label" htmlFor="export-format">
             {t('export.format')}
           </label>
@@ -207,16 +245,19 @@ export function ExportView(): React.JSX.Element {
             value={format}
             onChange={(e) => setFormat(e.target.value)}
           >
-            {FORMATS.map((f) => (
+            {FORMATS.filter((f) => f.content === content).map((f) => (
               <option key={f.format} value={f.format}>
                 {t(f.labelKey)}
               </option>
             ))}
-            {extFormats.map((f) => (
-              <option key={f.formatKey} value={f.formatKey}>
-                {f.displayName}
-              </option>
-            ))}
+            {/* An extension writes the manuscript out; nothing contributes a
+                codex writer, so those belong under the manuscript only. */}
+            {content === 'manuscript' &&
+              extFormats.map((f) => (
+                <option key={f.formatKey} value={f.formatKey}>
+                  {f.displayName}
+                </option>
+              ))}
           </select>
         </div>
 

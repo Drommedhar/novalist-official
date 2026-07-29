@@ -1565,8 +1565,6 @@
     "formatMarkdown": "Markdown",
     "formatFinalDraft": "Final Draft (.fdx)",
     "formatLatex": "LaTeX",
-    "formatCodex": "设定集 (Markdown)",
-    "formatCodexPdf": "设定集 (PDF)",
     "selectEntities": "选择要导出的设定集条目",
     "searchEntities": "搜索条目…",
     "noEntityMatches": "没有符合搜索的条目。",
@@ -1595,7 +1593,10 @@
     "exportFailed": "导出失败：{0}",
     "exportAction": "导出",
     "selectedOfTotal": "已选择 {{selected}} / {{total}}",
-    "includeCover": "包含书籍封面"
+    "includeCover": "包含书籍封面",
+    "content": "导出内容",
+    "contentManuscript": "稿件",
+    "contentCodex": "设定集（世界观）"
   },
   "expose": {
     "chars": "{{value}} 字符",

@@ -1530,8 +1530,6 @@
     "formatMarkdown": "Markdown",
     "formatFinalDraft": "Final Draft (.fdx)",
     "formatLatex": "LaTeX",
-    "formatCodex": "Codex (Markdown)",
-    "formatCodexPdf": "Codex (PDF)",
     "selectEntities": "Select codex entries to export",
     "searchEntities": "Search entries…",
     "noEntityMatches": "No entries match your search.",
@@ -1560,7 +1558,10 @@
     "exportFailed": "Export failed: {0}",
     "exportAction": "Export",
     "selectedOfTotal": "{{selected}} of {{total}} selected",
-    "includeCover": "Include the book cover"
+    "includeCover": "Include the book cover",
+    "content": "What to export",
+    "contentManuscript": "The manuscript",
+    "contentCodex": "The codex (world bible)"
   },
   "expose": {
     "chars": "{{value}} characters",

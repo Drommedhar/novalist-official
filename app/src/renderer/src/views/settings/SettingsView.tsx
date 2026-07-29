@@ -5,6 +5,7 @@ import { availableLanguages } from '../../i18n'
 import { rpc } from '../../rpc/client'
 import { useSettingsStore, type SettingsSection } from '../../stores/settingsStore'
 import { useShellStore } from '../../stores/shellStore'
+import { TargetsPanel } from '../dashboard/TargetsCard'
 import { useProjectStore } from '../../stores/projectStore'
 import { useThemeCatalog } from '../../stores/themeCatalog'
 import { assetDirectories } from '../../stores/userAssets'
@@ -508,7 +509,18 @@ export function SettingsView(): React.JSX.Element {
     {
       key: 'writingGoals',
       titleKey: 'settings.writingGoals',
-      keywords: ['goal', 'deadline', 'author', 'watch', 'filesystem', 'writing'],
+      keywords: [
+        'goal',
+        'deadline',
+        'author',
+        'writing',
+        'target',
+        'targets',
+        'words',
+        'chapter',
+        'scene',
+        'act'
+      ],
       body: (
         <>
           <div className="settings-desc">{t('settings.goalsDesc')}</div>
@@ -532,10 +544,31 @@ export function SettingsView(): React.JSX.Element {
                 value={project.author}
                 onCommit={(v) => void updateProjectMeta({ author: v })}
               />
-              {/* Desktop-only file-watching: irrelevant in the mobile sandbox. */}
-              {!isMobile && (
-                <></>
-              )}
+
+              <label className="inspector-label" htmlFor="set-daily-goal">
+                {t('settings.dailyWordGoal')}
+              </label>
+              <SettingInput
+                id="set-daily-goal"
+                value={String(project.dailyGoal)}
+                onCommit={(v) => void updateProjectMeta({ dailyGoal: Number(v) || 0 })}
+              />
+              <div className="settings-hint">{t('settings.dailyWordGoalDesc')}</div>
+
+              <label className="inspector-label" htmlFor="set-project-goal">
+                {t('settings.projectWordGoal')}
+              </label>
+              <SettingInput
+                id="set-project-goal"
+                value={String(project.projectGoal)}
+                onCommit={(v) => void updateProjectMeta({ projectGoal: Number(v) || 0 })}
+              />
+              <div className="settings-hint">{t('settings.projectWordGoalDesc')}</div>
+
+              {/* Per-act, per-chapter and per-scene targets. The same panel the
+                  Dashboard shows, because this is where writers look for it. */}
+              <label className="inspector-label">{t('targets.dashboardTitle')}</label>
+              <TargetsPanel />
             </>
           ) : (
             <div className="settings-hint">{t('settings.scopeProjectHint')}</div>

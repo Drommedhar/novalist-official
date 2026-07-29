@@ -12,10 +12,11 @@ const ORDER: Record<WordTarget['kind'], number> = { act: 0, chapter: 1, scene: 2
  *
  * Targets could only be reached by right-clicking a row in the binder, which
  * meant a writer who had not thought to try that never learned they existed.
- * The dashboard is where the daily and project goals already live, so a target
- * belongs beside them.
+ * This is rendered in two places for the same reason: the Dashboard, where the
+ * daily and project goals live, and Settings, where a writer looking for a
+ * setting called "targets" actually goes looking.
  */
-export function TargetsCard(): React.JSX.Element {
+export function TargetsPanel(): React.JSX.Element {
   const { t } = useTranslation()
   const targets = useTargetStore((s) => s.targets)
   const chapters = useProjectStore((s) => s.chapters)
@@ -95,8 +96,7 @@ export function TargetsCard(): React.JSX.Element {
   }
 
   return (
-    <div className="dashboard-card">
-      <div className="dashboard-card-title">{t('targets.dashboardTitle')}</div>
+    <>
       <div className="dashboard-echo-desc">{t('targets.dashboardHint')}</div>
 
       {explicit.length === 0 && <div className="dashboard-echo-desc">{t('targets.empty')}</div>}
@@ -160,6 +160,17 @@ export function TargetsCard(): React.JSX.Element {
           onSubmit={apply}
         />
       )}
+    </>
+  )
+}
+
+/** The panel with the Dashboard's card chrome around it. */
+export function TargetsCard(): React.JSX.Element {
+  const { t } = useTranslation()
+  return (
+    <div className="dashboard-card">
+      <div className="dashboard-card-title">{t('targets.dashboardTitle')}</div>
+      <TargetsPanel />
     </div>
   )
 }

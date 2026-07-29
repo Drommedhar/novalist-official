@@ -139,7 +139,7 @@ Novalist has always had two targets — a daily one and a whole-project one, bot
 
 Set one from any of three places:
 
-- The **Word targets** card on the [Dashboard](11-dashboard.md#word-targets), which also lists every target you have already set.
+- The **Word targets** card on the [Dashboard](11-dashboard.md#word-targets), or the same panel under **Settings → Writing Goals**. Both list every target you have already set.
 - Right-click the scene or chapter in the binder and choose **Set word target**. With several scenes selected, this sets the same target on all of them.
 - The **Target** column of the Manuscript view's [outliner](10-manuscript.md), the fastest way across a run of scenes, since you can tab down the column.
 
