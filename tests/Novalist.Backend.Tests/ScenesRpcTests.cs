@@ -197,4 +197,55 @@ public sealed class ScenesRpcTests : IDisposable
         // Last remaining field cleared -> whole override object dropped.
         Assert.Null(Overrides(chapterGuid, sceneId));
     }
+
+    // ----- explicit cast -----
+
+    [Fact]
+    public async Task SetCast_RoundTripsAndDedupes()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+
+        var meta = await _rpc.SetCastAsync(
+            chapterGuid, sceneId, ["char-1", "char-1", "  ", "loc-1"], "char-1");
+
+        Assert.Equal(["char-1", "loc-1"], meta.Cast);
+        Assert.Equal("char-1", meta.FocusEntityId);
+        Assert.Equal(["char-1", "loc-1"], _rpc.GetMeta(chapterGuid, sceneId).Cast);
+    }
+
+    [Fact]
+    public async Task SetCast_AFocusOutsideTheCastIsNotKept()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+
+        // A focus nobody put in the scene is a dangling reference that no
+        // surface could resolve.
+        var meta = await _rpc.SetCastAsync(chapterGuid, sceneId, ["char-1"], "char-9");
+
+        Assert.Null(meta.FocusEntityId);
+    }
+
+    [Fact]
+    public async Task SetCast_RemovingTheFocusFromTheCastClearsIt()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+        await _rpc.SetCastAsync(chapterGuid, sceneId, ["char-1", "char-2"], "char-2");
+
+        var meta = await _rpc.SetCastAsync(chapterGuid, sceneId, ["char-1"], "char-2");
+
+        Assert.Equal(["char-1"], meta.Cast);
+        Assert.Null(meta.FocusEntityId);
+    }
+
+    [Fact]
+    public async Task SetCast_AnEmptyCastIsNoCast()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+        await _rpc.SetCastAsync(chapterGuid, sceneId, ["char-1"], "char-1");
+
+        var meta = await _rpc.SetCastAsync(chapterGuid, sceneId, null, null);
+
+        Assert.Empty(meta.Cast);
+        Assert.Null(meta.FocusEntityId);
+    }
 }

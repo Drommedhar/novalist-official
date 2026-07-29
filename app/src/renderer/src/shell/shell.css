@@ -3188,3 +3188,68 @@
   color: var(--nl-text-subtle);
   font-size: var(--nl-font-caption);
 }
+
+/* The scene's cast: a chip per entity, with the one the scene is about
+   starred, and a search box that only offers what is not already there. */
+.scene-cast {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+}
+
+.scene-cast-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+}
+
+.scene-cast-chip {
+  align-items: center;
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-pill);
+  display: inline-flex;
+  font-size: var(--nl-font-caption);
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+}
+
+.scene-cast-chip.focus {
+  background: var(--nl-surface-selected);
+}
+
+.scene-cast-star,
+.scene-cast-remove {
+  align-items: center;
+  color: var(--nl-text-subtle);
+  display: inline-flex;
+}
+
+.scene-cast-chip.focus .scene-cast-star {
+  color: var(--nl-accent);
+}
+
+.scene-cast-matches {
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  display: flex;
+  flex-direction: column;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.scene-cast-match {
+  display: flex;
+  font-size: var(--nl-font-body-sm);
+  justify-content: space-between;
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  text-align: left;
+}
+
+.scene-cast-match:hover {
+  background: var(--nl-surface-hover);
+}
+
+.scene-cast-type {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}

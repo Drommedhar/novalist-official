@@ -3,10 +3,13 @@ import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/projectStore'
 import { useManuscriptPropsStore } from '../stores/manuscriptPropsStore'
 import { ManuscriptPropertyField } from './ManuscriptPropertyField'
+import { SceneCastPicker } from './SceneCastPicker'
 import { rpc } from '../rpc/client'
 
 interface SceneMeta {
   notes?: string | null
+  cast?: string[]
+  focusEntityId?: string | null
 }
 
 /**
@@ -25,6 +28,8 @@ export function SceneNotesFields(): React.JSX.Element {
 
   const [synopsis, setSynopsis] = useState('')
   const [notes, setNotes] = useState('')
+  const [cast, setCast] = useState<string[]>([])
+  const [focus, setFocus] = useState<string | null>(null)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
   const sceneValues = useManuscriptPropsStore((s) => s.sceneValues)
   const sceneProps = definitions.filter((d) => d.scope === 'Scene')
@@ -39,7 +44,11 @@ export function SceneNotesFields(): React.JSX.Element {
     if (openChapterGuid && openSceneId) {
       void rpc
         .request<SceneMeta>('scenes/getMeta', [openChapterGuid, openSceneId])
-        .then((meta) => setNotes(meta.notes ?? ''))
+        .then((meta) => {
+          setNotes(meta.notes ?? '')
+          setCast(meta.cast ?? [])
+          setFocus(meta.focusEntityId ?? null)
+        })
         .catch(() => setNotes(''))
     }
   }, [openChapterGuid, openSceneId, scene?.synopsis])
@@ -78,6 +87,22 @@ export function SceneNotesFields(): React.JSX.Element {
           onBlur={() => void rpc.request('scenes/setNotes', [openChapterGuid, openSceneId, notes])}
         />
       </div>
+      {/* Who and what is in the scene, said outright rather than inferred
+          from which names the prose happens to use. */}
+      <div className="notes-dock-col notes-dock-props">
+        <label className="notes-dock-label">{t('cast.title')}</label>
+        <SceneCastPicker
+          chapterGuid={openChapterGuid}
+          sceneId={openSceneId}
+          cast={cast}
+          focusEntityId={focus}
+          onChange={(next, nextFocus) => {
+            setCast(next)
+            setFocus(nextFocus)
+          }}
+        />
+      </div>
+
       {/* The book's own scene fields. Nothing shows when the writer has
           defined none, which is the state every project starts in. */}
       {sceneProps.length > 0 && (

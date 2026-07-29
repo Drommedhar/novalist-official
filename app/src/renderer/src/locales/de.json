@@ -2382,5 +2382,12 @@
     "chaptersPerAct": "Kapitel pro Akt",
     "startWithPremise": "Mit einer Prämisse beginnen (Schneeflocken-Methode)",
     "skip": "Jetzt nicht"
+  },
+  "cast": {
+    "title": "In dieser Szene",
+    "addPlaceholder": "Figur, Ort oder Gegenstand hinzufügen...",
+    "remove": "Aus dieser Szene entfernen",
+    "setFocus": "Darum geht es in der Szene",
+    "clearFocus": "Nicht mehr im Mittelpunkt"
   }
 }

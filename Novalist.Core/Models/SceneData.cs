@@ -113,6 +113,23 @@ public class SceneData
     public SceneAnalysisOverrides? AnalysisOverrides { get; set; }
 
     /// <summary>
+    /// Entity ids the writer said are in this scene, whether or not the prose
+    /// names them. Mentions in the text are author-confirmed but incomplete:
+    /// a character who is present and silent leaves no span to find.
+    /// </summary>
+    [JsonPropertyName("cast")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? Cast { get; set; }
+
+    /// <summary>
+    /// The entity this scene is really about, when that is not the same as who
+    /// speaks or whose head it is in. Null when unremarkable.
+    /// </summary>
+    [JsonPropertyName("focusEntityId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FocusEntityId { get; set; }
+
+    /// <summary>
     /// Values for the book's scene-scoped <see cref="ManuscriptPropertyDefinition"/>s,
     /// keyed by property key. Null when the writer has filled none in.
     /// </summary>

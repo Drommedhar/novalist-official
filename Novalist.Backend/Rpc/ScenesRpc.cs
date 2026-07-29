@@ -37,7 +37,33 @@ public sealed class ScenesRpc
             scene.Synopsis,
             scene.Notes,
             storyDate,
-            StoryDateFormatter.ExtractLeadingDate(storyDate));
+            StoryDateFormatter.ExtractLeadingDate(storyDate),
+            scene.Cast?.ToArray() ?? [],
+            scene.FocusEntityId);
+    }
+
+    /// <summary>
+    /// Who and what is in this scene, and which of them it is about. Both are
+    /// the writer's statement rather than something read out of the prose.
+    /// </summary>
+    [JsonRpcMethod("scenes/setCast")]
+    public async Task<SceneMetaDto> SetCastAsync(
+        string chapterGuid, string sceneId, string[]? cast, string? focusEntityId)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        var clean = (cast ?? [])
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+        scene.Cast = clean.Count > 0 ? clean : null;
+        // A focus nobody put in the scene is a dangling reference, so it only
+        // sticks while its entity is in the cast.
+        scene.FocusEntityId = !string.IsNullOrWhiteSpace(focusEntityId)
+                              && clean.Contains(focusEntityId, StringComparer.Ordinal)
+            ? focusEntityId
+            : null;
+        await _workspace.Projects.SaveScenesAsync();
+        return GetMeta(chapterGuid, sceneId);
     }
 
     /// <summary>
@@ -199,7 +225,9 @@ public sealed record SceneMetaDto(
     string? Synopsis,
     string? Notes,
     string StoryDate,
-    string? IsoDate);
+    string? IsoDate,
+    string[] Cast,
+    string? FocusEntityId);
 
 /// <summary>Partial patch for a scene's analysis overrides. Null fields are
 /// left unchanged; only supplied fields are written.</summary>

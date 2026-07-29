@@ -192,4 +192,53 @@ public class AppearanceIndexServiceTests : IDisposable
 
         Assert.Equal(["hero", "port"], AppearanceIndexService.ExtractMentionIds(html));
     }
+
+    // ── Explicit cast ──
+    //
+    // Mention spans are author-confirmed and never wrong, but they are
+    // incomplete: a character present and silent leaves nothing to find, so an
+    // appearance index built only from them is quietly missing people.
+
+    [Fact]
+    public async Task Build_AnAssignedCastCountsAsAnAppearance()
+    {
+        await _project.CreateProjectAsync(_dir.Path, "P", "Book");
+        var ch = await _project.CreateChapterAsync("One");
+        var sc = await _project.CreateSceneAsync(ch.Guid, "Silent");
+        sc.Cast = ["char-1"];
+        await _project.WriteSceneContentAsync(ch, sc, "<p>Nobody is named here.</p>");
+
+        var index = await new AppearanceIndexService(_project).BuildAsync([]);
+
+        // A scene with no mention spans at all used to be skipped outright.
+        Assert.Equal(sc.Id, Assert.Single(index["char-1"]).SceneId);
+    }
+
+    [Fact]
+    public async Task Build_CastAndMentionsMergeWithoutDuplicates()
+    {
+        await _project.CreateProjectAsync(_dir.Path, "P", "Book");
+        var ch = await _project.CreateChapterAsync("One");
+        var sc = await _project.CreateSceneAsync(ch.Guid, "Both");
+        sc.Cast = ["char-3", "char-1"];
+        await _project.WriteSceneContentAsync(ch, sc, Mention("char-1", "Mira") + Mention("char-2", "Jonas"));
+
+        var index = await new AppearanceIndexService(_project).BuildAsync([]);
+
+        // Assigned first, because it is the deliberate statement of the two.
+        Assert.Equal(["char-3", "char-1", "char-2"], Assert.Single(index["char-1"]).EntityIds);
+        Assert.Single(index["char-3"]);
+    }
+
+    [Fact]
+    public async Task Build_ABlankCastEntryIsNotAnAppearance()
+    {
+        await _project.CreateProjectAsync(_dir.Path, "P", "Book");
+        var ch = await _project.CreateChapterAsync("One");
+        var sc = await _project.CreateSceneAsync(ch.Guid, "Empty");
+        sc.Cast = ["  ", ""];
+        await _project.WriteSceneContentAsync(ch, sc, "<p>Nothing.</p>");
+
+        Assert.Empty(await new AppearanceIndexService(_project).BuildAsync([]));
+    }
 }

@@ -2416,5 +2416,12 @@
     "chaptersPerAct": "每幕章节数",
     "startWithPremise": "从前提开始（雪花法）",
     "skip": "暂不"
+  },
+  "cast": {
+    "title": "本场景中",
+    "addPlaceholder": "添加人物、地点或物品...",
+    "remove": "从本场景移除",
+    "setFocus": "这是场景的重点",
+    "clearFocus": "不再是重点"
   }
 }

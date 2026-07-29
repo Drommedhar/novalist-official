@@ -88,11 +88,9 @@ public sealed class AppearanceIndexService
             foreach (var scene in _projects.GetScenesForChapter(chapter.Guid))
             {
                 var html = await _projects.ReadSceneContentAsync(chapter, scene);
-                if (string.IsNullOrEmpty(html) ||
-                    html.IndexOf("nv-entity-mention", StringComparison.OrdinalIgnoreCase) < 0)
-                    continue;
-
-                var entityIds = ExtractMentionIds(html);
+                // An assigned cast is a statement about the scene, so a scene
+                // with one is never skipped for having no mention spans.
+                var entityIds = Merge(scene.Cast, ExtractMentionIds(html));
                 if (entityIds.Count == 0)
                     continue;
 
@@ -125,6 +123,23 @@ public sealed class AppearanceIndexService
             kvp => kvp.Key,
             kvp => (IReadOnlyList<SceneAppearance>)kvp.Value,
             StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// The scene's cast first, then anyone else the prose names. Assignment
+    /// comes first because it is the deliberate statement of the two.
+    /// </summary>
+    private static IReadOnlyList<string> Merge(
+        IReadOnlyList<string>? cast, IReadOnlyList<string> mentioned)
+    {
+        if (cast is not { Count: > 0 }) return mentioned;
+
+        var merged = new List<string>();
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var id in cast.Concat(mentioned))
+            if (!string.IsNullOrWhiteSpace(id) && seen.Add(id))
+                merged.Add(id);
+        return merged;
     }
 
     /// <summary>Effective POV: the manual override if set, else best-effort

@@ -133,6 +133,16 @@ Archiving removes a scene from the manuscript without deleting its text — usef
 - Click **ARCHIVE** at the bottom of the binder tree to show the list of archived scenes.
 - Click **Restore** next to an archived scene to bring it back into the manuscript (it is restored into the first chapter; drag it from there to where it belongs).
 
+## Who and what is in a scene
+
+Novalist works out who a scene involves from the @-mentions in its prose. Those are never wrong — you confirmed each one — but they are incomplete: a character who is in the room and says nothing leaves no mention behind, and the person a scene is really *about* is often not the one whose name appears most.
+
+The scene notes dock has an **In this scene** box. Type a name and pick a character, location, item or lore entry to add it. Each one becomes a chip; the **star** on a chip marks the entry the scene is about.
+
+What you assign counts as an appearance everywhere presence matters — the [Wiki's](30-wiki.md) appearance timeline, co-appearance stats, and the context sidebar — alongside the mentions found in the prose, with no double counting. A scene with an assigned cast and no mentions at all is no longer invisible to those views.
+
+Removing an entry from the cast clears the star if it was the one marked.
+
 ## Word targets
 
 Novalist has always had two targets — a daily one and a whole-project one, both on the [Dashboard](11-dashboard.md). A target can now also sit on a single scene, a chapter, or an act.

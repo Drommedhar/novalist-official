@@ -2374,5 +2374,12 @@
     "chaptersPerAct": "Chapters per act",
     "startWithPremise": "Start from a premise (Snowflake method)",
     "skip": "Not now"
+  },
+  "cast": {
+    "title": "In this scene",
+    "addPlaceholder": "Add a character, place or thing...",
+    "remove": "Remove from this scene",
+    "setFocus": "This is what the scene is about",
+    "clearFocus": "No longer the focus"
   }
 }
