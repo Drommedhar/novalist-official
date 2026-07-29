@@ -65,7 +65,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
-- **A scene with a stage no longer has its title floating in the middle of the row.** The coloured stage dot became a third element in a row laid out to push its contents apart, so the title drifted away from the left edge.
+- **Scene titles in the binder line up in a column again.** Giving a scene a stage pushed its title away from the left edge, so a list of scenes read as ragged rather than as a column - and the titles of scenes without a stage sat a few pixels off from the ones with. Every title now starts at the same place whether or not the scene has been staged.
 - **Shift-click in the binder selects the whole run between two scenes again.** Clicking one scene and shift-clicking another selected only the second, because a plain click forgot where you had clicked.
 - **A layout you authored yourself is now actually used by the export.** Picking a custom layout quietly fell back to the default, so the file came out in Default no matter what the drop-down said.
 - **Import manuscript and Import review changes open again.** Both dialogs were rendering with no styling at all, which left them invisible - clicking the button appeared to do nothing.

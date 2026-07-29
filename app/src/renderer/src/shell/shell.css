@@ -743,6 +743,10 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--nl-space-sm);
+  /* The row is a button, and a button centres its text. That was invisible
+     while the title span was only as wide as its text; once it stretches to
+     fill the row, every title drifts to the middle. */
+  text-align: left;
   width: 100%;
   padding: var(--nl-space-tighter) var(--nl-space-sm) var(--nl-space-tighter)
     calc(var(--nl-space-xl) + var(--nl-space-sm));
@@ -772,6 +776,8 @@
 
 .binder-scene-title {
   flex: 1;
+  /* Same reason, for the lists that reuse this class inside their own buttons. */
+  text-align: left;
   /* Without this the title refuses to shrink below its text width and pushes
      the word count off the end instead of ellipsing. */
   min-width: 0;

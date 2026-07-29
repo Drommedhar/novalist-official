@@ -540,18 +540,21 @@ export function Binder(): React.JSX.Element {
                   }}
                   title={changedIds.has(scene.id) ? t('explorer.changed') : undefined}
                 >
-                  {/* A dot only where the writer set a stage. An untriaged
+                  {/* A dot only where the writer set a stage - an untriaged
                       scene shows nothing rather than claiming to be at the
-                      first stage. */}
-                  {stages.find((st) => st.key === scene.stage) && (
-                    <span
-                      className="binder-scene-stage"
-                      style={{
-                        background: stages.find((st) => st.key === scene.stage)!.color
-                      }}
-                      title={stages.find((st) => st.key === scene.stage)!.label}
-                    />
-                  )}
+                      first one. The slot is always there, though: rendering it
+                      only for staged scenes made their titles sit a few pixels
+                      right of everything else. */}
+                  {(() => {
+                    const stage = stages.find((st) => st.key === scene.stage)
+                    return (
+                      <span
+                        className="binder-scene-stage"
+                        style={{ background: stage ? stage.color : 'transparent' }}
+                        title={stage ? stage.label : undefined}
+                      />
+                    )
+                  })()}
                   <span className="binder-scene-title">{scene.title}</span>
                   {(() => {
                     const target = targets.find((tg) => tg.kind === 'scene' && tg.id === scene.id)
