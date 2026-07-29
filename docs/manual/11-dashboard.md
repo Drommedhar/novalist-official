@@ -38,6 +38,21 @@ The project name heads the page, with the **author** underneath (when set) and a
 - Your current **streak** — consecutive days on which you wrote.
 - A **history chart** of words per day. Buttons switch the range between **30d**, **90d**, and **365d**; bars on days where you met the goal are highlighted, and hovering a bar shows the date and word count.
 
+### Writing history
+
+Under the daily bars, four figures the per-day journal can answer that a streak cannot:
+
+- **Longest streak** — the best run of days you met the goal.
+- **Days goal met** — what share of your writing days hit it.
+- **Best day** — your highest single day, with its date.
+- **Average per writing day** — across the days you actually wrote.
+
+### Writing days and an adaptive goal
+
+Tick the weekdays you write on. Days you untick are left out of every figure above and never break a streak — a streak that snaps on a Sunday you told Novalist you take off is not measuring anything.
+
+**Recalculate today's goal from what is left** replaces the flat daily goal with what is actually needed: the words remaining to your project goal, spread over the writing days between today and your deadline. It falls back to the flat number when there is no deadline to plan against, and past the deadline it asks for everything that is left, today, because that is the truth.
+
 ### Goal Tracking
 
 **Click the card title to edit your project word goal.** The card shows:
@@ -52,6 +67,14 @@ The book in one line, then in one paragraph, then a summary per act - the Snowfl
 The act boxes follow the acts your chapters are actually in, so a book in two acts or five is not asked to pretend it has three. Give a chapter an act and a box for it appears here.
 
 You can fill this in at any time; Novalist also offers it when you create a project (see [Projects and books](03-projects-and-books.md#starting-from-a-premise)).
+
+### Tension
+
+A bar per scene, in reading order, as tall as that scene's intensity. Negative intensity is drawn in a different colour, and a scene nobody has rated yet is a hairline rather than a flat bar — because "calm" and "unrated" are not the same thing. Click a bar to open that scene.
+
+Intensity is set per scene in the [context sidebar](22-context-sidebar.md); Novalist estimates it and you can override it. The chart appears once at least two scenes have been rated: a single point is not a curve.
+
+This is where a long flat stretch, or a peak in the wrong place, is visible — the number on its own in the Inspector never said that.
 
 ### Character arcs
 

@@ -1516,7 +1516,20 @@
     "changeBanner": "更换横幅",
     "removeBanner": "移除横幅",
     "pickBannerTitle": "选择横幅图片",
-    "noBanner": "无横幅图片"
+    "noBanner": "无横幅图片",
+    "longestStreak": "最长连续",
+    "hitRate": "达标天数占比",
+    "bestDay": "最佳一天",
+    "averagePerDay": "每个写作日均值",
+    "adaptiveGoal": "根据剩余量重算今日目标",
+    "writingDaysHint": "您写作的日子。休息日不会中断连续记录。",
+    "day0": "日",
+    "day1": "一",
+    "day2": "二",
+    "day3": "三",
+    "day4": "四",
+    "day5": "五",
+    "day6": "六"
   },
   "import": {
     "title": "从 Obsidian 插件导入",
@@ -2512,5 +2525,11 @@
     "none": "无标签",
     "set": "标签",
     "unsaved": "有未保存的更改。"
+  },
+  "tension": {
+    "title": "张力",
+    "intro": "每个场景的强度，按阅读顺序排列。长时间的平缓或位置不对的高潮，只有在这里能看到。点击柱形可打开该场景。",
+    "unrated": "未评定",
+    "rated": "已评定 {{rated}} / {{total}} 个场景"
   }
 }

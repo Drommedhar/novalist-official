@@ -68,4 +68,41 @@ public sealed class AnalyticsRpcTests : IDisposable
 
         Assert.Contains("Forgotten", (await _rpc.BookAsync()).Unused);
     }
+
+    // ── Tension ──
+    //
+    // Intensity has been computed and hand-overridable per scene for a long
+    // time and shown only as one Inspector number, which is not a shape.
+
+    [Fact]
+    public async Task Tension_ReportsEverySceneInReadingOrder()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var first = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Calm");
+        var second = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Storm");
+        first.AnalysisOverrides = new Novalist.Core.Models.SceneAnalysisOverrides
+        {
+            Intensity = -3,
+            Emotion = "weary"
+        };
+        second.AnalysisOverrides = new Novalist.Core.Models.SceneAnalysisOverrides { Intensity = 9 };
+        await _workspace.Projects.SaveScenesAsync();
+
+        var points = _rpc.Tension();
+
+        Assert.Equal(["Calm", "Storm"], points.Select(p => p.SceneTitle));
+        Assert.Equal(-3, points[0].Intensity);
+        Assert.Equal("weary", points[0].Emotion);
+        Assert.Equal(9, points[1].Intensity);
+    }
+
+    [Fact]
+    public async Task Tension_AnUnratedSceneIsNullRatherThanZero()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Unrated");
+
+        // Nobody has rated it, which is not the same as saying it is flat.
+        Assert.Null(Assert.Single(_rpc.Tension()).Intensity);
+    }
 }

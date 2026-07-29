@@ -133,6 +133,15 @@ public sealed partial class DashboardRpc
         var (daysRemaining, wordsPerDayNeeded) =
             ComputeDeadlineMetrics(goals.Deadline, totalWords, goals.ProjectGoal);
 
+        // Today's target: the flat number, or what is actually left spread over
+        // the days the writer says they write. A goal that ignores the days off
+        // it was told about is quietly asking for the impossible.
+        var effectiveDailyGoal = goals.AdaptiveDailyGoal
+            ? AdaptiveGoal(goals, totalWords, today)
+            : goals.DailyGoal;
+
+        var history = BuildHistoryStats(goals, book.Id, today);
+
         var recentActivity = activity
             .OrderByDescending(a => a.Modified)
             .Take(8)
@@ -153,15 +162,18 @@ public sealed partial class DashboardRpc
             TextStatistics.EstimateReadingTime(totalWords),
             chapters.Count > 0 ? (int)Math.Round((double)totalWords / chapters.Count) : 0,
             dailyCurrent,
-            goals.DailyGoal,
-            goals.DailyGoal > 0 ? Math.Min(100, (int)Math.Round(dailyCurrent * 100.0 / goals.DailyGoal)) : 0,
+            effectiveDailyGoal,
+            effectiveDailyGoal > 0
+                ? Math.Min(100, (int)Math.Round(dailyCurrent * 100.0 / effectiveDailyGoal))
+                : 0,
             goals.ProjectGoal,
             goals.ProjectGoal > 0 ? Math.Min(100, (int)Math.Round(totalWords * 100.0 / goals.ProjectGoal)) : 0,
             goals.Deadline,
             daysRemaining,
             wordsPerDayNeeded,
             _workspace.WordHistory.TotalForDay(today, book.Id),
-            _workspace.WordHistory.CurrentStreak(today, Math.Max(1, goals.DailyGoal), book.Id),
+            _workspace.WordHistory.CurrentStreak(today, Math.Max(1, effectiveDailyGoal), book.Id),
+            history,
             maxChapterWords,
             minChapterWords,
             avgSceneWords,
@@ -177,6 +189,82 @@ public sealed partial class DashboardRpc
                 .Select(e => new EchoPhraseDto(e.Phrase, e.Count)).ToArray(),
             bars.ToArray(),
             recentActivity);
+    }
+
+    /// <summary>
+    /// Today's target when the goal adapts: what is left of the project spread
+    /// over the writing days between now and the deadline. Falls back to the
+    /// flat goal when there is no deadline to plan against.
+    /// </summary>
+    private int AdaptiveGoal(
+        Core.Models.ProjectWordCountGoals goals, int totalWords, DateOnly today)
+    {
+        if (!DateOnly.TryParse(goals.Deadline, CultureInfo.InvariantCulture,
+                DateTimeStyles.None, out var deadline))
+            return goals.DailyGoal;
+
+        var remaining = Math.Max(0, goals.ProjectGoal - totalWords);
+        if (remaining == 0) return 0;
+
+        var writingDays = 0;
+        for (var day = today; day <= deadline; day = day.AddDays(1))
+            if (goals.IsWritingDay(day)) writingDays++;
+
+        // Past the deadline, or every remaining day is one they do not write:
+        // the honest answer is everything that is left, today.
+        return writingDays == 0
+            ? remaining
+            : (int)Math.Ceiling(remaining / (double)writingDays);
+    }
+
+    /// <summary>
+    /// What the per-day journal can say beyond today: the longest run of days
+    /// the goal was met, how often it was met at all, and the best day.
+    /// Days the writer said they do not write are left out of every figure.
+    /// </summary>
+    private HistoryStatsDto BuildHistoryStats(
+        Core.Models.ProjectWordCountGoals goals, string bookId, DateOnly today)
+    {
+        var goal = Math.Max(1, goals.DailyGoal);
+        var start = today.AddDays(-364);
+        var longest = 0;
+        var run = 0;
+        var written = 0;
+        var hit = 0;
+        var considered = 0;
+        var total = 0;
+        var bestWords = 0;
+        var bestDate = string.Empty;
+
+        for (var day = start; day <= today; day = day.AddDays(1))
+        {
+            if (!goals.IsWritingDay(day)) continue;
+            considered++;
+            var words = _workspace.WordHistory.TotalForDay(day, bookId);
+            total += words;
+            if (words > 0) written++;
+            if (words > bestWords)
+            {
+                bestWords = words;
+                bestDate = day.ToString("yyyy-MM-dd");
+            }
+            if (words >= goal)
+            {
+                hit++;
+                run++;
+                if (run > longest) longest = run;
+            }
+            else
+            {
+                run = 0;
+            }
+        }
+
+        return new HistoryStatsDto(
+            longest, written, hit, considered, bestWords, bestDate,
+            written > 0 ? (int)Math.Round(total / (double)written) : 0,
+            goals.AdaptiveDailyGoal,
+            [.. goals.WritingDays]);
     }
 
     // Ported from the Avalonia DashboardViewModel.ComputeDeadlineMetrics so the
@@ -203,6 +291,26 @@ public sealed partial class DashboardRpc
         goals.DailyGoal = dailyGoal;
         goals.ProjectGoal = projectGoal;
         goals.Deadline = string.IsNullOrWhiteSpace(deadline) ? null : deadline;
+        await _workspace.Projects.SaveProjectSettingsAsync();
+    }
+
+    /// <summary>
+    /// Which days the writer writes, and whether today's goal follows what is
+    /// left rather than being the same number every day.
+    /// </summary>
+    [JsonRpcMethod("dashboard/setPacing")]
+    public async Task SetPacingAsync(bool adaptive, int[]? writingDays)
+    {
+        var goals = _workspace.Projects.ProjectSettings.WordCountGoals;
+        goals.AdaptiveDailyGoal = adaptive;
+        // Out-of-range numbers would silently mean "never a writing day", and
+        // every day selected is the same thing as no restriction.
+        var days = (writingDays ?? [])
+            .Where(d => d is >= 0 and <= 6)
+            .Distinct()
+            .OrderBy(d => d)
+            .ToList();
+        goals.WritingDays = days.Count == 7 ? [] : days;
         await _workspace.Projects.SaveProjectSettingsAsync();
     }
 
@@ -355,6 +463,7 @@ public sealed record DashboardDto(
     int WordsPerDayNeeded,
     int TodayWords,
     int CurrentStreak,
+    HistoryStatsDto History,
     int LongestChapterWords,
     int ShortestChapterWords,
     double AverageSceneWords,
@@ -384,6 +493,21 @@ public sealed record ChapterPacingDto(string Title, int Words);
 public sealed record EchoPhraseDto(string Phrase, int Count);
 
 public sealed record WordHistoryBarDto(string Date, int Words, bool MetGoal);
+
+/// <summary>
+/// What a per-day journal can say beyond today's number: how long the best run
+/// was, how often the goal was met, and the best day so far.
+/// </summary>
+public sealed record HistoryStatsDto(
+    int LongestStreak,
+    int DaysWritten,
+    int DaysHitGoal,
+    int WritingDaysConsidered,
+    int BestDayWords,
+    string BestDayDate,
+    int AveragePerWritingDay,
+    bool Adaptive,
+    int[] WritingDays);
 
 /// <summary>A recently edited scene. The chapter/scene ids let the dashboard row
 /// open that scene in the editor.</summary>

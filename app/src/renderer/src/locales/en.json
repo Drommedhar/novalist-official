@@ -1481,7 +1481,20 @@
     "changeBanner": "Change banner",
     "removeBanner": "Remove banner",
     "pickBannerTitle": "Choose banner image",
-    "noBanner": "No banner image"
+    "noBanner": "No banner image",
+    "longestStreak": "Longest streak",
+    "hitRate": "Days goal met",
+    "bestDay": "Best day",
+    "averagePerDay": "Average per writing day",
+    "adaptiveGoal": "Recalculate today’s goal from what is left",
+    "writingDaysHint": "Days you write. A streak is not broken by a day you take off.",
+    "day0": "Sun",
+    "day1": "Mon",
+    "day2": "Tue",
+    "day3": "Wed",
+    "day4": "Thu",
+    "day5": "Fri",
+    "day6": "Sat"
   },
   "import": {
     "title": "Import from Obsidian Plugin",
@@ -2470,5 +2483,11 @@
     "none": "No label",
     "set": "Label",
     "unsaved": "Unsaved changes."
+  },
+  "tension": {
+    "title": "Tension",
+    "intro": "Each scene’s intensity in reading order. A long flat run, or a peak in the wrong place, is visible here and nowhere else. Click a bar to open that scene.",
+    "unrated": "not rated",
+    "rated": "{{rated}} of {{total}} scenes rated"
   }
 }

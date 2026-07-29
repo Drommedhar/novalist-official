@@ -36,6 +36,27 @@ public sealed class AnalyticsRpc
             [.. result.Unused]);
     }
 
+    /// <summary>
+    /// Each scene's tension in reading order.
+    ///
+    /// Intensity has been computed and hand-overridable per scene for a long
+    /// time and shown only as one number in the Inspector, where a curve is the
+    /// only shape it has ever had anything to say in.
+    /// </summary>
+    [JsonRpcMethod("analytics/tension")]
+    public TensionPointDto[] Tension()
+    {
+        var points = new List<TensionPointDto>();
+        foreach (var chapter in _workspace.Projects.GetChaptersOrdered())
+            foreach (var scene in _workspace.Projects.GetScenesForChapter(chapter.Guid))
+                points.Add(new TensionPointDto(
+                    chapter.Guid, chapter.Title, scene.Id, scene.Title,
+                    scene.AnalysisOverrides?.Intensity,
+                    scene.AnalysisOverrides?.Emotion ?? string.Empty));
+
+        return [.. points];
+    }
+
     private static DistributionDto ToDto(DistributionRow r)
         => new(r.Key, r.Label, r.SceneCount, r.WordCount, r.Percent);
 
@@ -52,6 +73,12 @@ public sealed record DistributionDto(
 /// parallel to the chapter title list.</summary>
 public sealed record PresenceDto(
     string EntityId, string Label, int TotalScenes, int[] ScenesPerChapter);
+
+/// <summary>One scene's tension. A null intensity is a scene nobody has rated
+/// yet, which is not the same as a flat one.</summary>
+public sealed record TensionPointDto(
+    string ChapterGuid, string ChapterTitle, string SceneId, string SceneTitle,
+    int? Intensity, string Emotion);
 
 public sealed record BookAnalyticsDto(
     string[] ChapterTitles,

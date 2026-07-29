@@ -369,3 +369,35 @@
   background: none;
   border: 1px dashed var(--nl-border);
 }
+
+/* Tension, scene by scene: a bar per scene, taller the more intense, with
+   unrated scenes drawn as a hairline rather than as calm. */
+.tension-chart {
+  align-items: flex-end;
+  display: flex;
+  gap: 1px;
+  height: 120px;
+  margin: var(--nl-space-sm) var(--nl-space-none);
+}
+
+.tension-bar {
+  background: var(--nl-accent);
+  border-radius: var(--nl-radius-sm) var(--nl-radius-sm) 0 0;
+  flex: 1;
+  min-width: 2px;
+}
+
+.tension-bar.negative {
+  background: var(--nl-status-revised);
+}
+
+.tension-bar.unrated {
+  background: var(--nl-border);
+}
+
+.dashboard-writing-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-tightest);
+}

@@ -5,6 +5,7 @@ import { BookAnalyticsCard } from './BookAnalyticsCard'
 import { TargetsCard } from './TargetsCard'
 import { PremiseCard } from './PremiseCard'
 import { ArcsCard } from './ArcsCard'
+import { TensionCard } from './TensionCard'
 import { InputDialog } from '../../shell/InputDialog'
 import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
@@ -30,6 +31,17 @@ interface DashboardDto {
   wordsPerDayNeeded: number
   todayWords: number
   currentStreak: number
+  history: {
+    longestStreak: number
+    daysWritten: number
+    daysHitGoal: number
+    writingDaysConsidered: number
+    bestDayWords: number
+    bestDayDate: string
+    averagePerWritingDay: number
+    adaptive: boolean
+    writingDays: number[]
+  }
   longestChapterWords: number
   shortestChapterWords: number
   averageSceneWords: number
@@ -97,6 +109,11 @@ export function DashboardView(): React.JSX.Element {
     1,
     stageBreakdown.reduce((sum, row) => sum + row.sceneCount, 0)
   )
+
+  const setPacing = async (adaptive: boolean, writingDays: number[]): Promise<void> => {
+    await rpc.request('dashboard/setPacing', [adaptive, writingDays])
+    setData(await rpc.request<DashboardDto>('dashboard/get', [range]))
+  }
 
   const changeBanner = async (): Promise<void> => {
     const path = await window.novalist.pickFile(t('dashboard.pickBannerTitle'), 'images')
@@ -225,6 +242,76 @@ export function DashboardView(): React.JSX.Element {
           <div className="dashboard-streak">
             {t('dashboard.streakDays', { count: data.currentStreak })}
           </div>
+
+          {/* A journal has been kept per day all along and shown as a bar
+              chart and nothing else. */}
+          <div className="dashboard-status-summary">
+            <div>
+              <div className="dashboard-summary-count">{data.history.longestStreak}</div>
+              <div className="dashboard-summary-count-label">{t('dashboard.longestStreak')}</div>
+            </div>
+            <div>
+              <div className="dashboard-summary-count">
+                {data.history.writingDaysConsidered > 0
+                  ? `${Math.round(
+                      (data.history.daysHitGoal / data.history.writingDaysConsidered) * 100
+                    )}%`
+                  : '-'}
+              </div>
+              <div className="dashboard-summary-count-label">{t('dashboard.hitRate')}</div>
+            </div>
+            <div>
+              <div className="dashboard-summary-count">
+                {data.history.bestDayWords.toLocaleString()}
+              </div>
+              <div className="dashboard-summary-count-label">
+                {data.history.bestDayDate || t('dashboard.bestDay')}
+              </div>
+            </div>
+            <div>
+              <div className="dashboard-summary-count">
+                {data.history.averagePerWritingDay.toLocaleString()}
+              </div>
+              <div className="dashboard-summary-count-label">{t('dashboard.averagePerDay')}</div>
+            </div>
+          </div>
+
+          {/* Which days count, and whether today's number follows what is
+              left. A streak that breaks on a day off measures nothing. */}
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={data.history.adaptive}
+              onChange={(e) => void setPacing(e.target.checked, data.history.writingDays)}
+            />
+            {t('dashboard.adaptiveGoal')}
+          </label>
+          <div className="dashboard-writing-days">
+            {[1, 2, 3, 4, 5, 6, 0].map((day) => {
+              // An empty list means every day, so nothing is unticked then.
+              const on =
+                data.history.writingDays.length === 0 || data.history.writingDays.includes(day)
+              return (
+                <button
+                  key={day}
+                  className={`dashboard-range${on ? ' active' : ''}`}
+                  title={t('dashboard.writingDaysHint')}
+                  onClick={() => {
+                    const current =
+                      data.history.writingDays.length === 0
+                        ? [0, 1, 2, 3, 4, 5, 6]
+                        : data.history.writingDays
+                    const next = on
+                      ? current.filter((d) => d !== day)
+                      : [...current, day].sort()
+                    void setPacing(data.history.adaptive, next)
+                  }}
+                >
+                  {t(`dashboard.day${day}`)}
+                </button>
+              )
+            })}
+          </div>
           <div className="dashboard-range-buttons">
             {RANGES.map((r) => (
               <button
@@ -328,6 +415,10 @@ export function DashboardView(): React.JSX.Element {
 
       {/* What the book is, before what is left to write of it. */}
       <PremiseCard />
+
+      {/* What the book's tension does across its length - the one shape the
+          per-scene intensity figure has anything to say in. */}
+      <TensionCard />
 
       {/* Every character's arc against the book: the Codex holds one at a
           time, which cannot say whether the turns are spread or bunched. */}

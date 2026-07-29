@@ -103,4 +103,26 @@ public class ProjectWordCountGoals
 
     [JsonPropertyName("dailyBaselineDate")]
     public string? DailyBaselineDate { get; set; }
+
+    /// <summary>
+    /// The days of the week the writer actually writes, as
+    /// <see cref="DayOfWeek"/> numbers. Empty means every day.
+    ///
+    /// A streak that breaks on a Sunday somebody told us they take off is not
+    /// measuring anything, and a words-per-day figure that counts those days
+    /// is quietly asking for the impossible.
+    /// </summary>
+    [JsonPropertyName("writingDays")]
+    public List<int> WritingDays { get; set; } = [];
+
+    /// <summary>
+    /// Whether today's goal is recalculated from what is left and the writing
+    /// days remaining, rather than being the same flat number every day.
+    /// </summary>
+    [JsonPropertyName("adaptiveDailyGoal")]
+    public bool AdaptiveDailyGoal { get; set; }
+
+    /// <summary>Whether a given day is one the writer writes on.</summary>
+    public bool IsWritingDay(DateOnly day)
+        => WritingDays.Count == 0 || WritingDays.Contains((int)day.DayOfWeek);
 }

@@ -524,4 +524,20 @@ public class StoryStructureTemplateTests
     [Fact]
     public void GetById_NoMatch_ReturnsNull()
         => Assert.Null(StoryStructureTemplates.GetById("nope"));
+
+    [Fact]
+    public void WordCountGoals_EveryDayIsAWritingDayUntilTheWriterSaysOtherwise()
+    {
+        var goals = new ProjectWordCountGoals();
+        var monday = new DateOnly(2024, 1, 1);
+
+        // An empty list means no restriction rather than no writing days at
+        // all, which would make every streak zero.
+        Assert.True(goals.IsWritingDay(monday));
+
+        goals.WritingDays = [(int)DayOfWeek.Monday, (int)DayOfWeek.Friday];
+        Assert.True(goals.IsWritingDay(monday));
+        Assert.False(goals.IsWritingDay(monday.AddDays(1)));
+        Assert.True(goals.IsWritingDay(monday.AddDays(4)));
+    }
 }

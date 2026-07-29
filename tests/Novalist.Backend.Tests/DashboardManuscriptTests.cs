@@ -446,4 +446,108 @@ public sealed class DashboardManuscriptTests : IDisposable
         await manuscript.SetPovAsync(chapterGuid, sceneId, "");
         Assert.Null(_workspace.ResolveScene(chapterGuid, sceneId).scene.AnalysisOverrides);
     }
+
+    // ── Pacing and history ──
+    //
+    // A flat daily goal plus a deadline gave one static row and a streak that
+    // any missed day broke - including a day the writer had said they take off.
+
+    [Fact]
+    public async Task SetPacing_KeepsOnlyRealWeekdays_AndTreatsEveryDayAsNoRestriction()
+    {
+        var rpc = new DashboardRpc(_workspace);
+
+        await rpc.SetPacingAsync(true, [1, 3, 3, 9, -1, 5]);
+        var goals = _workspace.Projects.ProjectSettings.WordCountGoals;
+        Assert.True(goals.AdaptiveDailyGoal);
+        Assert.Equal([1, 3, 5], goals.WritingDays);
+
+        // Every day selected is the same thing as no restriction, and storing
+        // it as a list would make "is this a writing day" needlessly slower.
+        await rpc.SetPacingAsync(false, [0, 1, 2, 3, 4, 5, 6]);
+        Assert.Empty(_workspace.Projects.ProjectSettings.WordCountGoals.WritingDays);
+    }
+
+    [Fact]
+    public async Task AdaptiveGoal_SpreadsWhatIsLeftOverTheWritingDaysThatRemain()
+    {
+        var (chapterGuid, sceneId) = await SeedSceneAsync("<p>one two three</p>", "one two three");
+        _ = chapterGuid;
+        _ = sceneId;
+        var goals = _workspace.Projects.ProjectSettings.WordCountGoals;
+        goals.ProjectGoal = 1000;
+        goals.DailyGoal = 999;
+        goals.Deadline = DateTime.Today.AddDays(9).ToString("yyyy-MM-dd");
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetPacingAsync(true, null);
+
+        var dashboard = await rpc.GetAsync(30);
+
+        // Ten days including today, ~997 words left: a hundred a day, not 999.
+        Assert.InRange(dashboard.DailyGoalTarget, 90, 110);
+        Assert.True(dashboard.History.Adaptive);
+    }
+
+    [Fact]
+    public async Task AdaptiveGoal_WithNoDeadline_KeepsTheFlatNumber()
+    {
+        var goals = _workspace.Projects.ProjectSettings.WordCountGoals;
+        goals.DailyGoal = 750;
+        goals.Deadline = null;
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetPacingAsync(true, null);
+
+        Assert.Equal(750, (await rpc.GetAsync(30)).DailyGoalTarget);
+    }
+
+    [Fact]
+    public async Task AdaptiveGoal_PastTheDeadlineAsksForEverythingThatIsLeft()
+    {
+        var goals = _workspace.Projects.ProjectSettings.WordCountGoals;
+        goals.ProjectGoal = 500;
+        goals.Deadline = DateTime.Today.AddDays(-5).ToString("yyyy-MM-dd");
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetPacingAsync(true, null);
+
+        Assert.Equal(500, (await rpc.GetAsync(30)).DailyGoalTarget);
+    }
+
+    [Fact]
+    public async Task AdaptiveGoal_AFinishedProjectAsksForNothing()
+    {
+        var goals = _workspace.Projects.ProjectSettings.WordCountGoals;
+        goals.ProjectGoal = 0;
+        goals.Deadline = DateTime.Today.AddDays(5).ToString("yyyy-MM-dd");
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetPacingAsync(true, null);
+
+        Assert.Equal(0, (await rpc.GetAsync(30)).DailyGoalTarget);
+    }
+
+    [Fact]
+    public async Task History_ReportsWhatAJournalCanSayBeyondToday()
+    {
+        var rpc = new DashboardRpc(_workspace);
+
+        var history = (await rpc.GetAsync(30)).History;
+
+        // A project with no writing yet still answers, rather than dividing by
+        // a day count of zero.
+        Assert.Equal(0, history.LongestStreak);
+        Assert.Equal(0, history.AveragePerWritingDay);
+        Assert.Equal(string.Empty, history.BestDayDate);
+        Assert.True(history.WritingDaysConsidered > 300);
+    }
+
+    [Fact]
+    public async Task History_LeavesOutTheDaysTheWriterDoesNotWrite()
+    {
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetPacingAsync(false, [(int)DateTime.Today.DayOfWeek]);
+
+        var history = (await rpc.GetAsync(30)).History;
+
+        // One weekday over a year is about fifty-two days, not three hundred.
+        Assert.InRange(history.WritingDaysConsidered, 45, 60);
+    }
 }

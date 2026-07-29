@@ -1105,7 +1105,20 @@
     "changeBanner": "Banner ändern",
     "removeBanner": "Banner entfernen",
     "pickBannerTitle": "Bannerbild wählen",
-    "noBanner": "Kein Bannerbild"
+    "noBanner": "Kein Bannerbild",
+    "longestStreak": "Längste Serie",
+    "hitRate": "Ziel erreicht",
+    "bestDay": "Bester Tag",
+    "averagePerDay": "Schnitt je Schreibtag",
+    "adaptiveGoal": "Tagesziel aus dem Rest neu berechnen",
+    "writingDaysHint": "Tage, an denen Sie schreiben. Ein freier Tag bricht die Serie nicht.",
+    "day0": "So",
+    "day1": "Mo",
+    "day2": "Di",
+    "day3": "Mi",
+    "day4": "Do",
+    "day5": "Fr",
+    "day6": "Sa"
   },
   "import": {
     "title": "Aus Obsidian-Plugin importieren",
@@ -2478,5 +2491,11 @@
     "none": "Kein Etikett",
     "set": "Etikett",
     "unsaved": "Nicht gespeicherte Änderungen."
+  },
+  "tension": {
+    "title": "Spannung",
+    "intro": "Die Intensität jeder Szene in Lesereihenfolge. Eine lange flache Strecke oder ein Höhepunkt an der falschen Stelle ist nur hier zu sehen. Balken anklicken, um die Szene zu öffnen.",
+    "unrated": "nicht bewertet",
+    "rated": "{{rated}} von {{total}} Szenen bewertet"
   }
 }
