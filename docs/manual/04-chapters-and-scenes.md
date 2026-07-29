@@ -115,6 +115,24 @@ Archiving removes a scene from the manuscript without deleting its text — usef
 - Click **ARCHIVE** at the bottom of the binder tree to show the list of archived scenes.
 - Click **Restore** next to an archived scene to bring it back into the manuscript (it is restored into the first chapter; drag it from there to where it belongs).
 
+## Scene stages
+
+A chapter has a **status** — one of five fixed values, described below. A scene has a **stage**, which is whatever you say it is.
+
+The two exist for different reasons. Revision happens scene by scene: a chapter halfway through a pass holds scenes at four different points at once, and a single chapter status cannot say that. Stages are also yours to define, because no two writers agree on what the stages are — "needs a beta read" and "cut but keeping" are real stages for the people who use them and meaningless to everyone else.
+
+Set a scene's stage by right-clicking it in the binder and picking one, or **Clear stage** to make it untriaged again. A scene with a stage shows a small coloured dot before its title; one without shows nothing, because "nobody has looked at this yet" is not the same as "outlined".
+
+### Defining your own stages
+
+**Settings → Scene stages** holds the list. A new project starts with five that mirror the chapter statuses, so nothing looks unfamiliar on the first day. Rename them, recolour them, add your own, or delete the lot and start over — clearing every stage puts the defaults back rather than leaving you with no way to stage anything.
+
+Each stage has a **Counts as written** switch. Turn it off for a stage that holds notes rather than prose; words in those scenes then stay out of your totals. Outline ships with it off for exactly that reason: an outline placeholder counted as progress inflates every number you use to judge whether you are on track. A scene with no stage set does count — otherwise every project's totals would drop the moment stages arrived, for no reason the writer caused.
+
+Removing a stage clears it from every scene that was at it. The scenes are untouched; they simply become untriaged again.
+
+The [Dashboard](11-dashboard.md) breaks the book down by stage, beside the chapter-status breakdown.
+
 ## Status workflow
 
 A typical novelist workflow with the five built-in chapter statuses:

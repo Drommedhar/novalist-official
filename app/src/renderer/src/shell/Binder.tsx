@@ -13,6 +13,7 @@ import { StoryDateRangeDialog } from './StoryDateRangeDialog'
 import { SmartListsPanel } from './SmartListsPanel'
 import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { handleSceneClick, useSelectionStore } from '../stores/selectionStore'
+import { useStageStore } from '../stores/stageStore'
 import { SceneBulkBar } from './SceneBulkBar'
 import { PanelResizer } from './PanelResizer'
 
@@ -48,6 +49,12 @@ export function Binder(): React.JSX.Element {
   const projectPath = useProjectStore((s) => s.projectPath)
   const [changedIds, setChangedIds] = useState<Set<string>>(new Set())
   const selectedIds = useSelectionStore((s) => s.sceneIds)
+  const stages = useStageStore((s) => s.stages)
+
+  // Loaded per project, not per row: the binder paints a dot for every scene.
+  useEffect(() => {
+    if (projectPath) void useStageStore.getState().load()
+  }, [projectPath])
 
   // Poll which scenes have uncommitted Git changes so their rows can be marked
   // in the explorer (matches the desktop change markers). Quiet no-op outside a repo.
@@ -167,8 +174,26 @@ export function Binder(): React.JSX.Element {
               : [])
           ]
         : []
+      // One entry per stage, plus a way back to untriaged. A submenu would be
+      // better, but ContextMenu is a flat list and prefixing keeps it readable.
+      const stageItems: ContextMenuItem[] = useStageStore.getState().stages.map((stage) => ({
+        label: `${t('stages.setTo')}: ${stage.label}`,
+        onClick: () => {
+          void useStageStore.getState().setSceneStage(chapter.guid, scene.id, stage.key)
+        }
+      }))
+      if (scene.stage) {
+        stageItems.push({
+          label: t('stages.clear'),
+          onClick: () => {
+            void useStageStore.getState().setSceneStage(chapter.guid, scene.id, null)
+          }
+        })
+      }
+
       return [
         ...sceneMoves,
+        ...stageItems,
         {
           label: t('explorer.contextArchive'),
           onClick: () => {
@@ -399,6 +424,18 @@ export function Binder(): React.JSX.Element {
                   }}
                   title={changedIds.has(scene.id) ? t('explorer.changed') : undefined}
                 >
+                  {/* A dot only where the writer set a stage. An untriaged
+                      scene shows nothing rather than claiming to be at the
+                      first stage. */}
+                  {stages.find((st) => st.key === scene.stage) && (
+                    <span
+                      className="binder-scene-stage"
+                      style={{
+                        background: stages.find((st) => st.key === scene.stage)!.color
+                      }}
+                      title={stages.find((st) => st.key === scene.stage)!.label}
+                    />
+                  )}
                   <span className="binder-scene-title">{scene.title}</span>
                   <span className="binder-scene-words">
                     {scene.wordCount > 0 ? scene.wordCount.toLocaleString() : ''}

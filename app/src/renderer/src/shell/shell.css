@@ -3123,3 +3123,13 @@
   font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
 }
+
+/* The stage dot sits before the scene title, small enough to read as a marker
+   rather than as a control. */
+.binder-scene-stage {
+  border-radius: var(--nl-radius-pill);
+  flex: none;
+  height: 7px;
+  margin-right: var(--nl-space-tightest);
+  width: 7px;
+}

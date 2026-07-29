@@ -11,6 +11,8 @@ export interface SceneDto {
   labelColor: string | null
   isFavorite: boolean
   synopsis: string | null
+  /** Key of the scene's stage; null when the writer has not set one. */
+  stage: string | null
 }
 
 export interface ChapterDto {

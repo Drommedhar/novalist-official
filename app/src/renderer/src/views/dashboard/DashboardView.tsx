@@ -58,8 +58,18 @@ const STATUS_SUMMARY: { key: keyof DashboardDto; label: string }[] = [
   { key: 'finalCount', label: 'dashboard.statusFinal' }
 ]
 
+interface StageTally {
+  key: string
+  label: string
+  color: string
+  countsAsWritten: boolean
+  sceneCount: number
+  wordCount: number
+}
+
 export function DashboardView(): React.JSX.Element {
   const { t } = useTranslation()
+  const [stageBreakdown, setStageBreakdown] = useState<StageTally[]>([])
   const mainView = useShellStore((s) => s.mainView)
   const [data, setData] = useState<DashboardDto | null>(null)
   const [range, setRange] = useState(30)
@@ -76,7 +86,13 @@ export function DashboardView(): React.JSX.Element {
     if (mainView !== 'dashboard') return
     void rpc.request<string | null>('dashboard/getCover').then(setCover)
     void rpc.request<string | null>('dashboard/getBanner').then(setBanner)
+    void rpc.request<StageTally[]>('stages/breakdown').then(setStageBreakdown)
   }, [mainView])
+
+  const stageTotal = Math.max(
+    1,
+    stageBreakdown.reduce((sum, row) => sum + row.sceneCount, 0)
+  )
 
   const changeBanner = async (): Promise<void> => {
     const path = await window.novalist.pickFile(t('dashboard.pickBannerTitle'), 'images')
@@ -303,6 +319,31 @@ export function DashboardView(): React.JSX.Element {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Scene stages, which the chapter breakdown above cannot express: a
+          chapter mid-revision holds scenes at four different stages. */}
+      {stageBreakdown.length > 0 && (
+        <div className="dashboard-card">
+          <div className="dashboard-card-title">{t('stages.title')}</div>
+          {stageBreakdown.map((row) => (
+            <div key={row.key || 'unset'} className="dashboard-status-row">
+              <span className="dashboard-status-dot" style={{ background: row.color }} />
+              <span className="dashboard-status-name">
+                {row.label || t('stages.untriaged')}
+              </span>
+              <div className="dashboard-bar-track dashboard-status-track">
+                <div
+                  className="dashboard-bar-fill"
+                  style={{ width: `${Math.round((row.sceneCount / stageTotal) * 100)}%` }}
+                />
+              </div>
+              <span className="dashboard-status-count">
+                {row.sceneCount} - {row.wordCount.toLocaleString()} {t('shell.words')}
+              </span>
+            </div>
+          ))}
         </div>
       )}
 

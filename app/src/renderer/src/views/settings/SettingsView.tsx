@@ -14,6 +14,7 @@ import { ExtensionsCard } from './ExtensionsCard'
 import { BackupsCard } from './BackupsCard'
 import { SpellCheckCard } from './SpellCheckCard'
 import { LanguagePacksCard } from './LanguagePacksCard'
+import { SceneStagesCard } from './SceneStagesCard'
 import './settings.css'
 
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
@@ -757,6 +758,12 @@ export function SettingsView(): React.JSX.Element {
       titleKey: 'backup.title',
       keywords: ['backup', 'archive', 'restore', 'zip', 'recovery', 'safety'],
       body: <BackupsCard />
+    },
+    {
+      key: 'sceneStages',
+      titleKey: 'stages.title',
+      keywords: ['stage', 'status', 'revision', 'draft', 'progress', 'scene'],
+      body: <SceneStagesCard />
     },
     {
       key: 'languagePacks',

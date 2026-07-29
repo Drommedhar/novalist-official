@@ -2174,5 +2174,20 @@
     "sections": "Sections to withhold",
     "sectionsDesc": "Tick a section to keep it back while the rest of the entry still goes. This is how one secret stays hidden without hiding the character it belongs to.",
     "untitledSection": "Untitled section"
+  },
+  "stages": {
+    "title": "Scene stages",
+    "intro": "The revision states your scenes can be at. Novalist starts you with five that mirror the chapter statuses; rename them, recolour them, or replace them with your own. A stage shows as a coloured dot beside the scene in the binder, and the Dashboard breaks the book down by stage.",
+    "labelPlaceholder": "Needs a beta read",
+    "color": "Colour",
+    "countsAsWritten": "Counts as written",
+    "countsAsWrittenHint": "Words in scenes at this stage count towards your totals. Turn it off for a stage that holds notes rather than prose — an outline placeholder counted as progress inflates every number you use to judge whether you are on track.",
+    "add": "Add a stage",
+    "remove": "Remove this stage",
+    "save": "Save stages",
+    "unsaved": "Unsaved changes. Removing a stage clears it from every scene that was at it.",
+    "setTo": "Stage",
+    "clear": "Clear stage",
+    "untriaged": "No stage set"
   }
 }

@@ -234,7 +234,8 @@ public sealed partial class Workspace : IDisposable
             .Where(s => s.ArchivedAt == null)
             .OrderBy(s => s.Order)
             .Select(s => new SceneDto(
-                s.Id, s.Title, s.Order, s.WordCount, s.LabelColor, s.IsFavorite, s.Synopsis))
+                s.Id, s.Title, s.Order, s.WordCount, s.LabelColor, s.IsFavorite, s.Synopsis,
+                s.Stage))
             .ToArray();
     }
 
@@ -414,6 +415,9 @@ public sealed record SceneDto(
     int WordCount,
     string? LabelColor,
     bool IsFavorite,
-    string? Synopsis);
+    string? Synopsis,
+    /// <summary>Key of the scene's stage, or null when the writer has not set
+    /// one. Null is untriaged, not "at the first stage".</summary>
+    string? Stage);
 
 public sealed record RecentProjectDto(string Name, string Path, string? Cover);

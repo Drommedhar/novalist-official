@@ -325,3 +325,23 @@
 .language-pack-state.user {
   color: var(--nl-accent);
 }
+
+.stage-row {
+  align-items: center;
+  display: flex;
+  gap: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-tightest);
+}
+
+.stage-row > .inspector-input {
+  flex: 1;
+}
+
+.stage-color {
+  background: none;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  height: 26px;
+  padding: var(--nl-space-none);
+  width: 34px;
+}

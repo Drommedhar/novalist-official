@@ -53,6 +53,12 @@ A small card pairs **average words per chapter** with the project's **estimated 
 
 One row per chapter status — Outline, Draft, Revised, Edited, Final — with a status dot, a bar showing that status's share of chapters, and the chapter count plus word count at that status. Below the rows, a summary strip shows the plain chapter **count at each status**.
 
+## Scene stages
+
+The same shape, one level down: a row per [scene stage](04-chapters-and-scenes.md#scene-stages) in your own colours, with the scene count and word count at each. Scenes you have not given a stage are listed as **No stage set** rather than folded into the first one, so the untriaged part of the book is visible instead of quietly counted as outlined.
+
+This is the breakdown that reflects a revision in progress. The chapter statuses above move a chapter at a time; the stages move a scene at a time, which is how revision actually happens.
+
 ### Pacing Analysis
 
 Opens with a summary of the **longest chapter**, the **shortest chapter**, and the **average scene** length. Below it, one row per chapter shows a bar with the chapter's word count relative to the book's longest chapter. Look for outliers — a chapter twice as long as its neighbors deserves a closer look.

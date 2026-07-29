@@ -42,6 +42,15 @@ public class SceneData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Synopsis { get; set; }
 
+    /// <summary>
+    /// Key of the <see cref="SceneStage"/> this scene is at. Empty means the
+    /// writer has not set one, which is not the same as being at the first
+    /// stage - a scene nobody has triaged should not claim to be outlined.
+    /// </summary>
+    [JsonPropertyName("stage")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Stage { get; set; }
+
     [JsonPropertyName("labelColor")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? LabelColor { get; set; }

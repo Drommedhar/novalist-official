@@ -105,6 +105,14 @@ public class BookData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public InWorldCalendar? Calendar { get; set; }
 
+    /// <summary>
+    /// The stages scenes in this book can be at. Per book rather than per app,
+    /// because a writer's stages for a novel and for a short-story collection
+    /// are rarely the same. Empty means the defaults.
+    /// </summary>
+    [JsonPropertyName("sceneStages")]
+    public List<SceneStage> SceneStages { get; set; } = [];
+
     /// <summary>Named drafts of this book. The active draft's chapters / acts
     /// live in BookData.Chapters / Acts at runtime; on switch, the outgoing
     /// draft is flushed to draft.json and the incoming draft loaded.</summary>

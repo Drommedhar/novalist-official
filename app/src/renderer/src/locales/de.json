@@ -2182,5 +2182,20 @@
     "sections": "Zurückzuhaltende Abschnitte",
     "sectionsDesc": "Häkchen setzen, um einen Abschnitt zurückzuhalten, während der Rest des Eintrags mitgeht. So bleibt ein Geheimnis verborgen, ohne die Figur zu verbergen, zu der es gehört.",
     "untitledSection": "Abschnitt ohne Titel"
+  },
+  "stages": {
+    "title": "Szenen-Stufen",
+    "intro": "Die Überarbeitungsstufen, in denen Ihre Szenen stehen können. Novalist beginnt mit fünf, die den Kapitelstatus abbilden; benennen Sie sie um, färben Sie sie neu oder ersetzen Sie sie durch eigene. Eine Stufe erscheint als farbiger Punkt neben der Szene im Explorer, und das Dashboard schlüsselt das Buch nach Stufen auf.",
+    "labelPlaceholder": "Braucht ein Testlesen",
+    "color": "Farbe",
+    "countsAsWritten": "Zählt als geschrieben",
+    "countsAsWrittenHint": "Wörter in Szenen dieser Stufe zählen zu Ihren Summen. Für eine Stufe abschalten, die Notizen statt Prosa enthält — ein als Fortschritt gezählter Gliederungsplatzhalter bläht jede Zahl auf, an der Sie sich orientieren.",
+    "add": "Stufe hinzufügen",
+    "remove": "Diese Stufe entfernen",
+    "save": "Stufen speichern",
+    "unsaved": "Ungespeicherte Änderungen. Das Entfernen einer Stufe löscht sie aus jeder Szene, die darin stand.",
+    "setTo": "Stufe",
+    "clear": "Stufe entfernen",
+    "untriaged": "Keine Stufe gesetzt"
   }
 }
