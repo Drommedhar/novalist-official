@@ -100,11 +100,21 @@ When you hover over the name or alias of a codex entity in your prose (or over a
 
 The card is enough to check a character's face, a relationship, or a location without leaving the editor. Move the pointer onto the card to keep it open. Entities are managed in the [Codex](06-codex.md).
 
-## Grammar and spelling check
+## Spell check
 
-When **Grammar & Spelling Check** is enabled in [Settings](23-settings.md) → Writing assistance, Novalist sends your text to a LanguageTool-compatible API and underlines issues inline. Click an underlined passage to see suggestions and apply one.
+**Check spelling as I write** in [Settings](23-settings.md) → Writing assistance underlines misspellings in red as you type. It is on by default and uses the spell checker your operating system already has, so it needs no server and no account, works with the network switched off, and nothing you write leaves the machine.
 
-By default the free public LanguageTool endpoint is used; the URL is configurable to point at a self-hosted server (to keep your text local), and Premium credentials, picky mode, and a mother-tongue setting for false-friend detection are available in the same settings section. Use **Add to Dictionary** in the context menu for names the spell check keeps flagging.
+Right-click a red-underlined word for corrections, or for **Add to dictionary** to teach Novalist a name it keeps flagging. Words you add are stored with your settings rather than in the system dictionary, so they travel with you to another machine instead of having to be taught again. The list is shown under **Your dictionary** in the same settings section, where a word can also be removed.
+
+Novalist checks against the language you are writing in — your **Quote Style** language — not the language the menus are in, so a German novel written on an English install is checked in German. To check against more than one language at once, tick the ones you want under **Dictionaries**; leaving them all unticked follows the writing language.
+
+On macOS this is the system spell checker and is entirely local. On Windows and Linux the dictionary for a language is downloaded once, the first time it is used, and works offline from then on.
+
+## Grammar check
+
+Spell check catches misspelt words; grammar check catches the rest. When **Grammar & Spelling Check** is enabled in [Settings](23-settings.md) → Writing assistance, Novalist sends your text to a LanguageTool-compatible API and underlines issues inline. Click an underlined passage to see suggestions and apply one. Unlike spell check, this one needs a server.
+
+By default the free public LanguageTool endpoint is used; the URL is configurable to point at a self-hosted server (to keep your text local), and Premium credentials, picky mode, and a mother-tongue setting for false-friend detection are available in the same settings section.
 
 ## Auto-replacements
 

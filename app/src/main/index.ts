@@ -9,6 +9,7 @@ import {
   DEFAULT_TITLE_BAR_OVERLAY
 } from './glass'
 import { registerDialogHandlers } from './dialogs'
+import { registerSpellCheckHandlers, attachSpellingMenu } from './spellcheck'
 import { installAppMenu } from './menu'
 import { checkAppUpdate, downloadAndInstall } from './appUpdater'
 import { createSplashWindow, setSplashStatus } from './splash'
@@ -60,6 +61,10 @@ function createWindow(): BrowserWindow {
     void shell.openExternal(url)
     return { action: 'deny' }
   })
+  // Right-clicking a misspelling offers corrections and "add to dictionary".
+  // The labels come from the renderer so they follow the UI language; English
+  // stands in until the renderer has pushed its own.
+  attachSpellingMenu(win, () => spellingMenuLabels)
 
   if (process.env.ELECTRON_RENDERER_URL) {
     void win.loadURL(process.env.ELECTRON_RENDERER_URL)
@@ -68,6 +73,14 @@ function createWindow(): BrowserWindow {
   }
   return win
 }
+
+let spellingMenuLabels = {
+  addToDictionary: 'Add to dictionary',
+  noSuggestions: 'No suggestions'
+}
+ipcMain.on('novalist:spellcheck-menu-labels', (_event, labels: typeof spellingMenuLabels) => {
+  spellingMenuLabels = labels
+})
 
 // The renderer asks for a fresh backend channel on boot (and after backend restarts).
 ipcMain.on('novalist:request-backend-port', (event) => {
@@ -111,6 +124,7 @@ void app.whenReady().then(() => {
     if (iconPath) app.dock?.setIcon(nativeImage.createFromPath(iconPath))
   }
   registerDialogHandlers()
+  registerSpellCheckHandlers()
   registerProtocolHandlers()
   backend.start()
 

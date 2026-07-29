@@ -471,7 +471,15 @@
     "openLogFolder": "Open log folder",
     "openCurrentLog": "Open current log",
     "clearLogs": "Clear logs",
-    "bookWidthCharsPerLine": "~{{count}} characters per line"
+    "bookWidthCharsPerLine": "~{{count}} characters per line",
+    "spellCheck": "Check spelling as I write",
+    "spellCheckHint": "Uses the system spell checker, so it works with no network and nothing you write leaves the machine. Right-click a red-underlined word for corrections, or to teach it the word.",
+    "spellCheckLanguages": "Dictionaries",
+    "spellCheckLanguagesHint": "Leave all unticked to follow your writing language. A dictionary is downloaded once the first time you use it, then works offline.",
+    "spellCheckDictionary": "Your dictionary",
+    "spellCheckDictionaryHint": "Words you told Novalist to accept. They travel with your settings.",
+    "spellCheckDictionaryEmpty": "No words added yet. Right-click a red-underlined word in your prose to add one.",
+    "spellCheckForget": "Forget this word"
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -2106,5 +2114,9 @@
     "noDate": "no date",
     "confirmArchive": "Archive {{count}} scenes? They can be restored from the archive.",
     "confirmDelete": "Delete {{count}} scenes? This cannot be undone."
+  },
+  "spell": {
+    "addToDictionary": "Add to dictionary",
+    "noSuggestions": "No suggestions"
   }
 }

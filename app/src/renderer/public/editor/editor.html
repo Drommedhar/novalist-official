@@ -580,7 +580,7 @@ body.page-view.typewriter-on #editor { padding-top: 70vh; }
 </head>
 <body>
 <div id="editor-wrapper">
-    <div id="editor" contenteditable="true" spellcheck="false"></div>
+    <div id="editor" contenteditable="true" spellcheck="false" lang="en"></div>
 </div>
 <div id="grammar-status-bar" class="grammar-status-bar">
     <div class="status-throbber" id="status-throbber">
@@ -919,6 +919,23 @@ function setBookParagraphSpacing(enabled) {
 
 function setLanguage(lang) {
     document.documentElement.lang = lang || 'en';
+    // The prose surface carries its own lang so the platform spell checker picks
+    // the right dictionary for the writing language rather than the UI language.
+    editor.lang = lang || 'en';
+}
+
+// Red underlines from the platform's own checker. Off by default in the markup
+// so a writer who disabled it never sees a flash of underlines while the setting
+// is still loading.
+function setSpellCheck(enabled) {
+    editor.spellcheck = !!enabled;
+    // Chromium only re-runs the check when the attribute changes on a focused,
+    // live element; toggling contenteditable forces it to re-scan what is
+    // already on screen instead of waiting for the next keystroke.
+    if (document.activeElement === editor) {
+        editor.blur();
+        editor.focus();
+    }
 }
 
 // ── Entity Detection (Focus Peek) ───────────────────────────────

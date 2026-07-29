@@ -22,6 +22,8 @@ export interface EffectiveSettings {
   autoReplacementLanguage: string
   dialogueCorrectionEnabled: boolean
   grammarCheckEnabled: boolean
+  spellCheckEnabled: boolean
+  spellCheckLanguages: string[]
   grammarCheckApiUrl: string | null
   grammarCheckApiKey: string | null
   grammarCheckUsername: string | null

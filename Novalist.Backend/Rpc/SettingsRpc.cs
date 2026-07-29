@@ -297,6 +297,8 @@ public sealed class SettingsRpc
             ["autoReplacementLanguage"] = effective.AutoReplacementLanguage,
             ["dialogueCorrectionEnabled"] = effective.DialogueCorrectionEnabled,
             ["grammarCheckEnabled"] = effective.GrammarCheckEnabled,
+            ["spellCheckEnabled"] = effective.SpellCheckEnabled,
+            ["spellCheckLanguages"] = effective.SpellCheckLanguages,
             ["grammarCheckApiUrl"] = effective.GrammarCheckApiUrl,
             ["grammarCheckApiKey"] = effective.GrammarCheckApiKey,
             ["grammarCheckUsername"] = effective.GrammarCheckUsername,
@@ -320,10 +322,21 @@ public sealed class SettingsRpc
                 _ when type == typeof(string) => value.GetString(),
                 _ when type == typeof(bool) => value.GetBoolean(),
                 _ when type == typeof(double) => value.GetDouble(),
+                // Plain string lists (spell-check languages). Richer lists have
+                // their own RPCs; this covers the settings that are just tags.
+                _ when type == typeof(List<string>) => ReadStringList(value, key),
                 _ => Unsupported(key)
             };
             property.SetValue(target, converted);
         }
+    }
+
+    private static List<string> ReadStringList(JsonElement value, string key)
+    {
+        if (value.ValueKind != JsonValueKind.Array) Unsupported(key);
+        return [.. value.EnumerateArray()
+            .Select(item => item.GetString() ?? string.Empty)
+            .Where(item => item.Length > 0)];
     }
 
     private static object Unsupported(string key) =>

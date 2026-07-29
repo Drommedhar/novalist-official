@@ -41,6 +41,28 @@ contextBridge.exposeInMainWorld('novalist', {
   saveFile(defaultName: string): Promise<string | null> {
     return ipcRenderer.invoke('novalist:save-file', defaultName)
   },
+  /** Applies the writer's spell-check settings to the Chromium session and
+   *  reports back which language tags this build can actually load. */
+  applySpellCheck(
+    enabled: boolean,
+    languages: string[],
+    words: string[]
+  ): Promise<string[]> {
+    return ipcRenderer.invoke('novalist:apply-spellcheck', enabled, languages, words)
+  },
+  spellCheckLanguages(): Promise<string[]> {
+    return ipcRenderer.invoke('novalist:spellcheck-languages')
+  },
+  /** Localized labels for the spelling context menu, which the main process
+   *  builds natively and so cannot translate itself. */
+  setSpellCheckMenuLabels(labels: { addToDictionary: string; noSuggestions: string }): void {
+    ipcRenderer.send('novalist:spellcheck-menu-labels', labels)
+  },
+  /** Fires when the writer adds a word from the native spelling menu, so the
+   *  renderer can persist it alongside the rest of their settings. */
+  onSpellCheckWordAdded(handler: (word: string) => void): void {
+    ipcRenderer.on('novalist:spellcheck-word-added', (_event, word: string) => handler(word))
+  },
   pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null> {
     return ipcRenderer.invoke('novalist:pick-file', title, mode)
   },

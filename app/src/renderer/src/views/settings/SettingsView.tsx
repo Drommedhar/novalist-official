@@ -12,6 +12,7 @@ import { TemplatesCard } from './TemplatesCard'
 import { HotkeysCard } from './HotkeysCard'
 import { ExtensionsCard } from './ExtensionsCard'
 import { BackupsCard } from './BackupsCard'
+import { SpellCheckCard } from './SpellCheckCard'
 import './settings.css'
 
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
@@ -587,6 +588,26 @@ export function SettingsView(): React.JSX.Element {
             />
             {t('settings.dialogueCorrection')}
           </label>
+          {/* Spelling first: it needs no server and works offline, so it is the
+              one a writer should meet before the network-bound grammar check. */}
+          <label className="relationships-toggle">
+            <input
+              type="checkbox"
+              checked={eff.spellCheckEnabled}
+              onChange={(e) =>
+                void update(scopeFor('writing'), { spellCheckEnabled: e.target.checked })
+              }
+            />
+            {t('settings.spellCheck')}
+          </label>
+          <div className="settings-hint">{t('settings.spellCheckHint')}</div>
+          <SpellCheckCard
+            enabled={eff.spellCheckEnabled}
+            languages={eff.spellCheckLanguages}
+            onLanguagesChange={(languages) =>
+              void update(scopeFor('writing'), { spellCheckLanguages: languages })
+            }
+          />
           <label className="relationships-toggle">
             <input
               type="checkbox"

@@ -50,7 +50,8 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - **Split editor** for editing two scenes side by side.
 - **Auto-replacements** for smart quotes, em-dashes, and ellipses with language presets (English, German, French, Spanish, Italian, Portuguese, Russian, Polish, Czech, Slovak).
 - **Dialogue punctuation correction** as you type.
-- **Grammar and spelling check** via LanguageTool (public endpoint by default; self-hosted endpoint supported).
+- **Offline spell check** using the operating system's own checker — no server, no account, no network — with a personal dictionary that travels with your settings.
+- **Grammar check** via LanguageTool (public endpoint by default; self-hosted endpoint supported).
 - Live word count, reading time, and Flesch readability score in the status bar; per-chapter readability in the Project Overview.
 
 ### Project structure

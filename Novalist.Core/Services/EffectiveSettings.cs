@@ -43,6 +43,11 @@ public sealed class EffectiveSettings : IEffectiveSettings
     public List<AutoReplacementPair> AutoReplacements => O?.AutoReplacements ?? G.AutoReplacements;
     public bool DialogueCorrectionEnabled => O?.DialogueCorrectionEnabled ?? G.DialogueCorrectionEnabled;
     public bool GrammarCheckEnabled => O?.GrammarCheckEnabled ?? G.GrammarCheckEnabled;
+    public bool SpellCheckEnabled => O?.SpellCheckEnabled ?? G.SpellCheckEnabled;
+
+    public IReadOnlyList<string> SpellCheckLanguages
+        => Services.SpellCheckLanguages.Resolve(
+            O?.SpellCheckLanguages ?? G.SpellCheckLanguages, AutoReplacementLanguage);
     public string? GrammarCheckApiUrl => O?.GrammarCheckApiUrl ?? G.GrammarCheckApiUrl;
     public string? GrammarCheckApiKey => O?.GrammarCheckApiKey ?? G.GrammarCheckApiKey;
     public string? GrammarCheckUsername => O?.GrammarCheckUsername ?? G.GrammarCheckUsername;

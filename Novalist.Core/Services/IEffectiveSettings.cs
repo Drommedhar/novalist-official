@@ -32,6 +32,11 @@ public interface IEffectiveSettings
     List<AutoReplacementPair> AutoReplacements { get; }
     bool DialogueCorrectionEnabled { get; }
     bool GrammarCheckEnabled { get; }
+    bool SpellCheckEnabled { get; }
+
+    /// <summary>Language tags the spell checker loads. Falls back to the writing
+    /// language, so this is never empty.</summary>
+    IReadOnlyList<string> SpellCheckLanguages { get; }
     string? GrammarCheckApiUrl { get; }
     string? GrammarCheckApiKey { get; }
     string? GrammarCheckUsername { get; }

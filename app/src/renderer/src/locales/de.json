@@ -372,7 +372,15 @@
     "checkForExtensionUpdates": "Nach Erweiterungs-Updates suchen",
     "checkForExtensionUpdatesDesc": "Beim Start automatisch nach Erweiterungs-Updates suchen",
     "githubToken": "GitHub Personal Access Token",
-    "githubTokenDesc": "Optionales Token, um das API-Ratenlimit beim Durchsuchen oder Aktualisieren von Erweiterungen zu erhöhen (60/Std. → 5000/Std.)"
+    "githubTokenDesc": "Optionales Token, um das API-Ratenlimit beim Durchsuchen oder Aktualisieren von Erweiterungen zu erhöhen (60/Std. → 5000/Std.)",
+    "spellCheck": "Rechtschreibung beim Schreiben prüfen",
+    "spellCheckHint": "Nutzt die Rechtschreibprüfung des Systems, funktioniert also ohne Netzwerk, und nichts von dem, was Sie schreiben, verlässt den Rechner. Rechtsklick auf ein rot unterringeltes Wort zeigt Korrekturen oder nimmt es auf.",
+    "spellCheckLanguages": "Wörterbücher",
+    "spellCheckLanguagesHint": "Nichts auswählen, um der Schreibsprache zu folgen. Ein Wörterbuch wird bei der ersten Verwendung einmalig geladen und arbeitet danach offline.",
+    "spellCheckDictionary": "Ihr Wörterbuch",
+    "spellCheckDictionaryHint": "Wörter, die Novalist akzeptieren soll. Sie wandern mit Ihren Einstellungen mit.",
+    "spellCheckDictionaryEmpty": "Noch keine Wörter. Rechtsklick auf ein rot unterringeltes Wort im Text fügt eines hinzu.",
+    "spellCheckForget": "Dieses Wort vergessen"
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -2114,5 +2122,9 @@
     "noDate": "kein Datum",
     "confirmArchive": "{{count}} Szenen archivieren? Sie können aus dem Archiv wiederhergestellt werden.",
     "confirmDelete": "{{count}} Szenen löschen? Das lässt sich nicht rückgängig machen."
+  },
+  "spell": {
+    "addToDictionary": "Zum Wörterbuch hinzufügen",
+    "noSuggestions": "Keine Vorschläge"
   }
 }

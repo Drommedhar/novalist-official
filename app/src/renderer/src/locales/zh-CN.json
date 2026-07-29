@@ -506,7 +506,15 @@
     "openLogFolder": "打开日志文件夹",
     "openCurrentLog": "打开当前日志",
     "clearLogs": "清除日志",
-    "bookWidthCharsPerLine": "~每行 {{count}} 个字符"
+    "bookWidthCharsPerLine": "~每行 {{count}} 个字符",
+    "spellCheck": "边写边检查拼写",
+    "spellCheckHint": "使用系统拼写检查，无需联网，您写的内容也不会离开本机。右键单击红色波浪线单词可查看修正建议或将其加入词典。",
+    "spellCheckLanguages": "词典",
+    "spellCheckLanguagesHint": "全部不勾选则跟随写作语言。词典在首次使用时下载一次，之后即可离线使用。",
+    "spellCheckDictionary": "您的词典",
+    "spellCheckDictionaryHint": "您让 Novalist 接受的词。它们会随设置一同转移。",
+    "spellCheckDictionaryEmpty": "尚未添加词语。右键单击正文中红色波浪线的单词即可添加。",
+    "spellCheckForget": "忘记该词"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",
@@ -2148,5 +2156,9 @@
     "noDate": "无日期",
     "confirmArchive": "归档 {{count}} 个场景？可从归档中恢复。",
     "confirmDelete": "删除 {{count}} 个场景？此操作无法撤销。"
+  },
+  "spell": {
+    "addToDictionary": "加入词典",
+    "noSuggestions": "无建议"
   }
 }

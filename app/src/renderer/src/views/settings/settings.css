@@ -269,3 +269,14 @@
     flex-wrap: wrap;
   }
 }
+
+/* Dictionary tags read as a compact grid rather than a long column - a
+   Chromium build offers dozens of them. */
+.spell-language-grid {
+  display: grid;
+  gap: var(--nl-space-tightest) var(--nl-space-md);
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  margin-bottom: var(--nl-space-sm);
+  max-height: 220px;
+  overflow-y: auto;
+}

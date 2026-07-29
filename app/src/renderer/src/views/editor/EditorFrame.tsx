@@ -44,6 +44,13 @@ function pushEditorSettings(editor: EditorWindow, initial = false): void {
   if (!initial || eff.grammarCheckEnabled) {
     editor.setGrammarCheckEnabled(eff.grammarCheckEnabled)
   }
+  if (!initial || eff.spellCheckEnabled) {
+    editor.setSpellCheck(eff.spellCheckEnabled)
+  }
+  // The prose is checked against the language it is written in, not the one the
+  // menus are in - a German novel written on an English install still wants a
+  // German dictionary.
+  editor.setLanguage(eff.autoReplacementLanguage)
 }
 
 // Speech verbs mirror DialogueCorrectionExtension.GetLanguageConfig so the

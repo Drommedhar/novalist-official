@@ -71,7 +71,10 @@ Daily and project word goals themselves are edited on the [Dashboard](11-dashboa
 
 - **Quote Style** — the language preset for smart quotes, em-dashes, and ellipsis replacement as you type. Presets: `en`, `de-low`, `de-guillemet`, `fr`, `es`, `it`, `pt`, `ru`, `pl`, `cs`, `sk`. A preview line shows the exact replacements for the chosen preset.
 - **Dialogue Punctuation Correction** — automatically corrects comma and period placement around quotation marks in dialogue, based on the selected quote style language.
-- **Grammar & Spelling Check** — underlines grammar, spelling, and style issues in the editor using **LanguageTool**. Requires an internet connection (or a self-hosted LanguageTool server). When enabled, a configuration sub-panel appears:
+- **Check spelling as I write** — underlines misspellings using the spell checker your operating system already has. On by default. Needs no server and no account, works offline, and nothing you write leaves the machine. When enabled, a sub-panel appears:
+  - **Dictionaries** — the language tags this build can load. Leave them all unticked to follow your Quote Style language, or tick several to check against more than one at once. On macOS the list is empty and hidden, because the system checker decides for itself. On Windows and Linux a dictionary is downloaded once, the first time it is used, and works offline afterwards.
+  - **Your dictionary** — the words you added by right-clicking a red-underlined word in your prose and choosing **Add to dictionary**. They are stored with your settings rather than in the system dictionary, so they follow you to another machine. Each has a delete button to forget it again.
+- **Grammar & Spelling Check** — underlines grammar, spelling, and style issues in the editor using **LanguageTool**. Unlike spell check, this one requires an internet connection (or a self-hosted LanguageTool server). When enabled, a configuration sub-panel appears:
   - **API URL** — the LanguageTool endpoint. Leave blank for the public endpoint, or point it at your own server (for example `https://api.languagetool.org/v2/check`).
   - **Username** and **API Key** — credentials for a LanguageTool Premium account; the API key field is masked. A **Get API key** link opens LanguageTool's access-token page in your browser.
   - **Picky Mode** — turns on LanguageTool's stricter style and typography rules.
@@ -131,7 +134,7 @@ A read-only list of the extensions installed for Novalist. Each row shows the ex
 ## Tips
 
 - **Set the editor font to taste, not to the theme.** The interface keeps the identity's faces whatever you choose, so picking your own writing typeface in Editor → Font Family changes only the page you write on.
-- **Disable grammar check if it slows you down.** It calls a remote API; some networks are slow enough that the underlines lag.
+- **Disable grammar check if it slows you down.** It calls a remote API; some networks are slow enough that the underlines lag. Spell check is unaffected — it runs locally and stays on.
 - **Use a self-hosted LanguageTool for offline use.** A `docker-compose` LanguageTool image takes minutes and removes the cloud dependency — point the API URL at it.
 - **Preview your trim size early.** Turning on Book Width with your real page format and book font shows the characters-per-line you will actually get in print.
 

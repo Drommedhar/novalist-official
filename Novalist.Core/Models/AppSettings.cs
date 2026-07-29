@@ -57,6 +57,37 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("grammarCheckEnabled")]
     public bool GrammarCheckEnabled { get; set; } = true;
 
+    /// <summary>
+    /// Underline misspellings in the prose surface using the platform's own
+    /// spell checker. Works with no network, unlike the LanguageTool grammar
+    /// check, and is on by default because an offline-first writing app that
+    /// cannot spell-check offline is not much of one.
+    /// </summary>
+    [JsonPropertyName("spellCheckEnabled")]
+    public bool SpellCheckEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Language tags the spell checker loads, e.g. ["en-GB", "de-DE"]. Empty
+    /// means "follow the writing language", which is what most writers want and
+    /// what a fresh install does.
+    /// </summary>
+    [JsonPropertyName("spellCheckLanguages")]
+    public List<string> SpellCheckLanguages { get; set; } = new();
+
+    /// <summary>The stored list resolved for use. Explicit so the settings file
+    /// keeps the writer's literal choice (including "empty, follow the writing
+    /// language") while readers always get a usable list.</summary>
+    IReadOnlyList<string> IEffectiveSettings.SpellCheckLanguages
+        => Services.SpellCheckLanguages.Resolve(SpellCheckLanguages, AutoReplacementLanguage);
+
+    /// <summary>
+    /// Words the writer added from the spelling context menu. Kept here rather
+    /// than in the platform dictionary so a made-up name learned on one machine
+    /// travels with the settings file instead of being learned again.
+    /// </summary>
+    [JsonPropertyName("spellCheckCustomWords")]
+    public List<string> SpellCheckCustomWords { get; set; } = new();
+
     [JsonPropertyName("typewriterScrollEnabled")]
     public bool TypewriterScrollEnabled { get; set; }
 

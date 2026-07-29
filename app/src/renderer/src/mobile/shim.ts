@@ -107,6 +107,14 @@ const novalist: Window['novalist'] = {
   // image export reports failure rather than pretending to have written a file.
   captureRegion: () => Promise.resolve(false),
   pickFile: (title, mode) => hostCall<string | null>('pickFile', [title, mode ?? 'all']),
+  // iOS spell-checks a contenteditable natively once the element carries
+  // spellcheck="true", which the editor already sets from the same setting.
+  // There is no session to configure and no menu for us to build: the system
+  // supplies its own correction UI and its own "learn word" gesture.
+  applySpellCheck: () => Promise.resolve([]),
+  spellCheckLanguages: () => Promise.resolve([]),
+  setSpellCheckMenuLabels: () => {},
+  onSpellCheckWordAdded: () => {},
   // Mobile has no desktop-style file drag-and-drop, so dropped-file paths never
   // arise; the picker is the only way in.
   filePath: () => '',

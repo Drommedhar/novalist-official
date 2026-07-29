@@ -47,6 +47,10 @@ interface Window {
       scale: number
     ): Promise<boolean>
     saveFile(defaultName: string): Promise<string | null>
+    applySpellCheck(enabled: boolean, languages: string[], words: string[]): Promise<string[]>
+    spellCheckLanguages(): Promise<string[]>
+    setSpellCheckMenuLabels(labels: { addToDictionary: string; noSuggestions: string }): void
+    onSpellCheckWordAdded(handler: (word: string) => void): void
     pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null>
     /** Absolute path of a dropped File (Electron removed File.path). */
     filePath(file: File): string
