@@ -73,6 +73,29 @@ Common patterns:
 - **Use regex for stylistic sweeps.** "Find every `was` followed by an -ing verb" is a regex job. Replacement is usually manual.
 - **Commit before a project-wide replace.** Snapshots cover individual scenes; Git covers the whole project. Both are good before a bulk operation.
 
+## Cleaning up a whole manuscript
+
+Novalist's auto-replacements fire while you type, and they deliberately skip pasted text — a paste is somebody else's formatting, and rewriting it as it lands would be a surprise. The consequence is that a chapter written in another program and pasted in keeps its straight quotes, its double hyphens and its double spaces permanently. Find and Replace can be pointed at each of those, one pattern at a time, if you know what to look for.
+
+**Clean up the manuscript** does the whole set in one pass. Open it from the command palette. It has no default hotkey: it rewrites the prose in every scene it touches, and a pass that big should be reached on purpose rather than by a mistyped chord.
+
+Six rules, each independent and all on by default:
+
+- **Curl straight quotes and apostrophes.** Quotes alternate open and closed, in the pair your book's writing language actually uses — a German manuscript gets low-9 quotes, not English ones. An apostrophe is never treated as a closing quote: "don't" and "the boys' coats" are ordinary prose. A quote that is neither clearly an elision nor clearly a quotation — `'73`, say — is left exactly as you typed it, because guessing wrong is worse than doing nothing.
+- **Turn double hyphens into dashes and three dots into an ellipsis.** The same table the typing-time replacements use, so the two cannot disagree.
+- **Collapse repeated spaces**, including the double space after a full stop. A non-breaking space is left alone — those are authored, not stray.
+- **Trim spaces** left hanging at the start and end of a paragraph.
+- **Drop paragraphs that hold nothing.** A paragraph holding only an image or a horizontal rule is kept: it carries no text and is still the point of the paragraph it sits in.
+- **Make every scene break the same.** A paragraph that is only asterisks, hyphens, hashes or bullets becomes the one canonical break.
+
+Markup is never touched. A straight quote inside `class="..."` is not a quotation mark, and the spaces inside a style attribute are not prose.
+
+**Show me what would change** reports how many scenes the pass would rewrite and names them, without changing anything. Use it first — this is not something to find out about afterwards.
+
+**Clean up** runs the pass and takes a snapshot of every scene before it changes it, the same as Replace All. If a rule did something you did not want, the previous version is in [Snapshots](17-snapshots.md).
+
+By default the pass covers the whole book. With a chapter open you can narrow it to that chapter instead.
+
 ## Where to go next
 
 - [Editor](05-editor.md) — for live editing of the matches.

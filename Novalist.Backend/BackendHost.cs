@@ -52,6 +52,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new CollectionsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new CompletionRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new AttachmentsRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new CleanupRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new VoicesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new GroupsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new EntitiesRpc(_workspace), targetOptions);

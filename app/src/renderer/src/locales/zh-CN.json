@@ -3112,5 +3112,21 @@
     "open": "打开",
     "remove": "从条目移除",
     "linkPlaceholder": "或粘贴网址后按回车"
+  },
+  "cleanup": {
+    "title": "清理稿件",
+    "intro": "自动替换只在输入时生效，因此在别处写好再粘贴进来的文字会保持原样。这里一次性把它整理好。",
+    "ruleSmartenQuotes": "将直引号和撇号转为弯引号",
+    "ruleTypography": "双连字符转为破折号，三个点转为省略号",
+    "ruleCollapseSpaces": "合并重复空格，包括句号后的双空格",
+    "ruleTrimParagraphs": "去掉段首和段尾多余的空格",
+    "ruleDropEmptyParagraphs": "删除空白段落",
+    "ruleNormaliseSceneBreaks": "统一所有场景分隔符",
+    "wholeBook": "整本书，而不只是{{chapter}}",
+    "preview": "预览将有哪些变化",
+    "run": "清理",
+    "previewCount": "{{total}} 个场景中有 {{changed}} 个会发生变化。",
+    "ranCount": "已清理 {{total}} 个场景中的 {{changed}} 个。",
+    "snapshotNote": "每个场景在修改前都已创建快照。"
   }
 }

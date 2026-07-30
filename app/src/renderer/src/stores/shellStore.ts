@@ -145,6 +145,7 @@ interface ShellState {
   backendVersion: string | null
   focusMode: boolean
   findReplaceOpen: boolean
+  cleanupOpen: boolean
   commandPaletteOpen: boolean
   /** Quick-open overlay: one search box across scenes, Codex, research, events. */
   quickOpenOpen: boolean
@@ -177,6 +178,7 @@ interface ShellState {
   setBackendVersion(version: string | null): void
   toggleFocusMode(): void
   setFindReplaceOpen(open: boolean): void
+  setCleanupOpen(open: boolean): void
   setCommandPaletteOpen(open: boolean): void
   setQuickOpenOpen(open: boolean): void
   setQuickCaptureOpen(open: boolean): void
@@ -211,6 +213,7 @@ export const useShellStore = create<ShellState>((set) => ({
   backendVersion: null,
   focusMode: false,
   findReplaceOpen: false,
+  cleanupOpen: false,
   commandPaletteOpen: false,
   quickOpenOpen: false,
   quickCaptureOpen: false,
@@ -228,6 +231,7 @@ export const useShellStore = create<ShellState>((set) => ({
   setBinderTab: (binderTab) => set({ binderTab }),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   setFindReplaceOpen: (findReplaceOpen) => set({ findReplaceOpen }),
+  setCleanupOpen: (cleanupOpen) => set({ cleanupOpen }),
   setCommandPaletteOpen: (commandPaletteOpen) => set({ commandPaletteOpen }),
   setQuickOpenOpen: (quickOpenOpen) => set({ quickOpenOpen }),
   setQuickCaptureOpen: (quickCaptureOpen) => set({ quickCaptureOpen }),

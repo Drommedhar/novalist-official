@@ -3080,5 +3080,21 @@
     "open": "Öffnen",
     "remove": "Vom Eintrag entfernen",
     "linkPlaceholder": "oder eine Webadresse einfügen und Enter drücken"
+  },
+  "cleanup": {
+    "title": "Manuskript bereinigen",
+    "intro": "Auto-Ersetzungen greifen nur beim Tippen. Anderswo geschriebener und eingefügter Text behält also, was er mitbringt. Das hier korrigiert ihn in einem Durchgang.",
+    "ruleSmartenQuotes": "Gerade Anführungszeichen und Apostrophe typografisch setzen",
+    "ruleTypography": "Doppelte Bindestriche zu Gedankenstrichen, drei Punkte zu Auslassungspunkten",
+    "ruleCollapseSpaces": "Mehrfache Leerzeichen zusammenziehen, auch das doppelte nach dem Punkt",
+    "ruleTrimParagraphs": "Leerzeichen am Anfang und Ende eines Absatzes entfernen",
+    "ruleDropEmptyParagraphs": "Absätze ohne Inhalt entfernen",
+    "ruleNormaliseSceneBreaks": "Alle Szenentrenner vereinheitlichen",
+    "wholeBook": "Das ganze Buch, nicht nur {{chapter}}",
+    "preview": "Zeigen, was sich ändern würde",
+    "run": "Bereinigen",
+    "previewCount": "{{changed}} von {{total}} Szenen würden sich ändern.",
+    "ranCount": "{{changed}} von {{total}} Szenen bereinigt.",
+    "snapshotNote": "Vor jeder Änderung wurde ein Schnappschuss der Szene angelegt."
   }
 }

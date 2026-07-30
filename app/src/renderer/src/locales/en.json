@@ -3072,5 +3072,21 @@
     "open": "Open",
     "remove": "Take this off the entry",
     "linkPlaceholder": "or paste a web address and press Enter"
+  },
+  "cleanup": {
+    "title": "Clean up the manuscript",
+    "intro": "Auto-replacements only fire while you type, so prose written elsewhere and pasted in keeps whatever it arrived with. This puts it right in one pass.",
+    "ruleSmartenQuotes": "Curl straight quotes and apostrophes",
+    "ruleTypography": "Turn double hyphens into dashes and three dots into an ellipsis",
+    "ruleCollapseSpaces": "Collapse repeated spaces, including the double space after a full stop",
+    "ruleTrimParagraphs": "Trim spaces left at the start and end of a paragraph",
+    "ruleDropEmptyParagraphs": "Drop paragraphs that hold nothing",
+    "ruleNormaliseSceneBreaks": "Make every scene break the same",
+    "wholeBook": "The whole book, not just {{chapter}}",
+    "preview": "Show me what would change",
+    "run": "Clean up",
+    "previewCount": "{{changed}} of {{total}} scenes would change.",
+    "ranCount": "Cleaned up {{changed}} of {{total}} scenes.",
+    "snapshotNote": "A snapshot was taken of every scene before it was changed."
   }
 }

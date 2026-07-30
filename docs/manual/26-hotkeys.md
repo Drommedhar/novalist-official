@@ -30,6 +30,7 @@ The number keys switch the main area between views, in this order:
 | Toggle inspector (right pane) | `Ctrl+Shift+B` |
 | Toggle scene notes (bottom dock) | `Ctrl+Shift+N` |
 | Find & Replace | `Ctrl+Shift+F` |
+| Clean up the manuscript | *(unbound — rewrites prose in every scene it touches, so it ships without a gesture)* |
 | Toggle Focus Mode | `Alt+F` |
 | Workspace layouts | `Ctrl+Alt+L` |
 | Take the tour | `Ctrl+Alt+T` |

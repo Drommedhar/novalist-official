@@ -173,6 +173,16 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
       run: () => shell().setFindReplaceOpen(true)
     },
     {
+      // No default gesture: this rewrites the prose in every scene it touches,
+      // and a pass that big should be reached on purpose rather than by a
+      // mistyped chord.
+      actionId: 'app.edit.cleanup',
+      defaultGesture: '',
+      categoryKey: 'hotkeys.category.editor',
+      labelKey: 'cleanup.title',
+      run: () => shell().setCleanupOpen(true)
+    },
+    {
       actionId: 'app.view.focus',
       defaultGesture: 'Alt+F',
       categoryKey: 'hotkeys.category.panels',

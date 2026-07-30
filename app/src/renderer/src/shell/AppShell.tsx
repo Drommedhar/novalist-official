@@ -7,6 +7,7 @@ import { FirstRunTour, hasSeenTour } from './FirstRunTour'
 import { QuickOpen } from './QuickOpen'
 import { QuickCapture } from './QuickCapture'
 import { FindReplaceDialog } from './FindReplaceDialog'
+import { CleanupDialog } from './CleanupDialog'
 import { HelpOverlay } from './HelpOverlay'
 import { buildDefaultHotkeys, installHotkeys } from './hotkeys'
 import { Inspector } from './Inspector'
@@ -89,6 +90,7 @@ export function AppShell(): React.JSX.Element {
   const openProject = useProjectStore((s) => s.openProject)
   const pickAndOpenProject = useProjectStore((s) => s.pickAndOpenProject)
   const findReplaceOpen = useShellStore((s) => s.findReplaceOpen)
+  const cleanupOpen = useShellStore((s) => s.cleanupOpen)
   const commandPaletteOpen = useShellStore((s) => s.commandPaletteOpen)
   const quickOpenOpen = useShellStore((s) => s.quickOpenOpen)
   const quickCaptureOpen = useShellStore((s) => s.quickCaptureOpen)
@@ -248,6 +250,9 @@ export function AppShell(): React.JSX.Element {
       {!isMobile && !focusMode && <StatusBar />}
       {findReplaceOpen && (
         <FindReplaceDialog onClose={() => useShellStore.getState().setFindReplaceOpen(false)} />
+      )}
+      {cleanupOpen && (
+        <CleanupDialog onClose={() => useShellStore.getState().setCleanupOpen(false)} />
       )}
       {commandPaletteOpen && (
         <CommandPalette
