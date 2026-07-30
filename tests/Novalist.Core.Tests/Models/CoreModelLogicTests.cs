@@ -686,4 +686,24 @@ public class StoryStructureTemplateTests
         book.Collections.Add(first);
         Assert.Single(book.Collections);
     }
+
+    [Fact]
+    public void AKeywordHasAnIdSoRenamingIsARename()
+    {
+        // Without an id of its own, renaming a keyword would be a delete and a
+        // recreate, and the scenes carrying it would be left behind.
+        var first = new Keyword { Name = "grief" };
+        var second = new Keyword { Name = "loss" };
+
+        Assert.NotEqual(first.Id, second.Id);
+        // Never empty: an uncoloured chip among coloured ones reads as a
+        // mistake rather than as a choice.
+        Assert.False(string.IsNullOrWhiteSpace(first.Color));
+        Assert.Null(first.ParentId);
+
+        var book = new BookData();
+        Assert.Empty(book.Keywords);
+        book.Keywords.Add(first);
+        Assert.Single(book.Keywords);
+    }
 }

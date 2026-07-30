@@ -136,6 +136,14 @@ public class BookData
     public List<SceneCollection> Collections { get; set; } = [];
 
     /// <summary>
+    /// The book's keyword vocabulary. Scene tags were free text with nothing
+    /// behind them, so "flashback", "Flashback" and "flash-back" were three
+    /// tags and correcting that meant opening every scene that used one.
+    /// </summary>
+    [JsonPropertyName("keywords")]
+    public List<Keyword> Keywords { get; set; } = [];
+
+    /// <summary>
     /// Fields the writer added to every scene or chapter of this book. Per book
     /// for the same reason the stages are: the things worth tracking differ
     /// between a thriller and a short-story collection.

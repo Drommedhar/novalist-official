@@ -2977,5 +2977,18 @@
     "addSelected": "加入选中场景",
     "remove": "从合集移除",
     "delete": "删除合集"
+  },
+  "keywords": {
+    "title": "关键词",
+    "intro": "本书为场景标注所用的词表。在此重命名会同步改写每个带有该词的场景——自由文本标签做不到这一点。",
+    "namePlaceholder": "关键词",
+    "colour": "颜色",
+    "parent": "归属于",
+    "noParent": "顶层",
+    "usedIn": "用于 {{count}} 个场景",
+    "add": "添加关键词",
+    "harvest": "从场景收集",
+    "save": "保存词表",
+    "delete": "删除关键词"
   }
 }

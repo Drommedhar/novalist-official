@@ -2945,5 +2945,18 @@
     "addSelected": "Ausgewählte Szenen hinzufügen",
     "remove": "Aus Sammlung entfernen",
     "delete": "Sammlung löschen"
+  },
+  "keywords": {
+    "title": "Schlagwörter",
+    "intro": "Das Vokabular, mit dem dieses Buch Szenen verschlagwortet. Wer hier umbenennt, benennt in jeder Szene um - das konnte freier Text nie.",
+    "namePlaceholder": "Schlagwort",
+    "colour": "Farbe",
+    "parent": "Gehört zu",
+    "noParent": "Oberste Ebene",
+    "usedIn": "in {{count}} Szenen",
+    "add": "Schlagwort hinzufügen",
+    "harvest": "Aus Szenen sammeln",
+    "save": "Vokabular speichern",
+    "delete": "Schlagwort löschen"
   }
 }

@@ -2937,5 +2937,18 @@
     "addSelected": "Add selected scenes",
     "remove": "Remove from collection",
     "delete": "Delete collection"
+  },
+  "keywords": {
+    "title": "Keywords",
+    "intro": "The vocabulary this book tags scenes with. Renaming one here renames it on every scene that carries it — which free-text tags could never do.",
+    "namePlaceholder": "Keyword",
+    "colour": "Colour",
+    "parent": "Groups under",
+    "noParent": "Top level",
+    "usedIn": "on {{count}} scenes",
+    "add": "Add keyword",
+    "harvest": "Collect from scenes",
+    "save": "Save vocabulary",
+    "delete": "Delete keyword"
   }
 }

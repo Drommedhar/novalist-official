@@ -19,6 +19,7 @@ import { LanguagePacksCard } from './LanguagePacksCard'
 import { SceneStagesCard } from './SceneStagesCard'
 import { ManuscriptPropertiesCard } from './ManuscriptPropertiesCard'
 import { SceneLabelsCard } from './SceneLabelsCard'
+import { KeywordsCard } from './KeywordsCard'
 import { SceneTemplatesCard } from './SceneTemplatesCard'
 import { TagsCard } from './TagsCard'
 import './settings.css'
@@ -1063,6 +1064,12 @@ export function SettingsView(): React.JSX.Element {
       titleKey: 'labels.title',
       keywords: ['label', 'labels', 'colour', 'color', 'flag', 'scene', 'corkboard'],
       body: <SceneLabelsCard />
+    },
+    {
+      key: 'keywords',
+      titleKey: 'keywords.title',
+      keywords: ['keyword', 'keywords', 'tag', 'tags', 'vocabulary', 'rename', 'colour', 'color'],
+      body: <KeywordsCard />
     },
     {
       key: 'sceneTemplates',
