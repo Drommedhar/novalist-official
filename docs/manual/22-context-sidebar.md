@@ -59,6 +59,21 @@ Adding a language is a data change, not a code change: drop an `analysis.<tag>.j
 
 Beneath the analysis, a stats line reports the scene's **word count**, **dialogue percentage**, and **average sentence length**.
 
+## Links and backlinks
+
+Under the scene analysis, **Points at** lists everything this scene references and **Pointed at by** lists every scene that references it.
+
+Research items could already reference each other, both ways. A scene could reference nothing — a scene that answers an earlier scene, or leans on one research note, could only say so as prose in its own notes, which nothing could follow and which the other end never knew about.
+
+- Pick a **kind** — Scene, Research, or Codex entry — then pick what to point at, and press the plus.
+- Each link takes an optional **reason** in your own words, edited in place: "pays off the promise made here". A bare link is still worth having, so the reason is never required — demanding one is how a link does not get made.
+- Click a link to go there. A scene link opens that scene; a research or Codex link switches to that view.
+- Pointing at the same thing twice does not make a second row — it rewrites the reason on the row already there.
+- A scene cannot point at itself.
+- If the thing at the other end is deleted, **the row stays** and reads *No longer there*. A link that disappears silently is a link you never find out you lost.
+
+**Pointed at by** is the half that makes a link worth making: it is how a scene finds out which scenes answer it, and it is filled in automatically by the links pointing here.
+
 ## Inbox tab
 
 The **Inbox** tab lists every open note in the whole book, not just the open scene — because a note you cannot find again is a note you did not leave.

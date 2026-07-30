@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/projectStore'
 import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { rpc } from '../rpc/client'
+import { LinksPanel } from './LinksPanel'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
 import { SuggestionsPanel } from './SuggestionsPanel'
@@ -123,6 +124,7 @@ export function Inspector(): React.JSX.Element {
               {scene.wordCount.toLocaleString()} {t('shell.words')}
             </div>
             <ContextPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
+            <LinksPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
           </>
         )}
         {inspectorTab === 'footnotes' && (

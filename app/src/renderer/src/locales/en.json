@@ -3105,5 +3105,19 @@
     "previewCount": "{{changed}} of {{total}} scenes would change.",
     "ranCount": "Cleaned up {{changed}} of {{total}} scenes.",
     "snapshotNote": "A snapshot was taken of every scene before it was changed."
+  },
+  "links": {
+    "pointsAt": "Points at",
+    "pointedAtBy": "Pointed at by",
+    "none": "Nothing yet.",
+    "kind": "What kind",
+    "kindScene": "Scene",
+    "kindResearch": "Research",
+    "kindEntity": "Codex entry",
+    "target": "What to point at",
+    "pick": "Pick something...",
+    "remove": "Remove this link",
+    "notePlaceholder": "Why, in your own words",
+    "missing": "No longer there"
   }
 }

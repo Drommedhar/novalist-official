@@ -3113,5 +3113,19 @@
     "previewCount": "{{changed}} von {{total}} Szenen würden sich ändern.",
     "ranCount": "{{changed}} von {{total}} Szenen bereinigt.",
     "snapshotNote": "Vor jeder Änderung wurde ein Schnappschuss der Szene angelegt."
+  },
+  "links": {
+    "pointsAt": "Verweist auf",
+    "pointedAtBy": "Verwiesen von",
+    "none": "Noch nichts.",
+    "kind": "Art",
+    "kindScene": "Szene",
+    "kindResearch": "Recherche",
+    "kindEntity": "Kodex-Eintrag",
+    "target": "Ziel",
+    "pick": "Etwas auswählen …",
+    "remove": "Verweis entfernen",
+    "notePlaceholder": "Warum, in eigenen Worten",
+    "missing": "Nicht mehr vorhanden"
   }
 }

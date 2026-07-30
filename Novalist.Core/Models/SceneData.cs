@@ -217,6 +217,18 @@ public class SceneData
     public List<string>? Cast { get; set; }
 
     /// <summary>
+    /// What this scene points at: another scene, a research item, a Codex
+    /// entry. Null when it points at nothing.
+    ///
+    /// Scenes had no link model, so a scene that answers another scene could
+    /// only say so as prose in its own notes - which nothing could follow, and
+    /// which the scene at the other end never knew about.
+    /// </summary>
+    [JsonPropertyName("links")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<SceneLink>? Links { get; set; }
+
+    /// <summary>
     /// The entity this scene is really about, when that is not the same as who
     /// speaks or whose head it is in. Null when unremarkable.
     /// </summary>

@@ -424,3 +424,71 @@
 .inbox-suggestion-scene {
   font-size: var(--nl-font-body-sm);
 }
+
+/* What a scene points at, and what points back. One row each, the reason
+   editable in place, so eight links still read as a list. */
+.links-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-md);
+}
+
+.links-row {
+  align-items: center;
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.links-arrow {
+  color: var(--nl-text-subtle);
+  flex: 0 0 auto;
+}
+
+.links-target {
+  background: none;
+  border: none;
+  color: var(--nl-accent);
+  cursor: pointer;
+  flex: 1 1 auto;
+  font: inherit;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* A target that is gone is still shown, greyed, rather than removed. */
+.links-target:disabled {
+  color: var(--nl-text-subtle);
+  cursor: default;
+  font-style: italic;
+}
+
+.links-note,
+.links-kind {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.links-note {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  padding: 0 var(--nl-space-tightest);
+}
+
+.links-note:focus {
+  background: var(--nl-surface-card);
+  border-color: var(--nl-accent);
+  outline: none;
+}
+
+.links-backnote {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
