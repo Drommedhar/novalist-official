@@ -190,6 +190,15 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
       run: () => shell().setLayoutsOpen(true)
     },
     {
+      // Eighteen views behind four activity-bar groups, and a writer at a blank
+      // Dashboard has no way to know the Plot Grid is there at all.
+      actionId: 'app.view.tour',
+      defaultGesture: 'Ctrl+Alt+T',
+      categoryKey: 'hotkeys.category.general',
+      labelKey: 'tour.title',
+      run: () => shell().setTourOpen(true)
+    },
+    {
       actionId: 'app.commandPalette',
       defaultGesture: 'Ctrl+Shift+P',
       categoryKey: 'hotkeys.category.general',

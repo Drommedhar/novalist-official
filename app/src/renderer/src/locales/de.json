@@ -3047,5 +3047,27 @@
     "clear": "{{count}} zurücksetzen",
     "namePlaceholder": "Filter speichern als…",
     "removePreset": "Diesen Filter löschen"
+  },
+  "tour": {
+    "title": "Rundgang starten",
+    "step": "{{at}} von {{of}}",
+    "skip": "Überspringen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "done": "Losschreiben",
+    "dashboardTitle": "Das Dashboard",
+    "dashboardBody": "Wo das Buch steht: Wortzahlen, Ihr Ziel, was Sie heute geschrieben haben, und die Prämisse. Die Seite zum Anfangen, nicht zum Ausfüllen.",
+    "manuscriptTitle": "Das Manuskript",
+    "manuscriptBody": "Das Buch selbst, auf vier Arten: als fortlaufender Text, als Karteikarten, als beschreibbare Gliederung und als Board, auf dem Sie Szenen verschieben.",
+    "codexTitle": "Das Kompendium",
+    "codexBody": "Figuren, Orte, Dinge und Hintergrund. Mit @ in einer Szene verknüpfen - Novalist merkt sich, wer wo vorkommt, ohne dass Sie es zweimal sagen.",
+    "timelineTitle": "Die Zeitleiste",
+    "timelineBody": "Wann alles geschieht, in Erzählzeit. Eine Szene kann ein Datum tragen oder einfach sagen, sie sei zwei Stunden nach der letzten.",
+    "plotGridTitle": "Das Plot-Raster",
+    "plotGridBody": "Welche Stränge durch welche Szenen laufen. Der Ort, an dem auffällt, dass ein Nebenstrang neun Kapitel lang geschwiegen hat.",
+    "researchTitle": "Recherche",
+    "researchBody": "Notizen, gesicherte Seiten, PDFs und Bilder - neben dem Buch statt in einem Browser, den Sie schließen werden.",
+    "exportTitle": "Export",
+    "exportBody": "EPUB, DOCX, PDF und mehr, ordentlich gesetzt - samt Normseiten, nach denen Agenturen namentlich fragen. Hier verlässt das Buch das Haus."
   }
 }

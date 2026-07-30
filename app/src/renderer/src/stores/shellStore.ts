@@ -156,6 +156,8 @@ interface ShellState {
   helpOpen: boolean
   /** Named workspace layouts: save the shape you are in, come back to it. */
   layoutsOpen: boolean
+  /** The short walk through the views, offered once per installation. */
+  tourOpen: boolean
   setMainView(view: MainView): void
   setMobileTab(tab: MobileTab): void
   /** Switch to the Maps view and ask it to open the given map and focus a pin. */
@@ -184,6 +186,7 @@ interface ShellState {
   clearPendingResearch(): void
   setHelpOpen(open: boolean): void
   setLayoutsOpen(open: boolean): void
+  setTourOpen(open: boolean): void
 }
 
 export const useShellStore = create<ShellState>((set) => ({
@@ -214,6 +217,7 @@ export const useShellStore = create<ShellState>((set) => ({
   pendingResearchId: null,
   helpOpen: false,
   layoutsOpen: false,
+  tourOpen: false,
   setMainView: (mainView) => set({ mainView, extView: null }),
   setMobileTab: (mobileTab) => set({ mobileTab }),
   navigateToMapPin: (mapId, pinId) =>
@@ -232,6 +236,7 @@ export const useShellStore = create<ShellState>((set) => ({
   clearPendingResearch: () => set({ pendingResearchId: null }),
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   setLayoutsOpen: (layoutsOpen) => set({ layoutsOpen }),
+  setTourOpen: (tourOpen) => set({ tourOpen }),
   toggleBinder: () => set((s) => ({ binderVisible: !s.binderVisible })),
   setBinderWidth: (px) => set({ binderWidth: clamp(px, BINDER_MIN, BINDER_MAX) }),
   toggleInspector: () => set((s) => ({ inspectorVisible: !s.inspectorVisible })),

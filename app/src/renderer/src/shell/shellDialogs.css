@@ -343,3 +343,35 @@
 .layouts-apply:hover {
   border-color: var(--nl-accent);
 }
+
+/* The tour sits in the corner rather than over the middle: every stop switches
+   to a real view, and a modal covering it would defeat the point of going. */
+.tour-card {
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-lg);
+  bottom: var(--nl-space-xl);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  max-width: 380px;
+  padding: var(--nl-space-lg);
+  position: fixed;
+  right: var(--nl-space-xl);
+  z-index: 60;
+}
+
+.tour-step {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.tour-body {
+  color: var(--nl-text-dim);
+  line-height: 1.5;
+  margin: var(--nl-space-sm) 0 var(--nl-space-lg);
+}
+
+.tour-actions {
+  display: flex;
+  gap: var(--nl-space-sm);
+  justify-content: flex-end;
+}

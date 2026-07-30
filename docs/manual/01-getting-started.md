@@ -20,6 +20,15 @@ No account is required. Novalist works fully offline. The only times it touches 
 - Browsing the extension store.
 - Calling the LanguageTool grammar service when grammar check is enabled (toggleable, and the endpoint can be replaced with a self-hosted server).
 
+## The tour
+
+The first time you open a project, a small card appears in the corner offering a walk through the views. It is seven stops — Dashboard, Manuscript, Codex, Timeline, Plot Grid, Research, Export — and each one **actually goes there** rather than describing it, so you have been in the rooms once before you need them.
+
+Novalist has eighteen views behind four groups in the activity bar. The manual covers all of them, and nobody reads a manual before they have a reason to; the tour exists so the Plot Grid is not a surprise in month three.
+
+**Skip** is as prominent as **Next** — if you already know the app, one click and it is gone. It is offered once per installation and never asks again. To take it later, press **Ctrl+Alt+T** or find **Take the tour** in the command palette.
+
+
 ## The start screen
 
 When you launch Novalist with no project open, the **start screen** appears. It offers:

@@ -3,6 +3,7 @@ import { ActivityBar } from './ActivityBar'
 import { Binder } from './Binder'
 import { CommandPalette } from './CommandPalette'
 import { WorkspaceLayoutsDialog } from './WorkspaceLayoutsDialog'
+import { FirstRunTour, hasSeenTour } from './FirstRunTour'
 import { QuickOpen } from './QuickOpen'
 import { QuickCapture } from './QuickCapture'
 import { FindReplaceDialog } from './FindReplaceDialog'
@@ -93,6 +94,7 @@ export function AppShell(): React.JSX.Element {
   const quickCaptureOpen = useShellStore((s) => s.quickCaptureOpen)
   const helpOpen = useShellStore((s) => s.helpOpen)
   const layoutsOpen = useShellStore((s) => s.layoutsOpen)
+  const tourOpen = useShellStore((s) => s.tourOpen)
   const hotkeys = useMemo(() => buildDefaultHotkeys(), [])
 
   // ── Combined app + extension update check (run in the splash on startup) ──
@@ -150,6 +152,12 @@ export function AppShell(): React.JSX.Element {
   // Opening a project lands on the dashboard, matching the Avalonia app.
   useEffect(() => {
     if (isLoaded) useShellStore.getState().setMainView('dashboard')
+  }, [isLoaded])
+
+  // The tour is offered once, and only with a project open: every stop switches
+  // to a real view, and a walk through eighteen empty ones teaches nothing.
+  useEffect(() => {
+    if (isLoaded && !hasSeenTour()) useShellStore.getState().setTourOpen(true)
   }, [isLoaded])
 
   useEffect(() => installHotkeys(hotkeys), [hotkeys])
@@ -257,6 +265,7 @@ export function AppShell(): React.JSX.Element {
       {layoutsOpen && (
         <WorkspaceLayoutsDialog onClose={() => useShellStore.getState().setLayoutsOpen(false)} />
       )}
+      {tourOpen && <FirstRunTour onClose={() => useShellStore.getState().setTourOpen(false)} />}
       {/* Raised by the store when a save was refused because the scene changed
           on disk. Renders nothing until there is something to resolve. */}
       <SceneConflictDialog />

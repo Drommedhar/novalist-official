@@ -3039,5 +3039,27 @@
     "clear": "Clear {{count}}",
     "namePlaceholder": "Save this filter as…",
     "removePreset": "Delete this filter"
+  },
+  "tour": {
+    "title": "Take the tour",
+    "step": "{{at}} of {{of}}",
+    "skip": "Skip",
+    "back": "Back",
+    "next": "Next",
+    "done": "Start writing",
+    "dashboardTitle": "The Dashboard",
+    "dashboardBody": "Where the book stands: word counts, your goal, what you wrote today, and the premise. The page to open with rather than the one to fill in.",
+    "manuscriptTitle": "The Manuscript",
+    "manuscriptBody": "The book itself, four ways: as continuous prose, as index cards, as an outline you can type into, and as a board you can push scenes around on.",
+    "codexTitle": "The Codex",
+    "codexBody": "Characters, places, things and lore. Type @ in a scene to link one, and Novalist tracks who appears where without being told twice.",
+    "timelineTitle": "The Timeline",
+    "timelineBody": "When everything happens, in story time. A scene can carry a date or simply say it is two hours after the last one.",
+    "plotGridTitle": "The Plot Grid",
+    "plotGridBody": "Which threads run through which scenes. The place to notice that a subplot has been silent for nine chapters.",
+    "researchTitle": "Research",
+    "researchBody": "Notes, pages you captured, PDFs and images, kept beside the book instead of in a browser you will close.",
+    "exportTitle": "Export",
+    "exportBody": "EPUB, DOCX, PDF and more, laid out properly - including the submission formats agents ask for by name. This is where the book leaves."
   }
 }

@@ -32,6 +32,7 @@ The number keys switch the main area between views, in this order:
 | Find & Replace | `Ctrl+Shift+F` |
 | Toggle Focus Mode | `Alt+F` |
 | Workspace layouts | `Ctrl+Alt+L` |
+| Take the tour | `Ctrl+Alt+T` |
 | Command Palette | `Ctrl+Shift+P` |
 | Quick Open (search everything) | `Ctrl+P` |
 | Quick capture (jot a note) | `Ctrl+Shift+K` |
