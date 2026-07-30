@@ -36,7 +36,10 @@ test('the codex table edits an entry in place', async () => {
   await expect(page.locator('.codex-tabs')).toBeVisible({ timeout: 20_000 })
 
   // Into the table, which is a mode of the Codex rather than a view of its own.
-  await page.getByRole('button', { name: 'Table', exact: true }).click()
+  // By class, not by label: a project carries its own writing language, and
+  // this one is German - so looking for a button called "Table" found nothing
+  // and the failure read as a missing control rather than a missing word.
+  await page.locator('.codex-tab-table').click()
   await expect(page.locator('.codex-table')).toBeVisible({ timeout: 15_000 })
 
   const firstGroupCell = page.locator('.codex-table tbody tr').first().locator('input').last()

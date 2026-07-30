@@ -137,6 +137,12 @@ export function buildSpellingMenu(
  * reach it from a sandboxed page.
  */
 export function registerSpellCheckHandlers(): void {
+  // Applying a correction is Chromium's job: it owns the misspelled range and
+  // replacing the text by hand would lose the surrounding markup.
+  ipcMain.on('novalist:replace-misspelling', (event, replacement: string) => {
+    event.sender.replaceMisspelling(replacement)
+  })
+
   ipcMain.handle(
     'novalist:apply-spellcheck',
     (_event, enabled: boolean, languages: string[], words: string[]) => {
@@ -160,6 +166,24 @@ export function attachSpellingMenu(
   labels: () => { addToDictionary: string; noSuggestions: string }
 ): void {
   win.webContents.on('context-menu', (_event, params) => {
+    // The prose draws its own context menu, so a second native one popping up
+    // beside it is worse than none. The suggestions go to the renderer, which
+    // puts them in the menu the writer is already looking at.
+    //
+    // Chromium's dictionary is the only source of these: there is no API to
+    // ask for suggestions for an arbitrary word, they arrive with this event
+    // or not at all. That is why the prose must not preventDefault on
+    // contextmenu - doing so stops this event, and with it every correction
+    // the spell checker had to offer.
+    win.webContents.send('novalist:spelling-context', {
+      word: params.misspelledWord ?? '',
+      suggestions: params.dictionarySuggestions ?? []
+    })
+
+    // Outside the prose there is no menu of ours to merge into, so the native
+    // one is still the right answer.
+    if (params.isEditable && params.misspelledWord) return
+
     const menu = buildSpellingMenu(params, win.webContents, labels(), (word) => {
       win.webContents.send('novalist:spellcheck-word-added', word)
     })

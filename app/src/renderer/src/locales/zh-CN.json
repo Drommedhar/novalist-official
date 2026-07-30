@@ -1442,7 +1442,10 @@
       "createEntity": "从所选内容创建条目",
       "appendToEntity": "将所选内容添加到条目",
       "splitScene": "在此处拆分场景",
-      "cutToDarlings": "剪下并保留"
+      "cutToDarlings": "剪下并保留",
+      "groupScene": "场景",
+      "groupCodex": "档案",
+      "noSuggestions": "无建议"
     },
     "linkPrompt": "链接地址（留空则移除链接）",
     "contextMenu.insertImage": "插入图片"

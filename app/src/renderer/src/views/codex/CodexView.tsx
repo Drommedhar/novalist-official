@@ -184,7 +184,7 @@ export function CodexView(): React.JSX.Element {
             their houses meant forty round trips through the detail pane. A
             table is the shape that work actually has. */}
         <button
-          className={`codex-tab${tableMode ? ' active' : ''}`}
+          className={`codex-tab codex-tab-table${tableMode ? ' active' : ''}`}
           onClick={() => setTableMode(!tableMode)}
         >
           {t('codexTable.title')}

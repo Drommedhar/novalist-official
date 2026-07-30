@@ -93,6 +93,8 @@ export interface EditorWindow extends Window {
   toggleBulletList(): void
   toggleNumberList(): void
   focusEditor(): void
+  /** Chromium's spelling suggestions for the word the menu was opened on. */
+  setSpellingSuggestions(word: string, suggestions: string[]): void
 }
 
 export interface EditorMessage {

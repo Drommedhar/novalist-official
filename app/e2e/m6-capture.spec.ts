@@ -50,6 +50,15 @@ test('editor: "Add selection to entity" opens the picker with the selected text'
   expect(selected.length).toBeGreaterThan(0)
 
   await paragraph.click({ button: 'right' })
+
+  // The Codex actions live behind their own group now: the menu had grown to
+  // thirty-odd rows in one column, so the families were folded into flyouts.
+  const codexGroup = frame.locator('.cm-parent', {
+    has: frame.locator('.cm-item[data-action="appendToEntitySection"]')
+  })
+  await expect(codexGroup).toBeVisible()
+  await codexGroup.hover()
+
   const menuItem = frame.locator('.cm-item[data-action="appendToEntitySection"]')
   await expect(menuItem).toBeVisible()
   await menuItem.click()

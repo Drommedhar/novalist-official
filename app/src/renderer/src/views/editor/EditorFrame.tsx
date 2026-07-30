@@ -144,7 +144,10 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
       appendToEntity: t('editor.contextMenu.appendToEntity'),
       splitScene: t('editor.contextMenu.splitScene'),
       insertImage: t('editor.contextMenu.insertImage'),
-      cutToDarlings: t('editor.contextMenu.cutToDarlings')
+      cutToDarlings: t('editor.contextMenu.cutToDarlings'),
+      groupScene: t('editor.contextMenu.groupScene'),
+      groupCodex: t('editor.contextMenu.groupCodex'),
+      noSuggestions: t('editor.contextMenu.noSuggestions')
     })
   )
   editor.setMentionLabels(
@@ -657,6 +660,10 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           })()
           break
         }
+        case 'replaceMisspelling': {
+          window.novalist.replaceMisspelling(String(message.replacement ?? ''))
+          break
+        }
         case 'keepDarling': {
           // Nothing is logged on this path at any level: the payload is the
           // writer's prose.
@@ -920,6 +927,15 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [i18n.language])
 
+  // Chromium reports the misspelling under the pointer as the menu opens, and
+  // it is the only place those suggestions exist - there is no API to ask for
+  // them. Handed to the frame so they land in the menu already on screen.
+  useEffect(() => {
+    window.novalist.onSpellingContext((word, suggestions) => {
+      editorRef.current?.setSpellingSuggestions(word, suggestions)
+    })
+  }, [])
+
   // Panels outside this pane - the footnotes and comments lists - need a way
   // to reach the prose. Registered for the main pane alone: a split pane is
   // showing a different scene, and answering for it would strip a marker out
@@ -935,7 +951,14 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   // which is why the editor grew a focusEditor that nothing ever called.
   useEffect(() => {
     if (pane === 'split' || !openSceneId) return
-    const at = window.setTimeout(() => editorRef.current?.focusEditor(), 60)
+    const at = window.setTimeout(() => {
+      // The iframe first. Focusing an element inside a frame does nothing for
+      // the keyboard while the frame itself is not focused - the caret appears
+      // and the typing still goes to whatever the host had focused, which is
+      // why calling focusEditor on its own looked like it did nothing.
+      iframeRef.current?.focus()
+      editorRef.current?.focusEditor()
+    }, 60)
     return () => window.clearTimeout(at)
   }, [pane, openSceneId])
 

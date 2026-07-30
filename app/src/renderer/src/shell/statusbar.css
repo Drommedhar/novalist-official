@@ -96,8 +96,11 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 41;
-  width: 460px;
-  max-width: 90vw;
+  /* Wide enough for the widest column heading rather than for the English one.
+     LESBARKEIT is half again the width of READABILITY, and the old 44px column
+     put the badge and its heading outside the card. */
+  width: 520px;
+  max-width: min(92vw, 640px);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-lg);
@@ -115,13 +118,16 @@
 .status-overview-cols,
 .status-overview-row {
   display: grid;
-  grid-template-columns: 1fr 150px 44px;
+  grid-template-columns: minmax(0, 1fr) 130px minmax(72px, auto);
   align-items: center;
   gap: var(--nl-space-md);
 }
 
 .status-overview-cols {
   font-size: var(--nl-font-caption);
+  /* A heading that wraps to two lines pushes the whole row out of line with
+     the numbers underneath it. */
+  white-space: nowrap;
   color: var(--nl-text-subtle);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -131,6 +137,12 @@
 
 .status-overview-cols > span:nth-child(2),
 .status-overview-row > .status-overview-words {
+  justify-self: end;
+}
+
+/* The badge and its heading share an edge, so the column reads as one thing. */
+.status-overview-cols > span:nth-child(3),
+.status-overview-row > :nth-child(3) {
   justify-self: end;
 }
 

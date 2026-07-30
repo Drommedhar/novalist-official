@@ -888,7 +888,10 @@
       "createEntity": "Eintrag aus Auswahl erstellen",
       "appendToEntity": "Auswahl zu Eintrag hinzufügen",
       "splitScene": "Szene hier teilen",
-      "cutToDarlings": "Ausschneiden und aufheben"
+      "cutToDarlings": "Ausschneiden und aufheben",
+      "groupScene": "Szene",
+      "groupCodex": "Kodex",
+      "noSuggestions": "Keine Vorschläge"
     },
     "linkPrompt": "Link-Adresse (leer lassen, um den Link zu entfernen)",
     "contextMenu.insertImage": "Bild einfügen"

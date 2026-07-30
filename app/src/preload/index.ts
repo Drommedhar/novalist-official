@@ -63,6 +63,18 @@ contextBridge.exposeInMainWorld('novalist', {
   onSpellCheckWordAdded(handler: (word: string) => void): void {
     ipcRenderer.on('novalist:spellcheck-word-added', (_event, word: string) => handler(word))
   },
+  /** The misspelling under the pointer, reported as the context menu opens. */
+  onSpellingContext(handler: (word: string, suggestions: string[]) => void): void {
+    ipcRenderer.on(
+      'novalist:spelling-context',
+      (_event, payload: { word: string; suggestions: string[] }) =>
+        handler(payload.word, payload.suggestions)
+    )
+  },
+  /** Applies a correction through Chromium, which owns the misspelled range. */
+  replaceMisspelling(replacement: string): void {
+    ipcRenderer.send('novalist:replace-misspelling', replacement)
+  },
   pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null> {
     return ipcRenderer.invoke('novalist:pick-file', title, mode)
   },

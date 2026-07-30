@@ -267,7 +267,12 @@ public sealed class ContextRpc
                 mentions[chapterIndex] = present;
 
                 cells.Add(new MentionCellDto(
-                    (chapterIndex + 1).ToString(),
+                    // Number and title. A tooltip reading "7" tells the writer
+                    // nothing they could not count, and counting is the thing
+                    // the strip is meant to save them.
+                    string.IsNullOrWhiteSpace(candidateChapter.Title)
+                        ? (chapterIndex + 1).ToString()
+                        : $"{chapterIndex + 1}. {candidateChapter.Title}",
                     present,
                     string.Equals(candidateChapter.Guid, chapter.Guid, StringComparison.OrdinalIgnoreCase)));
             }

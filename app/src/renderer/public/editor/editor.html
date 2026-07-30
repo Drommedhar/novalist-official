@@ -30,6 +30,20 @@
     --scrollbar-thumb-active: rgb(255 255 255 / 0.42);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/*
+ * The frame's own chrome - context menu, grammar popup, status bar - is measured
+ * from here rather than in rem.
+ *
+ * html carries font-size: var(--font-size), which is the writer's prose size, so
+ * every rem in this document grows with it. That is right for the paper and
+ * wrong for everything around it: setting the prose to 24pt turned the context
+ * menu into something that filled the window.
+ */
+:root {
+    --chrome-font: 13px;
+    --chrome-font-sm: 11px;
+    --chrome-gap: 6px;
+}
 html, body {
     height: 100%;
     background: var(--bg);
@@ -173,15 +187,15 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
     background: color-mix(in srgb, var(--bg) 95%, white 5%);
     border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
     border-radius: 8px;
-    padding: 0.625rem 0.75rem;
-    max-width: 20rem;
-    font-size: 0.8125rem;
+    padding: 10px 12px;
+    max-width: 320px;
+    font-size: var(--chrome-font);
     color: var(--fg);
     box-shadow: 0 4px 16px rgba(0,0,0,0.3);
     line-height: 1.4;
 }
 #grammar-popup.visible { display: block; }
-#grammar-popup .gp-message { margin-bottom: 0.5rem; opacity: 0.85; }
+#grammar-popup .gp-message { margin-bottom: 8px; opacity: 0.85; }
 #grammar-popup .gp-suggestions { display: flex; flex-wrap: wrap; gap: 4px; }
 #grammar-popup .gp-suggestion {
     background: color-mix(in srgb, var(--fg) 12%, transparent 88%);
@@ -189,15 +203,15 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
     border-radius: 4px;
     padding: 3px 8px;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: var(--chrome-font-sm);
     transition: background 0.15s;
 }
 #grammar-popup .gp-suggestion:hover {
     background: color-mix(in srgb, var(--fg) 25%, transparent 75%);
 }
 #grammar-popup .gp-dismiss {
-    margin-top: 0.375rem;
-    font-size: 0.6875rem;
+    margin-top: 6px;
+    font-size: var(--chrome-font-sm);
     opacity: 0.5;
     cursor: pointer;
 }
@@ -212,8 +226,8 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
     border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent 80%);
     border-radius: 8px;
     padding: 4px 0;
-    min-width: 200px;
-    font-size: 0.8125rem;
+    min-width: 220px;
+    font-size: var(--chrome-font);
     color: var(--fg);
     box-shadow: 0 4px 16px rgba(0,0,0,0.35);
 }
@@ -237,6 +251,47 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
     opacity: 0.5;
     margin-left: 24px;
 }
+/*
+ * A group that opens sideways.
+ *
+ * The menu had grown to thirty-odd rows - every AI action, every writing tool,
+ * every extension - in one column taller than most windows. The things a writer
+ * reaches for constantly stay at the top level; everything that belongs to a
+ * family goes behind its name.
+ */
+#context-menu .cm-parent {
+    position: relative;
+}
+#context-menu .cm-parent > .cm-item::after {
+    content: 'A';
+    opacity: 0.55;
+    margin-left: 12px;
+}
+#context-menu .cm-submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: -4px;
+    min-width: 200px;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: var(--bg);
+    border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent 82%);
+    border-radius: 6px;
+    padding: 4px 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    z-index: 1;
+}
+/* Opens to the left when there is no room on the right, so a menu raised near
+   the window edge is still usable rather than clipped. */
+#context-menu .cm-parent.flip > .cm-submenu {
+    left: auto;
+    right: 100%;
+}
+#context-menu .cm-parent:hover > .cm-submenu {
+    display: block;
+}
+
 #context-menu .cm-separator {
     height: 1px;
     background: color-mix(in srgb, var(--fg) 15%, transparent 85%);
@@ -554,7 +609,7 @@ body.page-view.typewriter-on #editor { padding-top: 70vh; }
     border-radius: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     font-family: var(--font-family);
-    font-size: 0.75rem;
+    font-size: var(--chrome-font-sm);
     color: var(--fg);
     user-select: none;
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -1036,10 +1091,29 @@ function showSpeaking(range) {
     if (!speakingHighlight) return;
     speakingHighlight.clear();
     speakingHighlight.add(range);
+
     const rect = range.getBoundingClientRect();
     const box = wrapper.getBoundingClientRect();
+    // Only when the sentence has actually left the comfortable band. Scrolling
+    // on every sentence makes the page twitch its way through a chapter.
     if (rect.bottom > box.bottom - 40 || rect.top < box.top + 40) {
-        wrapper.scrollTop += rect.top - box.top - box.height / 2;
+        // Centre the sentence. The old line subtracted half the WRAPPER's
+        // height as though it were the sentence's, so reading a line near the
+        // top threw the page upward by half a screen - which is what looked
+        // like the editor scrolling itself back up.
+        wrapper.scrollTop += (rect.top - box.top) - (box.height - rect.height) / 2;
+    }
+
+    // Dimming follows the voice while it is reading. It marks the caret's
+    // paragraph, and the caret does not move when somebody is being read to -
+    // so the lit paragraph stayed wherever they last clicked while the voice
+    // worked its way down the page.
+    if (dimOthers) {
+        const block = blockOf(range.startContainer);
+        if (block) {
+            for (const other of proseBlocks()) other.classList.remove('nv-focus-block');
+            block.classList.add('nv-focus-block');
+        }
     }
 }
 
@@ -1053,6 +1127,9 @@ function onSentenceSpoken(ok) {
 function stopReadAloud() {
     const wasActive = readAloudActive;
     readAloudActive = false;
+    // Handing the dim back to the caret, which owns it whenever nothing is
+    // being read.
+    if (dimOthers) updateFocusBlock();
     readAloudQueue = [];
     if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
     // The system engine has its own queue and does not hear speechSynthesis.
@@ -1082,17 +1159,29 @@ function sendMessage(msg) {
 
 function setContent(html) {
     isSettingContent = true;
+    // Captured before the write and compared after it, so the browser has
+    // normalised both sides and the comparison is honest.
+    const previous = editor.innerHTML;
     if (!html || html.trim() === '' || isEmptyHtml(html)) {
         editor.innerHTML = '<p><br></p>';
     } else {
         const bodyContent = extractBody(html);
         editor.innerHTML = bodyContent;
     }
+    const changed = editor.innerHTML !== previous;
     lastHtml = editor.innerHTML;
     isSettingContent = false;
 
-    savedScrollTop = 0;
-    wrapper.scrollTop = 0;
+    // Going to the top belongs to arriving at a different scene. The host also
+    // pushes the same scene back for reasons that have nothing to do with the
+    // writer - a settings change, a save round-trip, a re-render - and every
+    // one of those threw somebody reading chapter nine back to its first line.
+    if (changed) {
+        savedScrollTop = 0;
+        wrapper.scrollTop = 0;
+    } else {
+        wrapper.scrollTop = savedScrollTop;
+    }
 
     // A stored path is not a URL this document can load; resolve before paint.
     toDisplayImages(editor);
@@ -3179,8 +3268,34 @@ function setContextMenuLabels(labelsJson) {
     } catch (_) {}
 }
 
+/**
+ * One group of the context menu, drawn as a flyout.
+ *
+ * Rows that need a selection are disabled rather than hidden, so the menu keeps
+ * the same shape whether or not anything is selected - a menu that reshuffles
+ * itself is a menu nobody learns.
+ */
+function submenu(title, rows, hasSelection) {
+    if (!rows || rows.length === 0) return '';
+    let inner = '';
+    for (const row of rows) {
+        const off = row.needsSelection && !hasSelection ? ' disabled' : '';
+        const attr = row.inlineAction
+            ? ' data-inline-action="' + escapeAttr(row.inlineAction) + '"'
+            : ' data-action="' + escapeAttr(row.action) + '"';
+        inner += '<div class="cm-item' + off + '"' + attr + '><span>'
+            + escapeHtml(row.label) + '</span></div>';
+    }
+    return '<div class="cm-parent"><div class="cm-item"><span>'
+        + escapeHtml(title) + '</span></div>'
+        + '<div class="cm-submenu">' + inner + '</div></div>';
+}
+
 document.addEventListener('contextmenu', (e) => {
-    e.preventDefault();
+    // Deliberately NOT preventDefault: Electron shows no menu of its own, and
+    // preventing the default stops the context-menu event ever reaching the
+    // main process - which is the only place Chromium's spelling suggestions
+    // exist. Suppressing it is what made a red underline unanswerable.
     e.stopPropagation();
     hideGrammarPopup();
 
@@ -3231,17 +3346,21 @@ document.addEventListener('contextmenu', (e) => {
     html += '<div class="cm-item' + disabledAttr + '" data-action="addComment"><span>' + escapeHtml(contextMenuLabels.addComment || 'Add comment') + '</span><span class="cm-shortcut">Ctrl+Shift+M</span></div>';
     html += '<div class="cm-item" data-action="addFootnote"><span>' + escapeHtml(contextMenuLabels.addFootnote || 'Add footnote') + '</span><span class="cm-shortcut">Ctrl+Shift+F</span></div>';
 
-    // Capture: turn the selected prose into Codex data without leaving the page.
+    // Everything below is grouped. Comment and footnote stay at the top level
+    // because they are the two a writer reaches for while reading; the rest
+    // belong to families and go behind their names.
     html += '<div class="cm-separator"></div>';
-    // Splitting acts on the caret, so it is offered whether or not anything is
-    // selected - unlike everything above it in this block.
-    html += '<div class="cm-item" data-action="splitAtCaret"><span>' + escapeHtml(contextMenuLabels.splitScene || 'Split scene here') + '</span></div>';
-    html += '<div class="cm-item" data-action="insertImage"><span>' + escapeHtml(contextMenuLabels.insertImage || 'Insert image') + '</span></div>';
-    // Cutting prose used to mean it was recoverable only by reading a whole
-    // snapshot for the paragraph that used to be there.
-    html += '<div class="cm-item' + disabledAttr + '" data-action="cutToDarlings"><span>' + escapeHtml(contextMenuLabels.cutToDarlings || 'Cut and keep') + '</span></div>';
-    html += '<div class="cm-item' + disabledAttr + '" data-action="createEntityFromSelection"><span>' + escapeHtml(contextMenuLabels.createEntity || 'Create entity from selection') + '</span></div>';
-    html += '<div class="cm-item' + disabledAttr + '" data-action="appendToEntitySection"><span>' + escapeHtml(contextMenuLabels.appendToEntity || 'Add selection to entity') + '</span></div>';
+    html += submenu(contextMenuLabels.groupScene || 'Scene', [
+        { action: 'splitAtCaret', label: contextMenuLabels.splitScene || 'Split scene here' },
+        { action: 'insertImage', label: contextMenuLabels.insertImage || 'Insert image' },
+        // Cutting prose used to mean it was recoverable only by reading a whole
+        // snapshot for the paragraph that used to be there.
+        { action: 'cutToDarlings', label: contextMenuLabels.cutToDarlings || 'Cut and keep', needsSelection: true }
+    ], hasSelection);
+    html += submenu(contextMenuLabels.groupCodex || 'Codex', [
+        { action: 'createEntityFromSelection', label: contextMenuLabels.createEntity || 'Create entity from selection', needsSelection: true },
+        { action: 'appendToEntitySection', label: contextMenuLabels.appendToEntity || 'Add selection to entity', needsSelection: true }
+    ], hasSelection);
 
     console.log('[InlineActions] context menu open. hasSelection=', hasSelection, 'inlineActions.length=', (inlineActions || []).length);
     // Inline actions (extension-contributed). Shown only when selection non-empty.
@@ -3254,14 +3373,22 @@ document.addEventListener('contextmenu', (e) => {
             const g = a.group || '';
             (grouped[g] = grouped[g] || []).push(a);
         }
+        html += '<div class="cm-separator"></div>';
         for (const groupName of Object.keys(grouped)) {
-            html += '<div class="cm-separator"></div>';
+            const rows = grouped[groupName].map(function (a) {
+                return {
+                    inlineAction: a.id,
+                    label: (a.icon ? a.icon + ' ' : '') + a.label
+                };
+            });
+            // A named group becomes a submenu; the unnamed ones stay inline,
+            // because a flyout called nothing is a flyout nobody opens.
             if (groupName) {
-                html += '<div class="cm-grammar-msg">' + escapeHtml(groupName) + '</div>';
-            }
-            for (const a of grouped[groupName]) {
-                const icon = a.icon ? (escapeHtml(a.icon) + ' ') : '';
-                html += '<div class="cm-item" data-inline-action="' + escapeHtml(a.id) + '"><span>' + icon + escapeHtml(a.label) + '</span></div>';
+                html += submenu(groupName, rows, hasSelection);
+            } else {
+                for (const row of rows) {
+                    html += '<div class="cm-item" data-inline-action="' + escapeAttr(row.inlineAction) + '"><span>' + escapeHtml(row.label) + '</span></div>';
+                }
             }
         }
     }
@@ -3285,10 +3412,25 @@ document.addEventListener('contextmenu', (e) => {
     if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
     contextMenu.style.left = x + 'px';
     contextMenu.style.top = y + 'px';
+
+    // A flyout opens rightwards unless there is no room, which there never is
+    // when the menu was raised near the right edge - and a submenu the writer
+    // cannot see is a group they cannot reach.
+    const room = window.innerWidth - (x + rect.width);
+    for (const parent of contextMenu.querySelectorAll('.cm-parent')) {
+        parent.classList.toggle('flip', room < 210);
+    }
 });
 
 contextMenu.addEventListener('click', (e) => {
     const suggestion = e.target.closest('.cm-suggestion');
+    if (suggestion && suggestion.hasAttribute('data-spelling')) {
+        // Chromium owns the misspelled range; replacing the text here would
+        // lose whatever markup the word sits inside.
+        sendMessage({ type: 'replaceMisspelling', replacement: suggestion.getAttribute('data-spelling') });
+        hideContextMenu();
+        return;
+    }
     if (suggestion) {
         const index = parseInt(suggestion.getAttribute('data-issue-index'), 10);
         const replacement = suggestion.getAttribute('data-replacement');
@@ -4116,6 +4258,39 @@ window.setFootnotesData = function (data) {
             if (t) s.setAttribute('title', t); else s.removeAttribute('title');
         });
     } catch (_) { /* ignore */ }
+};
+
+/**
+ * Chromium's spelling suggestions for the word the menu was opened on.
+ *
+ * They arrive just after the menu is drawn, because they come from the main
+ * process with the context-menu event. Folded into the top of the menu that is
+ * already on screen rather than opening a second one beside it.
+ */
+window.setSpellingSuggestions = function (word, suggestions) {
+    if (!contextMenu || !contextMenu.classList.contains('visible')) return;
+    if (!word) return;
+
+    const list = Array.isArray(suggestions) ? suggestions : [];
+    const rows = [];
+    rows.push('<div class="cm-grammar-msg">' + escapeHtml(word) + '</div>');
+    if (list.length === 0) {
+        rows.push('<div class="cm-item" disabled><span>'
+            + escapeHtml(contextMenuLabels.noSuggestions || 'No suggestions')
+            + '</span></div>');
+    } else {
+        for (const s of list) {
+            rows.push('<div class="cm-suggestion" data-spelling="'
+                + escapeAttr(s) + '">' + escapeHtml(s) + '</div>');
+        }
+    }
+    rows.push('<div class="cm-item" data-action="addToDictionary" data-word="'
+        + escapeAttr(word) + '"><span>'
+        + escapeHtml(contextMenuLabels.addToDictionary || 'Add to Dictionary')
+        + '</span></div>');
+    rows.push('<div class="cm-separator"></div>');
+
+    contextMenu.insertAdjacentHTML('afterbegin', rows.join(''));
 };
 
 window.scrollToFootnoteById = function (footnoteId) {

@@ -51,6 +51,10 @@ interface Window {
     spellCheckLanguages(): Promise<string[]>
     setSpellCheckMenuLabels(labels: { addToDictionary: string; noSuggestions: string }): void
     onSpellCheckWordAdded(handler: (word: string) => void): void
+    /** The misspelling under the pointer, as the context menu opens. */
+    onSpellingContext(handler: (word: string, suggestions: string[]) => void): void
+    /** Applies a correction through Chromium, which owns the misspelled range. */
+    replaceMisspelling(replacement: string): void
     pickFile(title: string, mode?: 'images' | 'all'): Promise<string | null>
     /** Absolute path of a dropped File (Electron removed File.path). */
     filePath(file: File): string

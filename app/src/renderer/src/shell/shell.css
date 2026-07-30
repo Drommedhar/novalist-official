@@ -656,6 +656,19 @@
 
 /* Now a button: the number is where the note sits in the prose, so it is also
    the way to get there. Styled as the text it was, not as a control. */
+/* An 8px square is a hard thing to aim at, and the strip is nothing but
+   squares. The box stays 8px; the target around it does not. */
+.ctx-cell {
+  cursor: help;
+  position: relative;
+}
+
+.ctx-cell::after {
+  content: '';
+  inset: -3px;
+  position: absolute;
+}
+
 .annotation-num {
   background: none;
   border: 0;

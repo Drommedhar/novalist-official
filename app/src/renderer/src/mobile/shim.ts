@@ -115,6 +115,10 @@ const novalist: Window['novalist'] = {
   spellCheckLanguages: () => Promise.resolve([]),
   setSpellCheckMenuLabels: () => {},
   onSpellCheckWordAdded: () => {},
+  // The platform keyboard owns spelling on mobile: there is no context menu
+  // of ours to fold suggestions into, and no misspelled range to replace.
+  onSpellingContext: () => {},
+  replaceMisspelling: () => {},
   // Mobile has no desktop-style file drag-and-drop, so dropped-file paths never
   // arise; the picker is the only way in.
   filePath: () => '',
