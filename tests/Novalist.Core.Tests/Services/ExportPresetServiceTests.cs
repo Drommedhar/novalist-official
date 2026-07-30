@@ -342,4 +342,22 @@ public class ExportPresetServiceTests : IDisposable
         Assert.Equal("###", options.ResolvePreset().SceneSeparator);
         await Task.CompletedTask;
     }
+
+    [Fact]
+    public void ALargePrintLayoutShipsWithTheApp()
+    {
+        var preset = ExportPresets.GetById(ExportPresets.LargePrintId);
+
+        // A large-print edition is not a PDF somebody zoomed: it is set larger,
+        // led more generously, and given narrower outside margins so the longer
+        // lines still fit the page.
+        Assert.Equal("Large Print", preset.DisplayName);
+        Assert.True(preset.BodyFontSizePt >= 16);
+        Assert.True(preset.LineSpacingMultiplier > 1.5);
+        Assert.True(preset.MarginInches < 1.0);
+        // Paragraphs are marked by space rather than indentation, which is
+        // easier to follow at that size.
+        Assert.Equal(0, preset.FirstLineIndentInches);
+        Assert.False(preset.IsCustom);
+    }
 }

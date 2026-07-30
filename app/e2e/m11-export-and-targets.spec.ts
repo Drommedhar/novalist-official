@@ -57,7 +57,7 @@ test('export separates what from how, and targets are reachable from Settings', 
   // ── One list of layouts, which the layout panel edits ──
   await expect(page.locator('#export-preset option').first()).toBeAttached({ timeout: 20_000 })
   const presets = await page.locator('#export-preset option').allTextContents()
-  expect(presets.length).toBe(4)
+  expect(presets.length).toBeGreaterThanOrEqual(4)
   expect(presets[0]).toContain('Default')
 
   const layoutPanel = page.locator('.export-matter', { hasText: 'Export layouts' })
@@ -72,7 +72,9 @@ test('export separates what from how, and targets are reachable from Settings', 
 
   // Duplicating switches the export to the copy, which is the one being edited.
   await layoutPanel.getByRole('button', { name: 'Duplicate' }).click()
-  await expect(page.locator('#export-preset option')).toHaveCount(5, { timeout: 10_000 })
+  await expect(page.locator('#export-preset option')).toHaveCount(presets.length + 1, {
+    timeout: 10_000
+  })
   expect(await page.locator('#export-preset').inputValue()).toContain('custom-')
 
   // ── Word targets, from Settings rather than only the binder's context menu ──

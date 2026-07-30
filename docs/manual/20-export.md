@@ -16,6 +16,7 @@ In the activity bar, click **Export** in the **Publish** group.
   - **Default** — Georgia 12pt, 1.5 line spacing; a readable PDF/EPUB.
   - **Shunn Manuscript Format** — the industry-standard submission format: Courier 12pt, double-spaced, with the Shunn header.
   - **Ebook Flow** — tighter spacing for digital reading: Georgia 11pt, 1.4 line spacing, narrower margins.
+  - **Large Print** — Verdana 16pt with 1.6 line spacing, narrow margins and no first-line indent, for a large-print edition.
   - **Normseiten** — German standard pages: Courier New 12pt, 60 characters per line, 30 lines per page. **DOCX only** — the other formats ignore it.
 
   A short description of the selected layout is shown beneath the drop-down when it has one. Extensions can contribute additional layouts.
@@ -196,11 +197,24 @@ Use cases for partial exports:
 
 For chapter-based formats the list shows all chapters regardless of status — you pick what you want via the checkboxes, or use **Select All** / **Select None**. The Codex formats swap this list for the codex entry picker, and extension formats export the whole project and hide the list entirely.
 
+Also see [Choosing what leaves a Codex entry](#choosing-what-leaves-a-codex-entry) for holding parts of an entry back.
+
 ## Tips
 
 - **Export EPUB and DOCX before sharing.** EPUB for reading, DOCX for tracked-changes editing.
 - **Embed a cover image.** EPUB readers display the cover prominently; a missing cover signals "amateur".
 - **Re-export every release.** Re-run the export for any new beta reader instead of sending an old file — it's the only way to be sure they see the latest revisions.
+
+### A large-print edition
+
+**Large Print** is a real layout rather than a PDF somebody zoomed: 16pt Verdana, 1.6 line spacing, 0.6-inch margins, and no first-line indent. Each of those is deliberate —
+
+- **16pt** is the size large-print editions are set at.
+- **1.6 line spacing** because larger type needs proportionally more leading to stay readable, not less.
+- **Narrow outside margins**, because at 16pt a one-inch margin either side leaves too little measure and the text breaks badly.
+- **No first-line indent** — a large-print edition marks paragraphs with space rather than indentation, which is easier to follow.
+
+It is a starting point, not a rule: duplicate it and change any of those if your reader needs something else.
 
 ## Export layouts
 

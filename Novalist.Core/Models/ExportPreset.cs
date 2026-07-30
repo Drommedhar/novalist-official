@@ -195,6 +195,7 @@ public static class ExportPresets
     public const string ShunnId = "shunn-manuscript";
     public const string EbookFlowId = "ebook-flow";
     public const string NormseitenId = "normseiten";
+    public const string LargePrintId = "large-print";
 
     public static IReadOnlyList<ExportPreset> All { get; } =
     [
@@ -237,6 +238,28 @@ public static class ExportPresets
             MarginInches = 0.6,
             FirstLineIndentInches = 0.25,
             ChapterTopMarginInches = 1.4,
+            SceneSeparator = "* * *"
+        },
+        new ExportPreset
+        {
+            // A large-print edition is not a PDF somebody zoomed. It is set at
+            // 16pt with generous leading and narrower outside margins so the
+            // longer lines still fit the page, and it is the one format a
+            // partially sighted reader can actually read - which no amount of
+            // "you can change the font size in the reader" replaces for print.
+            Id = LargePrintId,
+            DisplayName = "Large Print",
+            Description = "16pt with generous leading and narrow margins, for a large-print edition.",
+            BodyFontFamily = "Verdana",
+            BodyFontSizePt = 16,
+            LineSpacingMultiplier = 1.6,
+            // Narrower than the default: at 16pt a one-inch margin either side
+            // leaves too little measure and the text breaks badly.
+            MarginInches = 0.6,
+            // No first-line indent. A large-print edition marks paragraphs with
+            // space rather than indentation, which is easier to follow.
+            FirstLineIndentInches = 0,
+            ChapterTopMarginInches = 1.5,
             SceneSeparator = "* * *"
         },
         new ExportPreset
