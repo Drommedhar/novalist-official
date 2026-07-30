@@ -39,6 +39,24 @@ Each row shows a thumbnail (or the entity's initial), its name, and a short deta
 
 All types share images, aliases, sections, custom properties, and templates.
 
+## Editing everything at once
+
+The Codex edits one entry at a time, which is right for writing a character and wrong for filing forty of them: comparing two entries means remembering the first, and putting a house on each of forty means forty trips through the detail pane.
+
+**Table** in the type bar swaps the list-and-detail layout for a grid of every entry of the current type. Each cell is editable in place:
+
+| Type | Columns |
+|---|---|
+| Characters | Name, Role, Group |
+| Locations | Name, What it is, Inside, Group |
+| Items, lore, your own types | Name, What it is, Group |
+
+- Type in a cell and click away, or press **Enter**, to save it. **Escape** puts the cell back as it was.
+- A rename here cascades exactly as a rename in the detail pane does — the references that name the entry follow it.
+- The table is a way of looking at the type, not a setting: it lasts for the session and the Codex opens in its usual layout next time.
+
+Press **Table** again to go back.
+
 ## Creating an entry
 
 Click **New entry** at the bottom of the list. The dialog asks for:
