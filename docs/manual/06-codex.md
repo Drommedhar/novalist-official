@@ -60,6 +60,7 @@ The right pane holds the editors for the selected entity, from top to bottom:
 - **Actions** — **Run character interview...** (characters only) and **Delete** (asks to confirm).
 - **Fields** — the type's own fields, laid out as a typed, grouped form with the right control for each field. Changes save when you leave a field.
   - **Characters** get two groups: **Basic Info** (name, surname, gender, age, role, group) and **Physical Attributes** (eye color, hair color, hair length, height, build, skin tone, and a multi-line distinguishing features box).
+  - **Group** is on every type, not just characters, and offers the group names this project already uses so a faction is spelled the same way twice. A faction is exactly the thing that spans types — the captain, the ship, the port and the ledger they are all written in belong to the same one, which a character-only field could never say.
   - **Locations** have name, type, a **parent location** field with autocomplete over the project's other locations (this drives the hierarchy tree in the navigation column), and a description.
   - **Items** have name, type, origin, and description.
   - **Lore** has name, a **category** dropdown (Organization, Culture, History, Other), and description.
@@ -70,7 +71,9 @@ The right pane holds the editors for the selected entity, from top to bottom:
 - **Aliases** — alternative names, entered as chips. Aliases count as mentions of the entity in the editor's hover cards and analysis.
 - **Relationships** — rows of **Role** (e.g. "Father"), a **target** name, and an **inverse role**. Available on **all four built-in types**, so an item can record "Wielded by: Aldric", a location "Ruled by: House Vane", and a lore entry "Sworn at: Deepforge". Targets resolve and link in the [Wiki](30-wiki.md), and show up on the target's own article under **Referenced by**.
 
-  For **characters**, role and target autocomplete against the existing cast and the roles already in use. When you set a role, Novalist suggests its inverse and, on save, writes the reciprocal relationship back onto the target character automatically — and learns the role/inverse pair so it can suggest it next time. This powers the [Relationships graph](14-relationships.md), which clusters families from parent/child/partner/sibling roles. The other three types have no inverse concept, so their rows are stored exactly as written.
+  Role and target autocomplete against the existing cast and the roles already in use. When you set a role, Novalist suggests its inverse and, on save, writes the reciprocal relationship back onto the target — and learns the role/inverse pair so it can suggest it next time. This powers the [Relationships graph](14-relationships.md), which clusters families from parent/child/partner/sibling roles.
+
+  The reciprocal is written **whatever the two ends are**. A sword owned by a character now appears as "owns" on the character, and a character born in a place appears as "birthplace of" on the place. Until now only characters wrote the other half, so an item's owner link existed from one side and not the other — and nothing that reads relationships could see it.
 - **Sections** — free-form titled text blocks ("Background", "Motivation", "Voice", ...). Add, retitle, edit, and remove; this is where long-form prose about an entity lives.
 
 ### Formatting

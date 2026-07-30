@@ -55,7 +55,8 @@ public sealed class EntitiesRpc
                 Type = Enum.Parse<CustomPropertyType>(f.Type, ignoreCase: true),
                 DefaultValue = f.DefaultValue ?? string.Empty,
                 EnumOptions = f.EnumOptions is { Length: > 0 } ? [.. f.EnumOptions] : null,
-                Required = f.Required
+                Required = f.Required,
+                Prompt = (f.Prompt ?? string.Empty).Trim()
             }).ToList(),
             Features = new CustomEntityFeatures
             {
@@ -697,14 +698,25 @@ public sealed class EntitiesRpc
         }
     }
 
+    /// <summary>
+    /// Writes an entry's relationships and, for each row naming an entry that
+    /// exists and carrying an inverse role, authors the reciprocal on that entry
+    /// and learns the role pair.
+    ///
+    /// <paramref name="type"/> defaults to "character" so a caller written when
+    /// this was character-only keeps working. It is not character-only any more:
+    /// an item's owner link used to be stored verbatim and never authored on the
+    /// owner's record, so the relationship existed from one side and not the
+    /// other, and the graph could not see it.
+    /// </summary>
     [JsonRpcMethod("entities/setRelationships")]
-    public async Task<JsonElement> SetRelationshipsAsync(string id, RelationshipEditRowDto[] rows)
+    public async Task<JsonElement> SetRelationshipsAsync(
+        string id, RelationshipEditRowDto[] rows, string type = "character")
     {
-        var characters = await _entities.LoadCharactersAsync();
-        var character = characters.FirstOrDefault(c => c.Id == id) ?? throw Unknown(id);
-        var selfName = Compose(character.Name, character.Surname);
+        var subject = await FindEntityAsync(type, id) ?? throw Unknown(id);
+        var selfName = subject.DisplayName;
 
-        character.Relationships = rows
+        subject.Relationships = rows
             .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
             .Select(r => new EntityRelationship
             {
@@ -713,7 +725,12 @@ public sealed class EntitiesRpc
                 Category = (r.Category ?? string.Empty).Trim()
             })
             .ToList();
-        await _entities.SaveCharacterAsync(character);
+        await SaveEntityAsync(subject);
+
+        // Every entry in the project, whatever its type: a relationship row
+        // names a thing, not a character, and the target is as likely to be a
+        // ship or a house as a person.
+        var everything = await AllEntitiesAsync();
 
         var settingsChanged = false;
         foreach (var row in rows)
@@ -721,9 +738,12 @@ public sealed class EntitiesRpc
             if (string.IsNullOrWhiteSpace(row.Role) || string.IsNullOrWhiteSpace(row.Target)
                 || string.IsNullOrWhiteSpace(row.InverseRole))
                 continue;
-            var target = characters.FirstOrDefault(c =>
-                string.Equals(Compose(c.Name, c.Surname), row.Target.Trim(), StringComparison.OrdinalIgnoreCase));
-            if (target == null || target.Id == character.Id) continue;
+
+            var target = everything.FirstOrDefault(e =>
+                string.Equals(e.DisplayName, row.Target.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (target == null
+                || string.Equals(target.Id, subject.Id, StringComparison.Ordinal))
+                continue;
 
             var already = target.Relationships.Any(r =>
                 string.Equals(r.Role, row.InverseRole.Trim(), StringComparison.OrdinalIgnoreCase)
@@ -735,13 +755,51 @@ public sealed class EntitiesRpc
                     Role = row.InverseRole.Trim(),
                     Target = selfName
                 });
-                await _entities.SaveCharacterAsync(target);
+                await SaveEntityAsync(target);
             }
             settingsChanged |= _workspace.Settings.Settings.LearnRelationshipPair(row.Role.Trim(), row.InverseRole.Trim());
         }
         if (settingsChanged) await _workspace.Settings.SaveAsync();
 
-        return WithResolvedImages(character);
+        return WithResolvedImages(subject);
+    }
+
+    /// <summary>Every Codex entry of every type, custom types included.</summary>
+    private async Task<List<Core.Models.IEntityData>> AllEntitiesAsync()
+    {
+        var all = new List<Core.Models.IEntityData>();
+        all.AddRange(await _entities.LoadCharactersAsync());
+        all.AddRange(await _entities.LoadLocationsAsync());
+        all.AddRange(await _entities.LoadItemsAsync());
+        all.AddRange(await _entities.LoadLoreAsync());
+        foreach (var typeDef in _entities.GetCustomEntityTypes())
+            all.AddRange(await _entities.LoadCustomEntitiesAsync(typeDef.TypeKey));
+        return all;
+    }
+
+    /// <summary>
+    /// Every group name any entry uses, so the picker offers what this project
+    /// actually has rather than asking for it to be spelled the same way twice.
+    /// </summary>
+    [JsonRpcMethod("entities/groups")]
+    public async Task<string[]> GroupsAsync()
+        => [.. (await AllEntitiesAsync())
+            .Select(e => e.Group)
+            .Where(g => !string.IsNullOrWhiteSpace(g))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(g => g, StringComparer.OrdinalIgnoreCase)];
+
+    /// <summary>
+    /// Puts an entry in a group, or takes it out with an empty name. Any type:
+    /// a faction spans them, which is the whole reason a group is worth having.
+    /// </summary>
+    [JsonRpcMethod("entities/setGroup")]
+    public async Task<string[]> SetGroupAsync(string type, string id, string? group)
+    {
+        var entity = await FindEntityAsync(type, id) ?? throw Unknown(id);
+        entity.Group = (group ?? string.Empty).Trim();
+        await SaveEntityAsync(entity);
+        return await GroupsAsync();
     }
 
     [JsonRpcMethod("entities/setOverride")]
@@ -1873,7 +1931,10 @@ public sealed record CustomFieldSpecDto(
     string Type,
     string? DefaultValue,
     string[]? EnumOptions,
-    bool Required);
+    bool Required,
+    /// <summary>A question saying what belongs in this field, shown under it on
+    /// the entry. Optional so a caller written before it existed still works.</summary>
+    string? Prompt = null);
 
 public sealed record CustomPropDto(string Key, string Value, string PropType, IReadOnlyList<string> EnumOptions);
 

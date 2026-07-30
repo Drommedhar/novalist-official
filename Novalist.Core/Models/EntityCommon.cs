@@ -117,6 +117,29 @@ public interface IEntityData
 
     /// <summary>Project-wide tags on this entry. Never null.</summary>
     List<string> Tags { get; set; }
+
+    /// <summary>
+    /// Rows saying what this entry is to something else. Never null.
+    ///
+    /// On the interface because the reciprocal write-back used to be
+    /// character-only: an item's owner link was stored verbatim and never
+    /// authored on the owner's record, so the relationship existed from one
+    /// side and not the other.
+    /// </summary>
+    List<EntityRelationship> Relationships { get; set; }
+
+    /// <summary>
+    /// The group this entry belongs to, or empty for none.
+    ///
+    /// Groups used to be a plain string on characters alone, which cannot say
+    /// that a house, a ship and a family crest all belong to the same faction -
+    /// and a faction is exactly the thing that spans types.
+    /// </summary>
+    string Group { get; set; }
+
+    /// <summary>What this entry is called. Read-only: each type composes it
+    /// from its own fields, which for a character means name and surname.</summary>
+    string DisplayName { get; }
 }
 
 /// <summary>

@@ -1953,7 +1953,8 @@
     "features": "功能",
     "includeImages": "包含图像",
     "includeRelationships": "包含关系",
-    "includeSections": "包含内容版块"
+    "includeSections": "包含内容版块",
+    "fieldPrompt": "引导问题（可选）"
   },
   "update": {
     "available": "有可用更新",

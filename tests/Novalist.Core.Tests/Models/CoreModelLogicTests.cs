@@ -573,4 +573,33 @@ public class StoryStructureTemplateTests
         Assert.False(goals.IsWritingDay(monday.AddDays(1)));
         Assert.True(goals.IsWritingDay(monday.AddDays(4)));
     }
+
+    [Fact]
+    public void EveryEntityTypeCanSayWhatItIsCalledAndWhichGroupItIsIn()
+    {
+        // Both used to be character-only. A relationship row names a thing, not
+        // a person, and a faction spans types - the captain, the ship and the
+        // port all belong to it.
+        var entities = new IEntityData[]
+        {
+            new LocationData { Name = "Ashport" },
+            new ItemData { Name = "Ashport" },
+            new LoreData { Name = "Ashport" },
+            new CustomEntityData { Name = "Ashport" }
+        };
+
+        foreach (var entity in entities)
+        {
+            Assert.Equal("Ashport", entity.DisplayName);
+            Assert.Equal(string.Empty, entity.Group);
+            entity.Group = "Salt House";
+            Assert.Equal("Salt House", entity.Group);
+            Assert.Empty(entity.Relationships);
+        }
+
+        // A character composes its name from two fields, which is why the
+        // interface exposes the composed one rather than the raw field.
+        Assert.Equal("Mira Vance", new CharacterData { Name = "Mira", Surname = "Vance" }.DisplayName);
+    }
+
 }

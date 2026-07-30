@@ -1543,7 +1543,8 @@
     "features": "Funktionen",
     "includeImages": "Bilder einschließen",
     "includeRelationships": "Beziehungen einschließen",
-    "includeSections": "Abschnitte einschließen"
+    "includeSections": "Abschnitte einschließen",
+    "fieldPrompt": "Leitfrage (optional)"
   },
   "update": {
     "available": "Update verfügbar",

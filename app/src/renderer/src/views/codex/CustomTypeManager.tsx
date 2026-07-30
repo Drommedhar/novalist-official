@@ -16,6 +16,8 @@ export interface CustomTypeDefinition {
     defaultValue: string
     enumOptions: string[] | null
     required: boolean
+    /** A question saying what belongs in the field, shown under it on the entry. */
+    prompt?: string
   }[]
   features: { includeImages: boolean; includeRelationships: boolean; includeSections: boolean }
 }
@@ -29,6 +31,14 @@ interface FieldRow {
   defaultValue: string
   enumOptionsText: string
   required: boolean
+  /**
+   * The question that says what belongs in this field.
+   *
+   * The guided wizards carry help text on every step and it disappears the
+   * moment creation finishes - which is exactly when somebody comes back to
+   * fill the field in and no longer remembers what it was for.
+   */
+  prompt: string
 }
 
 interface FormState {
@@ -92,7 +102,8 @@ export function CustomTypeManager({
                 : f.type === 'EntityRef' && f.enumOptionsText.trim()
                   ? [f.enumOptionsText.trim()]
                   : null,
-            required: f.required
+            required: f.required,
+            prompt: f.prompt.trim()
           })),
         includeImages: form.includeImages,
         includeRelationships: form.includeRelationships,
@@ -151,7 +162,8 @@ export function CustomTypeManager({
                               type: f.type,
                               defaultValue: f.defaultValue,
                               enumOptionsText: (f.enumOptions ?? []).join(', '),
-                              required: f.required
+                              required: f.required,
+                              prompt: f.prompt ?? ''
                             })),
                             includeImages: def.features.includeImages,
                             includeRelationships: def.features.includeRelationships,
@@ -254,6 +266,14 @@ export function CustomTypeManager({
                       ))}
                     </select>
                   )}
+                  {/* Kept with the field rather than in a wizard, so it is
+                      there when somebody is actually filling the field in. */}
+                  <input
+                    className="dialog-input type-manager-prompt"
+                    placeholder={t('entityTypeManager.fieldPrompt')}
+                    value={field.prompt}
+                    onChange={(e) => patchField(index, { prompt: e.target.value })}
+                  />
                   <label className="type-manager-check">
                     <input
                       type="checkbox"
@@ -286,7 +306,8 @@ export function CustomTypeManager({
                         type: 'String',
                         defaultValue: '',
                         enumOptionsText: '',
-                        required: false
+                        required: false,
+                        prompt: ''
                       }
                     ]
                   })

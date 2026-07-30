@@ -54,6 +54,12 @@ Typed properties every new entity should carry. Each row has:
 - For **Enum** — a comma-separated option list (e.g. `Red, Green, Blue`); the options become the dropdown in the entity's property editor.
 - For **Timespan** — an **Interval Unit** (Years, Months, Days).
 
+### Guiding questions
+
+Each custom field can carry a **guiding question** — one line saying what belongs in it, shown under the field on every entry of that type.
+
+The guided wizards already carry help text on each step, but it disappears the moment creation finishes, which is exactly when somebody comes back to fill the field in and no longer remembers what it was for. A question that stays put is the difference between a field everyone fills in and a field everyone leaves blank.
+
 ### Sections
 
 Sections that should exist on every new entity, each with a title and optional default content.

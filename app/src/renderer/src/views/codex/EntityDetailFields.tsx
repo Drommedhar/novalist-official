@@ -7,7 +7,7 @@ import { MarkdownEditor } from '../../shell/MarkdownEditor'
 const LORE_CATEGORIES = ['Organization', 'Culture', 'History', 'Other']
 const REF_TYPES = ['character', 'location', 'item', 'lore']
 
-type Control = 'text' | 'textarea' | 'category' | 'parent' | 'date' | 'ref'
+type Control = 'text' | 'textarea' | 'category' | 'parent' | 'date' | 'ref' | 'group'
 
 interface FieldSpec {
   key: string
@@ -50,7 +50,7 @@ const BUILT_IN: Record<string, Section[]> = {
         { key: 'gender', labelKey: 'entityEditor.gender', control: 'text' },
         { key: 'age', labelKey: 'entityEditor.age', control: 'text' },
         { key: 'role', labelKey: 'entityEditor.rolePlaceholder', control: 'text' },
-        { key: 'group', labelKey: 'entityEditor.groupPlaceholder', control: 'text' }
+        { key: 'group', labelKey: 'entityEditor.groupPlaceholder', control: 'group' }
       ]
     },
     {
@@ -76,7 +76,8 @@ const BUILT_IN: Record<string, Section[]> = {
         { key: 'name', labelKey: 'entityEditor.name', control: 'text' },
         { key: 'type', labelKey: 'entityEditor.locationTypePlain', control: 'text' },
         { key: 'parent', labelKey: 'entityEditor.parentLocation', control: 'parent' },
-        { key: 'description', labelKey: 'entityEditor.description', control: 'textarea' }
+        { key: 'description', labelKey: 'entityEditor.description', control: 'textarea' },
+        { key: 'group', labelKey: 'entityEditor.groupPlaceholder', control: 'group' }
       ]
     }
   ],
@@ -86,7 +87,8 @@ const BUILT_IN: Record<string, Section[]> = {
         { key: 'name', labelKey: 'entityEditor.name', control: 'text' },
         { key: 'type', labelKey: 'entityEditor.itemType', control: 'text' },
         { key: 'origin', labelKey: 'entityEditor.origin', control: 'text' },
-        { key: 'description', labelKey: 'entityEditor.description', control: 'textarea' }
+        { key: 'description', labelKey: 'entityEditor.description', control: 'textarea' },
+        { key: 'group', labelKey: 'entityEditor.groupPlaceholder', control: 'group' }
       ]
     }
   ],
@@ -95,7 +97,8 @@ const BUILT_IN: Record<string, Section[]> = {
       fields: [
         { key: 'name', labelKey: 'entityEditor.name', control: 'text' },
         { key: 'category', labelKey: 'entityEditor.category', control: 'category' },
-        { key: 'description', labelKey: 'entityEditor.description', control: 'textarea' }
+        { key: 'description', labelKey: 'entityEditor.description', control: 'textarea' },
+        { key: 'group', labelKey: 'entityEditor.groupPlaceholder', control: 'group' }
       ]
     }
   ]
@@ -115,6 +118,16 @@ export function EntityDetailFields({
   const { t } = useTranslation()
   const [locationNames, setLocationNames] = useState<string[]>([])
   const [refNames, setRefNames] = useState<string[]>([])
+  // Every group name any entry in the project uses, whatever its type - a
+  // faction spans them, which is the whole reason a group is worth having.
+  const [groupNames, setGroupNames] = useState<string[]>([])
+
+  useEffect(() => {
+    void rpc
+      .request<string[]>('entities/groups')
+      .then(setGroupNames)
+      .catch(() => setGroupNames([]))
+  }, [entityType, record])
 
   const [sheet, setSheet] = useState<{ hidden: string[]; order: string[] }>({
     hidden: [],
@@ -193,7 +206,13 @@ export function EntityDetailFields({
     }
     const inputType = control === 'date' ? 'date' : 'text'
     const listId =
-      control === 'parent' ? 'codex-location-names' : control === 'ref' ? 'codex-ref-names' : undefined
+      control === 'parent'
+        ? 'codex-location-names'
+        : control === 'ref'
+          ? 'codex-ref-names'
+          : control === 'group'
+            ? 'codex-group-names'
+            : undefined
     return (
       <>
         <input
@@ -214,6 +233,15 @@ export function EntityDetailFields({
         {control === 'ref' && (
           <datalist id="codex-ref-names">
             {refNames.map((n) => (
+              <option key={n} value={n} />
+            ))}
+          </datalist>
+        )}
+        {/* Offered rather than typed, so a faction is spelled the same way the
+            second time and the group actually groups. */}
+        {control === 'group' && (
+          <datalist id="codex-group-names">
+            {groupNames.map((n) => (
               <option key={n} value={n} />
             ))}
           </datalist>
@@ -291,7 +319,13 @@ export function EntityDetailFields({
             return (
               <div key={field.key} className="codex-field">
                 <dt>{label}</dt>
-                <dd>{renderControl(field.key, field.control, custom, options, label)}</dd>
+                <dd>
+                  {renderControl(field.key, field.control, custom, options, label)}
+                  {/* The question that made the field worth having, kept where
+                      the field is. The wizards carry it during creation and
+                      then it disappears, which is the moment it stops helping. */}
+                  {def?.prompt && <div className="codex-field-prompt">{def.prompt}</div>}
+                </dd>
               </div>
             )
           })}

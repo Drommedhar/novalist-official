@@ -1454,4 +1454,89 @@ public sealed class EntitiesRpcTests : IDisposable
         Assert.Equal("family", mira.Relationships[0].Category);
         Assert.Equal(string.Empty, mira.Relationships[1].Category);
     }
+
+    // ── Relationships and groups across every type ──
+
+    [Fact]
+    public async Task Reciprocal_IsAuthoredOnANonCharacterTarget()
+    {
+        // An item's owner used to be stored verbatim on the item and never
+        // written on the owner's record, so the relationship existed from one
+        // side and not the other - and the graph could not see it.
+        var aliceId = (await _rpc.CreateAsync("character", "Alice")).GetProperty("id").GetString()!;
+        var swordId = (await _rpc.CreateAsync("item", "Nightbrand")).GetProperty("id").GetString()!;
+
+        await _rpc.SetRelationshipsAsync(
+            swordId, [new RelationshipEditRowDto("Owned by", "Alice", "Owns")], "item");
+
+        var alice = (await Entities.LoadCharactersAsync()).Single(c => c.Id == aliceId);
+        Assert.Contains(alice.Relationships, r => r.Role == "Owns" && r.Target == "Nightbrand");
+
+        var sword = (await Entities.LoadItemsAsync()).Single(i => i.Id == swordId);
+        Assert.Contains(sword.Relationships, r => r.Role == "Owned by" && r.Target == "Alice");
+    }
+
+    [Fact]
+    public async Task Reciprocal_TargetCanBeAnyType()
+    {
+        var aliceId = (await _rpc.CreateAsync("character", "Alice")).GetProperty("id").GetString()!;
+        await _rpc.CreateAsync("location", "Ashport");
+
+        await _rpc.SetRelationshipsAsync(
+            aliceId, [new RelationshipEditRowDto("Born in", "Ashport", "Birthplace of")]);
+
+        var ashport = (await Entities.LoadLocationsAsync()).Single();
+        Assert.Contains(ashport.Relationships, r => r.Role == "Birthplace of" && r.Target == "Alice");
+    }
+
+    [Fact]
+    public async Task Groups_SpanEveryType()
+    {
+        var alice = (await _rpc.CreateAsync("character", "Alice")).GetProperty("id").GetString()!;
+        var ship = (await _rpc.CreateAsync("item", "The Gull")).GetProperty("id").GetString()!;
+        var port = (await _rpc.CreateAsync("location", "Ashport")).GetProperty("id").GetString()!;
+
+        // And a type the writer invented, which is where most factions live.
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            null, "Ledger", "Ledgers", null, true, false, true));
+        var ledger = (await _rpc.CreateAsync("ledger", "The Salt Ledger"))
+            .GetProperty("id").GetString()!;
+
+        Assert.Empty(await _rpc.GroupsAsync());
+
+        // A faction is exactly the thing that spans types: the captain, the
+        // ship, the port and the book they are all written in.
+        await _rpc.SetGroupAsync("character", alice, " Salt House ");
+        await _rpc.SetGroupAsync("item", ship, "Salt House");
+        await _rpc.SetGroupAsync("ledger", ledger, "Salt House");
+        var groups = await _rpc.SetGroupAsync("location", port, "Salt House");
+
+        Assert.Equal(["Salt House"], groups);
+
+        // And out again, with an empty name.
+        await _rpc.SetGroupAsync("item", ship, "  ");
+        Assert.Equal(["Salt House"], await _rpc.GroupsAsync());
+        Assert.Equal(string.Empty, (await Entities.LoadItemsAsync()).Single().Group);
+    }
+
+    [Fact]
+    public async Task Groups_NeedAnEntryThatExists()
+        => await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetGroupAsync("character", "no-such-id", "Anywhere"));
+
+    [Fact]
+    public async Task CustomTypeField_CarriesItsGuidingQuestion()
+    {
+        // The wizards carry help text during creation and then it disappears,
+        // which is exactly when somebody comes back to fill the field in.
+        var types = await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            null, "Faction", "Factions",
+            [new CustomFieldSpecDto(
+                "creed", "Creed", "String", null, null, false, "  What do they refuse to do?  ")],
+            true, false, true));
+
+        var field = types.Single(t => t.DisplayName == "Faction").DefaultFields.Single();
+        Assert.Equal("What do they refuse to do?", field.Prompt);
+    }
+
 }

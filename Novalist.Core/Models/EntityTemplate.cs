@@ -57,6 +57,18 @@ public class CustomPropertyDefinition
     [JsonPropertyName("typeKey")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? TypeKey { get; set; }
+
+    /// <summary>
+    /// A question that says what belongs in this field, shown under it on the
+    /// entry itself.
+    ///
+    /// The guided wizards carry help text on every step, but it disappears the
+    /// moment creation finishes - so the question that made the field worth
+    /// filling in is never there when somebody comes back to fill it in.
+    /// </summary>
+    [JsonPropertyName("prompt")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string Prompt { get; set; } = string.Empty;
 }
 
 /// <summary>

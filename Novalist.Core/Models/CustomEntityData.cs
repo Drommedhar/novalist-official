@@ -72,6 +72,20 @@ public class CustomEntityData : IEntityData
     [JsonPropertyName("relationships")]
     public List<EntityRelationship> Relationships { get; set; } = [];
 
+    /// <summary>
+    /// The group this entry belongs to, or empty for none. A faction spans
+    /// types - the house, the ship and the crest all belong to it - which a
+    /// character-only field could never say.
+    /// </summary>
+    [JsonPropertyName("group")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string Group { get; set; } = string.Empty;
+
+    /// <summary>What this entry is called.</summary>
+    [JsonIgnore]
+    public string DisplayName => Name;
+
+
     [JsonPropertyName("templateId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? TemplateId { get; set; }

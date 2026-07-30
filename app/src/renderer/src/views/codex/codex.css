@@ -1,0 +1,17 @@
+
+
+
+/* The question that says what belongs in a field, kept under it. Quiet enough
+   to ignore once the answer is obvious and there when it is not. */
+.codex-field-prompt {
+  margin-top: var(--nl-space-tightest);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  line-height: 1.4;
+}
+
+/* Wide enough for a question rather than a word. */
+.type-manager-prompt {
+  flex: 2;
+  min-width: 0;
+}

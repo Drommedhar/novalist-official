@@ -1919,7 +1919,8 @@
     "features": "Features",
     "includeImages": "Include Images",
     "includeRelationships": "Include Relationships",
-    "includeSections": "Include Sections"
+    "includeSections": "Include Sections",
+    "fieldPrompt": "Guiding question (optional)"
   },
   "update": {
     "available": "Update Available",
