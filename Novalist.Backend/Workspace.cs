@@ -256,6 +256,22 @@ public sealed partial class Workspace : IDisposable
     /// left that view, so the binder could not show that this scene and that one
     /// are the same thread.
     /// </summary>
+    /// <summary>
+    /// The threads this scene serves, by id, in the book's plotline order.
+    /// Colours alone cannot drive a filter: two threads can share one, and a
+    /// writer picks a thread by its name.
+    /// </summary>
+    private IReadOnlyList<string> ResolvePlotlineIds(SceneData scene)
+    {
+        var ids = scene.PlotlineIds;
+        if (ids == null || ids.Count == 0) return [];
+
+        return [.. (Projects.ActiveBook?.Plotlines ?? [])
+            .OrderBy(p => p.Order)
+            .Where(p => ids.Contains(p.Id, StringComparer.Ordinal))
+            .Select(p => p.Id)];
+    }
+
     private IReadOnlyList<string> ResolvePlotlineColors(SceneData scene)
     {
         var ids = scene.PlotlineIds;
@@ -279,7 +295,8 @@ public sealed partial class Workspace : IDisposable
             .OrderBy(s => s.Order)
             .Select(s => new SceneDto(
                 s.Id, s.Title, s.Order, s.WordCount, ResolveLabelColor(s), s.IsFavorite, s.Synopsis,
-                s.Stage, s.ExcludeFromExport, s.Inactive, ResolvePlotlineColors(s)))
+                s.Stage, s.ExcludeFromExport, s.Inactive, ResolvePlotlineColors(s),
+                ResolvePlotlineIds(s)))
             .ToArray();
     }
 
@@ -485,6 +502,8 @@ public sealed record SceneDto(
     /// Grid, so which threads a scene serves was invisible everywhere the
     /// writer actually is.
     /// </summary>
-    IReadOnlyList<string> PlotlineColors);
+    IReadOnlyList<string> PlotlineColors,
+    /// <summary>The same threads by id, so the binder can filter by one.</summary>
+    IReadOnlyList<string> PlotlineIds);
 
 public sealed record RecentProjectDto(string Name, string Path, string? Cover);

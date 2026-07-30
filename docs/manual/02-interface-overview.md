@@ -65,6 +65,29 @@ The left pane is the chapter/scene tree only — view navigation lives in the ac
 
 Click a scene to open it in the editor; the open scene is highlighted. Right-click chapters and scenes for their context menus.
 
+### Ordering and narrowing the tree
+
+Two selectors sit above the tree.
+
+**Order** decides how the scenes inside each chapter are listed:
+
+- **Reading order** — the book. This is where the binder starts, and the only order in which you can drag scenes to reorder them: a drag under a title sort would write a reorder you never meant, so dragging is switched off while another order is active.
+- **Title**, **Word count**, **Stage** — ways of finding a scene rather than ways of arranging the book. Untriaged scenes sort last under Stage, because they are the ones with nothing said about them, not the ones at the earliest stage.
+
+**Thread** narrows the tree to the scenes on one plot thread. It appears once the book has plotlines; see [Plot Grid](08-plot-grid.md).
+
+### Pinning
+
+Right-click a scene and choose **Pin to top** to put it in a **Pinned** group above the book, with the chapter it came from beside it. Pins survive restarts and are per project. The group only appears when something is pinned. **Unpin** removes it.
+
+### Workspace layouts
+
+Novalist always opened in the same shape, so planning, drafting and revising meant dragging the same panels back and forth several times a day. **Ctrl+Alt+L** (or "Workspace layouts" in the command palette) saves the shape you are in under a name and brings it back with one click.
+
+A layout stores which view you are on, which binder and inspector tabs are open, whether the binder, inspector and scene-notes dock are visible, both panel widths, and whether focus mode is on. Saving under a name you have already used updates that layout rather than adding a second one.
+
+Layouts are stored per machine, alongside your panel widths — they follow the computer you work on, not the project.
+
 Drag the binder's right edge to resize it. It opens at a width proportional to your display, and once you drag it Novalist keeps that width for future sessions. The inspector and the scene-notes dock work the same way.
 
 ## The main area

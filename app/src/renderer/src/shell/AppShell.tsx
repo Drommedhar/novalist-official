@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { ActivityBar } from './ActivityBar'
 import { Binder } from './Binder'
 import { CommandPalette } from './CommandPalette'
+import { WorkspaceLayoutsDialog } from './WorkspaceLayoutsDialog'
 import { QuickOpen } from './QuickOpen'
 import { QuickCapture } from './QuickCapture'
 import { FindReplaceDialog } from './FindReplaceDialog'
@@ -88,6 +89,7 @@ export function AppShell(): React.JSX.Element {
   const quickOpenOpen = useShellStore((s) => s.quickOpenOpen)
   const quickCaptureOpen = useShellStore((s) => s.quickCaptureOpen)
   const helpOpen = useShellStore((s) => s.helpOpen)
+  const layoutsOpen = useShellStore((s) => s.layoutsOpen)
   const hotkeys = useMemo(() => buildDefaultHotkeys(), [])
 
   // ── Combined app + extension update check (run in the splash on startup) ──
@@ -249,6 +251,9 @@ export function AppShell(): React.JSX.Element {
         <QuickCapture onClose={() => useShellStore.getState().setQuickCaptureOpen(false)} />
       )}
       {helpOpen && <HelpOverlay onClose={() => useShellStore.getState().setHelpOpen(false)} />}
+      {layoutsOpen && (
+        <WorkspaceLayoutsDialog onClose={() => useShellStore.getState().setLayoutsOpen(false)} />
+      )}
       {/* Raised by the store when a save was refused because the scene changed
           on disk. Renders nothing until there is something to resolve. */}
       <SceneConflictDialog />

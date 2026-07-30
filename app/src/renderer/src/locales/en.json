@@ -2846,7 +2846,13 @@
   "corkboard": {
     "freeform": "Arrange freely",
     "freeformHint": "Drag cards anywhere. The arrangement is saved with the book.",
-    "arrange": "Back to reading order"
+    "arrange": "Back to reading order",
+    "colourBy": "Colour by",
+    "colour_none": "Nothing",
+    "colour_label": "Label",
+    "colour_pov": "Viewpoint",
+    "colour_act": "Act",
+    "colour_status": "Chapter status"
   },
   "sceneAxis": {
     "title": "Your rating axes",
@@ -2872,7 +2878,17 @@
     "showActive": "In the book",
     "showAll": "Everything",
     "showInactive": "Out of the book",
-    "sceneFilter": "Which scenes to show"
+    "sceneFilter": "Which scenes to show",
+    "sortBy": "Order",
+    "sort_order": "Reading order",
+    "sort_title": "Title",
+    "sort_words": "Word count",
+    "sort_stage": "Stage",
+    "threadFilter": "Thread",
+    "allThreads": "All threads",
+    "pinned": "Pinned ({{count}})",
+    "pin": "Pin to top",
+    "unpin": "Unpin"
   },
   "scratchpad": {
     "title": "Scratchpad",
@@ -2901,5 +2917,13 @@
     "ungrouped": "Loose",
     "remove": "Remove this bookmark",
     "addScene": "Bookmark this scene"
+  },
+  "layouts": {
+    "title": "Workspace layouts",
+    "hint": "Saves the panels, widths, tabs and view you are in right now.",
+    "namePlaceholder": "Name this layout",
+    "save": "Save current",
+    "empty": "No layouts saved yet.",
+    "delete": "Delete layout"
   }
 }

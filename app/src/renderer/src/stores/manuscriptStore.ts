@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
+import type { ColourDimension } from '../views/manuscript/sceneColour'
 
 export interface ManuscriptSceneDto {
   sceneId: string
@@ -51,6 +52,12 @@ interface ManuscriptState {
    */
   freeform: boolean
   setFreeform(freeform: boolean): void
+  /**
+   * What a corkboard card's edge colour means. Session state like freeform:
+   * it is a way of looking at the book, not a property of it.
+   */
+  colourBy: ColourDimension
+  setColourBy(colourBy: ColourDimension): void
   setGroupBy(groupBy: string): void
   compose(sceneIds: string[] | null): Promise<void>
   setFilter(status: string): Promise<void>
@@ -81,6 +88,8 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
 
   setMode: (mode) => set({ mode }),
   setFreeform: (freeform) => set({ freeform }),
+  colourBy: 'label',
+  setColourBy: (colourBy) => set({ colourBy }),
 
   setGroupBy: (groupBy) => set({ groupBy }),
 

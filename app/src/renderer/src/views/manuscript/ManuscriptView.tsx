@@ -6,6 +6,7 @@ import { useProjectStore } from '../../stores/projectStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
 import { useTargetStore } from '../../stores/targetStore'
+import { COLOUR_DIMENSIONS, sceneColour, type ColourDimension } from './sceneColour'
 import { useManuscriptPropsStore } from '../../stores/manuscriptPropsStore'
 import { ManuscriptPropertyField } from '../../shell/ManuscriptPropertyField'
 import { SceneBulkBar } from '../../shell/SceneBulkBar'
@@ -64,6 +65,7 @@ export function ManuscriptView(): React.JSX.Element {
   const groupBy = useManuscriptStore((s) => s.groupBy)
   const composed = useManuscriptStore((s) => s.composed)
   const freeform = useManuscriptStore((s) => s.freeform)
+  const colourBy = useManuscriptStore((s) => s.colourBy)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
 
   useEffect(() => {
@@ -108,6 +110,30 @@ export function ManuscriptView(): React.JSX.Element {
             />
             {t('corkboard.freeform')}
           </label>
+        )}
+        {/* What the card's edge means. A label is a colour the writer chose;
+            the rest are derived from something already typed and coloured by
+            hash, so they work the moment there are values to colour. */}
+        {mode === 'corkboard' && (
+          <div className="manuscript-filters">
+            <label className="settings-hint" htmlFor="corkboard-colour">
+              {t('corkboard.colourBy')}
+            </label>
+            <select
+              id="corkboard-colour"
+              className="inspector-input"
+              value={colourBy}
+              onChange={(e) =>
+                useManuscriptStore.getState().setColourBy(e.target.value as ColourDimension)
+              }
+            >
+              {COLOUR_DIMENSIONS.map((dim) => (
+                <option key={dim} value={dim}>
+                  {t(`corkboard.colour_${dim}`)}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
         {mode === 'board' && (
           <div className="manuscript-filters">
@@ -313,6 +339,7 @@ function Corkboard(): React.JSX.Element {
   const setSynopsis = useManuscriptStore((s) => s.setSynopsis)
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const chapters = useProjectStore((s) => s.chapters)
+  const colourBy = useManuscriptStore((s) => s.colourBy)
 
   /**
    * The colour of whatever label a scene carries, if any. Built once per
@@ -326,9 +353,25 @@ function Corkboard(): React.JSX.Element {
         if (scene.labelColor) map.set(scene.id, scene.labelColor)
     return map
   }, [chapters])
-  const labelColor = (sceneId: string): string | undefined => labelColors.get(sceneId)
+  /** Chapter status and act, so a card can be coloured by either. */
+  const chapterOf = useMemo(() => {
+    const map = new Map<string, { status: string; act: string }>()
+    for (const chapter of chapters)
+      for (const scene of chapter.scenes)
+        map.set(scene.id, { status: chapter.status, act: chapter.act })
+    return map
+  }, [chapters])
 
-  if (freeform) return <FreeformCorkboard labelColor={labelColor} />
+  /** The band colour for a card, under whichever dimension is selected. */
+  const bandColor = (sceneId: string, pov: string | null): string | undefined =>
+    sceneColour(colourBy, {
+      labelColor: labelColors.get(sceneId),
+      pov,
+      act: chapterOf.get(sceneId)?.act,
+      status: chapterOf.get(sceneId)?.status
+    })
+
+  if (freeform) return <FreeformCorkboard bandColor={bandColor} />
 
   return (
     <div className="corkboard">
@@ -350,8 +393,8 @@ function Corkboard(): React.JSX.Element {
                 // A label the writer named, drawn as the edge of the card. The
                 // colour has been on the model for years with nothing reading it.
                 style={
-                  labelColor(scene.sceneId)
-                    ? { borderLeft: `3px solid ${labelColor(scene.sceneId)}` }
+                  bandColor(scene.sceneId, scene.pov)
+                    ? { borderLeft: `3px solid ${bandColor(scene.sceneId, scene.pov)}` }
                     : undefined
                 }
               >
@@ -395,9 +438,9 @@ function Corkboard(): React.JSX.Element {
  * instead of every card stacked in the corner.
  */
 function FreeformCorkboard({
-  labelColor
+  bandColor
 }: {
-  labelColor: (sceneId: string) => string | undefined
+  bandColor: (sceneId: string, pov: string | null) => string | undefined
 }): React.JSX.Element {
   const { t } = useTranslation()
   const sections = useManuscriptStore((s) => s.sections)
@@ -495,8 +538,8 @@ function FreeformCorkboard({
               style={{
                 left: place.x,
                 top: place.y,
-                ...(labelColor(scene.sceneId)
-                  ? { borderLeft: `3px solid ${labelColor(scene.sceneId)}` }
+                ...(bandColor(scene.sceneId, scene.pov)
+                  ? { borderLeft: `3px solid ${bandColor(scene.sceneId, scene.pov)}` }
                   : {})
               }}
               onPointerDown={(e) => onPointerDown(scene.sceneId, e)}

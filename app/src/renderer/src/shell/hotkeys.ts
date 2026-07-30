@@ -180,6 +180,16 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
       run: () => shell().toggleFocusMode()
     },
     {
+      // A shape you can name and come back to. Novalist kept one geometry and
+      // always opened in it, so planning, drafting and revising meant dragging
+      // the same three panels back and forth several times a day.
+      actionId: 'app.view.layouts',
+      defaultGesture: 'Ctrl+Alt+L',
+      categoryKey: 'hotkeys.category.panels',
+      labelKey: 'layouts.title',
+      run: () => shell().setLayoutsOpen(true)
+    },
+    {
       actionId: 'app.commandPalette',
       defaultGesture: 'Ctrl+Shift+P',
       categoryKey: 'hotkeys.category.general',

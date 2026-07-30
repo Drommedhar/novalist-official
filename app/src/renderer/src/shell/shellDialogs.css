@@ -297,3 +297,49 @@
 .snowflake-act-row {
   margin-top: var(--nl-space-md);
 }
+
+/* Workspace layouts: a name field over a list of saved shapes. */
+.layouts-save {
+  display: flex;
+  gap: var(--nl-space-sm);
+  align-items: center;
+}
+
+.layouts-save .dialog-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.layouts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-sm);
+  max-height: 40vh;
+  overflow-y: auto;
+}
+
+.layouts-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+}
+
+/* The name is the button: applying a layout is the thing you came here to do,
+   so it must not be a second click on a row that only looks selectable. */
+.layouts-apply {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text);
+  cursor: pointer;
+  font-size: var(--nl-font-body);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+}
+
+.layouts-apply:hover {
+  border-color: var(--nl-accent);
+}

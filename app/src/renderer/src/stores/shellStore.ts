@@ -154,6 +154,8 @@ interface ShellState {
   pendingResearchId: string | null
   /** In-app user-manual help viewer overlay. */
   helpOpen: boolean
+  /** Named workspace layouts: save the shape you are in, come back to it. */
+  layoutsOpen: boolean
   setMainView(view: MainView): void
   setMobileTab(tab: MobileTab): void
   /** Switch to the Maps view and ask it to open the given map and focus a pin. */
@@ -181,6 +183,7 @@ interface ShellState {
   /** ResearchView clears the pending selection once it has consumed it. */
   clearPendingResearch(): void
   setHelpOpen(open: boolean): void
+  setLayoutsOpen(open: boolean): void
 }
 
 export const useShellStore = create<ShellState>((set) => ({
@@ -210,6 +213,7 @@ export const useShellStore = create<ShellState>((set) => ({
   quickCaptureOpen: false,
   pendingResearchId: null,
   helpOpen: false,
+  layoutsOpen: false,
   setMainView: (mainView) => set({ mainView, extView: null }),
   setMobileTab: (mobileTab) => set({ mobileTab }),
   navigateToMapPin: (mapId, pinId) =>
@@ -227,6 +231,7 @@ export const useShellStore = create<ShellState>((set) => ({
     set({ mainView: 'research', extView: null, pendingResearchId: itemId }),
   clearPendingResearch: () => set({ pendingResearchId: null }),
   setHelpOpen: (helpOpen) => set({ helpOpen }),
+  setLayoutsOpen: (layoutsOpen) => set({ layoutsOpen }),
   toggleBinder: () => set((s) => ({ binderVisible: !s.binderVisible })),
   setBinderWidth: (px) => set({ binderWidth: clamp(px, BINDER_MIN, BINDER_MAX) }),
   toggleInspector: () => set((s) => ({ inspectorVisible: !s.inspectorVisible })),

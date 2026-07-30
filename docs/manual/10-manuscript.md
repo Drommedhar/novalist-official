@@ -48,6 +48,20 @@ Each scene becomes a card on a board, grouped under its chapter title. Each card
 
 Corkboard mode is ideal for planning passes: skim the whole book as synopses and fill in the summaries you skipped while drafting.
 
+### Colouring the cards
+
+**Colour by** decides what the coloured band down the left edge of a card means:
+
+- **Label** — the scene label you set yourself, and the default. See [Scene labels](#scene-labels).
+- **Viewpoint** — the scene's POV character.
+- **Act** — the act its chapter belongs to.
+- **Chapter status** — Outline, First Draft, Revised, Edited, Final.
+- **Nothing** — no band.
+
+Apart from Label, the colours are derived: Novalist picks a stable colour from the value itself, so a dimension works the moment there are values to colour and never needs setting up. The same viewpoint is always the same colour. A scene with nothing said — no viewpoint, no act — gets no band rather than being coloured as though a decision had been made.
+
+The choice applies to both card arrangements and lasts for the session; it is a way of looking at the book, not a property of it.
+
 ### Arranging cards freely
 
 By default the cards sit in reading order, grouped by chapter — which is the arrangement the binder already shows you. Tick **Arrange freely** in the toolbar to put them where you like instead.

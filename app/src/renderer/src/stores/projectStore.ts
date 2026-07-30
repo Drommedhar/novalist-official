@@ -20,6 +20,8 @@ export interface SceneDto {
   inactive: boolean
   /** Colours of the threads this scene serves, in the book's plotline order. */
   plotlineColors: string[]
+  /** The same threads by id, so the binder can narrow to one of them. */
+  plotlineIds: string[]
 }
 
 export interface ChapterDto {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronRight, MoreHorizontal, Plus } from 'lucide-react'
+import { ChevronRight, MoreHorizontal, Pin, Plus } from 'lucide-react'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
@@ -20,6 +20,24 @@ import { SceneBulkBar } from './SceneBulkBar'
 import { PanelResizer } from './PanelResizer'
 
 const STATUS_CYCLE = ['Outline', 'FirstDraft', 'Revised', 'Edited', 'Final']
+
+/**
+ * How the scenes inside a chapter are ordered.
+ *
+ * Reading order is the book. The rest are ways of looking for something -
+ * the longest scene, the one whose title you half remember, everything still
+ * at the same stage - and none of them is the order the book is in, which is
+ * why dragging is off while one is active. A drag under a title sort would
+ * write a reorder nobody meant.
+ */
+const SORT_MODES = ['order', 'title', 'words', 'stage'] as const
+type SortMode = (typeof SORT_MODES)[number]
+
+interface BinderPlotline {
+  id: string
+  name: string
+  color: string
+}
 
 interface MenuState {
   x: number
@@ -69,6 +87,10 @@ export function Binder(): React.JSX.Element {
   // The binder shows the book by default. A writer looking for something they
   // parked has to be able to ask for it, and to see both at once while deciding.
   const [sceneFilter, setSceneFilter] = useState<'active' | 'all' | 'inactive'>('active')
+  const [sortMode, setSortMode] = useState<SortMode>('order')
+  const [plotlineFilter, setPlotlineFilter] = useState('')
+  const [plotlines, setPlotlines] = useState<BinderPlotline[]>([])
+  const [pinnedOpen, setPinnedOpen] = useState(true)
 
   const targets = useTargetStore((s) => s.targets)
   const [labelList, setLabelList] = useState<{ key: string; label: string; color: string }[]>([])
@@ -82,6 +104,10 @@ export function Binder(): React.JSX.Element {
         .request<{ key: string; label: string; color: string }[]>('labels/list')
         .then(setLabelList)
         .catch(() => setLabelList([]))
+      void rpc
+        .request<BinderPlotline[]>('binder/plotlines')
+        .then(setPlotlines)
+        .catch(() => setPlotlines([]))
     }
   }, [projectPath])
 
@@ -350,6 +376,13 @@ export function Binder(): React.JSX.Element {
           }
         },
         {
+          // Top of the binder, whatever the sort and wherever the chapter. The
+          // flag has been on the model and saved to disk for years with no way
+          // for a writer to set it.
+          label: scene.isFavorite ? t('binder.unpin') : t('binder.pin'),
+          onClick: () => togglePin(chapter.guid, scene.id, !scene.isFavorite)
+        },
+        {
           // A place worth coming back to, which is a different question from
           // "which scenes match this query" - the one saved lists answer.
           label: t('bookmarks.addScene'),
@@ -552,6 +585,42 @@ export function Binder(): React.JSX.Element {
     ]
   }
 
+  /** The scenes of one chapter, filtered and ordered as the head asks. */
+  const scenesOf = (chapter: (typeof chapters)[number]): (typeof chapter.scenes) => {
+    const stageOrder = new Map(stages.map((st, i) => [st.key, i]))
+    const visible = chapter.scenes.filter(
+      (scene) =>
+        (sceneFilter === 'all' ||
+          (sceneFilter === 'inactive' ? scene.inactive : !scene.inactive)) &&
+        (plotlineFilter === '' || scene.plotlineIds.includes(plotlineFilter))
+    )
+    if (sortMode === 'order') return visible
+    const sorted = [...visible]
+    sorted.sort((a, b) => {
+      if (sortMode === 'title') return a.title.localeCompare(b.title)
+      if (sortMode === 'words') return b.wordCount - a.wordCount
+      // Untriaged scenes sort last rather than first: they are the ones with
+      // nothing said about them, not the ones at the earliest stage.
+      const ai = a.stage ? (stageOrder.get(a.stage) ?? stages.length) : stages.length + 1
+      const bi = b.stage ? (stageOrder.get(b.stage) ?? stages.length) : stages.length + 1
+      return ai - bi || a.order - b.order
+    })
+    return sorted
+  }
+
+  /** Everything the writer pinned, in reading order, with its chapter. */
+  const pinned = chapters.flatMap((chapter) =>
+    chapter.scenes
+      .filter((scene) => scene.isFavorite)
+      .map((scene) => ({ chapter, scene }))
+  )
+
+  const togglePin = (chapterGuid: string, sceneId: string, next: boolean): void => {
+    void rpc
+      .request<ProjectStateDto>('binder/pinScene', [chapterGuid, sceneId, next])
+      .then((state) => store.getState().applyState(state))
+  }
+
   const cycleStatus = (chapterGuid: string, current: string): void => {
     const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current) + 1) % STATUS_CYCLE.length]
     void store.getState().setChapterStatus(chapterGuid, next)
@@ -611,6 +680,42 @@ export function Binder(): React.JSX.Element {
           ))}
         </div>
       )}
+      {/* Ordering and threads. Neither changes the book: one is a way of
+          looking for a scene, the other a way of following one line through
+          it. Reading order and every thread is where the binder starts. */}
+      {binderTab === 'chapters' && chapters.length > 0 && (
+        <div className="binder-sort-row">
+          <select
+            className="binder-sort-select"
+            aria-label={t('binder.sortBy')}
+            title={t('binder.sortBy')}
+            value={sortMode}
+            onChange={(e) => setSortMode(e.target.value as SortMode)}
+          >
+            {SORT_MODES.map((mode) => (
+              <option key={mode} value={mode}>
+                {t(`binder.sort_${mode}`)}
+              </option>
+            ))}
+          </select>
+          {plotlines.length > 0 && (
+            <select
+              className="binder-sort-select"
+              aria-label={t('binder.threadFilter')}
+              title={t('binder.threadFilter')}
+              value={plotlineFilter}
+              onChange={(e) => setPlotlineFilter(e.target.value)}
+            >
+              <option value="">{t('binder.allThreads')}</option>
+              {plotlines.map((line) => (
+                <option key={line.id} value={line.id}>
+                  {line.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
       {isMobile && binderTab === 'chapters' && <MobileBookDraftBar />}
       {isMobile && binderTab === 'chapters' && (
         <div className="binder-mobile-actions">
@@ -625,6 +730,35 @@ export function Binder(): React.JSX.Element {
         {binderTab === 'bookmarks' && <BookmarksPanel />}
         {binderTab === 'chapters' && chapters.length === 0 && (
           <div className="binder-placeholder">{t('shell.binderEmpty')}</div>
+        )}
+        {/* Shown only when something is pinned. An empty "Pinned" heading is
+            a permanent reminder of a feature, not a feature. */}
+        {binderTab === 'chapters' && pinned.length > 0 && (
+          <div className="binder-pinned">
+            <button className="binder-pinned-head" onClick={() => setPinnedOpen((o) => !o)}>
+              <ChevronRight
+                size={13}
+                strokeWidth={2}
+                className={`binder-chevron${pinnedOpen ? ' open' : ''}`}
+              />
+              {t('binder.pinned', { count: pinned.length })}
+            </button>
+            {pinnedOpen &&
+              pinned.map(({ chapter, scene }) => (
+                <div key={`pin-${scene.id}`} className="binder-scene-wrap">
+                  <button
+                    className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}`}
+                    onClick={() => void openScene(chapter.guid, scene.id)}
+                  >
+                    <Pin size={11} strokeWidth={2} className="binder-pin-icon" />
+                    <span className="binder-scene-title">{scene.title}</span>
+                    {/* Which chapter it came from - a pinned list with no
+                        context is a list of titles floating free of the book. */}
+                    <span className="binder-pin-chapter">{chapter.title}</span>
+                  </button>
+                </div>
+              ))}
+          </div>
         )}
         {binderTab === 'chapters' &&
           chapters.map((chapter, index) => (
@@ -690,13 +824,7 @@ export function Binder(): React.JSX.Element {
               )}
             </div>
             {!collapsed[chapter.guid] &&
-              chapter.scenes
-                .filter(
-                  (scene) =>
-                    sceneFilter === 'all' ||
-                    (sceneFilter === 'inactive' ? scene.inactive : !scene.inactive)
-                )
-                .map((scene, sceneIndex) => (
+              scenesOf(chapter).map((scene, sceneIndex) => (
                 <div key={scene.id} className="binder-scene-wrap">
                 <button
                   className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}${
@@ -704,7 +832,7 @@ export function Binder(): React.JSX.Element {
                   }${selectedIds.includes(scene.id) ? ' selected' : ''}${
                     scene.inactive ? ' inactive' : ''
                   }`}
-                  draggable
+                  draggable={sortMode === 'order'}
                   onDragStart={() =>
                     setDrag({ kind: 'scene', chapterGuid: chapter.guid, sceneId: scene.id })
                   }

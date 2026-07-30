@@ -31,6 +31,7 @@ The number keys switch the main area between views, in this order:
 | Toggle scene notes (bottom dock) | `Ctrl+Shift+N` |
 | Find & Replace | `Ctrl+Shift+F` |
 | Toggle Focus Mode | `Alt+F` |
+| Workspace layouts | `Ctrl+Alt+L` |
 | Command Palette | `Ctrl+Shift+P` |
 | Quick Open (search everything) | `Ctrl+P` |
 | Quick capture (jot a note) | `Ctrl+Shift+K` |

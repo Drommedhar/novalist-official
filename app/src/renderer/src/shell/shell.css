@@ -3663,3 +3663,58 @@
 .notes-dock-relative > select {
   flex: 1;
 }
+
+/* Ordering and thread controls, above the tree and below the tabs. */
+.binder-sort-row {
+  display: flex;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+}
+
+.binder-sort-select {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+}
+
+/* The pinned group sits above the book and is separated from it by a rule,
+   because it is not part of the reading order and must not read as chapter one. */
+.binder-pinned {
+  border-bottom: 1px solid var(--nl-border);
+  padding-bottom: var(--nl-space-tighter);
+  margin-bottom: var(--nl-space-tighter);
+}
+
+.binder-pinned-head {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  width: 100%;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+  text-align: left;
+}
+
+.binder-pin-icon {
+  flex: 0 0 auto;
+  color: var(--nl-accent);
+}
+
+.binder-pin-chapter {
+  flex: 0 0 auto;
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 40%;
+}

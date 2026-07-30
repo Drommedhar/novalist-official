@@ -2854,7 +2854,13 @@
   "corkboard": {
     "freeform": "Frei anordnen",
     "freeformHint": "Karten beliebig ziehen. Die Anordnung wird mit dem Buch gespeichert.",
-    "arrange": "Zurück zur Lesereihenfolge"
+    "arrange": "Zurück zur Lesereihenfolge",
+    "colourBy": "Einfärben nach",
+    "colour_none": "Nichts",
+    "colour_label": "Etikett",
+    "colour_pov": "Perspektive",
+    "colour_act": "Akt",
+    "colour_status": "Kapitelstatus"
   },
   "sceneAxis": {
     "title": "Eigene Bewertungsachsen",
@@ -2880,7 +2886,17 @@
     "showActive": "Im Buch",
     "showAll": "Alles",
     "showInactive": "Nicht im Buch",
-    "sceneFilter": "Welche Szenen angezeigt werden"
+    "sceneFilter": "Welche Szenen angezeigt werden",
+    "sortBy": "Reihenfolge",
+    "sort_order": "Lesereihenfolge",
+    "sort_title": "Titel",
+    "sort_words": "Wortanzahl",
+    "sort_stage": "Phase",
+    "threadFilter": "Handlungsstrang",
+    "allThreads": "Alle Stränge",
+    "pinned": "Angeheftet ({{count}})",
+    "pin": "Nach oben anheften",
+    "unpin": "Lösen"
   },
   "scratchpad": {
     "title": "Notizzettel",
@@ -2909,5 +2925,13 @@
     "ungrouped": "Ohne Gruppe",
     "remove": "Lesezeichen entfernen",
     "addScene": "Lesezeichen für diese Szene"
+  },
+  "layouts": {
+    "title": "Arbeitsbereich-Layouts",
+    "hint": "Speichert Panels, Breiten, Reiter und Ansicht so, wie sie gerade sind.",
+    "namePlaceholder": "Layout benennen",
+    "save": "Aktuelles speichern",
+    "empty": "Noch keine Layouts gespeichert.",
+    "delete": "Layout löschen"
   }
 }

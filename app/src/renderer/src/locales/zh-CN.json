@@ -2886,7 +2886,13 @@
   "corkboard": {
     "freeform": "自由排列",
     "freeformHint": "任意拖动卡片，排列会随书一起保存。",
-    "arrange": "恢复阅读顺序"
+    "arrange": "恢复阅读顺序",
+    "colourBy": "着色依据",
+    "colour_none": "不着色",
+    "colour_label": "标签",
+    "colour_pov": "视角",
+    "colour_act": "幕",
+    "colour_status": "章节状态"
   },
   "sceneAxis": {
     "title": "自定义评分轴",
@@ -2912,7 +2918,17 @@
     "showActive": "正文之内",
     "showAll": "全部",
     "showInactive": "正文之外",
-    "sceneFilter": "显示哪些场景"
+    "sceneFilter": "显示哪些场景",
+    "sortBy": "排序",
+    "sort_order": "阅读顺序",
+    "sort_title": "标题",
+    "sort_words": "字数",
+    "sort_stage": "阶段",
+    "threadFilter": "线索",
+    "allThreads": "全部线索",
+    "pinned": "已置顶（{{count}}）",
+    "pin": "置顶",
+    "unpin": "取消置顶"
   },
   "scratchpad": {
     "title": "随手记",
@@ -2941,5 +2957,13 @@
     "ungrouped": "未分组",
     "remove": "删除此书签",
     "addScene": "为此场景添加书签"
+  },
+  "layouts": {
+    "title": "工作区布局",
+    "hint": "保存当前的面板、宽度、标签页与视图。",
+    "namePlaceholder": "为此布局命名",
+    "save": "保存当前",
+    "empty": "尚未保存任何布局。",
+    "delete": "删除布局"
   }
 }
