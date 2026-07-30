@@ -99,8 +99,13 @@ body { display: flex; justify-content: center; }
 /* Composition dimming: everything but the paragraph the caret is in fades
    back, so the eye has one place to be. A transition, because a hard cut
    between paragraphs is more distracting than the dimming solves. */
-body.dim-others #editor > * { opacity: 0.28; transition: opacity 120ms ease; }
-body.dim-others #editor > .nv-focus-block { opacity: 1; }
+/* Page view wraps the paragraphs in .nv-page, so the editor's own children are
+   pages and not prose. Both shapes are dimmed; the page wrapper itself never is,
+   because fading it would take every paragraph on it along. */
+body.dim-others #editor > :not(.nv-page),
+body.dim-others #editor > .nv-page > * { opacity: 0.28; transition: opacity 120ms ease; }
+body.dim-others #editor > :not(.nv-page).nv-focus-block,
+body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
 /* Verse keeps the line breaks the writer typed, and is never justified - that
    would stretch a short line across the measure. */
 #editor .nv-style-poetry { margin: 0 0 0.2em 2em; text-indent: 0; text-align: left; white-space: pre-wrap; }
@@ -912,12 +917,48 @@ function locate(nodes, offset) {
 }
 
 /** The block the caret sits in, so reading can start where the writer is. */
+/**
+ * The paragraphs, wherever they are sitting.
+ *
+ * Page view moves every block inside a <div class="nv-page">, so the editor's
+ * own children are pages rather than prose. Everything that reasons about "the
+ * paragraph" - dimming, paragraph styles, read-aloud - has to look through
+ * them, and every one of those was quietly operating on page wrappers instead.
+ */
+function proseBlocks() {
+    const blocks = [];
+    for (const child of editor.children) {
+        if (child.classList && child.classList.contains('nv-page')) {
+            for (const inner of child.children) blocks.push(inner);
+        } else {
+            blocks.push(child);
+        }
+    }
+    return blocks;
+}
+
+/** The prose block a node sits in, looking through a page wrapper. */
+function blockOf(node) {
+    let current = node;
+    while (current && current !== editor) {
+        const parent = current.parentNode;
+        if (parent === editor) {
+            // A page wrapper is not a block. Its first paragraph is the nearest
+            // thing, but a caret directly in a wrapper means an empty page.
+            if (current.classList && current.classList.contains('nv-page'))
+                return current.firstElementChild;
+            return current;
+        }
+        if (parent && parent.classList && parent.classList.contains('nv-page')) return current;
+        current = parent;
+    }
+    return null;
+}
+
 function caretBlock() {
     const sel = window.getSelection();
     if (!sel || sel.rangeCount === 0) return null;
-    let node = sel.getRangeAt(0).startContainer;
-    while (node && node.parentNode !== editor) node = node.parentNode;
-    return node && node.parentNode === editor ? node : null;
+    return blockOf(sel.getRangeAt(0).startContainer);
 }
 
 /**
@@ -931,7 +972,7 @@ function startReadAloud(fromCaret, rate, voiceUri) {
     readAloudRate = rate > 0 ? rate : 1;
     readAloudVoiceUri = voiceUri || null;
 
-    const blocks = Array.from(editor.children);
+    const blocks = proseBlocks();
     const from = fromCaret ? caretBlock() : null;
     const startAt = from ? Math.max(0, blocks.indexOf(from)) : 0;
     readAloudQueue = [];
@@ -1168,14 +1209,13 @@ function selectedBlocks() {
     if (!selection || selection.rangeCount === 0) return [];
     const range = selection.getRangeAt(0);
     const blocks = [];
-    for (const block of editor.children) {
+    for (const block of proseBlocks()) {
         if (range.intersectsNode(block)) blocks.push(block);
     }
     // A collapsed caret inside a block still has to resolve to that block.
     if (blocks.length === 0) {
-        let node = range.startContainer;
-        while (node && node.parentNode !== editor) node = node.parentNode;
-        if (node) blocks.push(node);
+        const block = blockOf(range.startContainer);
+        if (block) blocks.push(block);
     }
     return blocks;
 }
@@ -1571,7 +1611,7 @@ function setComposeDimming(enabled) {
 }
 
 function updateFocusBlock() {
-    for (const block of editor.children) block.classList.remove('nv-focus-block');
+    for (const block of proseBlocks()) block.classList.remove('nv-focus-block');
     if (!dimOthers) return;
     for (const block of selectedBlocks()) block.classList.add('nv-focus-block');
 }
