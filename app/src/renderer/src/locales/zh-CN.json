@@ -1439,7 +1439,8 @@
     "contextMenu": {
       "createEntity": "从所选内容创建条目",
       "appendToEntity": "将所选内容添加到条目",
-      "splitScene": "在此处拆分场景"
+      "splitScene": "在此处拆分场景",
+      "cutToDarlings": "剪下并保留"
     },
     "linkPrompt": "链接地址（留空则移除链接）",
     "contextMenu.insertImage": "插入图片"
@@ -3179,5 +3180,13 @@
     "remove": "移除此链接",
     "notePlaceholder": "原因，用你自己的话",
     "missing": "已不存在"
+  },
+  "darlings": {
+    "title": "剪下并保留",
+    "empty": "还没有保留任何内容。在编辑器中选中文字并选择“剪下并保留”，就不会丢失。",
+    "search": "搜索保留的内容",
+    "copy": "复制",
+    "remove": "彻底丢弃",
+    "notePlaceholder": "保留的原因"
   }
 }

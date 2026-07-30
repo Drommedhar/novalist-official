@@ -886,7 +886,8 @@
     "contextMenu": {
       "createEntity": "Eintrag aus Auswahl erstellen",
       "appendToEntity": "Auswahl zu Eintrag hinzufügen",
-      "splitScene": "Szene hier teilen"
+      "splitScene": "Szene hier teilen",
+      "cutToDarlings": "Ausschneiden und aufheben"
     },
     "linkPrompt": "Link-Adresse (leer lassen, um den Link zu entfernen)",
     "contextMenu.insertImage": "Bild einfügen"
@@ -3147,5 +3148,13 @@
     "remove": "Verweis entfernen",
     "notePlaceholder": "Warum, in eigenen Worten",
     "missing": "Nicht mehr vorhanden"
+  },
+  "darlings": {
+    "title": "Ausgeschnitten und aufgehoben",
+    "empty": "Noch nichts aufgehoben. Text im Editor markieren und „Ausschneiden und aufheben“ wählen, statt ihn zu verlieren.",
+    "search": "Aufgehobenes durchsuchen",
+    "copy": "Kopieren",
+    "remove": "Endgültig verwerfen",
+    "notePlaceholder": "Warum aufgehoben"
   }
 }

@@ -99,6 +99,18 @@ Right-click inside the text for:
 
 The last two exist so that worldbuilding you invent mid-sentence can reach the Codex without breaking your writing flow. A description of a city you just wrote can become that location's "Appearance" section in two clicks.
 
+## Cutting a paragraph without losing it
+
+Deleted prose used to be recoverable only by opening a [snapshot](17-snapshots.md) of the whole scene and reading it for the paragraph that used to be there. But a paragraph you cut because it does not belong in *this* chapter is not a mistake to undo — it is writing looking for a different home, and there was nowhere to put it.
+
+Select the prose, right-click, and choose **Cut and keep**. It leaves the scene and lands in **Cut and kept**, at the bottom of the Inspector's Inbox tab, alongside the scene it came from and the date.
+
+Both halves happen in one action on purpose: cutting first and asking you to file it afterwards is exactly how the paragraph gets lost between the two.
+
+In the panel each cut is shown **whole** rather than as a one-line preview, which would hide the reason it was worth keeping. You can search what you kept, add a note about why, copy it, or throw it away for good. Copy rather than a one-click reinsert, because a kept cut usually belongs somewhere other than wherever the caret happens to be.
+
+The bin holds the most recent 500 cuts and lives with the project, so it travels with the book and survives being zipped.
+
 ## Splitting a scene
 
 The context menu's **Split scene here** divides the scene at the caret: everything below it becomes a new scene directly after this one, carrying the date, stage, plotlines and POV that still describe it. See [Chapters and scenes](04-chapters-and-scenes.md#splitting-a-scene-in-two).

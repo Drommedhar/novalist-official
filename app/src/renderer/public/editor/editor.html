@@ -3237,6 +3237,9 @@ document.addEventListener('contextmenu', (e) => {
     // selected - unlike everything above it in this block.
     html += '<div class="cm-item" data-action="splitAtCaret"><span>' + escapeHtml(contextMenuLabels.splitScene || 'Split scene here') + '</span></div>';
     html += '<div class="cm-item" data-action="insertImage"><span>' + escapeHtml(contextMenuLabels.insertImage || 'Insert image') + '</span></div>';
+    // Cutting prose used to mean it was recoverable only by reading a whole
+    // snapshot for the paragraph that used to be there.
+    html += '<div class="cm-item' + disabledAttr + '" data-action="cutToDarlings"><span>' + escapeHtml(contextMenuLabels.cutToDarlings || 'Cut and keep') + '</span></div>';
     html += '<div class="cm-item' + disabledAttr + '" data-action="createEntityFromSelection"><span>' + escapeHtml(contextMenuLabels.createEntity || 'Create entity from selection') + '</span></div>';
     html += '<div class="cm-item' + disabledAttr + '" data-action="appendToEntitySection"><span>' + escapeHtml(contextMenuLabels.appendToEntity || 'Add selection to entity') + '</span></div>';
 
@@ -3356,6 +3359,20 @@ contextMenu.addEventListener('click', (e) => {
             if (!halves) break;
             const parsed = JSON.parse(halves);
             sendMessage({ type: 'splitSceneRequested', before: parsed.before, after: parsed.after });
+            break;
+        }
+        case 'cutToDarlings': {
+            // The prose leaves the scene and lands in the bin in one action.
+            // Cutting first and asking the writer to file it afterwards is how
+            // the paragraph gets lost between the two.
+            if (!restoreContextMenuSelection()) break;
+            const kept = contextMenuText;
+            if (!kept || kept.trim().length === 0) break;
+            sendMessage({ type: 'keepDarling', text: kept });
+            document.execCommand('delete');
+            // execCommand fires input on its own, but the deletion is worth
+            // being explicit about: the prose has left the scene.
+            editor.dispatchEvent(new Event('input'));
             break;
         }
         case 'createEntityFromSelection': {

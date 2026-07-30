@@ -1406,7 +1406,8 @@
     "contextMenu": {
       "createEntity": "Create entity from selection",
       "appendToEntity": "Add selection to entity",
-      "splitScene": "Split scene here"
+      "splitScene": "Split scene here",
+      "cutToDarlings": "Cut and keep"
     },
     "linkPrompt": "Link address (leave empty to remove the link)",
     "contextMenu.insertImage": "Insert image"
@@ -3139,5 +3140,13 @@
     "remove": "Remove this link",
     "notePlaceholder": "Why, in your own words",
     "missing": "No longer there"
+  },
+  "darlings": {
+    "title": "Cut and kept",
+    "empty": "Nothing kept yet. Select prose in the editor and choose \"Cut and keep\" to put it here instead of losing it.",
+    "search": "Search what you kept",
+    "copy": "Copy",
+    "remove": "Throw this away",
+    "notePlaceholder": "Why you kept it"
   }
 }

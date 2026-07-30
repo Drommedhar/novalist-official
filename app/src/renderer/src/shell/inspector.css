@@ -492,3 +492,43 @@
   color: var(--nl-text-subtle);
   font-size: var(--nl-font-caption);
 }
+
+/* Prose the writer cut and kept. Shown whole rather than as a preview: a cut
+   paragraph truncated to one line hides the reason it was worth keeping. */
+.darlings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  margin-top: var(--nl-space-lg);
+}
+
+.darling {
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter);
+}
+
+.darling-text {
+  font-size: var(--nl-font-body-sm);
+  max-height: 12rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.darling-meta {
+  align-items: center;
+  color: var(--nl-text-subtle);
+  display: flex;
+  font-size: var(--nl-font-caption);
+  gap: var(--nl-space-tighter);
+}
+
+.darling-source {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

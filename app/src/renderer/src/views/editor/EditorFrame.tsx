@@ -142,7 +142,8 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
       createEntity: t('editor.contextMenu.createEntity'),
       appendToEntity: t('editor.contextMenu.appendToEntity'),
       splitScene: t('editor.contextMenu.splitScene'),
-      insertImage: t('editor.contextMenu.insertImage')
+      insertImage: t('editor.contextMenu.insertImage'),
+      cutToDarlings: t('editor.contextMenu.cutToDarlings')
     })
   )
   editor.setMentionLabels(
@@ -382,6 +383,11 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   // Read the latest controls from inside the (rarely re-created) listener effect.
   const peekRef = useRef(peek)
   peekRef.current = peek
+
+  // Same reason: the listener outlives a scene switch, and a cut filed under
+  // the scene the writer was in twenty minutes ago is a cut they cannot place.
+  const sceneTitleRef = useRef(peekScope.sceneTitle)
+  sceneTitleRef.current = peekScope.sceneTitle
 
   const pushEntityNames = async (editor: EditorWindow): Promise<void> => {
     type Hit = { id: string; name: string; detail: string; imagePath: string | null; type: string }
@@ -648,6 +654,15 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
             const image = await rpc.request<{ path: string; url: string }>('gallery/import', [path])
             setPendingImage(image.path)
           })()
+          break
+        }
+        case 'keepDarling': {
+          // Nothing is logged on this path at any level: the payload is the
+          // writer's prose.
+          void rpc.request('darlings/keep', [
+            String(message.text ?? ''),
+            sceneTitleRef.current ?? ''
+          ])
           break
         }
         case 'requestLink': {

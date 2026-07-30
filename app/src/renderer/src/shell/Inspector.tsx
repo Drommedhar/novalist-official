@@ -4,6 +4,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { rpc } from '../rpc/client'
 import { LinksPanel } from './LinksPanel'
+import { DarlingsPanel } from './DarlingsPanel'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
 import { SuggestionsPanel } from './SuggestionsPanel'
@@ -133,7 +134,14 @@ export function Inspector(): React.JSX.Element {
             <AnnotationsPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
           </>
         )}
-        {inspectorTab === 'inbox' && <InboxPanel />}
+        {inspectorTab === 'inbox' && (
+          <>
+            <InboxPanel />
+            {/* Same tab as the open notes: both are things the writer set down
+                and meant to come back to. */}
+            <DarlingsPanel />
+          </>
+        )}
       </div>
     </aside>
   )
