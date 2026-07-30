@@ -9,6 +9,7 @@ namespace Novalist.Backend.Tests;
 /// dropped themes and interface locales, and the folder paths behind the
 /// "open folder" buttons in Settings.
 /// </summary>
+[Collection(LexiconStaticsCollection.Name)]
 public sealed class AppearanceRpcTests : IDisposable
 {
     private readonly TempDir _root = new();

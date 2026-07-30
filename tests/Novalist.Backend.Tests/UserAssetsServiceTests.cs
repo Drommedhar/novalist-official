@@ -10,6 +10,7 @@ namespace Novalist.Backend.Tests;
 /// arbitrary CSS through a declaration, and the degrade-to-empty behaviour that
 /// keeps one unusable file from costing the user the rest.
 /// </summary>
+[Collection(LexiconStaticsCollection.Name)]
 public sealed class UserAssetsServiceTests : IDisposable
 {
     private readonly TempDir _root = new();

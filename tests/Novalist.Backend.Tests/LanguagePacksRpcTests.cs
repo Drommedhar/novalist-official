@@ -14,6 +14,7 @@ namespace Novalist.Backend.Tests;
 /// Everything past that is a dropped-in file, so the surface that reports the
 /// gap honestly and lets it be filled without a restart is the feature.
 /// </summary>
+[Collection(LexiconStaticsCollection.Name)]
 public sealed class LanguagePacksRpcTests : IDisposable
 {
     private readonly string _root;
