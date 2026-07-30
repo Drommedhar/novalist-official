@@ -11,6 +11,7 @@ public sealed class LibraryRpc
 {
     private readonly EntityService _entities;
     private readonly ResearchService _research;
+    private readonly PictureCatalogService _catalog;
     private readonly Workspace _workspace;
 
     private static readonly HashSet<string> ImageExtensions =
@@ -29,6 +30,7 @@ public sealed class LibraryRpc
         _workspace = workspace;
         _entities = new EntityService(workspace.Projects);
         _research = new ResearchService(workspace.Projects, workspace.FileService);
+        _catalog = new PictureCatalogService(workspace.Projects, workspace.FileService);
     }
 
     [JsonRpcMethod("gallery/list")]
@@ -53,6 +55,50 @@ public sealed class LibraryRpc
     /// The project-relative path of the active book's folder, which is what a
     /// book-relative image path hangs off when the editor resolves one.
     /// </summary>
+    /// <summary>
+    /// The pictures, with whatever the writer has filed them under.
+    ///
+    /// The Gallery could search file names and nothing else, so four hundred
+    /// references were navigable only by whatever the browser called them when
+    /// they were saved.
+    /// </summary>
+    [JsonRpcMethod("gallery/catalog")]
+    public async Task<GalleryCatalogDto> CatalogAsync()
+    {
+        var catalog = await _catalog.LoadAsync();
+        var filed = catalog.Entries.ToDictionary(
+            e => e.Path, StringComparer.OrdinalIgnoreCase);
+
+        return new GalleryCatalogDto(
+            [.. _entities.GetProjectImages().Select(path =>
+            {
+                filed.TryGetValue(path, out var entry);
+                return new GalleryFiledImageDto(
+                    path,
+                    _entities.ResolveProjectRelativeImage(path),
+                    entry?.Collection ?? string.Empty,
+                    [.. entry?.Tags ?? []]);
+            })],
+            [.. PictureCatalogService.Collections(catalog)],
+            [.. PictureCatalogService.Tags(catalog)]);
+    }
+
+    /// <summary>Files a picture into a collection, or out of one when empty.</summary>
+    [JsonRpcMethod("gallery/setCollection")]
+    public async Task<GalleryCatalogDto> SetCollectionAsync(string imagePath, string? collection)
+    {
+        await _catalog.SetCollectionAsync(imagePath, collection);
+        return await CatalogAsync();
+    }
+
+    /// <summary>Replaces what a picture is tagged with.</summary>
+    [JsonRpcMethod("gallery/setTags")]
+    public async Task<GalleryCatalogDto> SetTagsAsync(string imagePath, string[]? tags)
+    {
+        await _catalog.SetTagsAsync(imagePath, tags);
+        return await CatalogAsync();
+    }
+
     [JsonRpcMethod("gallery/base")]
     public string ImageBase()
     {
@@ -333,3 +379,15 @@ public sealed record ResearchItemDto(
     IReadOnlyList<string> RelatedIds);
 
 public sealed record GalleryImageDto(string Path, string Url);
+
+/// <summary>A picture with whatever the writer has filed it under.</summary>
+public sealed record GalleryFiledImageDto(
+    string Path, string Url, string Collection, string[] Tags);
+
+/// <summary>
+/// The pictures and the vocabulary over them. The collection and tag lists
+/// come back with the images so a picker can offer what is already in use
+/// rather than asking the writer to remember how they spelled it last time.
+/// </summary>
+public sealed record GalleryCatalogDto(
+    GalleryFiledImageDto[] Images, string[] Collections, string[] Tags);

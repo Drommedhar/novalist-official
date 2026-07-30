@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LayoutGrid, List } from 'lucide-react'
+import { FolderPlus, ImagePlus, LayoutGrid, List, Tag } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import './library.css'
@@ -8,6 +8,15 @@ import './library.css'
 interface GalleryImage {
   path: string
   url: string
+  collection: string
+  tags: string[]
+}
+
+/** The pictures plus the vocabulary already in use over them. */
+interface GalleryCatalog {
+  images: GalleryImage[]
+  collections: string[]
+  tags: string[]
 }
 
 const baseName = (p: string): string => p.split('/').pop() ?? p
@@ -21,20 +30,60 @@ const src = (url: string): string => `novalist-project://nl/${encodeURI(url)}`
 export function GalleryView(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
-  const [images, setImages] = useState<GalleryImage[]>([])
+  const [catalog, setCatalog] = useState<GalleryCatalog>({
+    images: [],
+    collections: [],
+    tags: []
+  })
+  const images = catalog.images
   const [search, setSearch] = useState('')
+  // Empty means every picture, which is what the Gallery always showed.
+  const [collection, setCollection] = useState('')
+  const [tag, setTag] = useState('')
   const [listView, setListView] = useState(false)
   const [lightbox, setLightbox] = useState<GalleryImage | null>(null)
   const [menu, setMenu] = useState<{ x: number; y: number; img: GalleryImage } | null>(null)
 
+  const load = (): void => {
+    void rpc.request<GalleryCatalog>('gallery/catalog').then(setCatalog)
+  }
+
   useEffect(() => {
     if (mainView !== 'gallery') return
-    void rpc.request<GalleryImage[]>('gallery/list').then(setImages)
+    load()
   }, [mainView])
 
   const query = search.trim().toLowerCase()
-  const filtered =
-    query.length === 0 ? images : images.filter((img) => img.path.toLowerCase().includes(query))
+  const filtered = images.filter(
+    (img) =>
+      (query.length === 0 || img.path.toLowerCase().includes(query)) &&
+      (collection.length === 0 || img.collection === collection) &&
+      (tag.length === 0 || img.tags.includes(tag))
+  )
+
+  /* Copied in rather than pointed at, the same as every other import: a path
+     into somebody's Downloads folder is a file that will be gone by the time
+     anyone follows it. */
+  const importImages = (): void => {
+    void window.novalist.pickFile(t('imageGallery.import'), 'images').then((path) => {
+      if (!path) return
+      void rpc.request('gallery/import', [path]).then(load)
+    })
+  }
+
+  const fileInto = (img: GalleryImage): void => {
+    const next = window.prompt(t('imageGallery.collectionPrompt'), img.collection)
+    if (next === null) return
+    void rpc.request<GalleryCatalog>('gallery/setCollection', [img.path, next]).then(setCatalog)
+  }
+
+  const retag = (img: GalleryImage): void => {
+    const next = window.prompt(t('imageGallery.tagsPrompt'), img.tags.join(', '))
+    if (next === null) return
+    void rpc
+      .request<GalleryCatalog>('gallery/setTags', [img.path, next.split(',')])
+      .then(setCatalog)
+  }
 
   const openMenu = (e: React.MouseEvent, img: GalleryImage): void => {
     e.preventDefault()
@@ -48,7 +97,9 @@ export function GalleryView(): React.JSX.Element {
       run: () => window.novalist.copyText(`![${stem(menu.img.path)}](${menu.img.path})`)
     },
     { label: t('imageGallery.openExternally'), run: () => void window.novalist.openExternal(menu.img.url) },
-    { label: t('imageGallery.openInExplorer'), run: () => void window.novalist.revealPath(menu.img.url) }
+    { label: t('imageGallery.openInExplorer'), run: () => void window.novalist.revealPath(menu.img.url) },
+    { label: t('imageGallery.fileInto'), run: () => fileInto(menu.img) },
+    { label: t('imageGallery.retag'), run: () => retag(menu.img) }
   ]
 
   return (
@@ -60,6 +111,41 @@ export function GalleryView(): React.JSX.Element {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+        {/* Only offered once something is filed. A picker with one entry
+            reading "everything" is a control that cannot do anything. */}
+        {catalog.collections.length > 0 && (
+          <select
+            className="dialog-input gallery-filter"
+            aria-label={t('imageGallery.collection')}
+            value={collection}
+            onChange={(e) => setCollection(e.target.value)}
+          >
+            <option value="">{t('imageGallery.allCollections')}</option>
+            {catalog.collections.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        )}
+        {catalog.tags.length > 0 && (
+          <select
+            className="dialog-input gallery-filter"
+            aria-label={t('imageGallery.tag')}
+            value={tag}
+            onChange={(e) => setTag(e.target.value)}
+          >
+            <option value="">{t('imageGallery.allTags')}</option>
+            {catalog.tags.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        )}
+        <button className="btn-secondary" onClick={importImages}>
+          <ImagePlus size={14} strokeWidth={2} /> {t('imageGallery.import')}
+        </button>
         <div className="toolbar-spacer" />
         <div className="gallery-viewtoggle">
           <button
@@ -104,6 +190,20 @@ export function GalleryView(): React.JSX.Element {
               <span className="gallery-list-text">
                 <span className="gallery-list-name">{stem(img.path)}</span>
                 <span className="gallery-list-path">{img.path}</span>
+                {(img.collection || img.tags.length > 0) && (
+                  <span className="gallery-filing">
+                    {img.collection && (
+                      <span className="gallery-chip">
+                        <FolderPlus size={11} strokeWidth={2} /> {img.collection}
+                      </span>
+                    )}
+                    {img.tags.map((name) => (
+                      <span key={name} className="gallery-chip">
+                        <Tag size={11} strokeWidth={2} /> {name}
+                      </span>
+                    ))}
+                  </span>
+                )}
               </span>
             </button>
           ))}

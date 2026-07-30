@@ -1841,7 +1841,16 @@
     "copyMarkdown": "Copy as Markdown",
     "openExternally": "Open externally",
     "openInExplorer": "Open in file explorer",
-    "countOf": "{{shown}} of {{total}}"
+    "countOf": "{{shown}} of {{total}}",
+    "import": "Import pictures",
+    "collection": "Collection",
+    "allCollections": "Every collection",
+    "tag": "Tag",
+    "allTags": "Every tag",
+    "fileInto": "File into a collection...",
+    "retag": "Tags...",
+    "collectionPrompt": "Which collection does this belong in? Leave it empty for none.",
+    "tagsPrompt": "Tags, separated by commas."
   },
   "git": {
     "title": "Version Control",

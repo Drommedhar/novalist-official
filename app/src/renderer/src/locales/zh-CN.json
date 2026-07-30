@@ -1874,7 +1874,16 @@
     "copyMarkdown": "复制为 Markdown 格式",
     "openExternally": "在外部打开",
     "openInExplorer": "在文件资源管理器中打开",
-    "countOf": "{{shown}} / {{total}}"
+    "countOf": "{{shown}} / {{total}}",
+    "import": "导入图片",
+    "collection": "合集",
+    "allCollections": "全部合集",
+    "tag": "标签",
+    "allTags": "全部标签",
+    "fileInto": "归入合集…",
+    "retag": "标签…",
+    "collectionPrompt": "这张图片属于哪个合集？留空表示不归入任何合集。",
+    "tagsPrompt": "标签，用逗号分隔。"
   },
   "git": {
     "title": "版本控制",

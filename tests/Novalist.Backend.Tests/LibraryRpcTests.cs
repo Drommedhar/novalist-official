@@ -315,4 +315,65 @@ public sealed class LibraryRpcTests : IDisposable
             () => _rpc.FileScratchpadAsync("no-such-note"));
     }
 
+    // ─── Collections and tags over the pictures ──────────────────────
+
+    /// <summary>A picture actually in the project, since filing needs one.</summary>
+    private async Task<string> ImportPictureAsync(string name)
+    {
+        var source = Path.Combine(_root, name);
+        await File.WriteAllBytesAsync(source, [137, 80, 78, 71]);
+        return (await _rpc.ImportImageAsync(source)).Path;
+    }
+
+    [Fact]
+    public async Task Catalog_ListsEveryPictureWithNothingFiled()
+    {
+        await ImportPictureAsync("pic.png");
+
+        var catalog = await _rpc.CatalogAsync();
+
+        var image = Assert.Single(catalog.Images);
+        Assert.Equal(string.Empty, image.Collection);
+        Assert.Empty(image.Tags);
+        Assert.Empty(catalog.Collections);
+        Assert.Empty(catalog.Tags);
+    }
+
+    [Fact]
+    public async Task Catalog_CarriesTheFilingBackWithThePicture()
+    {
+        var path = await ImportPictureAsync("pic.png");
+
+        await _rpc.SetCollectionAsync(path, "References");
+        var catalog = await _rpc.SetTagsAsync(path, ["coast", "ruins"]);
+
+        var image = Assert.Single(catalog.Images);
+        Assert.Equal("References", image.Collection);
+        Assert.Equal(["coast", "ruins"], image.Tags);
+        // The vocabulary rides along so a picker offers what is already in use
+        // rather than asking how it was spelled last time.
+        Assert.Equal(["References"], catalog.Collections);
+        Assert.Equal(["coast", "ruins"], catalog.Tags);
+    }
+
+    [Fact]
+    public async Task Catalog_FilingSurvivesReopeningTheProject()
+    {
+        var path = await ImportPictureAsync("pic.png");
+        await _rpc.SetCollectionAsync(path, "References");
+
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+
+        Assert.Equal("References", Assert.Single((await _rpc.CatalogAsync()).Images).Collection);
+    }
+
+    [Fact]
+    public async Task Catalog_FilingAPictureThatIsGoneShowsNothing()
+    {
+        await _rpc.SetCollectionAsync("Images/never-existed.png", "References");
+
+        // The catalogue is keyed on the pictures that are actually there, so a
+        // stale row does not conjure a picture into the Gallery.
+        Assert.Empty((await _rpc.CatalogAsync()).Images);
+    }
 }

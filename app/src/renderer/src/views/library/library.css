@@ -493,3 +493,27 @@
   font-size: var(--nl-font-caption);
   margin-top: var(--nl-space-sm);
 }
+
+/* What a picture is filed under, on its row. Chips rather than a line of text
+   so a picture with a collection and four tags still scans as one row. */
+.gallery-filter {
+  width: auto;
+}
+
+.gallery-filing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-tightest);
+}
+
+.gallery-chip {
+  align-items: center;
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-pill);
+  color: var(--nl-text-dim);
+  display: inline-flex;
+  font-size: var(--nl-font-caption);
+  gap: var(--nl-space-tightest);
+  padding: 0 var(--nl-space-tighter);
+}

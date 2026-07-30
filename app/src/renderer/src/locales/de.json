@@ -1442,7 +1442,16 @@
     "copyMarkdown": "Als Markdown kopieren",
     "openExternally": "Extern öffnen",
     "openInExplorer": "Im Datei-Explorer öffnen",
-    "countOf": "{{shown}} von {{total}}"
+    "countOf": "{{shown}} von {{total}}",
+    "import": "Bilder importieren",
+    "collection": "Sammlung",
+    "allCollections": "Alle Sammlungen",
+    "tag": "Schlagwort",
+    "allTags": "Alle Schlagwörter",
+    "fileInto": "In Sammlung ablegen …",
+    "retag": "Schlagwörter …",
+    "collectionPrompt": "In welche Sammlung gehört das Bild? Leer lassen für keine.",
+    "tagsPrompt": "Schlagwörter, durch Kommas getrennt."
   },
   "git": {
     "title": "Versionskontrolle",
