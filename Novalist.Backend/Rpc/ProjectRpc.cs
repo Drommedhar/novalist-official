@@ -104,7 +104,7 @@ public sealed class ProjectRpc
     /// </summary>
     [JsonRpcMethod("project/setChapterOpener")]
     public async Task<ProjectStateDto> SetChapterOpenerAsync(
-        string chapterGuid, string? subtitle, bool hideHeading)
+        string chapterGuid, string? subtitle, bool hideHeading, string? sectionTypeKey = null)
     {
         var chapter = _workspace.Projects.GetChaptersOrdered()
             .FirstOrDefault(c => c.Guid == chapterGuid)
@@ -112,9 +112,25 @@ public sealed class ProjectRpc
 
         chapter.Subtitle = string.IsNullOrWhiteSpace(subtitle) ? null : subtitle.Trim();
         chapter.HideHeading = hideHeading;
+        // Null from an older caller leaves the type alone rather than resetting
+        // a prologue to an ordinary chapter behind the writer's back.
+        if (sectionTypeKey != null)
+            chapter.SectionTypeKey = sectionTypeKey.Trim();
         await _workspace.Projects.SaveProjectAsync();
         return _workspace.BuildState();
     }
+
+    /// <summary>
+    /// Every section type a chapter can be, the book's own first.
+    ///
+    /// A prologue used to be a chapter, so it was numbered as one and the first
+    /// real chapter became Chapter Two.
+    /// </summary>
+    [JsonRpcMethod("project/sectionTypes")]
+    public SectionTypeDto[] SectionTypes()
+        => [.. Core.Models.SectionTypes
+            .All(_workspace.Projects.ActiveBook?.SectionTypes)
+            .Select(t => new SectionTypeDto(t.Key, t.Name, t.Numbered))];
 
     [JsonRpcMethod("project/renameScene")]
     public async Task<ProjectStateDto> RenameSceneAsync(string chapterGuid, string sceneId, string newTitle)
@@ -289,3 +305,6 @@ public sealed record SceneEditDto(string Pov, string DateStart, string DateEnd, 
 /// <summary>One chapter in the trash, with how many scenes came with it.</summary>
 public sealed record TrashedChapterDto(
     string Guid, string Title, string DeletedAt, int SceneCount);
+
+/// <summary>What a chapter is, as opposed to what it is called.</summary>
+public sealed record SectionTypeDto(string Key, string Name, bool Numbered);

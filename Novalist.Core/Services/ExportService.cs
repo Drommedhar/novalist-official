@@ -435,9 +435,20 @@ public partial class ExportService
 
         var result = new List<ChapterExportContent>();
         var preset = options.ResolvePreset();
+        // Counts only the sections that carry a number.
+        var numbered = 0;
 
         foreach (var chapter in chapters)
         {
+            // A prologue is not Chapter One, and the chapter after it is. The
+            // count walks past the sections standing outside it rather than
+            // being the position in the list. Resolved before the scenes are
+            // compiled, so a placeholder in the prose reads the same number
+            // the heading does.
+            var sectionType = SectionTypes.Resolve(
+                chapter.SectionTypeKey, _projectService.ActiveBook?.SectionTypes);
+            if (sectionType.Numbered) numbered++;
+
             var scenes = _projectService.GetScenesForChapter(chapter.Guid)
                 // Three ways a scene stays out of the book: it is not in the
                 // book at all, the writer held it back from exports, or it is
@@ -470,7 +481,7 @@ public partial class ExportService
                 // were documented, in the token table, and populated nowhere.
                 var sceneTokens = tokens with
                 {
-                    ChapterNumber = result.Count + 1,
+                    ChapterNumber = numbered,
                     ChapterTitle = chapter.Title,
                     SceneTitle = scene.Title,
                     Act = chapter.Act ?? string.Empty
@@ -502,7 +513,7 @@ public partial class ExportService
 
             var chapterTokens = tokens with
             {
-                ChapterNumber = result.Count + 1,
+                ChapterNumber = numbered,
                 ChapterTitle = chapter.Title,
                 Act = chapter.Act ?? string.Empty
             };
@@ -515,7 +526,7 @@ public partial class ExportService
                 // Built here so every writer prints the same heading and a
                 // placeholder in a heading format resolves in all of them.
                 Heading = ExportTokens.Resolve(
-                    preset.ChapterHeading(result.Count + 1, title), chapterTokens),
+                    preset.ChapterHeading(numbered, title, sectionType), chapterTokens),
                 HideHeading = chapter.HideHeading,
                 Scenes = sceneContents
             });

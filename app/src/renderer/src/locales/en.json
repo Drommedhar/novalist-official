@@ -1473,7 +1473,9 @@
     "act": "Act",
     "actWatermark": "e.g. Act I (optional)",
     "sceneTemplate": "Start from",
-    "sceneTemplateNone": "A blank scene"
+    "sceneTemplateNone": "A blank scene",
+    "sectionType": "What this is",
+    "sectionTypeUnnumbered": "not numbered"
   },
   "book": {
     "pickerTooltip": "Switch book",

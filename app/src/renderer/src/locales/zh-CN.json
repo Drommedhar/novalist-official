@@ -1506,7 +1506,9 @@
     "act": "幕",
     "actWatermark": "例如：第一幕（可选）",
     "sceneTemplate": "以此为起点",
-    "sceneTemplateNone": "空白场景"
+    "sceneTemplateNone": "空白场景",
+    "sectionType": "这是什么",
+    "sectionTypeUnnumbered": "不编号"
   },
   "book": {
     "pickerTooltip": "切换书籍",

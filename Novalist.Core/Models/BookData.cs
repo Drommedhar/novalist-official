@@ -113,6 +113,13 @@ public class BookData
     [JsonPropertyName("submissions")]
     public List<Submission> Submissions { get; set; } = [];
 
+    /// <summary>
+    /// Section types this book defines, beyond the built-ins. Empty means the
+    /// built-ins alone, which is what every book had before types existed.
+    /// </summary>
+    [JsonPropertyName("sectionTypes")]
+    public List<SectionType> SectionTypes { get; set; } = [];
+
     /// <summary>Optional per-act metadata (date ranges etc.). Acts referenced
     /// by name from <see cref="ChapterData.Act"/>.</summary>
     [JsonPropertyName("acts")]

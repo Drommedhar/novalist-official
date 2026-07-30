@@ -28,6 +28,41 @@ public sealed record ExportPreset
     /// says so with placeholders rather than being told it cannot.
     /// </summary>
     public string RunningHead { get; init; } = string.Empty;
+
+    /// <summary>
+    /// How this layout sets each section type. Empty means every section is a
+    /// chapter, which is what every layout did before types existed.
+    ///
+    /// This is what lets one draft compile to a paperback, an ebook and a
+    /// submission without editing the draft: the layout decides what a
+    /// prologue looks like, not the chapter.
+    /// </summary>
+    public List<SectionLayout> SectionLayouts { get; init; } = [];
+
+    /// <summary>The heading for one chapter of a given type.</summary>
+    public string ChapterHeading(int number, string title, SectionType type)
+    {
+        var layout = SectionLayouts.FirstOrDefault(
+            l => l.TypeKey.Equals(type.Key, StringComparison.OrdinalIgnoreCase));
+
+        var format = layout?.TitleFormat;
+        if (string.IsNullOrWhiteSpace(format))
+            // A type nobody described is set the way chapters are, except that
+            // an unnumbered one drops the number rather than printing a blank.
+            format = type.Numbered ? ChapterTitleFormat : "{title}";
+        if (string.IsNullOrWhiteSpace(format)) format = "{title}";
+
+        var heading = format
+            .Replace("{number}", type.Numbered
+                ? FormatNumber(number, layout?.NumberStyle ?? ChapterNumberStyle)
+                : string.Empty)
+            .Replace("{title}", title ?? string.Empty)
+            .Trim();
+
+        return (layout?.Uppercase ?? ChapterHeadingUppercase)
+            ? heading.ToUpperInvariant()
+            : heading;
+    }
     public bool DoubleSpaced { get; init; }
     public bool ShunnHeader { get; init; }
 

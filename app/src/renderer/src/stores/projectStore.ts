@@ -29,6 +29,8 @@ export interface ChapterDto {
   subtitle: string | null
   /** True when the chapter opens straight into its prose. */
   hideHeading: boolean
+  /** What the chapter is - a chapter, a prologue, a part. Empty is a chapter. */
+  sectionTypeKey: string
   /** What the chapter is for, in your own words. Never printed. */
   description: string | null
   guid: string

@@ -224,6 +224,7 @@ public sealed partial class Workspace : IDisposable
                 c.Subtitle,
                 c.HideHeading,
                 c.Description,
+                c.SectionTypeKey,
                 ScenesOf(c.Guid)))
             .ToArray();
 
@@ -478,6 +479,9 @@ public sealed record ChapterDto(
     /// <summary>What the chapter is for, in the writer's words. Never printed -
     /// the subtitle is what a reader sees, this is the writer's own note.</summary>
     string? Description,
+    /// <summary>What the chapter is - a chapter, a prologue, a part. Empty is
+    /// an ordinary chapter, which is what every chapter was before types.</summary>
+    string SectionTypeKey,
     IReadOnlyList<SceneDto> Scenes);
 
 public sealed record SceneDto(

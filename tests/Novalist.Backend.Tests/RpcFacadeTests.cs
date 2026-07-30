@@ -257,6 +257,23 @@ public sealed class RpcFacadeTests : IAsyncDisposable
             "project/setChapterOpener", chapter.Guid, "   ", false);
         Assert.Null(cleared.Chapters.Single().Subtitle);
 
+        // What the chapter is, as opposed to what it is called. A prologue was
+        // a chapter, so it was numbered as one and the first real chapter came
+        // out as Chapter Two.
+        var typed = await InvokeAsync<ProjectStateDto>(
+            "project/setChapterOpener", chapter.Guid, null, false, "prologue");
+        Assert.Equal("prologue", typed.Chapters.Single().SectionTypeKey);
+
+        // An older caller passing no type leaves it alone rather than turning
+        // a prologue back into an ordinary chapter behind the writer's back.
+        var untouched = await InvokeAsync<ProjectStateDto>(
+            "project/setChapterOpener", chapter.Guid, null, false);
+        Assert.Equal("prologue", untouched.Chapters.Single().SectionTypeKey);
+
+        var types = await InvokeAsync<SectionTypeDto[]>("project/sectionTypes");
+        Assert.Contains(types, t => t.Key == "chapter" && t.Numbered);
+        Assert.Contains(types, t => t.Key == "prologue" && !t.Numbered);
+
         var sceneDeleted = await InvokeAsync<ProjectStateDto>(
             "project/deleteScene", chapter.Guid, scene.Id);
         Assert.Empty(sceneDeleted.Chapters.Single().Scenes);

@@ -18,6 +18,13 @@ const CHAPTER_STATUSES: { value: string; labelKey: string }[] = [
 
 const DEFAULT_STATUS = 'Outline'
 
+/** What a chapter is, as opposed to what it is called. */
+interface SectionType {
+  key: string
+  name: string
+  numbered: boolean
+}
+
 interface ChapterDialogProps {
   /** Present = edit an existing chapter; absent = create a new one. */
   chapter?: ChapterDto | null
@@ -34,6 +41,15 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
   const [act, setAct] = useState(chapter?.act ?? '')
   const [subtitle, setSubtitle] = useState(chapter?.subtitle ?? '')
   const [hideHeading, setHideHeading] = useState(chapter?.hideHeading ?? false)
+  const [sectionType, setSectionType] = useState(chapter?.sectionTypeKey ?? '')
+  const [sectionTypes, setSectionTypes] = useState<SectionType[]>([])
+
+  useEffect(() => {
+    void rpc
+      .request<SectionType[]>('project/sectionTypes')
+      .then(setSectionTypes)
+      .catch(() => setSectionTypes([]))
+  }, [])
   const [busy, setBusy] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
@@ -63,12 +79,17 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
         if (name !== chapter.title) await store.renameChapter(chapter.guid, name)
         if (status !== chapter.status) await store.setChapterStatus(chapter.guid, status)
         if (act.trim() !== chapter.act) await store.setChapterAct(chapter.guid, act.trim())
-        if (subtitle.trim() !== (chapter.subtitle ?? '') || hideHeading !== chapter.hideHeading) {
+        if (
+          subtitle.trim() !== (chapter.subtitle ?? '') ||
+          hideHeading !== chapter.hideHeading ||
+          sectionType !== (chapter.sectionTypeKey ?? '')
+        ) {
           store.applyState(
             await rpc.request<ProjectStateDto>('project/setChapterOpener', [
               chapter.guid,
               subtitle.trim(),
-              hideHeading
+              hideHeading,
+              sectionType
             ])
           )
         }
@@ -122,6 +143,23 @@ export function ChapterDialog({ chapter, onClose }: ChapterDialogProps): React.J
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && void submit()}
         />
+
+        {/* What the chapter is, as opposed to what it is called. A prologue
+            used to be a chapter, so it was numbered as one and the first real
+            chapter became Chapter Two. */}
+        <label className="inspector-label">{t('dialog.sectionType')}</label>
+        <select
+          className="dialog-input"
+          value={sectionType}
+          onChange={(e) => setSectionType(e.target.value)}
+        >
+          {sectionTypes.map((type) => (
+            <option key={type.key} value={type.key}>
+              {type.name}
+              {type.numbered ? '' : ` (${t('dialog.sectionTypeUnnumbered')})`}
+            </option>
+          ))}
+        </select>
 
         <label className="inspector-label">{t('dialog.status')}</label>
         <select

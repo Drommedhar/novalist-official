@@ -70,6 +70,19 @@ public class ChapterData
     public bool HideHeading { get; set; }
 
     /// <summary>
+    /// What this chapter is - a chapter, a prologue, a part - as opposed to
+    /// what it is called. Empty is an ordinary chapter.
+    ///
+    /// A prologue used to be a chapter, so it was numbered as one and the
+    /// first real chapter became Chapter Two. The only fix was hiding the
+    /// heading and typing "Prologue" into the prose, where no contents list
+    /// could see it.
+    /// </summary>
+    [JsonPropertyName("sectionTypeKey")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string SectionTypeKey { get; set; } = string.Empty;
+
+    /// <summary>
     /// What this chapter is for, in the writer's own words. Never printed:
     /// a subtitle is what the reader sees, this is what the writer left
     /// themselves - the two are different notes and were the same field.

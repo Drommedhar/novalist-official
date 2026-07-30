@@ -953,7 +953,9 @@
     "act": "Akt",
     "actWatermark": "z. B. Akt I (optional)",
     "sceneTemplate": "Ausgehen von",
-    "sceneTemplateNone": "Einer leeren Szene"
+    "sceneTemplateNone": "Einer leeren Szene",
+    "sectionType": "Was das ist",
+    "sectionTypeUnnumbered": "ohne Nummer"
   },
   "book": {
     "pickerTooltip": "Buch wechseln",

@@ -167,6 +167,22 @@ Dragging one of the selected scenes in the binder carries the whole selection wi
 
 Dragging a selected scene on the Calendar shifts the entire selection by the same number of days, keeping the gaps between the scenes intact.
 
+## What a chapter is
+
+A chapter carries a **section type** alongside its title, set in the chapter dialog. It answers a different question from the title: not what this is *called* but what it *is*.
+
+Novalist had one ladder — book, draft, chapter, scene — so a prologue was a chapter. It was numbered as one, which meant the first real chapter came out as **Chapter Two**. The only way round it was to hide the heading and type "Prologue" into the prose, where no table of contents could see it.
+
+Five types ship: **Chapter** (numbered) plus **Prologue**, **Epilogue**, **Interlude**, and **Part** (not numbered). The picker marks which are which.
+
+- **Numbering skips the unnumbered ones.** A prologue before your first chapter leaves that chapter as Chapter 1.
+- The `<$chapternumber>` [placeholder](20-export.md#placeholders) in your prose reads the same number the heading does.
+- An **export layout can say how each type is set** — "Prologue — {title}" for one book, plain "{title}" for another — so one draft compiles to a paperback, an ebook and a submission without editing the draft. See [Export layouts](20-export.md#export-layouts).
+- A type nobody described in the layout is set the way chapters are, except that an unnumbered one **drops the number** rather than printing "Chapter : Before".
+- A chapter whose type was deleted reads as an ordinary chapter. A chapter vanishing from the export because of a deleted type is the worst outcome available.
+
+Every book that existed before section types has none set, and exports exactly as it did.
+
 ## Archiving scenes
 
 Archiving removes a scene from the manuscript without deleting its text — useful for cut scenes you are not ready to throw away.
