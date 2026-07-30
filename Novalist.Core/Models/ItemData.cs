@@ -53,6 +53,16 @@ public class ItemData : IEntityData
     [JsonPropertyName("images")]
     public List<EntityImage> Images { get; set; } = [];
 
+    /// <summary>
+    /// Files kept with this entry: a recording, a scan, a PDF, a link.
+    ///
+    /// Entries held images and nothing else, so an interview recording or a
+    /// deed had to live as a Research item linked back to here - stored and
+    /// surfaced somewhere other than the entry it belongs to.
+    /// </summary>
+    [JsonPropertyName("attachments")]
+    public List<EntityAttachment> Attachments { get; set; } = [];
+
     [JsonPropertyName("customProperties")]
     public Dictionary<string, string> CustomProperties { get; set; } = [];
 

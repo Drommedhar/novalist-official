@@ -3101,5 +3101,13 @@
     "researchBody": "笔记、抓取的网页、PDF 与图片，放在书旁边，而不是放在你终将关闭的浏览器里。",
     "exportTitle": "导出",
     "exportBody": "EPUB、DOCX、PDF 等，版式规整——包括代理商会指名索要的投稿格式。书从这里出门。"
+  },
+  "attachments": {
+    "title": "文件与链接",
+    "name": "名称",
+    "add": "附加文件",
+    "open": "打开",
+    "remove": "从条目移除",
+    "linkPlaceholder": "或粘贴网址后按回车"
   }
 }

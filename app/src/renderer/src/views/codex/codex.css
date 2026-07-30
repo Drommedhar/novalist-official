@@ -80,3 +80,40 @@
   border-color: var(--nl-accent);
   outline: none;
 }
+
+/* Files kept with an entry. One row each, the name editable in place, so ten
+   of them still read as a list rather than as ten little forms. */
+.entity-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-md);
+}
+
+.attachment-row {
+  align-items: center;
+  display: flex;
+  gap: var(--nl-space-tighter);
+}
+
+.attachment-icon {
+  color: var(--nl-text-dim);
+  flex: 0 0 auto;
+}
+
+.attachment-name {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text);
+  flex: 1 1 auto;
+  font: inherit;
+  min-width: 0;
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+}
+
+.attachment-name:focus {
+  background: var(--nl-surface-card);
+  border-color: var(--nl-accent);
+  outline: none;
+}

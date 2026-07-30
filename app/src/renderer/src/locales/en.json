@@ -3061,5 +3061,13 @@
     "researchBody": "Notes, pages you captured, PDFs and images, kept beside the book instead of in a browser you will close.",
     "exportTitle": "Export",
     "exportBody": "EPUB, DOCX, PDF and more, laid out properly - including the submission formats agents ask for by name. This is where the book leaves."
+  },
+  "attachments": {
+    "title": "Files and links",
+    "name": "What it is called",
+    "add": "Attach a file",
+    "open": "Open",
+    "remove": "Take this off the entry",
+    "linkPlaceholder": "or paste a web address and press Enter"
   }
 }

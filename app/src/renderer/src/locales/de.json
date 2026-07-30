@@ -3069,5 +3069,13 @@
     "researchBody": "Notizen, gesicherte Seiten, PDFs und Bilder - neben dem Buch statt in einem Browser, den Sie schließen werden.",
     "exportTitle": "Export",
     "exportBody": "EPUB, DOCX, PDF und mehr, ordentlich gesetzt - samt Normseiten, nach denen Agenturen namentlich fragen. Hier verlässt das Buch das Haus."
+  },
+  "attachments": {
+    "title": "Dateien und Links",
+    "name": "Bezeichnung",
+    "add": "Datei anhängen",
+    "open": "Öffnen",
+    "remove": "Vom Eintrag entfernen",
+    "linkPlaceholder": "oder eine Webadresse einfügen und Enter drücken"
   }
 }

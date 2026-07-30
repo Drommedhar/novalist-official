@@ -126,6 +126,19 @@ The formatting is shown in the box as you write: a heading looks like a heading,
 
 Underneath, the text is still plain **Markdown**. Hiding the marks changes only how the box draws them, never what is saved: entries are stored exactly as written, stay readable in any text editor, and render the same way in the [Wiki](30-wiki.md) and in the editor's focus peek card.
 
+## Files and links on an entry
+
+An entry could hold pictures and nothing else. A recorded interview with the person a character is based on, the deed that settles who owns the house, a clip of how a name is pronounced — all of it had to be filed as a Research item and linked back, stored and shown somewhere other than the entry it is about.
+
+**Files and links** sits under the pictures on every entry, of every type including your own.
+
+- **Attach a file** copies it into the project's `Attachments` folder. Copied rather than pointed at: a path into your Downloads folder is a file that will be gone by the time anyone follows it, and a project has to survive being zipped or moved to another machine.
+- **Paste a web address** and press Enter to attach a link. Nothing is copied — a link is a link, and claiming to have saved the page would be a promise Novalist cannot keep.
+- The **kind** is read from the file name, so a recording shows as a recording without your saying so. An unrecognised format still attaches and still opens; only the icon is less specific.
+- Click a name to rename it. **Open** hands the file to whatever your machine uses for that kind, and a link to your browser.
+- The same file attached twice is stored once — matched on contents rather than name, because a browser saves the third copy as `deed (2).pdf`. Two *different* files that happen to share a name both survive; the second is suffixed rather than overwriting the first.
+- **Removing** an attachment takes it off the entry and leaves the file in the project. Another entry may point at the same one, and deleting your only copy of a recording because you tidied a Codex entry is not a trade worth making.
+
 ## Unlinked names
 
 Novalist recognises a bare Codex name in your prose — the Wiki links it, the hover card shows it — but only a **real mention**, the kind the `@` picker inserts, counts towards appearances, co-appearance figures and the mention matrix. An imported manuscript, or one typed straight through, therefore under-reports every one of them.

@@ -54,4 +54,14 @@ public interface IEntityService
     Task<string> ImportImageAsync(string sourcePath);
     List<string> GetProjectImages();
     string GetImageFullPath(string relativePath);
+
+    /// <summary>
+    /// Copies a file into the project's attachment folder and returns its
+    /// book-relative path. Copied rather than referenced, so a project stays
+    /// portable when it is zipped or moved.
+    /// </summary>
+    Task<string> ImportAttachmentAsync(string sourcePath);
+
+    /// <summary>The absolute path of a stored attachment.</summary>
+    string GetAttachmentFullPath(string relativePath);
 }

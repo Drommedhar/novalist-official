@@ -20,6 +20,7 @@ import {
   type WizardStepDef
 } from './wizards'
 import { EntityImages } from './EntityImages'
+import { EntityAttachments } from './EntityAttachments'
 import { CustomPropsEditor } from './CustomPropsEditor'
 import { MatchSettingsEditor } from './MatchSettingsEditor'
 import { AiPolicyEditor } from './AiPolicyEditor'
@@ -262,6 +263,7 @@ export function CodexView(): React.JSX.Element {
                 updateField={updateField}
               />
               <EntityImages />
+              <EntityAttachments />
               <CustomPropsEditor />
               {/* How this entry's name is picked up in prose. Collapsed by
                   default: the defaults are right for most entries. */}

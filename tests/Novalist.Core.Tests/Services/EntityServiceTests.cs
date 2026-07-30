@@ -455,4 +455,97 @@ public class EntityServiceTests : IDisposable
         _project.ActiveBook.Returns((BookData?)null);
         await Assert.ThrowsAsync<InvalidOperationException>(() => _sut.LoadCharactersAsync());
     }
+
+    // ── Attachments ──
+
+    /// <summary>A real file to attach, since the point is that it gets copied.</summary>
+    private string SourceFile(string name, string contents = "data", string? inFolder = null)
+    {
+        var folder = inFolder ?? _dir.Path;
+        Directory.CreateDirectory(folder);
+        var path = Path.Combine(folder, name);
+        File.WriteAllText(path, contents);
+        return path;
+    }
+
+    [Fact]
+    public async Task AnAttachmentIsCopiedIntoTheBook()
+    {
+        var stored = await _sut.ImportAttachmentAsync(SourceFile("interview.mp3"));
+
+        // Copied rather than referenced: a path into somebody's Downloads
+        // folder is a file that will be gone by the time anyone follows it.
+        Assert.StartsWith(EntityService.AttachmentFolder, stored);
+        Assert.True(File.Exists(_sut.GetAttachmentFullPath(stored)));
+    }
+
+    [Fact]
+    public async Task TheStoredPathUsesForwardSlashes()
+    {
+        var stored = await _sut.ImportAttachmentAsync(SourceFile("deed.pdf"));
+
+        // The path travels in a project file that a Mac may open next.
+        Assert.DoesNotContain('\\', stored);
+    }
+
+    [Fact]
+    public async Task TheSameContentsTwiceIsOneFile()
+    {
+        var first = await _sut.ImportAttachmentAsync(SourceFile("deed.pdf", "same"));
+        var second = await _sut.ImportAttachmentAsync(SourceFile("deed-copy.pdf", "same"));
+
+        // Matched on contents rather than name, because a browser saves the
+        // third copy as "deed (2).pdf".
+        Assert.Equal(first, second);
+    }
+
+    [Fact]
+    public async Task AttachingTheSameFileTwiceDoesNotCopyItAgain()
+    {
+        var source = SourceFile("deed.pdf");
+
+        Assert.Equal(
+            await _sut.ImportAttachmentAsync(source),
+            await _sut.ImportAttachmentAsync(source));
+    }
+
+    [Fact]
+    public async Task TwoDifferentFilesWithOneNameBothSurvive()
+    {
+        var first = await _sut.ImportAttachmentAsync(SourceFile("scan.pdf", "one"));
+        var second = await _sut.ImportAttachmentAsync(
+            SourceFile("scan.pdf", "two", Path.Combine(_dir.Path, "elsewhere")));
+
+        // Suffixed rather than overwritten: two different files called scan.pdf
+        // are two files, and losing one silently is the worst outcome here.
+        Assert.NotEqual(first, second);
+        Assert.Equal("one", await File.ReadAllTextAsync(_sut.GetAttachmentFullPath(first)));
+        Assert.Equal("two", await File.ReadAllTextAsync(_sut.GetAttachmentFullPath(second)));
+    }
+
+    [Fact]
+    public async Task AThirdFileOfTheSameNameStillLands()
+    {
+        await _sut.ImportAttachmentAsync(SourceFile("scan.pdf", "one"));
+        await _sut.ImportAttachmentAsync(
+            SourceFile("scan.pdf", "two", Path.Combine(_dir.Path, "b")));
+        var third = await _sut.ImportAttachmentAsync(
+            SourceFile("scan.pdf", "three", Path.Combine(_dir.Path, "c")));
+
+        // The suffix walks on rather than stopping at one collision.
+        Assert.Equal("three", await File.ReadAllTextAsync(_sut.GetAttachmentFullPath(third)));
+    }
+
+    [Fact]
+    public void AnAttachmentPathNeedsAProject()
+    {
+        // Told to return null explicitly: a substitute hands back an empty
+        // string for a string member by default, which would sail past the
+        // guard and make this test prove nothing.
+        var noProject = Substitute.For<IProjectService>();
+        noProject.ProjectRoot.Returns((string?)null);
+        var orphan = new EntityService(noProject);
+
+        Assert.Throws<InvalidOperationException>(() => orphan.GetAttachmentFullPath("x.pdf"));
+    }
 }
