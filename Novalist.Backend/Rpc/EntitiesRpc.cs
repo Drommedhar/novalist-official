@@ -104,22 +104,23 @@ public sealed class EntitiesRpc
                     c.IsWorldBible,
                     c.Images.FirstOrDefault(),
                     c.Aliases,
-                    match: c.Match))
+                    match: c.Match,
+                    locked: c.Locked))
                 .ToArray();
         }
         return type switch
         {
             "character" => (await _entities.LoadCharactersAsync())
-                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender, firstName: c.Name, match: c.Match))
+                .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender, firstName: c.Name, match: c.Match, locked: c.Locked))
                 .ToArray(),
             "location" => (await _entities.LoadLocationsAsync())
-                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent, match: l.Match, isWorld: l.IsWorld))
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent, match: l.Match, isWorld: l.IsWorld, locked: l.Locked))
                 .ToArray(),
             "item" => (await _entities.LoadItemsAsync())
-                .Select(i => Summary(i.Id, i.Name, i.Description, i.IsWorldBible, i.Images.FirstOrDefault(), i.Aliases, match: i.Match))
+                .Select(i => Summary(i.Id, i.Name, i.Description, i.IsWorldBible, i.Images.FirstOrDefault(), i.Aliases, match: i.Match, locked: i.Locked))
                 .ToArray(),
             "lore" => (await _entities.LoadLoreAsync())
-                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, match: l.Match))
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, match: l.Match, locked: l.Locked))
                 .ToArray(),
             _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
         };
@@ -168,9 +169,62 @@ public sealed class EntitiesRpc
         return WithResolvedImages(entity ?? throw Unknown(id));
     }
 
+    /// <summary>
+    /// Refuses a write to a settled entry.
+    ///
+    /// A world bible is a contract with the reader: once a character's eyes are
+    /// brown in three published chapters, changing that field is a decision
+    /// rather than a typo. Nothing stopped a stray keystroke in a detail pane
+    /// from rewriting canon silently.
+    /// </summary>
+    private static void RefuseIfLocked(Core.Models.IEntityData? entity)
+    {
+        if (entity?.Locked == true)
+            throw new InvalidOperationException(LockedMessage);
+    }
+
+    /// <summary>
+    /// The one string the renderer matches on to show its own wording. Matched
+    /// rather than coded because every other refusal here is an exception too,
+    /// and a second mechanism for one case is a mechanism nobody maintains.
+    /// </summary>
+    public const string LockedMessage = "entity-locked";
+
+    /// <summary>
+    /// Settles an entry, or unsettles it.
+    ///
+    /// The only write a locked entry accepts, because the writer has to be able
+    /// to change their mind - a lock that cannot be undone is a lock nobody
+    /// uses.
+    /// </summary>
+    [JsonRpcMethod("entities/setLocked")]
+    public async Task<bool> SetLockedAsync(string type, string id, bool locked)
+    {
+        var entity = await FindAnyAsync(type, id) ?? throw Unknown(id);
+        entity.Locked = locked;
+        await SaveEntityAsync(entity);
+        return locked;
+    }
+
+    /// <summary>Whichever type it is, as the interface every type implements.</summary>
+    private async Task<Core.Models.IEntityData?> FindAnyAsync(string type, string id)
+        => IsCustomType(type)
+            ? (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
+            : type switch
+            {
+                "character" => (await _entities.LoadCharactersAsync())
+                    .FirstOrDefault(c => c.Id == id) as Core.Models.IEntityData,
+                "location" => (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id),
+                "item" => (await _entities.LoadItemsAsync()).FirstOrDefault(i => i.Id == id),
+                "lore" => (await _entities.LoadLoreAsync()).FirstOrDefault(l => l.Id == id),
+                _ => null
+            };
+
     [JsonRpcMethod("entities/update")]
     public async Task<JsonElement> UpdateAsync(string type, string id, Dictionary<string, string> fields)
     {
+        RefuseIfLocked(await FindAnyAsync(type, id));
+
         if (IsCustomType(type))
         {
             var custom = (await _entities.LoadCustomEntitiesAsync(type)).FirstOrDefault(c => c.Id == id)
@@ -328,6 +382,8 @@ public sealed class EntitiesRpc
         if (title.Length == 0)
             throw new InvalidOperationException("A section title is required.");
         var addition = (text ?? string.Empty).Trim();
+        // Appending prose to a settled entry is a write like any other.
+        RefuseIfLocked(await FindAnyAsync(type, id));
 
         if (IsCustomType(type))
         {
@@ -1876,7 +1932,7 @@ public sealed class EntitiesRpc
         string id, string name, string detail, bool isWorldBible, EntityImage? image,
         IReadOnlyList<string> aliases,
         string? group = null, string? gender = null, string? parent = null, string? firstName = null,
-        EntityMatchSettings? match = null, bool isWorld = false) =>
+        EntityMatchSettings? match = null, bool isWorld = false, bool locked = false) =>
         new(id, name, detail, isWorldBible,
             image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
             aliases,
@@ -1885,7 +1941,8 @@ public sealed class EntitiesRpc
             // "Liam Calder"); null when it equals the composed display name.
             NullIfEmpty(firstName) is { } fn && !string.Equals(fn, name, StringComparison.Ordinal) ? fn : null,
             MatchDto(match, name, aliases, firstName),
-            isWorld);
+            isWorld,
+            locked);
 
     /// <summary>Projects the stored match settings, precomputing the plural forms
     /// of every matchable text so the client never has to know English plural
@@ -2009,7 +2066,9 @@ public sealed record EntitySummaryDto(
     EntityMatchDto? Match = null,
     /// <summary>True for a place that is a world: drawn at the top of the tree,
     /// and never given a parent of its own.</summary>
-    bool IsWorld = false);
+    bool IsWorld = false,
+    /// <summary>True when this entry is settled and the save path refuses it.</summary>
+    bool Locked = false);
 
 /// <summary>How this entry's name is recognised in prose. Rides along with the
 /// summary so the editor can apply the rules without a second round trip per

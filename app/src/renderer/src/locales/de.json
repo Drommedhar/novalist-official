@@ -1585,7 +1585,10 @@
     "worldBadge": "Welt",
     "markAsWorld": "Als Welt markieren",
     "unmarkWorld": "Keine Welt",
-    "dropToTopLevel": "Hierher ziehen, um auf die oberste Ebene zu heben"
+    "dropToTopLevel": "Hierher ziehen, um auf die oberste Ebene zu heben",
+    "lock": "Eintrag festschreiben (Änderungen ablehnen)",
+    "unlock": "Festschreibung aufheben",
+    "lockedNotice": "Dieser Eintrag ist festgeschrieben. Zum Ändern in der Liste die Festschreibung aufheben."
   },
   "manuscript": {
     "title": "Manuskript",

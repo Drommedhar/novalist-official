@@ -137,6 +137,16 @@ public interface IEntityData
     /// </summary>
     string Group { get; set; }
 
+    /// <summary>
+    /// True when this entry is settled and must not be changed by accident.
+    ///
+    /// A world bible is a contract with the reader: once a character's eyes are
+    /// brown in three published chapters, changing that field is a decision
+    /// rather than a typo. Nothing stopped a stray keystroke in a detail pane
+    /// from rewriting canon silently, and nothing recorded that it had.
+    /// </summary>
+    bool Locked { get; set; }
+
     /// <summary>What this entry is called. Read-only: each type composes it
     /// from its own fields, which for a character means name and surname.</summary>
     string DisplayName { get; }

@@ -124,6 +124,17 @@ export function CodexNav({
           }
         ]
       : []),
+    // A world bible is a contract with the reader: once a character's eyes are
+    // brown in three published chapters, changing that field is a decision
+    // rather than a typo.
+    {
+      label: entity.locked ? t('codexHub.unlock') : t('codexHub.lock'),
+      onClick: () => {
+        void rpc
+          .request('entities/setLocked', [entityType, entity.id, !entity.locked])
+          .then(() => void useCodexStore.getState().refresh())
+      }
+    },
     { label: t('explorer.contextDelete'), danger: true, onClick: () => onDelete(entity) }
   ]
 

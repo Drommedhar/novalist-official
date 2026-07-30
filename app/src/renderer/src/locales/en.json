@@ -1984,7 +1984,10 @@
     "worldBadge": "World",
     "markAsWorld": "Mark as a world",
     "unmarkWorld": "Not a world",
-    "dropToTopLevel": "Drop here to move to the top level"
+    "dropToTopLevel": "Drop here to move to the top level",
+    "lock": "Settle this entry (refuse edits)",
+    "unlock": "Unsettle this entry",
+    "lockedNotice": "This entry is settled. Unsettle it from the list to change it."
   },
   "manuscript": {
     "title": "Manuscript",

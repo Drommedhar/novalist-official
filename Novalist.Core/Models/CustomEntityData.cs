@@ -14,6 +14,15 @@ public class CustomEntityData : IEntityData
     [JsonIgnore]
     public bool IsWorldBible { get; set; }
 
+    /// <summary>
+    /// True when this entry is settled. A locked entry is refused by the save
+    /// path rather than being quietly overwritten.
+    /// </summary>
+    [JsonPropertyName("locked")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Locked { get; set; }
+
+
     /// <summary>How this entry's name is recognised in prose.</summary>
     [JsonPropertyName("match")]
     public EntityMatchSettings Match { get; set; } = new();

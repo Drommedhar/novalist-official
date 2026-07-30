@@ -58,5 +58,12 @@ test('the tour offers itself once and walks through real views', async () => {
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
   await expect(page.locator('.tour-card')).toBeHidden()
 
+  // Put back what this test cleared. Local storage lives in Electron's user
+  // data directory and is shared across every launch in the suite, so leaving
+  // the flag cleared makes the tour open in every test that runs after this
+  // one - and a tour walking the views underneath another test's first
+  // page.evaluate destroys the execution context it was running in.
+  await page.evaluate(() => localStorage.setItem('nl.tour.seen', '1'))
+
   await app.close()
 })

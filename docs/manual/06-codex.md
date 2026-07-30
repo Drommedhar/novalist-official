@@ -139,6 +139,16 @@ An entry could hold pictures and nothing else. A recorded interview with the per
 - The same file attached twice is stored once — matched on contents rather than name, because a browser saves the third copy as `deed (2).pdf`. Two *different* files that happen to share a name both survive; the second is suffixed rather than overwriting the first.
 - **Removing** an attachment takes it off the entry and leaves the file in the project. Another entry may point at the same one, and deleting your only copy of a recording because you tidied a Codex entry is not a trade worth making.
 
+## Settling an entry
+
+A world bible is a contract with the reader. Once a character's eyes are brown in three published chapters, changing that field is a decision — not a typo. Nothing stopped a stray keystroke in a detail pane from rewriting canon silently.
+
+Right-click an entry in the list and choose **Settle this entry**. While it is settled, the app **refuses** writes to it: editing a field, or appending prose to a section, fails rather than going through quietly. Right-click again to unsettle it — a lock that cannot be undone is a lock nobody uses.
+
+It works on every entity type, including the ones you invented: a bible lives in those as much as in the four that ship.
+
+Settling is not deleting, hiding, or excluding from export. The entry behaves exactly as before everywhere else; it simply stops accepting changes.
+
 ## Unlinked names
 
 Novalist recognises a bare Codex name in your prose — the Wiki links it, the hover card shows it — but only a **real mention**, the kind the `@` picker inserts, counts towards appearances, co-appearance figures and the mention matrix. An imported manuscript, or one typed straight through, therefore under-reports every one of them.

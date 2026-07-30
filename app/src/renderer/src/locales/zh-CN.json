@@ -2017,7 +2017,10 @@
     "worldBadge": "世界",
     "markAsWorld": "标记为世界",
     "unmarkWorld": "取消世界标记",
-    "dropToTopLevel": "拖到此处可移到顶层"
+    "dropToTopLevel": "拖到此处可移到顶层",
+    "lock": "锁定此条目（拒绝修改）",
+    "unlock": "解除锁定",
+    "lockedNotice": "此条目已锁定。要修改，请先在列表中解除锁定。"
   },
   "manuscript": {
     "title": "书稿",

@@ -14,6 +14,8 @@ export interface EntitySummary {
   parent: string | null
   /** True for a place that is a world: top of the tree, never inside anything. */
   isWorld?: boolean
+  /** True when the entry is settled: the save path refuses writes to it. */
+  locked?: boolean
 }
 
 interface CodexState {
