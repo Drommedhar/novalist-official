@@ -15,3 +15,20 @@
   flex: 2;
   min-width: 0;
 }
+
+/* Somewhere to drop a place that should not be inside anything. Dashed rather
+   than solid: it is a target, not a row. */
+.codex-drop-root {
+  border: 1px dashed var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  margin: var(--nl-space-tightest) var(--nl-space-sm);
+  padding: var(--nl-space-tighter);
+  text-align: center;
+}
+
+/* A world heads the tree, so its name carries the weight of a heading. */
+.codex-row.codex-world .codex-row-name {
+  font-weight: 600;
+}

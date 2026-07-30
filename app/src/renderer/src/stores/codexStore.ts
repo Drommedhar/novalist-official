@@ -12,6 +12,8 @@ export interface EntitySummary {
   group: string | null
   gender: string | null
   parent: string | null
+  /** True for a place that is a world: top of the tree, never inside anything. */
+  isWorld?: boolean
 }
 
 interface CodexState {

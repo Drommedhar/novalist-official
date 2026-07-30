@@ -21,7 +21,7 @@ The left column lists every entity of the active type. At the top is a **search 
 How the list is arranged depends on the type:
 
 - **Characters** are **grouped**, with a **By Role / By Group** toggle above the list. Each group is a collapsible section with a heading and a member count; click a heading to fold or unfold it. Characters with no role/group fall under an "Ungrouped" heading.
-- **Locations** are shown as a **parent/child hierarchy tree** — a location whose parent is another location is nested (indented) beneath it, so a city can sit under its region.
+- **Locations** are shown as a **parent/child hierarchy tree** — a location whose parent is another location is nested (indented) beneath it, so a city can sit under its region. **Drag a place onto another** to move it there; drop it on the dashed strip at the top of the list to lift it back out of everything. See [Building the place tree](#building-the-place-tree).
 - **Items**, **Lore**, and custom types are shown as a flat list.
 
 Each row shows a thumbnail (or the entity's initial), its name, and a short detail line. Characters also show a one-letter **gender badge**, and World Bible entries carry a **WB** badge.
@@ -76,6 +76,16 @@ Group names are free text on each entry, which is fine until you want to correct
 
 **Deleting a group takes it off the entries too**, since leaving forty entries claiming a group nobody lists is how this drifts in the first place.
   - **Locations** have name, type, a **parent location** field with autocomplete over the project's other locations (this drives the hierarchy tree in the navigation column), and a description.
+
+### Building the place tree
+
+Reparenting used to mean editing the **parent location** field by hand, which is fine for one change and miserable for reorganising a continent. Places can be **dragged**: drop one onto another and it moves inside it, drop it on the dashed strip above the list and it goes back to the top level. The field still works and still autocompletes; the drag is the fast path.
+
+A place cannot be dropped **inside its own subtree** — into a child, a grandchild, or itself. It looks like a small thing to forbid and it is not: a place that is its own ancestor has no root, so the whole branch would silently disappear from the tree. Such a drop is simply refused and the tree stays as it was.
+
+**Worlds.** Right-click a place and choose **Mark as a world**. A world is drawn at the top of the tree, above every other place, with its name in bold — it is the container everything else sits in. A world never has a parent of its own, because there is nothing above a world; marking one drops whatever parent it had, and it cannot be dragged into anything afterwards. **Not a world** turns it back into an ordinary place, free to be filed again.
+
+This is what a project with two settings needs: without it, two worlds are two unrelated piles of places and nothing says which is which.
   - **Items** have name, type, origin, and description.
   - **Lore** has name, a **category** dropdown (Organization, Culture, History, Other), and description.
   - **Custom types** render the typed fields you declared for them: a text box for String, a number box for Int, a date picker for Date, a dropdown for Bool and Enum, and a picker for EntityRef.

@@ -1984,7 +1984,11 @@
     "selectHint": "选择一个条目以查看详情。",
     "newEntry": "新建条目",
     "search": "搜索条目...",
-    "ungrouped": "未分组"
+    "ungrouped": "未分组",
+    "worldBadge": "世界",
+    "markAsWorld": "标记为世界",
+    "unmarkWorld": "取消世界标记",
+    "dropToTopLevel": "拖到此处可移到顶层"
   },
   "manuscript": {
     "title": "书稿",

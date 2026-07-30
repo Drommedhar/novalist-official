@@ -1647,4 +1647,80 @@ public sealed class EntitiesRpcTests : IDisposable
         return ids;
     }
 
+    // ── The place tree ──
+
+    [Fact]
+    public async Task APlaceCanBeDroppedIntoAnother()
+    {
+        var kingdom = (await _rpc.CreateAsync("location", "Northreach")).GetProperty("id").GetString()!;
+        var city = (await _rpc.CreateAsync("location", "Karn")).GetProperty("id").GetString()!;
+
+        Assert.True(await _rpc.SetParentAsync(city, "Northreach"));
+
+        Assert.Equal("Northreach", (await _rpc.ListAsync("location")).Single(e => e.Id == city).Parent);
+        Assert.Null((await _rpc.ListAsync("location")).Single(e => e.Id == kingdom).Parent);
+    }
+
+    [Fact]
+    public async Task APlaceCanBeLiftedBackToTheTop()
+    {
+        await _rpc.CreateAsync("location", "Northreach");
+        var city = (await _rpc.CreateAsync("location", "Karn")).GetProperty("id").GetString()!;
+        await _rpc.SetParentAsync(city, "Northreach");
+
+        Assert.True(await _rpc.SetParentAsync(city, null));
+
+        Assert.Null((await _rpc.ListAsync("location")).Single(e => e.Id == city).Parent);
+    }
+
+    [Fact]
+    public async Task APlaceCannotBeDroppedIntoItsOwnSubtree()
+    {
+        var kingdom = (await _rpc.CreateAsync("location", "Northreach")).GetProperty("id").GetString()!;
+        var city = (await _rpc.CreateAsync("location", "Karn")).GetProperty("id").GetString()!;
+        await _rpc.SetParentAsync(city, "Northreach");
+
+        // A cycle has no root, so the whole branch would silently vanish from
+        // the tree. The move is refused so a drag can snap back.
+        Assert.False(await _rpc.SetParentAsync(kingdom, "Karn"));
+        Assert.Null((await _rpc.ListAsync("location")).Single(e => e.Id == kingdom).Parent);
+    }
+
+    [Fact]
+    public async Task MovingAPlaceThatIsNotThereThrows()
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetParentAsync("no-such-place", "Northreach"));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetIsWorldAsync("no-such-place", true));
+    }
+
+    [Fact]
+    public async Task AWorldSitsAtTheTopAndDropsWhateverWasAboveIt()
+    {
+        await _rpc.CreateAsync("location", "Northreach");
+        var world = (await _rpc.CreateAsync("location", "Aeloria")).GetProperty("id").GetString()!;
+        await _rpc.SetParentAsync(world, "Northreach");
+
+        Assert.True(await _rpc.SetIsWorldAsync(world, true));
+
+        var row = (await _rpc.ListAsync("location")).Single(e => e.Id == world);
+        Assert.True(row.IsWorld);
+        // There is nothing above a world, which is what makes it one.
+        Assert.Null(row.Parent);
+        Assert.False(await _rpc.SetParentAsync(world, "Northreach"));
+    }
+
+    [Fact]
+    public async Task APlaceThatStopsBeingAWorldCanBeFiledAgain()
+    {
+        await _rpc.CreateAsync("location", "Northreach");
+        var place = (await _rpc.CreateAsync("location", "Aeloria")).GetProperty("id").GetString()!;
+        await _rpc.SetIsWorldAsync(place, true);
+
+        await _rpc.SetIsWorldAsync(place, false);
+
+        Assert.True(await _rpc.SetParentAsync(place, "Northreach"));
+        Assert.False((await _rpc.ListAsync("location")).Single(e => e.Id == place).IsWorld);
+    }
 }

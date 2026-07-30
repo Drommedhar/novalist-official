@@ -113,7 +113,7 @@ public sealed class EntitiesRpc
                 .Select(c => Summary(c.Id, Compose(c.Name, c.Surname), c.Role, c.IsWorldBible, c.Images.FirstOrDefault(), c.Aliases, group: c.Group, gender: c.Gender, firstName: c.Name, match: c.Match))
                 .ToArray(),
             "location" => (await _entities.LoadLocationsAsync())
-                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent, match: l.Match))
+                .Select(l => Summary(l.Id, l.Name, l.Description, l.IsWorldBible, l.Images.FirstOrDefault(), l.Aliases, parent: l.Parent, match: l.Match, isWorld: l.IsWorld))
                 .ToArray(),
             "item" => (await _entities.LoadItemsAsync())
                 .Select(i => Summary(i.Id, i.Name, i.Description, i.IsWorldBible, i.Images.FirstOrDefault(), i.Aliases, match: i.Match))
@@ -800,6 +800,45 @@ public sealed class EntitiesRpc
         entity.Group = (group ?? string.Empty).Trim();
         await SaveEntityAsync(entity);
         return await GroupsAsync();
+    }
+
+    /// <summary>
+    /// Moves a place in the tree. An empty parent lifts it to the top.
+    ///
+    /// Reparenting used to mean typing into an autocomplete field, so nothing
+    /// ever checked the answer: a place could be made its own ancestor and the
+    /// whole branch would silently vanish, because a cycle has no root and the
+    /// renderer refuses to recurse forever. Returns false when the move was
+    /// refused, so a drag can snap back rather than appear to have worked.
+    /// </summary>
+    [JsonRpcMethod("entities/setParent")]
+    public async Task<bool> SetParentAsync(string id, string? parentName)
+    {
+        var places = await _entities.LoadLocationsAsync();
+        var child = places.FirstOrDefault(l => l.Id == id) ?? throw Unknown(id);
+
+        if (!Core.Services.PlaceHierarchy.CanReparent(places, child, parentName)) return false;
+
+        child.Parent = (parentName ?? string.Empty).Trim();
+        await _entities.SaveLocationAsync(child);
+        return true;
+    }
+
+    /// <summary>
+    /// Marks a place as a world, or stops it being one. A world sits at the top
+    /// of the tree, so becoming one drops whatever parent it had - there is
+    /// nothing above a world, which is what makes it one.
+    /// </summary>
+    [JsonRpcMethod("entities/setIsWorld")]
+    public async Task<bool> SetIsWorldAsync(string id, bool isWorld)
+    {
+        var place = (await _entities.LoadLocationsAsync()).FirstOrDefault(l => l.Id == id)
+            ?? throw Unknown(id);
+
+        place.IsWorld = isWorld;
+        if (isWorld) place.Parent = string.Empty;
+        await _entities.SaveLocationAsync(place);
+        return true;
     }
 
     [JsonRpcMethod("entities/setOverride")]
@@ -1837,7 +1876,7 @@ public sealed class EntitiesRpc
         string id, string name, string detail, bool isWorldBible, EntityImage? image,
         IReadOnlyList<string> aliases,
         string? group = null, string? gender = null, string? parent = null, string? firstName = null,
-        EntityMatchSettings? match = null) =>
+        EntityMatchSettings? match = null, bool isWorld = false) =>
         new(id, name, detail, isWorldBible,
             image == null ? null : _entities.ResolveProjectRelativeImage(image.Path),
             aliases,
@@ -1845,7 +1884,8 @@ public sealed class EntitiesRpc
             // The bare first name is an extra hover/mention target ("Liam" for
             // "Liam Calder"); null when it equals the composed display name.
             NullIfEmpty(firstName) is { } fn && !string.Equals(fn, name, StringComparison.Ordinal) ? fn : null,
-            MatchDto(match, name, aliases, firstName));
+            MatchDto(match, name, aliases, firstName),
+            isWorld);
 
     /// <summary>Projects the stored match settings, precomputing the plural forms
     /// of every matchable text so the client never has to know English plural
@@ -1966,7 +2006,10 @@ public sealed record EntitySummaryDto(
     string? Gender = null,
     string? Parent = null,
     string? FirstName = null,
-    EntityMatchDto? Match = null);
+    EntityMatchDto? Match = null,
+    /// <summary>True for a place that is a world: drawn at the top of the tree,
+    /// and never given a parent of its own.</summary>
+    bool IsWorld = false);
 
 /// <summary>How this entry's name is recognised in prose. Rides along with the
 /// summary so the editor can apply the rules without a second round trip per

@@ -1951,7 +1951,11 @@
     "selectHint": "Select an entry to see its details.",
     "newEntry": "New entry",
     "search": "Search entities...",
-    "ungrouped": "Ungrouped"
+    "ungrouped": "Ungrouped",
+    "worldBadge": "World",
+    "markAsWorld": "Mark as a world",
+    "unmarkWorld": "Not a world",
+    "dropToTopLevel": "Drop here to move to the top level"
   },
   "manuscript": {
     "title": "Manuscript",

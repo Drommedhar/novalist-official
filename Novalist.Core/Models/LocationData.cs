@@ -47,6 +47,18 @@ public class LocationData : IEntityData
     [JsonPropertyName("parent")]
     public string Parent { get; set; } = string.Empty;
 
+    /// <summary>
+    /// True when this place is a world rather than somewhere inside one.
+    ///
+    /// The hierarchy was a flat parent string, so a project with two worlds
+    /// had two unrelated piles of places and nothing saying which was which. A
+    /// world is drawn at the top of the tree and never has a parent of its own:
+    /// there is nothing above a world, which is what makes it one.
+    /// </summary>
+    [JsonPropertyName("isWorld")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IsWorld { get; set; }
+
     [JsonPropertyName("description")]
     public string Description { get; set; } = string.Empty;
 

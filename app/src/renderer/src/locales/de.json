@@ -1552,7 +1552,11 @@
     "selectHint": "Wähle einen Eintrag, um Details zu sehen.",
     "newEntry": "Neuer Eintrag",
     "search": "Entitäten suchen...",
-    "ungrouped": "Ohne Gruppe"
+    "ungrouped": "Ohne Gruppe",
+    "worldBadge": "Welt",
+    "markAsWorld": "Als Welt markieren",
+    "unmarkWorld": "Keine Welt",
+    "dropToTopLevel": "Hierher ziehen, um auf die oberste Ebene zu heben"
   },
   "manuscript": {
     "title": "Manuskript",

@@ -1,8 +1,10 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 import type { EntitySummary } from '../../stores/codexStore'
 import { ContextMenu, type ContextMenuItem } from '../../shell/ContextMenu'
+import { useCodexStore } from '../../stores/codexStore'
+import { rpc } from '../../rpc/client'
 
 /** Character grouping mode for the navigation column. */
 type GroupMode = 'role' | 'group'
@@ -22,19 +24,34 @@ function EntityRow({
   active,
   depth,
   onSelect,
-  onContext
+  onContext,
+  drag
 }: {
   entity: EntitySummary
   active: boolean
   depth: number
   onSelect: (id: string) => void
   onContext: (e: React.MouseEvent, entity: EntitySummary) => void
+  /** Reparenting handlers. Absent for every type but places. */
+  drag?: {
+    onStart: (id: string) => void
+    onDrop: (parentName: string | null) => void
+  }
 }): React.JSX.Element {
   const { t } = useTranslation()
   return (
     <button
-      className={`codex-row${active ? ' active' : ''}`}
+      className={`codex-row${active ? ' active' : ''}${entity.isWorld ? ' codex-world' : ''}`}
       style={depth > 0 ? { paddingLeft: `calc(var(--nl-space-md) + ${depth * 14}px)` } : undefined}
+      draggable={drag !== undefined}
+      onDragStart={() => drag?.onStart(entity.id)}
+      onDragOver={(e) => drag && e.preventDefault()}
+      onDrop={(e) => {
+        if (!drag) return
+        e.preventDefault()
+        e.stopPropagation()
+        drag.onDrop(entity.name)
+      }}
       onClick={() => onSelect(entity.id)}
       onContextMenu={(e) => onContext(e, entity)}
     >
@@ -50,6 +67,7 @@ function EntityRow({
         {entity.detail && <span className="codex-row-detail">{entity.detail}</span>}
       </span>
       {entity.gender && <span className="codex-gender">{entity.gender.slice(0, 1).toUpperCase()}</span>}
+      {entity.isWorld && <span className="codex-wb">{t('codexHub.worldBadge')}</span>}
       {entity.isWorldBible && <span className="codex-wb">{t('common.wbBadge')}</span>}
     </button>
   )
@@ -71,6 +89,7 @@ export function CodexNav({
 }: CodexNavProps): React.JSX.Element {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
+  const dragged = useRef<string | null>(null)
   const [groupMode, setGroupMode] = useState<GroupMode>('role')
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const [menu, setMenu] = useState<{ x: number; y: number; entity: EntitySummary } | null>(null)
@@ -91,6 +110,20 @@ export function CodexNav({
       label: entity.isWorldBible ? t('entityPanel.moveToBook') : t('entityPanel.moveToWorldBible'),
       onClick: () => onMove(entity.id, !entity.isWorldBible)
     },
+    // A world is a container rather than a place inside one, and marking it
+    // drops whatever parent it had - there is nothing above a world.
+    ...(entityType === 'location'
+      ? [
+          {
+            label: entity.isWorld ? t('codexHub.unmarkWorld') : t('codexHub.markAsWorld'),
+            onClick: () => {
+              void rpc
+                .request('entities/setIsWorld', [entity.id, !entity.isWorld])
+                .then(() => void useCodexStore.getState().refresh())
+            }
+          }
+        ]
+      : []),
     { label: t('explorer.contextDelete'), danger: true, onClick: () => onDelete(entity) }
   ]
 
@@ -143,19 +176,41 @@ export function CodexNav({
       ))
   }
 
+  /**
+   * Drops the dragged place under another, or at the top when the name is null.
+   *
+   * The backend has the last word: dropping a place into its own subtree would
+   * make it its own ancestor, and a cycle has no root, so the whole branch
+   * would silently vanish from the tree. A refused move simply does not happen.
+   */
+  const reparent = (parentName: string | null): void => {
+    const id = dragged.current
+    dragged.current = null
+    if (!id) return
+    const child = entities.find((e) => e.id === id)
+    if (!child || child.name === parentName) return
+    void rpc
+      .request<boolean>('entities/setParent', [id, parentName])
+      .then((moved) => moved && void useCodexStore.getState().refresh())
+  }
+
   const renderTree = (): React.JSX.Element[] => {
     const byName = new Map(filtered.map((e) => [e.name.toLowerCase(), e]))
     const childrenOf = new Map<string, EntitySummary[]>()
     const roots: EntitySummary[] = []
     for (const e of filtered) {
       const parentKey = e.parent?.toLowerCase()
-      if (parentKey && parentKey !== e.name.toLowerCase() && byName.has(parentKey)) {
+      // A world is a root whatever its parent says. Nothing is above a world,
+      // which is what makes it one.
+      if (!e.isWorld && parentKey && parentKey !== e.name.toLowerCase() && byName.has(parentKey)) {
         if (!childrenOf.has(parentKey)) childrenOf.set(parentKey, [])
         childrenOf.get(parentKey)!.push(e)
       } else {
         roots.push(e)
       }
     }
+    // Worlds head the list: they are the containers everything else sits in.
+    roots.sort((a, b) => Number(b.isWorld ?? false) - Number(a.isWorld ?? false))
     const render = (entity: EntitySummary, depth: number, seen: Set<string>): React.JSX.Element[] => {
       if (seen.has(entity.id)) return []
       seen.add(entity.id)
@@ -166,6 +221,7 @@ export function CodexNav({
           entity={entity}
           active={selectedId === entity.id}
           depth={depth}
+          drag={{ onStart: (id) => (dragged.current = id), onDrop: reparent }}
           {...rowProps}
         />,
         ...kids.flatMap((k) => render(k, depth + 1, seen))
@@ -192,6 +248,20 @@ export function CodexNav({
         />
         <span className="codex-count">{filtered.length}</span>
       </div>
+      {/* Somewhere to drop a place that should not be inside anything. Without
+          it a place could go down the tree and never come back up. */}
+      {entityType === 'location' && (
+        <div
+          className="codex-drop-root"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault()
+            reparent(null)
+          }}
+        >
+          {t('codexHub.dropToTopLevel')}
+        </div>
+      )}
       {entityType === 'character' && (
         <div className="codex-groupmode">
           <button
