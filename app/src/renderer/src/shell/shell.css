@@ -2174,6 +2174,71 @@
   margin-right: var(--nl-space-sm);
 }
 
+/* The spine, and the count of what has not landed yet. Both read from the row
+   itself, so the grid says which thread matters and which is behind without
+   anything being opened. */
+.plotgrid-importance,
+.plotgrid-unresolved {
+  margin-left: var(--nl-space-sm);
+  padding: 0 var(--nl-space-tighter);
+  border-radius: var(--nl-radius-pill);
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-label);
+  vertical-align: middle;
+}
+
+.plotgrid-importance {
+  color: var(--nl-text-subtle);
+  border: 1px solid var(--nl-border);
+}
+
+.plotgrid-unresolved {
+  color: var(--nl-accent);
+  background: var(--nl-surface-selected);
+}
+
+/* The dialog stacks label-over-control, so the two rows that read better side
+   by side say so. */
+.plotline-detail-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.plotline-detail-row .inspector-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.plotline-colour {
+  flex: 0 0 auto;
+  width: 44px;
+  padding: var(--nl-space-tightest);
+}
+
+.plotline-description {
+  min-height: 4em;
+  resize: vertical;
+}
+
+.plotline-step {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+}
+
+.plotline-step .inspector-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.plotline-add-step {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+}
+
 .plotgrid-cell {
   position: relative;
   width: 22px;

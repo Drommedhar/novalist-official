@@ -9,9 +9,10 @@ import { InputDialog } from '../../shell/InputDialog'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
 import { PromisesPanel } from './PromisesPanel'
+import { PlotlineDetailDialog, type Plotline } from './PlotlineDetailDialog'
 
 interface PlotGridDto {
-  plotlines: { id: string; name: string; color: string; order: number }[]
+  plotlines: Plotline[]
   columns: {
     chapterGuid: string
     chapterTitle: string
@@ -24,6 +25,7 @@ interface PlotGridDto {
 type Pending =
   | { kind: 'create' }
   | { kind: 'fields'; id: string; name: string }
+  | { kind: 'detail'; plotline: Plotline }
   | { kind: 'rename'; id: string; current: string }
   | { kind: 'delete'; id: string; name: string }
   | {
@@ -142,6 +144,20 @@ export function PlotGridView(): React.JSX.Element {
                   >
                     <span className="plotgrid-color" style={{ background: plotline.color }} />
                     {plotline.name}
+                    {/* A grid of equal rows says the spine and a running joke
+                        are the same kind of thing. Both marks are readable
+                        without opening anything. */}
+                    {!byCodex && plotline.importance === 'Main' && (
+                      <span className="plotgrid-importance">{t('plotGrid.importanceMain')}</span>
+                    )}
+                    {!byCodex && plotline.unresolvedSteps > 0 && (
+                      <span
+                        className="plotgrid-unresolved"
+                        title={t('plotGrid.unresolvedCount', { count: plotline.unresolvedSteps })}
+                      >
+                        {t('plotGrid.unresolvedBadge', { count: plotline.unresolvedSteps })}
+                      </span>
+                    )}
                   </th>
                   {grid.columns.map((col) => {
                     const assigned = col.plotlineIds.includes(plotline.id)
@@ -168,6 +184,13 @@ export function PlotGridView(): React.JSX.Element {
           y={menu.y}
           items={[
             {
+              label: t('plotGrid.detail'),
+              onClick: () => {
+                const plotline = grid.plotlines.find((p) => p.id === menu.id)
+                if (plotline) setPending({ kind: 'detail', plotline })
+              }
+            },
+            {
               label: t('explorer.contextRename'),
               onClick: () => setPending({ kind: 'rename', id: menu.id, current: menu.name })
             },
@@ -182,6 +205,13 @@ export function PlotGridView(): React.JSX.Element {
             }
           ]}
           onClose={() => setMenu(null)}
+        />
+      )}
+      {pending?.kind === 'detail' && (
+        <PlotlineDetailDialog
+          plotline={pending.plotline}
+          onClose={() => setPending(null)}
+          onSaved={(next) => setGrid(next as PlotGridDto)}
         />
       )}
       {pending?.kind === 'note' && (
