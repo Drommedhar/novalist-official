@@ -23,11 +23,22 @@ public sealed record SystemVoice(string Id, string Name, string Language);
 [ExcludeFromCodeCoverage(Justification = "SAPI COM interop; the decisions are in VoiceCatalog.")]
 public sealed class SystemVoices : ISystemVoices
 {
-    /// <summary>Speak asynchronously, so a caller can stop mid-sentence.</summary>
+    /// <summary>
+    /// Speak without blocking, so <see cref="Stop"/> can still be served while a
+    /// sentence is in the air. The caller waits with <see cref="WaitUntilDone"/>
+    /// rather than by blocking inside the engine.
+    /// </summary>
     private const int SpeakAsync = 1;
 
-    /// <summary>Throw away whatever is queued before speaking this.</summary>
+    /// <summary>
+    /// Throw away whatever is queued before speaking this. Only ever right for
+    /// stopping: using it to speak makes every sentence cancel the one before
+    /// it, which sounds like the reading skipping through the scene.
+    /// </summary>
     private const int PurgeBeforeSpeak = 2;
+
+    /// <summary>Longest a single sentence is given before the reading moves on.</summary>
+    private const int SentenceTimeoutMs = 120_000;
 
     private object? _voice;
 
@@ -81,11 +92,37 @@ public sealed class SystemVoices : ISystemVoices
             }
             // SAPI's rate is -10..10 around normal, not a multiplier.
             voice.Rate = VoiceCatalog.ToSapiRate(rate);
-            voice.Speak(text, SpeakAsync | PurgeBeforeSpeak);
+            // Async and emphatically not purging: purging here would cut off
+            // the sentence still being spoken every single time.
+            voice.Speak(text, SpeakAsync);
         }
         catch (Exception ex) when (ex is COMException or InvalidOperationException)
         {
             // A voice that has been uninstalled since the list was read.
+        }
+    }
+
+    /// <summary>
+    /// Blocks until the passage has been spoken. True when it finished, false
+    /// when it was stopped or the engine gave up.
+    ///
+    /// The waiting is here rather than in the engine call so that stopping
+    /// still works: a synchronous Speak would hold the engine and there would
+    /// be nothing left to tell it to stop.
+    /// </summary>
+    public bool WaitUntilDone()
+    {
+        if (!Available || _voice == null) return false;
+        try
+        {
+            dynamic voice = _voice;
+            // A sentence that outlives the timeout is a runaway; the reading
+            // moves on rather than stopping dead on it.
+            return (bool)voice.WaitUntilDone(SentenceTimeoutMs);
+        }
+        catch (Exception ex) when (ex is COMException or InvalidOperationException)
+        {
+            return false;
         }
     }
 
@@ -133,6 +170,12 @@ public interface ISystemVoices
 {
     bool Available { get; }
     IReadOnlyList<SystemVoice> List();
+
+    /// <summary>Starts speaking. Returns at once; the caller waits.</summary>
     void Speak(string text, string? voiceId, double rate);
+
+    /// <summary>Blocks until the passage is spoken, or it is stopped.</summary>
+    bool WaitUntilDone();
+
     void Stop();
 }

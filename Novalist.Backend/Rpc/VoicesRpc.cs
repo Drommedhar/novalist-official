@@ -42,13 +42,17 @@ public sealed class VoicesRpc
     /// re-inventing the editor's own idea of where a sentence starts.
     /// </summary>
     [JsonRpcMethod("voices/speak")]
-    public bool Speak(string text, string? voiceId = null, double rate = 1.0)
+    public async Task<bool> SpeakAsync(string text, string? voiceId = null, double rate = 1.0)
     {
         if (!_voices.Available) return false;
         var chosen = VoiceCatalog.Choose(
             _voices.List(), voiceId, _workspace.Settings.Effective.AutoReplacementLanguage);
         _voices.Speak(text, chosen?.Id, rate);
-        return true;
+
+        // The answer is what tells the editor to move to the next sentence, so
+        // it has to wait for this one. Off the dispatcher thread, or stopping
+        // could not be served while a sentence was in the air.
+        return await Task.Run(_voices.WaitUntilDone);
     }
 
     [JsonRpcMethod("voices/stop")]

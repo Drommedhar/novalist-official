@@ -17,10 +17,33 @@ public sealed class VoicesRpcTests : IDisposable
         public List<SystemVoice> Voices { get; } = [];
         public (string Text, string? VoiceId, double Rate)? Spoken { get; private set; }
         public int Stops { get; private set; }
+        public int Waits { get; private set; }
+        public bool Finished { get; set; } = true;
+
+        /// <summary>The order the engine was driven in, so a test can prove the
+        /// caller waited rather than firing and forgetting.</summary>
+        public List<string> Calls { get; } = [];
 
         public IReadOnlyList<SystemVoice> List() => Voices;
-        public void Speak(string text, string? voiceId, double rate) => Spoken = (text, voiceId, rate);
-        public void Stop() => Stops++;
+
+        public void Speak(string text, string? voiceId, double rate)
+        {
+            Spoken = (text, voiceId, rate);
+            Calls.Add("speak");
+        }
+
+        public bool WaitUntilDone()
+        {
+            Waits++;
+            Calls.Add("wait");
+            return Finished;
+        }
+
+        public void Stop()
+        {
+            Stops++;
+            Calls.Add("stop");
+        }
     }
 
     private readonly string _root;
@@ -64,22 +87,22 @@ public sealed class VoicesRpcTests : IDisposable
     }
 
     [Fact]
-    public void SpeakingWithNoEngineIsRefusedRatherThanSilentlyDoingNothing()
+    public async Task SpeakingWithNoEngineIsRefusedRatherThanSilentlyDoingNothing()
     {
         _engine.Available = false;
 
         // False is what tells the renderer to fall back to the browser.
-        Assert.False(_rpc.Speak("Es war eine dunkle Nacht."));
+        Assert.False(await _rpc.SpeakAsync("Es war eine dunkle Nacht."));
         Assert.Null(_engine.Spoken);
     }
 
     [Fact]
-    public void AChosenVoiceIsTheOneUsed()
+    public async Task AChosenVoiceIsTheOneUsed()
     {
         _engine.Voices.Add(new SystemVoice("id-hazel", "Hazel", "en-GB"));
         _engine.Voices.Add(new SystemVoice("id-katja", "Katja", "de-DE"));
 
-        Assert.True(_rpc.Speak("Hello", "id-hazel", 1.5));
+        Assert.True(await _rpc.SpeakAsync("Hello", "id-hazel", 1.5));
 
         Assert.Equal("id-hazel", _engine.Spoken?.VoiceId);
         Assert.Equal(1.5, _engine.Spoken?.Rate);
@@ -87,24 +110,24 @@ public sealed class VoicesRpcTests : IDisposable
     }
 
     [Fact]
-    public void WithNoChoiceNothingIsForcedOnTheEngine()
+    public async Task WithNoChoiceNothingIsForcedOnTheEngine()
     {
         _engine.Voices.Add(new SystemVoice("id-hazel", "Hazel", "en-GB"));
 
         // The project language is English by default, and the fake's only voice
         // speaks it - so it is picked rather than left to the engine.
-        _rpc.Speak("Hello");
+        await _rpc.SpeakAsync("Hello");
 
         Assert.Equal("id-hazel", _engine.Spoken?.VoiceId);
     }
 
     [Fact]
-    public void AVoiceNothingSpeaksIsLeftToTheEngine()
+    public async Task AVoiceNothingSpeaksIsLeftToTheEngine()
     {
         _engine.Voices.Add(new SystemVoice("id-katja", "Katja", "de-DE"));
         // Nothing speaks the default project language, and guessing German for
         // an English manuscript would be worse than the engine's own default.
-        _rpc.Speak("Hello", "id-gone");
+        await _rpc.SpeakAsync("Hello", "id-gone");
 
         Assert.Null(_engine.Spoken?.VoiceId);
     }
@@ -115,5 +138,30 @@ public sealed class VoicesRpcTests : IDisposable
         _rpc.Stop();
 
         Assert.Equal(1, _engine.Stops);
+    }
+
+    [Fact]
+    public async Task TheAnswerWaitsForTheSentenceToBeSpoken()
+    {
+        _engine.Voices.Add(new SystemVoice("id-hazel", "Hazel", "en-GB"));
+
+        await _rpc.SpeakAsync("Es war eine dunkle Nacht.");
+
+        // Answering before the sentence is spoken makes the editor queue the
+        // next one at once, so the reading races through the scene giving each
+        // paragraph about a second - which is exactly what it did.
+        Assert.Equal(["speak", "wait"], _engine.Calls);
+        Assert.Equal(1, _engine.Waits);
+    }
+
+    [Fact]
+    public async Task ASentenceThatWasStoppedReportsSo()
+    {
+        _engine.Voices.Add(new SystemVoice("id-hazel", "Hazel", "en-GB"));
+        _engine.Finished = false;
+
+        // False is what stops the editor moving on, so a stopped reading stays
+        // stopped rather than carrying on into the next paragraph.
+        Assert.False(await _rpc.SpeakAsync("Es war eine dunkle Nacht."));
     }
 }
