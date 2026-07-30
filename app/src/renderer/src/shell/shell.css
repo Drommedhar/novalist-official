@@ -3649,3 +3649,17 @@
   height: 5px;
   border-radius: var(--nl-radius-pill);
 }
+
+/* An amount and its unit are one statement, so they sit on one line. */
+.notes-dock-relative {
+  display: flex;
+  gap: var(--nl-space-tighter);
+}
+
+.notes-dock-relative > input {
+  width: 6ch;
+}
+
+.notes-dock-relative > select {
+  flex: 1;
+}

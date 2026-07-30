@@ -336,4 +336,44 @@ public sealed class ScenesRpcTests : IDisposable
         Assert.False((await _rpc.SetInactiveAsync(chapterGuid, sceneId, false)).Inactive);
     }
 
+
+    [Fact]
+    public async Task RelativeTime_LetsASceneSayWhenWithoutSayingWhich()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+
+        var meta = await _rpc.SetRelativeTimeAsync(chapterGuid, sceneId, 2, "hours");
+        Assert.Equal(2, meta.RelativeAmount);
+        Assert.Equal("Hours", meta.RelativeUnit);
+
+        // An unknown unit is hours: what a writer means most often by "later",
+        // and the one that reads least wrong when guessed.
+        Assert.Equal(
+            "Hours",
+            (await _rpc.SetRelativeTimeAsync(chapterGuid, sceneId, 3, "rhubarb")).RelativeUnit);
+
+        // Zero is no statement at all rather than "zero minutes later".
+        var cleared = await _rpc.SetRelativeTimeAsync(chapterGuid, sceneId, 0, "days");
+        Assert.Equal(0, cleared.RelativeAmount);
+        Assert.Equal(string.Empty, cleared.RelativeUnit);
+    }
+
+    [Fact]
+    public async Task RelativeTime_PutsAnUndatedSceneOnTheTimeline()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var anchored = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Anchored");
+        var later = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Later");
+        anchored.Date = "1043-03-01";
+        await _workspace.Projects.SaveScenesAsync();
+        await _rpc.SetRelativeTimeAsync(chapter.Guid, later.Id, 1, "days");
+
+        var timeline = await new TimelineRpc(_workspace).Get();
+        var events = timeline.Groups.SelectMany(g => g.Events).ToList();
+
+        // A scene that only said "the next day" used to fall out of the
+        // timeline entirely, which is how a whole book ends up looking undated.
+        Assert.Contains(events, e => e.Title.EndsWith("Later") && e.DateStr == "1043-03-02");
+    }
+
 }

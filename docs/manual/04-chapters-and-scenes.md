@@ -71,6 +71,19 @@ A scene has:
 - **Goal** and **outcome** — what the viewpoint character is trying to get here, and what they are left with. Both are editable in the scene-notes dock and as columns in the Manuscript view's outliner. Neither is ever guessed from the prose: conflict can be read out of a scene, but a goal nobody stated and an outcome nobody wrote down are precisely what a draft is missing. Read the two columns down the outliner and a scene where nothing happens says so — the outcome repeats the goal, or there is no outcome at all.
 - **Analysis overrides** — optional manual overrides for detected POV, emotion, intensity, conflict, and tags, used by Smart Lists and the Manuscript outliner.
 
+### Relative story time
+
+A scene can say **how long after the previous scene** it happens instead of naming a date: an amount and a unit (minutes, hours, days, weeks) in the scene-notes dock.
+
+Novalist stored absolute dates and nothing else, so a writer who knows a scene is two hours after the last one — and neither knows nor cares which day that is — had to invent a date or leave it blank. Blank meant the scene fell out of the Calendar and the Timeline entirely, which is how a whole book ends up looking undated.
+
+- A **date you typed** always wins and re-anchors the clock. Relative time is for the gaps, never an override.
+- A scene's own offset **beats a date inherited from its chapter**: the chapter date says when the chapter starts, and "one day later" is the more specific statement.
+- Offsets **accumulate**. Three scenes each an hour after the last are three hours apart, not all an hour after the anchor.
+- **Negative is allowed.** A scene can be an hour *before* the one printed ahead of it — that is what a cut-back is.
+- Scenes **before the first real date stay unanchored**. A book whose first date arrives in chapter nine has eight chapters with no answer, and hanging them off an invented starting point would put every one of them on the wrong day.
+- **Zero** means no relative statement at all.
+
 ### Taking a scene out of the book
 
 Right-click a scene in the binder → **Take out of the book**. The scene stays exactly where it is in the binder, the corkboard, the outliner and the Plot Grid, with its title dimmed, and leaves the manuscript: its words stop counting towards any total or target, and it is skipped by every export.

@@ -14,7 +14,12 @@ interface SceneMeta {
   strand?: string | null
   goal?: string | null
   outcome?: string | null
+  relativeAmount?: number
+  relativeUnit?: string
 }
+
+/** Units a scene can be offset by. Hours is what "later" usually means. */
+const TIME_UNITS = ['Minutes', 'Hours', 'Days', 'Weeks']
 
 /** How a scene can sit in time relative to the story around it. */
 const NARRATIVE_MODES = [
@@ -48,6 +53,8 @@ export function SceneNotesFields(): React.JSX.Element {
   const [strand, setStrand] = useState('')
   const [goal, setGoal] = useState('')
   const [outcome, setOutcome] = useState('')
+  const [relAmount, setRelAmount] = useState(0)
+  const [relUnit, setRelUnit] = useState('Hours')
   const definitions = useManuscriptPropsStore((s) => s.definitions)
   const sceneValues = useManuscriptPropsStore((s) => s.sceneValues)
   const sceneProps = definitions.filter((d) => d.scope === 'Scene')
@@ -70,6 +77,8 @@ export function SceneNotesFields(): React.JSX.Element {
           setStrand(meta.strand ?? '')
           setGoal(meta.goal ?? '')
           setOutcome(meta.outcome ?? '')
+          setRelAmount(meta.relativeAmount ?? 0)
+          setRelUnit(meta.relativeUnit || 'Hours')
         })
         .catch(() => setNotes(''))
     }
@@ -150,6 +159,54 @@ export function SceneNotesFields(): React.JSX.Element {
             ])
           }
         />
+      </div>
+
+      {/* "The next morning", said so the app can count with it. A writer who
+          knows a scene is two hours after the last one and not which day had
+          to invent a date or leave it blank - and blank dropped the scene out
+          of the Calendar and the Timeline entirely. */}
+      <div className="notes-dock-col notes-dock-props">
+        <label className="notes-dock-label" htmlFor="dock-rel-amount">
+          {t('narrative.relativeTime')}
+        </label>
+        <div className="notes-dock-relative">
+          <input
+            id="dock-rel-amount"
+            className="inspector-input"
+            type="number"
+            value={relAmount}
+            onChange={(e) => setRelAmount(Number(e.target.value) || 0)}
+            onBlur={() =>
+              void rpc.request('scenes/setRelativeTime', [
+                openChapterGuid,
+                openSceneId,
+                relAmount,
+                relUnit
+              ])
+            }
+          />
+          <select
+            className="inspector-input"
+            aria-label={t('narrative.relativeUnit')}
+            value={relUnit}
+            onChange={(e) => {
+              setRelUnit(e.target.value)
+              void rpc.request('scenes/setRelativeTime', [
+                openChapterGuid,
+                openSceneId,
+                relAmount,
+                e.target.value
+              ])
+            }}
+          >
+            {TIME_UNITS.map((unit) => (
+              <option key={unit} value={unit}>
+                {t(`narrative.unit${unit}`)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="settings-hint">{t('narrative.relativeHint')}</div>
       </div>
 
       {/* A flashback sorts by its date like everything else unless the scene

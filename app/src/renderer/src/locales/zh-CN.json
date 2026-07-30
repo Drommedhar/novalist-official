@@ -2764,7 +2764,14 @@
     "title": "时间上的位置",
     "normal": "接着发生",
     "strand": "线索",
-    "strandPlaceholder": "哪条线索，例如“围城”"
+    "strandPlaceholder": "哪条线索，例如“围城”",
+    "relativeTime": "发生在上一场景之后",
+    "relativeUnit": "单位",
+    "relativeHint": "用于没有自己日期的场景。填 0 表示不设。可填负数——一个场景可以早于排在它前面的那一场。",
+    "unitMinutes": "分钟",
+    "unitHours": "小时",
+    "unitDays": "天",
+    "unitWeeks": "周"
   },
   "arc": {
     "title": "人物弧线",

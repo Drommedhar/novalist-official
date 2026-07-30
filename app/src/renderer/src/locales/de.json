@@ -2732,7 +2732,14 @@
     "title": "Zeitliche Einordnung",
     "normal": "Passiert als Nächstes",
     "strand": "Strang",
-    "strandPlaceholder": "Welcher Strang, z. B. „die Belagerung“"
+    "strandPlaceholder": "Welcher Strang, z. B. „die Belagerung“",
+    "relativeTime": "Spielt nach der vorigen Szene",
+    "relativeUnit": "Einheit",
+    "relativeHint": "Für eine Szene ohne eigenes Datum. Null heißt keine Angabe. Negative Werte sind erlaubt – eine Szene kann eine Stunde vor der davor gedruckten liegen.",
+    "unitMinutes": "Minuten",
+    "unitHours": "Stunden",
+    "unitDays": "Tage",
+    "unitWeeks": "Wochen"
   },
   "arc": {
     "title": "Entwicklungsbogen",

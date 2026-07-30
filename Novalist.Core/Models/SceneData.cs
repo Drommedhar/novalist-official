@@ -25,6 +25,19 @@ public class SceneData
     [JsonPropertyName("isFavorite")]
     public bool IsFavorite { get; set; }
 
+    /// <summary>
+    /// When this scene happens relative to the one before it, for a scene with
+    /// no date of its own. Null means no relative statement.
+    ///
+    /// Papyrus lets an element be undefined, relative or absolute; Novalist had
+    /// only absolute, so a writer who knows a scene is "the next morning" and
+    /// not which morning left the date blank - and the scene fell out of the
+    /// Calendar and the Timeline entirely.
+    /// </summary>
+    [JsonPropertyName("relativeTime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RelativeStoryTime? RelativeTime { get; set; }
+
     /// <summary>Optional in-world date range. When present takes precedence
     /// over <see cref="Date"/>.</summary>
     [JsonPropertyName("dateRange")]

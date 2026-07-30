@@ -36,6 +36,18 @@ public sealed class TimelineRpc
         var locationNames = (await _entities.LoadLocationsAsync())
             .ToDictionary(l => l.Id, l => l.Name, StringComparer.Ordinal);
 
+        // Relative offsets resolved in one pass, so "the next morning" has a
+        // date to be shown at rather than being dropped for having none.
+        var resolved = StoryClock
+            .Resolve(book.Chapters
+                .OrderBy(c => c.Order)
+                .SelectMany(c => (manifest?.Chapters.GetValueOrDefault(c.Guid) ?? [])
+                    .Where(s => s.ArchivedAt == null)
+                    .OrderBy(s => s.Order)
+                    .Select(s => (c, s))))
+            .Where(r => r.Derived && r.Iso != null)
+            .ToDictionary(r => r.SceneId, r => r.Iso!, StringComparer.Ordinal);
+
         foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
         {
             if (!string.IsNullOrEmpty(chapter.Act) && seenActs.Add(chapter.Act))
@@ -60,6 +72,10 @@ public sealed class TimelineRpc
             foreach (var scene in scenes)
             {
                 var date = string.IsNullOrEmpty(scene.Date) ? chapter.Date : scene.Date;
+                // A scene that only says "two hours later" used to fall out of
+                // the timeline entirely, which is how a whole book ends up
+                // looking undated.
+                if (string.IsNullOrEmpty(date)) date = resolved.GetValueOrDefault(scene.Id) ?? string.Empty;
                 if (string.IsNullOrEmpty(date)) continue;
                 var cast = scene.Cast ?? [];
                 events.Add(new TimelineEventDto(

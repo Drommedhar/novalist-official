@@ -44,7 +44,9 @@ public sealed class ScenesRpc
             scene.Strand,
             scene.Goal,
             scene.Outcome,
-            scene.Inactive);
+            scene.Inactive,
+            scene.RelativeTime?.Amount ?? 0,
+            scene.RelativeTime?.Unit.ToString() ?? string.Empty);
     }
 
     /// <summary>
@@ -59,6 +61,34 @@ public sealed class ScenesRpc
         var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
         scene.Goal = NullIfBlank(goal);
         scene.Outcome = NullIfBlank(outcome);
+        await _workspace.Projects.SaveScenesAsync();
+        return GetMeta(chapterGuid, sceneId);
+    }
+
+    /// <summary>
+    /// When this scene happens relative to the one before it.
+    ///
+    /// A writer who knows a scene is two hours after the last one - and neither
+    /// knows nor cares which day that is - had to invent a date or leave it
+    /// blank, and blank meant the scene fell out of the Calendar and the
+    /// Timeline. Zero clears the statement.
+    /// </summary>
+    [JsonRpcMethod("scenes/setRelativeTime")]
+    public async Task<SceneMetaDto> SetRelativeTimeAsync(
+        string chapterGuid, string sceneId, int amount, string? unit)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        scene.RelativeTime = amount == 0
+            ? null
+            : new Core.Models.RelativeStoryTime
+            {
+                Amount = amount,
+                Unit = Enum.TryParse<Core.Models.StoryTimeUnit>(unit, true, out var parsed)
+                    ? parsed
+                    // Hours is the unit a writer means most often when they say
+                    // "later", and the one that reads least wrong when guessed.
+                    : Core.Models.StoryTimeUnit.Hours
+            };
         await _workspace.Projects.SaveScenesAsync();
         return GetMeta(chapterGuid, sceneId);
     }
@@ -301,7 +331,12 @@ public sealed record SceneMetaDto(
     string? Strand,
     string? Goal,
     string? Outcome,
-    bool Inactive);
+    bool Inactive,
+    /// <summary>How much later this scene is than the one before it, or 0 for
+    /// no relative statement.</summary>
+    int RelativeAmount,
+    /// <summary>"Minutes", "Hours", "Days" or "Weeks"; empty with no offset.</summary>
+    string RelativeUnit);
 
 /// <summary>Partial patch for a scene's analysis overrides. Null fields are
 /// left unchanged; only supplied fields are written.</summary>

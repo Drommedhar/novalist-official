@@ -2724,7 +2724,14 @@
     "title": "How it sits in time",
     "normal": "Happens next",
     "strand": "Strand",
-    "strandPlaceholder": "Which thread, e.g. \"the siege\""
+    "strandPlaceholder": "Which thread, e.g. \"the siege\"",
+    "relativeTime": "Happens after the last scene",
+    "relativeUnit": "Unit",
+    "relativeHint": "For a scene with no date of its own. Zero means no relative statement. Negative is allowed — a scene can be an hour before the one printed ahead of it.",
+    "unitMinutes": "minutes",
+    "unitHours": "hours",
+    "unitDays": "days",
+    "unitWeeks": "weeks"
   },
   "arc": {
     "title": "Arc",
