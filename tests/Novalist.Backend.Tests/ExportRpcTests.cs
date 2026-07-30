@@ -51,9 +51,19 @@ public sealed class ExportRpcTests : IDisposable
             DisplayName = "Fountain",
             FileExtension = ".fountain"
         });
+        _workspace.ExtensionsHost.ExportFormats.Add(new ExportFormatDescriptor
+        {
+            FormatKey = "html",
+            DisplayName = "Web page",
+            FileExtension = ".html",
+            SupportsCover = true
+        });
 
         var formats = _rpc.ExtensionFormats();
-        Assert.Contains(formats, f => f.FormatKey == "fountain" && f.FileExtension == ".fountain");
+        // A screenplay has nowhere to put a cover; a web page does. The Export
+        // view shows its cover toggle from this.
+        Assert.Contains(formats, f => f.FormatKey == "fountain" && !f.SupportsCover);
+        Assert.Contains(formats, f => f.FormatKey == "html" && f.SupportsCover);
     }
 
     [Fact]
@@ -228,6 +238,94 @@ public sealed class ExportRpcTests : IDisposable
         using var zip = System.IO.Compression.ZipFile.OpenRead(outPath);
         using var reader = new StreamReader(zip.GetEntry("OEBPS/content.opf")!.Open());
         Assert.Contains("<dc:language>de</dc:language>", await reader.ReadToEndAsync());
+    }
+
+    [Fact]
+    public async Task Run_ExtensionFormat_GetsTheSameLanguageAndCoverAsABuiltIn()
+    {
+        // A contributed format that is told only the path and the title produces
+        // a file that claims to be English and has no cover, whatever the writer
+        // set. Everything the built-in formats resolve is handed over too.
+        SetBookCover();
+        _workspace.Settings.Settings.AutoReplacementLanguage = "de-guillemet";
+
+        ExportContext? seen = null;
+        _workspace.ExtensionsHost.ExportFormats.Add(new ExportFormatDescriptor
+        {
+            FormatKey = "site",
+            DisplayName = "Site",
+            FileExtension = ".html",
+            SupportsCover = true,
+            Export = ctx =>
+            {
+                seen = ctx;
+                return File.WriteAllTextAsync(ctx.OutputPath, "x");
+            }
+        });
+
+        await _rpc.RunAsync("site", Path.Combine(_root, "out.html"), "Titel", "Autor",
+            includeTitlePage: false, AllChapterGuids());
+
+        Assert.NotNull(seen);
+        Assert.Equal("Titel", seen!.BookName);
+        Assert.Equal("Autor", seen.Author);
+        Assert.Equal("de", seen.Language);
+        Assert.EndsWith("cover.png", seen.CoverImagePath);
+        Assert.False(seen.IncludeTitlePage);
+        Assert.Equal(_workspace.Projects.ProjectRoot, seen.ProjectRoot);
+    }
+
+    [Fact]
+    public async Task Run_ExtensionFormat_NoCoverWhenTheWriterAskedForNone()
+    {
+        SetBookCover();
+
+        ExportContext? seen = null;
+        _workspace.ExtensionsHost.ExportFormats.Add(new ExportFormatDescriptor
+        {
+            FormatKey = "site",
+            DisplayName = "Site",
+            FileExtension = ".html",
+            SupportsCover = true,
+            Export = ctx =>
+            {
+                seen = ctx;
+                return File.WriteAllTextAsync(ctx.OutputPath, "x");
+            }
+        });
+
+        await _rpc.RunAsync("site", Path.Combine(_root, "bare.html"), "Titel", "Autor", true,
+            AllChapterGuids(), presetId: null, selectedEntityKeys: null, labels: null,
+            includeCover: false);
+
+        Assert.Equal(string.Empty, seen!.CoverImagePath);
+    }
+
+    [Fact]
+    public async Task Run_ExtensionFormat_ThatCannotHoldACoverIsNotGivenOne()
+    {
+        // The Export view hides the toggle for these, so includeCover arrives at
+        // its default. A screenplay handed a cover path would either ignore it or
+        // do something odd with it; neither is worth the risk.
+        SetBookCover();
+
+        ExportContext? seen = null;
+        _workspace.ExtensionsHost.ExportFormats.Add(new ExportFormatDescriptor
+        {
+            FormatKey = "fountain",
+            DisplayName = "Fountain",
+            FileExtension = ".fountain",
+            Export = ctx =>
+            {
+                seen = ctx;
+                return File.WriteAllTextAsync(ctx.OutputPath, "x");
+            }
+        });
+
+        await _rpc.RunAsync("fountain", Path.Combine(_root, "script.fountain"), "Titel", "Autor",
+            true, AllChapterGuids());
+
+        Assert.Equal(string.Empty, seen!.CoverImagePath);
     }
 
     // -- Footnotes --

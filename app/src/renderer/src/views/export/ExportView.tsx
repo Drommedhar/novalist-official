@@ -70,6 +70,7 @@ interface ExtensionFormatDto {
   formatKey: string
   displayName: string
   fileExtension: string
+  supportsCover: boolean
 }
 
 export function ExportView(): React.JSX.Element {
@@ -356,9 +357,12 @@ export function ExportView(): React.JSX.Element {
           {t('export.includeTitlePage')}
         </label>
 
-        {/* Only EPUB and PDF render a cover; the other formats have nowhere to
-            put one, so the control would be a lie. */}
-        {(format === 'Epub' || format === 'Pdf') && (
+        {/* Shown only where a cover actually lands in the file. A control that
+            changes nothing is worse than no control, so a contributed format has
+            to say it can hold one. */}
+        {(format === 'Epub' ||
+          format === 'Pdf' ||
+          extFormats.some((f) => f.formatKey === format && f.supportsCover)) && (
           <label className="relationships-toggle export-toggle">
             <input
               type="checkbox"

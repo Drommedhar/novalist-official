@@ -68,6 +68,9 @@ public sealed partial class HostServices :
     public string HostVersion => VersionInfo.Version;
     public string CurrentLanguage => Loc.Instance.CurrentLanguage;
 
+    public string WritingLanguage =>
+        ExportService.NormalizeLanguageTag(_settingsService.Effective.AutoReplacementLanguage);
+
     public string GetExtensionDataPath(string extensionId)
     {
         var projectRoot = _projectService.ProjectRoot;

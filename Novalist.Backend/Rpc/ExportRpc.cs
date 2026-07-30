@@ -23,7 +23,8 @@ public sealed class ExportRpc
     [JsonRpcMethod("export/extensionFormats")]
     public ExportExtensionFormatDto[] ExtensionFormats() =>
         _workspace.ExtensionsHost.ExportFormats
-            .Select(f => new ExportExtensionFormatDto(f.FormatKey, f.DisplayName, f.FileExtension))
+            .Select(f => new ExportExtensionFormatDto(
+                f.FormatKey, f.DisplayName, f.FileExtension, f.SupportsCover))
             .ToArray();
 
     [JsonRpcMethod("export/timelineOutline")]
@@ -116,11 +117,21 @@ public sealed class ExportRpc
                 .FirstOrDefault(f => string.Equals(f.FormatKey, format, StringComparison.OrdinalIgnoreCase));
             if (descriptor?.Export == null)
                 throw new InvalidOperationException($"Unknown export format: {format}");
+            // The same language and cover the built-in formats resolve. Passing
+            // a path and a title and nothing else is why every contributed
+            // format came out marked English with no cover.
             await descriptor.Export(new ExportContext
             {
                 ProjectRoot = _workspace.Projects.ProjectRoot ?? string.Empty,
                 OutputPath = outputPath,
-                BookName = string.IsNullOrWhiteSpace(title) ? "Untitled" : title
+                BookName = string.IsNullOrWhiteSpace(title) ? "Untitled" : title,
+                Author = author ?? string.Empty,
+                Language = ExportService.NormalizeLanguageTag(
+                    _workspace.Settings.Effective.AutoReplacementLanguage),
+                CoverImagePath = includeCover && descriptor.SupportsCover
+                    ? _workspace.ActiveCoverAbsolutePath() ?? string.Empty
+                    : string.Empty,
+                IncludeTitlePage = includeTitlePage
             });
         }
 
@@ -141,4 +152,5 @@ public sealed record ExportPreviewDto(
     /// <summary>Pictures with nothing written about what they show.</summary>
     int UndescribedImages);
 
-public sealed record ExportExtensionFormatDto(string FormatKey, string DisplayName, string FileExtension);
+public sealed record ExportExtensionFormatDto(
+    string FormatKey, string DisplayName, string FileExtension, bool SupportsCover);

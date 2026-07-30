@@ -22,7 +22,7 @@ In the activity bar, click **Export** in the **Publish** group.
 - **Title** — the title of the exported document. Defaults to the project's name.
 - **Author** — author name printed on the title page and in document metadata.
 - **Title page** — toggle. Include or omit a generated title page.
-- **Include the book cover** — toggle, shown for **EPUB** and **PDF** only, since no other format has anywhere to put a cover. On by default. The image is the book's cover, falling back to the project cover — the same one the Dashboard and the welcome screen show. Turn it off for a submission manuscript, which should not carry one.
+- **Include the book cover** — toggle, shown for **EPUB**, **PDF** and any extension format that can hold a cover. On by default. The image is the book's cover, falling back to the project cover — the same one the Dashboard and the welcome screen show. Turn it off for a submission manuscript, which should not carry one.
 - **Chapter selection** — a checkbox per chapter, with **Select All** and **Select None** buttons and a running "*n* of *m*" count. All chapters are included by default; untick chapters to exclude them. This list is hidden for the **Codex** formats and for extension-contributed formats.
 - **Codex entry selection** — for the two **Codex** formats the chapter list is replaced by a checkbox per codex entry, grouped by Characters, Locations, Items, and Lore and sorted by name inside each group, exactly as the exported file is ordered. Everything is ticked by default; untick the entries you do not want in the file — for example, to send a collaborator only the characters they are writing.
   - A **search box** above the list filters entries by name as you type.

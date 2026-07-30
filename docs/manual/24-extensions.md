@@ -73,7 +73,7 @@ Extensions implement hook interfaces from the Novalist SDK. The main contributio
 | Contribution | Adds |
 | --- | --- |
 | Webview views (`contributes.views` + `IWebViewContributor`) | Rendered from the extension's own HTML. Placement `main` gives the view its own activity-bar icon (like Codex or Timeline); placement `inspector` shows it in the inspector alongside Context and Footnotes. |
-| `IExportFormatContributor` | New export formats in the Export view. |
+| `IExportFormatContributor` | New export formats in the Export view. A contributed format is told the language you write in, your title and author, and where your cover is, so it produces the same file the built-in formats would. A format that says it can hold a cover gets the **Include the book cover** toggle. |
 | `IEntityTypeContributor` | New entity types in the Codex (registered into the open project's custom types). |
 | `IPropertyTypeContributor` | New property types for templates. |
 | `IAiHook` | Extends AI system prompts and processes responses. |

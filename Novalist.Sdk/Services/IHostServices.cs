@@ -254,6 +254,16 @@ public interface IHostServices
     string CurrentLanguage { get; }
 
     /// <summary>
+    /// The language the book is written in, as a BCP-47 tag ("de", "pt-BR").
+    ///
+    /// Not the same thing as <see cref="CurrentLanguage"/>: someone can read the
+    /// menus in English and write in German, and anything that ends up in a file
+    /// a reader opens - a language attribute, a document property, a metadata
+    /// field - belongs to the book rather than to the interface.
+    /// </summary>
+    string WritingLanguage { get; }
+
+    /// <summary>
     /// Returns the localization service for the given extension.
     /// The service loads JSON locale files from the extension's <c>Locales/</c> folder
     /// and resolves keys with English fallback.

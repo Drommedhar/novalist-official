@@ -21,6 +21,9 @@ public class HostServicesTests
         var settings = Substitute.For<ISettingsService>();
         var app = new AppSettings();
         settings.Settings.Returns(app);
+        var effective = Substitute.For<IEffectiveSettings>();
+        effective.AutoReplacementLanguage.Returns(_ => app.AutoReplacementLanguage);
+        settings.Effective.Returns(effective);
         settings.SaveAsync().Returns(Task.CompletedTask);
         return (new HostServices(file, proj, ent, settings), file, proj, ent, app);
     }
@@ -391,6 +394,18 @@ public class HostServicesTests
         Assert.Empty(h.GetAiHooks());
         Assert.False(string.IsNullOrEmpty(h.CurrentLanguageDisplayName));
         Assert.False(string.IsNullOrEmpty(h.CurrentLanguage));
+    }
+
+    [Fact]
+    public void WritingLanguage_IsTheBooksLanguageNotTheInterfaces()
+    {
+        // Someone can read the menus in English and write in German. Anything an
+        // extension puts in a file a reader opens belongs to the book.
+        var (h, _, _, _, app) = Build();
+        Assert.Equal("en", h.WritingLanguage);
+
+        app.AutoReplacementLanguage = "de-guillemet";
+        Assert.Equal("de", h.WritingLanguage);
     }
 
     [Fact]

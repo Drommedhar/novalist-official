@@ -164,6 +164,22 @@ Implement any of these alongside `IExtension`; the host finds them by type.
 
 Each interface's XML documentation on the SDK type is the contract; read it before implementing.
 
+### Writing an export format
+
+`IExportFormatContributor.GetExportFormats()` returns descriptors; each one's `Export` is handed an `ExportContext` when the writer runs it. The context carries everything the built-in formats resolve, so a contributed format can produce the same file:
+
+| Property | What it is |
+|---|---|
+| `ProjectRoot` | The open project's folder |
+| `OutputPath` | Where to write |
+| `BookName` | The title the writer entered, or the book's name |
+| `Author` | The author as entered in the Export view; empty when not given |
+| `Language` | BCP-47 tag for the language the book is written in (`de`, `pt-BR`) |
+| `CoverImagePath` | Absolute path of the cover, or empty when there is none or the writer turned it off |
+| `IncludeTitlePage` | Whether the writer asked for a title page |
+
+Use `Language` for whatever your format calls a language declaration, and read `CoverImagePath` off disk if your format can hold a picture. A format that ignores them produces a file that claims to be English and has no cover, whatever the writer set.
+
 ## Web views
 
 Anything with a user interface is HTML rendered in a sandboxed frame. Declare it in the manifest:
