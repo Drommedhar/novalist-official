@@ -111,6 +111,15 @@ public sealed class SceneDetailInfo
     /// <summary>The stage in whatever structure the book uses.</summary>
     public string Stage { get; init; } = string.Empty;
 
+    /// <summary>
+    /// True when the scene is out of the book but still in the plan.
+    ///
+    /// An extension could not tell a parked scene from a live one, so every
+    /// report counted words the manuscript does not contain and named scenes
+    /// the reader will never reach.
+    /// </summary>
+    public bool Inactive { get; init; }
+
     /// <summary>Tags the writer put on the scene.</summary>
     public IReadOnlyList<string> Tags { get; init; } = [];
 

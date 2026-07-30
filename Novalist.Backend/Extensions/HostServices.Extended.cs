@@ -415,6 +415,7 @@ public sealed partial class HostServices
             Emotion = overrides?.Emotion ?? string.Empty,
             Conflict = overrides?.Conflict ?? string.Empty,
             Stage = scene.Stage ?? string.Empty,
+            Inactive = scene.Inactive,
             Tags = [.. overrides?.Tags ?? []],
             PlotlineIds = [.. scene.PlotlineIds ?? []],
             Cast = [.. scene.Cast ?? []],

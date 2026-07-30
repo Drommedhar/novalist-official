@@ -493,6 +493,7 @@ public class HostServicesExtendedTests
             Tags = ["night"]
         };
         data.Stage = "Inciting incident";
+        data.Inactive = true;
         data.NarrativeMode = "Flashback";
         data.DateRange = new StoryDateRange { Start = "1893-04-02", End = "1893-04-03" };
         await proj.SaveScenesAsync();
@@ -505,6 +506,9 @@ public class HostServicesExtendedTests
         Assert.Equal(7, detail.Intensity);
         Assert.Equal("the harbourmaster", detail.Conflict);
         Assert.Equal("Inciting incident", detail.Stage);
+        // An extension could not tell a parked scene from a live one, so every
+        // report counted words the manuscript does not contain.
+        Assert.True(detail.Inactive);
         Assert.Equal("Flashback", detail.NarrativeMode);
         Assert.Equal("1893-04-02", detail.DateStart);
         Assert.Equal("1893-04-03", detail.DateEnd);
