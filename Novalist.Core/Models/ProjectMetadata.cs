@@ -112,6 +112,15 @@ public class ProjectMetadata
     [JsonPropertyName("wikiPages")]
     public List<WikiPage> WikiPages { get; set; } = [];
 
+    /// <summary>
+    /// Things to do before the book is finished, in named lists.
+    ///
+    /// Todo comments are anchored to a passage and belong to a scene. "Read
+    /// the whole thing aloud" belongs to no passage and no scene.
+    /// </summary>
+    [JsonPropertyName("tasks")]
+    public List<ProjectTask> Tasks { get; set; } = [];
+
     public BookData? GetActiveBook()
         => Books.FirstOrDefault(b => b.Id == ActiveBookId) ?? Books.FirstOrDefault();
 }

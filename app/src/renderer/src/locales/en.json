@@ -3197,5 +3197,15 @@
     "extraTagPlaceholder": "Optional — e.g. the vault name",
     "run": "Import them",
     "done": "{{count}} imported."
+  },
+  "tasks": {
+    "title": "To do",
+    "textPlaceholder": "What needs doing",
+    "listPlaceholder": "List (optional)",
+    "empty": "Nothing to do yet. A todo comment belongs to a passage; these belong to the book.",
+    "loose": "Loose ends",
+    "progress": "{{done}} of {{total}}",
+    "reset": "Untick the list for another pass",
+    "remove": "Remove this"
   }
 }

@@ -3237,5 +3237,15 @@
     "extraTagPlaceholder": "可选——例如仓库名称",
     "run": "导入",
     "done": "已导入 {{count}} 条。"
+  },
+  "tasks": {
+    "title": "待办",
+    "textPlaceholder": "需要做什么",
+    "listPlaceholder": "清单（可选）",
+    "empty": "暂无。待办批注属于某段文字；这些属于整本书。",
+    "loose": "零散事项",
+    "progress": "{{total}} 项中已完成 {{done}} 项",
+    "reset": "重置清单以便再走一遍",
+    "remove": "移除"
   }
 }

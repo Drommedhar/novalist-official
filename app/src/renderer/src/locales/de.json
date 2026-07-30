@@ -3205,5 +3205,15 @@
     "extraTagPlaceholder": "Optional – z. B. der Vault-Name",
     "run": "Importieren",
     "done": "{{count}} importiert."
+  },
+  "tasks": {
+    "title": "Zu erledigen",
+    "textPlaceholder": "Was zu tun ist",
+    "listPlaceholder": "Liste (optional)",
+    "empty": "Noch nichts. Ein Todo-Kommentar gehört zu einer Textstelle; das hier gehört zum Buch.",
+    "loose": "Lose Enden",
+    "progress": "{{done}} von {{total}}",
+    "reset": "Liste für den nächsten Durchgang zurücksetzen",
+    "remove": "Entfernen"
   }
 }

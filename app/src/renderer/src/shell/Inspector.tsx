@@ -5,6 +5,7 @@ import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { rpc } from '../rpc/client'
 import { LinksPanel } from './LinksPanel'
 import { DarlingsPanel } from './DarlingsPanel'
+import { TasksPanel } from './TasksPanel'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
 import { SuggestionsPanel } from './SuggestionsPanel'
@@ -137,6 +138,9 @@ export function Inspector(): React.JSX.Element {
         {inspectorTab === 'inbox' && (
           <>
             <InboxPanel />
+            {/* Unfinished business, all in one tab: open notes, prose set
+                aside, and the things that belong to no scene at all. */}
+            <TasksPanel />
             {/* Same tab as the open notes: both are things the writer set down
                 and meant to come back to. */}
             <DarlingsPanel />

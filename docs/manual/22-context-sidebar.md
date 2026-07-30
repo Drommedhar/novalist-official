@@ -86,6 +86,18 @@ Each entry shows which chapter and scene it is in (click to open that scene), th
 
 Authors come from the project's **Author** setting, stamped when a note is created.
 
+## To do
+
+Under the Inbox tab, alongside the open notes and the prose you cut, is a **To do** list.
+
+A [todo comment](#footnotes-and-comments-footnotes-tab) is anchored to a passage and belongs to the scene it sits in. "Check the dates in act two", "read the whole thing aloud", "decide whether Tomas survives" belong to no passage and to no scene, so they used to be kept on paper or in a scene called Notes.
+
+- Type what needs doing and press Enter. The second box puts it in a **named list** — leave it empty and it lands in **Loose ends**.
+- The list box offers the names already in use, so a checklist is not split in two by a capital letter.
+- **A ticked item stays visible**, greyed and struck through. A checklist that empties as it is worked reads as though nothing was done, which is the opposite of what a revision pass is for. Each list shows how many of its items are done.
+- **Untick the list** on a named list clears every tick at once, so a revision checklist can be run again on the next pass instead of being retyped. That is what makes it a checklist rather than a list of notes.
+- Unticking one item clears its completion date too. A date saying something was finished, on a row that is not, is worse than no date.
+
 ## Footnotes and comments (Footnotes tab)
 
 The **Footnotes** tab lists the footnotes and inline comments in the open scene:

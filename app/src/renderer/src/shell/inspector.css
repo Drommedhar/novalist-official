@@ -532,3 +532,53 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Things to do. A ticked row stays visible and greys out: a checklist that
+   empties as it is worked reads as though nothing was done. */
+.tasks-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-lg);
+}
+
+.tasks-add {
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.tasks-list-name {
+  flex: 0 1 8rem;
+  min-width: 0;
+}
+
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-tighter);
+}
+
+.task-list-head {
+  align-items: baseline;
+  border-bottom: 1px solid var(--nl-border);
+  display: flex;
+  gap: var(--nl-space-tighter);
+  padding-bottom: var(--nl-space-tightest);
+}
+
+.task-list-name {
+  font-size: var(--nl-font-caption);
+  font-weight: 600;
+}
+
+.task {
+  align-items: center;
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.task.done .task-text {
+  color: var(--nl-text-subtle);
+  text-decoration: line-through;
+}
