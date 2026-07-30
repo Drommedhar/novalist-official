@@ -114,7 +114,10 @@ public sealed class ExportRpc
         string[]? selectedEntityKeys = null,
         Dictionary<string, string>? labels = null,
         bool includeCover = true,
-        string[]? includedStages = null)
+        string[]? includedStages = null,
+        int tocDepth = 1,
+        string? tocTitle = null,
+        string? referenceDocPath = null)
     {
         if (Enum.TryParse<ExportFormat>(format, out var parsedFormat))
         {
@@ -137,7 +140,13 @@ public sealed class ExportRpc
                 // writing language rather than a hardcoded "en".
                 CoverImagePath = includeCover ? _workspace.ActiveCoverAbsolutePath() ?? string.Empty : string.Empty,
                 Language = ExportService.NormalizeLanguageTag(
-                    _workspace.Settings.Effective.AutoReplacementLanguage)
+                    _workspace.Settings.Effective.AutoReplacementLanguage),
+                // Contents shape and the publisher's Word template. All three
+                // are optional: an older caller passes none and gets exactly
+                // the flat chapter list and the built-in styles it always did.
+                TocDepth = tocDepth,
+                TocTitle = tocTitle ?? string.Empty,
+                ReferenceDocPath = referenceDocPath ?? string.Empty
             };
             if (parsedFormat == ExportFormat.Codex)
             {

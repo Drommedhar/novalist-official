@@ -554,4 +554,44 @@ public sealed class ExportRpcTests : IDisposable
         Assert.Empty(await _rpc.SaveReplacementsAsync(null!));
     }
 
+    [Fact]
+    public async Task Run_ContentsShapeReachesTheFile()
+    {
+        var outPath = Path.Combine(_root, "deep-toc.epub");
+
+        await _rpc.RunAsync("Epub", outPath, "Titel", "Autor", true, AllChapterGuids(),
+            presetId: null, selectedEntityKeys: null, labels: null, includeCover: true,
+            includedStages: null, tocDepth: 2, tocTitle: "Inhalt");
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(outPath);
+        using var reader = new StreamReader(zip.GetEntry("OEBPS/nav.xhtml")!.Open());
+        var nav = await reader.ReadToEndAsync();
+
+        Assert.Contains("<h1>Inhalt</h1>", nav);
+        Assert.Contains("#scene-1", nav);
+    }
+
+    [Fact]
+    public async Task Run_ReferenceDocumentStylesReachTheDocx()
+    {
+        var reference = Path.Combine(_root, "house-style.docx");
+        using (var template = System.IO.Compression.ZipFile.Open(
+                   reference, System.IO.Compression.ZipArchiveMode.Create))
+        {
+            await using var entry = template.CreateEntry("word/styles.xml").Open();
+            await using var writer = new StreamWriter(entry);
+            await writer.WriteAsync(
+                "<w:styles xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">"
+                + "<w:style w:styleId=\"HouseBody\"/></w:styles>");
+        }
+
+        var outPath = Path.Combine(_root, "house.docx");
+        await _rpc.RunAsync("Docx", outPath, "Titel", "Autor", true, AllChapterGuids(),
+            presetId: null, selectedEntityKeys: null, labels: null, includeCover: true,
+            includedStages: null, tocDepth: 1, tocTitle: null, referenceDocPath: reference);
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(outPath);
+        using var styles = new StreamReader(zip.GetEntry("word/styles.xml")!.Open());
+        Assert.Contains("HouseBody", await styles.ReadToEndAsync());
+    }
 }

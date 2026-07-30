@@ -1770,7 +1770,16 @@
     "replacementAdd": "Add a replacement",
     "replacementRemove": "Remove this replacement",
     "tokens": "Placeholders",
-    "tokensIntro": "Usable in front and back matter, and as replacement text. Each one resolves from the book when the export runs."
+    "tokensIntro": "Usable in front and back matter, and as replacement text. Each one resolves from the book when the export runs.",
+    "tocDepth": "Contents depth",
+    "tocDepthChapters": "Chapters only",
+    "tocDepthScenes": "Chapters and scenes",
+    "tocTitle": "Contents heading",
+    "tocTitlePlaceholder": "Table of Contents",
+    "referenceDoc": "Reference document",
+    "referenceDocPlaceholder": "Use Novalist styles",
+    "referenceDocChoose": "Choose",
+    "referenceDocClear": "Clear"
   },
   "expose": {
     "chars": "{{value}} characters",

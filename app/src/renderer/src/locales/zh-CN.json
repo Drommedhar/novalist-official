@@ -1803,7 +1803,16 @@
     "replacementAdd": "添加替换规则",
     "replacementRemove": "删除此替换规则",
     "tokens": "占位符",
-    "tokensIntro": "可用于前后附页以及替换文本。导出时会从书中解析出实际内容。"
+    "tokensIntro": "可用于前后附页以及替换文本。导出时会从书中解析出实际内容。",
+    "tocDepth": "目录层级",
+    "tocDepthChapters": "仅章节",
+    "tocDepthScenes": "章节与场景",
+    "tocTitle": "目录标题",
+    "tocTitlePlaceholder": "目录",
+    "referenceDoc": "参考文档",
+    "referenceDocPlaceholder": "使用 Novalist 样式",
+    "referenceDocChoose": "选择",
+    "referenceDocClear": "清除"
   },
   "expose": {
     "chars": "{{value}} 字符",

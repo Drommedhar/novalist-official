@@ -95,6 +95,9 @@ export function ExportView(): React.JSX.Element {
   const [includeTitlePage, setIncludeTitlePage] = useState(true)
   // Off for Shunn: a submission manuscript does not carry a cover.
   const [includeCover, setIncludeCover] = useState(true)
+  const [tocDepth, setTocDepth] = useState(1)
+  const [tocTitle, setTocTitle] = useState('')
+  const [referenceDoc, setReferenceDoc] = useState('')
   // Empty means every stage, which is what an export that names no filter has
   // always done and has to keep doing.
   const [stageFilter, setStageFilter] = useState<Set<string>>(new Set())
@@ -243,7 +246,10 @@ export function ExportView(): React.JSX.Element {
         isCodex ? [...selectedEntities] : null,
         isCodex ? codexLabels() : null,
         includeCover,
-        [...stageFilter]
+        [...stageFilter],
+        tocDepth,
+        tocTitle,
+        referenceDoc
       ])
       setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
     } catch {
@@ -375,6 +381,66 @@ export function ExportView(): React.JSX.Element {
             />
             {t('export.includeCover')}
           </label>
+        )}
+
+        {/* How deep the contents list goes, and what it is called. A flat
+            chapter list is right for a novel and wrong for a collection, and
+            "Table of Contents" is wrong in every language but English. */}
+        {format === 'Epub' && (
+          <div className="export-field-row">
+            <label className="export-field">
+              <span className="export-field-label">{t('export.tocDepth')}</span>
+              <select
+                className="inspector-input"
+                value={tocDepth}
+                onChange={(e) => setTocDepth(Number(e.target.value))}
+              >
+                <option value={1}>{t('export.tocDepthChapters')}</option>
+                <option value={2}>{t('export.tocDepthScenes')}</option>
+              </select>
+            </label>
+            <label className="export-field">
+              <span className="export-field-label">{t('export.tocTitle')}</span>
+              <input
+                className="inspector-input"
+                value={tocTitle}
+                placeholder={t('export.tocTitlePlaceholder')}
+                onChange={(e) => setTocTitle(e.target.value)}
+              />
+            </label>
+          </div>
+        )}
+
+        {/* A house style arrives as a styled Word file, not as a list of
+            settings. Point at it once and the export comes out in it. */}
+        {format === 'Docx' && (
+          <div className="export-field-row">
+            <label className="export-field export-field-grow">
+              <span className="export-field-label">{t('export.referenceDoc')}</span>
+              <input
+                className="inspector-input"
+                value={referenceDoc}
+                placeholder={t('export.referenceDocPlaceholder')}
+                onChange={(e) => setReferenceDoc(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => {
+                void window.novalist
+                  .pickFile(t('export.referenceDoc'), 'all')
+                  .then((chosen) => chosen && setReferenceDoc(chosen))
+              }}
+            >
+              {t('export.referenceDocChoose')}
+            </button>
+            {referenceDoc && (
+              <button type="button" className="btn-secondary" onClick={() => setReferenceDoc('')}>
+                {t('export.referenceDocClear')}
+              </button>
+            )}
+          </div>
         )}
 
         {preview && (

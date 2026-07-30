@@ -269,3 +269,28 @@
   color: var(--nl-text-dim);
   font-size: var(--nl-font-caption);
 }
+
+/* One row of contents / template controls, wrapping on a narrow dialog rather
+   than pushing the export button off the bottom. */
+.export-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--nl-space-sm);
+}
+
+.export-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.export-field-grow {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.export-field-label {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}

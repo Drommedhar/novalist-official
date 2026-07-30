@@ -98,6 +98,17 @@ A file that is not a Word document, or has no review marks in it, reports "nothi
 - A missing or unreadable cover file never fails the export — the book is produced without one.
 - Compatible with major e-readers (Kindle via conversion, Apple Books, Kobo, etc.).
 
+#### Table of contents (EPUB)
+
+Two controls appear on the export form when the format is EPUB:
+
+- **Contents depth** — *Chapters only* is the default and produces the flat list every export produced before. *Chapters and scenes* nests each chapter's scenes underneath it, so a collection or an anthology can be navigated a piece at a time.
+- **Contents heading** — what the contents page is called. Leave it blank and Novalist uses your interface language's word for it; type your own to get "Contents", "Inhalt", or a title of your choosing.
+
+At depth two, only scenes you have **titled** are listed. An untitled scene is skipped: there is nothing to call it, and "Scene 3" is not navigation. The layout does not have to print those titles — most do not — because Novalist writes an invisible anchor at each scene start for the entry to land on.
+
+Both the EPUB 3 navigation document and the EPUB 2 `toc.ncx` are written from the same list, so old and new reading systems agree.
+
 ### DOCX
 
 - Standard Word document with paragraph styles mapped to Word styles:
@@ -106,7 +117,16 @@ A file that is not a Word document, or has no review marks in it, reports "nothi
   - Body Text — paragraph.
   - Quote — blockquote.
 - Comments are dropped.
+- Comments you have not resolved become **real Word comments** an editor can reply to.
 - Footnotes become **real Word footnotes** — they sit at the foot of the page the anchor lands on, and Word renumbers them if you add or delete one.
+
+#### Exporting into a publisher's template
+
+An agent or publisher who sends you a styled Word file wants your manuscript back in it. Point **Reference document** at that file (the **Choose** button opens a file picker) and Novalist writes its styles into the export instead of its own — so the house font, sizes, indents and heading treatments come out right the first time, rather than being reapplied by hand after every export.
+
+Novalist takes the reference file's styles only; the words, page contents and structure are always yours. A reference document that is missing, locked, or not really a Word file is ignored and the export runs with Novalist's own styles — a bad template never costs you the export.
+
+Leave the field blank to use Novalist's styles, which is what happens if you never touch it.
 
 #### Normseiten (DOCX)
 

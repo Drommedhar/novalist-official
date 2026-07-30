@@ -1391,7 +1391,16 @@
     "replacementAdd": "Ersetzung hinzufügen",
     "replacementRemove": "Diese Ersetzung entfernen",
     "tokens": "Platzhalter",
-    "tokensIntro": "Verwendbar in Vor- und Nachspann und als Ersetzungstext. Jeder wird beim Export aus dem Buch aufgelöst."
+    "tokensIntro": "Verwendbar in Vor- und Nachspann und als Ersetzungstext. Jeder wird beim Export aus dem Buch aufgelöst.",
+    "tocDepth": "Inhaltstiefe",
+    "tocDepthChapters": "Nur Kapitel",
+    "tocDepthScenes": "Kapitel und Szenen",
+    "tocTitle": "Inhaltsüberschrift",
+    "tocTitlePlaceholder": "Inhaltsverzeichnis",
+    "referenceDoc": "Referenzdokument",
+    "referenceDocPlaceholder": "Novalist-Stile verwenden",
+    "referenceDocChoose": "Wählen",
+    "referenceDocClear": "Entfernen"
   },
   "expose": {
     "chars": "{{value}} Zeichen",

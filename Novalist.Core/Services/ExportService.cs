@@ -122,6 +122,34 @@ public class ExportOptions
     /// </summary>
     public List<Models.ExportReplacement> Replacements { get; set; } = [];
 
+    /// <summary>
+    /// How deep the table of contents goes. 1 lists the chapters, which is what
+    /// every export did before; 2 also lists the scenes inside them. Values
+    /// outside that range are clamped rather than rejected, because a contents
+    /// list is not worth failing an export over.
+    /// </summary>
+    public int TocDepth { get; set; } = 1;
+
+    /// <summary>
+    /// Heading printed above the contents. Empty means "Table of Contents" -
+    /// which is wrong in every language but English, and wrong in English for
+    /// anyone who wanted "Contents".
+    /// </summary>
+    public string TocTitle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Absolute path of a DOCX whose styles this export should adopt. When set
+    /// and readable, its <c>word/styles.xml</c> replaces the one Novalist
+    /// generates, so an agent's or publisher's house style survives an export
+    /// instead of being reapplied by hand afterwards. A path that is missing,
+    /// locked, or not a DOCX falls back to Novalist's own styles: a bad
+    /// reference document is a reason to ignore it, never to fail the export.
+    /// </summary>
+    public string ReferenceDocPath { get; set; } = string.Empty;
+
+    /// <summary>The contents depth, clamped to what the writers can render.</summary>
+    public int EffectiveTocDepth => Math.Clamp(TocDepth, 1, 2);
+
     /// <summary>Resolves to the configured preset (or default).</summary>
     public ExportPreset ResolvePreset()
     {
@@ -1983,7 +2011,15 @@ public partial class ExportService
             // Off for a novel, where an ornament is the whole separator; on for
             // a collection, where the titles are how a reader navigates.
             if (preset.ShowSceneTitles && !string.IsNullOrWhiteSpace(scene.Title))
-                bodyHtml.AppendLine($"    <h3 class=\"scene-title\">{EscapeXml(scene.Title)}</h3>");
+                bodyHtml.AppendLine(
+                    $"    <h3 class=\"scene-title\" id=\"scene-{si + 1}\">"
+                    + $"{EscapeXml(scene.Title)}</h3>");
+            else if (options.EffectiveTocDepth >= 2)
+                // Somewhere for a contents entry to land when the layout prints
+                // no scene heading - which is every built-in layout. Without
+                // this, choosing "chapters and scenes" would silently do
+                // nothing on a novel.
+                bodyHtml.AppendLine($"    <span id=\"scene-{si + 1}\"></span>");
 
             var isFirst = si == 0;
             var openList = ListKind.None;
@@ -2225,7 +2261,25 @@ public partial class ExportService
         ListMatter("Front");
 
         for (var i = 0; i < chapters.Count; i++)
-            items.AppendLine($"      <li><a href=\"chapter-{i + 1}.xhtml\">{EscapeXml(chapters[i].Title)}</a></li>");
+        {
+            var href = $"chapter-{i + 1}.xhtml";
+            var nested = NavigableScenes(chapters[i], options);
+            items.Append($"      <li><a href=\"{href}\">{EscapeXml(chapters[i].Title)}</a>");
+            if (nested.Count > 0)
+            {
+                items.AppendLine();
+                items.AppendLine("        <ol>");
+                foreach (var (number, title) in nested)
+                    items.AppendLine(
+                        $"          <li><a href=\"{href}#scene-{number}\">{EscapeXml(title)}</a></li>");
+                items.AppendLine("        </ol>");
+                items.AppendLine("      </li>");
+            }
+            else
+            {
+                items.AppendLine("</li>");
+            }
+        }
 
         ListMatter("Back");
 
@@ -2235,11 +2289,11 @@ public partial class ExportService
             <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="{EscapeXml(options.Language)}">
             <head>
               <meta charset="UTF-8"/>
-              <title>Table of Contents</title>
+              <title>{EscapeXml(TocHeading(options))}</title>
             </head>
             <body>
               <nav epub:type="toc" id="toc">
-                <h1>Table of Contents</h1>
+                <h1>{EscapeXml(TocHeading(options))}</h1>
                 <ol>
             {items}
                 </ol>
@@ -2247,6 +2301,36 @@ public partial class ExportService
             </body>
             </html>
             """;
+    }
+
+    /// <summary>
+    /// The heading the contents page carries. English only when the writer said
+    /// nothing, because a hardcoded "Table of Contents" on a German book is the
+    /// one line of a book nobody can edit.
+    /// </summary>
+    private static string TocHeading(ExportOptions options)
+        => string.IsNullOrWhiteSpace(options.TocTitle)
+            ? Label(options, "tableOfContents", "Table of Contents")
+            : options.TocTitle.Trim();
+
+    /// <summary>
+    /// The scenes of a chapter that belong in the contents, as (number, title).
+    ///
+    /// A titled scene qualifies whether or not the layout prints that title:
+    /// writers name scenes in the binder for themselves, and those names are
+    /// exactly what belongs in a contents list. An untitled scene is skipped -
+    /// there is nothing to call it, and "Scene 3" is noise, not navigation.
+    /// </summary>
+    private static List<(int Number, string Title)> NavigableScenes(
+        ChapterExportContent chapter, ExportOptions options)
+    {
+        var listed = new List<(int, string)>();
+        if (options.EffectiveTocDepth < 2) return listed;
+
+        for (var i = 0; i < chapter.Scenes.Count; i++)
+            if (!string.IsNullOrWhiteSpace(chapter.Scenes[i].Title))
+                listed.Add((i + 1, chapter.Scenes[i].Title));
+        return listed;
     }
 
     private static string GenerateTocNcx(List<ChapterExportContent> chapters, ExportOptions options, string bookId)
@@ -2265,12 +2349,28 @@ public partial class ExportService
             playOrder++;
         }
 
+        var deepest = 1;
         for (var i = 0; i < chapters.Count; i++)
         {
+            var nested = NavigableScenes(chapters[i], options);
+            var inner = new StringBuilder();
+            foreach (var (number, title) in nested)
+            {
+                playOrder++;
+                deepest = 2;
+                inner.AppendLine($"""
+                        <navPoint id="chapter-{i + 1}-scene-{number}" playOrder="{playOrder}">
+                          <navLabel><text>{EscapeXml(title)}</text></navLabel>
+                          <content src="chapter-{i + 1}.xhtml#scene-{number}"/>
+                        </navPoint>
+                    """);
+            }
+
             navPoints.AppendLine($"""
-                    <navPoint id="chapter-{i + 1}" playOrder="{playOrder}">
+                    <navPoint id="chapter-{i + 1}" playOrder="{playOrder - nested.Count}">
                       <navLabel><text>{EscapeXml(chapters[i].Title)}</text></navLabel>
                       <content src="chapter-{i + 1}.xhtml"/>
+                    {inner.ToString().TrimEnd()}
                     </navPoint>
                 """);
             playOrder++;
@@ -2282,7 +2382,7 @@ public partial class ExportService
             <ncx version="2005-1" xmlns="http://www.daisy.org/z3986/2005/ncx/">
               <head>
                 <meta name="dtb:uid" content="{EscapeXml(bookId)}"/>
-                <meta name="dtb:depth" content="1"/>
+                <meta name="dtb:depth" content="{deepest}"/>
                 <meta name="dtb:totalPageCount" content="0"/>
                 <meta name="dtb:maxPageNumber" content="0"/>
               </head>
@@ -2972,8 +3072,40 @@ public partial class ExportService
         return (600, 600);
     }
 
+    /// <summary>
+    /// The styles part of a reference DOCX, or null when there is not a usable
+    /// one. A publisher's house style arrives as a styled Word file, not as a
+    /// list of settings, and reapplying it by hand after every export is how a
+    /// submission goes out in the wrong font.
+    /// </summary>
+    internal static string? ReadReferenceStyles(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return null;
+        try
+        {
+            using var archive = ZipFile.OpenRead(path);
+            var entry = archive.GetEntry("word/styles.xml");
+            if (entry == null) return null;
+
+            using var reader = new StreamReader(entry.Open());
+            var xml = reader.ReadToEnd();
+            // A part without the wordprocessing root is not a styles part, and
+            // writing it would produce a file Word refuses to open at all.
+            return xml.Contains("<w:styles", StringComparison.Ordinal) ? xml : null;
+        }
+        catch (Exception ex) when (
+            ex is IOException or InvalidDataException or UnauthorizedAccessException)
+        {
+            // A reference document that cannot be read is a reason to fall back
+            // to ours, never a reason to fail the export the writer asked for.
+            return null;
+        }
+    }
+
     private static string GenerateDocxStyles(ExportOptions options)
     {
+        if (ReadReferenceStyles(options.ReferenceDocPath) is { } borrowed) return borrowed;
+
         var smf = options.ResolvePreset().ShunnHeader;
         var fontFamily = smf ? "Courier New" : "Georgia";
         var fontSize = "24";
