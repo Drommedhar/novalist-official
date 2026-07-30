@@ -2959,7 +2959,10 @@
     "empty": "Nothing bookmarked yet. Right-click a scene to add one.",
     "ungrouped": "Loose",
     "remove": "Remove this bookmark",
-    "addScene": "Bookmark this scene"
+    "addScene": "Bookmark this scene",
+    "preview": "Show what is there",
+    "previewLoading": "Reading…",
+    "previewNone": "Nothing to show for this one."
   },
   "layouts": {
     "title": "Workspace layouts",

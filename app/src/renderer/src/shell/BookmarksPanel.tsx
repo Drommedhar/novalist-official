@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Bookmark as BookmarkIcon, Trash2 } from 'lucide-react'
+import { Bookmark as BookmarkIcon, ChevronRight, Trash2 } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { useShellStore } from '../stores/shellStore'
@@ -30,6 +30,10 @@ export interface BookmarkDto {
 export function BookmarksPanel(): React.JSX.Element {
   const { t } = useTranslation()
   const [bookmarks, setBookmarks] = useState<BookmarkDto[]>([])
+  // Previews are fetched per bookmark and only when opened: reading thirty
+  // scenes to draw a list nobody has expanded is thirty file reads for nothing.
+  const [previews, setPreviews] = useState<Record<string, string>>({})
+  const [open, setOpen] = useState<Set<string>>(new Set())
   const projectPath = useProjectStore((s) => s.projectPath)
 
   useEffect(() => {
@@ -39,7 +43,7 @@ export function BookmarksPanel(): React.JSX.Element {
       .catch(() => setBookmarks([]))
   }, [projectPath])
 
-  const open = (bookmark: BookmarkDto): void => {
+  const go = (bookmark: BookmarkDto): void => {
     switch (bookmark.kind) {
       case 'Scene':
         if (bookmark.chapterGuid && bookmark.targetId) {
@@ -77,6 +81,23 @@ export function BookmarksPanel(): React.JSX.Element {
     }
   }
 
+  const toggle = (id: string): void => {
+    setOpen((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else {
+        next.add(id)
+        if (previews[id] === undefined) {
+          void rpc
+            .request<string>('bookmarks/preview', [id])
+            .then((text) => setPreviews((p) => ({ ...p, [id]: text })))
+            .catch(() => setPreviews((p) => ({ ...p, [id]: '' })))
+        }
+      }
+      return next
+    })
+  }
+
   const remove = (id: string): void => {
     void rpc.request<BookmarkDto[]>('bookmarks/delete', [id]).then(setBookmarks)
   }
@@ -97,8 +118,23 @@ export function BookmarksPanel(): React.JSX.Element {
           {bookmarks
             .filter((b) => (b.group ?? '') === group)
             .map((bookmark) => (
-              <div key={bookmark.id} className="bookmarks-row">
-                <button className="binder-scene-row" onClick={() => open(bookmark)}>
+              <div key={bookmark.id} className="bookmarks-entry">
+              <div className="bookmarks-row">
+                {/* A bookmark that only navigates makes you go and look to
+                    remember why you kept it - thirty trips for thirty marks. */}
+                <button
+                  className="binder-expand"
+                  aria-label={t('bookmarks.preview')}
+                  title={t('bookmarks.preview')}
+                  onClick={() => toggle(bookmark.id)}
+                >
+                  <ChevronRight
+                    size={13}
+                    strokeWidth={2}
+                    className={`binder-chevron${open.has(bookmark.id) ? ' open' : ''}`}
+                  />
+                </button>
+                <button className="binder-scene-row" onClick={() => go(bookmark)}>
                   <BookmarkIcon size={13} strokeWidth={2} />
                   <span className="binder-scene-title">{bookmark.label}</span>
                 </button>
@@ -109,6 +145,14 @@ export function BookmarksPanel(): React.JSX.Element {
                 >
                   <Trash2 size={13} strokeWidth={2} />
                 </button>
+              </div>
+              {open.has(bookmark.id) && (
+                <div className="bookmarks-preview">
+                  {previews[bookmark.id] === undefined
+                    ? t('bookmarks.previewLoading')
+                    : previews[bookmark.id] || t('bookmarks.previewNone')}
+                </div>
+              )}
               </div>
             ))}
         </div>

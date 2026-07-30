@@ -102,6 +102,10 @@ Bookmarks can carry a **group** name, and the panel shows named sets first with 
 
 A bookmark on a passage inside a scene stores **the text itself**, not a position. Prose above a mark is edited constantly, and a stored position would drift silently into the middle of an unrelated sentence; text that no longer appears simply opens the scene.
 
+**Seeing what a bookmark points at.** The chevron beside a bookmark opens a few lines of whatever it marks — the passage in the scene, the opening of a bookmarked chapter, or what a Codex entry is. A bookmark that only navigates makes you go and look to remember why you kept it, and for a list of thirty that is thirty trips.
+
+The preview reads the scene only when you open it, so a long list costs nothing until you ask. If the sentence a bookmark named has since been rewritten, you get the opening of the scene instead of nothing — the scene is still worth recognising, and an empty preview reads as a broken bookmark.
+
 ## Where to go next
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — status lives on chapters; scenes carry POV and tags.

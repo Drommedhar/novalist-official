@@ -2967,7 +2967,10 @@
     "empty": "Noch keine Lesezeichen. Rechtsklick auf eine Szene legt eines an.",
     "ungrouped": "Ohne Gruppe",
     "remove": "Lesezeichen entfernen",
-    "addScene": "Lesezeichen für diese Szene"
+    "addScene": "Lesezeichen für diese Szene",
+    "preview": "Inhalt anzeigen",
+    "previewLoading": "Wird gelesen…",
+    "previewNone": "Hierfür gibt es nichts zu zeigen."
   },
   "layouts": {
     "title": "Arbeitsbereich-Layouts",

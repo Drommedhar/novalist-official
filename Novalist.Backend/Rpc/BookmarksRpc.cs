@@ -88,6 +88,92 @@ public sealed class BookmarksRpc
     /// The groups this project uses, so the picker offers what is there rather
     /// than asking for the same name to be spelled the same way twice.
     /// </summary>
+    /// <summary>
+    /// A few lines of whatever the bookmark points at.
+    ///
+    /// A bookmark that only navigates makes you go and look to remember why you
+    /// kept it, which for a list of thirty means thirty trips. The preview is
+    /// text rather than a rendered view: a paragraph of the scene is what tells
+    /// somebody whether this is the passage they meant, and an embedded editor
+    /// would be a second place the prose could be edited from.
+    /// </summary>
+    [JsonRpcMethod("bookmarks/preview")]
+    public async Task<string> PreviewAsync(string bookmarkId)
+    {
+        var mark = (_workspace.Projects.CurrentProject?.Bookmarks ?? [])
+            .FirstOrDefault(b => b.Id == bookmarkId);
+        if (mark == null) return string.Empty;
+
+        return mark.Kind switch
+        {
+            BookmarkKind.Scene => await ScenePreviewAsync(mark),
+            BookmarkKind.Chapter => await ChapterPreviewAsync(mark),
+            BookmarkKind.Entity => EntityPreview(mark),
+            _ => string.Empty
+        };
+    }
+
+    /// <summary>
+    /// The passage the bookmark marks, or the opening of the scene when the
+    /// prose it named has since been rewritten.
+    /// </summary>
+    private async Task<string> ScenePreviewAsync(Bookmark mark)
+    {
+        var chapter = _workspace.Projects.GetChaptersOrdered()
+            .FirstOrDefault(c => c.Guid == mark.ChapterGuid);
+        if (chapter == null) return string.Empty;
+        var scene = _workspace.Projects.GetScenesForChapter(chapter.Guid)
+            .FirstOrDefault(s => s.Id == mark.TargetId);
+        if (scene == null) return string.Empty;
+
+        var text = Core.Utilities.TextDiff.StripHtml(
+            await _workspace.Projects.ReadSceneContentAsync(chapter, scene));
+        return Core.Services.BookmarkPreview.Extract(text, mark.AnchorText);
+    }
+
+    private async Task<string> ChapterPreviewAsync(Bookmark mark)
+    {
+        var chapter = _workspace.Projects.GetChaptersOrdered()
+            .FirstOrDefault(c => c.Guid == mark.ChapterGuid);
+        var first = chapter == null
+            ? null
+            : _workspace.Projects.GetScenesForChapter(chapter.Guid).FirstOrDefault();
+        if (chapter == null || first == null) return string.Empty;
+
+        var text = Core.Utilities.TextDiff.StripHtml(
+            await _workspace.Projects.ReadSceneContentAsync(chapter, first));
+        return Core.Services.BookmarkPreview.Extract(text, null);
+    }
+
+    private string EntityPreview(Bookmark mark)
+    {
+        var entities = new Core.Services.EntityService(_workspace.Projects);
+        var all = new List<IEntityData>();
+        all.AddRange(entities.LoadCharactersAsync().GetAwaiter().GetResult());
+        all.AddRange(entities.LoadLocationsAsync().GetAwaiter().GetResult());
+        all.AddRange(entities.LoadItemsAsync().GetAwaiter().GetResult());
+        all.AddRange(entities.LoadLoreAsync().GetAwaiter().GetResult());
+        foreach (var typeDef in entities.GetCustomEntityTypes())
+            all.AddRange(entities.LoadCustomEntitiesAsync(typeDef.TypeKey).GetAwaiter().GetResult());
+
+        var entity = all.FirstOrDefault(e => e.Id == mark.TargetId);
+        // Description lives on each concrete type rather than on the interface,
+        // so the shapes are matched here rather than widening it for one reader.
+        var description = entity switch
+        {
+            null => string.Empty,
+            CharacterData c => c.Role,
+            LocationData l => l.Description,
+            ItemData i => i.Description,
+            LoreData lo => lo.Description,
+            // Custom types are the last arm rather than a named case with an
+            // unreachable default after it: the set is closed and a dead
+            // branch cannot be tested.
+            _ => ((CustomEntityData)entity).Fields.Values.FirstOrDefault() ?? string.Empty
+        };
+        return Core.Services.BookmarkPreview.Extract(description, null);
+    }
+
     [JsonRpcMethod("bookmarks/groups")]
     public string[] Groups()
         => [.. (_workspace.Projects.CurrentProject?.Bookmarks ?? [])

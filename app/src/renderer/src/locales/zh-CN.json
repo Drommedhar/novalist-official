@@ -2999,7 +2999,10 @@
     "empty": "还没有书签。右键点击场景即可添加。",
     "ungrouped": "未分组",
     "remove": "删除此书签",
-    "addScene": "为此场景添加书签"
+    "addScene": "为此场景添加书签",
+    "preview": "显示内容",
+    "previewLoading": "正在读取…",
+    "previewNone": "此项没有可显示的内容。"
   },
   "layouts": {
     "title": "工作区布局",

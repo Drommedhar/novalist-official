@@ -3770,3 +3770,13 @@
 .binder-tabs {
   flex-wrap: wrap;
 }
+
+/* The few lines a bookmark shows of what it points at. Indented under its row
+   and set smaller, so an opened preview reads as belonging to the mark above
+   it rather than as another entry in the list. */
+.bookmarks-preview {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  line-height: 1.45;
+  padding: var(--nl-space-tightest) var(--nl-space-sm) var(--nl-space-tighter) var(--nl-space-xl);
+}
