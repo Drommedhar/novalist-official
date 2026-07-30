@@ -228,4 +228,64 @@ public static class MetadataWriter
     /// <summary>The whole export, indented so a person can read it too.</summary>
     public static string Json(MetadataExport export)
         => JsonSerializer.Serialize(export, JsonOptions);
+
+    /// <summary>
+    /// The outline as OPML: chapters as branches, scenes as leaves, each scene's
+    /// synopsis as its note.
+    ///
+    /// This is what every outliner reads - Scrivener, OmniOutliner, Scapple,
+    /// most mind-mappers. A CSV can be pivoted but it cannot carry a shape, and
+    /// the shape is the whole point of handing an outline to an outliner.
+    ///
+    /// Scenes are grouped by the chapter name in the order they arrive, which
+    /// is reading order. Two chapters with the same title stay separate: they
+    /// are separate chapters, and merging them would silently reorder the book.
+    /// </summary>
+    public static string Opml(MetadataExport export)
+    {
+        var text = new System.Text.StringBuilder();
+        text.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        text.Append("<opml version=\"2.0\">\n");
+        text.Append("  <head><title>").Append(Xml(export.Title)).Append("</title></head>\n");
+        text.Append("  <body>\n");
+
+        string? openChapter = null;
+        var chapterKey = -1;
+        foreach (var scene in export.Scenes)
+        {
+            if (openChapter == null || scene.ChapterOrder != chapterKey)
+            {
+                if (openChapter != null) text.Append("    </outline>\n");
+                text.Append("    <outline text=\"").Append(Xml(scene.Chapter)).Append("\">\n");
+                openChapter = scene.Chapter;
+                chapterKey = scene.ChapterOrder;
+            }
+
+            text.Append("      <outline text=\"").Append(Xml(scene.Scene)).Append('"');
+            if (!string.IsNullOrWhiteSpace(scene.Synopsis))
+                text.Append(" _note=\"").Append(Xml(scene.Synopsis)).Append('"');
+            text.Append(" />\n");
+        }
+        if (openChapter != null) text.Append("    </outline>\n");
+
+        text.Append("  </body>\n</opml>\n");
+        return text.ToString();
+    }
+
+    /// <summary>
+    /// Escapes a value for an XML attribute.
+    ///
+    /// A synopsis is prose the writer typed: an ampersand, a quotation mark or
+    /// an angle bracket in it would otherwise produce a file no outliner can
+    /// open. Newlines become spaces, because an attribute cannot hold one and a
+    /// raw newline is what makes the file invalid rather than merely ugly.
+    /// </summary>
+    private static string Xml(string? value)
+        => (value ?? string.Empty)
+            .Replace("&", "&amp;")
+            .Replace("<", "&lt;")
+            .Replace(">", "&gt;")
+            .Replace("\"", "&quot;")
+            .Replace("\r", " ")
+            .Replace("\n", " ");
 }

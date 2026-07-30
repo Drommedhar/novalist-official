@@ -164,14 +164,6 @@
   color: var(--nl-text);
 }
 
-/* Three ways out of the same data, so they sit on one row and wrap rather
-   than stacking down the panel. */
-.export-metadata-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--nl-space-sm);
-  margin-top: var(--nl-space-sm);
-}
 
 .matter-panel {
   display: flex;

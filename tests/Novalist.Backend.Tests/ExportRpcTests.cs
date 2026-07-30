@@ -40,7 +40,7 @@ public sealed class ExportRpcTests : IDisposable
             new[]
             {
                 "Epub", "Docx", "Pdf", "Markdown", "FinalDraft", "LaTeX", "Codex", "CodexPdf",
-                "Csv", "Json", "SynopsisReport", "PovReport"
+                "Csv", "Json", "CodexCsv", "Opml", "SynopsisReport", "PovReport"
             },
             _rpc.Formats());
     }
@@ -79,50 +79,39 @@ public sealed class ExportRpcTests : IDisposable
         Assert.True(result.Success);
     }
 
-    // The structure of the book rather than its prose. Every writer in
-    // DataExport.cs was built and nothing filled them, so this could not be
-    // produced from the app at all.
+    // Both go through the same export path as every other format, rather than
+    // a second one beside it - which is what shipped first and had to come out.
     [Fact]
-    public async Task Metadata_WritesTheSceneSheet()
+    public async Task CodexSheet_IsOneRowPerField()
     {
-        var output = Path.Combine(_root, "scenes.csv");
-
-        var result = await _rpc.MetadataAsync(output, "sceneCsv");
-
-        Assert.True(result.Success);
-        var text = await File.ReadAllTextAsync(output);
-        Assert.StartsWith("Chapter,Chapter order,Scene", text);
-        Assert.Contains("Kapitel Eins", text);
-        Assert.Contains("Anfang", text);
-    }
-
-    [Fact]
-    public async Task Metadata_WritesTheCodexSheetOneRowPerField()
-    {
-        await new EntitiesRpc(_workspace).CreateAsync("character", "Mira");
+        var entities = new EntityService(_workspace.Projects);
+        var mira = new Novalist.Core.Models.CharacterData { Name = "Mira", Role = "Protagonist" };
+        await entities.SaveCharacterAsync(mira);
         var output = Path.Combine(_root, "codex.csv");
 
-        var result = await _rpc.MetadataAsync(output, "codexCsv");
+        var result = await _rpc.RunAsync(
+            "CodexCsv", output, "Book", "Ada", false, AllChapterGuids(), null,
+            [$"character:{mira.Id}"]);
 
         Assert.True(result.Success);
         var text = await File.ReadAllTextAsync(output);
         Assert.StartsWith("Kind,Name,Field,Value", text);
+        Assert.Contains("Mira", text);
     }
 
     [Fact]
-    public async Task Metadata_UnknownFormatWritesTheWholeDocument()
+    public async Task Opml_CarriesTheOutlineAsAShape()
     {
-        var output = Path.Combine(_root, "all.json");
+        var output = Path.Combine(_root, "outline.opml");
 
-        // Anything that is not one of the two sheets is the JSON document, so a
-        // caller can never end up with an empty file for a typo.
-        var result = await _rpc.MetadataAsync(output, "anything-else");
+        var result = await _rpc.RunAsync(
+            "Opml", output, "Book", "Ada", false, AllChapterGuids(), null);
 
         Assert.True(result.Success);
         var text = await File.ReadAllTextAsync(output);
-        Assert.Contains("\"title\": \"Book\"", text);
-        Assert.Contains("\"scenes\"", text);
-        Assert.Contains("\"codex\"", text);
+        Assert.Contains("<opml version=\"2.0\">", text);
+        Assert.Contains("<outline text=\"Kapitel Eins\">", text);
+        Assert.Contains("<outline text=\"Anfang\"", text);
     }
 
     [Theory]
@@ -136,6 +125,8 @@ public sealed class ExportRpcTests : IDisposable
     [InlineData("CodexPdf", ".pdf")]
     [InlineData("Csv", ".csv")]
     [InlineData("Json", ".json")]
+    [InlineData("CodexCsv", ".csv")]
+    [InlineData("Opml", ".opml")]
     [InlineData("SynopsisReport", ".md")]
     [InlineData("PovReport", ".md")]
     public async Task Run_ProducesNonEmptyFile(string format, string extension)

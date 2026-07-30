@@ -36,6 +36,20 @@ public enum ExportFormat
     Json,
 
     /// <summary>
+    /// The Codex as a sheet, one row per field rather than per entry. Entries
+    /// do not share a shape, so a column per field would be mostly empty and
+    /// would change width with the project.
+    /// </summary>
+    CodexCsv,
+
+    /// <summary>
+    /// The outline as OPML, which is what every outliner reads. A sheet can be
+    /// pivoted but it cannot carry a shape, and the shape is the point of
+    /// handing an outline to an outliner.
+    /// </summary>
+    Opml,
+
+    /// <summary>
     /// Every scene's synopsis in reading order. The synopsis of a book existed
     /// only as forty separate boxes nobody could put side by side.
     /// </summary>
@@ -1145,13 +1159,17 @@ public partial class ExportService
     public async Task ExportDataAsync(ExportOptions options, string outputPath)
     {
         var export = await CompileMetadataAsync(options);
-        var text = options.Format == ExportFormat.Csv
-            ? MetadataWriter.SceneCsv(export.Scenes)
-            : MetadataWriter.Json(export);
+        var text = options.Format switch
+        {
+            ExportFormat.Csv => MetadataWriter.SceneCsv(export.Scenes),
+            ExportFormat.CodexCsv => MetadataWriter.CodexCsv(export.Codex),
+            ExportFormat.Opml => MetadataWriter.Opml(export),
+            _ => MetadataWriter.Json(export)
+        };
         // A byte-order mark, and only here: Excel reads a plain UTF-8 CSV as
         // the local codepage and turns every accent into mojibake. JSON is read
         // by parsers that specify UTF-8, and a BOM breaks some of them.
-        var encoding = options.Format == ExportFormat.Csv
+        var encoding = options.Format is ExportFormat.Csv or ExportFormat.CodexCsv
             ? new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)
             : new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         await File.WriteAllTextAsync(outputPath, text, encoding);
@@ -1256,9 +1274,10 @@ public partial class ExportService
             }
         }
 
-        // The Codex only rides along in JSON: a single sheet cannot hold both a
-        // scene list and a character list without one of them being wrong.
-        if (options.Format == ExportFormat.Json && _entityService != null)
+        // The scene sheet has no room for it: one sheet cannot hold a scene list
+        // and a character list without one of them being wrong. The Codex sheet
+        // is the other half, and JSON carries both.
+        if (options.Format is ExportFormat.Json or ExportFormat.CodexCsv && _entityService != null)
         {
             var codex = await CompileCodexAsync(options);
             // The same field builders the Markdown and PDF codex exports use,

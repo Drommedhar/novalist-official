@@ -212,6 +212,20 @@ The layout, title page, front and back matter, publishing metadata and retailer 
 - The **codex entry picker** appears for JSON, so you can send one character's record rather than the whole bible.
 - Indented and written with accents intact, so it can be read by a person as well as parsed by a tool.
 
+### Codex sheet (CSV)
+
+- The other half of the CSV pair: the Codex as a spreadsheet, where the scene sheet cannot hold it.
+- One row per **field**, not per entry: kind, name, field, value. Entries do not share a shape — a character has eyes and a build, a piece of lore has a category, and your own types have whatever you asked for — so a column per field would be mostly empty and would change width with the project. Four columns stay four columns whatever is in the book, and pivot back into a wide sheet in one step.
+- Sections and relationships come through as rows too, so nothing is left behind.
+- The **codex entry picker** applies, the same as it does for JSON.
+
+### Outline (OPML)
+
+- The outline as a shape rather than a table: chapters as branches, scenes as leaves, each scene's synopsis as its note.
+- This is what outliners read — Scrivener, OmniOutliner, Scapple and most mind-mappers. A spreadsheet can be pivoted but it cannot carry nesting, and the nesting is the point of handing an outline to an outliner.
+- Two chapters with the same title stay separate, because they are separate chapters and merging them would silently reorder the book.
+- Prose is escaped for XML, so an ampersand or a quotation mark in a synopsis still produces a file that opens.
+
 ## Report
 
 Every scene carries a synopsis and a point of view, and neither could be read as a whole. The synopsis of a book existed only as forty separate boxes nobody could put side by side, and "how much of this book is in Mira's head" could not be asked at all.

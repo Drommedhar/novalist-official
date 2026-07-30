@@ -436,4 +436,67 @@ public class ExportDataTests : IDisposable
 
         Assert.StartsWith("# Report", await File.ReadAllTextAsync(path));
     }
+
+    // The other half of the CSV pair: the scene sheet has no room for the Codex,
+    // and an entry's shape is its own, so the sheet is one row per field.
+    [Fact]
+    public async Task TheCodexSheetIsOneRowPerField()
+    {
+        var options = Setup(ExportFormat.CodexCsv, new SceneData { Title = "S", Order = 1 });
+        _entities.LoadCharactersAsync().Returns([
+            new CharacterData
+            {
+                Name = "Mira",
+                Role = "Protagonist",
+                Sections = [new EntitySection { Title = "History", Content = "Born north." }],
+                Relationships = [new EntityRelationship { Role = "sister", Target = "Tomas" }]
+            }
+        ]);
+        var path = Output("codex.csv");
+
+        await Service().ExportDataAsync(options, path);
+
+        var text = await File.ReadAllTextAsync(path);
+        Assert.StartsWith("Kind,Name,Field,Value", text);
+        Assert.Contains(",Mira,", text);
+        Assert.Contains("Born north.", text);
+        Assert.Contains("sister: Tomas", text);
+    }
+
+    [Fact]
+    public async Task TheOutlineLeavesAsAShapeRatherThanATable()
+    {
+        var options = Setup(
+            ExportFormat.Opml,
+            new SceneData { Title = "Arrival", Order = 1, Synopsis = "She gets off the train." },
+            new SceneData { Title = "The room", Order = 2 });
+        var path = Output("outline.opml");
+
+        await Service().ExportDataAsync(options, path);
+
+        var text = await File.ReadAllTextAsync(path);
+        Assert.Contains("<opml version=\"2.0\">", text);
+        Assert.Contains("<outline text=\"Arrival\" _note=\"She gets off the train.\" />", text);
+        // No synopsis is no note rather than an empty one.
+        Assert.Contains("<outline text=\"The room\" />", text);
+    }
+
+    // A mark is what makes Excel read UTF-8; in front of JSON or XML it is what
+    // makes a strict parser refuse the file.
+    [Theory]
+    [InlineData(ExportFormat.Csv, true)]
+    [InlineData(ExportFormat.CodexCsv, true)]
+    [InlineData(ExportFormat.Json, false)]
+    [InlineData(ExportFormat.Opml, false)]
+    public async Task OnlyTheSpreadsheetsCarryAByteOrderMark(ExportFormat format, bool expected)
+    {
+        var options = Setup(format, new SceneData { Title = "S", Order = 1 });
+        var path = Output($"mark-{format}.out");
+
+        await Service().ExportDataAsync(options, path);
+
+        var bytes = await File.ReadAllBytesAsync(path);
+        var hasMark = bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
+        Assert.Equal(expected, hasMark);
+    }
 }

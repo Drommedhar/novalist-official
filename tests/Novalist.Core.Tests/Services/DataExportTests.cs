@@ -1,5 +1,3 @@
-using NSubstitute;
-using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Xunit;
 
@@ -173,138 +171,6 @@ public class MetadataWriterTests
     }
 }
 
-/// <summary>
-/// The half that was missing: nothing ever filled a <see cref="MetadataExport"/>,
-/// so the writers above could not be reached from the app at all.
-/// </summary>
-public class MetadataCollectorTests
-{
-    private static (MetadataCollector Sut, IProjectService Projects, IEntityService Entities) Build()
-    {
-        var projects = Substitute.For<IProjectService>();
-        var entities = Substitute.For<IEntityService>();
-        projects.ProjectSettings.Returns(new ProjectSettings { Author = "Ada" });
-        projects.ActiveBook.Returns(new BookData { Name = "Salt Road" });
-        projects.GetChaptersOrdered().Returns([]);
-        entities.LoadCharactersAsync().Returns([]);
-        entities.LoadLocationsAsync().Returns([]);
-        entities.LoadItemsAsync().Returns([]);
-        entities.LoadLoreAsync().Returns([]);
-        entities.GetCustomEntityTypes().Returns([]);
-        return (new MetadataCollector(projects, entities), projects, entities);
-    }
-
-    [Fact]
-    public async Task CarriesTheBookAndEverySceneColumn()
-    {
-        var (sut, projects, _) = Build();
-        var chapter = new ChapterData { Guid = "c1", Title = "One", Order = 0 };
-        projects.GetChaptersOrdered().Returns([chapter]);
-        projects.GetScenesForChapter("c1").Returns([
-            new SceneData
-            {
-                Id = "s1", Title = "Opening", Order = 2, Stage = "revised",
-                WordCount = 900, WordTarget = 1200, Date = "2026-01-01",
-                Synopsis = "She leaves", Goal = "Get out", Outcome = "She does",
-                Inactive = true, ExcludeFromExport = true,
-                AnalysisOverrides = new SceneAnalysisOverrides
-                {
-                    Pov = "Mira", Conflict = "The gate", Tags = ["cold", "night"]
-                }
-            }
-        ]);
-
-        var export = await sut.CollectAsync();
-
-        Assert.Equal("Salt Road", export.Title);
-        Assert.Equal("Ada", export.Author);
-        var row = Assert.Single(export.Scenes);
-        Assert.Equal("One", row.Chapter);
-        Assert.Equal("Opening", row.Scene);
-        Assert.Equal(2, row.SceneOrder);
-        Assert.Equal("revised", row.Stage);
-        Assert.Equal("Mira", row.Pov);
-        Assert.Equal(900, row.Words);
-        Assert.Equal(1200, row.WordTarget);
-        Assert.Equal("2026-01-01", row.Date);
-        Assert.Equal("She leaves", row.Synopsis);
-        Assert.Equal("Get out", row.Goal);
-        Assert.Equal("The gate", row.Conflict);
-        Assert.Equal("She does", row.Outcome);
-        Assert.Equal("cold, night", row.Tags);
-        Assert.True(row.Inactive);
-        Assert.True(row.ExcludedFromExport);
-    }
-
-    [Fact]
-    public async Task ResolvesCastAndThreadIdsToNames()
-    {
-        var (_, projects, entities) = Build();
-        var plotlines = Substitute.For<IPlotlineService>();
-        plotlines.GetPlotlines().Returns([new PlotlineData { Id = "p1", Name = "The debt" }]);
-        entities.LoadCharactersAsync().Returns([new CharacterData { Id = "e1", Name = "Mira" }]);
-        var chapter = new ChapterData { Guid = "c1", Title = "One" };
-        projects.GetChaptersOrdered().Returns([chapter]);
-        projects.GetScenesForChapter("c1").Returns([
-            // "gone" is an entry deleted from the Codex: the id is written
-            // rather than dropped, so the row says something is missing.
-            new SceneData { Id = "s1", Cast = ["e1", "gone"], PlotlineIds = ["p1"] }
-        ]);
-
-        var export = await new MetadataCollector(projects, entities, plotlines).CollectAsync();
-
-        var row = Assert.Single(export.Scenes);
-        Assert.Equal("Mira, gone", row.Cast);
-        Assert.Equal("The debt", row.Plotlines);
-    }
-
-    [Fact]
-    public async Task FlattensEveryKindOfEntryIncludingTheWritersOwn()
-    {
-        var (_, projects, entities) = Build();
-        entities.LoadCharactersAsync().Returns([
-            new CharacterData
-            {
-                Name = "Mira", Surname = "Frost", Role = "Protagonist", EyeColor = "grey",
-                Sections = [new EntitySection { Title = "History", Content = "Born north." }],
-                Relationships = [new EntityRelationship { Role = "sister", Target = "Tomas" }],
-                CustomProperties = new Dictionary<string, string> { ["Scar"] = "left hand" }
-            }
-        ]);
-        entities.LoadLocationsAsync().Returns([
-            new LocationData { Name = "Deepforge", Type = "Fortress", Description = "Cut into rock." }
-        ]);
-        entities.LoadItemsAsync().Returns([new ItemData { Name = "The Ring", Type = "Relic" }]);
-        entities.LoadLoreAsync().Returns([new LoreData { Name = "The Pact", Category = "Law" }]);
-        entities.GetCustomEntityTypes().Returns([
-            new CustomEntityTypeDefinition { TypeKey = "faction", DisplayName = "Faction" }
-        ]);
-        entities.LoadCustomEntitiesAsync("faction").Returns([new CustomEntityData { Name = "Nightwatch" }]);
-
-        var export = await new MetadataCollector(projects, entities).CollectAsync();
-
-        var mira = export.Codex.Single(e => e.Name == "Mira Frost");
-        Assert.Equal("Character", mira.Kind);
-        Assert.Equal("Protagonist", mira.Properties["Role"]);
-        Assert.Equal("grey", mira.Properties["Eyes"]);
-        Assert.Equal("left hand", mira.Properties["Scar"]);
-        Assert.Equal("Born north.", mira.Sections["History"]);
-        Assert.Equal("sister: Tomas", Assert.Single(mira.Relationships));
-        // An empty field is left out rather than written as a blank column.
-        Assert.False(mira.Properties.ContainsKey("Build"));
-
-        var place = export.Codex.Single(e => e.Name == "Deepforge");
-        Assert.Equal("Location", place.Kind);
-        Assert.Equal("Fortress", place.Properties["Type"]);
-        Assert.Equal("Cut into rock.", place.Properties["Description"]);
-        Assert.Equal("Relic", export.Codex.Single(e => e.Name == "The Ring").Properties["Type"]);
-
-        // Lore calls its kind a category, and the column says so.
-        Assert.Equal("Law", export.Codex.Single(e => e.Name == "The Pact").Properties["Category"]);
-        Assert.Equal("Faction", export.Codex.Single(e => e.Name == "Nightwatch").Kind);
-    }
-}
-
 public class CodexCsvTests
 {
     [Fact]
@@ -332,4 +198,77 @@ public class CodexCsvTests
     [Fact]
     public void AnEmptyCodexIsStillAHeaderRow()
         => Assert.StartsWith("Kind,Name,Field,Value", MetadataWriter.CodexCsv([]));
+}
+
+/// <summary>
+/// The outline as OPML - what every outliner reads. A sheet can be pivoted but
+/// it cannot carry a shape.
+/// </summary>
+public class OpmlTests
+{
+    private static SceneMetadataRow Scene(string chapter, int order, string scene, string synopsis = "")
+        => new() { Chapter = chapter, ChapterOrder = order, Scene = scene, Synopsis = synopsis };
+
+    [Fact]
+    public void ChaptersBranchAndScenesLeaf()
+    {
+        var opml = MetadataWriter.Opml(new MetadataExport
+        {
+            Title = "Salt Road",
+            Scenes =
+            [
+                Scene("One", 0, "Arrival", "She gets off the train."),
+                Scene("One", 0, "The room"),
+                Scene("Two", 1, "The gate")
+            ]
+        });
+
+        Assert.StartsWith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>", opml);
+        Assert.Contains("<title>Salt Road</title>", opml);
+        Assert.Contains("<outline text=\"One\">", opml);
+        Assert.Contains("<outline text=\"Arrival\" _note=\"She gets off the train.\" />", opml);
+        // No synopsis is no note, rather than an empty one.
+        Assert.Contains("<outline text=\"The room\" />", opml);
+        Assert.Contains("<outline text=\"Two\">", opml);
+        // Two chapters opened, two closed - scenes are self-closing leaves.
+        Assert.Equal(2, opml.Split("</outline>").Length - 1);
+    }
+
+    [Fact]
+    public void TwoChaptersWithTheSameNameStaySeparate()
+    {
+        var opml = MetadataWriter.Opml(new MetadataExport
+        {
+            Scenes = [Scene("Interlude", 0, "A"), Scene("Interlude", 3, "B")]
+        });
+
+        // Merging them would silently reorder the book.
+        Assert.Equal(2, opml.Split("<outline text=\"Interlude\">").Length - 1);
+    }
+
+    [Fact]
+    public void ProseThatWouldBreakTheFileIsEscaped()
+    {
+        var opml = MetadataWriter.Opml(new MetadataExport
+        {
+            Title = "Tom & Jerry",
+            Scenes = [Scene("<Act>", 0, "She said \"no\"", "A line\nand another")]
+        });
+
+        Assert.Contains("<title>Tom &amp; Jerry</title>", opml);
+        Assert.Contains("text=\"&lt;Act&gt;\"", opml);
+        Assert.Contains("text=\"She said &quot;no&quot;\"", opml);
+        // An attribute cannot hold a newline, and a raw one makes the file
+        // invalid rather than merely ugly.
+        Assert.Contains("_note=\"A line and another\"", opml);
+    }
+
+    [Fact]
+    public void AnEmptyBookIsStillAValidDocument()
+    {
+        var opml = MetadataWriter.Opml(new MetadataExport());
+
+        Assert.Contains("<body>", opml);
+        Assert.EndsWith("</body>\n</opml>\n", opml);
+    }
 }
