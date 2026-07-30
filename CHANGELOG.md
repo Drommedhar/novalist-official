@@ -193,6 +193,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **Relationships typed on a place, an item or a piece of lore are saved.** Novalist wrote the other half of a relationship whatever the two ends were — a sword owned by a character appearing as "owns" on the character — but only characters ever reached that code. Saving a tie on any other kind of entry went looking for a character with that entry's id, found none, and failed silently, so the row was lost the moment it was typed and the reciprocal was never written.
+
+- **A relationship row no longer loses what you just typed.** Filling in the role and moving to the target saved the row as it stood a moment earlier, and the reply from that save landed on top of the target field while it was being typed. The target ended up empty on every entry type, characters included. Fields are now left alone while you are in them.
+
 - **The formatting bar no longer covers the menu you just opened.** Right-clicking a word selects it so the menu can offer spellings for it, and that selection brought the floating format bar up over the top of the menu itself. The bar now waits until the menu closes.
 
 - **The Overview column headings stand over their own columns again.** Each row of the outliner sized its own columns, so the heading row — with words like "Zusammenfassung" in it — laid itself out wider than every row beneath, and the labels drifted away from the values they named. Past a certain window width the last three columns were pushed off the side entirely. The whole table now shares one set of columns and fits without scrolling sideways.

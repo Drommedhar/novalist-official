@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -36,12 +36,39 @@ export function EntityListsEditor(): React.JSX.Element | null {
   const [aliases, setAliases] = useState<string[]>([])
   const [aliasDraft, setAliasDraft] = useState('')
   const [sections, setSections] = useState<SectionRow[]>([])
-  const [relationships, setRelationships] = useState<RelationshipRow[]>([])
+  const [relationships, setRelationshipsState] = useState<RelationshipRow[]>([])
+  /**
+   * The rows as they stand right now, for the blur handlers.
+   *
+   * Every input persisted `relationships` from the closure it was created in.
+   * A keystroke calls setState, which does not update that closure until React
+   * has re-rendered - so typing a target and immediately clicking away saved
+   * the array from *before* the typing, and the value was gone. Only the field
+   * blurred a second time ever survived.
+   */
+  const rowsRef = useRef<RelationshipRow[]>([])
+  const setRelationships = (next: RelationshipRow[]): void => {
+    rowsRef.current = next
+    setRelationshipsState(next)
+  }
   const [nameSuggestions, setNameSuggestions] = useState<string[]>([])
   const [roleSuggestions, setRoleSuggestions] = useState<string[]>([])
 
+  /**
+   * The entry these fields were last loaded for.
+   *
+   * Saving echoes the stored record back into the store, which re-ran this
+   * effect and overwrote the fields from it. Blurring the role field to reach
+   * the target field saved the role, and the reply - which has no target yet -
+   * landed on top of the target being typed. The value never reached disk, on
+   * any entry type. Reloading once per entry leaves editing alone.
+   */
+  const loadedFor = useRef<string | null>(null)
+
   useEffect(() => {
-    if (!record) return
+    if (!record || !selectedId) return
+    if (loadedFor.current === selectedId) return
+    loadedFor.current = selectedId
     setAliases(Array.isArray(record.aliases) ? (record.aliases as string[]) : [])
     setSections(
       Array.isArray(record.sections) ? (record.sections as SectionRow[]).map((s) => ({ ...s })) : []
@@ -76,7 +103,12 @@ export function EntityListsEditor(): React.JSX.Element | null {
           target: r.target,
           inverseRole: r.inverseRole ?? '',
           category: r.category ?? ''
-        }))
+        })),
+        // Without this the backend falls back to "character", so saving a tie
+        // on a location, an item or a piece of lore looked for a character with
+        // that id, found none, and threw. The write-back stopped being
+        // character-only; the call never said so.
+        entityType
       ])
       .then((updated) => useCodexStore.setState({ selectedRecord: updated }))
   }
@@ -151,8 +183,11 @@ export function EntityListsEditor(): React.JSX.Element | null {
             ))}
           </datalist>
           {relationships.map((rel, index) => {
+            // Built from the live rows too, so two edits landing before a
+            // re-render do not overwrite each other - which is what happened
+            // when the inverse role arrived from the backend mid-typing.
             const patch = (p: Partial<RelationshipRow>): void =>
-              setRelationships(relationships.map((r, i) => (i === index ? { ...r, ...p } : r)))
+              setRelationships(rowsRef.current.map((r, i) => (i === index ? { ...r, ...p } : r)))
             return (
               <div key={index} className="entity-rel-row">
                 <input
@@ -169,7 +204,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
                           if (inv) patch({ inverseRole: inv })
                         })
                     }
-                    persistRelationships(relationships)
+                    persistRelationships(rowsRef.current)
                   }}
                 />
                 <input
@@ -178,7 +213,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
                   placeholder={t('entityEditor.targetNames')}
                   value={rel.target}
                   onChange={(e) => patch({ target: e.target.value })}
-                  onBlur={() => persistRelationships(relationships)}
+                  onBlur={() => persistRelationships(rowsRef.current)}
                 />
                 <select
                   className="outliner-input codex-rel-kind"
@@ -204,7 +239,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
                   list="codex-rel-roles"
                   value={rel.inverseRole ?? ''}
                   onChange={(e) => patch({ inverseRole: e.target.value })}
-                  onBlur={() => persistRelationships(relationships)}
+                  onBlur={() => persistRelationships(rowsRef.current)}
                 />
                 <button
                   className="binder-expand"
@@ -221,7 +256,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
             )
           })}
           <button
-            className="binder-rail-item"
+            className="binder-rail-item codex-add-relationship"
             onClick={() =>
               setRelationships([
                 ...relationships,
