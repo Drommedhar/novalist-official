@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * A plot thread is an object, not a row of ticks.
@@ -26,10 +27,9 @@ test('a plot thread carries importance and resolution steps, from the grid', asy
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  // Creating the project swaps the start screen for the shell, which tears down
-  // the execution context - so the plotline is created in a second call, once
-  // the shell is up.
-  await page.evaluate(async (parent) => {
+  // Split in two so the plotline is created against the shell rather than the
+  // start screen.
+  await evaluateWhenReady(page, async (parent) => {
     const state = await window.novalistRpc.request('project/create', [parent, 'Threads', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)

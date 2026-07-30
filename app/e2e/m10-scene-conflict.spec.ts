@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * A scene that changed on disk while the editor held it.
@@ -26,7 +27,7 @@ test('a save is refused when the scene changed on disk, and the merge resolves i
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  const ids = await page.evaluate(async (dir) => {
+  const ids = await evaluateWhenReady(page, async (dir) => {
     const state = await window.novalistRpc.request('project/create', [dir, 'Sync Novel', 'Book'])
     window.novalistStores.project.getState().applyState(state as never)
     await window.novalistStores.project.getState().createChapter('Chapter One')

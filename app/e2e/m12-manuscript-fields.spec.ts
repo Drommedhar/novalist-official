@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * A field the writer defines has to reach the surfaces that use it.
@@ -24,7 +25,7 @@ test('a scene field defined in Settings becomes an editable outliner column', as
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  const sceneId = await page.evaluate(async (parent) => {
+  const sceneId = await evaluateWhenReady(page, async (parent) => {
     const rpc = window.novalistRpc
     let state = await rpc.request('project/create', [parent, 'Fields', 'Book One'])
     state = await rpc.request('project/createChapter', ['Chapter One'])

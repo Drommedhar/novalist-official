@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * Three controls that were wrong in ways only running the app showed.
@@ -25,7 +26,7 @@ test('export separates what from how, and targets are reachable from Settings', 
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  await page.evaluate(async (parent) => {
+  await evaluateWhenReady(page, async (parent) => {
     const state = await window.novalistRpc.request('project/create', [parent, 'Targets', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
     const withChapter = await window.novalistRpc.request('project/createChapter', ['Chapter One'])

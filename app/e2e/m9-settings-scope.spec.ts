@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * The per-section "Override for this project" switch must reflect what is
@@ -28,7 +29,7 @@ test('the project-override switch survives leaving and re-entering Settings', as
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  await page.evaluate(async (parent) => {
+  await evaluateWhenReady(page, async (parent) => {
     const state = await window.novalistRpc.request('project/create', [parent, 'Scoped', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)

@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * Scene titles line up in a column, staged or not.
@@ -28,7 +29,7 @@ test('scene titles share one left edge whether or not a scene has a stage', asyn
 
   // Titles of very different lengths: a centred title moves with its own width,
   // so a run of same-length ones would hide the bug.
-  const staged = await page.evaluate(async (parent) => {
+  const staged = await evaluateWhenReady(page, async (parent) => {
     const rpc = window.novalistRpc
     let state = await rpc.request('project/create', [parent, 'Rows', 'Book One'])
     state = await rpc.request('project/createChapter', ['Chapter One'])

@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * The read-only Wiki view must list Codex entities in its index and render a
@@ -23,7 +24,7 @@ test('wiki view lists entities and opens an article', async () => {
   const app = await electron.launch({ args: ['out/main/index.js'], env })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
-  await page.evaluate(async (root) => {
+  await evaluateWhenReady(page, async (root) => {
     const state = await window.novalistRpc.request('project/open', [root])
     window.novalistStores.project.getState().applyState(state as never)
   }, REAL)

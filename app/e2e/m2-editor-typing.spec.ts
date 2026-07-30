@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * Regression: typing must not reset the caret to the start of the scene, and
@@ -28,7 +29,7 @@ test('editor: typing keeps the caret and undo works', async () => {
   const app = await electron.launch({ args: ['out/main/index.js'], env })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
-  await page.evaluate(async (root) => {
+  await evaluateWhenReady(page, async (root) => {
     const state = await window.novalistRpc.request('project/open', [root])
     window.novalistStores.project.getState().applyState(state as never)
   }, projectCopy)

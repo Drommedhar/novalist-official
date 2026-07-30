@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * The exposé view against the real app: typing updates the Normseiten counts,
@@ -36,7 +37,7 @@ test('exposé counts, warns past the limit, and saves to disk', async () => {
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  await page.evaluate(async (dir) => {
+  await evaluateWhenReady(page, async (dir) => {
     const state = await window.novalistRpc.request('project/create', [
       dir,
       'Expose Novel',
@@ -104,7 +105,7 @@ test('exposé editing preserves heading paragraph styles', async () => {
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  await page.evaluate(async (dir) => {
+  await evaluateWhenReady(page, async (dir) => {
     const state = await window.novalistRpc.request('project/create', [dir, 'Styled', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
     await window.novalistRpc.request('expose/save', [
@@ -157,7 +158,7 @@ test('exposé paragraph-style buttons write and clear heading styles', async () 
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  await page.evaluate(async (dir) => {
+  await evaluateWhenReady(page, async (dir) => {
     const state = await window.novalistRpc.request('project/create', [dir, 'Styling', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
     await window.novalistRpc.request('expose/save', ['<p>Handlung</p><p>Erste Zeile.</p>'])

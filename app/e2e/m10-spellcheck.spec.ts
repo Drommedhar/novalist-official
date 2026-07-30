@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * Offline spell check reaching the prose surface.
@@ -26,7 +27,7 @@ test('the spell-check setting reaches the prose surface', async () => {
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  await page.evaluate(async (dir) => {
+  await evaluateWhenReady(page, async (dir) => {
     const state = await window.novalistRpc.request('project/create', [dir, 'Spell Novel', 'Book'])
     window.novalistStores.project.getState().applyState(state as never)
     const store = window.novalistStores.project.getState()

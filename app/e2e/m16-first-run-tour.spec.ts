@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * Novalist has eighteen views behind four activity-bar groups, and a writer at
@@ -26,7 +27,7 @@ test('the tour offers itself once and walks through real views', async () => {
   // The "seen" flag lives in local storage, which Electron keeps in its user
   // data directory and shares across launches - that is the point of it, and it
   // means this test has to start from a clean slate to see the first run at all.
-  await page.evaluate(() => localStorage.removeItem('nl.tour.seen'))
+  await evaluateWhenReady(page, () => localStorage.removeItem('nl.tour.seen'))
 
   await page.evaluate(async (parent) => {
     const state = await window.novalistRpc.request('project/create', [parent, 'Tour', 'Book One'])

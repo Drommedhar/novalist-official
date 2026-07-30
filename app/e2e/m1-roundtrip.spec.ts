@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * M1 exit criterion, against the real app (built renderer + real backend):
@@ -43,7 +44,7 @@ test('project + binder + editor round-trip', async () => {
   // connect() must be idempotent: a repeat call (as React StrictMode triggers in
   // dev) must not open a second port channel and orphan the live one. After a
   // second connect, RPC must still flow.
-  const stillConnected = await page.evaluate(async () => {
+  const stillConnected = await evaluateWhenReady(page, async () => {
     await window.novalistRpc.connect()
     const ping = (await window.novalistRpc.request('system/ping')) as { version: string }
     return Boolean(ping.version)

@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * Multi-select in the binder and the bulk operations it drives.
@@ -26,7 +27,7 @@ test('ctrl-click builds a selection and the bulk bar acts on it', async () => {
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  await page.evaluate(async (dir) => {
+  await evaluateWhenReady(page, async (dir) => {
     const state = await window.novalistRpc.request('project/create', [dir, 'Bulk Novel', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)

@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * The board groups scenes by a dimension the writer picks, and dropping a card
@@ -22,7 +23,7 @@ test('the board groups scenes by stage and a drop rewrites the stage', async () 
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  const sceneId = await page.evaluate(async (parent) => {
+  const sceneId = await evaluateWhenReady(page, async (parent) => {
     const rpc = window.novalistRpc
     let state = await rpc.request('project/create', [parent, 'Board', 'Book One'])
     state = await rpc.request('project/createChapter', ['Chapter One'])

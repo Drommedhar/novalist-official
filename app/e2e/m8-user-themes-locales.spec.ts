@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { evaluateWhenReady } from './appReady'
 
 /**
  * Themes and interface languages dropped into folders under the settings root
@@ -59,7 +60,7 @@ test('folder themes and locales reach the Settings dropdowns', async () => {
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
   // Settings live inside the shell, which only renders with a project open.
-  await page.evaluate(async (parent) => {
+  await evaluateWhenReady(page, async (parent) => {
     const state = await window.novalistRpc.request('project/create', [parent, 'Assets', 'Book One'])
     window.novalistStores.project.getState().applyState(state as never)
   }, workDir)
