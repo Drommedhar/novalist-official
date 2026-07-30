@@ -71,6 +71,38 @@ public sealed class StyleRpc
             TextDiff.StripHtml(html), Language, WatchWords, ParseScope(scope)));
     }
 
+    /// <summary>
+    /// Reads a scene's prose against the point of view it is written in.
+    ///
+    /// Novalist stored a POV per scene and let the writer override it, and then
+    /// nothing ever checked the prose against it - so a third-limited scene
+    /// marked Mira could report what Tomas was thinking with no warning.
+    /// </summary>
+    [JsonRpcMethod("style/povCheck")]
+    public async Task<PovReportDto> PovCheckAsync(string chapterGuid, string sceneId)
+    {
+        var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        var html = await _workspace.Projects.ReadSceneContentAsync(chapter, scene);
+
+        // Every character in the project, not only this scene's cast: the slip
+        // this catches is naming somebody the scene never declared was there.
+        var entities = new EntityService(_workspace.Projects);
+        var names = new List<string>();
+        foreach (var character in await entities.LoadCharactersAsync())
+        {
+            names.Add(character.Name);
+            if (!string.IsNullOrWhiteSpace(character.DisplayName)) names.Add(character.DisplayName);
+            names.AddRange(character.Aliases);
+        }
+
+        var report = PovConsistency.Analyze(
+            TextDiff.StripHtml(html), scene.AnalysisOverrides?.Pov, names, Language);
+
+        return new PovReportDto(
+            report.Pov, report.Checked, report.SkippedBecause,
+            [.. report.Slips.Select(s => new PovSlipDto(s.Name, s.Verb, s.Offset, s.Context))]);
+    }
+
     /// <summary>An unknown scope reads as everything rather than as nothing.</summary>
     private static ProseScope ParseScope(string? scope)
         => Enum.TryParse<ProseScope>(scope, ignoreCase: true, out var parsed)
@@ -155,3 +187,14 @@ public sealed record StyleReportDto(
     /// which senses the prose forgot, not which counts to reduce.
     /// </summary>
     StyleFindingDto[] Senses);
+
+/// <summary>One place the narration entered somebody else's head.</summary>
+public sealed record PovSlipDto(string Name, string Verb, int Offset, string Context);
+
+/// <summary>
+/// What a POV check found. <paramref name="Checked"/> is false when it could
+/// not run - a zero from a check that never ran reads as a clean scene, which
+/// is the worse failure.
+/// </summary>
+public sealed record PovReportDto(
+    string Pov, bool Checked, string SkippedBecause, PovSlipDto[] Slips);

@@ -2307,6 +2307,14 @@
       "smell": "Riechen",
       "taste": "Schmecken",
       "touch": "Tasten"
+    },
+    "povCheck": "Perspektive: {{pov}}",
+    "povHint": "Die Erzählung nennt jemand anderen und berichtet dann, was diese Person denkt. Manchmal ist genau das gewollt – das hier sind Fragen, keine Fehler.",
+    "povClean": "Hier steigt nichts in einen anderen Kopf.",
+    "povSkipped": {
+      "noPov": "Für diese Szene ist keine Perspektive hinterlegt, also gibt es nichts zum Abgleich.",
+      "noOtherCast": "Noch keine anderen Figuren, in die gewechselt werden könnte.",
+      "noVerbList": "Für Ihre Schreibsprache gibt es noch keine Wortliste für diese Prüfung."
     }
   },
   "review": {

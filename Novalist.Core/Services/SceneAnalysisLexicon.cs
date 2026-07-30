@@ -148,6 +148,15 @@ public sealed class SceneAnalysisLexicon
     public IReadOnlyDictionary<string, IReadOnlyList<string>> Senses { get; private init; }
         = new Dictionary<string, IReadOnlyList<string>>();
 
+    /// <summary>
+    /// Verbs that report what somebody is thinking or feeling from inside.
+    ///
+    /// A scene written in one character's head that says "Tomas knew" has left
+    /// that head. This is the shape of the slip; whether the writer meant it
+    /// is not something a word list can decide.
+    /// </summary>
+    public IReadOnlyList<string> InteriorityVerbs { get; private init; } = [];
+
     /// <summary>Auxiliaries that can form the passive voice.</summary>
     public IReadOnlyList<string> PassiveAuxiliaries { get; private init; } = [];
 
@@ -368,6 +377,7 @@ public sealed class SceneAnalysisLexicon
                 .Where(kv => kv.Value is { Count: > 0 })
                 .ToDictionary(kv => kv.Key, kv => (IReadOnlyList<string>)Clean(kv.Value),
                     StringComparer.OrdinalIgnoreCase),
+            InteriorityVerbs = Clean(file.InteriorityVerbs),
             PassiveAuxiliaries = Clean(file.PassiveAuxiliaries),
             WeakVerbs = Clean(file.WeakVerbs),
             PastTenseMarkers = Clean(file.PastTenseMarkers),
@@ -445,6 +455,9 @@ public sealed class SceneAnalysisLexicon
         /// <summary>Sense words by sense key. Absent in a language nobody has
         /// written the lists for, which reports as unsupported rather than as
         /// a scene with no senses in it.</summary>
+        [JsonPropertyName("interiorityVerbs")]
+        public IReadOnlyList<string> InteriorityVerbs { get; init; } = [];
+
         [JsonPropertyName("senses")]
         public Dictionary<string, IReadOnlyList<string>>? Senses { get; init; }
 

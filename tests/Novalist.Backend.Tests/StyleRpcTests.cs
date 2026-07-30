@@ -167,4 +167,76 @@ public sealed class StyleRpcTests : IDisposable
     [Fact]
     public void SentenceReadability_NoText_IsEmpty()
         => Assert.Empty(_rpc.SentenceReadabilityAsync(null));
+
+    // ─── Point of view ───────────────────────────────────────────────
+
+    /// <summary>Writes the scene and marks whose head it is in.</summary>
+    private async Task SetSceneAsync(string prose, string? pov)
+    {
+        await _workspace.WriteSceneAsync(_chapterGuid, _sceneId, $"<p>{prose}</p>", prose);
+        var (_, scene) = _workspace.ResolveScene(_chapterGuid, _sceneId);
+        scene.AnalysisOverrides = pov == null
+            ? null
+            : new Novalist.Core.Models.SceneAnalysisOverrides { Pov = pov };
+        await _workspace.Projects.SaveScenesAsync();
+    }
+
+    private async Task AddCastAsync(params string[] names)
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        foreach (var name in names)
+            await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData { Name = name });
+    }
+
+    [Fact]
+    public async Task PovCheck_FindsSomebodyElsesHead()
+    {
+        await AddCastAsync("Mira", "Tomas");
+        await SetSceneAsync("She crossed the yard. Tomas knew she would not come back.", "Mira");
+
+        var report = await _rpc.PovCheckAsync(_chapterGuid, _sceneId);
+
+        Assert.True(report.Checked);
+        Assert.Equal("Mira", report.Pov);
+        Assert.Equal("Tomas", Assert.Single(report.Slips).Name);
+    }
+
+    [Fact]
+    public async Task PovCheck_ThePovCharacterThinkingIsFine()
+    {
+        await AddCastAsync("Mira", "Tomas");
+        await SetSceneAsync("Mira knew she would not come back.", "Mira");
+
+        Assert.Empty((await _rpc.PovCheckAsync(_chapterGuid, _sceneId)).Slips);
+    }
+
+    [Fact]
+    public async Task PovCheck_ASceneWithNoPovSaysSoRatherThanReportingClean()
+    {
+        await AddCastAsync("Mira", "Tomas");
+        await SetSceneAsync("Tomas knew everything.", null);
+
+        var report = await _rpc.PovCheckAsync(_chapterGuid, _sceneId);
+
+        // A zero from a check that never ran reads as a clean scene.
+        Assert.False(report.Checked);
+        Assert.Equal("noPov", report.SkippedBecause);
+    }
+
+    [Fact]
+    public async Task PovCheck_AnAliasCountsAsTheName()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData { Name = "Mira" });
+        await entities.SaveCharacterAsync(new Novalist.Core.Models.CharacterData
+        {
+            Name = "Tomas",
+            Aliases = ["the steward"]
+        });
+        await SetSceneAsync("She crossed the yard. The steward knew she would not return.", "Mira");
+
+        // A character named by their role is still that character, and the
+        // slip reads exactly the same to a reader.
+        Assert.Single((await _rpc.PovCheckAsync(_chapterGuid, _sceneId)).Slips);
+    }
 }

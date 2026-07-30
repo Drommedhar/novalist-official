@@ -35,6 +35,20 @@ The useful reading is the row showing **zero**. Nearly every writer defaults to 
 
 Hover a sense for its rate per thousand words. Like every other report here, this is a word-list count in your writing language: a language with no sense lists shows a dash and says it is unsupported, rather than a zero that would read as prose with no senses in it.
 
+## Point of view
+
+With **Scene** selected, the report also reads the prose against the point of view recorded on that scene.
+
+Novalist has always detected and stored a POV per scene and let you override it — and then nothing ever checked the prose against it, so a third-limited scene marked Mira could describe what Tomas was thinking with no warning.
+
+The check looks for a character being named and then, within a few words, an interiority verb: *knew*, *felt*, *wondered*, *hoped*. That is the shape of head-hopping. Character **aliases count** — somebody named by their role is still that character, and the slip reads the same to a reader.
+
+These are **questions, not errors**. Omniscient narration does this deliberately, and a word list cannot tell the difference. Nothing is flagged in the editor and nothing is counted as a problem; the list is there to be read and dismissed.
+
+The POV character's own interiority is never flagged. That is the scene working as intended.
+
+When the check **cannot** run it says so instead of reporting a clean scene — no POV recorded, no other characters to slip into, or no word list for your writing language. A zero from a check that never ran is the worse failure.
+
 ## Your own flagged words
 
 Every check above is one Novalist brings. **Settings → Writing Assistance → Your flagged words** adds one of yours: a list, one word per line, counted exactly like the bundled checks and reported as its own row.

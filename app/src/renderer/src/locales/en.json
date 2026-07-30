@@ -2299,6 +2299,14 @@
       "smell": "Smell",
       "taste": "Taste",
       "touch": "Touch"
+    },
+    "povCheck": "Point of view: {{pov}}",
+    "povHint": "The narration names somebody else and then reports what they are thinking. Sometimes that is the effect you want — these are questions, not errors.",
+    "povClean": "Nothing else steps into another head here.",
+    "povSkipped": {
+      "noPov": "This scene has no point of view recorded, so there is nothing to check the prose against.",
+      "noOtherCast": "No other characters to slip into yet.",
+      "noVerbList": "This check has no word list for your writing language yet."
     }
   },
   "review": {

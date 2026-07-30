@@ -34,6 +34,22 @@ interface StyleReport {
   senses: StyleFinding[]
 }
 
+/** One place the narration entered somebody else's head. */
+interface PovSlip {
+  name: string
+  verb: string
+  offset: number
+  context: string
+}
+
+interface PovReport {
+  pov: string
+  /** False when the check could not run; a zero would read as a clean scene. */
+  checked: boolean
+  skippedBecause: string
+  slips: PovSlip[]
+}
+
 type Scope = 'book' | 'chapter' | 'scene'
 
 /**
@@ -63,6 +79,7 @@ export function StyleView(): React.JSX.Element {
   const [report, setReport] = useState<StyleReport | null>(null)
   const [busy, setBusy] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
+  const [pov, setPov] = useState<PovReport | null>(null)
 
   const run = useCallback(async () => {
     setBusy(true)
@@ -75,10 +92,19 @@ export function StyleView(): React.JSX.Element {
             textScope
           ])
         )
+        // Only for one scene: a POV belongs to a scene, and running this over
+        // a whole book would compare every scene against the last POV read.
+        setPov(
+          await rpc
+            .request<PovReport>('style/povCheck', [openChapterGuid, openSceneId])
+            .catch(() => null)
+        )
       } else if (scope === 'chapter' && openChapterGuid) {
         setReport(await rpc.request<StyleReport>('style/book', [openChapterGuid, textScope]))
+        setPov(null)
       } else {
         setReport(await rpc.request<StyleReport>('style/book', [null, textScope]))
+        setPov(null)
       }
     } finally {
       setBusy(false)
@@ -184,6 +210,36 @@ export function StyleView(): React.JSX.Element {
               ))}
             </div>
           </div>
+
+          {/* A scene stored a POV and nothing ever read the prose against it,
+              so a third-limited scene marked Mira could report what Tomas was
+              thinking with no warning. */}
+          {pov && (
+            <div className="style-pov">
+              <div className="inspector-label">{t('style.povCheck', { pov: pov.pov })}</div>
+              {!pov.checked ? (
+                <div className="settings-hint">{t(`style.povSkipped.${pov.skippedBecause}`)}</div>
+              ) : pov.slips.length === 0 ? (
+                <div className="settings-hint">{t('style.povClean')}</div>
+              ) : (
+                <>
+                  {/* Questions rather than errors: whether the writer meant it
+                      is not something a word list can decide. */}
+                  <div className="settings-hint">{t('style.povHint')}</div>
+                  <ul className="style-examples">
+                    {pov.slips.map((slip, i) => (
+                      <li key={`${slip.offset}-${i}`}>
+                        <span className="style-example-hit">
+                          {slip.name} {slip.verb}
+                        </span>
+                        <span className="style-example-context">{slip.context}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="style-findings">
             {report.findings.map((f) => (
