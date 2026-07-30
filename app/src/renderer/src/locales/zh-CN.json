@@ -1716,7 +1716,13 @@
     "mode_parallel": "平行",
     "mode_frame": "框架",
     "mode_dream": "梦境",
-    "mode_timeskip": "时间跳跃"
+    "mode_timeskip": "时间跳跃",
+    "endDate": "结束（可选）",
+    "endDatePlaceholder": "1043-03-14",
+    "eventCharacters": "在场的人",
+    "eventLocations": "地点",
+    "namesPlaceholder": "名称，以逗号分隔",
+    "spanBar": "这段占故事的多长"
   },
   "export": {
     "header": "导出小说",

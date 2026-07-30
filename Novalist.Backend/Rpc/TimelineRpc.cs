@@ -74,7 +74,11 @@ public sealed class TimelineRpc
                     scene.NarrativeMode ?? string.Empty,
                     // Reading order is what a reader meets, whatever the dates
                     // say; numbered here so the two orders can be compared.
-                    ++readingIndex));
+                    ++readingIndex,
+                    // A scene that spans days has always known it; the timeline
+                    // just never passed the far end on.
+                    scene.DateRange?.End ?? string.Empty,
+                    Iso(ParseDate(scene.DateRange?.End ?? string.Empty))));
             }
         }
 
@@ -86,7 +90,8 @@ public sealed class TimelineRpc
                 string.IsNullOrEmpty(manual.LinkedChapterGuid) ? null : manual.LinkedChapterGuid,
                 string.IsNullOrEmpty(manual.LinkedSceneId) ? null : manual.LinkedSceneId,
                 double.MaxValue, manual.Characters.ToArray(), manual.Locations.ToArray(), true,
-                string.Empty, [], string.Empty, 0));
+                string.Empty, [], string.Empty, 0,
+                manual.EndDate, Iso(ParseDate(manual.EndDate))));
         }
 
         // A book on its own calendar has dates no Gregorian parser can read,
@@ -137,9 +142,21 @@ public sealed class TimelineRpc
         await _workspace.Projects.SaveProjectSettingsAsync();
     }
 
+    /// <summary>
+    /// Writes a manual event.
+    ///
+    /// <paramref name="characters"/>, <paramref name="locations"/> and
+    /// <paramref name="endDate"/> are optional so a caller written before the
+    /// editor could set them keeps working. The model has held all three for a
+    /// long time and only scene analysis ever filled them in, so backstory that
+    /// never appears in a scene could not be attached to the people it defines,
+    /// and a span could be stored but never authored.
+    /// </summary>
     [JsonRpcMethod("timeline/saveEvent")]
     public async Task<TimelineDto> SaveEventAsync(
-        string? id, string title, string date, string description, string categoryId, string? linkedChapterGuid)
+        string? id, string title, string date, string description, string categoryId,
+        string? linkedChapterGuid, string[]? characters = null, string[]? locations = null,
+        string? endDate = null)
     {
         var timeline = _workspace.Projects.ProjectSettings.Timeline;
         var existing = id == null ? null : timeline.ManualEvents.FirstOrDefault(e => e.Id == id);
@@ -156,6 +173,15 @@ public sealed class TimelineRpc
         existing.Description = description;
         existing.CategoryId = categoryId;
         existing.LinkedChapterGuid = linkedChapterGuid ?? string.Empty;
+        if (characters != null)
+            existing.Characters = [.. characters.Where(c => !string.IsNullOrWhiteSpace(c))
+                .Select(c => c.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)];
+        if (locations != null)
+            existing.Locations = [.. locations.Where(l => !string.IsNullOrWhiteSpace(l))
+                .Select(l => l.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)];
+        if (endDate != null) existing.EndDate = endDate.Trim();
         await _workspace.Projects.SaveProjectSettingsAsync();
         return await Get();
     }
@@ -309,4 +335,14 @@ public sealed record TimelineEventDto(
     string NarrativeMode,
     /// <summary>Its place in reading order, from one. Zero for events that are
     /// not scenes.</summary>
-    int ReadingIndex);
+    int ReadingIndex,
+    /// <summary>
+    /// End of the span as written, or empty for something instantaneous.
+    ///
+    /// Duration was computed and printed as text - "3 weeks" - and the timeline
+    /// drew a dot, so a war spanning ten chapters and a pregnancy spanning
+    /// twenty could not be compared and their overlap was invisible.
+    /// </summary>
+    string EndDateStr = "",
+    /// <summary>The end date sortable, or null when it cannot be read.</summary>
+    string? SortEndDate = null);

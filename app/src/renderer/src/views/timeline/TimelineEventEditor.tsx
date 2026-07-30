@@ -11,7 +11,20 @@ export interface TimelineEventDraft {
   description: string
   categoryId: string
   linkedChapterGuid: string | null
+  /** Who was there. Stored all along and only ever filled in by scene analysis. */
+  characters: string[]
+  /** Where it happened. Same. */
+  locations: string[]
+  /** End of the span, or empty for something instantaneous. */
+  endDate: string
 }
+
+/** Comma-separated names in and out, which is how the chips are stored. */
+const split = (value: string): string[] =>
+  value
+    .split(',')
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0)
 
 const CATEGORIES = ['plot', 'character', 'location', 'world', 'other']
 
@@ -35,6 +48,9 @@ export function TimelineEventEditor({
   const [description, setDescription] = useState(initial?.description ?? '')
   const [categoryId, setCategoryId] = useState(initial?.categoryId ?? 'plot')
   const [linkedChapter, setLinkedChapter] = useState(initial?.chapterGuid ?? '')
+  const [endDate, setEndDate] = useState(initial?.endDateStr ?? '')
+  const [characters, setCharacters] = useState((initial?.characters ?? []).join(', '))
+  const [locations, setLocations] = useState((initial?.locations ?? []).join(', '))
   // The timeline prefixes a manual event's id to keep it apart from the
   // generated ones; the stored event knows itself by the bare id.
   const eventId =
@@ -47,7 +63,10 @@ export function TimelineEventEditor({
       date: date.trim(),
       description: description.trim(),
       categoryId,
-      linkedChapterGuid: linkedChapter || null
+      linkedChapterGuid: linkedChapter || null,
+      characters: split(characters),
+      locations: split(locations),
+      endDate: endDate.trim()
     })
   }
 
@@ -74,6 +93,41 @@ export function TimelineEventEditor({
           placeholder="1043-03-01"
           value={date}
           onChange={(e) => setDate(e.target.value)}
+        />
+        {/* An end turns a marker into a span, which is what makes a war and a
+            pregnancy comparable rather than two dots. */}
+        <label className="inspector-label" htmlFor="tl-end">
+          {t('timeline.endDate')}
+        </label>
+        <input
+          id="tl-end"
+          className="dialog-input"
+          placeholder={t('timeline.endDatePlaceholder')}
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+        />
+        {/* Who and where. The model has held both for a long time and only
+            scene analysis ever wrote them, so backstory that never appears in
+            a scene could not be attached to the people it defines. */}
+        <label className="inspector-label" htmlFor="tl-chars">
+          {t('timeline.eventCharacters')}
+        </label>
+        <input
+          id="tl-chars"
+          className="dialog-input"
+          placeholder={t('timeline.namesPlaceholder')}
+          value={characters}
+          onChange={(e) => setCharacters(e.target.value)}
+        />
+        <label className="inspector-label" htmlFor="tl-locs">
+          {t('timeline.eventLocations')}
+        </label>
+        <input
+          id="tl-locs"
+          className="dialog-input"
+          placeholder={t('timeline.namesPlaceholder')}
+          value={locations}
+          onChange={(e) => setLocations(e.target.value)}
         />
         <label className="inspector-label" htmlFor="tl-cat">
           {t('timeline.eventCategory')}

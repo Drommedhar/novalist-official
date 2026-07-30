@@ -1683,7 +1683,13 @@
     "mode_parallel": "Parallel",
     "mode_frame": "Frame",
     "mode_dream": "Dream",
-    "mode_timeskip": "Time skip"
+    "mode_timeskip": "Time skip",
+    "endDate": "Ends (optional)",
+    "endDatePlaceholder": "1043-03-14",
+    "eventCharacters": "Who was there",
+    "eventLocations": "Where",
+    "namesPlaceholder": "Names, separated by commas",
+    "spanBar": "How much of the story this covers"
   },
   "export": {
     "header": "Export Novel",

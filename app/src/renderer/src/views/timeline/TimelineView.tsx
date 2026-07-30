@@ -27,6 +27,10 @@ export interface TimelineEventDto {
   plotlineIds: string[]
   narrativeMode: string
   readingIndex: number
+  /** End of the span as written; empty for something instantaneous. */
+  endDateStr: string
+  /** The end sortable, or null when it cannot be read. */
+  sortEndDate: string | null
 }
 
 interface TimelineEntityLink {
@@ -130,7 +134,10 @@ export function TimelineView(): React.JSX.Element {
         draft.date,
         draft.description,
         draft.categoryId,
-        draft.linkedChapterGuid
+        draft.linkedChapterGuid,
+        draft.characters,
+        draft.locations,
+        draft.endDate
       ])
     )
   }
@@ -138,6 +145,24 @@ export function TimelineView(): React.JSX.Element {
   const manualId = (event: TimelineEventDto): string => event.id.replace(/^manual-/, '')
 
   const allEvents = data.groups.flatMap((g) => g.events)
+
+  /**
+   * The earliest and latest readable dates in the book, which every span bar is
+   * measured against. Two bars only mean something next to each other if they
+   * share a scale, and the scale that makes sense is the whole story.
+   */
+  const bookSpan = ((): { start: number; end: number } | null => {
+    const stamps = allEvents
+      .flatMap((e) => [e.sortDate, e.sortEndDate])
+      .filter((d): d is string => !!d)
+      .map((d) => Date.parse(d))
+      .filter((n) => !Number.isNaN(n))
+    if (stamps.length < 2) return null
+    const start = Math.min(...stamps)
+    const end = Math.max(...stamps)
+    return end > start ? { start, end } : null
+  })()
+
   const availableCharacters = [...new Set(allEvents.flatMap((e) => e.characters))].sort()
   const availableLocations = [...new Set(allEvents.flatMap((e) => e.locations))].sort()
 
@@ -148,6 +173,32 @@ export function TimelineView(): React.JSX.Element {
     useShellStore.getState().setMainView('wiki')
     void useWikiStore.getState().openArticle(link.typeKey, link.entityId)
   }
+  /**
+   * Where an event's span sits inside the whole book's span, as percentages.
+   *
+   * Drawn against the book rather than against the group it is in, because the
+   * question a Gantt row answers is "how much of the story does this cover" -
+   * and two bars only mean something next to each other if they share a scale.
+   * Returns null for anything instantaneous or undated.
+   */
+  const spanOf = (
+    event: TimelineEventDto
+  ): { offset: number; width: number } | null => {
+    if (!event.sortDate || !event.sortEndDate || !bookSpan) return null
+    const start = Date.parse(event.sortDate)
+    const end = Date.parse(event.sortEndDate)
+    if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return null
+
+    const total = bookSpan.end - bookSpan.start
+    if (total <= 0) return null
+    return {
+      offset: Math.max(0, ((start - bookSpan.start) / total) * 100),
+      // A one-day span in a ten-year book rounds to nothing, so every real
+      // span keeps a sliver: an invisible bar reads as no bar at all.
+      width: Math.max(1.5, Math.min(100, ((end - start) / total) * 100))
+    }
+  }
+
   const renderChip = (name: string, key: string): React.JSX.Element => {
     const link = entityLinks.get(name.trim().toLowerCase())
     if (!link)
@@ -528,7 +579,28 @@ export function TimelineView(): React.JSX.Element {
                       </span>
                     )}
                   </div>
-                  {event.dateStr && <div className="timeline-event-date">{event.dateStr}</div>}
+                  {event.dateStr && (
+                    <div className="timeline-event-date">
+                      {event.endDateStr
+                        ? `${event.dateStr} - ${event.endDateStr}`
+                        : event.dateStr}
+                    </div>
+                  )}
+                  {/* A span drawn rather than described. Duration was computed
+                      and printed as "3 weeks" beside a dot, so a war spanning
+                      ten chapters and a pregnancy spanning twenty could not be
+                      compared and their overlap was invisible. */}
+                  {spanOf(event) && (
+                    <div className="timeline-span-track" title={t('timeline.spanBar')}>
+                      <div
+                        className="timeline-span-bar"
+                        style={{
+                          marginLeft: `${spanOf(event)!.offset}%`,
+                          width: `${spanOf(event)!.width}%`
+                        }}
+                      />
+                    </div>
+                  )}
                   {event.description && (
                     <div className="timeline-event-desc">{event.description}</div>
                   )}

@@ -79,11 +79,23 @@ Click **Add Event** (or click an existing manual event) to open the event editor
 
 - **Name** — short label.
 - **Date** — optional, e.g. `1043-03-01`.
+- **Ends** — optional. Give one and the event becomes a span rather than a moment; see [Spans](#spans) below.
+- **Who was there** and **Where** — names separated by commas. Novalist has always stored these on an event and only scene analysis ever filled them in, so backstory that never appears in a scene could not be attached to the people it defines. Names that resolve to exactly one Codex entry become links.
 - **Category** — Plot Point, Character Event, Location Event, World Event, or **Other**.
 - **Link to Chapter** — optional; associates the event with a chapter. When set, the event shows an **Open Chapter** button that jumps to that chapter's first scene in the Editor.
 - **Description** — optional long text.
 
 **Save** stores the event with the project. When editing, the dialog also offers **Delete**; alternatively, right-click a manual event on the timeline to delete it.
+
+## Spans
+
+An event with an end, and a scene with a [date range](04-chapters-and-scenes.md), draw a bar under their date showing how much of the story they cover.
+
+Every bar is measured against the whole book, not against the group it sits in, because two bars only mean something next to each other if they share a scale. A war spanning ten chapters and a pregnancy spanning twenty are now comparable at a glance, and where they overlap is visible — which a duration printed as "3 weeks" beside a marker dot could never show.
+
+A span too short to see keeps a sliver of width. An invisible bar reads as no bar at all, which is a different statement.
+
+## Editing other entries
 
 Act, chapter, and scene entries cannot be edited from the timeline — change their dates on the item itself. Clicking a scene entry opens that scene in the Editor; clicking a chapter entry opens the chapter's first scene.
 

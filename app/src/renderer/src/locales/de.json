@@ -1307,7 +1307,13 @@
     "mode_parallel": "Parallel",
     "mode_frame": "Rahmen",
     "mode_dream": "Traum",
-    "mode_timeskip": "Zeitsprung"
+    "mode_timeskip": "Zeitsprung",
+    "endDate": "Endet (optional)",
+    "endDatePlaceholder": "1043-03-14",
+    "eventCharacters": "Wer dabei war",
+    "eventLocations": "Wo",
+    "namesPlaceholder": "Namen, durch Kommas getrennt",
+    "spanBar": "Wie viel der Geschichte das umfasst"
   },
   "export": {
     "header": "Roman exportieren",

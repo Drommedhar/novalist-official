@@ -187,3 +187,21 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+
+/* A span drawn against the whole book's span, so two bars are comparable.
+   Duration used to be printed as "3 weeks" beside a marker dot, which says how
+   long something took and nothing at all about what it overlaps. */
+.timeline-span-track {
+  height: 6px;
+  margin-top: var(--nl-space-tightest);
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-input);
+}
+
+.timeline-span-bar {
+  height: 100%;
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-accent);
+  opacity: 0.65;
+}

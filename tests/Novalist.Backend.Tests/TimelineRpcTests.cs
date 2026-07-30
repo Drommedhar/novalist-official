@@ -288,4 +288,84 @@ public sealed class TimelineRpcTests : IDisposable
         // still a scene.
         Assert.Contains(timeline.Groups, g => g.Events.Any(e => e.Title.EndsWith("Vague")));
     }
+
+    // ── Who was there, where, and how long it lasted ──
+
+    [Fact]
+    public async Task Event_ParticipantsAndSpanAreAuthorable()
+    {
+        // All three have been on the model for a long time and only scene
+        // analysis ever wrote them, so backstory that never appears in a scene
+        // could not be attached to the people it defines.
+        await _rpc.SaveEventAsync(
+            null, "The siege", "1043-03-01", "It lasted a while", "plot", null,
+            characters: ["  Mira  ", "Tobin", "mira"],
+            locations: ["Ashport"],
+            endDate: "  1043-05-20  ");
+
+        var stored = _workspace.Projects.ProjectSettings.Timeline.ManualEvents.Single();
+        // Trimmed, and the same name twice is one participant.
+        Assert.Equal(["Mira", "Tobin"], stored.Characters);
+        Assert.Equal(["Ashport"], stored.Locations);
+        Assert.Equal("1043-05-20", stored.EndDate);
+
+        var dto = (await _rpc.Get()).Groups
+            .SelectMany(g => g.Events)
+            .Single(e => e.IsManual);
+        Assert.Equal("1043-05-20", dto.EndDateStr);
+        Assert.Equal("1043-05-20", dto.SortEndDate);
+    }
+
+    [Fact]
+    public async Task Event_ACallerThatDoesNotKnowAboutThemLeavesThemAlone()
+    {
+        await _rpc.SaveEventAsync(
+            null, "The siege", "1043-03-01", "", "plot", null,
+            characters: ["Mira"], locations: ["Ashport"], endDate: "1043-05-20");
+        var id = _workspace.Projects.ProjectSettings.Timeline.ManualEvents.Single().Id;
+
+        // The six-argument form is what shipped first; it must not silently
+        // erase participants somebody set in the editor.
+        await _rpc.SaveEventAsync(id, "The siege of Ashport", "1043-03-01", "", "plot", null);
+
+        var stored = _workspace.Projects.ProjectSettings.Timeline.ManualEvents.Single();
+        Assert.Equal("The siege of Ashport", stored.Title);
+        Assert.Equal(["Mira"], stored.Characters);
+        Assert.Equal("1043-05-20", stored.EndDate);
+    }
+
+    [Fact]
+    public async Task Scene_SpanReachesTheTimeline()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "The crossing");
+        scene.Date = "1043-03-01";
+        scene.DateRange = new Novalist.Core.Models.StoryDateRange
+        {
+            Start = "1043-03-01",
+            End = "1043-03-09"
+        };
+        await _workspace.Projects.SaveScenesAsync();
+
+        var dto = (await _rpc.Get()).Groups
+            .SelectMany(g => g.Events)
+            .Single(e => e.Source == "scene");
+
+        // A scene that spans days has always known it; the timeline just never
+        // passed the far end on, so nothing could draw the span.
+        Assert.Equal("1043-03-09", dto.EndDateStr);
+        Assert.Equal("1043-03-09", dto.SortEndDate);
+    }
+
+    [Fact]
+    public async Task Event_WithNoEndIsStillInstantaneous()
+    {
+        await _rpc.SaveEventAsync(null, "A shot", "1043-03-01", "", "plot", null);
+
+        var dto = (await _rpc.Get()).Groups.SelectMany(g => g.Events).Single(e => e.IsManual);
+
+        Assert.Equal(string.Empty, dto.EndDateStr);
+        Assert.Null(dto.SortEndDate);
+    }
+
 }
