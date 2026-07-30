@@ -3002,5 +3002,15 @@
     "resetAll": "Alles zurücksetzen",
     "profile": "Profil",
     "import": "Eingefügtes Profil anwenden"
+  },
+  "completion": {
+    "title": "Wortvervollständigung",
+    "intro": "Wörter und Wendungen, die dieses Buch beim Tippen vervollständigt - überall, wo Sie schreiben. Die @-Erwähnung erreicht nur Kompendiumsnamen in Szenentext; dies erreicht Kunstwörter, Ränge, festgelegte Schreibweisen und alles, was jedes Mal gleich lauten soll.",
+    "words": "Wörter und Wendungen",
+    "placeholder": "Eines pro Zeile",
+    "trigger": "Zeichen vor dem Vorschlag",
+    "triggerHint": "Drei oder mehr. Zwei trifft die halbe Liste, und das Fenster wird etwas zum Wegklicken statt zum Benutzen.",
+    "addCodexNames": "Alle Kompendiumsnamen übernehmen",
+    "save": "Liste speichern"
   }
 }

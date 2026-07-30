@@ -103,6 +103,18 @@ Per-project targets that feed the Dashboard's goal cards.
 
 The two word goals can also be edited on the Dashboard by clicking a goal card's title; it is the same setting either way.
 
+## Word completion
+
+Novalist's only completion was the **@-mention** picker over Codex names, in scene prose and nowhere else. That leaves out everything a secondary world is full of and the Codex is not: a settled spelling of a place, a rank, a coined verb, a phrase that has to read the same way every time. Those get retyped, and retyped slightly differently, and the inconsistency surfaces in copy-edit.
+
+Put one word or phrase per line in the box. Type three characters of one anywhere in the editor and the rest is offered.
+
+- **Tab** accepts the highlighted suggestion, **up/down** move through them, **Escape** dismisses. **Enter is deliberately not used** — in prose it starts a paragraph, and a popup that swallows it would be worse than no completion at all.
+- **Characters before suggesting** decides how much you have to type first. Three is the minimum: two characters match half the list, which makes the popup something to dismiss rather than something to use.
+- **Add every Codex name** pours your cast, places, items, lore and custom entries into the list in one go, so the names complete outside scene prose too. Running it twice does not double anything, and what you typed yourself stays first.
+
+The list belongs to the book, so it travels with the project rather than following the machine you work on.
+
 ## Tags
 
 Every tag in the project, wherever it is used: on scenes, on Codex entries, and on research notes. They were three unrelated lists before this — a tag on a scene and the same word on a character were not the same tag, could not be counted, and could not be renamed together.

@@ -136,6 +136,14 @@ public class BookData
     public List<SceneCollection> Collections { get; set; } = [];
 
     /// <summary>
+    /// Words and phrases this book completes as you type. The @-mention picker
+    /// reaches Codex names in scene prose and nothing else, which leaves out
+    /// every coined word, rank and settled spelling the Codex does not hold.
+    /// </summary>
+    [JsonPropertyName("completions")]
+    public CompletionList Completions { get; set; } = new();
+
+    /// <summary>
     /// Factions, houses, crews and families. The group was a bare string on
     /// each entry with no colour, description or rename, so correcting "the
     /// Ravens" to "House Raven" meant opening every entry that said the first.

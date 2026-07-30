@@ -72,6 +72,8 @@ export interface EditorWindow extends Window {
   applyLink(href: string): void
   /** Dims every paragraph but the one the caret is in. */
   setComposeDimming(enabled: boolean): void
+  /** The book's own completion list, and how many characters trigger it. */
+  setCompletionList(words: string[], trigger: number): void
   removeCommentById(id: string): void
   scrollToCommentById(id: string): void
   insertFootnoteAtSelection(id: string): void

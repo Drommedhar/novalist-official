@@ -2994,5 +2994,15 @@
     "resetAll": "Reset everything",
     "profile": "Profile",
     "import": "Apply pasted profile"
+  },
+  "completion": {
+    "title": "Word completion",
+    "intro": "Words and phrases this book completes as you type, anywhere you write. The @-mention picker only reaches Codex names in scene prose; this reaches coined words, ranks, settled spellings and anything else you want to come out the same way every time.",
+    "words": "Words and phrases",
+    "placeholder": "One per line",
+    "trigger": "Characters before suggesting",
+    "triggerHint": "Three or more. Two matches half the list, which makes the popup something to dismiss rather than something to use.",
+    "addCodexNames": "Add every Codex name",
+    "save": "Save list"
   }
 }

@@ -20,6 +20,7 @@ import { SceneStagesCard } from './SceneStagesCard'
 import { ManuscriptPropertiesCard } from './ManuscriptPropertiesCard'
 import { SceneLabelsCard } from './SceneLabelsCard'
 import { GroupsCard } from './GroupsCard'
+import { CompletionCard } from './CompletionCard'
 import { ThemeTokensCard } from './ThemeTokensCard'
 import { SceneTemplatesCard } from './SceneTemplatesCard'
 import { TagsCard } from './TagsCard'
@@ -1090,6 +1091,12 @@ export function SettingsView(): React.JSX.Element {
       titleKey: 'themeTokens.title',
       keywords: ['token', 'tokens', 'theme', 'colour', 'color', 'appearance', 'font', 'radius', 'spacing'],
       body: <ThemeTokensCard />
+    },
+    {
+      key: 'completion',
+      titleKey: 'completion.title',
+      keywords: ['completion', 'autocomplete', 'words', 'phrases', 'vocabulary', 'typing', 'spelling'],
+      body: <CompletionCard />
     },
     {
       key: 'groups',

@@ -60,6 +60,12 @@ function pushEditorSettings(editor: EditorWindow, initial = false): void {
   if (!initial || eff.composeDimming) {
     editor.setComposeDimming(eff.composeDimming)
   }
+  // The book's own completion list. Fetched rather than carried in settings:
+  // it belongs to the book, not to the machine.
+  void rpc
+    .request<{ words: string[]; trigger: number }>('completion/get')
+    .then((list) => editor.setCompletionList(list.words ?? [], list.trigger ?? 3))
+    .catch(() => editor.setCompletionList([], 3))
   if (!initial || eff.pageViewEnabled) {
     editor.setPageView(eff.pageViewEnabled)
   }
