@@ -332,7 +332,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--nl-space-hairline);
-  padding: 2px var(--nl-space-tighter);
+  padding: var(--nl-space-hairline) var(--nl-space-tighter);
   font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
   background: transparent;
@@ -360,7 +360,7 @@
   display: flex;
   align-items: center;
   gap: var(--nl-space-hairline);
-  padding: 3px var(--nl-space-tighter) 3px 0;
+  padding: var(--nl-space-tightest) var(--nl-space-tighter) var(--nl-space-tightest) 0;
   font-size: var(--nl-font-body-sm);
   color: var(--nl-text);
   cursor: pointer;

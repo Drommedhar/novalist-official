@@ -263,7 +263,7 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
     position: relative;
 }
 #context-menu .cm-parent > .cm-item::after {
-    content: 'A';
+    content: '›';
     opacity: 0.55;
     margin-left: 12px;
 }
@@ -4271,20 +4271,25 @@ window.setSpellingSuggestions = function (word, suggestions) {
     if (!contextMenu || !contextMenu.classList.contains('visible')) return;
     if (!word) return;
 
+    // Chromium can report the same menu more than once - a second listener, a
+    // re-send - and the block was being prepended each time, so the writer saw
+    // every suggestion twice. Whatever was injected before goes first.
+    for (const stale of contextMenu.querySelectorAll('.cm-spelling')) stale.remove();
+
     const list = Array.isArray(suggestions) ? suggestions : [];
     const rows = [];
-    rows.push('<div class="cm-grammar-msg">' + escapeHtml(word) + '</div>');
+    rows.push('<div class="cm-grammar-msg cm-spelling">' + escapeHtml(word) + '</div>');
     if (list.length === 0) {
-        rows.push('<div class="cm-item" disabled><span>'
+        rows.push('<div class="cm-item cm-spelling" disabled><span>'
             + escapeHtml(contextMenuLabels.noSuggestions || 'No suggestions')
             + '</span></div>');
     } else {
         for (const s of list) {
-            rows.push('<div class="cm-suggestion" data-spelling="'
+            rows.push('<div class="cm-suggestion cm-spelling" data-spelling="'
                 + escapeAttr(s) + '">' + escapeHtml(s) + '</div>');
         }
     }
-    rows.push('<div class="cm-item" data-action="addToDictionary" data-word="'
+    rows.push('<div class="cm-item cm-spelling" data-action="addToDictionary" data-word="'
         + escapeAttr(word) + '"><span>'
         + escapeHtml(contextMenuLabels.addToDictionary || 'Add to Dictionary')
         + '</span></div>');

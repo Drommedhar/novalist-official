@@ -147,6 +147,12 @@ jobs:
       # a method that does not exist compiles and typechecks, and a method the
       # renderer never calls can sit at 100% coverage while its feature is
       # wired to nothing.
+      # An emptied file is valid in every language the other doctors check, so
+      # nothing caught shell.css losing all 3862 of its lines in the working
+      # tree. The build succeeded and the app launched with no styling at all.
+      - name: File doctor (nothing emptied or gutted)
+        run: python3 tools/file-doctor.py
+
       - name: RPC doctor (renderer/backend method surface)
         run: python3 tools/rpc-doctor.py --strict
 

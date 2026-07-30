@@ -214,7 +214,7 @@
   color: var(--nl-text-subtle);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-pill);
-  padding: 2px var(--nl-space-sm);
+  padding: var(--nl-space-hairline) var(--nl-space-sm);
   white-space: nowrap;
 }
 

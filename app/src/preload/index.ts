@@ -65,6 +65,10 @@ contextBridge.exposeInMainWorld('novalist', {
   },
   /** The misspelling under the pointer, reported as the context menu opens. */
   onSpellingContext(handler: (word: string, suggestions: string[]) => void): void {
+    // Replaces rather than adds. Every editor pane registers on mount, and a
+    // second registration meant the menu was told about the same misspelling
+    // twice - which is how the suggestions came out doubled.
+    ipcRenderer.removeAllListeners('novalist:spelling-context')
     ipcRenderer.on(
       'novalist:spelling-context',
       (_event, payload: { word: string; suggestions: string[] }) =>

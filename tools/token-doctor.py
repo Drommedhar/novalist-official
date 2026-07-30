@@ -44,7 +44,7 @@ EXTENSION_WORKSPACES = [
 RAW_COLOUR = re.compile(r"#[0-9a-fA-F]{3,8}\b|\brgba?\(")
 
 RAW_FONT = re.compile(r"font-size:\s*[\d.]+px")
-RAW_SPACE = re.compile(r"(?:padding|margin|gap|row-gap|column-gap):\s*[^;]*?[\d.]+px")
+RAW_SPACE = re.compile(r"\b(?:padding|margin|gap|row-gap|column-gap):\s*[^;]*?\b[\d.]+px")
 
 # Files that legitimately measure in raw pixels: the token scale itself, and
 # anything drawing at a fixed device size rather than at a text size.

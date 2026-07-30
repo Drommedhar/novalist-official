@@ -188,7 +188,7 @@
 
 .peek-badge {
   flex-shrink: 0;
-  padding: 1px var(--nl-space-sm);
+  padding: var(--nl-space-hairline) var(--nl-space-sm);
   border-radius: var(--nl-radius-pill);
   color: var(--nv-text);
   font-size: var(--nl-font-caption);
@@ -273,7 +273,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--nl-space-tightest);
-  padding: 1px var(--nl-space-sm);
+  padding: var(--nl-space-hairline) var(--nl-space-sm);
   border-radius: var(--nl-radius-pill);
   color: var(--nv-text);
   font-size: var(--nl-font-caption);
@@ -370,7 +370,7 @@
   border-radius: var(--nl-radius-sm);
   color: var(--nl-text);
   font-size: var(--nl-font-body-sm);
-  padding: 1px var(--nl-space-sm);
+  padding: var(--nl-space-hairline) var(--nl-space-sm);
 }
 
 /* Holds rendered Markdown now, so pre-wrap is gone - it would reintroduce the

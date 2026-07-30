@@ -1,0 +1,15 @@
+#!/bin/sh
+#
+# Refuses a commit that would empty or gut a tracked source file.
+#
+# shell.css was once emptied in the working tree - all 3862 lines - and the app
+# was built and run from it, rendering the whole interface as unstyled text.
+# Nothing else caught it: an empty file is valid CSS, the build succeeded, every
+# other doctor passed, and the app launched. Only a screenshot showed it.
+#
+# Enable with:  git config core.hooksPath .githooks
+python tools/file-doctor.py || {
+    echo
+    echo "Commit refused. Nothing was committed."
+    exit 1
+}

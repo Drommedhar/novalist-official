@@ -2803,7 +2803,7 @@
   background: var(--nl-warning);
   color: var(--nl-accent-ink);
   border-radius: var(--nl-radius-sm);
-  padding: 0 2px;
+  padding: 0 var(--nl-space-hairline);
 }
 
 /* ===== Command palette ===== */
@@ -2842,7 +2842,7 @@
   color: var(--nl-text-subtle);
   background: var(--nl-surface-hover);
   border-radius: var(--nl-radius-sm);
-  padding: 1px var(--nl-space-sm);
+  padding: var(--nl-space-hairline) var(--nl-space-sm);
 }
 
 /* Quick open: grouped results across every kind of content. */
