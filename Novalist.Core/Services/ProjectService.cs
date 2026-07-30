@@ -882,8 +882,12 @@ public partial class ProjectService : IProjectService
             .Where(s => s.OriginChapterGuid == chapterGuid)
             .OrderBy(s => s.Order)
             .ToList();
-        foreach (var scene in theirs)
-            await RestoreArchivedSceneAsync(scene.Id, chapterGuid, null);
+        // The index is passed rather than left to each scene's own slot: a
+        // whole chapter coming back rebuilds its order, and the slots recorded
+        // while it was being emptied one scene at a time were the shrinking
+        // list's, not the order the writer had.
+        for (var i = 0; i < theirs.Count; i++)
+            await RestoreArchivedSceneAsync(theirs[i].Id, chapterGuid, i);
 
         await SaveScenesAsync();
         return true;
@@ -1172,6 +1176,8 @@ public partial class ProjectService : IProjectService
 
         scene.FileName = targetFileName;
         scene.OriginChapterGuid = chapterGuid;
+        // Recorded before the removal, or the index is the one it no longer has.
+        scene.OriginIndex = scenes.IndexOf(scene);
         scene.ArchivedAt = DateTime.UtcNow;
         scene.ChapterGuid = string.Empty;
 
@@ -1182,15 +1188,40 @@ public partial class ProjectService : IProjectService
         await SaveScenesAsync();
     }
 
-    public async Task RestoreArchivedSceneAsync(string sceneId, string targetChapterGuid, int? targetIndex)
+    /// <summary>
+    /// Brings an archived scene back.
+    ///
+    /// An empty <paramref name="targetChapterGuid"/> means "where it came
+    /// from", which is what a writer restoring something almost always wants.
+    /// Landing in the origin chapter with no index asked for puts the scene
+    /// back in the slot it left, rather than at the end where every restore
+    /// used to arrive.
+    /// </summary>
+    public async Task RestoreArchivedSceneAsync(
+        string sceneId, string targetChapterGuid, int? targetIndex)
     {
         if (ScenesManifest == null || ActiveBook == null || ActiveBookRoot == null) return;
 
         var scene = ScenesManifest.Archived.FirstOrDefault(s => s.Id == sceneId);
         if (scene == null) return;
 
-        var targetChapter = ActiveBook.Chapters.FirstOrDefault(c => c.Guid == targetChapterGuid);
+        var asked = string.IsNullOrWhiteSpace(targetChapterGuid)
+            ? scene.OriginChapterGuid ?? string.Empty
+            : targetChapterGuid;
+        var origin = scene.OriginChapterGuid;
+
+        var targetChapter = ActiveBook.Chapters.FirstOrDefault(c => c.Guid == asked);
+        // The chapter it came from can have been deleted since. Falling back to
+        // the first chapter beats refusing to restore: the scene exists and the
+        // writer asked for it back.
+        if (targetChapter == null && string.IsNullOrWhiteSpace(targetChapterGuid))
+            targetChapter = ActiveBook.Chapters.OrderBy(c => c.Order).FirstOrDefault();
         if (targetChapter == null) return;
+
+        // Captured here: the fields that say where the scene came from are
+        // cleared further down, before the insert position is worked out.
+        var homeIndex = targetChapter.Guid == origin ? scene.OriginIndex : null;
+        targetChapterGuid = targetChapter.Guid;
 
         if (!ScenesManifest.Chapters.TryGetValue(targetChapterGuid, out var targetScenes))
         {
@@ -1205,6 +1236,7 @@ public partial class ProjectService : IProjectService
         scene.ChapterGuid = targetChapterGuid;
         scene.ArchivedAt = null;
         scene.OriginChapterGuid = null;
+        scene.OriginIndex = null;
 
         var targetPath = GetSceneFilePath(targetChapter, scene);
 
@@ -1212,8 +1244,12 @@ public partial class ProjectService : IProjectService
         if (await _fileService.ExistsAsync(sourcePath))
             await _fileService.MoveFileAsync(sourcePath, targetPath);
 
-        var insertAt = targetIndex.HasValue
-            ? Math.Clamp(targetIndex.Value, 0, targetScenes.Count)
+        // Its own slot when it is going home and nobody named one; the end
+        // otherwise, because a scene arriving in a chapter it never lived in
+        // has no position of its own to claim.
+        var wanted = targetIndex ?? homeIndex;
+        var insertAt = wanted.HasValue
+            ? Math.Clamp(wanted.Value, 0, targetScenes.Count)
             : targetScenes.Count;
         targetScenes.Insert(insertAt, scene);
         ReindexScenes(targetScenes);

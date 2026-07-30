@@ -173,7 +173,11 @@ Archiving removes a scene from the manuscript without deleting its text — usef
 
 - Right-click a scene → **Archive**. The scene leaves its chapter; it no longer counts toward totals or exports.
 - Click **ARCHIVE** at the bottom of the binder tree to show what is there. Deleted chapters are listed first, then archived scenes.
-- Pick a chapter in **Restore into**, then press **Restore** next to an archived scene to bring it back there. It lands at the end of that chapter; drag it from there if it belongs elsewhere.
+- Each archived scene is listed with the chapter it left, so you can see where it belongs before deciding.
+- Press **Restore** next to an archived scene to bring it back **exactly where it was** — the same chapter, in the same slot between the scenes on either side. This is the default and needs no other choice.
+- To put it somewhere else instead, pick a chapter in **Restore into** first. A scene arriving in a chapter it never lived in lands at the end of it, because it has no position of its own there to claim.
+- If the chapter a scene came from has since been deleted, restoring puts it in the first chapter rather than refusing — the scene exists and you asked for it back.
+- Restoring a whole deleted chapter brings its scenes back in the order they had.
 
 ## How a scene sits in time
 

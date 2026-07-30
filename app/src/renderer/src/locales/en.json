@@ -718,7 +718,8 @@
     "insertChapterBefore": "Insert a chapter before this one",
     "insertChapterAfter": "Insert a chapter after this one",
     "insertChapterTitle": "New chapter",
-    "chapterDescription": "What this chapter is for..."
+    "chapterDescription": "What this chapter is for...",
+    "restoreHome": "Where it came from"
   },
   "entityPanel": {
     "charactersTooltip": "Characters",

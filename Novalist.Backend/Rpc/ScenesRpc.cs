@@ -206,16 +206,31 @@ public sealed class ScenesRpc
     }
 
     [JsonRpcMethod("scenes/archived")]
-    public ArchivedSceneDto[] GetArchived() =>
-        _workspace.Projects.GetArchivedScenes()
-            .Select(s => new ArchivedSceneDto(
-                s.Id, s.Title, s.WordCount, s.ArchivedAt?.ToString("o")))
-            .ToArray();
-
-    [JsonRpcMethod("scenes/restoreArchived")]
-    public async Task RestoreArchivedAsync(string sceneId, string targetChapterGuid)
+    public ArchivedSceneDto[] GetArchived()
     {
-        await _workspace.Projects.RestoreArchivedSceneAsync(sceneId, targetChapterGuid, null);
+        var chapters = _workspace.Projects.GetChaptersOrdered()
+            .ToDictionary(c => c.Guid, c => c.Title, StringComparer.Ordinal);
+
+        return [.. _workspace.Projects.GetArchivedScenes()
+            .Select(s => new ArchivedSceneDto(
+                s.Id, s.Title, s.WordCount, s.ArchivedAt?.ToString("o"),
+                // The chapter it came from, by name, and empty when that
+                // chapter has been deleted since - a writer deciding where to
+                // put a scene back needs to know where it was.
+                s.OriginChapterGuid != null && chapters.TryGetValue(s.OriginChapterGuid, out var t)
+                    ? t
+                    : string.Empty))];
+    }
+
+    /// <summary>
+    /// Restores an archived scene. An empty target means "where it came from",
+    /// back in the slot it left; a named chapter puts it at the end of that one.
+    /// </summary>
+    [JsonRpcMethod("scenes/restoreArchived")]
+    public async Task RestoreArchivedAsync(string sceneId, string? targetChapterGuid = null)
+    {
+        await _workspace.Projects.RestoreArchivedSceneAsync(
+            sceneId, targetChapterGuid ?? string.Empty, null);
     }
 
     [JsonRpcMethod("scenes/getAnnotations")]
@@ -347,7 +362,14 @@ public sealed record AnalysisOverrideDto(
     string? Conflict,
     string[]? Tags);
 
-public sealed record ArchivedSceneDto(string Id, string Title, int WordCount, string? ArchivedAt);
+public sealed record ArchivedSceneDto(
+    string Id,
+    string Title,
+    int WordCount,
+    string? ArchivedAt,
+    /// <summary>The chapter it was archived from, by title. Empty when that
+    /// chapter has been deleted since.</summary>
+    string OriginChapterTitle);
 
 public sealed record SceneAnnotationsDto(
     IReadOnlyList<SceneCommentDto> Comments,

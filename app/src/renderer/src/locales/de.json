@@ -605,7 +605,8 @@
     "insertChapterBefore": "Kapitel davor einfügen",
     "insertChapterAfter": "Kapitel danach einfügen",
     "insertChapterTitle": "Neues Kapitel",
-    "chapterDescription": "Wozu dieses Kapitel da ist ..."
+    "chapterDescription": "Wozu dieses Kapitel da ist ...",
+    "restoreHome": "Ursprünglicher Ort"
   },
   "entityPanel": {
     "charactersTooltip": "Charaktere",

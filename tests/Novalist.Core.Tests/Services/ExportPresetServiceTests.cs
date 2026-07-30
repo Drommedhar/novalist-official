@@ -267,7 +267,7 @@ public class ExportPresetServiceTests : IDisposable
     {
         var xhtml = await EpubChapterAsync(Custom() with { ShowSceneTitles = true });
 
-        Assert.Contains("<h3 class=\"scene-title\">The Fire</h3>", xhtml);
+        Assert.Contains("<h3 class=\"scene-title\" id=\"scene-1\">The Fire</h3>", xhtml);
     }
 
     [Fact]

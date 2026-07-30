@@ -244,6 +244,16 @@ public class SceneData
     public string? OriginChapterGuid { get; set; }
 
     /// <summary>
+    /// Which slot in that chapter the scene occupied, zero-based. Knowing the
+    /// chapter and not the position put every restored scene at the end, so a
+    /// scene archived from between two others came back somewhere else - which
+    /// is the thing an archive is supposed not to do.
+    /// </summary>
+    [JsonPropertyName("originIndex")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? OriginIndex { get; set; }
+
+    /// <summary>
     /// Where the writer put this card on the freeform corkboard, in pixels from
     /// the top left of the board. Null means it has never been placed, and the
     /// board falls back to laying it out in reading order - so switching to

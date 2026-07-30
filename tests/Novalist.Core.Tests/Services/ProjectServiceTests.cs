@@ -306,6 +306,115 @@ public class ProjectServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task RestoringWithNoTargetPutsTheSceneBackWhereItWas()
+    {
+        await Create();
+        var ch = await _sut.CreateChapterAsync("C");
+        var first = await _sut.CreateSceneAsync(ch.Guid, "One");
+        var middle = await _sut.CreateSceneAsync(ch.Guid, "Two");
+        var last = await _sut.CreateSceneAsync(ch.Guid, "Three");
+
+        await _sut.ArchiveSceneAsync(ch.Guid, middle.Id);
+        var archived = _sut.GetArchivedScenes().Single();
+        Assert.Equal(1, archived.OriginIndex);
+        await _sut.RestoreArchivedSceneAsync(middle.Id, string.Empty, null);
+
+        // Back between the two it left, not appended after them - which is the
+        // one thing an archive is supposed not to change.
+        Assert.Equal(
+            [first.Id, middle.Id, last.Id],
+            _sut.GetScenesForChapter(ch.Guid).Select(s => s.Id));
+    }
+
+    [Fact]
+    public async Task NamingTheOriginChapterAlsoRestoresThePosition()
+    {
+        await Create();
+        var ch = await _sut.CreateChapterAsync("C");
+        var first = await _sut.CreateSceneAsync(ch.Guid, "One");
+        var middle = await _sut.CreateSceneAsync(ch.Guid, "Two");
+        await _sut.CreateSceneAsync(ch.Guid, "Three");
+
+        await _sut.ArchiveSceneAsync(ch.Guid, middle.Id);
+        // Picking the chapter it came from out of a list means the same thing
+        // as saying nothing, so it must behave the same way.
+        await _sut.RestoreArchivedSceneAsync(middle.Id, ch.Guid, null);
+
+        var scenes = _sut.GetScenesForChapter(ch.Guid);
+        Assert.Equal(first.Id, scenes[0].Id);
+        Assert.Equal(middle.Id, scenes[1].Id);
+    }
+
+    [Fact]
+    public async Task RestoringIntoADifferentChapterLandsAtTheEnd()
+    {
+        await Create();
+        var from = await _sut.CreateChapterAsync("From");
+        var into = await _sut.CreateChapterAsync("Into");
+        var moved = await _sut.CreateSceneAsync(from.Guid, "Moved");
+        await _sut.CreateSceneAsync(from.Guid, "Stays");
+        var sitting = await _sut.CreateSceneAsync(into.Guid, "Sitting");
+
+        await _sut.ArchiveSceneAsync(from.Guid, moved.Id);
+        await _sut.RestoreArchivedSceneAsync(moved.Id, into.Guid, null);
+
+        // A scene arriving in a chapter it never lived in has no position of
+        // its own to claim, so it goes at the end.
+        Assert.Equal(
+            [sitting.Id, moved.Id],
+            _sut.GetScenesForChapter(into.Guid).Select(s => s.Id));
+    }
+
+    [Fact]
+    public async Task AnExplicitIndexStillWins()
+    {
+        await Create();
+        var ch = await _sut.CreateChapterAsync("C");
+        await _sut.CreateSceneAsync(ch.Guid, "One");
+        var moved = await _sut.CreateSceneAsync(ch.Guid, "Two");
+
+        await _sut.ArchiveSceneAsync(ch.Guid, moved.Id);
+        await _sut.RestoreArchivedSceneAsync(moved.Id, ch.Guid, 0);
+
+        Assert.Equal(moved.Id, _sut.GetScenesForChapter(ch.Guid)[0].Id);
+    }
+
+    [Fact]
+    public async Task AHomeChapterThatIsGoneFallsBackToTheFirstOne()
+    {
+        await Create();
+        var gone = await _sut.CreateChapterAsync("Gone");
+        var kept = await _sut.CreateChapterAsync("Kept");
+        var orphan = await _sut.CreateSceneAsync(gone.Guid, "Orphan");
+
+        await _sut.ArchiveSceneAsync(gone.Guid, orphan.Id);
+        await _sut.DeleteChapterAsync(gone.Guid);
+        await _sut.RestoreArchivedSceneAsync(orphan.Id, string.Empty, null);
+
+        // Refusing to restore would strand a scene the writer asked for back.
+        Assert.Contains(_sut.GetScenesForChapter(kept.Guid), s => s.Id == orphan.Id);
+    }
+
+    [Fact]
+    public async Task AnIndexPastTheEndOfAShrunkChapterIsClamped()
+    {
+        await Create();
+        var ch = await _sut.CreateChapterAsync("C");
+        var a = await _sut.CreateSceneAsync(ch.Guid, "A");
+        var b = await _sut.CreateSceneAsync(ch.Guid, "B");
+        var c = await _sut.CreateSceneAsync(ch.Guid, "C3");
+
+        await _sut.ArchiveSceneAsync(ch.Guid, c.Id);
+        await _sut.DeleteSceneAsync(ch.Guid, a.Id);
+        await _sut.DeleteSceneAsync(ch.Guid, b.Id);
+        await _sut.RestoreArchivedSceneAsync(c.Id, string.Empty, null);
+
+        // Its slot was index two and the chapter is now empty. Clamping is the
+        // only answer that does not throw.
+        Assert.Single(_sut.GetScenesForChapter(ch.Guid));
+    }
+
+    [Fact]
     public async Task Archive_FileNameCollision_SuffixesWithId()
     {
         await Create();

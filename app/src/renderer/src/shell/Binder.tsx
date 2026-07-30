@@ -65,6 +65,8 @@ interface ArchivedScene {
   id: string
   title: string
   wordCount: number
+  /** The chapter it left, by title. Empty when that chapter is gone. */
+  originChapterTitle: string
 }
 
 interface TrashedChapter {
@@ -995,6 +997,10 @@ export function Binder(): React.JSX.Element {
                   value={restoreInto}
                   onChange={(e) => setRestoreInto(e.target.value)}
                 >
+                  {/* The default, and what a writer restoring something almost
+                      always means. Every restore used to land in chapter one
+                      wherever the scene came from. */}
+                  <option value="">{t('explorer.restoreHome')}</option>
                   {chapters.map((c) => (
                     <option key={c.guid} value={c.guid}>
                       {c.title}
@@ -1006,13 +1012,14 @@ export function Binder(): React.JSX.Element {
             {archived?.map((scene) => (
               <div key={scene.id} className="binder-scene-row">
                 <span className="binder-scene-title">{scene.title}</span>
+                {scene.originChapterTitle && (
+                  <span className="binder-pin-chapter">{scene.originChapterTitle}</span>
+                )}
                 <button
                   className="snapshot-restore"
                   onClick={() => {
-                    const target = restoreInto || chapters[0]?.guid
-                    if (!target) return
                     void rpc
-                      .request('scenes/restoreArchived', [scene.id, target])
+                      .request('scenes/restoreArchived', [scene.id, restoreInto || null])
                       .then(async () => {
                         const state = await rpc.request<
                           import('../stores/projectStore').ProjectStateDto

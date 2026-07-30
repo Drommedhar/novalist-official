@@ -751,7 +751,8 @@
     "insertChapterBefore": "在此章之前插入章节",
     "insertChapterAfter": "在此章之后插入章节",
     "insertChapterTitle": "新章节",
-    "chapterDescription": "这一章是做什么的……"
+    "chapterDescription": "这一章是做什么的……",
+    "restoreHome": "原来的位置"
   },
   "entityPanel": {
     "charactersTooltip": "角色",

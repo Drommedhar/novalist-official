@@ -376,4 +376,45 @@ public sealed class ScenesRpcTests : IDisposable
         Assert.Contains(events, e => e.Title.EndsWith("Later") && e.DateStr == "1043-03-02");
     }
 
+    [Fact]
+    public async Task ArchivedScenesSayWhichChapterTheyLeft()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+        var chapter = _workspace.Projects.GetChaptersOrdered().Single(c => c.Guid == chapterGuid);
+
+        await _workspace.Projects.ArchiveSceneAsync(chapterGuid, sceneId);
+
+        // A writer deciding where to put a scene back needs to know where it
+        // was; the archive list used to show only a title and a word count.
+        Assert.Equal(chapter.Title, _rpc.GetArchived().Single().OriginChapterTitle);
+    }
+
+    [Fact]
+    public async Task RestoringWithNoChapterNamedPutsTheSceneBackWhereItWas()
+    {
+        var (chapterGuid, firstId) = await CreateSceneAsync();
+        var middle = await _workspace.Projects.CreateSceneAsync(chapterGuid, "Middle");
+        var last = await _workspace.Projects.CreateSceneAsync(chapterGuid, "Last");
+
+        await _workspace.Projects.ArchiveSceneAsync(chapterGuid, middle.Id);
+        await _rpc.RestoreArchivedAsync(middle.Id);
+
+        Assert.Equal(
+            [firstId, middle.Id, last.Id],
+            _workspace.Projects.GetScenesForChapter(chapterGuid).Select(s => s.Id));
+    }
+
+    [Fact]
+    public async Task AnArchivedSceneWhoseChapterIsGoneReportsNoOrigin()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+        await _workspace.Projects.CreateChapterAsync("Somewhere else");
+
+        await _workspace.Projects.ArchiveSceneAsync(chapterGuid, sceneId);
+        await _workspace.Projects.DeleteChapterAsync(chapterGuid);
+
+        // Naming a chapter that no longer exists would be worse than saying
+        // nothing: the writer would look for it and not find it.
+        Assert.Equal(string.Empty, _rpc.GetArchived().Single().OriginChapterTitle);
+    }
 }
