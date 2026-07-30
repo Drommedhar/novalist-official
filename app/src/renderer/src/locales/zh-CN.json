@@ -87,7 +87,17 @@
     "fetchingTitle": "获取中...",
     "typeAudio": "音频",
     "typeVideo": "视频",
-    "pdfFallback": "此 PDF 无法在此处显示。请在外部打开。"
+    "pdfFallback": "此 PDF 无法在此处显示。请在外部打开。",
+    "status": "状态",
+    "statusNone": "无状态",
+    "statusOpen": "待解答",
+    "statusInProgress": "查证中",
+    "statusResolved": "已解答",
+    "rating": "评分",
+    "rateStars": "{{count}} 星",
+    "related": "相关资料",
+    "relatedHint": "尚未关联任何条目。",
+    "linkResearch": "关联另一条目……"
   },
   "plotGrid": {
     "title": "剧情网格",
@@ -2112,7 +2122,8 @@
     "scanCreated": "已创建 {{count}} 项",
     "proposalsTitle": "建议的典藏条目",
     "proposalsHint": "勾选要创建的条目。确认前不会添加任何内容。",
-    "proposalsCreate": "创建 {{count}} 项"
+    "proposalsCreate": "创建 {{count}} 项",
+    "scratchpadHint": "未打开项目，内容会存入随手记。Ctrl+Enter 保存。"
   },
   "quickOpen": {
     "placeholder": "搜索全部",
@@ -2842,5 +2853,14 @@
     "showAll": "全部",
     "showInactive": "正文之外",
     "sceneFilter": "显示哪些场景"
+  },
+  "scratchpad": {
+    "title": "随手记",
+    "intro": "属于你而非某个项目的笔记。关闭项目后依然保留，之后可以归入项目。",
+    "placeholder": "不想忘掉的东西",
+    "add": "记下来",
+    "file": "归入项目",
+    "delete": "删除笔记",
+    "empty": "这里还是空的。"
   }
 }

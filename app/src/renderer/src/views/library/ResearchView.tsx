@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
-import { ExternalLink, FolderOpen, Inbox, Trash2 } from 'lucide-react'
+import { ExternalLink, FolderOpen, Inbox, Link2, Star, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { ScratchpadPanel } from '../../shell/ScratchpadPanel'
 import { useShellStore } from '../../stores/shellStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
@@ -23,9 +24,18 @@ interface ResearchItemDto {
   fileSize: string
   modified: string
   entityRefs: string[]
+  /** "None", "Open", "InProgress" or "Resolved". */
+  status: string
+  /** 0 for unrated, 1-5 otherwise. */
+  rating: number
+  /** Ids of other research items this one refers to. */
+  relatedIds: string[]
 }
 
 const TYPES = ['Note', 'Link', 'File', 'Image', 'Pdf', 'Audio', 'Video']
+
+/** Where an item stands. Short on purpose - this is not a task tracker. */
+const STATUSES = ['None', 'Open', 'InProgress', 'Resolved']
 
 const isFileType = (type: string): boolean =>
   type === 'File' ||
@@ -222,6 +232,27 @@ export function ResearchView(): React.JSX.Element {
     }
   }
 
+  /** Where an item stands and what the writer thinks of it. */
+  const setLifecycle = async (
+    id: string,
+    status: string | null,
+    rating: number | null
+  ): Promise<void> => {
+    setItems(await rpc.request<ResearchItemDto[]>('research/setLifecycle', [id, status, rating]))
+  }
+
+  /**
+   * Links two items, both ways. A one-way link is discoverable only from the
+   * item that has it, and the end worth finding is usually the other one - the
+   * question a source answers is what somebody is reading when they need it.
+   */
+  const toggleRelated = async (otherId: string, linked: boolean): Promise<void> => {
+    if (!selected) return
+    setItems(
+      await rpc.request<ResearchItemDto[]>('research/link', [selected.id, otherId, linked])
+    )
+  }
+
   const linkEntity = async (entityId: string): Promise<void> => {
     if (!selected || selected.entityRefs.includes(entityId)) return
     const next = { ...selected, entityRefs: [...selected.entityRefs, entityId] }
@@ -406,6 +437,49 @@ export function ResearchView(): React.JSX.Element {
                 onChange={(e) => patchSelected({ title: e.target.value })}
                 onBlur={() => void save(selected)}
               />
+
+              {/* Where it stands and what it is worth. A shelf of forty
+                  sources has three that matter and, until now, nothing said
+                  which - or which questions were still open. */}
+              <div className="research-lifecycle">
+                <select
+                  className="dialog-input"
+                  aria-label={t('research.status')}
+                  value={selected.status}
+                  onChange={(e) => void setLifecycle(selected.id, e.target.value, null)}
+                >
+                  {STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {t(`research.status${status}`)}
+                    </option>
+                  ))}
+                </select>
+                <div
+                  className="research-rating"
+                  role="group"
+                  aria-label={t('research.rating')}
+                >
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      className={`research-star${selected.rating >= star ? ' on' : ''}`}
+                      aria-label={t('research.rateStars', { count: star })}
+                      aria-pressed={selected.rating >= star}
+                      // Clicking the star already set clears the rating, so an
+                      // accidental one is one click to undo.
+                      onClick={() =>
+                        void setLifecycle(
+                          selected.id,
+                          null,
+                          selected.rating === star ? 0 : star
+                        )
+                      }
+                    >
+                      <Star size={14} strokeWidth={2} />
+                    </button>
+                  ))}
+                </div>
+              </div>
               <select
                 className="dialog-input"
                 value={selected.type}
@@ -544,10 +618,73 @@ export function ResearchView(): React.JSX.Element {
                   </select>
                 </div>
               </div>
+              {/* Other research this one refers to. Written both ways, because
+                  the end worth finding is usually the other one: the question
+                  a source answers is what somebody is reading when they need
+                  the source. */}
+              <div className="research-tags">
+                <span className="research-tags-label">{t('research.related')}</span>
+                <div className="research-tag-list">
+                  {selected.relatedIds.map((relatedId) => {
+                    const other = items.find((i) => i.id === relatedId)
+                    return (
+                      <span key={relatedId} className="research-tag">
+                        <button
+                          className="research-related-open"
+                          onClick={() => setSelectedId(relatedId)}
+                        >
+                          <Link2 size={12} strokeWidth={2} /> {other?.title ?? relatedId}
+                        </button>
+                        <button
+                          className="research-tag-remove"
+                          aria-label={`${t('explorer.contextDelete')} ${other?.title ?? relatedId}`}
+                          onClick={() => void toggleRelated(relatedId, false)}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )
+                  })}
+                  {selected.relatedIds.length === 0 && (
+                    <span className="research-tags-hint">{t('research.relatedHint')}</span>
+                  )}
+                </div>
+                <div className="research-tag-add">
+                  <select
+                    className="dialog-input"
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value) void toggleRelated(e.target.value, true)
+                    }}
+                  >
+                    <option value="">{t('research.linkResearch')}</option>
+                    {items
+                      .filter(
+                        (i) => i.id !== selected.id && !selected.relatedIds.includes(i.id)
+                      )
+                      .map((i) => (
+                        <option key={i.id} value={i.id}>
+                          {i.title}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
               <CustomFieldsPanel scope="Research" id={selected.id} />
             </div>
           ) : (
-            <p className="codex-empty">{t('research.empty')}</p>
+            <>
+              <p className="codex-empty">{t('research.empty')}</p>
+              {/* Notes captured while no project was open. Filing one moves it
+                  into this project's inbox, which is where it was going to end
+                  up anyway. */}
+              <ScratchpadPanel
+                canFile
+                onFiled={() =>
+                  void rpc.request<ResearchItemDto[]>('research/list').then(setItems)
+                }
+              />
+            </>
           )}
         </div>
       </div>

@@ -366,3 +366,130 @@
   outline: 2px dashed var(--nl-accent);
   outline-offset: -4px;
 }
+
+/* Where an item stands and what it is worth, on one line: both are set while
+   reading down the shelf rather than while editing a note. */
+.research-lifecycle {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.research-lifecycle > select {
+  flex: 1;
+}
+
+.research-rating {
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.research-star {
+  padding: var(--nl-space-tightest);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-subtle);
+}
+
+.research-star.on {
+  color: var(--nl-accent);
+}
+
+.research-star:hover {
+  background: var(--nl-surface-hover);
+}
+
+/* A link to another item opens it rather than describing it. */
+.research-related-open {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  color: inherit;
+  font-size: inherit;
+}
+
+.research-related-open:hover {
+  text-decoration: underline;
+}
+
+
+/* Where an item stands and what it is worth, on one line: both get set while
+   reading down the shelf rather than while editing a note. */
+.research-lifecycle {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.research-lifecycle > select {
+  flex: 1;
+}
+
+.research-rating {
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.research-star {
+  padding: var(--nl-space-tightest);
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text-subtle);
+}
+
+.research-star.on {
+  color: var(--nl-accent);
+}
+
+.research-star:hover {
+  background: var(--nl-surface-hover);
+}
+
+/* A link to another item opens it rather than describing it. */
+.research-related-open {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  color: inherit;
+  font-size: inherit;
+}
+
+.research-related-open:hover {
+  text-decoration: underline;
+}
+
+/* The scratchpad: loose notes with no project behind them. Reachable from the
+   welcome screen, which is the whole point - a thought that arrives before the
+   right project is open still has somewhere to go. */
+.scratchpad-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  margin-top: var(--nl-space-md);
+}
+
+.scratchpad-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-sm);
+  border-radius: var(--nl-radius-md);
+  background: var(--nl-surface-input);
+}
+
+.scratchpad-note-text {
+  flex: 1;
+  white-space: pre-wrap;
+  font-size: var(--nl-font-body);
+  line-height: 1.5;
+  color: var(--nl-text);
+}
+
+.scratchpad-note-date {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.scratchpad-empty {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  margin-top: var(--nl-space-sm);
+}

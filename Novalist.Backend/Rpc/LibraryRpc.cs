@@ -11,6 +11,7 @@ public sealed class LibraryRpc
 {
     private readonly EntityService _entities;
     private readonly ResearchService _research;
+    private readonly Workspace _workspace;
 
     private static readonly HashSet<string> ImageExtensions =
         new(StringComparer.OrdinalIgnoreCase) { ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp" };
@@ -25,6 +26,7 @@ public sealed class LibraryRpc
 
     public LibraryRpc(Workspace workspace)
     {
+        _workspace = workspace;
         _entities = new EntityService(workspace.Projects);
         _research = new ResearchService(workspace.Projects, workspace.FileService);
     }
@@ -112,6 +114,55 @@ public sealed class LibraryRpc
         return ListResearch();
     }
 
+    // ── The scratchpad: notes that outlive every project ──
+
+    /// <summary>Loose notes, newest first. Readable with no project open.</summary>
+    [JsonRpcMethod("scratchpad/list")]
+    public ScratchpadNoteDto[] ListScratchpad()
+        => [.. _workspace.Scratchpad.GetAll().Select(
+            n => new ScratchpadNoteDto(n.Id, n.Text, n.CreatedAt.ToString("o")))];
+
+    /// <summary>
+    /// Jots something down with no project involved.
+    ///
+    /// Quick Capture writes into the open project's research inbox, so a thought
+    /// that arrives before the right project is open had nowhere to go - which is
+    /// exactly when thoughts arrive.
+    /// </summary>
+    [JsonRpcMethod("scratchpad/add")]
+    public async Task<ScratchpadNoteDto[]> AddScratchpadAsync(string text)
+    {
+        await _workspace.Scratchpad.AddAsync(text);
+        return ListScratchpad();
+    }
+
+    [JsonRpcMethod("scratchpad/delete")]
+    public async Task<ScratchpadNoteDto[]> DeleteScratchpadAsync(string id)
+    {
+        await _workspace.Scratchpad.RemoveAsync(id);
+        return ListScratchpad();
+    }
+
+    /// <summary>
+    /// Moves a scratchpad note into the open project's research inbox, where it
+    /// can be filed like anything else. Throws with no project open, because
+    /// there is nowhere to put it and silently doing nothing would look like it
+    /// worked.
+    /// </summary>
+    [JsonRpcMethod("scratchpad/fileIntoProject")]
+    public async Task<ScratchpadNoteDto[]> FileScratchpadAsync(string id)
+    {
+        if (_workspace.Projects.CurrentProject == null)
+            throw new InvalidOperationException("No project is open.");
+
+        var note = _workspace.Scratchpad.Find(id)
+            ?? throw new InvalidOperationException("No such note.");
+
+        await QuickCaptureAsync(note.Text);
+        await _workspace.Scratchpad.RemoveAsync(id);
+        return ListScratchpad();
+    }
+
     /// <summary>First line of the capture, collapsed and clipped to a title-sized
     /// string. Never empty — callers guarantee non-blank input.</summary>
     internal static string DeriveTitle(string body)
@@ -158,10 +209,76 @@ public sealed class LibraryRpc
         return ListResearch();
     }
 
+    /// <summary>
+    /// Where an item stands and what the writer thinks of it.
+    ///
+    /// Separate from research/save because this is what gets changed while
+    /// reading down the shelf - a status and a star, without opening the editor
+    /// and without touching the prose.
+    /// </summary>
+    [JsonRpcMethod("research/setLifecycle")]
+    public async Task<ResearchItemDto[]> SetLifecycleAsync(string id, string? status, int? rating)
+    {
+        var item = _research.GetAll().FirstOrDefault(r => r.Id == id);
+        if (item == null) return ListResearch();
+
+        if (status != null)
+        {
+            item.Status = Enum.TryParse<ResearchStatus>(status, true, out var parsed)
+                ? parsed
+                : ResearchStatus.None;
+        }
+        // Zero is "unrated", which is a real answer and how a rating is undone.
+        if (rating.HasValue) item.Rating = Math.Clamp(rating.Value, 0, 5);
+
+        item.UpdatedAt = DateTime.UtcNow;
+        await _research.SaveAsync(item);
+        return ListResearch();
+    }
+
+    /// <summary>
+    /// Links two research items, both ways.
+    ///
+    /// A one-way link is discoverable only from the item that has it, and the
+    /// one worth finding is usually the other end - the question that this
+    /// source answers is what somebody is reading when they need the source.
+    /// </summary>
+    [JsonRpcMethod("research/link")]
+    public async Task<ResearchItemDto[]> LinkResearchAsync(string id, string otherId, bool linked)
+    {
+        if (string.Equals(id, otherId, StringComparison.Ordinal)) return ListResearch();
+
+        var item = _research.GetAll().FirstOrDefault(r => r.Id == id);
+        var other = _research.GetAll().FirstOrDefault(r => r.Id == otherId);
+        if (item == null || other == null) return ListResearch();
+
+        foreach (var (from, to) in new[] { (item, otherId), (other, id) })
+        {
+            var links = from.RelatedIds ?? [];
+            if (linked && !links.Contains(to, StringComparer.Ordinal)) links.Add(to);
+            if (!linked) links.RemoveAll(x => string.Equals(x, to, StringComparison.Ordinal));
+            from.RelatedIds = links.Count > 0 ? links : null;
+            from.UpdatedAt = DateTime.UtcNow;
+            await _research.SaveAsync(from);
+        }
+
+        return ListResearch();
+    }
+
     [JsonRpcMethod("research/delete")]
     public async Task<ResearchItemDto[]> DeleteResearchAsync(string id)
     {
         await _research.DeleteAsync(id);
+
+        // Links to it go too. A reference to an item that is gone reads as a
+        // source somebody can still open, which it is not.
+        foreach (var other in _research.GetAll())
+        {
+            if (other.RelatedIds?.Remove(id) != true) continue;
+            if (other.RelatedIds.Count == 0) other.RelatedIds = null;
+            await _research.SaveAsync(other);
+        }
+
         return ListResearch();
     }
 
@@ -174,7 +291,8 @@ public sealed class LibraryRpc
             : (string.Empty, string.Empty);
         return new ResearchItemDto(
             r.Id, r.Title, r.Type.ToString(), r.Content, r.Tags.ToArray(), size, modified,
-            r.EntityRefs.ToArray());
+            r.EntityRefs.ToArray(), r.Status.ToString(), r.Rating,
+            r.RelatedIds?.ToArray() ?? []);
     }
 
     // Reads on-disk file metadata for imported research files. A missing target
@@ -201,8 +319,17 @@ public sealed class LibraryRpc
     }
 }
 
+/// <summary>One loose note kept outside every project.</summary>
+public sealed record ScratchpadNoteDto(string Id, string Text, string CreatedAt);
+
 public sealed record ResearchItemDto(
     string Id, string Title, string Type, string Content, IReadOnlyList<string> Tags,
-    string FileSize, string Modified, IReadOnlyList<string> EntityRefs);
+    string FileSize, string Modified, IReadOnlyList<string> EntityRefs,
+    /// <summary>"None", "Open", "InProgress" or "Resolved".</summary>
+    string Status,
+    /// <summary>0 for unrated, 1-5 otherwise.</summary>
+    int Rating,
+    /// <summary>Ids of other research items this one refers to.</summary>
+    IReadOnlyList<string> RelatedIds);
 
 public sealed record GalleryImageDto(string Path, string Url);

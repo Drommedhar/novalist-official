@@ -67,4 +67,57 @@ public sealed class ResearchItem
     [JsonPropertyName("properties")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Dictionary<string, string>? Properties { get; set; }
+
+    /// <summary>
+    /// Where this item stands: <see cref="ResearchStatus.None"/> until the
+    /// writer says otherwise.
+    ///
+    /// A research shelf without one is a pile: nothing separates a question
+    /// still open from a question answered three months ago, and the note that
+    /// says "check whether the bridge existed in 1755" reads the same after it
+    /// has been checked as before.
+    /// </summary>
+    [JsonPropertyName("status")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public ResearchStatus Status { get; set; } = ResearchStatus.None;
+
+    /// <summary>
+    /// The writer's own rating, 0 for none and 1-5 otherwise. A shelf of
+    /// forty sources has three that matter, and nothing said which.
+    /// </summary>
+    [JsonPropertyName("rating")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int Rating { get; set; }
+
+    /// <summary>
+    /// Ids of other research items this one refers to. A source that answers
+    /// another's question, a note that expands on one - discoverable in both
+    /// directions, because the item that got answered is the one being read.
+    /// </summary>
+    [JsonPropertyName("relatedIds")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? RelatedIds { get; set; }
+}
+
+/// <summary>
+/// Where a research item stands.
+///
+/// Deliberately short. A four-state lifecycle is a project-management tool; what
+/// a writer needs is to be able to see, at a glance, which questions are still
+/// open and which sources they have actually read.
+/// </summary>
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum ResearchStatus
+{
+    /// <summary>Nothing said. Every item starts here and most stay here.</summary>
+    None,
+
+    /// <summary>A question the book needs answered.</summary>
+    Open,
+
+    /// <summary>Being worked on.</summary>
+    InProgress,
+
+    /// <summary>Answered, read, done with.</summary>
+    Resolved
 }

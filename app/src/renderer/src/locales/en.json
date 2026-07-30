@@ -94,7 +94,18 @@
     "fetchingTitle": "Fetching...",
     "typeAudio": "Audio",
     "typeVideo": "Video",
-    "pdfFallback": "This PDF cannot be shown here. Open it externally instead."
+    "pdfFallback": "This PDF cannot be shown here. Open it externally instead.",
+    "status": "Status",
+    "statusNone": "No status",
+    "statusOpen": "Open question",
+    "statusInProgress": "Looking into it",
+    "statusResolved": "Answered",
+    "rating": "Rating",
+    "rateStars": "{{count}} star",
+    "rateStars_other": "{{count}} stars",
+    "related": "Related research",
+    "relatedHint": "Nothing linked yet.",
+    "linkResearch": "Link another item..."
   },
   "plotGrid": {
     "title": "Plot Grid",
@@ -2070,7 +2081,8 @@
     "scanCreated": "Created {{count}}",
     "proposalsTitle": "Suggested Codex entries",
     "proposalsHint": "Tick the ones to create. Nothing is added until you confirm.",
-    "proposalsCreate": "Create {{count}}"
+    "proposalsCreate": "Create {{count}}",
+    "scratchpadHint": "No project is open, so this goes to the scratchpad. Ctrl+Enter to save."
   },
   "quickOpen": {
     "placeholder": "Search everything",
@@ -2800,5 +2812,14 @@
     "showAll": "Everything",
     "showInactive": "Out of the book",
     "sceneFilter": "Which scenes to show"
+  },
+  "scratchpad": {
+    "title": "Scratchpad",
+    "intro": "Notes that belong to you rather than to a project. They survive closing every project, and can be filed into one later.",
+    "placeholder": "Something you do not want to lose",
+    "add": "Jot it down",
+    "file": "File into project",
+    "delete": "Delete note",
+    "empty": "Nothing here yet."
   }
 }

@@ -20,6 +20,9 @@ public sealed partial class Workspace : IDisposable
         FileService = new FileService();
         Projects = new ProjectService(FileService);
         Settings = new SettingsService(settingsDirectory);
+        // Beside the settings rather than inside a project: a thought that
+        // arrives before the right project is open still has somewhere to go.
+        Scratchpad = new ScratchpadService(settingsDirectory);
         ArchiveService = new ArchiveService();
         WordHistory = new WordHistoryService(FileService, Projects);
         UserAssets = new Appearance.UserAssetsService(settingsDirectory);
@@ -33,6 +36,12 @@ public sealed partial class Workspace : IDisposable
     public FileService FileService { get; }
     public ProjectService Projects { get; }
     public SettingsService Settings { get; }
+
+    /// <summary>
+    /// Loose notes that belong to the writer rather than to a project, so a
+    /// thought that arrives before the right project is open has somewhere to go.
+    /// </summary>
+    public ScratchpadService Scratchpad { get; }
 
     /// <summary>ZIP creation and extraction, used by whole-project backups.</summary>
     public ArchiveService ArchiveService { get; }

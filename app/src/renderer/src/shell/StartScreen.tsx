@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BookOpen, FilePlus2, FolderOpen, Import } from 'lucide-react'
 import { ImportPluginDialog } from './ImportPluginDialog'
+import { ScratchpadPanel } from './ScratchpadPanel'
 import { CreateProjectDialog } from './CreateProjectDialog'
 
 interface StartScreenProps {
@@ -74,6 +75,11 @@ export function StartScreen({
             ))}
           </div>
         </div>
+
+        {/* Reachable with no project open, which is the whole point: this is
+            where a thought goes when the project it belongs to is not the one
+            in front of you. */}
+        <ScratchpadPanel canFile={false} />
       </div>
     </div>
   )

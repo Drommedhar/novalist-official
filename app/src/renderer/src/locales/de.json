@@ -94,7 +94,18 @@
     "fetchingTitle": "Wird abgerufen...",
     "typeAudio": "Audio",
     "typeVideo": "Video",
-    "pdfFallback": "Dieses PDF kann hier nicht angezeigt werden. Öffnen Sie es extern."
+    "pdfFallback": "Dieses PDF kann hier nicht angezeigt werden. Öffnen Sie es extern.",
+    "status": "Status",
+    "statusNone": "Kein Status",
+    "statusOpen": "Offene Frage",
+    "statusInProgress": "In Arbeit",
+    "statusResolved": "Geklärt",
+    "rating": "Bewertung",
+    "rateStars": "{{count}} Stern",
+    "rateStars_other": "{{count}} Sterne",
+    "related": "Verwandte Recherche",
+    "relatedHint": "Noch nichts verknüpft.",
+    "linkResearch": "Weiteren Eintrag verknüpfen ..."
   },
   "plotGrid": {
     "title": "Plot-Raster",
@@ -2078,7 +2089,8 @@
     "scanCreated": "{{count}} angelegt",
     "proposalsTitle": "Vorgeschlagene Kodex-Einträge",
     "proposalsHint": "Auswählen, was angelegt werden soll. Es wird nichts ohne Bestätigung hinzugefügt.",
-    "proposalsCreate": "{{count}} anlegen"
+    "proposalsCreate": "{{count}} anlegen",
+    "scratchpadHint": "Kein Projekt geöffnet - das landet auf dem Notizzettel. Strg+Enter speichert."
   },
   "quickOpen": {
     "placeholder": "Alles durchsuchen",
@@ -2808,5 +2820,14 @@
     "showAll": "Alles",
     "showInactive": "Nicht im Buch",
     "sceneFilter": "Welche Szenen angezeigt werden"
+  },
+  "scratchpad": {
+    "title": "Notizzettel",
+    "intro": "Notizen, die Ihnen gehören und nicht einem Projekt. Sie überleben das Schließen jedes Projekts und lassen sich später einsortieren.",
+    "placeholder": "Etwas, das nicht verloren gehen soll",
+    "add": "Notieren",
+    "file": "Ins Projekt übernehmen",
+    "delete": "Notiz löschen",
+    "empty": "Noch nichts vorhanden."
   }
 }

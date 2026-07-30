@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
+import { useProjectStore } from '../stores/projectStore'
 
 /**
  * Jot something down without deciding where it belongs. The note lands in the
  * Research inbox; filing it properly is a later, separate act. Deliberately one
  * textarea and two keys: Ctrl+Enter saves, Escape cancels.
+ *
+ * With no project open it goes to the scratchpad instead, which lives beside
+ * the settings rather than inside a project. A thought that arrives before the
+ * right project is open is still a thought, and the moment one arrives is
+ * exactly the moment somebody is not sitting in front of the project it
+ * belongs to.
  */
 export function QuickCapture({ onClose }: { onClose(): void }): React.JSX.Element {
   const { t } = useTranslation()
@@ -13,6 +20,7 @@ export function QuickCapture({ onClose }: { onClose(): void }): React.JSX.Elemen
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const areaRef = useRef<HTMLTextAreaElement>(null)
+  const hasProject = useProjectStore((s) => s.projectPath !== null)
 
   useEffect(() => areaRef.current?.focus(), [])
 
@@ -22,7 +30,7 @@ export function QuickCapture({ onClose }: { onClose(): void }): React.JSX.Elemen
     setSaving(true)
     setError(null)
     try {
-      await rpc.request('research/quickCapture', [body])
+      await rpc.request(hasProject ? 'research/quickCapture' : 'scratchpad/add', [body])
       onClose()
     } catch (err) {
       setSaving(false)
@@ -53,7 +61,9 @@ export function QuickCapture({ onClose }: { onClose(): void }): React.JSX.Elemen
             }
           }}
         />
-        <div className="dialog-hint">{t('capture.quickHint')}</div>
+        <div className="dialog-hint">
+          {t(hasProject ? 'capture.quickHint' : 'capture.scratchpadHint')}
+        </div>
         {error && <div className="wiki-summary-error">{error}</div>}
         <div className="dialog-actions">
           <button className="dialog-button" onClick={onClose}>

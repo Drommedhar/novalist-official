@@ -27,6 +27,14 @@ An idea usually arrives mid-sentence, and deciding where it belongs is exactly t
 
 Unfiled captures collect in the **Inbox**. When at least one exists, an **Inbox** button appears above the research list showing how many are waiting; click it to show only those, and click again to show everything. Inbox items are also marked with a small **Inbox** badge in the list.
 
+### The scratchpad, with no project open
+
+Quick capture writes into the open project's Inbox, which is no help when the thought arrives before the right project is open — and that is exactly when thoughts arrive.
+
+With no project open, quick capture goes to the **scratchpad** instead. It lives beside your settings rather than inside any project, survives every project being closed, and is shown on the welcome screen so you can add to it and read it without opening anything.
+
+Once a project is open, the scratchpad appears at the bottom of the Research view whenever no item is selected. **File into project** moves a note into that project's Inbox, where it can be filed like any other capture.
+
 ### Filing an inbox note
 
 Select an inbox note and a filing row appears above its title with three choices:
@@ -70,6 +78,16 @@ Depending on the type, the editor's action row offers:
 - **Delete** — removes the item; a confirmation dialog asks first.
 
 Everything saves automatically as you edit — changes are written when you leave a field.
+
+## Status, rating and links between items
+
+Every item carries three things beyond its content, all optional and all set from the detail pane:
+
+- **Status** — no status (the default), **open question**, **looking into it**, or **answered**. A shelf without this is a pile: nothing separates a question still open from one settled three months ago, and the note reading "check whether the bridge existed in 1755" looks the same after it has been checked as before.
+- **Rating** — one to five stars. Forty sources have three that matter, and until now nothing said which. Clicking the star already set clears the rating, so a wrong click is one click to undo.
+- **Related research** — links to other items, listed under **Related research** with a click to open each one.
+
+Links are written **both ways**. A one-way link is discoverable only from the item that carries it, and the end worth finding is usually the other one: the question a source answers is what you are reading when you need the source. Deleting an item removes the links pointing at it, so nothing is left referring to something that is gone.
 
 ## Linking research to the Codex
 

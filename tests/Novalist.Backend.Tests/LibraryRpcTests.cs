@@ -189,4 +189,130 @@ public sealed class LibraryRpcTests : IDisposable
 
         Assert.Equal(image.Url, url);
     }
+
+    // ── Where an item stands, and what refers to what ──
+
+    [Fact]
+    public async Task Lifecycle_StatusAndRatingRoundTrip()
+    {
+        var items = await _rpc.SaveResearchAsync(null, "Bridge", "Note", "1755?", []);
+        var id = items.Single().Id;
+
+        // Every item starts with nothing said, which is where most stay.
+        Assert.Equal("None", items.Single().Status);
+        Assert.Equal(0, items.Single().Rating);
+
+        var open = await _rpc.SetLifecycleAsync(id, "Open", 4);
+        Assert.Equal("Open", open.Single().Status);
+        Assert.Equal(4, open.Single().Rating);
+
+        // Rating and status move independently: null leaves one alone.
+        var resolved = await _rpc.SetLifecycleAsync(id, "Resolved", null);
+        Assert.Equal("Resolved", resolved.Single().Status);
+        Assert.Equal(4, resolved.Single().Rating);
+    }
+
+    [Fact]
+    public async Task Lifecycle_NonsenseFallsBackRatherThanThrowing()
+    {
+        var id = (await _rpc.SaveResearchAsync(null, "A", "Note", "", [])).Single().Id;
+
+        var items = await _rpc.SetLifecycleAsync(id, "rhubarb", 99);
+
+        Assert.Equal("None", items.Single().Status);
+        // Clamped: five is the top of the scale, zero is how a rating is undone.
+        Assert.Equal(5, items.Single().Rating);
+        Assert.Equal(0, (await _rpc.SetLifecycleAsync(id, null, -1)).Single().Rating);
+
+        // And an item that is not there changes nothing.
+        Assert.Single(await _rpc.SetLifecycleAsync("no-such-id", "Open", 3));
+    }
+
+    [Fact]
+    public async Task Links_AreWrittenBothWays()
+    {
+        var a = (await _rpc.SaveResearchAsync(null, "Question", "Note", "", [])).Single().Id;
+        var items = await _rpc.SaveResearchAsync(null, "Answer", "Note", "", []);
+        var b = items.Single(i => i.Title == "Answer").Id;
+
+        var linked = await _rpc.LinkResearchAsync(a, b, true);
+
+        // The end worth finding is usually the other one, so both carry it.
+        Assert.Contains(b, linked.Single(i => i.Id == a).RelatedIds);
+        Assert.Contains(a, linked.Single(i => i.Id == b).RelatedIds);
+
+        var unlinked = await _rpc.LinkResearchAsync(b, a, false);
+        Assert.Empty(unlinked.Single(i => i.Id == a).RelatedIds);
+        Assert.Empty(unlinked.Single(i => i.Id == b).RelatedIds);
+    }
+
+    [Fact]
+    public async Task Links_IgnoreNonsense()
+    {
+        var a = (await _rpc.SaveResearchAsync(null, "Only", "Note", "", [])).Single().Id;
+
+        // An item cannot refer to itself, and an id that is not there is not a
+        // link - both leave the shelf exactly as it was.
+        Assert.Empty((await _rpc.LinkResearchAsync(a, a, true)).Single().RelatedIds);
+        Assert.Empty((await _rpc.LinkResearchAsync(a, "ghost", true)).Single().RelatedIds);
+    }
+
+    [Fact]
+    public async Task DeletingAnItemTakesTheLinksToItWithIt()
+    {
+        var a = (await _rpc.SaveResearchAsync(null, "Keeper", "Note", "", [])).Single().Id;
+        var b = (await _rpc.SaveResearchAsync(null, "Doomed", "Note", "", []))
+            .Single(i => i.Title == "Doomed").Id;
+        await _rpc.LinkResearchAsync(a, b, true);
+
+        var left = await _rpc.DeleteResearchAsync(b);
+
+        // A reference to something that is gone reads as a source somebody can
+        // still open, which it is not.
+        Assert.Empty(left.Single().RelatedIds);
+    }
+
+    // ── The scratchpad: notes that outlive every project ──
+
+    [Fact]
+    public async Task Scratchpad_TakesANoteWithNoProjectInvolved()
+    {
+        var notes = await _rpc.AddScratchpadAsync("  Check the tide tables.  ");
+
+        Assert.Equal("Check the tide tables.", Assert.Single(notes).Text);
+        Assert.Single(_rpc.ListScratchpad());
+
+        await _rpc.DeleteScratchpadAsync(notes.Single().Id);
+        Assert.Empty(_rpc.ListScratchpad());
+    }
+
+    [Fact]
+    public async Task Scratchpad_FilingMovesTheNoteIntoTheProjectInbox()
+    {
+        var note = (await _rpc.AddScratchpadAsync("The bridge did not exist yet.")).Single();
+
+        await _rpc.FileScratchpadAsync(note.Id);
+
+        // Gone from the scratchpad, present in the inbox, which is where it was
+        // going to end up anyway.
+        Assert.Empty(_rpc.ListScratchpad());
+        var filed = _rpc.ListResearch().Single(i => i.Title.StartsWith("The bridge"));
+        Assert.Contains("inbox", filed.Tags);
+    }
+
+    [Fact]
+    public async Task Scratchpad_FilingNeedsSomewhereToFileTo()
+    {
+        var note = (await _rpc.AddScratchpadAsync("Nowhere to go")).Single();
+        var bare = new LibraryRpc(new Workspace(Path.Combine(_root, "no-project")));
+
+        // Silently doing nothing would look like it worked, and the note would
+        // seem to have been filed somewhere the writer could not find.
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => bare.FileScratchpadAsync(note.Id));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.FileScratchpadAsync("no-such-note"));
+    }
+
 }
