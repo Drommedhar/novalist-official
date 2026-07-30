@@ -832,6 +832,24 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
             .catch(() => editorRef.current?.setReadability('{"sentences":[]}'))
           break
         }
+        case 'speakSentence': {
+          // One sentence at a time so the editor keeps highlighting the one
+          // being read; it waits for this reply before moving on.
+          const frame = editorRef.current
+          void rpc
+            .request<boolean>('voices/speak', [
+              String(message.text ?? ''),
+              (message.voiceId as string) || null,
+              Number(message.rate) || 1
+            ])
+            .then((ok) => frame?.onSentenceSpoken(ok))
+            .catch(() => frame?.onSentenceSpoken(false))
+          break
+        }
+        case 'stopSystemSpeech': {
+          void rpc.request('voices/stop').catch(() => {})
+          break
+        }
         case 'readAloudStateChanged': {
           setSpeaking(Boolean(message.speaking))
           break

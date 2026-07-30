@@ -84,18 +84,32 @@ test('compose dimming marks the caret paragraph and dims the rest', async () => 
       }
     })
 
+  // Polled as one snapshot rather than polled-then-re-read: the two reads can
+  // straddle a transition, and the second would catch the lit paragraph still
+  // on its way up. Compared with a tolerance for the same reason.
+  const lit = (o: string): boolean => Number(o) > 0.9
+  const faint = (o: string): boolean => Number(o) < 0.5
+
+  let state: Awaited<ReturnType<typeof read>> = null
   await expect
-    .poll(async () => (await read())?.opacities.includes('1') ?? false, { timeout: 10_000 })
+    .poll(
+      async () => {
+        state = await read()
+        if (!state) return false
+        // Exactly the caret's paragraph is lit and the rest are faint. Nothing
+        // lit at all was the reported symptom.
+        return (
+          state.bodyHasClass &&
+          state.focused === 1 &&
+          state.opacities.some(lit) &&
+          state.opacities.some(faint)
+        )
+      },
+      { timeout: 10_000 }
+    )
     .toBe(true)
 
-  const state = await read()
   expect(state).not.toBeNull()
-  expect(state!.bodyHasClass).toBe(true)
-  // Exactly the caret's paragraph is lit; everything else is faint. Nothing
-  // lit at all was the reported symptom.
-  expect(state!.focused).toBe(1)
-  expect(state!.opacities).toContain('1')
-  expect(state!.opacities.some((o) => Number(o) < 0.5)).toBe(true)
 
   await app.close()
 })

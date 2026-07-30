@@ -187,6 +187,25 @@ interface SectionDef {
  * starts empty and fills in - which is also why the picker always offers
  * "match the writing language" as its first option.
  */
+/**
+ * The voices the system engine offers, via the backend.
+ *
+ * The browser's own list is a subset on Windows: it reads one voice store while
+ * everything a writer installs to get more voices registers in the other. A
+ * machine offering every other application three hundred voices offered
+ * Novalist three, and no setting could change it.
+ */
+function useSystemVoices(): { id: string; name: string; language: string }[] {
+  const [voices, setVoices] = useState<{ id: string; name: string; language: string }[]>([])
+  useEffect(() => {
+    void rpc
+      .request<{ id: string; name: string; language: string }[]>('voices/list')
+      .then(setVoices)
+      .catch(() => setVoices([]))
+  }, [])
+  return voices
+}
+
 function useSpeechVoices(): SpeechSynthesisVoice[] {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([])
   useEffect(() => {
@@ -222,6 +241,7 @@ export function SettingsView(): React.JSX.Element {
   const [search, setSearch] = useState('')
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const voices = useSpeechVoices()
+  const systemVoices = useSystemVoices()
 
   useEffect(() => {
     if (mainView !== 'settings') return
@@ -487,11 +507,20 @@ export function SettingsView(): React.JSX.Element {
             }
           >
             <option value="">{t('settings.readAloudVoiceAuto')}</option>
-            {voices.map((v) => (
-              <option key={v.voiceURI} value={v.voiceURI}>
-                {v.name} ({v.lang})
-              </option>
-            ))}
+            {/* The system engine's voices when it has any, the browser's
+                otherwise. Not both: the same voice under two ids reads as two
+                voices, and picking the wrong one plays nothing. */}
+            {systemVoices.length > 0
+              ? systemVoices.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))
+              : voices.map((v) => (
+                  <option key={v.voiceURI} value={v.voiceURI}>
+                    {v.name} ({v.lang})
+                  </option>
+                ))}
           </select>
           <div className="settings-hint">{t('settings.readAloudDesc')}</div>
           {/* Windows has two kinds of voice and only one is reachable by an
@@ -500,18 +529,22 @@ export function SettingsView(): React.JSX.Element {
               through Chromium - so a writer who installs one there waits
               forever for it to appear. Naming the trap is the only fix
               available to us, because there is no API that reaches them. */}
-          {voices.length === 0 ? (
+          {systemVoices.length === 0 && voices.length === 0 ? (
             <div className="settings-hint export-warning">{t('settings.readAloudNoVoices')}</div>
           ) : (
-            !voices.some((v) =>
-              v.lang.toLowerCase().startsWith(writingLanguage.slice(0, 2).toLowerCase())
+            !(systemVoices.length > 0 ? systemVoices : voices).some((v) =>
+              ('language' in v ? v.language : v.lang)
+                .toLowerCase()
+                .startsWith(writingLanguage.slice(0, 2).toLowerCase())
             ) && (
               <div className="settings-hint export-warning">
                 {t('settings.readAloudNoMatchingVoice', { language: writingLanguage })}
               </div>
             )
           )}
-          <div className="settings-hint">{t('settings.readAloudVoiceKinds')}</div>
+          {systemVoices.length === 0 && (
+            <div className="settings-hint">{t('settings.readAloudVoiceKinds')}</div>
+          )}
           {/* Typewriter scroll makes no sense on a phone (and is force-disabled in
               the mobile editor), so hide it there. */}
           {!isMobile && (

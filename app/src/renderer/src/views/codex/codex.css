@@ -32,3 +32,51 @@
 .codex-row.codex-world .codex-row-name {
   font-weight: 600;
 }
+
+/* The whole type at once. Scrolls on its own so a long cast never pushes the
+   type tabs off the top of the view. */
+.codex-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--nl-space-sm);
+}
+
+.codex-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.codex-table th {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  font-weight: 600;
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  position: sticky;
+  top: 0;
+  background: var(--nl-surface-window);
+  text-align: left;
+}
+
+.codex-table td {
+  border-top: 1px solid var(--nl-border);
+  padding: 0;
+}
+
+/* Borderless until focused: a grid of forty boxed inputs is a form, and this
+   is meant to read as a list you can type into. */
+.codex-table-input {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-sm);
+  color: var(--nl-text);
+  font: inherit;
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  width: 100%;
+}
+
+.codex-table-input:focus {
+  background: var(--nl-surface-card);
+  border-color: var(--nl-accent);
+  outline: none;
+}

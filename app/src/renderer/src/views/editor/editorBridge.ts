@@ -30,6 +30,8 @@ export interface EditorWindow extends Window {
   setReadability(json: string): void
   /** Speaks the scene, from the caret's paragraph or from the top. */
   startReadAloud(fromCaret: boolean, rate: number, voiceUri: string | null): void
+  /** The host has spoken one sentence through the system engine; advance. */
+  onSentenceSpoken(ok: boolean): void
   stopReadAloud(): void
   /** Leading, letter spacing (px) and the gap between paragraphs (em). */
   setReadingComfort(lineHeight: number, letterSpacing: number, paragraphSpacing: number): void

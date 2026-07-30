@@ -3055,5 +3055,14 @@
     "triggerHint": "三个或更多。两个字符会命中半份列表，弹窗就成了要关掉的东西而不是能用的东西。",
     "addCodexNames": "加入全部条目名称",
     "save": "保存列表"
+  },
+  "codexTable": {
+    "title": "表格",
+    "name": "名称",
+    "role": "角色",
+    "description": "是什么",
+    "parent": "位于",
+    "group": "群组",
+    "empty": "尚无此类条目。"
   }
 }

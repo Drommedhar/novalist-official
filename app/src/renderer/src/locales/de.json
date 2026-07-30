@@ -3023,5 +3023,14 @@
     "triggerHint": "Drei oder mehr. Zwei trifft die halbe Liste, und das Fenster wird etwas zum Wegklicken statt zum Benutzen.",
     "addCodexNames": "Alle Kompendiumsnamen übernehmen",
     "save": "Liste speichern"
+  },
+  "codexTable": {
+    "title": "Tabelle",
+    "name": "Name",
+    "role": "Rolle",
+    "description": "Was es ist",
+    "parent": "Liegt in",
+    "group": "Gruppe",
+    "empty": "Noch nichts dieser Art."
   }
 }

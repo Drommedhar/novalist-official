@@ -73,28 +73,14 @@ All three apply to the scene editor, to Manuscript mode, and to the Expose.
 - **Read-aloud speed** — how fast the speaker button reads the scene back (0.5-2). Defaults to 1.
 - **Read-aloud voice** — which system voice to use. The default, **Match the writing language**, asks for a voice in the language the scene is written in.
 
-  The list is **what your system's speech engine offers to applications**, which on Windows is not the same as what you can see in Narrator. If nothing in the list speaks your writing language, Novalist says so under the picker rather than letting "Match the writing language" quietly read German aloud in an English voice.
+  On Windows the list comes from **the system speech engine**, so it holds every voice your machine can speak with — including any you have added with a third-party voice adapter. Elsewhere it is the browser's own list.
 
-  **Windows has two kinds of voice, and only one of them is usable here.**
+  **If your list is short and a voice you installed is missing**, Windows has two voice stores and two kinds of voice:
 
-  - Voices added under **Accessibility → Narrator → Add natural voices** are downloaded as app packages and are **reserved for Narrator**. They appear in Narrator's own voice list and in no application — not Novalist, not Word, not any browser. This is a Microsoft restriction: they are absent from SAPI, absent from the newer WinRT speech API, and absent from the voice list every application reads. Installing one here will not make it appear in Novalist.
-  - Voices that **do** work come with a **language**. Go to **Time & language → Language & region → Add a language**, pick the language you write in, and make sure the optional **Speech** feature is ticked when the feature list appears. Restart Novalist and its voices are in the list.
+  - Voices added under **Accessibility → Narrator → Add natural voices** are downloaded as app packages. On their own they are reserved for Narrator and appear in no application. A third-party adapter such as *NaturalVoiceSAPIAdapter* republishes them to the system speech engine, and Novalist picks them up from there.
+  - Voices that arrive with a **language** — **Time & language → Language & region → Add a language**, with the optional **Speech** feature ticked — are available to everything without help.
 
-  If you added German through Narrator's natural voices and cannot find it here, adding German as a language is the step that was missing.
-
-See [Accessibility](39-accessibility.md) for what these settings are for and what is still missing, and [Read aloud](05-editor.md#read-aloud) for the button that uses them.
-- **Typewriter Scrolling** — keeps the active line at a fixed vertical position so you don't write near the bottom of the page. When on, an anchor choice appears: **Top**, **Middle**, or **Bottom**.
-- **Page View** — renders the editor as a printed-book-style page with paper background, margins, and shadow.
-- **Book Paragraph Spacing** — adds extra vertical space between lines for a book-like reading experience.
-- **Book Width** — constrains the editor's text column to a real trim size so you can preview how the manuscript will set on the page. When on, a sub-panel appears:
-  - **Page Format** — US Trade (6x9), Digest (5.5x8.5), A5 (5.83x8.27), Mass Market (4.25x6.87), or **Custom**.
-  - **Custom Width** — the text-block width in inches, shown only when Page Format is Custom.
-  - **Book Font Family** and **Book Font Size** — the typeface and size used to measure the column.
-  - A live **characters-per-line** estimate updates as you change the format, width, font, and size, so you can tune the layout to a target line length.
-
-### Editor extras
-
-- **Dim other paragraphs while writing** — fades every paragraph but the one your caret is in. See [Focus mode](05-editor.md#focus-mode).
+  Restart Novalist after installing either kind.
 
 ## Writing Goals
 

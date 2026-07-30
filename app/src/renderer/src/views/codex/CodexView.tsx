@@ -28,6 +28,7 @@ import { ArcEditor } from './ArcEditor'
 import { UnlinkedMentionsPanel } from './UnlinkedMentionsPanel'
 import { OverridesEditor } from './OverridesEditor'
 import { CodexNav } from './CodexNav'
+import { EntityTable } from './EntityTable'
 import {
   EntityDetailFields,
   builtInFieldKeys,
@@ -48,6 +49,8 @@ export function CodexView(): React.JSX.Element {
   const [customTypes, setCustomTypes] = useState<CustomTypeDefinition[]>([])
   const [typeManagerOpen, setTypeManagerOpen] = useState(false)
   const [unlinkedOpen, setUnlinkedOpen] = useState(false)
+  // Session state: a way of looking at the Codex, not a property of it.
+  const [tableMode, setTableMode] = useState(false)
   const entityType = useCodexStore((s) => s.entityType)
   const entities = useCodexStore((s) => s.entities)
   const selectedId = useCodexStore((s) => s.selectedId)
@@ -176,6 +179,15 @@ export function CodexView(): React.JSX.Element {
         >
           {t('unlinked.title')}
         </button>
+        {/* The Codex edited one form at a time, so filing forty characters into
+            their houses meant forty round trips through the detail pane. A
+            table is the shape that work actually has. */}
+        <button
+          className={`codex-tab${tableMode ? ' active' : ''}`}
+          onClick={() => setTableMode(!tableMode)}
+        >
+          {t('codexTable.title')}
+        </button>
         <button className="codex-tab codex-tab-manage" onClick={() => setTypeManagerOpen(true)}>
           <Settings2 size={13} strokeWidth={2} /> {t('codexHub.manageTypes')}
         </button>
@@ -185,6 +197,8 @@ export function CodexView(): React.JSX.Element {
           <UnlinkedMentionsPanel />
         </div>
       )}
+      {tableMode && <EntityTable />}
+      {!tableMode && (
       <div className={`codex-body${isMobile ? ' codex-body-mobile' : ''}`}>
         {/* Mobile is single-pane: the entity list, or the detail (with a back
             button) once an entry is selected. Desktop shows both side by side. */}
@@ -291,6 +305,7 @@ export function CodexView(): React.JSX.Element {
           </div>
         )}
       </div>
+      )}
       {pending?.kind === 'create' && (
         <div className="dialog-overlay" onPointerDown={(e) => e.target === e.currentTarget && setPending(null)}>
           <div className="dialog-card" role="dialog" aria-label={t('codexHub.newEntry')}>

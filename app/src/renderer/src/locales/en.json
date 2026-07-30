@@ -3015,5 +3015,14 @@
     "triggerHint": "Three or more. Two matches half the list, which makes the popup something to dismiss rather than something to use.",
     "addCodexNames": "Add every Codex name",
     "save": "Save list"
+  },
+  "codexTable": {
+    "title": "Table",
+    "name": "Name",
+    "role": "Role",
+    "description": "What it is",
+    "parent": "Inside",
+    "group": "Group",
+    "empty": "Nothing of this kind yet."
   }
 }

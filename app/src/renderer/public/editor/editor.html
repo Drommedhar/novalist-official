@@ -987,10 +987,38 @@ function startReadAloud(fromCaret, rate, voiceUri) {
     speakNextSentence();
 }
 
+/**
+ * True when the chosen voice belongs to the system engine rather than the
+ * browser. A SAPI voice id is a token path; a browser one is a URI the browser
+ * itself minted, and it is always in getVoices().
+ */
+function usingSystemVoice() {
+    if (!readAloudVoiceUri) return false;
+    return !speechSynthesis.getVoices().some(function (v) {
+        return v.voiceURI === readAloudVoiceUri;
+    });
+}
+
 function speakNextSentence() {
     if (!readAloudActive) return;
     if (readAloudAt >= readAloudQueue.length) { stopReadAloud(); return; }
     const item = readAloudQueue[readAloudAt++];
+
+    // The system engine, when the writer picked one of its voices. The browser
+    // reads one Windows voice store and everything installed to get more
+    // voices registers in the other, so this is the only way most of them can
+    // be heard at all. A sentence at a time, so the highlight still follows.
+    if (usingSystemVoice()) {
+        showSpeaking(item.range);
+        sendMessage({
+            type: 'speakSentence',
+            text: item.text,
+            voiceId: readAloudVoiceUri,
+            rate: readAloudRate
+        });
+        return;
+    }
+
     const utterance = new SpeechSynthesisUtterance(item.text);
     utterance.lang = editor.lang || document.documentElement.lang || 'en';
     utterance.rate = readAloudRate;
@@ -1015,11 +1043,20 @@ function showSpeaking(range) {
     }
 }
 
+/** The host has finished speaking one sentence; move to the next. */
+function onSentenceSpoken(ok) {
+    if (!readAloudActive) return;
+    if (!ok) { stopReadAloud(); return; }
+    speakNextSentence();
+}
+
 function stopReadAloud() {
     const wasActive = readAloudActive;
     readAloudActive = false;
     readAloudQueue = [];
     if (typeof speechSynthesis !== 'undefined') speechSynthesis.cancel();
+    // The system engine has its own queue and does not hear speechSynthesis.
+    if (wasActive) sendMessage({ type: 'stopSystemSpeech' });
     if (speakingHighlight) speakingHighlight.clear();
     if (wasActive) sendMessage({ type: 'readAloudStateChanged', speaking: false });
 }

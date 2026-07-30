@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Token doctor - checks that every design token the renderer CSS references is
-actually defined in tokens.css.
+"""Token doctor - checks that every design token the renderer references is
+actually defined in tokens.css. CSS, TypeScript and TSX alike.
 
 A `var(--nl-does-not-exist)` does not fall back to anything: the whole
 declaration becomes invalid at computed-value time and the property silently
@@ -28,6 +28,23 @@ REFERENCE = re.compile(r"var\(\s*(--n[lv]-[a-z0-9-]+)")
 # fallback is dead weight that silently drifts from the real value.
 REFERENCE_WITH_FALLBACK = re.compile(r"var\(\s*(--n[lv]-[a-z0-9-]+)\s*,")
 
+# TypeScript and TSX can name a token too - setProperty("--nl-accent", ...), a
+# table of token names in a settings editor - and those never appear inside a
+# var(). A name invented there is exactly as broken and was invisible to this
+# check until a made-up --nl-surface shipped in the theme-token editor.
+SCRIPT_DASHED = re.compile(r"""['"`](--n[lv]-[a-z0-9-]+)['"`]""")
+# A bare "nl-something" string is only a token reference if it belongs to a
+# family tokens.css actually defines. Without that test every DOM id starting
+# nl- reads as a broken token: 'nl-dynamic-theme-css' is an element id and
+# always was.
+SCRIPT_BARE = re.compile(r"""['"`](n[lv]-[a-z0-9-]+)['"`]""")
+
+
+def family(name: str) -> str:
+    """The token's family: --nl-surface-card and --nl-surface-window share one."""
+    parts = name.split("-")
+    return "-".join(parts[:4]) if len(parts) > 3 else name
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -50,6 +67,7 @@ def main() -> int:
         return 2
 
     defined = set(DEFINITION.findall(tokens_file.read_text(encoding="utf-8")))
+    families = {family(name) for name in defined}
 
     used: dict[str, set[str]] = {}
     fallbacks: dict[str, set[str]] = {}
@@ -59,6 +77,18 @@ def main() -> int:
             used.setdefault(match.group(1), set()).add(path.as_posix())
         for match in REFERENCE_WITH_FALLBACK.finditer(text):
             fallbacks.setdefault(match.group(1), set()).add(path.as_posix())
+
+    for pattern in ("*.ts", "*.tsx"):
+        for path in sorted(args.root.rglob(pattern)):
+            text = path.read_text(encoding="utf-8")
+            for match in REFERENCE.finditer(text):
+                used.setdefault(match.group(1), set()).add(path.as_posix())
+            for match in SCRIPT_DASHED.finditer(text):
+                used.setdefault(match.group(1), set()).add(path.as_posix())
+            for match in SCRIPT_BARE.finditer(text):
+                name = "--" + match.group(1)
+                if family(name) in families:
+                    used.setdefault(name, set()).add(path.as_posix())
 
     missing = {name: files for name, files in used.items() if name not in defined}
     stale = {} if args.allow_fallbacks else {n: f for n, f in fallbacks.items() if n in defined}

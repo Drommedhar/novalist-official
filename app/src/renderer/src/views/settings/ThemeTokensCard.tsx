@@ -17,10 +17,14 @@ interface TokenSpec {
   group: 'surface' | 'text' | 'accent' | 'type' | 'shape'
 }
 
+// Every name here must exist in tokens.css. token-doctor only reads CSS, so a
+// name invented in this list is not caught by it: the editor would show an
+// empty field and setting it would paint a property nothing reads.
 const TOKENS: TokenSpec[] = [
-  { name: 'nl-surface', kind: 'colour', group: 'surface' },
+  { name: 'nl-surface-window', kind: 'colour', group: 'surface' },
   { name: 'nl-surface-card', kind: 'colour', group: 'surface' },
-  { name: 'nl-surface-sunken', kind: 'colour', group: 'surface' },
+  { name: 'nl-surface-editor', kind: 'colour', group: 'surface' },
+  { name: 'nl-surface-hover', kind: 'colour', group: 'surface' },
   { name: 'nl-border', kind: 'colour', group: 'surface' },
   { name: 'nl-text', kind: 'colour', group: 'text' },
   { name: 'nl-text-dim', kind: 'colour', group: 'text' },
