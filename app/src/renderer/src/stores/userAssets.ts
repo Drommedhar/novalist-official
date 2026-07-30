@@ -6,8 +6,12 @@ import { useThemeCatalog, type CatalogTheme } from './themeCatalog'
  * Loads the assets the user dropped into their Themes and Locales folders and
  * registers them before settings are applied, so a saved custom theme or
  * language is in place on the first paint instead of after a flash of the
- * default. Folders are scanned once per launch; a newly dropped file needs a
- * restart, which is the documented behaviour.
+ * default.
+ *
+ * The folders are also watched: the backend sends `appearance/assetsChanged`
+ * when one of them is touched, and the assets are re-read without a restart.
+ * Reading them once per launch made iterating on a theme a relaunch-per-edit
+ * loop, which is the wrong loop for something anybody tunes by eye.
  */
 
 interface UserThemeDto {
@@ -65,6 +69,19 @@ export async function loadUserAssets(): Promise<void> {
       return parsed ? [{ code: locale.code, name: locale.name, translation: parsed }] : []
     })
   )
+}
+
+/**
+ * Re-reads the asset folders whenever the backend says one changed, and
+ * re-applies the current theme so an edit to the selected one is visible at
+ * once rather than after switching away and back.
+ *
+ * Registered once, at startup, before the first load.
+ */
+export function watchUserAssets(): void {
+  rpc.onNotification('appearance/assetsChanged', () => {
+    void loadUserAssets().then(() => useThemeCatalog.getState().reapply())
+  })
 }
 
 /** A locale file the backend already validated as JSON; parsed defensively all

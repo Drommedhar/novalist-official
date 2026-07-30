@@ -17,6 +17,7 @@ public sealed class BackendHost : IDisposable
     private readonly Workspace _workspace;
     private readonly IProcessRunner? _processRunner;
     private JsonRpc? _rpc;
+    private Core.Services.AssetWatchService? _assetWatch;
 
     /// <param name="processRunner">
     /// External-process backend for shell-out services (Git). Null uses the real
@@ -117,6 +118,18 @@ public sealed class BackendHost : IDisposable
         _workspace.UiBridge.Notifier = (method, payload) => rpc.NotifyAsync(method, payload);
         ExtensionsRpc.WebviewPosted = (extensionId, viewKey, json) =>
             _ = rpc.NotifyAsync("extensions/webviewPosted", extensionId, viewKey, json);
+        // Themes, Locales and Analysis were read once at startup and a restart
+        // was needed after any change - which is the wrong loop for something a
+        // writer iterates on. The renderer reloads the folders it is told about.
+        _workspace.UserAssets.EnsureDirectories();
+        _assetWatch = new Core.Services.AssetWatchService(
+            new Dictionary<Core.Services.UserAssetKind, string>
+            {
+                [Core.Services.UserAssetKind.Themes] = _workspace.UserAssets.ThemesDirectory,
+                [Core.Services.UserAssetKind.Locales] = _workspace.UserAssets.LocalesDirectory,
+                [Core.Services.UserAssetKind.Analysis] = _workspace.UserAssets.AnalysisDirectory
+            },
+            changed => rpc.NotifyAsync("appearance/assetsChanged", AssetsChanged(changed)));
         rpc.StartListening();
         _rpc = rpc;
         return rpc;
@@ -137,8 +150,27 @@ public sealed class BackendHost : IDisposable
 
     internal bool IsShutdownRequested => _shutdownRequested.Task.IsCompleted;
 
+    /// <summary>
+    /// Handles a folder change and returns the names to tell the renderer.
+    ///
+    /// The analysis lexicons are read in this process, so they are re-registered
+    /// here; themes and locales live in the renderer, which is only told which
+    /// folders to re-read. Extracted from the watcher callback so the decision
+    /// is testable without a real filesystem event.
+    /// </summary>
+    internal string[] AssetsChanged(IReadOnlyCollection<Core.Services.UserAssetKind> changed)
+    {
+        if (changed.Contains(Core.Services.UserAssetKind.Analysis))
+        {
+            Core.Services.SceneAnalysisLexicon.RegisterUserDirectory(
+                _workspace.UserAssets.AnalysisDirectory);
+        }
+        return [.. changed.Select(kind => kind.ToString().ToLowerInvariant())];
+    }
+
     public void Dispose()
     {
+        _assetWatch?.Dispose();
         _rpc?.Dispose();
         _workspace.Dispose();
     }

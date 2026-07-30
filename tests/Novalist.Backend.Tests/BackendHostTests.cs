@@ -132,4 +132,38 @@ public class BackendHostTests
     {
         Assert.Equal(expected, SystemRpc.ResolveVersion(informational));
     }
+
+    [Fact]
+    public void AChangedAssetFolderIsNamedForTheRenderer()
+    {
+        using var host = new BackendHost();
+
+        var names = host.AssetsChanged(
+            [Novalist.Core.Services.UserAssetKind.Themes,
+             Novalist.Core.Services.UserAssetKind.Locales]);
+
+        // The renderer holds the themes and the locales, so it is told which
+        // folders to re-read rather than being sent their contents.
+        Assert.Equal(["themes", "locales"], names);
+    }
+
+    [Fact]
+    public void TheAnalysisFolderIsReRegisteredInThisProcess()
+    {
+        using var host = new BackendHost();
+
+        // Lexicons are read here, not in the renderer, so a change has to be
+        // acted on rather than only announced.
+        var names = host.AssetsChanged([Novalist.Core.Services.UserAssetKind.Analysis]);
+
+        Assert.Equal(["analysis"], names);
+    }
+
+    [Fact]
+    public void NothingChangedNamesNothing()
+    {
+        using var host = new BackendHost();
+
+        Assert.Empty(host.AssetsChanged([]));
+    }
 }

@@ -22,7 +22,11 @@ Inside you will find:
 
 **Settings, Appearance** has a **Themes folder** and a **Languages folder** button that open the first two directly, so you never have to remember the path.
 
-Novalist reads all three folders when it starts, and again whenever you press **Rescan** in Settings, Language packs. After you add, edit, or delete a file, press Rescan: the theme list, the interface-language list, and the analysis lexicons are all rebuilt in place, with no restart.
+Novalist reads all three folders when it starts, and **watches them from then on**. Add, edit or delete a `.json` or `.css` file and it is picked up within a moment — the theme list, the interface-language list and the analysis lexicons all rebuild in place. If the theme you are editing is the one selected, the window repaints as you save, which is what makes tuning a palette by eye possible at all.
+
+Only `.json` and `.css` files count. A note, a screenshot or an editor's swap file left in the folder is ignored, so working in the folder does not cost a reload every keystroke.
+
+**Rescan** in Settings, Language packs is still there and still works; you should rarely need it now. On a network or cloud-synced folder the watch may not start, in which case Rescan is the fallback and behaves exactly as before.
 
 ## Themes
 
@@ -79,7 +83,7 @@ body {
 
 Write your declarations under `:root` — Novalist only injects the file while your theme is active, so you do not need a selector that scopes it yourself.
 
-A stylesheet is unrestricted, which is its point and its risk: a rule that hides a panel really will hide that panel. If a theme leaves the app unusable, delete the file and press Rescan (or restart, if the theme hid the button).
+A stylesheet is unrestricted, which is its point and its risk: a rule that hides a panel really will hide that panel. If a theme leaves the app unusable, delete the file — the watch picks that up on its own — or restart if the theme hid enough of the interface that you cannot get back to Settings.
 
 ### The token names
 

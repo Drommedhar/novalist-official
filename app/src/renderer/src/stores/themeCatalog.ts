@@ -60,6 +60,9 @@ interface ThemeCatalogState {
   /** Replaces the themes from one source and re-applies the current selection,
    * so a theme that arrives after settings load still takes effect. */
   setSource(origin: Exclude<ThemeOrigin, 'built-in'>, themes: CatalogTheme[]): void
+  /** Repaints with whatever is currently selected. Used after the folders are
+   *  re-read, so an edit to the theme in use shows without switching away. */
+  reapply(): void
 }
 
 /** The selection last passed to applyTheme, replayed when the catalog changes. */
@@ -91,6 +94,7 @@ function buildTokenSheet(themes: CatalogTheme[]): string {
 export const useThemeCatalog = create<ThemeCatalogState>((set, get) => ({
   themes: BUILT_IN,
 
+  reapply: () => applyTheme(currentName, currentAccent),
   setSource: (origin, themes) => {
     const rest = get().themes.filter((t) => t.origin !== origin)
     // Built-ins first, then folder themes, then extension themes - the order the
