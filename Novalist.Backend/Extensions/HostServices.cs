@@ -201,14 +201,44 @@ public sealed partial class HostServices :
                   Novalist.Sdk.Models.Wizards.WizardResult?,
                   Task<Novalist.Sdk.Models.Wizards.WizardResult?>>? WizardLauncher { get; set; }
 
-    public Task<Novalist.Sdk.Models.Wizards.WizardResult?> RunWizardAsync(
+    public async Task<Novalist.Sdk.Models.Wizards.WizardResult?> RunWizardAsync(
         Novalist.Sdk.Models.Wizards.WizardDefinition definition,
         Novalist.Sdk.Models.Wizards.WizardResult? seed = null)
     {
-        if (WizardLauncher == null)
-            return Task.FromResult<Novalist.Sdk.Models.Wizards.WizardResult?>(null);
-        return WizardLauncher.Invoke(definition, seed);
+        if (WizardLauncher == null) return null;
+
+        var result = await WizardLauncher.Invoke(definition, seed);
+
+        // Fired here as well as at the RPC entry point, so a wizard behaves the
+        // same whether the extension ran it itself or the writer picked it out of
+        // the command palette. A callback that only works down one of two paths
+        // is worse than none, because it works in testing.
+        if (result is { Completed: true } && definition.OnCompleted != null)
+        {
+            try
+            {
+                await definition.OnCompleted(result);
+            }
+            catch (Exception ex)
+            {
+                // An extension that throws while acting on its own wizard should
+                // not take the caller down with it.
+                System.Diagnostics.Debug.WriteLine(
+                    $"[Extensions] wizard {definition.Id} completion threw {ex.GetType().Name}");
+            }
+        }
+
+        return result;
     }
+
+    /// <summary>Opens a folder or file dialog in the renderer. Set by the host.</summary>
+    internal Func<string, string, bool, Task<string?>>? Picker { get; set; }
+
+    public Task<string?> PickFolderAsync(string title)
+        => Picker == null ? Task.FromResult<string?>(null) : Picker("folder", title ?? string.Empty, false);
+
+    public Task<string?> PickFileAsync(string title, bool images = false)
+        => Picker == null ? Task.FromResult<string?>(null) : Picker("file", title ?? string.Empty, images);
 
     public void RegisterHotkey(HotkeyDescriptor descriptor)
     {

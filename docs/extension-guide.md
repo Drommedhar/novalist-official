@@ -122,6 +122,10 @@ Use **`GetAiContextAsync`** rather than the `Load*` methods when you are assembl
 
 **`EntityService.SaveEntityAsync`** — writes name, description and sections onto an existing entry of any kind. Sections you do not mention are left alone, so filling in one part of an entry does not wipe the rest.
 
+**Pickers** — `PickFolderAsync`, `PickFileAsync`. Opens the real native dialog. Without these the only way to ask for a path was a text field the writer typed into by hand, and found out was wrong once the work had run.
+
+**Wizards** — `RunWizardAsync` runs one and returns the answers. If you contribute a wizard through `IWizardContributor`, set `WizardDefinition.OnCompleted`: a wizard the writer reaches from the command palette hands its answers to the *host*, not to you, so without that callback your wizard is a form that goes nowhere. It fires on completion only, never on cancel.
+
 **Commands** — `GetCommands`, `InvokeCommandAsync`, `RegisterCommand`. A command is a stable id, a title and an optional JSON Schema for its arguments. This is what makes a scripting extension worth having: a macro that can only call the extension hosting it is not automation.
 
 **`FileService`** — file I/O, so you are not reaching for `System.IO` paths the host may relocate.

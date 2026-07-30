@@ -123,6 +123,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- An extension's wizard collected your answers and then did nothing with them. A wizard reached from the command palette handed its answers back to the app rather than to the extension that defined it, so filling one in appeared to work and changed nothing. Publishing a website was the visible case.
+- Extensions asking for a folder or a file had to ask you to type the path. They can open a real dialog now, so publishing a website starts with a folder picker.
 - Restoring an archived scene put it in the first chapter no matter which chapter it came from or where you wanted it. The archive now has a **Restore into** picker, and the scene goes where you say.
 - **A struck or bold phrase no longer disappears from an export when it shares a paragraph with a span.** The export's tag matcher counted `<span>` as an opening `<s>`, and `<blockquote>` as a `<b>`, so it lost track of where the tag ended and dropped the text inside it.
 

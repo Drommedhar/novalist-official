@@ -115,6 +115,32 @@ public sealed class UiBridge
 
     private sealed record WizardSession(WizardDefinition Definition, TaskCompletionSource<WizardResult?> Completion);
 
+    // ── File and folder pickers ─────────────────────────────────────
+
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<string?>> _pickers =
+        new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Asks the renderer to open a native folder or file dialog and awaits the
+    /// path. Same shape as the wizard round trip: the backend cannot show a
+    /// dialog itself, so it asks and correlates the answer by token.
+    /// </summary>
+    public Task<string?> PickAsync(string kind, string title, bool images)
+    {
+        var token = Guid.NewGuid().ToString("N");
+        var tcs = new TaskCompletionSource<string?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _pickers[token] = tcs;
+        Send("ui/pick/open", new PickOpenDto(token, kind, title, images));
+        return tcs.Task;
+    }
+
+    /// <summary>Renderer to host: the dialog closed, with a path or with nothing.</summary>
+    public void CompletePick(string token, string? path)
+    {
+        if (_pickers.TryRemove(token, out var tcs))
+            tcs.TrySetResult(string.IsNullOrWhiteSpace(path) ? null : path);
+    }
+
     // ── RPC-backed IBusyProgress ────────────────────────────────────
 
     private sealed class RpcBusyProgress : IBusyProgress
@@ -175,3 +201,6 @@ public sealed record ProgressUpdateDto(string Token, string Field, object? Value
 
 /// <summary>Payload for <c>ui/wizard/open</c>.</summary>
 public sealed record WizardOpenDto(string Token, WizardDefinitionDto Definition, WizardResult? Seed);
+
+/// <summary>Asks the renderer for a path. Kind is "folder" or "file".</summary>
+public sealed record PickOpenDto(string Token, string Kind, string Title, bool Images);

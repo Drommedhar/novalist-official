@@ -144,6 +144,10 @@ public sealed class ExtensionsRpc
     {
         var def = _workspace.ExtensionsHost.FindWizard(extensionId, wizardId);
         if (def == null) return null;
+
+        // The definition's OnCompleted fires inside HostServices.RunWizardAsync,
+        // which both entry points go through - so a wizard reached from the
+        // command palette acts exactly as one the extension ran itself.
         return await _workspace.ExtensionsHost.Host.RunWizardAsync(def, null);
     }
 

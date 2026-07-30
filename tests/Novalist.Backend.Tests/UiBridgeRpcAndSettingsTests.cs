@@ -142,4 +142,31 @@ public sealed class UiBridgeRpcAndSettingsTests : IDisposable
         bridgeRpc.WizardComplete(token!, null);
         Assert.Null(await task);
     }
+
+    [Fact]
+    public void PickComplete_HandsThePathToTheBridge()
+    {
+        // The renderer's answer has to reach the task the extension is awaiting;
+        // without this route a picker would open and never resolve.
+        var task = _workspace.UiBridge.PickAsync("folder", "Anywhere", false);
+        new Novalist.Backend.Rpc.UiBridgeRpc(_workspace).PickComplete(
+            TokenOfLastPick(), "picked");
+
+        Assert.Equal("picked", task.Result);
+    }
+
+    /// <summary>
+    /// The token of the pick just opened. Read back off the bridge rather than
+    /// guessed, because it is a fresh guid each time.
+    /// </summary>
+    private string TokenOfLastPick()
+    {
+        var field = typeof(Novalist.Backend.Extensions.UiBridge).GetField(
+            "_pickers",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
+        var pickers = (System.Collections.IEnumerable)field.GetValue(_workspace.UiBridge)!;
+        foreach (var entry in pickers)
+            return (string)entry.GetType().GetProperty("Key")!.GetValue(entry)!;
+        throw new InvalidOperationException("No pick was open.");
+    }
 }

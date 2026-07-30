@@ -3,7 +3,7 @@
     <!-- Single source of truth for Novalist versioning. Release builds set the
          real version from the git tag (CI passes -p:VersionPrefix=x.y.z); this is
          only the local/dev baseline, kept in step with the current major. -->
-    <VersionPrefix>2.0.0</VersionPrefix>
+    <VersionPrefix>2.5.0</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)' == '' AND '$(ContinuousIntegrationBuild)' != 'true'">dev</VersionSuffix>
 
     <!-- These all derive from Version automatically, but we set them explicitly

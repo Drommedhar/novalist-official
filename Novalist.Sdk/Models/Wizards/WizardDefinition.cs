@@ -22,6 +22,19 @@ public sealed class WizardDefinition
     public WizardScope Scope { get; set; }
     public string? EntityTypeKey { get; set; }
     public List<WizardStep> Steps { get; set; } = [];
+
+    /// <summary>
+    /// Called when the user finishes the wizard, with the answers they gave.
+    /// Not called when they cancel.
+    ///
+    /// Without this a contributed wizard is a form that goes nowhere: the host
+    /// collects the answers and hands them to whoever asked for the run, which
+    /// for a wizard reached from the command palette is the renderer - so the
+    /// extension that defined it never learns it was filled in. Runtime-only,
+    /// like the step callbacks.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public Func<WizardResult, Task>? OnCompleted { get; set; }
 }
 
 /// <summary>Condition gating step visibility against the answer map. </summary>

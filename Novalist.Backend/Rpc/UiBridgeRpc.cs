@@ -34,4 +34,8 @@ public sealed class UiBridgeRpc
 
     [JsonRpcMethod("ui/wizard/complete")]
     public void WizardComplete(string token, WizardResult? result) => Bridge.CompleteWizard(token, result);
+
+    /// <summary>The renderer reporting what a file or folder dialog returned.</summary>
+    [JsonRpcMethod("ui/pick/complete")]
+    public void PickComplete(string token, string? path) => Bridge.CompletePick(token, path);
 }

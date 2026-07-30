@@ -212,6 +212,21 @@ export function registerHostBridge(): void {
       wizard: { token: dto.token, definition: dto.definition, seed: dto.seed ?? null }
     })
   })
+
+  // An extension asking for a path. The dialog is native and only the main
+  // process can open one, so the backend asks here and gets the answer back by
+  // token - the same round trip the wizard uses.
+  rpc.onNotification('ui/pick/open', (params) => {
+    const dto = firstParam<{ token: string; kind: string; title: string; images: boolean }>(params)
+    void (async () => {
+      const picked =
+        dto.kind === 'folder'
+          ? await window.novalist.pickFolder(dto.title)
+          : await window.novalist.pickFile(dto.title, dto.images ? 'images' : 'all')
+      // Always answered, cancel included, or the extension waits for ever.
+      await rpc.request('ui/pick/complete', [dto.token, picked])
+    })()
+  })
 }
 
 registerHostBridge()

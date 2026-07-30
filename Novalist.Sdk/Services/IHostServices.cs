@@ -264,6 +264,28 @@ public interface IHostServices
     void ShowNotification(string message);
 
     /// <summary>
+    /// Asks the writer to choose a folder, and returns its absolute path, or null
+    /// when they cancelled.
+    ///
+    /// Without this an extension that needs somewhere to write has to ask for a
+    /// path as text, which means the writer typing one by hand into a form - and
+    /// then finding out it was wrong only once the work has run.
+    /// </summary>
+    /// <param name="title">What the dialog is for, shown in its title bar.</param>
+    Task<string?> PickFolderAsync(string title);
+
+    /// <summary>
+    /// Asks the writer to choose a file, and returns its absolute path, or null
+    /// when they cancelled. What an importer needs for the same reason.
+    /// </summary>
+    /// <param name="images">
+    /// True to offer only image files. Everything else is offered otherwise -
+    /// the host does not take an arbitrary filter list, because a format an
+    /// extension invented is not one the dialog knows how to describe.
+    /// </param>
+    Task<string?> PickFileAsync(string title, bool images = false);
+
+    /// <summary>
     /// Show a busy-progress dialog. Returns a handle that lets the extension
     /// update the status text, progress value, or close the dialog.
     /// Dispose the returned handle to close.

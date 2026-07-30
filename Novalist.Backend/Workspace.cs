@@ -67,6 +67,7 @@ public sealed partial class Workspace : IDisposable
                 _hostServices.NotificationRequested += UiBridge.ShowNotification;
                 _hostServices.BusyProgressFactory = UiBridge.CreateProgress;
                 _hostServices.WizardLauncher = UiBridge.RunWizardAsync;
+                _hostServices.Picker = UiBridge.PickAsync;
                 _extensions = new Extensions.ExtensionManager(Settings, _hostServices, ExtensionsLoaderOverride);
                 _hostServices.ExtensionManager = _extensions;
             }
