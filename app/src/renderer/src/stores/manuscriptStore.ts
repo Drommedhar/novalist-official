@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
 import { useProjectStore, type ProjectStateDto } from './projectStore'
+import { useFilterStore } from './filterStore'
 import type { ColourDimension } from '../views/manuscript/sceneColour'
 
 export interface ManuscriptSceneDto {
@@ -118,9 +119,18 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
   },
 
   load: async () => {
+    // The shared filter is read here rather than mirrored into this store: it
+    // is one statement about the book, and a copy of it is a copy that goes
+    // stale. Only the status is mirrored, because the manuscript's own status
+    // control predates the shared one and still writes to it.
+    const shared = useFilterStore.getState().filter
     const sections = await rpc.request<ManuscriptSectionDto[]>('manuscript/get', [
       get().filterStatus,
-      get().composed
+      get().composed,
+      shared.character || null,
+      shared.location || null,
+      shared.plotline || null,
+      shared.stage || null
     ])
     set({ sections, loaded: true })
   },

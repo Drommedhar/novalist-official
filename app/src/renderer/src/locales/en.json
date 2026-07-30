@@ -145,7 +145,8 @@
     "panelTitle": "FOOTNOTES",
     "empty": "No footnotes in this scene.",
     "jump": "Jump to footnote in scene",
-    "delete": "Delete footnote"
+    "delete": "Delete footnote",
+    "showInText": "Show it in the text"
   },
   "relationships": {
     "title": "Relationships",

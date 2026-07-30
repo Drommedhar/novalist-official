@@ -54,7 +54,9 @@ export function EntityListsEditor(): React.JSX.Element | null {
   }, [selectedId, record])
 
   useEffect(() => {
-    if (entityType !== 'character') return
+    // Every type that carries relationships, not characters alone: a location
+    // with no name suggestions is a relationship row nobody fills in.
+    if (!RELATIONSHIP_TYPES.includes(entityType)) return
     void rpc
       .request<{ characterNames: string[]; roles: string[] }>('entities/relationshipSuggestions')
       .then((s) => {

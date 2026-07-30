@@ -11,6 +11,7 @@ import {
   type EditorWindow
 } from './editorBridge'
 import { EditorToolbar, type FormattingState } from './EditorToolbar'
+import { useEditorBridge } from '../../stores/editorBridgeStore'
 import { useProjectStore, type ProjectStateDto, type SceneTabRef, type EditorPane } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
@@ -918,6 +919,25 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [i18n.language])
+
+  // Panels outside this pane - the footnotes and comments lists - need a way
+  // to reach the prose. Registered for the main pane alone: a split pane is
+  // showing a different scene, and answering for it would strip a marker out
+  // of the wrong one.
+  useEffect(() => {
+    if (pane === 'split') return
+    useEditorBridge.getState().register(editorRef.current, openSceneId)
+    return () => useEditorBridge.getState().register(null, null)
+  }, [pane, openSceneId, sceneHtml])
+
+  // Opening a scene puts the caret in it. Without this the writer clicks a
+  // scene in the binder, starts typing, and the keystrokes go to the binder -
+  // which is why the editor grew a focusEditor that nothing ever called.
+  useEffect(() => {
+    if (pane === 'split' || !openSceneId) return
+    const at = window.setTimeout(() => editorRef.current?.focusEditor(), 60)
+    return () => window.clearTimeout(at)
+  }, [pane, openSceneId])
 
   return (
     <div className="editor-pane">

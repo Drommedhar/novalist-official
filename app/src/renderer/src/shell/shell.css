@@ -654,18 +654,29 @@
   gap: var(--nl-space-tightest);
 }
 
+/* Now a button: the number is where the note sits in the prose, so it is also
+   the way to get there. Styled as the text it was, not as a control. */
 .annotation-num {
-  font-size: var(--nl-font-caption);
+  background: none;
+  border: 0;
   color: var(--nl-accent);
-  font-weight: var(--nl-weight-title);
+  cursor: pointer;
   flex-shrink: 0;
+  font-family: inherit;
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-title);
   min-width: 14px;
+  padding: 0;
+}
+
+.annotation-num:hover {
+  text-decoration: underline;
 }
 
 .annotation-comment {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--nl-space-tightest);
 }
 
 .annotation-anchor {
@@ -3796,6 +3807,14 @@
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-tightest);
+}
+
+/* One width for every chip. A select sizes itself to its longest option, so a
+   project with a location called "Das Haus am Ende der Strasse" made that one
+   chip four times the width of the status chip beside it. */
+.filter-chip select {
+  max-width: 100%;
+  width: 11rem;
 }
 
 .filter-chip-label {

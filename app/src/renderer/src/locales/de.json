@@ -1047,7 +1047,8 @@
     "panelTitle": "FUSSNOTEN",
     "empty": "Keine Fußnoten in dieser Szene.",
     "jump": "Zur Fußnote in der Szene springen",
-    "delete": "Fußnote löschen"
+    "delete": "Fußnote löschen",
+    "showInText": "Im Text zeigen"
   },
   "relationships": {
     "title": "Beziehungen",

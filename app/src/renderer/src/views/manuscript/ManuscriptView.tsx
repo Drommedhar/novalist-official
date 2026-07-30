@@ -83,6 +83,17 @@ export function ManuscriptView(): React.JSX.Element {
     if (wanted !== useManuscriptStore.getState().filterStatus) void setFilter(wanted)
   }, [sharedStatus, setFilter])
 
+  // The rest of the shared filter narrows the book too. Reloading on the whole
+  // filter rather than on status alone is the fix for chips that were set,
+  // stored, and then read by nothing.
+  const sharedCharacter = useFilterStore((s) => s.filter.character)
+  const sharedLocation = useFilterStore((s) => s.filter.location)
+  const sharedPlotline = useFilterStore((s) => s.filter.plotline)
+  const sharedStage = useFilterStore((s) => s.filter.stage)
+  useEffect(() => {
+    void load()
+  }, [load, sharedCharacter, sharedLocation, sharedPlotline, sharedStage])
+
   useEffect(() => {
     void useManuscriptPropsStore.getState().load()
   }, [])

@@ -137,7 +137,8 @@
     "panelTitle": "脚注",
     "empty": "此场景中没有脚注。",
     "jump": "跳转到场景中的脚注",
-    "delete": "删除脚注"
+    "delete": "删除脚注",
+    "showInText": "在正文中显示"
   },
   "relationships": {
     "title": "关系",

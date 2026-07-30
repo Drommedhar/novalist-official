@@ -543,12 +543,30 @@ public sealed class EntitiesRpc
     public async Task<RelationshipSuggestionsDto> RelationshipSuggestionsAsync()
     {
         var characters = await _entities.LoadCharactersAsync();
-        var names = characters.Select(c => Compose(c.Name, c.Surname))
+        // Every entry, not only the characters. A place is owned by somebody, a
+        // relic belongs to a house, a law binds a city - and offering only
+        // character names to a location's relationship row is why nobody ever
+        // filled one in.
+        var everyName = characters.Select(c => Compose(c.Name, c.Surname))
+            .Concat((await _entities.LoadLocationsAsync()).Select(l => l.Name))
+            .Concat((await _entities.LoadItemsAsync()).Select(i => i.Name))
+            .Concat((await _entities.LoadLoreAsync()).Select(l => l.Name));
+
+        foreach (var type in _entities.GetCustomEntityTypes())
+            everyName = everyName.Concat(
+                (await _entities.LoadCustomEntitiesAsync(type.TypeKey)).Select(e => e.Name));
+
+        var names = everyName
             .Where(n => !string.IsNullOrWhiteSpace(n))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
             .ToArray();
+        // Roles already used anywhere, so a second location can be filed the
+        // same way as the first rather than by remembering the wording.
         var roles = characters.SelectMany(c => c.Relationships.Select(r => r.Role))
+            .Concat((await _entities.LoadLocationsAsync()).SelectMany(l => l.Relationships.Select(r => r.Role)))
+            .Concat((await _entities.LoadItemsAsync()).SelectMany(i => i.Relationships.Select(r => r.Role)))
+            .Concat((await _entities.LoadLoreAsync()).SelectMany(l => l.Relationships.Select(r => r.Role)))
             .Concat(_workspace.Settings.Settings.RelationshipPairs.Keys)
             .Where(r => !string.IsNullOrWhiteSpace(r))
             .Distinct(StringComparer.OrdinalIgnoreCase)

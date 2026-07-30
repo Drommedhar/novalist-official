@@ -77,6 +77,10 @@ const BOX_PADDING = 20
 const ROLE_BOX_PADDING = 14
 const ROLE_LOOSE_SPACING = 120 // gap between pre-placed loose role-group members
 const PAD = 40 // normalized canvas margin
+// Entries with no ties yet, laid out in a block of their own below the graph.
+const ISOLATED_TOP_GAP = 120
+const ISOLATED_SPACING_X = 120
+const ISOLATED_SPACING_Y = 60
 
 /**
  * True when the padded box [minX..maxX] × [minY..maxY] would enclose the centre
@@ -172,8 +176,15 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
     connectedIds.add(e.from.id)
     connectedIds.add(e.to.id)
   }
-  const nodes = characters.filter((c) => connectedIds.has(c.id))
-  const byId = new Map(nodes.map((n) => [n.id, n]))
+  // Everything asked for, tied or not. Dropping the untied ones meant that
+  // ticking Locations showed nothing at all in a project where no place has a
+  // relationship authored yet - which is every project, because the reciprocal
+  // write-back was character-only until recently. A control that silently
+  // shows nothing reads as broken rather than as empty.
+  const nodes = characters
+  const connected = characters.filter((c) => connectedIds.has(c.id))
+  const isolated = characters.filter((c) => !connectedIds.has(c.id))
+  const byId = new Map(connected.map((n) => [n.id, n]))
 
   // Family adjacency: parent→child, child→parent, partner pairs, siblings.
   const parentOf = new Map<string, Set<string>>() // childId -> parentIds
@@ -571,6 +582,23 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
       labelX: (a.x + b.x) / 2,
       labelY: (a.y + b.y) / 2 - 4,
       category
+    })
+  }
+
+  // The untied ones, in rows beneath everything with ties. Kept apart rather
+  // than mixed in: they carry no edges, so scattering them among the families
+  // would only make the ties harder to follow.
+  if (isolated.length > 0) {
+    let lowest = FAMILY_TOP
+    for (const p of positions.values()) lowest = Math.max(lowest, p.y)
+    for (const b of boxes) lowest = Math.max(lowest, b.y + b.height)
+
+    const perRow = Math.max(1, Math.ceil(Math.sqrt(isolated.length)))
+    isolated.forEach((node, i) => {
+      positions.set(node.id, {
+        x: LEFT_MARGIN + (i % perRow) * ISOLATED_SPACING_X + NODE_W / 2,
+        y: lowest + ISOLATED_TOP_GAP + Math.floor(i / perRow) * ISOLATED_SPACING_Y
+      })
     })
   }
 
