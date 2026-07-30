@@ -578,14 +578,34 @@ public partial class ProjectService : IProjectService
 
     // ── Chapter / Scene operations (delegate to active book) ────────
 
-    public async Task<ChapterData> CreateChapterAsync(string title, string date = "")
+    /// <param name="insertAtOrder">
+    /// Where the chapter goes, one-based. Null appends, which is what creating a
+    /// chapter has always done.
+    ///
+    /// Without this the only way to put a chapter in the middle was to append it
+    /// and drag it up past everything after it - and on a long book that is a
+    /// dozen drags, each one a save.
+    /// </param>
+    public async Task<ChapterData> CreateChapterAsync(
+        string title, string date = "", int? insertAtOrder = null)
     {
         if (ActiveBook == null || ActiveBookRoot == null)
             throw new InvalidOperationException("No book active.");
 
-        var nextOrder = ActiveBook.Chapters.Count > 0
-            ? ActiveBook.Chapters.Max(c => c.Order) + 1
-            : 1;
+        var lastOrder = ActiveBook.Chapters.Count > 0
+            ? ActiveBook.Chapters.Max(c => c.Order)
+            : 0;
+        var nextOrder = lastOrder + 1;
+
+        if (insertAtOrder is { } at)
+        {
+            nextOrder = Math.Clamp(at, 1, lastOrder + 1);
+            // Everything from that point on moves down one. The folder names
+            // keep their old numbers on purpose: renaming folders would break
+            // every snapshot path and every open editor for a cosmetic gain.
+            foreach (var existing in ActiveBook.Chapters.Where(c => c.Order >= nextOrder))
+                existing.Order++;
+        }
 
         var folderName = $"{nextOrder:D2} - {SanitizeFileName(title)}";
         var chapter = new ChapterData

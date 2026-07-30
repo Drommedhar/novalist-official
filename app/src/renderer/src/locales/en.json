@@ -714,7 +714,11 @@
     "trashScenes": "({{count}} scenes)",
     "restoreInto": "Restore into",
     "purge": "Delete forever",
-    "purgeConfirm": "Permanently delete \"{{title}}\" and its scenes? This cannot be undone."
+    "purgeConfirm": "Permanently delete \"{{title}}\" and its scenes? This cannot be undone.",
+    "insertChapterBefore": "Insert a chapter before this one",
+    "insertChapterAfter": "Insert a chapter after this one",
+    "insertChapterTitle": "New chapter",
+    "chapterDescription": "What this chapter is for..."
   },
   "entityPanel": {
     "charactersTooltip": "Characters",

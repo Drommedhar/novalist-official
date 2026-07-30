@@ -930,4 +930,48 @@ public class ProjectServiceTests : IDisposable
         Assert.Null(scene.Synopsis);
         Assert.Null(scene.AnalysisOverrides);
     }
+
+    [Fact]
+    public async Task CreateChapter_InsertsAtAPositionAndMovesTheRestDown()
+    {
+        await Create("Novel");
+        await _sut.CreateChapterAsync("One");
+        await _sut.CreateChapterAsync("Two");
+        await _sut.CreateChapterAsync("Three");
+
+        // The only way to put a chapter mid-book was to append it and drag it
+        // up past everything after it - a dozen drags on a long book.
+        await _sut.CreateChapterAsync("New Two", insertAtOrder: 2);
+
+        var ordered = _sut.GetChaptersOrdered();
+        Assert.Equal(["One", "New Two", "Two", "Three"], ordered.Select(c => c.Title));
+        Assert.Equal([1, 2, 3, 4], ordered.Select(c => c.Order));
+    }
+
+    [Fact]
+    public async Task CreateChapter_ClampsAPositionOutsideTheBook()
+    {
+        await Create("Novel");
+        await _sut.CreateChapterAsync("One");
+
+        await _sut.CreateChapterAsync("Far", insertAtOrder: 99);
+        await _sut.CreateChapterAsync("First", insertAtOrder: -5);
+
+        var ordered = _sut.GetChaptersOrdered();
+        Assert.Equal(["First", "One", "Far"], ordered.Select(c => c.Title));
+        Assert.Equal([1, 2, 3], ordered.Select(c => c.Order));
+    }
+
+    [Fact]
+    public async Task CreateChapter_FolderNamesKeepTheirOriginalNumbers()
+    {
+        await Create("Novel");
+        var first = await _sut.CreateChapterAsync("One");
+        await _sut.CreateChapterAsync("New First", insertAtOrder: 1);
+
+        // Renaming folders on every insert would break every snapshot path and
+        // every open editor for a cosmetic gain.
+        Assert.StartsWith("01 - ", first.FolderName);
+    }
+
 }

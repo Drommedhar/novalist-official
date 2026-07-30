@@ -254,4 +254,73 @@ public sealed class WorkspaceTests : IDisposable
         await workspace.RefreshRecentCoverAsync();
         Assert.Empty(workspace.Settings.Settings.RecentProjects);
     }
+
+    // ── Putting a chapter in the middle ──
+
+    [Fact]
+    public async Task CreateChapter_InsertsAtAPositionAndMovesTheRestDown()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var rpc = new Rpc.ProjectRpc(workspace);
+        await rpc.CreateChapterAsync("One");
+        await rpc.CreateChapterAsync("Two");
+        await rpc.CreateChapterAsync("Three");
+
+        // Before this, putting a chapter mid-book meant appending it and
+        // dragging it up past everything after it - a dozen drags on a long
+        // book, each one a save.
+        var state = await rpc.CreateChapterAsync("New Two", insertAtOrder: 2);
+
+        Assert.Equal(
+            ["One", "New Two", "Two", "Three"],
+            state.Chapters.OrderBy(c => c.Order).Select(c => c.Title));
+        Assert.Equal([1, 2, 3, 4], state.Chapters.OrderBy(c => c.Order).Select(c => c.Order));
+    }
+
+    [Fact]
+    public async Task CreateChapter_WithNoPositionStillAppends()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var rpc = new Rpc.ProjectRpc(workspace);
+        await rpc.CreateChapterAsync("One");
+
+        var state = await rpc.CreateChapterAsync("Two");
+
+        Assert.Equal(["One", "Two"], state.Chapters.OrderBy(c => c.Order).Select(c => c.Title));
+    }
+
+    [Fact]
+    public async Task CreateChapter_APositionPastTheEndAppendsRatherThanLeavingAHole()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var rpc = new Rpc.ProjectRpc(workspace);
+        await rpc.CreateChapterAsync("One");
+
+        var state = await rpc.CreateChapterAsync("Far", insertAtOrder: 99);
+
+        Assert.Equal([1, 2], state.Chapters.OrderBy(c => c.Order).Select(c => c.Order));
+        Assert.Equal("Far", state.Chapters.OrderBy(c => c.Order).Last().Title);
+        // And below one is the front rather than a negative slot.
+        var front = await rpc.CreateChapterAsync("First", insertAtOrder: -5);
+        Assert.Equal("First", front.Chapters.OrderBy(c => c.Order).First().Title);
+    }
+
+    [Fact]
+    public async Task ChapterDescription_IsTheWritersNoteAndNotTheSubtitle()
+    {
+        var workspace = await CreateOpenProjectAsync();
+        var rpc = new Rpc.ProjectRpc(workspace);
+        var created = await rpc.CreateChapterAsync("One");
+        var guid = created.Chapters.Single().Guid;
+
+        var state = await rpc.SetChapterDescriptionAsync(guid, "  Where she finds out.  ");
+        Assert.Equal("Where she finds out.", state.Chapters.Single().Description);
+        // The subtitle - what a reader sees - is untouched by it.
+        Assert.Null(state.Chapters.Single().Subtitle);
+
+        Assert.Null((await rpc.SetChapterDescriptionAsync(guid, "  ")).Chapters.Single().Description);
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => rpc.SetChapterDescriptionAsync("no-such-guid", "x"));
+    }
+
 }

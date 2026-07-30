@@ -51,7 +51,9 @@ public interface IProjectService
     // World Bible
     Task InitializeWorldBibleAsync();
 
-    Task<ChapterData> CreateChapterAsync(string title, string date = "");
+    /// <param name="insertAtOrder">Where the chapter goes, one-based. Null
+    /// appends, which is what creating one has always done.</param>
+    Task<ChapterData> CreateChapterAsync(string title, string date = "", int? insertAtOrder = null);
     Task<SceneData> CreateSceneAsync(
         string chapterGuid, string sceneTitle, string date = "", SceneTemplate? template = null);
 

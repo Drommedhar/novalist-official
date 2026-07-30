@@ -601,7 +601,11 @@
     "trashScenes": "({{count}} Szenen)",
     "restoreInto": "Wiederherstellen in",
     "purge": "Endgültig löschen",
-    "purgeConfirm": "„{{title}}“ und die zugehörigen Szenen endgültig löschen? Das lässt sich nicht rückgängig machen."
+    "purgeConfirm": "„{{title}}“ und die zugehörigen Szenen endgültig löschen? Das lässt sich nicht rückgängig machen.",
+    "insertChapterBefore": "Kapitel davor einfügen",
+    "insertChapterAfter": "Kapitel danach einfügen",
+    "insertChapterTitle": "Neues Kapitel",
+    "chapterDescription": "Wozu dieses Kapitel da ist ..."
   },
   "entityPanel": {
     "charactersTooltip": "Charaktere",

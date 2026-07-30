@@ -223,6 +223,7 @@ public sealed partial class Workspace : IDisposable
                 c.IsFavorite,
                 c.Subtitle,
                 c.HideHeading,
+                c.Description,
                 ScenesOf(c.Guid)))
             .ToArray();
 
@@ -439,6 +440,9 @@ public sealed record ChapterDto(
     string? Subtitle,
     /// <summary>True when the chapter opens straight into its prose.</summary>
     bool HideHeading,
+    /// <summary>What the chapter is for, in the writer's words. Never printed -
+    /// the subtitle is what a reader sees, this is the writer's own note.</summary>
+    string? Description,
     IReadOnlyList<SceneDto> Scenes);
 
 public sealed record SceneDto(

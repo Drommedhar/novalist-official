@@ -747,7 +747,11 @@
     "trashScenes": "（{{count}} 个场景）",
     "restoreInto": "恢复到",
     "purge": "永久删除",
-    "purgeConfirm": "永久删除“{{title}}”及其场景？此操作无法撤销。"
+    "purgeConfirm": "永久删除“{{title}}”及其场景？此操作无法撤销。",
+    "insertChapterBefore": "在此章之前插入章节",
+    "insertChapterAfter": "在此章之后插入章节",
+    "insertChapterTitle": "新章节",
+    "chapterDescription": "这一章是做什么的……"
   },
   "entityPanel": {
     "charactersTooltip": "角色",

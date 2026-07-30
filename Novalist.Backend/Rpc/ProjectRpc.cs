@@ -43,10 +43,35 @@ public sealed class ProjectRpc
         return await _workspace.OpenProjectAsync(root);
     }
 
+    /// <param name="insertAtOrder">
+    /// Where the chapter goes, one-based, with everything from there on moving
+    /// down. Null appends, which is what this has always done.
+    ///
+    /// Without it the only way to put a chapter in the middle of a long book was
+    /// to append it and drag it up past everything after it.
+    /// </param>
     [JsonRpcMethod("project/createChapter")]
-    public async Task<ProjectStateDto> CreateChapterAsync(string title)
+    public async Task<ProjectStateDto> CreateChapterAsync(string title, int? insertAtOrder = null)
     {
-        await _workspace.Projects.CreateChapterAsync(title);
+        await _workspace.Projects.CreateChapterAsync(title, insertAtOrder: insertAtOrder);
+        return _workspace.BuildState();
+    }
+
+    /// <summary>
+    /// What a chapter is for, in the writer's own words. Distinct from the
+    /// subtitle, which is what a reader sees: the two were the same field and
+    /// are different notes.
+    /// </summary>
+    [JsonRpcMethod("project/setChapterDescription")]
+    public async Task<ProjectStateDto> SetChapterDescriptionAsync(
+        string chapterGuid, string? description)
+    {
+        var chapter = _workspace.Projects.ActiveBook?.Chapters
+            .FirstOrDefault(c => c.Guid == chapterGuid)
+            ?? throw new InvalidOperationException("No such chapter.");
+
+        chapter.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
+        await _workspace.Projects.SaveProjectAsync();
         return _workspace.BuildState();
     }
 

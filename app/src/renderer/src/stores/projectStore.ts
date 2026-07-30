@@ -25,6 +25,8 @@ export interface ChapterDto {
   subtitle: string | null
   /** True when the chapter opens straight into its prose. */
   hideHeading: boolean
+  /** What the chapter is for, in your own words. Never printed. */
+  description: string | null
   guid: string
   title: string
   order: number
@@ -109,7 +111,8 @@ interface ProjectState {
   onEditorContentChanged(html: string, plainText: string): void
   onSplitContentChanged(html: string, plainText: string): void
   flushPendingSave(): Promise<void>
-  createChapter(title: string): Promise<void>
+  /** @param insertAtOrder where the chapter goes, one-based; omit to append. */
+  createChapter(title: string, insertAtOrder?: number): Promise<void>
   createScene(chapterGuid: string, title: string): Promise<void>
   switchBook(bookId: string): Promise<void>
   createBook(name: string): Promise<void>
@@ -396,8 +399,11 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     }
   },
 
-  createChapter: async (title) => {
-    const state = await rpc.request<ProjectStateDto>('project/createChapter', [title])
+  createChapter: async (title, insertAtOrder) => {
+    const state = await rpc.request<ProjectStateDto>('project/createChapter', [
+      title,
+      insertAtOrder ?? null
+    ])
     get().applyState(state)
   },
 

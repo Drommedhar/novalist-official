@@ -79,6 +79,18 @@ This is the step between keeping a scene and archiving it. Archiving removes a s
 
 Three chips above the binder tree choose what it shows: **In the book** (the default), **Everything**, or **Out of the book** on its own. Smart Lists can ask about it too, under **Out of the book**.
 
+### Inserting a chapter in the middle
+
+Right-click a chapter in the binder → **Insert a chapter before this one** or **Insert a chapter after this one**. Everything from that point on moves down, so chapter twelve becomes chapter thirteen and so on.
+
+Without this the only way to put a chapter mid-book was to create it at the end and drag it up past everything after it — a dozen drags on a long book, each one a save.
+
+Chapter **folder names on disk keep their original numbers**. Renaming them on every insert would break every snapshot path and every open editor for a purely cosmetic gain; the order you see is the `order` in the manifest, not the folder name.
+
+### What a chapter is for
+
+Right-click a chapter → **What this chapter is for...** stores a note in your own words. It is never printed, which is what separates it from the **subtitle** — the subtitle is what a reader sees under the chapter title in the finished book, and the description is what you left yourself.
+
 ### Creating a scene
 
 Click **+ Scene** in the toolbar and enter a name. The scene is added to the chapter of the currently open scene (or the last chapter when nothing is open).

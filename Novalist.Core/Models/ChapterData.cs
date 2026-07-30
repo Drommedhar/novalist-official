@@ -69,6 +69,15 @@ public class ChapterData
     [JsonPropertyName("hideHeading")]
     public bool HideHeading { get; set; }
 
+    /// <summary>
+    /// What this chapter is for, in the writer's own words. Never printed:
+    /// a subtitle is what the reader sees, this is what the writer left
+    /// themselves - the two are different notes and were the same field.
+    /// </summary>
+    [JsonPropertyName("description")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Description { get; set; }
+
     [JsonPropertyName("folderName")]
     public string FolderName { get; set; } = string.Empty;
 

@@ -40,6 +40,8 @@ type PendingAction =
   | { kind: 'deleteScenes'; targets: { chapterGuid: string; sceneId: string }[] }
   | { kind: 'chapterTarget'; chapterGuid: string; current: string }
   | { kind: 'actTarget'; actName: string; current: string }
+  | { kind: 'insertChapter'; beforeOrder: number }
+  | { kind: 'chapterDescription'; chapterGuid: string; current: string }
 
 interface ArchivedScene {
   id: string
@@ -479,6 +481,28 @@ export function Binder(): React.JSX.Element {
       : []
     return [
       ...chapterMoves,
+      {
+        // Without this the only way to put a chapter mid-book was to append it
+        // and drag it up past everything after it - a dozen drags on a long
+        // book, each one a save.
+        label: t('explorer.insertChapterBefore'),
+        onClick: () => setPending({ kind: 'insertChapter', beforeOrder: chapter.order })
+      },
+      {
+        label: t('explorer.insertChapterAfter'),
+        onClick: () => setPending({ kind: 'insertChapter', beforeOrder: chapter.order + 1 })
+      },
+      {
+        // What the chapter is for, in the writer's words. Distinct from the
+        // subtitle, which is what a reader sees.
+        label: t('explorer.chapterDescription'),
+        onClick: () =>
+          setPending({
+            kind: 'chapterDescription',
+            chapterGuid: chapter.guid,
+            current: chapter.description ?? ''
+          })
+      },
       {
         label: t('explorer.renameAct'),
         onClick: () =>
@@ -955,6 +979,35 @@ export function Binder(): React.JSX.Element {
             const p = pending
             setPending(null)
             void useTargetStore.getState().setAct(p.actName, Number(value) || null)
+          }}
+        />
+      )}
+      {pending?.kind === 'insertChapter' && (
+        <InputDialog
+          title={t('explorer.insertChapterTitle')}
+          placeholder={t('shell.newChapter')}
+          onCancel={() => setPending(null)}
+          onSubmit={(title) => {
+            const at = pending.beforeOrder
+            setPending(null)
+            if (title.trim().length > 0) void store.getState().createChapter(title.trim(), at)
+          }}
+        />
+      )}
+      {pending?.kind === 'chapterDescription' && (
+        <InputDialog
+          title={t('explorer.chapterDescription')}
+          placeholder={pending.current}
+          onCancel={() => setPending(null)}
+          onSubmit={(description) => {
+            const chapterGuid = pending.chapterGuid
+            setPending(null)
+            void rpc
+              .request<ProjectStateDto>('project/setChapterDescription', [
+                chapterGuid,
+                description
+              ])
+              .then((state) => store.getState().applyState(state))
           }}
         />
       )}
