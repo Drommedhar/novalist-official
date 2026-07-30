@@ -28,6 +28,24 @@ const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt',
 /** Common typographic fonts offered as a datalist; the field stays free-text so
  * any installed family can be typed. The first three ship with the app and so
  * render identically everywhere; the rest depend on what the machine has. */
+/**
+ * Faces people choose for readability rather than for looks.
+ *
+ * Named because the font box is free text and "type the name of a dyslexia
+ * font" is not a discoverable instruction - somebody who would benefit has to
+ * already know what to search for. Novalist does not bundle these; the picker
+ * offers them and the hint says plainly that the one you pick has to be
+ * installed.
+ */
+const ACCESSIBLE_FONTS = [
+  'OpenDyslexic',
+  'Atkinson Hyperlegible',
+  'Lexend',
+  'Comic Sans MS',
+  'Verdana',
+  'Tahoma'
+]
+
 const SYSTEM_FONTS = [
   'Newsreader',
   'Fraunces',
@@ -261,7 +279,7 @@ export function SettingsView(): React.JSX.Element {
 
   const fontDatalist = (
     <datalist id="settings-fonts">
-      {SYSTEM_FONTS.map((f) => (
+      {[...SYSTEM_FONTS, ...ACCESSIBLE_FONTS].map((f) => (
         <option key={f} value={f} />
       ))}
     </datalist>
@@ -630,6 +648,83 @@ export function SettingsView(): React.JSX.Element {
           )}
             </>
           )}
+        </>
+      )
+    },
+    {
+      key: 'accessibility',
+      titleKey: 'settings.accessibility',
+      keywords: [
+        'accessibility',
+        'dyslexia',
+        'dyslexic',
+        'contrast',
+        'spacing',
+        'legible',
+        'readable',
+        'font'
+      ],
+      body: (
+        <>
+          <div className="settings-desc">{t('settings.accessibilityDesc')}</div>
+
+          {/* The same three settings the Editor section has, gathered where
+              somebody looking for them would look. A dyslexia-friendly face is
+              not a typography preference to the person who needs one. */}
+          <label className="inspector-label" htmlFor="set-a11y-font">
+            {t('settings.accessibleFont')}
+          </label>
+          <SettingInput
+            id="set-a11y-font"
+            list="settings-fonts"
+            value={eff.editorFontFamily}
+            onCommit={(v) => void update(scopeFor('editor'), { editorFontFamily: v })}
+          />
+          <div className="settings-hint">{t('settings.accessibleFontHint')}</div>
+
+          <label className="inspector-label" htmlFor="set-a11y-size">
+            {t('settings.fontSize')}
+          </label>
+          <input
+            id="set-a11y-size"
+            className="dialog-input"
+            type="number"
+            min={8}
+            max={36}
+            value={eff.editorFontSize}
+            onChange={(e) =>
+              void update(scopeFor('editor'), { editorFontSize: Number(e.target.value) })
+            }
+          />
+
+          <label className="inspector-label" htmlFor="set-a11y-spacing">
+            {t('settings.lineHeight')}
+          </label>
+          <input
+            id="set-a11y-spacing"
+            className="dialog-input"
+            type="number"
+            min={1}
+            max={3}
+            step={0.1}
+            value={eff.editorLineHeight}
+            onChange={(e) =>
+              void update(scopeFor('editor'), {
+                editorLineHeight: Math.min(2.5, Math.max(1, Number(e.target.value)))
+              })
+            }
+          />
+          <div className="settings-hint">{t('settings.lineHeightDesc')}</div>
+
+          {/* One click rather than a paragraph telling somebody where the
+              theme picker is. */}
+          <button
+            className="dialog-button"
+            onClick={() => void update('global', { theme: 'High Contrast' })}
+          >
+            {t('settings.useHighContrast')}
+          </button>
+          <div className="settings-hint">{t('settings.highContrastHint')}</div>
         </>
       )
     },

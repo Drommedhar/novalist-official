@@ -601,7 +601,13 @@
     "weeklyWordGoal": "每周字数目标",
     "weeklyWordGoalDesc": "本自然周（周一至周日）的字数。留空表示不设。适合集中几天写作而非每天少量写作的人。",
     "monthlyWordGoal": "每月字数目标",
-    "monthlyWordGoalDesc": "本自然月的字数。留空表示不设。"
+    "monthlyWordGoalDesc": "本自然月的字数。留空表示不设。",
+    "accessibility": "无障碍",
+    "accessibilityDesc": "阅读舒适度设置集中于此。这里的每一项在“编辑器”或“外观”中也有，但人们会来这里找。",
+    "accessibleFont": "编辑器字体",
+    "accessibleFontHint": "列表中列出了为可读性设计的字体——OpenDyslexic、Atkinson Hyperlegible、Lexend——以及常用字体。Novalist 不附带这些字体，所选字体需已安装在本机。",
+    "useHighContrast": "切换到高对比度主题",
+    "highContrastHint": "内置主题，文字与背景对比更强。随时可在“外观”中切换回来。"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",

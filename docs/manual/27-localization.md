@@ -117,6 +117,18 @@ A regional tag falls back to its base language, so `de-AT` uses `analysis.de.jso
 
 Extensions ship their own locale files in their `Locales/` folder. The active app language is exposed to extensions through the SDK, and extensions load their own translations independently — translating the core app does not translate extensions, and vice versa.
 
+## Counting words in Chinese, Japanese, Korean and Thai
+
+Novalist counts words by script rather than by spaces.
+
+Chinese, Japanese and Korean count **one character, one word** — the convention their publishers use. Counting runs of letters instead made a five-hundred-character Chinese scene come out as a handful of words, which put the word count, the daily goal and every target wrong for a language Novalist ships an interface for.
+
+Thai has neither spaces nor a per-character convention, so its runs are divided by an average word length. That is an approximation and is meant as one; it is a great deal closer than counting a whole Thai sentence as a single word.
+
+**Reading time** follows the same split: Chinese, Japanese and Korean are timed in characters a minute, everything else in words a minute. A Chinese chapter timed at a words-a-minute rate reads as several times longer than it takes.
+
+Mixed text is counted correctly by construction: a Chinese sentence with an English name in it counts the name once and each Chinese character once.
+
 ## Where to go next
 
 - [Settings](23-settings.md) — pick a language here.

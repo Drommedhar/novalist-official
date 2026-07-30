@@ -79,6 +79,14 @@ Stated so nobody has to discover it the hard way:
 - No dictation.
 - No EPUBCheck or DAISY Ace validation of an exported file, and no tagged PDF/UA output.
 
+## Settings → Accessibility
+
+A section gathering the settings that matter most for reading comfort, so they are findable without knowing which other section they live in. Everything here is also in Editor or Appearance; this is the same setting either way.
+
+- **Editor typeface** — the list names faces chosen for readability alongside the usual ones: **OpenDyslexic**, **Atkinson Hyperlegible**, **Lexend**, plus Verdana and Tahoma. Novalist does not bundle them, so the face you pick has to be installed on this machine — the box is free text and accepts anything installed.
+- **Font size** and **Line spacing** — larger text and looser leading, which for many readers does more than the typeface does.
+- **Switch to the High Contrast theme** — one click, rather than a paragraph telling you where the theme picker is. Switch back under Appearance whenever you like.
+
 ## Where to go next
 
 - [Settings](23-settings.md) — where every control on this page lives.

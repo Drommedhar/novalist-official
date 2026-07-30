@@ -455,7 +455,13 @@
     "weeklyWordGoal": "Wochenziel",
     "weeklyWordGoalDesc": "Wörter für die Kalenderwoche, Montag bis Sonntag. Leer lassen für keins. Sinnvoll, wenn Sie an wenigen Tagen viel schreiben statt täglich ein wenig.",
     "monthlyWordGoal": "Monatsziel",
-    "monthlyWordGoalDesc": "Wörter für den Kalendermonat. Leer lassen für keins."
+    "monthlyWordGoalDesc": "Wörter für den Kalendermonat. Leer lassen für keins.",
+    "accessibility": "Barrierefreiheit",
+    "accessibilityDesc": "Lesekomfort an einer Stelle. Jede Einstellung hier steht auch unter Editor oder Darstellung – hier wird man danach suchen.",
+    "accessibleFont": "Schriftart im Editor",
+    "accessibleFontHint": "Die Liste nennt Schriften, die auf Lesbarkeit ausgelegt sind – OpenDyslexic, Atkinson Hyperlegible, Lexend – neben den üblichen. Novalist liefert sie nicht mit; die gewählte Schrift muss auf diesem Rechner installiert sein.",
+    "useHighContrast": "Zum Thema „High Contrast“ wechseln",
+    "highContrastHint": "Ein mitgeliefertes Thema mit stärkerem Kontrast zwischen Text und Hintergrund. Unter Darstellung jederzeit umschaltbar."
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",

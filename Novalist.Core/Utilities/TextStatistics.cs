@@ -310,7 +310,7 @@ public static partial class TextStatistics
     }
 
     private static int CountWords(string text)
-        => WordRegex().Matches(text).Count;
+        => ScriptAwareCounting.Count(text);
 
     private static int CountCharactersWithoutSpaces(string text)
         => text.Count(character => !char.IsWhiteSpace(character));

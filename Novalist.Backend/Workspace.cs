@@ -396,11 +396,15 @@ public sealed partial class Workspace : IDisposable
     }
 
     // Same regex the Avalonia EditorViewModel uses, so persisted word counts stay identical.
+    /// <summary>
+    /// A scene's word count, in whatever script it is written in.
+    ///
+    /// Counting runs of letters made a Chinese scene of five hundred characters
+    /// come out as a handful of words, which put the word count, the daily goal
+    /// and every target wrong for a language the app ships an interface for.
+    /// </summary>
     internal static int CountWords(string text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return 0;
-        return WordRegex().Matches(text).Count;
-    }
+        => Core.Utilities.ScriptAwareCounting.Count(text);
 
     internal static string StripHtml(string content)
     {

@@ -568,7 +568,13 @@
     "weeklyWordGoal": "Weekly word goal",
     "weeklyWordGoalDesc": "Words for the calendar week, Monday to Sunday. Leave empty for none. Useful when you write a few heavy days rather than a little every day.",
     "monthlyWordGoal": "Monthly word goal",
-    "monthlyWordGoalDesc": "Words for the calendar month. Leave empty for none."
+    "monthlyWordGoalDesc": "Words for the calendar month. Leave empty for none.",
+    "accessibility": "Accessibility",
+    "accessibilityDesc": "Reading comfort, gathered in one place. Every setting here is also in Editor or Appearance — this is where to look for it.",
+    "accessibleFont": "Editor typeface",
+    "accessibleFontHint": "The list names faces chosen for readability — OpenDyslexic, Atkinson Hyperlegible, Lexend — alongside the usual ones. Novalist does not bundle them, so the face you pick has to be installed on this machine.",
+    "useHighContrast": "Switch to the High Contrast theme",
+    "highContrastHint": "A bundled theme with stronger separation between text and background. You can switch back under Appearance at any time."
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
