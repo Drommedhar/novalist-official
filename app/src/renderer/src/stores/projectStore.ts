@@ -83,6 +83,15 @@ interface ProjectState {
   recentProjects: RecentProjectDto[]
   openChapterGuid: string | null
   openSceneId: string | null
+  /**
+   * Points the shell at a scene without loading it into an editor pane.
+   *
+   * The Manuscript view is its own editor over every scene at once, so the
+   * context sidebar has to follow the caret inside it. Going through
+   * openScene would pull the scene into the editor pane and take the focus
+   * away from the paragraph being typed in.
+   */
+  setContextScene(chapterGuid: string, sceneId: string): void
   openSceneHtml: string | null
   /** Fingerprint of what was read from disk, per scene id. A save carries it so
    *  the backend can refuse to overwrite an edit that arrived meanwhile. */
@@ -153,6 +162,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   recentProjects: [],
   openChapterGuid: null,
   openSceneId: null,
+
+  setContextScene: (chapterGuid, sceneId) => {
+    const state = get()
+    if (state.openChapterGuid === chapterGuid && state.openSceneId === sceneId) return
+    set({ openChapterGuid: chapterGuid, openSceneId: sceneId })
+  },
   openSceneHtml: null,
   sceneHashes: {},
   sceneConflict: null,

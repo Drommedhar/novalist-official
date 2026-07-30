@@ -22,6 +22,30 @@ import sys
 CSS_ROOT = pathlib.Path("app/src/renderer/src")
 TOKENS = CSS_ROOT / "styles" / "tokens.css"
 
+# Extensions style their panels with the same tokens and were never checked.
+# A token that does not exist is a declaration the browser silently drops, so
+# the panel renders with no colour and nothing says why. Sibling checkouts, so
+# they are used when present and skipped in silence when they are not.
+EXTENSION_WORKSPACES = [
+    pathlib.Path("..") / "novalist-extension",
+    pathlib.Path("..") / "novalist-aiassistant",
+]
+
+SKIP_DIRS = {"bin", "obj", "node_modules", "dist", "out"}
+
+
+def extension_roots() -> list[pathlib.Path]:
+    """Every extension web folder beside this repo."""
+    roots: list[pathlib.Path] = []
+    for workspace in EXTENSION_WORKSPACES:
+        if not workspace.is_dir():
+            continue
+        for web in sorted(workspace.rglob("web")):
+            if web.is_dir() and not any(part in SKIP_DIRS for part in web.parts):
+                roots.append(web)
+    return roots
+
+
 DEFINITION = re.compile(r"^\s*(--n[lv]-[a-z0-9-]+)\s*:", re.M)
 REFERENCE = re.compile(r"var\(\s*(--n[lv]-[a-z0-9-]+)")
 # var(--token, fallback) - legal CSS, but on a token that does exist the
@@ -89,6 +113,19 @@ def main() -> int:
                 name = "--" + match.group(1)
                 if family(name) in families:
                     used.setdefault(name, set()).add(path.as_posix())
+
+
+    # The same reference scan over every extension web folder in the workspace.
+    for root in extension_roots():
+        for pattern in ("*.css", "*.html", "*.js", "*.ts", "*.tsx"):
+            for path in sorted(root.rglob(pattern)):
+                if any(part in SKIP_DIRS for part in path.parts):
+                    continue
+                text = path.read_text(encoding="utf-8", errors="ignore")
+                for match in REFERENCE.finditer(text):
+                    used.setdefault(match.group(1), set()).add(path.as_posix())
+                for match in REFERENCE_WITH_FALLBACK.finditer(text):
+                    fallbacks.setdefault(match.group(1), set()).add(path.as_posix())
 
     missing = {name: files for name, files in used.items() if name not in defined}
     stale = {} if args.allow_fallbacks else {n: f for n, f in fallbacks.items() if n in defined}

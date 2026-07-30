@@ -308,6 +308,15 @@ function ManuscriptFrame(): React.JSX.Element {
         case 'cycleStatus':
           void store.cycleStatus(String(message.chapterGuid))
           break
+        case 'sceneFocused':
+          // The page has reported this since it was written and the host had
+          // no case for it, so the context sidebar kept describing whichever
+          // scene was last opened from the binder while the writer typed in
+          // another one.
+          useProjectStore
+            .getState()
+            .setContextScene(String(message.chapterGuid), String(message.sceneId))
+          break
         case 'openScene':
           void useProjectStore
             .getState()

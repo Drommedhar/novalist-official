@@ -200,7 +200,16 @@ def check(target: Target, args) -> bool:
         k for k in sorted(en)
         if en[k] != "[]" and k not in refs and not is_dynamic(target, k)
     ]
-    missing = sorted(r for r in refs if r not in en and not is_dynamic(target, r))
+    # An extension's web panel asks for a short key and its C# resolves that
+    # inside the extension's own namespace: t('allDone') is toolkit.allDone.
+    # Both spellings are the same key, so a bare reference counts as found
+    # when any top-level namespace carries it.
+    namespaces = {k.split('.', 1)[0] for k in en if '.' in k}
+
+    def known(ref: str) -> bool:
+        return ref in en or any(f'{ns}.{ref}' in en for ns in namespaces)
+
+    missing = sorted(r for r in refs if not known(r) and not is_dynamic(target, r))
 
     # Keys present in en.json but absent from a translated locale (untranslated).
     untranslated: list[str] = []
@@ -269,6 +278,54 @@ def check(target: Target, args) -> bool:
     return fail
 
 
+# ── Extensions ──────────────────────────────────────────────────────
+#
+# Extensions ship their own Locales folder and their own C# and web code, and
+# nothing checked them. A missing key there is exactly as broken as one here -
+# the writer sees a raw key in a panel - and it was invisible because the
+# doctor only ever looked inside this repo.
+#
+# They are sibling checkouts rather than submodules, so they are discovered
+# when present and skipped in silence when they are not: a clone with only this
+# repo still has to pass.
+EXTENSION_WORKSPACES = [
+    REPO_ROOT.parent / "novalist-extension",
+    REPO_ROOT.parent / "novalist-aiassistant",
+]
+
+
+def extension_targets() -> list[Target]:
+    """One target per extension found beside this repo, deepest first."""
+    found: list[Target] = []
+    for workspace in EXTENSION_WORKSPACES:
+        if not workspace.is_dir():
+            continue
+        for locales in sorted(workspace.rglob("Locales")):
+            if not locales.is_dir() or not (locales / "en.json").exists():
+                continue
+            if any(part in {"bin", "obj", "node_modules"} for part in locales.parts):
+                continue
+            # The extension's own project folder: its C# and its web pages both
+            # ask for keys, so both are scanned.
+            root = locales.parent
+            found.append(Target(
+                name=f"ext:{root.name}",
+                locales_dir=locales,
+                scan_roots=[root],
+                scan_exts={".cs", ".axaml", ".ts", ".tsx", ".js", ".html"},
+                literal_patterns=[
+                    re.compile(r'\b_?[Ll]oc\.T\(\s*"([^"]+)"'),
+                    re.compile(r'\bT\(\s*"([^"]+)"'),
+                    re.compile(r"\bt\(\s*'([^']+)'"),
+                    re.compile(r'\bt\(\s*"([^"]+)"'),
+                    re.compile(r'data-i18n="([^"]+)"'),
+                ],
+                dynamic_prefixes=set(),
+            ))
+    return found
+
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Locale doctor for Novalist.")
     parser.add_argument("--target", choices=["react", "desktop", "both"], default="both")
@@ -279,6 +336,9 @@ def main() -> int:
     args = parser.parse_args()
 
     targets = {"react": [REACT], "desktop": [DESKTOP], "both": [REACT, DESKTOP]}[args.target]
+    # Always, whichever target was asked for: an extension in the workspace
+    # is part of what the writer runs.
+    targets = targets + extension_targets()
     failed = False
     for target in targets:
         # Untranslated is a soft signal for the frozen desktop app (zh-CN is partial);

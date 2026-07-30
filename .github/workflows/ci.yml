@@ -148,7 +148,7 @@ jobs:
       # renderer never calls can sit at 100% coverage while its feature is
       # wired to nothing.
       - name: RPC doctor (renderer/backend method surface)
-        run: python3 tools/rpc-doctor.py
+        run: python3 tools/rpc-doctor.py --strict
 
       # The same seam, one layer in: the renderer talks to the editor iframe
       # through a declared interface that nothing verified. A method could be
