@@ -2017,7 +2017,7 @@
   display: grid;
   /* Overridden inline: the real column set depends on how many of the writer's
      own fields they chose to show. This is the shape without any of them. */
-  grid-template-columns: 180px 160px 1fr 1fr 1fr 100px 70px 80px;
+  grid-template-columns: 180px 160px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 100px 70px 80px;
   gap: var(--nl-space-md);
   align-items: center;
   padding: var(--nl-space-tighter) 0;
@@ -2030,6 +2030,14 @@
   letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--nl-text-subtle);
+}
+
+/* A heading now sits in a column that can be narrower than the word, so it has
+   to end rather than run into the next one. */
+.outliner-head > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .outliner-cell {
@@ -2190,6 +2198,10 @@
 .timeline-toolbar {
   display: flex;
   align-items: center;
+  /* Relationships puts a search box, two selects, five type toggles and two
+     more selects on this row. On a narrower window the tail of it ran off the
+     right edge with no way to reach it, so the row wraps instead. */
+  flex-wrap: wrap;
   gap: var(--nl-space-md);
   padding: var(--nl-space-md) var(--nl-space-normal);
   border-bottom: 1px solid var(--nl-border);

@@ -191,6 +191,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **The Overview column headings stand over their own columns again.** Each row of the outliner sized its own columns, so the heading row — with words like "Zusammenfassung" in it — laid itself out wider than every row beneath, and the labels drifted away from the values they named. Past a certain window width the last three columns were pushed off the side entirely. The whole table now shares one set of columns and fits without scrolling sideways.
+
+- **The Relationships toolbar no longer runs off the edge of the window.** Search, groups, roles, five kind toggles and the "centre on" picker sat on one unbreakable row, so on a narrower window the tail of it — including the zoom readout and the scene toggle — was simply not reachable. The row wraps now. The same toolbar is used by Timeline, Calendar and the Plot Grid, which gain the same behaviour.
+
+- **The Inspector's "Refers to" picker fits inside the Inspector.** The picker is as wide as the longest scene title in the project, and nothing stopped it from pushing itself and the add button past the panel's edge.
+
 - **The same project no longer appears twice in the recently opened list.** Windows spells one folder several ways — `d:/git/book`, `D:\git\book`, and the same with a trailing slash — and Novalist compared those spellings literally, so opening a project the other way added a second card for it rather than moving the one you had to the front. Removing a card had the same blind spot, and could leave the duplicate behind. The list now recognises a folder whatever way it was written.
 
 - **A save no longer goes missing when two land at once.** Novalist saves on a timer while you keep working, so a settings or scene save could arrive while the same file was already being written. On Windows the second one failed outright and its changes were silently lost. Saves of the same file now queue behind each other, and a file another program is holding for a moment is waited out rather than given up on.

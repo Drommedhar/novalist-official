@@ -625,9 +625,16 @@ function Outliner(): React.JSX.Element {
   // The writer picks which of their fields is worth a column; a dozen fields
   // is not a dozen columns anybody wants to read.
   const columns = definitions.filter((d) => d.scope === 'Scene' && d.showInOutliner)
+  // Every row is its own grid, so a bare `1fr` - which is minmax(auto, 1fr) -
+  // sizes against that row's own content. The header's long uppercase labels
+  // are wider than an input's minimum, so the heading row set columns nobody
+  // else used and the headings stopped standing over their own values. A floor
+  // of zero makes every row resolve the same way.
   const grid = {
     gridTemplateColumns:
-      `180px 160px 1fr 1fr 1fr 100px 70px 80px${' 120px'.repeat(columns.length)}`
+      `180px 160px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 100px 70px 80px${
+        ' 120px'.repeat(columns.length)
+      }`
   }
 
   return (

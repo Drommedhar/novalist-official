@@ -190,7 +190,7 @@ export function LinksPanel(props: {
           <option value="entity">{t('links.kindEntity')}</option>
         </select>
         <select
-          className="inspector-input"
+          className="inspector-input links-target"
           aria-label={t('links.target')}
           value={target}
           onChange={(e) => setTarget(e.target.value)}

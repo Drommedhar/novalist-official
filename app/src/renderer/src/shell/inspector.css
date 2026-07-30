@@ -473,6 +473,14 @@
   min-width: 0;
 }
 
+/* A select is as wide as its widest option, and the options here are scene
+   titles. Without a floor of zero the row cannot shrink and the picker runs off
+   the side of the Inspector. */
+.links-target {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .links-note {
   background: none;
   border: 1px solid transparent;
