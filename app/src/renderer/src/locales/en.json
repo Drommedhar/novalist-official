@@ -2290,7 +2290,16 @@
     "paragraphs": "Paragraphs",
     "meanParagraph": "Mean paragraph",
     "paragraphVariation": "Paragraph variation",
-    "paragraphVariationHint": "Higher is more varied. A chapter of identically-sized paragraphs reads as flat for the same reason a run of identically-sized sentences does."
+    "paragraphVariationHint": "Higher is more varied. A chapter of identically-sized paragraphs reads as flat for the same reason a run of identically-sized sentences does.",
+    "senses": "Sensory coverage",
+    "sensesHint": "How much of each sense is in the prose. The row reading zero is the useful one — nearly every writer defaults to sight and sound.",
+    "sense": {
+      "sight": "Sight",
+      "sound": "Sound",
+      "smell": "Smell",
+      "taste": "Taste",
+      "touch": "Touch"
+    }
   },
   "review": {
     "title": "Import an editor's changes",

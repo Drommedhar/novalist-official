@@ -102,6 +102,14 @@ public sealed class StyleRpc
             text.ToString(), Language, WatchWords, ParseScope(scope)));
     }
 
+    private static StyleFindingDto[] ToDto(IEnumerable<ProseStyleFinding> findings) =>
+        [.. findings.Select(f => new StyleFindingDto(
+            f.Key,
+            f.Count,
+            f.Per1000Words,
+            f.Supported,
+            [.. f.Examples.Select(e => new StyleHitDto(e.Text, e.Offset, e.Context))]))];
+
     private static StyleReportDto ToDto(ProseStyleReport r) =>
         new(
             r.Language,
@@ -114,14 +122,8 @@ public sealed class StyleRpc
             r.ParagraphCount,
             r.MeanParagraphWords,
             r.ParagraphLengthStdDev,
-            r.Findings
-                .Select(f => new StyleFindingDto(
-                    f.Key,
-                    f.Count,
-                    f.Per1000Words,
-                    f.Supported,
-                    f.Examples.Select(e => new StyleHitDto(e.Text, e.Offset, e.Context)).ToArray()))
-                .ToArray());
+            ToDto(r.Findings),
+            ToDto(r.Senses));
 }
 
 public sealed record StyleHitDto(string Text, int Offset, string Context);
@@ -146,4 +148,10 @@ public sealed record StyleReportDto(
     /// <summary>A chapter of identically-sized paragraphs reads as flat for the
     /// same reason a run of identically-sized sentences does.</summary>
     double ParagraphLengthStdDev,
-    StyleFindingDto[] Findings);
+    StyleFindingDto[] Findings,
+    /// <summary>
+    /// One row per sense, always all five and always in the same order. Kept
+    /// apart from the findings because these are not problems: the reading is
+    /// which senses the prose forgot, not which counts to reduce.
+    /// </summary>
+    StyleFindingDto[] Senses);

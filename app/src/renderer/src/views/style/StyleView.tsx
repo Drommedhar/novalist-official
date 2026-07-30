@@ -30,6 +30,8 @@ interface StyleReport {
   meanParagraphWords: number
   paragraphLengthStdDev: number
   findings: StyleFinding[]
+  /** One row per sense, always all five, always in the same order. */
+  senses: StyleFinding[]
 }
 
 type Scope = 'book' | 'chapter' | 'scene'
@@ -156,6 +158,31 @@ export function StyleView(): React.JSX.Element {
               value={String(report.paragraphLengthStdDev)}
               hint={t('style.paragraphVariationHint')}
             />
+          </div>
+
+          {/* Not problems, so kept out of the findings list. A count of sight
+              words is not something to reduce - the reading is which senses
+              the prose forgot, and nearly every writer forgets the same
+              three. */}
+          <div className="style-senses">
+            <div className="inspector-label">{t('style.senses')}</div>
+            <div className="settings-hint">{t('style.sensesHint')}</div>
+            <div className="style-sense-row">
+              {report.senses.map((sense) => (
+                <div
+                  key={sense.key}
+                  className={`style-sense${sense.supported && sense.count === 0 ? ' absent' : ''}`}
+                  title={
+                    sense.supported
+                      ? t('style.per1000', { value: sense.per1000Words })
+                      : t('style.unsupported', { language: report.language })
+                  }
+                >
+                  <span className="style-sense-name">{t(`style.sense.${sense.key}`)}</span>
+                  <span className="style-sense-count">{sense.supported ? sense.count : '—'}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="style-findings">

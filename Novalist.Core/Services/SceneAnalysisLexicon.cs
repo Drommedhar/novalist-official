@@ -137,6 +137,17 @@ public sealed class SceneAnalysisLexicon
     /// sentence read as sticky.</summary>
     public IReadOnlyList<string> GlueWords { get; private init; } = [];
 
+    /// <summary>
+    /// Words that put a reader in the room through one sense.
+    ///
+    /// Keyed by sense - sight, sound, smell, taste, touch - because the useful
+    /// question is not how sensory a scene is but which senses it forgot.
+    /// Nearly every writer defaults to sight and sound, and a total would hide
+    /// exactly that.
+    /// </summary>
+    public IReadOnlyDictionary<string, IReadOnlyList<string>> Senses { get; private init; }
+        = new Dictionary<string, IReadOnlyList<string>>();
+
     /// <summary>Auxiliaries that can form the passive voice.</summary>
     public IReadOnlyList<string> PassiveAuxiliaries { get; private init; } = [];
 
@@ -353,6 +364,10 @@ public sealed class SceneAnalysisLexicon
             AdverbExceptions = Clean(file.AdverbExceptions),
             FilterWords = Clean(file.FilterWords),
             GlueWords = Clean(file.GlueWords),
+            Senses = (file.Senses ?? new Dictionary<string, IReadOnlyList<string>>())
+                .Where(kv => kv.Value is { Count: > 0 })
+                .ToDictionary(kv => kv.Key, kv => (IReadOnlyList<string>)Clean(kv.Value),
+                    StringComparer.OrdinalIgnoreCase),
             PassiveAuxiliaries = Clean(file.PassiveAuxiliaries),
             WeakVerbs = Clean(file.WeakVerbs),
             PastTenseMarkers = Clean(file.PastTenseMarkers),
@@ -426,6 +441,12 @@ public sealed class SceneAnalysisLexicon
 
         [JsonPropertyName("filterWords")]
         public IReadOnlyList<string> FilterWords { get; init; } = [];
+
+        /// <summary>Sense words by sense key. Absent in a language nobody has
+        /// written the lists for, which reports as unsupported rather than as
+        /// a scene with no senses in it.</summary>
+        [JsonPropertyName("senses")]
+        public Dictionary<string, IReadOnlyList<string>>? Senses { get; init; }
 
         [JsonPropertyName("glueWords")]
         public IReadOnlyList<string> GlueWords { get; init; } = [];

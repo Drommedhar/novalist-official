@@ -2330,7 +2330,16 @@
     "paragraphs": "段落",
     "meanParagraph": "段落平均长度",
     "paragraphVariation": "段落长度变化",
-    "paragraphVariationHint": "数值越高越有变化。整章段落长度雷同会显得平淡，原因与句长雷同相同。"
+    "paragraphVariationHint": "数值越高越有变化。整章段落长度雷同会显得平淡，原因与句长雷同相同。",
+    "senses": "感官覆盖",
+    "sensesHint": "文中每种感官出现的多少。显示为零的那一行最有价值——几乎所有作者都偏重视觉和听觉。",
+    "sense": {
+      "sight": "视觉",
+      "sound": "听觉",
+      "smell": "嗅觉",
+      "taste": "味觉",
+      "touch": "触觉"
+    }
   },
   "review": {
     "title": "导入编辑的修改",

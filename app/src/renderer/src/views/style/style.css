@@ -138,3 +138,42 @@
 .style-text-scope {
   width: auto;
 }
+
+/* The five senses, side by side. A sense the prose never reached is dimmed
+   rather than hidden: the row reading zero is the one worth seeing. */
+.style-senses {
+  margin: var(--nl-space-md) 0;
+}
+
+.style-sense-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm);
+  margin-top: var(--nl-space-tighter);
+}
+
+.style-sense {
+  align-items: center;
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  min-width: 5.5rem;
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+}
+
+.style-sense.absent {
+  border-style: dashed;
+  color: var(--nl-text-subtle);
+}
+
+.style-sense-name {
+  font-size: var(--nl-font-caption);
+}
+
+.style-sense-count {
+  font-size: var(--nl-font-title);
+  font-weight: 600;
+}

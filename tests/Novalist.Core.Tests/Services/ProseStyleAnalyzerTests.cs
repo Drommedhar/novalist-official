@@ -402,4 +402,80 @@ public class ProseStyleAnalyzerTests
     public void AnEmptyParagraphIsNotAParagraph()
         => Assert.Equal([3], ProseStyleAnalyzer.ParagraphWordCounts("one two three\n\n\n\n"));
 
+    // ─── Sensory coverage ────────────────────────────────────────────
+
+    private static ProseStyleFinding Sense(ProseStyleReport report, string sense)
+        => report.Senses.Single(f => f.Key == sense);
+
+    [Fact]
+    public void AllFiveSensesAreAlwaysReported()
+    {
+        var report = ProseStyleAnalyzer.Analyze("She walked in.", "en");
+
+        // The row reading zero is the whole point. A list that omits the
+        // senses nobody used is a list that hides them.
+        Assert.Equal(["sight", "sound", "smell", "taste", "touch"],
+            report.Senses.Select(f => f.Key));
+    }
+
+    [Fact]
+    public void EachSenseIsCountedSeparately()
+    {
+        var report = ProseStyleAnalyzer.Analyze(
+            "She saw the bright door and heard a whisper. The smoke smelled sour.", "en");
+
+        Assert.True(Sense(report, "sight").Count >= 2);
+        Assert.True(Sense(report, "sound").Count >= 2);
+        Assert.True(Sense(report, "smell").Count >= 2);
+    }
+
+    [Fact]
+    public void TheSenseNobodyReachedReadsZero()
+    {
+        var report = ProseStyleAnalyzer.Analyze("She saw the bright door.", "en");
+
+        // Nearly every writer defaults to sight and sound, and a total would
+        // hide exactly that.
+        Assert.Equal(0, Sense(report, "taste").Count);
+        Assert.Equal(0, Sense(report, "touch").Count);
+        Assert.True(Sense(report, "taste").Supported);
+    }
+
+    [Fact]
+    public void SensesAreCountedInGermanToo()
+    {
+        var report = ProseStyleAnalyzer.Analyze(
+            "Sie sah das helle Licht und hörte ein Flüstern.", "de");
+
+        Assert.True(Sense(report, "sight").Count > 0);
+        Assert.True(Sense(report, "sound").Count > 0);
+    }
+
+    [Fact]
+    public void ALanguageWithNoSenseListsSaysSo()
+    {
+        var report = ProseStyleAnalyzer.Analyze("Ordinary prose.", "kl");
+
+        // Unsupported rather than a zero that reads as prose with no senses.
+        Assert.All(report.Senses, f => Assert.False(f.Supported));
+        Assert.Equal(5, report.Senses.Count);
+    }
+
+    [Fact]
+    public void SensesAreNotMixedIntoTheProblems()
+    {
+        var report = ProseStyleAnalyzer.Analyze("She saw the bright door.", "en");
+
+        // A count of sight words is not something to reduce.
+        Assert.DoesNotContain(report.Findings, f => f.Key == "sight");
+    }
+
+    [Fact]
+    public void SensesCarryTheirRatePerThousandWords()
+    {
+        var report = ProseStyleAnalyzer.Analyze(
+            string.Join(' ', Enumerable.Repeat("word", 500)) + " She saw the light.", "en");
+
+        Assert.True(Sense(report, "sight").Per1000Words > 0);
+    }
 }

@@ -95,6 +95,15 @@ public sealed class ProseStyleReport
     public double ParagraphLengthStdDev { get; init; }
 
     public IReadOnlyList<ProseStyleFinding> Findings { get; init; } = [];
+
+    /// <summary>
+    /// One row per sense, in the order sight, sound, smell, taste, touch.
+    ///
+    /// Kept apart from <see cref="Findings"/> because these are not problems.
+    /// A count of sight words is not something to reduce; the reading is which
+    /// senses the prose forgot, and nearly every writer forgets the same three.
+    /// </summary>
+    public IReadOnlyList<ProseStyleFinding> Senses { get; init; } = [];
 }
 
 /// <summary>
@@ -192,6 +201,7 @@ public static partial class ProseStyleAnalyzer
         return new ProseStyleReport
         {
             Language = lexicon?.Language ?? language,
+            Senses = SenseFindings(plain, words, lexicon),
             WordCount = wordCount,
             SentenceCount = lengths.Length,
             MeanSentenceWords = lengths.Length == 0 ? 0 : Math.Round(lengths.Average(), 1),
@@ -203,6 +213,29 @@ public static partial class ProseStyleAnalyzer
             ParagraphLengthStdDev = StdDev([.. paragraphs]),
             Findings = findings
         };
+    }
+
+    /// <summary>The senses, in the order a report should read them.</summary>
+    internal static readonly string[] SenseOrder = ["sight", "sound", "smell", "taste", "touch"];
+
+    /// <summary>
+    /// How much of each sense is in the prose.
+    ///
+    /// Always all five rows, always in the same order, even at zero: the row
+    /// that reads zero is the whole point, and a list that omits the senses
+    /// nobody used is a list that hides them.
+    /// </summary>
+    private static IReadOnlyList<ProseStyleFinding> SenseFindings(
+        string plain, MatchCollection words, SceneAnalysisLexicon? lexicon)
+    {
+        var senses = lexicon?.Senses;
+        return [.. SenseOrder.Select(sense =>
+        {
+            var list = senses != null && senses.TryGetValue(sense, out var w) ? w : null;
+            // A language nobody has written the lists for reports as
+            // unsupported rather than as prose with no senses in it.
+            return WordListFinding(sense, plain, words, SetMatcher(list), list is { Count: > 0 });
+        })];
     }
 
     /// <summary>

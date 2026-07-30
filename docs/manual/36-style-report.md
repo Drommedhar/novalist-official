@@ -27,6 +27,14 @@ Each report shows a count and a rate per 1000 words. Click one to see examples w
 - **Sticky sentences** — sentences where function words crowd out the images. Short sentences are ignored, since a high function-word share is normal there and says nothing.
 - **Repeated sentence openers** — three or more sentences in a row starting with the same word.
 
+### Sensory coverage
+
+Five counts, one per sense: sight, sound, smell, taste, touch. They sit apart from the reports above because they are **not problems**. A count of sight words is not something to reduce.
+
+The useful reading is the row showing **zero**. Nearly every writer defaults to sight and sound without noticing, and a single "how sensory is this" total would hide exactly that — so all five are always shown, always in the same order, and a sense the prose never reached is drawn dashed rather than dropped from the list.
+
+Hover a sense for its rate per thousand words. Like every other report here, this is a word-list count in your writing language: a language with no sense lists shows a dash and says it is unsupported, rather than a zero that would read as prose with no senses in it.
+
 ## Your own flagged words
 
 Every check above is one Novalist brings. **Settings → Writing Assistance → Your flagged words** adds one of yours: a list, one word per line, counted exactly like the bundled checks and reported as its own row.
