@@ -607,7 +607,9 @@
     "accessibleFont": "编辑器字体",
     "accessibleFontHint": "列表中列出了为可读性设计的字体——OpenDyslexic、Atkinson Hyperlegible、Lexend——以及常用字体。Novalist 不附带这些字体，所选字体需已安装在本机。",
     "useHighContrast": "切换到高对比度主题",
-    "highContrastHint": "内置主题，文字与背景对比更强。随时可在“外观”中切换回来。"
+    "highContrastHint": "内置主题，文字与背景对比更强。随时可在“外观”中切换回来。",
+    "readAloudNoVoices": "系统未向 Novalist 提供任何语音。请在 Windows 设置 > 时间和语言 > 语音中安装一个，然后重启 Novalist。",
+    "readAloudNoMatchingVoice": "可用语音中没有能朗读 {{language}} 的，朗读将使用系统自行选择的语音。此列表只包含系统语音引擎向 Novalist 公开的语音；在 Windows 上这可能少于已安装的数量，较旧的“桌面”语音不会提供给此类应用。"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",
@@ -3006,19 +3008,6 @@
     "addSelected": "加入选中场景",
     "remove": "从合集移除",
     "delete": "删除合集"
-  },
-  "keywords": {
-    "title": "关键词",
-    "intro": "本书为场景标注所用的词表。在此重命名会同步改写每个带有该词的场景——自由文本标签做不到这一点。",
-    "namePlaceholder": "关键词",
-    "colour": "颜色",
-    "parent": "归属于",
-    "noParent": "顶层",
-    "usedIn": "用于 {{count}} 个场景",
-    "add": "添加关键词",
-    "harvest": "从场景收集",
-    "save": "保存词表",
-    "delete": "删除关键词"
   },
   "groups": {
     "title": "群组与阵营",

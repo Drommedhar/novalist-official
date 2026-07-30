@@ -71,7 +71,9 @@ All three apply to the scene editor, to Manuscript mode, and to the Expose.
 
 - **Mark hard-to-read sentences** — tints difficult and very difficult sentences in the editor. Toggled from the gauge button on the editor toolbar; the setting is where it is remembered. See [Readability marking](05-editor.md#readability-marking).
 - **Read-aloud speed** — how fast the speaker button reads the scene back (0.5-2). Defaults to 1.
-- **Read-aloud voice** — which installed system voice to use. The default, **Match the writing language**, asks for a voice in the language the scene is written in.
+- **Read-aloud voice** — which system voice to use. The default, **Match the writing language**, asks for a voice in the language the scene is written in.
+
+  The list is **what your system's speech engine offers to applications**, which on Windows can be fewer voices than you have installed: the older "Desktop" SAPI5 voices are not offered to apps like this one, so a voice you can see in Windows Settings may not appear here. If nothing in the list speaks your writing language, Novalist says so under the picker rather than letting "Match the writing language" quietly read German aloud in an English voice. Install voices through **Windows Settings → Time & language → Speech** (or your platform's equivalent) and restart Novalist.
 
 See [Accessibility](39-accessibility.md) for what these settings are for and what is still missing, and [Read aloud](05-editor.md#read-aloud) for the button that uses them.
 - **Typewriter Scrolling** — keeps the active line at a fixed vertical position so you don't write near the bottom of the page. When on, an anchor choice appears: **Top**, **Middle**, or **Bottom**.

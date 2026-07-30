@@ -19,7 +19,6 @@ import { LanguagePacksCard } from './LanguagePacksCard'
 import { SceneStagesCard } from './SceneStagesCard'
 import { ManuscriptPropertiesCard } from './ManuscriptPropertiesCard'
 import { SceneLabelsCard } from './SceneLabelsCard'
-import { KeywordsCard } from './KeywordsCard'
 import { GroupsCard } from './GroupsCard'
 import { ThemeTokensCard } from './ThemeTokensCard'
 import { SceneTemplatesCard } from './SceneTemplatesCard'
@@ -240,6 +239,9 @@ export function SettingsView(): React.JSX.Element {
   if (!view) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
   const eff = view.effective
+  // The language the prose is in, which is what read-aloud speaks and therefore
+  // what the voice has to match.
+  const writingLanguage = eff.autoReplacementLanguage || 'en'
   const project = view.project
 
   /** Whether the open project overrides a section. Read from what is stored, so
@@ -491,6 +493,22 @@ export function SettingsView(): React.JSX.Element {
             ))}
           </select>
           <div className="settings-hint">{t('settings.readAloudDesc')}</div>
+          {/* The list is whatever the system speech engine exposes, and on
+              Windows that is a subset of what is installed - the "Desktop"
+              SAPI5 voices are invisible to it. Saying nothing left a writer
+              looking for a voice that will never appear, and left "match the
+              writing language" quietly reading German in an English voice. */}
+          {voices.length === 0 ? (
+            <div className="settings-hint export-warning">{t('settings.readAloudNoVoices')}</div>
+          ) : (
+            !voices.some((v) =>
+              v.lang.toLowerCase().startsWith(writingLanguage.slice(0, 2).toLowerCase())
+            ) && (
+              <div className="settings-hint export-warning">
+                {t('settings.readAloudNoMatchingVoice', { language: writingLanguage })}
+              </div>
+            )
+          )}
           {/* Typewriter scroll makes no sense on a phone (and is force-disabled in
               the mobile editor), so hide it there. */}
           {!isMobile && (
@@ -1066,12 +1084,6 @@ export function SettingsView(): React.JSX.Element {
       titleKey: 'labels.title',
       keywords: ['label', 'labels', 'colour', 'color', 'flag', 'scene', 'corkboard'],
       body: <SceneLabelsCard />
-    },
-    {
-      key: 'keywords',
-      titleKey: 'keywords.title',
-      keywords: ['keyword', 'keywords', 'tag', 'tags', 'vocabulary', 'rename', 'colour', 'color'],
-      body: <KeywordsCard />
     },
     {
       key: 'themeTokens',
