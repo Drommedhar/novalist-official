@@ -118,7 +118,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--nl-scrim-strong);
   padding: calc(env(safe-area-inset-top) + var(--nl-space-md))
     calc(env(safe-area-inset-right) + var(--nl-space-md))
     calc(var(--nl-mobile-tabbar-h) + env(safe-area-inset-bottom))

@@ -54,7 +54,7 @@
   height: 100%;
   background: var(--nl-surface-sidebar);
   border-right: 1px solid var(--nl-border);
-  box-shadow: 2px 0 18px 0 rgba(0, 0, 0, 0.28);
+  box-shadow: var(--nl-elevation-md);
 }
 
 .start-drawer-scroll {
@@ -351,7 +351,7 @@
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-lg);
   bottom: var(--nl-space-xl);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--nl-elevation-high);
   max-width: 380px;
   padding: var(--nl-space-lg);
   position: fixed;

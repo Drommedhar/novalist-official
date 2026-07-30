@@ -260,7 +260,7 @@
 .gallery-lightbox-name {
   color: var(--nv-text);
   font-size: var(--nl-font-title-sm);
-  text-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+  text-shadow: 0 1px 4px var(--nl-scrim-strong);
 }
 
 /* ===== Gallery: context menu ===== */

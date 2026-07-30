@@ -115,7 +115,7 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: var(--nl-space-hairline);
   overflow: hidden;
   text-align: left;
   padding: var(--nl-space-tightest) var(--nl-space-tighter);

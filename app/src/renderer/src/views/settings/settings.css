@@ -83,7 +83,7 @@
 .settings-color {
   width: 60px;
   height: 32px;
-  padding: 2px;
+  padding: var(--nl-space-hairline);
 }
 
 .settings-subgroup {

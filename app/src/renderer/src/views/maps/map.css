@@ -275,7 +275,7 @@
   top: var(--nl-space-tighter);
   right: var(--nl-space-tighter);
   display: inline-flex;
-  padding: 2px;
+  padding: var(--nl-space-hairline);
   color: var(--nl-text-subtle);
   background: transparent;
   border: none;
@@ -331,7 +331,7 @@
 .map-panel-add {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--nl-space-hairline);
   padding: 2px var(--nl-space-tighter);
   font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
@@ -359,7 +359,7 @@
 .map-layer-row {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: var(--nl-space-hairline);
   padding: 3px var(--nl-space-tighter) 3px 0;
   font-size: var(--nl-font-body-sm);
   color: var(--nl-text);
@@ -411,7 +411,7 @@
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-accent);
   border-radius: var(--nl-radius-sm);
-  padding: 1px 3px;
+  padding: var(--nl-space-hairline) var(--nl-space-tightest);
 }
 
 .map-layer-actions {
@@ -477,7 +477,7 @@
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-sm);
-  padding: 1px 3px;
+  padding: var(--nl-space-hairline) var(--nl-space-tightest);
 }
 .map-prop-select {
   flex: 1 1 auto;
@@ -486,7 +486,7 @@
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-sm);
-  padding: 1px 3px;
+  padding: var(--nl-space-hairline) var(--nl-space-tightest);
 }
 .map-prop-caption {
   font-size: var(--nl-font-tiny);
@@ -504,7 +504,7 @@
 .map-prop-elements {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--nl-space-hairline);
   margin-top: var(--nl-space-tighter);
   border-top: 1px solid var(--nl-border-subtle);
   padding-top: var(--nl-space-tighter);

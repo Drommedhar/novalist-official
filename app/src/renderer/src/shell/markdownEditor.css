@@ -83,7 +83,7 @@
 
 .md-surface .cm-selectionBackground,
 .md-surface .cm-content ::selection {
-  background: rgb(210 167 79 / 0.3);
+  background: color-mix(in srgb, var(--nl-accent) 30%, transparent);
 }
 
 .md-surface .cm-placeholder {

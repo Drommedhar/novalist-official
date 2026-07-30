@@ -123,7 +123,7 @@ body {
 
 /* Selection is gilt, per the accent's stated duties. */
 ::selection {
-  background: rgb(210 167 79 / 0.3);
+  background: color-mix(in srgb, var(--nl-accent) 30%, transparent);
   color: var(--nl-text);
 }
 

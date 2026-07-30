@@ -223,7 +223,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--nl-scrim);
 }
 
 .mobile-sheet {
@@ -233,7 +233,7 @@
   background: var(--nl-surface-card);
   border-top-left-radius: var(--nl-radius-xl);
   border-top-right-radius: var(--nl-radius-xl);
-  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--nl-elevation-md);
   padding-bottom: env(safe-area-inset-bottom);
   transition: transform 0.2s ease;
   animation: mobile-sheet-up 0.24s ease;

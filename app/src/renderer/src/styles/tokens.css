@@ -55,6 +55,9 @@
      Spacing steps out from the brand gutter (24px = --nl-space-xl) so panel
      padding lands inside the colophon's 26-34px card band at --nl-space-xxl. */
   --nl-space-none: 0px;
+  /* A hairline: the gap that reads as a rule rather than as space. Every
+     grid that wanted one was writing 1px or 2px by hand. */
+  --nl-space-hairline: 2px;
   --nl-space-tightest: 3px;
   --nl-space-tighter: 6px;
   --nl-space-sm: 8px;
@@ -132,6 +135,12 @@
   --nl-elevation-low: 0 2px 8px -4px rgb(0 0 0 / 0.6);
   --nl-elevation-md: 0 12px 32px -16px rgb(0 0 0 / 0.7);
   --nl-elevation-high: var(--nv-shadow);
+
+  /* The wash behind a sheet or a lightbox. Every overlay was writing its
+     own rgba black, so they dimmed by different amounts on the same
+     screen. */
+  --nl-scrim: rgb(0 0 0 / 0.45);
+  --nl-scrim-strong: rgb(0 0 0 / 0.6);
 }
 
 /* ===== 2. Default theme: the Novalist identity =====

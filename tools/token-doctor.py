@@ -31,6 +31,25 @@ EXTENSION_WORKSPACES = [
     pathlib.Path("..") / "novalist-aiassistant",
 ]
 
+
+# A size written as a number rather than taken from the scale. Both of these
+# are how "the sizes are all over the place" happens: one panel at 11px beside
+# another at 11.5px reads as a mistake even when nobody can say which is wrong.
+#
+# Only px is checked. em and rem are relative to something the author chose on
+# purpose - the prose size, the parent - and that is a different decision.
+# A colour written out instead of taken from the theme. This is the one that
+# actually breaks a theme: the two gold washes in the editor were the accent
+# spelled by hand, so changing the accent left them behind.
+RAW_COLOUR = re.compile(r"#[0-9a-fA-F]{3,8}\b|\brgba?\(")
+
+RAW_FONT = re.compile(r"font-size:\s*[\d.]+px")
+RAW_SPACE = re.compile(r"(?:padding|margin|gap|row-gap|column-gap):\s*[^;]*?[\d.]+px")
+
+# Files that legitimately measure in raw pixels: the token scale itself, and
+# anything drawing at a fixed device size rather than at a text size.
+RAW_ALLOWED = {"tokens.css"}
+
 SKIP_DIRS = {"bin", "obj", "node_modules", "dist", "out"}
 
 
@@ -127,6 +146,22 @@ def main() -> int:
                 for match in REFERENCE_WITH_FALLBACK.finditer(text):
                     fallbacks.setdefault(match.group(1), set()).add(path.as_posix())
 
+    # Sizes written by hand instead of taken from the scale.
+    raw: list[str] = []
+    colours: list[str] = []
+    for path in sorted(args.root.rglob("*.css")):
+        if path.name in RAW_ALLOWED:
+            continue
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            if RAW_FONT.search(line) or RAW_SPACE.search(line):
+                raw.append(f"{path.as_posix()}:{number}: {line.strip()}")
+            # rgb(from var(--nl-accent) r g b / 0.05) derives from the token
+            # and is exactly what this check wants people to write, so a
+            # declaration that already names a token is left alone.
+            if RAW_COLOUR.search(line) and 'var(--' not in line:
+                colours.append(f"{path.as_posix()}:{number}: {line.strip()}")
+
+
     missing = {name: files for name, files in used.items() if name not in defined}
     stale = {} if args.allow_fallbacks else {n: f for n, f in fallbacks.items() if n in defined}
 
@@ -148,6 +183,22 @@ def main() -> int:
             print(f"  {name}")
             for file in sorted(stale[name]):
                 print(f"      {file}")
+
+    if colours:
+        failed = True
+        print(f"{len(colours)} colour(s) written out instead of taken from a token:")
+        for entry in colours:
+            print(f"  {entry}")
+        print("  Use a --nl-* colour, or color-mix() over one. A literal colour")
+        print("  does not follow the theme, which is the whole point of a theme.")
+
+    if raw:
+        failed = True
+        print(f"{len(raw)} size(s) written in raw pixels instead of a token:")
+        for entry in raw:
+            print(f"  {entry}")
+        print("  Use the nearest --nl-font-* or --nl-space-* step, or add a token")
+        print("  to tokens.css if the scale genuinely has a gap.")
 
     if failed:
         return 1

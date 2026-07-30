@@ -104,7 +104,7 @@
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-lg);
-  box-shadow: 0 6px 24px rgb(0 0 0 / 0.35);
+  box-shadow: var(--nl-elevation-md);
   padding: var(--nl-space-normal);
 }
 
@@ -157,7 +157,7 @@
 }
 
 .status-overview-row {
-  padding: 2px 0;
+  padding: var(--nl-space-hairline) 0;
   font-size: var(--nl-font-body-sm);
 }
 

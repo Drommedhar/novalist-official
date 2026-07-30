@@ -23,7 +23,7 @@
    and a gap in the middle is visible at a glance. */
 .analytics-cells {
   display: flex;
-  gap: 1px;
+  gap: var(--nl-space-hairline);
 }
 
 .analytics-cell {

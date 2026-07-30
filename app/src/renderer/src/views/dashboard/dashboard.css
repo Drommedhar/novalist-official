@@ -388,7 +388,7 @@
 .tension-chart {
   align-items: flex-end;
   display: flex;
-  gap: 1px;
+  gap: var(--nl-space-hairline);
   height: 120px;
   margin: var(--nl-space-sm) var(--nl-space-none);
 }
