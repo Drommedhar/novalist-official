@@ -105,7 +105,8 @@
     "rateStars_other": "{{count}} stars",
     "related": "Related research",
     "relatedHint": "Nothing linked yet.",
-    "linkResearch": "Link another item..."
+    "linkResearch": "Link another item...",
+    "importVault": "Import a folder"
   },
   "plotGrid": {
     "title": "Plot Grid",
@@ -3181,5 +3182,18 @@
     "status_rejected": "Rejected",
     "status_withdrawn": "Withdrawn",
     "status_noReply": "No reply"
+  },
+  "vaultImport": {
+    "title": "Import a folder of Markdown notes",
+    "intro": "A folder of ordinary .md files — an Obsidian vault without its plugin, or an export from another tool. Every note comes in as research you can move from; the app does not guess which are characters and which are battles.",
+    "selectFolder": "Choose the folder",
+    "choose": "Choose folder…",
+    "noFolder": "No folder chosen",
+    "found": "{{count}} notes found.",
+    "tagsFound": "Tags and folders found: {{tags}}",
+    "extraTag": "Tag everything with",
+    "extraTagPlaceholder": "Optional — e.g. the vault name",
+    "run": "Import them",
+    "done": "{{count}} imported."
   }
 }

@@ -1,3 +1,4 @@
+using Novalist.Backend.Extensions;
 using Novalist.Core.Services;
 using StreamJsonRpc;
 
@@ -22,6 +23,73 @@ public sealed class ImportRpc(Workspace workspace)
             result.HasPluginData,
             result.Projects.Select(p => new ImportProjectDto(p.Name, p.Path)).ToArray());
     }
+
+    /// <summary>
+    /// What a folder of Markdown files holds, without importing anything.
+    ///
+    /// Novalist imported one thing: a vault made by the old Obsidian plugin,
+    /// with its own metadata files. A folder of ordinary notes - what a vault
+    /// is once the plugin is gone, and what every other tool exports - had no
+    /// way in.
+    /// </summary>
+    [JsonRpcMethod("import/scanVault")]
+    public VaultScanDto ScanVault(string vaultRoot)
+    {
+        var notes = MarkdownVaultImport.Scan(vaultRoot);
+        return new VaultScanDto(
+            notes.Count,
+            // Named rather than counted: a writer about to import four hundred
+            // notes should see what the first of them are.
+            [.. notes.Take(20).Select(n => new VaultNoteDto(n.RelativePath, n.Title, [.. n.Tags]))],
+            [.. notes.SelectMany(n => n.Tags)
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(t => t, StringComparer.CurrentCultureIgnoreCase)]);
+    }
+
+    /// <summary>
+    /// Brings a folder of Markdown files in as research notes.
+    ///
+    /// Every note lands as research rather than being sorted into the Codex. A
+    /// note about a character and a note about a battle look identical, and an
+    /// import that files half of them wrongly is worse than one that files all
+    /// of them somewhere the writer can move them from.
+    /// </summary>
+    [JsonRpcMethod("import/vault")]
+    public async Task<int> ImportVaultAsync(string vaultRoot, string? tag = null)
+    {
+        var research = new ResearchService(workspace.Projects, workspace.FileService);
+        var existing = research.GetAll()
+            .Select(r => r.Properties?.GetValueOrDefault(SourceProperty))
+            .Where(p => !string.IsNullOrEmpty(p))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var extra = (tag ?? string.Empty).Trim();
+        var imported = 0;
+
+        foreach (var note in MarkdownVaultImport.Scan(vaultRoot))
+        {
+            // Where it came from, so importing the same folder twice updates
+            // nothing and duplicates nothing.
+            if (existing.Contains(note.RelativePath)) continue;
+
+            var item = new Core.Models.ResearchItem
+            {
+                Title = note.Title,
+                Content = note.Body,
+                Type = Core.Models.ResearchItemType.Note,
+                Tags = [.. note.Tags, .. extra.Length > 0 ? new[] { extra } : []],
+                Properties = new Dictionary<string, string> { [SourceProperty] = note.RelativePath }
+            };
+            await research.SaveAsync(item);
+            imported++;
+        }
+
+        Log.Info($"import/vault imported={imported}.");
+        return imported;
+    }
+
+    /// <summary>Where an imported note came from, so a second run skips it.</summary>
+    private const string SourceProperty = "importedFrom";
 
     [JsonRpcMethod("import/run")]
     public async Task<ImportRunDto> RunAsync(
@@ -73,3 +141,9 @@ public sealed record ImportDetectionDto(bool HasPluginData, IReadOnlyList<Import
 public sealed record ImportProjectDto(string Name, string Path);
 
 public sealed record ImportRunDto(string ProjectPath);
+
+/// <summary>One Markdown file found in a folder.</summary>
+public sealed record VaultNoteDto(string RelativePath, string Title, string[] Tags);
+
+/// <summary>What a folder of Markdown files holds.</summary>
+public sealed record VaultScanDto(int Total, VaultNoteDto[] FirstFew, string[] Tags);

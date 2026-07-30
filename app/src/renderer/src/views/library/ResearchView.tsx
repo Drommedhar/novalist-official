@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { ExternalLink, FolderOpen, Inbox, Link2, Star, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
+import { ImportVaultDialog } from '../../shell/ImportVaultDialog'
 import { ScratchpadPanel } from '../../shell/ScratchpadPanel'
 import { useShellStore } from '../../stores/shellStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
@@ -52,6 +53,7 @@ export function ResearchView(): React.JSX.Element {
   const [items, setItems] = useState<ResearchItemDto[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [vaultOpen, setVaultOpen] = useState(false)
   const [newTag, setNewTag] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [inboxOnly, setInboxOnly] = useState(false)
@@ -344,6 +346,12 @@ export function ResearchView(): React.JSX.Element {
             </button>
             <button className="research-action-btn" onClick={() => void importFile()}>
               {t('research.importFile')}
+            </button>
+            {/* A folder of ordinary Markdown notes - which is what a vault is
+                once the plugin that made it is gone, and what every other tool
+                exports. */}
+            <button className="research-action-btn" onClick={() => setVaultOpen(true)}>
+              {t('research.importVault')}
             </button>
           </div>
           <input
@@ -714,6 +722,18 @@ export function ResearchView(): React.JSX.Element {
           text={selected.content}
           onConfirm={(target) => void fileIntoEntity(target)}
           onCancel={() => setFiling(null)}
+        />
+      )}
+      {vaultOpen && (
+        <ImportVaultDialog
+          onClose={() => {
+            setVaultOpen(false)
+            // Whatever came in should be on screen without a navigation.
+            void rpc
+              .request<ResearchItemDto[]>('research/list')
+              .then(setItems)
+              .catch(() => {})
+          }}
         />
       )}
     </div>

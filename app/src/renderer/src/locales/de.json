@@ -105,7 +105,8 @@
     "rateStars_other": "{{count}} Sterne",
     "related": "Verwandte Recherche",
     "relatedHint": "Noch nichts verknüpft.",
-    "linkResearch": "Weiteren Eintrag verknüpfen ..."
+    "linkResearch": "Weiteren Eintrag verknüpfen ...",
+    "importVault": "Ordner importieren"
   },
   "plotGrid": {
     "title": "Plot-Raster",
@@ -3189,5 +3190,18 @@
     "status_rejected": "Abgelehnt",
     "status_withdrawn": "Zurückgezogen",
     "status_noReply": "Keine Antwort"
+  },
+  "vaultImport": {
+    "title": "Ordner mit Markdown-Notizen importieren",
+    "intro": "Ein Ordner mit gewöhnlichen .md-Dateien – ein Obsidian-Vault ohne Plugin oder ein Export aus einem anderen Programm. Alles landet als Recherche, die Sie weiterverschieben können; die App rät nicht, was Figur und was Schlacht ist.",
+    "selectFolder": "Ordner wählen",
+    "choose": "Ordner wählen …",
+    "noFolder": "Kein Ordner gewählt",
+    "found": "{{count}} Notizen gefunden.",
+    "tagsFound": "Gefundene Schlagwörter und Ordner: {{tags}}",
+    "extraTag": "Alles verschlagworten mit",
+    "extraTagPlaceholder": "Optional – z. B. der Vault-Name",
+    "run": "Importieren",
+    "done": "{{count}} importiert."
   }
 }

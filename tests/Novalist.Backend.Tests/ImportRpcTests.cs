@@ -87,4 +87,77 @@ public sealed class ImportRpcTests : IDisposable
         Assert.True(File.Exists(Path.Combine(run3.ProjectPath, ".novalist", "project.json")));
         Assert.False(File.Exists(Path.Combine(run3.ProjectPath, "import-log.txt")));
     }
+
+    // --- A folder of ordinary Markdown -------------------------------
+
+    /// <summary>An open project, since imported notes have to land somewhere.</summary>
+    private async Task OpenProjectAsync()
+    {
+        var root = Path.Combine(_dir.Path, "project");
+        Directory.CreateDirectory(root);
+        await _workspace.Projects.CreateProjectAsync(root, "VaultNovel", "Book");
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+    }
+
+    [Fact]
+    public void ScanVault_ReportsWhatIsThereWithoutImporting()
+    {
+        Write("World/Places/Hillsford.md", "# Hillsford\n\nA town.");
+        Write("one.md", "---\ntitle: The Salt Road\ntags: [trade]\n---\nProse.");
+
+        var scan = _rpc.ScanVault(_vault);
+
+        Assert.Equal(2, scan.Total);
+        Assert.Contains(scan.FirstFew, n => n.Title == "The Salt Road");
+        Assert.Contains("trade", scan.Tags);
+        Assert.Contains("Places", scan.Tags);
+    }
+
+    [Fact]
+    public async Task ImportVault_BringsEveryNoteInAsResearch()
+    {
+        await OpenProjectAsync();
+        Write("World/Hillsford.md", "# Hillsford\n\nA town.");
+        Write("one.md", "---\ntitle: The Salt Road\n---\nProse.");
+
+        var imported = await _rpc.ImportVaultAsync(_vault, "vault");
+
+        Assert.Equal(2, imported);
+        var research = new Novalist.Core.Services.ResearchService(
+            _workspace.Projects, _workspace.FileService).GetAll();
+        Assert.Equal(2, research.Count);
+        // Everything lands as research the writer can move from: a note about
+        // a character and a note about a battle look identical.
+        Assert.All(research, r => Assert.Contains("vault", r.Tags));
+        Assert.Contains(research, r => r.Tags.Contains("World"));
+    }
+
+    [Fact]
+    public async Task ImportVault_ImportingTwiceDoesNotDuplicate()
+    {
+        await OpenProjectAsync();
+        Write("one.md", "# One");
+
+        Assert.Equal(1, await _rpc.ImportVaultAsync(_vault));
+        Assert.Equal(0, await _rpc.ImportVaultAsync(_vault));
+
+        Assert.Single(new Novalist.Core.Services.ResearchService(
+            _workspace.Projects, _workspace.FileService).GetAll());
+    }
+
+    [Fact]
+    public async Task ImportVault_ANewNoteInAnAlreadyImportedFolderStillComesIn()
+    {
+        await OpenProjectAsync();
+        Write("one.md", "# One");
+        await _rpc.ImportVaultAsync(_vault);
+
+        Write("two.md", "# Two");
+
+        Assert.Equal(1, await _rpc.ImportVaultAsync(_vault));
+    }
+
+    [Fact]
+    public void ScanVault_AFolderThatIsNotThereIsEmpty()
+        => Assert.Equal(0, _rpc.ScanVault(Path.Combine(_dir.Path, "nope")).Total);
 }

@@ -97,7 +97,8 @@
     "rateStars": "{{count}} 星",
     "related": "相关资料",
     "relatedHint": "尚未关联任何条目。",
-    "linkResearch": "关联另一条目……"
+    "linkResearch": "关联另一条目……",
+    "importVault": "导入文件夹"
   },
   "plotGrid": {
     "title": "剧情网格",
@@ -3221,5 +3222,18 @@
     "status_rejected": "已拒绝",
     "status_withdrawn": "已撤回",
     "status_noReply": "无回复"
+  },
+  "vaultImport": {
+    "title": "导入 Markdown 笔记文件夹",
+    "intro": "一个普通 .md 文件的文件夹——没有插件的 Obsidian 仓库，或来自其他工具的导出。所有笔记都作为资料导入，你可以再移动；应用不会猜哪些是角色、哪些是战役。",
+    "selectFolder": "选择文件夹",
+    "choose": "选择文件夹…",
+    "noFolder": "未选择文件夹",
+    "found": "找到 {{count}} 条笔记。",
+    "tagsFound": "找到的标签与文件夹：{{tags}}",
+    "extraTag": "为全部加上标签",
+    "extraTagPlaceholder": "可选——例如仓库名称",
+    "run": "导入",
+    "done": "已导入 {{count}} 条。"
   }
 }
