@@ -9,6 +9,12 @@ export interface ManuscriptSceneDto {
   wordCount: number
   synopsis: string | null
   pov: string | null
+  /** What the viewpoint wants here. Authored, never inferred. */
+  goal: string | null
+  /** What they are left with. Authored, never inferred. */
+  outcome: string | null
+  /** True when the scene is out of the book but still in the plan. */
+  inactive: boolean
 }
 
 export interface ManuscriptSectionDto {
@@ -55,6 +61,12 @@ interface ManuscriptState {
   cycleStatus(chapterGuid: string): Promise<void>
   setSynopsis(chapterGuid: string, sceneId: string, synopsis: string): Promise<void>
   setPov(chapterGuid: string, sceneId: string, pov: string): Promise<void>
+  setGoalOutcome(
+    chapterGuid: string,
+    sceneId: string,
+    goal: string,
+    outcome: string
+  ): Promise<void>
 }
 
 export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
@@ -168,6 +180,24 @@ export const useManuscriptStore = create<ManuscriptState>((set, get) => ({
           ? {
               ...s,
               scenes: s.scenes.map((sc) => (sc.sceneId === sceneId ? { ...sc, pov: pov || null } : sc))
+            }
+          : s
+      )
+    })
+  },
+
+  setGoalOutcome: async (chapterGuid, sceneId, goal, outcome) => {
+    await rpc.request('scenes/setGoalOutcome', [chapterGuid, sceneId, goal, outcome])
+    set({
+      sections: get().sections.map((s) =>
+        s.chapterGuid === chapterGuid
+          ? {
+              ...s,
+              scenes: s.scenes.map((sc) =>
+                sc.sceneId === sceneId
+                  ? { ...sc, goal: goal || null, outcome: outcome || null }
+                  : sc
+              )
             }
           : s
       )

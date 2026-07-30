@@ -43,6 +43,42 @@ public class SceneData
     public string? Synopsis { get; set; }
 
     /// <summary>
+    /// What the viewpoint character is trying to get in this scene.
+    ///
+    /// The other two thirds of the classic diagnostic live elsewhere already:
+    /// conflict is read out of the prose (and overridable), and the outcome is
+    /// below. Goal and outcome are never inferred, because what somebody wanted
+    /// and whether they got it are the two things a draft most often fails to
+    /// answer and no keyword list can guess.
+    /// </summary>
+    [JsonPropertyName("goal")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Goal { get; set; }
+
+    /// <summary>
+    /// How the scene leaves them: what changed, what it cost, what it opened.
+    /// A scene whose outcome is the same as its goal is a scene where nothing
+    /// happened, which is exactly what writing both down makes visible.
+    /// </summary>
+    [JsonPropertyName("outcome")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Outcome { get; set; }
+
+    /// <summary>
+    /// Out of the book, still in the plan.
+    ///
+    /// Archiving is the only thing Novalist had between keeping a scene and
+    /// deleting it, and an archived scene disappears from every planning view -
+    /// so a scene held back while the writer decides had to be either fully in
+    /// the manuscript or invisible. An inactive scene stays in the binder, the
+    /// corkboard, the outliner and the Plot Grid, and leaves the reading order,
+    /// the word totals and every export.
+    /// </summary>
+    [JsonPropertyName("inactive")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Inactive { get; set; }
+
+    /// <summary>
     /// Key of the <see cref="SceneStage"/> this scene is at. Empty means the
     /// writer has not set one, which is not the same as being at the first
     /// stage - a scene nobody has triaged should not claim to be outlined.

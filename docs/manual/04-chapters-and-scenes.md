@@ -68,7 +68,16 @@ A scene has:
 - **Synopsis** and **notes** — editable in the [scene-notes dock](02-interface-overview.md#the-scene-notes-dock) at the bottom of the editor. The synopsis is also editable from the Manuscript view's outliner and appears on its corkboard cards.
 - **Date / date range** — in-world dates used by the Calendar and Timeline.
 - **Comments** and **footnotes** — anchored to the text. See [Editor](05-editor.md).
+- **Goal** and **outcome** — what the viewpoint character is trying to get here, and what they are left with. Both are editable in the scene-notes dock and as columns in the Manuscript view's outliner. Neither is ever guessed from the prose: conflict can be read out of a scene, but a goal nobody stated and an outcome nobody wrote down are precisely what a draft is missing. Read the two columns down the outliner and a scene where nothing happens says so — the outcome repeats the goal, or there is no outcome at all.
 - **Analysis overrides** — optional manual overrides for detected POV, emotion, intensity, conflict, and tags, used by Smart Lists and the Manuscript outliner.
+
+### Taking a scene out of the book
+
+Right-click a scene in the binder → **Take out of the book**. The scene stays exactly where it is in the binder, the corkboard, the outliner and the Plot Grid, with its title dimmed, and leaves the manuscript: its words stop counting towards any total or target, and it is skipped by every export.
+
+This is the step between keeping a scene and archiving it. Archiving removes a scene from every planning view, so a scene you are still deciding about had to be either fully in the book or invisible. **Put back in the book** reverses it.
+
+Three chips above the binder tree choose what it shows: **In the book** (the default), **Everything**, or **Out of the book** on its own. Smart Lists can ask about it too, under **Out of the book**.
 
 ### Creating a scene
 

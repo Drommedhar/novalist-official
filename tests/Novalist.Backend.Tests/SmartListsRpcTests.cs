@@ -211,4 +211,28 @@ public sealed class SmartListsRpcTests : IDisposable
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.EvaluateAsync("missing"));
     }
+
+    [Fact]
+    public async Task Fields_OfferTheSceneDiagnosticAndParkedScenes()
+    {
+        var fields = _rpc.Fields().Select(f => f.Field).ToArray();
+
+        Assert.Contains("goal", fields);
+        Assert.Contains("outcome", fields);
+        Assert.Contains("inactive", fields);
+
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var answered = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Answered");
+        var open = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Open");
+        answered.Outcome = "She burns it";
+        await _workspace.Projects.SaveScenesAsync();
+
+        // The list worth saving: every scene nothing has come of yet.
+        var lists = await _rpc.SaveAsync(null, "No outcome", "All", [Rule("outcome", "IsNotSet")]);
+        var matches = await _rpc.EvaluateAsync(lists.Single().Id);
+
+        Assert.Equal("Open", matches.Single().SceneTitle);
+        Assert.NotEqual(open.Id, answered.Id);
+    }
+
 }

@@ -15,6 +15,9 @@ export interface SceneDto {
   stage: string | null
   /** True while the writer is holding this scene back from exports. */
   excludeFromExport: boolean
+  /** True when the scene is out of the book but still in the plan: it stays
+   *  here and in every planning view, and leaves word totals and exports. */
+  inactive: boolean
 }
 
 export interface ChapterDto {

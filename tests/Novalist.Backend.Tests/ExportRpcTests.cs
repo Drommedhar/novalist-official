@@ -489,4 +489,26 @@ public sealed class ExportRpcTests : IDisposable
         Assert.Equal(0, preview.Chapters);
         Assert.Equal(0, preview.Words);
     }
+
+    [Fact]
+    public async Task Export_LeavesOutSceneesTakenOutOfTheBook()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Chapter");
+        var kept = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Kept");
+        var parked = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "Parked");
+        await _workspace.WriteSceneAsync(chapter.Guid, kept.Id, "<p>Kept prose.</p>", "Kept prose.");
+        await _workspace.WriteSceneAsync(
+            chapter.Guid, parked.Id, "<p>Parked prose.</p>", "Parked prose.");
+
+        parked.Inactive = true;
+        await _workspace.Projects.SaveScenesAsync();
+
+        var output = Path.Combine(_root, "parked.md");
+        await _rpc.RunAsync("Markdown", output, "T", "A", true, [chapter.Guid]);
+
+        var markdown = await File.ReadAllTextAsync(output);
+        Assert.Contains("Kept prose.", markdown);
+        Assert.DoesNotContain("Parked prose.", markdown);
+    }
+
 }

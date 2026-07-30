@@ -534,6 +534,7 @@ function Outliner(): React.JSX.Element {
   const sections = useManuscriptStore((s) => s.sections)
   const setSynopsis = useManuscriptStore((s) => s.setSynopsis)
   const setPov = useManuscriptStore((s) => s.setPov)
+  const setGoalOutcome = useManuscriptStore((s) => s.setGoalOutcome)
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const targets = useTargetStore((s) => s.targets)
   const definitions = useManuscriptPropsStore((s) => s.definitions)
@@ -548,7 +549,8 @@ function Outliner(): React.JSX.Element {
   // is not a dozen columns anybody wants to read.
   const columns = definitions.filter((d) => d.scope === 'Scene' && d.showInOutliner)
   const grid = {
-    gridTemplateColumns: `180px 160px 1fr 100px 70px 80px${' 120px'.repeat(columns.length)}`
+    gridTemplateColumns:
+      `180px 160px 1fr 1fr 1fr 100px 70px 80px${' 120px'.repeat(columns.length)}`
   }
 
   return (
@@ -557,6 +559,10 @@ function Outliner(): React.JSX.Element {
         <span>{t('shell.chapters')}</span>
         <span>{t('shell.scenes')}</span>
         <span>{t('sceneNotes.synopsisTitle')}</span>
+        {/* Read down the two columns and a scene where nothing happens says so:
+            the outcome repeats the goal, or there is no outcome at all. */}
+        <span>{t('sceneNotes.goal')}</span>
+        <span>{t('sceneNotes.outcome')}</span>
         <span>{t('common.povWatermark')}</span>
         <span>{t('shell.words')}</span>
         <span>{t('targets.column')}</span>
@@ -573,7 +579,9 @@ function Outliner(): React.JSX.Element {
           {section.scenes.map((scene) => (
             <div
               key={scene.sceneId}
-              className={`outliner-row${selectedIds.includes(scene.sceneId) ? ' selected' : ''}`}
+              className={`outliner-row${selectedIds.includes(scene.sceneId) ? ' selected' : ''}${
+                scene.inactive ? ' inactive' : ''
+              }`}
               style={grid}
             >
               <span className="outliner-cell">{section.chapterTitle}</span>
@@ -590,6 +598,32 @@ function Outliner(): React.JSX.Element {
                 className="outliner-input"
                 defaultValue={scene.synopsis ?? ''}
                 onBlur={(e) => void setSynopsis(section.chapterGuid, scene.sceneId, e.target.value)}
+              />
+              <input
+                className="outliner-input"
+                defaultValue={scene.goal ?? ''}
+                placeholder={t('sceneNotes.goal')}
+                onBlur={(e) =>
+                  void setGoalOutcome(
+                    section.chapterGuid,
+                    scene.sceneId,
+                    e.target.value,
+                    scene.outcome ?? ''
+                  )
+                }
+              />
+              <input
+                className="outliner-input"
+                defaultValue={scene.outcome ?? ''}
+                placeholder={t('sceneNotes.outcome')}
+                onBlur={(e) =>
+                  void setGoalOutcome(
+                    section.chapterGuid,
+                    scene.sceneId,
+                    scene.goal ?? '',
+                    e.target.value
+                  )
+                }
               />
               <input
                 className="outliner-input"

@@ -31,8 +31,10 @@ public enum SmartListOperator
 /// <see cref="Field"/> names a scene or chapter attribute: <c>chapterStatus</c>,
 /// <c>pov</c>, <c>tag</c>, <c>plotline</c>, <c>stage</c>, <c>title</c>,
 /// <c>synopsis</c>, <c>notes</c>, <c>words</c>, <c>target</c>, <c>beat</c>,
-/// <c>act</c>, <c>cast</c> or <c>focus</c> for who is in the scene, or
-/// <c>prop:&lt;key&gt;</c> for one of the writer's own fields.
+/// <c>act</c>, <c>cast</c> or <c>focus</c> for who is in the scene,
+/// <c>goal</c> / <c>outcome</c> for the scene diagnostic, <c>inactive</c> for
+/// scenes parked out of the book, or <c>prop:&lt;key&gt;</c> for one of the
+/// writer's own fields.
 /// </summary>
 public sealed class SmartListRule
 {

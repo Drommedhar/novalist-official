@@ -251,7 +251,7 @@ public sealed partial class Workspace : IDisposable
             .OrderBy(s => s.Order)
             .Select(s => new SceneDto(
                 s.Id, s.Title, s.Order, s.WordCount, ResolveLabelColor(s), s.IsFavorite, s.Synopsis,
-                s.Stage, s.ExcludeFromExport))
+                s.Stage, s.ExcludeFromExport, s.Inactive))
             .ToArray();
     }
 
@@ -440,6 +440,9 @@ public sealed record SceneDto(
     /// one. Null is untriaged, not "at the first stage".</summary>
     string? Stage,
     /// <summary>True when the writer is holding this scene back from exports.</summary>
-    bool ExcludeFromExport);
+    bool ExcludeFromExport,
+    /// <summary>True when the scene is out of the book but still in the plan:
+    /// shown here, absent from word totals, targets and every export.</summary>
+    bool Inactive);
 
 public sealed record RecentProjectDto(string Name, string Path, string? Cover);

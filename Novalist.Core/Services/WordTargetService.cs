@@ -68,7 +68,12 @@ public sealed class WordTargetService
             .FirstOrDefault(c => c.Guid == chapterGuid);
         if (chapter == null) return null;
 
-        var scenes = _projectService.GetScenesForChapter(chapterGuid);
+        // A scene taken out of the book neither contributes its words nor its
+        // target: counting a target the writer has parked would make the
+        // chapter look permanently behind.
+        var scenes = _projectService.GetScenesForChapter(chapterGuid)
+            .Where(s => !s.Inactive)
+            .ToList();
         var words = scenes.Sum(s => s.WordCount);
         var target = chapter.WordTarget ?? scenes.Sum(s => s.WordTarget ?? 0);
 

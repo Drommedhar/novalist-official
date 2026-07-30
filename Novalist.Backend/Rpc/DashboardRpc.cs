@@ -84,7 +84,9 @@ public sealed partial class DashboardRpc
         foreach (var chapter in chapters)
         {
             var scenes = manifest?.Chapters.GetValueOrDefault(chapter.Guid) ?? [];
-            var live = scenes.Where(s => s.ArchivedAt == null).ToList();
+            // Archived scenes are gone from the book; inactive ones are still
+            // in the plan but not in the manuscript. Neither is progress.
+            var live = scenes.Where(s => s.ArchivedAt == null && !s.Inactive).ToList();
             var chapterWords = live.Sum(s => s.WordCount);
             totalWords += chapterWords;
             sceneCount += live.Count;

@@ -354,6 +354,14 @@
   max-height: none;
 }
 
+/* Goal and outcome are a line each, not a paragraph. Letting them grow with the
+   dock would push the cast picker and the book's own fields off the bottom. */
+.notes-dock-short {
+  flex: 0 0 auto;
+  min-height: 48px;
+  margin-bottom: var(--nl-space-sm);
+}
+
 .notes-dock-empty {
   display: flex;
   align-items: center;
@@ -768,6 +776,47 @@
 /* Uncommitted Git changes: a dirty accent bar + tinted title. */
 .binder-scene-row.changed {
   box-shadow: inset 2px 0 0 0 var(--nl-git-dirty);
+}
+
+/* Out of the book, still in the plan. Dimmed rather than struck through: the
+   scene is not wrong, it is parked, and it stays fully readable and clickable. */
+.binder-scene-row.inactive .binder-scene-title {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+/* Same reading in the outliner as in the binder: parked, not deleted. */
+.outliner-row.inactive .outliner-scene-title {
+  opacity: 0.5;
+  font-style: italic;
+}
+
+.binder-scene-filter {
+  display: flex;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.binder-filter-chip {
+  flex: 1;
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  border-radius: var(--nl-radius-sm);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.binder-filter-chip:hover {
+  background: var(--nl-surface-hover);
+  color: var(--nl-text);
+}
+
+.binder-filter-chip.active {
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
 }
 
 .binder-scene-row.changed .binder-scene-title {
@@ -1942,7 +1991,9 @@
 
 .outliner-row {
   display: grid;
-  grid-template-columns: 180px 160px 1fr 100px 70px 80px;
+  /* Overridden inline: the real column set depends on how many of the writer's
+     own fields they chose to show. This is the shape without any of them. */
+  grid-template-columns: 180px 160px 1fr 1fr 1fr 100px 70px 80px;
   gap: var(--nl-space-md);
   align-items: center;
   padding: var(--nl-space-tighter) 0;

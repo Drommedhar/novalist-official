@@ -371,6 +371,36 @@ public class SmartListServiceTests
     }
 
     [Fact]
+    public async Task Rules_TheSceneDiagnosticAndParkedScenesAreAskable()
+    {
+        var (sut, _) = OneChapter(new SceneData
+        {
+            Id = "s1",
+            Goal = "Get the letter back",
+            Outcome = "She burns it instead",
+            Inactive = true
+        });
+
+        foreach (var rule in new[]
+        {
+            Rule("goal", SmartListOperator.Contains, "letter"),
+            Rule("outcome", SmartListOperator.Contains, "burns"),
+            Rule("inactive", SmartListOperator.Is, "true")
+        })
+        {
+            Assert.Single(await sut.EvaluateAsync(Rules(SmartListMatch.All, rule)));
+        }
+
+        // The list that is actually worth saving is the negative one: every
+        // scene nothing has come of yet.
+        var (unanswered, _) = OneChapter(new SceneData { Id = "s2", Goal = "Try" });
+        Assert.Single(await unanswered.EvaluateAsync(Rules(
+            SmartListMatch.All, Rule("outcome", SmartListOperator.IsNotSet))));
+        Assert.Empty(await unanswered.EvaluateAsync(Rules(
+            SmartListMatch.All, Rule("inactive", SmartListOperator.IsSet))));
+    }
+
+    [Fact]
     public async Task Rules_UnknownFieldMatchesNothing()
     {
         var (sut, _) = OneChapter(new SceneData { Id = "s1", Title = "A" });

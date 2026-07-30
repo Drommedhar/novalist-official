@@ -111,6 +111,12 @@ public sealed class SmartListService : ISmartListService
             "notes" => scene.Notes ?? string.Empty,
             "stage" => scene.Stage ?? string.Empty,
             "beat" => scene.BeatKey ?? string.Empty,
+            // The two halves of the scene diagnostic. "goal is not set" and
+            // "outcome is not set" are the two lists worth having: a scene
+            // nobody wanted anything in, and a scene nothing came of.
+            "goal" => scene.Goal ?? string.Empty,
+            "outcome" => scene.Outcome ?? string.Empty,
+            "inactive" => scene.Inactive ? "true" : string.Empty,
             "focus" => scene.FocusEntityId ?? string.Empty,
             "words" => scene.WordCount.ToString(),
             "target" => scene.WordTarget?.ToString() ?? string.Empty,

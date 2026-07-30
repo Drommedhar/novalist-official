@@ -161,7 +161,12 @@
       "notes": "Notizen",
       "beat": "Struktur-Beat",
       "words": "Wörter",
-      "target": "Wortziel"
+      "target": "Wortziel",
+      "cast": "In der Szene",
+      "focus": "Szene handelt von",
+      "goal": "Szenenziel",
+      "outcome": "Szenenergebnis",
+      "inactive": "Nicht im Buch"
     }
   },
   "findReplace": {
@@ -982,7 +987,11 @@
     "placeholder": "Notizen zu dieser Szene hinzufügen...",
     "empty": "Öffne eine Szene, um Notizen hinzuzufügen.",
     "synopsisTitle": "ZUSAMMENFASSUNG",
-    "synopsisPlaceholder": "Kurze Zusammenfassung dieser Szene..."
+    "synopsisPlaceholder": "Kurze Zusammenfassung dieser Szene...",
+    "goal": "Ziel",
+    "goalPlaceholder": "Was will die Figur hier erreichen?",
+    "outcome": "Ergebnis",
+    "outcomePlaceholder": "Womit geht sie daraus hervor?"
   },
   "comments": {
     "noSelection": "Wähle zuerst Text in der Szene aus.",
@@ -2751,5 +2760,15 @@
     "acceptAll": "Alle übernehmen",
     "rejectAll": "Alle ablehnen",
     "mode": "Änderungen vorschlagen statt ändern"
+  },
+  "scene": {
+    "makeInactive": "Aus dem Buch nehmen",
+    "makeActive": "Wieder ins Buch aufnehmen"
+  },
+  "binder": {
+    "showActive": "Im Buch",
+    "showAll": "Alles",
+    "showInactive": "Nicht im Buch",
+    "sceneFilter": "Welche Szenen angezeigt werden"
   }
 }

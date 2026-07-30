@@ -56,7 +56,10 @@ public sealed class ManuscriptRpc
                     html,
                     scene.WordCount,
                     scene.Synopsis,
-                    scene.AnalysisOverrides?.Pov));
+                    scene.AnalysisOverrides?.Pov,
+                    scene.Goal,
+                    scene.Outcome,
+                    scene.Inactive));
             }
 
             sections.Add(new ManuscriptSectionDto(
@@ -103,4 +106,10 @@ public sealed record ManuscriptSceneDto(
     string Html,
     int WordCount,
     string? Synopsis,
-    string? Pov);
+    string? Pov,
+    /// <summary>What the viewpoint wants here. Authored, never inferred.</summary>
+    string? Goal,
+    /// <summary>What they are left with. Authored, never inferred.</summary>
+    string? Outcome,
+    /// <summary>True when the scene is out of the book but still in the plan.</summary>
+    bool Inactive);

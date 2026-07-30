@@ -41,7 +41,41 @@ public sealed class ScenesRpc
             scene.Cast?.ToArray() ?? [],
             scene.FocusEntityId,
             scene.NarrativeMode,
-            scene.Strand);
+            scene.Strand,
+            scene.Goal,
+            scene.Outcome,
+            scene.Inactive);
+    }
+
+    /// <summary>
+    /// What the scene's viewpoint wanted and what they were left with. Never
+    /// derived: conflict can be read out of prose, but a goal nobody stated and
+    /// an outcome nobody wrote down are exactly what a draft is missing.
+    /// </summary>
+    [JsonRpcMethod("scenes/setGoalOutcome")]
+    public async Task<SceneMetaDto> SetGoalOutcomeAsync(
+        string chapterGuid, string sceneId, string? goal, string? outcome)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        scene.Goal = NullIfBlank(goal);
+        scene.Outcome = NullIfBlank(outcome);
+        await _workspace.Projects.SaveScenesAsync();
+        return GetMeta(chapterGuid, sceneId);
+    }
+
+    /// <summary>
+    /// Takes a scene out of the book without taking it out of the plan. It keeps
+    /// its place in the binder and every planning view, and leaves the word
+    /// totals, the targets and every export.
+    /// </summary>
+    [JsonRpcMethod("scenes/setInactive")]
+    public async Task<SceneMetaDto> SetInactiveAsync(
+        string chapterGuid, string sceneId, bool inactive)
+    {
+        var (_, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
+        scene.Inactive = inactive;
+        await _workspace.Projects.SaveScenesAsync();
+        return GetMeta(chapterGuid, sceneId);
     }
 
     /// <summary>
@@ -264,7 +298,10 @@ public sealed record SceneMetaDto(
     string[] Cast,
     string? FocusEntityId,
     string? NarrativeMode,
-    string? Strand);
+    string? Strand,
+    string? Goal,
+    string? Outcome,
+    bool Inactive);
 
 /// <summary>Partial patch for a scene's analysis overrides. Null fields are
 /// left unchanged; only supplied fields are written.</summary>

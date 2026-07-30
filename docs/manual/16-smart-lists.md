@@ -25,6 +25,8 @@ Each rule is a field, a comparison, and a value.
 - **POV** — the POV you set, or the one Novalist detects from the prose.
 - **Tag**, **Plotline**, **Scene stage**, **Structure beat**.
 - **Scene title**, **Synopsis**, **Notes**.
+- **Scene goal**, **Scene outcome** — the two halves of the scene diagnostic. "Scene outcome is not set" is the list worth saving: every scene nothing has come of yet.
+- **Out of the book** — scenes you have [taken out of the manuscript](04-chapters-and-scenes.md#taking-a-scene-out-of-the-book) but kept in the plan.
 - **Words**, **Word target**.
 - Any [scene field of your own](10-manuscript.md#your-own-scene-and-chapter-fields), listed under its label.
 

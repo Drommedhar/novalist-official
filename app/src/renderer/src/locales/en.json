@@ -266,7 +266,12 @@
       "notes": "Notes",
       "beat": "Structure beat",
       "words": "Words",
-      "target": "Word target"
+      "target": "Word target",
+      "cast": "In the scene",
+      "focus": "Scene is about",
+      "goal": "Scene goal",
+      "outcome": "Scene outcome",
+      "inactive": "Out of the book"
     }
   },
   "findReplace": {
@@ -1471,7 +1476,11 @@
     "placeholder": "Add notes about this scene...",
     "empty": "Open a scene to add notes.",
     "synopsisTitle": "SYNOPSIS",
-    "synopsisPlaceholder": "Brief summary of this scene..."
+    "synopsisPlaceholder": "Brief summary of this scene...",
+    "goal": "Goal",
+    "goalPlaceholder": "What are they trying to get here?",
+    "outcome": "Outcome",
+    "outcomePlaceholder": "What are they left with?"
   },
   "snapshots": {
     "title": "Scene snapshots",
@@ -2743,5 +2752,15 @@
     "acceptAll": "Take all",
     "rejectAll": "Turn all down",
     "mode": "Suggest edits instead of making them"
+  },
+  "scene": {
+    "makeInactive": "Take out of the book",
+    "makeActive": "Put back in the book"
+  },
+  "binder": {
+    "showActive": "In the book",
+    "showAll": "Everything",
+    "showInactive": "Out of the book",
+    "sceneFilter": "Which scenes to show"
   }
 }

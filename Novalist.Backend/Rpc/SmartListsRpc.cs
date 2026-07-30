@@ -114,6 +114,12 @@ public sealed class SmartListsRpc
             new("synopsis", "synopsis", "text", []),
             new("notes", "notes", "text", []),
             new("beat", "beat", "text", []),
+            // "Goal is not set" and "outcome is not set" are the two lists
+            // worth saving here: a scene nobody wanted anything in, and a scene
+            // nothing came of.
+            new("goal", "goal", "text", []),
+            new("outcome", "outcome", "text", []),
+            new("inactive", "inactive", "choice", ["true"]),
             // Ids rather than names: the cast is stored by id, and a name that
             // changes would silently stop matching.
             new("cast", "cast", "choice", [.. castIds]),

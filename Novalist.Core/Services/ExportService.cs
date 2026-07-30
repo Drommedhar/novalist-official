@@ -274,8 +274,10 @@ public partial class ExportService
         foreach (var chapter in chapters)
         {
             var scenes = _projectService.GetScenesForChapter(chapter.Guid)
-                // Two ways a scene stays out of the book: the writer held it
-                // back, or it is not at a stage this export asked for.
+                // Three ways a scene stays out of the book: it is not in the
+                // book at all, the writer held it back from exports, or it is
+                // not at a stage this export asked for.
+                .Where(s => !s.Inactive)
                 .Where(s => !s.ExcludeFromExport)
                 .Where(s => options.IncludedStages == null
                     || options.IncludedStages.Count == 0

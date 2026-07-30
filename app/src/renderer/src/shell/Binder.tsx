@@ -63,6 +63,9 @@ export function Binder(): React.JSX.Element {
   const [changedIds, setChangedIds] = useState<Set<string>>(new Set())
   const selectedIds = useSelectionStore((s) => s.sceneIds)
   const stages = useStageStore((s) => s.stages)
+  // The binder shows the book by default. A writer looking for something they
+  // parked has to be able to ask for it, and to see both at once while deciding.
+  const [sceneFilter, setSceneFilter] = useState<'active' | 'all' | 'inactive'>('active')
 
   const targets = useTargetStore((s) => s.targets)
   const [labelList, setLabelList] = useState<{ key: string; label: string; color: string }[]>([])
@@ -344,6 +347,24 @@ export function Binder(): React.JSX.Element {
           }
         },
         {
+          // Out of the book, still in the plan. The step between keeping a
+          // scene and archiving it, which until now was the only way down.
+          label: scoped(scene.inactive ? t('scene.makeActive') : t('scene.makeInactive')),
+          onClick: () => {
+            void Promise.all(
+              targets.map((target) =>
+                rpc.request('scenes/setInactive', [
+                  target.chapterGuid,
+                  target.sceneId,
+                  !scene.inactive
+                ])
+              )
+            )
+              .then(() => rpc.request<ProjectStateDto>('project/getState'))
+              .then((state) => store.getState().applyState(state))
+          }
+        },
+        {
           // Made from a scene that already reads right, rather than described
           // in a form: pointing at one is easier than writing down what it is.
           label: t('explorer.saveAsTemplate'),
@@ -510,6 +531,30 @@ export function Binder(): React.JSX.Element {
           {t('smartList.section')}
         </button>
       </div>
+      {/* A scene taken out of the book is still in the plan, so the binder has
+          to be able to show it, hide it, or show only the parked ones - which
+          is the whole point of a state between keeping and archiving. */}
+      {binderTab === 'chapters' && (
+        <div className="binder-scene-filter">
+          {(['active', 'all', 'inactive'] as const).map((mode) => (
+            <button
+              key={mode}
+              className={`binder-filter-chip${sceneFilter === mode ? ' active' : ''}`}
+              aria-pressed={sceneFilter === mode}
+              title={t('binder.sceneFilter')}
+              onClick={() => setSceneFilter(mode)}
+            >
+              {t(
+                mode === 'active'
+                  ? 'binder.showActive'
+                  : mode === 'all'
+                    ? 'binder.showAll'
+                    : 'binder.showInactive'
+              )}
+            </button>
+          ))}
+        </div>
+      )}
       {isMobile && binderTab === 'chapters' && <MobileBookDraftBar />}
       {isMobile && binderTab === 'chapters' && (
         <div className="binder-mobile-actions">
@@ -588,12 +633,20 @@ export function Binder(): React.JSX.Element {
               )}
             </div>
             {!collapsed[chapter.guid] &&
-              chapter.scenes.map((scene, sceneIndex) => (
+              chapter.scenes
+                .filter(
+                  (scene) =>
+                    sceneFilter === 'all' ||
+                    (sceneFilter === 'inactive' ? scene.inactive : !scene.inactive)
+                )
+                .map((scene, sceneIndex) => (
                 <div key={scene.id} className="binder-scene-wrap">
                 <button
                   className={`binder-scene-row${openSceneId === scene.id ? ' active' : ''}${
                     changedIds.has(scene.id) ? ' changed' : ''
-                  }${selectedIds.includes(scene.id) ? ' selected' : ''}`}
+                  }${selectedIds.includes(scene.id) ? ' selected' : ''}${
+                    scene.inactive ? ' inactive' : ''
+                  }`}
                   draggable
                   onDragStart={() =>
                     setDrag({ kind: 'scene', chapterGuid: chapter.guid, sceneId: scene.id })

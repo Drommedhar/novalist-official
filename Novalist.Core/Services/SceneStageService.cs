@@ -100,6 +100,9 @@ public sealed class SceneStageService
         {
             foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid))
             {
+                // A scene the writer took out of the book is not part of its
+                // word count, whatever stage it happens to be sitting at.
+                if (scene.Inactive) continue;
                 var key = scene.Stage ?? string.Empty;
                 if (key.Length > 0 && tally.TryGetValue(key, out var current))
                     tally[key] = (current.Scenes + 1, current.Words + scene.WordCount);

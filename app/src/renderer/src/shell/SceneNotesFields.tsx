@@ -12,6 +12,8 @@ interface SceneMeta {
   focusEntityId?: string | null
   narrativeMode?: string | null
   strand?: string | null
+  goal?: string | null
+  outcome?: string | null
 }
 
 /** How a scene can sit in time relative to the story around it. */
@@ -44,6 +46,8 @@ export function SceneNotesFields(): React.JSX.Element {
   const [focus, setFocus] = useState<string | null>(null)
   const [mode, setMode] = useState('')
   const [strand, setStrand] = useState('')
+  const [goal, setGoal] = useState('')
+  const [outcome, setOutcome] = useState('')
   const definitions = useManuscriptPropsStore((s) => s.definitions)
   const sceneValues = useManuscriptPropsStore((s) => s.sceneValues)
   const sceneProps = definitions.filter((d) => d.scope === 'Scene')
@@ -64,6 +68,8 @@ export function SceneNotesFields(): React.JSX.Element {
           setFocus(meta.focusEntityId ?? null)
           setMode(meta.narrativeMode ?? '')
           setStrand(meta.strand ?? '')
+          setGoal(meta.goal ?? '')
+          setOutcome(meta.outcome ?? '')
         })
         .catch(() => setNotes(''))
     }
@@ -103,6 +109,49 @@ export function SceneNotesFields(): React.JSX.Element {
           onBlur={() => void rpc.request('scenes/setNotes', [openChapterGuid, openSceneId, notes])}
         />
       </div>
+      {/* What they wanted and what they got. Conflict sits between the two and
+          is read out of the prose in the Inspector; these two never are,
+          because a goal nobody stated and an outcome nobody wrote down are
+          precisely what a draft is missing. */}
+      <div className="notes-dock-col notes-dock-props">
+        <label className="notes-dock-label" htmlFor="dock-goal">
+          {t('sceneNotes.goal')}
+        </label>
+        <textarea
+          id="dock-goal"
+          className="notes-dock-textarea notes-dock-short"
+          placeholder={t('sceneNotes.goalPlaceholder')}
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+          onBlur={() =>
+            void rpc.request('scenes/setGoalOutcome', [
+              openChapterGuid,
+              openSceneId,
+              goal,
+              outcome
+            ])
+          }
+        />
+        <label className="notes-dock-label" htmlFor="dock-outcome">
+          {t('sceneNotes.outcome')}
+        </label>
+        <textarea
+          id="dock-outcome"
+          className="notes-dock-textarea notes-dock-short"
+          placeholder={t('sceneNotes.outcomePlaceholder')}
+          value={outcome}
+          onChange={(e) => setOutcome(e.target.value)}
+          onBlur={() =>
+            void rpc.request('scenes/setGoalOutcome', [
+              openChapterGuid,
+              openSceneId,
+              goal,
+              outcome
+            ])
+          }
+        />
+      </div>
+
       {/* A flashback sorts by its date like everything else unless the scene
           says what it is. */}
       <div className="notes-dock-col notes-dock-props">

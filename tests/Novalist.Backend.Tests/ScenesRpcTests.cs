@@ -288,4 +288,52 @@ public sealed class ScenesRpcTests : IDisposable
 
         Assert.Null(meta.NarrativeMode);
     }
+
+    // ── What a scene wanted, and whether it is in the book at all ──
+
+    [Fact]
+    public async Task GoalAndOutcome_AreAuthoredAndComeBack()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+
+        var meta = await _rpc.SetGoalOutcomeAsync(
+            chapterGuid, sceneId, "  Get the letter back  ", "She burns it instead");
+
+        Assert.Equal("Get the letter back", meta.Goal);
+        Assert.Equal("She burns it instead", meta.Outcome);
+        Assert.Equal("Get the letter back", _rpc.GetMeta(chapterGuid, sceneId).Goal);
+    }
+
+    [Fact]
+    public async Task GoalAndOutcome_BlankMeansUnanswered()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+        await _rpc.SetGoalOutcomeAsync(chapterGuid, sceneId, "Something", "Something else");
+
+        // Cleared rather than stored as an empty string: "no outcome yet" is a
+        // list a writer saves, and it has to be answerable.
+        var meta = await _rpc.SetGoalOutcomeAsync(chapterGuid, sceneId, "   ", null);
+
+        Assert.Null(meta.Goal);
+        Assert.Null(meta.Outcome);
+    }
+
+    [Fact]
+    public async Task InactiveScene_StaysInThePlanAndLeavesTheBook()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+
+        var meta = await _rpc.SetInactiveAsync(chapterGuid, sceneId, true);
+        Assert.True(meta.Inactive);
+
+        // Still in the binder - it is parked, not archived.
+        var state = _workspace.BuildState();
+        var scene = state.Chapters
+            .Single(c => c.Guid == chapterGuid).Scenes
+            .Single(s => s.Id == sceneId);
+        Assert.True(scene.Inactive);
+
+        Assert.False((await _rpc.SetInactiveAsync(chapterGuid, sceneId, false)).Inactive);
+    }
+
 }
