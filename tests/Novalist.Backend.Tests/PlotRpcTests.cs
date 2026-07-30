@@ -162,4 +162,98 @@ public sealed class PlotRpcTests : IDisposable
         // No entries of these kinds yet: an empty row list rather than a throw,
         // which is what a book that has not written any should get.
         => Assert.Empty(_rpc.GetGrid(typeKey).Plotlines);
+
+    // ── A thread as more than a row of ticks ──
+
+    [Fact]
+    public async Task PlotlineDetail_CarriesImportanceCastAndSteps()
+    {
+        var rpc = new PlotRpc(_workspace);
+        var created = await rpc.CreatePlotlineAsync("The debt");
+        var id = created.Plotlines.Single().Id;
+
+        // Everything starts a subplot: promoting a thread nobody promoted is
+        // the worse mistake of the two.
+        Assert.Equal("Subplot", created.Plotlines.Single().Importance);
+
+        var grid = await rpc.SetPlotlineDetailAsync(
+            id,
+            importance: "main",
+            castIds: ["c1", "c2", "c1"],
+            steps:
+            [
+                new PlotlineStepDto("", "  She borrows it  ", null, true, 0),
+                new PlotlineStepDto("", "She cannot pay", null, false, 1),
+                new PlotlineStepDto("", "   ", null, false, 2)
+            ],
+            color: " #ff0000 ",
+            description: "  Money and what it costs  ");
+
+        var row = grid.Plotlines.Single();
+        Assert.Equal("Main", row.Importance);
+        // The same id twice is one cast member.
+        Assert.Equal(["c1", "c2"], row.CastIds);
+        // A step with nothing in it is not a step.
+        Assert.Equal(2, row.Steps.Count);
+        Assert.Equal("She borrows it", row.Steps[0].Text);
+        Assert.Equal("#ff0000", row.Color);
+        Assert.Equal("Money and what it costs", row.Description);
+
+        // The number that answers "does this thread ever resolve" - the
+        // commonest developmental note there is.
+        Assert.Equal(1, row.UnresolvedSteps);
+    }
+
+    [Fact]
+    public async Task PlotlineDetail_NonsenseFallsBackAndOmissionsChangeNothing()
+    {
+        var rpc = new PlotRpc(_workspace);
+        var id = (await rpc.CreatePlotlineAsync("A")).Plotlines.Single().Id;
+        await rpc.SetPlotlineDetailAsync(id, importance: "main", castIds: ["c1"]);
+
+        // An unknown importance is a subplot, not the spine.
+        var nonsense = await rpc.SetPlotlineDetailAsync(id, importance: "rhubarb");
+        Assert.Equal("Subplot", nonsense.Plotlines.Single().Importance);
+        // And a call that names nothing leaves the cast alone.
+        Assert.Equal(["c1"], nonsense.Plotlines.Single().CastIds);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => rpc.SetPlotlineDetailAsync("no-such-id", importance: "main"));
+    }
+
+    [Fact]
+    public async Task PlotlineColours_ReachTheBinder()
+    {
+        var rpc = new PlotRpc(_workspace);
+        var id = (await rpc.CreatePlotlineAsync("The debt")).Plotlines.Single().Id;
+        await rpc.SetPlotlineDetailAsync(id, color: "#ff0000");
+
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        scene.PlotlineIds = [id];
+        await _workspace.Projects.SaveScenesAsync();
+
+        // A plotline has carried a colour since the Plot Grid shipped and it
+        // never left that view, so which threads a scene serves was invisible
+        // everywhere the writer actually is.
+        var state = _workspace.BuildState();
+        var row = state.Chapters
+            .Single(c => c.Guid == chapter.Guid).Scenes
+            .Single(sc => sc.Id == scene.Id);
+        Assert.Equal(["#ff0000"], row.PlotlineColors);
+    }
+
+    [Fact]
+    public async Task PlotlineColours_AreEmptyForASceneOnNoThread()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Threadless");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+
+        var row = _workspace.BuildState().Chapters
+            .Single(c => c.Guid == chapter.Guid).Scenes
+            .Single(sc => sc.Id == scene.Id);
+
+        Assert.Empty(row.PlotlineColors);
+    }
+
 }

@@ -81,6 +81,22 @@ That tick writes the scene's cast — the same record the [Wiki](30-wiki.md) rea
 
 Plotline rows keep their right-click menu for renaming and deleting; a Codex row does not, because an entry is renamed where it lives.
 
+## A thread as more than a row of ticks
+
+A plotline carries more than a name and a colour:
+
+- **Importance** — **main**, **subplot** or **minor**. A grid of equal rows says a romance running through every chapter and a running joke are the same kind of thing. They are not, and the difference is what tells you whether a thread is under-served or simply small. Everything starts a subplot; promoting one nobody promoted is the worse mistake.
+- **Cast** — the Codex entries the thread belongs to. A membership grid can say which scenes a thread touches and never whose story it is.
+- **Steps** — what has to happen for the thread to be finished, in order, each one tickable and each one optionally pointing at the scene where it lands. Membership answers "is this thread in this scene"; it cannot answer whether the thread ever resolves, which is the commonest developmental note there is. The count of unresolved steps is what you read down the list for.
+
+No steps means nothing was planned rather than everything being done, and the panel says which.
+
+## Thread colours outside the grid
+
+A plotline has carried a colour since the Plot Grid shipped and it never left this view, so which threads a scene serves was invisible everywhere you actually write.
+
+Scenes in the binder now show a small dot per thread, in the book's plotline order — so the fact that this scene and that one are the same thread is visible without opening the grid. Capped at four dots: past that they stop being distinguishable and start being a smear.
+
 ## Where to go next
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — scenes hold the plotline assignments.

@@ -644,4 +644,25 @@ public class StoryStructureTemplateTests
         Assert.Equal(string.Empty, first.Group);
     }
 
+
+    [Fact]
+    public void APlotThreadKnowsWhetherItEverResolves()
+    {
+        // Membership answers "is this thread in this scene". It cannot answer
+        // whether the thread resolves, which is the commonest developmental
+        // note there is.
+        var thread = new PlotlineData { Name = "The debt" };
+
+        // No steps means nothing was planned, not that everything is done.
+        Assert.Equal(0, thread.UnresolvedSteps);
+        Assert.Equal(PlotlineImportance.Subplot, thread.Importance);
+
+        thread.Steps.Add(new PlotlineStep { Text = "She borrows it", Resolved = true });
+        thread.Steps.Add(new PlotlineStep { Text = "She cannot pay" });
+        Assert.Equal(1, thread.UnresolvedSteps);
+
+        // Two steps made in the same breath have to be tellable apart.
+        Assert.NotEqual(thread.Steps[0].Id, thread.Steps[1].Id);
+    }
+
 }

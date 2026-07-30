@@ -18,6 +18,8 @@ export interface SceneDto {
   /** True when the scene is out of the book but still in the plan: it stays
    *  here and in every planning view, and leaves word totals and exports. */
   inactive: boolean
+  /** Colours of the threads this scene serves, in the book's plotline order. */
+  plotlineColors: string[]
 }
 
 export interface ChapterDto {

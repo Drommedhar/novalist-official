@@ -746,6 +746,20 @@ export function Binder(): React.JSX.Element {
                     )
                   })()}
                   <span className="binder-scene-title">{scene.title}</span>
+                  {/* A plotline has carried a colour since the Plot Grid
+                      shipped and it never left that view, so the binder could
+                      not show that this scene and that one are one thread. */}
+                  {scene.plotlineColors.length > 0 && (
+                    <span className="binder-scene-threads">
+                      {scene.plotlineColors.slice(0, 4).map((color, i) => (
+                        <span
+                          key={`${color}-${i}`}
+                          className="binder-thread-dot"
+                          style={{ background: color }}
+                        />
+                      ))}
+                    </span>
+                  )}
                   {(() => {
                     const target = targets.find((tg) => tg.kind === 'scene' && tg.id === scene.id)
                     if (!target) {

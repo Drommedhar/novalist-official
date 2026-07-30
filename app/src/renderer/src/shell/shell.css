@@ -3635,3 +3635,17 @@
   gap: var(--nl-space-tighter);
   padding-left: var(--nl-space-sm);
 }
+
+/* Which threads a scene serves, as a run of small dots. Capped at four: past
+   that they stop being distinguishable and start being a smear. */
+.binder-scene-threads {
+  display: inline-flex;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+
+.binder-thread-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--nl-radius-pill);
+}

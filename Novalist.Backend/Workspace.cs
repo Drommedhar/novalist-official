@@ -249,6 +249,24 @@ public sealed partial class Workspace : IDisposable
             ?.Color;
     }
 
+    /// <summary>
+    /// The colours of a scene's threads, in the book's plotline order.
+    ///
+    /// A plotline has carried a colour since the Plot Grid shipped and it never
+    /// left that view, so the binder could not show that this scene and that one
+    /// are the same thread.
+    /// </summary>
+    private IReadOnlyList<string> ResolvePlotlineColors(SceneData scene)
+    {
+        var ids = scene.PlotlineIds;
+        if (ids == null || ids.Count == 0) return [];
+
+        return [.. (Projects.ActiveBook?.Plotlines ?? [])
+            .OrderBy(p => p.Order)
+            .Where(p => ids.Contains(p.Id, StringComparer.Ordinal))
+            .Select(p => p.Color)];
+    }
+
     private SceneDto[] ScenesOf(string chapterGuid)
     {
         var manifest = Projects.ScenesManifest;
@@ -261,7 +279,7 @@ public sealed partial class Workspace : IDisposable
             .OrderBy(s => s.Order)
             .Select(s => new SceneDto(
                 s.Id, s.Title, s.Order, s.WordCount, ResolveLabelColor(s), s.IsFavorite, s.Synopsis,
-                s.Stage, s.ExcludeFromExport, s.Inactive))
+                s.Stage, s.ExcludeFromExport, s.Inactive, ResolvePlotlineColors(s)))
             .ToArray();
     }
 
@@ -460,6 +478,13 @@ public sealed record SceneDto(
     bool ExcludeFromExport,
     /// <summary>True when the scene is out of the book but still in the plan:
     /// shown here, absent from word totals, targets and every export.</summary>
-    bool Inactive);
+    bool Inactive,
+    /// <summary>
+    /// Colours of the threads this scene belongs to, in the book's plotline
+    /// order. Plotlines had a colour that only ever appeared inside the Plot
+    /// Grid, so which threads a scene serves was invisible everywhere the
+    /// writer actually is.
+    /// </summary>
+    IReadOnlyList<string> PlotlineColors);
 
 public sealed record RecentProjectDto(string Name, string Path, string? Cover);

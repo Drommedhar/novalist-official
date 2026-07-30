@@ -55,7 +55,7 @@ public sealed class PlotRpc
 
         var rows = byCodex
             ? CodexRows(rowSource)
-            : [.. _plotlines.GetPlotlines().Select(p => new PlotlineDto(p.Id, p.Name, p.Color, p.Order))];
+            : [.. _plotlines.GetPlotlines().Select(ToDto)];
 
         return new PlotGridDto(rows, columns.ToArray());
     }
@@ -89,7 +89,11 @@ public sealed class PlotRpc
 
         return [.. names
             .OrderBy(n => n.Name, StringComparer.OrdinalIgnoreCase)
-            .Select((n, index) => new PlotlineDto(n.Id, n.Name, "#7f7f7f", index))];
+            // Cast rows are people, not threads, so they carry no importance,
+            // no steps and nobody's name but their own.
+            .Select((n, index) => new PlotlineDto(
+                n.Id, n.Name, "#7f7f7f", index,
+                Core.Models.PlotlineImportance.Subplot.ToString(), string.Empty, [], [], 0))];
     }
 
     /// <summary>
@@ -145,6 +149,76 @@ public sealed class PlotRpc
         return GetGrid();
     }
 
+    /// <summary>
+    /// How much of the book a thread is, whose it is, and what has to happen
+    /// for it to be finished.
+    ///
+    /// A grid of equal rows says a romance running through every chapter and a
+    /// running joke are the same kind of thing, and can say which scenes a
+    /// thread touches but never whether it resolves - which is the commonest
+    /// developmental note there is.
+    /// </summary>
+    [JsonRpcMethod("plot/setPlotlineDetail")]
+    public async Task<PlotGridDto> SetPlotlineDetailAsync(
+        string plotlineId,
+        string? importance = null,
+        string[]? castIds = null,
+        PlotlineStepDto[]? steps = null,
+        string? color = null,
+        string? description = null)
+    {
+        var plotline = _plotlines.GetPlotlines().FirstOrDefault(p => p.Id == plotlineId)
+            ?? throw new InvalidOperationException("Unknown plotline.");
+
+        if (importance != null)
+        {
+            // An unknown value reads as a subplot rather than as the spine:
+            // promoting a thread nobody promoted is the worse mistake.
+            plotline.Importance =
+                Enum.TryParse<Core.Models.PlotlineImportance>(importance, true, out var parsed)
+                    ? parsed
+                    : Core.Models.PlotlineImportance.Subplot;
+        }
+
+        if (castIds != null)
+        {
+            plotline.CastIds = [.. castIds
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct(StringComparer.Ordinal)];
+        }
+
+        if (steps != null)
+        {
+            plotline.Steps = [.. steps
+                .Where(step => !string.IsNullOrWhiteSpace(step.Text))
+                .Select((step, index) => new Core.Models.PlotlineStep
+                {
+                    Id = string.IsNullOrWhiteSpace(step.Id) ? Guid.NewGuid().ToString() : step.Id,
+                    Text = step.Text.Trim(),
+                    SceneId = step.SceneId ?? string.Empty,
+                    Resolved = step.Resolved,
+                    Order = index
+                })];
+        }
+
+        if (!string.IsNullOrWhiteSpace(color)) plotline.Color = color.Trim();
+        if (description != null) plotline.Description = description.Trim();
+
+        await _plotlines.UpdateAsync(plotline);
+        return GetGrid();
+    }
+
+    private static PlotlineDto ToDto(Core.Models.PlotlineData p) => new(
+        p.Id, p.Name, p.Color, p.Order,
+        p.Importance.ToString(),
+        p.Description,
+        [.. p.CastIds],
+        [.. p.Steps
+            .OrderBy(step => step.Order)
+            .Select(step => new PlotlineStepDto(
+                step.Id, step.Text, step.SceneId, step.Resolved, step.Order))],
+        p.UnresolvedSteps);
+
     [JsonRpcMethod("plot/deletePlotline")]
     public async Task<PlotGridDto> DeletePlotlineAsync(string plotlineId)
     {
@@ -157,7 +231,24 @@ public sealed record PlotGridDto(
     IReadOnlyList<PlotlineDto> Plotlines,
     IReadOnlyList<PlotColumnDto> Columns);
 
-public sealed record PlotlineDto(string Id, string Name, string Color, int Order);
+public sealed record PlotlineDto(
+    string Id,
+    string Name,
+    string Color,
+    int Order,
+    /// <summary>"Main", "Subplot" or "Minor".</summary>
+    string Importance,
+    string Description,
+    /// <summary>Codex ids this thread belongs to.</summary>
+    IReadOnlyList<string> CastIds,
+    IReadOnlyList<PlotlineStepDto> Steps,
+    /// <summary>Steps still unresolved. Zero with no steps means nothing was
+    /// planned rather than everything being done.</summary>
+    int UnresolvedSteps);
+
+/// <summary>One thing that has to happen for a thread to be finished.</summary>
+public sealed record PlotlineStepDto(
+    string Id, string Text, string? SceneId, bool Resolved, int Order);
 
 public sealed record PlotColumnDto(
     string ChapterGuid,
