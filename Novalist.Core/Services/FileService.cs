@@ -1,18 +1,70 @@
+using System.Collections.Concurrent;
+
 namespace Novalist.Core.Services;
 
 public class FileService : IFileService
 {
-    public async Task<string> ReadTextAsync(string path)
+    /// <summary>
+    /// One gate per file, so two operations on the same path queue instead of
+    /// colliding.
+    ///
+    /// Novalist saves on a timer while the writer keeps working, so a settings
+    /// or scene save can land while the same file is being read or written by
+    /// another path through the app. On Windows the second one does not wait:
+    /// it fails outright with "used by another process", and the write is lost.
+    /// A project has a bounded number of files, so a gate each is cheap.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> Gates = new(
+        StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Tries a few times before giving up. The gate settles anything Novalist
+    /// itself is doing; a backup tool or a virus scanner holding the file for a
+    /// moment is outside it, and retrying is the only answer to that.
+    /// </summary>
+    private const int Attempts = 5;
+    private const int RetryDelayMs = 40;
+
+    private static SemaphoreSlim GateFor(string path)
+        => Gates.GetOrAdd(Path.GetFullPath(path), _ => new SemaphoreSlim(1, 1));
+
+    private static async Task<T> WithFileAsync<T>(string path, Func<Task<T>> work)
     {
-        return await File.ReadAllTextAsync(path);
+        var gate = GateFor(path);
+        await gate.WaitAsync();
+        try
+        {
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    return await work();
+                }
+                catch (IOException) when (attempt < Attempts)
+                {
+                    await Task.Delay(RetryDelayMs * attempt);
+                }
+            }
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 
-    public async Task WriteTextAsync(string path, string content)
+    public Task<string> ReadTextAsync(string path)
+        => WithFileAsync(path, () => File.ReadAllTextAsync(path));
+
+    public Task WriteTextAsync(string path, string content)
     {
         var dir = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
             Directory.CreateDirectory(dir);
-        await File.WriteAllTextAsync(path, content);
+        return WithFileAsync(path, async () =>
+        {
+            await File.WriteAllTextAsync(path, content);
+            return true;
+        });
     }
 
     public Task<bool> ExistsAsync(string path)

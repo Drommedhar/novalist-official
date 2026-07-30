@@ -163,4 +163,68 @@ public class FileServiceTests
         var root = Path.GetPathRoot(Path.GetTempPath())!;
         Assert.Equal(string.Empty, _sut.GetDirectoryName(root));
     }
+
+    [Fact]
+    public async Task ConcurrentWritesToOneFileAllLand()
+    {
+        using var dir = new TempDir();
+        var path = dir.Combine("settings.json");
+
+        // Novalist saves on a timer while the writer keeps working, so two
+        // saves of the same file overlap in ordinary use. On Windows the second
+        // one does not wait - it fails with "used by another process" and the
+        // write is lost.
+        await Task.WhenAll(Enumerable.Range(0, 40)
+            .Select(i => _sut.WriteTextAsync(path, $"value {i}")));
+
+        Assert.StartsWith("value ", await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task ReadsAndWritesOfOneFileDoNotCollide()
+    {
+        using var dir = new TempDir();
+        var path = dir.Combine("settings.json");
+        await _sut.WriteTextAsync(path, "first");
+
+        var work = Enumerable.Range(0, 20)
+            .SelectMany(i => new[] { _sut.WriteTextAsync(path, $"v{i}"), _sut.ReadTextAsync(path) })
+            .ToArray();
+
+        // A read landing mid-write is the same collision from the other side.
+        await Task.WhenAll(work);
+        Assert.NotEmpty(await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task AFileHeldByAnotherProcessIsWaitedOutRatherThanFailed()
+    {
+        using var dir = new TempDir();
+        var path = dir.Combine("held.txt");
+        await _sut.WriteTextAsync(path, "before");
+
+        // The gate settles what Novalist itself is doing; a backup tool or a
+        // scanner holding the file for a moment is outside it.
+        var holder = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        var write = _sut.WriteTextAsync(path, "after");
+        await Task.Delay(50);
+        holder.Dispose();
+
+        await write;
+        Assert.Equal("after", await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task AFileHeldForeverStillReportsTheFailure()
+    {
+        using var dir = new TempDir();
+        var path = dir.Combine("stuck.txt");
+        await _sut.WriteTextAsync(path, "before");
+
+        using var holder = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        // Retrying forever would hang the save queue behind one stuck file.
+        // The caller has to hear about it eventually.
+        await Assert.ThrowsAsync<IOException>(() => _sut.WriteTextAsync(path, "after"));
+    }
 }
