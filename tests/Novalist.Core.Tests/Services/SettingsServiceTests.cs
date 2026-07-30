@@ -74,6 +74,51 @@ public class SettingsServiceTests
         Assert.Empty(sut.Settings.RecentProjects);
     }
 
+    // The recents list showed the same project twice, because the two spellings
+    // Windows produced for it did not compare equal.
+    [Theory]
+    [InlineData("d:/git/book", @"D:\git\book")]        // separator and case
+    [InlineData(@"D:\git\book", @"D:\git\book\")]      // trailing separator
+    [InlineData(@"D:\git\book", @"\D:\git\book")]      // separator before the drive
+    [InlineData(@"D:\git\book", "  D:\\git\\book  ")]  // surrounding whitespace
+    public void AddRecentProject_TreatsTheSameFolderAsOneEntry(string first, string second)
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        using var dir = new TempDir();
+        var sut = new SettingsService(dir.Path);
+        sut.AddRecentProject("A", first);
+        sut.AddRecentProject("A again", second);
+
+        var only = Assert.Single(sut.Settings.RecentProjects);
+        Assert.Equal("A again", only.Name);
+        Assert.Equal(second, only.Path);   // the spelling we were last given is kept
+    }
+
+    [Fact]
+    public void RemoveRecentProject_MatchesADifferentSpellingOfTheSameFolder()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        using var dir = new TempDir();
+        var sut = new SettingsService(dir.Path);
+        sut.AddRecentProject("A", "d:/git/book");
+        sut.RemoveRecentProject(@"D:\git\book\");
+        Assert.Empty(sut.Settings.RecentProjects);
+    }
+
+    [Fact]
+    public void AddRecentProject_KeepsAPathItCannotResolve()
+    {
+        using var dir = new TempDir();
+        var sut = new SettingsService(dir.Path);
+        sut.AddRecentProject("A", "not\0a path");
+        sut.AddRecentProject("B", "   ");
+
+        Assert.Equal(2, sut.Settings.RecentProjects.Count);
+        Assert.Contains(sut.Settings.RecentProjects, r => r.Path == "not\0a path");
+    }
+
     [Fact]
     public void Effective_ReflectsActiveOverrides()
     {

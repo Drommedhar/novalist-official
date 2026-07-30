@@ -49,9 +49,42 @@ public class SettingsService : ISettingsService
         await File.WriteAllTextAsync(_settingsPath, json);
     }
 
+    /// <summary>
+    /// Reduces a project folder to one spelling, so the same project cannot sit
+    /// in the recents list twice. Windows hands us "d:/git/x", "D:\git\x" and
+    /// "D:\git\x\" for the same folder, and a stray separator in front of the
+    /// drive letter has turned up as well.
+    /// </summary>
+    internal static string NormalizePath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+
+        // On Linux the alt separator is the separator, so this is a no-op there
+        // and a backslash stays a legal filename character.
+        var text = path.Trim().Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
+        // "\D:\git\x" - a separator before a drive letter is never meaningful.
+        if (text.Length > 2 && text[0] == Path.DirectorySeparatorChar && char.IsLetter(text[1]) && text[2] == ':')
+            text = text[1..];
+
+        try
+        {
+            text = Path.GetFullPath(text);
+        }
+        catch (ArgumentException)
+        {
+            // Not a path we can resolve. Compare what we were given rather than
+            // drop the entry.
+        }
+
+        text = text.TrimEnd(Path.DirectorySeparatorChar);
+        return OperatingSystem.IsWindows() ? text.ToLowerInvariant() : text;
+    }
+
     public void AddRecentProject(string name, string path, string coverImagePath = "")
     {
-        Settings.RecentProjects.RemoveAll(r => r.Path == path);
+        var key = NormalizePath(path);
+        Settings.RecentProjects.RemoveAll(r => NormalizePath(r.Path) == key);
         Settings.RecentProjects.Insert(0, new RecentProject
         {
             Name = name,
@@ -67,6 +100,7 @@ public class SettingsService : ISettingsService
 
     public void RemoveRecentProject(string path)
     {
-        Settings.RecentProjects.RemoveAll(r => string.Equals(r.Path, path, StringComparison.OrdinalIgnoreCase));
+        var key = NormalizePath(path);
+        Settings.RecentProjects.RemoveAll(r => NormalizePath(r.Path) == key);
     }
 }

@@ -191,6 +191,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **The same project no longer appears twice in the recently opened list.** Windows spells one folder several ways — `d:/git/book`, `D:\git\book`, and the same with a trailing slash — and Novalist compared those spellings literally, so opening a project the other way added a second card for it rather than moving the one you had to the front. Removing a card had the same blind spot, and could leave the duplicate behind. The list now recognises a folder whatever way it was written.
+
 - **A save no longer goes missing when two land at once.** Novalist saves on a timer while you keep working, so a settings or scene save could arrive while the same file was already being written. On Windows the second one failed outright and its changes were silently lost. Saves of the same file now queue behind each other, and a file another program is holding for a moment is waited out rather than given up on.
 
 - **Dimming the paragraphs you are not writing did nothing when page view was on.** Page view moves every paragraph inside a page container, and the dimming — along with paragraph styles and read-aloud's "start from the caret" — was still looking at the editor's own children, which in page view are pages rather than paragraphs. All three now find the paragraph wherever it is sitting.
