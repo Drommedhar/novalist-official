@@ -440,7 +440,11 @@
     "readAloudDesc": "Die auf Ihrem System installierten Stimmen. In der Standardeinstellung fordert Novalist eine Stimme in der Sprache an, in der die Szene geschrieben ist.",
     "reviewerName": "Ihr Name an Änderungsvorschlägen",
     "reviewerNamePlaceholder": "Leer lassen, wenn Sie allein schreiben",
-    "reviewerNameHint": "Wird an jede Änderung im Vorschlagsmodus geschrieben. Nur sinnvoll, wenn mehrere Personen Vorschläge machen."
+    "reviewerNameHint": "Wird an jede Änderung im Vorschlagsmodus geschrieben. Nur sinnvoll, wenn mehrere Personen Vorschläge machen.",
+    "weeklyWordGoal": "Wochenziel",
+    "weeklyWordGoalDesc": "Wörter für die Kalenderwoche, Montag bis Sonntag. Leer lassen für keins. Sinnvoll, wenn Sie an wenigen Tagen viel schreiben statt täglich ein wenig.",
+    "monthlyWordGoal": "Monatsziel",
+    "monthlyWordGoalDesc": "Wörter für den Kalendermonat. Leer lassen für keins."
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -1201,7 +1205,10 @@
     "day3": "Mi",
     "day4": "Do",
     "day5": "Fr",
-    "day6": "Sa"
+    "day6": "Sa",
+    "thisWeek": "Diese Woche",
+    "thisMonth": "Dieser Monat",
+    "horizonPace": "{{words}} pro Tag an den verbleibenden {{days}} Schreibtagen"
   },
   "import": {
     "title": "Aus Obsidian-Plugin importieren",

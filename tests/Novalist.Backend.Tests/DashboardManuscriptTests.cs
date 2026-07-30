@@ -550,4 +550,68 @@ public sealed class DashboardManuscriptTests : IDisposable
         // One weekday over a year is about fifty-two days, not three hundred.
         Assert.InRange(history.WritingDaysConsidered, 45, 60);
     }
+
+    // ── Horizons longer than a day ──
+
+    [Fact]
+    public async Task Horizons_AreOffUntilTheWriterSetsOne()
+    {
+        var dto = await new DashboardRpc(_workspace).GetAsync(1);
+
+        // Nobody is handed a weekly budget they did not ask for.
+        Assert.Equal(0, dto.Week.Goal);
+        Assert.Equal(0, dto.Month.Goal);
+        Assert.Equal(0, dto.Week.Percent);
+    }
+
+    [Fact]
+    public async Task Horizons_CountThisWeekAndThisMonth()
+    {
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetGoalsAsync(500, 50000, null, weeklyGoal: 3000, monthlyGoal: 12000);
+        await SeedSceneAsync("<p>one two three four five</p>", "one two three four five");
+
+        var dto = await rpc.GetAsync(1);
+
+        Assert.Equal(3000, dto.Week.Goal);
+        Assert.Equal(12000, dto.Month.Goal);
+        // Today's five words fall inside both horizons.
+        Assert.Equal(5, dto.Week.Current);
+        Assert.Equal(5, dto.Month.Current);
+        Assert.True(dto.Week.DaysLeft >= 1);
+        Assert.True(dto.Month.DaysLeft >= 1);
+    }
+
+    [Fact]
+    public async Task Horizons_LeftAloneByACallerThatDoesNotKnowAboutThem()
+    {
+        var rpc = new DashboardRpc(_workspace);
+        await rpc.SetGoalsAsync(500, 50000, null, weeklyGoal: 3000, monthlyGoal: 12000);
+
+        // The three-argument form is what shipped first; it must not silently
+        // clear horizons the writer set somewhere else.
+        await rpc.SetGoalsAsync(600, 60000, null);
+
+        var goals = _workspace.Projects.ProjectSettings.WordCountGoals;
+        Assert.Equal(3000, goals.WeeklyGoal);
+        Assert.Equal(12000, goals.MonthlyGoal);
+        Assert.Equal(600, goals.DailyGoal);
+
+        // And a negative is nothing rather than a goal running backwards.
+        await rpc.SetGoalsAsync(600, 60000, null, weeklyGoal: -5, monthlyGoal: 0);
+        Assert.Equal(0, goals.WeeklyGoal);
+        Assert.Equal(0, goals.MonthlyGoal);
+    }
+
+    [Theory]
+    // Monday rather than Sunday: a week that starts mid-weekend cannot be
+    // caught up on the weekend, which is when most catching up happens.
+    [InlineData("2026-07-30", "2026-07-27")]   // a Thursday
+    [InlineData("2026-07-27", "2026-07-27")]   // the Monday itself
+    [InlineData("2026-08-02", "2026-07-27")]   // the Sunday after
+    public void StartOfWeek_IsTheMondayBefore(string day, string expected)
+        => Assert.Equal(
+            DateOnly.Parse(expected, CultureInfo.InvariantCulture),
+            DashboardRpc.StartOfWeek(DateOnly.Parse(day, CultureInfo.InvariantCulture)));
+
 }

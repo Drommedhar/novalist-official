@@ -92,6 +92,22 @@ public class ProjectWordCountGoals
     [JsonPropertyName("dailyGoal")]
     public int DailyGoal { get; set; } = 1000;
 
+    /// <summary>
+    /// Words for the week, or 0 for none.
+    ///
+    /// A daily goal asks the same of every day, which is the wrong question for
+    /// somebody who writes three heavy days a week and none of the others: they
+    /// miss four days out of seven while being exactly on schedule. A weekly
+    /// budget is the one they can actually keep, and it is the one that lets a
+    /// bad Tuesday be made up on Saturday rather than written off.
+    /// </summary>
+    [JsonPropertyName("weeklyGoal")]
+    public int WeeklyGoal { get; set; }
+
+    /// <summary>Words for the calendar month, or 0 for none.</summary>
+    [JsonPropertyName("monthlyGoal")]
+    public int MonthlyGoal { get; set; }
+
     [JsonPropertyName("projectGoal")]
     public int ProjectGoal { get; set; } = 50000;
 

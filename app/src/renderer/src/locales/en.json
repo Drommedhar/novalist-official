@@ -545,7 +545,11 @@
     "readAloudDesc": "The voices your system has installed. Left on the default, Novalist asks for a voice in the language the scene is written in.",
     "reviewerName": "Your name on suggested edits",
     "reviewerNamePlaceholder": "Leave empty if you write alone",
-    "reviewerNameHint": "Put on each edit you make in suggestion mode. Only worth filling in when more than one person is suggesting."
+    "reviewerNameHint": "Put on each edit you make in suggestion mode. Only worth filling in when more than one person is suggesting.",
+    "weeklyWordGoal": "Weekly word goal",
+    "weeklyWordGoalDesc": "Words for the calendar week, Monday to Sunday. Leave empty for none. Useful when you write a few heavy days rather than a little every day.",
+    "monthlyWordGoal": "Monthly word goal",
+    "monthlyWordGoalDesc": "Words for the calendar month. Leave empty for none."
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -1577,7 +1581,10 @@
     "day3": "Wed",
     "day4": "Thu",
     "day5": "Fri",
-    "day6": "Sat"
+    "day6": "Sat",
+    "thisWeek": "This week",
+    "thisMonth": "This month",
+    "horizonPace": "{{words}} a day over {{days}} writing days left"
   },
   "import": {
     "title": "Import from Obsidian Plugin",

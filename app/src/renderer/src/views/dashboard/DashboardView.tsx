@@ -63,6 +63,17 @@ interface DashboardDto {
     sceneId: string
     timestamp: string
   }[]
+  week: Horizon
+  month: Horizon
+}
+
+/** Progress over a horizon longer than a day. */
+interface Horizon {
+  current: number
+  goal: number
+  percent: number
+  /** Writing days left in the horizon, today included. */
+  daysLeft: number
 }
 
 const RANGES = [30, 90, 365]
@@ -243,6 +254,45 @@ export function DashboardView(): React.JSX.Element {
           <div className="dashboard-streak">
             {t('dashboard.streakDays', { count: data.currentStreak })}
           </div>
+
+          {/* Longer horizons, shown only once the writer has set one. A daily
+              goal asks the same of every day, so somebody who writes three
+              heavy days a week misses four out of seven while being exactly on
+              schedule - and has no way to make Tuesday up on Saturday. */}
+          {[
+            { horizon: data.week, label: 'dashboard.thisWeek' },
+            { horizon: data.month, label: 'dashboard.thisMonth' }
+          ]
+            .filter((row) => row.horizon.goal > 0)
+            .map((row) => (
+              <div key={row.label} className="dashboard-horizon">
+                <div className="dashboard-goal-row">
+                  <span>{t(row.label)}</span>
+                  <span>
+                    {row.horizon.current.toLocaleString()} /{' '}
+                    {row.horizon.goal.toLocaleString()}
+                  </span>
+                </div>
+                <div className="dashboard-bar-track">
+                  <div
+                    className="dashboard-bar-fill"
+                    style={{ width: `${row.horizon.percent}%` }}
+                  />
+                </div>
+                {/* What is left, over the days left to write it in - which is
+                    the number that says whether being behind matters. */}
+                {row.horizon.current < row.horizon.goal && row.horizon.daysLeft > 0 && (
+                  <div className="dashboard-streak">
+                    {t('dashboard.horizonPace', {
+                      words: Math.ceil(
+                        (row.horizon.goal - row.horizon.current) / row.horizon.daysLeft
+                      ).toLocaleString(),
+                      days: row.horizon.daysLeft
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
 
           {/* A journal has been kept per day all along and shown as a bar
               chart and nothing else. */}

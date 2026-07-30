@@ -682,6 +682,29 @@ export function SettingsView(): React.JSX.Element {
               />
               <div className="settings-hint">{t('settings.dailyWordGoalDesc')}</div>
 
+              {/* Longer horizons. Blank or zero turns one off, which is what
+                  every project starts at - nobody is given a weekly budget
+                  they did not ask for. */}
+              <label className="inspector-label" htmlFor="set-weekly-goal">
+                {t('settings.weeklyWordGoal')}
+              </label>
+              <SettingInput
+                id="set-weekly-goal"
+                value={String(project.weeklyGoal || '')}
+                onCommit={(v) => void updateProjectMeta({ weeklyGoal: Number(v) || 0 })}
+              />
+              <div className="settings-hint">{t('settings.weeklyWordGoalDesc')}</div>
+
+              <label className="inspector-label" htmlFor="set-monthly-goal">
+                {t('settings.monthlyWordGoal')}
+              </label>
+              <SettingInput
+                id="set-monthly-goal"
+                value={String(project.monthlyGoal || '')}
+                onCommit={(v) => void updateProjectMeta({ monthlyGoal: Number(v) || 0 })}
+              />
+              <div className="settings-hint">{t('settings.monthlyWordGoalDesc')}</div>
+
               <label className="inspector-label" htmlFor="set-project-goal">
                 {t('settings.projectWordGoal')}
               </label>

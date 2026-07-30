@@ -580,7 +580,11 @@
     "readAloudDesc": "系统已安装的语音。保持默认时，Novalist 会请求与场景写作语言相同的语音。",
     "reviewerName": "修订建议上的署名",
     "reviewerNamePlaceholder": "独自写作时可留空",
-    "reviewerNameHint": "写入建议模式下的每一处修改。多人协作时才有必要填写。"
+    "reviewerNameHint": "写入建议模式下的每一处修改。多人协作时才有必要填写。",
+    "weeklyWordGoal": "每周字数目标",
+    "weeklyWordGoalDesc": "本自然周（周一至周日）的字数。留空表示不设。适合集中几天写作而非每天少量写作的人。",
+    "monthlyWordGoal": "每月字数目标",
+    "monthlyWordGoalDesc": "本自然月的字数。留空表示不设。"
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",
@@ -1612,7 +1616,10 @@
     "day3": "三",
     "day4": "四",
     "day5": "五",
-    "day6": "六"
+    "day6": "六",
+    "thisWeek": "本周",
+    "thisMonth": "本月",
+    "horizonPace": "剩余 {{days}} 个写作日，每天 {{words}} 字"
   },
   "import": {
     "title": "从 Obsidian 插件导入",

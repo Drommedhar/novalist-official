@@ -80,6 +80,8 @@ Per-project targets that feed the Dashboard's goal cards.
 - **Project Deadline** — the date you aim to finish; pacing on the Dashboard is measured against it.
 - **Author** — the author name stored with the project (also used as the default author when exporting).
 - **Daily Word Goal** — how many new words a day you are aiming for.
+- **Weekly Word Goal** — words for the calendar week, Monday to Sunday. Leave it empty for none. Worth setting if you write a few heavy days rather than a little every day: a daily goal marks you down four days in seven for being exactly on schedule.
+- **Monthly Word Goal** — words for the calendar month. Leave it empty for none.
 - **Project Word Goal** — the total word count you are aiming at for the whole project.
 - **Word targets** — the same panel the [Dashboard](11-dashboard.md#word-targets) shows: every [target](04-chapters-and-scenes.md#word-targets) you have set on an act, chapter, or scene with its progress, and a drop-down to set a new one.
 

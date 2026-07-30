@@ -401,3 +401,9 @@
   gap: var(--nl-space-tightest);
   margin-top: var(--nl-space-tightest);
 }
+
+/* A horizon longer than a day, shown only once the writer sets one. Spaced off
+   the daily bar so the three do not read as one stack of the same thing. */
+.dashboard-horizon {
+  margin-top: var(--nl-space-md);
+}

@@ -46,6 +46,10 @@ export interface ProjectMeta {
   watchFilesystem: boolean
   deadline: string | null
   dailyGoal: number
+  /** Words for the calendar week; 0 means no weekly horizon. */
+  weeklyGoal: number
+  /** Words for the calendar month; 0 means no monthly horizon. */
+  monthlyGoal: number
   projectGoal: number
 }
 

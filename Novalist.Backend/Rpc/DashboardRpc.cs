@@ -144,6 +144,14 @@ public sealed partial class DashboardRpc
 
         var history = BuildHistoryStats(goals, book.Id, today);
 
+        // Longer horizons, because a daily goal asks the same of every day and
+        // somebody who writes three heavy days a week misses four out of seven
+        // while being exactly on schedule. A week is the budget they can keep;
+        // a month is the one a deadline is usually quoted in.
+        var (weekCurrent, weekLeft) = HorizonProgress(book.Id, StartOfWeek(today), today);
+        var (monthCurrent, monthLeft) =
+            HorizonProgress(book.Id, new DateOnly(today.Year, today.Month, 1), today);
+
         var recentActivity = activity
             .OrderByDescending(a => a.Modified)
             .Take(8)
@@ -190,7 +198,48 @@ public sealed partial class DashboardRpc
             FindEchoPhrases(allText.ToString(), 3, 5).Take(20)
                 .Select(e => new EchoPhraseDto(e.Phrase, e.Count)).ToArray(),
             bars.ToArray(),
-            recentActivity);
+            recentActivity,
+            new HorizonDto(
+                weekCurrent, goals.WeeklyGoal, Percent(weekCurrent, goals.WeeklyGoal), weekLeft),
+            new HorizonDto(
+                monthCurrent, goals.MonthlyGoal, Percent(monthCurrent, goals.MonthlyGoal),
+                monthLeft));
+    }
+
+    /// <summary>Percent of a goal, capped, or 0 when no goal is set.</summary>
+    private static int Percent(int current, int goal)
+        => goal > 0 ? Math.Min(100, (int)Math.Round(current * 100.0 / goal)) : 0;
+
+    /// <summary>
+    /// Monday of the week <paramref name="day"/> falls in. Monday rather than
+    /// Sunday because a writing week that starts mid-weekend cannot be caught up
+    /// on the weekend, which is when most of the catching up happens.
+    /// </summary>
+    internal static DateOnly StartOfWeek(DateOnly day)
+        => day.AddDays(-(((int)day.DayOfWeek + 6) % 7));
+
+    /// <summary>
+    /// Words written since <paramref name="from"/>, and how many writing days
+    /// are left in the horizon including today - which is what turns "behind" into
+    /// "behind, with three days to fix it".
+    /// </summary>
+    private (int Written, int DaysLeft) HorizonProgress(
+        string bookId, DateOnly from, DateOnly today)
+    {
+        var written = 0;
+        for (var day = from; day <= today; day = day.AddDays(1))
+            written += _workspace.WordHistory.TotalForDay(day, bookId);
+
+        var goals = _workspace.Projects.ProjectSettings.WordCountGoals;
+        var end = from.Day == 1 && from.Month == today.Month
+            ? new DateOnly(today.Year, today.Month, DateTime.DaysInMonth(today.Year, today.Month))
+            : from.AddDays(6);
+
+        var daysLeft = 0;
+        for (var day = today; day <= end; day = day.AddDays(1))
+            if (goals.IsWritingDay(day)) daysLeft++;
+
+        return (written, daysLeft);
     }
 
     /// <summary>
@@ -286,13 +335,23 @@ public sealed partial class DashboardRpc
         return (remaining, perDay);
     }
 
+    /// <summary>
+    /// The word goals. <paramref name="weeklyGoal"/> and
+    /// <paramref name="monthlyGoal"/> are optional so a caller written before
+    /// longer horizons existed keeps working and leaves them alone; 0 turns one
+    /// off, which is what every project starts at.
+    /// </summary>
     [JsonRpcMethod("dashboard/setGoals")]
-    public async Task SetGoalsAsync(int dailyGoal, int projectGoal, string? deadline)
+    public async Task SetGoalsAsync(
+        int dailyGoal, int projectGoal, string? deadline,
+        int? weeklyGoal = null, int? monthlyGoal = null)
     {
         var goals = _workspace.Projects.ProjectSettings.WordCountGoals;
         goals.DailyGoal = dailyGoal;
         goals.ProjectGoal = projectGoal;
         goals.Deadline = string.IsNullOrWhiteSpace(deadline) ? null : deadline;
+        if (weeklyGoal.HasValue) goals.WeeklyGoal = Math.Max(0, weeklyGoal.Value);
+        if (monthlyGoal.HasValue) goals.MonthlyGoal = Math.Max(0, monthlyGoal.Value);
         await _workspace.Projects.SaveProjectSettingsAsync();
     }
 
@@ -479,7 +538,19 @@ public sealed record DashboardDto(
     int MaxChapterWords,
     IReadOnlyList<EchoPhraseDto> EchoPhrases,
     IReadOnlyList<WordHistoryBarDto> WordHistory,
-    IReadOnlyList<RecentActivityDto> RecentActivity);
+    IReadOnlyList<RecentActivityDto> RecentActivity,
+    /// <summary>This calendar week, Monday to Sunday.</summary>
+    HorizonDto Week,
+    /// <summary>This calendar month.</summary>
+    HorizonDto Month);
+
+/// <summary>
+/// Progress over a horizon longer than a day.
+///
+/// <c>DaysLeft</c> counts the writing days remaining in it including today,
+/// which is what turns "behind" into "behind, with three days to fix it".
+/// </summary>
+public sealed record HorizonDto(int Current, int Goal, int Percent, int DaysLeft);
 
 public sealed record StatusBreakdownDto(string Status, int Count, int WordCount);
 

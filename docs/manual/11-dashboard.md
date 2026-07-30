@@ -47,6 +47,14 @@ Under the daily bars, four figures the per-day journal can answer that a streak 
 - **Best day** — your highest single day, with its date.
 - **Average per writing day** — across the days you actually wrote.
 
+### Weekly and monthly goals
+
+Set a **weekly** or **monthly word goal** in Settings and it appears under the daily bar with its own progress bar. Both are off until you set one — nobody is handed a budget they did not ask for.
+
+A daily goal asks the same of every day, which is the wrong question if you write a few heavy days rather than a little every day: you miss four days in seven while being exactly on schedule, and a bad Tuesday can never be made up on Saturday. The week is the budget most writers can actually keep.
+
+Under a horizon you are behind on, Novalist says what it would take: the words left divided by the **writing days** left in that week or month, today included. So "behind" reads as "behind, with three days to fix it".
+
 ### Writing days and an adaptive goal
 
 Tick the weekdays you write on. Days you untick are left out of every figure above and never break a streak — a streak that snaps on a Sunday you told Novalist you take off is not measuring anything.
@@ -129,7 +137,7 @@ A short list of the scenes you edited most recently, each with its chapter and a
 Two places:
 
 - **On the Dashboard** — click the **Daily Progress** or **Goal Tracking** card title and enter a number.
-- **Settings → Writing Goals** — **Daily Word Goal**, **Project Word Goal**, and **Project Deadline** (`YYYY-MM-DD`). The deadline can only be set here.
+- **Settings → Writing Goals** — **Daily Word Goal**, **Weekly Word Goal**, **Monthly Word Goal**, **Project Word Goal**, and **Project Deadline** (`YYYY-MM-DD`). The deadline and the two longer horizons can only be set here.
 
 Goals are per-project.
 

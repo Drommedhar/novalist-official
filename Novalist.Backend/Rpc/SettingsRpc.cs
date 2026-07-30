@@ -175,6 +175,15 @@ public sealed class SettingsRpc
                 case "projectGoal":
                     settings.WordCountGoals.ProjectGoal = Math.Max(0, value.GetInt32());
                     break;
+                // A week is the budget somebody who writes three heavy days can
+                // actually keep; a daily goal marks them down four days in seven
+                // for being exactly on schedule. 0 turns the horizon off.
+                case "weeklyGoal":
+                    settings.WordCountGoals.WeeklyGoal = Math.Max(0, value.GetInt32());
+                    break;
+                case "monthlyGoal":
+                    settings.WordCountGoals.MonthlyGoal = Math.Max(0, value.GetInt32());
+                    break;
                 default:
                     throw new InvalidOperationException($"Unknown project meta key '{key}'.");
             }
@@ -265,6 +274,8 @@ public sealed class SettingsRpc
             ["watchFilesystem"] = settings.WatchFilesystem,
             ["deadline"] = settings.WordCountGoals.Deadline,
             ["dailyGoal"] = settings.WordCountGoals.DailyGoal,
+            ["weeklyGoal"] = settings.WordCountGoals.WeeklyGoal,
+            ["monthlyGoal"] = settings.WordCountGoals.MonthlyGoal,
             ["projectGoal"] = settings.WordCountGoals.ProjectGoal
         };
     }

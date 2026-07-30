@@ -261,6 +261,26 @@ public sealed class SettingsRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task UpdateProjectMeta_PersistsTheLongerHorizons()
+    {
+        await OpenProjectAsync();
+
+        // Off until asked for: nobody is handed a weekly budget they did not set.
+        var initial = await _rpc.GetAsync();
+        Assert.Equal(0, initial.GetProperty("project").GetProperty("weeklyGoal").GetInt32());
+
+        var view = await _rpc.UpdateProjectMetaAsync(Patch(
+            """{"weeklyGoal": 4000, "monthlyGoal": 16000}"""));
+        Assert.Equal(4000, view.GetProperty("project").GetProperty("weeklyGoal").GetInt32());
+        Assert.Equal(16000, view.GetProperty("project").GetProperty("monthlyGoal").GetInt32());
+
+        var clamped = await _rpc.UpdateProjectMetaAsync(Patch(
+            """{"weeklyGoal": -1, "monthlyGoal": -1}"""));
+        Assert.Equal(0, clamped.GetProperty("project").GetProperty("weeklyGoal").GetInt32());
+        Assert.Equal(0, clamped.GetProperty("project").GetProperty("monthlyGoal").GetInt32());
+    }
+
+    [Fact]
     public async Task UpdateProjectMeta_UnknownKey_Throws_AndWithoutProject_Throws()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(
