@@ -3035,5 +3035,17 @@
     "parent": "Liegt in",
     "group": "Gruppe",
     "empty": "Noch nichts dieser Art."
+  },
+  "filters": {
+    "title": "Filter",
+    "any": "Beliebig",
+    "status": "Status",
+    "character": "Figur",
+    "location": "Ort",
+    "plotline": "Handlungsstrang",
+    "stage": "Phase",
+    "clear": "{{count}} zurücksetzen",
+    "namePlaceholder": "Filter speichern als…",
+    "removePreset": "Diesen Filter löschen"
   }
 }

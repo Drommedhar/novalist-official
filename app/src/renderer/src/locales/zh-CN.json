@@ -3067,5 +3067,17 @@
     "parent": "位于",
     "group": "群组",
     "empty": "尚无此类条目。"
+  },
+  "filters": {
+    "title": "筛选",
+    "any": "不限",
+    "status": "状态",
+    "character": "角色",
+    "location": "地点",
+    "plotline": "线索",
+    "stage": "阶段",
+    "clear": "清除 {{count}} 项",
+    "namePlaceholder": "将此筛选保存为…",
+    "removePreset": "删除此筛选"
   }
 }

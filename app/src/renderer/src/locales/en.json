@@ -3027,5 +3027,17 @@
     "parent": "Inside",
     "group": "Group",
     "empty": "Nothing of this kind yet."
+  },
+  "filters": {
+    "title": "Filter",
+    "any": "Any",
+    "status": "Status",
+    "character": "Character",
+    "location": "Place",
+    "plotline": "Thread",
+    "stage": "Stage",
+    "clear": "Clear {{count}}",
+    "namePlaceholder": "Save this filter as…",
+    "removePreset": "Delete this filter"
   }
 }

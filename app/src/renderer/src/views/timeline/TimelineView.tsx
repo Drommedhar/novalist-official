@@ -4,6 +4,8 @@ import { ArrowLeftRight, ChevronLeft, ChevronRight, FileDown, Plus, ZoomIn, Mile
 import { rpc } from '../../rpc/client'
 import { StructurePanel } from './StructurePanel'
 import { useShellStore } from '../../stores/shellStore'
+import { useFilterStore } from '../../stores/filterStore'
+import { FilterBar } from '../../shell/FilterBar'
 import { useProjectStore } from '../../stores/projectStore'
 import { useWikiStore } from '../../stores/wikiStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
@@ -88,8 +90,12 @@ export function TimelineView(): React.JSX.Element {
   const [readingOrder, setReadingOrder] = useState(false)
   // Plotlines are stored by id; a lane headed with a GUID says nothing.
   const [plotlineNames, setPlotlineNames] = useState<Record<string, string>>({})
-  const [characterFilter, setCharacterFilter] = useState('')
-  const [locationFilter, setLocationFilter] = useState('')
+  // The shared model rather than local state: narrowing to one character in the
+  // Manuscript and finding the Timeline still showing everyone is the thing
+  // this replaces.
+  const shared = useFilterStore((s) => s.filter)
+  const characterFilter = shared.character
+  const locationFilter = shared.location
   const [structureOpen, setStructureOpen] = useState(false)
   const [structures, setStructures] = useState<
     { id: string; displayName: string; description: string }[]
@@ -310,6 +316,7 @@ export function TimelineView(): React.JSX.Element {
 
   return (
     <div className="timeline">
+      <FilterBar />
       <div className="timeline-toolbar">
         <button className="toolbar-button toolbar-action" onClick={() => setPending({ kind: 'create' })}>
           <Plus size={14} strokeWidth={2} />
@@ -356,7 +363,7 @@ export function TimelineView(): React.JSX.Element {
           <select
             className="dialog-input findreplace-scope"
             value={characterFilter}
-            onChange={(e) => setCharacterFilter(e.target.value)}
+            onChange={(e) => useFilterStore.getState().set({ character: e.target.value })}
           >
             <option value="">{t('timeline.filterCharacter')}</option>
             {availableCharacters.map((name) => (
@@ -370,7 +377,7 @@ export function TimelineView(): React.JSX.Element {
           <select
             className="dialog-input findreplace-scope"
             value={locationFilter}
-            onChange={(e) => setLocationFilter(e.target.value)}
+            onChange={(e) => useFilterStore.getState().set({ location: e.target.value })}
           >
             <option value="">{t('timeline.filterLocation')}</option>
             {availableLocations.map((name) => (

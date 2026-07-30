@@ -90,6 +90,17 @@ A Smart List is a query: it recomputes every time you open it, and a scene is in
 
 Collections are stored with the book, so they travel with the project and survive a restart.
 
+## Shared filters
+
+The Manuscript's status filter and the Timeline's character and place filters used to be three unrelated controls. Narrowing to one character meant setting it again in every view, and the setting was gone the moment you navigated away — so a revision pass over one thread was re-typed at every step.
+
+There is now **one filter bar**, shown above the Manuscript and the Timeline and shared live between them. Narrow by status, character, place, thread or stage; move to the other view and it is still narrowed.
+
+- **Clear** appears only once something is set, and says how many things it will clear.
+- Type a name in **Save this filter as…** and press Enter to keep it. Saved filters appear as chips beside the box — click one to apply it, the × to delete it.
+- Saved filters are stored per project on this machine, like your panel widths: a filter is a way of looking at the book rather than part of it.
+- Switching project clears the filter as well as loading that project's own saved ones. Carrying a character filter into a different book would silently hide most of it.
+
 ## Bookmarks
 
 A tab beside **Chapters**, **Smart Lists** and **Collections** in the binder.

@@ -3780,3 +3780,51 @@
   line-height: 1.45;
   padding: var(--nl-space-tightest) var(--nl-space-sm) var(--nl-space-tighter) var(--nl-space-xl);
 }
+
+/* One filter bar, shared by every view that narrows the book. Wraps rather
+   than scrolls: a chip pushed off the end is a filter nobody knows is set. */
+.filter-bar {
+  align-items: flex-end;
+  border-bottom: 1px solid var(--nl-border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-tighter) var(--nl-space-md);
+}
+
+.filter-chip {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.filter-chip-label {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+}
+
+.filter-presets {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+  margin-left: auto;
+}
+
+.filter-preset {
+  align-items: center;
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-pill);
+  display: inline-flex;
+  padding-right: var(--nl-space-tightest);
+}
+
+.filter-preset-apply {
+  background: none;
+  border: 0;
+  color: var(--nl-text);
+  cursor: pointer;
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+}

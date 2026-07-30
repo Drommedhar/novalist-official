@@ -7,6 +7,8 @@ import { useSettingsStore } from '../../stores/settingsStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
 import { useTargetStore } from '../../stores/targetStore'
 import { COLOUR_DIMENSIONS, sceneColour, type ColourDimension } from './sceneColour'
+import { FilterBar } from '../../shell/FilterBar'
+import { useFilterStore } from '../../stores/filterStore'
 import { useManuscriptPropsStore } from '../../stores/manuscriptPropsStore'
 import { ManuscriptPropertyField } from '../../shell/ManuscriptPropertyField'
 import { SceneBulkBar } from '../../shell/SceneBulkBar'
@@ -72,6 +74,15 @@ export function ManuscriptView(): React.JSX.Element {
     void load()
   }, [load, filterStatus, composed])
 
+  // The shared status chip and the manuscript's own filter are the same
+  // statement about the book, so one follows the other rather than the writer
+  // setting it twice and wondering which won.
+  const sharedStatus = useFilterStore((s) => s.filter.status)
+  useEffect(() => {
+    const wanted = sharedStatus || 'All'
+    if (wanted !== useManuscriptStore.getState().filterStatus) void setFilter(wanted)
+  }, [sharedStatus, setFilter])
+
   useEffect(() => {
     void useManuscriptPropsStore.getState().load()
   }, [])
@@ -89,6 +100,9 @@ export function ManuscriptView(): React.JSX.Element {
 
   return (
     <div className="manuscript">
+      {/* One filter model, shared live with the Timeline. Above the toolbar
+          because it narrows the book rather than changing how it is drawn. */}
+      <FilterBar />
       <div className="manuscript-toolbar">
         <div className="manuscript-modes">
           {MODES.map((m) => (
