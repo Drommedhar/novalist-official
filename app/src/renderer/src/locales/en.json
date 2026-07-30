@@ -3237,5 +3237,12 @@
     "progress": "{{done}} of {{total}}",
     "reset": "Untick the list for another pass",
     "remove": "Remove this"
+  },
+  "metadataExport": {
+    "title": "The book as data",
+    "description": "Not the prose - the structure. One row per scene with its stage, point of view, words, target, date, synopsis, goal, conflict, outcome, tags, threads and cast; and every Codex entry flattened to its fields, sections and ties. Ids come out as names.",
+    "scenesCsv": "Scenes (CSV)",
+    "codexCsv": "Codex (CSV)",
+    "json": "Everything (JSON)"
   }
 }

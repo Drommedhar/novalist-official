@@ -3277,5 +3277,12 @@
     "progress": "{{total}} 项中已完成 {{done}} 项",
     "reset": "重置清单以便再走一遍",
     "remove": "移除"
+  },
+  "metadataExport": {
+    "title": "作为数据的书",
+    "description": "不是文字，而是结构。每个场景一行，含阶段、视角、字数、目标、日期、梗概、目的、冲突、结果、标签、线索与出场；以及每条法典条目展开的字段、章节与关系。ID 会以名称呈现。",
+    "scenesCsv": "场景（CSV）",
+    "codexCsv": "法典（CSV）",
+    "json": "全部（JSON）"
   }
 }

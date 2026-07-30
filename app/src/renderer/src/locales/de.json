@@ -3245,5 +3245,12 @@
     "progress": "{{done}} von {{total}}",
     "reset": "Liste für den nächsten Durchgang zurücksetzen",
     "remove": "Entfernen"
+  },
+  "metadataExport": {
+    "title": "Das Buch als Daten",
+    "description": "Nicht die Prosa, sondern die Struktur. Eine Zeile je Szene mit Phase, Perspektive, Woertern, Ziel, Datum, Zusammenfassung, Ziel, Konflikt, Ergebnis, Schlagworten, Straengen und Besetzung; dazu jeder Kodex-Eintrag, aufgeloest in Felder, Abschnitte und Verbindungen. IDs erscheinen als Namen.",
+    "scenesCsv": "Szenen (CSV)",
+    "codexCsv": "Kodex (CSV)",
+    "json": "Alles (JSON)"
   }
 }

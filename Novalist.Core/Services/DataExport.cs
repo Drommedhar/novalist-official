@@ -199,6 +199,32 @@ public static class MetadataWriter
         yield return s.ExcludedFromExport ? "yes" : "no";
     }
 
+    /// <summary>Column headings for the Codex sheet.</summary>
+    public static readonly string[] CodexColumns = ["Kind", "Name", "Field", "Value"];
+
+    /// <summary>
+    /// The Codex sheet: one row per field rather than one row per entry.
+    ///
+    /// Entries do not share a shape - a character has eyes and a build, a piece
+    /// of lore has a category, and the writer's own types have whatever they
+    /// asked for - so a column per field would be mostly empty and would change
+    /// width with the project. Kind, name, field, value stays the same shape
+    /// whatever is in the book, and pivots back into a wide sheet in one step
+    /// for anybody who wants one.
+    /// </summary>
+    public static string CodexCsv(IEnumerable<EntityMetadataRow> codex)
+        => Csv.Sheet(CodexColumns, codex.SelectMany(CodexCells));
+
+    private static IEnumerable<IEnumerable<string?>> CodexCells(EntityMetadataRow entry)
+    {
+        foreach (var property in entry.Properties)
+            yield return [entry.Kind, entry.Name, property.Key, property.Value];
+        foreach (var section in entry.Sections)
+            yield return [entry.Kind, entry.Name, section.Key, section.Value];
+        foreach (var relationship in entry.Relationships)
+            yield return [entry.Kind, entry.Name, "Relationship", relationship];
+    }
+
     /// <summary>The whole export, indented so a person can read it too.</summary>
     public static string Json(MetadataExport export)
         => JsonSerializer.Serialize(export, JsonOptions);

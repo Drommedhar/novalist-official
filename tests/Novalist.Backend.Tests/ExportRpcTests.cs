@@ -79,6 +79,52 @@ public sealed class ExportRpcTests : IDisposable
         Assert.True(result.Success);
     }
 
+    // The structure of the book rather than its prose. Every writer in
+    // DataExport.cs was built and nothing filled them, so this could not be
+    // produced from the app at all.
+    [Fact]
+    public async Task Metadata_WritesTheSceneSheet()
+    {
+        var output = Path.Combine(_root, "scenes.csv");
+
+        var result = await _rpc.MetadataAsync(output, "sceneCsv");
+
+        Assert.True(result.Success);
+        var text = await File.ReadAllTextAsync(output);
+        Assert.StartsWith("Chapter,Chapter order,Scene", text);
+        Assert.Contains("Kapitel Eins", text);
+        Assert.Contains("Anfang", text);
+    }
+
+    [Fact]
+    public async Task Metadata_WritesTheCodexSheetOneRowPerField()
+    {
+        await new EntitiesRpc(_workspace).CreateAsync("character", "Mira");
+        var output = Path.Combine(_root, "codex.csv");
+
+        var result = await _rpc.MetadataAsync(output, "codexCsv");
+
+        Assert.True(result.Success);
+        var text = await File.ReadAllTextAsync(output);
+        Assert.StartsWith("Kind,Name,Field,Value", text);
+    }
+
+    [Fact]
+    public async Task Metadata_UnknownFormatWritesTheWholeDocument()
+    {
+        var output = Path.Combine(_root, "all.json");
+
+        // Anything that is not one of the two sheets is the JSON document, so a
+        // caller can never end up with an empty file for a typo.
+        var result = await _rpc.MetadataAsync(output, "anything-else");
+
+        Assert.True(result.Success);
+        var text = await File.ReadAllTextAsync(output);
+        Assert.Contains("\"title\": \"Book\"", text);
+        Assert.Contains("\"scenes\"", text);
+        Assert.Contains("\"codex\"", text);
+    }
+
     [Theory]
     [InlineData("Markdown", ".md")]
     [InlineData("Epub", ".epub")]

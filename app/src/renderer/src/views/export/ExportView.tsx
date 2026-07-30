@@ -316,6 +316,30 @@ export function ExportView(): React.JSX.Element {
     }
   }
 
+  /**
+   * The structure of the book rather than its prose.
+   *
+   * A manuscript export answers what the book says. This answers what is in it,
+   * in a shape a spreadsheet or a script can read - which is the only way to
+   * ask a question Novalist has no screen for.
+   */
+  const runMetadata = async (kind: 'sceneCsv' | 'codexCsv' | 'json'): Promise<void> => {
+    const extension = kind === 'json' ? '.json' : '.csv'
+    const suffix = kind === 'codexCsv' ? '-codex' : kind === 'sceneCsv' ? '-scenes' : '-metadata'
+    const output = await window.novalist.saveFile(`${title || 'manuscript'}${suffix}${extension}`)
+    if (!output) return
+    setBusy(true)
+    setResult(null)
+    try {
+      const exported = await rpc.request<{ success: boolean }>('export/metadata', [output, kind])
+      setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
+    } catch {
+      setResult(t('export.exportFailed'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const exportDisabled =
     busy ||
     (chaptersVisible && selected.size === 0) ||
@@ -727,6 +751,36 @@ export function ExportView(): React.JSX.Element {
           {busy ? t('export.exporting') : t('export.exportAction')}
         </button>
         {result && <p className="inspector-meta export-result">{result}</p>}
+
+        {/* Not the book, but what is in it: the outline as data, for a
+            spreadsheet or a script to answer what no screen here answers. */}
+        <details className="export-matter">
+          <summary>{t('metadataExport.title')}</summary>
+          <p className="inspector-meta">{t('metadataExport.description')}</p>
+          <div className="export-metadata-actions">
+            <button
+              className="dialog-button"
+              disabled={busy}
+              onClick={() => void runMetadata('sceneCsv')}
+            >
+              {t('metadataExport.scenesCsv')}
+            </button>
+            <button
+              className="dialog-button"
+              disabled={busy}
+              onClick={() => void runMetadata('codexCsv')}
+            >
+              {t('metadataExport.codexCsv')}
+            </button>
+            <button
+              className="dialog-button"
+              disabled={busy}
+              onClick={() => void runMetadata('json')}
+            >
+              {t('metadataExport.json')}
+            </button>
+          </div>
+        </details>
 
         {/* The pages around the story. Typed, so each is set its own way. */}
         {!isData && (

@@ -73,7 +73,8 @@ test('a relationship saved on a location writes the inverse on the character', a
   await row.locator('input').first().fill('owned by')
   await row.locator('input').nth(1).fill('Mira')
   await row.locator('.codex-rel-inverse').fill('owns')
-  await row.locator('.codex-rel-inverse').blur()
+  // A real focus move rather than element.blur(), which raced the input event.
+  await page.keyboard.press('Tab')
 
   // The place keeps its own row...
   await expect

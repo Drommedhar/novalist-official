@@ -93,23 +93,38 @@ export function EntityListsEditor(): React.JSX.Element | null {
       .catch(() => {})
   }, [entityType, selectedId])
 
+  /**
+   * Saves run one after another, never at the same time.
+   *
+   * Every field's blur saves the whole row set, and moving across a row blurs
+   * three fields in a row. Those saves used to be in flight together, and each
+   * one writes the subject and then the other end of every tie it names - so
+   * two of them interleaving could write the reciprocal from the older set and
+   * lose the one the writer had just finished typing. Queueing them costs
+   * nothing here and makes the order the writer's, not the network's.
+   */
+  const saveQueue = useRef<Promise<unknown>>(Promise.resolve())
+
   const persistRelationships = (next: RelationshipRow[]): void => {
     if (!selectedId) return
-    void rpc
-      .request<Record<string, unknown>>('entities/setRelationships', [
-        selectedId,
-        next.map((r) => ({
-          role: r.role,
-          target: r.target,
-          inverseRole: r.inverseRole ?? '',
-          category: r.category ?? ''
-        })),
-        // Without this the backend falls back to "character", so saving a tie
-        // on a location, an item or a piece of lore looked for a character with
-        // that id, found none, and threw. The write-back stopped being
-        // character-only; the call never said so.
-        entityType
-      ])
+    saveQueue.current = saveQueue.current
+      .catch(() => {})
+      .then(() =>
+        rpc.request<Record<string, unknown>>('entities/setRelationships', [
+          selectedId,
+          next.map((r) => ({
+            role: r.role,
+            target: r.target,
+            inverseRole: r.inverseRole ?? '',
+            category: r.category ?? ''
+          })),
+          // Without this the backend falls back to "character", so saving a tie
+          // on a location, an item or a piece of lore looked for a character with
+          // that id, found none, and threw. The write-back stopped being
+          // character-only; the call never said so.
+          entityType
+        ])
+      )
       .then((updated) => useCodexStore.setState({ selectedRecord: updated }))
   }
 

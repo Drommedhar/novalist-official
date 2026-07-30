@@ -127,6 +127,47 @@ public sealed class ExportRpc
     }
 
     /// <summary>
+    /// Writes the book's scene and Codex metadata as a spreadsheet or a JSON
+    /// document - the structure of the book rather than its prose.
+    ///
+    /// A manuscript export answers "what does it say". This answers "what is in
+    /// it": one row per scene with stage, point of view, words, target, date,
+    /// synopsis, goal, conflict, outcome, tags, threads and cast, and every
+    /// Codex entry flattened to its fields, sections and ties. Ids are resolved
+    /// to names, because an id is not something a spreadsheet reader can use.
+    ///
+    /// <paramref name="format"/> is "sceneCsv", "codexCsv" or "json".
+    /// </summary>
+    [JsonRpcMethod("export/metadata")]
+    public async Task<ExportResultDto> MetadataAsync(string outputPath, string format)
+    {
+        var collector = new MetadataCollector(
+            _workspace.Projects,
+            new EntityService(_workspace.Projects),
+            new PlotlineService(_workspace.Projects));
+        var data = await collector.CollectAsync();
+
+        var isCsv = format is "sceneCsv" or "codexCsv";
+        var text = format switch
+        {
+            "sceneCsv" => MetadataWriter.SceneCsv(data.Scenes),
+            "codexCsv" => MetadataWriter.CodexCsv(data.Codex),
+            _ => MetadataWriter.Json(data)
+        };
+
+        // Excel reads a UTF-8 CSV as the local codepage unless there is a byte
+        // order mark, which turns every accented name in a German project into
+        // mojibake. A JSON file is the opposite case: a mark in front of it is
+        // not valid JSON to a strict parser, and this one is meant to be read
+        // by a script.
+        var encoding = new System.Text.UTF8Encoding(encoderShouldEmitUTF8Identifier: isCsv);
+        await File.WriteAllTextAsync(outputPath, text, encoding);
+
+        var info = new FileInfo(outputPath);
+        return new ExportResultDto(outputPath, info.Exists, info.Exists ? info.Length : 0);
+    }
+
+    /// <summary>
     /// What this export would contain, without writing anything. Runs the same
     /// compile the export runs, so held-back scenes and the stage filter are
     /// counted rather than assumed.

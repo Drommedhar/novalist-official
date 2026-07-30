@@ -387,6 +387,18 @@ Write your back matter with the `<$storename>` and `<$storelink>` placeholders. 
 A store you have not given a link for resolves to nothing rather than to the wrong shop.
 
 
+## The book as data
+
+Every other export answers *what the book says*. Under **The book as data** at the foot of the Export view are three that answer *what is in it*, in a shape a spreadsheet or a script can read.
+
+- **Scenes (CSV)** — one row per scene: chapter and chapter order, scene and scene order, stage, point of view, words, word target, date, synopsis, goal, conflict, outcome, tags, threads and cast. Scenes you have set aside and scenes held back from the book are columns rather than omissions, because an outline that hides them cannot answer why an act is short.
+- **Codex (CSV)** — one row per *field*, not per entry: kind, name, field, value. Entries do not share a shape — a character has eyes and a build, a piece of lore has a category, and your own types have whatever you asked for — so a column per field would be mostly empty and would change width with the project. This stays the same shape whatever is in the book, and pivots back into a wide sheet in one step.
+- **Everything (JSON)** — both of the above in one document, with each entry's sections and relationships kept whole.
+
+Ids never leave the project: cast, threads and every reference come out as names. An entry you deleted from the Codex leaves its id behind on the scenes that referenced it, and that id is written rather than dropped — the row says something is there and is no longer resolvable.
+
+The CSV files carry a byte order mark so Excel reads accented names correctly instead of turning them into mojibake. The JSON deliberately does not, because a mark in front of it is not valid JSON to a strict parser.
+
 ## Where to go next
 
 - [Exposé](32-expose.md) — write the pitch document with live Normseiten counts, and export it in the same layout.
