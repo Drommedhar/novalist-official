@@ -2970,5 +2970,17 @@
     "harvest": "Collect from scenes",
     "save": "Save vocabulary",
     "delete": "Delete keyword"
+  },
+  "groups": {
+    "title": "Groups and factions",
+    "intro": "Named sets that span the Codex: a house, a ship and a crest can all belong to one faction. Renaming a group here renames it on every entry in it.",
+    "namePlaceholder": "Group name",
+    "colour": "Colour",
+    "descriptionPlaceholder": "What this group is",
+    "members": "{{count}} entries",
+    "add": "Add group",
+    "harvest": "Collect from the Codex",
+    "save": "Save groups",
+    "delete": "Delete group"
   }
 }

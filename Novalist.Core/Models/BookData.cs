@@ -144,6 +144,14 @@ public class BookData
     public List<Keyword> Keywords { get; set; } = [];
 
     /// <summary>
+    /// Factions, houses, crews and families. The group was a bare string on
+    /// each entry with no colour, description or rename, so correcting "the
+    /// Ravens" to "House Raven" meant opening every entry that said the first.
+    /// </summary>
+    [JsonPropertyName("groups")]
+    public List<EntityGroup> Groups { get; set; } = [];
+
+    /// <summary>
     /// Fields the writer added to every scene or chapter of this book. Per book
     /// for the same reason the stages are: the things worth tracking differ
     /// between a thriller and a short-story collection.

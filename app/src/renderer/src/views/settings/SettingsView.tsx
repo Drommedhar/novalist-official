@@ -20,6 +20,7 @@ import { SceneStagesCard } from './SceneStagesCard'
 import { ManuscriptPropertiesCard } from './ManuscriptPropertiesCard'
 import { SceneLabelsCard } from './SceneLabelsCard'
 import { KeywordsCard } from './KeywordsCard'
+import { GroupsCard } from './GroupsCard'
 import { SceneTemplatesCard } from './SceneTemplatesCard'
 import { TagsCard } from './TagsCard'
 import './settings.css'
@@ -1070,6 +1071,12 @@ export function SettingsView(): React.JSX.Element {
       titleKey: 'keywords.title',
       keywords: ['keyword', 'keywords', 'tag', 'tags', 'vocabulary', 'rename', 'colour', 'color'],
       body: <KeywordsCard />
+    },
+    {
+      key: 'groups',
+      titleKey: 'groups.title',
+      keywords: ['group', 'groups', 'faction', 'factions', 'house', 'crew', 'family', 'colour', 'color'],
+      body: <GroupsCard />
     },
     {
       key: 'sceneTemplates',

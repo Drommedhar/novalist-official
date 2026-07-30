@@ -706,4 +706,22 @@ public class StoryStructureTemplateTests
         book.Keywords.Add(first);
         Assert.Single(book.Keywords);
     }
+
+    [Fact]
+    public void AGroupHasAnIdSoRenamingIsARename()
+    {
+        // Without an id of its own, renaming a faction would be a delete and a
+        // recreate, and the entries in it would be left claiming the old name.
+        var first = new EntityGroup { Name = "House Raven" };
+        var second = new EntityGroup { Name = "The Watch" };
+
+        Assert.NotEqual(first.Id, second.Id);
+        Assert.False(string.IsNullOrWhiteSpace(first.Color));
+        Assert.Equal(string.Empty, first.Description);
+
+        var book = new BookData();
+        Assert.Empty(book.Groups);
+        book.Groups.Add(first);
+        Assert.Single(book.Groups);
+    }
 }

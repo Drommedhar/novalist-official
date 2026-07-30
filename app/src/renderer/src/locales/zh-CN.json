@@ -3010,5 +3010,17 @@
     "harvest": "从场景收集",
     "save": "保存词表",
     "delete": "删除关键词"
+  },
+  "groups": {
+    "title": "群组与阵营",
+    "intro": "跨条目类型的命名集合：宅邸、船只与纹章可同属一个阵营。在此重命名会同步改写其中每个条目。",
+    "namePlaceholder": "群组名称",
+    "colour": "颜色",
+    "descriptionPlaceholder": "这个群组是什么",
+    "members": "{{count}} 个条目",
+    "add": "添加群组",
+    "harvest": "从条目收集",
+    "save": "保存群组",
+    "delete": "删除群组"
   }
 }

@@ -61,6 +61,20 @@ The right pane holds the editors for the selected entity, from top to bottom:
 - **Fields** — the type's own fields, laid out as a typed, grouped form with the right control for each field. Changes save when you leave a field.
   - **Characters** get two groups: **Basic Info** (name, surname, gender, age, role, group) and **Physical Attributes** (eye color, hair color, hair length, height, build, skin tone, and a multi-line distinguishing features box).
   - **Group** is on every type, not just characters, and offers the group names this project already uses so a faction is spelled the same way twice. A faction is exactly the thing that spans types — the captain, the ship, the port and the ledger they are all written in belong to the same one, which a character-only field could never say.
+
+### Groups and factions
+
+Group names are free text on each entry, which is fine until you want to correct one. **Settings → Groups and factions** holds the project's list of them, so a group can be more than a string typed the same way twice:
+
+- A **colour**, so a faction is recognisable at a glance rather than only readable.
+- A **description** in your own words. Never printed.
+- A count of how many entries belong to it, across every type.
+
+**Collect from the Codex** adds every group name your entries already use. Run it once on an existing project — without it the list starts empty, which is no use to whoever already has the most groups. Spelling variants fold together as they arrive.
+
+**Renaming a group renames it everywhere.** Correcting "the Ravens" to "House Raven" used to mean opening every entry that said the first thing; now it rewrites the character, the ship, the port and the ledger in one move. Renaming onto a group that already exists is refused, because merging two factions is something you have to ask for rather than something a typo does.
+
+**Deleting a group takes it off the entries too**, since leaving forty entries claiming a group nobody lists is how this drifts in the first place.
   - **Locations** have name, type, a **parent location** field with autocomplete over the project's other locations (this drives the hierarchy tree in the navigation column), and a description.
   - **Items** have name, type, origin, and description.
   - **Lore** has name, a **category** dropdown (Organization, Culture, History, Other), and description.

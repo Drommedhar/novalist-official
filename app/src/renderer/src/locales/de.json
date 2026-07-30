@@ -2978,5 +2978,17 @@
     "harvest": "Aus Szenen sammeln",
     "save": "Vokabular speichern",
     "delete": "Schlagwort löschen"
+  },
+  "groups": {
+    "title": "Gruppen und Fraktionen",
+    "intro": "Benannte Mengen quer durch das Kompendium: Haus, Schiff und Wappen können zur selben Fraktion gehören. Umbenennen wirkt auf jeden Eintrag darin.",
+    "namePlaceholder": "Gruppenname",
+    "colour": "Farbe",
+    "descriptionPlaceholder": "Was diese Gruppe ist",
+    "members": "{{count}} Einträge",
+    "add": "Gruppe hinzufügen",
+    "harvest": "Aus dem Kompendium sammeln",
+    "save": "Gruppen speichern",
+    "delete": "Gruppe löschen"
   }
 }
