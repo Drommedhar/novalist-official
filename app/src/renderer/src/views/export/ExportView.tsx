@@ -22,7 +22,10 @@ const CONTENTS = [
   { key: 'codex', labelKey: 'export.contentCodex' },
   // Everything Novalist writes is prose or a document. Nothing machine-readable
   // left the project, so an outline could only reach a spreadsheet by retyping.
-  { key: 'data', labelKey: 'export.contentData' }
+  { key: 'data', labelKey: 'export.contentData' },
+  // Compiled out of what the writer already recorded. Every scene carried a
+  // synopsis and a POV, and neither could be read as a whole.
+  { key: 'report', labelKey: 'export.contentReport' }
 ] as const
 type Content = (typeof CONTENTS)[number]['key']
 
@@ -36,7 +39,14 @@ const FORMATS: { format: string; extension: string; labelKey: string; content: C
   { format: 'Codex', extension: '.md', labelKey: 'export.formatMarkdown', content: 'codex' },
   { format: 'CodexPdf', extension: '.pdf', labelKey: 'export.formatPdf', content: 'codex' },
   { format: 'Csv', extension: '.csv', labelKey: 'export.formatCsv', content: 'data' },
-  { format: 'Json', extension: '.json', labelKey: 'export.formatJson', content: 'data' }
+  { format: 'Json', extension: '.json', labelKey: 'export.formatJson', content: 'data' },
+  {
+    format: 'SynopsisReport',
+    extension: '.md',
+    labelKey: 'export.formatSynopsisReport',
+    content: 'report'
+  },
+  { format: 'PovReport', extension: '.md', labelKey: 'export.formatPovReport', content: 'report' }
 ]
 
 /** Codex entity kinds, in the order the export renders them. */
@@ -89,7 +99,8 @@ export function ExportView(): React.JSX.Element {
   const [formats, setFormats] = useState<Record<Content, string>>({
     manuscript: 'Epub',
     codex: 'Codex',
-    data: 'Csv'
+    data: 'Csv',
+    report: 'SynopsisReport'
   })
   const format = formats[content]
   const setFormat = (next: string): void => setFormats({ ...formats, [content]: next })
@@ -143,7 +154,7 @@ export function ExportView(): React.JSX.Element {
   }, [chapters, initialized])
 
   const isCodex = content === 'codex'
-  const isData = content === 'data'
+  const isData = content === 'data' || content === 'report'
   // The Codex rides along in JSON, where it can nest. A single sheet cannot
   // hold a scene list and a character list without one of them being wrong.
   const entitiesVisible = isCodex || format === 'Json'

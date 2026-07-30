@@ -359,4 +359,81 @@ public class ExportDataTests : IDisposable
 
         Assert.Contains("The deed", await File.ReadAllTextAsync(path));
     }
+
+    // ─── Reports ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task TheSynopsisReportReadsTheWholeBook()
+    {
+        var options = Setup(ExportFormat.SynopsisReport,
+            new SceneData { Title = "The deed", Order = 1, Synopsis = "She finds it." });
+        var path = Output("synopsis.md");
+
+        await Service().ExportReportAsync(options, path);
+
+        var text = await File.ReadAllTextAsync(path);
+        Assert.Contains("# Salt Road", text);
+        Assert.Contains("The Rookery", text);
+        Assert.Contains("She finds it.", text);
+    }
+
+    [Fact]
+    public async Task ThePovReportCountsTheWholeBook()
+    {
+        var options = Setup(ExportFormat.PovReport, new SceneData
+        {
+            Title = "The deed",
+            Order = 1,
+            WordCount = 1000,
+            AnalysisOverrides = new SceneAnalysisOverrides { Pov = "Mira" }
+        });
+        var path = Output("pov.md");
+
+        await Service().ExportReportAsync(options, path);
+
+        Assert.Contains("| Mira | 1 | 1,000 | 100% |", await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task AReportKeepsTheScenesTheBookLeavesOut()
+    {
+        var options = Setup(ExportFormat.SynopsisReport,
+            new SceneData { Title = "In the book", Order = 1 },
+            new SceneData { Title = "Parked", Order = 2, Inactive = true });
+        var path = Output("synopsis.md");
+
+        await Service().ExportReportAsync(options, path);
+
+        // Same reason as the metadata export: a report that hides the scenes
+        // somebody set aside cannot answer why the act is short.
+        Assert.Contains("Parked", await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task AReportHonoursTheStageFilter()
+    {
+        var options = Setup(ExportFormat.SynopsisReport,
+            new SceneData { Title = "Drafted", Order = 1, Stage = "Draft" },
+            new SceneData { Title = "Revised", Order = 2, Stage = "Revised" });
+        options.IncludedStages = ["Revised"];
+        var path = Output("synopsis.md");
+
+        await Service().ExportReportAsync(options, path);
+
+        var text = await File.ReadAllTextAsync(path);
+        Assert.DoesNotContain("Drafted", text);
+        Assert.Contains("Revised", text);
+    }
+
+    [Fact]
+    public async Task AReportOnANamelessBookIsStillTitled()
+    {
+        var options = Setup(ExportFormat.SynopsisReport, new SceneData { Title = "A", Order = 1 });
+        options.Title = "   ";
+        var path = Output("synopsis.md");
+
+        await Service().ExportReportAsync(options, path);
+
+        Assert.StartsWith("# Report", await File.ReadAllTextAsync(path));
+    }
 }

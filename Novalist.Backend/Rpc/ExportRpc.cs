@@ -219,6 +219,10 @@ public sealed class ExportRpc
             {
                 await service.ExportDataAsync(options, outputPath);
             }
+            else if (parsedFormat is ExportFormat.SynopsisReport or ExportFormat.PovReport)
+            {
+                await service.ExportReportAsync(options, outputPath);
+            }
             else
             {
                 await service.ExportAsync(options, outputPath);

@@ -33,7 +33,19 @@ public enum ExportFormat
     Csv,
 
     /// <summary>Scene metadata and the Codex together, for another tool to read.</summary>
-    Json
+    Json,
+
+    /// <summary>
+    /// Every scene's synopsis in reading order. The synopsis of a book existed
+    /// only as forty separate boxes nobody could put side by side.
+    /// </summary>
+    SynopsisReport,
+
+    /// <summary>
+    /// How the book divides between points of view. "How much of this is in
+    /// Mira's head" could not be asked at all.
+    /// </summary>
+    PovReport
 }
 
 /// <summary>What an export would contain, reported before it is written.</summary>
@@ -1132,6 +1144,52 @@ public partial class ExportService
             ? new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)
             : new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         await File.WriteAllTextAsync(outputPath, text, encoding);
+    }
+
+    /// <summary>
+    /// A document compiled out of what the writer already recorded.
+    ///
+    /// Reads the plan rather than compiling the book, for the same reason the
+    /// metadata export does: a report that hides the scenes somebody set aside
+    /// cannot answer why the act is short.
+    /// </summary>
+    public async Task ExportReportAsync(ExportOptions options, string outputPath)
+    {
+        var scenes = ReportScenes(options);
+        var title = string.IsNullOrWhiteSpace(options.Title) ? "Report" : options.Title;
+        var text = options.Format == ExportFormat.PovReport
+            ? ReportBuilder.PovBreakdown(scenes, title)
+            : ReportBuilder.Synopsis(scenes, title);
+        await File.WriteAllTextAsync(outputPath, text, new UTF8Encoding(false));
+    }
+
+    /// <summary>The scenes a report covers, in reading order.</summary>
+    private List<ReportScene> ReportScenes(ExportOptions options)
+    {
+        var scenes = new List<ReportScene>();
+        var number = 0;
+        foreach (var chapter in _projectService.GetChaptersOrdered()
+                     .Where(c => options.SelectedChapterGuids.Contains(c.Guid))
+                     .OrderBy(c => c.Order))
+        {
+            number++;
+            foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid)
+                         .Where(s => options.IncludedStages == null
+                             || options.IncludedStages.Count == 0
+                             || options.IncludedStages.Contains(s.Stage ?? string.Empty)))
+            {
+                scenes.Add(new ReportScene
+                {
+                    Chapter = chapter.Title,
+                    ChapterNumber = number,
+                    Title = scene.Title,
+                    Synopsis = scene.Synopsis ?? string.Empty,
+                    Pov = scene.AnalysisOverrides?.Pov ?? string.Empty,
+                    Words = scene.WordCount
+                });
+            }
+        }
+        return scenes;
     }
 
     /// <summary>The metadata behind both machine-readable formats.</summary>

@@ -212,6 +212,24 @@ The layout, title page, front and back matter, publishing metadata and retailer 
 - The **codex entry picker** appears for JSON, so you can send one character's record rather than the whole bible.
 - Indented and written with accents intact, so it can be read by a person as well as parsed by a tool.
 
+## Report
+
+Every scene carries a synopsis and a point of view, and neither could be read as a whole. The synopsis of a book existed only as forty separate boxes nobody could put side by side, and "how much of this book is in Mira's head" could not be asked at all.
+
+Pick **Report** under **What** for either of two Markdown documents. Like the Data formats, a report reads the plan rather than compiling the book: a scene you parked or held back still appears, because a report that hides those cannot answer why the act is short. A stage filter is still honoured.
+
+### Synopsis of the book
+
+- Every scene's synopsis, under its chapter, in reading order, with the scene's word count.
+- A scene with **no synopsis is named and left blank**. The gaps are the reason to read this; a document that quietly omits them reads as a finished outline.
+- A scene with no words yet does not claim zero.
+
+### Point-of-view breakdown
+
+- A table of who the book belongs to: scenes, words, and share of the total per point of view, largest first.
+- Scenes with **no POV recorded get their own row**. A breakdown that silently excludes a fifth of the book is worse than one that says a fifth of the book has no POV recorded.
+- One character spelled two ways is one character.
+
 ## Selecting chapters
 
 Use cases for partial exports:
