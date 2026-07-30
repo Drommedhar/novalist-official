@@ -19,6 +19,13 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <!--
+      Shipped inside the package, so referencing the SDK is all it takes to
+      get the locale check on every build. An extension author should not
+      need the Novalist repository checked out to find out that a panel of
+      theirs shows a raw key.
+    -->
+    <None Include="build\Novalist.Sdk.targets" Pack="true" PackagePath="build\" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

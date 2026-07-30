@@ -1,0 +1,167 @@
+<Project>
+
+  <!--
+    Checks an extension's locale files against the code that asks for them, on
+    every build, and fails the build when a key is missing.
+
+    An extension ships its own Locales folder, its own C# and its own web
+    panels, and nothing ever checked that the three agree. A key referenced in
+    code and absent from en.json shows the writer a raw identifier where a
+    sentence should be, and it is invisible until somebody opens that panel in
+    that language.
+
+    This ships with the SDK rather than living in the Novalist repository so an
+    extension author gets it by referencing the package - the check belongs to
+    whoever is writing the extension, not to whoever happens to have both
+    checkouts open.
+
+    Written as an inline task so it needs nothing installed. No Python, no
+    global tool, no separate restore.
+
+    Set NovalistSkipLocaleCheck to true to opt out, and expect to hear about a
+    raw key from a reader instead.
+  -->
+
+  <UsingTask TaskName="NovalistLocaleDoctor"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <ProjectDirectory ParameterType="System.String" Required="true" />
+      <TreatAsError ParameterType="System.Boolean" Required="false" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+var localesDir = Path.Combine(ProjectDirectory, "Locales");
+var english = Path.Combine(localesDir, "en.json");
+if (!File.Exists(english))
+{
+    // No locales is not a failure: plenty of extensions ship none.
+    return true;
+}
+
+// Keys, flattened to the dotted form the code uses. A hand-rolled reader
+// rather than a JSON parser, because an inline task cannot count on one being
+// available and the shape here is a nested object of strings.
+var keys = new HashSet<string>(StringComparer.Ordinal);
+var namespaces = new HashSet<string>(StringComparer.Ordinal);
+var path = new List<string>();
+foreach (var raw in File.ReadAllLines(english))
+{
+    var line = raw.Trim();
+    if (line.Length == 0) continue;
+
+    var opening = Regex.Match(line, "^\"([^\"]+)\"\\s*:\\s*\\{");
+    if (opening.Success)
+    {
+        path.Add(opening.Groups[1].Value);
+        continue;
+    }
+    if (line.StartsWith("}"))
+    {
+        if (path.Count > 0) path.RemoveAt(path.Count - 1);
+        continue;
+    }
+    var leaf = Regex.Match(line, "^\"([^\"]+)\"\\s*:");
+    if (!leaf.Success) continue;
+
+    var name = leaf.Groups[1].Value;
+    var full = path.Count == 0 ? name : string.Join(".", path) + "." + name;
+    keys.Add(full);
+    if (full.Contains(".")) namespaces.Add(full.Substring(0, full.IndexOf('.')));
+}
+
+// Every way this codebase asks for a string.
+var patterns = new[]
+{
+    new Regex("\\b_?[Ll]oc\\.T\\(\\s*\"([^\"]+)\""),
+    new Regex("\\bT\\(\\s*\"([^\"]+)\""),
+    new Regex("\\bt\\(\\s*'([^']+)'"),
+    new Regex("\\bt\\(\\s*\"([^\"]+)\""),
+    new Regex("data-i18n=\"([^\"]+)\""),
+};
+
+var extensions = new HashSet<string>(
+    new[] { ".cs", ".axaml", ".html", ".js", ".ts", ".tsx" }, StringComparer.OrdinalIgnoreCase);
+var skip = new HashSet<string>(new[] { "bin", "obj", "node_modules" }, StringComparer.OrdinalIgnoreCase);
+
+var missing = new SortedDictionary<string, string>(StringComparer.Ordinal);
+foreach (var file in Directory.EnumerateFiles(ProjectDirectory, "*.*", SearchOption.AllDirectories))
+{
+    if (!extensions.Contains(Path.GetExtension(file))) continue;
+    if (file.Split(Path.DirectorySeparatorChar).Any(part => skip.Contains(part))) continue;
+
+    var text = File.ReadAllText(file);
+    foreach (var pattern in patterns)
+    {
+        foreach (Match hit in pattern.Matches(text))
+        {
+            var key = hit.Groups[1].Value;
+            if (key.Length == 0) continue;
+            if (keys.Contains(key)) continue;
+            // A web panel asks for a short key and the C# resolves it inside
+            // the extension's own namespace, so both spellings are one key.
+            if (namespaces.Any(ns => keys.Contains(ns + "." + key))) continue;
+            if (!missing.ContainsKey(key)) missing[key] = file;
+        }
+    }
+}
+
+foreach (var pair in missing)
+{
+    var message = "Locale key '" + pair.Key + "' is used in code and missing from Locales/en.json.";
+    if (TreatAsError) Log.LogError("NOVALIST0001", null, null, pair.Value, 0, 0, 0, 0, message);
+    else Log.LogWarning("NOVALIST0001", null, null, pair.Value, 0, 0, 0, 0, message);
+}
+
+// Every other language against English, so a shipped extension is not English
+// with gaps in it.
+foreach (var other in Directory.EnumerateFiles(localesDir, "*.json"))
+{
+    if (string.Equals(Path.GetFileName(other), "en.json", StringComparison.OrdinalIgnoreCase)) continue;
+
+    var translated = new HashSet<string>(StringComparer.Ordinal);
+    var otherPath = new List<string>();
+    foreach (var raw in File.ReadAllLines(other))
+    {
+        var line = raw.Trim();
+        var opening = Regex.Match(line, "^\"([^\"]+)\"\\s*:\\s*\\{");
+        if (opening.Success) { otherPath.Add(opening.Groups[1].Value); continue; }
+        if (line.StartsWith("}")) { if (otherPath.Count > 0) otherPath.RemoveAt(otherPath.Count - 1); continue; }
+        var leaf = Regex.Match(line, "^\"([^\"]+)\"\\s*:");
+        if (!leaf.Success) continue;
+        var name = leaf.Groups[1].Value;
+        translated.Add(otherPath.Count == 0 ? name : string.Join(".", otherPath) + "." + name);
+    }
+
+    var gaps = keys.Where(k => !translated.Contains(k)).OrderBy(k => k, StringComparer.Ordinal).ToList();
+    foreach (var gap in gaps.Take(20))
+    {
+        var message = "Locale key '" + gap + "' is in en.json and missing from " + Path.GetFileName(other) + ".";
+        if (TreatAsError) Log.LogError("NOVALIST0002", null, null, other, 0, 0, 0, 0, message);
+        else Log.LogWarning("NOVALIST0002", null, null, other, 0, 0, 0, 0, message);
+    }
+    if (gaps.Count > 20)
+    {
+        Log.LogMessage(MessageImportance.High,
+            "  ... and " + (gaps.Count - 20) + " more missing from " + Path.GetFileName(other) + ".");
+    }
+}
+
+return !Log.HasLoggedErrors;
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="NovalistCheckLocales"
+          AfterTargets="Build"
+          Condition="'$(NovalistSkipLocaleCheck)' != 'true' And Exists('$(MSBuildProjectDirectory)\Locales\en.json')">
+    <NovalistLocaleDoctor ProjectDirectory="$(MSBuildProjectDirectory)"
+                          TreatAsError="true" />
+  </Target>
+
+</Project>
