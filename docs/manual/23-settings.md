@@ -41,7 +41,21 @@ The **Templates** and **Writing Goals** sections are per-project (they only appl
 - **Accent Color** — pick a custom highlight color used throughout the interface. A **Reset** button next to the color picker clears the custom accent and returns to the theme's default. A custom accent also flattens the gold foil on primary buttons to a single fill in your colour.
 - **Themes folder** / **Languages folder** — open the folders you drop your own colour schemes and interface languages into. **Rescan** in the Language packs panel picks up what you dropped in without a restart. See [Custom themes & language packs](34-custom-themes-and-languages.md) for the file formats.
 
-The alternate themes change colour only. Type, spacing, and corner radii belong to the Novalist identity and stay the same whichever palette you pick — that holds for themes you write yourself as well.
+The alternate themes change colour only. Type, spacing, and corner radii belong to the Novalist identity and stay the same whichever palette you pick — that holds for themes you write yourself as well. If you want to change them anyway, **Theme tokens** below is where you do it.
+
+## Theme tokens
+
+Appearance used to offer a theme, an accent colour and two folder buttons. Anything else — a surface a shade darker, a slightly larger body size, squarer corners — meant hand-writing a JSON token map or a `.css` file and restarting to see the result.
+
+**Theme tokens** edits the same values in the app, grouped into Surfaces, Text, Accent, Type sizes, and Corners and spacing. Changes apply as you make them, and they sit **on top of** whichever theme is selected: switch theme and your overrides come with you, so a colour you chose is not lost the moment you try another palette.
+
+- A token you have not touched simply follows the theme; the field shows what the theme currently resolves to.
+- The **reset arrow** beside a token you have changed puts it back to the theme's value. It only appears once there is something to undo.
+- **Reset everything** clears the lot.
+- The **Profile** box is the whole override set as JSON. Copy it to keep a look, or to send it to somebody; paste one in and press **Apply pasted profile** to adopt it. Only tokens Novalist knows are read from a pasted profile, so a profile from a different version cannot reach anything else.
+
+The list is deliberately short. `tokens.css` declares over a hundred values, most of them derived or internal, and a wall of a hundred colour pickers is not an editor — it is a way of breaking the interface by accident.
+
 
 On macOS 26 and later the window uses the native Liquid Glass material; older macOS versions get standard vibrancy.
 

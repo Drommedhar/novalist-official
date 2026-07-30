@@ -2982,5 +2982,19 @@
     "harvest": "Collect from the Codex",
     "save": "Save groups",
     "delete": "Delete group"
+  },
+  "themeTokens": {
+    "title": "Theme tokens",
+    "loading": "Reading your overrides…",
+    "intro": "Change the colours, sizes and corners the interface is built from. Edits apply as you make them; a token you have not touched follows the theme.",
+    "group_surface": "Surfaces",
+    "group_text": "Text",
+    "group_accent": "Accent",
+    "group_type": "Type sizes",
+    "group_shape": "Corners and spacing",
+    "reset": "Back to the theme value",
+    "resetAll": "Reset everything",
+    "profile": "Profile",
+    "import": "Apply pasted profile"
   }
 }

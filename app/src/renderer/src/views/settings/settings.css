@@ -386,3 +386,16 @@
 .tag-name:hover {
   color: var(--nl-accent);
 }
+
+/* Token rows: the name is a fixed column so the controls line up down the card. */
+.token-name {
+  flex: 0 0 170px;
+  font-family: var(--nl-font-mono);
+}
+
+.token-profile {
+  width: 100%;
+  min-height: 120px;
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
+}

@@ -86,4 +86,89 @@ public sealed class AppearanceRpcTests : IDisposable
         Assert.Equal("Français", locale.Name);
         Assert.Equal(json, locale.Json);
     }
+
+    // ── Design-token overrides ──
+
+    [Fact]
+    public void NothingIsOverriddenUntilTheWriterChangesSomething()
+        => Assert.Empty(_rpc.Tokens());
+
+    [Fact]
+    public async Task OverridesRoundTrip()
+    {
+        var saved = await _rpc.SetTokensAsync(new Dictionary<string, string>
+        {
+            ["nl-accent"] = "#c04040",
+            ["nl-radius-md"] = "10px"
+        });
+
+        Assert.Equal("#c04040", saved["nl-accent"]);
+        Assert.Equal("10px", saved["nl-radius-md"]);
+        Assert.Equal(saved, _rpc.Tokens());
+    }
+
+    [Fact]
+    public async Task TheLeadingDashesAreNotStored()
+    {
+        // The editor sends what the stylesheet calls the token; storing both
+        // spellings would make two entries for one thing.
+        var saved = await _rpc.SetTokensAsync(new Dictionary<string, string>
+        {
+            ["--nl-accent"] = "#c04040"
+        });
+
+        Assert.Equal("#c04040", Assert.Single(saved).Value);
+        Assert.Equal("nl-accent", saved.Keys.Single());
+    }
+
+    [Fact]
+    public async Task ValuesAreTrimmed()
+        => Assert.Equal(
+            "#c04040",
+            (await _rpc.SetTokensAsync(new Dictionary<string, string>
+            {
+                ["nl-accent"] = "  #c04040  "
+            }))["nl-accent"]);
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task ATokenSetToNothingIsNotAnOverride(string value)
+    {
+        // It is the theme's value, and storing it would pin today's colour into
+        // the settings file for ever.
+        Assert.Empty(await _rpc.SetTokensAsync(new Dictionary<string, string>
+        {
+            ["nl-accent"] = value
+        }));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("  ")]
+    [InlineData("--")]
+    public async Task ANamelessTokenIsDropped(string name)
+        => Assert.Empty(await _rpc.SetTokensAsync(new Dictionary<string, string>
+        {
+            [name] = "#c04040"
+        }));
+
+    [Fact]
+    public async Task SendingNothingClearsEverything()
+    {
+        await _rpc.SetTokensAsync(new Dictionary<string, string> { ["nl-accent"] = "#c04040" });
+
+        Assert.Empty(await _rpc.SetTokensAsync(null));
+        Assert.Empty(_rpc.Tokens());
+    }
+
+    [Fact]
+    public async Task OverridesSurviveAReload()
+    {
+        await _rpc.SetTokensAsync(new Dictionary<string, string> { ["nl-accent"] = "#c04040" });
+
+        await _workspace.Settings.LoadAsync();
+
+        Assert.Equal("#c04040", _rpc.Tokens()["nl-accent"]);
+    }
 }

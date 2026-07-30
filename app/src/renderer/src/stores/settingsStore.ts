@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import i18next from '../i18n'
 import { rpc } from '../rpc/client'
 import { applyCustomGestures } from '../shell/hotkeys'
+import { applyThemeTokens } from '../views/settings/ThemeTokensCard'
 import { applyTheme } from './themeCatalog'
 
 export interface EffectiveSettings {
@@ -90,6 +91,11 @@ function applySideEffects(view: SettingsView): void {
   // Built-in, folder, and extension themes all resolve through the catalog; an
   // unknown name falls back to the default palette.
   applyTheme(view.effective.theme, view.effective.accentColor)
+  // After the theme, because the overrides sit on top of whatever it set.
+  void rpc
+    .request<Record<string, string>>('appearance/tokens')
+    .then((tokens) => tokens && applyThemeTokens(tokens))
+    .catch(() => {})
   applyCustomGestures((view.global.hotkeyBindings as Record<string, string>) ?? {})
 }
 

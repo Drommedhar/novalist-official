@@ -3022,5 +3022,19 @@
     "harvest": "从条目收集",
     "save": "保存群组",
     "delete": "删除群组"
+  },
+  "themeTokens": {
+    "title": "主题令牌",
+    "loading": "正在读取你的覆盖设置…",
+    "intro": "修改界面所用的颜色、尺寸与圆角。改动即时生效；未改动的令牌沿用主题。",
+    "group_surface": "表面",
+    "group_text": "文字",
+    "group_accent": "强调色",
+    "group_type": "字号",
+    "group_shape": "圆角与间距",
+    "reset": "恢复主题值",
+    "resetAll": "全部重置",
+    "profile": "配置档",
+    "import": "应用粘贴的配置档"
   }
 }

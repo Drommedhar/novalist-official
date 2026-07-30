@@ -2990,5 +2990,19 @@
     "harvest": "Aus dem Kompendium sammeln",
     "save": "Gruppen speichern",
     "delete": "Gruppe löschen"
+  },
+  "themeTokens": {
+    "title": "Theme-Tokens",
+    "loading": "Überschreibungen werden gelesen…",
+    "intro": "Farben, Größen und Ecken der Oberfläche ändern. Änderungen wirken sofort; nicht angefasste Tokens folgen dem Theme.",
+    "group_surface": "Flächen",
+    "group_text": "Text",
+    "group_accent": "Akzent",
+    "group_type": "Schriftgrößen",
+    "group_shape": "Ecken und Abstände",
+    "reset": "Zurück zum Theme-Wert",
+    "resetAll": "Alles zurücksetzen",
+    "profile": "Profil",
+    "import": "Eingefügtes Profil anwenden"
   }
 }

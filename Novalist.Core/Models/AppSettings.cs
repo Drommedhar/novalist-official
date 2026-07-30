@@ -289,6 +289,18 @@ public class AppSettings : IEffectiveSettings
     public string? AccentColor { get; set; }
 
     /// <summary>
+    /// Design-token overrides, by token name without the leading dashes
+    /// ("nl-surface-card", "nl-font-body").
+    ///
+    /// Appearance offered a theme, an accent colour and two folder buttons.
+    /// Everything else - every surface, every size, every radius - meant
+    /// hand-writing a JSON token map or a .css file and restarting. These are
+    /// the same tokens, edited in the app and applied without one.
+    /// </summary>
+    [JsonPropertyName("themeTokens")]
+    public Dictionary<string, string> ThemeTokens { get; set; } = [];
+
+    /// <summary>
     /// Ensures auto-replacements are populated from the language preset if empty.
     /// Call after deserialization.
     /// </summary>

@@ -21,6 +21,40 @@ public sealed class AppearanceRpc
         _workspace = workspace;
     }
 
+    /// <summary>
+    /// The writer's design-token overrides, applied over whichever theme is
+    /// selected. Empty until they change something.
+    /// </summary>
+    [JsonRpcMethod("appearance/tokens")]
+    public Dictionary<string, string> Tokens()
+        => new(_workspace.Settings.Settings.ThemeTokens);
+
+    /// <summary>
+    /// Replaces the override set. Sent whole rather than patched: the editor
+    /// knows the complete picture and a per-token patch would need a separate
+    /// verb to clear one.
+    ///
+    /// A token name is stored without its dashes and a blank value is dropped,
+    /// because an override set to nothing is not an override - it is the theme
+    /// value, and storing it would pin today's theme colour into the settings
+    /// file for ever.
+    /// </summary>
+    [JsonRpcMethod("appearance/setTokens")]
+    public async Task<Dictionary<string, string>> SetTokensAsync(Dictionary<string, string>? tokens)
+    {
+        var cleaned = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (name, value) in tokens ?? [])
+        {
+            var key = (name ?? string.Empty).Trim().TrimStart('-');
+            if (key.Length == 0 || string.IsNullOrWhiteSpace(value)) continue;
+            cleaned[key] = value.Trim();
+        }
+
+        _workspace.Settings.Settings.ThemeTokens = cleaned;
+        await _workspace.Settings.SaveAsync();
+        return Tokens();
+    }
+
     /// <summary>User themes discovered on disk, ordered by display name.</summary>
     [JsonRpcMethod("appearance/themes")]
     public UserThemeDto[] Themes()

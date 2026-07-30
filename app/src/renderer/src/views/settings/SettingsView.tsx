@@ -21,6 +21,7 @@ import { ManuscriptPropertiesCard } from './ManuscriptPropertiesCard'
 import { SceneLabelsCard } from './SceneLabelsCard'
 import { KeywordsCard } from './KeywordsCard'
 import { GroupsCard } from './GroupsCard'
+import { ThemeTokensCard } from './ThemeTokensCard'
 import { SceneTemplatesCard } from './SceneTemplatesCard'
 import { TagsCard } from './TagsCard'
 import './settings.css'
@@ -1071,6 +1072,12 @@ export function SettingsView(): React.JSX.Element {
       titleKey: 'keywords.title',
       keywords: ['keyword', 'keywords', 'tag', 'tags', 'vocabulary', 'rename', 'colour', 'color'],
       body: <KeywordsCard />
+    },
+    {
+      key: 'themeTokens',
+      titleKey: 'themeTokens.title',
+      keywords: ['token', 'tokens', 'theme', 'colour', 'color', 'appearance', 'font', 'radius', 'spacing'],
+      body: <ThemeTokensCard />
     },
     {
       key: 'groups',
