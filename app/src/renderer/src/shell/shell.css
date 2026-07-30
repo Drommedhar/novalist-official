@@ -3222,6 +3222,12 @@
   line-height: 1.4;
 }
 
+/* A scene reading differently from what the book declares. Marked rather than
+   coloured red: it is worth noticing, and it is often deliberate. */
+.ctx-voice-drift {
+  border-left: 2px solid var(--nl-accent);
+}
+
 /* Manuscript import preview: what would be created, before anything is. */
 .import-manuscript-dialog {
   max-width: 620px;

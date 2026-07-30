@@ -76,6 +76,24 @@ The act boxes follow the acts your chapters are actually in, so a book in two ac
 
 You can fill this in at any time; Novalist also offers it when you create a project (see [Projects and books](03-projects-and-books.md#starting-from-a-premise)).
 
+#### Written in
+
+Two drop-downs under the act boxes: the **narrative person** and the **tense** the book as a whole is meant to be in. Both start at "not decided", and nothing happens until you choose.
+
+Once you have, the [Inspector](22-context-sidebar.md) says when the open scene reads differently — a first-person scene in a third-person novel, a present-tense one in a past-tense book. Novalist has always detected a point of view per scene; what was missing was anything for that scene to be wrong against.
+
+The declaration is yours, not derived. Reading it off whichever mode most scenes happen to be in would make the one that drifted look normal.
+
+The check stays quiet where it cannot be sure: under about sixty words there is not enough prose to read, and a scene it cannot read counts as agreeing. Tense is read from verb forms your writing language marks, so it is checked for English and German and reported as unknown for Chinese, which marks tense with particles instead. A weak reading is phrased as a question rather than a verdict.
+
+#### The pitch
+
+What a query letter, a submission form and a retailer page ask for by name: **genre**, **readership**, **comparable titles**, **setting**, a **blurb** and a **synopsis**.
+
+Blurb and synopsis are both here on purpose and make opposite decisions: a blurb withholds the ending to make somebody open the book, a synopsis gives it away because the person reading it is deciding whether to represent you.
+
+All of it is stored with the book, so a comparable title stops being quoted from memory and a genre stops being described three different ways in three different submissions.
+
 ### Tension
 
 A bar per scene, in reading order, as tall as that scene's intensity. Negative intensity is drawn in a different colour, and a scene nobody has rated yet is a hairline rather than a flat bar — because "calm" and "unrated" are not the same thing. Click a bar to open that scene.

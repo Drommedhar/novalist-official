@@ -449,4 +449,67 @@ public sealed class ContextRpcTests : IDisposable
         Assert.Equal("Custom conflict", analysis.Conflict);
         Assert.Equal(new[] { "alpha", "beta" }, analysis.Tags);
     }
+
+    // ── A scene against what the book says it is ──
+
+    [Fact]
+    public async Task VoiceDrift_SilentUntilTheBookDeclaresSomething()
+    {
+        var (chapterGuid, sceneId) = await SeedProseAsync(FirstPersonProse);
+
+        var analysis = (await _rpc.AnalyzeAsync(chapterGuid, sceneId)).Analysis;
+
+        // Nothing declared, so there is nothing to drift out of.
+        Assert.Null(analysis.VoiceDrift);
+    }
+
+    [Fact]
+    public async Task VoiceDrift_NamesTheSceneThatReadsDifferently()
+    {
+        var (chapterGuid, sceneId) = await SeedProseAsync(FirstPersonProse);
+        _workspace.Projects.ActiveBook!.NarrativePerson = "third-limited";
+        _workspace.Projects.ActiveBook!.Tense = "past";
+
+        var drift = (await _rpc.AnalyzeAsync(chapterGuid, sceneId))
+            .Analysis.VoiceDrift;
+
+        Assert.NotNull(drift);
+        Assert.True(drift!.PersonDrifts);
+        Assert.Equal("first", drift.PersonReading);
+        // The prose is past tense, which is what the book says, so that half
+        // is not reported.
+        Assert.False(drift.TenseDrifts);
+    }
+
+    [Fact]
+    public async Task VoiceDrift_ASceneThatAgreesIsNotFlagged()
+    {
+        var (chapterGuid, sceneId) = await SeedProseAsync(FirstPersonProse);
+        _workspace.Projects.ActiveBook!.NarrativePerson = "first";
+        _workspace.Projects.ActiveBook!.Tense = "past";
+
+        var drift = (await _rpc.AnalyzeAsync(chapterGuid, sceneId))
+            .Analysis.VoiceDrift;
+
+        Assert.NotNull(drift);
+        Assert.False(drift!.PersonDrifts);
+        Assert.False(drift.TenseDrifts);
+    }
+
+    /// <summary>Long enough to be evidence: first person, past tense.</summary>
+    private const string FirstPersonProse =
+        "I walked to the door and I opened it slowly. I knew what was behind it. "
+        + "I had known since the morning, when she told me and I said nothing. "
+        + "I went in. I stood there and I looked at what they had left me. "
+        + "I took it, and I turned, and I walked back out into the rain. "
+        + "I felt nothing at all, which is what frightened me. I kept walking.";
+
+    private async Task<(string ChapterGuid, string SceneId)> SeedProseAsync(string prose)
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("Voice");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, $"<p>{prose}</p>", prose);
+        return (chapter.Guid, scene.Id);
+    }
+
 }

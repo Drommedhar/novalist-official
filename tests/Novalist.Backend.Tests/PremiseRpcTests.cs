@@ -126,4 +126,47 @@ public sealed class PremiseRpcTests : IDisposable
         Assert.Equal(0, await _rpc.ScaffoldAsync([], 5));
         Assert.Empty(_workspace.Projects.ActiveBook!.Chapters);
     }
+
+    // ── The pitch and the declared voice ──
+
+    [Fact]
+    public async Task Pitch_RoundTripsAndIsTrimmed()
+    {
+        var saved = await _rpc.SavePitchAsync(new PitchDto(
+            "  Historical crime  ", "Adult", "Two named books", "Lisbon, 1755",
+            "  She has one night to find him.  ", "Everything, ending included."));
+
+        Assert.Equal("Historical crime", saved.Pitch.Genre);
+        Assert.Equal("She has one night to find him.", saved.Pitch.Blurb);
+        Assert.Equal("Everything, ending included.", saved.Pitch.Synopsis);
+
+        // And it is on the book rather than in the view.
+        Assert.Equal("Lisbon, 1755", _rpc.Get().Pitch.Setting);
+    }
+
+    [Fact]
+    public async Task Voice_IsDeclaredRatherThanDerived()
+    {
+        Assert.Equal(string.Empty, _rpc.Get().Voice.NarrativePerson);
+
+        var saved = await _rpc.SaveVoiceAsync("first", "present");
+
+        Assert.Equal("first", saved.Voice.NarrativePerson);
+        Assert.Equal("present", saved.Voice.Tense);
+
+        // Cleared back to nothing: a book is allowed not to have decided.
+        Assert.Equal(string.Empty, (await _rpc.SaveVoiceAsync(null, "  ")).Voice.Tense);
+    }
+
+    [Fact]
+    public async Task PitchAndVoice_NeedABook()
+    {
+        var bare = new PremiseRpc(new Workspace(Path.Combine(_root, "no-project")));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => bare.SavePitchAsync(new PitchDto("a", "b", "c", "d", "e", "f")));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => bare.SaveVoiceAsync("first", "past"));
+    }
+
 }

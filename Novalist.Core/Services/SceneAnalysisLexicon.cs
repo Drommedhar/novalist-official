@@ -146,6 +146,20 @@ public sealed class SceneAnalysisLexicon
     /// <summary>Stock phrases, matched literally.</summary>
     public IReadOnlyList<string> Cliches { get; private init; } = [];
 
+    /// <summary>
+    /// Common verb forms that mark past-tense narration, and present-tense ones
+    /// below.
+    ///
+    /// Empty on purpose for a language that does not inflect for tense - Chinese
+    /// marks it with particles and context, so counting verb forms there would
+    /// produce a confident wrong answer. A language with neither list has its
+    /// tense reported as unknown rather than guessed.
+    /// </summary>
+    public IReadOnlyList<string> PastTenseMarkers { get; private init; } = [];
+
+    /// <summary>Common verb forms that mark present-tense narration.</summary>
+    public IReadOnlyList<string> PresentTenseMarkers { get; private init; } = [];
+
     /// <summary>Language tags shipped as embedded resources.</summary>
     public static IReadOnlyList<string> BuiltInLanguages { get; } = Assembly
         .GetExecutingAssembly()
@@ -341,6 +355,8 @@ public sealed class SceneAnalysisLexicon
             GlueWords = Clean(file.GlueWords),
             PassiveAuxiliaries = Clean(file.PassiveAuxiliaries),
             WeakVerbs = Clean(file.WeakVerbs),
+            PastTenseMarkers = Clean(file.PastTenseMarkers),
+            PresentTenseMarkers = Clean(file.PresentTenseMarkers),
             Cliches = Clean(file.Cliches)
         };
     }
@@ -419,6 +435,12 @@ public sealed class SceneAnalysisLexicon
 
         [JsonPropertyName("weakVerbs")]
         public IReadOnlyList<string> WeakVerbs { get; init; } = [];
+
+        [JsonPropertyName("pastTenseMarkers")]
+        public IReadOnlyList<string> PastTenseMarkers { get; init; } = [];
+
+        [JsonPropertyName("presentTenseMarkers")]
+        public IReadOnlyList<string> PresentTenseMarkers { get; init; } = [];
 
         [JsonPropertyName("cliches")]
         public IReadOnlyList<string> Cliches { get; init; } = [];

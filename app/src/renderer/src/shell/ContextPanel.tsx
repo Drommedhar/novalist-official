@@ -37,6 +37,23 @@ interface MentionRow {
   lastSeenChaptersAgo: number
 }
 
+/**
+ * How this scene sits against what the book says it is written in.
+ *
+ * A reading of "unknown" means the prose was too short to be evidence or the
+ * language does not mark tense with verb forms; nothing is flagged then.
+ */
+interface VoiceDrift {
+  declaredPerson: string
+  declaredTense: string
+  personReading: string
+  tenseReading: string
+  personDrifts: boolean
+  tenseDrifts: boolean
+  /** 0-100. Below roughly 40 this is a question, not a verdict. */
+  confidence: number
+}
+
 interface SceneAnalysis {
   pov: string
   povOptions: string[]
@@ -51,6 +68,7 @@ interface SceneAnalysis {
   /** False when the writing language is not English: emotion/intensity/conflict/
    *  tags are not auto-detected there, only whatever you set yourself. */
   keywordAnalysisSupported: boolean
+  voiceDrift: VoiceDrift | null
 }
 
 interface SceneContext {
@@ -446,6 +464,31 @@ export function ContextPanel({
       >
         {!a.keywordAnalysisSupported && (
           <div className="ctx-analysis-note">{t('context.analysisEnglishOnly')}</div>
+        )}
+        {/* The book declares what it is written in; this scene either agrees or
+            it does not. Below a middling confidence it reads as a question,
+            because telling a writer a short scene is broken is worse than
+            saying nothing. */}
+        {a.voiceDrift && (a.voiceDrift.personDrifts || a.voiceDrift.tenseDrifts) && (
+          <div className="ctx-analysis-note ctx-voice-drift">
+            {t(
+              a.voiceDrift.confidence >= 40 ? 'context.voiceDrifts' : 'context.voiceMaybeDrifts',
+              {
+                declared: [
+                  a.voiceDrift.personDrifts ? t(`premise.person_${a.voiceDrift.declaredPerson.replace('-', '_')}`) : '',
+                  a.voiceDrift.tenseDrifts ? t(`premise.tense_${a.voiceDrift.declaredTense}`) : ''
+                ]
+                  .filter(Boolean)
+                  .join(', '),
+                reads: [
+                  a.voiceDrift.personDrifts ? t(`context.reads_${a.voiceDrift.personReading}`) : '',
+                  a.voiceDrift.tenseDrifts ? t(`context.reads_${a.voiceDrift.tenseReading}`) : ''
+                ]
+                  .filter(Boolean)
+                  .join(', ')
+              }
+            )}
+          </div>
         )}
         <div className="ctx-analysis-row">
           <span className="ctx-analysis-key">{t('context.pov')}</span>

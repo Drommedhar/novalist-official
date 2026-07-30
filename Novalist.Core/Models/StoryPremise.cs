@@ -26,4 +26,42 @@ public sealed class StoryPremise
     /// </summary>
     [JsonPropertyName("acts")]
     public Dictionary<string, string> Acts { get; set; } = [];
+
+    // ── The pitch ──
+    //
+    // Every one of these is asked for by name on a query letter, a submission
+    // form or a retailer page, and every one of them lived in a document
+    // somewhere outside Novalist - which is how a comparable title gets quoted
+    // from memory and a genre gets described three different ways in three
+    // different submissions.
+
+    /// <summary>Genre as a shop would file it.</summary>
+    [JsonPropertyName("genre")]
+    public string Genre { get; set; } = string.Empty;
+
+    /// <summary>Who it is for - age band, readership, the shelf it sits on.</summary>
+    [JsonPropertyName("audience")]
+    public string Audience { get; set; } = string.Empty;
+
+    /// <summary>Comparable titles: the two or three books an agent is asked for.</summary>
+    [JsonPropertyName("comparables")]
+    public string Comparables { get; set; } = string.Empty;
+
+    /// <summary>Where and when it is set.</summary>
+    [JsonPropertyName("setting")]
+    public string Setting { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The back-cover copy: what a reader is told to make them open it. Not the
+    /// synopsis - a blurb withholds the ending on purpose.
+    /// </summary>
+    [JsonPropertyName("blurb")]
+    public string Blurb { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The one-page synopsis, ending included, which is the opposite decision
+    /// from the blurb and the reason both are here.
+    /// </summary>
+    [JsonPropertyName("synopsis")]
+    public string Synopsis { get; set; } = string.Empty;
 }

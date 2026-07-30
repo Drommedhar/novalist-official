@@ -38,8 +38,56 @@ public sealed class PremiseRpc
             premise.Logline,
             premise.Paragraph,
             [.. acts.Select(a => new PremiseActDto(
-                a, premise.Acts.TryGetValue(a, out var text) ? text : string.Empty))]);
+                a, premise.Acts.TryGetValue(a, out var text) ? text : string.Empty))],
+            new PitchDto(
+                premise.Genre,
+                premise.Audience,
+                premise.Comparables,
+                premise.Setting,
+                premise.Blurb,
+                premise.Synopsis),
+            new VoiceDto(book?.NarrativePerson ?? string.Empty, book?.Tense ?? string.Empty));
     }
+
+    /// <summary>
+    /// The pitch: what a query letter, a submission form and a retailer page ask
+    /// for by name. Every one of these lived in a document outside Novalist,
+    /// which is how a comparable title ends up quoted from memory.
+    /// </summary>
+    [JsonRpcMethod("premise/savePitch")]
+    public async Task<PremiseDto> SavePitchAsync(PitchDto pitch)
+    {
+        var book = _workspace.Projects.ActiveBook
+            ?? throw new InvalidOperationException("No active book.");
+
+        book.Premise.Genre = Clean(pitch.Genre);
+        book.Premise.Audience = Clean(pitch.Audience);
+        book.Premise.Comparables = Clean(pitch.Comparables);
+        book.Premise.Setting = Clean(pitch.Setting);
+        book.Premise.Blurb = Clean(pitch.Blurb);
+        book.Premise.Synopsis = Clean(pitch.Synopsis);
+        await _workspace.Projects.SaveProjectAsync();
+        return Get();
+    }
+
+    /// <summary>
+    /// What the book is written in. Declared rather than derived: the answer is
+    /// the writer's intention, and reading it off the majority of scenes would
+    /// make the one that drifted look normal.
+    /// </summary>
+    [JsonRpcMethod("premise/saveVoice")]
+    public async Task<PremiseDto> SaveVoiceAsync(string? narrativePerson, string? tense)
+    {
+        var book = _workspace.Projects.ActiveBook
+            ?? throw new InvalidOperationException("No active book.");
+
+        book.NarrativePerson = Clean(narrativePerson);
+        book.Tense = Clean(tense);
+        await _workspace.Projects.SaveProjectAsync();
+        return Get();
+    }
+
+    private static string Clean(string? value) => (value ?? string.Empty).Trim();
 
     [JsonRpcMethod("premise/save")]
     public async Task<PremiseDto> SaveAsync(string? logline, string? paragraph, PremiseActDto[]? acts)
@@ -94,4 +142,26 @@ public sealed class PremiseRpc
 /// <summary>One act and what happens in it.</summary>
 public sealed record PremiseActDto(string Act, string? Summary);
 
-public sealed record PremiseDto(string Logline, string Paragraph, PremiseActDto[] Acts);
+public sealed record PremiseDto(
+    string Logline,
+    string Paragraph,
+    PremiseActDto[] Acts,
+    PitchDto Pitch,
+    VoiceDto Voice);
+
+/// <summary>How the book is sold, in the words the forms ask for.</summary>
+public sealed record PitchDto(
+    string Genre,
+    string Audience,
+    string Comparables,
+    string Setting,
+    /// <summary>Back-cover copy, which withholds the ending on purpose.</summary>
+    string Blurb,
+    /// <summary>The one-page synopsis, ending included.</summary>
+    string Synopsis);
+
+/// <summary>
+/// What the book is written in. Empty means the writer has not said, and
+/// nothing is checked against it.
+/// </summary>
+public sealed record VoiceDto(string NarrativePerson, string Tense);

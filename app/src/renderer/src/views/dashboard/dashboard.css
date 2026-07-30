@@ -407,3 +407,14 @@
 .dashboard-horizon {
   margin-top: var(--nl-space-md);
 }
+
+/* The book's declared person and tense, side by side: two halves of one
+   statement rather than two unrelated settings. */
+.premise-voice-row {
+  display: flex;
+  gap: var(--nl-space-sm);
+}
+
+.premise-voice-row > select {
+  flex: 1;
+}

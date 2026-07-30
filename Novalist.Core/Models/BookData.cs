@@ -148,6 +148,27 @@ public class BookData
     public PublishingMetadata Publishing { get; set; } = new();
 
     /// <summary>
+    /// The narrative person the book is written in: "first", "second", "third
+    /// limited", "third omniscient", or empty when the writer has not said.
+    ///
+    /// Novalist detects a point of view per scene and always has, but nothing
+    /// declared what the book as a whole was supposed to be - so a first-person
+    /// novel with one third-person scene in it had nothing to be wrong against.
+    /// Declared rather than derived: the answer is the writer's intention, and
+    /// deriving it from the majority of scenes would make the outlier normal.
+    /// </summary>
+    [JsonPropertyName("narrativePerson")]
+    public string NarrativePerson { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The tense the book is written in: "past", "present", or empty. Same
+    /// reasoning as <see cref="NarrativePerson"/>, and the same use - a scene
+    /// that drifts out of it can be told about.
+    /// </summary>
+    [JsonPropertyName("tense")]
+    public string Tense { get; set; } = string.Empty;
+
+    /// <summary>
     /// Id of the story structure this book is written against, or empty for
     /// none. Chosen rather than derived: a writer using Save the Cat should not
     /// have Novalist guess that from their chapter count.

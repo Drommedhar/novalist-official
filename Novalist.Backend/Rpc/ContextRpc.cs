@@ -187,9 +187,39 @@ public sealed class ContextRpc
             (int)Math.Round(dialogueRatio * 100d),
             avgSentenceLength,
             wordCount,
-            keywordAnalysis);
+            keywordAnalysis,
+            // The book says what it is written in; this scene either agrees or
+            // it does not. Silent when the book declares nothing, when the
+            // scene is too short to be evidence, or when the language does not
+            // mark tense with verb forms - being told a four-sentence scene is
+            // broken is worse than not being told anything.
+            VoiceDrift(currentContent, lexicon));
 
         return new SceneContextDto(characterCards, locationCards, itemCards, loreCards, mentionRows, analysis);
+    }
+
+    /// <summary>
+    /// Where this scene reads differently from what the book declares, or null
+    /// when there is nothing to say. Confidence rides along so a weak reading
+    /// can be shown as a question rather than a verdict.
+    /// </summary>
+    private VoiceDriftDto? VoiceDrift(string content, SceneAnalysisLexicon? lexicon)
+    {
+        var book = _workspace.Projects.ActiveBook;
+        if (book == null) return null;
+
+        var person = NarrativeVoiceService.CheckPerson(book.NarrativePerson, content, lexicon);
+        var tense = NarrativeVoiceService.CheckTense(book.Tense, content, lexicon);
+        if (person == null && tense == null) return null;
+
+        return new VoiceDriftDto(
+            book.NarrativePerson,
+            book.Tense,
+            person?.Reading.ToString().ToLowerInvariant() ?? string.Empty,
+            tense?.Reading.ToString().ToLowerInvariant() ?? string.Empty,
+            person is { Agrees: false },
+            tense is { Agrees: false },
+            Math.Max(person?.Confidence ?? 0, tense?.Confidence ?? 0));
     }
 
     /// <summary>The project's writing language (the same setting that drives
@@ -694,4 +724,24 @@ public sealed record SceneAnalysisDto(
     /// <summary>False when the project's writing language is not English, in which
     /// case emotion/intensity/conflict/tags are not auto-detected (the keyword
     /// lists are English) and are left for the writer to set.</summary>
-    bool KeywordAnalysisSupported);
+    bool KeywordAnalysisSupported,
+    /// <summary>How this scene sits against the book's declared voice, or null
+    /// when the book declares none.</summary>
+    VoiceDriftDto? VoiceDrift);
+
+/// <summary>
+/// A scene measured against the book's declaration.
+///
+/// <c>PersonReading</c> and <c>TenseReading</c> are "unknown" where the prose is
+/// too short to be evidence or the language does not mark it, and nothing is
+/// flagged in that case.
+/// </summary>
+public sealed record VoiceDriftDto(
+    string DeclaredPerson,
+    string DeclaredTense,
+    string PersonReading,
+    string TenseReading,
+    bool PersonDrifts,
+    bool TenseDrifts,
+    /// <summary>0-100. Below roughly 40 this is a question, not a verdict.</summary>
+    int Confidence);
