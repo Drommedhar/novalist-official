@@ -494,11 +494,12 @@ export function SettingsView(): React.JSX.Element {
             ))}
           </select>
           <div className="settings-hint">{t('settings.readAloudDesc')}</div>
-          {/* The list is whatever the system speech engine exposes, and on
-              Windows that is a subset of what is installed - the "Desktop"
-              SAPI5 voices are invisible to it. Saying nothing left a writer
-              looking for a voice that will never appear, and left "match the
-              writing language" quietly reading German in an English voice. */}
+          {/* Windows has two kinds of voice and only one is reachable by an
+              application. The ones added under Narrator's "natural voices" are
+              Narrator's alone - not through SAPI, not through WinRT, not
+              through Chromium - so a writer who installs one there waits
+              forever for it to appear. Naming the trap is the only fix
+              available to us, because there is no API that reaches them. */}
           {voices.length === 0 ? (
             <div className="settings-hint export-warning">{t('settings.readAloudNoVoices')}</div>
           ) : (
@@ -510,6 +511,7 @@ export function SettingsView(): React.JSX.Element {
               </div>
             )
           )}
+          <div className="settings-hint">{t('settings.readAloudVoiceKinds')}</div>
           {/* Typewriter scroll makes no sense on a phone (and is force-disabled in
               the mobile editor), so hide it there. */}
           {!isMobile && (

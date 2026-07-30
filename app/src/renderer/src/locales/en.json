@@ -575,8 +575,9 @@
     "accessibleFontHint": "The list names faces chosen for readability — OpenDyslexic, Atkinson Hyperlegible, Lexend — alongside the usual ones. Novalist does not bundle them, so the face you pick has to be installed on this machine.",
     "useHighContrast": "Switch to the High Contrast theme",
     "highContrastHint": "A bundled theme with stronger separation between text and background. You can switch back under Appearance at any time.",
-    "readAloudNoVoices": "Your system is not offering any speech voices to Novalist. Install one through Windows Settings > Time & language > Speech, or the equivalent on your platform, then restart Novalist.",
-    "readAloudNoMatchingVoice": "None of the available voices speaks {{language}}, so read-aloud will use whichever voice your system picks. This list is what the system speech engine exposes to Novalist, which on Windows can be fewer voices than are installed - the older \"Desktop\" voices are not offered to applications like this one."
+    "readAloudNoVoices": "Your system is not offering any speech voices to Novalist. See the note below on which kind to install.",
+    "readAloudNoMatchingVoice": "None of the available voices speaks {{language}}, so read-aloud will use whichever voice your system picks.",
+    "readAloudVoiceKinds": "Windows has two kinds of voice and only one of them can be used by applications. Voices added under **Accessibility → Narrator → Add natural voices** are reserved for Narrator: they appear in Narrator's own list and in no program, including this one. The voices that work here come from **Time & language → Language & region → Add a language**, with the language's optional **Speech** feature installed. Restart Novalist after installing one."
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",

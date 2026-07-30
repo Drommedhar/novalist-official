@@ -73,7 +73,14 @@ All three apply to the scene editor, to Manuscript mode, and to the Expose.
 - **Read-aloud speed** — how fast the speaker button reads the scene back (0.5-2). Defaults to 1.
 - **Read-aloud voice** — which system voice to use. The default, **Match the writing language**, asks for a voice in the language the scene is written in.
 
-  The list is **what your system's speech engine offers to applications**, which on Windows can be fewer voices than you have installed: the older "Desktop" SAPI5 voices are not offered to apps like this one, so a voice you can see in Windows Settings may not appear here. If nothing in the list speaks your writing language, Novalist says so under the picker rather than letting "Match the writing language" quietly read German aloud in an English voice. Install voices through **Windows Settings → Time & language → Speech** (or your platform's equivalent) and restart Novalist.
+  The list is **what your system's speech engine offers to applications**, which on Windows is not the same as what you can see in Narrator. If nothing in the list speaks your writing language, Novalist says so under the picker rather than letting "Match the writing language" quietly read German aloud in an English voice.
+
+  **Windows has two kinds of voice, and only one of them is usable here.**
+
+  - Voices added under **Accessibility → Narrator → Add natural voices** are downloaded as app packages and are **reserved for Narrator**. They appear in Narrator's own voice list and in no application — not Novalist, not Word, not any browser. This is a Microsoft restriction: they are absent from SAPI, absent from the newer WinRT speech API, and absent from the voice list every application reads. Installing one here will not make it appear in Novalist.
+  - Voices that **do** work come with a **language**. Go to **Time & language → Language & region → Add a language**, pick the language you write in, and make sure the optional **Speech** feature is ticked when the feature list appears. Restart Novalist and its voices are in the list.
+
+  If you added German through Narrator's natural voices and cannot find it here, adding German as a language is the step that was missing.
 
 See [Accessibility](39-accessibility.md) for what these settings are for and what is still missing, and [Read aloud](05-editor.md#read-aloud) for the button that uses them.
 - **Typewriter Scrolling** — keeps the active line at a fixed vertical position so you don't write near the bottom of the page. When on, an anchor choice appears: **Top**, **Middle**, or **Bottom**.

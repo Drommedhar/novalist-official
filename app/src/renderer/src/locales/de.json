@@ -462,8 +462,9 @@
     "accessibleFontHint": "Die Liste nennt Schriften, die auf Lesbarkeit ausgelegt sind – OpenDyslexic, Atkinson Hyperlegible, Lexend – neben den üblichen. Novalist liefert sie nicht mit; die gewählte Schrift muss auf diesem Rechner installiert sein.",
     "useHighContrast": "Zum Thema „High Contrast“ wechseln",
     "highContrastHint": "Ein mitgeliefertes Thema mit stärkerem Kontrast zwischen Text und Hintergrund. Unter Darstellung jederzeit umschaltbar.",
-    "readAloudNoVoices": "Ihr System stellt Novalist keine Sprachstimmen bereit. Installieren Sie eine über Windows-Einstellungen > Zeit und Sprache > Sprache und starten Sie Novalist neu.",
-    "readAloudNoMatchingVoice": "Keine der verfügbaren Stimmen spricht {{language}}; das Vorlesen nutzt daher die Stimme, die Ihr System auswählt. Diese Liste zeigt, was die Sprachausgabe des Systems an Novalist meldet - unter Windows können das weniger Stimmen sein als installiert sind, denn die älteren \"Desktop\"-Stimmen werden Anwendungen wie dieser nicht angeboten."
+    "readAloudNoVoices": "Ihr System stellt Novalist keine Sprachstimmen bereit. Siehe den Hinweis unten, welche Art Sie installieren müssen.",
+    "readAloudNoMatchingVoice": "Keine der verfügbaren Stimmen spricht {{language}}; das Vorlesen nutzt daher die Stimme, die Ihr System auswählt.",
+    "readAloudVoiceKinds": "Windows kennt zwei Arten von Stimmen, und nur eine davon können Anwendungen nutzen. Stimmen aus **Barrierefreiheit → Sprachausgabe → Natürliche Stimmen hinzufügen** sind der Sprachausgabe vorbehalten: Sie erscheinen in deren eigener Liste und in keinem Programm, auch nicht in diesem. Nutzbar sind Stimmen aus **Zeit und Sprache → Sprache und Region → Sprache hinzufügen**, samt der optionalen Funktion **Sprache**. Danach Novalist neu starten."
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
