@@ -1110,7 +1110,15 @@
     "kindlocation": "Orte",
     "kinditem": "Gegenstände",
     "kindlore": "Wissen",
-    "edgeLegend": "Die Farbe einer Verbindung folgt der Art, die im Kodex dafür gewählt wurde."
+    "edgeLegend": "Die Farbe einer Verbindung folgt der Art, die im Kodex dafür gewählt wurde.",
+    "centreOn": "Zentrieren auf",
+    "wholeWorld": "Die ganze Welt",
+    "depth": "Reichweite",
+    "hops": "{{count}} Schritt",
+    "hops_other": "{{count}} Schritte",
+    "withScenes": "Szenen anzeigen",
+    "kindscene": "Szenen",
+    "recentreOn": "Auf {{name}} zentrieren (Alt-Klick zum Öffnen)"
   },
   "calendar": {
     "title": "Kalender",

@@ -11,6 +11,8 @@ export interface GraphCharacter {
   relationships: { role: string; target: string; category: string }[]
   /** character, location, item, lore, or a custom type key. */
   entityType: string
+  /** For a scene node, the chapter it is in. Absent for every other kind. */
+  chapterGuid?: string | null
 }
 
 export interface LayoutNode {

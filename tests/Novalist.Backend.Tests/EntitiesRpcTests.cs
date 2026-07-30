@@ -1539,4 +1539,112 @@ public sealed class EntitiesRpcTests : IDisposable
         Assert.Equal("What do they refuse to do?", field.Prompt);
     }
 
+
+    // ── A neighbourhood rather than a hairball ──
+
+    [Fact]
+    public async Task Graph_WithNoRootIsStillTheWholeWorld()
+    {
+        await SeedChainAsync();
+
+        var all = await Graph.GetGraphAsync();
+
+        Assert.Equal(4, all.Length);
+    }
+
+    [Fact]
+    public async Task Graph_RootAndDepthReturnOnlyTheNeighbourhood()
+    {
+        var ids = await SeedChainAsync();
+
+        // A -> B -> C -> D. One hop from A is A and B.
+        var oneHop = await Graph.GetGraphAsync(ids["A"], depth: 1);
+        Assert.Equal(["A", "B"], oneHop.Select(n => n.DisplayName).Order());
+
+        var twoHops = await Graph.GetGraphAsync(ids["A"], depth: 2);
+        Assert.Equal(["A", "B", "C"], twoHops.Select(n => n.DisplayName).Order());
+    }
+
+    [Fact]
+    public async Task Graph_ReachabilityRunsBothWaysAlongAnEdge()
+    {
+        var ids = await SeedChainAsync();
+
+        // Only A names B; B names nobody. B is still one hop from A, and A is
+        // one hop from B - an edge is a connection, not a direction.
+        var fromB = await Graph.GetGraphAsync(ids["B"], depth: 1);
+
+        Assert.Contains(fromB, n => n.DisplayName == "A");
+    }
+
+    [Fact]
+    public async Task Graph_DepthIsClampedAndAnUnknownRootIsEmpty()
+    {
+        var ids = await SeedChainAsync();
+
+        // Four is the ceiling, so asking for forty is asking for four.
+        Assert.Equal(4, (await Graph.GetGraphAsync(ids["A"], depth: 40)).Length);
+        // And zero hops is not a neighbourhood, so it clamps up to one rather
+        // than showing a single node with nothing around it.
+        Assert.Equal(2, (await Graph.GetGraphAsync(ids["A"], depth: 0)).Length);
+
+        Assert.Empty(await Graph.GetGraphAsync("no-such-id"));
+    }
+
+    [Fact]
+    public async Task Graph_ScenesBecomeNodesEdgedToWhoIsInThem()
+    {
+        var ids = await SeedChainAsync();
+
+        // A type the writer invented, in the scene alongside two characters:
+        // a scene edge names whatever is in it, not only people.
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            null, "Ledger", "Ledgers", null, true, false, true));
+        var ledgerId = (await _rpc.CreateAsync("ledger", "The Salt Ledger"))
+            .GetProperty("id").GetString()!;
+
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "The meeting");
+        scene.Cast = [ids["A"], ids["C"], ledgerId];
+        await _workspace.Projects.SaveScenesAsync();
+
+        var withScenes = await Graph.GetGraphAsync(includeScenes: true);
+
+        var node = Assert.Single(withScenes.Where(n => n.EntityType == "scene"));
+        Assert.Equal("The meeting", node.DisplayName);
+        Assert.Equal(chapter.Guid, node.ChapterGuid);
+        // The edge that was always known and never drawn: A and C are in a
+        // scene together, which no relationship row says.
+        Assert.Equal(
+            ["A", "C", "The Salt Ledger"],
+            node.Relationships.Select(r => r.Target).Order());
+
+        // Off by default, because a scene per node doubles the canvas.
+        Assert.DoesNotContain(await Graph.GetGraphAsync(), n => n.EntityType == "scene");
+    }
+
+    private RelationshipsRpc Graph => new(_workspace);
+
+    /// <summary>A -> B -> C -> D, one relationship row each.</summary>
+    private async Task<Dictionary<string, string>> SeedChainAsync()
+    {
+        var entities = new EntityService(_workspace.Projects);
+        var ids = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var name in new[] { "A", "B", "C", "D" })
+        {
+            var character = new CharacterData { Name = name };
+            await entities.SaveCharacterAsync(character);
+            ids[name] = character.Id;
+        }
+
+        var all = await entities.LoadCharactersAsync();
+        foreach (var (from, to) in new[] { ("A", "B"), ("B", "C"), ("C", "D") })
+        {
+            var subject = all.Single(c => c.Name == from);
+            subject.Relationships.Add(new EntityRelationship { Role = "knows", Target = to });
+            await entities.SaveCharacterAsync(subject);
+        }
+        return ids;
+    }
+
 }

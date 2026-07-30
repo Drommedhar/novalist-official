@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { useWikiStore } from '../../stores/wikiStore'
+import { useProjectStore } from '../../stores/projectStore'
 import { layoutGraph, NODE_SIZE, type GraphCharacter } from './layout'
 import './relationships.css'
 
@@ -22,12 +23,13 @@ const BOX_PALETTE = [
 ]
 
 /** The entry kinds the graph can show. Characters first; it opens on them. */
-const ENTRY_KINDS = ['character', 'location', 'item', 'lore'] as const
+const ENTRY_KINDS = ['character', 'location', 'item', 'lore', 'scene'] as const
 
 export function RelationshipsView(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
   const [characters, setCharacters] = useState<GraphCharacter[]>([])
+  const [allNodes, setAllNodes] = useState<GraphCharacter[]>([])
   const [search, setSearch] = useState('')
   const [filterGroup, setFilterGroup] = useState('')
   const [filterRole, setFilterRole] = useState('')
@@ -36,6 +38,14 @@ export function RelationshipsView(): React.JSX.Element {
   // is what this view has always been, and a first look at a full Codex with
   // everything on at once is unreadable.
   const [types, setTypes] = useState<string[]>(['character'])
+  // Which entry the graph is centred on, and how far out it reaches. A whole
+  // Codex on one canvas proves the links exist and answers nothing; the
+  // question a writer has is "what is this one connected to".
+  const [rootId, setRootId] = useState<string | null>(null)
+  const [depth, setDepth] = useState(2)
+  // Scenes as nodes. Novalist always knew which entities appear in which scene
+  // and never drew that edge, so "where do these two meet" had no answer here.
+  const [withScenes, setWithScenes] = useState(false)
   const [zoom, setZoom] = useState(1)
   const [pan, setPan] = useState({ x: 0, y: 0 })
   const dragRef = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null)
@@ -43,21 +53,58 @@ export function RelationshipsView(): React.JSX.Element {
   const viewportRef = useRef<HTMLDivElement>(null)
   const fitPendingRef = useRef(false)
   const typeOf = useRef(new Map<string, string>())
+  // Scene nodes carry the chapter they are in, so one can be opened rather
+  // than only looked at.
+  const chapterOf = useRef(new Map<string, string>())
   const openEntity = useCallback((id: string): void => {
     // Ignore the click that ends a pan drag; only a genuine tap opens the article.
     if (movedRef.current) return
+    const type = typeOf.current.get(id) ?? 'character'
+    // A scene is not a Codex entry, so it opens in the editor rather than
+    // sending the writer to an article that does not exist.
+    if (type === 'scene') {
+      const chapterGuid = chapterOf.current.get(id)
+      if (chapterGuid) void useProjectStore.getState().openScene(chapterGuid, id)
+      return
+    }
     useShellStore.getState().setMainView('wiki')
     // A node knows what it is, so a location opens its own article rather than
     // a character article that does not exist.
-    void useWikiStore.getState().openArticle(typeOf.current.get(id) ?? 'character', id)
+    void useWikiStore.getState().openArticle(type, id)
+  }, [])
+
+  /**
+   * Recentres on a node rather than leaving the view.
+   *
+   * Following a thread meant opening an article and coming back, which loses
+   * the shape you were reading. Now the graph moves with you.
+   */
+  const recentre = useCallback((id: string): void => {
+    if (movedRef.current) return
+    setRootId(id)
   }, [])
 
   useEffect(() => {
     if (mainView !== 'relationships') return
-    void rpc.request<GraphCharacter[]>('relationships/graph').then((all) => {
-      typeOf.current = new Map(all.map((n) => [n.id, n.entityType]))
-      setCharacters(all)
-    })
+    void rpc
+      .request<GraphCharacter[]>('relationships/graph', [rootId, depth, withScenes])
+      .then((all) => {
+        typeOf.current = new Map(all.map((n) => [n.id, n.entityType]))
+        chapterOf.current = new Map(
+          all.filter((n) => n.chapterGuid).map((n) => [n.id, n.chapterGuid!])
+        )
+        setCharacters(all)
+      })
+  }, [mainView, rootId, depth, withScenes])
+
+  // Every entry, only to fill the "centre on" picker: the graph itself may be
+  // showing a neighbourhood, and you have to be able to jump out of it.
+  useEffect(() => {
+    if (mainView !== 'relationships') return
+    void rpc
+      .request<GraphCharacter[]>('relationships/graph', [null, 4, false])
+      .then(setAllNodes)
+      .catch(() => setAllNodes([]))
   }, [mainView])
 
   const availableGroups = useMemo(
@@ -214,6 +261,53 @@ export function RelationshipsView(): React.JSX.Element {
           />
           {t('relationships.hideWorldBible')}
         </label>
+
+        {/* Centring on one entry turns a hairball into an answer. Two hops is
+            usually where a family or a faction becomes a visible shape. */}
+        <select
+          className="dialog-input relationships-filter"
+          aria-label={t('relationships.centreOn')}
+          value={rootId ?? ''}
+          onChange={(e) => setRootId(e.target.value || null)}
+        >
+          <option value="">{t('relationships.wholeWorld')}</option>
+          {[...allNodes]
+            .filter((n) => n.entityType !== 'scene')
+            .sort((a, b) => a.displayName.localeCompare(b.displayName))
+            .map((n) => (
+              <option key={n.id} value={n.id}>
+                {n.displayName}
+              </option>
+            ))}
+        </select>
+        {rootId && (
+          <select
+            className="dialog-input relationships-filter"
+            aria-label={t('relationships.depth')}
+            value={String(depth)}
+            onChange={(e) => setDepth(Number(e.target.value))}
+          >
+            {[1, 2, 3, 4].map((d) => (
+              <option key={d} value={d}>
+                {t('relationships.hops', { count: d })}
+              </option>
+            ))}
+          </select>
+        )}
+        {/* The edge that was always known and never drawn: which scenes these
+            people are actually in together. */}
+        <label className="relationships-toggle">
+          <input
+            type="checkbox"
+            checked={withScenes}
+            onChange={(e) => {
+              setWithScenes(e.target.checked)
+              // A scene node is useless with its class filtered out.
+              if (e.target.checked && !types.includes('scene')) setTypes([...types, 'scene'])
+            }}
+          />
+          {t('relationships.withScenes')}
+        </label>
         {hasActiveFilter && (
           <button className="relationships-clear" onClick={clearFilters}>
             {t('relationships.clearFilters')}
@@ -319,15 +413,19 @@ export function RelationshipsView(): React.JSX.Element {
                 className="relationships-node-group"
                 role="button"
                 tabIndex={0}
-                onClick={() => openEntity(node.id)}
+                // Click follows the thread without leaving the view; the
+                // article is a deliberate second gesture, because opening one
+                // loses the shape you were reading.
+                onClick={(e) => (e.altKey ? openEntity(node.id) : recentre(node.id))}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
-                    openEntity(node.id)
+                    if (e.altKey) openEntity(node.id)
+                    else recentre(node.id)
                   }
                 }}
               >
-                <title>{t('relationships.openArticle', { name: node.name })}</title>
+                <title>{t('relationships.recentreOn', { name: node.name })}</title>
                 <rect
                   x={node.x}
                   y={node.y}

@@ -251,7 +251,14 @@
     "kindlocation": "地点",
     "kinditem": "物品",
     "kindlore": "设定",
-    "edgeLegend": "连线颜色取决于在设定集中为该关系选定的类型。"
+    "edgeLegend": "连线颜色取决于在设定集中为该关系选定的类型。",
+    "centreOn": "以此为中心",
+    "wholeWorld": "整个世界",
+    "depth": "延伸范围",
+    "hops": "{{count}} 层",
+    "withScenes": "显示场景",
+    "kindscene": "场景",
+    "recentreOn": "以 {{name}} 为中心（Alt+点击打开）"
   },
   "calendar": {
     "title": "日历",

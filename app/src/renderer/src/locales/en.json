@@ -217,7 +217,15 @@
     "kindlocation": "Locations",
     "kinditem": "Items",
     "kindlore": "Lore",
-    "edgeLegend": "Tie colours follow the kind each relationship is given in the Codex."
+    "edgeLegend": "Tie colours follow the kind each relationship is given in the Codex.",
+    "centreOn": "Centre on",
+    "wholeWorld": "The whole world",
+    "depth": "How far out",
+    "hops": "{{count}} hop",
+    "hops_other": "{{count}} hops",
+    "withScenes": "Show scenes",
+    "kindscene": "Scenes",
+    "recentreOn": "Centre on {{name}} (Alt-click to open it)"
   },
   "calendar": {
     "title": "Calendar",

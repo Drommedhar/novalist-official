@@ -31,9 +31,14 @@ Other roles — mentor, enemy, business partner, owes a debt to — appear as la
 - **Filter by role** — show only characters with a chosen role.
 - **Hide world-bible entities** — hide characters marked as world-bible, leaving only this book's cast.
 - **Clear filters** — appears once any filter (search, group, role, or hide-world-bible) is active; resets them all at once.
+- **Centre on** — pick one entry and the graph shows only its neighbourhood. A whole Codex on one canvas proves the links exist and answers nothing; the question you actually have is what *this one* is connected to.
+- **How far out** — one to four hops from whatever you centred on, shown once you have. Two is usually where a family or a faction becomes a visible shape.
+- **Show scenes** — adds a node per scene with an edge to everything in it. Novalist always knew which entries appear in which scene and never drew that edge, so "where do these two actually meet" had no answer on the graph. Off by default: a node per scene doubles the canvas.
 - **Zoom readout** — shows the current zoom percentage.
 
 Filters combine. **Zoom** with the mouse wheel (20% to 400%); **pan** by dragging the background. Whenever the graph is rebuilt — on open, or after changing a filter — it **auto-fits** and centres itself in the viewport, so you never have to hunt for the cast.
+
+**Clicking a node recentres the graph on it**, so following a thread never takes you out of the view — leaving it and coming back loses the shape you were reading. **Alt-click** opens the entry's [Wiki article](30-wiki.md) instead, or the scene itself for a scene node.
 
 ## Adding and editing relationships
 
