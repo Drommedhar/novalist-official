@@ -1,5 +1,6 @@
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Novalist.Sdk.Models;
 using Xunit;
@@ -36,7 +37,11 @@ public sealed class ExportRpcTests : IDisposable
     public void Formats_ListsAllBuiltIns()
     {
         Assert.Equal(
-            new[] { "Epub", "Docx", "Pdf", "Markdown", "FinalDraft", "LaTeX", "Codex", "CodexPdf" },
+            new[]
+            {
+                "Epub", "Docx", "Pdf", "Markdown", "FinalDraft", "LaTeX", "Codex", "CodexPdf",
+                "Csv", "Json"
+            },
             _rpc.Formats());
     }
 
@@ -83,6 +88,8 @@ public sealed class ExportRpcTests : IDisposable
     [InlineData("LaTeX", ".tex")]
     [InlineData("Codex", ".md")]
     [InlineData("CodexPdf", ".pdf")]
+    [InlineData("Csv", ".csv")]
+    [InlineData("Json", ".json")]
     public async Task Run_ProducesNonEmptyFile(string format, string extension)
     {
         var output = Path.Combine(_root, $"out-{format}{extension}");
@@ -710,5 +717,35 @@ public sealed class ExportRpcTests : IDisposable
         var listed = Assert.Single(_rpc.Retailers());
         Assert.Equal("kobo", listed.Key);
         Assert.Equal("Kobo", listed.Name);
+    }
+
+    [Fact]
+    public async Task Run_Csv_CarriesTheChapterAndScene()
+    {
+        var output = Path.Combine(_root, "outline.csv");
+        var chapter = _workspace.Projects.GetChaptersOrdered()[0];
+
+        await _rpc.RunAsync("Csv", output, "ExpNovel", "Tester", true, [chapter.Guid]);
+
+        // The point of the format: an outline that can be opened in a
+        // spreadsheet rather than retyped into one.
+        var text = await File.ReadAllTextAsync(output);
+        Assert.Contains("Kapitel Eins", text);
+        Assert.Contains("Anfang", text);
+    }
+
+    [Fact]
+    public async Task Run_Json_CarriesScenesAndCodex()
+    {
+        var entities = new EntityService(_workspace.Projects);
+        await entities.SaveCharacterAsync(new CharacterData { Name = "Mira" });
+        var output = Path.Combine(_root, "outline.json");
+        var chapter = _workspace.Projects.GetChaptersOrdered()[0];
+
+        await _rpc.RunAsync("Json", output, "ExpNovel", "Tester", true, [chapter.Guid]);
+
+        var json = await File.ReadAllTextAsync(output);
+        Assert.Contains("Anfang", json);
+        Assert.Contains("Mira", json);
     }
 }

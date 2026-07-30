@@ -1,0 +1,205 @@
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+namespace Novalist.Core.Services;
+
+/// <summary>
+/// Comma-separated values, written the way a spreadsheet expects to read them.
+///
+/// RFC 4180 quoting, and the reason it is a class of its own: a synopsis with a
+/// comma in it, a scene called "Then, later" and a note spanning two lines are
+/// all ordinary content here, and every one of them silently corrupts a naive
+/// join into columns that no longer line up.
+/// </summary>
+public static class Csv
+{
+    /// <summary>One cell, quoted only when it has to be.</summary>
+    public static string Cell(string? value)
+    {
+        var text = value ?? string.Empty;
+        // Excel and LibreOffice both split on the separator inside an unquoted
+        // cell, so a comma, a quote or a line break forces the quoted form.
+        var needsQuotes = text.Contains(',') || text.Contains('"')
+            || text.Contains('\n') || text.Contains('\r');
+        if (!needsQuotes) return text;
+        return "\"" + text.Replace("\"", "\"\"") + "\"";
+    }
+
+    /// <summary>One row, terminated the way every reader accepts.</summary>
+    public static string Row(IEnumerable<string?> cells)
+        // CRLF rather than LF: the spreadsheets this is written for are the
+        // strictest readers of the format, and both accept CRLF everywhere.
+        => string.Join(",", cells.Select(Cell)) + "\r\n";
+
+    /// <summary>A whole sheet: a header row and the rows under it.</summary>
+    public static string Sheet(IEnumerable<string> header, IEnumerable<IEnumerable<string?>> rows)
+    {
+        var sb = new StringBuilder();
+        sb.Append(Row(header));
+        foreach (var row in rows) sb.Append(Row(row));
+        return sb.ToString();
+    }
+}
+
+/// <summary>
+/// One scene as a spreadsheet sees it: what it is called, where it sits, and
+/// every planning field the writer filled in.
+/// </summary>
+public sealed class SceneMetadataRow
+{
+    [JsonPropertyName("chapter")]
+    public string Chapter { get; set; } = string.Empty;
+
+    [JsonPropertyName("chapterOrder")]
+    public int ChapterOrder { get; set; }
+
+    [JsonPropertyName("scene")]
+    public string Scene { get; set; } = string.Empty;
+
+    [JsonPropertyName("sceneOrder")]
+    public int SceneOrder { get; set; }
+
+    [JsonPropertyName("stage")]
+    public string Stage { get; set; } = string.Empty;
+
+    [JsonPropertyName("pov")]
+    public string Pov { get; set; } = string.Empty;
+
+    [JsonPropertyName("words")]
+    public int Words { get; set; }
+
+    [JsonPropertyName("wordTarget")]
+    public int WordTarget { get; set; }
+
+    [JsonPropertyName("date")]
+    public string Date { get; set; } = string.Empty;
+
+    [JsonPropertyName("synopsis")]
+    public string Synopsis { get; set; } = string.Empty;
+
+    [JsonPropertyName("goal")]
+    public string Goal { get; set; } = string.Empty;
+
+    [JsonPropertyName("conflict")]
+    public string Conflict { get; set; } = string.Empty;
+
+    [JsonPropertyName("outcome")]
+    public string Outcome { get; set; } = string.Empty;
+
+    [JsonPropertyName("tags")]
+    public string Tags { get; set; } = string.Empty;
+
+    [JsonPropertyName("plotlines")]
+    public string Plotlines { get; set; } = string.Empty;
+
+    [JsonPropertyName("cast")]
+    public string Cast { get; set; } = string.Empty;
+
+    /// <summary>
+    /// True for a scene the writer parked. It is a column rather than a reason
+    /// to drop the row: an outline that hides the scenes somebody set aside is
+    /// exactly the outline that cannot answer why the act is short.
+    /// </summary>
+    [JsonPropertyName("inactive")]
+    public bool Inactive { get; set; }
+
+    /// <summary>True for a scene held back from the book but still planned.</summary>
+    [JsonPropertyName("excludedFromExport")]
+    public bool ExcludedFromExport { get; set; }
+}
+
+/// <summary>One Codex entry, flattened to what another tool can read.</summary>
+public sealed class EntityMetadataRow
+{
+    [JsonPropertyName("kind")]
+    public string Kind { get; set; } = string.Empty;
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Every filled-in field, labelled the way the document exports label them.
+    ///
+    /// Type and description are in here rather than beside it: they are fields
+    /// like any other, they are named differently on different entity kinds -
+    /// a character has a role where lore has a category - and lifting two of
+    /// them out would have meant reading the same value in two places.
+    /// </summary>
+    [JsonPropertyName("properties")]
+    public Dictionary<string, string> Properties { get; set; } = [];
+
+    [JsonPropertyName("sections")]
+    public Dictionary<string, string> Sections { get; set; } = [];
+
+    [JsonPropertyName("relationships")]
+    public List<string> Relationships { get; set; } = [];
+}
+
+/// <summary>Everything a machine-readable export carries about a book.</summary>
+public sealed class MetadataExport
+{
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = string.Empty;
+
+    [JsonPropertyName("author")]
+    public string Author { get; set; } = string.Empty;
+
+    [JsonPropertyName("scenes")]
+    public List<SceneMetadataRow> Scenes { get; set; } = [];
+
+    [JsonPropertyName("codex")]
+    public List<EntityMetadataRow> Codex { get; set; } = [];
+}
+
+/// <summary>Turns the metadata model into the bytes that leave the project.</summary>
+public static class MetadataWriter
+{
+    /// <summary>Column headings, in the order the sheet writes them.</summary>
+    public static readonly string[] SceneColumns =
+    [
+        "Chapter", "Chapter order", "Scene", "Scene order", "Stage", "POV",
+        "Words", "Word target", "Date", "Synopsis", "Goal", "Conflict",
+        "Outcome", "Tags", "Plotlines", "Cast", "Inactive", "Excluded from export"
+    ];
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        WriteIndented = true,
+        // A file somebody will open in an editor: escaping every accented
+        // letter to ä would make a German outline unreadable by hand.
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    /// <summary>The scene sheet, header row included.</summary>
+    public static string SceneCsv(IEnumerable<SceneMetadataRow> scenes)
+        => Csv.Sheet(SceneColumns, scenes.Select(Cells));
+
+    private static IEnumerable<string?> Cells(SceneMetadataRow s)
+    {
+        yield return s.Chapter;
+        yield return s.ChapterOrder.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        yield return s.Scene;
+        yield return s.SceneOrder.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        yield return s.Stage;
+        yield return s.Pov;
+        yield return s.Words.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        yield return s.WordTarget.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        yield return s.Date;
+        yield return s.Synopsis;
+        yield return s.Goal;
+        yield return s.Conflict;
+        yield return s.Outcome;
+        yield return s.Tags;
+        yield return s.Plotlines;
+        yield return s.Cast;
+        // Spelled out rather than TRUE/FALSE: a sheet a person reads should
+        // say what the column means without a legend.
+        yield return s.Inactive ? "yes" : "no";
+        yield return s.ExcludedFromExport ? "yes" : "no";
+    }
+
+    /// <summary>The whole export, indented so a person can read it too.</summary>
+    public static string Json(MetadataExport export)
+        => JsonSerializer.Serialize(export, JsonOptions);
+}

@@ -19,7 +19,10 @@ import './export.css'
  */
 const CONTENTS = [
   { key: 'manuscript', labelKey: 'export.contentManuscript' },
-  { key: 'codex', labelKey: 'export.contentCodex' }
+  { key: 'codex', labelKey: 'export.contentCodex' },
+  // Everything Novalist writes is prose or a document. Nothing machine-readable
+  // left the project, so an outline could only reach a spreadsheet by retyping.
+  { key: 'data', labelKey: 'export.contentData' }
 ] as const
 type Content = (typeof CONTENTS)[number]['key']
 
@@ -31,7 +34,9 @@ const FORMATS: { format: string; extension: string; labelKey: string; content: C
   { format: 'FinalDraft', extension: '.fdx', labelKey: 'export.formatFinalDraft', content: 'manuscript' },
   { format: 'LaTeX', extension: '.tex', labelKey: 'export.formatLatex', content: 'manuscript' },
   { format: 'Codex', extension: '.md', labelKey: 'export.formatMarkdown', content: 'codex' },
-  { format: 'CodexPdf', extension: '.pdf', labelKey: 'export.formatPdf', content: 'codex' }
+  { format: 'CodexPdf', extension: '.pdf', labelKey: 'export.formatPdf', content: 'codex' },
+  { format: 'Csv', extension: '.csv', labelKey: 'export.formatCsv', content: 'data' },
+  { format: 'Json', extension: '.json', labelKey: 'export.formatJson', content: 'data' }
 ]
 
 /** Codex entity kinds, in the order the export renders them. */
@@ -83,7 +88,8 @@ export function ExportView(): React.JSX.Element {
   // silently reset the writer's choice.
   const [formats, setFormats] = useState<Record<Content, string>>({
     manuscript: 'Epub',
-    codex: 'Codex'
+    codex: 'Codex',
+    data: 'Csv'
   })
   const format = formats[content]
   const setFormat = (next: string): void => setFormats({ ...formats, [content]: next })
@@ -137,6 +143,10 @@ export function ExportView(): React.JSX.Element {
   }, [chapters, initialized])
 
   const isCodex = content === 'codex'
+  const isData = content === 'data'
+  // The Codex rides along in JSON, where it can nest. A single sheet cannot
+  // hold a scene list and a character list without one of them being wrong.
+  const entitiesVisible = isCodex || format === 'Json'
   const extFormat = extFormats.find((f) => f.formatKey === format)
   // A contributed format is given the selection now, so hiding the list from it
   // would be the app deciding the writer cannot send somebody three chapters in
@@ -146,7 +156,9 @@ export function ExportView(): React.JSX.Element {
   // What the current selection would actually produce. Recomputed whenever a
   // choice that changes it changes, so the writer never exports blind.
   useEffect(() => {
-    if (!chaptersVisible) {
+    // A metadata sheet has no pages and no compiled word count, and reporting
+    // the manuscript's would be answering a question nobody asked.
+    if (!chaptersVisible || isData) {
       setPreview(null)
       return
     }
@@ -162,12 +174,12 @@ export function ExportView(): React.JSX.Element {
     return () => {
       current = false
     }
-  }, [chaptersVisible, selected, presetId, stageFilter])
+  }, [chaptersVisible, isData, selected, presetId, stageFilter])
 
   // Load the codex entities the first time a codex format is picked; every
   // entry starts selected so the default export matches the old behaviour.
   useEffect(() => {
-    if (!isCodex || entitiesLoaded) return
+    if (!entitiesVisible || entitiesLoaded) return
     setEntitiesLoaded(true)
     void Promise.all(
       ENTITY_KINDS.map(async ({ kind }) => {
@@ -183,7 +195,7 @@ export function ExportView(): React.JSX.Element {
       setEntities(Object.fromEntries(loaded))
       setSelectedEntities(new Set(loaded.flatMap(([, list]) => list.map((e) => e.key))))
     })
-  }, [isCodex, entitiesLoaded])
+  }, [entitiesVisible, entitiesLoaded])
 
   // The stores this book has links for, so a build can be made for one.
   useEffect(() => {
@@ -272,7 +284,7 @@ export function ExportView(): React.JSX.Element {
         includeTitlePage,
         chaptersVisible ? [...selected] : [],
         presetId,
-        isCodex ? [...selectedEntities] : null,
+        entitiesVisible ? [...selectedEntities] : null,
         isCodex ? codexLabels() : null,
         includeCover,
         [...stageFilter],
@@ -296,7 +308,7 @@ export function ExportView(): React.JSX.Element {
   const exportDisabled =
     busy ||
     (chaptersVisible && selected.size === 0) ||
-    (isCodex && allEntities.length > 0 && selectedEntities.size === 0)
+    (entitiesVisible && allEntities.length > 0 && selectedEntities.size === 0)
 
   return (
     <div className="dashboard export-view">
@@ -346,6 +358,9 @@ export function ExportView(): React.JSX.Element {
           </select>
         </div>
 
+        {/* A layout is page geometry and typography; a metadata file has
+            neither, so offering one would be a control that changes nothing. */}
+        {!isData && (
         <div className="export-field">
           <label className="inspector-label" htmlFor="export-preset">
             {t('export.preset')}
@@ -367,6 +382,7 @@ export function ExportView(): React.JSX.Element {
             <span className="export-preset-desc">{activePreset.description}</span>
           )}
         </div>
+        )}
 
         <div className="export-field">
           <label className="inspector-label" htmlFor="export-title">
@@ -392,14 +408,16 @@ export function ExportView(): React.JSX.Element {
           />
         </div>
 
-        <label className="relationships-toggle export-toggle">
-          <input
-            type="checkbox"
-            checked={includeTitlePage}
-            onChange={(e) => setIncludeTitlePage(e.target.checked)}
-          />
-          {t('export.includeTitlePage')}
-        </label>
+        {!isData && (
+          <label className="relationships-toggle export-toggle">
+            <input
+              type="checkbox"
+              checked={includeTitlePage}
+              onChange={(e) => setIncludeTitlePage(e.target.checked)}
+            />
+            {t('export.includeTitlePage')}
+          </label>
+        )}
 
         {/* Shown only where a cover actually lands in the file. A control that
             changes nothing is worse than no control, so a contributed format has
@@ -527,7 +545,7 @@ export function ExportView(): React.JSX.Element {
         {/* A build for one shop. Back matter written with <$storename> and
             <$storelink> resolves to that shop, so a reader is sent back where
             they bought it rather than to a competitor. */}
-        {retailers.length > 0 && !isCodex && (
+        {retailers.length > 0 && !isCodex && !isData && (
           <label className="export-field">
             <span className="export-field-label">{t('export.buildFor')}</span>
             <select
@@ -632,7 +650,7 @@ export function ExportView(): React.JSX.Element {
           </>
         )}
 
-        {isCodex && allEntities.length > 0 && (
+        {entitiesVisible && allEntities.length > 0 && (
           <>
             <div className="export-chapters-header">
               <div className="inspector-label">{t('export.selectEntities')}</div>
@@ -700,12 +718,15 @@ export function ExportView(): React.JSX.Element {
         {result && <p className="inspector-meta export-result">{result}</p>}
 
         {/* The pages around the story. Typed, so each is set its own way. */}
+        {!isData && (
         <details className="export-matter">
           <summary>{t('matter.title')}</summary>
           <BookMatterPanel />
         </details>
+        )}
 
         {/* What a shop and a distributor need, beyond title and author. */}
+        {!isData && (
         <details className="export-matter">
           <summary>{t('publishing.title')}</summary>
           <PublishingPanel />
@@ -714,9 +735,11 @@ export function ExportView(): React.JSX.Element {
               scenes themselves. */}
           <ReplacementsPanel />
         </details>
+        )}
 
         {/* Page geometry, separators and ebook CSS for whichever layout is
             picked above, rather than a second dropdown listing the same ones. */}
+        {!isData && (
         <details className="export-matter">
           <summary>{t('layout.title')}</summary>
           <ExportLayoutPanel
@@ -727,6 +750,7 @@ export function ExportView(): React.JSX.Element {
             }}
           />
         </details>
+        )}
 
         {/* The other half of the round trip: a DOCX goes out to an editor and
             their marked-up copy comes back here. */}

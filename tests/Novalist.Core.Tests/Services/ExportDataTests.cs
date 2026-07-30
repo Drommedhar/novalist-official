@@ -1,0 +1,362 @@
+using System.Text;
+using NSubstitute;
+using Novalist.Core.Models;
+using Novalist.Core.Services;
+using Novalist.Core.Tests.TestHelpers;
+using Xunit;
+
+namespace Novalist.Core.Tests.Services;
+
+/// <summary>
+/// Scene and Codex metadata leaving the project in a form another tool reads.
+///
+/// The point of this export is the rows a compile throws away: a planning sheet
+/// that hides the scenes somebody parked is exactly the sheet that cannot
+/// answer why the act came out short.
+/// </summary>
+public class ExportDataTests : IDisposable
+{
+    private readonly TempDir _dir = new();
+    private readonly IProjectService _project = Substitute.For<IProjectService>();
+    private readonly IEntityService _entities = Substitute.For<IEntityService>();
+    private readonly ChapterData _chapter = new() { Title = "The Rookery", Order = 1 };
+
+    public void Dispose() => _dir.Dispose();
+
+    private ExportService Service() => new(_project, _entities);
+
+    private string Output(string name) => Path.Combine(_dir.Path, name);
+
+    /// <summary>One chapter of scenes, and an empty Codex unless a test fills it.</summary>
+    private ExportOptions Setup(ExportFormat format, params SceneData[] scenes)
+    {
+        foreach (var scene in scenes) scene.ChapterGuid = _chapter.Guid;
+        _project.GetChaptersOrdered().Returns([_chapter]);
+        _project.GetScenesForChapter(_chapter.Guid).Returns([.. scenes]);
+        _project.ActiveBook.Returns(new BookData());
+        _entities.LoadCharactersAsync().Returns([]);
+        _entities.LoadLocationsAsync().Returns([]);
+        _entities.LoadItemsAsync().Returns([]);
+        _entities.LoadLoreAsync().Returns([]);
+
+        return new ExportOptions
+        {
+            Format = format,
+            Title = "Salt Road",
+            Author = "D. G.",
+            SelectedChapterGuids = [_chapter.Guid]
+        };
+    }
+
+    [Fact]
+    public async Task ASceneBecomesARowInTheSheet()
+    {
+        var options = Setup(ExportFormat.Csv, new SceneData
+        {
+            Title = "The deed",
+            Order = 1,
+            Stage = "Draft",
+            WordCount = 1200,
+            WordTarget = 1500,
+            Date = "1847-03-02",
+            Synopsis = "She finds it.",
+            Goal = "Get inside.",
+            Outcome = "Thrown out.",
+            AnalysisOverrides = new SceneAnalysisOverrides
+            {
+                Pov = "Mira",
+                Conflict = "The steward.",
+                Tags = ["rain", "night"]
+            }
+        });
+        var path = Output("outline.csv");
+
+        await Service().ExportDataAsync(options, path);
+
+        var text = await File.ReadAllTextAsync(path);
+        Assert.Contains("The Rookery,1,The deed,1,Draft,Mira,1200,1500,1847-03-02", text);
+        Assert.Contains("She finds it.", text);
+        Assert.Contains("rain; night", text);
+    }
+
+    [Fact]
+    public async Task ThePathAndFlagsOfAParkedSceneComeThrough()
+    {
+        var options = Setup(ExportFormat.Csv,
+            new SceneData { Title = "In the book", Order = 1 },
+            new SceneData { Title = "Parked", Order = 2, Inactive = true },
+            new SceneData { Title = "Held back", Order = 3, ExcludeFromExport = true });
+
+        var path = Output("outline.csv");
+        await Service().ExportDataAsync(options, path);
+
+        // A compile drops the last two. This is not a compile: they are the
+        // rows a planning sheet is for, carrying a flag rather than absent.
+        var text = await File.ReadAllTextAsync(path);
+        Assert.Contains("Parked", text);
+        Assert.Contains("Held back", text);
+        Assert.Equal(4, text.TrimEnd('\r', '\n').Split("\r\n").Length);
+    }
+
+    [Fact]
+    public async Task AStageFilterIsHonoured()
+    {
+        var options = Setup(ExportFormat.Csv,
+            new SceneData { Title = "Drafted", Order = 1, Stage = "Draft" },
+            new SceneData { Title = "Revised", Order = 2, Stage = "Revised" });
+        options.IncludedStages = ["Revised"];
+
+        var path = Output("outline.csv");
+        await Service().ExportDataAsync(options, path);
+
+        // Unlike the in-the-book flags, a stage filter is something the writer
+        // asked for on the way out.
+        var text = await File.ReadAllTextAsync(path);
+        Assert.DoesNotContain("Drafted", text);
+        Assert.Contains("Revised", text);
+    }
+
+    [Fact]
+    public async Task AnEmptyStageFilterMeansEveryStage()
+    {
+        var options = Setup(ExportFormat.Csv,
+            new SceneData { Title = "Drafted", Order = 1, Stage = "Draft" });
+        options.IncludedStages = [];
+
+        var path = Output("outline.csv");
+        await Service().ExportDataAsync(options, path);
+
+        Assert.Contains("Drafted", await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task ChaptersNobodyPickedStayOut()
+    {
+        var options = Setup(ExportFormat.Csv, new SceneData { Title = "The deed", Order = 1 });
+        options.SelectedChapterGuids = [];
+
+        var path = Output("outline.csv");
+        await Service().ExportDataAsync(options, path);
+
+        Assert.DoesNotContain("The deed", await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task PlotlinesAndCastComeOutAsNames()
+    {
+        var plotline = new PlotlineData { Name = "The inheritance" };
+        var mira = new CharacterData { Name = "Mira", Surname = "Vane" };
+        var options = Setup(ExportFormat.Csv, new SceneData
+        {
+            Title = "The deed",
+            Order = 1,
+            PlotlineIds = [plotline.Id, "gone"],
+            Cast = [mira.Id]
+        });
+        _project.ActiveBook.Returns(new BookData { Plotlines = [plotline] });
+        _entities.LoadCharactersAsync().Returns([mira]);
+
+        var path = Output("outline.csv");
+        await Service().ExportDataAsync(options, path);
+
+        // A column of GUIDs is not a readable spreadsheet, which is the whole
+        // point of the format. An id nothing resolves stays as itself rather
+        // than vanishing, so a stale link is visible instead of silent.
+        var text = await File.ReadAllTextAsync(path);
+        Assert.Contains("The inheritance; gone", text);
+        Assert.Contains("Mira Vane", text);
+    }
+
+    [Fact]
+    public async Task TheSheetOpensWithItsAccentsIntact()
+    {
+        var options = Setup(ExportFormat.Csv, new SceneData { Title = "Fürs Erste", Order = 1 });
+
+        var path = Output("outline.csv");
+        await Service().ExportDataAsync(options, path);
+
+        // Excel reads a plain UTF-8 CSV as the local codepage and turns every
+        // accent into mojibake; the byte-order mark is what stops it.
+        var bytes = await File.ReadAllBytesAsync(path);
+        Assert.Equal(new byte[] { 0xEF, 0xBB, 0xBF }, bytes[..3]);
+        Assert.Contains("Fürs Erste", Encoding.UTF8.GetString(bytes));
+    }
+
+    [Fact]
+    public async Task TheJsonHasNoByteOrderMark()
+    {
+        var options = Setup(ExportFormat.Json, new SceneData { Title = "The deed", Order = 1 });
+
+        var path = Output("outline.json");
+        await Service().ExportDataAsync(options, path);
+
+        // Some parsers reject one, and every parser specifies UTF-8 anyway.
+        var bytes = await File.ReadAllBytesAsync(path);
+        Assert.NotEqual(0xEF, bytes[0]);
+    }
+
+    [Fact]
+    public async Task TheCodexRidesAlongInJsonOnly()
+    {
+        var mira = new CharacterData
+        {
+            Name = "Mira",
+            Role = "Protagonist",
+            Sections = [new EntitySection { Title = "Appearance", Content = "Tall." }],
+            Relationships = [new EntityRelationship { Role = "sister", Target = "Tomas" }]
+        };
+        var options = Setup(ExportFormat.Json, new SceneData { Title = "The deed", Order = 1 });
+        _entities.LoadCharactersAsync().Returns([mira]);
+
+        var path = Output("outline.json");
+        await Service().ExportDataAsync(options, path);
+
+        var json = await File.ReadAllTextAsync(path);
+        Assert.Contains("\"name\": \"Mira\"", json);
+        Assert.Contains("Protagonist", json);
+        Assert.Contains("Appearance", json);
+        Assert.Contains("sister: Tomas", json);
+    }
+
+    [Fact]
+    public async Task ARelationshipWithNoRoleIsStillNamed()
+    {
+        var mira = new CharacterData
+        {
+            Name = "Mira",
+            Relationships = [new EntityRelationship { Role = "  ", Target = "Tomas" }]
+        };
+        var options = Setup(ExportFormat.Json);
+        _entities.LoadCharactersAsync().Returns([mira]);
+
+        var path = Output("outline.json");
+        await Service().ExportDataAsync(options, path);
+
+        Assert.Contains("\"Tomas\"", await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task TheCodexIsNotInTheSheet()
+    {
+        var options = Setup(ExportFormat.Csv, new SceneData { Title = "The deed", Order = 1 });
+        _entities.LoadCharactersAsync().Returns([new CharacterData { Name = "Mira" }]);
+
+        var path = Output("outline.csv");
+        await Service().ExportDataAsync(options, path);
+
+        // One sheet cannot hold a scene list and a character list without one
+        // of them being wrong.
+        Assert.DoesNotContain("Mira", await File.ReadAllTextAsync(path));
+    }
+
+    [Fact]
+    public async Task EveryCodexKindTravels()
+    {
+        var options = Setup(ExportFormat.Json);
+        _entities.LoadLocationsAsync().Returns(
+            [new LocationData { Name = "The Rookery", Type = "House", Description = "Damp." }]);
+        _entities.LoadItemsAsync().Returns(
+            [new ItemData { Name = "The Crest", Type = "Heirloom" }]);
+        _entities.LoadLoreAsync().Returns(
+            [new LoreData { Name = "The Oath", Category = "Custom" }]);
+
+        var path = Output("outline.json");
+        await Service().ExportDataAsync(options, path);
+
+        var json = await File.ReadAllTextAsync(path);
+        Assert.Contains("The Rookery", json);
+        Assert.Contains("The Crest", json);
+        Assert.Contains("The Oath", json);
+    }
+
+    [Fact]
+    public async Task TheEntryPickerIsHonoured()
+    {
+        var mira = new CharacterData { Name = "Mira" };
+        var tomas = new CharacterData { Name = "Tomas" };
+        var options = Setup(ExportFormat.Json);
+        options.SelectedEntityKeys = [$"character:{mira.Id}"];
+        _entities.LoadCharactersAsync().Returns([mira, tomas]);
+
+        var path = Output("outline.json");
+        await Service().ExportDataAsync(options, path);
+
+        var json = await File.ReadAllTextAsync(path);
+        Assert.Contains("Mira", json);
+        Assert.DoesNotContain("Tomas", json);
+    }
+
+    [Fact]
+    public async Task ThePartSwitchesMeanTheSameHereAsInTheDocumentExports()
+    {
+        var mira = new CharacterData
+        {
+            Name = "Mira",
+            Role = "Protagonist",
+            Sections =
+            [
+                new EntitySection { Title = "Appearance", Content = "Tall." },
+                new EntitySection { Title = "Secrets", Content = "The twist." }
+            ],
+            Relationships = [new EntityRelationship { Role = "sister", Target = "Tomas" }]
+        };
+        var options = Setup(ExportFormat.Json);
+        options.CodexParts = ["sections"];
+        options.SelectedSectionTitles = ["Appearance"];
+        _entities.LoadCharactersAsync().Returns([mira]);
+
+        var path = Output("outline.json");
+        await Service().ExportDataAsync(options, path);
+
+        // "Names and nothing else" has to mean the same thing in every format,
+        // or a packet built in one and checked in the other disagrees.
+        var json = await File.ReadAllTextAsync(path);
+        Assert.Contains("Mira", json);
+        Assert.Contains("Tall.", json);
+        Assert.DoesNotContain("Protagonist", json);
+        Assert.DoesNotContain("The twist.", json);
+        Assert.DoesNotContain("sister", json);
+    }
+
+    [Fact]
+    public async Task ScenesStillTravelWithoutAnEntityService()
+    {
+        _project.GetChaptersOrdered().Returns([_chapter]);
+        _project.GetScenesForChapter(_chapter.Guid)
+            .Returns([new SceneData { Title = "The deed", Order = 1, ChapterGuid = _chapter.Guid }]);
+        _project.ActiveBook.Returns(new BookData());
+        var options = new ExportOptions
+        {
+            Format = ExportFormat.Json,
+            SelectedChapterGuids = [_chapter.Guid]
+        };
+
+        var path = Output("outline.json");
+        await new ExportService(_project).ExportDataAsync(options, path);
+
+        // A codex nobody can load is an empty codex, not a failed export.
+        var json = await File.ReadAllTextAsync(path);
+        Assert.Contains("The deed", json);
+        Assert.Contains("\"codex\": []", json);
+    }
+
+    [Fact]
+    public async Task TheBookNeedNotBeOpenForTheSheet()
+    {
+        _project.GetChaptersOrdered().Returns([_chapter]);
+        _project.GetScenesForChapter(_chapter.Guid)
+            .Returns([new SceneData { Title = "The deed", Order = 1, ChapterGuid = _chapter.Guid }]);
+        _project.ActiveBook.Returns((BookData?)null);
+        _entities.LoadCharactersAsync().Returns([]);
+        _entities.LoadLocationsAsync().Returns([]);
+        _entities.LoadItemsAsync().Returns([]);
+        _entities.LoadLoreAsync().Returns([]);
+
+        var path = Output("outline.csv");
+        await Service().ExportDataAsync(
+            new ExportOptions { Format = ExportFormat.Csv, SelectedChapterGuids = [_chapter.Guid] },
+            path);
+
+        Assert.Contains("The deed", await File.ReadAllTextAsync(path));
+    }
+}

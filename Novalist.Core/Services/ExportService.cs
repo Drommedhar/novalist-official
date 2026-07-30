@@ -23,7 +23,17 @@ public enum ExportFormat
     FinalDraft,
     LaTeX,
     Codex,
-    CodexPdf
+    CodexPdf,
+
+    /// <summary>
+    /// Scene metadata as a spreadsheet sheet. Everything Novalist writes is
+    /// prose or a document; nothing machine-readable left the project, so an
+    /// outline could not be pulled into a spreadsheet or another tool.
+    /// </summary>
+    Csv,
+
+    /// <summary>Scene metadata and the Codex together, for another tool to read.</summary>
+    Json
 }
 
 /// <summary>What an export would contain, reported before it is written.</summary>
@@ -1029,6 +1039,155 @@ public partial class ExportService
             start += take;
         }
     }
+
+    // ─── Machine-readable metadata (CSV / JSON) ──────────────────────
+
+    /// <summary>
+    /// Scene metadata, and for JSON the Codex too, in a format another tool can
+    /// read. Every other export is prose or a document: an outline could not be
+    /// pulled into a spreadsheet without retyping it.
+    ///
+    /// This deliberately does not compile the manuscript. A compile drops the
+    /// scenes that stay out of the book, and those are exactly the rows a
+    /// planning sheet needs - so parked and held-back scenes come through as
+    /// rows carrying a flag rather than as absences.
+    /// </summary>
+    public async Task ExportDataAsync(ExportOptions options, string outputPath)
+    {
+        var export = await CompileMetadataAsync(options);
+        var text = options.Format == ExportFormat.Csv
+            ? MetadataWriter.SceneCsv(export.Scenes)
+            : MetadataWriter.Json(export);
+        // A byte-order mark, and only here: Excel reads a plain UTF-8 CSV as
+        // the local codepage and turns every accent into mojibake. JSON is read
+        // by parsers that specify UTF-8, and a BOM breaks some of them.
+        var encoding = options.Format == ExportFormat.Csv
+            ? new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)
+            : new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        await File.WriteAllTextAsync(outputPath, text, encoding);
+    }
+
+    /// <summary>The metadata behind both machine-readable formats.</summary>
+    internal async Task<MetadataExport> CompileMetadataAsync(ExportOptions options)
+    {
+        var export = new MetadataExport
+        {
+            Title = options.Title ?? string.Empty,
+            Author = options.Author ?? string.Empty
+        };
+
+        var plotlineNames = (_projectService.ActiveBook?.Plotlines ?? [])
+            .ToDictionary(p => p.Id, p => p.Name, StringComparer.OrdinalIgnoreCase);
+        var entityNames = await EntityNamesByIdAsync();
+
+        foreach (var chapter in _projectService.GetChaptersOrdered()
+                     .Where(c => options.SelectedChapterGuids.Contains(c.Guid))
+                     .OrderBy(c => c.Order))
+        {
+            foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid)
+                         // A stage filter is something the writer asked for; the
+                         // in-the-book filters are not, and belong in a column.
+                         .Where(s => options.IncludedStages == null
+                             || options.IncludedStages.Count == 0
+                             || options.IncludedStages.Contains(s.Stage ?? string.Empty)))
+            {
+                var overrides = scene.AnalysisOverrides;
+                export.Scenes.Add(new SceneMetadataRow
+                {
+                    Chapter = chapter.Title,
+                    ChapterOrder = chapter.Order,
+                    Scene = scene.Title,
+                    SceneOrder = scene.Order,
+                    Stage = scene.Stage ?? string.Empty,
+                    Pov = overrides?.Pov ?? string.Empty,
+                    Words = scene.WordCount,
+                    WordTarget = scene.WordTarget ?? 0,
+                    Date = scene.Date,
+                    Synopsis = scene.Synopsis ?? string.Empty,
+                    Goal = scene.Goal ?? string.Empty,
+                    Conflict = overrides?.Conflict ?? string.Empty,
+                    Outcome = scene.Outcome ?? string.Empty,
+                    Tags = Join(overrides?.Tags),
+                    // Names rather than ids: a spreadsheet a person reads is
+                    // the whole point, and a column of GUIDs is not readable.
+                    Plotlines = Join((scene.PlotlineIds ?? []).Select(
+                        id => plotlineNames.TryGetValue(id, out var name) ? name : id)),
+                    Cast = Join((scene.Cast ?? []).Select(
+                        id => entityNames.TryGetValue(id, out var name) ? name : id)),
+                    Inactive = scene.Inactive,
+                    ExcludedFromExport = scene.ExcludeFromExport
+                });
+            }
+        }
+
+        // The Codex only rides along in JSON: a single sheet cannot hold both a
+        // scene list and a character list without one of them being wrong.
+        if (options.Format == ExportFormat.Json && _entityService != null)
+        {
+            var codex = await CompileCodexAsync(options);
+            // The same field builders the Markdown and PDF codex exports use,
+            // so a JSON entry carries exactly what the document one prints.
+            foreach (var c in codex.Characters)
+                export.Codex.Add(EntityRow(CodexCharacterKind, c.DisplayName,
+                    CharacterFields(c, options), c.Sections, c.Relationships, options));
+            foreach (var l in codex.Locations)
+                export.Codex.Add(EntityRow(CodexLocationKind, l.Name,
+                    GenericFields(l.Type, l.Description, l.CustomProperties, options),
+                    l.Sections, l.Relationships, options));
+            foreach (var i in codex.Items)
+                export.Codex.Add(EntityRow(CodexItemKind, i.Name,
+                    GenericFields(i.Type, i.Description, i.CustomProperties, options),
+                    i.Sections, i.Relationships, options));
+            foreach (var l in codex.Lore)
+                export.Codex.Add(EntityRow(CodexLoreKind, l.Name,
+                    GenericFields(l.Category, l.Description, l.CustomProperties, options),
+                    l.Sections, l.Relationships, options));
+        }
+
+        return export;
+    }
+
+    /// <summary>Every Codex name a scene can point at, keyed by id.</summary>
+    private async Task<Dictionary<string, string>> EntityNamesByIdAsync()
+    {
+        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        if (_entityService == null) return names;
+        foreach (var c in await _entityService.LoadCharactersAsync()) names[c.Id] = c.DisplayName;
+        foreach (var l in await _entityService.LoadLocationsAsync()) names[l.Id] = l.Name;
+        foreach (var i in await _entityService.LoadItemsAsync()) names[i.Id] = i.Name;
+        foreach (var l in await _entityService.LoadLoreAsync()) names[l.Id] = l.Name;
+        return names;
+    }
+
+    private static EntityMetadataRow EntityRow(
+        string kind, string name,
+        IEnumerable<KeyValuePair<string, string>> fields, List<Models.EntitySection>? sections,
+        List<Models.EntityRelationship>? relationships, ExportOptions options)
+    {
+        var row = new EntityMetadataRow { Kind = kind, Name = name };
+
+        // The same part switches the Markdown and PDF codex exports honour, so
+        // "names and nothing else" means the same thing in every format.
+        if (options.IncludesPart("fields"))
+            foreach (var kv in fields)
+                row.Properties[kv.Key] = kv.Value;
+
+        if (sections != null)
+            foreach (var section in sections.Where(s => options.IncludesSection(s.Title)))
+                row.Sections[section.Title] = section.Content;
+
+        if (options.IncludesPart("relationships") && relationships != null)
+            foreach (var rel in relationships)
+                row.Relationships.Add(string.IsNullOrWhiteSpace(rel.Role)
+                    ? rel.Target
+                    : $"{rel.Role}: {rel.Target}");
+
+        return row;
+    }
+
+    /// <summary>A list in one cell, the way a reader of a sheet expects it.</summary>
+    private static string Join(IEnumerable<string>? values)
+        => values == null ? string.Empty : string.Join("; ", values.Where(v => !string.IsNullOrWhiteSpace(v)));
 
     /// <summary>
     /// Codex export as a self-contained PDF: entity images are drawn into the

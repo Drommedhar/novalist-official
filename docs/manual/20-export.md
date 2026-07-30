@@ -187,6 +187,29 @@ To write and export a pitch document in the same layout, see [Exposé](32-expose
 - Images Novalist cannot read are skipped rather than failing the export.
 - Useful for handing a finished reference document to a collaborator, cover artist, or editor.
 
+## Data (metadata)
+
+Everything else Novalist writes is prose or a document. Nothing machine-readable left the project, so an outline could only reach a spreadsheet by being retyped into one. Pick **Data (metadata)** under **What** to get either of two files.
+
+Both formats read the plan rather than compiling the book, and the difference matters: a compile drops the scenes that stay out of the manuscript, and those are exactly the rows a planning sheet is for. A parked scene and a scene held back from export both come through, each carrying a column that says so. A **stage filter** is still honoured — that is something you asked for on the way out.
+
+The layout, title page, front and back matter, publishing metadata and retailer controls are hidden here. A metadata file has no pages and no typography, and a control that changes nothing is worse than no control.
+
+### CSV spreadsheet
+
+- One row per scene, one column per planning field: chapter and its order, scene and its order, stage, POV, words, word target, date, synopsis, goal, conflict, outcome, tags, plotlines, cast, and the two flags.
+- Plotlines and cast come out as **names**, not identifiers. A column of GUIDs is not a readable spreadsheet, which is the whole point. An identifier that no longer resolves is written as itself, so a stale link is visible rather than silently dropped.
+- Written with a byte-order mark, because Excel reads a plain UTF-8 file as the local codepage and turns every accent into mojibake.
+- Quoting follows the standard, so a synopsis containing a comma, a quotation mark, or a line break still lands in one cell.
+- The Codex is not in the sheet. One table cannot hold a scene list and a character list without one of them being wrong.
+
+### JSON
+
+- The same scene rows, plus the Codex — JSON can nest, so both fit in one file.
+- Each entry carries its kind, its name, every filled-in field labelled the way the document exports label them, its sections, and its relationships.
+- The **codex entry picker** appears for JSON, so you can send one character's record rather than the whole bible.
+- Indented and written with accents intact, so it can be read by a person as well as parsed by a tool.
+
 ## Selecting chapters
 
 Use cases for partial exports:
@@ -195,7 +218,7 @@ Use cases for partial exports:
 - The first three chapters as a submission packet.
 - Only chapters at Final status, to publish a polished excerpt.
 
-For chapter-based formats the list shows all chapters regardless of status — you pick what you want via the checkboxes, or use **Select All** / **Select None**. The Codex formats swap this list for the codex entry picker, and extension formats export the whole project and hide the list entirely.
+For chapter-based formats the list shows all chapters regardless of status — you pick what you want via the checkboxes, or use **Select All** / **Select None**. The Codex formats swap this list for the codex entry picker, and extension formats export the whole project and hide the list entirely. The Data formats keep the chapter list — it decides which scenes become rows — and JSON shows the entry picker as well.
 
 Also see [Choosing what leaves a Codex entry](#choosing-what-leaves-a-codex-entry) for holding parts of an entry back.
 
