@@ -235,20 +235,6 @@ Removing a stage clears it from every scene that was at it. The scenes are untou
 
 The [Dashboard](11-dashboard.md) breaks the book down by stage, beside the chapter-status breakdown.
 
-## Keywords
-
-Scene tags started as free text: a comma-separated list typed into the Inspector with nothing behind it. That makes "flashback", "Flashback" and "flash-back" three different tags, and correcting that meant opening every scene that used the wrong one.
-
-**Settings → Keywords** holds the book's vocabulary. Each keyword has a name, a colour, and optionally a keyword it groups under — one level, because "Themes" over "grief" and "loss" is what makes a list of forty legible, and deeper nesting is a filing system nobody maintains. Each row also says how many scenes carry it.
-
-**Collect from scenes** adds every tag already written on a scene to the list. Run it once on an existing project: without it the vocabulary starts empty, which is no use to whoever has the most tags. Spelling variants fold together as they arrive, which is the first clean-up the registry buys.
-
-**Renaming a keyword renames it everywhere.** Type a new name and every scene tagged with the old one is rewritten in the same moment. Renaming onto a name already in the list is refused — two entries spelt the same are the exact problem this exists to prevent — and a scene that would end up tagged twice keeps one.
-
-**Deleting a keyword takes it off the scenes too**, because retiring a word from the list while leaving it written on forty scenes is how a vocabulary drifts back out of control. Deleting a keyword that others group under brings those back to the top level rather than taking them with it.
-
-Only tags **you** set are rewritten. Novalist's analysis suggests tags of its own; those are its reading of the scene, not your vocabulary, and renaming a keyword does not edit them. They become yours the moment you edit the tag list on that scene.
-
 ## Status workflow
 
 A typical novelist workflow with the five built-in chapter statuses:

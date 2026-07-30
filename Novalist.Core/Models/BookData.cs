@@ -136,14 +136,6 @@ public class BookData
     public List<SceneCollection> Collections { get; set; } = [];
 
     /// <summary>
-    /// The book's keyword vocabulary. Scene tags were free text with nothing
-    /// behind them, so "flashback", "Flashback" and "flash-back" were three
-    /// tags and correcting that meant opening every scene that used one.
-    /// </summary>
-    [JsonPropertyName("keywords")]
-    public List<Keyword> Keywords { get; set; } = [];
-
-    /// <summary>
     /// Factions, houses, crews and families. The group was a bare string on
     /// each entry with no colour, description or rename, so correcting "the
     /// Ravens" to "House Raven" meant opening every entry that said the first.
