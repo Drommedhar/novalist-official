@@ -3550,6 +3550,8 @@ function hideContextMenu() {
     // Drop the captured selection so a later action can never act on a stale range.
     contextMenuRange = null;
     contextMenuText = '';
+    // The selection usually survives the menu, so the format bar is due back.
+    updateFloatingToolbar();
 }
 
 function escapeHtml(str) {
@@ -4068,6 +4070,14 @@ const floatingToolbar = document.getElementById('floating-toolbar');
 let floatingToolbarTimer = null;
 
 function updateFloatingToolbar() {
+    // Right-clicking a word selects it so the menu can offer spellings for it,
+    // and that selection used to raise the format bar on top of the very menu
+    // the click had just opened - the bar sits a layer above it. The menu is
+    // what was asked for, so the bar waits until it closes.
+    if (contextMenu.classList.contains('visible')) {
+        floatingToolbar.classList.remove('visible');
+        return;
+    }
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed || sel.toString().trim() === '') {
         floatingToolbar.classList.remove('visible');

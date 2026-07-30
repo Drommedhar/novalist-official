@@ -191,6 +191,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **The formatting bar no longer covers the menu you just opened.** Right-clicking a word selects it so the menu can offer spellings for it, and that selection brought the floating format bar up over the top of the menu itself. The bar now waits until the menu closes.
+
 - **The Overview column headings stand over their own columns again.** Each row of the outliner sized its own columns, so the heading row — with words like "Zusammenfassung" in it — laid itself out wider than every row beneath, and the labels drifted away from the values they named. Past a certain window width the last three columns were pushed off the side entirely. The whole table now shares one set of columns and fits without scrolling sideways.
 
 - **The Relationships toolbar no longer runs off the edge of the window.** Search, groups, roles, five kind toggles and the "centre on" picker sat on one unbreakable row, so on a narrower window the tail of it — including the zoom readout and the scene toggle — was simply not reachable. The row wraps now. The same toolbar is used by Timeline, Calendar and the Plot Grid, which gain the same behaviour.
