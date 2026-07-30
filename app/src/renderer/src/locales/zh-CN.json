@@ -2253,7 +2253,15 @@
     },
     "watchWords": "您标记的词",
     "watchWordsDesc": "希望文风报告统计的词 — 您自己的口头禅（“突然”、“只是”），或系列设定集固定的拼写。每行一个。它们会单独成行显示，与 Novalist 自带的检查分开，并且跨书籍保留。",
-    "watchWordsPlaceholder": "每行一个词"
+    "watchWordsPlaceholder": "每行一个词",
+    "textScope": "测量哪部分文字",
+    "textScopeEverything": "全部",
+    "textScopeProseOnly": "仅叙述",
+    "textScopeDialogueOnly": "仅对白",
+    "paragraphs": "段落",
+    "meanParagraph": "段落平均长度",
+    "paragraphVariation": "段落长度变化",
+    "paragraphVariationHint": "数值越高越有变化。整章段落长度雷同会显得平淡，原因与句长雷同相同。"
   },
   "review": {
     "title": "导入编辑的修改",

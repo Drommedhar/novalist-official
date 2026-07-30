@@ -56,20 +56,33 @@ public sealed class StyleRpc
         return [.. WatchWords];
     }
 
+    /// <param name="scope">
+    /// "Everything" (the default), "ProseOnly" or "DialogueOnly". A character
+    /// written to speak in cliches is not a writing problem, and a report that
+    /// counts their lines alongside the narration says otherwise.
+    /// </param>
     [JsonRpcMethod("style/scene")]
-    public async Task<StyleReportDto> SceneAsync(string chapterGuid, string sceneId)
+    public async Task<StyleReportDto> SceneAsync(
+        string chapterGuid, string sceneId, string? scope = null)
     {
         var (chapter, scene) = _workspace.ResolveScene(chapterGuid, sceneId);
         var html = await _workspace.Projects.ReadSceneContentAsync(chapter, scene);
-        return ToDto(ProseStyleAnalyzer.Analyze(TextDiff.StripHtml(html), Language, WatchWords));
+        return ToDto(ProseStyleAnalyzer.Analyze(
+            TextDiff.StripHtml(html), Language, WatchWords, ParseScope(scope)));
     }
+
+    /// <summary>An unknown scope reads as everything rather than as nothing.</summary>
+    private static ProseScope ParseScope(string? scope)
+        => Enum.TryParse<ProseScope>(scope, ignoreCase: true, out var parsed)
+            ? parsed
+            : ProseScope.Everything;
 
     /// <summary>
     /// Whole-book report. Scenes are concatenated so cross-scene repetition is
     /// visible, which is where the interesting habits show up.
     /// </summary>
     [JsonRpcMethod("style/book")]
-    public async Task<StyleReportDto> BookAsync(string? chapterGuid = null)
+    public async Task<StyleReportDto> BookAsync(string? chapterGuid = null, string? scope = null)
     {
         var text = new System.Text.StringBuilder();
         foreach (var chapter in _workspace.Projects.GetChaptersOrdered())
@@ -85,7 +98,8 @@ public sealed class StyleRpc
             }
         }
 
-        return ToDto(ProseStyleAnalyzer.Analyze(text.ToString(), Language, WatchWords));
+        return ToDto(ProseStyleAnalyzer.Analyze(
+            text.ToString(), Language, WatchWords, ParseScope(scope)));
     }
 
     private static StyleReportDto ToDto(ProseStyleReport r) =>
@@ -96,6 +110,10 @@ public sealed class StyleRpc
             r.MeanSentenceWords,
             r.SentenceLengthStdDev,
             r.LongestSentenceWords,
+            r.Scope.ToString(),
+            r.ParagraphCount,
+            r.MeanParagraphWords,
+            r.ParagraphLengthStdDev,
             r.Findings
                 .Select(f => new StyleFindingDto(
                     f.Key,
@@ -121,4 +139,11 @@ public sealed record StyleReportDto(
     double MeanSentenceWords,
     double SentenceLengthStdDev,
     int LongestSentenceWords,
+    /// <summary>"Everything", "ProseOnly" or "DialogueOnly".</summary>
+    string Scope,
+    int ParagraphCount,
+    double MeanParagraphWords,
+    /// <summary>A chapter of identically-sized paragraphs reads as flat for the
+    /// same reason a run of identically-sized sentences does.</summary>
+    double ParagraphLengthStdDev,
     StyleFindingDto[] Findings);

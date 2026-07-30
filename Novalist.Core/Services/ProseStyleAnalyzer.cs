@@ -39,6 +39,26 @@ public sealed class ProseStyleFinding
     public IReadOnlyList<ProseStyleHit> Examples { get; init; } = [];
 }
 
+/// <summary>
+/// Which part of the prose a report is measured over.
+///
+/// A character written to speak in cliches is not a writing problem, and a
+/// report that counts their dialogue alongside the narration says otherwise -
+/// which is the most common complaint about tools of this kind. Novalist has
+/// segmented dialogue with high fidelity all along and never used it for this.
+/// </summary>
+public enum ProseScope
+{
+    /// <summary>Everything. What the report has always measured.</summary>
+    Everything,
+
+    /// <summary>Narration only: every quoted line taken out.</summary>
+    ProseOnly,
+
+    /// <summary>Quoted speech only.</summary>
+    DialogueOnly
+}
+
 /// <summary>Every report over one body of text.</summary>
 public sealed class ProseStyleReport
 {
@@ -56,6 +76,23 @@ public sealed class ProseStyleReport
     public double SentenceLengthStdDev { get; init; }
 
     public int LongestSentenceWords { get; init; }
+
+    /// <summary>Which part of the prose this was measured over.</summary>
+    public ProseScope Scope { get; init; } = ProseScope.Everything;
+
+    public int ParagraphCount { get; init; }
+
+    /// <summary>Mean paragraph length in words.</summary>
+    public double MeanParagraphWords { get; init; }
+
+    /// <summary>
+    /// Standard deviation of paragraph length.
+    ///
+    /// Sentence variation is the well-known one; a chapter of identically-sized
+    /// paragraphs reads as flat for the same reason and is just as invisible
+    /// while writing it.
+    /// </summary>
+    public double ParagraphLengthStdDev { get; init; }
 
     public IReadOnlyList<ProseStyleFinding> Findings { get; init; } = [];
 }
@@ -94,6 +131,11 @@ public static partial class ProseStyleAnalyzer
     [GeneratedRegex(@"\p{L}[\p{L}\p{M}'’-]*", RegexOptions.Compiled)]
     private static partial Regex WordRegex();
 
+    /// <summary>Runs of spaces and tabs, but never a line break: paragraph
+    /// boundaries have to survive scoping.</summary>
+    [GeneratedRegex(@"[ 	]{2,}", RegexOptions.Compiled)]
+    private static partial Regex SpaceRunRegex();
+
     /// <summary>
     /// Runs the craft checks over some prose.
     /// </summary>
@@ -103,10 +145,15 @@ public static partial class ProseStyleAnalyzer
     /// reported under its own key so it can be shown as theirs rather than as
     /// one of ours.
     /// </param>
+    /// <param name="scope">
+    /// Which part of the prose to measure. Defaults to everything, which is what
+    /// every caller written before scoping existed expects.
+    /// </param>
     public static ProseStyleReport Analyze(
-        string? text, string language, IReadOnlyCollection<string>? watchWords = null)
+        string? text, string language, IReadOnlyCollection<string>? watchWords = null,
+        ProseScope scope = ProseScope.Everything)
     {
-        var plain = (text ?? string.Empty).Trim();
+        var plain = Scoped((text ?? string.Empty).Trim(), scope);
         var lexicon = SceneAnalysisLexicon.For(language);
 
         var sentences = SplitSentences(plain);
@@ -137,6 +184,11 @@ public static partial class ProseStyleAnalyzer
         if (watch.Count > 0)
             findings.Add(WordListFinding("watchWords", plain, words, SetMatcher(watch), true));
 
+        // Paragraph shape, measured over the same scoped text: a chapter of
+        // identically-sized paragraphs reads as flat for the same reason a run
+        // of identically-sized sentences does.
+        var paragraphs = ParagraphWordCounts(plain);
+
         return new ProseStyleReport
         {
             Language = lexicon?.Language ?? language,
@@ -145,9 +197,67 @@ public static partial class ProseStyleAnalyzer
             MeanSentenceWords = lengths.Length == 0 ? 0 : Math.Round(lengths.Average(), 1),
             SentenceLengthStdDev = StdDev(lengths),
             LongestSentenceWords = lengths.Length == 0 ? 0 : lengths.Max(),
+            Scope = scope,
+            ParagraphCount = paragraphs.Count,
+            MeanParagraphWords = paragraphs.Count == 0 ? 0 : Math.Round(paragraphs.Average(), 1),
+            ParagraphLengthStdDev = StdDev([.. paragraphs]),
             Findings = findings
         };
     }
+
+    /// <summary>
+    /// The requested part of the text.
+    ///
+    /// Quoted runs are removed or kept whole rather than being re-flowed, so
+    /// sentence boundaries either side of a cut stay where the writer put them.
+    /// </summary>
+    internal static string Scoped(string text, ProseScope scope)
+    {
+        if (scope == ProseScope.Everything || text.Length == 0) return text;
+
+        var spans = Utilities.DialogueScanner.QuoteRegex.Matches(text);
+        if (spans.Count == 0)
+        {
+            // No quoted speech at all: prose-only is the whole thing, and
+            // dialogue-only is nothing rather than everything.
+            return scope == ProseScope.ProseOnly ? text : string.Empty;
+        }
+
+        var output = new System.Text.StringBuilder();
+        var cursor = 0;
+        foreach (Match span in spans)
+        {
+            if (scope == ProseScope.ProseOnly)
+            {
+                output.Append(text, cursor, span.Index - cursor);
+                // A space in place of the cut, so the words either side of a
+                // removed line do not run together into one.
+                output.Append(' ');
+            }
+            else
+            {
+                output.Append(span.Value).Append(' ');
+            }
+            cursor = span.Index + span.Length;
+        }
+        if (scope == ProseScope.ProseOnly) output.Append(text, cursor, text.Length - cursor);
+
+        // Cutting a quoted line out from between two spaces leaves a run of
+        // them. Harmless to the counts, but the scoped text is readable output
+        // as much as it is input, so it comes back looking like prose.
+        return SpaceRunRegex().Replace(output.ToString(), " ").Trim();
+    }
+
+    /// <summary>
+    /// Paragraph lengths in words. A blank line is a paragraph boundary, which
+    /// is what the plain-text projection of a scene leaves behind.
+    /// </summary>
+    internal static IReadOnlyList<int> ParagraphWordCounts(string text)
+        => [.. text
+            .Replace("\r\n", "\n")
+            .Split("\n\n", StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => WordRegex().Matches(p).Count)
+            .Where(count => count > 0)];
 
     private sealed record Sentence(string Text, int Offset);
 

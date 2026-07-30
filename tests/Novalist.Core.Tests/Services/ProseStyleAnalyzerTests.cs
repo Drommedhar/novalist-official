@@ -313,4 +313,93 @@ public class ProseStyleAnalyzerTests
             ProseStyleAnalyzer.Analyze("Suddenly it closed.", "en", ["  "]).Findings,
             f => f.Key == "watchWords");
     }
+
+    // ── Measuring narration and dialogue apart ──
+
+    private const string Mixed =
+        "She crossed the yard in the rain. “You are late,” he said. "
+        + "The door stood open behind him and the light fell on the wet stones. "
+        + "“I walked,” she said. “The road was out.” "
+        + "He looked at her for a long moment and then he stepped aside.";
+
+    [Fact]
+    public void ProseOnlyLeavesTheQuotedLinesOut()
+    {
+        var prose = ProseStyleAnalyzer.Scoped(Mixed, ProseScope.ProseOnly);
+
+        Assert.DoesNotContain("You are late", prose);
+        Assert.DoesNotContain("The road was out", prose);
+        Assert.Contains("She crossed the yard", prose);
+        // A space in place of each cut, so the words either side of a removed
+        // line do not run together into one that was never written.
+        Assert.Contains("rain. he said", prose);
+    }
+
+    [Fact]
+    public void DialogueOnlyKeepsNothingElse()
+    {
+        var dialogue = ProseStyleAnalyzer.Scoped(Mixed, ProseScope.DialogueOnly);
+
+        Assert.Contains("You are late", dialogue);
+        Assert.Contains("The road was out", dialogue);
+        Assert.DoesNotContain("She crossed the yard", dialogue);
+    }
+
+    [Fact]
+    public void TextWithNoQuotedSpeechIsAllProseAndNoDialogue()
+    {
+        const string narration = "She crossed the yard in the rain and the door stood open.";
+
+        Assert.Equal(narration, ProseStyleAnalyzer.Scoped(narration, ProseScope.ProseOnly));
+        // Nothing, rather than everything - a scene with no dialogue has no
+        // dialogue to report on.
+        Assert.Equal(string.Empty, ProseStyleAnalyzer.Scoped(narration, ProseScope.DialogueOnly));
+    }
+
+    [Fact]
+    public void EverythingIsTheTextUntouched()
+        => Assert.Equal(Mixed, ProseStyleAnalyzer.Scoped(Mixed, ProseScope.Everything));
+
+    [Fact]
+    public void AReportKnowsWhichPartItMeasured()
+    {
+        var whole = ProseStyleAnalyzer.Analyze(Mixed, "en");
+        var narration = ProseStyleAnalyzer.Analyze(Mixed, "en", null, ProseScope.ProseOnly);
+
+        Assert.Equal(ProseScope.Everything, whole.Scope);
+        Assert.Equal(ProseScope.ProseOnly, narration.Scope);
+        // Fewer words once the quoted lines are out, which is the whole point.
+        Assert.True(narration.WordCount < whole.WordCount);
+    }
+
+    // ── Paragraph shape ──
+
+    [Fact]
+    public void ParagraphsAreCountedAndMeasured()
+    {
+        var report = ProseStyleAnalyzer.Analyze(
+            "One two three four five.\n\nSix seven.\n\nEight nine ten eleven twelve thirteen.",
+            "en");
+
+        Assert.Equal(3, report.ParagraphCount);
+        Assert.True(report.MeanParagraphWords > 0);
+        // Three paragraphs of 5, 2 and 6 words are varied; the number says so.
+        Assert.True(report.ParagraphLengthStdDev > 0);
+    }
+
+    [Fact]
+    public void IdenticallySizedParagraphsHaveNoVariation()
+    {
+        var flat = string.Join("\n\n", Enumerable.Repeat("One two three four.", 5));
+
+        var report = ProseStyleAnalyzer.Analyze(flat, "en");
+
+        Assert.Equal(5, report.ParagraphCount);
+        Assert.Equal(0, report.ParagraphLengthStdDev);
+    }
+
+    [Fact]
+    public void AnEmptyParagraphIsNotAParagraph()
+        => Assert.Equal([3], ProseStyleAnalyzer.ParagraphWordCounts("one two three\n\n\n\n"));
+
 }

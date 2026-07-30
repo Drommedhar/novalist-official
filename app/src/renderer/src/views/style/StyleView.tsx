@@ -25,10 +25,25 @@ interface StyleReport {
   meanSentenceWords: number
   sentenceLengthStdDev: number
   longestSentenceWords: number
+  scope: string
+  paragraphCount: number
+  meanParagraphWords: number
+  paragraphLengthStdDev: number
   findings: StyleFinding[]
 }
 
 type Scope = 'book' | 'chapter' | 'scene'
+
+/**
+ * Which part of the prose is measured.
+ *
+ * A character written to speak in cliches is not a writing problem, and a report
+ * that counts their dialogue alongside the narration says otherwise - which is
+ * the most common complaint about tools of this kind. Novalist has segmented
+ * dialogue with high fidelity all along and never used it for this.
+ */
+type TextScope = 'Everything' | 'ProseOnly' | 'DialogueOnly'
+const TEXT_SCOPES: TextScope[] = ['Everything', 'ProseOnly', 'DialogueOnly']
 
 /**
  * Deterministic craft reports. Every number here is computed offline from the
@@ -42,6 +57,7 @@ export function StyleView(): React.JSX.Element {
   const openSceneId = useProjectStore((s) => s.openSceneId)
 
   const [scope, setScope] = useState<Scope>('book')
+  const [textScope, setTextScope] = useState<TextScope>('Everything')
   const [report, setReport] = useState<StyleReport | null>(null)
   const [busy, setBusy] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -50,16 +66,22 @@ export function StyleView(): React.JSX.Element {
     setBusy(true)
     try {
       if (scope === 'scene' && openChapterGuid && openSceneId) {
-        setReport(await rpc.request<StyleReport>('style/scene', [openChapterGuid, openSceneId]))
+        setReport(
+          await rpc.request<StyleReport>('style/scene', [
+            openChapterGuid,
+            openSceneId,
+            textScope
+          ])
+        )
       } else if (scope === 'chapter' && openChapterGuid) {
-        setReport(await rpc.request<StyleReport>('style/book', [openChapterGuid]))
+        setReport(await rpc.request<StyleReport>('style/book', [openChapterGuid, textScope]))
       } else {
-        setReport(await rpc.request<StyleReport>('style/book', [null]))
+        setReport(await rpc.request<StyleReport>('style/book', [null, textScope]))
       }
     } finally {
       setBusy(false)
     }
-  }, [scope, openChapterGuid, openSceneId])
+  }, [scope, textScope, openChapterGuid, openSceneId])
 
   useEffect(() => {
     void run()
@@ -83,6 +105,21 @@ export function StyleView(): React.JSX.Element {
               {t(`style.scope.${s}`)}
             </button>
           ))}
+          {/* Narration and dialogue are different writing and read differently.
+              Measuring them together is what makes a report tell somebody their
+              character speaks badly. */}
+          <select
+            className="dialog-input style-text-scope"
+            aria-label={t('style.textScope')}
+            value={textScope}
+            onChange={(e) => setTextScope(e.target.value as TextScope)}
+          >
+            {TEXT_SCOPES.map((ts) => (
+              <option key={ts} value={ts}>
+                {t(`style.textScope${ts}`)}
+              </option>
+            ))}
+          </select>
           <button className="dialog-button" disabled={busy} onClick={() => void run()}>
             {t('style.refresh')}
           </button>
@@ -103,6 +140,22 @@ export function StyleView(): React.JSX.Element {
               hint={t('style.variationHint')}
             />
             <Stat label={t('style.longest')} value={String(report.longestSentenceWords)} />
+            <Stat
+              label={t('style.paragraphs')}
+              value={report.paragraphCount.toLocaleString()}
+            />
+            <Stat
+              label={t('style.meanParagraph')}
+              value={String(report.meanParagraphWords)}
+            />
+            {/* The well-known one is sentence variation; a chapter of
+                identically-sized paragraphs reads as flat for the same reason
+                and is just as invisible while writing it. */}
+            <Stat
+              label={t('style.paragraphVariation')}
+              value={String(report.paragraphLengthStdDev)}
+              hint={t('style.paragraphVariationHint')}
+            />
           </div>
 
           <div className="style-findings">

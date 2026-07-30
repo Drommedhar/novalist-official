@@ -132,3 +132,9 @@
   font-size: var(--nl-font-body-sm);
   color: var(--nl-text-dim);
 }
+
+/* Narration or dialogue, next to the scope buttons: both answer "what am I
+   looking at", so they belong on the same line. */
+.style-text-scope {
+  width: auto;
+}

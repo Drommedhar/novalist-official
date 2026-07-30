@@ -56,6 +56,20 @@ These are prompts to look again, not rules. A high adverb count in a first draft
 
 The report grades a whole scene. For the same judgement one sentence at a time, turn on **Mark hard-to-read sentences** in the editor toolbar: it tints the difficult and very difficult sentences in place, using the same readability method. See [Readability marking](05-editor.md#readability-marking).
 
+## Narration or dialogue
+
+A drop-down beside the scope buttons chooses **Everything**, **Narration only**, or **Dialogue only**.
+
+This matters more than it sounds. A character written to speak in cliches is not a writing problem, and a report that counts their lines alongside your narration says otherwise — which is the most common complaint about tools of this kind. Novalist has segmented dialogue precisely for a long time and never used it here.
+
+**Narration only** takes every quoted line out and leaves a space where each one was, so the sentences either side of a cut stay whole. **Dialogue only** keeps just the quoted speech.
+
+## Paragraph shape
+
+Alongside the sentence figures, the report gives **paragraphs**, **mean paragraph** length, and **paragraph variation** — the standard deviation of paragraph length.
+
+Sentence variation is the well-known one. A chapter of identically-sized paragraphs reads as flat for exactly the same reason, and is just as invisible while you are writing it. Higher is more varied; zero means every paragraph is the same length.
+
 ## Where to go next
 
 - [Editor](05-editor.md) — grammar and spelling as you type, which is a different job from these reports.

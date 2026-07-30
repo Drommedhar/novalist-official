@@ -2221,7 +2221,15 @@
     },
     "watchWords": "Ihre markierten Wörter",
     "watchWordsDesc": "Wörter, die der Stilbericht zählen soll – Ihre eigenen Krücken („plötzlich“, „einfach“) oder die Schreibweise, die eine Reihenbibel festlegt. Eines pro Zeile. Sie erscheinen als eigene Zeile, getrennt von Novalists mitgelieferten Prüfungen, und folgen Ihnen von Buch zu Buch.",
-    "watchWordsPlaceholder": "Ein Wort pro Zeile"
+    "watchWordsPlaceholder": "Ein Wort pro Zeile",
+    "textScope": "Welcher Text gemessen wird",
+    "textScopeEverything": "Alles",
+    "textScopeProseOnly": "Nur Erzähltext",
+    "textScopeDialogueOnly": "Nur Dialog",
+    "paragraphs": "Absätze",
+    "meanParagraph": "Absatz im Mittel",
+    "paragraphVariation": "Absatzvarianz",
+    "paragraphVariationHint": "Höher heißt abwechslungsreicher. Ein Kapitel aus gleich langen Absätzen wirkt aus demselben Grund flach wie eine Folge gleich langer Sätze."
   },
   "review": {
     "title": "Änderungen der Lektorin importieren",
