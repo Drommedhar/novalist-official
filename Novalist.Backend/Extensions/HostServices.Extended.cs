@@ -417,6 +417,8 @@ public sealed partial class HostServices
             Stage = scene.Stage ?? string.Empty,
             Tags = [.. overrides?.Tags ?? []],
             PlotlineIds = [.. scene.PlotlineIds ?? []],
+            Cast = [.. scene.Cast ?? []],
+            FocusEntityId = scene.FocusEntityId ?? string.Empty,
             DateStart = scene.DateRange?.Start ?? string.Empty,
             DateEnd = scene.DateRange?.End ?? string.Empty,
             NarrativeMode = scene.NarrativeMode ?? string.Empty,

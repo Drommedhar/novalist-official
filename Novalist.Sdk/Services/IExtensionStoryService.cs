@@ -117,6 +117,18 @@ public sealed class SceneDetailInfo
     /// <summary>Threads the scene belongs to.</summary>
     public IReadOnlyList<string> PlotlineIds { get; init; } = [];
 
+    /// <summary>
+    /// Ids of the Codex entries the writer said are in this scene.
+    ///
+    /// Novalist has known this since assigned casts shipped and never handed it
+    /// to an extension, so a report on who drops out of the book could only read
+    /// the point of view - one name per scene, whoever else was standing there.
+    /// </summary>
+    public IReadOnlyList<string> Cast { get; init; } = [];
+
+    /// <summary>Id of the entry the scene is about, or empty.</summary>
+    public string FocusEntityId { get; init; } = string.Empty;
+
     /// <summary>Story date as written, or empty.</summary>
     public string DateStart { get; init; } = string.Empty;
     public string DateEnd { get; init; } = string.Empty;

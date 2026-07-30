@@ -164,6 +164,12 @@ Implement any of these alongside `IExtension`; the host finds them by type.
 
 Each interface's XML documentation on the SDK type is the contract; read it before implementing.
 
+### Reading a scene
+
+`IExtensionStoryService.GetSceneDetail` returns point of view, intensity, emotion, conflict, stage, tags, plot threads, story dates, narrative mode and act — and now **`Cast`** (ids of the Codex entries the writer said are in the scene) and **`FocusEntityId`** (the one it is about).
+
+Novalist has known both since assigned casts shipped and never handed them over, so an extension reporting on who is in the book could only read the point of view: one name per scene, whoever else was standing there.
+
 ### Writing an export format
 
 `IExportFormatContributor.GetExportFormats()` returns descriptors; each one's `Export` is handed an `ExportContext` when the writer runs it. The context carries everything the built-in formats resolve, so a contributed format can produce the same file:
