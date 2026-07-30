@@ -3252,5 +3252,15 @@
     "scenesCsv": "Szenen (CSV)",
     "codexCsv": "Kodex (CSV)",
     "json": "Alles (JSON)"
+  },
+  "castAbsence": {
+    "title": "Wer verschwindet",
+    "intro": "Die Besetzung danach geordnet, wie lange sie verschwindet. Eine Luecke ist jemand, der zurueckkam; die andere Zeile ist jemand, der es noch nicht tat.",
+    "gap": "{{count}} Kapitel lang weg, {{from}} bis {{to}}",
+    "gap_other": "{{count}} Kapitel lang weg, {{from}} bis {{to}}",
+    "since": "zuletzt vor {{count}} Kapitel gesehen, in {{chapter}}",
+    "since_other": "zuletzt vor {{count}} Kapiteln gesehen, in {{chapter}}",
+    "scenes": "{{count}} Szene",
+    "scenes_other": "{{count}} Szenen"
   }
 }

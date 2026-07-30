@@ -198,6 +198,17 @@ Everything above counts words. This section counts *where things are*, which Nov
 
 Presence is counted from confirmed [@-mentions](05-editor.md#entity-mentions-and-autocomplete), by entity id rather than by name — so two characters sharing a first name are never confused for one another.
 
+### Who drops out
+
+A gap in a presence strip is very hard to see when there are forty of them, so **Who drops out** reads the strips for you and lists the cast worst-first. Each row gives one or both of:
+
+- **Gone for N chapters, X to Y** — a stretch between two appearances. This is somebody who came back, and the chapters are named rather than numbered so you do not have to go and count.
+- **Last seen N chapters ago, in X** — somebody who has not come back yet. A gap measured between appearances cannot see this case, because there is no second appearance to measure to.
+
+Chapters before a character's first appearance never count as a gap: arriving in chapter five is an entrance, not a disappearance. A character missing from a single chapter is not reported either — that is a scene, not a problem.
+
+The card is absent entirely when nobody disappears, rather than showing an empty list that reads like a report that failed.
+
 ## Where to go next
 
 - [Settings](23-settings.md) — set goals and the project deadline.

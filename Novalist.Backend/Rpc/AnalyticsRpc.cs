@@ -38,6 +38,38 @@ public sealed class AnalyticsRpc
     }
 
     /// <summary>
+    /// Who drops out of the book, and for how long.
+    ///
+    /// The counts behind this have been drawn as a grid for a while. Reading
+    /// forty rows of it to find the character who vanished in act two is the
+    /// work the report exists to do.
+    /// </summary>
+    [JsonRpcMethod("analytics/castAbsence")]
+    public async Task<AbsenceRowDto[]> CastAbsenceAsync(int minimumGap = 2)
+    {
+        var service = new BookAnalyticsService(
+            _workspace.Projects, new EntityService(_workspace.Projects));
+        var result = await service.ComputeAsync();
+
+        return [.. CastAbsence
+            .From(result.Characters, result.ChapterTitles.Count, minimumGap)
+            .Select(r => new AbsenceRowDto(
+                r.EntityId, r.Label, r.TotalScenes, r.LongestGap,
+                ChapterName(result.ChapterTitles, r.GapStartChapter),
+                ChapterName(result.ChapterTitles, r.GapEndChapter),
+                ChapterName(result.ChapterTitles, r.FirstChapter),
+                ChapterName(result.ChapterTitles, r.LastChapter),
+                r.ChaptersSinceLastSeen))];
+    }
+
+    /// <summary>
+    /// A chapter's title, or empty when there is no such chapter - a row with
+    /// no gap has no gap to name.
+    /// </summary>
+    private static string ChapterName(IReadOnlyList<string> titles, int index)
+        => index >= 0 && index < titles.Count ? titles[index] : string.Empty;
+
+    /// <summary>
     /// Each scene's tension in reading order.
     ///
     /// Intensity has been computed and hand-overridable per scene for a long
@@ -126,3 +158,19 @@ public sealed record BookAnalyticsDto(
     PresenceDto[] Characters,
     PresenceDto[] Locations,
     string[] Unused);
+
+/// <summary>
+/// One character's absence, with chapters named rather than numbered - a row
+/// saying "gap of 4 from chapter index 7" is a row somebody has to go and
+/// count against.
+/// </summary>
+public sealed record AbsenceRowDto(
+    string EntityId,
+    string Label,
+    int TotalScenes,
+    int LongestGap,
+    string GapStart,
+    string GapEnd,
+    string FirstChapter,
+    string LastChapter,
+    int ChaptersSinceLastSeen);

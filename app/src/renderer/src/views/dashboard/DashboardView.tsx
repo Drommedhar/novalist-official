@@ -7,6 +7,7 @@ import { PremiseCard } from './PremiseCard'
 import { ArcsCard } from './ArcsCard'
 import { SubmissionsCard } from './SubmissionsCard'
 import { TensionCard } from './TensionCard'
+import { CastAbsenceCard } from './CastAbsenceCard'
 import { SceneAxisCard } from './SceneAxisCard'
 import { InputDialog } from '../../shell/InputDialog'
 import { useShellStore } from '../../stores/shellStore'
@@ -471,6 +472,7 @@ export function DashboardView(): React.JSX.Element {
       {/* What the book's tension does across its length - the one shape the
           per-scene intensity figure has anything to say in. */}
       <TensionCard />
+      <CastAbsenceCard />
       <SceneAxisCard />
 
       {/* Every character's arc against the book: the Codex holds one at a

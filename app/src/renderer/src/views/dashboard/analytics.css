@@ -40,3 +40,45 @@
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+
+/* Who drops out. Name, what happened, and how much of the book they are in -
+   the last one is the context that says whether a gap matters. */
+.cast-absence-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.cast-absence-row {
+  display: grid;
+  grid-template-columns: minmax(0, 10rem) minmax(0, 1fr) auto;
+  gap: var(--nl-space-sm);
+  align-items: baseline;
+  padding: var(--nl-space-tightest) 0;
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.cast-absence-name {
+  font-weight: var(--nl-weight-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cast-absence-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm);
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+}
+
+.cast-absence-gap {
+  color: var(--nl-accent);
+}
+
+.cast-absence-scenes {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+  font-variant-numeric: tabular-nums;
+}

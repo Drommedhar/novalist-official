@@ -3244,5 +3244,15 @@
     "scenesCsv": "Scenes (CSV)",
     "codexCsv": "Codex (CSV)",
     "json": "Everything (JSON)"
+  },
+  "castAbsence": {
+    "title": "Who drops out",
+    "intro": "The cast ordered by how long they disappear for. A gap is somebody who came back; the other line is somebody who has not.",
+    "gap": "gone for {{count}} chapter, {{from}} to {{to}}",
+    "gap_other": "gone for {{count}} chapters, {{from}} to {{to}}",
+    "since": "last seen {{count}} chapter ago, in {{chapter}}",
+    "since_other": "last seen {{count}} chapters ago, in {{chapter}}",
+    "scenes": "{{count}} scene",
+    "scenes_other": "{{count}} scenes"
   }
 }

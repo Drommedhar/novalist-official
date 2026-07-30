@@ -3284,5 +3284,15 @@
     "scenesCsv": "场景（CSV）",
     "codexCsv": "法典（CSV）",
     "json": "全部（JSON）"
+  },
+  "castAbsence": {
+    "title": "谁消失了",
+    "intro": "按消失时长排列的出场人物。间隔是指后来又回来的人；另一行是指还没有回来的人。",
+    "gap": "缺席 {{count}} 章，从 {{from}} 到 {{to}}",
+    "gap_other": "缺席 {{count}} 章，从 {{from}} 到 {{to}}",
+    "since": "上次出现在 {{count}} 章之前的《{{chapter}}》",
+    "since_other": "上次出现在 {{count}} 章之前的《{{chapter}}》",
+    "scenes": "{{count}} 个场景",
+    "scenes_other": "{{count}} 个场景"
   }
 }

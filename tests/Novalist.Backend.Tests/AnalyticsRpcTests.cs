@@ -194,4 +194,42 @@ public sealed class AnalyticsRpcTests : IDisposable
 
         Assert.Null(_rpc.SceneFieldCurve("stakes")[0].Intensity);
     }
+
+    // The counts behind this have been drawn as a grid for a while; nothing
+    // ever read the grid for the answer.
+    [Fact]
+    public async Task CastAbsence_NamesTheChaptersRatherThanNumberingThem()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        var mira = new Novalist.Core.Models.CharacterData { Name = "Mira" };
+        await entities.SaveCharacterAsync(mira);
+
+        // Present in the first and the last of five, so the gap is the middle
+        // three and there is nothing owing at the end.
+        var titles = new[] { "One", "Two", "Three", "Four", "Five" };
+        foreach (var title in titles)
+        {
+            var chapter = await _workspace.Projects.CreateChapterAsync(title);
+            var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+            var html = title is "One" or "Five"
+                ? $"<p><span class=\"nv-entity-mention\" data-entity-id=\"{mira.Id}\">Mira</span> is here.</p>"
+                : "<p>Nobody in particular.</p>";
+            await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, html, "text");
+        }
+
+        var row = Assert.Single(await _rpc.CastAbsenceAsync());
+
+        Assert.Equal("Mira", row.Label);
+        Assert.Equal(3, row.LongestGap);
+        Assert.Equal("Two", row.GapStart);
+        Assert.Equal("Four", row.GapEnd);
+        Assert.Equal("One", row.FirstChapter);
+        Assert.Equal("Five", row.LastChapter);
+        Assert.Equal(0, row.ChaptersSinceLastSeen);
+        Assert.Equal(2, row.TotalScenes);
+    }
+
+    [Fact]
+    public async Task CastAbsence_AnEmptyBookReportsNobody()
+        => Assert.Empty(await _rpc.CastAbsenceAsync());
 }
