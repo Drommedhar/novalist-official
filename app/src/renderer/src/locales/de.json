@@ -1964,7 +1964,10 @@
     "exporting": "Wird exportiert...",
     "exportImageHint": "Speichert die Karte als PNG, genau so wie sie hier aussieht.",
     "exportScaleHint": "Höhere Skalierung ergibt ein größeres Bild, für Druck oder Vorsatzpapier.",
-    "exportScaleOption": "{{scale}}x"
+    "exportScaleOption": "{{scale}}x",
+    "hudRuler": "Messen: Endpunkt anklicken",
+    "pinTargetMap": "Öffnet Karte",
+    "pinNoTargetMap": "Keine Karte"
   },
   "dialogue": {
     "roster": "Sprecher",
@@ -2844,5 +2847,17 @@
     "file": "Ins Projekt übernehmen",
     "delete": "Notiz löschen",
     "empty": "Noch nichts vorhanden."
+  },
+  "maps": {
+    "ruler": "Messen",
+    "scale": "Maßstab",
+    "scaleIntro": "Was eine Einheit auf dieser Karte in der Welt bedeutet. Danach hat die Karte einen Maßstabsbalken, und Messen antwortet in echten Entfernungen.",
+    "scaleGroundPerUnit": "Entfernung pro Karteneinheit",
+    "scaleUnit": "Einheit",
+    "scaleUnitPlaceholder": "km, Meilen, Wegstunden",
+    "scaleGrid": "Rasterabstand in Karteneinheiten",
+    "scaleGridHint": "Null bedeutet kein Raster.",
+    "measuredGround": "{{distance}} {{unit}}",
+    "measuredUnits": "{{distance}} Karteneinheiten - kein Maßstab gesetzt"
   }
 }

@@ -1372,7 +1372,10 @@
     "exporting": "正在导出...",
     "exportImageHint": "将地图另存为 PNG，与此处显示的完全一致。",
     "exportScaleHint": "倍数越高图片越大，适合印刷或环衬。",
-    "exportScaleOption": "{{scale}}x"
+    "exportScaleOption": "{{scale}}x",
+    "hudRuler": "测距：点击另一端",
+    "pinTargetMap": "打开地图",
+    "pinNoTargetMap": "不打开地图"
   },
   "draft": {
     "label": "草稿",
@@ -2876,5 +2879,17 @@
     "file": "归入项目",
     "delete": "删除笔记",
     "empty": "这里还是空的。"
+  },
+  "maps": {
+    "ruler": "测距",
+    "scale": "比例尺",
+    "scaleIntro": "本图上一个单位相当于实际多远。设定后地图会显示比例尺，测距也会给出真实距离。",
+    "scaleGroundPerUnit": "每个地图单位的实际距离",
+    "scaleUnit": "单位名称",
+    "scaleUnitPlaceholder": "公里、英里、驿程",
+    "scaleGrid": "网格间距（地图单位）",
+    "scaleGridHint": "填 0 表示不显示网格。",
+    "measuredGround": "{{distance}} {{unit}}",
+    "measuredUnits": "{{distance}} 地图单位——尚未设定比例尺"
   }
 }

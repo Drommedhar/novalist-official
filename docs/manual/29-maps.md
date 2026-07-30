@@ -92,6 +92,7 @@ Pins are screen-space markers that stay the same size regardless of zoom. Click 
 
 - **Label** — text shown above the pin in the map.
 - **Link to entity** — search across characters, locations, items, lore, and custom entity types. Linking is optional.
+- **Opens map** — point the pin at another map in this project, shown once the project has more than one. A world map marks a city and the city has its own map; that is the one relationship maps actually have, and it is the one Novalist could not express. In view mode, clicking such a pin switches to the map it names.
 - **Color** — full colour picker. Default is the theme accent.
 
 Move pins by dragging them. Right-click a pin for a menu: *Edit…* (re-edit label/link/colour), *Move to layer…*, *Delete*.
@@ -99,6 +100,22 @@ Move pins by dragging them. Right-click a pin for a menu: *Edit…* (re-edit lab
 A pin belongs to a **layer** — the one that was active when it was placed. It follows that layer's visibility, opacity, zoom-range and floor settings, and *Move to layer…* reassigns it.
 
 In view mode, clicking a pin that has a linked entity opens a small **focus-peek card** with that entity's image, name, and detail line — a quick look at what the pin marks without leaving the map. Close it with its `×`.
+
+## Scale, measuring and a grid
+
+The map has always drawn in its own units with a zoom readout beside them, which cannot answer "how many days' ride to the coast" — the one question a map is for. **Scale** in the top-right of the stage fixes that:
+
+- **Ground distance per map unit** — what one unit on this map is worth on the ground.
+- **Called** — what that distance is: `km`, `miles`, `leagues`. Free text, because a world does not have to measure in kilometres.
+- **Grid spacing, in map units** — draws a grid at that spacing, or nothing at zero. Separate from the scale because a grid is a drawing aid and a scale is a fact about the world.
+
+Once a scale is set, a **scale bar** appears in the bottom-left showing a round ground distance — 50 km, not 47.3 — at the current zoom.
+
+**Measure** takes two clicks and reports the distance between them in your declared unit. Without a scale it still answers, in map units, and says so: a number with no unit behind it is the problem the scale exists to solve.
+
+The grid stops drawing below about four pixels a cell. A grid that fine is a grey wash, which is worse than no grid.
+
+Both are available in view mode as well as edit mode: how far something is is a question about the world, not an edit to it.
 
 ## Labels
 

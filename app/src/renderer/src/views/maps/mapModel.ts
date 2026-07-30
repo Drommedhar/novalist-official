@@ -91,7 +91,26 @@ export interface MapDataT {
 export type ElementKind = 'image' | 'spline' | 'pin' | 'label' | 'shape' | 'building'
 
 /** Tool-rail modes, matching the strings map.html's setToolMode() accepts. */
-export type ToolMode = 'select' | 'add-pin' | 'add-label' | 'spline' | 'terrain' | 'building' | 'border'
+export type ToolMode =
+  | 'select'
+  | 'add-pin'
+  | 'add-label'
+  | 'spline'
+  | 'terrain'
+  | 'building'
+  | 'border'
+  /** Two clicks and a distance, in the map's declared units. */
+  | 'ruler'
+
+/** What one world unit on a map is worth on the ground. */
+export interface MapScale {
+  /** Ground distance per world unit. Positive. */
+  unitsPer: number
+  /** What that distance is called: "km", "miles", "leagues". */
+  unit: string
+  /** Grid spacing in world units, or 0 for no grid. */
+  gridSpacing: number
+}
 
 /**
  * The window.* bridge map.html exposes on the iframe's contentWindow. Only the
@@ -114,6 +133,12 @@ export interface MapWindow extends Window {
   focusOnPin(pinId: string): void
   // Tool modes + drafts.
   setToolMode(mode: ToolMode): void
+  /** Declares the map's scale, or clears it with null. */
+  setMapScale(scale: MapScale | null): void
+  /** The map's declared scale, or null when it has none. */
+  getMapScale(): MapScale | null
+  /** The other maps in this project, so a pin can be pointed at one. */
+  setOtherMaps(maps: { id: string; name: string }[]): void
   setSplineDraftType(kind: string, preset: string): void
   setTerrainDraftType(type: string): void
   setBuildingDraftType(type: string): void
@@ -368,6 +393,9 @@ export function buildMapStrings(t: Tr): string {
     kbdDeleteRemoveEscDeselect: t('map.kbdDeleteRemoveEscDeselect'),
     hudMap: t('map.hudMap'),
     hudZoom: t('map.hudZoom'),
+    hudRuler: t('map.hudRuler'),
+    pinTargetMap: t('map.pinTargetMap'),
+    pinNoTargetMap: t('map.pinNoTargetMap'),
     hudLayer: t('map.hudLayer'),
     hudSplineDraft: t('map.hudSplineDraft'),
     hudTerrainDraft: t('map.hudTerrainDraft'),

@@ -595,3 +595,24 @@
   font-size: var(--nl-font-body-sm);
   padding: var(--nl-space-tightest) var(--nl-space-tighter);
 }
+
+
+/* Measuring is a question about the world, not an edit to it, so this bar sits
+   over the stage in both modes rather than in the edit-only tool rail. */
+.map-measure-bar {
+  position: absolute;
+  right: var(--nl-space-md);
+  top: var(--nl-space-md);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+}
+
+.map-measured {
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  border-radius: var(--nl-radius-sm);
+  background: var(--nl-surface-card);
+  color: var(--nl-text);
+  font-size: var(--nl-font-caption);
+}

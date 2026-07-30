@@ -32,6 +32,7 @@ import {
   type MapWindow,
   type ToolMode
 } from './mapModel'
+import { MapScaleDialog } from './MapScaleDialog'
 import './map.css'
 
 interface MapRefDto {
@@ -87,6 +88,10 @@ export function MapsView(): React.JSX.Element {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [mapModel, setMapModel] = useState<MapDataT | null>(null)
   const [activeTool, setActiveTool] = useState<ToolMode>('select')
+  // The last distance the ruler reported, shown until the next measurement or
+  // until the tool is put down.
+  const [measured, setMeasured] = useState<string | null>(null)
+  const [scaleOpen, setScaleOpen] = useState(false)
   const [editMode, setEditMode] = useState(true)
   const [is3D, setIs3D] = useState(false)
   const [loading3D, setLoading3D] = useState<Loading3D | null>(null)
@@ -186,6 +191,11 @@ export function MapsView(): React.JSX.Element {
       data = null
     }
     setMapModel(data)
+    // The map file knows nothing about its siblings, so the host tells it what
+    // else a pin could open.
+    if (typeof win.setOtherMaps === 'function') {
+      win.setOtherMaps(maps.filter((m) => m.id !== activeId).map((m) => ({ id: m.id, name: m.name })))
+    }
     if (data) {
       const leaf = firstLeafId(data)
       if (leaf) {
@@ -355,7 +365,25 @@ export function MapsView(): React.JSX.Element {
           setSelection({ kind: 'border' })
           break
         case 'pinClick':
+          // A pin that opens a map wins over one that opens an entry: the
+          // writer put a target on it precisely so it would lead somewhere.
+          if (msg.targetMapId) {
+            setActiveId(msg.targetMapId)
+            break
+          }
           if (msg.entityId && msg.entityType) void showPinPeek(msg.entityType, msg.entityId)
+          break
+        case 'measured':
+          // Answered in the map's own units, and said so - a number with no
+          // unit behind it is the problem the scale exists to solve.
+          setMeasured(
+            msg.ground && msg.unit
+              ? t('maps.measuredGround', {
+                  distance: Number(msg.ground).toFixed(1),
+                  unit: msg.unit
+                })
+              : t('maps.measuredUnits', { distance: Number(msg.worldUnits ?? 0).toFixed(0) })
+          )
           break
         case 'selectionCleared':
         case 'pinDeselected':
@@ -916,6 +944,29 @@ export function MapsView(): React.JSX.Element {
             onBuildingScale={onBuildingScale}
           />
           <div className="map-stage">
+            {/* Measuring is a question about the world, not an edit to it, so
+                the ruler and the scale are reachable while reading too. */}
+            <div className="map-measure-bar">
+              <button
+                className={`dialog-button${activeTool === 'ruler' ? ' primary' : ''}`}
+                disabled={!hasMap || is3D}
+                onClick={() => {
+                  const next = activeTool === 'ruler' ? 'select' : 'ruler'
+                  setMeasured(null)
+                  selectTool(next)
+                }}
+              >
+                {t('maps.ruler')}
+              </button>
+              <button
+                className="dialog-button"
+                disabled={!hasMap || is3D}
+                onClick={() => setScaleOpen(true)}
+              >
+                {t('maps.scale')}
+              </button>
+              {measured && <span className="map-measured">{measured}</span>}
+            </div>
             <iframe
               ref={iframeRef}
               className="editor-frame"
@@ -1036,6 +1087,16 @@ export function MapsView(): React.JSX.Element {
           </div>
         </div>
       )}
+      {scaleOpen && (
+        <MapScaleDialog
+          initial={getWin()?.getMapScale?.() ?? null}
+          onCancel={() => setScaleOpen(false)}
+          onSubmit={(scale) => {
+            getWin()?.setMapScale(scale)
+            setScaleOpen(false)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -1050,4 +1111,10 @@ interface MapMessage {
   entityId?: string
   entityType?: string
   step?: string
+  /** A pin that opens another map carries its id. */
+  targetMapId?: string
+  /** Ruler result: raw world units, and the same in the declared unit. */
+  worldUnits?: number
+  ground?: number
+  unit?: string
 }

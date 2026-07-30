@@ -453,6 +453,31 @@ body.mode-view .nv-image { pointer-events: none; }
     outline-offset: 3px;
     min-width: 1ch;
 }
+/* The grid is a repeating background rather than thousands of elements: at a
+   wide zoom a real line per cell is tens of thousands of nodes for a thing
+   nobody clicks. */
+#map-grid {
+    position: absolute; inset: 0;
+    pointer-events: none;
+    z-index: 0;
+}
+#scalebar {
+    position: fixed; left: 12px; bottom: 44px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+#scalebar .sb-bar {
+    height: 6px;
+    border: 1px solid #fff;
+    border-top: 0;
+}
 #hud {
     position: fixed; left: 12px; top: 12px;
     background: rgba(0,0,0,0.55);
@@ -484,9 +509,15 @@ body.mode-view .nv-image { pointer-events: none; }
     <div id="pin-overlay"></div>
     <div id="label-overlay"></div>
     <svg id="border-outline"></svg>
+    <!-- Drawing aid, drawn under everything. Separate from the scale because a
+         grid is a convenience and a scale is a fact about the world. -->
+    <div id="map-grid"></div>
 </div>
 <canvas id="stage3d"></canvas>
 <div id="hud">Map</div>
+<!-- What the map's own units are worth on the ground. Hidden until the writer
+     declares a scale: a bar with no basis is a decoration that reads as a fact. -->
+<div id="scalebar" hidden><div class="sb-bar"></div><span class="sb-text"></span></div>
 <div id="hud3d"></div>
 <div id="nv-bottom-bar">
     <div class="bb-left"></div>
@@ -513,6 +544,8 @@ const labelOverlay = document.getElementById('label-overlay');
 const borderOutline = document.getElementById('border-outline');
 const handlesOverlay = document.getElementById('image-handles');
 const hud = document.getElementById('hud');
+const scalebar = document.getElementById('scalebar');
+const mapGrid = document.getElementById('map-grid');
 
 let mapData = { groups: [], pins: [] };
 let mode = 'edit';
@@ -1377,6 +1410,21 @@ window.resetSplineColors     = (id) => window.setSplineColors(id, '', '', '');
 
 // Place-pin mode short-circuits ALL element interactions: any left-click drops a pin,
 // even on top of images or other pins. Returns true if the click was consumed.
+/**
+ * Ruler: two clicks and a distance.
+ *
+ * Available while reading as well as while editing - "how far is that" is a
+ * question about the world, not an edit to it.
+ */
+function tryRulerPoint(e) {
+    if (toolMode !== 'ruler') return false;
+    if (e.button !== 0) return false;
+    e.stopPropagation();
+    e.preventDefault();
+    rulerClick((e.clientX - pan.x) / zoom, (e.clientY - pan.y) / zoom);
+    return true;
+}
+
 function tryPlacePin(e) {
     if (toolMode !== 'add-pin' || mode !== 'edit') return false;
     if (e.button !== 0) return false;
@@ -1758,7 +1806,13 @@ function renderPin(pin) {
         if (tryPlaceBuilding(e)) return;
         e.stopPropagation();
         if (mode === 'view') {
-            sendMessage({ type: 'pinClick', pinId: pin.id, entityId: pin.entityId || '', entityType: pin.entityType || '' });
+            sendMessage({
+                type: 'pinClick', pinId: pin.id,
+                entityId: pin.entityId || '', entityType: pin.entityType || '',
+                // A pin resolved to a Codex entry and nothing else, so a world
+                // map could mark a city and never lead to the city's own map.
+                targetMapId: pin.targetMapId || ''
+            });
             return;
         }
         if (e.button === 2) return; // right-click handled below
@@ -2675,6 +2729,17 @@ function renderSelectedBar() {
             bb.center.appendChild(bbColor(pin.color || '#f9c46a',
                 hex => window.setPinColor(selected.id, hex),
                 mapStrings.pinColor));
+            // A pin that opens another map: a world map marks a city and the
+            // city has its own map, which is the one relationship maps have and
+            // the one Novalist could not express.
+            if (otherMaps.length > 0) {
+                bb.center.appendChild(bbSelect(
+                    pin.targetMapId || '',
+                    [['', mapStrings.pinNoTargetMap || 'No map'],
+                     ...otherMaps.map(m => [m.id, m.name])],
+                    id => window.setPinTargetMap(selected.id, id),
+                    mapStrings.pinTargetMap || 'Opens map'));
+            }
             const ls = bbLayerSelect('pin', pin.id, pin.layerId || '');
             if (ls) bb.center.appendChild(ls);
         }
@@ -5472,6 +5537,7 @@ stage.addEventListener('mousedown', (e) => {
         startPan(e);
         return;
     }
+    if (tryRulerPoint(e)) return;
     if (trySplinePoint(e)) return;
     if (tryPlacePin(e)) return;
     if (tryPlaceLabel(e)) return;
@@ -5686,9 +5752,34 @@ window.addImageToMap = (relPath, w, h) => {
     render();
     sendMessage({ type: 'mapChanged' });
 };
+/**
+ * Declares what a world unit is worth on the ground, and how far apart the grid
+ * lines are. Null clears the scale, which puts the map back to having no
+ * opinion rather than a wrong one.
+ */
+window.setMapScale = (scale) => {
+    if (!scale || !(scale.unitsPer > 0)) {
+        delete mapData.scale;
+    } else {
+        mapData.scale = {
+            unitsPer: scale.unitsPer,
+            unit: scale.unit || '',
+            gridSpacing: scale.gridSpacing > 0 ? scale.gridSpacing : 0
+        };
+    }
+    updateHud();
+    sendMessage({ type: 'mapChanged' });
+};
+
+window.getMapScale = () => mapData.scale || null;
+
 window.setToolMode = (m) => {
     const want = (m === 'add-pin' || m === 'add-label' || m === 'spline'
-        || m === 'terrain' || m === 'border' || m === 'building') ? m : 'select';
+        || m === 'terrain' || m === 'border' || m === 'building'
+        || m === 'ruler') ? m : 'select';
+    // Leaving the ruler drops a half-measured distance rather than keeping a
+    // start point that would attach itself to an unrelated later click.
+    if (want !== 'ruler') rulerFrom = null;
     // 'border' with a border already present = edit its vertices, not draw a new one.
     if (want === 'border' && mapData.border) {
         toolMode = 'select';
@@ -5719,6 +5810,93 @@ window.setToolMode = (m) => {
     log('toolMode = ' + toolMode);
 };
 
+/**
+ * The scale bar, the grid, and the ruler.
+ *
+ * The map had world-space units and a zoom readout and no scale at all, so "how
+ * many days' ride to the coast" could not be answered from a map the app itself
+ * drew. One number - what a world unit is worth on the ground - is enough for
+ * all three.
+ */
+const SCALE_STEPS = [1, 2, 5];
+
+/** A round ground distance near the target, so the bar reads 50 km, not 47.3. */
+function niceDistance(target) {
+    if (!(target > 0)) return 1;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(target)));
+    for (const step of SCALE_STEPS) {
+        if (step * magnitude >= target) return step * magnitude;
+    }
+    return 10 * magnitude;
+}
+
+function updateScaleBar() {
+    if (!scalebar) return;
+    const scale = mapData.scale;
+    if (!scale || !(scale.unitsPer > 0)) { scalebar.hidden = true; return; }
+
+    // Aim for a bar about 120px wide, then round the distance it represents
+    // and let the bar take whatever width that works out to.
+    const worldUnits = 120 / Math.max(zoom, 0.0001);
+    const ground = niceDistance(worldUnits * scale.unitsPer);
+    const pixels = (ground / scale.unitsPer) * zoom;
+
+    scalebar.hidden = false;
+    scalebar.querySelector('.sb-bar').style.width = pixels.toFixed(0) + 'px';
+    scalebar.querySelector('.sb-text').textContent =
+        formatDistance(ground) + ' ' + (scale.unit || '');
+}
+
+/** Distances read as numbers a person says out loud, not as float noise. */
+function formatDistance(value) {
+    if (value >= 100) return String(Math.round(value));
+    if (value >= 10) return value.toFixed(1).replace(/\.0$/, '');
+    return value.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+}
+
+function updateGrid() {
+    if (!mapGrid) return;
+    const spacing = mapData.scale && mapData.scale.gridSpacing;
+    if (!(spacing > 0)) { mapGrid.style.backgroundImage = ''; return; }
+
+    const step = spacing * zoom;
+    // Under four pixels a grid is a grey wash, which is worse than no grid.
+    if (step < 4) { mapGrid.style.backgroundImage = ''; return; }
+
+    mapGrid.style.backgroundImage =
+        'linear-gradient(to right, rgba(0,0,0,0.18) 1px, transparent 1px),' +
+        'linear-gradient(to bottom, rgba(0,0,0,0.18) 1px, transparent 1px)';
+    mapGrid.style.backgroundSize = step + 'px ' + step + 'px';
+    // Offset by the pan so the lines stay on the same world coordinates rather
+    // than sliding under the map as it moves.
+    mapGrid.style.backgroundPosition =
+        (((pan.x % step) + step) % step) + 'px ' + (((pan.y % step) + step) % step) + 'px';
+}
+
+/**
+ * The ruler: two clicks and a distance.
+ *
+ * Answers in the map's own declared units, and says so - a number with no unit
+ * behind it is the problem this is here to solve.
+ */
+let rulerFrom = null;
+
+function rulerClick(worldX, worldY) {
+    if (!rulerFrom) { rulerFrom = { x: worldX, y: worldY }; updateHud(); return; }
+    const dx = worldX - rulerFrom.x;
+    const dy = worldY - rulerFrom.y;
+    const units = Math.sqrt((dx * dx) + (dy * dy));
+    const scale = mapData.scale;
+    sendMessage({
+        type: 'measured',
+        worldUnits: units,
+        ground: scale && scale.unitsPer > 0 ? units * scale.unitsPer : 0,
+        unit: (scale && scale.unit) || ''
+    });
+    rulerFrom = null;
+    updateHud();
+}
+
 // HUD: map name, zoom, cursor world coords, active layer, draft summary.
 let lastCursorWorld = { x: 0, y: 0 };
 function updateHud() {
@@ -5733,7 +5911,10 @@ function updateHud() {
     if (terrainDraft)  parts.push(`${mapStrings.hudTerrainDraft || 'Terrain draft'}: ${terrainDraft.points.length} ${mapStrings.hudVerts || 'verts'}`);
     if (borderDraft)   parts.push(`${mapStrings.hudBorderDraft  || 'Border draft'}: ${borderDraft.points.length} ${mapStrings.hudVerts || 'verts'}`);
     if (wallDraft)     parts.push(`${mapStrings.hudWallDraft    || 'Wall draft'}: ${wallDraft.points.length} ${mapStrings.hudPts || 'pts'}`);
+    if (rulerFrom) parts.push(mapStrings.hudRuler || 'Ruler: click the far end');
     hud.textContent = parts.join(' · ');
+    updateScaleBar();
+    updateGrid();
 }
 
 // Reflect current toolMode in body class so CSS can drive cursor + hover affordances.
@@ -5907,6 +6088,25 @@ window.setPinLabel = (pinId, label) => {
     render();
     sendMessage({ type: 'mapChanged' });
 };
+/**
+ * The maps a pin on this map could open. Set by the host, since only it knows
+ * what else is in the project; the map itself is one file.
+ */
+let otherMaps = [];
+
+window.setOtherMaps = (list) => {
+    otherMaps = Array.isArray(list) ? list.filter(m => m && m.id && m.id !== mapData.id) : [];
+    if (selected.kind === 'pin') renderSelectedBar();
+};
+
+window.setPinTargetMap = (pinId, targetMapId) => {
+    const pin = findPinById(pinId);
+    if (!pin) return;
+    if (targetMapId) pin.targetMapId = targetMapId;
+    else delete pin.targetMapId;
+    sendMessage({ type: 'mapChanged' });
+};
+
 window.setPinEntity = (pinId, entityId, entityType) => {
     const pin = findPinById(pinId);
     if (!pin) return;

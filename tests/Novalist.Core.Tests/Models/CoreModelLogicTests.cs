@@ -602,4 +602,32 @@ public class StoryStructureTemplateTests
         Assert.Equal("Mira Vance", new CharacterData { Name = "Mira", Surname = "Vance" }.DisplayName);
     }
 
+
+    [Fact]
+    public void AMapCanSayWhatItsUnitsAreWorthAndWhereItsPinsLead()
+    {
+        // The map had world-space units and a zoom readout and no scale, so
+        // "how many days' ride to the coast" could not be answered from a map
+        // the app itself drew.
+        var map = new MapData { Name = "The Reach" };
+        Assert.Null(map.Scale);
+
+        map.Scale = new MapScale { UnitsPer = 2.5, Unit = "leagues", GridSpacing = 100 };
+        Assert.Equal(2.5, map.Scale.UnitsPer);
+        Assert.Equal("leagues", map.Scale.Unit);
+
+        // A default scale is one unit of whatever the writer calls it, with no
+        // grid - a grid is a drawing aid, a scale is a fact.
+        var bare = new MapScale();
+        Assert.Equal(1, bare.UnitsPer);
+        Assert.Equal(0, bare.GridSpacing);
+
+        // A pin could resolve to a Codex entry and nothing else, so a world map
+        // could mark a city and never lead to the city's own map.
+        var pin = new MapPin { Id = "p1" };
+        Assert.Null(pin.TargetMapId);
+        pin.TargetMapId = "city-map";
+        Assert.Equal("city-map", pin.TargetMapId);
+    }
+
 }

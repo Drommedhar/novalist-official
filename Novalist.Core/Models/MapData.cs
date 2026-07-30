@@ -49,6 +49,18 @@ public sealed class MapData
     [JsonPropertyName("border")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public MapBorder? Border { get; set; }
+
+    /// <summary>
+    /// What one world unit on this map is worth on the ground, and in what.
+    /// Null until the writer says, and nothing is drawn or measured until then.
+    ///
+    /// The map had world-space units and a zoom readout and no scale, so "how
+    /// many days' ride to the coast" could not be answered from a map the app
+    /// itself drew.
+    /// </summary>
+    [JsonPropertyName("scale")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public MapScale? Scale { get; set; }
 }
 
 /// <summary>A map-wide clip boundary: a closed polygon that hides everything
@@ -246,6 +258,31 @@ public sealed class MapImage
     public double? MaxZoom { get; set; }
 }
 
+/// <summary>
+/// What the map's own units mean on the ground.
+///
+/// Deliberately one number and one word: a map is drawn at whatever size suits
+/// it, and the only thing the app needs to know is what to multiply by. The unit
+/// is free text because a world may not measure in kilometres.
+/// </summary>
+public sealed class MapScale
+{
+    /// <summary>Ground distance covered by one world unit. Must be positive.</summary>
+    [JsonPropertyName("unitsPer")]
+    public double UnitsPer { get; set; } = 1;
+
+    /// <summary>What that distance is called: "km", "miles", "leagues".</summary>
+    [JsonPropertyName("unit")]
+    public string Unit { get; set; } = "km";
+
+    /// <summary>
+    /// Spacing of the optional grid, in world units, or 0 for no grid. Separate
+    /// from the scale because a grid is a drawing aid and a scale is a fact.
+    /// </summary>
+    [JsonPropertyName("gridSpacing")]
+    public double GridSpacing { get; set; }
+}
+
 public sealed class MapPin
 {
     [JsonPropertyName("id")]
@@ -279,6 +316,18 @@ public sealed class MapPin
     [JsonPropertyName("entityId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? EntityId { get; set; }
+
+    /// <summary>
+    /// Id of another map this pin opens, or null.
+    ///
+    /// A pin could resolve to a Codex entry and nothing else, so a world map
+    /// could mark a city and never lead to the city's own map - the maps sat in
+    /// a flat list of tabs with no relationship between them, which is the one
+    /// relationship maps actually have.
+    /// </summary>
+    [JsonPropertyName("targetMapId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? TargetMapId { get; set; }
 
     [JsonPropertyName("connectedGroupId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

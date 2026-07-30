@@ -1339,7 +1339,10 @@
     "exporting": "Exporting...",
     "exportImageHint": "Save the map as a PNG, exactly as it looks here.",
     "exportScaleHint": "Higher scales give a larger image, for print or endpapers.",
-    "exportScaleOption": "{{scale}}x"
+    "exportScaleOption": "{{scale}}x",
+    "hudRuler": "Measure: click the far end",
+    "pinTargetMap": "Opens map",
+    "pinNoTargetMap": "No map"
   },
   "draft": {
     "label": "Draft",
@@ -2836,5 +2839,17 @@
     "file": "File into project",
     "delete": "Delete note",
     "empty": "Nothing here yet."
+  },
+  "maps": {
+    "ruler": "Measure",
+    "scale": "Scale",
+    "scaleIntro": "What one unit on this map is worth on the ground. Set it and the map gets a scale bar, and Measure answers in real distances.",
+    "scaleGroundPerUnit": "Ground distance per map unit",
+    "scaleUnit": "Called",
+    "scaleUnitPlaceholder": "km, miles, leagues",
+    "scaleGrid": "Grid spacing, in map units",
+    "scaleGridHint": "Leave at zero for no grid.",
+    "measuredGround": "{{distance}} {{unit}}",
+    "measuredUnits": "{{distance}} map units - no scale set"
   }
 }
