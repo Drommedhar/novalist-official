@@ -1031,3 +1031,42 @@
   font-family: var(--nl-font-mono);
   font-size: var(--nl-font-caption);
 }
+
+/* Written articles, as opposed to the generated ones. The title is edited in
+   place: this page is written rather than derived, so it is edited where it
+   is read rather than in a dialog somewhere else. */
+.wiki-page-title {
+  background: none;
+  border: none;
+  border-bottom: 1px solid transparent;
+  color: var(--nl-text);
+  font-family: inherit;
+  font-size: var(--nl-font-display);
+  font-weight: 600;
+  padding: 0;
+  width: 100%;
+}
+
+.wiki-page-title:focus {
+  border-bottom-color: var(--nl-accent);
+  outline: none;
+}
+
+.wiki-page-toolbar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter);
+  margin: var(--nl-space-sm) 0 var(--nl-space-md);
+}
+
+.wiki-page-article {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Depth is carried by the inline padding, so a nested article reads as
+   nested without a second list nesting inside the first. */
+.wiki-page-entry .wiki-entry-title {
+  font-weight: 400;
+}

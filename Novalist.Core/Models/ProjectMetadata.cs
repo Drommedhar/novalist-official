@@ -103,6 +103,15 @@ public class ProjectMetadata
     [JsonPropertyName("researchItems")]
     public List<ResearchItem> ResearchItems { get; set; } = [];
 
+    /// <summary>
+    /// Wiki articles about the world rather than about one entry in it.
+    ///
+    /// Every article was generated from a Codex entity, so an essay on the
+    /// economy had to hang off whichever entity it least badly belonged to.
+    /// </summary>
+    [JsonPropertyName("wikiPages")]
+    public List<WikiPage> WikiPages { get; set; } = [];
+
     public BookData? GetActiveBook()
         => Books.FirstOrDefault(b => b.Id == ActiveBookId) ?? Books.FirstOrDefault();
 }

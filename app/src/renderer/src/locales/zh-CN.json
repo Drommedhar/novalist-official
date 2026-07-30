@@ -3188,5 +3188,17 @@
     "copy": "复制",
     "remove": "彻底丢弃",
     "notePlaceholder": "保留的原因"
+  },
+  "pages": {
+    "group": "文章",
+    "create": "新建文章",
+    "createChild": "在其下新建文章",
+    "untitled": "未命名文章",
+    "titlePlaceholder": "这篇文章讲什么",
+    "parent": "归属于",
+    "topLevel": "无——顶层",
+    "delete": "删除此文章",
+    "body": "正文",
+    "bodyPlaceholder": "经济如何运作、魔法的代价、战争因何而起。"
   }
 }

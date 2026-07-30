@@ -55,6 +55,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new CleanupRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new LinksRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new DarlingsRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new WikiPagesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new VoicesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new GroupsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new EntitiesRpc(_workspace), targetOptions);

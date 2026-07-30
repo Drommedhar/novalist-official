@@ -74,6 +74,21 @@ The Wiki is meant to be browsed by clicking:
 
 A name only links when it resolves to exactly one entity; names that could mean more than one entity are left as plain text so a link never sends you to the wrong page.
 
+## Articles about the world
+
+Every article described so far is **generated** from a Codex entry. That leaves nowhere for the writing that is about the world rather than about one thing in it — an essay on how the economy works, on what the magic costs, on why the war started. Those had to hang off whichever entry they least badly belonged to, or live in Research outside the Wiki entirely. Only Locations nested, so filing one under another was not possible either.
+
+**Articles** sits at the top of the index, above the generated entries — they are about the world as a whole, and the generated ones are about the things inside it.
+
+- The **+** beside the heading starts a new article. **Article inside this one**, in the article's own toolbar, starts one beneath it.
+- Nesting goes **as deep as you like**. A world, a region inside it, a town inside that.
+- **Sits under** re-files an article. An article cannot be filed under itself or under anything below it — that would make a ring, and everything inside the ring would still be in the file and never reachable again — so those are simply not offered rather than being offered and refused.
+- The title and the body are edited **in place**: this article is written rather than derived, so it is edited where it is read.
+- An article with **no title yet is still saved**. Starting an essay and naming it afterwards should not cost you the essay.
+- **Deleting** an article lifts its children into its place rather than taking them with it. An article is a container as much as a piece of writing.
+
+Selecting a written article deselects the generated one and vice versa, so exactly one is ever open.
+
 ## Editing
 
 The Wiki is read-only by design. To change anything on a page, use the **Edit in Codex** button in the article header — it switches to the Codex with that entity selected, ready to edit. Your edits show up in the Wiki the next time you open the article.

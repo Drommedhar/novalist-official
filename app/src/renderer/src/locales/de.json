@@ -3156,5 +3156,17 @@
     "copy": "Kopieren",
     "remove": "Endgültig verwerfen",
     "notePlaceholder": "Warum aufgehoben"
+  },
+  "pages": {
+    "group": "Artikel",
+    "create": "Neuer Artikel",
+    "createChild": "Artikel darunter",
+    "untitled": "Unbenannter Artikel",
+    "titlePlaceholder": "Worum es in diesem Artikel geht",
+    "parent": "Gehört unter",
+    "topLevel": "Nichts – oberste Ebene",
+    "delete": "Artikel löschen",
+    "body": "Der Artikel",
+    "bodyPlaceholder": "Wie die Wirtschaft funktioniert, was Magie kostet, warum der Krieg begann."
   }
 }

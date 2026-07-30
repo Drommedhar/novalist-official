@@ -3148,5 +3148,17 @@
     "copy": "Copy",
     "remove": "Throw this away",
     "notePlaceholder": "Why you kept it"
+  },
+  "pages": {
+    "group": "Articles",
+    "create": "New article",
+    "createChild": "Article inside this one",
+    "untitled": "Untitled article",
+    "titlePlaceholder": "What this article is about",
+    "parent": "Sits under",
+    "topLevel": "Nothing — top level",
+    "delete": "Delete this article",
+    "body": "The article",
+    "bodyPlaceholder": "How the economy works, what the magic costs, why the war started."
   }
 }
