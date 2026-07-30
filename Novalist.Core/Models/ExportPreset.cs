@@ -18,6 +18,16 @@ public sealed record ExportPreset
     public double FirstLineIndentInches { get; init; } = 0.35;
     public double ChapterTopMarginInches { get; init; } = 2.0;
     public string SceneSeparator { get; init; } = "* * *";
+
+    /// <summary>
+    /// The line printed at the top of every page, with placeholders resolved.
+    ///
+    /// Empty keeps the submission default - surname and short title - which is
+    /// what every manuscript export printed when the running head could not be
+    /// authored at all. A layout that wants "The Salt Road / Chapter Four"
+    /// says so with placeholders rather than being told it cannot.
+    /// </summary>
+    public string RunningHead { get; init; } = string.Empty;
     public bool DoubleSpaced { get; init; }
     public bool ShunnHeader { get; init; }
 

@@ -51,7 +51,7 @@ public sealed class ExportPresetRpc
         p.Id, p.DisplayName, p.Description, p.IsCustom,
         p.BodyFontFamily, p.BodyFontSizePt, p.LineSpacingMultiplier,
         p.MarginInches, p.FirstLineIndentInches, p.ChapterTopMarginInches,
-        p.SceneSeparator, p.DoubleSpaced, p.ShowSceneTitles,
+        p.SceneSeparator, p.RunningHead, p.DoubleSpaced, p.ShowSceneTitles,
         p.ChapterTitleFormat, p.ChapterNumberStyle.ToString(), p.ChapterHeadingUppercase,
         p.DropCap, p.LeadInSmallCapsWords, p.EbookCss,
         p.Print == null ? null : ToDto(p.Print));
@@ -77,6 +77,7 @@ public sealed class ExportPresetRpc
         FirstLineIndentInches = Clamp(d.FirstLineIndentInches, 0, 2, 0.35),
         ChapterTopMarginInches = Clamp(d.ChapterTopMarginInches, 0, 5, 2),
         SceneSeparator = d.SceneSeparator ?? string.Empty,
+        RunningHead = d.RunningHead ?? string.Empty,
         DoubleSpaced = d.DoubleSpaced,
         ShowSceneTitles = d.ShowSceneTitles,
         ChapterTitleFormat = string.IsNullOrWhiteSpace(d.ChapterTitleFormat)
@@ -144,6 +145,12 @@ public sealed record ExportLayoutDto(
     double FirstLineIndentInches,
     double ChapterTopMarginInches,
     string SceneSeparator,
+    /// <summary>
+    /// The line at the top of every page. Empty keeps the submission default -
+    /// surname and short title - which is what every export printed before a
+    /// layout could say otherwise. Placeholders resolve here too.
+    /// </summary>
+    string RunningHead,
     bool DoubleSpaced,
     bool ShowSceneTitles,
     string ChapterTitleFormat,

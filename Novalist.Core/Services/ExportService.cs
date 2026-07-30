@@ -120,6 +120,21 @@ public class ExportOptions
     public List<MatterExportContent> Matter { get; set; } = [];
 
     /// <summary>
+    /// The scene break this export prints, with its placeholders resolved.
+    /// Set by the compile; the layout's own separator until then.
+    /// </summary>
+    public string ResolvedSeparator { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The running head this export prints, with its placeholders resolved and
+    /// the page number appended by whichever writer draws it.
+    ///
+    /// Empty means the submission default - surname and short title - which is
+    /// what every Shunn export printed before a layout could say otherwise.
+    /// </summary>
+    public string ResolvedRunningHead { get; set; } = string.Empty;
+
+    /// <summary>
     /// Layouts the writer authored, so a custom preset id resolves to theirs
     /// rather than silently falling back to the default.
     /// </summary>
@@ -246,6 +261,17 @@ public class ChapterExportContent
     public int Order { get; set; }
     public string? Subtitle { get; set; }
 
+    /// <summary>
+    /// The heading this chapter prints, with the layout's format applied and
+    /// its placeholders resolved.
+    ///
+    /// Built once in the compile, the same way suggested edits are, so six
+    /// writers cannot disagree about what a chapter is called - and so a
+    /// placeholder in a heading format resolves in every format rather than in
+    /// whichever one the resolver happened to be wired into.
+    /// </summary>
+    public string Heading { get; set; } = string.Empty;
+
     /// <summary>True when this chapter opens straight into its prose.</summary>
     public bool HideHeading { get; set; }
 
@@ -361,7 +387,21 @@ public partial class ExportService
             // The store this build is for, so back matter can point a reader at
             // the shop they bought it in rather than at a competitor.
             StoreName = store?.Name ?? string.Empty,
-            StoreLink = store?.Url ?? string.Empty
+            StoreLink = store?.Url ?? string.Empty,
+            // Both were in the token table and in the manual and neither was
+            // ever set, so a title page saying "<$wordcount> words" printed a
+            // zero at whoever it was sent to.
+            WordCount = chapters
+                .SelectMany(c => _projectService.GetScenesForChapter(c.Guid))
+                .Where(sc => !sc.Inactive && !sc.ExcludeFromExport)
+                .Sum(sc => sc.WordCount),
+            PageCount = 0
+        };
+        // Normseiten when the layout is on that grid, and the usual 250 words
+        // to a page otherwise. An estimate either way, and saying so.
+        tokens = tokens with
+        {
+            PageCount = (int)Math.Ceiling(tokens.WordCount / 250.0)
         };
 
         options.Matter = (_projectService.ActiveBook?.Matter ?? [])
@@ -382,6 +422,7 @@ public partial class ExportService
             .ToList();
 
         var result = new List<ChapterExportContent>();
+        var preset = options.ResolvePreset();
 
         foreach (var chapter in chapters)
         {
@@ -412,9 +453,20 @@ public partial class ExportService
                     TrackedChanges.Final(ResolveImagePaths(
                         await _projectService.ReadSceneContentAsync(chapter, scene))),
                     options.Replacements);
+                // The chapter and scene the writer is in, so <$chaptertitle>
+                // in the prose means this chapter rather than nothing. These
+                // were documented, in the token table, and populated nowhere.
+                var sceneTokens = tokens with
+                {
+                    ChapterNumber = result.Count + 1,
+                    ChapterTitle = chapter.Title,
+                    SceneTitle = scene.Title,
+                    Act = chapter.Act ?? string.Empty
+                };
+                html = ExportTokens.Resolve(html, sceneTokens);
                 sceneContents.Add(new SceneExportContent
                 {
-                    Title = scene.Title,
+                    Title = ExportTokens.Resolve(scene.Title, sceneTokens),
                     Order = scene.Order,
                     HtmlContent = html,
                     // Ids are lowercased because the inline parser lowercases
@@ -436,15 +488,30 @@ public partial class ExportService
                 });
             }
 
+            var chapterTokens = tokens with
+            {
+                ChapterNumber = result.Count + 1,
+                ChapterTitle = chapter.Title,
+                Act = chapter.Act ?? string.Empty
+            };
+            var title = ExportTokens.Resolve(chapter.Title, chapterTokens);
             result.Add(new ChapterExportContent
             {
-                Title = chapter.Title,
+                Title = title,
                 Order = chapter.Order,
-                Subtitle = chapter.Subtitle,
+                Subtitle = ExportTokens.Resolve(chapter.Subtitle ?? string.Empty, chapterTokens),
+                // Built here so every writer prints the same heading and a
+                // placeholder in a heading format resolves in all of them.
+                Heading = ExportTokens.Resolve(
+                    preset.ChapterHeading(result.Count + 1, title), chapterTokens),
                 HideHeading = chapter.HideHeading,
                 Scenes = sceneContents
             });
         }
+
+        // The layout's own lines, resolved once against the finished book.
+        options.ResolvedSeparator = ExportTokens.Resolve(preset.SceneSeparator, tokens);
+        options.ResolvedRunningHead = ExportTokens.Resolve(preset.RunningHead, tokens);
 
         return result;
     }
@@ -534,7 +601,7 @@ public partial class ExportService
         for (var ci = 0; ci < chapters.Count; ci++)
         {
             var chapter = chapters[ci];
-            var fdxHeading = fdxPreset.ChapterHeading(ci + 1, chapter.Title).ToUpperInvariant();
+            var fdxHeading = chapter.Heading.ToUpperInvariant();
             sb.AppendLine($"    <Paragraph Type=\"Scene Heading\"><Text>{XmlEscape(fdxHeading)}</Text></Paragraph>");
             foreach (var scene in chapter.Scenes)
             {
@@ -583,7 +650,7 @@ public partial class ExportService
             // the layout asks for and LaTeX's own would print a second one.
             if (!chapter.HideHeading)
             {
-                sb.AppendLine($"\\chapter*{{{LatexEscape(latexPreset.ChapterHeading(ci + 1, chapter.Title))}}}");
+                sb.AppendLine($"\\chapter*{{{LatexEscape(chapter.Heading)}}}");
                 if (!string.IsNullOrWhiteSpace(chapter.Subtitle))
                     sb.AppendLine(
                         $"\\begin{{center}}\\textit{{{LatexEscape(chapter.Subtitle)}}}\\end{{center}}");
@@ -1183,6 +1250,27 @@ public partial class ExportService
                     : $"{rel.Role}: {rel.Target}");
 
         return row;
+    }
+
+    /// <summary>
+    /// The line printed at the top of every page.
+    ///
+    /// A layout can author it with placeholders. Empty falls back to the
+    /// submission convention - surname and short title - which is what every
+    /// manuscript export printed when this could not be authored at all.
+    /// </summary>
+    internal static string RunningHead(ExportOptions options)
+    {
+        if (!string.IsNullOrWhiteSpace(options.ResolvedRunningHead))
+            return options.ResolvedRunningHead.Trim();
+
+        var surname = !string.IsNullOrWhiteSpace(options.Author)
+            ? options.Author.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()
+            : string.Empty;
+        // A long title runs into the page number, so it is cut rather than
+        // allowed to collide with it.
+        var shortTitle = options.Title.Length > 30 ? options.Title[..27] + "..." : options.Title;
+        return $"{surname} / {shortTitle.ToUpperInvariant()}";
     }
 
     /// <summary>A list in one cell, the way a reader of a sheet expects it.</summary>
@@ -2178,7 +2266,7 @@ public partial class ExportService
     {
         if (chapter.HideHeading) return string.Empty;
 
-        var heading = $"    <h1 class=\"chapter-title\">{EscapeXml(preset.ChapterHeading(number, chapter.Title))}</h1>";
+        var heading = $"    <h1 class=\"chapter-title\">{EscapeXml(chapter.Heading)}</h1>";
         return string.IsNullOrWhiteSpace(chapter.Subtitle)
             ? heading
             : heading + $"\n    <p class=\"chapter-subtitle\">{EscapeXml(chapter.Subtitle)}</p>";
@@ -2220,7 +2308,7 @@ public partial class ExportService
         {
             if (si > 0)
                 bodyHtml.AppendLine(
-                    $"    <p class=\"scene-break\">{EscapeXml(preset.SceneSeparator)}</p>");
+                    $"    <p class=\"scene-break\">{EscapeXml(options.ResolvedSeparator)}</p>");
 
             var scene = chapter.Scenes[si];
             // Off for a novel, where an ornament is the whole separator; on for
@@ -2904,11 +2992,7 @@ public partial class ExportService
         // SMF header
         if (smf)
         {
-            var surname = !string.IsNullOrWhiteSpace(options.Author)
-                ? options.Author.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()
-                : "";
-            var shortTitle = options.Title.Length > 30 ? options.Title[..27] + "..." : options.Title;
-            var headerText = $"{surname} / {shortTitle.ToUpperInvariant()}";
+            var headerText = RunningHead(options);
 
             await WriteEntryAsync(zip, "word/header1.xml", $"""
                 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -2948,7 +3032,7 @@ public partial class ExportService
             var needsPageBreak = i > 0 || options.IncludeTitlePage || matterPrecedesChapters;
 
             // Chapter heading
-            var docxHeading = options.ResolvePreset().ChapterHeading(i + 1, chapter.Title);
+            var docxHeading = chapter.Heading;
             var breakBefore = needsPageBreak ? "<w:pageBreakBefore/>" : string.Empty;
             if (chapter.HideHeading)
             {
@@ -3847,7 +3931,7 @@ public partial class ExportService
         for (var ci = 0; ci < chapters.Count; ci++)
         {
             var chapter = chapters[ci];
-            blocks.Add(NormseitenBlock.Heading(normseitenPreset.ChapterHeading(ci + 1, chapter.Title)));
+            blocks.Add(NormseitenBlock.Heading(chapter.Heading));
             for (var si = 0; si < chapter.Scenes.Count; si++)
             {
                 if (si > 0)
@@ -4073,11 +4157,6 @@ public partial class ExportService
         var pageNumber = 0;
         var headerY = (topMargin + bleed) / 2;
 
-        var surname = !string.IsNullOrWhiteSpace(options.Author)
-            ? options.Author.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()
-            : "";
-        var shortTitle = options.Title.Length > 30 ? options.Title[..27] + "..." : options.Title;
-
         PdfSharpCore.Drawing.XGraphics NewPage(out double y)
         {
             var page = doc.AddPage();
@@ -4098,7 +4177,7 @@ public partial class ExportService
 
             if (smf && pageNumber > 1)
             {
-                var headerText = $"{surname} / {shortTitle.ToUpperInvariant()} / {pageNumber}";
+                var headerText = $"{RunningHead(options)} / {pageNumber}";
                 var hw = gfx.MeasureString(headerText, new PdfSharpCore.Drawing.XFont(bodyFontName, 10));
                 gfx.DrawString(headerText,
                     new PdfSharpCore.Drawing.XFont(bodyFontName, 10),
@@ -4177,7 +4256,7 @@ public partial class ExportService
             var chTitleFont = smf ? bodyFont : boldFont;
             var chTitleSize = smf ? fontSize : 18;
             var chTitleFontActual = smf ? bodyFont : new PdfSharpCore.Drawing.XFont(bodyFontName, chTitleSize, PdfSharpCore.Drawing.XFontStyle.Bold);
-            var pdfHeading = options.ResolvePreset().ChapterHeading(chapterIndex + 1, chapter.Title);
+            var pdfHeading = chapter.Heading;
             var chTitleText = smf ? pdfHeading.ToUpperInvariant() : pdfHeading;
             if (!chapter.HideHeading)
             {
@@ -4495,7 +4574,7 @@ public partial class ExportService
 
             if (!chapter.HideHeading)
             {
-                sb.AppendLine($"## {options.ResolvePreset().ChapterHeading(i + 1, chapter.Title)}");
+                sb.AppendLine($"## {chapter.Heading}");
                 sb.AppendLine();
                 if (!string.IsNullOrWhiteSpace(chapter.Subtitle))
                 {

@@ -48,11 +48,13 @@ Rules run **top to bottom**, so an earlier rule's output is a later rule's input
 
 ### Placeholders
 
-The same panel lists the placeholders an export resolves. Use them in [front and back matter](#front-and-back-matter) and as replacement text; each resolves from the book when the export runs.
+The same panel lists the placeholders an export resolves. Use them **in your prose**, in [front and back matter](#front-and-back-matter), in a chapter title, in a layout's chapter title format, in its scene separator, in its running head, and as replacement text. Each resolves from the book when the export runs — and never in the saved file, so the source scene keeps the placeholder and only the exported copy carries the value.
 
 `<$title>` `<$author>` `<$isbn>` `<$publisher>` `<$series>` `<$seriesindex>` `<$wordcount>` `<$pagecount>` `<$date>` `<$year>` `<$chapternumber>` `<$chapterroman>` `<$chaptertitle>` `<$scenetitle>` `<$act>`
 
 So a title page reading `<$title>, book <$seriesindex> of <$series>` stays right when the series position changes, instead of being typed out and forgotten. `<$chapterroman>` gives the chapter number in Roman numerals, which a great many books use and no format string could produce.
+
+`<$chapternumber>`, `<$chapterroman>`, `<$chaptertitle>`, `<$act>` and `<$scenetitle>` resolve against the chapter and scene they are written in, so the same line means something different in each chapter. `<$wordcount>` counts only what is actually in the export — a scene held back or set aside is not in the number you put on a query letter.
 
 A placeholder Novalist does not recognise is **left exactly as written**. Silently deleting something you typed is worse than printing it, and it makes a typo visible instead of invisible.
 
@@ -255,6 +257,7 @@ A layout controls:
 | **Line spacing** | As a multiplier of the font size. |
 | **Margin**, **first-line indent**, **space above a chapter title** | Page geometry, in inches. |
 | **Scene separator** | What is printed between scenes. Defaults to `* * *`; make it anything, including blank. |
+| **Running head** | The line at the top of every page. Leave it empty for the submission convention — surname and short title — which is what every export printed before this could be set. Placeholders resolve here, so `<$author> / <$title>` or `<$chaptertitle>` both work. |
 | **Chapter heading** | Use `{number}` and `{title}`. `Chapter {number}: {title}` gives "Chapter 3: The Fall"; the default is the title alone, which is what a novel with named chapters wants. Leave `{title}` out for chapters that ship numbered and untitled. |
 | **Drop cap on the first letter of each chapter** | Sets the chapter's opening letter as a drop cap. Honoured in EPUB (CSS), DOCX (Word's own framed drop cap) and LaTeX (`lettrine`). The PDF writer lays out lines rather than shapes and prints the opener plainly; Markdown has no typography to carry one. |
 | **Words in small capitals after it** | How many words of the first sentence follow the drop cap in small capitals (0-12). Two or three is the convention. |

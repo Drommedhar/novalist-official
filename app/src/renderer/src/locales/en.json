@@ -2597,6 +2597,8 @@
     "indent": "First-line indent (inches)",
     "chapterTopMargin": "Space above a chapter title (inches)",
     "separator": "Scene separator",
+    "runningHead": "Running head",
+    "runningHeadPlaceholder": "Surname / TITLE, unless you say otherwise",
     "chapterTitleFormat": "Chapter heading",
     "chapterTitleFormatHint": "Use {{number}} and {{title}}. \"Chapter {{number}}: {{title}}\" gives \"Chapter 3: The Fall\"; the default is the title alone. Leave the title out of the format for chapters that ship numbered and untitled.",
     "showSceneTitles": "Print scene titles",

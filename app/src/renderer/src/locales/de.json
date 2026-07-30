@@ -2605,6 +2605,8 @@
     "indent": "Erstzeileneinzug (Zoll)",
     "chapterTopMargin": "Abstand über der Kapitelüberschrift (Zoll)",
     "separator": "Szenentrenner",
+    "runningHead": "Kolumnentitel",
+    "runningHeadPlaceholder": "Nachname / TITEL, sofern nichts anderes angegeben",
     "chapterTitleFormat": "Kapitelüberschrift",
     "chapterTitleFormatHint": "{{number}} und {{title}} verwenden. \"Kapitel {{number}}: {{title}}\" ergibt \"Kapitel 3: Der Fall\"; voreingestellt ist nur der Titel. Lassen Sie den Titel im Format weg, wenn Kapitel nur nummeriert und ohne Titel erscheinen sollen.",
     "showSceneTitles": "Szenentitel drucken",

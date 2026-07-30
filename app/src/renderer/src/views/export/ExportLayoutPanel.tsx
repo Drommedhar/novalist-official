@@ -61,6 +61,7 @@ interface ExportLayout {
   firstLineIndentInches: number
   chapterTopMarginInches: number
   sceneSeparator: string
+  runningHead: string
   doubleSpaced: boolean
   showSceneTitles: boolean
   chapterTitleFormat: string
@@ -227,6 +228,20 @@ export function ExportLayoutPanel({
             disabled={!selected.isCustom}
             value={selected.sceneSeparator}
             onChange={(e) => edit({ sceneSeparator: e.target.value })}
+            onBlur={() => void save()}
+          />
+
+          {/* The line at the top of every page. Empty keeps the submission
+              default rather than printing nothing, because a manuscript with
+              no running head is one a reader cannot reassemble if it is
+              dropped. */}
+          <label className="inspector-label">{t('layout.runningHead')}</label>
+          <input
+            className="inspector-input"
+            disabled={!selected.isCustom}
+            placeholder={t('layout.runningHeadPlaceholder')}
+            value={selected.runningHead}
+            onChange={(e) => edit({ runningHead: e.target.value })}
             onBlur={() => void save()}
           />
 

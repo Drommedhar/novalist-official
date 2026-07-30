@@ -2637,6 +2637,8 @@
     "indent": "首行缩进（英寸）",
     "chapterTopMargin": "章节标题上方留白（英寸）",
     "separator": "场景分隔符",
+    "runningHead": "页眉",
+    "runningHeadPlaceholder": "默认为 姓氏 / 标题",
     "chapterTitleFormat": "章节标题",
     "chapterTitleFormatHint": "可使用 {{number}} 和 {{title}}。\"第 {{number}} 章：{{title}}\" 会得到\"第 3 章：倡台\"；默认仅显示标题。若希望章节仅编号不带标题，则在格式中省略标题。",
     "showSceneTitles": "打印场景标题",
