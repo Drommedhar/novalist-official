@@ -429,6 +429,56 @@ public sealed class DashboardManuscriptTests : IDisposable
         Assert.Single(await new ManuscriptRpc(_workspace).GetAsync("All", []));
     }
 
+    // The shared filter bar narrows the read-through the same way it narrows
+    // every other view. A scene is in when its cast names the entry, or when
+    // its point of view does - the point of view is stored as a name while the
+    // filter passes an id, so both ends have to be tried.
+    [Fact]
+    public async Task Manuscript_FiltersByCastAndByPointOfView()
+    {
+        var (chapterGuid, castScene) = await SeedSceneAsync("<p>A</p>", "A");
+        var povScene = await _workspace.Projects.CreateSceneAsync(chapterGuid, "P");
+        var entities = new EntitiesRpc(_workspace);
+        var mira = (await entities.CreateAsync("character", "Mira")).GetProperty("id").GetString()!;
+        var foundry = (await entities.CreateAsync("location", "Foundry")).GetProperty("id").GetString()!;
+        var manuscript = new ManuscriptRpc(_workspace);
+
+        await new ScenesRpc(_workspace).SetCastAsync(chapterGuid, castScene, [mira, foundry], null);
+        await manuscript.SetPovAsync(chapterGuid, povScene.Id, "Mira");
+
+        var byCast = await manuscript.GetAsync("All", null, character: mira);
+        Assert.Equal(2, byCast.Single().Scenes.Count);   // cast scene and POV scene
+
+        var byPlace = await manuscript.GetAsync("All", null, location: foundry);
+        Assert.Equal(castScene, Assert.Single(byPlace.Single().Scenes).SceneId);
+
+        // An entry nothing names empties the read-through rather than ignoring
+        // the filter, which is what "does nothing" looked like.
+        var stranger = (await entities.CreateAsync("character", "Nobody")).GetProperty("id").GetString()!;
+        Assert.Empty(await manuscript.GetAsync("All", null, character: stranger));
+    }
+
+    [Fact]
+    public async Task Manuscript_FiltersByPlotlineAndStage()
+    {
+        var (chapterGuid, sceneId) = await SeedSceneAsync("<p>A</p>", "A");
+        var other = await _workspace.Projects.CreateSceneAsync(chapterGuid, "Other");
+        var plot = new PlotRpc(_workspace);
+        var grid = await plot.CreatePlotlineAsync("Thread");
+        var plotlineId = grid.Plotlines.Single(p => p.Name == "Thread").Id;
+        await plot.ToggleAsync(chapterGuid, sceneId, plotlineId);
+        await new SceneStageRpc(_workspace).SetSceneStageAsync(chapterGuid, other.Id, "revised");
+        var manuscript = new ManuscriptRpc(_workspace);
+
+        var byPlotline = await manuscript.GetAsync("All", null, plotline: plotlineId);
+        Assert.Equal(sceneId, Assert.Single(byPlotline.Single().Scenes).SceneId);
+
+        var byStage = await manuscript.GetAsync("All", null, stage: "revised");
+        Assert.Equal(other.Id, Assert.Single(byStage.Single().Scenes).SceneId);
+
+        Assert.Empty(await manuscript.GetAsync("All", null, stage: "no-such-stage"));
+    }
+
     [Fact]
     public async Task SetPov_SetsAndClearsOverrides()
     {

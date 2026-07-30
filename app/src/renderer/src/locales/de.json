@@ -1209,7 +1209,11 @@
     "pruneDesc": "Alle Schnappschüsse des Buchs. Beim Aufräumen werden auch Ordner gelöschter Szenen entfernt, die sonst niemand mehr erreicht.",
     "pruneKeepFive": "Die neuesten fünf je Szene behalten",
     "pruneOld": "Älter als 90 Tage löschen",
-    "pruned": "{{count}} Schnappschüsse gelöscht."
+    "pruned": "{{count}} Schnappschüsse gelöscht.",
+    "batchesDesc": "Alle ersetzen legt von jeder geaenderten Szene eine Momentaufnahme an. Jeder Durchlauf steht hier einzeln, damit das Aufraeumen eines Durchlaufs die selbst angelegten Aufnahmen nicht antastet.",
+    "batchCount": "{{count}} Momentaufnahme",
+    "batchCount_other": "{{count}} Momentaufnahmen",
+    "deleteBatch": "Momentaufnahmen dieses Durchlaufs loeschen"
   },
   "dashboard": {
     "subtitle": "Projekt-Dashboard",

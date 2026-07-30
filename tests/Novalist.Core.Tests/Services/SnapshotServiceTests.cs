@@ -367,6 +367,50 @@ public class SnapshotServiceTests
         Assert.Equal(2, files.Files.Count);
     }
 
+    // One Replace All labels every snapshot it takes the same way, so the run
+    // can be cleared without touching the ones the writer took deliberately.
+    [Fact]
+    public async Task DeleteByLabelAsync_RemovesOneRunAndLeavesTheRest()
+    {
+        var (sut, project, files) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([sc]);
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>a</p>");
+        await sut.TakeAsync(ch, sc, "Before find/replace 2026-07-31 01:00:00");
+        await sut.TakeAsync(ch, sc, "Before find/replace 2026-07-31 01:00:00");
+        await sut.TakeAsync(ch, sc, "Before find/replace 2026-07-31 02:00:00");
+        await sut.TakeAsync(ch, sc, "Mine");
+
+        var removed = await sut.DeleteByLabelAsync("Before find/replace 2026-07-31 01:00:00");
+
+        Assert.Equal(2, removed);
+        var left = await sut.ListAsync(sc);
+        Assert.Equal(2, left.Count);
+        Assert.Contains(left, s => s.Label == "Mine");
+        Assert.Contains(left, s => s.Label == "Before find/replace 2026-07-31 02:00:00");
+        Assert.Equal(2, files.Files.Count);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task DeleteByLabelAsync_RefusesABlankLabel(string label)
+    {
+        var (sut, project, _) = Build();
+        var ch = Ch();
+        var sc = Sc();
+        project.GetChaptersOrdered().Returns([ch]);
+        project.GetScenesForChapter("c1").Returns([sc]);
+        project.ReadSceneContentAsync(ch, sc).Returns("<p>a</p>");
+        // A snapshot with no label at all must not be swept up by a blank one.
+        await sut.TakeAsync(ch, sc, string.Empty);
+
+        Assert.Equal(0, await sut.DeleteByLabelAsync(label));
+        Assert.Single(await sut.ListAsync(sc));
+    }
+
     [Fact]
     public async Task PruneAsync_DropsFoldersLeftBehindByDeletedScenes()
     {

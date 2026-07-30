@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **One Replace All is one batch of snapshots, and can be cleared as one.** A project-wide replace takes a snapshot of every scene it changes — hundreds at once on a long book — and they all carried the same label, so one run could not be told from the last and the only way to clear the clutter was deleting folders on disk with the project closed. Each run is now listed on its own under **Whole project**, with the number of snapshots it left behind, and clearing it spares every other run and everything you snapshotted yourself.
+
 - **A plot thread is an object, not a row of ticks.** Right-click a thread in the Plot Grid and choose **Thread detail**. A thread can now say how much of the book it is (main, subplot or minor), whose story it is, and — the part a revision actually asks about — what has to happen for it to be finished, as an ordered list you tick off. The grid row itself shows the main-thread mark and a count of what is still open, so the thread that has gone quiet is visible without opening anything. No steps means nothing was planned rather than everything being done, and it says which.
 
 - **A Large Print export layout.** 16pt Verdana with 1.6 line spacing, narrow margins and no first-line indent — a real large-print edition rather than a PDF somebody zoomed. Larger type needs proportionally more leading, not less; narrow outside margins because at 16pt a one-inch margin leaves too little measure for the lines to break well; and space between paragraphs instead of an indent, which is easier to follow at that size. Duplicate it and change anything your reader needs different.

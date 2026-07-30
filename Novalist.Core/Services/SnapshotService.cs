@@ -188,6 +188,22 @@ public sealed class SnapshotService : ISnapshotService
         return false;
     }
 
+    public async Task<int> DeleteByLabelAsync(string label)
+    {
+        if (string.IsNullOrWhiteSpace(label)) return 0;
+
+        var removed = 0;
+        foreach (var chapter in _projectService.GetChaptersOrdered())
+            foreach (var scene in _projectService.GetScenesForChapter(chapter.Guid))
+                foreach (var snapshot in await ListAsync(scene))
+                {
+                    if (!string.Equals(snapshot.Label, label, StringComparison.Ordinal)) continue;
+                    await DeleteAsync(scene, snapshot.Id);
+                    removed++;
+                }
+        return removed;
+    }
+
     public async Task<int> PruneAsync(int keepPerScene, int olderThanDays, bool dropOrphans)
     {
         var root = SnapshotRoot();

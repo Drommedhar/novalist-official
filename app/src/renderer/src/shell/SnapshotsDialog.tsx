@@ -22,6 +22,14 @@ interface ProjectSnapshotDto extends SnapshotDto {
   sceneTitle: string
 }
 
+/**
+ * What the backend labels a Replace All run's snapshots with, before the
+ * timestamp that separates one run from the next. Must match
+ * FindReplaceService.SnapshotBatchPrefix; it is not a translated string,
+ * because it is written into files that outlive the current UI language.
+ */
+const BATCH_PREFIX = 'Before find/replace'
+
 interface CompareView {
   idA: string
   idB: string
@@ -74,6 +82,22 @@ export function SnapshotsDialog({
   useEffect(() => {
     if (wholeProject) loadAll()
   }, [wholeProject])
+
+  /**
+   * Auto-snapshot runs, newest first, with how many each left behind.
+   *
+   * The prefix is written by the backend when a Replace All starts, and every
+   * snapshot from that one run carries the same label - which is what makes a
+   * run separable from the one before it.
+   */
+  const batches = Object.entries(
+    all
+      .filter((s) => s.label.startsWith(BATCH_PREFIX))
+      .reduce<Record<string, number>>((acc, s) => {
+        acc[s.label] = (acc[s.label] ?? 0) + 1
+        return acc
+      }, {})
+  ).sort(([a], [b]) => b.localeCompare(a))
 
   const onCompare = (snapshot: SnapshotDto): void => {
     if (!compareBase) {
@@ -155,6 +179,40 @@ export function SnapshotsDialog({
                 {t('snapshots.pruneOld')}
               </button>
             </div>
+            {/* One Replace All over a long book snapshots every scene it
+                touches, and those are the ones that pile up. Each run labels
+                its own, so a run can be cleared without touching the snapshots
+                taken deliberately. */}
+            {batches.length > 0 && (
+              <>
+                <p className="dialog-empty">{t('snapshots.batchesDesc')}</p>
+                {batches.map(([label, count]) => (
+                  <div key={label} className="snapshot-row snapshot-batch">
+                    <span className="binder-scene-title">{label}</span>
+                    <span className="binder-scene-words">
+                      {t('snapshots.batchCount', { count })}
+                    </span>
+                    <div className="snapshot-actions">
+                      <button
+                        className="snapshot-action danger"
+                        title={t('snapshots.deleteBatch')}
+                        aria-label={t('snapshots.deleteBatch')}
+                        onClick={() =>
+                          void rpc
+                            .request<number>('snapshots/deleteByLabel', [label])
+                            .then((removed) => {
+                              setPruned(removed)
+                              loadAll()
+                            })
+                        }
+                      >
+                        <Trash2 size={13} strokeWidth={2} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
             {pruned !== null && (
               <p className="dialog-empty">{t('snapshots.pruned', { count: pruned })}</p>
             )}

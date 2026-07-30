@@ -1641,7 +1641,11 @@
     "pruneDesc": "本书的全部快照。清理时还会删除已删场景遗留的、再也无法访问的文件夹。",
     "pruneKeepFive": "每个场景保留最新五个",
     "pruneOld": "删除 90 天前的快照",
-    "pruned": "已删除 {{count}} 个快照。"
+    "pruned": "已删除 {{count}} 个快照。",
+    "batchesDesc": "全部替换会为每个被改动的场景创建快照。每次运行在此单独列出，清理其中一次不会影响你自己创建的快照。",
+    "batchCount": "{{count}} 个快照",
+    "batchCount_other": "{{count}} 个快照",
+    "deleteBatch": "删除本次运行的快照"
   },
   "dashboard": {
     "subtitle": "项目仪表板",

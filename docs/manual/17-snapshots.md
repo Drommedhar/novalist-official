@@ -43,6 +43,14 @@ Click **Restore** on a row to replace the current scene content with that snapsh
 
 Snapshots are small JSON files (typically a few KB each) but accumulate on long projects, especially from repeated Replace All operations. Use the pruning buttons in the dialog's **Whole project** scope to clear them out; there is no automatic pruning, because deciding a version is not worth keeping is the writer's call.
 
+### Clearing one Replace All
+
+A project-wide Replace All snapshots every scene it changes, which on a long book is hundreds at once — and those are the ones that pile up, not the ones you took deliberately.
+
+Each run labels its own snapshots with the time it started, so the **Whole project** scope lists every run separately with the number it left behind. Clearing a run removes exactly those and leaves everything else alone, including the snapshots you took yourself and the snapshots from any other run.
+
+The label is written into the snapshot files, so it stays in the language it was created in rather than following the interface language later.
+
 If your project is in Git, snapshots are checked in by default — consider `.gitignore`-ing the snapshot folder if you'd rather rely on Git history instead. Both strategies are valid.
 
 ## When a scene is deleted

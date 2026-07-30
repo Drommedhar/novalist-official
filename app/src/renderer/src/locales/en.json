@@ -1608,7 +1608,11 @@
     "pruneDesc": "Every snapshot in the book. Pruning also clears folders left behind by scenes you deleted, which nothing can reach any more.",
     "pruneKeepFive": "Keep the newest five per scene",
     "pruneOld": "Delete older than 90 days",
-    "pruned": "Deleted {{count}} snapshots."
+    "pruned": "Deleted {{count}} snapshots.",
+    "batchesDesc": "Replace All takes a snapshot of every scene it changes. Each run is listed here on its own, so clearing one leaves the snapshots you took yourself alone.",
+    "batchCount": "{{count}} snapshot",
+    "batchCount_other": "{{count}} snapshots",
+    "deleteBatch": "Delete this run's snapshots"
   },
   "dashboard": {
     "subtitle": "Project Dashboard",

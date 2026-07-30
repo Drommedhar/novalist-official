@@ -112,4 +112,20 @@ public sealed class SnapshotsRpcTests : IDisposable
         Assert.Equal(2, await _rpc.PruneAsync(2, 0, false));
         Assert.Equal(2, (await _rpc.AllAsync()).Length);
     }
+
+    [Fact]
+    public async Task DeletingOneRunLeavesTheSnapshotsTakenByHand()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("C");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await _rpc.TakeAsync(chapter.Guid, scene.Id, "Before find/replace 2026-07-31 01:00:00");
+        await _rpc.TakeAsync(chapter.Guid, scene.Id, "Before find/replace 2026-07-31 01:00:00");
+        await _rpc.TakeAsync(chapter.Guid, scene.Id, "Mine");
+
+        Assert.Equal(2, await _rpc.DeleteByLabelAsync("Before find/replace 2026-07-31 01:00:00"));
+
+        var left = await _rpc.AllAsync();
+        Assert.Single(left);
+        Assert.Equal("Mine", left[0].Label);
+    }
 }

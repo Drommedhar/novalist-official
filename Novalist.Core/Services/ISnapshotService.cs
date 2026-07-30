@@ -23,6 +23,18 @@ public interface ISnapshotService
     /// no longer exist. Returns how many files went.
     /// </summary>
     Task<int> PruneAsync(int keepPerScene, int olderThanDays, bool dropOrphans);
+
+    /// <summary>
+    /// Deletes every snapshot carrying an exact label, and returns how many
+    /// went.
+    ///
+    /// One project-wide Replace All takes a snapshot of every scene it touches,
+    /// which on a long book is hundreds at once. They were all labelled
+    /// identically, so one run could not be told from the next and undoing the
+    /// clutter of a single operation meant deleting folders on disk with the
+    /// project closed.
+    /// </summary>
+    Task<int> DeleteByLabelAsync(string label);
 }
 
 /// <summary>One snapshot with the scene it belongs to, for the project-wide list.</summary>

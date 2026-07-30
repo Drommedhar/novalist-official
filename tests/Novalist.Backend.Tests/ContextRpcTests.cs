@@ -211,7 +211,9 @@ public sealed class ContextRpcTests : IDisposable
         Assert.True(miraRow.Cells[0].Current);
         Assert.False(miraRow.Cells[1].Present);
         Assert.False(miraRow.Cells[1].Current);
-        Assert.Equal("1", miraRow.Cells[0].ChapterLabel);
+        // Number and title: a tooltip reading "1" tells the writer nothing they
+        // could not count, and counting is what the strip is meant to save them.
+        Assert.Equal("1. Chapter A", miraRow.Cells[0].ChapterLabel);
         Assert.Equal(1, miraRow.LastSeenChaptersAgo);
         var soloRow = dto.MentionRows.Single(r => r.Name == "Solo");
         Assert.True(soloRow.Cells[1].Present);

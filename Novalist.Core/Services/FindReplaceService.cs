@@ -114,6 +114,11 @@ public sealed class FindReplaceService : IFindReplaceService
         var regex = BuildRegex(options);
         int totalReplacements = 0;
 
+        // One label for this run, so its snapshots are one batch rather than
+        // hundreds of identically-named ones that cannot be told from the last
+        // run's. A project-wide replace on a long book is the case that matters.
+        var batchLabel = SnapshotBatchLabel(DateTime.Now);
+
         await ForEachBookInScopeAsync(options, async () =>
         {
             var replacedHere = 0;
@@ -143,7 +148,7 @@ public sealed class FindReplaceService : IFindReplaceService
                 if (count == 0) continue;
 
                 if (snapshotService != null)
-                    await snapshotService.TakeAsync(chapter, scene, "Auto-snapshot before find/replace").ConfigureAwait(false);
+                    await snapshotService.TakeAsync(chapter, scene, batchLabel).ConfigureAwait(false);
 
                 await _projectService.WriteSceneContentAsync(chapter, scene, newHtml).ConfigureAwait(false);
                 scene.WordCount = CountWords(StripHtml(newHtml));
@@ -256,6 +261,18 @@ public sealed class FindReplaceService : IFindReplaceService
             }
         }
     }
+
+    /// <summary>
+    /// The label every snapshot from one Replace All run carries.
+    ///
+    /// The prefix is what the snapshots dialog groups on, and the local
+    /// timestamp is what separates this run from the one before it. Kept in one
+    /// place so the two ends cannot drift apart.
+    /// </summary>
+    public const string SnapshotBatchPrefix = "Before find/replace";
+
+    internal static string SnapshotBatchLabel(DateTime when)
+        => $"{SnapshotBatchPrefix} {when:yyyy-MM-dd HH:mm:ss}";
 
     private static Regex BuildRegex(FindOptions options)
     {

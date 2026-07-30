@@ -250,6 +250,41 @@ public class FindReplaceServiceTests
         await snapshots.Received(1).TakeAsync(ch, sc, Arg.Any<string>());
     }
 
+    // Every scene one run touches gets the same label, so the run can be
+    // cleared as a unit. It used to be a constant string, which made every run
+    // indistinguishable from every other.
+    [Fact]
+    public async Task ReplaceAllAsync_LabelsOneRunsSnapshotsAsOneBatch()
+    {
+        var (sut, project) = Build();
+        var ch = Chapter("c1");
+        var first = Scene("s1");
+        var second = Scene("s2");
+        project.GetChaptersOrdered().Returns(new List<ChapterData> { ch });
+        project.GetScenesForChapter("c1").Returns(new List<SceneData> { first, second });
+        project.ReadSceneContentAsync(ch, first).Returns("<p>cat</p>");
+        project.ReadSceneContentAsync(ch, second).Returns("<p>cat</p>");
+        var snapshots = Substitute.For<ISnapshotService>();
+        var labels = new List<string>();
+        snapshots
+            .TakeAsync(Arg.Any<ChapterData>(), Arg.Any<SceneData>(), Arg.Do<string>(labels.Add))
+            .Returns(new SceneSnapshot());
+
+        await sut.ReplaceAllAsync(new FindOptions { Pattern = "cat", Replacement = "dog" }, snapshots);
+
+        Assert.Equal(2, labels.Count);
+        Assert.Single(labels.Distinct());
+        Assert.StartsWith(FindReplaceService.SnapshotBatchPrefix, labels[0]);
+    }
+
+    [Fact]
+    public void SnapshotBatchLabel_CarriesTheRunsOwnTime()
+    {
+        var label = FindReplaceService.SnapshotBatchLabel(new DateTime(2026, 7, 31, 1, 2, 3));
+
+        Assert.Equal("Before find/replace 2026-07-31 01:02:03", label);
+    }
+
     [Fact]
     public async Task FindAsync_HonorsCancellation()
     {

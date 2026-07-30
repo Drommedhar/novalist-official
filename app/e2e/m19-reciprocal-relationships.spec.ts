@@ -46,7 +46,21 @@ test('a relationship saved on a location writes the inverse on the character', a
   // the renderer is exactly how this shipped broken.
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('codex'))
   await page.evaluate(() => window.novalistStores.codex.getState().setType('location'))
+  // The list still holds the previous type for a tick, and clicking then leaves
+  // the editor pointed at a character id while the type says location - which
+  // the backend rightly refuses.
+  await expect(page.locator('.codex-row')).toHaveCount(1, { timeout: 15_000 })
   await page.locator('.codex-row', { hasText: 'The Foundry' }).click()
+  await expect
+    .poll(
+      () =>
+        page.evaluate(() => {
+          const s = window.novalistStores.codex.getState()
+          return `${s.entityType}:${s.selectedId ?? ''}`
+        }),
+      { timeout: 15_000 }
+    )
+    .toBe(`location:${locationId}`)
 
   // A new entry has no rows yet; the editor adds one. Matched by class, because
   // the real project runs in German and the label is a translated string.

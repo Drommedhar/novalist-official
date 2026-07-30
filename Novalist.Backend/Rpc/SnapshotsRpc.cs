@@ -90,6 +90,15 @@ public sealed class SnapshotsRpc
     public async Task<int> PruneAsync(int keepPerScene, int olderThanDays, bool dropOrphans)
         => await Service.PruneAsync(keepPerScene, olderThanDays, dropOrphans);
 
+    /// <summary>
+    /// Deletes every snapshot carrying an exact label, and returns how many
+    /// went. One Replace All run labels all of its snapshots the same way, so
+    /// this clears exactly that run and nothing else.
+    /// </summary>
+    [JsonRpcMethod("snapshots/deleteByLabel")]
+    public async Task<int> DeleteByLabelAsync(string label)
+        => await Service.DeleteByLabelAsync(label);
+
     /// <summary>Line-level side-by-side diff between two snapshots' plain-text
     /// content. A missing snapshot id is treated as empty content.</summary>
     [JsonRpcMethod("snapshots/diff")]

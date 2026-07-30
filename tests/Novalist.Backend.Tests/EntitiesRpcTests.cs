@@ -131,6 +131,19 @@ public sealed class EntitiesRpcTests : IDisposable
         Assert.Contains("Bob", suggestions.CharacterNames);
         Assert.Contains("Mother", suggestions.Roles);
 
+        // And every other kind of entry, the writer's own types included. A
+        // relationship row names a thing, not a character, so a list of
+        // character names is a row nobody can fill in.
+        await _rpc.CreateAsync("location", "Deepforge");
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            TypeKey: null, DisplayName: "Faction", DisplayNamePlural: null, Fields: [],
+            IncludeImages: false, IncludeRelationships: true, IncludeSections: false));
+        await _rpc.CreateAsync("faction", "The Nightwatch");
+
+        var wider = await _rpc.RelationshipSuggestionsAsync();
+        Assert.Contains("Deepforge", wider.CharacterNames);
+        Assert.Contains("The Nightwatch", wider.CharacterNames);
+
         // Re-running does not duplicate the reciprocal.
         await _rpc.SetRelationshipsAsync(aliceId, [new RelationshipEditRowDto("Mother", "Bob", "Son")]);
         Assert.Equal(1, (await _rpc.GetAsync("character", bobId)).GetProperty("relationships").GetArrayLength());
