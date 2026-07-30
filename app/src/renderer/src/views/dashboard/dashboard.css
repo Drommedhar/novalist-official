@@ -363,6 +363,19 @@
   padding: var(--nl-space-tightest) var(--nl-space-tighter);
 }
 
+/* What pulls them across, under who they are on either side. */
+.arc-wantneed {
+  font-style: italic;
+}
+
+/* The one beat where the want gives way to the need. Marked with the accent
+   rather than with a word, so it reads at a glance down a column of arcs. */
+.arc-point.turn {
+  background: var(--nl-accent);
+  color: var(--nl-accent-ink);
+  font-weight: 600;
+}
+
 /* A turn the writer has not placed in a scene yet reads as provisional
    rather than as something that happens nowhere. */
 .arc-point.unplaced {

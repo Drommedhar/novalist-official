@@ -28,7 +28,8 @@ public sealed class ArcRpc
 
     [JsonRpcMethod("arcs/save")]
     public async Task<ArcDto> SaveAsync(
-        string characterId, string? start, string? end, ArcPointDto[]? points)
+        string characterId, string? start, string? end, ArcPointDto[]? points,
+        string? want = null, string? need = null)
     {
         var character = await FindAsync(characterId);
         var clean = (points ?? [])
@@ -39,7 +40,8 @@ public sealed class ArcRpc
                 // A point can exist before the writer knows which scene it
                 // happens in; that is half the use of writing it down.
                 SceneId = p.SceneId ?? string.Empty,
-                Label = p.Label!.Trim()
+                Label = p.Label!.Trim(),
+                IsTurn = p.IsTurn ?? false
             })
             .ToList();
 
@@ -47,11 +49,14 @@ public sealed class ArcRpc
         {
             Start = (start ?? string.Empty).Trim(),
             End = (end ?? string.Empty).Trim(),
+            Want = (want ?? string.Empty).Trim(),
+            Need = (need ?? string.Empty).Trim(),
             Points = clean
         };
         // An arc with nothing in it is no arc, rather than an empty object that
         // every reader has to check three fields of.
-        character.Arc = arc.Start.Length == 0 && arc.End.Length == 0 && clean.Count == 0
+        character.Arc = arc.Start.Length == 0 && arc.End.Length == 0
+            && arc.Want.Length == 0 && arc.Need.Length == 0 && clean.Count == 0
             ? null
             : arc;
         await _entities.SaveCharacterAsync(character);
@@ -78,11 +83,11 @@ public sealed class ArcRpc
         return [.. (await _entities.LoadCharactersAsync())
             .Where(c => c.Arc != null)
             .Select(c => new CharacterArcDto(
-                c.Id, c.Name, c.Arc!.Start, c.Arc.End,
+                c.Id, c.Name, c.Arc!.Start, c.Arc.End, c.Arc.Want, c.Arc.Need,
                 [.. c.Arc.Points
                     .Select(p => new ArcPointPlacedDto(
                         p.Id, p.SceneId, titles.GetValueOrDefault(p.SceneId, string.Empty),
-                        p.Label, position.TryGetValue(p.SceneId, out var at) ? at : -1))
+                        p.Label, position.TryGetValue(p.SceneId, out var at) ? at : -1, p.IsTurn))
                     .OrderBy(p => p.ReadingIndex < 0 ? int.MaxValue : p.ReadingIndex)]))];
     }
 
@@ -91,17 +96,19 @@ public sealed class ArcRpc
            ?? throw new InvalidOperationException($"Unknown character '{characterId}'.");
 
     private static ArcDto ToDto(CharacterArc arc) => new(
-        arc.Start, arc.End,
-        [.. arc.Points.Select(p => new ArcPointDto(p.Id, p.SceneId, p.Label))]);
+        arc.Start, arc.End, arc.Want, arc.Need,
+        [.. arc.Points.Select(p => new ArcPointDto(p.Id, p.SceneId, p.Label, p.IsTurn))]);
 }
 
-public sealed record ArcPointDto(string? Id, string? SceneId, string? Label);
+public sealed record ArcPointDto(string? Id, string? SceneId, string? Label, bool? IsTurn = null);
 
-public sealed record ArcDto(string Start, string End, ArcPointDto[] Points);
+public sealed record ArcDto(
+    string Start, string End, string Want, string Need, ArcPointDto[] Points);
 
 /// <summary>An arc point with the scene it sits in resolved.</summary>
 public sealed record ArcPointPlacedDto(
-    string Id, string SceneId, string SceneTitle, string Label, int ReadingIndex);
+    string Id, string SceneId, string SceneTitle, string Label, int ReadingIndex, bool IsTurn);
 
 public sealed record CharacterArcDto(
-    string CharacterId, string Name, string Start, string End, ArcPointPlacedDto[] Points);
+    string CharacterId, string Name, string Start, string End, string Want, string Need,
+    ArcPointPlacedDto[] Points);

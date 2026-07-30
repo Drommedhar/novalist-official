@@ -18,6 +18,17 @@ public sealed class ArcPoint
     /// <summary>What changes, in the writer's words: "stops lying to herself".</summary>
     [JsonPropertyName("label")]
     public string Label { get; set; } = string.Empty;
+
+    /// <summary>
+    /// True for the beat where the character stops chasing what they want and
+    /// starts chasing what they need.
+    ///
+    /// One point among several, rather than a field of its own, because it is
+    /// a beat that lands in a scene like any other - and the writer has to be
+    /// able to move it when they find out it lands somewhere else.
+    /// </summary>
+    [JsonPropertyName("isTurn")]
+    public bool IsTurn { get; set; }
 }
 
 /// <summary>
@@ -34,6 +45,21 @@ public sealed class CharacterArc
     /// <summary>Who they are at the start.</summary>
     [JsonPropertyName("start")]
     public string Start { get; set; } = string.Empty;
+
+    /// <summary>
+    /// What they are chasing, which is not what the book is about.
+    ///
+    /// Start and end say who they are on either side. They do not say what
+    /// pulls them across, and the want-to-need turn is the single most taught
+    /// piece of arc craft there is - so a record of an arc that cannot hold it
+    /// is a record of the shape without the engine.
+    /// </summary>
+    [JsonPropertyName("want")]
+    public string Want { get; set; } = string.Empty;
+
+    /// <summary>What they actually need, which they usually find out last.</summary>
+    [JsonPropertyName("need")]
+    public string Need { get; set; } = string.Empty;
 
     /// <summary>Who they are at the end.</summary>
     [JsonPropertyName("end")]

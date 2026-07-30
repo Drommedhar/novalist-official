@@ -104,4 +104,75 @@ public sealed class ArcRpcTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => _rpc.SaveAsync("nobody", "a", "b", null));
     }
+
+    // ─── What pulls them across ──────────────────────────────────────
+
+    [Fact]
+    public async Task TheWantAndTheNeedStick()
+    {
+        var arc = await _rpc.SaveAsync(_mira.Id, "a liar", "honest", null,
+            " to keep the house ", " to be known ");
+
+        // Start and end say who they are on either side. They do not say what
+        // pulls them across, and that is the most taught piece of arc craft
+        // there is.
+        Assert.Equal("to keep the house", arc.Want);
+        Assert.Equal("to be known", arc.Need);
+        Assert.Equal("to keep the house", (await _rpc.GetAsync(_mira.Id)).Want);
+    }
+
+    [Fact]
+    public async Task AWantAloneIsStillAnArc()
+    {
+        await _rpc.SaveAsync(_mira.Id, null, null, null, "to keep the house", null);
+
+        // An arc with nothing in it is no arc - but a writer who has only
+        // worked out the want has written down something worth keeping.
+        Assert.Equal("to keep the house", (await _rpc.GetAsync(_mira.Id)).Want);
+    }
+
+    [Fact]
+    public async Task AnArcWithNothingInItIsStillNoArc()
+    {
+        await _rpc.SaveAsync(_mira.Id, "a liar", "honest", null, "want", "need");
+
+        await _rpc.SaveAsync(_mira.Id, "  ", "  ", [], "  ", "  ");
+
+        Assert.Empty(await _rpc.AllAsync());
+    }
+
+    [Fact]
+    public async Task OnePointCanBeMarkedAsTheTurn()
+    {
+        var arc = await _rpc.SaveAsync(_mira.Id, null, null,
+        [
+            new ArcPointDto(null, _first, "the lie", false),
+            new ArcPointDto(null, _second, "the turn", true)
+        ]);
+
+        Assert.False(arc.Points[0].IsTurn);
+        Assert.True(arc.Points[1].IsTurn);
+    }
+
+    [Fact]
+    public async Task TheTurnSurvivesReloading()
+    {
+        await _rpc.SaveAsync(_mira.Id, null, null,
+            [new ArcPointDto(null, _second, "the turn", true)]);
+
+        var placed = Assert.Single((await _rpc.AllAsync())[0].Points);
+
+        // The dashboard lays every arc against the book, and the turn is the
+        // beat somebody scanning that column is looking for.
+        Assert.True(placed.IsTurn);
+    }
+
+    [Fact]
+    public async Task APointThatSaysNothingAboutTheTurnIsNotOne()
+    {
+        var arc = await _rpc.SaveAsync(_mira.Id, null, null,
+            [new ArcPointDto(null, _first, "the lie")]);
+
+        Assert.False(Assert.Single(arc.Points).IsTurn);
+    }
 }

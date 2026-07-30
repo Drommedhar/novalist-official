@@ -201,7 +201,11 @@ The [chapter overrides](#chapter-overrides-characters) below it say what a chara
 
 A turning point can be written down before you know which scene it belongs in — leave it at **Not placed yet**. That is half the use of writing it down.
 
-Every character with an arc also appears on the [Dashboard](11-dashboard.md) under **Character arcs**, with their turning points laid out in reading order — which is where you can see whether the turns are spread through the book or bunched into one stretch of it. Unplaced turns sort last and are drawn as outlines rather than solid chips.
+**What they want** and **What they need** sit between the two. Start and end say who a character is on either side; they do not say what pulls them across. A want is what the character is chasing — which is usually not what the book is about — and a need is what they actually require, which they tend to find out last. Either can be filled in alone: a writer who has worked out only the want has written down something worth keeping.
+
+One turning point can be ticked as **The turn** — the beat where they stop chasing the want and start chasing the need. It is marked on a point rather than kept in a field of its own, because the turn lands in a scene like any other beat and you have to be able to move it when you find out it lands somewhere else. Ticking a second point moves the mark: an arc has one turn, and ticking another is you saying you were wrong about the first.
+
+Every character with an arc also appears on the [Dashboard](11-dashboard.md) under **Character arcs**, with their turning points laid out in reading order — which is where you can see whether the turns are spread through the book or bunched into one stretch of it. Unplaced turns sort last and are drawn as outlines rather than solid chips, and the turn is drawn in the accent colour so it reads at a glance down a column of arcs.
 
 ## Chapter overrides (characters)
 

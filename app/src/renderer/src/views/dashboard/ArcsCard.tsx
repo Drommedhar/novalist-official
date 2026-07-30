@@ -8,6 +8,7 @@ interface ArcPointPlaced {
   sceneTitle: string
   label: string
   readingIndex: number
+  isTurn: boolean
 }
 
 interface CharacterArc {
@@ -15,6 +16,8 @@ interface CharacterArc {
   name: string
   start: string
   end: string
+  want: string
+  need: string
   points: ArcPointPlaced[]
 }
 
@@ -50,12 +53,19 @@ export function ArcsCard(): React.JSX.Element {
               {arc.start} {arc.start && arc.end ? '→' : ''} {arc.end}
             </div>
           )}
+          {(arc.want || arc.need) && (
+            <div className="arc-ends arc-wantneed">
+              {arc.want} {arc.want && arc.need ? '→' : ''} {arc.need}
+            </div>
+          )}
           <div className="arc-points">
             {arc.points.map((point) => (
               <span
                 key={point.id}
-                className={`arc-point${point.readingIndex < 0 ? ' unplaced' : ''}`}
-                title={point.sceneTitle || t('arc.noScene')}
+                className={`arc-point${point.readingIndex < 0 ? ' unplaced' : ''}${
+                  point.isTurn ? ' turn' : ''
+                }`}
+                title={point.isTurn ? t('arc.turnHint') : point.sceneTitle || t('arc.noScene')}
               >
                 {point.label}
               </span>
