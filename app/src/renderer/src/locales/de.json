@@ -2934,5 +2934,16 @@
     "save": "Aktuelles speichern",
     "empty": "Noch keine Layouts gespeichert.",
     "delete": "Layout löschen"
+  },
+  "collections": {
+    "section": "Sammlungen",
+    "namePlaceholder": "Neue Sammlung",
+    "create": "Sammlung anlegen",
+    "empty": "Noch keine Sammlungen. Szenen auswählen und einen Namen vergeben.",
+    "groupEmpty": "Diese Sammlung ist noch leer.",
+    "willInclude": "{{count}} ausgewählte werden aufgenommen",
+    "addSelected": "Ausgewählte Szenen hinzufügen",
+    "remove": "Aus Sammlung entfernen",
+    "delete": "Sammlung löschen"
   }
 }

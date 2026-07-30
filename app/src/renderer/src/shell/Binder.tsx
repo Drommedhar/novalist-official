@@ -12,6 +12,7 @@ import { SceneDialog } from './SceneDialog'
 import { StoryDateRangeDialog } from './StoryDateRangeDialog'
 import { SmartListsPanel } from './SmartListsPanel'
 import { BookmarksPanel } from './BookmarksPanel'
+import { CollectionsPanel } from './CollectionsPanel'
 import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { handleSceneClick, useSelectionStore } from '../stores/selectionStore'
 import { useStageStore } from '../stores/stageStore'
@@ -649,6 +650,14 @@ export function Binder(): React.JSX.Element {
         >
           {t('smartList.section')}
         </button>
+        {/* A list is a query and recomputes; a collection is eight scenes
+            somebody gathered by hand, which no query describes. */}
+        <button
+          className={`binder-tab${binderTab === 'collections' ? ' active' : ''}`}
+          onClick={() => setBinderTab('collections')}
+        >
+          {t('collections.section')}
+        </button>
         {/* Beside saved lists because they sit next to each other in the head:
             a list is a query, a bookmark is a place. */}
         <button
@@ -729,6 +738,7 @@ export function Binder(): React.JSX.Element {
       )}
       <div className="binder-tree">
         {binderTab === 'smartLists' && <SmartListsPanel />}
+        {binderTab === 'collections' && <CollectionsPanel />}
         {binderTab === 'bookmarks' && <BookmarksPanel />}
         {binderTab === 'chapters' && chapters.length === 0 && (
           <div className="binder-placeholder">{t('shell.binderEmpty')}</div>

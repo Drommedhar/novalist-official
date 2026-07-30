@@ -74,9 +74,25 @@ The Manuscript view's toolbar has a **saved-list** drop-down beside the mode but
 
 A saved list that only the binder could apply is a question you can ask in one place and nowhere else, which is most of the reason to save it.
 
+## Collections
+
+A tab beside **Chapters** and **Smart Lists** in the binder.
+
+A Smart List is a query: it recomputes every time you open it, and a scene is in it because it matches. A **collection** is a set you gathered by hand — the eight scenes to fix before Tuesday, the run you are reading to your writing group, the ones a beta reader stumbled on. Nothing they have in common is expressible as a filter, which is exactly why they had to be picked one at a time.
+
+**Making one.** Select the scenes in the binder (Ctrl-click or Shift-click), type a name in the Collections tab and press the plus. Whatever is selected goes straight in — the panel tells you how many. A collection can also start empty and be filled later.
+
+**Filling one.** Select scenes and press the plus on a collection's row. A scene already in it is skipped rather than doubled.
+
+**The order is yours.** Scenes stay in the order you added them, not reading order. A revision run is often deliberately out of sequence, and re-sorting it would throw away the only thing you said about the set.
+
+**Removing.** The × on a scene takes it out of the collection. The bin on a collection deletes the set. Neither touches the scenes themselves — a scene can be in five collections and none of them changes the manuscript. A scene you later delete drops out of every collection that held it, because a row that opens nothing is worse than a shorter list.
+
+Collections are stored with the book, so they travel with the project and survive a restart.
+
 ## Bookmarks
 
-A third tab beside **Chapters** and **Smart Lists** in the binder.
+A tab beside **Chapters**, **Smart Lists** and **Collections** in the binder.
 
 A saved list answers "which scenes match this query". A bookmark answers a different question — the paragraph where she finds out, the entry you keep re-reading, the day the siege starts — and until now had nowhere to be recorded, so people kept them in a scene called Notes.
 

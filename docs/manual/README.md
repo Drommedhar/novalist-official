@@ -46,7 +46,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 
 22. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
 23. [Research](15-research.md) — notes attached to your project.
-24. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline.
+24. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline, plus hand-curated collections and bookmarks.
 25. [Snapshots](17-snapshots.md) — per-scene version history, taken from the inspector.
 26. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
 27. [Git integration](18-git.md) — commit, push, pull without leaving the app.
@@ -78,7 +78,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 ## Conventions used in this manual
 
 - **Activity bar** is the slim icon rail on the far left that switches the main area between views (Dashboard, Manuscript, Timeline, Plot Grid, Calendar, Relationships, Dialogue, Style report, Planning board, Series, Codex, Wiki, Maps, Research, Gallery, Exposé, Export, Git, Settings, plus extension views).
-- **Binder** is the left pane next to the activity bar: the chapter/scene tree, with a Smart Lists tab.
+- **Binder** is the left pane next to the activity bar: the chapter/scene tree, with Smart Lists, Collections and Bookmarks tabs.
 - **Main area** is the center pane showing the active view, with an optional **scene-notes dock** (Synopsis + Notes) beneath the editor.
 - **Inspector** is the right pane: Context and Footnotes tabs for the open scene.
 - **Toolbar** is the slim bar at the top: binder toggle, backstage-drawer burger, book and draft selectors, project name, new chapter / new scene, Search, Snapshots, scene-notes toggle, inspector toggle.

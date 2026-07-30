@@ -665,4 +665,25 @@ public class StoryStructureTemplateTests
         Assert.NotEqual(thread.Steps[0].Id, thread.Steps[1].Id);
     }
 
+    [Fact]
+    public void ACollectionIsItsOwnSetAndNothingElses()
+    {
+        // Two sets gathered in the same breath have to be tellable apart, and
+        // a book stores them beside the scenes rather than on them - so a
+        // scene can be in five collections with the manuscript unchanged.
+        var first = new SceneCollection { Name = "Before Tuesday" };
+        var second = new SceneCollection { Name = "For the group" };
+        first.SceneIds.Add("s1");
+        second.SceneIds.Add("s1");
+
+        Assert.NotEqual(first.Id, second.Id);
+        Assert.Equal(0, first.Order);
+        Assert.Single(first.SceneIds);
+        Assert.Single(second.SceneIds);
+
+        var book = new BookData();
+        Assert.Empty(book.Collections);
+        book.Collections.Add(first);
+        Assert.Single(book.Collections);
+    }
 }

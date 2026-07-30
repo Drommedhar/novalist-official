@@ -2926,5 +2926,16 @@
     "save": "Save current",
     "empty": "No layouts saved yet.",
     "delete": "Delete layout"
+  },
+  "collections": {
+    "section": "Collections",
+    "namePlaceholder": "New collection",
+    "create": "Create collection",
+    "empty": "No collections yet. Select scenes and name a set to gather them.",
+    "groupEmpty": "Nothing in this collection yet.",
+    "willInclude": "Will include {{count}} selected",
+    "addSelected": "Add selected scenes",
+    "remove": "Remove from collection",
+    "delete": "Delete collection"
   }
 }

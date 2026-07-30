@@ -128,6 +128,14 @@ public class BookData
     public List<SceneLabel> SceneLabels { get; set; } = [];
 
     /// <summary>
+    /// Hand-curated scene sets. A saved list is a query and recomputes; a
+    /// collection is the eight scenes to fix before Tuesday, which no filter
+    /// can describe - that is why they had to be gathered by hand.
+    /// </summary>
+    [JsonPropertyName("collections")]
+    public List<SceneCollection> Collections { get; set; } = [];
+
+    /// <summary>
     /// Fields the writer added to every scene or chapter of this book. Per book
     /// for the same reason the stages are: the things worth tracking differ
     /// between a thriller and a short-story collection.

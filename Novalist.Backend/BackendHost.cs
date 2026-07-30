@@ -48,6 +48,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new ProjectRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ScenesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new BinderRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new CollectionsRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new EntitiesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new WikiRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ContextRpc(_workspace), targetOptions);

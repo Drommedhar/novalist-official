@@ -3718,3 +3718,55 @@
   white-space: nowrap;
   max-width: 40%;
 }
+
+/* Collections: a name field over a list of hand-gathered sets. */
+.collections-new {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+}
+
+.collections-new .inspector-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.collections-hint {
+  padding: 0 var(--nl-space-sm) var(--nl-space-tightest);
+}
+
+.collections-group {
+  margin-bottom: var(--nl-space-tightest);
+}
+
+.collections-head {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  padding-right: var(--nl-space-tightest);
+}
+
+.collections-head .binder-chapter-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collections-row {
+  display: flex;
+  align-items: center;
+}
+
+.collections-row .binder-scene-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Four tabs no longer fit one line on a narrow binder, and a tab pushed out
+   of sight is a tab nobody knows exists. */
+.binder-tabs {
+  flex-wrap: wrap;
+}

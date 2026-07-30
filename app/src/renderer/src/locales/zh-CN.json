@@ -2966,5 +2966,16 @@
     "save": "保存当前",
     "empty": "尚未保存任何布局。",
     "delete": "删除布局"
+  },
+  "collections": {
+    "section": "合集",
+    "namePlaceholder": "新建合集",
+    "create": "创建合集",
+    "empty": "尚无合集。选中场景并命名即可收集。",
+    "groupEmpty": "此合集暂时为空。",
+    "willInclude": "将加入 {{count}} 个选中项",
+    "addSelected": "加入选中场景",
+    "remove": "从合集移除",
+    "delete": "删除合集"
   }
 }
