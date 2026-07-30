@@ -55,6 +55,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new ManuscriptRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new PlotRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new SmartListsRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new BookmarksRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new TimelineRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new CalendarRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new RelationshipsRpc(_workspace), targetOptions);

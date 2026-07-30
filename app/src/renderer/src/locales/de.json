@@ -2882,5 +2882,12 @@
     "scaleGridHint": "Null bedeutet kein Raster.",
     "measuredGround": "{{distance}} {{unit}}",
     "measuredUnits": "{{distance}} Karteneinheiten - kein Maßstab gesetzt"
+  },
+  "bookmarks": {
+    "section": "Lesezeichen",
+    "empty": "Noch keine Lesezeichen. Rechtsklick auf eine Szene legt eines an.",
+    "ungrouped": "Ohne Gruppe",
+    "remove": "Lesezeichen entfernen",
+    "addScene": "Lesezeichen für diese Szene"
   }
 }

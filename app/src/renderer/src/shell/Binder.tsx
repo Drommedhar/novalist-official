@@ -11,6 +11,7 @@ import { ChapterDialog } from './ChapterDialog'
 import { SceneDialog } from './SceneDialog'
 import { StoryDateRangeDialog } from './StoryDateRangeDialog'
 import { SmartListsPanel } from './SmartListsPanel'
+import { BookmarksPanel } from './BookmarksPanel'
 import { savePanelSize, useShellStore } from '../stores/shellStore'
 import { handleSceneClick, useSelectionStore } from '../stores/selectionStore'
 import { useStageStore } from '../stores/stageStore'
@@ -347,6 +348,29 @@ export function Binder(): React.JSX.Element {
           }
         },
         {
+          // A place worth coming back to, which is a different question from
+          // "which scenes match this query" - the one saved lists answer.
+          label: t('bookmarks.addScene'),
+          onClick: () => {
+            void rpc
+              .request('bookmarks/save', [
+                {
+                  id: '',
+                  kind: 'Scene',
+                  label: scene.title,
+                  group: '',
+                  chapterGuid: chapter.guid,
+                  targetId: scene.id,
+                  targetType: '',
+                  anchorText: '',
+                  storyDate: '',
+                  order: 0
+                }
+              ])
+              .then(() => useShellStore.getState().setBinderTab('bookmarks'))
+          }
+        },
+        {
           // Out of the book, still in the plan. The step between keeping a
           // scene and archiving it, which until now was the only way down.
           label: scoped(scene.inactive ? t('scene.makeActive') : t('scene.makeInactive')),
@@ -530,6 +554,14 @@ export function Binder(): React.JSX.Element {
         >
           {t('smartList.section')}
         </button>
+        {/* Beside saved lists because they sit next to each other in the head:
+            a list is a query, a bookmark is a place. */}
+        <button
+          className={`binder-tab${binderTab === 'bookmarks' ? ' active' : ''}`}
+          onClick={() => setBinderTab('bookmarks')}
+        >
+          {t('bookmarks.section')}
+        </button>
       </div>
       {/* A scene taken out of the book is still in the plan, so the binder has
           to be able to show it, hide it, or show only the parked ones - which
@@ -566,6 +598,7 @@ export function Binder(): React.JSX.Element {
       )}
       <div className="binder-tree">
         {binderTab === 'smartLists' && <SmartListsPanel />}
+        {binderTab === 'bookmarks' && <BookmarksPanel />}
         {binderTab === 'chapters' && chapters.length === 0 && (
           <div className="binder-placeholder">{t('shell.binderEmpty')}</div>
         )}

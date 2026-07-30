@@ -630,4 +630,18 @@ public class StoryStructureTemplateTests
         Assert.Equal("city-map", pin.TargetMapId);
     }
 
+
+    [Fact]
+    public void ABookmarkStartsWithAnIdOfItsOwn()
+    {
+        // Two made in the same breath have to be tellable apart; the id is the
+        // only thing that does it, since the label can be anything.
+        var first = new Bookmark();
+        var second = new Bookmark();
+
+        Assert.NotEqual(first.Id, second.Id);
+        Assert.Equal(BookmarkKind.Scene, first.Kind);
+        Assert.Equal(string.Empty, first.Group);
+    }
+
 }

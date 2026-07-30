@@ -34,6 +34,15 @@ public class ProjectMetadata
     [JsonPropertyName("customStructures")]
     public List<StoryStructureTemplate> CustomStructures { get; set; } = [];
 
+    /// <summary>
+    /// Places in the project worth coming back to. Per project rather than per
+    /// book: a bookmark on a Codex entry in the world bible is not the second
+    /// book's business or the first's.
+    /// </summary>
+    [JsonPropertyName("bookmarks")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<Bookmark> Bookmarks { get; set; } = [];
+
     [JsonPropertyName("worldBibleFolder")]
     public string WorldBibleFolder { get; set; } = "World Bible";
 

@@ -74,6 +74,18 @@ The Manuscript view's toolbar has a **saved-list** drop-down beside the mode but
 
 A saved list that only the binder could apply is a question you can ask in one place and nowhere else, which is most of the reason to save it.
 
+## Bookmarks
+
+A third tab beside **Chapters** and **Smart Lists** in the binder.
+
+A saved list answers "which scenes match this query". A bookmark answers a different question — the paragraph where she finds out, the entry you keep re-reading, the day the siege starts — and until now had nowhere to be recorded, so people kept them in a scene called Notes.
+
+Right-click a scene in the binder → **Bookmark this scene**. Bookmarks can also point at a chapter, a Codex entry, a research item, a story date or a place on a map; clicking one goes there.
+
+Bookmarks can carry a **group** name, and the panel shows named sets first with the loose ones last — a named set is a deliberate act, and the loose ones are the pile it was made from.
+
+A bookmark on a passage inside a scene stores **the text itself**, not a position. Prose above a mark is edited constantly, and a stored position would drift silently into the middle of an unrelated sentence; text that no longer appears simply opens the scene.
+
 ## Where to go next
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — status lives on chapters; scenes carry POV and tags.

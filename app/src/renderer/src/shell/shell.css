@@ -3613,3 +3613,25 @@
 .corkboard-card-placed:active {
   cursor: grabbing;
 }
+
+/* Bookmarks, grouped. A named set is a deliberate act and reads first; the
+   loose ones are the pile it was made out of. */
+.bookmarks-panel {
+  padding: var(--nl-space-tighter) 0;
+}
+
+.bookmarks-group {
+  margin-bottom: var(--nl-space-sm);
+}
+
+.bookmarks-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+}
+
+.bookmarks-row > .binder-scene-row {
+  flex: 1;
+  gap: var(--nl-space-tighter);
+  padding-left: var(--nl-space-sm);
+}

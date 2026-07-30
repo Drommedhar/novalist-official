@@ -2914,5 +2914,12 @@
     "scaleGridHint": "填 0 表示不显示网格。",
     "measuredGround": "{{distance}} {{unit}}",
     "measuredUnits": "{{distance}} 地图单位——尚未设定比例尺"
+  },
+  "bookmarks": {
+    "section": "书签",
+    "empty": "还没有书签。右键点击场景即可添加。",
+    "ungrouped": "未分组",
+    "remove": "删除此书签",
+    "addScene": "为此场景添加书签"
   }
 }

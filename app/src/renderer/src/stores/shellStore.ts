@@ -39,7 +39,7 @@ export const activityGroups: { key: string; views: MainView[] }[] = [
   { key: 'shell.groupPublish', views: ['expose', 'export', 'git'] }
 ]
 
-export type BinderTab = 'chapters' | 'smartLists'
+export type BinderTab = 'chapters' | 'smartLists' | 'bookmarks'
 
 export interface ActiveExtView {
   extensionId: string
