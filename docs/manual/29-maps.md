@@ -94,6 +94,9 @@ Pins are screen-space markers that stay the same size regardless of zoom. Click 
 - **Link to entity** — search across characters, locations, items, lore, and custom entity types. Linking is optional.
 - **Opens map** — point the pin at another map in this project, shown once the project has more than one. A world map marks a city and the city has its own map; that is the one relationship maps actually have, and it is the one Novalist could not express. In view mode, clicking such a pin switches to the map it names.
 - **Color** — full colour picker. Default is the theme accent.
+- **Shape** — what the pin is drawn as. **Dot** is the plain marker every pin used to be. The rest are map symbols: City, Town, Village, Castle, Tower, Ruin, Temple, Mountain, Hills, Forest, Water, Port, Bridge, Mine, Camp, Crossroads, Cave, Battle. A shaped pin takes the same colour you set, is drawn as an outline so it stays legible over painted terrain, and scales without blurring at any zoom.
+
+A pin with a shape and no label is a **map symbol**: place a row of Mountain pins along a range or a Forest pin over a wood and the map reads as a map rather than as a list of dots. Pick **Dot** again to undo the choice without deleting the pin.
 
 Move pins by dragging them. Right-click a pin for a menu: *Edit…* (re-edit label/link/colour), *Move to layer…*, *Delete*.
 

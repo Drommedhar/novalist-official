@@ -66,11 +66,14 @@ test('folder themes and locales reach the Settings dropdowns', async () => {
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('settings'))
   await expect(page.locator('#set-theme')).toBeVisible({ timeout: 15_000 })
 
-  // Both folder themes joined the dropdown, after the built-in ones.
+  // Both folder themes joined the dropdown, after the built-in ones. The
+  // built-ins are asserted by position rather than by count: pinning the count
+  // meant a new shipped theme broke a test that is about folder themes.
   const themeOptions = await page.locator('#set-theme option').allTextContents()
-  expect(themeOptions.slice(0, 3)).toEqual(['Default', 'Discord', 'Catppuccin Mocha'])
+  expect(themeOptions.slice(0, 2)).toEqual(['Default', 'Discord'])
   expect(themeOptions).toContain('Nord')
   expect(themeOptions).toContain('crimson')
+  expect(themeOptions.indexOf('Nord')).toBeGreaterThan(themeOptions.indexOf('Discord'))
 
   // Picking the token theme repaints the tokens and pins its slug.
   await page.selectOption('#set-theme', 'Nord')

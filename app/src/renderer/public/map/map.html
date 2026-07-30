@@ -56,6 +56,17 @@ body.tool-select.mode-edit .nv-label { cursor: pointer; }
 #spline-svg path[data-spline-id] {
     transition: filter 280ms ease;
 }
+/* An icon pin is drawn rather than filled, so it needs a box and no
+   background - the dot's own rule would paint a square behind it. */
+.nv-pin-icon {
+    width: 26px;
+    height: 26px;
+    background: none;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.7));
+}
 .nv-image, .nv-pin-marker, .nv-label {
     transition: outline-color 280ms ease, box-shadow 280ms ease;
 }
@@ -1769,6 +1780,71 @@ window.setMapStrings = (json) => {
     renderBottomBar();
 };
 
+/**
+ * The marker shapes a pin can take.
+ *
+ * MapPin.Style and MapPin.IconPath have been on the model and saved to disk
+ * since maps shipped, and renderPin drew a coloured dot regardless - so every
+ * settlement, ruin and pass on a hand-drawn map looked identical, and telling a
+ * capital from a campsite meant reading every label.
+ *
+ * Path geometry rather than an image set: it scales without blurring at any
+ * zoom, takes the pin's colour without a second asset, and adds no bytes to the
+ * project. Drawn on a 24x24 box, same as the app's icons.
+ */
+const PIN_ICONS = {
+    city: 'M3 21V9l5-3 5 3v12M13 21V13l4-2 4 2v8M6 13h2M6 17h2M16 16h2',
+    town: 'M4 21V11l6-4 6 4v10M9 21v-5h4v5',
+    village: 'M6 20v-6l4-3 4 3v6M4 14l6-5 6 5',
+    castle: 'M4 21V8l2-2 2 2 2-2 2 2 2-2 2 2 2-2 2 2v13M10 21v-6h4v6',
+    tower: 'M9 21V6l3-3 3 3v15M9 10h6M9 15h6',
+    ruin: 'M4 21V10l3 2V8l4 3V9l3 2M17 21v-7l3 2v6M4 21h16',
+    temple: 'M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M2 10h20L12 3z',
+    mountain: 'M2 20h20L14 6l-4 7-2-3z',
+    hills: 'M2 20c3-6 5-6 8 0M10 20c3-7 5-7 8 0M2 20h20',
+    forest: 'M12 3l5 8h-3l4 6H6l4-6H7zM12 17v4',
+    lake: 'M3 14c3-3 6 3 9 0s6-3 9 0M3 18c3-3 6 3 9 0s6-3 9 0',
+    port: 'M12 3v16M8 7h8M5 13a7 7 0 0 0 14 0M12 19a7 7 0 0 1-7-6',
+    bridge: 'M2 12h20M4 12v6M20 12v6M8 12a4 4 0 0 1 8 0',
+    mine: 'M3 20l9-9M8 4l4 4M8 4l-4 4 4 4 4-4M12 11l8 9',
+    camp: 'M12 4L4 20h16zM12 4v16',
+    crossroads: 'M12 2v20M2 12h20',
+    cave: 'M4 21v-7a8 8 0 0 1 16 0v7M9 21v-4a3 3 0 0 1 6 0v4',
+    battle: 'M4 4l10 10M6 20l4-4M4 18l2 2M20 4L10 14M18 20l-4-4M20 18l-2 2'
+};
+
+/**
+ * The marker element for a pin: a shape when one was chosen, the dot otherwise.
+ *
+ * An unknown icon name falls back to the dot rather than drawing nothing. A pin
+ * that disappears because a name was mistyped is worse than one that looks
+ * plain.
+ */
+function buildPinMarker(pin) {
+    const geometry = pin.style === 'svg' && pin.iconPath ? PIN_ICONS[pin.iconPath] : null;
+    if (!geometry) {
+        const dot = document.createElement('div');
+        dot.className = 'nv-pin-marker';
+        if (pin.color) dot.style.background = pin.color;
+        return dot;
+    }
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'nv-pin-marker nv-pin-icon');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', geometry);
+    // Stroked and not filled: an outline stays legible over painted terrain,
+    // where a solid glyph turns into a blob at low zoom.
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', pin.color || '#f9c46a');
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(path);
+    return svg;
+}
+
 function renderPin(pin) {
     const host = document.createElement('div');
     host.className = 'nv-pin-host' + (selected?.kind === 'pin' && selected.id === pin.id ? ' selected' : '');
@@ -1786,10 +1862,7 @@ function renderPin(pin) {
         lbl.textContent = pin.label;
         host.appendChild(lbl);
     }
-    const marker = document.createElement('div');
-    marker.className = 'nv-pin-marker';
-    if (pin.color) marker.style.background = pin.color;
-    host.appendChild(marker);
+    host.appendChild(buildPinMarker(pin));
 
     host.addEventListener('mousedown', (e) => {
         if (e.button === 1) {
@@ -2729,6 +2802,16 @@ function renderSelectedBar() {
             bb.center.appendChild(bbColor(pin.color || '#f9c46a',
                 hex => window.setPinColor(selected.id, hex),
                 mapStrings.pinColor));
+            // A dot for every settlement, ruin and pass meant telling a capital
+            // from a campsite required reading every label. The shapes have
+            // been on the model since maps shipped with nothing drawing them.
+            bb.center.appendChild(bbSelect(
+                pin.style === 'svg' ? (pin.iconPath || '') : '',
+                [['', mapStrings.pinIconDot || 'Dot'],
+                 ...Object.keys(PIN_ICONS).map(
+                     name => [name, (mapStrings['pinIcon_' + name]) || name])],
+                name => window.setPinIcon(selected.id, name),
+                mapStrings.pinIcon || 'Shape'));
             // A pin that opens another map: a world map marks a city and the
             // city has its own map, which is the one relationship maps have and
             // the one Novalist could not express.
@@ -6062,13 +6145,40 @@ window.updatePinColor = (pinId, color) => {
     const pin = findPinById(pinId);
     if (!pin) return;
     pin.color = color || null;
-    const host = pinOverlay.querySelector(`.nv-pin-host[data-pin-id="${pinId}"]`);
-    if (host) {
-        const marker = host.querySelector('.nv-pin-marker');
-        if (marker) marker.style.background = color || '';
-    }
+    replacePinMarker(pin);
     sendMessage({ type: 'mapChanged' });
 };
+
+/**
+ * Swaps a drawn pin's marker for the one its current style and colour call for.
+ * Rebuilt rather than restyled because a dot and an icon are different
+ * elements, and a colour change on one has to reach the other.
+ */
+function replacePinMarker(pin) {
+    const host = pinOverlay.querySelector(`.nv-pin-host[data-pin-id="${pin.id}"]`);
+    if (!host) return;
+    const existing = host.querySelector('.nv-pin-marker');
+    const marker = buildPinMarker(pin);
+    if (existing) host.replaceChild(marker, existing);
+    else host.appendChild(marker);
+}
+
+/**
+ * The shape a pin is drawn as. An empty name goes back to the dot, which is
+ * how a writer undoes a choice without deleting the pin.
+ */
+window.setPinIcon = (pinId, iconName) => {
+    const pin = findPinById(pinId);
+    if (!pin) return;
+    const name = iconName || '';
+    pin.style = name ? 'svg' : 'dot';
+    pin.iconPath = name || null;
+    replacePinMarker(pin);
+    sendMessage({ type: 'mapChanged' });
+};
+
+/** The names a pin's shape can be set to, for a host building a picker. */
+window.getPinIcons = () => Object.keys(PIN_ICONS);
 
 window.updatePin = (pinId, label, entityType, entityId, color) => {
     const pin = findPinById(pinId);

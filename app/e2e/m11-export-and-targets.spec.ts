@@ -62,8 +62,11 @@ test('export separates what from how, and targets are reachable from Settings', 
 
   const layoutPanel = page.locator('.export-matter', { hasText: 'Export layouts' })
   await layoutPanel.locator('summary').click()
-  // No second dropdown: the panel edits whatever the export form has picked.
-  await expect(layoutPanel.locator('select')).toHaveCount(0)
+  // No second layout picker: the panel edits whatever the export form has
+  // picked. Its own property dropdowns - numbering style, trim size - are not
+  // what this is about, so the assertion names the picker rather than counting
+  // every select in the panel.
+  await expect(layoutPanel.locator('#export-preset')).toHaveCount(0)
   await page.selectOption('#export-preset', 'shunn-manuscript')
   await expect(layoutPanel.locator('.settings-hint').first()).toHaveText('Shunn Manuscript Format')
 
