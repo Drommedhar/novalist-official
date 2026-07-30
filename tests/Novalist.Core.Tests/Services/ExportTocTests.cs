@@ -359,4 +359,48 @@ public class ExportTocTests : IDisposable
         await new ExportService(_project, entities).ExportCodexAsync(options, outPath);
         return await File.ReadAllTextAsync(outPath);
     }
+
+    // ── Which store the build is for ──
+
+    [Fact]
+    public void ABuildThatNamesNoStoreResolvesToNone()
+        => Assert.Null(new ExportOptions().ResolveRetailer());
+
+    [Fact]
+    public void ABuildResolvesTheStoreItNames()
+    {
+        var options = new ExportOptions
+        {
+            RetailerKey = " KOBO ",
+            Publishing = new PublishingMetadata
+            {
+                Retailers =
+                [
+                    new RetailerLink { Key = "amazon", Name = "Amazon", Url = "https://a.example" },
+                    new RetailerLink { Key = "kobo", Name = "Kobo", Url = "https://k.example" }
+                ]
+            }
+        };
+
+        // Trimmed and case-insensitive: the key comes from a dropdown today and
+        // from anywhere tomorrow.
+        Assert.Equal("Kobo", options.ResolveRetailer()?.Name);
+    }
+
+    [Fact]
+    public void AStoreTheBookHasNoLinkForResolvesToNone()
+    {
+        var options = new ExportOptions
+        {
+            RetailerKey = "apple",
+            Publishing = new PublishingMetadata
+            {
+                Retailers = [new RetailerLink { Key = "kobo", Name = "Kobo" }]
+            }
+        };
+
+        // Better a neutral build than back matter pointing at a shop the writer
+        // never gave a link for.
+        Assert.Null(options.ResolveRetailer());
+    }
 }

@@ -151,6 +151,23 @@ public class ExportOptions
     public int EffectiveTocDepth => Math.Clamp(TocDepth, 1, 2);
 
     /// <summary>
+    /// The store this build is for, by <see cref="Models.RetailerLink.Key"/>, or
+    /// empty for a neutral build that names no shop.
+    ///
+    /// One format, one path, one file was the whole model, so every copy of a
+    /// book sold in five shops carried the same back-matter link - and Amazon
+    /// refuses a book whose back matter links to a rival store.
+    /// </summary>
+    public string RetailerKey { get; set; } = string.Empty;
+
+    /// <summary>The store this build is for, or null when it names none.</summary>
+    public Models.RetailerLink? ResolveRetailer()
+        => string.IsNullOrWhiteSpace(RetailerKey)
+            ? null
+            : Publishing.Retailers.FirstOrDefault(
+                r => string.Equals(r.Key, RetailerKey.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
     /// Which parts of a Codex entry the export carries:
     /// <c>images</c>, <c>fields</c>, <c>relationships</c>, <c>sections</c>.
     ///
@@ -322,6 +339,7 @@ public partial class ExportService
 
         // A title page that says "Book two of the Salt Road" had to be typed
         // out and remembered; a token resolves it from the book every time.
+        var store = options.ResolveRetailer();
         var tokens = new TokenContext
         {
             Title = options.Title,
@@ -329,7 +347,11 @@ public partial class ExportService
             Isbn = options.Publishing.NormalizedIsbn() ?? string.Empty,
             Publisher = options.Publishing.Publisher,
             Series = options.Publishing.SeriesName,
-            SeriesIndex = options.Publishing.SeriesPosition
+            SeriesIndex = options.Publishing.SeriesPosition,
+            // The store this build is for, so back matter can point a reader at
+            // the shop they bought it in rather than at a competitor.
+            StoreName = store?.Name ?? string.Empty,
+            StoreLink = store?.Url ?? string.Empty
         };
 
         options.Matter = (_projectService.ActiveBook?.Matter ?? [])

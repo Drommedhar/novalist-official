@@ -655,4 +655,60 @@ public sealed class ExportRpcTests : IDisposable
         Assert.Equal(
             ["Appearance", "Provenance", "Rigging", "Secrets", "Wording"], titles);
     }
+
+    [Fact]
+    public async Task Run_TheBackMatterPointsAtTheStoreTheBuildIsFor()
+    {
+        var book = _workspace.Projects.ActiveBook!;
+        book.Publishing.Retailers =
+        [
+            new Novalist.Core.Models.RetailerLink
+            {
+                Key = "kobo", Name = "Kobo", Url = "https://kobo.example/book"
+            },
+            new Novalist.Core.Models.RetailerLink
+            {
+                Key = "amazon", Name = "Amazon", Url = "https://amazon.example/book"
+            }
+        ];
+        book.Matter.Add(new Novalist.Core.Models.BookMatterElement
+        {
+            Kind = Novalist.Core.Models.BookMatterKind.Custom,
+            Placement = Novalist.Core.Models.BookMatterPlacement.Back,
+            Included = true,
+            Title = "Thank you",
+            Content = "<p>Leave a review at <$storename>: <$storelink></p>"
+        });
+        await _workspace.Projects.SaveProjectAsync();
+
+        var outPath = Path.Combine(_root, "kobo.epub");
+        await _rpc.RunAsync("Epub", outPath, "Titel", "Tester", true, AllChapterGuids(),
+            presetId: null, selectedEntityKeys: null, labels: null, includeCover: false,
+            includedStages: null, tocDepth: 1, tocTitle: null, referenceDocPath: null,
+            codexParts: null, sectionTitles: null, retailerKey: "kobo");
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(outPath);
+        using var reader = new StreamReader(zip.GetEntry("OEBPS/matter-1.xhtml")!.Open());
+        var page = await reader.ReadToEndAsync();
+
+        Assert.Contains("Kobo", page);
+        Assert.Contains("kobo.example", page);
+        // The whole point: a reader is sent back where they bought it, and
+        // Amazon refuses a book whose back matter links to a rival.
+        Assert.DoesNotContain("amazon.example", page);
+    }
+
+    [Fact]
+    public void Retailers_ListsWhatTheBookHasLinksFor()
+    {
+        var book = _workspace.Projects.ActiveBook!;
+        book.Publishing.Retailers =
+        [
+            new Novalist.Core.Models.RetailerLink { Key = "kobo", Name = "Kobo" }
+        ];
+
+        var listed = Assert.Single(_rpc.Retailers());
+        Assert.Equal("kobo", listed.Key);
+        Assert.Equal("Kobo", listed.Name);
+    }
 }

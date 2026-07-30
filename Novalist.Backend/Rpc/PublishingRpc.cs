@@ -43,7 +43,21 @@ public sealed class PublishingRpc
             Subjects = [.. (value.Subjects ?? [])
                 .Select(sub => (sub ?? string.Empty).Trim())
                 .Where(sub => sub.Length > 0)
-                .Distinct(StringComparer.OrdinalIgnoreCase)]
+                .Distinct(StringComparer.OrdinalIgnoreCase)],
+            // A store with no key cannot be asked for by a build, and one with
+            // no link resolves to nothing in the back matter - both are a row
+            // somebody started and did not finish.
+            Retailers = [.. (value.Retailers ?? [])
+                .Where(r => !string.IsNullOrWhiteSpace(r.Key))
+                .Select(r => new RetailerLink
+                {
+                    Key = r.Key!.Trim(),
+                    Name = string.IsNullOrWhiteSpace(r.Name) ? r.Key!.Trim() : r.Name!.Trim(),
+                    Url = (r.Url ?? string.Empty).Trim(),
+                    ProductId = (r.ProductId ?? string.Empty).Trim()
+                })
+                .GroupBy(r => r.Key, StringComparer.OrdinalIgnoreCase)
+                .Select(g => g.First())]
         };
 
         await _workspace.Projects.SaveProjectAsync();
@@ -60,6 +74,8 @@ public sealed class PublishingRpc
             meta.SeriesName,
             meta.SeriesPosition,
             [.. meta.Subjects],
+            [.. meta.Retailers.Select(
+                r => new RetailerDto(r.Key, r.Name, r.Url, r.ProductId))],
             // The bare digits the file will carry, so the panel can show the
             // writer what a retailer will actually see - or that their typo
             // produced nothing usable.
@@ -77,4 +93,9 @@ public sealed record PublishingDto(
     string SeriesName,
     string SeriesPosition,
     string[] Subjects,
+    /// <summary>Where the book can be bought, one entry per store.</summary>
+    RetailerDto[] Retailers,
     string NormalizedIsbn);
+
+/// <summary>One store's page for this book.</summary>
+public sealed record RetailerDto(string? Key, string? Name, string? Url, string? ProductId);

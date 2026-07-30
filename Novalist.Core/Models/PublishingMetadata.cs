@@ -35,6 +35,17 @@ public sealed class PublishingMetadata
     [JsonPropertyName("subjects")]
     public List<string> Subjects { get; set; } = [];
 
+    /// <summary>
+    /// Where the book can be bought, one entry per store.
+    ///
+    /// A build made for one retailer resolves its back-matter links to that
+    /// store's page; without this every copy carries the same link, which for a
+    /// book in five shops sends four of them to a competitor - and Amazon will
+    /// refuse a book whose back matter links to a rival.
+    /// </summary>
+    [JsonPropertyName("retailers")]
+    public List<RetailerLink> Retailers { get; set; } = [];
+
     /// <summary>Copyright line. Goes into dc:rights.</summary>
     [JsonPropertyName("rights")]
     public string Rights { get; set; } = string.Empty;

@@ -106,6 +106,14 @@ public sealed class ExportRpc
         return [.. titles];
     }
 
+    /// <summary>
+    /// The stores this book has links for, so an export can be built for one.
+    /// </summary>
+    [JsonRpcMethod("export/retailers")]
+    public RetailerDto[] Retailers()
+        => [.. (_workspace.Projects.ActiveBook?.Publishing.Retailers ?? [])
+            .Select(r => new RetailerDto(r.Key, r.Name, r.Url, r.ProductId))];
+
     [JsonRpcMethod("export/tokens")]
     public string[] Tokens() => [.. Core.Services.ExportTokens.Known];
 
@@ -160,7 +168,8 @@ public sealed class ExportRpc
         string? tocTitle = null,
         string? referenceDocPath = null,
         string[]? codexParts = null,
-        string[]? sectionTitles = null)
+        string[]? sectionTitles = null,
+        string? retailerKey = null)
     {
         if (Enum.TryParse<ExportFormat>(format, out var parsedFormat))
         {
@@ -193,7 +202,10 @@ public sealed class ExportRpc
                 // Null means every part, which is what every codex export did
                 // before this existed.
                 CodexParts = codexParts?.ToList(),
-                SelectedSectionTitles = sectionTitles?.ToList()
+                SelectedSectionTitles = sectionTitles?.ToList(),
+                // Which shop this build is for. Empty is a neutral build, which
+                // is what every export was before there was anything to say.
+                RetailerKey = retailerKey ?? string.Empty
             };
             if (parsedFormat == ExportFormat.Codex)
             {

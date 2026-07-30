@@ -167,4 +167,35 @@ public class ExportTokensTests
         // A rule with nothing to find is not a rule.
         Assert.Equal("text", ExportReplacements.Apply("text", [Rule("", "b")]));
     }
+
+    [Fact]
+    public void AStoreBuildResolvesItsOwnNameAndLink()
+    {
+        var resolved = ExportTokens.Resolve(
+            "Enjoyed it? Leave a review at <$storename>: <$storelink>",
+            new TokenContext { StoreName = "Kobo", StoreLink = "https://kobo.example/book" });
+
+        // A book in five shops carried one link before this, which sends four
+        // of those readers to a competitor.
+        Assert.Equal(
+            "Enjoyed it? Leave a review at Kobo: https://kobo.example/book",
+            resolved);
+    }
+
+    [Fact]
+    public void ANeutralBuildLeavesTheStoreLineShortRatherThanShowingTheToken()
+    {
+        var resolved = ExportTokens.Resolve("Also at <$storename>", new TokenContext());
+
+        // An unknown token prints itself, which is right for a typo and wrong
+        // here: this token is known and simply has nothing to say.
+        Assert.Equal("Also at ", resolved);
+    }
+
+    [Fact]
+    public void TheStoreTokensAreListedForTheUi()
+    {
+        Assert.Contains("storename", ExportTokens.Known);
+        Assert.Contains("storelink", ExportTokens.Known);
+    }
 }

@@ -1807,7 +1807,9 @@
     "codexPart_fields": "Fields",
     "codexPart_relationships": "Relationships",
     "codexPart_sections": "Sections",
-    "codexSections": "Which sections"
+    "codexSections": "Which sections",
+    "buildFor": "Build for",
+    "buildForNone": "No particular store"
   },
   "expose": {
     "chars": "{{value}} characters",
@@ -2528,7 +2530,15 @@
     "subjectsHint": "Comma-separated. Genre words, or BISAC codes if you have them — shops use these to shelve the book.",
     "rights": "Rights",
     "publicationDate": "Publication date",
-    "save": "Save metadata"
+    "save": "Save metadata",
+    "retailers": "Where it can be bought",
+    "retailersHint": "One row per store: a key to build for, the name to print, the book’s page, and the store’s own id. Back matter written with <$storename> and <$storelink> resolves to whichever store the build is for.",
+    "retailerKey": "Key",
+    "retailerName": "Name",
+    "retailerUrl": "Link",
+    "retailerProductId": "Store id",
+    "retailerAdd": "Add a store",
+    "retailerRemove": "Remove this store"
   },
   "splitMerge": {
     "mergeWithNext": "Merge with next: {{title}}"

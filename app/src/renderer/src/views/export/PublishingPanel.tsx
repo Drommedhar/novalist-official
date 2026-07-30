@@ -11,9 +11,19 @@ interface Publishing {
   seriesName: string
   seriesPosition: string
   subjects: string[]
+  /** Where the book can be bought, one entry per store. */
+  retailers: Retailer[]
   /** Derived: the bare digits the exported file will carry. Empty when what was
    *  typed is not a usable ISBN. */
   normalizedIsbn: string
+}
+
+/** One store's page for this book. */
+interface Retailer {
+  key: string
+  name: string
+  url: string
+  productId: string
 }
 
 const EMPTY: Publishing = {
@@ -25,6 +35,7 @@ const EMPTY: Publishing = {
   seriesName: '',
   seriesPosition: '',
   subjects: [],
+  retailers: [],
   normalizedIsbn: ''
 }
 
@@ -111,6 +122,88 @@ export function PublishingPanel(): React.JSX.Element {
         }
       />
       <div className="match-hint">{t('publishing.subjectsHint')}</div>
+
+      {/* One format, one path, one file was the whole model, so every copy of
+          a book sold in five shops carried the same back-matter link - and
+          Amazon refuses a book whose back matter links to a rival store. */}
+      <label className="inspector-label">{t('publishing.retailers')}</label>
+      <div className="match-hint">{t('publishing.retailersHint')}</div>
+      {value.retailers.map((retailer, index) => (
+        <div key={index} className="match-row">
+          <input
+            className="inspector-input"
+            value={retailer.key}
+            placeholder={t('publishing.retailerKey')}
+            aria-label={t('publishing.retailerKey')}
+            onChange={(e) =>
+              edit({
+                retailers: value.retailers.map((r, i) =>
+                  i === index ? { ...r, key: e.target.value } : r
+                )
+              })
+            }
+          />
+          <input
+            className="inspector-input"
+            value={retailer.name}
+            placeholder={t('publishing.retailerName')}
+            aria-label={t('publishing.retailerName')}
+            onChange={(e) =>
+              edit({
+                retailers: value.retailers.map((r, i) =>
+                  i === index ? { ...r, name: e.target.value } : r
+                )
+              })
+            }
+          />
+          <input
+            className="inspector-input"
+            value={retailer.url}
+            placeholder={t('publishing.retailerUrl')}
+            aria-label={t('publishing.retailerUrl')}
+            onChange={(e) =>
+              edit({
+                retailers: value.retailers.map((r, i) =>
+                  i === index ? { ...r, url: e.target.value } : r
+                )
+              })
+            }
+          />
+          <input
+            className="inspector-input"
+            value={retailer.productId}
+            placeholder={t('publishing.retailerProductId')}
+            aria-label={t('publishing.retailerProductId')}
+            onChange={(e) =>
+              edit({
+                retailers: value.retailers.map((r, i) =>
+                  i === index ? { ...r, productId: e.target.value } : r
+                )
+              })
+            }
+          />
+          <button
+            className="binder-row-action"
+            aria-label={t('publishing.retailerRemove')}
+            title={t('publishing.retailerRemove')}
+            onClick={() =>
+              edit({ retailers: value.retailers.filter((_, i) => i !== index) })
+            }
+          >
+            &times;
+          </button>
+        </div>
+      ))}
+      <button
+        className="btn-secondary"
+        onClick={() =>
+          edit({
+            retailers: [...value.retailers, { key: '', name: '', url: '', productId: '' }]
+          })
+        }
+      >
+        {t('publishing.retailerAdd')}
+      </button>
 
       <label className="inspector-label">{t('publishing.rights')}</label>
       {field('rights')}

@@ -332,6 +332,17 @@ Layouts are stored with the book, not globally — a submission format for a nov
 
 Until now an exported EPUB carried author, title, identifier and language and nothing else, so there was no ISBN for a retailer to key on and no way for a book to say it was the second of a trilogy.
 
+### Building for one shop
+
+A book sold in five shops used to leave with one back-matter link in every copy, which sends four of those readers to a competitor — and Amazon will refuse a book whose back matter links to a rival store.
+
+**Where it can be bought** in the publishing panel takes one row per store: a **key** to build for, the **name** to print, the book's **page** at that store, and the store's own **id** (an ASIN, an Apple id) — which an ingestion form asks for and otherwise lives in somebody's spreadsheet.
+
+Write your back matter with the `<$storename>` and `<$storelink>` placeholders. Then pick a store in **Build for** on the export form and those resolve to that shop, so each build points its reader back where they bought it. Leave it on *No particular store* and both come out empty — which is what a build for your own website wants.
+
+A store you have not given a link for resolves to nothing rather than to the wrong shop.
+
+
 ## Where to go next
 
 - [Exposé](32-expose.md) — write the pitch document with live Normseiten counts, and export it in the same layout.

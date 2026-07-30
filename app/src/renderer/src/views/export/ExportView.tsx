@@ -104,6 +104,8 @@ export function ExportView(): React.JSX.Element {
   )
   const [sectionTitles, setSectionTitles] = useState<string[]>([])
   const [pickedSections, setPickedSections] = useState<Set<string>>(new Set())
+  const [retailers, setRetailers] = useState<{ key: string; name: string }[]>([])
+  const [retailerKey, setRetailerKey] = useState('')
   // Empty means every stage, which is what an export that names no filter has
   // always done and has to keep doing.
   const [stageFilter, setStageFilter] = useState<Set<string>>(new Set())
@@ -182,6 +184,14 @@ export function ExportView(): React.JSX.Element {
       setSelectedEntities(new Set(loaded.flatMap(([, list]) => list.map((e) => e.key))))
     })
   }, [isCodex, entitiesLoaded])
+
+  // The stores this book has links for, so a build can be made for one.
+  useEffect(() => {
+    void rpc
+      .request<{ key: string; name: string }[]>('export/retailers')
+      .then(setRetailers)
+      .catch(() => setRetailers([]))
+  }, [])
 
   // The titles this project actually uses, so the picker names them rather than
   // asking for them to be typed the same way twice.
@@ -272,7 +282,8 @@ export function ExportView(): React.JSX.Element {
         isCodex ? [...codexParts] : null,
         // Naming every title is the same as naming none, and sending null keeps
         // the payload the size it was.
-        isCodex && pickedSections.size < sectionTitles.length ? [...pickedSections] : null
+        isCodex && pickedSections.size < sectionTitles.length ? [...pickedSections] : null,
+        retailerKey || null
       ])
       setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
     } catch {
@@ -511,6 +522,27 @@ export function ExportView(): React.JSX.Element {
               </label>
             ))}
           </div>
+        )}
+
+        {/* A build for one shop. Back matter written with <$storename> and
+            <$storelink> resolves to that shop, so a reader is sent back where
+            they bought it rather than to a competitor. */}
+        {retailers.length > 0 && !isCodex && (
+          <label className="export-field">
+            <span className="export-field-label">{t('export.buildFor')}</span>
+            <select
+              className="inspector-input"
+              value={retailerKey}
+              onChange={(e) => setRetailerKey(e.target.value)}
+            >
+              <option value="">{t('export.buildForNone')}</option>
+              {retailers.map((r) => (
+                <option key={r.key} value={r.key}>
+                  {r.name || r.key}
+                </option>
+              ))}
+            </select>
+          </label>
         )}
 
         {preview && (

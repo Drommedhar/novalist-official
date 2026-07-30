@@ -24,6 +24,12 @@ public sealed record TokenContext
     public string SceneTitle { get; init; } = string.Empty;
     public string Act { get; init; } = string.Empty;
 
+    /// <summary>The store this build is for, or empty for a neutral build.</summary>
+    public string StoreName { get; init; } = string.Empty;
+
+    /// <summary>That store's page for this book. Empty on a neutral build.</summary>
+    public string StoreLink { get; init; } = string.Empty;
+
     /// <summary>
     /// When the export ran. Passed in rather than read from the clock so an
     /// export is reproducible and a test can assert on it.
@@ -55,7 +61,8 @@ public static partial class ExportTokens
     [
         "title", "author", "isbn", "publisher", "series", "seriesindex",
         "wordcount", "pagecount", "date", "year",
-        "chapternumber", "chapterroman", "chaptertitle", "scenetitle", "act"
+        "chapternumber", "chapterroman", "chaptertitle", "scenetitle", "act",
+        "storename", "storelink"
     ];
 
     /// <summary>
@@ -93,6 +100,11 @@ public static partial class ExportTokens
         "chaptertitle" => c.ChapterTitle,
         "scenetitle" => c.SceneTitle,
         "act" => c.Act,
+        // The store this build is for. Empty on a neutral build rather than
+        // absent, so a back-matter line reading "also at <$storename>" comes
+        // out short instead of printing the token at a reader.
+        "storename" => c.StoreName,
+        "storelink" => c.StoreLink,
         _ => null
     };
 

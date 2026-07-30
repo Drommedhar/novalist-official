@@ -1408,7 +1408,9 @@
     "codexPart_fields": "Felder",
     "codexPart_relationships": "Beziehungen",
     "codexPart_sections": "Abschnitte",
-    "codexSections": "Welche Abschnitte"
+    "codexSections": "Welche Abschnitte",
+    "buildFor": "Build für",
+    "buildForNone": "Keinen bestimmten Shop"
   },
   "expose": {
     "chars": "{{value}} Zeichen",
@@ -2536,7 +2538,15 @@
     "subjectsHint": "Kommagetrennt. Genrebegriffe oder BISAC-Codes, falls vorhanden — Shops sortieren das Buch danach ein.",
     "rights": "Rechte",
     "publicationDate": "Veröffentlichungsdatum",
-    "save": "Daten speichern"
+    "save": "Daten speichern",
+    "retailers": "Wo es zu kaufen ist",
+    "retailersHint": "Eine Zeile je Shop: ein Schlüssel für den Build, der Name zum Drucken, die Seite des Buchs und die Shop-eigene ID. Nachspann mit <$storename> und <$storelink> löst auf den jeweiligen Shop auf.",
+    "retailerKey": "Schlüssel",
+    "retailerName": "Name",
+    "retailerUrl": "Link",
+    "retailerProductId": "Shop-ID",
+    "retailerAdd": "Shop hinzufügen",
+    "retailerRemove": "Diesen Shop entfernen"
   },
   "splitMerge": {
     "mergeWithNext": "Mit nächster zusammenführen: {{title}}"

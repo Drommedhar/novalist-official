@@ -1840,7 +1840,9 @@
     "codexPart_fields": "字段",
     "codexPart_relationships": "关系",
     "codexPart_sections": "章节段落",
-    "codexSections": "包含哪些段落"
+    "codexSections": "包含哪些段落",
+    "buildFor": "构建目标",
+    "buildForNone": "不针对特定商店"
   },
   "expose": {
     "chars": "{{value}} 字符",
@@ -2568,7 +2570,15 @@
     "subjectsHint": "以逗号分隔。可填类型词，或 BISAC 代码 — 书店据此上架。",
     "rights": "权利声明",
     "publicationDate": "出版日期",
-    "save": "保存元数据"
+    "save": "保存元数据",
+    "retailers": "可购买之处",
+    "retailersHint": "每个商店一行：用于构建的键、要印出的名称、本书页面，以及商店自有编号。使用 <$storename> 与 <$storelink> 的后记会解析为当次构建所针对的商店。",
+    "retailerKey": "键",
+    "retailerName": "名称",
+    "retailerUrl": "链接",
+    "retailerProductId": "商店编号",
+    "retailerAdd": "添加商店",
+    "retailerRemove": "移除此商店"
   },
   "splitMerge": {
     "mergeWithNext": "与下一个合并：{{title}}"

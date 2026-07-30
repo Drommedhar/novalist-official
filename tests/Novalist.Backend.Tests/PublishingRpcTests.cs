@@ -29,7 +29,7 @@ public sealed class PublishingRpcTests : IDisposable
     private static PublishingDto Dto(
         string isbn = "", string publisher = "", string series = "", string position = "",
         params string[] subjects)
-        => new(isbn, publisher, "", "", "", series, position, subjects, "");
+        => new(isbn, publisher, "", "", "", series, position, subjects, [], "");
 
     [Fact]
     public void AFreshBookHasNothingSet()
@@ -94,5 +94,39 @@ public sealed class PublishingRpcTests : IDisposable
         await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
 
         Assert.Equal("Raven Press", new PublishingRpc(_workspace).Get().Publisher);
+    }
+
+    [Fact]
+    public async Task StoresRoundTripAndAreCleanedUp()
+    {
+        var saved = await _rpc.SetAsync(Dto() with
+        {
+            Retailers =
+            [
+                new RetailerDto(" kobo ", " Kobo ", " https://kobo.example ", " 12345 "),
+                // No key, so no build could ever ask for it.
+                new RetailerDto("  ", "Nowhere", "https://x.example", ""),
+                // The same shop twice is one shop.
+                new RetailerDto("KOBO", "Kobo again", "https://other.example", "")
+            ]
+        });
+
+        var store = Assert.Single(saved.Retailers);
+        Assert.Equal("kobo", store.Key);
+        Assert.Equal("Kobo", store.Name);
+        Assert.Equal("https://kobo.example", store.Url);
+        Assert.Equal("12345", store.ProductId);
+    }
+
+    [Fact]
+    public async Task AStoreWithNoNameIsCalledByItsKey()
+    {
+        var saved = await _rpc.SetAsync(Dto() with
+        {
+            Retailers = [new RetailerDto("kobo", "", "https://kobo.example", "")]
+        });
+
+        // A blank name in a build dropdown is a row nobody can pick on purpose.
+        Assert.Equal("kobo", Assert.Single(saved.Retailers).Name);
     }
 }
