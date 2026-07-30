@@ -148,6 +148,15 @@ public class BookData
     public PublishingMetadata Publishing { get; set; } = new();
 
     /// <summary>
+    /// Substitutions applied to every export of this book and never to the
+    /// prose. Stored on the book because "the submission copy spells it out and
+    /// the ebook uses the glyph" is a decision about one book.
+    /// </summary>
+    [JsonPropertyName("exportReplacements")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<ExportReplacement> ExportReplacements { get; set; } = [];
+
+    /// <summary>
     /// The narrative person the book is written in: "first", "second", "third
     /// limited", "third omniscient", or empty when the writer has not said.
     ///

@@ -5,6 +5,7 @@ import { rpc } from '../../rpc/client'
 import { ReviewImportDialog } from '../../shell/ReviewImportDialog'
 import { BookMatterPanel } from './BookMatterPanel'
 import { PublishingPanel } from './PublishingPanel'
+import { ReplacementsPanel } from './ReplacementsPanel'
 import { ExportLayoutPanel } from './ExportLayoutPanel'
 import { useProjectStore } from '../../stores/projectStore'
 import { useStageStore } from '../../stores/stageStore'
@@ -126,7 +127,10 @@ export function ExportView(): React.JSX.Element {
 
   const isCodex = content === 'codex'
   const extFormat = extFormats.find((f) => f.formatKey === format)
-  const chaptersVisible = !isCodex && extFormat === undefined
+  // A contributed format is given the selection now, so hiding the list from it
+  // would be the app deciding the writer cannot send somebody three chapters in
+  // anything but a built-in format.
+  const chaptersVisible = !isCodex
 
   // What the current selection would actually produce. Recomputed whenever a
   // choice that changes it changes, so the writer never exports blind.
@@ -537,6 +541,10 @@ export function ExportView(): React.JSX.Element {
         <details className="export-matter">
           <summary>{t('publishing.title')}</summary>
           <PublishingPanel />
+          {/* Applied to the output only, so a rule can be turned off without
+              anything to undo - unlike Find and Replace, which rewrites the
+              scenes themselves. */}
+          <ReplacementsPanel />
         </details>
 
         {/* Page geometry, separators and ebook CSS for whichever layout is

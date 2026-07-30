@@ -511,4 +511,47 @@ public sealed class ExportRpcTests : IDisposable
         Assert.DoesNotContain("Parked prose.", markdown);
     }
 
+
+    // ── Substitutions that touch the output and never the prose ──
+
+    [Fact]
+    public async Task Replacements_RoundTripInOrderAndReachTheFile()
+    {
+        Assert.Empty(_rpc.Replacements());
+        Assert.Contains("title", _rpc.Tokens());
+
+        var saved = await _rpc.SaveReplacementsAsync(
+        [
+            new ExportReplacementDto("", "dunkle", "finstere", false, false, true, 0),
+            // Blank rules are not rules; this one is dropped rather than stored.
+            new ExportReplacementDto("", "  ", "x", false, false, true, 1),
+            new ExportReplacementDto("", "finstere", "rabenschwarze", false, false, true, 2)
+        ]);
+
+        // Order is the list's order, and it is renumbered from zero so a
+        // reordering edit does not leave gaps behind.
+        Assert.Equal(["dunkle", "finstere"], saved.Select(r => r.Find));
+        Assert.Equal([0, 1], saved.Select(r => r.Order));
+        Assert.All(saved, r => Assert.NotEmpty(r.Id));
+
+        var output = Path.Combine(_root, "replaced.md");
+        await _rpc.RunAsync("Markdown", output, "T", "A", true, AllChapterGuids());
+
+        // Rules ran in order, so the first rule's output fed the second - and
+        // the scene on disk is untouched, unlike a Replace All.
+        var markdown = await File.ReadAllTextAsync(output);
+        Assert.Contains("rabenschwarze", markdown);
+        Assert.DoesNotContain("dunkle", markdown);
+    }
+
+    [Fact]
+    public async Task Replacements_NeedABookAndSurviveNothingBeingPassed()
+    {
+        var bare = new ExportRpc(new Workspace(Path.Combine(_root, "no-project")));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => bare.SaveReplacementsAsync([]));
+
+        Assert.Empty(await _rpc.SaveReplacementsAsync(null!));
+    }
+
 }

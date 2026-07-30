@@ -23,13 +23,37 @@ In the activity bar, click **Export** in the **Publish** group.
 - **Author** — author name printed on the title page and in document metadata.
 - **Title page** — toggle. Include or omit a generated title page.
 - **Include the book cover** — toggle, shown for **EPUB**, **PDF** and any extension format that can hold a cover. On by default. The image is the book's cover, falling back to the project cover — the same one the Dashboard and the welcome screen show. Turn it off for a submission manuscript, which should not carry one.
-- **Chapter selection** — a checkbox per chapter, with **Select All** and **Select None** buttons and a running "*n* of *m*" count. All chapters are included by default; untick chapters to exclude them. This list is hidden for the **Codex** formats and for extension-contributed formats.
+- **Chapter selection** — a checkbox per chapter, with **Select All** and **Select None** buttons and a running "*n* of *m*" count. All chapters are included by default; untick chapters to exclude them. This list is hidden only for the **Codex** formats, which export entries rather than chapters. Extension-contributed formats honour it too, so sending somebody the first three chapters is not limited to the built-in formats.
 - **Codex entry selection** — for the two **Codex** formats the chapter list is replaced by a checkbox per codex entry, grouped by Characters, Locations, Items, and Lore and sorted by name inside each group, exactly as the exported file is ordered. Everything is ticked by default; untick the entries you do not want in the file — for example, to send a collaborator only the characters they are writing.
   - A **search box** above the list filters entries by name as you type.
   - **Select All** and **Select None** apply to the entries currently shown, so you can search for a group of entries and tick or untick them in one click without disturbing the rest of your selection.
   - The "*n* of *m*" count below the list always reports your whole selection, not just the filtered part.
 
 Click **Export**. The system file save dialog asks where to save; pick a location and filename (the extension is pre-filled to match the format). The button shows "Exporting…" while the job runs and a result line reports success or failure.
+
+## Replacements on export
+
+**Replacements on export** at the bottom of the Export view holds substitutions applied to the exported file — never to your prose — every time you export.
+
+This is deliberately not [Find and Replace](21-find-replace.md). That one rewrites the source scenes and snapshots each one it touches, which is right for fixing a character's name and wrong for "the submission copy spells it out and the ebook uses the glyph". A replacement here runs on the way out, so turning it off leaves nothing to undo.
+
+Each rule has:
+
+- **Find** and **Replace with** — plain text unless you tick **Regex**, in which case `$1` and friends refer to captured groups.
+- **Regex** and **Match case** — off by default.
+- **On** — untick to keep a rule without running it. A rule that is right for one submission and wrong for the next is worth not deleting.
+
+Rules run **top to bottom**, so an earlier rule's output is a later rule's input. A pattern that does not compile is skipped rather than failing the export, and one that runs away is abandoned after a quarter of a second — a half-typed regular expression should not cost you your file.
+
+### Placeholders
+
+The same panel lists the placeholders an export resolves. Use them in [front and back matter](#front-and-back-matter) and as replacement text; each resolves from the book when the export runs.
+
+`<$title>` `<$author>` `<$isbn>` `<$publisher>` `<$series>` `<$seriesindex>` `<$wordcount>` `<$pagecount>` `<$date>` `<$year>` `<$chapternumber>` `<$chapterroman>` `<$chaptertitle>` `<$scenetitle>` `<$act>`
+
+So a title page reading `<$title>, book <$seriesindex> of <$series>` stays right when the series position changes, instead of being typed out and forgotten. `<$chapterroman>` gives the chapter number in Roman numerals, which a great many books use and no format string could produce.
+
+A placeholder Novalist does not recognise is **left exactly as written**. Silently deleting something you typed is worse than printing it, and it makes a typo visible instead of invisible.
 
 ## Front and back matter
 

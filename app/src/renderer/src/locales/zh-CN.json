@@ -1784,7 +1784,16 @@
     "previewCounts": "{{chapters}} 章、{{scenes}} 个场景、{{words}} 词。",
     "previewPages": "在此版式下约 {{pages}} 页。",
     "previewPagesExact": "{{pages}} 个标准页。",
-    "previewUndescribed": "有 {{count}} 张图片没有描述，看不到它们的读者什么也得不到。"
+    "previewUndescribed": "有 {{count}} 张图片没有描述，看不到它们的读者什么也得不到。",
+    "replacements": "导出时替换",
+    "replacementsIntro": "每次导出都会应用于导出的文件，永远不会改动你的正文。规则自上而下执行，前一条的结果是后一条的输入。",
+    "replacementFind": "查找",
+    "replacementReplace": "替换为",
+    "replacementEnabled": "启用",
+    "replacementAdd": "添加替换规则",
+    "replacementRemove": "删除此替换规则",
+    "tokens": "占位符",
+    "tokensIntro": "可用于前后附页以及替换文本。导出时会从书中解析出实际内容。"
   },
   "expose": {
     "chars": "{{value}} 字符",

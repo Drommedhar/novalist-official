@@ -27,6 +27,47 @@ public sealed class ExportRpc
                 f.FormatKey, f.DisplayName, f.FileExtension, f.SupportsCover))
             .ToArray();
 
+    /// <summary>
+    /// The book's compile-time replacements, in the order they run.
+    /// </summary>
+    [JsonRpcMethod("export/replacements")]
+    public ExportReplacementDto[] Replacements()
+        => [.. (_workspace.Projects.ActiveBook?.ExportReplacements ?? [])
+            .OrderBy(r => r.Order)
+            .Select(r => new ExportReplacementDto(
+                r.Id, r.Find, r.Replace, r.IsRegex, r.MatchCase, r.Enabled, r.Order))];
+
+    /// <summary>
+    /// Replaces the whole list, in the order given. Whole-list rather than
+    /// per-rule because order is what a rule set means: an earlier rule's output
+    /// is a later rule's input, and reordering is the common edit.
+    /// </summary>
+    [JsonRpcMethod("export/saveReplacements")]
+    public async Task<ExportReplacementDto[]> SaveReplacementsAsync(ExportReplacementDto[] rules)
+    {
+        var book = _workspace.Projects.ActiveBook
+            ?? throw new InvalidOperationException("No active book.");
+
+        book.ExportReplacements = [.. (rules ?? [])
+            .Where(r => !string.IsNullOrWhiteSpace(r.Find))
+            .Select((r, index) => new Core.Models.ExportReplacement
+            {
+                Id = string.IsNullOrWhiteSpace(r.Id) ? Guid.NewGuid().ToString() : r.Id,
+                Find = r.Find,
+                Replace = r.Replace ?? string.Empty,
+                IsRegex = r.IsRegex,
+                MatchCase = r.MatchCase,
+                Enabled = r.Enabled,
+                Order = index
+            })];
+        await _workspace.Projects.SaveProjectAsync();
+        return Replacements();
+    }
+
+    /// <summary>Every token an export resolves, for the UI to list.</summary>
+    [JsonRpcMethod("export/tokens")]
+    public string[] Tokens() => [.. Core.Services.ExportTokens.Known];
+
     [JsonRpcMethod("export/timelineOutline")]
     public async Task<ExportResultDto> TimelineOutlineAsync(string outputPath)
     {
@@ -131,7 +172,8 @@ public sealed class ExportRpc
                 CoverImagePath = includeCover && descriptor.SupportsCover
                     ? _workspace.ActiveCoverAbsolutePath() ?? string.Empty
                     : string.Empty,
-                IncludeTitlePage = includeTitlePage
+                IncludeTitlePage = includeTitlePage,
+                SelectedChapterGuids = [.. selectedChapterGuids]
             });
         }
 
@@ -151,6 +193,10 @@ public sealed record ExportPreviewDto(
     int Chapters, int Scenes, int Words, int Characters, int Pages, bool PagesAreExact,
     /// <summary>Pictures with nothing written about what they show.</summary>
     int UndescribedImages);
+
+/// <summary>One substitution applied to the output and never to the prose.</summary>
+public sealed record ExportReplacementDto(
+    string Id, string Find, string Replace, bool IsRegex, bool MatchCase, bool Enabled, int Order);
 
 public sealed record ExportExtensionFormatDto(
     string FormatKey, string DisplayName, string FileExtension, bool SupportsCover);

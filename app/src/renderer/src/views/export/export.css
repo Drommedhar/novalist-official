@@ -238,3 +238,34 @@
   gap: var(--nl-space-tightest);
   min-width: 0;
 }
+
+/* One rule per row: find, replace, and the three switches that say how it runs.
+   Wraps rather than scrolling, because a rule half off-screen is unreadable. */
+.export-replacement-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-sm);
+}
+
+.export-replacement-row > input[type='text'],
+.export-replacement-row > .dialog-input {
+  flex: 1 1 12ch;
+  min-width: 0;
+}
+
+.export-token-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter);
+  margin-top: var(--nl-space-tighter);
+}
+
+.export-token {
+  padding: var(--nl-space-tightest) var(--nl-space-tighter);
+  border-radius: var(--nl-radius-sm);
+  background: var(--nl-surface-input);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+}

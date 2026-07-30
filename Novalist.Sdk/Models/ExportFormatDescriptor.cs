@@ -70,4 +70,15 @@ public sealed class ExportContext
 
     /// <summary>Whether the writer asked for a title page.</summary>
     public bool IncludeTitlePage { get; init; } = true;
+
+    /// <summary>
+    /// Guids of the chapters the writer chose, in book order. Empty means every
+    /// chapter, which is what an export that names no selection has always done.
+    ///
+    /// A contributed format used to be given no selection at all, so the Export
+    /// view hid the chapter list for it and every run produced the whole book -
+    /// there was no way to send somebody the first three chapters in any format
+    /// but a built-in one.
+    /// </summary>
+    public IReadOnlyList<string> SelectedChapterGuids { get; init; } = [];
 }

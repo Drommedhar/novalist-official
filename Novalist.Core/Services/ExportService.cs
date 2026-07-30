@@ -115,6 +115,13 @@ public class ExportOptions
     /// </summary>
     public List<ExportPreset> CustomPresets { get; set; } = [];
 
+    /// <summary>
+    /// Substitutions applied to the compiled output only. Replace All writes to
+    /// the source scenes; these never do, so a rule can be turned off without
+    /// anything to undo.
+    /// </summary>
+    public List<Models.ExportReplacement> Replacements { get; set; } = [];
+
     /// <summary>Resolves to the configured preset (or default).</summary>
     public ExportPreset ResolvePreset()
     {
@@ -253,6 +260,20 @@ public partial class ExportService
 
         // Matter pages come from the book, not the chapter selection: they frame
         // the whole book rather than belonging to any chapter.
+        options.Replacements = [.. _projectService.ActiveBook?.ExportReplacements ?? []];
+
+        // A title page that says "Book two of the Salt Road" had to be typed
+        // out and remembered; a token resolves it from the book every time.
+        var tokens = new TokenContext
+        {
+            Title = options.Title,
+            Author = options.Author,
+            Isbn = options.Publishing.NormalizedIsbn() ?? string.Empty,
+            Publisher = options.Publishing.Publisher,
+            Series = options.Publishing.SeriesName,
+            SeriesIndex = options.Publishing.SeriesPosition
+        };
+
         options.Matter = (_projectService.ActiveBook?.Matter ?? [])
             .Where(m => m.Included && !string.IsNullOrWhiteSpace(m.Content))
             .OrderBy(m => m.Placement)
@@ -262,8 +283,9 @@ public partial class ExportService
                 Id = m.Id,
                 Kind = m.Kind.ToString(),
                 Placement = m.Placement.ToString(),
-                Title = ResolveMatterTitle(m),
-                HtmlContent = m.Content,
+                Title = ExportTokens.Resolve(ResolveMatterTitle(m), tokens),
+                HtmlContent = Models.ExportReplacements.Apply(
+                    ExportTokens.Resolve(m.Content, tokens), options.Replacements),
                 Order = m.Order,
                 InTableOfContents = m.InTableOfContents
             })
@@ -291,8 +313,15 @@ public partial class ExportService
                 // has to know they exist. An export is a finished book: an
                 // insertion nobody rejected is in it, a deletion nobody
                 // accepted is not, and the markup itself never reaches a page.
-                var html = TrackedChanges.Final(ResolveImagePaths(
-                    await _projectService.ReadSceneContentAsync(chapter, scene)));
+                // Suggested edits resolve, then the book's compile-time rules
+                // run - on the way out only. Replace All writes to the source
+                // scenes; these never do, which is what makes "the submission
+                // copy spells it out and the ebook uses the glyph" possible
+                // without keeping two drafts.
+                var html = Models.ExportReplacements.Apply(
+                    TrackedChanges.Final(ResolveImagePaths(
+                        await _projectService.ReadSceneContentAsync(chapter, scene))),
+                    options.Replacements);
                 sceneContents.Add(new SceneExportContent
                 {
                     Title = scene.Title,

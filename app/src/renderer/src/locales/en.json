@@ -1751,7 +1751,16 @@
     "previewCounts": "{{chapters}} chapters, {{scenes}} scenes, {{words}} words.",
     "previewPages": "About {{pages}} pages in this layout.",
     "previewPagesExact": "{{pages}} standard pages.",
-    "previewUndescribed": "{{count}} images have no description, so a reader who cannot see them gets nothing."
+    "previewUndescribed": "{{count}} images have no description, so a reader who cannot see them gets nothing.",
+    "replacements": "Replacements on export",
+    "replacementsIntro": "Applied to the exported file and never to your prose, every time you export. Rules run top to bottom, so an earlier one’s output is a later one’s input.",
+    "replacementFind": "Find",
+    "replacementReplace": "Replace with",
+    "replacementEnabled": "On",
+    "replacementAdd": "Add a replacement",
+    "replacementRemove": "Remove this replacement",
+    "tokens": "Placeholders",
+    "tokensIntro": "Usable in front and back matter, and as replacement text. Each one resolves from the book when the export runs."
   },
   "expose": {
     "chars": "{{value}} characters",

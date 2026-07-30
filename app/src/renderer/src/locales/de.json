@@ -1372,7 +1372,16 @@
     "previewCounts": "{{chapters}} Kapitel, {{scenes}} Szenen, {{words}} Wörter.",
     "previewPages": "Etwa {{pages}} Seiten in diesem Layout.",
     "previewPagesExact": "{{pages}} Normseiten.",
-    "previewUndescribed": "{{count}} Bilder haben keine Beschreibung – wer sie nicht sehen kann, bekommt nichts."
+    "previewUndescribed": "{{count}} Bilder haben keine Beschreibung – wer sie nicht sehen kann, bekommt nichts.",
+    "replacements": "Ersetzungen beim Export",
+    "replacementsIntro": "Wird auf die exportierte Datei angewendet, nie auf Ihren Text, und das bei jedem Export. Die Regeln laufen von oben nach unten – was eine Regel ausgibt, liest die nächste.",
+    "replacementFind": "Suchen",
+    "replacementReplace": "Ersetzen durch",
+    "replacementEnabled": "Aktiv",
+    "replacementAdd": "Ersetzung hinzufügen",
+    "replacementRemove": "Diese Ersetzung entfernen",
+    "tokens": "Platzhalter",
+    "tokensIntro": "Verwendbar in Vor- und Nachspann und als Ersetzungstext. Jeder wird beim Export aus dem Buch aufgelöst."
   },
   "expose": {
     "chars": "{{value}} Zeichen",
