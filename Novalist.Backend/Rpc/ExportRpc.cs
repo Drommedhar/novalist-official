@@ -65,6 +65,47 @@ public sealed class ExportRpc
     }
 
     /// <summary>Every token an export resolves, for the UI to list.</summary>
+    /// <summary>
+    /// Every section title the Codex uses, so the picker offers what this
+    /// project has rather than asking for it to be typed the same way twice.
+    /// </summary>
+    [JsonRpcMethod("export/codexSections")]
+    public async Task<string[]> CodexSectionsAsync()
+    {
+        var entities = new EntityService(_workspace.Projects);
+        var titles = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // Sections are on each concrete type rather than on IEntityData, so the
+        // shapes are matched here rather than widening the interface for one
+        // reader.
+        void Collect(IEnumerable<Core.Models.IEntityData> all)
+        {
+            foreach (var entity in all)
+            {
+                var sections = entity switch
+                {
+                    Core.Models.CharacterData c => c.Sections,
+                    Core.Models.LocationData l => l.Sections,
+                    Core.Models.ItemData i => i.Sections,
+                    Core.Models.LoreData lo => lo.Sections,
+                    _ => ((Core.Models.CustomEntityData)entity).Sections
+                };
+                foreach (var section in sections)
+                    if (!string.IsNullOrWhiteSpace(section.Title))
+                        titles.Add(section.Title.Trim());
+            }
+        }
+
+        Collect(await entities.LoadCharactersAsync());
+        Collect(await entities.LoadLocationsAsync());
+        Collect(await entities.LoadItemsAsync());
+        Collect(await entities.LoadLoreAsync());
+        foreach (var typeDef in entities.GetCustomEntityTypes())
+            Collect(await entities.LoadCustomEntitiesAsync(typeDef.TypeKey));
+
+        return [.. titles];
+    }
+
     [JsonRpcMethod("export/tokens")]
     public string[] Tokens() => [.. Core.Services.ExportTokens.Known];
 
@@ -117,7 +158,9 @@ public sealed class ExportRpc
         string[]? includedStages = null,
         int tocDepth = 1,
         string? tocTitle = null,
-        string? referenceDocPath = null)
+        string? referenceDocPath = null,
+        string[]? codexParts = null,
+        string[]? sectionTitles = null)
     {
         if (Enum.TryParse<ExportFormat>(format, out var parsedFormat))
         {
@@ -146,7 +189,11 @@ public sealed class ExportRpc
                 // the flat chapter list and the built-in styles it always did.
                 TocDepth = tocDepth,
                 TocTitle = tocTitle ?? string.Empty,
-                ReferenceDocPath = referenceDocPath ?? string.Empty
+                ReferenceDocPath = referenceDocPath ?? string.Empty,
+                // Null means every part, which is what every codex export did
+                // before this existed.
+                CodexParts = codexParts?.ToList(),
+                SelectedSectionTitles = sectionTitles?.ToList()
             };
             if (parsedFormat == ExportFormat.Codex)
             {

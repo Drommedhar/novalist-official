@@ -1833,7 +1833,12 @@
     "referenceDoc": "参考文档",
     "referenceDocPlaceholder": "使用 Novalist 样式",
     "referenceDocChoose": "选择",
-    "referenceDocClear": "清除"
+    "referenceDocClear": "清除",
+    "codexPart_images": "图片",
+    "codexPart_fields": "字段",
+    "codexPart_relationships": "关系",
+    "codexPart_sections": "章节段落",
+    "codexSections": "包含哪些段落"
   },
   "expose": {
     "chars": "{{value}} 字符",

@@ -1800,7 +1800,12 @@
     "referenceDoc": "Reference document",
     "referenceDocPlaceholder": "Use Novalist styles",
     "referenceDocChoose": "Choose",
-    "referenceDocClear": "Clear"
+    "referenceDocClear": "Clear",
+    "codexPart_images": "Pictures",
+    "codexPart_fields": "Fields",
+    "codexPart_relationships": "Relationships",
+    "codexPart_sections": "Sections",
+    "codexSections": "Which sections"
   },
   "expose": {
     "chars": "{{value}} characters",

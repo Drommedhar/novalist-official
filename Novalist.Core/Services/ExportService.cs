@@ -150,6 +150,36 @@ public class ExportOptions
     /// <summary>The contents depth, clamped to what the writers can render.</summary>
     public int EffectiveTocDepth => Math.Clamp(TocDepth, 1, 2);
 
+    /// <summary>
+    /// Which parts of a Codex entry the export carries:
+    /// <c>images</c>, <c>fields</c>, <c>relationships</c>, <c>sections</c>.
+    ///
+    /// Null means all of them - what every codex export did before. A series
+    /// bible that has to leave the portraits out, or a submission packet that
+    /// wants the names and nothing else, was an all-or-nothing choice per entry
+    /// until this existed.
+    /// </summary>
+    public List<string>? CodexParts { get; set; }
+
+    /// <summary>
+    /// Section titles to carry, when sections are included at all. Null means
+    /// every section; naming some is how "Appearance but not Secrets" is said.
+    /// </summary>
+    public List<string>? SelectedSectionTitles { get; set; }
+
+    /// <summary>True when this export carries the named part of an entry.</summary>
+    public bool IncludesPart(string part)
+        => CodexParts == null || CodexParts.Contains(part, StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// True when a section with this title belongs in the export. False for
+    /// every section when sections are off, whatever the title list says.
+    /// </summary>
+    public bool IncludesSection(string? title)
+        => IncludesPart("sections")
+           && (SelectedSectionTitles == null
+               || SelectedSectionTitles.Contains(title ?? string.Empty, StringComparer.OrdinalIgnoreCase));
+
     /// <summary>Resolves to the configured preset (or default).</summary>
     public ExportPreset ResolvePreset()
     {
@@ -816,7 +846,7 @@ public partial class ExportService
     private static void AppendCharacter(StringBuilder sb, CharacterData c, ExportOptions options, Func<string, string?> copyImage)
     {
         sb.AppendLine($"### {c.DisplayName}");
-        if (c.Images is { Count: > 0 })
+        if (c.Images is { Count: > 0 } && options.IncludesPart("images"))
         {
             foreach (var img in c.Images)
             {
@@ -826,10 +856,11 @@ public partial class ExportService
             }
         }
         sb.AppendLine();
-        foreach (var field in CharacterFields(c, options))
-            sb.AppendLine($"- **{field.Key}:** {field.Value}");
+        if (options.IncludesPart("fields"))
+            foreach (var field in CharacterFields(c, options))
+                sb.AppendLine($"- **{field.Key}:** {field.Value}");
 
-        if (c.Relationships is { Count: > 0 })
+        if (c.Relationships is { Count: > 0 } && options.IncludesPart("relationships"))
         {
             sb.AppendLine();
             sb.AppendLine($"**{Label(options, "relationships", "Relationships")}**");
@@ -841,7 +872,7 @@ public partial class ExportService
         {
             foreach (var s in c.Sections)
             {
-                if (string.IsNullOrWhiteSpace(s.Content)) continue;
+                if (string.IsNullOrWhiteSpace(s.Content) || !options.IncludesSection(s.Title)) continue;
                 sb.AppendLine();
                 sb.AppendLine($"**{s.Title}**");
                 sb.AppendLine(StripHtml(s.Content));
@@ -855,7 +886,7 @@ public partial class ExportService
         ExportOptions options, Func<string, string?> copyImage)
     {
         sb.AppendLine($"### {name}");
-        if (images is { Count: > 0 })
+        if (images is { Count: > 0 } && options.IncludesPart("images"))
             foreach (var img in images)
             {
                 if (string.IsNullOrWhiteSpace(img.Path)) continue;
@@ -863,13 +894,14 @@ public partial class ExportService
                 if (rel != null) sb.AppendLine($"![{img.Name}]({rel})");
             }
         sb.AppendLine();
-        foreach (var field in GenericFields(type, description, customProps, options))
-            sb.AppendLine($"- **{field.Key}:** {field.Value}");
+        if (options.IncludesPart("fields"))
+            foreach (var field in GenericFields(type, description, customProps, options))
+                sb.AppendLine($"- **{field.Key}:** {field.Value}");
         if (sections is { Count: > 0 })
         {
             foreach (var s in sections)
             {
-                if (string.IsNullOrWhiteSpace(s.Content)) continue;
+                if (string.IsNullOrWhiteSpace(s.Content) || !options.IncludesSection(s.Title)) continue;
                 sb.AppendLine();
                 sb.AppendLine($"**{s.Title}**");
                 sb.AppendLine(StripHtml(s.Content));
@@ -1147,7 +1179,7 @@ public partial class ExportService
 
         void DrawImages(List<EntityImage>? images)
         {
-            if (images is not { Count: > 0 }) return;
+            if (images is not { Count: > 0 } || !options.IncludesPart("images")) return;
             foreach (var img in images)
             {
                 if (string.IsNullOrWhiteSpace(img.Path)) continue;
@@ -1161,7 +1193,8 @@ public partial class ExportService
             if (sections is not { Count: > 0 }) return;
             foreach (var section in sections)
             {
-                if (string.IsNullOrWhiteSpace(section.Content)) continue;
+                if (string.IsNullOrWhiteSpace(section.Content)
+                    || !options.IncludesSection(section.Title)) continue;
                 y += lineHeight * 0.5;
                 DrawHeading(section.Title, fieldIndent, blockFont);
                 DrawProse(section.Content, fieldIndent);
@@ -1184,9 +1217,10 @@ public partial class ExportService
 
             DrawHeading(name, 0, entityFont);
             DrawImages(images);
-            foreach (var field in fields) DrawField(field);
+            if (options.IncludesPart("fields"))
+                foreach (var field in fields) DrawField(field);
 
-            if (relationships is { Count: > 0 })
+            if (relationships is { Count: > 0 } && options.IncludesPart("relationships"))
             {
                 y += lineHeight * 0.5;
                 DrawHeading(Label(options, "relationships", "Relationships"), fieldIndent, blockFont);

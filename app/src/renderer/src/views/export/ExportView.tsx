@@ -98,6 +98,12 @@ export function ExportView(): React.JSX.Element {
   const [tocDepth, setTocDepth] = useState(1)
   const [tocTitle, setTocTitle] = useState('')
   const [referenceDoc, setReferenceDoc] = useState('')
+  // Null means every part, which is what a codex export always carried.
+  const [codexParts, setCodexParts] = useState<Set<string>>(
+    new Set(['images', 'fields', 'relationships', 'sections'])
+  )
+  const [sectionTitles, setSectionTitles] = useState<string[]>([])
+  const [pickedSections, setPickedSections] = useState<Set<string>>(new Set())
   // Empty means every stage, which is what an export that names no filter has
   // always done and has to keep doing.
   const [stageFilter, setStageFilter] = useState<Set<string>>(new Set())
@@ -177,6 +183,19 @@ export function ExportView(): React.JSX.Element {
     })
   }, [isCodex, entitiesLoaded])
 
+  // The titles this project actually uses, so the picker names them rather than
+  // asking for them to be typed the same way twice.
+  useEffect(() => {
+    if (!isCodex) return
+    void rpc
+      .request<string[]>('export/codexSections')
+      .then((titles) => {
+        setSectionTitles(titles)
+        setPickedSections(new Set(titles))
+      })
+      .catch(() => setSectionTitles([]))
+  }, [isCodex])
+
   const allEntities = ENTITY_KINDS.flatMap(({ kind }) => entities[kind] ?? [])
   // Same grouping and name order the export itself writes, filtered by the search box.
   const needle = entityQuery.trim().toLocaleLowerCase()
@@ -249,7 +268,11 @@ export function ExportView(): React.JSX.Element {
         [...stageFilter],
         tocDepth,
         tocTitle,
-        referenceDoc
+        referenceDoc,
+        isCodex ? [...codexParts] : null,
+        // Naming every title is the same as naming none, and sending null keeps
+        // the payload the size it was.
+        isCodex && pickedSections.size < sectionTitles.length ? [...pickedSections] : null
       ])
       setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
     } catch {
@@ -440,6 +463,53 @@ export function ExportView(): React.JSX.Element {
                 {t('export.referenceDocClear')}
               </button>
             )}
+          </div>
+        )}
+
+        {/* Which parts of an entry leave the project. A series bible that has
+            to leave the portraits out, or a packet that wants the names and
+            nothing else, was an all-or-nothing choice per entry before this. */}
+        {isCodex && (
+          <div className="export-field-row">
+            {(['images', 'fields', 'relationships', 'sections'] as const).map((part) => (
+              <label key={part} className="relationships-toggle export-toggle">
+                <input
+                  type="checkbox"
+                  checked={codexParts.has(part)}
+                  onChange={(e) =>
+                    setCodexParts((prev) => {
+                      const next = new Set(prev)
+                      if (e.target.checked) next.add(part)
+                      else next.delete(part)
+                      return next
+                    })
+                  }
+                />
+                {t(`export.codexPart_${part}`)}
+              </label>
+            ))}
+          </div>
+        )}
+        {isCodex && codexParts.has('sections') && sectionTitles.length > 0 && (
+          <div className="export-field-row">
+            <span className="export-field-label">{t('export.codexSections')}</span>
+            {sectionTitles.map((title) => (
+              <label key={title} className="relationships-toggle export-toggle">
+                <input
+                  type="checkbox"
+                  checked={pickedSections.has(title)}
+                  onChange={(e) =>
+                    setPickedSections((prev) => {
+                      const next = new Set(prev)
+                      if (e.target.checked) next.add(title)
+                      else next.delete(title)
+                      return next
+                    })
+                  }
+                />
+                {title}
+              </label>
+            ))}
           </div>
         )}
 

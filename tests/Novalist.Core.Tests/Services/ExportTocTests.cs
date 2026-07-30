@@ -238,4 +238,125 @@ public class ExportTocTests : IDisposable
 
     private Task<string> ChapterXhtmlAsync(ExportOptions options)
         => EntryAsync(options, "OEBPS/chapter-1.xhtml");
+
+    // ── Which parts of a Codex entry leave the project ──
+
+    [Fact]
+    public void ByDefaultEveryPartTravels()
+    {
+        var options = new ExportOptions();
+
+        // Null means all of them, which is what every codex export did before
+        // there was anything to choose.
+        Assert.True(options.IncludesPart("images"));
+        Assert.True(options.IncludesPart("fields"));
+        Assert.True(options.IncludesPart("relationships"));
+        Assert.True(options.IncludesSection("Secrets"));
+    }
+
+    [Fact]
+    public void NamingPartsLeavesTheOthersBehind()
+    {
+        var options = new ExportOptions { CodexParts = ["fields"] };
+
+        Assert.True(options.IncludesPart("fields"));
+        Assert.False(options.IncludesPart("images"));
+        Assert.False(options.IncludesSection("Secrets"));
+    }
+
+    [Fact]
+    public void APartNameIsNotCaseSensitive()
+        => Assert.True(new ExportOptions { CodexParts = ["Images"] }.IncludesPart("images"));
+
+    [Fact]
+    public void NamingNoPartsCarriesNothing()
+    {
+        // An empty list is a real answer: the writer unticked everything.
+        var options = new ExportOptions { CodexParts = [] };
+
+        Assert.False(options.IncludesPart("fields"));
+    }
+
+    [Fact]
+    public void SectionsCanBeNamedOneByOne()
+    {
+        var options = new ExportOptions
+        {
+            CodexParts = ["sections"],
+            SelectedSectionTitles = ["Appearance"]
+        };
+
+        // "Appearance but not Secrets" is the whole point: a series bible goes
+        // out to readers and a spoiler section does not.
+        Assert.True(options.IncludesSection("Appearance"));
+        Assert.True(options.IncludesSection("appearance"));
+        Assert.False(options.IncludesSection("Secrets"));
+    }
+
+    [Fact]
+    public void SectionsOffBeatsAnyTitleList()
+    {
+        var options = new ExportOptions
+        {
+            CodexParts = ["fields"],
+            SelectedSectionTitles = ["Appearance"]
+        };
+
+        Assert.False(options.IncludesSection("Appearance"));
+    }
+
+    [Fact]
+    public async Task APortraitIsLeftOutWhenPicturesAreOff()
+    {
+        var markdown = await CodexAsync(new ExportOptions { CodexParts = ["fields", "sections"] });
+
+        Assert.DoesNotContain("![", markdown);
+        Assert.Contains("The Rookery", markdown);
+    }
+
+    [Fact]
+    public async Task ASpoilerSectionCanBeHeldBack()
+    {
+        var markdown = await CodexAsync(new ExportOptions
+        {
+            SelectedSectionTitles = ["Appearance"]
+        });
+
+        Assert.Contains("Appearance", markdown);
+        Assert.DoesNotContain("Secrets", markdown);
+        Assert.DoesNotContain("she is the one who did it", markdown);
+    }
+
+    [Fact]
+    public async Task WithNothingSaidEverySectionTravels()
+    {
+        var markdown = await CodexAsync(new ExportOptions());
+
+        Assert.Contains("Appearance", markdown);
+        Assert.Contains("Secrets", markdown);
+    }
+
+    /// <summary>A one-place Codex export, as markdown.</summary>
+    private async Task<string> CodexAsync(ExportOptions options)
+    {
+        var place = new LocationData { Name = "The Rookery", Description = "A tower." };
+        place.Images.Add(new EntityImage { Name = "tower", Path = "images/tower.png" });
+        place.Sections.Add(new EntitySection { Title = "Appearance", Content = "<p>Tall.</p>" });
+        place.Sections.Add(
+            new EntitySection { Title = "Secrets", Content = "<p>she is the one who did it</p>" });
+
+        var entities = Substitute.For<IEntityService>();
+        entities.LoadCharactersAsync().Returns(new List<CharacterData>());
+        entities.LoadLocationsAsync().Returns([place]);
+        entities.LoadItemsAsync().Returns(new List<ItemData>());
+        entities.LoadLoreAsync().Returns(new List<LoreData>());
+        entities.GetCustomEntityTypes().Returns([]);
+        _project.ActiveBook.Returns(new BookData());
+
+        options.Format = ExportFormat.Codex;
+        options.Title = "Bible";
+        var outPath = _dir.Combine($"codex-{Guid.NewGuid():N}.md");
+        await new ExportService(_project, entities).ExportCodexAsync(options, outPath);
+        return await File.ReadAllTextAsync(outPath);
+    }
 }

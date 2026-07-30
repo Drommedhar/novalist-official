@@ -594,4 +594,65 @@ public sealed class ExportRpcTests : IDisposable
         using var styles = new StreamReader(zip.GetEntry("word/styles.xml")!.Open());
         Assert.Contains("HouseBody", await styles.ReadToEndAsync());
     }
+
+    [Fact]
+    public async Task Run_CodexPartsReachTheFile()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        var place = new Novalist.Core.Models.LocationData { Name = "The Rookery" };
+        place.Sections.Add(new Novalist.Core.Models.EntitySection
+        {
+            Title = "Secrets", Content = "<p>she did it</p>"
+        });
+        await entities.SaveLocationAsync(place);
+
+        var outPath = Path.Combine(_root, "bible.md");
+        await _rpc.RunAsync("Codex", outPath, "Bible", "Tester", true, [],
+            presetId: null, selectedEntityKeys: null, labels: null, includeCover: false,
+            includedStages: null, tocDepth: 1, tocTitle: null, referenceDocPath: null,
+            codexParts: ["fields"]);
+
+        var markdown = await File.ReadAllTextAsync(outPath);
+        Assert.Contains("The Rookery", markdown);
+        // A spoiler section can be held back from a bible that goes to readers.
+        Assert.DoesNotContain("she did it", markdown);
+    }
+
+    [Fact]
+    public async Task CodexSections_NamesTheTitlesTheProjectUses()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        var character = new Novalist.Core.Models.CharacterData { Name = "Mira" };
+        character.Sections.Add(new Novalist.Core.Models.EntitySection { Title = "Appearance" });
+        await entities.SaveCharacterAsync(character);
+        var place = new Novalist.Core.Models.LocationData { Name = "The Rookery" };
+        place.Sections.Add(new Novalist.Core.Models.EntitySection { Title = "  Secrets  " });
+        place.Sections.Add(new Novalist.Core.Models.EntitySection { Title = "   " });
+        await entities.SaveLocationAsync(place);
+        var relic = new Novalist.Core.Models.ItemData { Name = "The Crest" };
+        relic.Sections.Add(new Novalist.Core.Models.EntitySection { Title = "Provenance" });
+        await entities.SaveItemAsync(relic);
+        var oath = new Novalist.Core.Models.LoreData { Name = "The Oath" };
+        oath.Sections.Add(new Novalist.Core.Models.EntitySection { Title = "Wording" });
+        await entities.SaveLoreAsync(oath);
+        // A type the writer invented, which is where a lot of a bible lives.
+        await entities.SaveCustomEntityTypeAsync(
+            new Novalist.Core.Models.CustomEntityTypeDefinition
+            {
+                TypeKey = "ship", DisplayName = "Ship"
+            });
+        var ship = new Novalist.Core.Models.CustomEntityData
+        {
+            EntityTypeKey = "ship", Name = "The Corvid"
+        };
+        ship.Sections.Add(new Novalist.Core.Models.EntitySection { Title = "Rigging" });
+        await entities.SaveCustomEntityAsync(ship);
+
+        var titles = await _rpc.CodexSectionsAsync();
+
+        // Trimmed, deduped, sorted, and across every type: the picker offers
+        // what the project has rather than asking for it to be typed again.
+        Assert.Equal(
+            ["Appearance", "Provenance", "Rigging", "Secrets", "Wording"], titles);
+    }
 }

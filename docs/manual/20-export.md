@@ -283,6 +283,21 @@ Beyond the chapter checkboxes:
 
 A scene held back is held back whatever the stage filter says. The filter narrows what is included; it never overrides an explicit exclusion.
 
+### Choosing what leaves a Codex entry
+
+The Codex formats let you pick entries, and until now that was all-or-nothing per entry: a series bible carried every field, every picture, every relationship and every section, or the entry did not go at all.
+
+Four toggles appear when the content is **Codex**:
+
+- **Pictures** — the portraits and reference images.
+- **Fields** — type, description, and your own custom properties.
+- **Relationships** — who is what to whom.
+- **Sections** — the long-form writing on an entry.
+
+With **Sections** on, a second row lists every section title your project actually uses, each with its own checkbox. This is what makes a reader-facing bible possible: send **Appearance** and **History** and hold back **Secrets**, without editing a single entry first.
+
+Untick everything and the export is names alone, which is exactly what a submission packet's cast list is.
+
 The heading is resolved by every writer — EPUB, DOCX, PDF, Markdown, LaTeX, Final Draft and Normseiten — from the chapter's position in the export, not from the folder name on disk. Excluding a chapter renumbers the ones after it, because the numbers describe the book being exported.
 
 Layouts are stored with the book, not globally — a submission format for a novel and one for a short-story collection have no reason to share a list. Values that would produce a file nobody can open (a zero font size, a margin wider than the page) fall back to something sane rather than being stored.

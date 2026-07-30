@@ -1401,7 +1401,12 @@
     "referenceDoc": "Referenzdokument",
     "referenceDocPlaceholder": "Novalist-Stile verwenden",
     "referenceDocChoose": "Wählen",
-    "referenceDocClear": "Entfernen"
+    "referenceDocClear": "Entfernen",
+    "codexPart_images": "Bilder",
+    "codexPart_fields": "Felder",
+    "codexPart_relationships": "Beziehungen",
+    "codexPart_sections": "Abschnitte",
+    "codexSections": "Welche Abschnitte"
   },
   "expose": {
     "chars": "{{value}} Zeichen",
