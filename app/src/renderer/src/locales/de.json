@@ -3168,5 +3168,26 @@
     "delete": "Artikel löschen",
     "body": "Der Artikel",
     "bodyPlaceholder": "Wie die Wirtschaft funktioniert, was Magie kostet, warum der Krieg begann."
+  },
+  "submissions": {
+    "title": "Einreichungen",
+    "intro": "Wohin dieses Buch geschickt wurde und was zurückkam.",
+    "recipientPlaceholder": "Agentur, Verlag, Magazin, Wettbewerb",
+    "add": "Sendung erfassen",
+    "recipient": "Empfänger",
+    "status": "Ergebnis",
+    "remove": "Eintrag entfernen",
+    "sentOn": "Gesendet",
+    "material": "Was gesendet wurde",
+    "respondedOn": "Antwort",
+    "empty": "Noch nichts erfasst.",
+    "notesPlaceholder": "Was erwähnenswert ist",
+    "alreadyOut": "Dieses Buch liegt dort bereits vor{{when, select, undefined{} other{ ({{when}})}}}. Erneutes Senden kann Absicht sein – das ist nur ein Hinweis.",
+    "status_sent": "Unterwegs",
+    "status_requested": "Mehr angefordert",
+    "status_accepted": "Angenommen",
+    "status_rejected": "Abgelehnt",
+    "status_withdrawn": "Zurückgezogen",
+    "status_noReply": "Keine Antwort"
   }
 }

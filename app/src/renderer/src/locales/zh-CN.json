@@ -3200,5 +3200,26 @@
     "delete": "删除此文章",
     "body": "正文",
     "bodyPlaceholder": "经济如何运作、魔法的代价、战争因何而起。"
+  },
+  "submissions": {
+    "title": "投稿",
+    "intro": "这本书投给了谁，又得到了什么回复。",
+    "recipientPlaceholder": "代理、出版社、杂志、比赛",
+    "add": "记录一次投稿",
+    "recipient": "投给谁",
+    "status": "结果",
+    "remove": "删除此记录",
+    "sentOn": "寄出",
+    "material": "寄出的内容",
+    "respondedOn": "回复",
+    "empty": "尚无记录。",
+    "notesPlaceholder": "值得记下的事",
+    "alreadyOut": "这本书已经投给过他们{{when, select, undefined{} other{（{{when}}）}}}。再次投稿可能是有意为之——这只是提醒。",
+    "status_sent": "投出",
+    "status_requested": "索要更多",
+    "status_accepted": "已接受",
+    "status_rejected": "已拒绝",
+    "status_withdrawn": "已撤回",
+    "status_noReply": "无回复"
   }
 }

@@ -124,6 +124,18 @@ Every [word target](04-chapters-and-scenes.md#word-targets) you have set, in one
 
 Targets can also be set from here rather than only from the binder — pick a chapter or act from the drop-down at the bottom of the card and press **Set target**. The card is where to look when you want to know which parts of the book have a length in mind and how they are doing against it.
 
+### Submissions
+
+Novalist produces submission-ready material — the [Exposé](25-expose.md), the Shunn layout — and used to record nothing at all about where any of it went. So the one thing you must not do, send the same manuscript to the same agent twice, was the one thing it could not help with.
+
+Type a recipient and press **Record a send**. Each row then takes what you sent, when, what came back, when they answered, and a note.
+
+- **Submissions still out are listed first** and marked down the edge. Those are the ones you are waiting on, and ordering by date buries them under a year of rejections.
+- **Dates are free text.** A half-remembered "March" is worth recording, and a date picker would demand a day you do not have.
+- If the book is **already out** with the name you are typing, a reminder appears before you record it — with the dates it went. It is a reminder, not a refusal: querying the same agency twice on purpose, a different agent there or a re-query after a rewrite, is normal, and an app that blocks it is one you work around.
+- A send that was **rejected is not a duplicate**. Sending again afterwards is a new attempt.
+- Removing a row deletes the record, not the fact. Use it to fix a mistyped entry.
+
 ### Averages
 
 A small card pairs **average words per chapter** with the project's **estimated reading time**.

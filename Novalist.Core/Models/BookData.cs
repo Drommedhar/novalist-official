@@ -102,6 +102,17 @@ public class BookData
     [JsonPropertyName("plotlines")]
     public List<PlotlineData> Plotlines { get; set; } = [];
 
+    /// <summary>
+    /// Where this book has been sent and what came back.
+    ///
+    /// Novalist produced submission-ready material and recorded nothing about
+    /// where it went, so the one thing a writer must not do - send the same
+    /// manuscript to the same agent twice - was the one thing it could not
+    /// help with.
+    /// </summary>
+    [JsonPropertyName("submissions")]
+    public List<Submission> Submissions { get; set; } = [];
+
     /// <summary>Optional per-act metadata (date ranges etc.). Acts referenced
     /// by name from <see cref="ChapterData.Act"/>.</summary>
     [JsonPropertyName("acts")]

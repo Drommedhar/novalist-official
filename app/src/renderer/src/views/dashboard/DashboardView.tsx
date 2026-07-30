@@ -5,6 +5,7 @@ import { BookAnalyticsCard } from './BookAnalyticsCard'
 import { TargetsCard } from './TargetsCard'
 import { PremiseCard } from './PremiseCard'
 import { ArcsCard } from './ArcsCard'
+import { SubmissionsCard } from './SubmissionsCard'
 import { TensionCard } from './TensionCard'
 import { SceneAxisCard } from './SceneAxisCard'
 import { InputDialog } from '../../shell/InputDialog'
@@ -478,6 +479,8 @@ export function DashboardView(): React.JSX.Element {
 
       {/* Word targets, which had no home outside the binder's context menu. */}
       <TargetsCard />
+      {/* Where the book went and what came back. */}
+      <SubmissionsCard />
 
       {/* Scene stages, which the chapter breakdown above cannot express: a
           chapter mid-revision holds scenes at four different stages. */}

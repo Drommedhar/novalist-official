@@ -3160,5 +3160,26 @@
     "delete": "Delete this article",
     "body": "The article",
     "bodyPlaceholder": "How the economy works, what the magic costs, why the war started."
+  },
+  "submissions": {
+    "title": "Submissions",
+    "intro": "Where this book has been sent, and what came back.",
+    "recipientPlaceholder": "Agent, publisher, magazine, contest",
+    "add": "Record a send",
+    "recipient": "Who it went to",
+    "status": "What happened",
+    "remove": "Remove this record",
+    "sentOn": "Sent",
+    "material": "What you sent",
+    "respondedOn": "Answered",
+    "empty": "Nothing recorded yet.",
+    "notesPlaceholder": "Anything worth remembering",
+    "alreadyOut": "This book is already out with them{{when, select, undefined{} other{ ({{when}})}}}. Sending again may be deliberate — this is only a reminder.",
+    "status_sent": "Out",
+    "status_requested": "They asked for more",
+    "status_accepted": "Accepted",
+    "status_rejected": "Rejected",
+    "status_withdrawn": "Withdrawn",
+    "status_noReply": "No reply"
   }
 }
