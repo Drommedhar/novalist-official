@@ -29,6 +29,23 @@ public class UiBridgeTests
     }
 
     [Fact]
+    public void ChangeSignals_ReachTheInterfaceUnderTheNamesItListensFor()
+    {
+        // The renderer subscribes to these two strings by name. A mismatch
+        // fails nothing: the interface just never reloads, and an extension's
+        // write looks like it did not happen.
+        var (bridge, sent) = Build();
+
+        bridge.EntitiesChanged();
+        Assert.True(sent.TryDequeue(out var entities));
+        Assert.Equal("entities/changed", entities.Method);
+
+        bridge.ProjectStructureChanged();
+        Assert.True(sent.TryDequeue(out var structure));
+        Assert.Equal("project/structureChanged", structure.Method);
+    }
+
+    [Fact]
     public void CreateProgress_OpensDialog_AndDrivesUpdates()
     {
         var (bridge, sent) = Build();

@@ -32,6 +32,7 @@ public sealed partial class HostServices
     {
         if (!ChapterExists(chapterGuid)) return false;
         await _projectService.RenameChapterAsync(chapterGuid, title ?? string.Empty);
+        ProjectStructureChanged?.Invoke();
         return true;
     }
 
@@ -40,6 +41,7 @@ public sealed partial class HostServices
     {
         if (!SceneExists(chapterGuid, sceneId)) return false;
         await _projectService.RenameSceneAsync(chapterGuid, sceneId, title ?? string.Empty);
+        ProjectStructureChanged?.Invoke();
         return true;
     }
 
@@ -57,6 +59,7 @@ public sealed partial class HostServices
         if (owner == null) return false;
 
         await _projectService.MoveScenesAsync([sceneId], targetChapterGuid, Math.Max(0, index));
+        ProjectStructureChanged?.Invoke();
         return true;
     }
 
@@ -64,6 +67,7 @@ public sealed partial class HostServices
     {
         if (!ChapterExists(chapterGuid)) return false;
         await _projectService.ReorderChapterAsync(chapterGuid, Math.Max(1, order));
+        ProjectStructureChanged?.Invoke();
         return true;
     }
 
@@ -74,6 +78,7 @@ public sealed partial class HostServices
 
         chapter.Act = (act ?? string.Empty).Trim();
         await _projectService.SaveProjectAsync();
+        ProjectStructureChanged?.Invoke();
         return true;
     }
 
@@ -83,6 +88,7 @@ public sealed partial class HostServices
         // The core delete is already a move to the trash, so an extension gets
         // the recoverable verb without a second implementation.
         await _projectService.DeleteChapterAsync(chapterGuid);
+        ProjectStructureChanged?.Invoke();
         return true;
     }
 
@@ -90,6 +96,7 @@ public sealed partial class HostServices
     {
         if (!SceneExists(chapterGuid, sceneId)) return false;
         await _projectService.ArchiveSceneAsync(chapterGuid, sceneId);
+        ProjectStructureChanged?.Invoke();
         return true;
     }
 
@@ -264,6 +271,70 @@ public sealed partial class HostServices
             await SaveAnyAsync(target);
 
         EntityRefreshRequested?.Invoke();
+        return true;
+    }
+
+    // ── Books and drafts (IExtensionProjectService) ────────────────
+
+    IReadOnlyList<Sdk.Services.BookInfo> IExtensionProjectService.GetBooks()
+        => [.. (_projectService.CurrentProject?.Books ?? [])
+            .Select(b => new Sdk.Services.BookInfo { Id = b.Id, Name = b.Name })];
+
+    string? IExtensionProjectService.ActiveBookId => _projectService.ActiveBook?.Id;
+
+    async Task<string> IExtensionProjectService.CreateBookAsync(string name)
+    {
+        var book = await _projectService.CreateBookAsync(name);
+        ProjectStructureChanged?.Invoke();
+        return book.Id;
+    }
+
+    async Task<bool> IExtensionProjectService.RenameBookAsync(string bookId, string name)
+    {
+        if (_projectService.CurrentProject?.Books.Any(b => b.Id == bookId) != true) return false;
+        await _projectService.RenameBookAsync(bookId, name);
+        ProjectStructureChanged?.Invoke();
+        return true;
+    }
+
+    async Task<bool> IExtensionProjectService.SwitchBookAsync(string bookId)
+    {
+        if (_projectService.CurrentProject?.Books.Any(b => b.Id == bookId) != true) return false;
+        // Switching out from under an unsaved scene loses it: the editor holds
+        // text for a book that is no longer the one being written to.
+        if (_editing.Current.Dirty) return false;
+        await _projectService.SwitchBookAsync(bookId);
+        ProjectStructureChanged?.Invoke();
+        return true;
+    }
+
+    IReadOnlyList<Sdk.Services.DraftInfo> IExtensionProjectService.GetDrafts()
+        => [.. (_projectService.ActiveBook?.Drafts ?? [])
+            .Select(d => new Sdk.Services.DraftInfo { Id = d.Id, Name = d.Name })];
+
+    string? IExtensionProjectService.ActiveDraftId => _projectService.ActiveBook?.ActiveDraftId;
+
+    async Task<string> IExtensionProjectService.CreateDraftAsync(string name, string? cloneFromDraftId)
+    {
+        var draft = await _projectService.CreateDraftAsync(name, cloneFromDraftId);
+        ProjectStructureChanged?.Invoke();
+        return draft.Id;
+    }
+
+    async Task<bool> IExtensionProjectService.RenameDraftAsync(string draftId, string name)
+    {
+        if (_projectService.ActiveBook?.Drafts.Any(d => d.Id == draftId) != true) return false;
+        await _projectService.RenameDraftAsync(draftId, name);
+        ProjectStructureChanged?.Invoke();
+        return true;
+    }
+
+    async Task<bool> IExtensionProjectService.SwitchDraftAsync(string draftId)
+    {
+        if (_projectService.ActiveBook?.Drafts.Any(d => d.Id == draftId) != true) return false;
+        if (_editing.Current.Dirty) return false;
+        await _projectService.SwitchDraftAsync(draftId);
+        ProjectStructureChanged?.Invoke();
         return true;
     }
 

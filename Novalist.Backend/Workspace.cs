@@ -80,6 +80,10 @@ public sealed partial class Workspace : IDisposable
                 _hostServices = new Extensions.HostServices(
                     FileService, Projects, new EntityService(Projects), Settings, _uiPump, Editing);
                 _hostServices.NotificationRequested += UiBridge.ShowNotification;
+                // An extension's write has to reach the screen, or it changed a
+                // file and nothing the writer can see.
+                _hostServices.EntityRefreshRequested += UiBridge.EntitiesChanged;
+                _hostServices.ProjectStructureChanged += UiBridge.ProjectStructureChanged;
                 _hostServices.BusyProgressFactory = UiBridge.CreateProgress;
                 _hostServices.WizardLauncher = UiBridge.RunWizardAsync;
                 _hostServices.Picker = UiBridge.PickAsync;

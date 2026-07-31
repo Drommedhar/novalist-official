@@ -123,6 +123,55 @@ public interface IExtensionProjectService
     /// </summary>
     Task<bool> ArchiveSceneAsync(string chapterGuid, string sceneId);
 
+    // ── Books and drafts ──
+
+    /// <summary>Every book in the project, in the order the binder shows them.</summary>
+    IReadOnlyList<BookInfo> GetBooks();
+
+    /// <summary>The book everything else on this interface reads and writes.</summary>
+    string? ActiveBookId { get; }
+
+    /// <summary>
+    /// Adds a book to the project and returns its id. The new book is not
+    /// switched to: an extension that adds a volume should not move the writer
+    /// out of the one they are in.
+    /// </summary>
+    Task<string> CreateBookAsync(string name);
+
+    /// <summary>Renames a book. False when the id is unknown.</summary>
+    Task<bool> RenameBookAsync(string bookId, string name);
+
+    /// <summary>
+    /// Makes a book the active one, so the chapter and scene calls above act on
+    /// it. Refused while the editor holds unsaved changes - switching out from
+    /// under an unsaved scene is how the writer's words go missing.
+    /// </summary>
+    /// <returns>False when the id is unknown or the editor is busy.</returns>
+    Task<bool> SwitchBookAsync(string bookId);
+
+    /// <summary>The active book's drafts, oldest first.</summary>
+    IReadOnlyList<DraftInfo> GetDrafts();
+
+    /// <summary>The draft the manuscript calls above read and write.</summary>
+    string? ActiveDraftId { get; }
+
+    /// <summary>
+    /// Adds a draft to the active book and returns its id. Give
+    /// <paramref name="cloneFromDraftId"/> to start it as a copy of an existing
+    /// draft rather than empty - which is what a revision pass wants, so the
+    /// writer keeps the version it started from.
+    /// </summary>
+    Task<string> CreateDraftAsync(string name, string? cloneFromDraftId = null);
+
+    /// <summary>Renames a draft of the active book. False when unknown.</summary>
+    Task<bool> RenameDraftAsync(string draftId, string name);
+
+    /// <summary>
+    /// Makes a draft the active one. Refused while the editor holds unsaved
+    /// changes, for the same reason as switching books.
+    /// </summary>
+    Task<bool> SwitchDraftAsync(string draftId);
+
     /// <summary>Get chapters in order.</summary>
     IReadOnlyList<ChapterInfo> GetChaptersOrdered();
 
@@ -529,6 +578,13 @@ public sealed class ProjectInfo
 
 /// <summary>Lightweight book info for events.</summary>
 public sealed class BookInfo
+{
+    public string Id { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+}
+
+/// <summary>One draft of a book.</summary>
+public sealed class DraftInfo
 {
     public string Id { get; init; } = string.Empty;
     public string Name { get; init; } = string.Empty;

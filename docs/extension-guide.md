@@ -118,6 +118,10 @@ An extension whose `minHostVersion` is above the running Novalist is skipped wit
 
 Use **`GetAiContextAsync`** rather than the `Load*` methods when you are assembling context for a model. The `Load*` methods return everything, because the Codex has to show everything. `GetAiContextAsync` applies the writer's per-entry AI inclusion setting and their per-section withholding — which your extension cannot reconstruct on its own. A writer who marks an entry "never" means it.
 
+**`ProjectService`, books and drafts** — `GetBooks`, `CreateBookAsync`, `RenameBookAsync`, `SwitchBookAsync`, and the same four for drafts, plus `ActiveBookId` / `ActiveDraftId`. Every other manuscript call on this interface acts on the active book and draft, so an importer building a second volume — or a revision pass wanting its own draft — had no way to say which one it meant. `CreateDraftAsync` takes an optional draft to copy, which is what a revision pass wants: the writer keeps the version it started from.
+
+Creating a book does **not** switch to it; an extension adding a volume should not move the writer out of the one they are in. Switching book or draft is **refused while the editor holds unsaved changes** — the editor would be holding text for a book that is no longer the one being written to.
+
 **`ProjectService`, structural editing** — `RenameChapterAsync`, `RenameSceneAsync`, `MoveSceneAsync`, `MoveChapterAsync`, `SetChapterActAsync`, `TrashChapterAsync`, `ArchiveSceneAsync`. An importer that could add a chapter but not title or order it produced a project the writer had to repair by hand. Note the two destructive verbs are **trash** and **archive** — both recoverable from the binder. There is deliberately no call that erases anything.
 
 **`ResearchService`** — research items, readable and writable, plus `ImportFileAsync` to copy a file into the project. This is what a web-capture extension needs: somewhere to put what it fetched.
@@ -249,6 +253,7 @@ foreach (var scene in host.ProjectService.GetScenesForChapter(chapterGuid))
 - **Replacing the Codex's own rules.** You can create entries and write their names, descriptions and sections. Match settings, AI inclusion, state overrides and per-context resolution stay host-owned, and entity extraction returns *proposals* the writer confirms.
 - **Drawing native UI.** All extension interface is HTML in a frame. There is no Avalonia or React surface to attach to.
 - **Reaching the network from a web view.** The frame is sandboxed. Do network work in .NET.
+- **Deleting a book or a draft.** You can add and rename both. Nothing here erases one, for the same reason nothing erases a chapter.
 - **Modifying an export you were handed.** `IExportPostProcessor` gets a path so it can *read* the file and report on it. Rewriting an export the writer is about to send is the worst possible moment to be clever.
 
 If a feature you want needs one of these, say so in an issue rather than working around it.

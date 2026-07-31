@@ -36,6 +36,23 @@ public sealed class UiBridge
     /// <summary>Pushes a toast message to the renderer.</summary>
     public void ShowNotification(string message) => Send("ui/showNotification", message);
 
+    /// <summary>
+    /// Tells the interface an extension changed the Codex, so it reloads.
+    ///
+    /// RequestEntityRefresh has been on the SDK since the beginning and the
+    /// event behind it had no subscriber, so an extension that wrote an entry
+    /// changed a file and nothing on screen: the writer saw their old values
+    /// until they clicked away and back.
+    /// </summary>
+    public void EntitiesChanged() => Send("entities/changed", null);
+
+    /// <summary>
+    /// Tells the interface an extension changed the shape of the project - a
+    /// book, a draft, a chapter, a scene. The binder holds its own copy of that
+    /// shape and has no other way to learn it moved.
+    /// </summary>
+    public void ProjectStructureChanged() => Send("project/structureChanged", null);
+
     // ── Busy progress ───────────────────────────────────────────────
 
     /// <summary>Opens an RPC-backed busy-progress dialog and returns the handle

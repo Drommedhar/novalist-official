@@ -1158,5 +1158,139 @@ public class HostServicesExtendedTests
         var saved = (await entities.LoadCustomEntitiesAsync("ship")).First(e => e.Id == ship);
         Assert.Contains(saved.Relationships, r => r.Role == "captained by" && r.Target == "Mara");
     }
+
+    // ── Books and drafts ──
+
+    private static (HostServices Host, ProjectService Proj, SceneEditingState Editing, TempDir Dir) BuildWithEditor()
+    {
+        var dir = new TempDir();
+        var file = new FileService();
+        var proj = new ProjectService(file);
+        proj.CreateProjectAsync(dir.Path, "P", "Book").GetAwaiter().GetResult();
+        var settings = Substitute.For<ISettingsService>();
+        settings.Settings.Returns(new AppSettings());
+        settings.SaveAsync().Returns(Task.CompletedTask);
+        var editing = new SceneEditingState();
+        return (new HostServices(file, proj, new EntityService(proj), settings, null, editing),
+            proj, editing, dir);
+    }
+
+    [Fact]
+    public async Task BooksCanBeListedAddedAndRenamed()
+    {
+        var (host, _, _, dir) = BuildWithEditor();
+        using var _d = dir;
+
+        var first = host.ProjectService.ActiveBookId;
+        Assert.NotNull(first);
+        Assert.Single(host.ProjectService.GetBooks());
+
+        var second = await host.ProjectService.CreateBookAsync("Volume Two");
+        Assert.Equal(2, host.ProjectService.GetBooks().Count);
+        // Adding a volume must not move the writer out of the one they are in.
+        Assert.Equal(first, host.ProjectService.ActiveBookId);
+
+        Assert.True(await host.ProjectService.RenameBookAsync(second, "Volume II"));
+        Assert.Contains(host.ProjectService.GetBooks(), b => b.Name == "Volume II");
+        Assert.False(await host.ProjectService.RenameBookAsync("no-such-book", "x"));
+    }
+
+    [Fact]
+    public async Task SwitchingBooksIsRefusedWhileTheEditorHoldsUnsavedText()
+    {
+        var (host, _, editing, dir) = BuildWithEditor();
+        using var _d = dir;
+        var first = host.ProjectService.ActiveBookId;
+        var second = await host.ProjectService.CreateBookAsync("Volume Two");
+
+        editing.Set("some-chapter", "some-scene", dirty: true);
+        // Switching out from under an unsaved scene loses it: the editor holds
+        // text for a book that is no longer the one being written to.
+        Assert.False(await host.ProjectService.SwitchBookAsync(second));
+        Assert.Equal(first, host.ProjectService.ActiveBookId);
+
+        editing.Set(null, null, dirty: false);
+        Assert.True(await host.ProjectService.SwitchBookAsync(second));
+        Assert.Equal(second, host.ProjectService.ActiveBookId);
+
+        Assert.False(await host.ProjectService.SwitchBookAsync("no-such-book"));
+    }
+
+    [Fact]
+    public async Task DraftsCanBeListedAddedRenamedAndSwitched()
+    {
+        var (host, _, editing, dir) = BuildWithEditor();
+        using var _d = dir;
+
+        var original = host.ProjectService.ActiveDraftId;
+        Assert.Single(host.ProjectService.GetDrafts());
+
+        var second = await host.ProjectService.CreateDraftAsync("Revision");
+        Assert.Equal(2, host.ProjectService.GetDrafts().Count);
+
+        Assert.True(await host.ProjectService.RenameDraftAsync(second, "Second pass"));
+        Assert.Contains(host.ProjectService.GetDrafts(), d => d.Name == "Second pass");
+        Assert.False(await host.ProjectService.RenameDraftAsync("no-such-draft", "x"));
+
+        editing.Set("some-chapter", "some-scene", dirty: true);
+        Assert.False(await host.ProjectService.SwitchDraftAsync(second));
+        Assert.Equal(original, host.ProjectService.ActiveDraftId);
+
+        editing.Set(null, null, dirty: false);
+        Assert.True(await host.ProjectService.SwitchDraftAsync(second));
+        Assert.Equal(second, host.ProjectService.ActiveDraftId);
+
+        Assert.False(await host.ProjectService.SwitchDraftAsync("no-such-draft"));
+    }
+
+    [Fact]
+    public async Task ADraftCanStartAsACopyOfAnother()
+    {
+        // What a revision pass wants: the writer keeps the version it started
+        // from rather than an empty draft beside a full one.
+        var (host, _, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var chapter = await host.ProjectService.CreateChapterAsync("One");
+        await host.ProjectService.CreateSceneAsync(chapter, "Arrival");
+        var original = host.ProjectService.ActiveDraftId;
+
+        var copy = await host.ProjectService.CreateDraftAsync("Revision", original);
+        Assert.True(await host.ProjectService.SwitchDraftAsync(copy));
+
+        Assert.Contains(host.ProjectService.GetChaptersOrdered(), c => c.Title == "One");
+    }
+
+    [Fact]
+    public async Task StructuralWritesTellTheInterfaceToReload()
+    {
+        // The half that used to be missing: an extension changed a file and
+        // nothing on screen, so the writer saw stale values until they clicked
+        // away and back and read that as the extension having failed.
+        var (host, _, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var structure = 0;
+        var entities = 0;
+        host.ProjectStructureChanged += () => structure++;
+        host.EntityRefreshRequested += () => entities++;
+
+        var chapter = await host.ProjectService.CreateChapterAsync("One");
+        var scene = await host.ProjectService.CreateSceneAsync(chapter, "Arrival");
+        await host.ProjectService.WriteSceneContentAsync(chapter, scene, "<p>Text.</p>");
+        await host.ProjectService.RenameChapterAsync(chapter, "Chapter One");
+        await host.ProjectService.RenameSceneAsync(chapter, scene, "The arrival");
+        await host.ProjectService.MoveSceneAsync(scene, chapter, 0);
+        await host.ProjectService.MoveChapterAsync(chapter, 1);
+        await host.ProjectService.SetChapterActAsync(chapter, "Act One");
+        await host.ProjectService.ArchiveSceneAsync(chapter, scene);
+        await host.ProjectService.TrashChapterAsync(chapter);
+        await host.ProjectService.CreateBookAsync("Volume Two");
+        await host.ProjectService.CreateDraftAsync("Revision");
+        Assert.Equal(12, structure);
+
+        var id = await host.EntityService.CreateEntityAsync("character", "Mara");
+        await host.EntityService.SetEntityFieldsAsync("character", id!,
+            new Dictionary<string, string> { ["Age"] = "31" });
+        Assert.True(entities > 0);
+    }
 }
 

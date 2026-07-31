@@ -437,6 +437,7 @@ public sealed partial class HostServices :
     async Task<string> IExtensionProjectService.CreateChapterAsync(string title)
     {
         var chapter = await _projectService.CreateChapterAsync(title ?? string.Empty);
+        ProjectStructureChanged?.Invoke();
         return chapter.Guid;
     }
 
@@ -448,6 +449,7 @@ public sealed partial class HostServices :
             return string.Empty;
 
         var scene = await _projectService.CreateSceneAsync(chapterGuid, title ?? string.Empty);
+        ProjectStructureChanged?.Invoke();
         return scene.Id;
     }
 
@@ -477,6 +479,8 @@ public sealed partial class HostServices :
         // catch up with what was just written.
         scene.WordCount = Workspace.CountWords(Core.Utilities.TextDiff.StripHtml(html ?? string.Empty));
         await _projectService.SaveScenesAsync();
+        // The binder shows word counts, so a prose write moves the shape too.
+        ProjectStructureChanged?.Invoke();
     }
 
     IReadOnlyList<Sdk.Services.ChapterInfo> IExtensionProjectService.GetChaptersOrdered()
@@ -735,6 +739,13 @@ public sealed partial class HostServices :
 
     /// <summary>Internal event for entity refresh requests from extensions.</summary>
     internal event Action? EntityRefreshRequested;
+
+    /// <summary>
+    /// Raised when an extension changes the shape of the project - a book, a
+    /// draft, a chapter, a scene. The renderer holds its own copy of that shape
+    /// and has no other way to learn it moved.
+    /// </summary>
+    internal event Action? ProjectStructureChanged;
 
     List<string> IExtensionEntityService.GetProjectImages() => _entityService.GetProjectImages();
     string IExtensionEntityService.GetImageFullPath(string relativePath) => _entityService.GetImageFullPath(relativePath);

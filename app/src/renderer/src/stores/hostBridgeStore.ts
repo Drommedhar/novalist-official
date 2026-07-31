@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
+import { useCodexStore } from './codexStore'
+import { useProjectStore, type ProjectStateDto } from './projectStore'
 
 /**
  * Bridges the backend extension host's imperative UI capabilities — toasts,
@@ -160,6 +162,19 @@ let registered = false
 export function registerHostBridge(): void {
   if (registered) return
   registered = true
+
+  // An extension writing to the project changes files the interface is
+  // already showing. Without these two the writer saw their old values until
+  // they clicked away and back, which reads as the extension having failed.
+  rpc.onNotification('entities/changed', () => {
+    void useCodexStore.getState().refresh()
+  })
+
+  rpc.onNotification('project/structureChanged', () => {
+    void rpc
+      .request<ProjectStateDto>('project/getState')
+      .then((state) => useProjectStore.getState().applyState(state))
+  })
 
   rpc.onNotification('ui/showNotification', (params) => {
     const message = firstParam<string>(params)

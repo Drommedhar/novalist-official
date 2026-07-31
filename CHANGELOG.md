@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Extensions can work across books and drafts.** Everything an extension could do applied to whichever book and draft you had open, with no way to name another — so an importer could not build a second volume and a revision pass could not put its work in its own draft. Extensions can now list, add and rename books and drafts, start a draft as a copy of an existing one, and switch between them. Switching is refused while you have unsaved changes in the editor, because switching out from under an unsaved scene is how words go missing.
+
 - **Extensions can fill in a Codex entry properly.** An extension could write an entry's name, description and notes and nothing else — so an importer brought a character across with their whole biography and not their hair colour, and a questionnaire had nowhere but a notes section to put the answers. Extensions can now write an entry's own fields, the properties you added yourself, and its relationships, with the other half of each relationship authored onto the entry it names.
 
 - **An extension can no longer write over the scene you are typing in.** An extension that writes prose — an importer, a cleanup pass, a generator — could land on the open scene while you were working in it; its write and the editor's next autosave overwrote each other, whichever finished second won, and the words that lost were gone with no error anywhere. Novalist now tells extensions which scene is open with unsaved changes, and a write to it is refused. A pass over the whole book skips that one scene and keeps going through the rest.
@@ -225,6 +227,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **An extension's changes show up without clicking away and back.** When an extension wrote to the Codex or changed the shape of the project, it changed the files and nothing on screen: the entry kept showing its old values and the binder kept its old order until you navigated somewhere else and returned. The interface now reloads when an extension writes.
+
 - **A new plot thread no longer comes out the same blue as every other one.** The manual has promised an automatically assigned colour the whole time; every thread in fact got the same one, which made a grid of coloured cells say nothing about which thread was which. Each new thread now takes the next colour in a palette.
 
 - **Two edits inside the same moment no longer lose one of their saved versions.** A Codex entry's earlier versions are named by the time they were taken, and two saves in the same millisecond — which a paste over a whole field set will do — produced the same name, so the second quietly replaced the first.
