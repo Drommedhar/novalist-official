@@ -1322,5 +1322,142 @@ public class HostServicesExtendedTests
         Assert.Null(await host.ProjectService.CreateProjectAsync("  ", "Second", "Book One"));
         Assert.Null(await host.ProjectService.CreateProjectAsync(dir.Path, "  ", "Book One"));
     }
+
+    // ── Chapter metadata and scene metadata writes ──
+
+    [Fact]
+    public async Task AChapterCanBeReadForMoreThanItsTitle()
+    {
+        var (host, proj, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var chapter = await host.ProjectService.CreateChapterAsync("One");
+        var scene = await host.ProjectService.CreateSceneAsync(chapter, "Arrival");
+        await host.ProjectService.WriteSceneContentAsync(chapter, scene, "<p>Four words go here.</p>");
+        await host.ProjectService.SetChapterActAsync(chapter, "Act One");
+
+        var data = proj.GetChaptersOrdered().First(c => c.Guid == chapter);
+        data.Date = "Third of Sowing";
+        data.Description = "They arrive.";
+        data.WordTarget = 2000;
+        data.DateRange = new StoryDateRange { Start = "day 1", End = "day 2" };
+        data.Properties = new Dictionary<string, string> { ["Weather"] = "rain" };
+
+        var detail = host.StoryService.GetChapterDetail(chapter);
+
+        Assert.NotNull(detail);
+        Assert.Equal("One", detail!.Title);
+        Assert.Equal("Outline", detail.Status);
+        Assert.Equal("Act One", detail.Act);
+        Assert.Equal("Third of Sowing", detail.Date);
+        Assert.Equal("day 1", detail.DateStart);
+        Assert.Equal("day 2", detail.DateEnd);
+        Assert.Equal("They arrive.", detail.Description);
+        Assert.Equal(2000, detail.WordTarget);
+        Assert.Equal(4, detail.WordCount);
+        Assert.Equal([scene], detail.SceneIds);
+        Assert.Equal("rain", detail.Properties["Weather"]);
+
+        Assert.Null(host.StoryService.GetChapterDetail("no-such-chapter"));
+    }
+
+    [Fact]
+    public async Task AChapterStatusCanBeSetButNotToOneNothingCanShow()
+    {
+        var (host, proj, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var chapter = await host.ProjectService.CreateChapterAsync("One");
+
+        Assert.True(await host.StoryService.SetChapterStatusAsync(chapter, "revised"));
+        Assert.Equal(ChapterStatus.Revised,
+            proj.GetChaptersOrdered().First(c => c.Guid == chapter).Status);
+
+        // A status nothing can display leaves the chapter in a state the writer
+        // cannot see or change back.
+        Assert.False(await host.StoryService.SetChapterStatusAsync(chapter, "Nearly"));
+        Assert.False(await host.StoryService.SetChapterStatusAsync("no-such-chapter", "Final"));
+    }
+
+    [Fact]
+    public async Task SceneMetadataIsPatchedNotReplaced()
+    {
+        var (host, _, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var chapter = await host.ProjectService.CreateChapterAsync("One");
+        var scene = await host.ProjectService.CreateSceneAsync(chapter, "Arrival");
+
+        await host.StoryService.SetSceneMetadataAsync(chapter, scene, new SceneMetadataPatch
+        {
+            Synopsis = "She reaches the bridge.",
+            Notes = "Check the tide.",
+            Pov = "Mara",
+            Emotion = "dread",
+            Conflict = "the crossing",
+            Intensity = 7,
+            Stage = "rising",
+            NarrativeMode = "Flashback",
+            DateStart = "day 1",
+            DateEnd = "day 1",
+            Inactive = true,
+            Tags = ["night", "water"],
+            Properties = new Dictionary<string, string?> { ["Weather"] = "rain" }
+        });
+
+        var detail = host.StoryService.GetSceneDetail(chapter, scene);
+        Assert.Equal("She reaches the bridge.", detail!.Synopsis);
+        Assert.Equal("Mara", detail.Pov);
+        Assert.Equal(7, detail.Intensity);
+        Assert.Equal("Flashback", detail.NarrativeMode);
+        Assert.True(detail.Inactive);
+        Assert.Equal(["night", "water"], detail.Tags);
+        Assert.Equal("rain", detail.Properties["Weather"]);
+
+        // A pass setting one field must not blank the ones it said nothing
+        // about, which is what a whole-object save would do.
+        await host.StoryService.SetSceneMetadataAsync(chapter, scene, new SceneMetadataPatch
+        {
+            Pov = "Liam",
+            Properties = new Dictionary<string, string?> { ["Weather"] = null }
+        });
+
+        detail = host.StoryService.GetSceneDetail(chapter, scene);
+        Assert.Equal("Liam", detail!.Pov);
+        Assert.Equal("She reaches the bridge.", detail.Synopsis);
+        Assert.Equal("Check the tide.", detail.Notes);
+        Assert.Equal(7, detail.Intensity);
+        Assert.Equal("day 1", detail.DateStart);
+        Assert.Equal(["night", "water"], detail.Tags);
+        Assert.False(detail.Properties.ContainsKey("Weather"));
+    }
+
+    [Fact]
+    public async Task PatchingASceneThatIsNotThereIsRefused()
+    {
+        var (host, _, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var chapter = await host.ProjectService.CreateChapterAsync("One");
+        var scene = await host.ProjectService.CreateSceneAsync(chapter, "Arrival");
+
+        Assert.False(await host.StoryService.SetSceneMetadataAsync(
+            chapter, "no-such-scene", new SceneMetadataPatch { Pov = "Mara" }));
+        Assert.False(await host.StoryService.SetSceneMetadataAsync(chapter, scene, null!));
+    }
+
+    [Fact]
+    public async Task PatchingOnlyDatesStillGivesTheSceneOne()
+    {
+        // The date range starts null, so the end alone has to create it rather
+        // than being dropped.
+        var (host, _, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var chapter = await host.ProjectService.CreateChapterAsync("One");
+        var scene = await host.ProjectService.CreateSceneAsync(chapter, "Arrival");
+
+        await host.StoryService.SetSceneMetadataAsync(
+            chapter, scene, new SceneMetadataPatch { DateEnd = "day 4" });
+
+        var detail = host.StoryService.GetSceneDetail(chapter, scene);
+        Assert.Equal("day 4", detail!.DateEnd);
+        Assert.Equal(string.Empty, detail.DateStart);
+    }
 }
 

@@ -630,6 +630,92 @@ public sealed partial class HostServices
         };
     }
 
+    ChapterDetailInfo? IExtensionStoryService.GetChapterDetail(string chapterGuid)
+    {
+        var chapter = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);
+        if (chapter == null) return null;
+
+        var scenes = _projectService.GetScenesForChapter(chapterGuid);
+        return new ChapterDetailInfo
+        {
+            Guid = chapter.Guid,
+            Title = chapter.Title,
+            Order = chapter.Order,
+            Status = chapter.Status.ToString(),
+            Act = chapter.Act ?? string.Empty,
+            Date = chapter.Date ?? string.Empty,
+            DateStart = chapter.DateRange?.Start ?? string.Empty,
+            DateEnd = chapter.DateRange?.End ?? string.Empty,
+            Description = chapter.Description ?? string.Empty,
+            WordTarget = chapter.WordTarget,
+            // Summed rather than stored: the chapter carries a target, not a
+            // total, and a stale total is worse than none.
+            WordCount = scenes.Sum(s => s.WordCount),
+            SceneIds = [.. scenes.OrderBy(s => s.Order).Select(s => s.Id)],
+            Properties = new Dictionary<string, string>(chapter.Properties ?? [])
+        };
+    }
+
+    async Task<bool> IExtensionStoryService.SetChapterStatusAsync(string chapterGuid, string status)
+    {
+        var chapter = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);
+        if (chapter == null) return false;
+        if (!Enum.TryParse<ChapterStatus>(status, ignoreCase: true, out var parsed)) return false;
+
+        chapter.Status = parsed;
+        await _projectService.SaveProjectAsync();
+        ProjectStructureChanged?.Invoke();
+        return true;
+    }
+
+    async Task<bool> IExtensionStoryService.SetSceneMetadataAsync(
+        string chapterGuid, string sceneId, SceneMetadataPatch patch)
+    {
+        var scene = FindScene(chapterGuid, sceneId);
+        if (scene == null || patch == null) return false;
+
+        if (patch.Synopsis != null) scene.Synopsis = patch.Synopsis;
+        if (patch.Notes != null) scene.Notes = patch.Notes;
+        if (patch.Stage != null) scene.Stage = patch.Stage;
+        if (patch.NarrativeMode != null) scene.NarrativeMode = patch.NarrativeMode;
+        if (patch.Inactive.HasValue) scene.Inactive = patch.Inactive.Value;
+
+        if (patch.DateStart != null || patch.DateEnd != null)
+        {
+            scene.DateRange ??= new StoryDateRange();
+            if (patch.DateStart != null) scene.DateRange.Start = patch.DateStart;
+            if (patch.DateEnd != null) scene.DateRange.End = patch.DateEnd;
+        }
+
+        // The analysis values live in the override block, which is what "the
+        // writer said so" means - the host's own detection is not stored there
+        // and is not something an extension should be able to forge.
+        if (patch.Pov != null || patch.Emotion != null || patch.Conflict != null
+            || patch.Intensity.HasValue || patch.Tags != null)
+        {
+            scene.AnalysisOverrides ??= new SceneAnalysisOverrides();
+            if (patch.Pov != null) scene.AnalysisOverrides.Pov = patch.Pov;
+            if (patch.Emotion != null) scene.AnalysisOverrides.Emotion = patch.Emotion;
+            if (patch.Conflict != null) scene.AnalysisOverrides.Conflict = patch.Conflict;
+            if (patch.Intensity.HasValue) scene.AnalysisOverrides.Intensity = patch.Intensity;
+            if (patch.Tags != null) scene.AnalysisOverrides.Tags = [.. patch.Tags];
+        }
+
+        if (patch.Properties != null)
+        {
+            scene.Properties ??= [];
+            foreach (var (key, value) in patch.Properties)
+            {
+                if (value == null) scene.Properties.Remove(key);
+                else scene.Properties[key] = value;
+            }
+        }
+
+        await _projectService.SaveScenesAsync();
+        ProjectStructureChanged?.Invoke();
+        return true;
+    }
+
     IReadOnlyList<ActInfo> IExtensionStoryService.GetActs()
         => [.. _projectService.GetChaptersOrdered()
             .Where(c => !string.IsNullOrWhiteSpace(c.Act))

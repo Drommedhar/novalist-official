@@ -51,6 +51,35 @@ public interface IExtensionStoryService
     /// </summary>
     SceneDetailInfo? GetSceneDetail(string chapterGuid, string sceneId);
 
+    /// <summary>
+    /// A chapter's metadata. Null when the chapter does not exist.
+    ///
+    /// ChapterInfo carries a title and an order, which is enough to walk the
+    /// book and nothing else: a report could not group by act, colour by
+    /// status, or place a chapter in story time, so analysis that reads the
+    /// shape of a draft had to live in core.
+    /// </summary>
+    ChapterDetailInfo? GetChapterDetail(string chapterGuid);
+
+    /// <summary>
+    /// Sets a chapter's status: "Outline", "FirstDraft", "Revised", "Edited"
+    /// or "Final", matched without regard to case. False when the chapter or
+    /// the status is unknown - a status nothing can display would leave the
+    /// chapter in a state the writer cannot see or change back.
+    /// </summary>
+    Task<bool> SetChapterStatusAsync(string chapterGuid, string status);
+
+    /// <summary>
+    /// Changes some of a scene's metadata, leaving the rest alone.
+    ///
+    /// Every field is nullable and null means "do not touch". A pass that sets
+    /// the point of view must not blank the synopsis it said nothing about,
+    /// which is what a whole-object save would do.
+    /// </summary>
+    /// <returns>False when the scene does not exist.</returns>
+    Task<bool> SetSceneMetadataAsync(
+        string chapterGuid, string sceneId, SceneMetadataPatch patch);
+
     /// <summary>Acts in reading order, with the chapters that carry each label.</summary>
     IReadOnlyList<ActInfo> GetActs();
 
@@ -79,6 +108,68 @@ public interface IExtensionStoryService
 
     /// <summary>Deletes a timeline event. False when the id is unknown.</summary>
     Task<bool> DeleteTimelineEventAsync(string eventId);
+}
+
+/// <summary>What a chapter is, beyond the scenes in it.</summary>
+public sealed class ChapterDetailInfo
+{
+    public string Guid { get; init; } = string.Empty;
+    public string Title { get; init; } = string.Empty;
+    public int Order { get; init; }
+
+    /// <summary>"Outline", "FirstDraft", "Revised", "Edited" or "Final".</summary>
+    public string Status { get; init; } = string.Empty;
+
+    /// <summary>The act label, or empty for a chapter in no act.</summary>
+    public string Act { get; init; } = string.Empty;
+
+    /// <summary>The in-world date as the writer wrote it. Free text.</summary>
+    public string Date { get; init; } = string.Empty;
+
+    /// <summary>Story date range, where the writer set one.</summary>
+    public string DateStart { get; init; } = string.Empty;
+    public string DateEnd { get; init; } = string.Empty;
+
+    /// <summary>The writer's description of the chapter.</summary>
+    public string Description { get; init; } = string.Empty;
+
+    /// <summary>The chapter's own word target, where one is set.</summary>
+    public int? WordTarget { get; init; }
+
+    /// <summary>Words across the chapter's scenes.</summary>
+    public int WordCount { get; init; }
+
+    /// <summary>Scenes in the chapter, in order.</summary>
+    public IReadOnlyList<string> SceneIds { get; init; } = [];
+
+    /// <summary>The writer's own typed fields on this chapter.</summary>
+    public IReadOnlyDictionary<string, string> Properties { get; init; }
+        = new Dictionary<string, string>();
+}
+
+/// <summary>
+/// The parts of a scene a caller wants changed. Null leaves a field as it is.
+/// </summary>
+public sealed class SceneMetadataPatch
+{
+    public string? Synopsis { get; init; }
+    public string? Notes { get; init; }
+    public string? Pov { get; init; }
+    public string? Emotion { get; init; }
+    public string? Conflict { get; init; }
+    public int? Intensity { get; init; }
+    public string? Stage { get; init; }
+    public string? NarrativeMode { get; init; }
+    public string? DateStart { get; init; }
+    public string? DateEnd { get; init; }
+    public bool? Inactive { get; init; }
+    public IReadOnlyList<string>? Tags { get; init; }
+
+    /// <summary>
+    /// The writer's own fields. Only the keys given are written; a key with a
+    /// null value is removed.
+    /// </summary>
+    public IReadOnlyDictionary<string, string?>? Properties { get; init; }
 }
 
 /// <summary>What a scene is, beyond the words in it.</summary>
