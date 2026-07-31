@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Extensions can fill in a Codex entry properly.** An extension could write an entry's name, description and notes and nothing else — so an importer brought a character across with their whole biography and not their hair colour, and a questionnaire had nowhere but a notes section to put the answers. Extensions can now write an entry's own fields, the properties you added yourself, and its relationships, with the other half of each relationship authored onto the entry it names.
+
 - **An extension can no longer write over the scene you are typing in.** An extension that writes prose — an importer, a cleanup pass, a generator — could land on the open scene while you were working in it; its write and the editor's next autosave overwrote each other, whichever finished second won, and the words that lost were gone with no error anywhere. Novalist now tells extensions which scene is open with unsaved changes, and a write to it is refused. A pass over the whole book skips that one scene and keeps going through the rest.
 
 - **Plot threads as lanes.** **As lanes** in the Plot Grid toolbar draws each thread as a track across the book instead of a row of ticks. A track runs from a thread's first scene to its last, so a gap reads as a gap; and every scene carrying more than one thread is marked down the full height. A matrix tells you which scenes a thread touches; this tells you where two threads meet, which is the scene doing the structural work.

@@ -199,6 +199,56 @@ public interface IExtensionEntityService
         string? description = null,
         IReadOnlyList<CustomEntitySectionInfo>? sections = null);
 
+    /// <summary>
+    /// Writes an entry's own fields - a character's age and eye colour, a
+    /// location's region, whatever that kind of entry has.
+    ///
+    /// SaveEntityAsync covers the name, the description and the free-text
+    /// sections, which left every typed field on an entry unreachable: an
+    /// importer could bring a character across with their whole biography and
+    /// not their hair colour, and a questionnaire could ask about a location
+    /// and have nowhere but a section to put the answer.
+    ///
+    /// Field names are the ones the Codex shows, matched without regard to
+    /// case. A name the entry does not have is <em>returned</em> rather than
+    /// quietly dropped, because a typo that silently loses a value is the
+    /// worst way to find out about it.
+    /// </summary>
+    /// <returns>
+    /// The field names that could not be written, empty when all of them were.
+    /// A missing entry returns every name given.
+    /// </returns>
+    Task<IReadOnlyList<string>> SetEntityFieldsAsync(
+        string typeKey,
+        string entityId,
+        IReadOnlyDictionary<string, string> fields);
+
+    /// <summary>
+    /// Sets one of the writer's own properties on an entry, or removes it with
+    /// a null value.
+    ///
+    /// These are the fields the writer added themselves, so an extension that
+    /// fills in an entry has to be able to reach them: a project whose
+    /// characters all carry a "House" property gets nothing from an importer
+    /// that can only write the built-in ones.
+    /// </summary>
+    Task<bool> SetEntityCustomPropertyAsync(
+        string typeKey, string entityId, string key, string? value);
+
+    /// <summary>
+    /// Replaces an entry's relationships, and writes the other half of each
+    /// one onto the entry it names.
+    ///
+    /// A relationship that exists from one side only is worse than none: the
+    /// graph draws an edge that vanishes when looked at from the other end.
+    /// Give <see cref="EntityRelationshipInfo.InverseRole"/> and the far side
+    /// is authored too; leave it empty and the other entry is left alone
+    /// rather than guessed at.
+    /// </summary>
+    /// <returns>False when there is no such entry.</returns>
+    Task<bool> SetEntityRelationshipsAsync(
+        string typeKey, string entityId, IReadOnlyList<EntityRelationshipInfo> relationships);
+
     /// <summary>Notifies the host that entities have changed and the UI should refresh.</summary>
     void RequestEntityRefresh();
 
@@ -577,6 +627,30 @@ public sealed class CharacterRelationshipInfo
     public string Role { get; init; } = string.Empty;
     public string TargetName { get; init; } = string.Empty;
     public string Note { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// A relationship as an extension writes it.
+///
+/// Separate from <see cref="CharacterRelationshipInfo"/>, which is the
+/// read-side shape and carries a note rather than the far half of the link.
+/// </summary>
+public sealed class EntityRelationshipInfo
+{
+    /// <summary>What this entry is to the target: "mother", "owner", "capital of".</summary>
+    public string Role { get; init; } = string.Empty;
+
+    /// <summary>The entry it names, by the name the Codex shows.</summary>
+    public string Target { get; init; } = string.Empty;
+
+    /// <summary>The writer's own grouping for the row. Optional.</summary>
+    public string Category { get; init; } = string.Empty;
+
+    /// <summary>
+    /// What the target is back - "daughter" to a "mother". Leave it empty and
+    /// the target's own record is not touched.
+    /// </summary>
+    public string InverseRole { get; init; } = string.Empty;
 }
 
 public sealed class CharacterSectionInfo

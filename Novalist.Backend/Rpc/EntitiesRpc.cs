@@ -871,51 +871,23 @@ public sealed class EntitiesRpc
         string id, RelationshipEditRowDto[] rows, string type = "character")
     {
         var subject = await FindEntityAsync(type, id) ?? throw Unknown(id);
-        var selfName = subject.DisplayName;
 
-        subject.Relationships = rows
-            .Where(r => !string.IsNullOrWhiteSpace(r.Role) || !string.IsNullOrWhiteSpace(r.Target))
-            .Select(r => new EntityRelationship
-            {
-                Role = r.Role.Trim(),
-                Target = r.Target.Trim(),
-                Category = (r.Category ?? string.Empty).Trim()
-            })
-            .ToList();
+        // The rule itself lives in core, so an extension writing a relationship
+        // gets the same write-back the Codex does rather than a copy of it.
+        var result = Core.Services.RelationshipWriter.Apply(
+            subject,
+            subject.DisplayName,
+            [.. rows.Select(r => new Core.Services.RelationshipRow(
+                r.Role, r.Target, r.Category, r.InverseRole))],
+            await AllEntitiesAsync());
+
         await SaveEntityAsync(subject);
-
-        // Every entry in the project, whatever its type: a relationship row
-        // names a thing, not a character, and the target is as likely to be a
-        // ship or a house as a person.
-        var everything = await AllEntitiesAsync();
+        foreach (var target in result.Changed)
+            await SaveEntityAsync(target);
 
         var settingsChanged = false;
-        foreach (var row in rows)
-        {
-            if (string.IsNullOrWhiteSpace(row.Role) || string.IsNullOrWhiteSpace(row.Target)
-                || string.IsNullOrWhiteSpace(row.InverseRole))
-                continue;
-
-            var target = everything.FirstOrDefault(e =>
-                string.Equals(e.DisplayName, row.Target.Trim(), StringComparison.OrdinalIgnoreCase));
-            if (target == null
-                || string.Equals(target.Id, subject.Id, StringComparison.Ordinal))
-                continue;
-
-            var already = target.Relationships.Any(r =>
-                string.Equals(r.Role, row.InverseRole.Trim(), StringComparison.OrdinalIgnoreCase)
-                && string.Equals(r.Target, selfName, StringComparison.OrdinalIgnoreCase));
-            if (!already)
-            {
-                target.Relationships.Add(new EntityRelationship
-                {
-                    Role = row.InverseRole.Trim(),
-                    Target = selfName
-                });
-                await SaveEntityAsync(target);
-            }
-            settingsChanged |= _workspace.Settings.Settings.LearnRelationshipPair(row.Role.Trim(), row.InverseRole.Trim());
-        }
+        foreach (var (role, inverse) in result.Pairs)
+            settingsChanged |= _workspace.Settings.Settings.LearnRelationshipPair(role, inverse);
         if (settingsChanged) await _workspace.Settings.SaveAsync();
 
         return WithResolvedImages(subject);

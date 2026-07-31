@@ -947,5 +947,216 @@ public class HostServicesExtendedTests
 
         Assert.False(await host.ProjectService.IsSceneBusyAsync(chapter, scene));
     }
+
+    // ── Writing an entry's fields and relationships ──
+
+    [Fact]
+    public async Task TypedFieldsCanBeWrittenAndUnknownOnesComeBack()
+    {
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        var entities = new EntityService(proj);
+        var id = await host.EntityService.CreateEntityAsync("character", "Mara");
+
+        var rejected = await host.EntityService.SetEntityFieldsAsync("character", id!,
+            new Dictionary<string, string>
+            {
+                ["EyeColor"] = "grey",
+                // The Codex shows these names; case is not the caller's problem.
+                ["age"] = "31",
+                // A typo has to be reported, not silently swallowed.
+                ["eyeColour"] = "grey"
+            });
+
+        Assert.Equal(["eyeColour"], rejected);
+        var saved = (await entities.LoadCharactersAsync()).First(c => c.Id == id);
+        Assert.Equal("grey", saved.EyeColor);
+        Assert.Equal("31", saved.Age);
+    }
+
+    [Fact]
+    public async Task WritingFieldsOnAnEntryThatIsNotThereReportsEveryName()
+    {
+        var (host, _, dir) = Build();
+        using var _d = dir;
+
+        var rejected = await host.EntityService.SetEntityFieldsAsync("character", "no-such-id",
+            new Dictionary<string, string> { ["Age"] = "31", ["Role"] = "smith" });
+
+        Assert.Equal(2, rejected.Count);
+        Assert.Contains("Age", rejected);
+        Assert.Contains("Role", rejected);
+    }
+
+    [Fact]
+    public async Task WritingNoFieldsAtAllIsNotAnError()
+    {
+        var (host, _, dir) = Build();
+        using var _d = dir;
+
+        Assert.Empty(await host.EntityService.SetEntityFieldsAsync(
+            "character", "no-such-id", new Dictionary<string, string>()));
+    }
+
+    [Fact]
+    public async Task ANonStringFieldIsRefusedRatherThanCoerced()
+    {
+        // Tags is a list. Writing text into it would fail at read time instead,
+        // which is a worse place to find out.
+        var (host, _, dir) = Build();
+        using var _d = dir;
+        var id = await host.EntityService.CreateEntityAsync("location", "The Bridge");
+
+        var rejected = await host.EntityService.SetEntityFieldsAsync("location", id!,
+            new Dictionary<string, string> { ["Tags"] = "cold", ["DisplayName"] = "x" });
+
+        Assert.Contains("Tags", rejected);
+        // Read-only too: a computed name has nowhere to be written.
+        Assert.Contains("DisplayName", rejected);
+    }
+
+    [Fact]
+    public async Task ACustomEntitysFieldsAreWhateverItsTypeDefined()
+    {
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        var entities = new EntityService(proj);
+        await entities.SaveCustomEntityTypeAsync(
+            new CustomEntityTypeDefinition { TypeKey = "ship", DisplayName = "Ship" });
+        var id = await host.EntityService.CreateEntityAsync("ship", "Dawnrunner");
+
+        var rejected = await host.EntityService.SetEntityFieldsAsync("ship", id!,
+            new Dictionary<string, string> { ["Rigging"] = "square", ["name"] = "Nightrunner" });
+
+        Assert.Empty(rejected);
+        var saved = (await entities.LoadCustomEntitiesAsync("ship")).First(e => e.Id == id);
+        Assert.Equal("square", saved.Fields["Rigging"]);
+        Assert.Equal("Nightrunner", saved.Name);
+    }
+
+    [Fact]
+    public async Task TheWritersOwnPropertiesCanBeSetAndRemoved()
+    {
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        var entities = new EntityService(proj);
+        var id = await host.EntityService.CreateEntityAsync("character", "Mara");
+
+        Assert.True(await host.EntityService.SetEntityCustomPropertyAsync("character", id!, "House", "Vane"));
+        var saved = (await entities.LoadCharactersAsync()).First(c => c.Id == id);
+        Assert.Equal("Vane", saved.CustomProperties["House"]);
+
+        Assert.True(await host.EntityService.SetEntityCustomPropertyAsync("character", id!, "House", null));
+        saved = (await entities.LoadCharactersAsync()).First(c => c.Id == id);
+        Assert.False(saved.CustomProperties.ContainsKey("House"));
+    }
+
+    [Fact]
+    public async Task APropertyWithNoKeyOrNoEntryIsRefused()
+    {
+        var (host, _, dir) = Build();
+        using var _d = dir;
+        var id = await host.EntityService.CreateEntityAsync("character", "Mara");
+
+        Assert.False(await host.EntityService.SetEntityCustomPropertyAsync("character", id!, "  ", "x"));
+        Assert.False(await host.EntityService.SetEntityCustomPropertyAsync("character", "nope", "House", "Vane"));
+        Assert.False(await host.EntityService.SetEntityCustomPropertyAsync("ship", id!, "House", "Vane"));
+    }
+
+    [Fact]
+    public async Task ARelationshipIsWrittenOnBothEntries()
+    {
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        var entities = new EntityService(proj);
+        var mara = await host.EntityService.CreateEntityAsync("character", "Mara");
+        var sword = await host.EntityService.CreateEntityAsync("item", "Dawnedge");
+
+        Assert.True(await host.EntityService.SetEntityRelationshipsAsync("character", mara!,
+            [new EntityRelationshipInfo
+            {
+                Role = "owner", Target = "Dawnedge", Category = "gear", InverseRole = "owned by"
+            }]));
+
+        var savedMara = (await entities.LoadCharactersAsync()).First(c => c.Id == mara);
+        Assert.Contains(savedMara.Relationships, r => r.Role == "owner" && r.Target == "Dawnedge");
+        // The half that used to go missing: written on disk, not just in memory.
+        var savedSword = (await entities.LoadItemsAsync()).First(i => i.Id == sword);
+        Assert.Contains(savedSword.Relationships, r => r.Role == "owned by" && r.Target == "Mara");
+    }
+
+    [Fact]
+    public async Task RelationshipsOnAnEntryThatIsNotThereAreRefused()
+    {
+        var (host, _, dir) = Build();
+        using var _d = dir;
+
+        Assert.False(await host.EntityService.SetEntityRelationshipsAsync("character", "nope", []));
+    }
+
+    [Fact]
+    public async Task ClearingRelationshipsLeavesNone()
+    {
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        var entities = new EntityService(proj);
+        var mara = await host.EntityService.CreateEntityAsync("character", "Mara");
+        await host.EntityService.SetEntityRelationshipsAsync("character", mara!,
+            [new EntityRelationshipInfo { Role = "owner", Target = "Dawnedge" }]);
+
+        Assert.True(await host.EntityService.SetEntityRelationshipsAsync("character", mara!, null!));
+
+        var saved = (await entities.LoadCharactersAsync()).First(c => c.Id == mara);
+        Assert.Empty(saved.Relationships);
+    }
+
+    [Fact]
+    public async Task EveryBuiltInKindCanHaveItsFieldsWritten()
+    {
+        // One kind working proves nothing about the other three: each has its
+        // own load and its own save, and a missing arm fails silently.
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        var entities = new EntityService(proj);
+
+        var item = await host.EntityService.CreateEntityAsync("item", "Dawnedge");
+        Assert.Empty(await host.EntityService.SetEntityFieldsAsync("item", item!,
+            new Dictionary<string, string> { ["Description"] = "A notched blade." }));
+        Assert.Equal("A notched blade.",
+            (await entities.LoadItemsAsync()).First(e => e.Id == item).Description);
+
+        var lore = await host.EntityService.CreateEntityAsync("lore", "The Sundering");
+        Assert.Empty(await host.EntityService.SetEntityFieldsAsync("lore", lore!,
+            new Dictionary<string, string> { ["Description"] = "It ended the age." }));
+        Assert.Equal("It ended the age.",
+            (await entities.LoadLoreAsync()).First(e => e.Id == lore).Description);
+
+        var location = await host.EntityService.CreateEntityAsync("location", "The Bridge");
+        Assert.Empty(await host.EntityService.SetEntityFieldsAsync("location", location!,
+            new Dictionary<string, string> { ["Description"] = "Iron over black water." }));
+        Assert.Equal("Iron over black water.",
+            (await entities.LoadLocationsAsync()).First(e => e.Id == location).Description);
+    }
+
+    [Fact]
+    public async Task ACustomEntryCanBeTheFarSideOfARelationship()
+    {
+        var (host, proj, dir) = Build();
+        using var _d = dir;
+        var entities = new EntityService(proj);
+        await entities.SaveCustomEntityTypeAsync(
+            new CustomEntityTypeDefinition { TypeKey = "ship", DisplayName = "Ship" });
+        var ship = await host.EntityService.CreateEntityAsync("ship", "Dawnrunner");
+        var mara = await host.EntityService.CreateEntityAsync("character", "Mara");
+
+        Assert.True(await host.EntityService.SetEntityRelationshipsAsync("character", mara!,
+            [new EntityRelationshipInfo
+            {
+                Role = "captain of", Target = "Dawnrunner", InverseRole = "captained by"
+            }]));
+
+        var saved = (await entities.LoadCustomEntitiesAsync("ship")).First(e => e.Id == ship);
+        Assert.Contains(saved.Relationships, r => r.Role == "captained by" && r.Target == "Mara");
+    }
 }
 

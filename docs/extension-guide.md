@@ -110,6 +110,12 @@ An extension whose `minHostVersion` is above the running Novalist is skipped wit
 
 **`EntityService`** — the Codex. Characters, locations, items, lore, and custom types; creating entries; per-context character profiles and images with all the chapter/scene/act override rules already applied.
 
+**`EntityService`, writing an entry** — `SaveEntityAsync` writes the name, description and free-text sections; `SetEntityFieldsAsync` writes the entry's own typed fields (a character's age and eye colour, a location's region); `SetEntityCustomPropertyAsync` writes the properties the writer added themselves; `SetEntityRelationshipsAsync` writes the relationship rows. An importer that could bring a character across with their biography but not their hair colour produced an entry the writer had to finish by hand.
+
+`SetEntityFieldsAsync` matches field names the way the Codex shows them, without regard to case, and **returns the names it could not write** rather than dropping them — a typo that silently loses a value is the worst way to find out about one. Only text fields are settable; a field holding a list or a date has its own call.
+
+`SetEntityRelationshipsAsync` writes the far half of each row too when you give it an `InverseRole`. A relationship that exists from one side only is worse than none: the graph draws an edge that vanishes when you look from the other end. Leave `InverseRole` empty and the other entry is left alone rather than guessed at.
+
 Use **`GetAiContextAsync`** rather than the `Load*` methods when you are assembling context for a model. The `Load*` methods return everything, because the Codex has to show everything. `GetAiContextAsync` applies the writer's per-entry AI inclusion setting and their per-section withholding — which your extension cannot reconstruct on its own. A writer who marks an entry "never" means it.
 
 **`ProjectService`, structural editing** — `RenameChapterAsync`, `RenameSceneAsync`, `MoveSceneAsync`, `MoveChapterAsync`, `SetChapterActAsync`, `TrashChapterAsync`, `ArchiveSceneAsync`. An importer that could add a chapter but not title or order it produced a project the writer had to repair by hand. Note the two destructive verbs are **trash** and **archive** — both recoverable from the binder. There is deliberately no call that erases anything.
