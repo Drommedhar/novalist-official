@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { RevisionsPanel } from '../../shell/RevisionsPanel'
 import { Plus, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 
@@ -236,6 +237,20 @@ export function PlotlineDetailDialog(props: {
           <Plus size={12} strokeWidth={2} />
           {t('plotGrid.addStep')}
         </button>
+
+        {/* Threads had no earlier versions while Codex entries did, so typing
+            over a thread's description or its steps had no answer in the app. */}
+        <div className="inspector-label">{t('entityHistory.title')}</div>
+        <RevisionsPanel
+          historyMethod="plot/plotlineHistory"
+          restoreMethod="plot/restorePlotlineRevision"
+          targetId={props.plotline.id}
+          restoreArgs={[props.plotline.id]}
+          onRestored={(grid) => {
+            props.onSaved(grid)
+            props.onClose()
+          }}
+        />
 
         <div className="dialog-actions">
           <button className="dialog-button" onClick={props.onClose}>

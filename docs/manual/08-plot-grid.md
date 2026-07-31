@@ -115,3 +115,9 @@ Scenes in the binder now show a small dot per thread, in the book's plotline ord
 - [Chapters & Scenes](04-chapters-and-scenes.md) — scenes hold the plotline assignments.
 - [Manuscript view](10-manuscript.md) — read the book continuously, filtered by chapter status.
 - [Timeline](12-timeline.md) — the chronological view of the same story.
+
+## Earlier versions of a thread
+
+Open a thread's detail dialog and **Earlier versions** lists what it said before each of its last few saves, with a **Restore** beside each. Typing over a thread's description, or replacing its steps, used to have no answer inside the app.
+
+Restoring keeps the current state as a version of its own, so an unwanted restore is undone the same way. The last 25 are kept per thread, beside the scene snapshots.

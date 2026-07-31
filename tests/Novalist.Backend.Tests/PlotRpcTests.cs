@@ -256,4 +256,50 @@ public sealed class PlotRpcTests : IDisposable
         Assert.Empty(row.PlotlineColors);
     }
 
+
+    [Fact]
+    public async Task APlotThreadKeepsWhatItSaidBeforeThroughTheSavePath()
+    {
+        // Through the RPC on purpose: the detail save edits the very object the
+        // book holds, so a version taken inside the service would compare a
+        // thread with itself and record nothing.
+        await _rpc.CreatePlotlineAsync("The crossing");
+        var id = _rpc.GetGrid().Plotlines[0].Id;
+        await _rpc.SetPlotlineDetailAsync(id, description: "She has to get over the river.");
+
+        await _rpc.SetPlotlineDetailAsync(id, description: "Replaced by mistake.");
+
+        var history = _rpc.PlotlineHistory(id);
+        Assert.NotEmpty(history);
+
+        var grid = await _rpc.RestorePlotlineRevisionAsync(id, history[0].Id);
+        Assert.Equal(
+            "She has to get over the river.",
+            grid.Plotlines.First(p => p.Id == id).Description);
+    }
+
+    [Fact]
+    public async Task ARestoreOfAThreadRevisionThatIsGoneIsRefused()
+    {
+        await _rpc.CreatePlotlineAsync("The crossing");
+        var id = _rpc.GetGrid().Plotlines[0].Id;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.RestorePlotlineRevisionAsync(id, "no-such-revision"));
+    }
+
+    [Fact]
+    public async Task RenamingAThreadKeepsTheNameItHad()
+    {
+        await _rpc.CreatePlotlineAsync("The crossing");
+        var id = _rpc.GetGrid().Plotlines[0].Id;
+
+        await _rpc.RenamePlotlineAsync(id, "The river");
+
+        var history = _rpc.PlotlineHistory(id);
+        Assert.NotEmpty(history);
+        var grid = await _rpc.RestorePlotlineRevisionAsync(id, history[0].Id);
+        Assert.Equal("The crossing", grid.Plotlines.First(p => p.Id == id).Name);
+    }
 }
+

@@ -6,7 +6,12 @@ public interface IPlotlineService
 {
     IReadOnlyList<PlotlineData> GetPlotlines();
     Task<PlotlineData> CreateAsync(string name, string color = "#3498db");
-    Task UpdateAsync(PlotlineData plotline);
+    /// <param name="previousJson">
+    /// What the thread said before the caller changed it. Callers edit the very
+    /// object the book holds, so the old state has to be taken where the thread
+    /// was still untouched; null records no version.
+    /// </param>
+    Task UpdateAsync(PlotlineData plotline, string? previousJson = null);
     Task DeleteAsync(string plotlineId);
     Task ReorderAsync(IReadOnlyList<string> orderedIds);
 

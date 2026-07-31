@@ -55,13 +55,68 @@ public sealed class PlotlineService : IPlotlineService
         return plotline;
     }
 
-    public async Task UpdateAsync(PlotlineData plotline)
+    /// <param name="previousJson">
+    /// What the thread said before the caller changed it, from
+    /// <see cref="Serialize"/>. Callers edit the very object this list holds,
+    /// so by the time this is reached the old state is already gone - it has to
+    /// be taken where the thread was still untouched. Null records nothing,
+    /// which is right for a caller that built the thread from scratch.
+    /// </param>
+    public async Task UpdateAsync(PlotlineData plotline, string? previousJson = null)
     {
         var list = EnsureList();
         var idx = list.FindIndex(p => p.Id == plotline.Id);
         if (idx < 0) return;
+
+        // Codex entries kept their earlier versions and threads did not, so
+        // typing over a thread's description - or its steps - had no answer
+        // inside the app.
+        if (previousJson != null)
+        {
+            await new EntityHistory(_projectService)
+                .RecordAsync(plotline.Id, previousJson, Serialize(plotline))
+                .ConfigureAwait(false);
+        }
+
         list[idx] = plotline;
         await _projectService.SaveProjectAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// A thread as stored. Indented, because a revision is something a person
+    /// may end up reading in a file listing.
+    /// </summary>
+    public static string Serialize(PlotlineData plotline)
+        => System.Text.Json.JsonSerializer.Serialize(
+            plotline, new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+
+    /// <summary>A thread's earlier versions, newest first.</summary>
+    public IReadOnlyList<EntityRevision> History(string plotlineId)
+        => new EntityHistory(_projectService).List(plotlineId);
+
+    /// <summary>
+    /// Puts an earlier version of a thread back. The state being replaced is
+    /// recorded by the ordinary update path, so an unwanted restore is itself
+    /// undoable. False when the revision is no longer there.
+    /// </summary>
+    public async Task<bool> RestoreAsync(string plotlineId, string revisionId)
+    {
+        var stored = await new EntityHistory(_projectService)
+            .ReadAsync(plotlineId, revisionId).ConfigureAwait(false);
+        if (stored == null) return false;
+
+        var restored = System.Text.Json.JsonSerializer.Deserialize<PlotlineData>(stored);
+        if (restored == null) return false;
+        // The id restored onto wins over whatever the file says: a revision put
+        // back under a different id would duplicate the thread.
+        restored.Id = plotlineId;
+
+        // The state being replaced becomes a version of its own, so an unwanted
+        // restore is undoable in the same list.
+        var current = GetPlotlines().FirstOrDefault(p => p.Id == plotlineId);
+        await UpdateAsync(restored, current == null ? null : Serialize(current))
+            .ConfigureAwait(false);
+        return true;
     }
 
     public async Task DeleteAsync(string plotlineId)

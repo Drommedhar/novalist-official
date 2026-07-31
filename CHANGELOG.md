@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Plot threads and research notes keep their earlier versions.** Codex entries kept a history and nothing else did, so typing over a thread's description or pasting over a research note had no answer inside the app. Both now list **Earlier versions** with a **Restore** beside each, the same way a Codex entry does, and restoring keeps the current state as a version of its own. A save that changed nothing is not kept, so opening something and leaving it alone does not fill the list.
+
 - **A family tree.** The Relationships canvas lays everything out by force, which is right for "what is connected to what" and wrong for "who descends from whom" — three generations read as a cloud. Centre on somebody and press **As tree** and the same people redraw as generations on lines, with separate limits for how many generations up and down to show and a switch between a tree that runs downwards and one that runs sideways.
 
 - **Continuity checks over the whole book.** Every check Novalist ran was about the prose in one scene, so a character standing two chapters after their own funeral was nobody's job to notice. A **Continuity** section in the Style view now reports three things across the whole manuscript: somebody appearing after they have left the story, a scene casting an entry the Codex no longer has, and time running backwards with no flashback saying so. Every rule is deterministic — no model is asked and nothing is guessed from names — each can be turned off per project, and clicking a finding opens the scene. Codex entries can now be marked **gone from here** at a point in the story, which is what the first rule reads.

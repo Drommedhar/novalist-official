@@ -144,8 +144,12 @@ public sealed class PlotRpc
     {
         var plotline = _plotlines.GetPlotlines().FirstOrDefault(p => p.Id == plotlineId)
             ?? throw new InvalidOperationException("Unknown plotline.");
+
+        // Taken here, before anything below changes it: the list holds this very
+        // object, so a moment later there is no earlier state left to keep.
+        var before = Core.Services.PlotlineService.Serialize(plotline);
         plotline.Name = name;
-        await _plotlines.UpdateAsync(plotline);
+        await _plotlines.UpdateAsync(plotline, before);
         return GetGrid();
     }
 
@@ -169,6 +173,10 @@ public sealed class PlotRpc
     {
         var plotline = _plotlines.GetPlotlines().FirstOrDefault(p => p.Id == plotlineId)
             ?? throw new InvalidOperationException("Unknown plotline.");
+
+        // Taken here, before anything below changes it: the list holds this very
+        // object, so a moment later there is no earlier state left to keep.
+        var before = Core.Services.PlotlineService.Serialize(plotline);
 
         if (importance != null)
         {
@@ -204,7 +212,7 @@ public sealed class PlotRpc
         if (!string.IsNullOrWhiteSpace(color)) plotline.Color = color.Trim();
         if (description != null) plotline.Description = description.Trim();
 
-        await _plotlines.UpdateAsync(plotline);
+        await _plotlines.UpdateAsync(plotline, before);
         return GetGrid();
     }
 
@@ -218,6 +226,33 @@ public sealed class PlotRpc
             .Select(step => new PlotlineStepDto(
                 step.Id, step.Text, step.SceneId, step.Resolved, step.Order))],
         p.UnresolvedSteps);
+
+    /// <summary>
+    /// What a thread said before each of its last few saves.
+    ///
+    /// Codex entries kept their earlier versions and threads did not, so
+    /// typing over a thread's description - or its steps - had no answer
+    /// inside the app.
+    /// </summary>
+    [JsonRpcMethod("plot/plotlineHistory")]
+    public EntityRevisionDto[] PlotlineHistory(string plotlineId)
+        => [.. _plotlines.History(plotlineId)
+            .Select(r => new EntityRevisionDto(
+                r.Id,
+                r.SavedAt.ToString("o", System.Globalization.CultureInfo.InvariantCulture),
+                r.SizeBytes))];
+
+    /// <summary>
+    /// Puts an earlier version of a thread back. The state being replaced is
+    /// recorded first, so an unwanted restore is itself undoable.
+    /// </summary>
+    [JsonRpcMethod("plot/restorePlotlineRevision")]
+    public async Task<PlotGridDto> RestorePlotlineRevisionAsync(string plotlineId, string revisionId)
+    {
+        if (!await _plotlines.RestoreAsync(plotlineId, revisionId))
+            throw new InvalidOperationException("That revision is no longer there.");
+        return GetGrid();
+    }
 
     [JsonRpcMethod("plot/deletePlotline")]
     public async Task<PlotGridDto> DeletePlotlineAsync(string plotlineId)

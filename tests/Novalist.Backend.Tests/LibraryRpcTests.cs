@@ -376,4 +376,41 @@ public sealed class LibraryRpcTests : IDisposable
         // stale row does not conjure a picture into the Gallery.
         Assert.Empty((await _rpc.CatalogAsync()).Images);
     }
+
+    [Fact]
+    public async Task AResearchItemKeepsWhatItSaidBeforeThroughTheSavePath()
+    {
+        // Through the RPC on purpose: the save path edits the very object the
+        // project holds, so a version taken inside the service would compare
+        // an item with itself and record nothing.
+        var created = await _rpc.SaveResearchAsync(
+            null, "The bridge", "Note", "Built 1846.", []);
+        var id = created[0].Id;
+
+        await _rpc.SaveResearchAsync(id, "The bridge", "Note", "Pasted over.", []);
+
+        var history = _rpc.ResearchHistory(id);
+        Assert.NotEmpty(history);
+
+        var restored = await _rpc.RestoreResearchRevisionAsync(id, history[0].Id);
+        Assert.Equal("Built 1846.", restored.First(r => r.Id == id).Content);
+    }
+
+    [Fact]
+    public async Task ANewResearchItemHasNoVersionsYet()
+    {
+        var created = await _rpc.SaveResearchAsync(null, "New", "Note", "x", []);
+
+        Assert.Empty(_rpc.ResearchHistory(created[0].Id));
+    }
+
+    [Fact]
+    public async Task ARestoreOfAResearchRevisionThatIsGoneIsRefused()
+    {
+        var created = await _rpc.SaveResearchAsync(null, "New", "Note", "x", []);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.RestoreResearchRevisionAsync(created[0].Id, "no-such-revision"));
+    }
 }
+

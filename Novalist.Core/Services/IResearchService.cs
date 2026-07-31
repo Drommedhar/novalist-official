@@ -5,7 +5,7 @@ namespace Novalist.Core.Services;
 public interface IResearchService
 {
     IReadOnlyList<ResearchItem> GetAll();
-    Task SaveAsync(ResearchItem item);
+    Task SaveAsync(ResearchItem item, string? previousJson = null);
     Task DeleteAsync(string itemId);
 
     /// <summary>Copies an external file into the project's research folder and

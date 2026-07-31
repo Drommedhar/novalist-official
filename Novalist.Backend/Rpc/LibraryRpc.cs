@@ -122,6 +122,9 @@ public sealed class LibraryRpc
         string[]? entityRefs = null)
     {
         var existing = id == null ? null : _research.GetAll().FirstOrDefault(r => r.Id == id);
+        // Taken before the edits below: the project holds this very object, so
+        // a moment later there is no earlier state left to keep a version of.
+        var before = existing == null ? null : Core.Services.ResearchService.Serialize(existing);
         var item = existing ?? new ResearchItem { Order = _research.GetAll().Count };
         item.Title = title;
         item.Type = Enum.Parse<ResearchItemType>(type);
@@ -130,7 +133,7 @@ public sealed class LibraryRpc
         if (entityRefs != null)
             item.EntityRefs = entityRefs.Where(r => !string.IsNullOrWhiteSpace(r)).Distinct().ToList();
         item.UpdatedAt = DateTime.UtcNow;
-        await _research.SaveAsync(item);
+        await _research.SaveAsync(item, before);
         return ListResearch();
     }
 
@@ -262,6 +265,28 @@ public sealed class LibraryRpc
     /// reading down the shelf - a status and a star, without opening the editor
     /// and without touching the prose.
     /// </summary>
+    /// <summary>
+    /// What a research item said before each of its last few saves. A note
+    /// pasted over is as lost as a character sheet typed over, and research is
+    /// where a writer keeps things they cannot rewrite from memory.
+    /// </summary>
+    [JsonRpcMethod("research/history")]
+    public EntityRevisionDto[] ResearchHistory(string itemId)
+        => [.. _research.History(itemId)
+            .Select(r => new EntityRevisionDto(
+                r.Id,
+                r.SavedAt.ToString("o", System.Globalization.CultureInfo.InvariantCulture),
+                r.SizeBytes))];
+
+    /// <summary>Puts an earlier version of a research item back.</summary>
+    [JsonRpcMethod("research/restoreRevision")]
+    public async Task<ResearchItemDto[]> RestoreResearchRevisionAsync(string itemId, string revisionId)
+    {
+        if (!await _research.RestoreAsync(itemId, revisionId))
+            throw new InvalidOperationException("That revision is no longer there.");
+        return ListResearch();
+    }
+
     [JsonRpcMethod("research/setLifecycle")]
     public async Task<ResearchItemDto[]> SetLifecycleAsync(string id, string? status, int? rating)
     {

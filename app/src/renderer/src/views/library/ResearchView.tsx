@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { RevisionsPanel } from '../../shell/RevisionsPanel'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
 import { ExternalLink, FolderOpen, Inbox, Link2, Star, Trash2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -679,6 +680,18 @@ export function ResearchView(): React.JSX.Element {
                 </div>
               </div>
               <CustomFieldsPanel scope="Research" id={selected.id} />
+
+              {/* A note pasted over is as lost as a character sheet typed
+                  over, and research is where a writer keeps the things they
+                  cannot rewrite from memory. */}
+              <div className="inspector-label">{t('entityHistory.title')}</div>
+              <RevisionsPanel
+                historyMethod="research/history"
+                restoreMethod="research/restoreRevision"
+                targetId={selected.id}
+                restoreArgs={[selected.id]}
+                onRestored={(updated) => setItems(updated as ResearchItemDto[])}
+              />
             </div>
           ) : (
             <>
@@ -692,6 +705,7 @@ export function ResearchView(): React.JSX.Element {
                   void rpc.request<ResearchItemDto[]>('research/list').then(setItems)
                 }
               />
+
             </>
           )}
         </div>

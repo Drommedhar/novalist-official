@@ -149,3 +149,9 @@ Playing and reading happen inside the Research view on purpose. Opening a refere
 
 - [Codex](06-codex.md) — for worldbuilding that is structured.
 - [Git integration](18-git.md) — commit regularly so irreplaceable notes are versioned with the project.
+
+## Earlier versions of a note
+
+Every research item keeps what it said before each of its last few saves, listed under **Earlier versions** in the detail pane with a **Restore** beside each. A note pasted over is as lost as a character sheet typed over, and research is where you keep the things you cannot rewrite from memory.
+
+Restoring keeps the current state as a version of its own. A save that changed nothing is not kept as a version, so opening an item and leaving it alone does not fill the list.
