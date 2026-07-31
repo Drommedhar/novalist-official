@@ -66,6 +66,17 @@ public class EntitySection
     /// </summary>
     [JsonPropertyName("aiHidden")]
     public bool AiHidden { get; set; }
+
+    /// <summary>
+    /// Keep this section out of anything a reader sees.
+    ///
+    /// Separate from <see cref="AiHidden"/> on purpose: a writer may be happy
+    /// for a model to know the twist while planning and never for a reader to
+    /// find it in a world page. One flag for both would force a choice nobody
+    /// should have to make.
+    /// </summary>
+    [JsonPropertyName("readerHidden")]
+    public bool ReaderHidden { get; set; }
 }
 
 public class EntityRelationship
@@ -110,6 +121,13 @@ public interface IEntityData
 
     /// <summary>Whether this entry may be sent to an AI model, and when.</summary>
     AiInclusion Ai { get; set; }
+
+    /// <summary>
+    /// Keep this entry out of anything a reader sees. A world page that lists
+    /// the villain's real name beside everything else is worse than no world
+    /// page at all.
+    /// </summary>
+    bool ReaderHidden { get; set; }
 
     /// <summary>What this entry is like at particular points in the story.
     /// Never null; empty means it is the same throughout.</summary>

@@ -27,6 +27,14 @@ public class LoreData : IEntityData
     [JsonPropertyName("ai")]
     public AiInclusion Ai { get; set; } = AiInclusion.WhenMentioned;
 
+    /// <summary>
+    /// Keep this entry out of anything a reader sees. Separate from the AI
+    /// setting: a writer may be happy for a model to know the twist and never
+    /// for a reader to find it.
+    /// </summary>
+    [JsonPropertyName("readerHidden")]
+    public bool ReaderHidden { get; set; }
+
     /// <summary>What this entry is like at particular points in the story - a
     /// razed city, an artefact that changed hands. Empty means unchanging.</summary>
     [JsonPropertyName("stateOverrides")]

@@ -183,4 +183,69 @@ public sealed class AiPolicyRpcTests : IDisposable
             "Always",
             (await new EntitiesRpc(_workspace).GetAiPolicyAsync("character", id)).Inclusion);
     }
+
+    // ── What a reader may see: a different question from what a model may ──
+
+    [Fact]
+    public async Task AnEntryAndItsSectionsCanBeKeptFromReaders()
+    {
+        var id = await CharacterAsync("The Hollow King",
+            new EntitySection { Title = "Appearance", Content = "Tall." },
+            new EntitySection { Title = "The truth", Content = "He did it." });
+
+        var policy = await _rpc.SetReaderPolicyAsync("character", id, hidden: false, [1]);
+
+        Assert.False(policy.Hidden);
+        Assert.False(policy.Sections[0].Hidden);
+        Assert.True(policy.Sections[1].Hidden);
+
+        // It survives a round trip rather than only living in the reply.
+        var read = await _rpc.GetReaderPolicyAsync("character", id);
+        Assert.True(read.Sections[1].Hidden);
+
+        var whole = await _rpc.SetReaderPolicyAsync("character", id, hidden: true, []);
+        Assert.True(whole.Hidden);
+        Assert.False((await _rpc.GetReaderPolicyAsync("character", id)).Sections[1].Hidden);
+    }
+
+    [Fact]
+    public async Task ANewEntryIsVisibleToReaders()
+    {
+        var id = await CharacterAsync("Rose");
+
+        Assert.False((await _rpc.GetReaderPolicyAsync("character", id)).Hidden);
+    }
+
+    [Fact]
+    public async Task KeepingAnEntryFromReadersIsNotKeepingItFromTheModel()
+    {
+        // Two axes on purpose: a writer may be happy for a model to know the
+        // twist while planning and never for a reader to find it.
+        var id = await CharacterAsync("Mara",
+            new EntitySection { Title = "The truth", Content = "She did it." });
+
+        await _rpc.SetReaderPolicyAsync("character", id, hidden: false, [0]);
+
+        Assert.False((await _rpc.GetAiPolicyAsync("character", id)).Sections[0].Hidden);
+    }
+
+    [Fact]
+    public async Task AnIndexThatNamesNoSectionIsIgnored()
+    {
+        // The panel's view of the sections can be one edit behind.
+        var id = await CharacterAsync("Rose",
+            new EntitySection { Title = "Appearance", Content = "Tall." });
+
+        var policy = await _rpc.SetReaderPolicyAsync("character", id, hidden: false, [7]);
+
+        Assert.False(policy.Sections[0].Hidden);
+    }
+
+    [Fact]
+    public async Task AReaderPolicyOnAnEntryThatIsNotThereIsRefused()
+    {
+        await Assert.ThrowsAnyAsync<Exception>(
+            () => _rpc.SetReaderPolicyAsync("character", "no-such-id", hidden: true, []));
+    }
 }
+

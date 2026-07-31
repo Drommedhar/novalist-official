@@ -119,6 +119,9 @@ export function ExportView(): React.JSX.Element {
   const [includeTitlePage, setIncludeTitlePage] = useState(true)
   // Off for Shunn: a submission manuscript does not carry a cover.
   const [includeCover, setIncludeCover] = useState(true)
+  // A world page that lists the villain's real name beside everything else
+  // is worse than no world page at all.
+  const [forReaders, setForReaders] = useState(false)
   const [tocDepth, setTocDepth] = useState(1)
   const [tocTitle, setTocTitle] = useState('')
   const [referenceDoc, setReferenceDoc] = useState('')
@@ -321,7 +324,8 @@ export function ExportView(): React.JSX.Element {
         // the payload the size it was.
         isCodex && pickedSections.size < sectionTitles.length ? [...pickedSections] : null,
         retailerKey || null,
-        chaptersVisible && extraBooks.size > 0 ? [...extraBooks] : null
+        chaptersVisible && extraBooks.size > 0 ? [...extraBooks] : null,
+        forReaders
       ])
       setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
     } catch {
@@ -458,6 +462,20 @@ export function ExportView(): React.JSX.Element {
               onChange={(e) => setIncludeCover(e.target.checked)}
             />
             {t('export.includeCover')}
+          </label>
+        )}
+
+        {/* Only on the formats that carry the world out of the app. On a
+            manuscript export there is nothing for it to hide. */}
+        {(format === 'WorldHtml' || format === 'WorldJson' || format === 'Json'
+          || format === 'Codex' || format === 'CodexPdf' || format === 'CodexCsv') && (
+          <label className="relationships-toggle export-toggle">
+            <input
+              type="checkbox"
+              checked={forReaders}
+              onChange={(e) => setForReaders(e.target.checked)}
+            />
+            {t('export.forReaders')}
           </label>
         )}
 

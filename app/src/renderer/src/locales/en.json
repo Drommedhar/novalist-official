@@ -1882,7 +1882,8 @@
     "formatOpml": "Outline (OPML)",
     "formatWorldJson": "Everything (JSON archive)",
     "formatWorldHtml": "Everything (browsable page)",
-    "alsoInclude": "Also include these books"
+    "alsoInclude": "Also include these books",
+    "forReaders": "For readers - leave out anything marked not for readers"
   },
   "expose": {
     "chars": "{{value}} characters",
@@ -3339,5 +3340,11 @@
     "intro": "What this entry said before each of its last few saves. Restoring one keeps the current state as a version of its own, so it can be undone.",
     "none": "No earlier versions yet. One is kept each time this entry changes.",
     "restore": "Restore"
+  },
+  "readerPolicy": {
+    "title": "What readers may see",
+    "intro": "Kept out of a world export made for readers. Nothing here affects the manuscript, and nothing here affects what an AI extension sees - that is the setting above.",
+    "hideEntry": "Keep this entry from readers entirely",
+    "sections": "Sections to keep back"
   }
 }

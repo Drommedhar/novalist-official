@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Spoiler control on what leaves the app.** A world page listing the villain's real name beside everything else is worse than no world page at all. Every Codex entry now has **What readers may see**: keep the whole entry from readers, or tick individual sections to withhold. Export the world or the Codex with **For readers** on and all of it is left out — a hidden entry does not appear at all, because listing the name and withholding the fields announces there is something to find. This is a separate setting from what an AI extension may see, so you can let a model know the twist while you plan without a reader finding it.
+
 - **Plot threads and research notes keep their earlier versions.** Codex entries kept a history and nothing else did, so typing over a thread's description or pasting over a research note had no answer inside the app. Both now list **Earlier versions** with a **Restore** beside each, the same way a Codex entry does, and restoring keeps the current state as a version of its own. A save that changed nothing is not kept, so opening something and leaving it alone does not fill the list.
 
 - **A family tree.** The Relationships canvas lays everything out by force, which is right for "what is connected to what" and wrong for "who descends from whom" — three generations read as a cloud. Centre on somebody and press **As tree** and the same people redraw as generations on lines, with separate limits for how many generations up and down to show and a switch between a tree that runs downwards and one that runs sideways.

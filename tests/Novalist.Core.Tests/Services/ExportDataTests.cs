@@ -751,5 +751,84 @@ public class ExportDataTests : IDisposable
 
         Assert.All(chapters.Where(c => c.IsVolume), c => Assert.Null(c.Subtitle));
     }
-}
 
+    // ── What a reader may see ──
+
+    [Fact]
+    public async Task AReaderExportLeavesOutAHiddenEntryEntirely()
+    {
+        // Listing the name and withholding the fields announces that there is
+        // something to find, which is most of the spoiler.
+        var options = Setup(ExportFormat.WorldJson, new SceneData { Title = "S", Order = 1 });
+        options.ForReaders = true;
+        _entities.LoadCharactersAsync().Returns([
+            new CharacterData { Id = "c1", Name = "Mara" },
+            new CharacterData { Id = "c2", Name = "The Hollow King", ReaderHidden = true }
+        ]);
+
+        var export = await Service().CompileMetadataAsync(options);
+
+        Assert.Contains(export.Codex, e => e.Name == "Mara");
+        Assert.DoesNotContain(export.Codex, e => e.Name == "The Hollow King");
+    }
+
+    [Fact]
+    public async Task TheSameExportNotForReadersCarriesEverything()
+    {
+        var options = Setup(ExportFormat.WorldJson, new SceneData { Title = "S", Order = 1 });
+        options.ForReaders = false;
+        _entities.LoadCharactersAsync().Returns([
+            new CharacterData { Id = "c1", Name = "Mara" },
+            new CharacterData { Id = "c2", Name = "The Hollow King", ReaderHidden = true }
+        ]);
+
+        var export = await Service().CompileMetadataAsync(options);
+
+        Assert.Contains(export.Codex, e => e.Name == "The Hollow King");
+    }
+
+    [Fact]
+    public async Task AHiddenSectionIsLeftOutWhileItsEntryStays()
+    {
+        // One twist withheld, and the character it belongs to still appears.
+        var options = Setup(ExportFormat.WorldJson, new SceneData { Title = "S", Order = 1 });
+        options.ForReaders = true;
+        var mara = new CharacterData { Id = "c1", Name = "Mara" };
+        mara.Sections.Add(new EntitySection { Title = "Appearance", Content = "Tall." });
+        mara.Sections.Add(new EntitySection
+        {
+            Title = "The truth",
+            Content = "She did it.",
+            ReaderHidden = true
+        });
+        _entities.LoadCharactersAsync().Returns([mara]);
+
+        var export = await Service().CompileMetadataAsync(options);
+
+        var row = Assert.Single(export.Codex, e => e.Name == "Mara");
+        Assert.True(row.Sections.ContainsKey("Appearance"));
+        Assert.False(row.Sections.ContainsKey("The truth"));
+    }
+
+    [Fact]
+    public async Task WithholdingFromAModelIsNotWithholdingFromAReader()
+    {
+        // Two axes on purpose: a writer may be happy for a model to know the
+        // twist while planning and never for a reader to find it.
+        var options = Setup(ExportFormat.WorldJson, new SceneData { Title = "S", Order = 1 });
+        options.ForReaders = true;
+        var mara = new CharacterData { Id = "c1", Name = "Mara" };
+        mara.Sections.Add(new EntitySection
+        {
+            Title = "Kept from the model",
+            Content = "Still fine for a reader.",
+            AiHidden = true
+        });
+        _entities.LoadCharactersAsync().Returns([mara]);
+
+        var export = await Service().CompileMetadataAsync(options);
+
+        var row = Assert.Single(export.Codex, e => e.Name == "Mara");
+        Assert.True(row.Sections.ContainsKey("Kept from the model"));
+    }
+}

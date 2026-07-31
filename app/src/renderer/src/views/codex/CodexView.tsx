@@ -26,6 +26,7 @@ import { EntityAttachments } from './EntityAttachments'
 import { CustomPropsEditor } from './CustomPropsEditor'
 import { MatchSettingsEditor } from './MatchSettingsEditor'
 import { AiPolicyEditor } from './AiPolicyEditor'
+import { ReaderPolicyEditor } from './ReaderPolicyEditor'
 import { StateOverridesEditor } from './StateOverridesEditor'
 import { ArcEditor } from './ArcEditor'
 import { UnlinkedMentionsPanel } from './UnlinkedMentionsPanel'
@@ -306,6 +307,14 @@ export function CodexView(): React.JSX.Element {
                 <details className="codex-match">
                   <summary>{t('aiPolicy.title')}</summary>
                   <AiPolicyEditor entityType={entityType} entityId={selectedId} />
+                </details>
+              )}
+              {/* A different question from the AI one: what a reader may see,
+                  when the world goes out of the app as a page. */}
+              {selectedId && (
+                <details className="codex-match">
+                  <summary>{t('readerPolicy.title')}</summary>
+                  <ReaderPolicyEditor entityType={entityType} entityId={selectedId} />
                 </details>
               )}
               <OverridesEditor />

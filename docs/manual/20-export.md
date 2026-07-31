@@ -448,3 +448,9 @@ The CSV files carry a byte order mark so Excel reads accented names correctly in
 - [Exposé](32-expose.md) — write the pitch document with live Normseiten counts, and export it in the same layout.
 - [Settings](23-settings.md) — editor and appearance settings.
 - [Manuscript view](10-manuscript.md) — read the whole book before you export it.
+
+## Exporting the world for readers
+
+The world and Codex formats carry a **For readers** switch. With it on, everything you marked under **What readers may see** on a Codex entry is left out: hidden entries do not appear at all, and hidden sections are dropped from the entries that do.
+
+It has no effect on a manuscript export — there is nothing there for it to hide — so it only appears on the formats that carry the world out of the app.

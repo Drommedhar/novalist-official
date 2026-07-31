@@ -172,7 +172,11 @@ public sealed class ExportRpc
         string? retailerKey = null,
         /// <summary>Further books to append after the open one, for a box set.
         /// Null or empty is one book, which is what every caller did before.</summary>
-        string[]? includedBookIds = null)
+        string[]? includedBookIds = null,
+        /// <summary>Leave out everything marked as not for readers. Turns a
+        /// world export into something that can be handed to somebody who is
+        /// reading the book.</summary>
+        bool forReaders = false)
     {
         if (Enum.TryParse<ExportFormat>(format, out var parsedFormat))
         {
@@ -191,6 +195,7 @@ public sealed class ExportRpc
                 IncludedStages = includedStages?.ToList(),
                 SelectedEntityKeys = selectedEntityKeys?.ToList(),
                 Labels = labels,
+                ForReaders = forReaders,
                 // The cover the Dashboard already collects, and the book's
                 // writing language rather than a hardcoded "en".
                 CoverImagePath = includeCover ? _workspace.ActiveCoverAbsolutePath() ?? string.Empty : string.Empty,

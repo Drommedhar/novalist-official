@@ -1483,7 +1483,8 @@
     "formatOpml": "Gliederung (OPML)",
     "formatWorldJson": "Alles (JSON-Archiv)",
     "formatWorldHtml": "Alles (lesbare Seite)",
-    "alsoInclude": "Diese Buecher ebenfalls aufnehmen"
+    "alsoInclude": "Diese Buecher ebenfalls aufnehmen",
+    "forReaders": "Für Leser - alles auslassen, was nicht für Leser markiert ist"
   },
   "expose": {
     "chars": "{{value}} Zeichen",
@@ -3347,5 +3348,11 @@
     "intro": "Was dieser Eintrag vor den letzten Speicherungen enthielt. Beim Wiederherstellen wird der aktuelle Stand selbst zu einer Fassung und laesst sich zurueckholen.",
     "none": "Noch keine frueheren Fassungen. Bei jeder Aenderung wird eine angelegt.",
     "restore": "Wiederherstellen"
+  },
+  "readerPolicy": {
+    "title": "Was Leser sehen dürfen",
+    "intro": "Wird aus einem für Leser erstellten Welt-Export ausgelassen. Das Manuskript bleibt unberührt, und was eine KI-Erweiterung sieht, steht in der Einstellung darüber.",
+    "hideEntry": "Diesen Eintrag ganz vor Lesern verbergen",
+    "sections": "Abschnitte zurückhalten"
   }
 }

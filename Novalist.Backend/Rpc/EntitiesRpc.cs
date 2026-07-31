@@ -708,6 +708,44 @@ public sealed class EntitiesRpc
         return await GetAiPolicyAsync(type, id);
     }
 
+    /// <summary>
+    /// Who among readers may see this entry, and which of its sections.
+    ///
+    /// A separate axis from the AI policy on purpose: a writer may be happy for
+    /// a model to know the twist while planning and never for a reader to find
+    /// it in a world page. One switch for both would force a choice nobody
+    /// should have to make.
+    /// </summary>
+    [JsonRpcMethod("entities/getReaderPolicy")]
+    public async Task<ReaderPolicyDto> GetReaderPolicyAsync(string type, string id)
+    {
+        var entity = await FindEntityAsync(type, id);
+        return new ReaderPolicyDto(
+            entity?.ReaderHidden ?? false,
+            [.. SectionsOf(entity).Select((sec, index) =>
+                new ReaderSectionDto(index, sec.Title, sec.ReaderHidden))]);
+    }
+
+    /// <summary>
+    /// Sets whether the entry, and which of its sections, are kept from
+    /// readers. Indices that no longer name a section are ignored: the panel's
+    /// view of the sections can be one edit behind.
+    /// </summary>
+    [JsonRpcMethod("entities/setReaderPolicy")]
+    public async Task<ReaderPolicyDto> SetReaderPolicyAsync(
+        string type, string id, bool hidden, int[] hiddenSections)
+    {
+        var entity = await FindEntityAsync(type, id) ?? throw Unknown(id);
+
+        entity.ReaderHidden = hidden;
+        var withheld = (hiddenSections ?? []).ToHashSet();
+        var sections = SectionsOf(entity);
+        for (var i = 0; i < sections.Count; i++) sections[i].ReaderHidden = withheld.Contains(i);
+
+        await SaveEntityAsync(entity);
+        return await GetReaderPolicyAsync(type, id);
+    }
+
     /// <summary>The entry's rich-text sections, or none for a type that has
     /// no section support.</summary>
     private static List<Core.Models.EntitySection> SectionsOf(Core.Models.IEntityData? entity)
@@ -2248,3 +2286,9 @@ public sealed record MatchSettingsDto(
 
 /// <summary>One earlier state of a Codex entry, for the history list.</summary>
 public sealed record EntityRevisionDto(string Id, string SavedAt, long SizeBytes);
+
+/// <summary>One section, and whether readers are kept from it.</summary>
+public sealed record ReaderSectionDto(int Index, string Title, bool Hidden);
+
+/// <summary>What a reader may see of one entry.</summary>
+public sealed record ReaderPolicyDto(bool Hidden, IReadOnlyList<ReaderSectionDto> Sections);

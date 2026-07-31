@@ -1915,7 +1915,8 @@
     "formatOpml": "大纲（OPML）",
     "formatWorldJson": "全部（JSON 归档）",
     "formatWorldHtml": "全部（可浏览页面）",
-    "alsoInclude": "同时收录这些书"
+    "alsoInclude": "同时收录这些书",
+    "forReaders": "面向读者 — 省略所有标记为不给读者看的内容"
   },
   "expose": {
     "chars": "{{value}} 字符",
@@ -3379,5 +3380,11 @@
     "intro": "该条目最近几次保存前的内容。恢复某个版本时，当前内容也会成为一个版本，因此可以撤销。",
     "none": "暂无历史版本。每次改动都会保留一个。",
     "restore": "恢复"
+  },
+  "readerPolicy": {
+    "title": "读者可见的内容",
+    "intro": "在面向读者的世界导出中省略。不影响手稿，也不影响 AI 扩展能看到的内容——那是上方的设置。",
+    "hideEntry": "对读者完全隐藏此条目",
+    "sections": "要保留不公开的章节"
   }
 }

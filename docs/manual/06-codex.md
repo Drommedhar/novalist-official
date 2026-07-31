@@ -329,3 +329,14 @@ The arrangement belongs to the project and to that entry type, so characters and
 - [Relationships graph](14-relationships.md) — visualize the cast's connections.
 - [Image Gallery](19-image-gallery.md) — browse all project images.
 - [Editor](05-editor.md#entity-hover-cards) — hover cards for codex entities in your prose.
+
+## What readers may see
+
+Separate from the AI setting above it, and deliberately so: you may be happy for a model to know the twist while you plan, and never for a reader to find it in a world page you hand round before the book is finished. One switch for both would force a choice nobody should have to make.
+
+Under **What readers may see** on any entry:
+
+- **Keep this entry from readers entirely** leaves it out of a reader export completely. It does not appear as an empty entry — listing the name and withholding the fields announces that there is something to find, which is most of the spoiler.
+- Below that, a tick per section, so one twist can be withheld while the character it belongs to still appears.
+
+None of this touches the manuscript. It only applies when an export is made **For readers** — see [Export](20-export.md).

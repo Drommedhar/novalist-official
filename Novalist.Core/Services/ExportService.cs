@@ -136,6 +136,15 @@ public class ExportOptions
     public string CoverImagePath { get; set; } = string.Empty;
 
     /// <summary>
+    /// Leave out everything marked as not for readers.
+    ///
+    /// A world page that lists the villain's real name beside everything else
+    /// is worse than no world page at all, so this is what turns the same
+    /// export into something that can be handed to somebody reading the book.
+    /// </summary>
+    public bool ForReaders { get; set; }
+
+    /// <summary>
     /// BCP-47 language tag written to EPUB's <c>dc:language</c>. Defaults to
     /// English only when nothing is supplied; a German or Chinese book that
     /// ships as <c>en</c> is mis-shelved at retailer ingestion.
@@ -1479,20 +1488,25 @@ public partial class ExportService
             && _entityService != null)
         {
             var codex = await CompileCodexAsync(options);
+            // An entry the writer marked as not for readers does not appear at
+            // all. Listing the name and withholding the fields would announce
+            // that there is something to find, which is most of the spoiler.
+            bool Shown(Models.IEntityData e) => !options.ForReaders || !e.ReaderHidden;
+
             // The same field builders the Markdown and PDF codex exports use,
             // so a JSON entry carries exactly what the document one prints.
-            foreach (var c in codex.Characters)
+            foreach (var c in codex.Characters.Where(Shown))
                 export.Codex.Add(EntityRow(CodexCharacterKind, c.DisplayName,
                     CharacterFields(c, options), c.Sections, c.Relationships, options));
-            foreach (var l in codex.Locations)
+            foreach (var l in codex.Locations.Where(Shown))
                 export.Codex.Add(EntityRow(CodexLocationKind, l.Name,
                     GenericFields(l.Type, l.Description, l.CustomProperties, options),
                     l.Sections, l.Relationships, options));
-            foreach (var i in codex.Items)
+            foreach (var i in codex.Items.Where(Shown))
                 export.Codex.Add(EntityRow(CodexItemKind, i.Name,
                     GenericFields(i.Type, i.Description, i.CustomProperties, options),
                     i.Sections, i.Relationships, options));
-            foreach (var l in codex.Lore)
+            foreach (var l in codex.Lore.Where(Shown))
                 export.Codex.Add(EntityRow(CodexLoreKind, l.Name,
                     GenericFields(l.Category, l.Description, l.CustomProperties, options),
                     l.Sections, l.Relationships, options));
@@ -1527,7 +1541,11 @@ public partial class ExportService
                 row.Properties[kv.Key] = kv.Value;
 
         if (sections != null)
-            foreach (var section in sections.Where(s => options.IncludesSection(s.Title)))
+            foreach (var section in sections
+                .Where(s => options.IncludesSection(s.Title))
+                // A section the writer marked as not for readers is left out
+                // whole: half of a twist is still the twist.
+                .Where(s => !options.ForReaders || !s.ReaderHidden))
                 row.Sections[section.Title] = section.Content;
 
         if (options.IncludesPart("relationships") && relationships != null)
