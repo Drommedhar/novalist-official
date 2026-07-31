@@ -220,3 +220,20 @@
   font-size: var(--nl-font-body);
   color: var(--nl-text);
 }
+
+/* Offset and its unit read as one control, because they are one answer. */
+.timeline-depends-row {
+  display: flex;
+  gap: var(--nl-space-sm);
+}
+
+.timeline-depends-offset {
+  max-width: 6rem;
+}
+
+.timeline-depends-word {
+  align-self: center;
+  font-size: var(--nl-font-body);
+  color: var(--nl-text-dim);
+  white-space: nowrap;
+}

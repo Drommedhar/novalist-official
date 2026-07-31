@@ -101,6 +101,26 @@ Click **Add Event** (or click an existing manual event) to open the event editor
 
 **Save** stores the event with the project. When editing, the dialog also offers **Delete**; alternatively, right-click a manual event on the timeline to delete it.
 
+## Dates that follow other dates
+
+Every date used to stand on its own. Move a siege by a week and you had to find and retype every date that hung off it — and the ones you missed did not announce themselves. They quietly said the wrong thing until somebody read the book and noticed the funeral happening before the death.
+
+In the event editor, **Follows this event** hangs an event's date off another one:
+
+- **Days after** is the gap. Negative puts the event *before* its anchor.
+- **Counted from** picks the anchor's **start** or its **end**. "The week after the siege" means its end when the siege lasts a month.
+- Moving the anchor moves everything downstream of it, through as many links as you have made.
+- A span keeps its own length. A three-week siege that moves is still three weeks long.
+
+**Pin this date** holds an event still. A cascade will not move it, but anything hanging off *it* still follows. Use it for the one date in a chain you are certain of.
+
+Two things Novalist refuses rather than guesses at:
+
+- **A loop.** Two events each waiting on the other have no right answer, so both keep the dates they have.
+- **A date it cannot read.** An in-world calendar date is not a mistake to be corrected, so an event anchored to one is left alone.
+
+Deleting an event does not disturb the dates that hung off it. They keep what they have and simply stop following anything.
+
 ## Spans
 
 An event with an end, and a scene with a [date range](04-chapters-and-scenes.md), draw a bar under their date showing how much of the story they cover.

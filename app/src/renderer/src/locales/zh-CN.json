@@ -1803,7 +1803,14 @@
     "addTimeline": "添加时间线",
     "removeTimeline": "移除此时间线",
     "removeTimelineHint": "其上的事件会保留，并回到第一条时间线。",
-    "noEventsOnTimeline": "这条时间线上还没有内容。添加一个事件，或在事件编辑器中把已有事件放到这里。"
+    "noEventsOnTimeline": "这条时间线上还没有内容。添加一个事件，或在事件编辑器中把已有事件放到这里。",
+    "dependsOn": "跟随此事件",
+    "dependsOnNone": "不跟随 — 使用自己的日期",
+    "dependsOffset": "天，从",
+    "dependsFrom": "计算起点",
+    "dependsFromStart": "它的开始",
+    "dependsFromEnd": "它的结束",
+    "dateLocked": "固定此日期 — 连锁调整不会移动它"
   },
   "export": {
     "header": "导出小说",

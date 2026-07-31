@@ -1371,7 +1371,14 @@
     "addTimeline": "Zeitstrahl hinzufügen",
     "removeTimeline": "Diesen Zeitstrahl entfernen",
     "removeTimelineHint": "Die Ereignisse bleiben erhalten und wandern zurück zum ersten Zeitstrahl.",
-    "noEventsOnTimeline": "Auf diesem Zeitstrahl ist noch nichts. Füge ein Ereignis hinzu oder ordne im Ereignis-Editor ein vorhandenes zu."
+    "noEventsOnTimeline": "Auf diesem Zeitstrahl ist noch nichts. Füge ein Ereignis hinzu oder ordne im Ereignis-Editor ein vorhandenes zu.",
+    "dependsOn": "Folgt diesem Ereignis",
+    "dependsOnNone": "Nichts - eigenes Datum",
+    "dependsOffset": "Tage nach",
+    "dependsFrom": "Gerechnet ab",
+    "dependsFromStart": "seinem Anfang",
+    "dependsFromEnd": "seinem Ende",
+    "dateLocked": "Datum festhalten - eine Verschiebung lässt es stehen"
   },
   "export": {
     "header": "Roman exportieren",

@@ -19,6 +19,14 @@ export interface TimelineEventDraft {
   endDate: string
   /** Which timelines it sits on. Empty means the first one. */
   timelineIds: string[]
+  /** The event this one hangs off, or empty for a date of its own. */
+  dependsOnEventId: string
+  /** Days after the anchor. Negative puts it before. */
+  dependsOnOffsetDays: number
+  /** 'start' or 'end' of the anchor. */
+  dependsOnFrom: string
+  /** The writer pinned this date, so a cascade leaves it alone. */
+  dateLocked: boolean
 }
 
 /** Comma-separated names in and out, which is how the chips are stored. */
@@ -36,6 +44,8 @@ interface TimelineEventEditorProps {
   timelines: { id: string; name: string }[]
   /** The timeline being shown, or empty for all of them. */
   activeTimelineId: string
+  /** Manual events this one could hang off. Never includes itself. */
+  anchors: { id: string; title: string }[]
   onSubmit(draft: TimelineEventDraft): void
   onCancel(): void
   onDelete?(): void
@@ -45,6 +55,7 @@ export function TimelineEventEditor({
   initial,
   timelines,
   activeTimelineId,
+  anchors,
   onSubmit,
   onCancel,
   onDelete
@@ -62,6 +73,10 @@ export function TimelineEventEditor({
   // A new event made while looking at one timeline belongs to it - that is
   // what the host does with it, and the ticks have to say so rather than
   // showing the first timeline and filing it somewhere else.
+  const [dependsOn, setDependsOn] = useState(initial?.dependsOnEventId ?? '')
+  const [offsetDays, setOffsetDays] = useState(String(initial?.dependsOnOffsetDays ?? 0))
+  const [dependsFrom, setDependsFrom] = useState(initial?.dependsOnFrom ?? 'start')
+  const [dateLocked, setDateLocked] = useState(initial?.dateLocked ?? false)
   const [timelineIds, setTimelineIds] = useState<string[]>(
     initial?.timelineIds?.length
       ? initial.timelineIds
@@ -85,7 +100,12 @@ export function TimelineEventEditor({
       characters: split(characters),
       locations: split(locations),
       endDate: endDate.trim(),
-      timelineIds
+      timelineIds,
+      dependsOnEventId: dependsOn,
+      // An unreadable offset means zero rather than a saved NaN.
+      dependsOnOffsetDays: Number.parseInt(offsetDays, 10) || 0,
+      dependsOnFrom: dependsFrom,
+      dateLocked
     })
   }
 
@@ -125,6 +145,61 @@ export function TimelineEventEditor({
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
         />
+        {/* Dates that follow other dates. Every date used to be independent,
+            so moving a siege by a week meant retyping every date that hung off
+            it - and the ones that were missed did not announce themselves. */}
+        {anchors.length > 0 && (
+          <>
+            <label className="inspector-label" htmlFor="tl-depends">
+              {t('timeline.dependsOn')}
+            </label>
+            <select
+              id="tl-depends"
+              className="dialog-input"
+              value={dependsOn}
+              onChange={(e) => setDependsOn(e.target.value)}
+            >
+              <option value="">{t('timeline.dependsOnNone')}</option>
+              {anchors.map((anchor) => (
+                <option key={anchor.id} value={anchor.id}>
+                  {anchor.title}
+                </option>
+              ))}
+            </select>
+            {dependsOn !== '' && (
+              <div className="timeline-depends-row">
+                <input
+                  className="dialog-input timeline-depends-offset"
+                  type="number"
+                  aria-label={t('timeline.dependsOffset')}
+                  value={offsetDays}
+                  onChange={(e) => setOffsetDays(e.target.value)}
+                />
+                {/* Reads as a sentence: "0 days after its start". A bare number
+                    box beside a bare dropdown says nothing on its own. */}
+                <span className="timeline-depends-word">{t('timeline.dependsOffset')}</span>
+                <select
+                  className="dialog-input"
+                  aria-label={t('timeline.dependsFrom')}
+                  value={dependsFrom}
+                  onChange={(e) => setDependsFrom(e.target.value)}
+                >
+                  <option value="start">{t('timeline.dependsFromStart')}</option>
+                  <option value="end">{t('timeline.dependsFromEnd')}</option>
+                </select>
+              </div>
+            )}
+          </>
+        )}
+        {/* Without this the cascade would overwrite a date the writer meant. */}
+        <label className="timeline-event-timeline">
+          <input
+            type="checkbox"
+            checked={dateLocked}
+            onChange={(e) => setDateLocked(e.target.checked)}
+          />
+          {t('timeline.dateLocked')}
+        </label>
         {/* An event can belong to a character's life and to the world's history
             at once, so this is a set rather than a choice - two copies of one
             event would be two things to keep in step. Only worth showing once

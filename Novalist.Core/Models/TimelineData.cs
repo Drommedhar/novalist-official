@@ -106,6 +106,36 @@ public class TimelineManualEvent
     public List<string> Locations { get; set; } = [];
 
     /// <summary>
+    /// The event this one hangs off, or empty for a date of its own.
+    ///
+    /// Every date was independent, so moving a siege by a week meant finding
+    /// and retyping every date that hung off it - and the ones that were missed
+    /// did not announce themselves.
+    /// </summary>
+    [JsonPropertyName("dependsOnEventId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DependsOnEventId { get; set; }
+
+    /// <summary>Days after the anchor. Negative puts this event before it.</summary>
+    [JsonPropertyName("dependsOnOffsetDays")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public int DependsOnOffsetDays { get; set; }
+
+    /// <summary>"start" or "end" of the anchor. "the week after the siege"
+    /// means its end when the siege lasts a month.</summary>
+    [JsonPropertyName("dependsOnFrom")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? DependsOnFrom { get; set; }
+
+    /// <summary>
+    /// The writer pinned this date, so a cascade leaves it alone. Its own
+    /// dependents still follow it.
+    /// </summary>
+    [JsonPropertyName("dateLocked")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool DateLocked { get; set; }
+
+    /// <summary>
     /// The timelines this event is on. Empty means the first one, which is what
     /// every event written before there was more than one timeline means.
     ///

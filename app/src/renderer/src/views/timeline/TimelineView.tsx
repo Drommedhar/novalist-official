@@ -36,6 +36,11 @@ export interface TimelineEventDto {
   sortEndDate: string | null
   /** Timelines this event sits on. Empty means the first one. */
   timelineIds?: string[]
+  /** The event this one hangs off, or empty. */
+  dependsOnEventId?: string
+  dependsOnOffsetDays?: number
+  dependsOnFrom?: string
+  dateLocked?: boolean
 }
 
 interface TimelineEntityLink {
@@ -87,6 +92,23 @@ type Pending =
   | { kind: 'create' }
   | { kind: 'edit'; event: TimelineEventDto }
   | { kind: 'delete'; event: TimelineEventDto }
+
+/**
+ * The manual events an event could hang its date off: every other one.
+ *
+ * Never itself - an event waiting on itself is a dependency that can never
+ * resolve, and it is the easiest one to pick by accident.
+ */
+function anchors(
+  data: TimelineDto,
+  selfId: string | null
+): { id: string; title: string }[] {
+  return data.groups
+    .flatMap((g) => g.events)
+    .filter((e) => e.isManual)
+    .map((e) => ({ id: e.id.replace(/^manual-/, ''), title: e.title }))
+    .filter((e) => e.id !== selfId)
+}
 
 export function TimelineView(): React.JSX.Element {
   const { t } = useTranslation()
@@ -171,7 +193,11 @@ export function TimelineView(): React.JSX.Element {
         draft.characters,
         draft.locations,
         draft.endDate,
-        draft.timelineIds
+        draft.timelineIds,
+        draft.dependsOnEventId,
+        draft.dependsOnOffsetDays,
+        draft.dependsOnFrom,
+        draft.dateLocked
       ])
     )
   }
@@ -760,6 +786,7 @@ export function TimelineView(): React.JSX.Element {
           initial={null}
           timelines={data.timelines}
           activeTimelineId={data.activeTimelineId}
+          anchors={anchors(data, null)}
           onCancel={() => setPending(null)}
           onSubmit={(draft) => {
             setPending(null)
@@ -772,6 +799,7 @@ export function TimelineView(): React.JSX.Element {
           initial={pending.event}
           timelines={data.timelines}
           activeTimelineId={data.activeTimelineId}
+          anchors={anchors(data, manualId(pending.event))}
           onCancel={() => setPending(null)}
           onDelete={() => {
             const event = pending.event

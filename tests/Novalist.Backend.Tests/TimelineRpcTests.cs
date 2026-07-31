@@ -575,5 +575,121 @@ public sealed class TimelineRpcTests : IDisposable
         Assert.Contains("One", AllEvents(await _rpc.SetActiveTimelineAsync("main")).Select(e => e.Title));
         Assert.Contains("One", AllEvents(await _rpc.SetActiveTimelineAsync(null)).Select(e => e.Title));
     }
-}
 
+    // ── Dates that follow other dates ──
+
+    [Fact]
+    public async Task MovingAnAnchorMovesEverythingDownstreamOfIt()
+    {
+        // The whole point: moving a siege by a week used to mean finding and
+        // retyping every date that hung off it.
+        await _rpc.SaveEventAsync(null, "The siege", "2020-01-01", "", "world", null);
+        var siege = Manual("The siege");
+        await _rpc.SaveEventAsync(null, "The funeral", "", "", "plot", null);
+        var funeral = Manual("The funeral");
+
+        await _rpc.SaveEventAsync(funeral.Id, funeral.Title, funeral.Date, "", "plot", null,
+            dependsOnEventId: siege.Id, dependsOnOffsetDays: 7);
+        Assert.Equal("2020-01-08", Manual("The funeral").Date);
+
+        // Move the anchor a week later; the funeral goes with it.
+        await _rpc.SaveEventAsync(siege.Id, siege.Title, "2020-01-08", "", "world", null);
+        Assert.Equal("2020-01-15", Manual("The funeral").Date);
+    }
+
+    [Fact]
+    public async Task ADependencyOnSomethingThatIsNotThereIsRefused()
+    {
+        // It could never resolve, so storing it would be storing a promise the
+        // engine cannot keep.
+        await _rpc.SaveEventAsync(null, "Alone", "2020-01-01", "", "plot", null);
+        var alone = Manual("Alone");
+
+        await _rpc.SaveEventAsync(alone.Id, alone.Title, alone.Date, "", "plot", null,
+            dependsOnEventId: "no-such-event", dependsOnOffsetDays: 3);
+
+        Assert.Null(Manual("Alone").DependsOnEventId);
+        Assert.Equal("2020-01-01", Manual("Alone").Date);
+    }
+
+    [Fact]
+    public async Task AnEventCannotBeMadeToWaitOnItself()
+    {
+        await _rpc.SaveEventAsync(null, "Alone", "2020-01-01", "", "plot", null);
+        var alone = Manual("Alone");
+
+        await _rpc.SaveEventAsync(alone.Id, alone.Title, alone.Date, "", "plot", null,
+            dependsOnEventId: alone.Id, dependsOnOffsetDays: 3);
+
+        Assert.Null(Manual("Alone").DependsOnEventId);
+    }
+
+    [Fact]
+    public async Task APinnedDateSurvivesACascade()
+    {
+        await _rpc.SaveEventAsync(null, "The siege", "2020-01-01", "", "world", null);
+        var siege = Manual("The siege");
+        await _rpc.SaveEventAsync(null, "The coronation", "2021-06-01", "", "plot", null);
+        var coronation = Manual("The coronation");
+
+        await _rpc.SaveEventAsync(coronation.Id, coronation.Title, coronation.Date, "", "plot", null,
+            dependsOnEventId: siege.Id, dependsOnOffsetDays: 7, dateLocked: true);
+
+        // Pinned: the dependency is stored but the date does not move.
+        Assert.Equal(siege.Id, Manual("The coronation").DependsOnEventId);
+        Assert.Equal("2021-06-01", Manual("The coronation").Date);
+    }
+
+    [Fact]
+    public async Task AnOffsetCanBeMeasuredFromTheAnchorsEnd()
+    {
+        await _rpc.SaveEventAsync(null, "The siege", "2020-01-01", "", "world", null,
+            endDate: "2020-02-01");
+        var siege = Manual("The siege");
+        await _rpc.SaveEventAsync(null, "The feast", "", "", "plot", null);
+        var feast = Manual("The feast");
+
+        await _rpc.SaveEventAsync(feast.Id, feast.Title, feast.Date, "", "plot", null,
+            dependsOnEventId: siege.Id, dependsOnOffsetDays: 7, dependsOnFrom: "end");
+
+        Assert.Equal("2020-02-08", Manual("The feast").Date);
+    }
+
+    [Fact]
+    public async Task AnythingOtherThanEndCountsFromTheStart()
+    {
+        await _rpc.SaveEventAsync(null, "The siege", "2020-01-01", "", "world", null,
+            endDate: "2020-02-01");
+        var siege = Manual("The siege");
+        await _rpc.SaveEventAsync(null, "The feast", "", "", "plot", null);
+        var feast = Manual("The feast");
+
+        await _rpc.SaveEventAsync(feast.Id, feast.Title, feast.Date, "", "plot", null,
+            dependsOnEventId: siege.Id, dependsOnOffsetDays: 7, dependsOnFrom: "nonsense");
+
+        Assert.Null(Manual("The feast").DependsOnFrom);
+        Assert.Equal("2020-01-08", Manual("The feast").Date);
+    }
+
+    [Fact]
+    public async Task DeletingAnAnchorLeavesItsDependentsWhereTheyAre()
+    {
+        // A deleted anchor must not blank the dates of everything downstream:
+        // the writer's date is better than no date.
+        await _rpc.SaveEventAsync(null, "The siege", "2020-01-01", "", "world", null);
+        var siege = Manual("The siege");
+        await _rpc.SaveEventAsync(null, "The funeral", "", "", "plot", null);
+        var funeral = Manual("The funeral");
+        await _rpc.SaveEventAsync(funeral.Id, funeral.Title, funeral.Date, "", "plot", null,
+            dependsOnEventId: siege.Id, dependsOnOffsetDays: 7);
+
+        await _rpc.DeleteEventAsync(siege.Id);
+
+        var left = Manual("The funeral");
+        Assert.Null(left.DependsOnEventId);
+        Assert.Equal("2020-01-08", left.Date);
+    }
+
+    private Novalist.Core.Models.TimelineManualEvent Manual(string title)
+        => _workspace.Projects.ProjectSettings.Timeline.ManualEvents.First(e => e.Title == title);
+}

@@ -1770,7 +1770,14 @@
     "addTimeline": "Add timeline",
     "removeTimeline": "Remove this timeline",
     "removeTimelineHint": "The events on it are kept and move back to the first timeline.",
-    "noEventsOnTimeline": "Nothing on this timeline yet. Add an event, or put an existing one on it from the event editor."
+    "noEventsOnTimeline": "Nothing on this timeline yet. Add an event, or put an existing one on it from the event editor.",
+    "dependsOn": "Follows this event",
+    "dependsOnNone": "Nothing - its own date",
+    "dependsOffset": "days after",
+    "dependsFrom": "Counted from",
+    "dependsFromStart": "its start",
+    "dependsFromEnd": "its end",
+    "dateLocked": "Pin this date - a cascade will not move it"
   },
   "export": {
     "header": "Export Novel",

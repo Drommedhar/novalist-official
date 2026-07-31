@@ -122,7 +122,11 @@ public sealed class TimelineRpc
                 double.MaxValue, manual.Characters.ToArray(), manual.Locations.ToArray(), true,
                 string.Empty, [], string.Empty, 0,
                 manual.EndDate, Iso(ParseDate(manual.EndDate)),
-                [.. manual.TimelineIds ?? []]));
+                [.. manual.TimelineIds ?? []],
+                manual.DependsOnEventId ?? string.Empty,
+                manual.DependsOnOffsetDays,
+                manual.DependsOnFrom ?? Core.Services.TimelineDependencies.FromStart,
+                manual.DateLocked));
         }
 
         // A book on its own calendar has dates no Gregorian parser can read,
@@ -202,7 +206,9 @@ public sealed class TimelineRpc
     public async Task<TimelineDto> SaveEventAsync(
         string? id, string title, string date, string description, string categoryId,
         string? linkedChapterGuid, string[]? characters = null, string[]? locations = null,
-        string? endDate = null, string[]? timelineIds = null)
+        string? endDate = null, string[]? timelineIds = null,
+        string? dependsOnEventId = null, int? dependsOnOffsetDays = null,
+        string? dependsOnFrom = null, bool? dateLocked = null)
     {
         var timeline = _workspace.Projects.ProjectSettings.Timeline;
         var existing = id == null ? null : timeline.ManualEvents.FirstOrDefault(e => e.Id == id);
@@ -242,6 +248,35 @@ public sealed class TimelineRpc
             // would vanish the moment it was saved.
             existing.TimelineIds = [timeline.ActiveTimelineId];
         }
+        if (dependsOnEventId != null)
+        {
+            // Only an event that exists, and never itself: either would be a
+            // dependency that can never resolve.
+            var anchor = dependsOnEventId.Trim();
+            existing.DependsOnEventId =
+                anchor.Length > 0
+                && !string.Equals(anchor, existing.Id, StringComparison.Ordinal)
+                && timeline.ManualEvents.Any(e => e.Id == anchor)
+                    ? anchor
+                    : null;
+        }
+        if (dependsOnOffsetDays.HasValue) existing.DependsOnOffsetDays = dependsOnOffsetDays.Value;
+        if (dependsOnFrom != null)
+        {
+            existing.DependsOnFrom =
+                string.Equals(dependsOnFrom, Core.Services.TimelineDependencies.FromEnd,
+                    StringComparison.OrdinalIgnoreCase)
+                    ? Core.Services.TimelineDependencies.FromEnd
+                    : null;
+        }
+        if (dateLocked.HasValue) existing.DateLocked = dateLocked.Value;
+
+        // Moving one date moves everything downstream of it. Doing this on
+        // save rather than on read means the dates on disk are the dates the
+        // writer would see, so an export or an extension reading the file
+        // gets the same chronology the timeline shows.
+        Core.Services.TimelineDependencies.Resolve(timeline.ManualEvents);
+
         await _workspace.Projects.SaveProjectSettingsAsync();
         return await Get();
     }
@@ -321,6 +356,10 @@ public sealed class TimelineRpc
     {
         var timeline = _workspace.Projects.ProjectSettings.Timeline;
         timeline.ManualEvents.RemoveAll(e => e.Id == id);
+        // Anything hanging off it keeps the date it has rather than pointing
+        // at an anchor that is gone.
+        foreach (var orphan in timeline.ManualEvents.Where(e => e.DependsOnEventId == id))
+            orphan.DependsOnEventId = null;
         await _workspace.Projects.SaveProjectSettingsAsync();
         return await Get();
     }
@@ -484,4 +523,12 @@ public sealed record TimelineEventDto(
     /// <summary>The timelines this event sits on. Empty means the first,
     /// which is what every event written before there was more than one
     /// timeline means.</summary>
-    IReadOnlyList<string>? TimelineIds = null);
+    IReadOnlyList<string>? TimelineIds = null,
+    /// <summary>The event this one hangs off, or empty.</summary>
+    string DependsOnEventId = "",
+    /// <summary>Days after the anchor. Negative puts it before.</summary>
+    int DependsOnOffsetDays = 0,
+    /// <summary>"start" or "end" of the anchor.</summary>
+    string DependsOnFrom = "start",
+    /// <summary>The writer pinned this date, so a cascade leaves it.</summary>
+    bool DateLocked = false);
