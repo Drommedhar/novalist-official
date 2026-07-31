@@ -4,7 +4,8 @@ import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { useWikiStore } from '../../stores/wikiStore'
 import { useProjectStore } from '../../stores/projectStore'
-import { layoutGraph, NODE_SIZE, type GraphCharacter } from './layout'
+import { layoutGraph, parentMap, NODE_SIZE, type GraphCharacter } from './layout'
+import { kinshipLabel, type KinshipRow } from './kinshipLabel'
 import './relationships.css'
 
 // Distinct per-family box colors (cycles when there are more families than
@@ -42,6 +43,15 @@ export function RelationshipsView(): React.JSX.Element {
   // Codex on one canvas proves the links exist and answers nothing; the
   // question a writer has is "what is this one connected to".
   const [rootId, setRootId] = useState<string | null>(null)
+  /**
+   * How each person is related to the one the view is centred on.
+   *
+   * The lines were always drawable and never readable: a writer could see that
+   * two characters connect through three others and still not know that makes
+   * one of them a great-aunt. Only asked for when a root is chosen, because
+   * without one there is nothing to be related to.
+   */
+  const [kinship, setKinship] = useState<Record<string, string>>({})
   const [depth, setDepth] = useState(2)
   // Scenes as nodes. Novalist always knew which entities appear in which scene
   // and never drew that edge, so "where do these two meet" had no answer here.
@@ -83,6 +93,21 @@ export function RelationshipsView(): React.JSX.Element {
     if (movedRef.current) return
     setRootId(id)
   }, [])
+
+  useEffect(() => {
+    if (!rootId) {
+      setKinship({})
+      return
+    }
+    void rpc
+      .request<KinshipRow[]>('relationships/kinship', [parentMap(allNodes), rootId])
+      .then((rows) => {
+        const next: Record<string, string> = {}
+        for (const row of rows) next[row.entityId] = kinshipLabel(t, row)
+        setKinship(next)
+      })
+      .catch(() => setKinship({}))
+  }, [rootId, allNodes, t])
 
   useEffect(() => {
     if (mainView !== 'relationships') return
@@ -265,7 +290,7 @@ export function RelationshipsView(): React.JSX.Element {
         {/* Centring on one entry turns a hairball into an answer. Two hops is
             usually where a family or a faction becomes a visible shape. */}
         <select
-          className="dialog-input relationships-filter"
+          className="dialog-input relationships-filter relationships-root"
           aria-label={t('relationships.centreOn')}
           value={rootId ?? ''}
           onChange={(e) => setRootId(e.target.value || null)}
@@ -282,7 +307,7 @@ export function RelationshipsView(): React.JSX.Element {
         </select>
         {rootId && (
           <select
-            className="dialog-input relationships-filter"
+            className="dialog-input relationships-filter relationships-depth"
             aria-label={t('relationships.depth')}
             value={String(depth)}
             onChange={(e) => setDepth(Number(e.target.value))}
@@ -441,6 +466,18 @@ export function RelationshipsView(): React.JSX.Element {
                 >
                   {node.name}
                 </text>
+                {/* What this person is to the one the graph is centred on.
+                    Under the name rather than in a tooltip: the whole reason to
+                    centre on somebody is to read this off every node at once. */}
+                {kinship[node.id] && (
+                  <text
+                    x={node.x + NODE_SIZE.width / 2}
+                    y={node.y + NODE_SIZE.height - 4}
+                    className="relationships-kinship"
+                  >
+                    {kinship[node.id]}
+                  </text>
+                )}
               </g>
             ))}
           </svg>

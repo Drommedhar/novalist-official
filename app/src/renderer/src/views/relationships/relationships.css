@@ -33,3 +33,12 @@
   color: var(--nl-text);
   border-color: var(--nl-accent);
 }
+
+/* The derived relationship, under the name. Quieter than the name because the
+   name is what you are looking for and this is what you are checking. */
+.relationships-kinship {
+  text-anchor: middle;
+  font-size: var(--nl-font-caption);
+  fill: var(--nl-accent);
+  pointer-events: none;
+}

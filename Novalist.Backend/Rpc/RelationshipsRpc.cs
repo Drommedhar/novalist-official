@@ -87,6 +87,49 @@ public sealed class RelationshipsRpc
     }
 
     /// <summary>
+    /// How everybody is related to one person, worked out from parentage.
+    ///
+    /// Novalist stores a tie as a role and a target - "mother", "Mira" - and
+    /// draws the lines, and nothing could say what they add up to. A writer
+    /// records who somebody's parents are; that they are therefore a great-aunt
+    /// is arithmetic, and doing it by hand across a large cast is how family
+    /// trees end up contradicting the prose.
+    ///
+    /// The parent map comes from the caller because deciding that "Mutter" is a
+    /// parent is a question about language, which the interface knows and the
+    /// backend does not. What comes back is shape rather than words, so the
+    /// answer reads correctly in every language Novalist speaks.
+    /// </summary>
+    [JsonRpcMethod("relationships/kinship")]
+    public KinshipDto[] Kinship(Dictionary<string, string[]> parents, string rootId)
+    {
+        if (string.IsNullOrWhiteSpace(rootId)) return [];
+
+        var lookup = parents.ToDictionary(
+            pair => pair.Key,
+            pair => (IReadOnlyCollection<string>)pair.Value,
+            StringComparer.Ordinal);
+
+        // Everyone the map mentions, on either side of a line - somebody who is
+        // only ever named as a parent still has a place in the tree.
+        var everyone = new HashSet<string>(parents.Keys, StringComparer.Ordinal);
+        foreach (var above in parents.Values)
+            foreach (var parent in above)
+                if (!string.IsNullOrWhiteSpace(parent)) everyone.Add(parent);
+
+        var results = new List<KinshipDto>();
+        foreach (var id in everyone)
+        {
+            var kinship = Core.Services.Kinship.Describe(lookup, id, rootId);
+            // The root and anybody off its family tree have nothing to say.
+            // Filtered here rather than in the caller, so there is one rule.
+            if (kinship.Kind is KinshipKind.Unrelated or KinshipKind.Self) continue;
+            results.Add(new KinshipDto(id, kinship.Kind.ToString(), kinship.Degree, kinship.Removed));
+        }
+        return [.. results];
+    }
+
+    /// <summary>
     /// A node per scene, edged to everything the scene contains.
     ///
     /// The link layer has been there all along - assigned casts and confirmed
@@ -227,3 +270,10 @@ public sealed record RelationshipCharacterDto(
 /// being guessed at.
 /// </summary>
 public sealed record RelationshipEdgeDto(string Role, string Target, string Category);
+
+/// <summary>
+/// One person's relationship to the one the view is centred on. Shape rather
+/// than words: "Cousin, degree 2, removed 1" reads as "second cousin once
+/// removed" in English and correctly in every other language too.
+/// </summary>
+public sealed record KinshipDto(string EntityId, string Kind, int Degree, int Removed);

@@ -3264,5 +3264,26 @@
     "set_hard": "Hard and blunt",
     "set_coastal": "Open and coastal",
     "set_old": "Old and guttural"
+  },
+  "kinship": {
+    "parent": "parent",
+    "grandparent": "grandparent",
+    "greatparent": "great-grandparent",
+    "greatsparent": "{{greats}}x great-grandparent",
+    "child": "child",
+    "grandchild": "grandchild",
+    "greatchild": "great-grandchild",
+    "greatschild": "{{greats}}x great-grandchild",
+    "sibling": "sibling",
+    "auntUncle": "aunt or uncle",
+    "greatAuntUncle": "great-aunt or uncle",
+    "greatsAuntUncle": "{{greats}}x great-aunt or uncle",
+    "nieceNephew": "niece or nephew",
+    "greatNieceNephew": "great-niece or nephew",
+    "greatsNieceNephew": "{{greats}}x great-niece or nephew",
+    "cousin": "first cousin",
+    "cousin_other": "cousin {{count}}",
+    "cousinRemoved": "first cousin, {{removed}}x removed",
+    "cousinRemoved_other": "cousin {{count}}, {{removed}}x removed"
   }
 }

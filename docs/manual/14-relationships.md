@@ -64,6 +64,19 @@ Each relationship in the Codex has a **kind of tie**: family, ally, rival, membe
 
 A tie with no kind draws in the neutral colour. Novalist used to guess "family" from keywords in the role text, which only ever worked in English — an unstated kind is now left unstated rather than guessed at. Setting the kind on the ties you care about is a minute's work and is the only thing that colours them.
 
+## How are these two related?
+
+Centre the graph on somebody with **the whole world** picker, and every other node gains a line under its name saying what that person is to the one you centred on: *sibling*, *grandparent*, *great-aunt or uncle*, *second cousin once removed*.
+
+None of that is written down anywhere. You record who somebody's parents are; that this makes them a great-aunt is arithmetic, and doing it by hand across a large cast is how family trees end up contradicting the prose.
+
+- Only descent counts. Partners and in-laws are drawn as lines but are not kin, because there is no line of descent to measure along.
+- Where two people share more than one ancestor, the nearest one wins — half-siblings who are also distant cousins read as siblings, which is what anybody in the room would call them.
+- Widen **hops** if somebody you expect to see is missing: the label only appears on nodes the graph is currently showing.
+- Parentage that loops back on itself — somebody recorded as their own grandparent, which a hand-edited file can say — is detected and stops rather than hanging.
+
+Deciding that "Mutter" means a parent is a question about language, so it uses the same role words the family layout does, in every language Novalist ships. The answer itself is computed as a shape and then put into words, which is why it reads correctly whichever language the interface is in.
+
 ## Where to go next
 
 - [Codex](06-codex.md) — where character relationships are edited.

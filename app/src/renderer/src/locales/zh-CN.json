@@ -3304,5 +3304,26 @@
     "set_hard": "硬朗简短",
     "set_coastal": "开阔临海",
     "set_old": "古老喉音"
+  },
+  "kinship": {
+    "parent": "父母",
+    "grandparent": "祖父母",
+    "greatparent": "曾祖父母",
+    "greatsparent": "{{greats}} 代曾祖父母",
+    "child": "子女",
+    "grandchild": "孙辈",
+    "greatchild": "曾孙辈",
+    "greatschild": "{{greats}} 代曾孙辈",
+    "sibling": "兄弟姐妹",
+    "auntUncle": "姑舅姨叔",
+    "greatAuntUncle": "姑舅姨叔祖",
+    "greatsAuntUncle": "{{greats}} 代姑舅姨叔祖",
+    "nieceNephew": "侄甥",
+    "greatNieceNephew": "侄甥孙",
+    "greatsNieceNephew": "{{greats}} 代侄甥孙",
+    "cousin": "堂表亲",
+    "cousin_other": "{{count}} 从堂表亲",
+    "cousinRemoved": "堂表亲，隔 {{removed}} 代",
+    "cousinRemoved_other": "{{count}} 从堂表亲，隔 {{removed}} 代"
   }
 }

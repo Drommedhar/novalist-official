@@ -662,3 +662,42 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
 }
 
 export const NODE_SIZE = { width: NODE_W, height: NODE_H }
+
+/**
+ * Who each person's parents are, by id.
+ *
+ * The same classification the family layout does, pulled out so the kinship
+ * derivation can use it. Deciding that "Mutter" means a parent is a question
+ * about language, which lives here; working out that somebody is therefore a
+ * great-aunt is arithmetic, which lives in the backend.
+ */
+export function parentMap(characters: GraphCharacter[]): Record<string, string[]> {
+  const parentWords = relationshipRoleKeywords('parent')
+  const childWords = relationshipRoleKeywords('child')
+
+  const byName = new Map<string, GraphCharacter>()
+  for (const c of characters) {
+    byName.set(c.displayName.toLowerCase(), c)
+    if (!byName.has(c.name.toLowerCase())) byName.set(c.name.toLowerCase(), c)
+  }
+
+  const parents: Record<string, Set<string>> = {}
+  const add = (childId: string, parentId: string): void => {
+    if (childId === parentId) return
+    ;(parents[childId] ??= new Set()).add(parentId)
+  }
+
+  for (const c of characters) {
+    for (const rel of c.relationships) {
+      for (const targetName of rel.target.split(',')) {
+        const target = byName.get(targetName.trim().toLowerCase())
+        if (!target || target.id === c.id) continue
+        // "role" reads as c's role toward target: c is target's <role>.
+        if (matchesAny(rel.role, parentWords)) add(target.id, c.id)
+        else if (matchesAny(rel.role, childWords)) add(c.id, target.id)
+      }
+    }
+  }
+
+  return Object.fromEntries(Object.entries(parents).map(([id, set]) => [id, [...set]]))
+}

@@ -1118,6 +1118,57 @@ public sealed class EntitiesRpcTests : IDisposable
         Assert.Contains(graph, c => c.DisplayName == "Lena Frost" && c.Relationships.Count == 0);
     }
 
+    // Deciding that "Mutter" means a parent is a question about language, which
+    // the interface answers; working out that somebody is therefore a great-aunt
+    // is arithmetic, which this does.
+    [Fact]
+    public void Kinship_DerivesTheWholeFamilyFromParentageAlone()
+    {
+        var parents = new Dictionary<string, string[]>
+        {
+            ["mum"] = ["gran"],
+            ["aunt"] = ["gran"],
+            ["me"] = ["mum"],
+            ["cousin"] = ["aunt"]
+        };
+
+        var rows = new RelationshipsRpc(_workspace).Kinship(parents, "me");
+
+        Assert.Equal("Ancestor", rows.Single(r => r.EntityId == "mum").Kind);
+        Assert.Equal("Ancestor", rows.Single(r => r.EntityId == "gran").Kind);
+        Assert.Equal(2, rows.Single(r => r.EntityId == "gran").Degree);
+        Assert.Equal("AuntUncle", rows.Single(r => r.EntityId == "aunt").Kind);
+
+        var cousin = rows.Single(r => r.EntityId == "cousin");
+        Assert.Equal("Cousin", cousin.Kind);
+        Assert.Equal(1, cousin.Degree);
+        Assert.Equal(0, cousin.Removed);
+
+        // Somebody only ever named as a parent still has a place in the tree.
+        Assert.Contains(rows, r => r.EntityId == "gran");
+        // The root is left out: nothing is its own relative.
+        Assert.DoesNotContain(rows, r => r.EntityId == "me");
+    }
+
+    [Fact]
+    public void Kinship_WithNoRootIsNoAnswer()
+        => Assert.Empty(new RelationshipsRpc(_workspace).Kinship([], "  "));
+
+    [Fact]
+    public void Kinship_LeavesOutTheUnrelated()
+    {
+        var parents = new Dictionary<string, string[]>
+        {
+            ["me"] = ["mum"],
+            ["stranger"] = ["other"]
+        };
+
+        var rows = new RelationshipsRpc(_workspace).Kinship(parents, "me");
+
+        Assert.DoesNotContain(rows, r => r.EntityId == "stranger");
+        Assert.DoesNotContain(rows, r => r.EntityId == "other");
+    }
+
     [Fact]
     public async Task GetMeta_ReturnsSynopsisAndNotes()
     {

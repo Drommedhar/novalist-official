@@ -3272,5 +3272,26 @@
     "set_hard": "Hart und knapp",
     "set_coastal": "Offen und kuestennah",
     "set_old": "Alt und kehlig"
+  },
+  "kinship": {
+    "parent": "Elternteil",
+    "grandparent": "Grosselternteil",
+    "greatparent": "Urgrosselternteil",
+    "greatsparent": "Urgrosselternteil {{greats}}x",
+    "child": "Kind",
+    "grandchild": "Enkelkind",
+    "greatchild": "Urenkelkind",
+    "greatschild": "Urenkelkind {{greats}}x",
+    "sibling": "Geschwister",
+    "auntUncle": "Tante oder Onkel",
+    "greatAuntUncle": "Grosstante oder -onkel",
+    "greatsAuntUncle": "Grosstante oder -onkel {{greats}}x",
+    "nieceNephew": "Nichte oder Neffe",
+    "greatNieceNephew": "Grossnichte oder -neffe",
+    "greatsNieceNephew": "Grossnichte oder -neffe {{greats}}x",
+    "cousin": "Cousin oder Cousine",
+    "cousin_other": "Cousin/Cousine {{count}}. Grades",
+    "cousinRemoved": "Cousin/Cousine, {{removed}}x entfernt",
+    "cousinRemoved_other": "Cousin/Cousine {{count}}. Grades, {{removed}}x entfernt"
   }
 }
