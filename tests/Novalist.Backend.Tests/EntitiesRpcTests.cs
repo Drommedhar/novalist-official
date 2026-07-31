@@ -1192,6 +1192,93 @@ public sealed class EntitiesRpcTests : IDisposable
         Assert.DoesNotContain(rows, r => r.EntityId == "other");
     }
 
+    // Overwriting a character sheet had no answer inside the app.
+    [Fact]
+    public async Task History_KeepsWhatTheEntrySaidBeforeEachSave()
+    {
+        var mira = new CharacterData { Name = "Mira", EyeColor = "green" };
+        await Entities.SaveCharacterAsync(mira);
+        Assert.Empty(_rpc.History(mira.Id));            // first save replaces nothing
+
+        mira.EyeColor = "brown";
+        await Entities.SaveCharacterAsync(mira);
+
+        var revision = Assert.Single(_rpc.History(mira.Id));
+        Assert.True(revision.SizeBytes > 0);
+        Assert.NotEmpty(revision.SavedAt);
+    }
+
+    [Fact]
+    public async Task RestoreRevision_PutsTheEarlierStateBackAndStaysUndoable()
+    {
+        var mira = new CharacterData { Name = "Mira", EyeColor = "green" };
+        await Entities.SaveCharacterAsync(mira);
+        mira.EyeColor = "brown";
+        await Entities.SaveCharacterAsync(mira);
+
+        var revision = _rpc.History(mira.Id).Single();
+        var restored = await _rpc.RestoreRevisionAsync("character", mira.Id, revision.Id);
+
+        Assert.Equal("green", restored.GetProperty("eyeColor").GetString());
+        // The state just replaced became a revision of its own, so the restore
+        // itself can be undone.
+        Assert.Equal(2, _rpc.History(mira.Id).Length);
+    }
+
+    [Fact]
+    public async Task RestoreRevision_RefusesOneThatIsNotThere()
+    {
+        var mira = new CharacterData { Name = "Mira" };
+        await Entities.SaveCharacterAsync(mira);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.RestoreRevisionAsync("character", mira.Id, "20260101-000000000"));
+    }
+
+    [Fact]
+    public async Task RestoreRevision_WorksForEveryKindOfEntry()
+    {
+        // One of each, because each kind is saved through its own call and a
+        // restore that only worked for characters would look like it worked.
+        var lore = new LoreData { Name = "The Pact", Category = "Law" };
+        await Entities.SaveLoreAsync(lore);
+        lore.Category = "Custom";
+        await Entities.SaveLoreAsync(lore);
+        Assert.Equal("Law",
+            (await _rpc.RestoreRevisionAsync("lore", lore.Id, _rpc.History(lore.Id)[^1].Id))
+                .GetProperty("category").GetString());
+
+        var place = new LocationData { Name = "Deepforge", Type = "Fortress" };
+        await Entities.SaveLocationAsync(place);
+        place.Type = "Ruin";
+        await Entities.SaveLocationAsync(place);
+        Assert.Equal("Fortress",
+            (await _rpc.RestoreRevisionAsync("location", place.Id, _rpc.History(place.Id)[^1].Id))
+                .GetProperty("type").GetString());
+
+        var thing = new ItemData { Name = "The Ring", Type = "Relic" };
+        await Entities.SaveItemAsync(thing);
+        thing.Type = "Trinket";
+        await Entities.SaveItemAsync(thing);
+        Assert.Equal("Relic",
+            (await _rpc.RestoreRevisionAsync("item", thing.Id, _rpc.History(thing.Id)[^1].Id))
+                .GetProperty("type").GetString());
+
+        await _rpc.SaveCustomTypeAsync(new CustomTypeSpecDto(
+            null, "Faction", null, [], false, true, false));
+        var faction = new CustomEntityData
+        {
+            EntityTypeKey = "faction", Name = "Nightwatch",
+            CustomProperties = new Dictionary<string, string> { ["Motto"] = "We hold" }
+        };
+        await Entities.SaveCustomEntityAsync(faction);
+        faction.CustomProperties["Motto"] = "We fell";
+        await Entities.SaveCustomEntityAsync(faction);
+        Assert.Equal("We hold",
+            (await _rpc.RestoreRevisionAsync("faction", faction.Id, _rpc.History(faction.Id)[^1].Id))
+                .GetProperty("customProperties").GetProperty("Motto").GetString());
+    }
+
     [Fact]
     public async Task GetMeta_ReturnsSynopsisAndNotes()
     {

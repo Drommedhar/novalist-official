@@ -12,6 +12,7 @@ import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { EntityListsEditor } from './EntityListsEditor'
 import { NameSuggestions } from './NameSuggestions'
+import { EntityHistoryPanel } from './EntityHistoryPanel'
 import { CustomTypeManager, type CustomTypeDefinition } from './CustomTypeManager'
 import { WizardDialog } from './WizardDialog'
 import {
@@ -293,6 +294,14 @@ export function CodexView(): React.JSX.Element {
               )}
               {/* What an AI extension may see of this entry. Collapsed by
                   default; the default policy is what Novalist always did. */}
+              {/* What the entry said before its last few saves. Folded away:
+                  it is a way out of a mistake, not something read daily. */}
+              {selectedId && (
+                <details className="codex-match">
+                  <summary>{t('entityHistory.title')}</summary>
+                  <EntityHistoryPanel entityType={entityType} entityId={selectedId} />
+                </details>
+              )}
               {selectedId && (
                 <details className="codex-match">
                   <summary>{t('aiPolicy.title')}</summary>

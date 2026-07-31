@@ -3298,5 +3298,11 @@
   },
   "typePacks": {
     "startFrom": "Aus einer Vorlage starten"
+  },
+  "entityHistory": {
+    "title": "Fruehere Fassungen",
+    "intro": "Was dieser Eintrag vor den letzten Speicherungen enthielt. Beim Wiederherstellen wird der aktuelle Stand selbst zu einer Fassung und laesst sich zurueckholen.",
+    "none": "Noch keine frueheren Fassungen. Bei jeder Aenderung wird eine angelegt.",
+    "restore": "Wiederherstellen"
   }
 }

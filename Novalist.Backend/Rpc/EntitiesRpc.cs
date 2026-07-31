@@ -171,6 +171,67 @@ public sealed class EntitiesRpc
         _ => throw new InvalidOperationException($"Unknown entity type '{type}'.")
     };
 
+    /// <summary>
+    /// What this entry said before each of its last few saves.
+    ///
+    /// Snapshots covered scenes and nothing else, so typing the wrong eye
+    /// colour over the right one had no answer inside the app.
+    /// </summary>
+    [JsonRpcMethod("entities/history")]
+    public EntityRevisionDto[] History(string id)
+        => [.. new EntityHistory(_workspace.Projects).List(id)
+            .Select(r => new EntityRevisionDto(
+                r.Id, r.SavedAt.ToString("o", System.Globalization.CultureInfo.InvariantCulture),
+                r.SizeBytes))];
+
+    /// <summary>
+    /// Puts a revision back. The state being replaced is recorded first by the
+    /// ordinary save path, so an unwanted restore is itself undoable.
+    /// </summary>
+    [JsonRpcMethod("entities/restoreRevision")]
+    public async Task<JsonElement> RestoreRevisionAsync(string type, string id, string revisionId)
+    {
+        var stored = await new EntityHistory(_workspace.Projects).ReadAsync(id, revisionId)
+            ?? throw new InvalidOperationException("That revision is no longer there.");
+
+        // Deserialised as the type the caller says it is, then saved the way any
+        // other edit is - so the write-back, the reconciler and the next
+        // revision all behave exactly as they do for a hand edit.
+        switch (type)
+        {
+            case "character":
+                await _entities.SaveCharacterAsync(Read<Core.Models.CharacterData>(stored, id));
+                break;
+            case "location":
+                await _entities.SaveLocationAsync(Read<Core.Models.LocationData>(stored, id));
+                break;
+            case "item":
+                await _entities.SaveItemAsync(Read<Core.Models.ItemData>(stored, id));
+                break;
+            case "lore":
+                await _entities.SaveLoreAsync(Read<Core.Models.LoreData>(stored, id));
+                break;
+            default:
+                await _entities.SaveCustomEntityAsync(Read<Core.Models.CustomEntityData>(stored, id));
+                break;
+        }
+
+        return await GetAsync(type, id);
+    }
+
+    /// <summary>
+    /// A stored revision, with its id forced back to the entry being restored -
+    /// a file edited by hand should not be able to write over a different entry.
+    /// </summary>
+    private static T Read<T>(string json, string id) where T : class
+    {
+        var entity = JsonSerializer.Deserialize<T>(json, JsonOptions)
+            ?? throw new InvalidOperationException("That revision could not be read.");
+        var idProperty = typeof(T).GetProperty("Id");
+        idProperty?.SetValue(entity, id);
+        return entity;
+    }
+
     [JsonRpcMethod("entities/get")]
     public async Task<JsonElement> GetAsync(string type, string id)
     {
@@ -2208,3 +2269,6 @@ public sealed record EntityProposalsDto(EntityProposalDto[] Proposals, string? E
 
 public sealed record MatchSettingsDto(
     bool CaseSensitive, bool MatchPlurals, string[] Exclusions, string[] IgnoredSceneIds);
+
+/// <summary>One earlier state of a Codex entry, for the history list.</summary>
+public sealed record EntityRevisionDto(string Id, string SavedAt, long SizeBytes);

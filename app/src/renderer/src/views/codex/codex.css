@@ -185,3 +185,19 @@
   flex-wrap: wrap;
   gap: var(--nl-space-tightest);
 }
+
+/* Earlier versions: a date and a way back, nothing more. */
+.entity-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-sm);
+  padding: var(--nl-space-tightest) 0;
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.entity-history-when {
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+  font-variant-numeric: tabular-nums;
+}

@@ -3290,5 +3290,11 @@
   },
   "typePacks": {
     "startFrom": "Start from a pack"
+  },
+  "entityHistory": {
+    "title": "Earlier versions",
+    "intro": "What this entry said before each of its last few saves. Restoring one keeps the current state as a version of its own, so it can be undone.",
+    "none": "No earlier versions yet. One is kept each time this entry changes.",
+    "restore": "Restore"
   }
 }

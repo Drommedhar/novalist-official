@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Codex entries keep their earlier versions.** Snapshots covered scenes and nothing else, so typing the wrong eye colour over the right one had no answer inside the app — the remedy was a backup of the whole project. Every change to an entry now keeps what it said before, listed under **Earlier versions** in the detail pane with a **Restore** beside each. Restoring keeps the current state as a version too, so an unwanted restore is undone the same way. The last 25 are kept per entry, beside the scene snapshots.
+
 - **The whole project can leave in one piece.** Two new exports under **Data**: **Everything (JSON archive)** and **Everything (browsable page)**. As well as the scenes and the Codex, they carry plot threads with their steps, research notes with their tags, saved lists with the rules behind them, collections, and your map names — none of which had an export path at all. The page is a single self-contained HTML file, so it opens by double-clicking and cannot arrive with its stylesheet missing. Empty sections are printed with a count of zero, because "none" and "not exported" are different things.
 
 - **The Relationships graph tells its kinds apart.** With people, places, things, knowledge and scenes all on one canvas, every node was the same rounded box. Each kind now has its own silhouette and outline colour — shape alone stops working at a distance and colour alone stops working once the graph is dense. Long names are cut to fit their box instead of running across their neighbours; hover for the whole thing.

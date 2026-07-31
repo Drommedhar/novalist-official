@@ -492,6 +492,16 @@ public class EntityService : IEntityService
 
         var filePath = Path.Combine(dir, $"{id}.json");
         var json = JsonSerializer.Serialize(entity, JsonOptions);
+
+        // What the entry said before this write, kept so overwriting a
+        // character sheet has an answer inside the app. Taken before the write
+        // because the state worth keeping is the one being replaced.
+        if (File.Exists(filePath))
+        {
+            var previous = await File.ReadAllTextAsync(filePath);
+            await new EntityHistory(_projectService).RecordAsync(id, previous, json);
+        }
+
         await File.WriteAllTextAsync(filePath, json);
     }
 

@@ -284,6 +284,18 @@ The new type appears as a tab in the Codex, gets its own folder in the book, can
 
 Extensions can also contribute entity types; those appear alongside user-defined ones but are managed by the extension, not the type manager. See [Extensions](24-extensions.md).
 
+## Earlier versions
+
+Every time an entry changes, what it said before is kept. Open **Earlier versions** in the detail pane for a dated list, and **Restore** to put one back.
+
+This exists for the mistake that had no answer before: typing the wrong eye colour over the right one, or pasting a description into the wrong character. Snapshots have always covered scenes; nothing covered the Codex, and the only remedy was a backup of the whole project.
+
+- The version kept is the one being **replaced**, which is the one a restore wants. A save that changes nothing does not make a version.
+- Restoring keeps the current state as a version of its own, so an unwanted restore is undone the same way.
+- The last 25 versions of each entry are kept. They are small JSON files and live beside the scene snapshots, under the book's snapshot folder — so one setting moves all of a book's history, and one folder can be excluded from Git if that is what you want.
+
+This is history for the entry's own fields, sections and relationships. Deleting an entry is still a deletion; there is no bin for it.
+
 ## The World Bible (shared entities)
 
 By default an entity belongs to the active book. Entities stored in the project's **World Bible** are visible from every book and carry a **WB** badge in the list — useful for a returning cast across a trilogy or a shared magic system.
