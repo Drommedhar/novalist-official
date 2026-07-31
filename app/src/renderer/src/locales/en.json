@@ -3249,5 +3249,16 @@
     "since_other": "last seen {{count}} chapters ago, in {{chapter}}",
     "scenes": "{{count}} scene",
     "scenes_other": "{{count}} scenes"
+  },
+  "names": {
+    "title": "Need a name?",
+    "set": "Sound",
+    "obscurity": "Ordinary to unusual",
+    "generate": "Suggest names",
+    "again": "Again",
+    "set_soft": "Soft and flowing",
+    "set_hard": "Hard and blunt",
+    "set_coastal": "Open and coastal",
+    "set_old": "Old and guttural"
   }
 }

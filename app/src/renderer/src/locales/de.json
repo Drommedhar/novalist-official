@@ -3257,5 +3257,16 @@
     "since_other": "zuletzt vor {{count}} Kapiteln gesehen, in {{chapter}}",
     "scenes": "{{count}} Szene",
     "scenes_other": "{{count}} Szenen"
+  },
+  "names": {
+    "title": "Ein Name gesucht?",
+    "set": "Klang",
+    "obscurity": "Gewoehnlich bis ungewoehnlich",
+    "generate": "Namen vorschlagen",
+    "again": "Nochmal",
+    "set_soft": "Weich und fliessend",
+    "set_hard": "Hart und knapp",
+    "set_coastal": "Offen und kuestennah",
+    "set_old": "Alt und kehlig"
   }
 }

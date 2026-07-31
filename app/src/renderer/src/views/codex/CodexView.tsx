@@ -11,6 +11,7 @@ import { useCodexStore, type EntityType } from '../../stores/codexStore'
 import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { EntityListsEditor } from './EntityListsEditor'
+import { NameSuggestions } from './NameSuggestions'
 import { CustomTypeManager, type CustomTypeDefinition } from './CustomTypeManager'
 import { WizardDialog } from './WizardDialog'
 import {
@@ -324,6 +325,19 @@ export function CodexView(): React.JSX.Element {
                     setPending(null)
                     void startCreate(name)
                   }
+                }
+              }}
+            />
+            {/* Where the name is actually typed, so the moment naming stops
+                the work is the moment it is offered. */}
+            <NameSuggestions
+              onPick={(name) => {
+                const input = document.getElementById(
+                  'codex-create-name'
+                ) as HTMLInputElement | null
+                if (input) {
+                  input.value = name
+                  input.focus()
                 }
               }}
             />

@@ -117,3 +117,54 @@
   border-color: var(--nl-accent);
   outline: none;
 }
+
+/* Names to pick from, folded away until the moment naming stops the work. */
+.name-suggestions {
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  padding: var(--nl-space-sm);
+}
+
+.name-suggestions summary {
+  cursor: pointer;
+  font-size: var(--nl-font-body-sm);
+  color: var(--nl-text-dim);
+}
+
+.name-suggestions-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  margin-top: var(--nl-space-sm);
+}
+
+.name-suggestions-slider {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.name-suggestions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-sm);
+}
+
+.name-suggestion {
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-pill);
+  background: var(--nl-surface-input);
+  color: var(--nl-text);
+  cursor: pointer;
+  font-size: var(--nl-font-body-sm);
+}
+
+.name-suggestion:hover {
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
+}

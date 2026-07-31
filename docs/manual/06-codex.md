@@ -67,6 +67,16 @@ Click **New entry** at the bottom of the list. The dialog asks for:
 
 Confirm with **OK** (or `Enter`).
 
+### Need a name?
+
+Naming is the most frequent thing that stops a draft mid-sentence, so the create dialog carries a generator. Open **Need a name?**, pick a **sound**, and click **Suggest names**; clicking a suggestion fills the name field, where you can still change it before creating anything.
+
+- **Sound** — the syllables a set is built from: soft and flowing, hard and blunt, open and coastal, old and guttural. These are invented sets named for how they sound. Novalist deliberately does not offer "Irish names" or "Japanese names": a handful of syllables cannot represent a real naming tradition, and it would get it wrong in a way you could not see.
+- **Ordinary to unusual** — at the left the generator keeps to the commonest sounds in the set; at the right it reaches the whole of it. A slider rather than a switch, because "unusual but still pronounceable" is the setting most people actually want.
+- **Again** — a fresh batch. The generator is deterministic, so the same set, slider and seed always produce the same list; a name you liked and did not write down can be reached again by stepping back through.
+
+Everything runs offline. Nothing is sent anywhere and no model is involved.
+
 ## The character interview
 
 With a character selected, click **Run character interview...** at the top of the detail pane. The interview walks the seven psychology pillars — **Wound**, **Fear**, **Lie they believe**, **Want**, **Need**, **Secret**, and **Voice** — with a help text for each. Your answers are saved as sections on the character (existing sections with the same titles are updated, not duplicated), so they stay editable afterwards like any other section.

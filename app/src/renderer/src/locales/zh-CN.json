@@ -3289,5 +3289,16 @@
     "since_other": "上次出现在 {{count}} 章之前的《{{chapter}}》",
     "scenes": "{{count}} 个场景",
     "scenes_other": "{{count}} 个场景"
+  },
+  "names": {
+    "title": "需要名字吗？",
+    "set": "音感",
+    "obscurity": "寻常到罕见",
+    "generate": "生成名字",
+    "again": "再来一批",
+    "set_soft": "柔和流畅",
+    "set_hard": "硬朗简短",
+    "set_coastal": "开阔临海",
+    "set_old": "古老喉音"
   }
 }
