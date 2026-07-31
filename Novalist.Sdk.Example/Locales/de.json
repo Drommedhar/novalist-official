@@ -87,6 +87,10 @@
     "pomodoro": {
       "title": "Pomodoro-Timer starten oder stoppen",
       "description": "Schaltet den Timer in der Statusleiste um."
+    },
+    "countWord": {
+      "title": "Ein Wort im ganzen Buch zählen",
+      "description": "Braucht das zu zählende Wort und läuft daher über ein Skript, nicht über die Befehlspalette."
     }
   }
 }

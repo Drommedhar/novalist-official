@@ -87,6 +87,10 @@
     "pomodoro": {
       "title": "Start or stop the pomodoro timer",
       "description": "Toggles the timer in the status bar."
+    },
+    "countWord": {
+      "title": "Count a word across the book",
+      "description": "Needs the word to count, so it runs from a script rather than the palette."
     }
   }
 }

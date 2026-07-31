@@ -31,6 +31,23 @@ interface ExtensionCommand {
   mutates: boolean
 }
 
+/**
+ * Whether a command cannot be run without being given something.
+ *
+ * The schema is documentation rather than a contract the host enforces, so an
+ * unreadable one is not a reason to hide the command - only a `required` list
+ * with names in it is.
+ */
+function requiresArguments(schema: string): boolean {
+  if (schema.trim().length === 0) return false
+  try {
+    const required = (JSON.parse(schema) as { required?: unknown }).required
+    return Array.isArray(required) && required.length > 0
+  } catch {
+    return false
+  }
+}
+
 export function CommandPalette({ actions, onClose }: CommandPaletteProps): React.JSX.Element {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
@@ -70,11 +87,13 @@ export function CommandPalette({ actions, onClose }: CommandPaletteProps): React
         literal: true,
         run: command.run
       })),
-      // A command that needs arguments has no way to ask for them here, so the
-      // palette lists the ones it can actually run rather than offering a line
-      // that fails when clicked.
+      // A command that *needs* an argument has no way to ask for it here, so it
+      // is left out rather than offered as a line that fails when clicked.
+      // Having a schema is not the same as needing one: nearly every command
+      // declares optional flags a script may pass, and skipping those hid whole
+      // extensions from the palette.
       ...extensionCommands
-        .filter((command) => command.argumentsSchema.trim().length === 0)
+        .filter((command) => !requiresArguments(command.argumentsSchema))
         .map((command) => ({
           actionId: command.id,
           labelKey: command.title,

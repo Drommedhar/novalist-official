@@ -85,6 +85,7 @@ test('an extension command is listed in the palette and runs', async () => {
     JSON.stringify(await window.novalistRpc.request('extensions/commands'))
   )
   expect(listed).toContain('ext.writingtoolkit.pomodoro.toggle')
+  expect(listed).toContain('ext.writingtoolkit.countword')
 
   // Idle, before anything runs it.
   const pomodoro = page.locator('.status-ext-item', { hasText: '--:--' })
@@ -98,6 +99,10 @@ test('an extension command is listed in the palette and runs', async () => {
 
   const entry = page.locator('.palette-item', { hasText: 'omodoro' }).first()
   await expect(entry).toBeVisible({ timeout: 15_000 })
+  // Listed despite carrying a schema: its argument is optional, and treating
+  // any schema as a reason to hide the command emptied the palette of whole
+  // extensions - nearly every one declares a flag a script may pass.
+  await expect(page.locator('.palette-item')).toHaveCount(1)
   // The extension's own words, in whichever language the app is running -
   // not the key they are looked up by.
   await expect(entry).not.toContainText('command.pomodoro')
@@ -107,6 +112,12 @@ test('an extension command is listed in the palette and runs', async () => {
   await expect(page.locator('.status-ext-item', { hasText: '--:--' })).toHaveCount(0, {
     timeout: 30_000
   })
+
+  // And the one that cannot run without an argument is not offered, because a
+  // palette entry that fails when clicked is worse than one that is absent.
+  await page.evaluate(() => window.novalistStores.shell.getState().setCommandPaletteOpen(true))
+  await page.locator('.palette-card .dialog-input').fill('ount')
+  await expect(page.locator('.palette-item', { hasText: 'ount a word' })).toHaveCount(0)
 
   await app.close()
 })

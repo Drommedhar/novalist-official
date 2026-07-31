@@ -71,21 +71,65 @@ public sealed class WritingToolkitExtension :
                 Id = PomodoroCommandId,
                 Title = _loc.T("command.pomodoro.title"),
                 Description = _loc.T("command.pomodoro.description"),
+                // Optional, so the palette can still run it bare. A schema is
+                // documentation of what a script may pass, not a demand.
+                ArgumentsSchema =
+                    """
+                    {"type":"object","properties":{"minutes":{"type":"integer"}}}
+                    """,
             },
-            _ =>
+            argumentsJson =>
             {
                 if (_pomodoro.IsRunning) _pomodoro.Stop();
-                else _pomodoro.Start();
+                else _pomodoro.Start(ReadMinutes(argumentsJson));
                 return Task.CompletedTask;
             });
+
+        // One that genuinely cannot run without being told what to count, which
+        // is why the palette leaves it to a script.
+        host.RegisterCommand(
+            new HostCommandInfo
+            {
+                Id = CountWordCommandId,
+                Title = _loc.T("command.countWord.title"),
+                Description = _loc.T("command.countWord.description"),
+                ArgumentsSchema =
+                    """
+                    {"type":"object","required":["word"],
+                     "properties":{"word":{"type":"string"}}}
+                    """,
+            },
+            _ => Task.CompletedTask);
     }
 
     /// <summary>The pomodoro toggle, as a command.</summary>
     public const string PomodoroCommandId = "ext.writingtoolkit.pomodoro.toggle";
 
+    /// <summary>A command that needs an argument, so the palette leaves it out.</summary>
+    public const string CountWordCommandId = "ext.writingtoolkit.countword";
+
+    /// <summary>The requested length, or the extension's own default.</summary>
+    private static int? ReadMinutes(string? argumentsJson)
+    {
+        if (string.IsNullOrWhiteSpace(argumentsJson)) return null;
+        try
+        {
+            using var document = System.Text.Json.JsonDocument.Parse(argumentsJson);
+            return document.RootElement.TryGetProperty("minutes", out var value)
+                && value.TryGetInt32(out var minutes)
+                ? minutes
+                : null;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return null;
+        }
+    }
+
     public void Shutdown()
     {
         _host.UnregisterCommand(PomodoroCommandId);
+        _host.UnregisterCommand(CountWordCommandId);
         _pomodoro.Stop();
     }
 
