@@ -1,0 +1,52 @@
+# Exporting from the command line
+
+Novalist's backend is normally started by the app and talked to over a pipe. Given arguments, it does one job and exits instead — so an export can be produced by something other than a person clicking a save dialog.
+
+This is what makes a book buildable on a schedule: an EPUB on every commit, a fresh outline spreadsheet each morning, a Markdown copy dropped somewhere a reader can reach.
+
+## Where the program is
+
+It ships beside the app rather than on your `PATH`:
+
+- **Windows** — `resources\backend\Novalist.Backend.exe` inside the install folder.
+- **macOS** — `Novalist.app/Contents/Resources/backend/Novalist.Backend`.
+- **Linux** — `resources/backend/Novalist.Backend` inside the extracted app.
+
+Run it with `--help` to check you have the right file.
+
+## Writing an export
+
+```
+Novalist.Backend --export <format> --project <dir> --out <file> [--book <name>]
+```
+
+- `--export` — the format. `--help` lists them: EPUB, DOCX, PDF, Markdown, Final Draft, LaTeX, the two Codex formats, the four data formats (CSV, JSON, Codex sheet, OPML) and the two reports.
+- `--project` — the project folder, the one holding `.novalist`.
+- `--out` — the file to write. Its folder must already exist.
+- `--book` — optional. Without it you get the book the project was last left on; with it, the book of that name. A name that is not in the project is an error rather than a silent fall back to the wrong book.
+
+Every chapter is included and the title page is on, which is what the Export view does by default. Anything more particular — a stage filter, a chosen run of chapters, a layout preset — stays in the app, because those are choices rather than defaults.
+
+## Exit codes
+
+Made to be read by a script:
+
+| Code | Meaning |
+|---|---|
+| 0 | A file was written. |
+| 1 | The export ran and produced nothing, or failed part way. |
+| 2 | The project could not be opened, or the named book is not in it. |
+| 64 | The command line itself was wrong — an unknown argument, or a flag with no value. |
+
+Progress and errors go to standard error, so standard output stays clean for a script that wants to pipe something.
+
+## What it deliberately does not do
+
+Running with no arguments starts the JSON-RPC server, exactly as it always has — that is the path the app takes and nothing about it changed.
+
+An unrecognised argument is an error, not a shrug. A typo in a scheduled job that quietly started a server nobody was talking to would look like a hang rather than a mistake.
+
+## Where to go next
+
+- [Export](20-export.md) — the same formats, with every option, from inside the app.
+- [Projects & Books](03-projects-and-books.md) — what a project folder holds.

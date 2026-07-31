@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Exports can be produced without opening the app.** The bundled backend now takes arguments: `--export <format> --project <dir> --out <file>`, optionally `--book`. An EPUB on every commit, or a fresh outline spreadsheet each morning, no longer needs somebody to click a save dialog. Exit codes are made to be read by a script, and a mistyped argument fails loudly rather than quietly starting a server nothing is talking to. See the manual page "Exporting from the command line".
+
 - **Starting points for the entity types a world needs.** The custom type builder was an empty form, so everybody who wanted species, a magic system, factions or a language rebuilt the same field list by hand — and rebuilt it differently in every project. **Manage types** now offers five shipped packs: Species, Magic system, Faction, Language and Religion. A pack fills the builder in and gets out of the way; nothing is created until you confirm, and every field is yours to change first. Each field carries the question it is for, and that question stays on the entry instead of vanishing after creation.
 
 - **The graph says how two people are related.** Novalist stored a tie as a role and a target — "mother", "Mira" — and could always draw the lines; nothing could say what they added up to. Centre the Relationships graph on somebody and every other node now carries what that person is to them: sibling, grandparent, great-aunt or uncle, second cousin once removed. You record parents once instead of recording every pair. Half-siblings who are also distant cousins read as siblings, because the nearest shared ancestor wins.

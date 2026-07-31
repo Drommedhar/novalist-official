@@ -415,6 +415,7 @@ The CSV files carry a byte order mark so Excel reads accented names correctly in
 
 ## Where to go next
 
+- [Command line](41-command-line.md) — the same exports without opening the app, for a build on a schedule.
 - [Exposé](32-expose.md) — write the pitch document with live Normseiten counts, and export it in the same layout.
 - [Settings](23-settings.md) — editor and appearance settings.
 - [Manuscript view](10-manuscript.md) — read the whole book before you export it.
