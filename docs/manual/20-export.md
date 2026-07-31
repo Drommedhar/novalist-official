@@ -32,6 +32,17 @@ In the activity bar, click **Export** in the **Publish** group.
 
 Click **Export**. The system file save dialog asks where to save; pick a location and filename (the extension is pre-filled to match the format). The button shows "Exporting…" while the job runs and a result line reports success or failure.
 
+## A box set
+
+In a project with more than one book, **Also include these books** appears above the chapter list. Tick one and it is appended after the book you have open, announced by a heading carrying its name so eighty chapters do not run together.
+
+- The open book comes first, always. The tick list is for what follows it.
+- The chapter checkboxes belong to the open book; a further volume comes in whole. Picking chapters out of a second book is a job for opening that book and exporting it on its own.
+- Title page, front and back matter, publishing metadata and the layout are the **open book's** — a box set is a book, and it has one set of those.
+- Chapter numbering runs across the whole set rather than restarting per volume, and the volume headings are not numbered: a volume title counted as Chapter Seven is exactly what section types exist to prevent.
+
+Volumes are read without being opened, so building a box set never changes which book you are working in.
+
 ## Replacements on export
 
 **Replacements on export** at the bottom of the Export view holds substitutions applied to the exported file — never to your prose — every time you export.

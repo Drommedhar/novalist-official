@@ -1855,7 +1855,8 @@
     "formatCodexCsv": "Codex sheet (CSV)",
     "formatOpml": "Outline (OPML)",
     "formatWorldJson": "Everything (JSON archive)",
-    "formatWorldHtml": "Everything (browsable page)"
+    "formatWorldHtml": "Everything (browsable page)",
+    "alsoInclude": "Also include these books"
   },
   "expose": {
     "chars": "{{value}} characters",

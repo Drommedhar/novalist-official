@@ -114,6 +114,14 @@ public class ExportOptions
     /// </summary>
     public List<string>? IncludedStages { get; set; }
 
+    /// <summary>
+    /// Further books of the project to append after the open one, by id.
+    ///
+    /// Null or empty is one book, which is what every export did before box
+    /// sets existed. The open book is always first and never listed here.
+    /// </summary>
+    public List<string>? IncludedBookIds { get; set; }
+
     /// <summary>ISBN, publisher, series and the rest. Never null; an empty one
     /// simply writes nothing extra.</summary>
     public Models.PublishingMetadata Publishing { get; set; } = new();
@@ -393,10 +401,100 @@ public partial class ExportService
     /// <summary>
     /// Compile chapter and scene data for export.
     /// </summary>
+    /// <summary>
+    /// Which book a compile pass is reading, and how to reach its scenes.
+    ///
+    /// Everything below used to go straight to the active book. A box set has
+    /// to read a volume nobody has open, and switching the active book mid-run
+    /// would mutate state the watcher and the UI are both reading.
+    /// </summary>
+    /// <param name="SelectAll">
+    /// True for a book the writer did not tick chapters for. The chapter list
+    /// in the Export view belongs to the open book, so filtering a further
+    /// volume against it would drop every chapter it has.
+    /// </param>
+    private sealed record VolumeSource(
+        BookData? Book,
+        List<ChapterData> Chapters,
+        Func<string, List<SceneData>> ScenesFor,
+        Func<ChapterData, SceneData, Task<string>> ReadScene,
+        bool SelectAll = false);
+
+    /// <summary>The open book, which is what every export read before volumes existed.</summary>
+    private VolumeSource ActiveSource() => new(
+        _projectService.ActiveBook,
+        _projectService.GetChaptersOrdered(),
+        _projectService.GetScenesForChapter,
+        _projectService.ReadSceneContentAsync);
+
     public async Task<List<ChapterExportContent>> CompileChaptersAsync(ExportOptions options)
     {
-        var chapters = _projectService.GetChaptersOrdered()
-            .Where(c => options.SelectedChapterGuids.Contains(c.Guid))
+        var chapters = await CompileChaptersAsync(options, ActiveSource());
+
+        // A box set: the open book first, then each further volume the writer
+        // asked for, each announced by a heading of its own so the contents
+        // nests rather than running eighty chapters together.
+        var volumes = await OtherVolumesAsync(options);
+        if (volumes.Count == 0) return chapters;
+
+        foreach (var volume in volumes)
+        {
+            chapters.Add(new ChapterExportContent
+            {
+                Title = volume.Book!.Name,
+                // Its own heading and no scenes: a divider announcing the
+                // volume, never numbered, because it is not a chapter of one.
+                Heading = volume.Book.Name,
+                Scenes = []
+            });
+            chapters.AddRange(await CompileChaptersAsync(options, volume));
+        }
+
+        // Each book numbers its chapters from its own start, so appending one
+        // to another leaves two chapters claiming the same position - and any
+        // writer that sorts by it would interleave the volumes. Renumbered once
+        // across the whole set, and only when there is more than one book in
+        // it, so a single-book export is untouched.
+        for (var i = 0; i < chapters.Count; i++) chapters[i].Order = i;
+
+        return chapters;
+    }
+
+    /// <summary>
+    /// The further books this export was asked for, in the project's own order,
+    /// never including the one already compiled.
+    /// </summary>
+    private async Task<List<VolumeSource>> OtherVolumesAsync(ExportOptions options)
+    {
+        var wanted = options.IncludedBookIds;
+        if (wanted == null || wanted.Count == 0) return [];
+
+        var sources = new List<VolumeSource>();
+        foreach (var book in _projectService.CurrentProject?.Books ?? [])
+        {
+            if (book.Id == _projectService.ActiveBook?.Id) continue;
+            if (!wanted.Contains(book.Id)) continue;
+
+            var manifest = await _projectService.LoadScenesManifestForAsync(book);
+            if (manifest == null) continue;
+
+            sources.Add(new VolumeSource(
+                book,
+                [.. book.Chapters.OrderBy(c => c.Order)],
+                guid => manifest.Chapters.TryGetValue(guid, out var scenes)
+                    ? [.. scenes.Where(s => s.ArchivedAt == null).OrderBy(s => s.Order)]
+                    : [],
+                (chapter, scene) => _projectService.ReadSceneContentForAsync(book, chapter, scene),
+                SelectAll: true));
+        }
+        return sources;
+    }
+
+    private async Task<List<ChapterExportContent>> CompileChaptersAsync(
+        ExportOptions options, VolumeSource source)
+    {
+        var chapters = source.Chapters
+            .Where(c => source.SelectAll || options.SelectedChapterGuids.Contains(c.Guid))
             .OrderBy(c => c.Order)
             .ToList();
 
@@ -428,7 +526,9 @@ public partial class ExportService
             // ever set, so a title page saying "<$wordcount> words" printed a
             // zero at whoever it was sent to.
             WordCount = chapters
-                .SelectMany(c => _projectService.GetScenesForChapter(c.Guid))
+                // The pass's own book, so a volume counts its own words rather
+                // than the open book's.
+                .SelectMany(c => source.ScenesFor(c.Guid))
                 .Where(sc => !sc.Inactive && !sc.ExcludeFromExport)
                 .Sum(sc => sc.WordCount),
             PageCount = 0
@@ -470,10 +570,10 @@ public partial class ExportService
             // compiled, so a placeholder in the prose reads the same number
             // the heading does.
             var sectionType = SectionTypes.Resolve(
-                chapter.SectionTypeKey, _projectService.ActiveBook?.SectionTypes);
+                chapter.SectionTypeKey, source.Book?.SectionTypes);
             if (sectionType.Numbered) numbered++;
 
-            var scenes = _projectService.GetScenesForChapter(chapter.Guid)
+            var scenes = source.ScenesFor(chapter.Guid)
                 // Three ways a scene stays out of the book: it is not in the
                 // book at all, the writer held it back from exports, or it is
                 // not at a stage this export asked for.
@@ -498,7 +598,7 @@ public partial class ExportService
                 // without keeping two drafts.
                 var html = Models.ExportReplacements.Apply(
                     TrackedChanges.Final(ResolveImagePaths(
-                        await _projectService.ReadSceneContentAsync(chapter, scene))),
+                        await source.ReadScene(chapter, scene))),
                     options.Replacements);
                 // The chapter and scene the writer is in, so <$chaptertitle>
                 // in the prose means this chapter rather than nothing. These

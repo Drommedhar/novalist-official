@@ -591,4 +591,70 @@ public class ExportDataTests : IDisposable
         Assert.True(volume.Scenes[1].Inactive);
         Assert.Same(open, _project.ActiveBook);
     }
+
+    // A box set: the open book, then each further volume the writer asked for.
+    [Fact]
+    public async Task ABoxSetCarriesEveryVolumeItWasAskedFor()
+    {
+        var options = Setup(ExportFormat.Markdown,
+            new SceneData { Title = "Arrival", Order = 1 });
+        var open = new BookData { Id = "b1", Name = "Book One" };
+        var closed = new BookData { Id = "b2", Name = "Book Two", ChapterFolder = "Chapters" };
+        var closedChapter = new ChapterData { Guid = "c2", Title = "Later", Order = 0 };
+        closed.Chapters.Add(closedChapter);
+        _project.ActiveBook.Returns(open);
+        _project.CurrentProject.Returns(new ProjectMetadata { Books = [open, closed] });
+
+        var manifest = new ScenesManifest();
+        var closedScene = new SceneData { Id = "s9", Title = "Elsewhere", Order = 0 };
+        manifest.Chapters["c2"] = [closedScene];
+        _project.LoadScenesManifestForAsync(closed).Returns(manifest);
+        _project.ReadSceneContentForAsync(closed, closedChapter, closedScene)
+            .Returns("<p>The second book.</p>");
+
+        options.IncludedBookIds = ["b2"];
+        var chapters = await Service().CompileChaptersAsync(options);
+
+        // The open book's chapter, then the volume divider, then the closed
+        // book's chapter - a divider so eighty chapters do not run together.
+        Assert.Equal(3, chapters.Count);
+        Assert.Equal("Book Two", chapters[1].Heading);
+        Assert.Empty(chapters[1].Scenes);
+        Assert.Equal("Later", chapters[2].Title);
+        Assert.Contains("The second book.", chapters[2].Scenes.Single().HtmlContent);
+        // Order is renumbered across the whole set, not restarted per volume.
+        Assert.Equal([0, 1, 2], chapters.Select(c => c.Order));
+    }
+
+    [Fact]
+    public async Task WithNoVolumesAskedForNothingIsAppended()
+    {
+        var options = Setup(ExportFormat.Markdown, new SceneData { Title = "Arrival", Order = 1 });
+        var open = new BookData { Id = "b1", Name = "Book One" };
+        _project.ActiveBook.Returns(open);
+        _project.CurrentProject.Returns(new ProjectMetadata
+        {
+            Books = [open, new BookData { Id = "b2", Name = "Book Two" }]
+        });
+
+        // The default, and what every export did before box sets existed.
+        Assert.Single(await Service().CompileChaptersAsync(options));
+    }
+
+    [Fact]
+    public async Task AVolumeWithNoManifestIsSkippedRatherThanEmpty()
+    {
+        var options = Setup(ExportFormat.Markdown, new SceneData { Title = "Arrival", Order = 1 });
+        var open = new BookData { Id = "b1", Name = "Book One" };
+        var ghost = new BookData { Id = "b2", Name = "Never written" };
+        _project.ActiveBook.Returns(open);
+        _project.CurrentProject.Returns(new ProjectMetadata { Books = [open, ghost] });
+        _project.LoadScenesManifestForAsync(ghost).Returns((ScenesManifest?)null);
+
+        options.IncludedBookIds = ["b2"];
+
+        // A heading announcing a volume with nothing in it is worse than not
+        // printing it.
+        Assert.Single(await Service().CompileChaptersAsync(options));
+    }
 }

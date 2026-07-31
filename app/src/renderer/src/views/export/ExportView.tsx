@@ -97,6 +97,9 @@ export function ExportView(): React.JSX.Element {
   const { t } = useTranslation()
   const projectName = useProjectStore((s) => s.projectName)
   const chapters = useProjectStore((s) => s.chapters)
+  const books = useProjectStore((s) => s.books)
+  const activeBookId = useProjectStore((s) => s.activeBookId)
+  const otherBooks = books.filter((b) => b.id !== activeBookId)
   const [content, setContent] = useState<Content>('manuscript')
   // One remembered format per content, so switching across and back does not
   // silently reset the writer's choice.
@@ -139,6 +142,13 @@ export function ExportView(): React.JSX.Element {
   const [entitiesLoaded, setEntitiesLoaded] = useState(false)
   const [selectedEntities, setSelectedEntities] = useState<Set<string>>(new Set())
   const [entityQuery, setEntityQuery] = useState('')
+  /**
+   * Further books to append after this one, for a box set.
+   *
+   * Empty is one book, which is what every export did before. Only offered on
+   * manuscript formats: a codex or a data export is already project-wide.
+   */
+  const [extraBooks, setExtraBooks] = useState<Set<string>>(new Set())
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState<string | null>(null)
 
@@ -310,7 +320,8 @@ export function ExportView(): React.JSX.Element {
         // Naming every title is the same as naming none, and sending null keeps
         // the payload the size it was.
         isCodex && pickedSections.size < sectionTitles.length ? [...pickedSections] : null,
-        retailerKey || null
+        retailerKey || null,
+        chaptersVisible && extraBooks.size > 0 ? [...extraBooks] : null
       ])
       setResult(exported.success ? t('export.exportSuccess') : t('export.exportFailed'))
     } catch {
@@ -628,6 +639,33 @@ export function ExportView(): React.JSX.Element {
               ))}
             </div>
             <div className="settings-hint">{t('export.excludedNote')}</div>
+          </>
+        )}
+
+        {/* A series in one file. The chapter list belongs to the open book, so
+            a further volume comes in whole rather than chapter by chapter. */}
+        {chaptersVisible && otherBooks.length > 0 && (
+          <>
+            <div className="export-chapters-header">
+              <span className="export-field-label">{t('export.alsoInclude')}</span>
+            </div>
+            <div className="export-stage-filter">
+              {otherBooks.map((book) => (
+                <label key={book.id} className="relationships-toggle">
+                  <input
+                    type="checkbox"
+                    checked={extraBooks.has(book.id)}
+                    onChange={(e) => {
+                      const next = new Set(extraBooks)
+                      if (e.target.checked) next.add(book.id)
+                      else next.delete(book.id)
+                      setExtraBooks(next)
+                    }}
+                  />
+                  {book.name}
+                </label>
+              ))}
+            </div>
           </>
         )}
 

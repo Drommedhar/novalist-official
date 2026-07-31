@@ -25,7 +25,7 @@ test('the world archive carries every book of the project, not just the open one
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 
-  const projectPath = await evaluateWhenReady(page, async (parent) => {
+  const setup = await evaluateWhenReady(page, async (parent) => {
     const rpc = window.novalistRpc
     const created = (await rpc.request('project/create', [parent, 'Series', 'Book One'])) as {
       projectPath: string
@@ -57,7 +57,7 @@ test('the world archive carries every book of the project, not just the open one
     const one = second.books.find((b) => b.name === 'Book One')!
     const back = await rpc.request('project/switchBook', [one.id])
     window.novalistStores.project.getState().applyState(back as never)
-    return created.projectPath
+    return { projectPath: created.projectPath, bookTwoId: two.id }
   }, workDir)
   await expect(page.locator('.activity-bar')).toBeVisible({ timeout: 30_000 })
 
@@ -98,6 +98,37 @@ test('the world archive carries every book of the project, not just the open one
   expect(
     await page.evaluate(() => window.novalistStores.project.getState().projectName)
   ).toBe('Series')
+
+  // A box set: both volumes in one manuscript, the open book first and each
+  // further one announced by a heading of its own.
+  const bookIds = [setup.bookTwoId]
+  const boxSet = join(workDir, 'boxset.md')
+  const built = await page.evaluate(
+    ([path, chapters, ids]) =>
+      window.novalistRpc
+        .request<{ success: boolean }>('export/run', [
+          'Markdown', path, 'Series', 'Ada', false, chapters,
+          null, null, null, true, null, 1, null, null, null, null, null, ids
+        ])
+        .then((r) => r.success),
+    [
+      boxSet,
+      await page.evaluate(() =>
+        window.novalistStores.project.getState().chapters.map((c) => c.guid)
+      ),
+      bookIds
+    ] as const
+  )
+  expect(built).toBe(true)
+
+  const manuscript = readFileSync(boxSet, 'utf8')
+  expect(manuscript).toContain('The first book.')
+  expect(manuscript).toContain('The second book.')
+  // The second volume is announced rather than run straight on from the first.
+  expect(manuscript).toContain('Book Two')
+  expect(manuscript.indexOf('The first book.')).toBeLessThan(
+    manuscript.indexOf('The second book.')
+  )
 
   await app.close()
 })

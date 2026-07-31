@@ -169,7 +169,10 @@ public sealed class ExportRpc
         string? referenceDocPath = null,
         string[]? codexParts = null,
         string[]? sectionTitles = null,
-        string? retailerKey = null)
+        string? retailerKey = null,
+        /// <summary>Further books to append after the open one, for a box set.
+        /// Null or empty is one book, which is what every caller did before.</summary>
+        string[]? includedBookIds = null)
     {
         if (Enum.TryParse<ExportFormat>(format, out var parsedFormat))
         {
@@ -205,7 +208,8 @@ public sealed class ExportRpc
                 SelectedSectionTitles = sectionTitles?.ToList(),
                 // Which shop this build is for. Empty is a neutral build, which
                 // is what every export was before there was anything to say.
-                RetailerKey = retailerKey ?? string.Empty
+                RetailerKey = retailerKey ?? string.Empty,
+                IncludedBookIds = includedBookIds?.ToList()
             };
             if (parsedFormat == ExportFormat.Codex)
             {

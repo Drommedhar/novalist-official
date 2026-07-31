@@ -1456,7 +1456,8 @@
     "formatCodexCsv": "Kodex-Tabelle (CSV)",
     "formatOpml": "Gliederung (OPML)",
     "formatWorldJson": "Alles (JSON-Archiv)",
-    "formatWorldHtml": "Alles (lesbare Seite)"
+    "formatWorldHtml": "Alles (lesbare Seite)",
+    "alsoInclude": "Diese Buecher ebenfalls aufnehmen"
   },
   "expose": {
     "chars": "{{value}} Zeichen",

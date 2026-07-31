@@ -1888,7 +1888,8 @@
     "formatCodexCsv": "法典表格（CSV）",
     "formatOpml": "大纲（OPML）",
     "formatWorldJson": "全部（JSON 归档）",
-    "formatWorldHtml": "全部（可浏览页面）"
+    "formatWorldHtml": "全部（可浏览页面）",
+    "alsoInclude": "同时收录这些书"
   },
   "expose": {
     "chars": "{{value}} 字符",
