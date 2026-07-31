@@ -30,6 +30,48 @@ public sealed class ContextRpcTests : IDisposable
 
     private EntityService Entities => new(_workspace.Projects);
 
+    // ── Research the scene is about ─────────────────────────────────
+
+    [Fact]
+    public async Task Analyze_SuggestsResearchLinkedToSomebodyInTheScene()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("K");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        var amy = new CharacterData { Id = "amy", Name = "Amy" };
+        await Entities.SaveCharacterAsync(amy);
+        await Write(chapter, scene, "Amy crossed the bridge and did not look down at all.");
+
+        var research = new ResearchService(_workspace.Projects, _workspace.FileService);
+        await research.SaveAsync(new ResearchItem
+        {
+            Id = "r1",
+            Title = "Did the bridge exist in 1755?",
+            EntityRefs = ["amy"],
+        });
+        await research.SaveAsync(new ResearchItem { Id = "r2", Title = "Shipping lanes" });
+
+        var ctx = await _rpc.AnalyzeAsync(chapter.Guid, scene.Id);
+
+        var only = Assert.Single(ctx.Research);
+        Assert.Equal("r1", only.Id);
+        Assert.Equal("Did the bridge exist in 1755?", only.Title);
+        // Named, so the writer can see why it is being offered without opening it.
+        Assert.Equal("Amy", only.Reason);
+    }
+
+    [Fact]
+    public async Task Analyze_WithNothingMatching_SuggestsNothingRatherThanEverything()
+    {
+        var chapter = await _workspace.Projects.CreateChapterAsync("K");
+        var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, "S");
+        await Write(chapter, scene, "Nobody in particular walked a long way in the rain.");
+
+        var research = new ResearchService(_workspace.Projects, _workspace.FileService);
+        await research.SaveAsync(new ResearchItem { Id = "r1", Title = "Unrelated", EntityRefs = ["ghost"] });
+
+        Assert.Empty((await _rpc.AnalyzeAsync(chapter.Guid, scene.Id)).Research);
+    }
+
     [Theory]
     [InlineData(null, true)]
     [InlineData("", true)]

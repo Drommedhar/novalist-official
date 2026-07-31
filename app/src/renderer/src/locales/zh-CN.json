@@ -973,7 +973,9 @@
     "reads_third": "第三人称",
     "reads_past": "过去时",
     "reads_present": "现在时",
-    "reads_unknown": "其他写法"
+    "reads_unknown": "其他写法",
+    "research": "资料",
+    "researchOpen": "在资料中打开"
   },
   "focusPeek": {
     "openEntity": "打开实体",

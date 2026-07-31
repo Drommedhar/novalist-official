@@ -195,7 +195,37 @@ public sealed class ContextRpc
             // broken is worse than not being told anything.
             VoiceDrift(currentContent, lexicon));
 
-        return new SceneContextDto(characterCards, locationCards, itemCards, loreCards, mentionRows, analysis);
+        return new SceneContextDto(
+            characterCards, locationCards, itemCards, loreCards, mentionRows, analysis,
+            // What the writer filed about the people and places in front of
+            // them. Research reached them in the Research view, which means
+            // leaving the scene, and on an entity's Wiki article, which means
+            // already knowing what to look up - so the note saying "check
+            // whether the bridge existed in 1755" stayed filed and unread while
+            // the bridge got written.
+            SuggestResearch(characterCards, locationCards, itemCards, loreCards, tags));
+    }
+
+    /// <summary>
+    /// The research this scene is about, from what it already names: the entries
+    /// the scene involves and its own tags. Nothing is guessed and no model is
+    /// asked - a suggestion the writer has to double-check costs more than none.
+    /// </summary>
+    private ResearchSuggestionDto[] SuggestResearch(
+        EntityCardDto[] characters, EntityCardDto[] locations,
+        EntityCardDto[] items, EntityCardDto[] lore, string[] tags)
+    {
+        var cards = characters.Concat(locations).Concat(items).Concat(lore).ToList();
+        if (cards.Count == 0 && tags.Length == 0) return [];
+
+        var names = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var card in cards) names[card.Id] = card.Name;
+
+        var research = new ResearchService(_workspace.Projects, _workspace.FileService);
+        return [.. SceneResearch
+            .Suggest(research.GetAll(), names.Keys, tags, names)
+            .Select(s => new ResearchSuggestionDto(
+                s.Item.Id, s.Item.Title, s.Item.Type.ToString(), s.Reason))];
     }
 
     /// <summary>
@@ -705,7 +735,15 @@ public sealed record SceneContextDto(
     EntityCardDto[] Items,
     EntityCardDto[] Lore,
     MentionRowDto[] MentionRows,
-    SceneAnalysisDto Analysis);
+    SceneAnalysisDto Analysis,
+    ResearchSuggestionDto[] Research);
+
+/// <summary>
+/// A research item the open scene is about. <paramref name="Reason"/> is the
+/// entity name or tag that matched, shown beside it - a list of titles with no
+/// reason has to be opened one by one to find out why it is there.
+/// </summary>
+public sealed record ResearchSuggestionDto(string Id, string Title, string Type, string Reason);
 
 public sealed record EntityCardDto(
     string Id, string Name, string Detail, string? Secondary, string? ImagePath,

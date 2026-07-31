@@ -78,6 +78,15 @@ interface SceneContext {
   lore: EntityCard[]
   mentionRows: MentionRow[]
   analysis: SceneAnalysis
+  research: ResearchSuggestion[]
+}
+
+/** A research item this scene is about, and what matched. */
+interface ResearchSuggestion {
+  id: string
+  title: string
+  type: string
+  reason: string
 }
 
 /** A single set of section-collapse preferences (not scene-specific), persisted
@@ -392,6 +401,32 @@ export function ContextPanel({
         onToggle={toggleSection}
         peek={cardPeek}
       />
+
+      {ctx.research.length > 0 && (
+        <CollapsibleSection
+          titleKey="context.research"
+          sectionKey="research"
+          collapsed={!!collapsed.research}
+          onToggle={toggleSection}
+        >
+          <div className="ctx-research">
+            {ctx.research.map((item) => (
+              <button
+                key={item.id}
+                className="ctx-research-row"
+                title={t('context.researchOpen')}
+                // Into the Research view with this item selected. The writer
+                // asked to read it, which is a different thing from wanting a
+                // preview crammed into a sidebar column.
+                onClick={() => useShellStore.getState().navigateToResearch(item.id)}
+              >
+                <span className="ctx-research-title">{item.title}</span>
+                {item.reason && <span className="ctx-research-reason">{item.reason}</span>}
+              </button>
+            ))}
+          </div>
+        </CollapsibleSection>
+      )}
 
       {ctx.mentionRows.length > 0 && (
         <CollapsibleSection

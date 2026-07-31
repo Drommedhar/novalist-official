@@ -345,6 +345,26 @@ function persistLayouts(layouts: SavedLayout[]): void {
 const storedLayouts = readLayouts()
 const initialPanes = newLeaf('write')
 
+/**
+ * Put a view in front of the writer.
+ *
+ * The content area is a tree of panes and the main area renders that tree, so
+ * setting `mainView` alone changes a label and nothing on screen. Every
+ * navigation has to land in the active pane - setMainView did, and the four
+ * that navigate somewhere specific (a map pin, a research item, Settings) did
+ * not, so clicking one of those quietly did nothing after panes shipped.
+ */
+function showView(
+  state: ShellState,
+  mainView: MainView
+): Pick<ShellState, 'mainView' | 'extView' | 'panes'> {
+  return {
+    mainView,
+    extView: null,
+    panes: setPaneViewIn(state.panes, state.activePaneId, mainView)
+  }
+}
+
 export const useShellStore = create<ShellState>((set) => ({
   mainView: 'write',
   panes: initialPanes,
@@ -378,14 +398,7 @@ export const useShellStore = create<ShellState>((set) => ({
   helpOpen: false,
   layoutsOpen: false,
   tourOpen: false,
-  setMainView: (mainView) =>
-    // Lands in the active pane, so every existing caller keeps meaning what it
-    // meant when there was only one.
-    set((s) => ({
-      mainView,
-      extView: null,
-      panes: setPaneViewIn(s.panes, s.activePaneId, mainView)
-    })),
+  setMainView: (mainView) => set((s) => showView(s, mainView)),
 
   setActivePane: (activePaneId) =>
     set((s) => {
@@ -442,9 +455,9 @@ export const useShellStore = create<ShellState>((set) => ({
 
   setMobileTab: (mobileTab) => set({ mobileTab }),
   navigateToMapPin: (mapId, pinId) =>
-    set({ mainView: 'maps', extView: null, pendingMapNav: { mapId, pinId } }),
+    set((s) => ({ ...showView(s, 'maps'), pendingMapNav: { mapId, pinId } })),
   clearPendingMapNav: () => set({ pendingMapNav: null }),
-  openSettings: (search = '') => set({ mainView: 'settings', extView: null, settingsSearch: search }),
+  openSettings: (search = '') => set((s) => ({ ...showView(s, 'settings'), settingsSearch: search })),
   setExtView: (extView) => set({ extView }),
   setBinderTab: (binderTab) => set({ binderTab }),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
@@ -454,7 +467,7 @@ export const useShellStore = create<ShellState>((set) => ({
   setQuickOpenOpen: (quickOpenOpen) => set({ quickOpenOpen }),
   setQuickCaptureOpen: (quickCaptureOpen) => set({ quickCaptureOpen }),
   navigateToResearch: (itemId) =>
-    set({ mainView: 'research', extView: null, pendingResearchId: itemId }),
+    set((s) => ({ ...showView(s, 'research'), pendingResearchId: itemId })),
   clearPendingResearch: () => set({ pendingResearchId: null }),
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   setLayoutsOpen: (layoutsOpen) => set({ layoutsOpen }),

@@ -516,6 +516,44 @@
   margin-top: var(--nl-space-tightest);
 }
 
+.ctx-research {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.ctx-research-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--nl-space-hairline);
+  padding: var(--nl-space-tightest) var(--nl-space-sm);
+  border: none;
+  border-radius: var(--nl-radius-sm);
+  background: transparent;
+  color: var(--nl-text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.ctx-research-row:hover {
+  background: var(--nl-surface-hover);
+}
+
+.ctx-research-title {
+  font-size: var(--nl-font-caption);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Why it is here. Without it the writer opens each one to find out. */
+.ctx-research-reason {
+  font-size: var(--nl-font-tiny);
+  color: var(--nl-text-dim);
+}
+
 .ctx-matrix {
   display: flex;
   flex-direction: column;

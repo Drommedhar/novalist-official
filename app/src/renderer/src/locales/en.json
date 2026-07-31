@@ -940,7 +940,9 @@
     "reads_third": "third person",
     "reads_past": "past tense",
     "reads_present": "present tense",
-    "reads_unknown": "something else"
+    "reads_unknown": "something else",
+    "research": "Research",
+    "researchOpen": "Open in Research"
   },
   "focusPeek": {
     "openEntity": "Open entity",

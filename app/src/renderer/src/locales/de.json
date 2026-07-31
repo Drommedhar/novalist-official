@@ -816,7 +816,9 @@
     "reads_third": "personal",
     "reads_past": "in der Vergangenheit",
     "reads_present": "in der Gegenwart",
-    "reads_unknown": "anders"
+    "reads_unknown": "anders",
+    "research": "Recherche",
+    "researchOpen": "In der Recherche öffnen"
   },
   "focusPeek": {
     "openEntity": "Entität öffnen",

@@ -37,6 +37,16 @@ Without such an extension the button does not appear, and the rest of the Inspec
 
 The **characters**, **locations**, **items**, and **lore** detected in the scene, each shown as a card with its thumbnail and name. **Hover** a card to raise the same rich **focus-peek** card the editor shows when you hover an entity's name in the prose — image, attribute pills, relationships (which you can click to peek through to related entities), appearance, custom properties, description, map pins and sections, with pin/open/close buttons in its header. The peek resolves any [chapter or scene overrides](06-codex.md) for the open scene, so it matches who the entity is at this point in the story. **Click** a card to open that entity's article in the [Wiki](30-wiki.md) (from there, **Edit in Codex** reaches the editable record). Character cards also carry small **Gender** and **Age** pills. A character that has a [chapter or scene override](06-codex.md) for the open scene is shown with its overridden name, role, gender and age, so the card matches who the character is at this point in the story. When age is stored as a birth date, the pill shows the character's age **at the open scene**, computed from the birth date against the scene's story date (falling back to the chapter's date, then today).
 
+### Research about this scene
+
+The research items this scene is about, each with the reason it is being offered — the character, place or thing it is filed under, or the tag it shares with the scene. Click one to open it in the [Research](15-research.md) view.
+
+Matching is exact and needs no AI: an item appears here when it is linked to a Codex entry the scene involves, or carries one of the scene's own tags. Nothing is guessed from the prose, so a suggestion never needs double-checking. Items in the Research inbox are excluded — everything quick-captured carries that tag, and matching on it would offer you the whole unfiled pile.
+
+At most six are shown, best first, in the same order every time you open the scene. The section is hidden when nothing matches.
+
+Until now research reached you in two places and neither was where you were writing: the Research view, which means leaving the scene, and an entity's Wiki article, which means already knowing what to look up.
+
 ### Mention matrix
 
 A cross-chapter grid: one row per tracked character showing, chapter by chapter, where they appear. The current chapter is marked, and a character who has been off-page for a while gets a **"last seen N chapters ago"** note — an easy way to spot a cast member who has quietly dropped out of the story.
