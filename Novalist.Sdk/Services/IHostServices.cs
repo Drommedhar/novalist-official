@@ -58,10 +58,28 @@ public interface IExtensionProjectService
     /// Replaces a scene's content.
     ///
     /// The one call in this interface that overwrites prose the writer may have
-    /// authored, so an extension should be sure it owns the scene - normally
-    /// because it just created it.
+    /// authored. It refuses, by throwing, when that scene is open in the editor
+    /// with unsaved changes: without the refusal an extension pass and the
+    /// editor's autosave write over each other, whichever lands second wins,
+    /// and somebody's work is gone with no error anywhere.
+    ///
+    /// Call <see cref="IsSceneBusyAsync"/> first if you would rather skip a
+    /// scene than fail a pass over the whole book.
     /// </summary>
+    /// <exception cref="InvalidOperationException">
+    /// The scene is open with unsaved changes.
+    /// </exception>
     Task WriteSceneContentAsync(string chapterGuid, string sceneId, string html);
+
+    /// <summary>
+    /// True when a scene is open in the editor with unsaved changes, and so
+    /// cannot be written to.
+    ///
+    /// A pass over the manuscript should ask before each scene and skip the
+    /// ones that are busy, rather than stopping on the one the writer happens
+    /// to be in.
+    /// </summary>
+    Task<bool> IsSceneBusyAsync(string chapterGuid, string sceneId);
 
     /// <summary>
     /// Renames a chapter. False when the guid is unknown.

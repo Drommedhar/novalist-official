@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **An extension can no longer write over the scene you are typing in.** An extension that writes prose — an importer, a cleanup pass, a generator — could land on the open scene while you were working in it; its write and the editor's next autosave overwrote each other, whichever finished second won, and the words that lost were gone with no error anywhere. Novalist now tells extensions which scene is open with unsaved changes, and a write to it is refused. A pass over the whole book skips that one scene and keeps going through the rest.
+
 - **Plot threads as lanes.** **As lanes** in the Plot Grid toolbar draws each thread as a track across the book instead of a row of ticks. A track runs from a thread's first scene to its last, so a gap reads as a gap; and every scene carrying more than one thread is marked down the full height. A matrix tells you which scenes a thread touches; this tells you where two threads meet, which is the scene doing the structural work.
 
 - **A box set: several books in one file.** A multi-book project exported one book at a time — the compile only ever read the book you had open. **Also include these books** now appears above the chapter list, and each one you tick is appended after the open book with a heading carrying its name. Chapter numbering runs across the whole set rather than restarting per volume, and each volume sits a level above a chapter, so an EPUB contents nests its books instead of listing eighty chapters flat. Volumes are read without being opened, so building a box set never changes which book you are working in.

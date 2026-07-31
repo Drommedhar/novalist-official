@@ -617,3 +617,27 @@ async function saveScene(
     )
   }))
 }
+
+/**
+ * Tells the backend which scene the editor holds, so an extension writing
+ * prose can refuse to land on it.
+ *
+ * A pass over the manuscript - a cleanup, an import, a generated draft - used
+ * to write straight over whichever scene was open, and the editor's next
+ * autosave wrote back over that. Whichever landed second won and the other
+ * side's words were gone, with no error anywhere. Only the renderer knows what
+ * is open, so it says so.
+ *
+ * One subscription rather than a call at each transition: dirty is set in half
+ * a dozen places and a missed one is a silent hole in the guard.
+ */
+let reported = ''
+useProjectStore.subscribe((state) => {
+  const { openChapterGuid, openSceneId, isDirty } = state
+  const next = `${openChapterGuid ?? ''}|${openSceneId ?? ''}|${isDirty}`
+  if (next === reported) return
+  reported = next
+  // A failure here is not worth surfacing: the guard degrades to the old
+  // behaviour, and everything else the editor does still works.
+  void rpc.request('scenes/setEditing', [openChapterGuid, openSceneId, isDirty]).catch(() => {})
+})

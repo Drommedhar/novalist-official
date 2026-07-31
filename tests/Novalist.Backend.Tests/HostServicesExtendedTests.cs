@@ -858,4 +858,94 @@ public class HostServicesExtendedTests
             .GetField("_projectService", System.Reflection.BindingFlags.NonPublic
                 | System.Reflection.BindingFlags.Instance)!
             .GetValue(host)!;
+
+    // ── The scene-dirty guard ──
+
+    [Fact]
+    public async Task WritingProseIntoTheOpenSceneIsRefused()
+    {
+        var editing = new SceneEditingState();
+        var dir = new TempDir();
+        using var _d = dir;
+        var file = new FileService();
+        var proj = new ProjectService(file);
+        await proj.CreateProjectAsync(dir.Path, "P", "Book");
+        var settings = Substitute.For<ISettingsService>();
+        settings.Settings.Returns(new AppSettings());
+        var host = new HostServices(file, proj, new EntityService(proj), settings, null, editing);
+
+        var (chapter, scene) = await SceneAsync(host);
+        editing.Set(chapter, scene, dirty: true);
+
+        Assert.True(await host.ProjectService.IsSceneBusyAsync(chapter, scene));
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => host.ProjectService.WriteSceneContentAsync(chapter, scene, "<p>Replaced.</p>"));
+
+        // The refusal has to leave the writer's text alone, not half-write it.
+        var chapterData = proj.GetChaptersOrdered().First(c => c.Guid == chapter);
+        var sceneData = proj.GetScenesForChapter(chapter).First(s => s.Id == scene);
+        Assert.Contains("The bell rang once.", await proj.ReadSceneContentAsync(chapterData, sceneData));
+    }
+
+    [Fact]
+    public async Task WritingProseIsAllowedOnceTheSceneIsSavedOrClosed()
+    {
+        var editing = new SceneEditingState();
+        var dir = new TempDir();
+        using var _d = dir;
+        var file = new FileService();
+        var proj = new ProjectService(file);
+        await proj.CreateProjectAsync(dir.Path, "P", "Book");
+        var settings = Substitute.For<ISettingsService>();
+        settings.Settings.Returns(new AppSettings());
+        var host = new HostServices(file, proj, new EntityService(proj), settings, null, editing);
+
+        var (chapter, scene) = await SceneAsync(host);
+        // Open, but saved: the file is what the editor holds, so nothing is lost.
+        editing.Set(chapter, scene, dirty: false);
+
+        Assert.False(await host.ProjectService.IsSceneBusyAsync(chapter, scene));
+        await host.ProjectService.WriteSceneContentAsync(chapter, scene, "<p>Replaced.</p>");
+
+        var chapterData = proj.GetChaptersOrdered().First(c => c.Guid == chapter);
+        var sceneData = proj.GetScenesForChapter(chapter).First(s => s.Id == scene);
+        Assert.Contains("Replaced.", await proj.ReadSceneContentAsync(chapterData, sceneData));
+    }
+
+    [Fact]
+    public async Task ADifferentSceneIsStillWritableWhileOneIsOpen()
+    {
+        // The point of asking per scene: a pass over the book keeps working on
+        // the other three hundred scenes while the writer is in one of them.
+        var editing = new SceneEditingState();
+        var dir = new TempDir();
+        using var _d = dir;
+        var file = new FileService();
+        var proj = new ProjectService(file);
+        await proj.CreateProjectAsync(dir.Path, "P", "Book");
+        var settings = Substitute.For<ISettingsService>();
+        settings.Settings.Returns(new AppSettings());
+        var host = new HostServices(file, proj, new EntityService(proj), settings, null, editing);
+
+        var (chapter, open) = await SceneAsync(host, "Open");
+        var other = await host.ProjectService.CreateSceneAsync(chapter, "Other");
+        editing.Set(chapter, open, dirty: true);
+
+        await host.ProjectService.WriteSceneContentAsync(chapter, other, "<p>Fine.</p>");
+
+        var chapterData = proj.GetChaptersOrdered().First(c => c.Guid == chapter);
+        var sceneData = proj.GetScenesForChapter(chapter).First(s => s.Id == other);
+        Assert.Contains("Fine.", await proj.ReadSceneContentAsync(chapterData, sceneData));
+    }
+
+    [Fact]
+    public async Task AHostWithNoEditorBehindItNeverReportsBusy()
+    {
+        var (host, _, dir) = Build();
+        using var _d = dir;
+        var (chapter, scene) = await SceneAsync(host);
+
+        Assert.False(await host.ProjectService.IsSceneBusyAsync(chapter, scene));
+    }
 }
+

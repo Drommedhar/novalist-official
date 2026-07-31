@@ -32,6 +32,7 @@ public sealed partial class HostServices :
     private readonly IEntityService _entityService;
     private readonly ISettingsService _settingsService;
     private readonly UiPump _uiPump;
+    private readonly Core.Services.SceneEditingState _editing;
     private readonly bool _ownsPump;
     private readonly Dictionary<string, ExtensionLocalizationService> _locServices = new(StringComparer.Ordinal);
 
@@ -41,8 +42,14 @@ public sealed partial class HostServices :
     /// <param name="uiPump">Shared backend UI pump. When null, an owned pump is
     /// created and disposed with this instance (used by unit tests that construct
     /// HostServices directly).</param>
-    public HostServices(IFileService fileService, IProjectService projectService, IEntityService entityService, ISettingsService settingsService, UiPump? uiPump = null)
+    /// <param name="editing">
+    /// What the editor has open, so a prose write does not race the writer.
+    /// Null means nothing is ever reported busy, which is the right answer for
+    /// a headless host with no editor in it.
+    /// </param>
+    public HostServices(IFileService fileService, IProjectService projectService, IEntityService entityService, ISettingsService settingsService, UiPump? uiPump = null, Core.Services.SceneEditingState? editing = null)
     {
+        _editing = editing ?? new Core.Services.SceneEditingState();
         _fileService = fileService;
         _projectService = projectService;
         _entityService = entityService;
@@ -444,9 +451,21 @@ public sealed partial class HostServices :
         return scene.Id;
     }
 
+    Task<bool> IExtensionProjectService.IsSceneBusyAsync(string chapterGuid, string sceneId)
+        => Task.FromResult(_editing.IsBusy(chapterGuid, sceneId));
+
     async Task IExtensionProjectService.WriteSceneContentAsync(
         string chapterGuid, string sceneId, string html)
     {
+        // Refused rather than merged: the editor holds the newer text and would
+        // autosave over this anyway, so the write is not just unsafe, it is
+        // pointless. An extension that would rather skip than fail asks first.
+        if (_editing.IsBusy(chapterGuid, sceneId))
+        {
+            throw new InvalidOperationException(
+                "That scene is open with unsaved changes; it cannot be written to.");
+        }
+
         var chapter = _projectService.GetChaptersOrdered().FirstOrDefault(c => c.Guid == chapterGuid);
         var scene = chapter == null
             ? null

@@ -38,6 +38,12 @@ public sealed partial class Workspace : IDisposable
     public SettingsService Settings { get; }
 
     /// <summary>
+    /// What the editor has open, so an extension writing prose does not race
+    /// the writer. Reported by the renderer, which is the only thing that knows.
+    /// </summary>
+    public Core.Services.SceneEditingState Editing { get; } = new();
+
+    /// <summary>
     /// Loose notes that belong to the writer rather than to a project, so a
     /// thought that arrives before the right project is open has somewhere to go.
     /// </summary>
@@ -72,7 +78,7 @@ public sealed partial class Workspace : IDisposable
             {
                 _uiPump = new Extensions.UiPump();
                 _hostServices = new Extensions.HostServices(
-                    FileService, Projects, new EntityService(Projects), Settings, _uiPump);
+                    FileService, Projects, new EntityService(Projects), Settings, _uiPump, Editing);
                 _hostServices.NotificationRequested += UiBridge.ShowNotification;
                 _hostServices.BusyProgressFactory = UiBridge.CreateProgress;
                 _hostServices.WizardLauncher = UiBridge.RunWizardAsync;

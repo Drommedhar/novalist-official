@@ -417,4 +417,22 @@ public sealed class ScenesRpcTests : IDisposable
         // nothing: the writer would look for it and not find it.
         Assert.Equal(string.Empty, _rpc.GetArchived().Single().OriginChapterTitle);
     }
+
+    [Fact]
+    public async Task SetEditingMarksTheOpenSceneBusyAndReleasesIt()
+    {
+        var (chapterGuid, sceneId) = await CreateSceneAsync();
+
+        _rpc.SetEditing(chapterGuid, sceneId, dirty: true);
+        Assert.True(_workspace.Editing.IsBusy(chapterGuid, sceneId));
+
+        // Saved, then closed: both have to let a prose write through again.
+        _rpc.SetEditing(chapterGuid, sceneId, dirty: false);
+        Assert.False(_workspace.Editing.IsBusy(chapterGuid, sceneId));
+
+        _rpc.SetEditing(chapterGuid, sceneId, dirty: true);
+        _rpc.SetEditing(null, null, dirty: false);
+        Assert.False(_workspace.Editing.IsBusy(chapterGuid, sceneId));
+    }
 }
+

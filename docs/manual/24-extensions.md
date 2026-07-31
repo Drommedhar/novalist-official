@@ -92,6 +92,8 @@ Extensions implement hook interfaces from the Novalist SDK. The main contributio
 
 An extension can also **propose an edit** to your prose. It appears as a [suggested edit](05-editor.md) with the extension's name on it, and you take it or turn it down like any other. Nothing an extension does rewrites a sentence you wrote without asking, and nothing an extension does deletes a chapter, a scene or a Codex entry for good — the strongest verbs available to one are moving a chapter to the trash and archiving a scene, both of which you can undo.
 
+The scene you are typing in is off limits entirely. An extension that writes prose — an importer, a cleanup pass, a generator — is refused outright while the open scene has unsaved changes, and passes over the whole book skip that scene and carry on with the rest. Without the refusal, its write and the editor's next autosave would overwrite each other and whichever landed second would win, silently.
+
 Extensions can register **multiple** hooks — a single extension might add a panel, an export format, and a custom entity type. The manifest's `minHostVersion` / `maxHostVersion` fields declare which Novalist versions the extension supports.
 
 ### Editor contributions

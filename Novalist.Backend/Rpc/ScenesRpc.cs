@@ -27,6 +27,18 @@ public sealed class ScenesRpc
         return new SceneContentDto(sceneId, html, Core.Services.ContentHasher.Hash(html));
     }
 
+    /// <summary>
+    /// What the editor has open, and whether it has unsaved changes.
+    ///
+    /// Only the renderer knows this, and until it said so an extension writing
+    /// prose could land on the scene being typed in - the two writes overwrite
+    /// each other and the loser's words are gone with no error. A null
+    /// <paramref name="sceneId"/> means the editor has nothing open.
+    /// </summary>
+    [JsonRpcMethod("scenes/setEditing")]
+    public void SetEditing(string? chapterGuid, string? sceneId, bool dirty)
+        => _workspace.Editing.Set(chapterGuid, sceneId, dirty);
+
     [JsonRpcMethod("scenes/getMeta")]
     public SceneMetaDto GetMeta(string chapterGuid, string sceneId)
     {

@@ -229,6 +229,15 @@ Never put an API key in the project folder. Projects get committed and shared.
 Being explicit about the ceiling saves you finding it the hard way:
 
 - **Silently rewriting prose.** `WriteSceneContentAsync` replaces a scene wholesale and should only be used on scenes you created, normally during an import. To change prose the writer authored, use `ReviewService.SuggestEditAsync` and let them answer. This is a deliberate wall, not a gap: a machine's opinion belongs in the manuscript only once a person has agreed to it.
+- **Writing the scene that is open.** `WriteSceneContentAsync` throws when the scene is open in the editor with unsaved changes. Without that refusal your write and the editor's autosave overwrite each other, whichever lands second wins, and somebody's words are gone with no error anywhere. A pass over the whole book should call `IsSceneBusyAsync` per scene and skip the busy one rather than fail on the scene the writer happens to be in:
+
+```csharp
+foreach (var scene in host.ProjectService.GetScenesForChapter(chapterGuid))
+{
+    if (await host.ProjectService.IsSceneBusyAsync(chapterGuid, scene.Id)) continue;
+    await host.ProjectService.WriteSceneContentAsync(chapterGuid, scene.Id, html);
+}
+```
 - **Erasing anything.** You can trash a chapter and archive a scene, both of which the writer can undo. Nothing in the SDK deletes a chapter, a scene or an entry for good.
 - **Merging or splitting scenes.** Create, rename, move, trash and archive are yours; merge and split are the host's.
 - **Replacing the Codex's own rules.** You can create entries and write their names, descriptions and sections. Match settings, AI inclusion, state overrides and per-context resolution stay host-owned, and entity extraction returns *proposals* the writer confirms.
