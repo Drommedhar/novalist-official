@@ -75,6 +75,46 @@ function createWindow(): BrowserWindow {
   return win
 }
 
+/**
+ * A second window showing one view.
+ *
+ * The Codex on another monitor while the manuscript stays where it is. It runs
+ * the same renderer with the same preload, so it gets its own backend channel
+ * from the handler below and needs nothing else: two windows talking to one
+ * backend is what the port-per-sender design already allowed.
+ *
+ * Smaller and without a minimum width, because a torn-off pane is usually
+ * narrow on purpose - a column of notes beside a full-screen editor.
+ */
+ipcMain.handle('novalist:open-pane-window', (_event, view: string) => {
+  const iconPath = resolveIconPath()
+  const win = new BrowserWindow({
+    width: 720,
+    height: 900,
+    minWidth: 360,
+    minHeight: 400,
+    show: false,
+    title: 'Novalist',
+    ...(iconPath ? { icon: iconPath } : {}),
+    ...materialWindowOptions(material),
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false,
+      contextIsolation: true,
+      nodeIntegration: false,
+      additionalArguments: [`--nl-material=${material}`]
+    }
+  })
+  win.once('ready-to-show', () => win.show())
+  attachSpellingMenu(win, () => spellingMenuLabels)
+
+  if (process.env.ELECTRON_RENDERER_URL) {
+    void win.loadURL(`${process.env.ELECTRON_RENDERER_URL}?pane=${encodeURIComponent(view)}`)
+  } else {
+    void win.loadFile(join(__dirname, '../renderer/index.html'), { query: { pane: view } })
+  }
+})
+
 let spellingMenuLabels = {
   addToDictionary: 'Add to dictionary',
   noSuggestions: 'No suggestions'

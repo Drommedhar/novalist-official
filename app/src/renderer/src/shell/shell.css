@@ -4062,3 +4062,10 @@
   color: var(--nl-text-dim);
   font-size: var(--nl-font-caption);
 }
+
+/* A window holding one pane: no binder, no activity bar, so the view fills it. */
+.app-shell.detached {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}

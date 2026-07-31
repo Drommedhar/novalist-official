@@ -74,6 +74,7 @@ interface Window {
     setProjectRoot(root: string | null): void
     beginProjectAccess(path: string): Promise<boolean>
     endProjectAccess(path: string): void
+    openPaneWindow(view: string): Promise<void>
     registerExtensionRoots(roots: Record<string, string>): Promise<void>
     checkAppUpdate(): Promise<AppUpdate | null>
     downloadAppUpdate(info: AppUpdate): Promise<string>

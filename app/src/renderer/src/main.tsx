@@ -4,6 +4,8 @@ import './i18n'
 import './styles/tokens.css'
 import './styles/base.css'
 import { AppShell } from './shell/AppShell'
+import { DetachedPane } from './shell/DetachedPane'
+import type { MainView } from './stores/shellStore'
 import { useProjectStore } from './stores/projectStore'
 import { useShellStore } from './stores/shellStore'
 import { useCodexStore } from './stores/codexStore'
@@ -37,8 +39,12 @@ root.dataset.material = window.novalist.material
 // before settings load.
 root.dataset.theme = 'dark'
 
+// A window opened to hold one torn-off pane says so in its URL. It runs the
+// same renderer, so the view inside is the real one rather than a picture.
+const detachedView = new URLSearchParams(window.location.search).get('pane')
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <AppShell />
+    {detachedView ? <DetachedPane view={detachedView as MainView} /> : <AppShell />}
   </React.StrictMode>
 )

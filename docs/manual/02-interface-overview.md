@@ -152,6 +152,12 @@ Any pane can be split again, so three panes down the left and one tall one on th
 
 The pane you are working in is outlined. That matters because everything that changes a view — the activity bar, the command palette, a link in a panel — lands in **that** pane. Click anywhere in another pane to move there.
 
+### A pane in its own window
+
+**Open in its own window** takes the view you are in and gives it a window of its own — the Codex on a second monitor while the manuscript stays where it is.
+
+It is a real window, not a picture: it opens its own connection to the same Novalist, so what you change there lands in the project like any other edit. It has no binder and no activity bar, because a torn-off pane is one thing on purpose and navigation belongs to the window you are working in. Close it like any window; nothing in the main one moves.
+
 ### Saved layouts
 
 **Layouts** in the same group remembers an arrangement by name and puts it back later. A drafting layout with the manuscript and your notes, a revision layout with the manuscript, the Codex and the timeline.

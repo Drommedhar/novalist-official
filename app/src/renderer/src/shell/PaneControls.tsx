@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Columns2, Rows2, X } from 'lucide-react'
+import { Columns2, ExternalLink, Rows2, X } from 'lucide-react'
 import { paneLeaves, useShellStore } from '../stores/shellStore'
 import { InputDialog } from './InputDialog'
 
@@ -20,6 +20,7 @@ export function PaneControls(): React.JSX.Element {
   const applyLayout = useShellStore((s) => s.applyLayout)
   const deleteLayout = useShellStore((s) => s.deleteLayout)
   const paneCount = useShellStore((s) => paneLeaves(s.panes).length)
+  const activeView = useShellStore((s) => s.mainView)
   const [naming, setNaming] = useState(false)
 
   return (
@@ -52,6 +53,18 @@ export function PaneControls(): React.JSX.Element {
           <X size={16} strokeWidth={1.75} />
         </button>
       )}
+
+      {/* The Codex on a second monitor while the manuscript stays where it is.
+          The window runs the same renderer against the same backend, so what
+          is in it is the real view rather than a copy. */}
+      <button
+        className="toolbar-button"
+        title={t('panes.popOut')}
+        aria-label={t('panes.popOut')}
+        onClick={() => void window.novalist.openPaneWindow(activeView)}
+      >
+        <ExternalLink size={16} strokeWidth={1.75} />
+      </button>
 
       <select
         className="toolbar-panes-layouts"

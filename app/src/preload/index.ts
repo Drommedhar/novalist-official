@@ -130,6 +130,11 @@ contextBridge.exposeInMainWorld('novalist', {
   endProjectAccess(path: string): void {
     ipcRenderer.send('novalist:end-project-access', path)
   },
+  /** Opens a second window showing one view. */
+  openPaneWindow(view: string): Promise<void> {
+    return ipcRenderer.invoke('novalist:open-pane-window', view)
+  },
+
   registerExtensionRoots(roots: Record<string, string>): Promise<void> {
     // Awaitable rather than fired and forgotten: a plugin module URL resolves
     // against these, and an import that overtook the message got a 404.
