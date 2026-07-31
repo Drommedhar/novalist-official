@@ -6,6 +6,7 @@ import { rpc } from '../rpc/client'
 import { LinksPanel } from './LinksPanel'
 import { DarlingsPanel } from './DarlingsPanel'
 import { TasksPanel } from './TasksPanel'
+import { CraftPanel } from './CraftPanel'
 import { RubricPanel } from './RubricPanel'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
@@ -133,6 +134,13 @@ export function Inspector(): React.JSX.Element {
             <details className="codex-match">
               <summary>{t('rubric.title')}</summary>
               <RubricPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
+            </details>
+            {/* Somewhere to look when the page is blank or the beat will not
+                come. The alternative is a browser tab, which is where writing
+                sessions go to die. */}
+            <details className="codex-match">
+              <summary>{t('craft.title')}</summary>
+              <CraftPanel />
             </details>
           </>
         )}

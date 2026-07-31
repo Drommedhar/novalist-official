@@ -637,3 +637,60 @@
 .rubric-advice {
   margin: var(--nl-space-tightest) 0 0;
 }
+
+/* Read while a scene is open, so it has to stay narrow and skimmable. */
+.craft {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+}
+
+.craft-tabs {
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.craft-prompt {
+  margin: 0;
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}
+
+.craft-signals {
+  margin: var(--nl-space-tightest) 0 0;
+  padding-left: var(--nl-space-lg);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.craft-entry {
+  padding-bottom: var(--nl-space-tighter);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.craft-article-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter) 0;
+  border: none;
+  border-bottom: 1px solid var(--nl-border-subtle);
+  background: none;
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+.craft-article-topic {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+/* A wall of text in a side panel is not read at all. */
+.craft-body {
+  margin: 0 0 var(--nl-space-sm);
+  font-size: var(--nl-font-caption);
+  line-height: 1.55;
+  color: var(--nl-text-dim);
+}

@@ -3442,5 +3442,262 @@
         "advice": "End on the turn, not on the tidying up. If the last paragraph explains what just happened, cut it."
       }
     }
+  },
+  "craft": {
+    "title": "Craft",
+    "tab": {
+      "prompt": "Write",
+      "describe": "Describe",
+      "read": "Read"
+    },
+    "kind": "Kind of prompt",
+    "anyKind": "Anything",
+    "kindName": {
+      "scene": "A scene",
+      "character": "A character",
+      "world": "A place",
+      "stuck": "When stuck"
+    },
+    "another": "Another",
+    "noPrompt": "Nothing here yet.",
+    "lookupPlaceholder": "A feeling, a place, a sense...",
+    "noMatch": "Nothing matches that.",
+    "backToList": "Back to the list",
+    "prompt": {
+      "p1": "Two people who need the same thing, and only one of them knows it.",
+      "p2": "A conversation where neither says the thing it is about.",
+      "p3": "Somebody arrives an hour too late and finds out what that cost.",
+      "p4": "A character does something kind for a reason that is not kind.",
+      "p5": "The last time these two were in this room, something else happened.",
+      "p6": "An apology that makes things worse.",
+      "p7": "Somebody is handed a thing they have wanted for years.",
+      "p8": "A promise made in front of witnesses who do not believe it.",
+      "p9": "A character notices they are being lied to and says nothing.",
+      "p10": "Two people wait. One of them knows what for.",
+      "p11": "What does this character do with their hands when they lie?",
+      "p12": "Write the sentence they would never say aloud.",
+      "p13": "What did they want at twelve, and what became of it?",
+      "p14": "Who taught them the thing they are best at, and are they still speaking?",
+      "p15": "What would their oldest friend warn a stranger about?",
+      "p16": "What are they wrong about, and who has tried to tell them?",
+      "p17": "Where do they go when they cannot be at home?",
+      "p18": "What do they own that is worth nothing and would not be sold?",
+      "p19": "What does this place smell of at four in the morning?",
+      "p20": "Who cleans up after the thing everyone here takes for granted?",
+      "p21": "What is the local argument that outsiders find baffling?",
+      "p22": "What did this place used to be, and who still calls it that?",
+      "p23": "What is illegal here that is ordinary elsewhere?",
+      "p24": "What sound would a returning native recognise before they saw anything?",
+      "p25": "Who has money here, and what did they do to get it?",
+      "p26": "Write the next scene from the point of view of whoever is least happy about it.",
+      "p27": "Cut the first three paragraphs. Does anything break?",
+      "p28": "Let the character say the thing you have been having them avoid.",
+      "p29": "Skip the part you are dreading and write the scene after it.",
+      "p30": "Ask what would happen if the character simply failed here.",
+      "p31": "Give somebody in the scene a reason to want it over with.",
+      "p32": "Write the same page in first person, then decide.",
+      "p33": "Name what the reader is waiting for. Are you making them wait for it, or from it?"
+    },
+    "entry": {
+      "fear": {
+        "name": "Fear",
+        "signals": {
+          "0": "a swallow that will not go down",
+          "1": "hands that need something to hold",
+          "2": "hearing their own pulse",
+          "3": "checking the exit without meaning to",
+          "4": "a voice that comes out too level",
+          "5": "the cold that starts at the wrists"
+        }
+      },
+      "anger": {
+        "name": "Anger",
+        "signals": {
+          "0": "a very quiet voice",
+          "1": "putting things down too carefully",
+          "2": "an unfinished sentence",
+          "3": "looking somewhere else for a long moment",
+          "4": "a smile with nothing behind it",
+          "5": "answering a different question"
+        }
+      },
+      "grief": {
+        "name": "Grief",
+        "signals": {
+          "0": "doing a small task perfectly",
+          "1": "the flatness of the third day",
+          "2": "flinching at a name in an ordinary sentence",
+          "3": "hunger that arrives and is refused",
+          "4": "sleeping at the wrong times",
+          "5": "keeping the message unread"
+        }
+      },
+      "shame": {
+        "name": "Shame",
+        "signals": {
+          "0": "heat at the back of the neck",
+          "1": "an apology nobody asked for",
+          "2": "agreeing too fast",
+          "3": "finding a reason to leave the room",
+          "4": "rehearsing what should have been said",
+          "5": "answering a joke seriously"
+        }
+      },
+      "love": {
+        "name": "Love",
+        "signals": {
+          "0": "knowing how they take their tea",
+          "1": "not needing the sentence finished",
+          "2": "checking the weather where they are",
+          "3": "keeping the good chair for them",
+          "4": "reading the room on their behalf",
+          "5": "a hand that lands without deciding to"
+        }
+      },
+      "relief": {
+        "name": "Relief",
+        "signals": {
+          "0": "laughing at nothing",
+          "1": "the legs going",
+          "2": "suddenly noticing hunger",
+          "3": "talking too much",
+          "4": "the shoulders arriving an inch lower",
+          "5": "an old joke, badly told"
+        }
+      },
+      "exhaustion": {
+        "name": "Exhaustion",
+        "signals": {
+          "0": "reading the same line three times",
+          "1": "arithmetic that will not come",
+          "2": "hearing a question and not the words",
+          "3": "being cold in a warm room",
+          "4": "sitting down to do one thing and doing none",
+          "5": "a temper with no cause under it"
+        }
+      },
+      "suspicion": {
+        "name": "Suspicion",
+        "signals": {
+          "0": "a question asked twice, differently",
+          "1": "watching the hands rather than the face",
+          "2": "agreement that arrives too late",
+          "3": "remembering exactly what was said",
+          "4": "a friendliness with edges",
+          "5": "declining a small favour"
+        }
+      },
+      "morning": {
+        "name": "Early morning",
+        "signals": {
+          "0": "a road with one car on it",
+          "1": "the smell of somebody else's cooking",
+          "2": "birds, then a lorry",
+          "3": "light the colour of weak tea",
+          "4": "shutters going up",
+          "5": "breath visible over a doorstep"
+        }
+      },
+      "night": {
+        "name": "Night",
+        "signals": {
+          "0": "a window lit in a dark row",
+          "1": "sodium light on wet tarmac",
+          "2": "an argument two floors down",
+          "3": "the fridge, then nothing",
+          "4": "a taxi that does not stop",
+          "5": "somebody laughing a street away"
+        }
+      },
+      "crowd": {
+        "name": "A crowd",
+        "signals": {
+          "0": "being moved without walking",
+          "1": "somebody's bag against the hip",
+          "2": "one voice you keep hearing",
+          "3": "the smell of wet coats",
+          "4": "a child at the height of everyone's elbows",
+          "5": "everyone facing the same way"
+        }
+      },
+      "empty-room": {
+        "name": "An empty room",
+        "signals": {
+          "0": "dust in a shaft of light",
+          "1": "the shape a picture left",
+          "2": "a chair not quite square to the table",
+          "3": "the sound of your own shoes",
+          "4": "cold that has been there a while",
+          "5": "a smell that belongs to somebody else"
+        }
+      },
+      "weather": {
+        "name": "Weather that matters",
+        "signals": {
+          "0": "rain heavy enough to be a sound",
+          "1": "wind that changes what people say",
+          "2": "heat that empties a street",
+          "3": "the light before a storm",
+          "4": "snow that makes the town quiet",
+          "5": "the first cold morning of the year"
+        }
+      },
+      "water": {
+        "name": "Water",
+        "signals": {
+          "0": "a river the colour of the sky above it",
+          "1": "the smell before you see it",
+          "2": "a surface that is not still",
+          "3": "cold at the ankles and nowhere else",
+          "4": "the noise it makes against stone",
+          "5": "what it has left on the bank"
+        }
+      },
+      "sound": {
+        "name": "What can be heard",
+        "signals": {
+          "0": "a room's own hum",
+          "1": "somebody breathing nearby",
+          "2": "a door two rooms away",
+          "3": "the silence after a machine stops",
+          "4": "cloth against cloth",
+          "5": "the pitch a voice goes when it is being careful"
+        }
+      },
+      "smell": {
+        "name": "What can be smelled",
+        "signals": {
+          "0": "cold stone",
+          "1": "someone else's soap",
+          "2": "burnt dust off a heater",
+          "3": "rain on hot pavement",
+          "4": "old paper",
+          "5": "food from a window above"
+        }
+      },
+      "touch": {
+        "name": "What can be felt",
+        "signals": {
+          "0": "a table's grain under the fingers",
+          "1": "damp in a sleeve",
+          "2": "the give of an old floor",
+          "3": "warmth left in a chair",
+          "4": "grit underfoot",
+          "5": "a handle worn smooth"
+        }
+      },
+      "taste": {
+        "name": "What can be tasted",
+        "signals": {
+          "0": "metal after a fright",
+          "1": "tea gone cold",
+          "2": "salt on the lips",
+          "3": "the dust of a dry day",
+          "4": "blood from a bitten cheek",
+          "5": "something sweeter than expected"
+        }
+      }
+    },
+    "articlesEnglishOnly": "These pieces are in English for now."
   }
 }

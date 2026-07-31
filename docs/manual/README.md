@@ -38,45 +38,46 @@ If you are looking for a specific feature, jump straight to its page from the ta
 16. [Planning board](37-planning-board.md) — an infinite board of loose cards and labelled connectors for ideas that are not scenes yet.
 17. [Style report](36-style-report.md) — offline craft checks: adverbs, filter words, passive voice, sticky sentences, repeated openers, sentence-length variation.
 18. [Does this scene work?](42-scene-rubric.md) — twelve named questions per scene, with something to try attached to each.
-19. [Calendar & in-world dates](13-calendar.md) — Gregorian calendar, scene placement, story date ranges.
-20. [Timeline](12-timeline.md) — chronological event view across acts, chapters, scenes, and manual events, with story-structure templates.
-21. [Series](40-series.md) — every book in the project at once, and where the shared World Bible entries appear across them.
-22. [Languages](41-languages.md) — invented languages and their dictionaries, searchable by word or by meaning.
-23. [Maps](29-maps.md) — interactive 2D/3D map view with layered images, terrain, roads, buildings, and entity-linked pins.
+19. [Craft reference](43-craft.md) — prompts when the page is blank, a thesaurus of specifics, and short pieces on the craft.
+20. [Calendar & in-world dates](13-calendar.md) — Gregorian calendar, scene placement, story date ranges.
+21. [Timeline](12-timeline.md) — chronological event view across acts, chapters, scenes, and manual events, with story-structure templates.
+22. [Series](40-series.md) — every book in the project at once, and where the shared World Bible entries appear across them.
+23. [Languages](41-languages.md) — invented languages and their dictionaries, searchable by word or by meaning.
+24. [Maps](29-maps.md) — interactive 2D/3D map view with layered images, terrain, roads, buildings, and entity-linked pins.
 
 ### Project management
 
-24. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
-25. [Research](15-research.md) — notes attached to your project.
-26. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline, plus hand-curated collections and bookmarks.
-27. [Snapshots](17-snapshots.md) — per-scene version history, taken from the inspector.
-28. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
-29. [Git integration](18-git.md) — commit, push, pull without leaving the app.
-30. [Backups](35-backups.md) — automatic whole-project archives with in-app restore.
+25. [Dashboard](11-dashboard.md) — daily and project word goals, status breakdown, chapter pacing, echo phrases.
+26. [Research](15-research.md) — notes attached to your project.
+27. [Smart Lists](16-smart-lists.md) — saved scene queries by status, POV, tag, plotline, plus hand-curated collections and bookmarks.
+28. [Snapshots](17-snapshots.md) — per-scene version history, taken from the inspector.
+29. [Image Gallery](19-image-gallery.md) — every image in the project at a glance.
+30. [Git integration](18-git.md) — commit, push, pull without leaving the app.
+31. [Backups](35-backups.md) — automatic whole-project archives with in-app restore.
 
 ### Output
 
-31. [Exposé](32-expose.md) — the per-book pitch document, with live character and Normseiten counts against your limits.
-32. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, Normseiten, and more, plus formats added by extensions.
-33. [Command line & links](41-command-line.md) — write an export without opening the app, and link to a scene from another program.
+32. [Exposé](32-expose.md) — the per-book pitch document, with live character and Normseiten counts against your limits.
+33. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, Normseiten, and more, plus formats added by extensions.
+34. [Command line & links](41-command-line.md) — write an export without opening the app, and link to a scene from another program.
 
 ### The inspector
 
-34. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
+35. [Inspector](22-context-sidebar.md) — the right-hand context sidebar: Context and Footnotes tabs for the open scene. (Synopsis and notes live in the bottom scene-notes dock; snapshots in a toolbar dialog.)
 
 ### Customisation
 
-35. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
-36. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
-37. [Command palette](25-command-palette.md) — every shell command in one searchable box.
-38. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
-39. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
-40. [Custom themes & language packs](34-custom-themes-and-languages.md) — add your own colour schemes and interface languages by dropping a file into a folder.
-41. [Accessibility](39-accessibility.md) — reading-comfort settings, the High Contrast theme, read-aloud, and what is honestly still missing.
+36. [Settings](23-settings.md) — appearance, editor, writing assistance, templates, diagnostics, global vs per-project scope.
+37. [Extensions](24-extensions.md) — .NET extensions in the core process, webview panels in the binder, the AI Assistant, writing your own.
+38. [Command palette](25-command-palette.md) — every shell command in one searchable box.
+39. [Hotkeys reference](26-hotkeys.md) — every default keyboard shortcut.
+40. [Localization](27-localization.md) — bundled languages (English, German, Simplified Chinese), contributing translations.
+41. [Custom themes & language packs](34-custom-themes-and-languages.md) — add your own colour schemes and interface languages by dropping a file into a folder.
+42. [Accessibility](39-accessibility.md) — reading-comfort settings, the High Contrast theme, read-aloud, and what is honestly still missing.
 
 ### Help
 
-42. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
+43. [Troubleshooting & FAQ](28-troubleshooting.md) — the core process, common problems, where files live, how to recover.
 
 ## Conventions used in this manual
 

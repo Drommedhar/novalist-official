@@ -115,6 +115,7 @@ public sealed class BackendHost : IDisposable
         rpc.AddLocalRpcTarget(new SeriesRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new ConlangRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new RubricRpc(_workspace), targetOptions);
+        rpc.AddLocalRpcTarget(new CraftRpc(), targetOptions);
         rpc.AddLocalRpcTarget(new EntitySheetRpc(_workspace), targetOptions);
         rpc.AddLocalRpcTarget(new UnlinkedMentionRpc(_workspace), targetOptions);
         var extensionsRpc = new ExtensionsRpc(_workspace);

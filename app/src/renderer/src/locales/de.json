@@ -3450,5 +3450,262 @@
         "advice": "Ende auf der Wendung, nicht auf dem Aufräumen. Erklärt der letzte Absatz, was gerade geschah, streiche ihn."
       }
     }
+  },
+  "craft": {
+    "title": "Handwerk",
+    "tab": {
+      "prompt": "Schreiben",
+      "describe": "Beschreiben",
+      "read": "Lesen"
+    },
+    "kind": "Art des Impulses",
+    "anyKind": "Beliebig",
+    "kindName": {
+      "scene": "Eine Szene",
+      "character": "Eine Figur",
+      "world": "Ein Ort",
+      "stuck": "Wenn es hakt"
+    },
+    "another": "Noch eins",
+    "noPrompt": "Hier ist noch nichts.",
+    "lookupPlaceholder": "Ein Gefühl, ein Ort, ein Sinn ...",
+    "noMatch": "Dazu passt nichts.",
+    "backToList": "Zurück zur Liste",
+    "prompt": {
+      "p1": "Zwei Menschen brauchen dasselbe, und nur einer von beiden weiß es.",
+      "p2": "Ein Gespräch, in dem keiner das ausspricht, worum es geht.",
+      "p3": "Jemand kommt eine Stunde zu spät und erfährt, was das gekostet hat.",
+      "p4": "Eine Figur tut etwas Freundliches aus einem Grund, der nicht freundlich ist.",
+      "p5": "Als diese beiden zuletzt in diesem Raum waren, geschah etwas anderes.",
+      "p6": "Eine Entschuldigung, die alles schlimmer macht.",
+      "p7": "Jemand bekommt etwas überreicht, das er sich seit Jahren wünscht.",
+      "p8": "Ein Versprechen vor Zeugen, die es nicht glauben.",
+      "p9": "Eine Figur merkt, dass sie belogen wird, und sagt nichts.",
+      "p10": "Zwei Menschen warten. Einer von beiden weiß, worauf.",
+      "p11": "Was macht diese Figur mit den Händen, wenn sie lügt?",
+      "p12": "Schreib den Satz, den sie niemals laut sagen würde.",
+      "p13": "Was wollte sie mit zwölf, und was ist daraus geworden?",
+      "p14": "Wer hat ihr beigebracht, was sie am besten kann - und reden die beiden noch?",
+      "p15": "Wovor würde ihr ältester Freund eine fremde Person warnen?",
+      "p16": "Worin irrt sie sich, und wer hat versucht, es ihr zu sagen?",
+      "p17": "Wohin geht sie, wenn sie nicht zu Hause sein kann?",
+      "p18": "Was besitzt sie, das nichts wert ist und nicht verkauft würde?",
+      "p19": "Wonach riecht dieser Ort um vier Uhr morgens?",
+      "p20": "Wer räumt hinter dem her, was hier alle für selbstverständlich halten?",
+      "p21": "Was ist der örtliche Streit, den Auswärtige nicht verstehen?",
+      "p22": "Was war dieser Ort früher, und wer nennt ihn noch so?",
+      "p23": "Was ist hier verboten, das anderswo alltäglich ist?",
+      "p24": "Welches Geräusch würde eine Heimkehrerin erkennen, bevor sie irgendetwas sieht?",
+      "p25": "Wer hat hier Geld, und wodurch ist er dazu gekommen?",
+      "p26": "Schreib die nächste Szene aus der Sicht dessen, der am wenigsten begeistert ist.",
+      "p27": "Streiche die ersten drei Absätze. Bricht dadurch etwas weg?",
+      "p28": "Lass die Figur das sagen, worum du sie bisher herumschreiben lässt.",
+      "p29": "Überspring die Stelle, vor der dir graut, und schreib die Szene danach.",
+      "p30": "Frag, was passieren würde, wenn die Figur hier einfach scheitert.",
+      "p31": "Gib jemandem in der Szene einen Grund, sie hinter sich bringen zu wollen.",
+      "p32": "Schreib dieselbe Seite in der Ich-Form und entscheide dann.",
+      "p33": "Benenne, worauf die Leserin wartet. Lässt du sie darauf warten - oder davon fern?"
+    },
+    "entry": {
+      "fear": {
+        "name": "Angst",
+        "signals": {
+          "0": "ein Schlucken, das nicht hinuntergeht",
+          "1": "Hände, die etwas zu halten brauchen",
+          "2": "den eigenen Puls hören",
+          "3": "unabsichtlich nach dem Ausgang sehen",
+          "4": "eine Stimme, die zu ruhig herauskommt",
+          "5": "die Kälte, die an den Handgelenken anfängt"
+        }
+      },
+      "anger": {
+        "name": "Wut",
+        "signals": {
+          "0": "eine sehr leise Stimme",
+          "1": "Dinge zu sorgfältig abstellen",
+          "2": "ein unbeendeter Satz",
+          "3": "einen langen Moment woandershin sehen",
+          "4": "ein Lächeln, hinter dem nichts ist",
+          "5": "eine andere Frage beantworten"
+        }
+      },
+      "grief": {
+        "name": "Trauer",
+        "signals": {
+          "0": "eine kleine Aufgabe perfekt erledigen",
+          "1": "die Flachheit des dritten Tages",
+          "2": "bei einem Namen in einem gewöhnlichen Satz zusammenzucken",
+          "3": "Hunger, der kommt und abgelehnt wird",
+          "4": "zu den falschen Zeiten schlafen",
+          "5": "die Nachricht ungelesen lassen"
+        }
+      },
+      "shame": {
+        "name": "Scham",
+        "signals": {
+          "0": "Hitze im Nacken",
+          "1": "eine Entschuldigung, um die niemand gebeten hat",
+          "2": "zu schnell zustimmen",
+          "3": "einen Grund finden, den Raum zu verlassen",
+          "4": "im Kopf durchgehen, was man hätte sagen sollen",
+          "5": "einen Witz ernst beantworten"
+        }
+      },
+      "love": {
+        "name": "Liebe",
+        "signals": {
+          "0": "wissen, wie sie ihren Tee trinkt",
+          "1": "den Satz nicht zu Ende brauchen",
+          "2": "das Wetter dort nachsehen, wo sie ist",
+          "3": "ihr den guten Stuhl frei halten",
+          "4": "den Raum für sie mitlesen",
+          "5": "eine Hand, die landet, ohne dass es beschlossen wurde"
+        }
+      },
+      "relief": {
+        "name": "Erleichterung",
+        "signals": {
+          "0": "über nichts lachen",
+          "1": "die Beine geben nach",
+          "2": "plötzlich Hunger bemerken",
+          "3": "zu viel reden",
+          "4": "Schultern, die einen Zentimeter tiefer ankommen",
+          "5": "ein alter Witz, schlecht erzählt"
+        }
+      },
+      "exhaustion": {
+        "name": "Erschöpfung",
+        "signals": {
+          "0": "dieselbe Zeile dreimal lesen",
+          "1": "eine Rechnung, die nicht kommen will",
+          "2": "eine Frage hören und nicht die Worte",
+          "3": "in einem warmen Raum frieren",
+          "4": "sich für eine Sache hinsetzen und keine tun",
+          "5": "ein Ärger ohne Anlass darunter"
+        }
+      },
+      "suspicion": {
+        "name": "Misstrauen",
+        "signals": {
+          "0": "eine Frage, zweimal gestellt, anders",
+          "1": "auf die Hände sehen statt ins Gesicht",
+          "2": "eine Zustimmung, die zu spät kommt",
+          "3": "sich genau merken, was gesagt wurde",
+          "4": "eine Freundlichkeit mit Kanten",
+          "5": "einen kleinen Gefallen ausschlagen"
+        }
+      },
+      "morning": {
+        "name": "Früher Morgen",
+        "signals": {
+          "0": "eine Straße mit einem einzigen Auto",
+          "1": "der Geruch von fremdem Kochen",
+          "2": "Vögel, dann ein Lastwagen",
+          "3": "Licht in der Farbe von dünnem Tee",
+          "4": "Rollläden, die hochgehen",
+          "5": "sichtbarer Atem über einer Türschwelle"
+        }
+      },
+      "night": {
+        "name": "Nacht",
+        "signals": {
+          "0": "ein erleuchtetes Fenster in einer dunklen Reihe",
+          "1": "Natriumlicht auf nassem Asphalt",
+          "2": "ein Streit zwei Stockwerke tiefer",
+          "3": "der Kühlschrank, dann nichts",
+          "4": "ein Taxi, das nicht hält",
+          "5": "jemand lacht eine Straße weiter"
+        }
+      },
+      "crowd": {
+        "name": "Eine Menge",
+        "signals": {
+          "0": "bewegt werden, ohne zu gehen",
+          "1": "jemandes Tasche an der Hüfte",
+          "2": "eine Stimme, die man immer wieder hört",
+          "3": "der Geruch nasser Mäntel",
+          "4": "ein Kind auf Ellbogenhöhe",
+          "5": "alle wenden sich in dieselbe Richtung"
+        }
+      },
+      "empty-room": {
+        "name": "Ein leerer Raum",
+        "signals": {
+          "0": "Staub in einem Lichtstreifen",
+          "1": "der Umriss, den ein Bild hinterließ",
+          "2": "ein Stuhl, nicht ganz gerade am Tisch",
+          "3": "das Geräusch der eigenen Schuhe",
+          "4": "eine Kälte, die schon eine Weile da ist",
+          "5": "ein Geruch, der jemand anderem gehört"
+        }
+      },
+      "weather": {
+        "name": "Wetter, das zählt",
+        "signals": {
+          "0": "Regen, schwer genug, um ein Geräusch zu sein",
+          "1": "Wind, der ändert, was Leute sagen",
+          "2": "Hitze, die eine Straße leert",
+          "3": "das Licht vor einem Gewitter",
+          "4": "Schnee, der die Stadt leise macht",
+          "5": "der erste kalte Morgen des Jahres"
+        }
+      },
+      "water": {
+        "name": "Wasser",
+        "signals": {
+          "0": "ein Fluss in der Farbe des Himmels darüber",
+          "1": "der Geruch, bevor man es sieht",
+          "2": "eine Oberfläche, die nicht still ist",
+          "3": "Kälte an den Knöcheln und sonst nirgends",
+          "4": "das Geräusch an Stein",
+          "5": "was es am Ufer zurückgelassen hat"
+        }
+      },
+      "sound": {
+        "name": "Was zu hören ist",
+        "signals": {
+          "0": "das eigene Summen eines Raumes",
+          "1": "jemand atmet in der Nähe",
+          "2": "eine Tür zwei Räume weiter",
+          "3": "die Stille, nachdem eine Maschine stehen bleibt",
+          "4": "Stoff an Stoff",
+          "5": "die Tonhöhe, die eine Stimme annimmt, wenn sie vorsichtig ist"
+        }
+      },
+      "smell": {
+        "name": "Was zu riechen ist",
+        "signals": {
+          "0": "kalter Stein",
+          "1": "fremde Seife",
+          "2": "verbrannter Staub von einer Heizung",
+          "3": "Regen auf heißem Pflaster",
+          "4": "altes Papier",
+          "5": "Essen aus einem Fenster darüber"
+        }
+      },
+      "touch": {
+        "name": "Was zu spüren ist",
+        "signals": {
+          "0": "die Maserung eines Tisches unter den Fingern",
+          "1": "Feuchtigkeit im Ärmel",
+          "2": "das Nachgeben eines alten Bodens",
+          "3": "Wärme, die in einem Stuhl geblieben ist",
+          "4": "Körnung unter den Sohlen",
+          "5": "ein glatt gewordener Griff"
+        }
+      },
+      "taste": {
+        "name": "Was zu schmecken ist",
+        "signals": {
+          "0": "Metall nach einem Schreck",
+          "1": "kalt gewordener Tee",
+          "2": "Salz auf den Lippen",
+          "3": "der Staub eines trockenen Tages",
+          "4": "Blut von einer gebissenen Wange",
+          "5": "etwas Süßeres als erwartet"
+        }
+      }
+    },
+    "articlesEnglishOnly": "Diese Texte sind vorerst auf Englisch."
   }
 }
