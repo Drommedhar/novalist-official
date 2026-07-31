@@ -1447,7 +1447,10 @@
     "pinIcon_camp": "营地",
     "pinIcon_crossroads": "路口",
     "pinIcon_cave": "洞穴",
-    "pinIcon_battle": "战场"
+    "pinIcon_battle": "战场",
+    "generateTerrain": "生成陆地",
+    "generating": "生成中……",
+    "generateTerrainHint": "在独立图层上生成初始海岸线、河流、森林与聚落。生成的一切都是普通图形，可以随意拖动、改形或删除。"
   },
   "draft": {
     "label": "草稿",

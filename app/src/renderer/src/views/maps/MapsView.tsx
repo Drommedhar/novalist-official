@@ -10,6 +10,7 @@ import {
   Scissors,
   Spline as SplineIcon,
   ImageDown,
+  Mountain,
   Eye,
   X
 } from 'lucide-react'
@@ -103,6 +104,7 @@ export function MapsView(): React.JSX.Element {
   const [buildingScale, setBuildingScale] = useState(1)
   const [creating, setCreating] = useState(false)
   const [exporting, setExporting] = useState(false)
+  const [generating, setGenerating] = useState(false)
   // 1x is what is on screen; 2x and 4x give a raster fit for endpapers or an
   // EPUB rather than whatever size the window happened to be.
   const [exportScale, setExportScale] = useState(2)
@@ -783,6 +785,32 @@ export function MapsView(): React.JSX.Element {
    * single canvas to rasterise; the window capture sees exactly what the writer
    * sees, and works identically once the 3D view is showing.
    */
+  /**
+   * A first coastline for this map.
+   *
+   * The seed is shown after the fact rather than asked for up front: a writer
+   * pressing this wants to see land, not to fill in a form. It goes into the
+   * layer's name, so the one they liked can be made again.
+   */
+  const generateTerrain = async (): Promise<void> => {
+    if (!activeId) return
+    setGenerating(true)
+    try {
+      const seed = Math.floor(Math.random() * 100000)
+      await rpc.request<{ json: string } | null>('maps/generateTerrain', [
+        activeId,
+        seed,
+        1600,
+        1200
+      ])
+      // Read it back the way every other change is read back, so the canvas
+      // cannot end up showing something the file does not say.
+      await pushMap()
+    } finally {
+      setGenerating(false)
+    }
+  }
+
   const exportImage = async (): Promise<void> => {
     const iframe = iframeRef.current
     if (!iframe || !activeMap) return
@@ -809,6 +837,19 @@ export function MapsView(): React.JSX.Element {
         <button className="map-tb-btn" onClick={() => setCreating(true)}>
           <Plus size={14} strokeWidth={2} />
           {t('map.menuNewMap')}
+        </button>
+        {/* Every coastline used to be drawn by hand from a blank canvas, which
+            is the part of mapmaking that stops a writer who is not an
+            illustrator. What comes out is ordinary shapes on a layer of their
+            own, so the first move can be to drag a headland about. */}
+        <button
+          className="map-tb-btn"
+          disabled={!activeId || generating}
+          onClick={() => void generateTerrain()}
+          title={t('map.generateTerrainHint')}
+        >
+          <Mountain size={14} strokeWidth={2} />
+          {generating ? t('map.generating') : t('map.generateTerrain')}
         </button>
         <button
           className="map-tb-btn"

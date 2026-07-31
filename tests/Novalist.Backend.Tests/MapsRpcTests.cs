@@ -64,4 +64,48 @@ public sealed class MapsRpcTests : IDisposable
     {
         await Assert.ThrowsAsync<InvalidOperationException>(() => _rpc.SaveAsync("null"));
     }
+
+    [Fact]
+    public async Task GeneratingTerrainAddsALayerUnderneathWhatTheWriterDrew()
+    {
+        // Generated land is a background for their map, not something pasted
+        // over the top of it.
+        var created = await _rpc.CreateAsync("The North");
+
+        var loaded = await _rpc.GenerateTerrainAsync(created.Id, 7, 1600, 1200);
+
+        Assert.NotNull(loaded);
+        var map = System.Text.Json.JsonSerializer.Deserialize<Novalist.Core.Models.MapData>(
+            loaded!.Json,
+            new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            })!;
+
+        Assert.Equal("generated-7", map.Layers[0].Id);
+        Assert.NotEmpty(map.Layers[0].Shapes);
+        Assert.NotEmpty(map.Layers[0].Splines);
+        Assert.NotEmpty(map.Pins);
+    }
+
+    [Fact]
+    public async Task GeneratingTwiceWithOneSeedGivesTheSameLand()
+    {
+        var first = await _rpc.CreateAsync("One");
+        var second = await _rpc.CreateAsync("Two");
+
+        var a = await _rpc.GenerateTerrainAsync(first.Id, 11, 1000, 800);
+        var b = await _rpc.GenerateTerrainAsync(second.Id, 11, 1000, 800);
+
+        // The map ids and names differ; the land does not.
+        Assert.Contains("generated-11", a!.Json);
+        Assert.Contains("generated-11", b!.Json);
+    }
+
+    [Fact]
+    public async Task GeneratingOnAMapThatIsNotThereIsRefused()
+    {
+        Assert.Null(await _rpc.GenerateTerrainAsync("no-such-map", 1, 100, 100));
+    }
 }
+

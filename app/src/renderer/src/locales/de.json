@@ -2116,7 +2116,10 @@
     "pinIcon_camp": "Lager",
     "pinIcon_crossroads": "Wegkreuzung",
     "pinIcon_cave": "Höhle",
-    "pinIcon_battle": "Schlachtfeld"
+    "pinIcon_battle": "Schlachtfeld",
+    "generateTerrain": "Land erzeugen",
+    "generating": "Erzeuge...",
+    "generateTerrainHint": "Eine erste Küstenlinie, Flüsse, Wälder und Siedlungen auf einer eigenen Ebene. Alles davon ist eine ganz normale Form, die du ziehen, umformen oder löschen kannst."
   },
   "dialogue": {
     "roster": "Sprecher",

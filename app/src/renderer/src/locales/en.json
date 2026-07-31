@@ -1414,7 +1414,10 @@
     "pinIcon_camp": "Camp",
     "pinIcon_crossroads": "Crossroads",
     "pinIcon_cave": "Cave",
-    "pinIcon_battle": "Battle"
+    "pinIcon_battle": "Battle",
+    "generateTerrain": "Generate land",
+    "generating": "Generating...",
+    "generateTerrainHint": "A first coastline, rivers, woods and settlements on a layer of their own. Everything it makes is an ordinary shape you can drag, reshape or delete."
   },
   "draft": {
     "label": "Draft",

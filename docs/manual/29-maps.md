@@ -376,3 +376,16 @@ Novalist writes a plain PNG with no metadata attached, so it can be dropped into
 - [Image Gallery](19-image-gallery.md) — see every image across the project, including those used by maps.
 - [Codex (Characters, Locations, Items, Lore)](06-codex.md) — pin targets come from your Codex.
 - [Git integration](18-git.md) — map JSON files are versioned like any other project file when you commit through Git.
+
+## Generating land
+
+Every coastline, river and terrain polygon had to be drawn by hand from a blank canvas, which is the part of mapmaking that stops a writer who is not an illustrator.
+
+**Generate land** puts a first island on the open map: a coastline, high ground inland, woods, rivers running to the sea, and settlement pins placed on land and never on top of each other.
+
+- It all lands on a **layer of its own**, named for the seed it came from, so you can hide it, redraw over it, or throw it away whole without touching anything you drew.
+- Everything it makes is an **ordinary shape or spline**. Drag a headland, reshape a bay, delete a forest — it is your map from the moment it appears, not a picture you have to accept.
+- The layer name carries the **seed**. The same seed makes the same land, so the coastline you liked can be made again.
+- It is drawn centred on the map's origin, which is where the view opens, so you see the whole island rather than a corner of one.
+
+Generated land goes **underneath** what you have already drawn: it is a background for your map, not something pasted over the top of it.
