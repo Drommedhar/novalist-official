@@ -219,6 +219,17 @@ The layout, title page, front and back matter, publishing metadata and retailer 
 - Sections and relationships come through as rows too, so nothing is left behind.
 - The **codex entry picker** applies, the same as it does for JSON.
 
+### Everything (JSON archive) and Everything (browsable page)
+
+The other data formats carry the manuscript and the Codex. These carry the rest of the project with them — **plot threads** with their steps and what is still open, **research** notes with their tags, **saved lists** with the rules that define them, **collections**, and the names of your **maps**. None of those had an export path of their own, so a project could be read out in pieces and never as a whole.
+
+- **JSON archive** — one document, indented and with accents intact, for a script or another tool.
+- **Browsable page** — the same thing as one HTML file with a contents bar at the top. One file rather than a folder of them, so it opens by double-clicking, survives being emailed, and cannot arrive with its stylesheet missing. Nothing is fetched from anywhere.
+
+An empty section is printed with a count of zero rather than left out. "No research" and "research was not exported" are different things, and a gap cannot tell you which.
+
+The maps themselves are images and layer trees and stay in the project folder; the archive lists them by name.
+
 ### Outline (OPML)
 
 - The outline as a shape rather than a table: chapters as branches, scenes as leaves, each scene's synopsis as its note.

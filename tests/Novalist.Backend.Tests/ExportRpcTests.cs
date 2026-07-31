@@ -40,7 +40,8 @@ public sealed class ExportRpcTests : IDisposable
             new[]
             {
                 "Epub", "Docx", "Pdf", "Markdown", "FinalDraft", "LaTeX", "Codex", "CodexPdf",
-                "Csv", "Json", "CodexCsv", "Opml", "SynopsisReport", "PovReport"
+                "Csv", "Json", "CodexCsv", "Opml", "WorldJson", "WorldHtml",
+                "SynopsisReport", "PovReport"
             },
             _rpc.Formats());
     }
@@ -127,6 +128,8 @@ public sealed class ExportRpcTests : IDisposable
     [InlineData("Json", ".json")]
     [InlineData("CodexCsv", ".csv")]
     [InlineData("Opml", ".opml")]
+    [InlineData("WorldJson", ".json")]
+    [InlineData("WorldHtml", ".html")]
     [InlineData("SynopsisReport", ".md")]
     [InlineData("PovReport", ".md")]
     public async Task Run_ProducesNonEmptyFile(string format, string extension)

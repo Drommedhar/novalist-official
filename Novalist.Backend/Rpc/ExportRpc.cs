@@ -216,7 +216,8 @@ public sealed class ExportRpc
                 await service.ExportCodexPdfAsync(options, outputPath);
             }
             else if (parsedFormat is ExportFormat.Csv or ExportFormat.Json
-                     or ExportFormat.CodexCsv or ExportFormat.Opml)
+                     or ExportFormat.CodexCsv or ExportFormat.Opml
+                     or ExportFormat.WorldJson or ExportFormat.WorldHtml)
             {
                 await service.ExportDataAsync(options, outputPath);
             }

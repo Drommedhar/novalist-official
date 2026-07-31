@@ -1454,7 +1454,9 @@
     "buildFor": "Build für",
     "buildForNone": "Keinen bestimmten Shop",
     "formatCodexCsv": "Kodex-Tabelle (CSV)",
-    "formatOpml": "Gliederung (OPML)"
+    "formatOpml": "Gliederung (OPML)",
+    "formatWorldJson": "Alles (JSON-Archiv)",
+    "formatWorldHtml": "Alles (lesbare Seite)"
   },
   "expose": {
     "chars": "{{value}} Zeichen",

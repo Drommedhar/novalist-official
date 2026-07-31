@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **The whole project can leave in one piece.** Two new exports under **Data**: **Everything (JSON archive)** and **Everything (browsable page)**. As well as the scenes and the Codex, they carry plot threads with their steps, research notes with their tags, saved lists with the rules behind them, collections, and your map names — none of which had an export path at all. The page is a single self-contained HTML file, so it opens by double-clicking and cannot arrive with its stylesheet missing. Empty sections are printed with a count of zero, because "none" and "not exported" are different things.
+
 - **The Relationships graph tells its kinds apart.** With people, places, things, knowledge and scenes all on one canvas, every node was the same rounded box. Each kind now has its own silhouette and outline colour — shape alone stops working at a distance and colour alone stops working once the graph is dense. Long names are cut to fit their box instead of running across their neighbours; hover for the whole thing.
 
 - **Other programs can link to a place in your work.** Novalist now answers `novalist://` links: `novalist://open?project=<folder>`, optionally with a chapter and scene. A task in a tracker or a note in another app can point at the scene it is about. An already-running Novalist takes the link and comes to the front instead of a second copy opening the same folder. Links are read strictly — one that names no project, or a scene without its chapter, does nothing rather than opening something almost right.
@@ -213,6 +215,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **Relationship rows save once, when you stop typing.** Every field wrote the whole row the moment it lost focus, so crossing a row wrote it three times — and because each write also authors the other end of every tie it names, the three raced. The one that lost was reliably the last, which is the one carrying the inverse role, so the relationship appeared on one entry and not on the other. Leaving the entry writes anything still settling rather than dropping it.
+
 - **The Relationships graph no longer snaps back when you change the reach.** Centring on somebody and then widening the hops put two requests in flight, and the older answer could arrive last and win — so the graph returned to the narrower view it was already leaving. Late answers are now discarded.
 
 - **Relationships typed on a place, an item or a piece of lore are saved.** Novalist wrote the other half of a relationship whatever the two ends were — a sword owned by a character appearing as "owns" on the character — but only characters ever reached that code. Saving a tie on any other kind of entry went looking for a character with that entry's id, found none, and failed silently, so the row was lost the moment it was typed and the reciprocal was never written.

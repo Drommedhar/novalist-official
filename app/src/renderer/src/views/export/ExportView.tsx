@@ -42,6 +42,8 @@ const FORMATS: { format: string; extension: string; labelKey: string; content: C
   { format: 'Json', extension: '.json', labelKey: 'export.formatJson', content: 'data' },
   { format: 'CodexCsv', extension: '.csv', labelKey: 'export.formatCodexCsv', content: 'data' },
   { format: 'Opml', extension: '.opml', labelKey: 'export.formatOpml', content: 'data' },
+  { format: 'WorldJson', extension: '.json', labelKey: 'export.formatWorldJson', content: 'data' },
+  { format: 'WorldHtml', extension: '.html', labelKey: 'export.formatWorldHtml', content: 'data' },
   {
     format: 'SynopsisReport',
     extension: '.md',

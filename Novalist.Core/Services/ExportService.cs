@@ -50,6 +50,16 @@ public enum ExportFormat
     Opml,
 
     /// <summary>
+    /// Everything the project holds in one JSON document - plot threads,
+    /// research, saved lists and collections as well as the scenes and the
+    /// Codex, none of which had an export path of their own.
+    /// </summary>
+    WorldJson,
+
+    /// <summary>The same, as one page a person can read and browse.</summary>
+    WorldHtml,
+
+    /// <summary>
     /// Every scene's synopsis in reading order. The synopsis of a book existed
     /// only as forty separate boxes nobody could put side by side.
     /// </summary>
@@ -1164,6 +1174,7 @@ public partial class ExportService
             ExportFormat.Csv => MetadataWriter.SceneCsv(export.Scenes),
             ExportFormat.CodexCsv => MetadataWriter.CodexCsv(export.Codex),
             ExportFormat.Opml => MetadataWriter.Opml(export),
+            ExportFormat.WorldJson or ExportFormat.WorldHtml => WorldText(options, export),
             _ => MetadataWriter.Json(export)
         };
         // A byte-order mark, and only here: Excel reads a plain UTF-8 CSV as
@@ -1173,6 +1184,20 @@ public partial class ExportService
             ? new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)
             : new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         await File.WriteAllTextAsync(outputPath, text, encoding);
+    }
+
+    /// <summary>
+    /// The whole project, as JSON or as one browsable page. The scenes and the
+    /// Codex come from the same compile every other data export uses, so two
+    /// exports of the same book cannot come to disagree.
+    /// </summary>
+    private string WorldText(ExportOptions options, MetadataExport export)
+    {
+        var archive = WorldArchive.Build(
+            export, _projectService.CurrentProject, _projectService.ActiveBook);
+        return options.Format == ExportFormat.WorldHtml
+            ? WorldArchive.Html(archive)
+            : WorldArchive.Json(archive);
     }
 
     /// <summary>
@@ -1277,7 +1302,9 @@ public partial class ExportService
         // The scene sheet has no room for it: one sheet cannot hold a scene list
         // and a character list without one of them being wrong. The Codex sheet
         // is the other half, and JSON carries both.
-        if (options.Format is ExportFormat.Json or ExportFormat.CodexCsv && _entityService != null)
+        if (options.Format is ExportFormat.Json or ExportFormat.CodexCsv
+                or ExportFormat.WorldJson or ExportFormat.WorldHtml
+            && _entityService != null)
         {
             var codex = await CompileCodexAsync(options);
             // The same field builders the Markdown and PDF codex exports use,

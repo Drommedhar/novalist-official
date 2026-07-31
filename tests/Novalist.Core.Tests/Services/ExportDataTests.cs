@@ -499,4 +499,45 @@ public class ExportDataTests : IDisposable
         var hasMark = bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF;
         Assert.Equal(expected, hasMark);
     }
+
+    // Everything the project holds, through the same export path as the rest.
+    [Fact]
+    public async Task TheWholeProjectLeavesAsOneDocument()
+    {
+        var options = Setup(ExportFormat.WorldJson,
+            new SceneData { Title = "Arrival", Order = 1, Synopsis = "She gets off the train." });
+        var book = new BookData { Name = "Salt Road" };
+        book.Plotlines.Add(new PlotlineData { Name = "The debt" });
+        _project.ActiveBook.Returns(book);
+        _project.CurrentProject.Returns(new ProjectMetadata { Name = "SaltProject" });
+        var path = Output("world.json");
+
+        await Service().ExportDataAsync(options, path);
+
+        var text = await File.ReadAllTextAsync(path);
+        Assert.Contains("\"project\": \"SaltProject\"", text);
+        Assert.Contains("Arrival", text);
+        Assert.Contains("The debt", text);
+        // The sections that had no export path of their own are present even
+        // when empty, so a reader can tell "none" from "not exported".
+        Assert.Contains("\"research\"", text);
+        Assert.Contains("\"smartLists\"", text);
+    }
+
+    [Fact]
+    public async Task TheWholeProjectAlsoLeavesAsOnePage()
+    {
+        var options = Setup(ExportFormat.WorldHtml,
+            new SceneData { Title = "Arrival", Order = 1 });
+        _project.ActiveBook.Returns(new BookData { Name = "Salt Road" });
+        var path = Output("world.html");
+
+        await Service().ExportDataAsync(options, path);
+
+        var text = await File.ReadAllTextAsync(path);
+        Assert.StartsWith("<!doctype html>", text);
+        Assert.Contains("Arrival", text);
+        // One file, so it opens by double-clicking and survives being emailed.
+        Assert.DoesNotContain("<link", text);
+    }
 }

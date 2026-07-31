@@ -21,6 +21,14 @@ interface RelationshipRow {
   inverseRole?: string
 }
 
+/**
+ * How long after the last keystroke a relationship row is written.
+ *
+ * Long enough that crossing a row is one save rather than three, short enough
+ * that it lands before anybody navigates away.
+ */
+const SAVE_SETTLE_MS = 350
+
 /** The kinds the picker offers. Blank is allowed: not every tie has a kind. */
 const TIE_KINDS = ['', 'family', 'ally', 'rival', 'member', 'owner', 'place']
 
@@ -94,25 +102,31 @@ export function EntityListsEditor(): React.JSX.Element | null {
   }, [entityType, selectedId])
 
   /**
-   * Saves run one after another, never at the same time.
+   * One save, once the edits have settled.
    *
-   * Every field's blur saves the whole row set, and moving across a row blurs
-   * three fields in a row. Those saves used to be in flight together, and each
-   * one writes the subject and then the other end of every tie it names - so
-   * two of them interleaving could write the reciprocal from the older set and
-   * lose the one the writer had just finished typing. Queueing them costs
-   * nothing here and makes the order the writer's, not the network's.
+   * Every field used to save the whole row set on blur, so crossing a row wrote
+   * it three times. Each of those writes also authors the other end of every
+   * tie it names, so three of them in flight over one row was a race with no
+   * winner worth having - and the one that went missing was reliably the last,
+   * which is the one carrying the inverse role. Queueing them made the order
+   * right and did not make it reliable.
+   *
+   * Waiting for the typing to stop is both simpler and correct: whatever the
+   * row finally says is what gets written, once.
    */
-  const saveQueue = useRef<Promise<unknown>>(Promise.resolve())
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const saveNow = useRef<() => void>(() => {})
 
-  const persistRelationships = (next: RelationshipRow[]): void => {
+  const persistRelationships = (): void => {
     if (!selectedId) return
-    saveQueue.current = saveQueue.current
-      .catch(() => {})
-      .then(() =>
-        rpc.request<Record<string, unknown>>('entities/setRelationships', [
+    const write = (): void => {
+      saveTimer.current = null
+      void rpc
+        .request<Record<string, unknown>>('entities/setRelationships', [
           selectedId,
-          next.map((r) => ({
+          // Read as it is written rather than captured when the save was asked
+          // for: the point is to write the row as it finally stands.
+          rowsRef.current.map((r) => ({
             role: r.role,
             target: r.target,
             inverseRole: r.inverseRole ?? '',
@@ -124,9 +138,22 @@ export function EntityListsEditor(): React.JSX.Element | null {
           // character-only; the call never said so.
           entityType
         ])
-      )
-      .then((updated) => useCodexStore.setState({ selectedRecord: updated }))
+        .then((updated) => useCodexStore.setState({ selectedRecord: updated }))
+    }
+
+    saveNow.current = write
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(write, SAVE_SETTLE_MS)
   }
+
+  // Leaving the entry writes what was still settling rather than dropping it.
+  useEffect(() => {
+    return () => {
+      if (!saveTimer.current) return
+      clearTimeout(saveTimer.current)
+      saveNow.current()
+    }
+  }, [selectedId])
 
   if (!record || !selectedId) return null
 
@@ -219,7 +246,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
                           if (inv) patch({ inverseRole: inv })
                         })
                     }
-                    persistRelationships(rowsRef.current)
+                    persistRelationships()
                   }}
                 />
                 <input
@@ -228,7 +255,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
                   placeholder={t('entityEditor.targetNames')}
                   value={rel.target}
                   onChange={(e) => patch({ target: e.target.value })}
-                  onBlur={() => persistRelationships(rowsRef.current)}
+                  onBlur={() => persistRelationships()}
                 />
                 <select
                   className="outliner-input codex-rel-kind"
@@ -239,7 +266,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
                       i === index ? { ...r, category: e.target.value } : r
                     )
                     setRelationships(next)
-                    persistRelationships(next)
+                    persistRelationships()
                   }}
                 >
                   {TIE_KINDS.map((kind) => (
@@ -254,7 +281,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
                   list="codex-rel-roles"
                   value={rel.inverseRole ?? ''}
                   onChange={(e) => patch({ inverseRole: e.target.value })}
-                  onBlur={() => persistRelationships(rowsRef.current)}
+                  onBlur={() => persistRelationships()}
                 />
                 <button
                   className="binder-expand"
@@ -262,7 +289,7 @@ export function EntityListsEditor(): React.JSX.Element | null {
                   onClick={() => {
                     const next = relationships.filter((_, i) => i !== index)
                     setRelationships(next)
-                    persistRelationships(next)
+                    persistRelationships()
                   }}
                 >
                   <X size={12} strokeWidth={2} />

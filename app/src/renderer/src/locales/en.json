@@ -1853,7 +1853,9 @@
     "buildFor": "Build for",
     "buildForNone": "No particular store",
     "formatCodexCsv": "Codex sheet (CSV)",
-    "formatOpml": "Outline (OPML)"
+    "formatOpml": "Outline (OPML)",
+    "formatWorldJson": "Everything (JSON archive)",
+    "formatWorldHtml": "Everything (browsable page)"
   },
   "expose": {
     "chars": "{{value}} characters",

@@ -37,7 +37,8 @@ public static class CommandLine
           novalist-backend --help
 
         Formats: Epub, Docx, Pdf, Markdown, FinalDraft, LaTeX, Codex, CodexPdf,
-                 Csv, Json, CodexCsv, Opml, SynopsisReport, PovReport
+                 Csv, Json, CodexCsv, Opml, WorldJson, WorldHtml,
+                 SynopsisReport, PovReport
         """;
 
     /// <summary>
