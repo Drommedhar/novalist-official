@@ -281,6 +281,23 @@ public sealed class SettingsRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task UpdateProjectMeta_WordsPerPage_IsSettableAndCannotBeZeroed()
+    {
+        await OpenProjectAsync();
+
+        var initial = await _rpc.GetAsync();
+        Assert.Equal(250, initial.GetProperty("project").GetProperty("wordsPerPage").GetInt32());
+
+        var set = await _rpc.UpdateProjectMetaAsync(Patch("""{"wordsPerPage": 300}"""));
+        Assert.Equal(300, set.GetProperty("project").GetProperty("wordsPerPage").GetInt32());
+
+        // Zero would divide the estimate by nothing, so a cleared field goes
+        // back to the default rather than breaking the count.
+        var cleared = await _rpc.UpdateProjectMetaAsync(Patch("""{"wordsPerPage": 0}"""));
+        Assert.Equal(250, cleared.GetProperty("project").GetProperty("wordsPerPage").GetInt32());
+    }
+
+    [Fact]
     public async Task UpdateProjectMeta_UnknownKey_Throws_AndWithoutProject_Throws()
     {
         await Assert.ThrowsAsync<InvalidOperationException>(

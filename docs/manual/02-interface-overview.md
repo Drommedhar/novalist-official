@@ -116,7 +116,9 @@ The toolbar burger opens a left-anchored **backstage drawer**: create or open a 
 The thin strip across the bottom:
 
 - **Left** — the open scene's live word count, reading time, and readability badge.
-- **Center** — an always-visible project metrics strip: words, chapters, scenes, characters, locations, reading time, and average words per chapter. Click it for the **project overview** popover, a per-chapter and per-scene breakdown with word bars and readability.
+- **Center** — an always-visible project metrics strip: words, chapters, scenes, characters, locations, reading time, and average words per chapter. Click it for the **project overview** popover, a per-chapter and per-scene breakdown with word bars, an estimated page count and readability.
+
+  The page estimate is exactly that — an estimate. It divides the word count by a **words to a printed page** figure you set per project in Settings, and the popover says which figure it used. A trade paperback runs about 250 words to a page, mass-market nearer 300, large print about 150; the default is 250. Clearing the field puts it back. For an exact count rather than an estimate, export with the Normseiten preset, which is a real typeset grid.
 - **Right** — daily and project goal progress, the git branch and changed-file count, and a compact **core-connection dot** (green once the bundled Novalist Core process is up; hover it for the version). If it never connects, see [Troubleshooting](28-troubleshooting.md).
 
 ## The command palette

@@ -184,6 +184,15 @@ public sealed class SettingsRpc
                 case "monthlyGoal":
                     settings.WordCountGoals.MonthlyGoal = Math.Max(0, value.GetInt32());
                     break;
+                // Zero would divide the page estimate by nothing, so a cleared
+                // field goes back to the trade-paperback default rather than
+                // breaking the count.
+                case "wordsPerPage":
+                    var perPage = value.GetInt32();
+                    settings.WordsPerPage = perPage > 0
+                        ? perPage
+                        : Core.Services.PageEstimate.DefaultWordsPerPage;
+                    break;
                 default:
                     throw new InvalidOperationException($"Unknown project meta key '{key}'.");
             }
@@ -276,6 +285,7 @@ public sealed class SettingsRpc
             ["dailyGoal"] = settings.WordCountGoals.DailyGoal,
             ["weeklyGoal"] = settings.WordCountGoals.WeeklyGoal,
             ["monthlyGoal"] = settings.WordCountGoals.MonthlyGoal,
+            ["wordsPerPage"] = settings.WordsPerPage,
             ["projectGoal"] = settings.WordCountGoals.ProjectGoal
         };
     }

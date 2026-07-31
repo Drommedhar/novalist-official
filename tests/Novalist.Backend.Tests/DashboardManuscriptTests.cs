@@ -664,4 +664,33 @@ public sealed class DashboardManuscriptTests : IDisposable
             DateOnly.Parse(expected, CultureInfo.InvariantCulture),
             DashboardRpc.StartOfWeek(DateOnly.Parse(day, CultureInfo.InvariantCulture)));
 
+    // The question people actually ask is how thick the paperback will be, and
+    // Novalist could only answer it exactly through one export preset.
+    [Fact]
+    public async Task Overview_EstimatesPrintedPagesAndSaysWhatItAssumed()
+    {
+        await SeedSceneAsync("<p>" + string.Join(" ", Enumerable.Repeat("word", 600)) + "</p>",
+            string.Join(" ", Enumerable.Repeat("word", 600)));
+        _workspace.Projects.ProjectSettings.WordsPerPage = 250;
+
+        var overview = await new DashboardRpc(_workspace).OverviewAsync();
+
+        Assert.Equal(250, overview.WordsPerPage);
+        Assert.Equal(3, overview.Pages);                       // 600 / 250, rounded up
+        Assert.Equal(3, Assert.Single(overview.Chapters).Pages);
+    }
+
+    [Fact]
+    public async Task Overview_TheFigureIsTheWritersToSet()
+    {
+        await SeedSceneAsync("<p>" + string.Join(" ", Enumerable.Repeat("word", 600)) + "</p>",
+            string.Join(" ", Enumerable.Repeat("word", 600)));
+        _workspace.Projects.ProjectSettings.WordsPerPage = 150;
+
+        var overview = await new DashboardRpc(_workspace).OverviewAsync();
+
+        // The same book, set large print, is four pages thicker.
+        Assert.Equal(4, overview.Pages);
+        Assert.Equal(150, overview.WordsPerPage);
+    }
 }

@@ -118,7 +118,7 @@
 .status-overview-cols,
 .status-overview-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 130px minmax(72px, auto);
+  grid-template-columns: minmax(0, 1fr) 130px minmax(44px, auto) minmax(72px, auto);
   align-items: center;
   gap: var(--nl-space-md);
 }
@@ -362,4 +362,23 @@ button.status-ext-item {
 button.status-ext-item:hover {
   background: var(--nl-surface-hover);
   color: var(--nl-text);
+}
+
+/* The page estimate: a number that is read down the column, so it lines up on
+   the digit rather than on the left edge. */
+.status-overview-pages {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-body-sm);
+}
+
+/* What the estimate assumed, said plainly rather than left as a number out of
+   nowhere. */
+.status-overview-pages-note {
+  padding-top: var(--nl-space-sm);
+  border-top: 1px solid var(--nl-border-subtle);
+  margin-top: var(--nl-space-sm);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
 }

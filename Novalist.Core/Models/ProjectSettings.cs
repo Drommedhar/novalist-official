@@ -55,6 +55,16 @@ public class ProjectSettings
     /// </summary>
     [JsonPropertyName("watchFilesystem")]
     public bool WatchFilesystem { get; set; } = true;
+
+    /// <summary>
+    /// Words to a printed page, for the page estimate.
+    ///
+    /// Per project rather than global: a trade paperback runs about 250, a
+    /// mass-market closer to 300 and a large-print edition nearer 150, and a
+    /// writer working on two of those at once needs two answers.
+    /// </summary>
+    [JsonPropertyName("wordsPerPage")]
+    public int WordsPerPage { get; set; } = Services.PageEstimate.DefaultWordsPerPage;
 }
 
 public class ProjectViewState

@@ -44,10 +44,14 @@ interface ChapterOverview {
   readability: number
   readabilityLevel: string | null
   scenes: SceneOverview[]
+  /** Estimated printed pages. An estimate, and the popover says so. */
+  pages: number
 }
 interface ProjectBreakdown {
   projectName: string
   chapters: ChapterOverview[]
+  pages: number
+  wordsPerPage: number
 }
 
 // Maps the backend's localized readability-level label to the badge palette.
@@ -418,6 +422,7 @@ export function StatusBar(): React.JSX.Element {
               <div className="status-overview-cols">
                 <span>{t('overview.chapterColumn')}</span>
                 <span>{t('overview.wordsColumn')}</span>
+                <span>{t('overview.pagesColumn')}</span>
                 <span>{t('overview.readabilityColumn')}</span>
               </div>
               <div className="status-overview-list">
@@ -438,6 +443,7 @@ export function StatusBar(): React.JSX.Element {
                           />
                         </span>
                       </span>
+                      <span className="status-overview-pages">{chapter.pages || ''}</span>
                       <span className="status-overview-read">
                         {chapter.readabilityLevel ? (
                           <span
@@ -467,12 +473,21 @@ export function StatusBar(): React.JSX.Element {
                             />
                           </span>
                         </span>
+                        <span className="status-overview-pages" />
                         <span className="status-overview-read" />
                       </div>
                     ))}
                   </div>
                 ))}
               </div>
+              {breakdown && breakdown.pages > 0 && (
+                <div className="status-overview-pages-note">
+                  {t('overview.pagesEstimate', {
+                    pages: breakdown.pages.toLocaleString(),
+                    wordsPerPage: breakdown.wordsPerPage
+                  })}
+                </div>
+              )}
             </div>
           </>
         )}

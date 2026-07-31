@@ -857,6 +857,19 @@ export function SettingsView(): React.JSX.Element {
               />
               <div className="settings-hint">{t('settings.monthlyWordGoalDesc')}</div>
 
+              {/* Per project: a trade paperback, a mass-market and a large-print
+                  edition are three different answers, and a writer working on
+                  two of them at once needs two. */}
+              <label className="inspector-label" htmlFor="set-words-per-page">
+                {t('settings.wordsPerPage')}
+              </label>
+              <SettingInput
+                id="set-words-per-page"
+                value={String(project.wordsPerPage)}
+                onCommit={(v) => void updateProjectMeta({ wordsPerPage: Number(v) || 0 })}
+              />
+              <div className="settings-hint">{t('settings.wordsPerPageDesc')}</div>
+
               <label className="inspector-label" htmlFor="set-project-goal">
                 {t('settings.projectWordGoal')}
               </label>

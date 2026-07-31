@@ -31,6 +31,7 @@ public sealed partial class DashboardRpc
         var book = projects.ActiveBook ?? throw new InvalidOperationException("No project open.");
         var manifest = projects.ScenesManifest;
         var language = _workspace.Settings.Effective.AutoReplacementLanguage;
+        var wordsPerPage = projects.ProjectSettings.WordsPerPage;
 
         var chapters = new List<ChapterOverviewDto>();
         foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
@@ -58,10 +59,14 @@ public sealed partial class DashboardRpc
             }
 
             chapters.Add(new ChapterOverviewDto(
-                chapter.Title, words, readability, readabilityLevel, sceneDtos.ToArray()));
+                chapter.Title, words, readability, readabilityLevel, sceneDtos.ToArray(),
+                PageEstimate.Pages(words, wordsPerPage)));
         }
 
-        return new ProjectOverviewDto(projects.CurrentProject!.Name, chapters.ToArray());
+        return new ProjectOverviewDto(
+            projects.CurrentProject!.Name, chapters.ToArray(),
+            PageEstimate.Pages(chapters.Sum(c => c.Words), wordsPerPage),
+            wordsPerPage);
     }
 
     [JsonRpcMethod("dashboard/get")]
@@ -554,10 +559,19 @@ public sealed record HorizonDto(int Current, int Goal, int Percent, int DaysLeft
 
 public sealed record StatusBreakdownDto(string Status, int Count, int WordCount);
 
-public sealed record ProjectOverviewDto(string ProjectName, ChapterOverviewDto[] Chapters);
+public sealed record ProjectOverviewDto(
+    string ProjectName,
+    ChapterOverviewDto[] Chapters,
+    /// <summary>Estimated printed pages for the whole book.</summary>
+    int Pages,
+    /// <summary>The figure the estimate used, so the UI can say what it assumed
+    /// rather than presenting a number out of nowhere.</summary>
+    int WordsPerPage);
 
 public sealed record ChapterOverviewDto(
-    string Title, int Words, int Readability, string? ReadabilityLevel, SceneOverviewDto[] Scenes);
+    string Title, int Words, int Readability, string? ReadabilityLevel, SceneOverviewDto[] Scenes,
+    /// <summary>Estimated printed pages. An estimate, and the UI says so.</summary>
+    int Pages);
 
 public sealed record SceneOverviewDto(string Title, int Words);
 

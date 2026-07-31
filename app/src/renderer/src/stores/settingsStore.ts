@@ -51,6 +51,8 @@ export interface ProjectMeta {
   weeklyGoal: number
   /** Words for the calendar month; 0 means no monthly horizon. */
   monthlyGoal: number
+  /** Words to a printed page, for the page estimate. */
+  wordsPerPage: number
   projectGoal: number
 }
 
