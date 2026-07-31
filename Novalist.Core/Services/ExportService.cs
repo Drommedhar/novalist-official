@@ -1174,7 +1174,7 @@ public partial class ExportService
             ExportFormat.Csv => MetadataWriter.SceneCsv(export.Scenes),
             ExportFormat.CodexCsv => MetadataWriter.CodexCsv(export.Codex),
             ExportFormat.Opml => MetadataWriter.Opml(export),
-            ExportFormat.WorldJson or ExportFormat.WorldHtml => WorldText(options, export),
+            ExportFormat.WorldJson or ExportFormat.WorldHtml => await WorldTextAsync(options, export),
             _ => MetadataWriter.Json(export)
         };
         // A byte-order mark, and only here: Excel reads a plain UTF-8 CSV as
@@ -1191,13 +1191,62 @@ public partial class ExportService
     /// Codex come from the same compile every other data export uses, so two
     /// exports of the same book cannot come to disagree.
     /// </summary>
-    private string WorldText(ExportOptions options, MetadataExport export)
+    private async Task<string> WorldTextAsync(ExportOptions options, MetadataExport export)
     {
-        var archive = WorldArchive.Build(
-            export, _projectService.CurrentProject, _projectService.ActiveBook);
+        var project = _projectService.CurrentProject;
+        var open = _projectService.ActiveBook;
+        var archive = WorldArchive.Build(export, project, open);
+
+        // Every other book of the project, read without opening it. A document
+        // named for the project that carried one book of a trilogy was
+        // two-thirds missing and said nothing about the fact.
+        foreach (var other in project?.Books ?? [])
+        {
+            if (open != null && other.Id == open.Id) continue;
+            WorldArchive.AddVolume(archive, other, await VolumeScenesAsync(other));
+        }
+
         return options.Format == ExportFormat.WorldHtml
             ? WorldArchive.Html(archive)
             : WorldArchive.Json(archive);
+    }
+
+    /// <summary>
+    /// One closed book's outline. Titles, order and synopsis only: the prose
+    /// belongs to a manuscript export, and reading every scene of every book to
+    /// build an outline would make the archive cost what a compile costs.
+    /// </summary>
+    private async Task<List<SceneMetadataRow>> VolumeScenesAsync(BookData book)
+    {
+        var manifest = await _projectService.LoadScenesManifestForAsync(book);
+        if (manifest == null) return [];
+
+        var rows = new List<SceneMetadataRow>();
+        foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
+        {
+            if (!manifest.Chapters.TryGetValue(chapter.Guid, out var scenes)) continue;
+            foreach (var scene in scenes.Where(s => s.ArchivedAt == null).OrderBy(s => s.Order))
+            {
+                rows.Add(new SceneMetadataRow
+                {
+                    Chapter = chapter.Title,
+                    ChapterOrder = chapter.Order,
+                    Scene = scene.Title,
+                    SceneOrder = scene.Order,
+                    Stage = scene.Stage ?? string.Empty,
+                    Pov = scene.AnalysisOverrides?.Pov ?? string.Empty,
+                    Words = scene.WordCount,
+                    WordTarget = scene.WordTarget ?? 0,
+                    Date = scene.Date,
+                    Synopsis = scene.Synopsis ?? string.Empty,
+                    Goal = scene.Goal ?? string.Empty,
+                    Outcome = scene.Outcome ?? string.Empty,
+                    Inactive = scene.Inactive,
+                    ExcludedFromExport = scene.ExcludeFromExport
+                });
+            }
+        }
+        return rows;
     }
 
     /// <summary>

@@ -181,4 +181,57 @@ public class WorldArchiveTests
         Assert.DoesNotContain("<script", html);
         Assert.DoesNotContain("http://", html);
     }
+
+    // A document named for the project that carried one book of a trilogy was
+    // two-thirds missing and said nothing about the fact.
+    [Fact]
+    public void TheProjectsOtherBooksAreCarriedToo()
+    {
+        var (project, book) = Project();
+        var archive = WorldArchive.Build(Metadata(), project, book);
+        var second = new BookData { Name = "Book Two" };
+        second.Plotlines.Add(new PlotlineData { Name = "The reckoning" });
+        second.Collections.Add(new SceneCollection { Name = "Act one", SceneIds = ["x"] });
+        second.Maps.Add(new MapReference { Name = "The north" });
+
+        WorldArchive.AddVolume(archive, second,
+            [new SceneMetadataRow { Chapter = "Later", Scene = "Elsewhere", Words = 400 }]);
+
+        var volume = Assert.Single(archive.OtherBooks);
+        Assert.Equal("Book Two", volume.Book);
+        Assert.Equal("Elsewhere", Assert.Single(volume.Scenes).Scene);
+        Assert.Equal("The reckoning", Assert.Single(volume.Plotlines).Name);
+        Assert.Equal("Act one", Assert.Single(volume.Collections).Name);
+        Assert.Equal("The north", Assert.Single(volume.Maps));
+
+        // The open book's own lists are untouched by the addition.
+        Assert.Equal("The debt", Assert.Single(archive.Plotlines).Name);
+    }
+
+    [Fact]
+    public void ThePageListsTheOtherBooksAndTheirOutlines()
+    {
+        var (project, book) = Project();
+        var archive = WorldArchive.Build(Metadata(), project, book);
+        WorldArchive.AddVolume(archive, new BookData { Name = "Book Two" },
+            [new SceneMetadataRow { Chapter = "Later", Scene = "Elsewhere", Synopsis = "It ends." }]);
+
+        var html = WorldArchive.Html(archive);
+
+        Assert.Contains(">Other books <span", html);
+        Assert.Contains("Book Two", html);
+        Assert.Contains("It ends.", html);
+    }
+
+    [Fact]
+    public void ASingleBookProjectSaysThereAreNoOthers()
+    {
+        var (project, book) = Project();
+
+        var html = WorldArchive.Html(WorldArchive.Build(Metadata(), project, book));
+
+        // Printed with a count of zero rather than left out, like every other
+        // section: a gap cannot tell you which.
+        Assert.Contains(">Other books <span class=\"kind\">(0)</span>", html);
+    }
 }

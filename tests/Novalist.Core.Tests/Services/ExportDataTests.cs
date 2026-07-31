@@ -540,4 +540,55 @@ public class ExportDataTests : IDisposable
         // One file, so it opens by double-clicking and survives being emailed.
         Assert.DoesNotContain("<link", text);
     }
+
+    // The archive is named for the project. Carrying one book of a trilogy was
+    // two-thirds missing, and the document said nothing about the fact.
+    [Fact]
+    public async Task TheArchiveReachesTheProjectsOtherBooks()
+    {
+        var options = Setup(ExportFormat.WorldJson,
+            new SceneData { Title = "Arrival", Order = 1 });
+        var open = new BookData { Id = "b1", Name = "Book One" };
+        var closed = new BookData { Id = "b2", Name = "Book Two" };
+        closed.Plotlines.Add(new PlotlineData { Name = "The reckoning" });
+        _project.ActiveBook.Returns(open);
+        _project.CurrentProject.Returns(new ProjectMetadata
+        {
+            Name = "Series",
+            Books = [open, closed]
+        });
+        // The closed book is read through the per-book accessors rather than by
+        // switching to it, so nothing about the open book moves.
+        var closedChapter = new ChapterData { Guid = "c-two", Title = "Later", Order = 0 };
+        closed.Chapters.Add(closedChapter);
+        var manifest = new ScenesManifest();
+        manifest.Chapters["c-two"] =
+        [
+            new SceneData { Id = "s1", Title = "Elsewhere", Order = 0, WordCount = 400,
+                Synopsis = "It ends." },
+            // Archived scenes are not part of the book and do not belong in its
+            // outline; parked and held-back ones are flagged rather than dropped.
+            new SceneData { Id = "s2", Title = "Cut", Order = 1, ArchivedAt = DateTime.UtcNow },
+            new SceneData { Id = "s3", Title = "Parked", Order = 2, Inactive = true }
+        ];
+        _project.LoadScenesManifestForAsync(closed).Returns(manifest);
+        var path = Output("series.json");
+
+        await Service().ExportDataAsync(options, path);
+
+        var text = await File.ReadAllTextAsync(path);
+        Assert.Contains("\"otherBooks\"", text);
+        Assert.Contains("Book Two", text);
+        Assert.Contains("The reckoning", text);
+        // Exactly one other book, and the open one is not repeated among them.
+        var archive = System.Text.Json.JsonSerializer.Deserialize<WorldArchiveDocument>(text)!;
+        var volume = Assert.Single(archive.OtherBooks);
+        Assert.Equal("Book Two", volume.Book);
+        Assert.Equal(["Elsewhere", "Parked"], volume.Scenes.Select(s => s.Scene));
+        Assert.Equal("Later", volume.Scenes[0].Chapter);
+        Assert.Equal(400, volume.Scenes[0].Words);
+        Assert.Equal("It ends.", volume.Scenes[0].Synopsis);
+        Assert.True(volume.Scenes[1].Inactive);
+        Assert.Same(open, _project.ActiveBook);
+    }
 }

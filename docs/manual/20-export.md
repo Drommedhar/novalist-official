@@ -230,6 +230,10 @@ An empty section is printed with a count of zero rather than left out. "No resea
 
 The maps themselves are images and layer trees and stay in the project folder; the archive lists them by name.
 
+In a project with more than one book, the archive also carries **the other books** — each with its own chapters, scenes, plot threads, collections and map names. Research and saved lists belong to the project and are not repeated per book. A document named for the project that held one book of a trilogy was two-thirds missing and said nothing about the fact.
+
+The other books are read without being opened, so exporting the archive never changes which book you are working in.
+
 ### Outline (OPML)
 
 - The outline as a shape rather than a table: chapters as branches, scenes as leaves, each scene's synopsis as its note.

@@ -71,7 +71,26 @@ public sealed class WorldArchiveDocument
     /// belong in the project folder rather than inside a document.</summary>
     [JsonPropertyName("maps")]
     public List<string> Maps { get; set; } = [];
+
+    /// <summary>
+    /// The project's other books, in reading order, each with its own outline.
+    ///
+    /// The document is named for the project and carried one book, which for a
+    /// trilogy is two-thirds missing and says nothing about the fact. Scenes,
+    /// plot threads, collections and maps above are the open book's; research
+    /// and saved lists belong to the project and are not repeated here.
+    /// </summary>
+    [JsonPropertyName("otherBooks")]
+    public List<ArchivedVolume> OtherBooks { get; set; } = [];
 }
+
+/// <summary>One further book of the project, as the archive records it.</summary>
+public sealed record ArchivedVolume(
+    [property: JsonPropertyName("book")] string Book,
+    [property: JsonPropertyName("scenes")] IReadOnlyList<SceneMetadataRow> Scenes,
+    [property: JsonPropertyName("plotlines")] IReadOnlyList<ArchivedPlotline> Plotlines,
+    [property: JsonPropertyName("collections")] IReadOnlyList<ArchivedCollection> Collections,
+    [property: JsonPropertyName("maps")] IReadOnlyList<string> Maps);
 
 /// <summary>
 /// The whole project as one document, and as something a person can read.
@@ -109,16 +128,7 @@ public static class WorldArchive
             Codex = [.. metadata.Codex]
         };
 
-        foreach (var plotline in (book?.Plotlines ?? []).OrderBy(p => p.Order))
-        {
-            archive.Plotlines.Add(new ArchivedPlotline(
-                plotline.Name,
-                plotline.Importance.ToString(),
-                plotline.Description,
-                [.. plotline.Steps.OrderBy(s => s.Order)
-                    .Select(s => s.Resolved ? $"[done] {s.Text}" : s.Text)],
-                plotline.UnresolvedSteps));
-        }
+        archive.Plotlines.AddRange(PlotlinesOf(book));
 
         foreach (var item in (project?.ResearchItems ?? []).OrderBy(r => r.Order))
         {
@@ -136,14 +146,39 @@ public static class WorldArchive
                 [.. list.Rules.Select(r => $"{r.Field} {r.Op} {r.Value}".Trim())]));
         }
 
-        foreach (var collection in book?.Collections ?? [])
-            archive.Collections.Add(new ArchivedCollection(collection.Name, collection.SceneIds.Count));
-
-        foreach (var map in book?.Maps ?? [])
-            archive.Maps.Add(map.Name);
+        archive.Collections.AddRange(CollectionsOf(book));
+        archive.Maps.AddRange(MapsOf(book));
 
         return archive;
     }
+
+    /// <summary>
+    /// Adds a further book of the project. Its scenes are gathered by the
+    /// caller, which is the only part that needs the filesystem.
+    /// </summary>
+    public static void AddVolume(
+        WorldArchiveDocument archive, BookData book, IReadOnlyList<SceneMetadataRow> scenes)
+    {
+        archive.OtherBooks.Add(new ArchivedVolume(
+            book.Name, scenes, PlotlinesOf(book), CollectionsOf(book), MapsOf(book)));
+    }
+
+    private static List<ArchivedPlotline> PlotlinesOf(BookData? book)
+        => [.. (book?.Plotlines ?? []).OrderBy(p => p.Order)
+            .Select(p => new ArchivedPlotline(
+                p.Name,
+                p.Importance.ToString(),
+                p.Description,
+                [.. p.Steps.OrderBy(s => s.Order)
+                    .Select(s => s.Resolved ? $"[done] {s.Text}" : s.Text)],
+                p.UnresolvedSteps))];
+
+    private static List<ArchivedCollection> CollectionsOf(BookData? book)
+        => [.. (book?.Collections ?? [])
+            .Select(c => new ArchivedCollection(c.Name, c.SceneIds.Count))];
+
+    private static List<string> MapsOf(BookData? book)
+        => [.. (book?.Maps ?? []).Select(m => m.Name)];
 
     /// <summary>The archive as JSON, indented so a person can read it too.</summary>
     public static string Json(WorldArchiveDocument archive)
@@ -277,6 +312,26 @@ public static class WorldArchive
             page.Append("</ul>");
         });
 
+        Section(page, "books", "Other books", archive.OtherBooks.Count, () =>
+        {
+            foreach (var volume in archive.OtherBooks)
+            {
+                page.Append("<div class=\"entry\"><h3>").Append(Escape(volume.Book))
+                    .Append("</h3><div class=\"kind\">").Append(volume.Scenes.Count)
+                    .Append(" scenes, ").Append(volume.Plotlines.Count)
+                    .Append(" threads</div><table><tr><th>Chapter</th><th>Scene</th>")
+                    .Append("<th>Words</th><th>Synopsis</th></tr>");
+                foreach (var scene in volume.Scenes)
+                {
+                    page.Append("<tr><td>").Append(Escape(scene.Chapter))
+                        .Append("</td><td>").Append(Escape(scene.Scene))
+                        .Append("</td><td>").Append(scene.Words)
+                        .Append("</td><td>").Append(Escape(scene.Synopsis)).Append("</td></tr>");
+                }
+                page.Append("</table></div>");
+            }
+        });
+
         page.Append("</body>\n</html>\n");
         return page.ToString();
     }
@@ -285,7 +340,7 @@ public static class WorldArchive
     [
         ("scenes", "Scenes"), ("codex", "Codex"), ("plotlines", "Plot threads"),
         ("research", "Research"), ("lists", "Saved lists"),
-        ("collections", "Collections"), ("maps", "Maps")
+        ("collections", "Collections"), ("maps", "Maps"), ("books", "Other books")
     ];
 
     /// <summary>
