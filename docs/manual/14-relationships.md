@@ -64,6 +64,18 @@ Each relationship in the Codex has a **kind of tie**: family, ally, rival, membe
 
 A tie with no kind draws in the neutral colour. Novalist used to guess "family" from keywords in the role text, which only ever worked in English — an unstated kind is now left unstated rather than guessed at. Setting the kind on the ties you care about is a minute's work and is the only thing that colours them.
 
+## Telling the kinds apart
+
+With more than one kind of entry on the canvas, each is drawn differently — by shape and by colour together, because shape alone stops working at a distance and colour alone stops working once the graph is dense:
+
+- **People** — the rounded box the graph has always drawn.
+- **Places** — square corners, green outline.
+- **Things** — a pill, amber outline.
+- **Knowledge** — softly rounded, in the accent colour.
+- **Scenes** — a dashed outline and nearly square corners, so a scene never reads as a person.
+
+A name too long for its box is cut short with an ellipsis; hover the node for the whole thing.
+
 ## How are these two related?
 
 Centre the graph on somebody with **the whole world** picker, and every other node gains a line under its name saying what that person is to the one you centred on: *sibling*, *grandparent*, *great-aunt or uncle*, *second cousin once removed*.

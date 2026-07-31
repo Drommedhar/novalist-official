@@ -178,6 +178,14 @@
 
   /* Pigments, not signal colours: mixed to sit on Ink Night and to stay clear
      of gilt in hue so a warning never reads as an accent. */
+  /* Relationship-graph node outlines, one per kind of entry. Built from the
+     semantic colours rather than given their own, so a theme that restyles
+     success and warning restyles the graph with it. */
+  --nl-node-location: var(--nl-success);
+  --nl-node-item: var(--nl-warning);
+  --nl-node-lore: var(--nl-accent);
+  --nl-node-scene: var(--nl-text-subtle);
+
   --nl-success: #7bae7f;
   --nl-warning: #d98e3d;
   --nl-danger: #d4635a;

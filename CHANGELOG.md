@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **The Relationships graph tells its kinds apart.** With people, places, things, knowledge and scenes all on one canvas, every node was the same rounded box. Each kind now has its own silhouette and outline colour — shape alone stops working at a distance and colour alone stops working once the graph is dense. Long names are cut to fit their box instead of running across their neighbours; hover for the whole thing.
+
 - **Other programs can link to a place in your work.** Novalist now answers `novalist://` links: `novalist://open?project=<folder>`, optionally with a chapter and scene. A task in a tracker or a note in another app can point at the scene it is about. An already-running Novalist takes the link and comes to the front instead of a second copy opening the same folder. Links are read strictly — one that names no project, or a scene without its chapter, does nothing rather than opening something almost right.
 
 - **Exports can be produced without opening the app.** The bundled backend now takes arguments: `--export <format> --project <dir> --out <file>`, optionally `--book`. An EPUB on every commit, or a fresh outline spreadsheet each morning, no longer needs somebody to click a save dialog. Exit codes are made to be read by a script, and a mistyped argument fails loudly rather than quietly starting a server nothing is talking to. See the manual page "Exporting from the command line".

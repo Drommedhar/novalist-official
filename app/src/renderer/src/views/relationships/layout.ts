@@ -20,6 +20,12 @@ export interface LayoutNode {
   name: string
   x: number
   y: number
+  /**
+   * What kind of entry this is, so the graph can draw a scene differently from
+   * a person. Five classes on one canvas are unreadable when every one of them
+   * is the same rounded box.
+   */
+  entityType: string
 }
 
 /**
@@ -608,7 +614,13 @@ export function layoutGraph(characters: GraphCharacter[]): GraphLayout {
     .filter((n) => positions.has(n.id))
     .map((n) => {
       const p = positions.get(n.id)!
-      return { id: n.id, name: n.displayName, x: p.x - NODE_W / 2, y: p.y - NODE_H / 2 }
+      return {
+        id: n.id,
+        name: n.displayName,
+        x: p.x - NODE_W / 2,
+        y: p.y - NODE_H / 2,
+        entityType: n.entityType
+      }
     })
 
   let minX = Number.POSITIVE_INFINITY

@@ -42,3 +42,22 @@
   fill: var(--nl-accent);
   pointer-events: none;
 }
+
+/* One outline colour per kind, alongside the shape. Colour alone fails when the
+   graph is dense and shape alone fails at a distance; together they hold. */
+.relationships-node.type-location {
+  stroke: var(--nl-node-location);
+}
+
+.relationships-node.type-item {
+  stroke: var(--nl-node-item);
+}
+
+.relationships-node.type-lore {
+  stroke: var(--nl-node-lore);
+}
+
+.relationships-node.type-scene {
+  stroke: var(--nl-node-scene);
+  stroke-dasharray: 3 2;
+}
