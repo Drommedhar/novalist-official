@@ -148,7 +148,10 @@
     "unresolvedCount": "{{count}} Schritt noch offen",
     "unresolvedCount_other": "{{count}} Schritte noch offen",
     "nothingPlanned": "Noch nichts geplant. Ein Strang ohne Schritte ist kein fertiger Strang.",
-    "unresolvedBadge": "{{count}} offen"
+    "unresolvedBadge": "{{count}} offen",
+    "asLanes": "Als Spuren",
+    "asGrid": "Als Raster",
+    "laneEmpty": "noch in keiner Szene"
   },
   "smartList": {
     "section": "Smart-Listen",

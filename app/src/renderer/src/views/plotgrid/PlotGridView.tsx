@@ -10,6 +10,7 @@ import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
 import { PromisesPanel } from './PromisesPanel'
 import { PlotlineDetailDialog, type Plotline } from './PlotlineDetailDialog'
+import { PlotLanes } from './PlotLanes'
 
 interface PlotGridDto {
   plotlines: Plotline[]
@@ -49,6 +50,9 @@ export function PlotGridView(): React.JSX.Element {
   // Which rows the grid is crossing the scenes with. Plotlines by default:
   // that is what a plot grid means before it means anything else.
   const [rowSource, setRowSource] = useState('plotline')
+  // A matrix says which scenes a thread touches. Lanes say where two threads
+  // meet, which is the question a revision actually asks.
+  const [asLanes, setAsLanes] = useState(false)
 
   useEffect(() => {
     if (mainView !== 'plotGrid') return
@@ -89,6 +93,12 @@ export function PlotGridView(): React.JSX.Element {
             </option>
           ))}
         </select>
+        <button
+          className={`dialog-button${asLanes ? ' primary' : ''}`}
+          onClick={() => setAsLanes(!asLanes)}
+        >
+          {t(asLanes ? 'plotGrid.asGrid' : 'plotGrid.asLanes')}
+        </button>
         {!byCodex && (
           <button
             className="toolbar-button toolbar-action"
@@ -108,6 +118,14 @@ export function PlotGridView(): React.JSX.Element {
       {byCodex && <div className="settings-hint">{t('plotGrid.codexHint')}</div>}
       {grid.plotlines.length === 0 ? (
         <p className="codex-empty">{t('plotGrid.emptyHint')}</p>
+      ) : asLanes ? (
+        <PlotLanes
+          plotlines={grid.plotlines}
+          columns={grid.columns}
+          onOpenScene={(chapterGuid, sceneId) =>
+            void useProjectStore.getState().openScene(chapterGuid, sceneId)
+          }
+        />
       ) : (
         <div className="plotgrid-scroll">
           <table className="plotgrid-table">

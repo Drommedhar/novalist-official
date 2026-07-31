@@ -221,4 +221,39 @@ public class PlotlineServiceTests
         var (sut, _, _) = Build();
         Assert.False(sut.IsSceneInPlotline(new SceneData(), "p1"));
     }
+
+    // Every thread used to be the same blue, so a grid of coloured cells and a
+    // lane view of coloured tracks both said nothing about which was which.
+    [Fact]
+    public async Task EachNewThreadTakesTheNextColour()
+    {
+        var (sut, _, _) = Build();
+
+        var first = await sut.CreateAsync("The debt");
+        var second = await sut.CreateAsync("The romance");
+        var third = await sut.CreateAsync("The joke");
+
+        Assert.Equal(PlotlineService.Palette[0], first.Color);
+        Assert.Equal(PlotlineService.Palette[1], second.Color);
+        Assert.Equal(PlotlineService.Palette[2], third.Color);
+    }
+
+    [Fact]
+    public async Task TheColoursComeRoundAgainRatherThanRunningOut()
+    {
+        var (sut, _, _) = Build();
+
+        for (var i = 0; i < PlotlineService.Palette.Count; i++) await sut.CreateAsync($"T{i}");
+        var wrapped = await sut.CreateAsync("One more");
+
+        Assert.Equal(PlotlineService.Palette[0], wrapped.Color);
+    }
+
+    [Fact]
+    public async Task AColourAskedForIsHonoured()
+    {
+        var (sut, _, _) = Build();
+
+        Assert.Equal("#ff0000", (await sut.CreateAsync("Mine", "#ff0000")).Color);
+    }
 }

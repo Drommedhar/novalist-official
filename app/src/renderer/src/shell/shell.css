@@ -3969,3 +3969,41 @@
   overflow-y: auto;
   padding: 0;
 }
+
+/* Threads as tracks. A matrix says which scenes a thread touches; this says
+   where two of them meet, which is the scene doing structural work. */
+.plot-lanes {
+  display: block;
+  min-width: 100%;
+}
+
+.plot-lane-label {
+  text-anchor: end;
+  font-size: var(--nl-font-body-sm);
+  fill: var(--nl-text);
+}
+
+.plot-lane-track {
+  stroke-width: 2;
+  opacity: 0.55;
+}
+
+.plot-lane-stop {
+  cursor: pointer;
+}
+
+.plot-lane-stop:hover {
+  stroke: var(--nl-text);
+  stroke-width: 2;
+}
+
+/* A scene carrying more than one thread, marked down the whole height so the
+   crossing is findable rather than inferred cell by cell. */
+.plot-lane-crossing {
+  fill: var(--nl-surface-selected);
+}
+
+.plot-lane-empty {
+  font-size: var(--nl-font-caption);
+  fill: var(--nl-text-subtle);
+}

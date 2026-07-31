@@ -140,7 +140,10 @@
     "unresolvedCount": "还有 {{count}} 步未了结",
     "unresolvedCount_other": "还有 {{count}} 步未了结",
     "nothingPlanned": "尚未规划。没有步骤的线索不是一条完成的线索。",
-    "unresolvedBadge": "{{count}} 未了结"
+    "unresolvedBadge": "{{count}} 未了结",
+    "asLanes": "以轨道显示",
+    "asGrid": "以网格显示",
+    "laneEmpty": "尚未出现在任何场景"
   },
   "comments": {
     "noSelection": "请先在场景中选择一些文本。",

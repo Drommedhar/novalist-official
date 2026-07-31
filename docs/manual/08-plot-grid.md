@@ -28,7 +28,7 @@ Because assigned cells take the plotline color, it is visually obvious which thr
 
 ### Adding a plotline
 
-Click **Add plotline** in the grid toolbar and enter a name. The plotline appears as a new row with an automatically assigned color.
+Click **Add plotline** in the grid toolbar and enter a name. The plotline appears as a new row, taking the next colour in the palette so it is distinguishable from the threads already there.
 
 ### Renaming and deleting
 
@@ -52,6 +52,19 @@ Once scenes are tagged:
 - A row of mostly empty cells is a thread that has gone quiet — check whether that is intentional.
 - A column with no marks is a scene that advances nothing you are tracking.
 - Clusters of one color show where a subplot takes over; long gaps between marks show where it disappears.
+
+## Threads as lanes
+
+**As lanes** in the toolbar swaps the matrix for a track per thread, running left to right across the book in reading order.
+
+The grid answers "is this thread in this scene", one cell at a time. What a revision asks is *where two threads meet* — the scene carrying the romance and the mystery at once is the scene doing structural work, and a matrix of four hundred cells hides it.
+
+- A track runs from a thread's **first** scene to its **last**, so a gap in the middle reads as a gap rather than as the end of the thread.
+- Every scene carrying **more than one** thread is marked down the full height. Those columns are what you came to find.
+- Click a stop to open that scene.
+- A thread in no scene yet says so rather than drawing an empty row.
+
+Each thread takes its own colour when you create it, so the tracks stay apart.
 
 ## Setups and payoffs
 

@@ -22,13 +22,32 @@ public sealed class PlotlineService : IPlotlineService
             : list.OrderBy(p => p.Order).ToList();
     }
 
-    public async Task<PlotlineData> CreateAsync(string name, string color = "#3498db")
+    /// <summary>
+    /// Colours new threads take, in turn.
+    ///
+    /// Every thread used to be the same blue, so a grid of coloured cells and a
+    /// lane view of coloured tracks both said nothing about which thread was
+    /// which - and the manual has claimed an automatically assigned colour the
+    /// whole time. Chosen to stay apart at a glance and on the dark ground the
+    /// grid is drawn on.
+    /// </summary>
+    public static readonly IReadOnlyList<string> Palette =
+    [
+        "#3498db", "#7bd88f", "#f9a03f", "#cba6f7", "#f38ba8",
+        "#74c7ec", "#f9e2af", "#94e2d5", "#eba0ac", "#a6adc8"
+    ];
+
+    /// <param name="color">
+    /// Null takes the next colour in turn. An explicit one is honoured, which is
+    /// what an import or a test wants.
+    /// </param>
+    public async Task<PlotlineData> CreateAsync(string name, string? color = null)
     {
         var list = EnsureList();
         var plotline = new PlotlineData
         {
             Name = name,
-            Color = color,
+            Color = color ?? Palette[list.Count % Palette.Count],
             Order = list.Count
         };
         list.Add(plotline);

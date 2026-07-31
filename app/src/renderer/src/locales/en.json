@@ -148,7 +148,10 @@
     "unresolvedCount": "{{count}} step still open",
     "unresolvedCount_other": "{{count}} steps still open",
     "nothingPlanned": "Nothing planned yet. A thread with no steps is not a finished one.",
-    "unresolvedBadge": "{{count}} open"
+    "unresolvedBadge": "{{count}} open",
+    "asLanes": "As lanes",
+    "asGrid": "As a grid",
+    "laneEmpty": "in no scene yet"
   },
   "comments": {
     "noSelection": "Select some text in the scene first.",
