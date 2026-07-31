@@ -3368,5 +3368,76 @@
     "noMatch": "Nothing matches that.",
     "deleteHint": "{{name}} and every word in it.",
     "elsewhere": "Also in your other languages"
+  },
+  "rubric": {
+    "title": "Does this scene work?",
+    "intro": "Twelve questions, answered on the scene in front of you. Score one low and what to try appears under it.",
+    "notAsked": "Not asked here",
+    "summary": "{{answered}} of {{total}} answered, {{weak}} worth another look.",
+    "weakest": "Scenes worth another look",
+    "weakestHint": "Where you scored the rubric low. A scene you have not read against it is not here - it is unread, not weak.",
+    "weakCount": "{{weak}} weak of {{answered}} answered",
+    "element": {
+      "goal": {
+        "name": "Wants something",
+        "question": "Does the point-of-view character want something in this scene, now, that a reader could name?",
+        "advice": "Name it in one sentence before rewriting. If it cannot be named, the scene is usually a transition wearing a scene's clothes - either give the character an errand or fold the scene into its neighbour."
+      },
+      "obstacle": {
+        "name": "Something is in the way",
+        "question": "Is something or somebody stopping them getting it?",
+        "advice": "A scene where the want is granted is a delivery. Put a person in the way rather than a circumstance where you can: weather is an obstacle, an opinion is a scene."
+      },
+      "stakes": {
+        "name": "It costs something",
+        "question": "Does the reader know what it costs to fail here?",
+        "advice": "Say what is lost, once, early, in the character's own terms. Stakes stated in the abstract - the kingdom, the mission - carry less than one concrete thing the character will not get back."
+      },
+      "change": {
+        "name": "Something changes",
+        "question": "Is the situation different at the end than at the start?",
+        "advice": "Find the sentence where it turns. If there is not one, decide what the scene is for and let something break, be learned, or be decided in it."
+      },
+      "interiority": {
+        "name": "We are inside somebody",
+        "question": "Do we get what this is like from the inside, not only what happened?",
+        "advice": "One line of thought at the moment of pressure does more than a paragraph of reflection afterwards. Put it where the character has to decide."
+      },
+      "voice": {
+        "name": "It sounds like them",
+        "question": "Would this scene read differently if another character had the point of view?",
+        "advice": "Cut two lines of narration and rewrite them in words this character would use. If nothing changes, the narration is yours rather than theirs."
+      },
+      "conflict": {
+        "name": "Nobody agrees",
+        "question": "Do the people in this scene want different things?",
+        "advice": "Give the second character a reason to be in the room that is not the first character's need. Two people cooperating is information delivery."
+      },
+      "grounding": {
+        "name": "It happens somewhere",
+        "question": "Could a reader say where this is by the end of the first page?",
+        "advice": "Two specifics beat a paragraph of description, and specifics the point-of-view character would notice beat accurate ones."
+      },
+      "senses": {
+        "name": "More than sight",
+        "question": "Is anything heard, smelled, touched or tasted here?",
+        "advice": "Almost everybody writes eyes and ears only. One smell or one texture per scene is usually the whole fix."
+      },
+      "time": {
+        "name": "It happens when",
+        "question": "Does the reader know when this is, relative to the scene before?",
+        "advice": "A half-line will do it. The reader is tracking a chronology whether you help them or not."
+      },
+      "entrance": {
+        "name": "It starts late",
+        "question": "Does the scene start at the last possible moment?",
+        "advice": "Cut until the first line is doing work. Arrivals, greetings and sitting down are almost always cuttable."
+      },
+      "exit": {
+        "name": "It leaves early",
+        "question": "Does the scene end before the reader is finished with it?",
+        "advice": "End on the turn, not on the tidying up. If the last paragraph explains what just happened, cut it."
+      }
+    }
   }
 }

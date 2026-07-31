@@ -6,6 +6,7 @@ import { rpc } from '../rpc/client'
 import { LinksPanel } from './LinksPanel'
 import { DarlingsPanel } from './DarlingsPanel'
 import { TasksPanel } from './TasksPanel'
+import { RubricPanel } from './RubricPanel'
 import { ContextPanel } from './ContextPanel'
 import { AnnotationsPanel } from './AnnotationsPanel'
 import { SuggestionsPanel } from './SuggestionsPanel'
@@ -127,6 +128,12 @@ export function Inspector(): React.JSX.Element {
             </div>
             <ContextPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
             <LinksPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
+            {/* Descriptive analysis says what a scene is. This asks whether it
+                works, and says what to try when the answer is no. */}
+            <details className="codex-match">
+              <summary>{t('rubric.title')}</summary>
+              <RubricPanel chapterGuid={openChapterGuid} sceneId={openSceneId} />
+            </details>
           </>
         )}
         {inspectorTab === 'footnotes' && (

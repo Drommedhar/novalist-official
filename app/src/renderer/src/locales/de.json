@@ -3376,5 +3376,76 @@
     "noMatch": "Dazu passt nichts.",
     "deleteHint": "{{name}} und jedes Wort darin.",
     "elsewhere": "Auch in deinen anderen Sprachen"
+  },
+  "rubric": {
+    "title": "Funktioniert diese Szene?",
+    "intro": "Zwölf Fragen zur Szene vor dir. Wer niedrig bewertet, bekommt darunter einen Vorschlag.",
+    "notAsked": "Hier nicht gefragt",
+    "summary": "{{answered}} von {{total}} beantwortet, {{weak}} noch einmal ansehen.",
+    "weakest": "Szenen, die einen zweiten Blick verdienen",
+    "weakestHint": "Wo du die Rubrik niedrig bewertet hast. Szenen, die du noch nicht bewertet hast, stehen nicht hier - sie sind ungelesen, nicht schwach.",
+    "weakCount": "{{weak}} schwach von {{answered}} beantwortet",
+    "element": {
+      "goal": {
+        "name": "Will etwas",
+        "question": "Will die Perspektivfigur in dieser Szene, jetzt, etwas, das eine Leserin benennen könnte?",
+        "advice": "Benenne es in einem Satz, bevor du umschreibst. Lässt es sich nicht benennen, ist die Szene meist ein Übergang im Szenenkostüm - gib der Figur einen Auftrag oder lege die Szene mit ihrer Nachbarin zusammen."
+      },
+      "obstacle": {
+        "name": "Etwas steht im Weg",
+        "question": "Hält sie etwas oder jemand davon ab, es zu bekommen?",
+        "advice": "Eine Szene, in der der Wunsch gewährt wird, ist eine Lieferung. Stelle nach Möglichkeit eine Person in den Weg statt eines Umstands: Wetter ist ein Hindernis, eine Meinung ist eine Szene."
+      },
+      "stakes": {
+        "name": "Es kostet etwas",
+        "question": "Weiß die Leserin, was ein Scheitern hier kostet?",
+        "advice": "Sag einmal, früh und in den Worten der Figur, was verloren geht. Abstrakt formulierter Einsatz - das Königreich, die Mission - trägt weniger als eine konkrete Sache, die die Figur nicht zurückbekommt."
+      },
+      "change": {
+        "name": "Etwas ändert sich",
+        "question": "Ist die Lage am Ende eine andere als am Anfang?",
+        "advice": "Finde den Satz, an dem es kippt. Gibt es keinen, entscheide, wozu die Szene da ist, und lass darin etwas zerbrechen, erkannt oder entschieden werden."
+      },
+      "interiority": {
+        "name": "Wir sind in jemandem drin",
+        "question": "Erfahren wir, wie sich das von innen anfühlt, nicht nur, was geschah?",
+        "advice": "Ein Gedanke im Moment des Drucks wirkt mehr als ein Absatz Rückschau danach. Setze ihn dorthin, wo die Figur entscheiden muss."
+      },
+      "voice": {
+        "name": "Es klingt nach ihr",
+        "question": "Läse sich diese Szene anders, wenn eine andere Figur die Perspektive hätte?",
+        "advice": "Streiche zwei Zeilen Erzähltext und schreibe sie in den Worten dieser Figur neu. Ändert sich nichts, ist der Erzählton deiner, nicht ihrer."
+      },
+      "conflict": {
+        "name": "Niemand ist einig",
+        "question": "Wollen die Anwesenden Verschiedenes?",
+        "advice": "Gib der zweiten Figur einen Grund, im Raum zu sein, der nicht das Bedürfnis der ersten ist. Zwei Kooperierende sind Informationsübergabe."
+      },
+      "grounding": {
+        "name": "Es geschieht irgendwo",
+        "question": "Könnte eine Leserin nach der ersten Seite sagen, wo das ist?",
+        "advice": "Zwei konkrete Dinge schlagen einen Absatz Beschreibung, und Konkretes, das die Perspektivfigur bemerken würde, schlägt Korrektes."
+      },
+      "senses": {
+        "name": "Mehr als Sehen",
+        "question": "Wird hier irgendetwas gehört, gerochen, berührt oder geschmeckt?",
+        "advice": "Fast alle schreiben nur Augen und Ohren. Ein Geruch oder eine Oberfläche pro Szene ist meist die ganze Lösung."
+      },
+      "time": {
+        "name": "Es geschieht wann",
+        "question": "Weiß die Leserin, wann das ist, relativ zur Szene davor?",
+        "advice": "Eine halbe Zeile genügt. Die Leserin verfolgt eine Chronologie, ob du ihr hilfst oder nicht."
+      },
+      "entrance": {
+        "name": "Es beginnt spät",
+        "question": "Beginnt die Szene im letztmöglichen Moment?",
+        "advice": "Streiche, bis die erste Zeile arbeitet. Ankommen, Begrüßen und Hinsetzen sind fast immer streichbar."
+      },
+      "exit": {
+        "name": "Es geht früh",
+        "question": "Endet die Szene, bevor die Leserin mit ihr fertig ist?",
+        "advice": "Ende auf der Wendung, nicht auf dem Aufräumen. Erklärt der letzte Absatz, was gerade geschah, streiche ihn."
+      }
+    }
   }
 }

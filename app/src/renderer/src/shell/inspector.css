@@ -590,3 +590,50 @@
   color: var(--nl-text-subtle);
   text-decoration: line-through;
 }
+
+/* One question per row, its scale beside it, and the advice only where it is
+   needed - all twelve pieces at once would be a craft book, and nobody reads a
+   craft book in an inspector. */
+.rubric-element {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-tighter) 0;
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.rubric-name {
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}
+
+.rubric-scale {
+  display: flex;
+  gap: var(--nl-space-tightest);
+}
+
+.rubric-dot {
+  min-width: 1.6rem;
+  padding: var(--nl-space-tightest) 0;
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-sm);
+  background: none;
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  cursor: pointer;
+}
+
+.rubric-dot.picked {
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
+}
+
+.rubric-unasked,
+.rubric-advice {
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+.rubric-advice {
+  margin: var(--nl-space-tightest) 0 0;
+}

@@ -80,6 +80,16 @@ interface ContinuityFinding {
   detail: string
 }
 
+interface WeakScene {
+  chapterGuid: string
+  sceneId: string
+  chapterTitle: string
+  sceneTitle: string
+  answered: number
+  weak: number
+  average: number
+}
+
 interface ContinuityReport {
   findings: ContinuityFinding[]
   allRules: string[]
@@ -102,6 +112,10 @@ export function StyleView(): React.JSX.Element {
   // The only report here that reads the book as a book, so it is loaded once
   // rather than following the scene the writer has open.
   const [continuity, setContinuity] = useState<ContinuityReport | null>(null)
+  // The rubric answered scene by scene tells a writer about one scene. What a
+  // revision needs is which scenes to open, which is a different question and
+  // the reason filling the rubric in is worth anything.
+  const [weakest, setWeakest] = useState<WeakScene[]>([])
 
   const run = useCallback(async () => {
     setBusy(true)
@@ -139,6 +153,10 @@ export function StyleView(): React.JSX.Element {
       .request<ContinuityReport>('style/continuity')
       .then(setContinuity)
       .catch(() => setContinuity(null))
+    void rpc
+      .request<WeakScene[]>('rubric/weakest', [20])
+      .then(setWeakest)
+      .catch(() => setWeakest([]))
   }, [mainView])
 
   useEffect(() => {
@@ -323,6 +341,34 @@ export function StyleView(): React.JSX.Element {
                   ))}
                 </ul>
               )}
+            </div>
+          )}
+
+          {/* Scenes the writer scored low against the rubric, worst first.
+              A scene nobody has read against it is not weak, it is unread. */}
+          {weakest.length > 0 && (
+            <div className="style-continuity">
+              <div className="inspector-label">{t('rubric.weakest')}</div>
+              <div className="settings-hint">{t('rubric.weakestHint')}</div>
+              <ul className="style-examples">
+                {weakest.map((scene) => (
+                  <li key={`${scene.chapterGuid}-${scene.sceneId}`}>
+                    <button
+                      className="style-continuity-jump"
+                      onClick={() =>
+                        void useProjectStore
+                          .getState()
+                          .openScene(scene.chapterGuid, scene.sceneId)
+                      }
+                    >
+                      {scene.chapterTitle} - {scene.sceneTitle}
+                    </button>
+                    <span className="style-example-context">
+                      {t('rubric.weakCount', { weak: scene.weak, answered: scene.answered })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
