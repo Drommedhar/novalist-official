@@ -96,6 +96,78 @@ public sealed class InboxRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task DecidingAgainstANoteIsNotTheSameAsDoingIt()
+    {
+        var comment = AddComment(_sceneA, "the middle drags");
+
+        // Both finish with the note - the inbox has to empty either way, so the
+        // decided one drops out of the open list exactly as resolving it does.
+        Assert.Empty(await _rpc.SetVerdictAsync(_sceneA, comment.Id, "declined"));
+
+        // The reason is kept, because a remark turned down is the one worth
+        // recognising when a second reader says the same thing.
+        var declined = Assert.Single(_rpc.List(includeResolved: true));
+        Assert.Equal("declined", declined.Verdict);
+        Assert.True(declined.Resolved);
+
+        await _rpc.SetVerdictAsync(_sceneA, comment.Id, "accepted");
+        var accepted = Assert.Single(_rpc.List(includeResolved: true));
+        Assert.Equal("accepted", accepted.Verdict);
+        Assert.True(accepted.Resolved);
+    }
+
+    [Fact]
+    public async Task WeighingANoteLeavesItOpen()
+    {
+        var comment = AddComment(_sceneA, "is the sister necessary?");
+
+        // The whole point of the value: undecided is a state to sit in, not a
+        // way of closing the note quietly.
+        var items = await _rpc.SetVerdictAsync(_sceneA, comment.Id, "considering");
+        var only = Assert.Single(items);
+        Assert.Equal("considering", only.Verdict);
+        Assert.False(only.Resolved);
+    }
+
+    [Fact]
+    public async Task ClearingAVerdictLeavesTheNoteAsItWas()
+    {
+        var comment = AddComment(_sceneA, "check the timetable");
+        await _rpc.SetVerdictAsync(_sceneA, comment.Id, "considering");
+
+        var cleared = Assert.Single(await _rpc.SetVerdictAsync(_sceneA, comment.Id, ""));
+        Assert.Equal(string.Empty, cleared.Verdict);
+        Assert.False(cleared.Resolved);
+    }
+
+    [Fact]
+    public async Task AVerdictNothingCanFilterOnIsNotStored()
+    {
+        var comment = AddComment(_sceneA, "check the timetable");
+
+        // A free-text verdict would make the filter meaningless and would not
+        // survive a translation of the interface.
+        var items = await _rpc.SetVerdictAsync(_sceneA, comment.Id, "maybe later");
+        Assert.Equal(string.Empty, Assert.Single(items).Verdict);
+        Assert.Equal(string.Empty, Assert.Single(await _rpc.SetVerdictAsync(_sceneA, comment.Id, null)).Verdict);
+    }
+
+    [Fact]
+    public async Task AVerdictSurvivesBeingWrittenAndReadBack()
+    {
+        var comment = AddComment(_sceneA, "the middle drags");
+        await _rpc.SetVerdictAsync(_sceneA, comment.Id, "declined");
+
+        // Round-tripped through the project files rather than read out of the
+        // object still in memory, which is where a missing JSON name hides.
+        await _workspace.Projects.SaveScenesAsync();
+        await _workspace.OpenProjectAsync(_workspace.Projects.ProjectRoot!);
+        var reloaded = new InboxRpc(_workspace).List(includeResolved: true);
+
+        Assert.Equal("declined", Assert.Single(reloaded, i => i.CommentId == comment.Id).Verdict);
+    }
+
+    [Fact]
     public async Task ReplyingAppendsToTheThreadAndCarriesTheAuthor()
     {
         _workspace.Projects.ProjectSettings.Author = "Jane Doe";

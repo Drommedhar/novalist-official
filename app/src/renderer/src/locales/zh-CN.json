@@ -2937,7 +2937,15 @@
     "reply": "回复",
     "replyPlaceholder": "输入回复，按回车",
     "suggestionsTitle": "含修订建议的场景",
-    "suggestionCount": "{{count}} 条待处理"
+    "suggestionCount": "{{count}} 条待处理",
+    "verdict": {
+      "accepted": "采纳",
+      "acceptedHint": "将按此意见修改",
+      "considering": "斟酌",
+      "consideringHint": "尚未决定，保持未处理",
+      "declined": "不采纳",
+      "declinedHint": "已决定不按此意见修改"
+    }
   },
   "narrative": {
     "title": "时间上的位置",

@@ -3658,6 +3658,24 @@
   font-size: var(--nl-font-caption);
 }
 
+/* What was decided about a note, on the note. A declined remark that looks
+   like an undecided one is a remark that gets argued with twice. */
+.inbox-verdict {
+  font-size: var(--nl-font-tiny);
+  color: var(--nl-text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.inbox-verdict-declined {
+  text-decoration: line-through;
+}
+
+.inbox-verdict-btn {
+  font-size: var(--nl-font-tiny);
+  padding: 0 var(--nl-space-tightest);
+}
+
 .inbox-reply {
   align-items: baseline;
   color: var(--nl-text-dim);
@@ -3673,6 +3691,10 @@
 .inbox-actions {
   display: flex;
   gap: var(--nl-space-tightest);
+  /* Three worded verdicts plus four icon buttons do not fit one line of a
+     sidebar in every language - German runs half again as long as English. */
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .inbox-action {

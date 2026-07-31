@@ -33,7 +33,12 @@ interface InboxItem {
   resolved: boolean
   createdAt: string
   replies: InboxReply[]
+  /** '', 'accepted', 'considering' or 'declined'. */
+  verdict: string
 }
+
+/** What can be decided about a note. Order is the order they are offered in. */
+const VERDICTS = ['accepted', 'considering', 'declined'] as const
 
 /**
  * Every open note in the book, in one place.
@@ -129,6 +134,15 @@ export function InboxPanel(): React.JSX.Element {
           {item.anchorText && <div className="inbox-anchor">{item.anchorText}</div>}
           <div className="inbox-text">{item.text}</div>
           {item.author && <div className="inbox-author">{item.author}</div>}
+          {/* What was decided, kept visible on the note rather than only in the
+              filter - a declined note read six weeks later has to say that it
+              was declined, or the second reader saying the same thing reads as
+              the first time anybody said it. */}
+          {item.verdict && (
+            <div className={`inbox-verdict inbox-verdict-${item.verdict}`}>
+              {t(`inbox.verdict.${item.verdict}`)}
+            </div>
+          )}
 
           {item.replies.map((reply) => (
             <div key={reply.id} className="inbox-reply">
@@ -139,6 +153,26 @@ export function InboxPanel(): React.JSX.Element {
           ))}
 
           <div className="inbox-actions">
+            {VERDICTS.map((verdict) => (
+              <button
+                key={verdict}
+                className={`inbox-action inbox-verdict-btn${item.verdict === verdict ? ' active' : ''}`}
+                title={t(`inbox.verdict.${verdict}Hint`)}
+                onClick={() =>
+                  void rpc
+                    .request<InboxItem[]>('inbox/setVerdict', [
+                      item.sceneId,
+                      item.commentId,
+                      // Pressing the one already set clears it: deciding twice
+                      // by accident should be undoable in one click.
+                      item.verdict === verdict ? '' : verdict
+                    ])
+                    .then(() => load(showResolved))
+                }
+              >
+                {t(`inbox.verdict.${verdict}`)}
+              </button>
+            ))}
             <button
               className="inbox-action"
               title={t(item.resolved ? 'inbox.reopen' : 'inbox.resolve')}

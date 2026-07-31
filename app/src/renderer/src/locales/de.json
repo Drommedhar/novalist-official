@@ -2905,7 +2905,15 @@
     "reply": "Antworten",
     "replyPlaceholder": "Antwort schreiben, dann Enter",
     "suggestionsTitle": "Szenen mit Änderungsvorschlägen",
-    "suggestionCount": "{{count}} offen"
+    "suggestionCount": "{{count}} offen",
+    "verdict": {
+      "accepted": "Umsetzen",
+      "acceptedHint": "Diese Anmerkung wird umgesetzt",
+      "considering": "Abwägen",
+      "consideringHint": "Noch nicht entschieden - bleibt offen",
+      "declined": "Ablehnen",
+      "declinedHint": "Gegen diese Anmerkung entschieden"
+    }
   },
   "narrative": {
     "title": "Zeitliche Einordnung",

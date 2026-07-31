@@ -90,11 +90,26 @@ The **Inbox** tab lists every open note in the whole book, not just the open sce
 
 Each entry shows which chapter and scene it is in (click to open that scene), the text it was anchored to, the note itself, and who left it. From the row you can:
 
+- **Doing / Weighing / Declining** — what you decided about the note. See below.
 - **Mark done** — resolve it. Resolved notes drop out of the list; tick **Include resolved** to see them again, or reopen one.
 - **Make this a to-do** — flag it as a job rather than a remark. Tick **To-dos only** to see just those.
 - **Reply** — type an answer and press Enter. Replies stack under the note, each with its author, which is how a note becomes a conversation.
 
 Authors come from the project's **Author** setting, stamped when a note is created.
+
+### Deciding about a note
+
+Resolving a note said only that you were finished with it, so a remark you acted on and a remark you disagreed with came out looking identical. That is the wrong shape for feedback: most of what a beta reader or an editor sends you is an opinion to weigh, not an instruction.
+
+Three verdicts sit on each note:
+
+- **Doing** — you are acting on it. Resolves the note.
+- **Weighing** — you have not decided. Deliberately does **not** resolve it, because that is the whole point of the value: it stays in the list where you will see it again.
+- **Declining** — you decided against it. Resolves the note, and the note keeps saying it was declined.
+
+Pressing the verdict a note already has clears it. The verdict shows on the note itself rather than only in a filter, which matters most for the declined ones — when a second reader raises the same point six weeks later, you can see at once that you have already thought about it and what you concluded.
+
+Sending drafts out to readers and collecting their notes back is not built: this is the half that happens once the feedback is in front of you.
 
 ## To do
 

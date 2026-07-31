@@ -351,6 +351,20 @@ public class SceneComment
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool IsTodo { get; set; }
 
+    /// <summary>
+    /// What was decided about it: empty (undecided), "accepted", "considering"
+    /// or "declined".
+    ///
+    /// Resolving said only that the note was finished with. A remark you acted
+    /// on and a remark you disagreed with came out looking identical, which is
+    /// the wrong shape for feedback: most of a beta reader's notes are opinions
+    /// to weigh, and the ones turned down are the ones most worth still being
+    /// able to see six weeks later when a second reader says the same thing.
+    /// </summary>
+    [JsonPropertyName("verdict")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Verdict { get; set; }
+
     /// <summary>Answers to the comment, oldest first. Null when nobody replied.</summary>
     [JsonPropertyName("replies")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

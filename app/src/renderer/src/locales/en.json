@@ -2897,7 +2897,15 @@
     "reply": "Reply",
     "replyPlaceholder": "Reply, then press Enter",
     "suggestionsTitle": "Scenes with suggested edits",
-    "suggestionCount": "{{count}} waiting"
+    "suggestionCount": "{{count}} waiting",
+    "verdict": {
+      "accepted": "Doing",
+      "acceptedHint": "Acting on this note",
+      "considering": "Weighing",
+      "consideringHint": "Not decided yet - stays open",
+      "declined": "Declining",
+      "declinedHint": "Decided against this note"
+    }
   },
   "narrative": {
     "title": "How it sits in time",

@@ -39,7 +39,8 @@ public sealed class InboxRpc
                         comment.Author ?? string.Empty, comment.IsTodo, comment.Resolved,
                         comment.CreatedAt.ToString("o"),
                         [.. (comment.Replies ?? []).Select(r => new InboxReplyDto(
-                            r.Id, r.Author, r.Text, r.CreatedAt.ToString("o")))]));
+                            r.Id, r.Author, r.Text, r.CreatedAt.ToString("o")))],
+                        comment.Verdict ?? string.Empty));
                 }
         return [.. items];
     }
@@ -63,6 +64,28 @@ public sealed class InboxRpc
         await _workspace.Projects.SaveScenesAsync();
         return List();
     }
+
+    /// <summary>
+    /// Records what was decided about a note. An unknown value clears it rather
+    /// than storing a word nothing can filter on.
+    /// </summary>
+    [JsonRpcMethod("inbox/setVerdict")]
+    public async Task<InboxItemDto[]> SetVerdictAsync(string sceneId, string commentId, string? verdict)
+    {
+        var comment = Find(sceneId, commentId);
+        comment.Verdict = Verdicts.Contains(verdict ?? string.Empty, StringComparer.Ordinal)
+            ? verdict
+            : null;
+        // Deciding against a note finishes with it as surely as doing it does,
+        // and leaving it open would mean the inbox never empties.
+        if (comment.Verdict is "accepted" or "declined") comment.Resolved = true;
+        await _workspace.Projects.SaveScenesAsync();
+        return List();
+    }
+
+    /// <summary>The verdicts a note can carry. "considering" deliberately does
+    /// not resolve it - that is the whole point of the value.</summary>
+    internal static readonly string[] Verdicts = ["accepted", "considering", "declined"];
 
     /// <summary>Answers a note, which is how an editorial exchange happens.</summary>
     [JsonRpcMethod("inbox/reply")]
@@ -105,4 +128,6 @@ public sealed record InboxItemDto(
     bool IsTodo,
     bool Resolved,
     string CreatedAt,
-    InboxReplyDto[] Replies);
+    InboxReplyDto[] Replies,
+    /// <summary>Empty when nothing has been decided about it yet.</summary>
+    string Verdict = "");
