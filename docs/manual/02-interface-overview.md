@@ -138,3 +138,22 @@ All dialogs (chapter creation, find & replace, confirmations, the template edito
 - [Projects & Books](03-projects-and-books.md) — how your data is organized on disk.
 - [Editor](05-editor.md) — the core writing surface.
 - [Hotkeys](26-hotkeys.md) — every keyboard shortcut.
+
+## Panes
+
+The content area was one view at a time, with the editor allowed to split in two. Wanting the manuscript, the Codex and your notes at once meant picking two and swapping for the third.
+
+Three controls sit in the top bar beside the panel toggles:
+
+- **Split pane right** (`Ctrl+Alt+Right`) and **Split pane down** (`Ctrl+Alt+Down`) divide the pane you are in. The new pane opens on the same view, because splitting to look at two places in one manuscript is at least as common as splitting to look at two different things.
+- **Close pane** (`Ctrl+Alt+W`) removes it. The last pane always stays.
+
+Any pane can be split again, so three panes down the left and one tall one on the right is a shape you can build.
+
+The pane you are working in is outlined. That matters because everything that changes a view — the activity bar, the command palette, a link in a panel — lands in **that** pane. Click anywhere in another pane to move there.
+
+### Saved layouts
+
+**Layouts** in the same group remembers an arrangement by name and puts it back later. A drafting layout with the manuscript and your notes, a revision layout with the manuscript, the Codex and the timeline.
+
+Layouts are about your screen rather than your book, so they are remembered per machine and follow you between projects.

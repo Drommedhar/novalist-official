@@ -1,5 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { useShellStore } from '../stores/shellStore'
+import {
+  paneLeaves,
+  useShellStore,
+  type MainView,
+  type PaneNode
+} from '../stores/shellStore'
 import { useProjectStore } from '../stores/projectStore'
 import { EditorFrame } from '../views/editor/EditorFrame'
 import { CodexView } from '../views/codex/CodexView'
@@ -31,17 +36,62 @@ import { HostBridgeOverlays } from './HostBridgeOverlays'
  * surfaces (toasts, busy-progress, wizard). The overlays read their state from
  * the host-bridge store, so a view switch never disturbs an in-flight dialog. */
 export function MainArea(): React.JSX.Element {
+  const panes = useShellStore((s) => s.panes)
   return (
     <>
-      <MainAreaContent />
+      <PaneTree node={panes} />
       <HostBridgeOverlays />
     </>
   )
 }
 
-function MainAreaContent(): React.JSX.Element {
+/**
+ * The content area as a tree of panes.
+ *
+ * It used to be one view at a time, with the editor allowed to split in two, so
+ * a writer wanting the manuscript, the Codex and their notes at once had to
+ * pick two and keep swapping for the third.
+ *
+ * A pane is outlined when it is the active one, because every command that
+ * changes a view - the activity bar, the palette, a link in a panel - lands
+ * there, and a writer needs to know where their next click will go.
+ */
+function PaneTree({ node }: { node: PaneNode }): React.JSX.Element {
+  const activePaneId = useShellStore((s) => s.activePaneId)
+  const setActivePane = useShellStore((s) => s.setActivePane)
+  const only = useShellStore((s) => paneLeaves(s.panes).length < 2)
+
+  if (node.kind === 'split') {
+    return (
+      <div className={`pane-split ${node.direction}`}>
+        {node.children.map((child, i) => (
+          <div
+            key={child.id}
+            className="pane-slot"
+            style={{ flexBasis: `${node.sizes[i] ?? 100 / node.children.length}%` }}
+          >
+            <PaneTree node={child} />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={`pane-leaf${!only && node.id === activePaneId ? ' active' : ''}`}
+      // Capture, so clicking anything inside a pane makes it the active one
+      // without every view having to know panes exist.
+      onPointerDownCapture={() => setActivePane(node.id)}
+    >
+      <MainAreaContent view={node.view} />
+    </div>
+  )
+}
+
+function MainAreaContent({ view }: { view: MainView }): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
+  const mainView = view
   const extView = useShellStore((s) => s.extView)
   const extViews = useExtensionsStore((s) => s.views)
   const openSceneId = useProjectStore((s) => s.openSceneId)

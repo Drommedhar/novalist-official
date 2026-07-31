@@ -11,6 +11,7 @@ import {
   Search,
   Trash2
 } from 'lucide-react'
+import { PaneControls } from './PaneControls'
 import { useShellStore } from '../stores/shellStore'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
@@ -163,6 +164,9 @@ export function Toolbar(): React.JSX.Element {
           >
             <History size={15} strokeWidth={1.75} />
           </button>
+          {/* Splitting the content area sits with the other controls that
+              change the shape of the window rather than its contents. */}
+          <PaneControls />
           <button className="toolbar-button" title={t('shell.toggleBinder')} onClick={toggleBinder}>
             <PanelLeft size={16} strokeWidth={1.75} />
           </button>

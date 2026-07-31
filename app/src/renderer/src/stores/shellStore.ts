@@ -53,6 +53,113 @@ export type InspectorTab = 'context' | 'footnotes' | 'inbox'
 /** Active destination in the mobile bottom (native Liquid Glass) tab bar. */
 export type MobileTab = 'dashboard' | 'manuscript' | 'codex' | 'planning' | 'settings'
 
+/* ===== Panes =====
+ * The content area was one view at a time, with the editor allowed to split in
+ * two. A writer with the manuscript, the Codex and their notes open at once had
+ * to choose two of the three and keep swapping for the rest.
+ *
+ * A tree rather than a list, because "split this one again" is the thing people
+ * actually do: three panes down the left and one tall one on the right is a
+ * shape a flat list cannot hold.
+ */
+export type PaneNode =
+  | { kind: 'leaf'; id: string; view: MainView }
+  | { kind: 'split'; id: string; direction: 'row' | 'column'; children: PaneNode[]; sizes: number[] }
+
+/** A layout the writer named and can come back to. */
+export interface SavedLayout {
+  name: string
+  root: PaneNode
+}
+
+let paneSeq = 0
+function paneId(): string {
+  paneSeq += 1
+  return `pane-${paneSeq}`
+}
+
+export function newLeaf(view: MainView): PaneNode {
+  return { kind: 'leaf', id: paneId(), view }
+}
+
+/** The leaf with this id, or null. */
+export function findPane(node: PaneNode, id: string): PaneNode | null {
+  if (node.id === id) return node
+  if (node.kind === 'split') {
+    for (const child of node.children) {
+      const found = findPane(child, id)
+      if (found) return found
+    }
+  }
+  return null
+}
+
+/** Every leaf, left to right, top to bottom. */
+export function paneLeaves(node: PaneNode): Extract<PaneNode, { kind: 'leaf' }>[] {
+  return node.kind === 'leaf' ? [node] : node.children.flatMap(paneLeaves)
+}
+
+/**
+ * Splits a leaf in two. The new pane opens on the same view, because splitting
+ * to look at the same thing twice - two places in one manuscript - is at least
+ * as common as splitting to look at two different things.
+ */
+export function splitPane(
+  node: PaneNode,
+  id: string,
+  direction: 'row' | 'column'
+): { root: PaneNode; created: string | null } {
+  if (node.kind === 'leaf') {
+    if (node.id !== id) return { root: node, created: null }
+    const fresh = newLeaf(node.view)
+    return {
+      root: {
+        kind: 'split',
+        id: paneId(),
+        direction,
+        children: [node, fresh],
+        sizes: [50, 50]
+      },
+      created: fresh.id
+    }
+  }
+
+  let created: string | null = null
+  const children = node.children.map((child) => {
+    const result = splitPane(child, id, direction)
+    if (result.created) created = result.created
+    return result.root
+  })
+  return { root: { ...node, children }, created }
+}
+
+/**
+ * Removes a pane. A split left holding one child collapses into it, or the
+ * tree grows a spine of pointless containers as panes come and go.
+ */
+export function closePane(node: PaneNode, id: string): PaneNode | null {
+  if (node.id === id) return null
+  if (node.kind === 'leaf') return node
+
+  const children = node.children
+    .map((child) => closePane(child, id))
+    .filter((child): child is PaneNode => child !== null)
+
+  if (children.length === 0) return null
+  if (children.length === 1) return children[0]
+  return { ...node, children, sizes: even(children.length) }
+}
+
+/** Points one leaf at a different view. */
+export function setPaneViewIn(node: PaneNode, id: string, view: MainView): PaneNode {
+  if (node.kind === 'leaf') return node.id === id ? { ...node, view } : node
+  return { ...node, children: node.children.map((c) => setPaneViewIn(c, id, view)) }
+}
+
+function even(count: number): number[] {
+  return Array.from({ length: count }, () => 100 / count)
+}
+
 /* ===== Panel geometry =====
  * Sizes the user drags survive a restart, and the first-run defaults are taken
  * from the window rather than fixed, because the app opens maximised: a flat
@@ -128,6 +235,12 @@ export const NOTES_DOCK_DEFAULT = initialPanelSize(
 
 interface ShellState {
   mainView: MainView
+  /** The content area's pane tree. One leaf until the writer splits it. */
+  panes: PaneNode
+  /** Which pane a view change lands in, and which one is outlined. */
+  activePaneId: string
+  /** Layouts the writer named. */
+  layouts: SavedLayout[]
   mobileTab: MobileTab
   extView: ActiveExtView | null
   binderTab: BinderTab
@@ -161,6 +274,13 @@ interface ShellState {
   /** The short walk through the views, offered once per installation. */
   tourOpen: boolean
   setMainView(view: MainView): void
+  setActivePane(id: string): void
+  splitActivePane(direction: 'row' | 'column'): void
+  closeActivePane(): void
+  setPaneSizes(splitId: string, sizes: number[]): void
+  saveLayout(name: string): void
+  applyLayout(name: string): void
+  deleteLayout(name: string): void
   setMobileTab(tab: MobileTab): void
   /** Switch to the Maps view and ask it to open the given map and focus a pin. */
   navigateToMapPin(mapId: string, pinId: string): void
@@ -192,8 +312,44 @@ interface ShellState {
   setTourOpen(open: boolean): void
 }
 
+/** Sets one split's proportions. */
+function resize(node: PaneNode, splitId: string, sizes: number[]): PaneNode {
+  if (node.kind === 'leaf') return node
+  if (node.id === splitId) return { ...node, sizes }
+  return { ...node, children: node.children.map((c) => resize(c, splitId, sizes)) }
+}
+
+/* Layouts are about the writer's screen rather than their book, so they live
+ * beside the other view-state preferences instead of in the project. */
+const LAYOUT_STORAGE_KEY = 'nl.shell.layouts'
+
+function readLayouts(): SavedLayout[] {
+  try {
+    const raw = localStorage.getItem(LAYOUT_STORAGE_KEY)
+    const parsed: unknown = raw ? JSON.parse(raw) : []
+    return Array.isArray(parsed) ? (parsed as SavedLayout[]) : []
+  } catch {
+    return []
+  }
+}
+
+function persistLayouts(layouts: SavedLayout[]): void {
+  try {
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(layouts))
+  } catch {
+    // A full or blocked store costs the writer their saved layouts, not their
+    // session.
+  }
+}
+
+const storedLayouts = readLayouts()
+const initialPanes = newLeaf('write')
+
 export const useShellStore = create<ShellState>((set) => ({
   mainView: 'write',
+  panes: initialPanes,
+  activePaneId: initialPanes.id,
+  layouts: storedLayouts,
   mobileTab: 'dashboard',
   extView: null,
   binderTab: 'chapters',
@@ -222,7 +378,68 @@ export const useShellStore = create<ShellState>((set) => ({
   helpOpen: false,
   layoutsOpen: false,
   tourOpen: false,
-  setMainView: (mainView) => set({ mainView, extView: null }),
+  setMainView: (mainView) =>
+    // Lands in the active pane, so every existing caller keeps meaning what it
+    // meant when there was only one.
+    set((s) => ({
+      mainView,
+      extView: null,
+      panes: setPaneViewIn(s.panes, s.activePaneId, mainView)
+    })),
+
+  setActivePane: (activePaneId) =>
+    set((s) => {
+      const pane = findPane(s.panes, activePaneId)
+      return pane && pane.kind === 'leaf'
+        ? { activePaneId, mainView: pane.view }
+        : { activePaneId }
+    }),
+
+  splitActivePane: (direction) =>
+    set((s) => {
+      const { root, created } = splitPane(s.panes, s.activePaneId, direction)
+      return created ? { panes: root, activePaneId: created } : {}
+    }),
+
+  closeActivePane: () =>
+    set((s) => {
+      // The last pane stays: a content area with nothing in it is not a layout,
+      // it is a broken window.
+      if (paneLeaves(s.panes).length < 2) return {}
+      const root = closePane(s.panes, s.activePaneId)
+      if (!root) return {}
+      const first = paneLeaves(root)[0]
+      return { panes: root, activePaneId: first.id, mainView: first.view }
+    }),
+
+  setPaneSizes: (splitId, sizes) =>
+    set((s) => ({ panes: resize(s.panes, splitId, sizes) })),
+
+  saveLayout: (name) =>
+    set((s) => {
+      const layouts = [
+        ...s.layouts.filter((l) => l.name !== name),
+        { name, root: s.panes }
+      ]
+      persistLayouts(layouts)
+      return { layouts }
+    }),
+
+  applyLayout: (name) =>
+    set((s) => {
+      const layout = s.layouts.find((l) => l.name === name)
+      if (!layout) return {}
+      const first = paneLeaves(layout.root)[0]
+      return { panes: layout.root, activePaneId: first.id, mainView: first.view }
+    }),
+
+  deleteLayout: (name) =>
+    set((s) => {
+      const layouts = s.layouts.filter((l) => l.name !== name)
+      persistLayouts(layouts)
+      return { layouts }
+    }),
+
   setMobileTab: (mobileTab) => set({ mobileTab }),
   navigateToMapPin: (mapId, pinId) =>
     set({ mainView: 'maps', extView: null, pendingMapNav: { mapId, pinId } }),

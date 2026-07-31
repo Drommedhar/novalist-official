@@ -145,6 +145,29 @@ export function buildDefaultHotkeys(): HotkeyAction[] {
   }))
   defs.push(
     {
+      // Splitting is the point of panes, so it gets a gesture rather than
+      // living only in a menu.
+      actionId: 'app.panes.splitRight',
+      defaultGesture: 'Ctrl+Alt+ArrowRight',
+      categoryKey: 'hotkeys.category.panels',
+      labelKey: 'panes.splitRight',
+      run: () => shell().splitActivePane('row')
+    },
+    {
+      actionId: 'app.panes.splitDown',
+      defaultGesture: 'Ctrl+Alt+ArrowDown',
+      categoryKey: 'hotkeys.category.panels',
+      labelKey: 'panes.splitDown',
+      run: () => shell().splitActivePane('column')
+    },
+    {
+      actionId: 'app.panes.close',
+      defaultGesture: 'Ctrl+Alt+W',
+      categoryKey: 'hotkeys.category.panels',
+      labelKey: 'panes.close',
+      run: () => shell().closeActivePane()
+    },
+    {
       actionId: 'app.panels.binder',
       defaultGesture: 'Ctrl+B',
       categoryKey: 'hotkeys.category.panels',

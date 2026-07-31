@@ -27,6 +27,9 @@ The number keys switch the main area between views, in this order:
 | Action | Gesture |
 | --- | --- |
 | Toggle binder (left pane) | `Ctrl+B` |
+| Split the pane right | `Ctrl+Alt+Right` |
+| Split the pane down | `Ctrl+Alt+Down` |
+| Close the pane | `Ctrl+Alt+W` |
 | Toggle inspector (right pane) | `Ctrl+Shift+B` |
 | Toggle scene notes (bottom dock) | `Ctrl+Shift+N` |
 | Find & Replace | `Ctrl+Shift+F` |

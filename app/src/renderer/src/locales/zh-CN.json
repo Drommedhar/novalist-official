@@ -3739,5 +3739,15 @@
       }
     },
     "articlesEnglishOnly": "这些文章目前仅有英文版。"
+  },
+  "panes": {
+    "splitRight": "向右拆分窗格",
+    "splitDown": "向下拆分窗格",
+    "close": "关闭窗格",
+    "saveLayout": "保存此布局……",
+    "layouts": "布局",
+    "layoutName": "为布局命名",
+    "deleteLayout": "忘记此布局",
+    "popOut": "在独立窗口中打开"
   }
 }

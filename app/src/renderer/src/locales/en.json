@@ -3699,5 +3699,15 @@
       }
     },
     "articlesEnglishOnly": "These pieces are in English for now."
+  },
+  "panes": {
+    "splitRight": "Split pane right",
+    "splitDown": "Split pane down",
+    "close": "Close pane",
+    "saveLayout": "Save this layout...",
+    "layouts": "Layouts",
+    "layoutName": "Name this layout",
+    "deleteLayout": "Forget this layout",
+    "popOut": "Open in its own window"
   }
 }

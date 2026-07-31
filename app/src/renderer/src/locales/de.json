@@ -3707,5 +3707,15 @@
       }
     },
     "articlesEnglishOnly": "Diese Texte sind vorerst auf Englisch."
+  },
+  "panes": {
+    "splitRight": "Bereich nach rechts teilen",
+    "splitDown": "Bereich nach unten teilen",
+    "close": "Bereich schließen",
+    "saveLayout": "Dieses Layout speichern ...",
+    "layouts": "Layouts",
+    "layoutName": "Layout benennen",
+    "deleteLayout": "Layout vergessen",
+    "popOut": "In eigenem Fenster öffnen"
   }
 }
