@@ -103,6 +103,15 @@ public interface IProjectService
     /// </summary>
     Task<int> SyncMentionDisplayTextAsync(string entityId, string newDisplayText);
 
+    // Reading a book that is not the open one. Everything else on this
+    // interface resolves against the active book, which is right for editing
+    // and wrong for anything that reads across a multi-book project.
+    string? BookRootFor(BookData book);
+    string? DraftRootFor(BookData book);
+    string? ChapterFolderPathFor(BookData book, ChapterData chapter);
+    Task<ScenesManifest?> LoadScenesManifestForAsync(BookData book);
+    Task<string> ReadSceneContentForAsync(BookData book, ChapterData chapter, SceneData scene);
+
     List<ChapterData> GetChaptersOrdered();
     List<SceneData> GetScenesForChapter(string chapterGuid);
 }

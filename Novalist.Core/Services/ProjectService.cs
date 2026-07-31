@@ -263,6 +263,86 @@ public partial class ProjectService : IProjectService
         await _fileService.WriteTextAsync(path, json);
     }
 
+    // ── Reading a book that is not the open one ─────────────────────
+    //
+    // Every path above resolves against ActiveBook, which is right for
+    // everything that edits and wrong for anything that reads across a
+    // multi-book project. An export that stitches two volumes together, or a
+    // report over a series, could otherwise only be had by switching the active
+    // book mid-run - which mutates state the watcher and the UI are both
+    // reading, and leaves the app on the wrong book if anything throws.
+    //
+    // These are read-only and derive every path from the book handed in, so
+    // nothing about the open book changes.
+
+    /// <summary>A given book's folder, or null with no project open.</summary>
+    public string? BookRootFor(BookData book)
+        => ProjectRoot == null || book == null
+            ? null
+            : _fileService.CombinePath(ProjectRoot, book.FolderName);
+
+    /// <summary>A given book's active draft folder.</summary>
+    public string? DraftRootFor(BookData book)
+    {
+        var root = BookRootFor(book);
+        if (root == null || book.ActiveDraft == null) return null;
+        return _fileService.CombinePath(root, "Drafts", book.ActiveDraft.FolderName);
+    }
+
+    /// <summary>Where a chapter of a given book keeps its scenes.</summary>
+    public string? ChapterFolderPathFor(BookData book, ChapterData chapter)
+    {
+        var root = DraftRootFor(book) ?? BookRootFor(book);
+        return root == null
+            ? null
+            : _fileService.CombinePath(root, book.ChapterFolder, chapter.FolderName);
+    }
+
+    /// <summary>
+    /// A given book's scene manifest, read fresh rather than cached: this is
+    /// for a pass over a book nobody is editing, so a stale copy would be worse
+    /// than the read.
+    /// </summary>
+    public async Task<ScenesManifest?> LoadScenesManifestForAsync(BookData book)
+    {
+        var draftRoot = DraftRootFor(book);
+        if (draftRoot != null)
+        {
+            var path = _fileService.CombinePath(draftRoot, "scenes.json");
+            if (await _fileService.ExistsAsync(path))
+            {
+                return JsonSerializer.Deserialize<ScenesManifest>(
+                    await _fileService.ReadTextAsync(path), JsonOptions) ?? new ScenesManifest();
+            }
+        }
+
+        // The same legacy layout the active-book loader falls back to.
+        var bookRoot = BookRootFor(book);
+        if (bookRoot != null)
+        {
+            var legacy = _fileService.CombinePath(bookRoot, ".book", "scenes.json");
+            if (await _fileService.ExistsAsync(legacy))
+            {
+                return JsonSerializer.Deserialize<ScenesManifest>(
+                    await _fileService.ReadTextAsync(legacy), JsonOptions) ?? new ScenesManifest();
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>One scene of a given book, or empty when the file is not there.</summary>
+    public async Task<string> ReadSceneContentForAsync(
+        BookData book, ChapterData chapter, SceneData scene)
+    {
+        var folder = ChapterFolderPathFor(book, chapter);
+        if (folder == null) return string.Empty;
+        var path = _fileService.CombinePath(folder, scene.FileName);
+        return await _fileService.ExistsAsync(path)
+            ? FileFrontMatter.Strip(await _fileService.ReadTextAsync(path))
+            : string.Empty;
+    }
+
     private string? GetActiveDraftScenesPath()
     {
         if (ActiveDraftRoot == null) return null;
