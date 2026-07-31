@@ -301,6 +301,13 @@ public class MatterExportContent
 
 public class ChapterExportContent
 {
+    /// <summary>
+    /// True for the divider that announces a volume of a box set rather than a
+    /// chapter of one. It carries no scenes, is never numbered, sits a level
+    /// above a chapter in the contents, and the chapters after it belong to it.
+    /// </summary>
+    public bool IsVolume { get; set; }
+
     public string Title { get; set; } = string.Empty;
     public int Order { get; set; }
     public string? Subtitle { get; set; }
@@ -445,6 +452,7 @@ public partial class ExportService
                 // Its own heading and no scenes: a divider announcing the
                 // volume, never numbered, because it is not a chapter of one.
                 Heading = volume.Book.Name,
+                IsVolume = true,
                 Scenes = []
             });
             chapters.AddRange(await CompileChaptersAsync(options, volume));
@@ -2827,26 +2835,43 @@ public partial class ExportService
 
         ListMatter("Front");
 
+        // A box set nests: the volume divider is the parent and every chapter
+        // after it belongs to it, until the next volume. Without this a reader
+        // gets eighty chapters in one flat list and no way to tell where one
+        // book ends.
+        var inVolume = false;
         for (var i = 0; i < chapters.Count; i++)
         {
             var href = $"chapter-{i + 1}.xhtml";
+            var indent = inVolume && !chapters[i].IsVolume ? "    " : string.Empty;
+
+            if (chapters[i].IsVolume)
+            {
+                if (inVolume) CloseVolume(items);
+                items.AppendLine($"      <li><a href=\"{href}\">{EscapeXml(chapters[i].Title)}</a>");
+                items.AppendLine("        <ol>");
+                inVolume = true;
+                continue;
+            }
+
             var nested = NavigableScenes(chapters[i], options);
-            items.Append($"      <li><a href=\"{href}\">{EscapeXml(chapters[i].Title)}</a>");
+            items.Append($"{indent}      <li><a href=\"{href}\">{EscapeXml(chapters[i].Title)}</a>");
             if (nested.Count > 0)
             {
                 items.AppendLine();
-                items.AppendLine("        <ol>");
+                items.AppendLine($"{indent}        <ol>");
                 foreach (var (number, title) in nested)
                     items.AppendLine(
-                        $"          <li><a href=\"{href}#scene-{number}\">{EscapeXml(title)}</a></li>");
-                items.AppendLine("        </ol>");
-                items.AppendLine("      </li>");
+                        $"{indent}          <li><a href=\"{href}#scene-{number}\">{EscapeXml(title)}</a></li>");
+                items.AppendLine($"{indent}        </ol>");
+                items.AppendLine($"{indent}      </li>");
             }
             else
             {
                 items.AppendLine("</li>");
             }
         }
+        if (inVolume) CloseVolume(items);
 
         ListMatter("Back");
 
@@ -2868,6 +2893,13 @@ public partial class ExportService
             </body>
             </html>
             """;
+    }
+
+    /// <summary>Ends a volume's nested list in the contents.</summary>
+    private static void CloseVolume(StringBuilder items)
+    {
+        items.AppendLine("        </ol>");
+        items.AppendLine("      </li>");
     }
 
     /// <summary>
@@ -4838,7 +4870,7 @@ public partial class ExportService
 
             if (!chapter.HideHeading)
             {
-                sb.AppendLine($"## {chapter.Heading}");
+                sb.AppendLine($"{(chapter.IsVolume ? "#" : "##")} {chapter.Heading}");
                 sb.AppendLine();
                 if (!string.IsNullOrWhiteSpace(chapter.Subtitle))
                 {

@@ -40,6 +40,7 @@ In a project with more than one book, **Also include these books** appears above
 - The chapter checkboxes belong to the open book; a further volume comes in whole. Picking chapters out of a second book is a job for opening that book and exporting it on its own.
 - Title page, front and back matter, publishing metadata and the layout are the **open book's** — a box set is a book, and it has one set of those.
 - Chapter numbering runs across the whole set rather than restarting per volume, and the volume headings are not numbered: a volume title counted as Chapter Seven is exactly what section types exist to prevent.
+- A volume sits **a level above** a chapter: `#` against `##` in Markdown, `\part` against `\chapter` in LaTeX, and in an EPUB its chapters nest underneath it in the contents. A flat list of eighty entries gives a reader no way to tell where one book ends.
 
 Volumes are read without being opened, so building a box set never changes which book you are working in.
 

@@ -124,8 +124,10 @@ test('the world archive carries every book of the project, not just the open one
   const manuscript = readFileSync(boxSet, 'utf8')
   expect(manuscript).toContain('The first book.')
   expect(manuscript).toContain('The second book.')
-  // The second volume is announced rather than run straight on from the first.
-  expect(manuscript).toContain('Book Two')
+  // The second volume is announced, and a level above a chapter so a contents
+  // list nests it rather than laying eighty chapters out flat.
+  expect(manuscript).toMatch(/^# Book Two$/m)
+  expect(manuscript).toMatch(/^## Later$/m)
   expect(manuscript.indexOf('The first book.')).toBeLessThan(
     manuscript.indexOf('The second book.')
   )

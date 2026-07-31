@@ -31,10 +31,16 @@ public sealed class EntityHistory
     public const int KeepPerEntity = 25;
 
     private readonly IProjectService _projects;
+    private readonly Func<DateTime> _now;
 
-    public EntityHistory(IProjectService projects)
+    /// <param name="now">
+    /// The clock, so a test can hold it still. Two saves inside one millisecond
+    /// is the case worth pinning down and the hardest to arrange by timing.
+    /// </param>
+    public EntityHistory(IProjectService projects, Func<DateTime>? now = null)
     {
         _projects = projects;
+        _now = now ?? (() => DateTime.UtcNow);
     }
 
     /// <summary>
@@ -51,9 +57,16 @@ public sealed class EntityHistory
         if (dir == null) return;
         Directory.CreateDirectory(dir);
 
-        // Sortable, unique, and readable in a file listing.
-        var name = $"{DateTime.UtcNow:yyyyMMdd-HHmmssfff}.json";
-        await File.WriteAllTextAsync(Path.Combine(dir, name), previousJson);
+        // Sortable and readable in a file listing. Two saves inside the same
+        // millisecond - which a script, or a paste over a whole field set, will
+        // do - produced the same name and the second silently replaced the
+        // first, losing exactly the revision somebody would want back.
+        var stamp = $"{_now():yyyyMMdd-HHmmssfff}";
+        var path = Path.Combine(dir, $"{stamp}.json");
+        for (var n = 1; File.Exists(path) && n < 1000; n++)
+            path = Path.Combine(dir, $"{stamp}-{n:000}.json");
+
+        await File.WriteAllTextAsync(path, previousJson);
         Prune(dir);
     }
 
@@ -65,7 +78,10 @@ public sealed class EntityHistory
 
         return [.. Directory.EnumerateFiles(dir, "*.json")
             .Select(path => new FileInfo(path))
-            .OrderByDescending(f => f.Name, StringComparer.Ordinal)
+            // Without the extension: "...fff.json" and "...fff-001.json" differ
+            // first at '.' against '-', and '.' sorts higher, so the extension
+            // would put a same-millisecond pair in the wrong order.
+            .OrderByDescending(f => Path.GetFileNameWithoutExtension(f.Name), StringComparer.Ordinal)
             .Select(f => new EntityRevision(
                 Path.GetFileNameWithoutExtension(f.Name),
                 Parse(Path.GetFileNameWithoutExtension(f.Name)),
@@ -90,7 +106,7 @@ public sealed class EntityHistory
     private static void Prune(string dir)
     {
         var files = Directory.EnumerateFiles(dir, "*.json")
-            .OrderByDescending(Path.GetFileName, StringComparer.Ordinal)
+            .OrderByDescending(Path.GetFileNameWithoutExtension, StringComparer.Ordinal)
             .Skip(KeepPerEntity)
             .ToList();
         foreach (var stale in files)
@@ -118,7 +134,10 @@ public sealed class EntityHistory
     /// still lists, with no date rather than an exception.
     /// </summary>
     private static DateTime Parse(string name)
-        => DateTime.TryParseExact(name, "yyyyMMdd-HHmmssfff",
+        // A name may carry a -001 suffix where two saves shared a millisecond.
+        => DateTime.TryParseExact(
+            name.Length > 18 ? name[..18] : name,
+            "yyyyMMdd-HHmmssfff",
             System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.AssumeUniversal
                 | System.Globalization.DateTimeStyles.AdjustToUniversal,

@@ -59,6 +59,29 @@ public sealed class EntityHistoryTests : IDisposable
     }
 
     [Fact]
+    public async Task TwoSavesInsideOneMillisecondBothSurvive()
+    {
+        // A script, or a paste over a whole field set, writes faster than the
+        // timestamp's resolution. Sharing a name lost exactly the revision
+        // somebody would want back. The clock is held still so the collision is
+        // certain rather than a matter of how fast the machine is.
+        var projects = Substitute.For<IProjectService>();
+        projects.ActiveBook.Returns(new BookData { SnapshotFolder = "Snapshots" });
+        projects.ActiveDraftRoot.Returns(_root);
+        var frozen = new EntityHistory(projects, () => new DateTime(2026, 7, 31, 3, 0, 0, 0));
+
+        await frozen.RecordAsync("mira", "first", "second");
+        await frozen.RecordAsync("mira", "second", "third");
+        await frozen.RecordAsync("mira", "third", "fourth");
+
+        var revisions = frozen.List("mira");
+        Assert.Equal(3, revisions.Count);
+        var kept = new List<string?>();
+        foreach (var revision in revisions) kept.Add(await frozen.ReadAsync("mira", revision.Id));
+        Assert.Equal(["third", "second", "first"], kept);
+    }
+
+    [Fact]
     public async Task NewestFirst()
     {
         await _sut.RecordAsync("mira", "one", "two");

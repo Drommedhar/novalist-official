@@ -619,6 +619,8 @@ public class ExportDataTests : IDisposable
         // book's chapter - a divider so eighty chapters do not run together.
         Assert.Equal(3, chapters.Count);
         Assert.Equal("Book Two", chapters[1].Heading);
+        Assert.True(chapters[1].IsVolume);
+        Assert.False(chapters[0].IsVolume);
         Assert.Empty(chapters[1].Scenes);
         Assert.Equal("Later", chapters[2].Title);
         Assert.Contains("The second book.", chapters[2].Scenes.Single().HtmlContent);
@@ -656,5 +658,41 @@ public class ExportDataTests : IDisposable
         // A heading announcing a volume with nothing in it is worse than not
         // printing it.
         Assert.Single(await Service().CompileChaptersAsync(options));
+    }
+
+    // A flat list of eighty chapters gives a reader no way to tell where one
+    // book of a box set ends and the next begins.
+    [Fact]
+    public async Task TheContentsNestsTheVolumesOfABoxSet()
+    {
+        var options = Setup(ExportFormat.Epub, new SceneData { Title = "Arrival", Order = 1 });
+        var open = new BookData { Id = "b1", Name = "Book One" };
+        var closed = new BookData { Id = "b2", Name = "Book Two", ChapterFolder = "Chapters" };
+        var closedChapter = new ChapterData { Guid = "c2", Title = "Later", Order = 0 };
+        closed.Chapters.Add(closedChapter);
+        _project.ActiveBook.Returns(open);
+        _project.CurrentProject.Returns(new ProjectMetadata { Books = [open, closed] });
+        var manifest = new ScenesManifest();
+        var closedScene = new SceneData { Id = "s9", Title = "Elsewhere", Order = 0 };
+        manifest.Chapters["c2"] = [closedScene];
+        _project.LoadScenesManifestForAsync(closed).Returns(manifest);
+        _project.ReadSceneContentForAsync(closed, closedChapter, closedScene)
+            .Returns("<p>The second book.</p>");
+        options.IncludedBookIds = ["b2"];
+        var path = Output("boxset.epub");
+
+        await Service().ExportAsync(options, path);
+
+        using var zip = System.IO.Compression.ZipFile.OpenRead(path);
+        using var reader = new StreamReader(zip.GetEntry("OEBPS/nav.xhtml")!.Open());
+        var nav = await reader.ReadToEndAsync();
+
+        // The volume is a parent and the chapter after it sits inside its list.
+        var volumeAt = nav.IndexOf("Book Two", StringComparison.Ordinal);
+        var chapterAt = nav.IndexOf("Later", StringComparison.Ordinal);
+        Assert.True(volumeAt > 0 && chapterAt > volumeAt);
+        Assert.Contains("<ol>", nav[volumeAt..chapterAt]);
+        // And the list it opened is closed again.
+        Assert.EndsWith("</ol>", nav[..nav.LastIndexOf("</nav>", StringComparison.Ordinal)].TrimEnd());
     }
 }

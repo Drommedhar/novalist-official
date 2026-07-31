@@ -18,7 +18,7 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
-- **A box set: several books in one file.** A multi-book project exported one book at a time — the compile only ever read the book you had open. **Also include these books** now appears above the chapter list, and each one you tick is appended after the open book with a heading carrying its name. Chapter numbering runs across the whole set rather than restarting per volume. Volumes are read without being opened, so building a box set never changes which book you are working in.
+- **A box set: several books in one file.** A multi-book project exported one book at a time — the compile only ever read the book you had open. **Also include these books** now appears above the chapter list, and each one you tick is appended after the open book with a heading carrying its name. Chapter numbering runs across the whole set rather than restarting per volume, and each volume sits a level above a chapter, so an EPUB contents nests its books instead of listing eighty chapters flat. Volumes are read without being opened, so building a box set never changes which book you are working in.
 
 - **Codex entries keep their earlier versions.** Snapshots covered scenes and nothing else, so typing the wrong eye colour over the right one had no answer inside the app — the remedy was a backup of the whole project. Every change to an entry now keeps what it said before, listed under **Earlier versions** in the detail pane with a **Restore** beside each. Restoring keeps the current state as a version too, so an unwanted restore is undone the same way. The last 25 are kept per entry, beside the scene snapshots.
 
@@ -219,6 +219,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **Two edits inside the same moment no longer lose one of their saved versions.** A Codex entry's earlier versions are named by the time they were taken, and two saves in the same millisecond — which a paste over a whole field set will do — produced the same name, so the second quietly replaced the first.
+
 - **Relationship rows save once, when you stop typing.** Every field wrote the whole row the moment it lost focus, so crossing a row wrote it three times — and because each write also authors the other end of every tie it names, the three raced. The one that lost was reliably the last, which is the one carrying the inverse role, so the relationship appeared on one entry and not on the other. Leaving the entry writes anything still settling rather than dropping it.
 
 - **The Relationships graph no longer snaps back when you change the reach.** Centring on somebody and then widening the hops put two requests in flight, and the older answer could arrive last and win — so the graph returned to the narrower view it was already leaving. Late answers are now discarded.
