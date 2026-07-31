@@ -85,16 +85,41 @@ var patterns = new[]
     new Regex("data-i18n=\"([^\"]+)\""),
 };
 
+// A panel does not have to read the locale files itself. Several push a map of
+// already-translated strings into the webview instead, and the panel asks for
+// the short name it was handed:
+//
+//     ["analyseAll"] = _loc.T("ai.analyseAllChapters")   // C#
+//     data-i18n="analyseAll"                             // the panel
+//
+// The left-hand name is a slot in that map, not a locale key, and reporting it
+// missing is wrong twice over - the string is translated, and adding it to
+// en.json would duplicate the key that already holds it.
+var supplied = new Regex("\\[\\s*\"([^\"]+)\"\\s*\\]\\s*=\\s*[^;\\r\\n]*\\bT\\(");
+
 var extensions = new HashSet<string>(
     new[] { ".cs", ".axaml", ".html", ".js", ".ts", ".tsx" }, StringComparer.OrdinalIgnoreCase);
 var skip = new HashSet<string>(new[] { "bin", "obj", "node_modules" }, StringComparer.OrdinalIgnoreCase);
 
-var missing = new SortedDictionary<string, string>(StringComparer.Ordinal);
-foreach (var file in Directory.EnumerateFiles(ProjectDirectory, "*.*", SearchOption.AllDirectories))
-{
-    if (!extensions.Contains(Path.GetExtension(file))) continue;
-    if (file.Split(Path.DirectorySeparatorChar).Any(part => skip.Contains(part))) continue;
+var sources = Directory.EnumerateFiles(ProjectDirectory, "*.*", SearchOption.AllDirectories)
+    .Where(f => extensions.Contains(Path.GetExtension(f)))
+    .Where(f => !f.Split(Path.DirectorySeparatorChar).Any(part => skip.Contains(part)))
+    .ToList();
 
+// Collected across the whole extension first: the C# that fills the map and the
+// panel that reads it are different files, in either order. Kept apart from the
+// locale keys, because these are exactly the names that must NOT appear in
+// en.json - folding them in would demand a translation of every slot name.
+var slots = new HashSet<string>(StringComparer.Ordinal);
+foreach (var file in sources)
+{
+    foreach (Match hit in supplied.Matches(File.ReadAllText(file)))
+        slots.Add(hit.Groups[1].Value);
+}
+
+var missing = new SortedDictionary<string, string>(StringComparer.Ordinal);
+foreach (var file in sources)
+{
     var text = File.ReadAllText(file);
     foreach (var pattern in patterns)
     {
@@ -103,6 +128,7 @@ foreach (var file in Directory.EnumerateFiles(ProjectDirectory, "*.*", SearchOpt
             var key = hit.Groups[1].Value;
             if (key.Length == 0) continue;
             if (keys.Contains(key)) continue;
+            if (slots.Contains(key)) continue;
             // A web panel asks for a short key and the C# resolves it inside
             // the extension's own namespace, so both spellings are one key.
             if (namespaces.Any(ns => keys.Contains(ns + "." + key))) continue;

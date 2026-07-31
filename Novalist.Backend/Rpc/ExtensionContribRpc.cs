@@ -122,6 +122,38 @@ public sealed class ExtensionContribRpc
         return true;
     }
 
+    // ── Commands ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Every command extensions have registered.
+    ///
+    /// The registry existed and filled up - the AI assistant alone puts eight
+    /// commands in it - but nothing ever read it, so "Critique this scene" was
+    /// a string in a dictionary no surface listed and no caller could run. An
+    /// SDK method an extension can call and the writer can never reach is worse
+    /// than one that does not exist, because the extension author believes they
+    /// have shipped it.
+    /// </summary>
+    [JsonRpcMethod("extensions/commands")]
+    public ExtensionCommandInfoDto[] Commands()
+        => Host?.Host.GetCommands()
+               .Select(c => new ExtensionCommandInfoDto(
+                   c.Id, c.Title, c.Description, c.ArgumentsSchema, c.Mutates))
+               .ToArray()
+           ?? [];
+
+    /// <summary>
+    /// Runs one, by id. False for an id nothing has registered, which is what a
+    /// stale palette entry or a script naming a command from an extension the
+    /// writer has since removed looks like.
+    /// </summary>
+    [JsonRpcMethod("extensions/command/execute")]
+    public async Task<bool> ExecuteCommandAsync(string commandId, string? argumentsJson = null)
+    {
+        if (Host == null) return false;
+        return await Host.Host.InvokeCommandAsync(commandId, argumentsJson);
+    }
+
     // ── Themes (item 5) ─────────────────────────────────────────────────
 
     [JsonRpcMethod("extensions/themes")]
@@ -260,6 +292,15 @@ public sealed record InlineActionInfoDto(
 public sealed record InlineActionResultDto(string Text, string Disposition, string? Error);
 public sealed record ContextMenuInfoDto(string Id, string Label, string Icon, string? IconPath, string Context);
 public sealed record ExtensionHotkeyInfoDto(string ActionId, string DisplayName, string Category, string DefaultGesture);
+
+/// <summary>
+/// A command an extension registered. <paramref name="ArgumentsSchema"/> is the
+/// JSON Schema for its arguments, empty for a command that takes none - the
+/// palette runs those directly and leaves the rest to a caller that can supply
+/// them.
+/// </summary>
+public sealed record ExtensionCommandInfoDto(
+    string Id, string Title, string Description, string ArgumentsSchema, bool Mutates);
 public sealed record ExtensionThemeInfoDto(
     string ExtensionId,
     string Name,

@@ -24,7 +24,7 @@
   },
   "notifications": {
     "pomodoroStopped": "Pomodoro-Timer gestoppt.",
-    "pomodoroStarted": "Pomodoro gestartet \u2014 {0} Min."
+    "pomodoroStarted": "Pomodoro gestartet — {0} Min."
   },
   "settings": {
     "category": "Schreibwerkzeuge",
@@ -64,7 +64,7 @@
     "columnWord": "Wort",
     "columnCount": "Anzahl",
     "statusReady": "Klicke auf Analysieren, um alle Szenen zu scannen.",
-    "statusAnalyzing": "Analyse läuft\u2026",
+    "statusAnalyzing": "Analyse läuft…",
     "statusDone": "{0} verschiedene Wörter gefunden (Top 100 angezeigt).",
     "statusError": "Fehler: {0}"
   },
@@ -82,5 +82,11 @@
     "faction.motto": "Motto",
     "faction.founded": "Gegründet",
     "faction.memberCount": "Mitgliederzahl"
+  },
+  "command": {
+    "pomodoro": {
+      "title": "Pomodoro-Timer starten oder stoppen",
+      "description": "Schaltet den Timer in der Statusleiste um."
+    }
   }
 }

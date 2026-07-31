@@ -139,6 +139,57 @@ public sealed class ExtensionContribRpcTests : IDisposable
         using (ws) rpc.ExecuteContextMenuItem("x", null, null); // no-op, no throw
     }
 
+    // ── Commands ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Commands_ListedAndRun()
+    {
+        var ran = string.Empty;
+        _workspace.ExtensionsHost.Host.RegisterCommand(
+            new HostCommandInfo
+            {
+                Id = "test.cmd.one",
+                Title = "The one",
+                Description = "Runs",
+                ArgumentsSchema = "{\"type\":\"object\"}",
+                Mutates = true,
+            },
+            args => { ran = args ?? "(none)"; return Task.CompletedTask; });
+        try
+        {
+            var listed = Assert.Single(_rpc.Commands(), c => c.Id == "test.cmd.one");
+            Assert.Equal("The one", listed.Title);
+            Assert.Equal("Runs", listed.Description);
+            Assert.Equal("{\"type\":\"object\"}", listed.ArgumentsSchema);
+            Assert.True(listed.Mutates);
+
+            // The arguments have to arrive, or a command with a schema is a
+            // command that can only ever be run with its defaults.
+            Assert.True(await _rpc.ExecuteCommandAsync("test.cmd.one", "{\"lens\":\"line\"}"));
+            Assert.Equal("{\"lens\":\"line\"}", ran);
+
+            Assert.True(await _rpc.ExecuteCommandAsync("test.cmd.one"));
+            Assert.Equal("(none)", ran);
+        }
+        finally
+        {
+            _workspace.ExtensionsHost.Host.UnregisterCommand("test.cmd.one");
+        }
+    }
+
+    [Fact]
+    public async Task Commands_UnknownId_AndNoHost_Guarded()
+    {
+        Assert.False(await _rpc.ExecuteCommandAsync("no.such.command"));
+
+        var rpc = NoHostRpc(out var ws);
+        using (ws)
+        {
+            Assert.Empty(rpc.Commands());
+            Assert.False(await rpc.ExecuteCommandAsync("test.cmd.one"));
+        }
+    }
+
     // ── Hotkeys ─────────────────────────────────────────────────────
 
     [Fact]

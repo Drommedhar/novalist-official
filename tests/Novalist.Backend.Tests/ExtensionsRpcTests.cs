@@ -219,14 +219,15 @@ public sealed class ExtensionsRpcTests : IDisposable
     [Fact]
     public async Task ARendererPluginComesBackAsItsSource()
     {
-        // Read here rather than fetched by the renderer: it has no filesystem,
-        // and a script that could be swapped between being listed and being run
-        // is one nobody could reason about.
+        // The entry and the folder, not the script itself: the interface imports
+        // it as a real module over the extension protocol, and a source string
+        // read here could differ from the file that actually runs.
         var rpc = await WithPluginAsync("plugin.js", ExtensionsRpc.RendererPluginApiVersion);
 
         var plugin = Assert.Single(rpc.RendererPlugins());
         Assert.Null(plugin.Refused);
-        Assert.Contains("hello", plugin.Source);
+        Assert.Equal("plugin.js", plugin.Entry);
+        Assert.True(File.Exists(Path.Combine(plugin.FolderPath, plugin.Entry)));
         Assert.Equal("com.novalist.plugin", plugin.ExtensionId);
     }
 
@@ -240,7 +241,7 @@ public sealed class ExtensionsRpcTests : IDisposable
         var plugin = Assert.Single(rpc.RendererPlugins());
         Assert.NotNull(plugin.Refused);
         Assert.Contains("plugin API", plugin.Refused);
-        Assert.Empty(plugin.Source);
+        Assert.Empty(plugin.Entry);
     }
 
     [Fact]
@@ -253,7 +254,7 @@ public sealed class ExtensionsRpcTests : IDisposable
 
         var plugin = Assert.Single(rpc.RendererPlugins());
         Assert.NotNull(plugin.Refused);
-        Assert.Empty(plugin.Source);
+        Assert.Empty(plugin.Entry);
     }
 
     [Fact]

@@ -150,6 +150,13 @@ Creating a book does **not** switch to it; an extension adding a volume should n
 
 **Commands** — `GetCommands`, `InvokeCommandAsync`, `RegisterCommand`. A command is a stable id, a title and an optional JSON Schema for its arguments. This is what makes a scripting extension worth having: a macro that can only call the extension hosting it is not automation.
 
+A registered command also appears in the writer's command palette, under the title you gave it — so a command is the cheapest way to make something you have built reachable, without contributing a view or a ribbon item. Two consequences worth designing around:
+
+- **The title is shown, not translated.** Resolve it through `GetLocalization` before you hand it over, or the writer reads your key.
+- **A command with an `ArgumentsSchema` is left out of the palette**, which has no way to ask for the arguments. Register a no-argument command for each variant you want the writer to be able to pick — one per option reads better in the palette than one command that guesses — and keep the schema version for scripts.
+
+Call `UnregisterCommand` in `Shutdown`. A command whose extension has been unloaded is a palette entry that does nothing.
+
 **`FileService`** — file I/O, so you are not reaching for `System.IO` paths the host may relocate.
 
 **Scene analysis storage** — `GetSceneAnalysisAsync`, `SaveSceneAnalysisAsync`, `IsSceneAnalysisStaleAsync`, `GetStaleSceneIdsAsync`. The host owns storage, staleness and the schema; you supply the analysis. Anything cumulative (what a character knows by chapter nine) is a roll-up over these records and needs no further model calls.

@@ -2,10 +2,33 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { HotkeyAction } from './hotkeys'
 import { onPluginContributionsChanged, pluginCommands } from './pluginHost'
+import { rpc } from '../rpc/client'
 
 interface CommandPaletteProps {
   actions: HotkeyAction[]
   onClose(): void
+}
+
+/**
+ * A line in the palette. Novalist's own actions carry a gesture; commands that
+ * come from an extension do not, and casting them to a hotkey to get them into
+ * the list was how a missing gesture reached the renderer as undefined.
+ */
+interface PaletteEntry {
+  actionId: string
+  labelKey: string
+  /** Already the extension's own words, so it is shown rather than looked up. */
+  literal?: boolean
+  gesture?: string
+  run(): void
+}
+
+interface ExtensionCommand {
+  id: string
+  title: string
+  description: string
+  argumentsSchema: string
+  mutates: boolean
 }
 
 export function CommandPalette({ actions, onClose }: CommandPaletteProps): React.JSX.Element {
@@ -21,31 +44,62 @@ export function CommandPalette({ actions, onClose }: CommandPaletteProps): React
   const [plugins, setPlugins] = useState([...pluginCommands()])
   useEffect(() => onPluginContributionsChanged(() => setPlugins([...pluginCommands()])), [])
 
-  const all = useMemo<HotkeyAction[]>(
+  // And the ones backend extensions registered. Fetched when the palette opens
+  // rather than held in a store: an extension can register and unregister as it
+  // loads, and a list read once at boot goes stale without ever looking wrong.
+  const [extensionCommands, setExtensionCommands] = useState<ExtensionCommand[]>([])
+  useEffect(() => {
+    let cancelled = false
+    void rpc
+      .request<ExtensionCommand[]>('extensions/commands')
+      .then((list) => {
+        if (!cancelled) setExtensionCommands(list ?? [])
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const all = useMemo<PaletteEntry[]>(
     () => [
       ...actions,
       ...plugins.map((command) => ({
         actionId: `${command.extensionId}:${command.id}`,
-        // Already the extension's own words, so it is passed through rather
-        // than looked up - a locale key would never resolve.
         labelKey: command.title,
+        literal: true,
         run: command.run
-      })) as HotkeyAction[]
+      })),
+      // A command that needs arguments has no way to ask for them here, so the
+      // palette lists the ones it can actually run rather than offering a line
+      // that fails when clicked.
+      ...extensionCommands
+        .filter((command) => command.argumentsSchema.trim().length === 0)
+        .map((command) => ({
+          actionId: command.id,
+          labelKey: command.title,
+          literal: true,
+          run: () => {
+            void rpc.request('extensions/command/execute', [command.id, null]).catch(() => {})
+          }
+        }))
     ],
-    [actions, plugins]
+    [actions, plugins, extensionCommands]
   )
+
+  const label = (entry: PaletteEntry): string => (entry.literal ? entry.labelKey : t(entry.labelKey))
 
   const filtered = useMemo(() => {
     const lower = query.toLowerCase()
     return all.filter(
       (action) =>
         lower.length === 0 ||
-        t(action.labelKey).toLowerCase().includes(lower) ||
+        label(action).toLowerCase().includes(lower) ||
         action.actionId.toLowerCase().includes(lower)
     )
   }, [all, query, t])
 
-  const run = (action: HotkeyAction): void => {
+  const run = (action: PaletteEntry): void => {
     onClose()
     action.run()
   }
@@ -77,8 +131,8 @@ export function CommandPalette({ actions, onClose }: CommandPaletteProps): React
               onClick={() => run(action)}
               onPointerEnter={() => setIndex(i)}
             >
-              <span>{t(action.labelKey)}</span>
-              <kbd>{action.gesture.replace('D', '')}</kbd>
+              <span>{label(action)}</span>
+              {action.gesture && <kbd>{action.gesture.replace('D', '')}</kbd>}
             </button>
           ))}
           {filtered.length === 0 && <p className="codex-empty">{t('commandPalette.noResults')}</p>}

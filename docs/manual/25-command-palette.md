@@ -24,6 +24,11 @@ Every registered command:
 - **Panel toggles** — toggle the binder (left pane) and the inspector (right pane).
 - **Find & Replace** — open the project-wide find/replace dialog.
 - **Focus Mode** — hide both side panes for distraction-free writing.
+- **Commands from your extensions** — anything an installed extension registers, listed under its own name. The AI Assistant's critique passes, for instance, appear here once it is installed.
+
+Extension commands are read when the palette opens, so one that installs while Novalist is running shows up the next time you press `Ctrl+Shift+P` — no restart. They have no keyboard shortcut of their own unless the extension also binds one, so the right-hand column is empty for them.
+
+A command that takes arguments is not listed, because the palette has no way to ask you for them. Those are for scripts and for the extension's own buttons.
 
 ## Tips
 

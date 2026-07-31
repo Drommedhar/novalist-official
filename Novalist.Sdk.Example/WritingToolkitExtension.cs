@@ -61,10 +61,31 @@ public sealed class WritingToolkitExtension :
         // Inline actions register imperatively (they are not collected from a
         // return-value hook like the other contributions).
         host.RegisterInlineActionContributor(this);
+
+        // A command, which is the surface a script drives and the command
+        // palette lists. The same thing the status-bar item does when clicked,
+        // reachable without the mouse and without knowing where it lives.
+        host.RegisterCommand(
+            new HostCommandInfo
+            {
+                Id = PomodoroCommandId,
+                Title = _loc.T("command.pomodoro.title"),
+                Description = _loc.T("command.pomodoro.description"),
+            },
+            _ =>
+            {
+                if (_pomodoro.IsRunning) _pomodoro.Stop();
+                else _pomodoro.Start();
+                return Task.CompletedTask;
+            });
     }
+
+    /// <summary>The pomodoro toggle, as a command.</summary>
+    public const string PomodoroCommandId = "ext.writingtoolkit.pomodoro.toggle";
 
     public void Shutdown()
     {
+        _host.UnregisterCommand(PomodoroCommandId);
         _pomodoro.Stop();
     }
 
@@ -77,7 +98,6 @@ public sealed class WritingToolkitExtension :
             Tab = "Extensions",
             Group = _loc.T("group.writingToolkit"),
             Label = _loc.T("ribbon.wordFreq.label"),
-            Icon = "📊",
             IconPath = "M18 20V10M12 20V4M6 20v-4",
             Tooltip = _loc.T("ribbon.wordFreq.tooltip"),
             Size = "Large",
@@ -88,7 +108,6 @@ public sealed class WritingToolkitExtension :
             Tab = "Extensions",
             Group = _loc.T("group.writingToolkit"),
             Label = _loc.T("ribbon.prompt.label"),
-            Icon = "🎲",
             IconPath = "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12",
             Tooltip = _loc.T("ribbon.prompt.tooltip"),
             Size = "Large",
@@ -96,7 +115,7 @@ public sealed class WritingToolkitExtension :
             {
                 var prompt = _prompts.GetRandomPrompt();
                 _prompts.AddToHistory(prompt);
-                _host.ShowNotification($"🎲 {prompt}");
+                _host.ShowNotification(prompt);
             }
         },
         new RibbonItem
@@ -104,7 +123,6 @@ public sealed class WritingToolkitExtension :
             Tab = "Extensions",
             Group = _loc.T("group.writingToolkit"),
             Label = _loc.T("ribbon.pomodoro.label"),
-            Icon = "⏱",
             IconPath = "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 6v6l4 2M2 12h2M20 12h2M12 2v2",
             Tooltip = _loc.T("ribbon.pomodoro.tooltip"),
             Size = "Large",
@@ -115,12 +133,12 @@ public sealed class WritingToolkitExtension :
                 if (_pomodoro.IsRunning)
                 {
                     _pomodoro.Stop();
-                    _host.ShowNotification($"⏱ {_loc.T("notifications.pomodoroStopped")}");
+                    _host.ShowNotification(_loc.T("notifications.pomodoroStopped"));
                 }
                 else
                 {
                     _pomodoro.Start();
-                    _host.ShowNotification($"⏱ {_loc.T("notifications.pomodoroStarted", _pomodoro.DurationMinutes)}");
+                    _host.ShowNotification(_loc.T("notifications.pomodoroStarted", _pomodoro.DurationMinutes));
                 }
             }
         }
@@ -205,7 +223,6 @@ public sealed class WritingToolkitExtension :
             FormatKey = "plaintext_clean",
             DisplayName = _loc.T("export.plainTextClean"),
             FileExtension = ".txt",
-            Icon = "📝",
             IconPath = "M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5zM15 5l4 4",
             Export = async context =>
             {
