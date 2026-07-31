@@ -94,6 +94,8 @@ An extension can also **propose an edit** to your prose. It appears as a [sugges
 
 An extension can fill in a Codex entry as fully as you can: its fields, the properties you added yourself, and its relationships — with the far half of each relationship written onto the entry it names, the same way the Codex does it. Before this, an importer could bring a character across with their whole biography and not their hair colour.
 
+An extension can create a whole new project — that is how an importer builds a binder from a file written elsewhere. It cannot open it, though: you are told where the project was written and you open it when you want to, so nothing can move you out of the book you are working in.
+
 An extension can also work on a book other than the one you have open — listing, adding and renaming books and drafts, starting a draft as a copy of an existing one, and switching between them. Adding a book does not move you into it. Switching book or draft is refused while you have unsaved changes in the editor, and no extension can delete either.
 
 The scene you are typing in is off limits entirely. An extension that writes prose — an importer, a cleanup pass, a generator — is refused outright while the open scene has unsaved changes, and passes over the whole book skip that scene and carry on with the rest. Without the refusal, its write and the editor's next autosave would overwrite each other and whichever landed second would win, silently.

@@ -125,6 +125,18 @@ public interface IExtensionProjectService
 
     // ── Books and drafts ──
 
+    /// <summary>
+    /// Creates a project on disk and returns its folder. The writer's open
+    /// project is not touched.
+    ///
+    /// It is deliberately not opened. An importer building a binder should not
+    /// be able to move somebody out of the book they are in the middle of a
+    /// sentence of - tell them where it is, or ask them to open it, and let
+    /// them decide when.
+    /// </summary>
+    /// <returns>The new project's folder, or null when it could not be made.</returns>
+    Task<string?> CreateProjectAsync(string parentDirectory, string projectName, string firstBookName);
+
     /// <summary>Every book in the project, in the order the binder shows them.</summary>
     IReadOnlyList<BookInfo> GetBooks();
 

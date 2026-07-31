@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Extensions can create a project.** An importer bringing a book in from another program had no way to build the binder to put it in. It writes the project and tells you where; opening it stays your decision, so nothing can move you out of the book you are working in.
+
 - **Extensions can work across books and drafts.** Everything an extension could do applied to whichever book and draft you had open, with no way to name another — so an importer could not build a second volume and a revision pass could not put its work in its own draft. Extensions can now list, add and rename books and drafts, start a draft as a copy of an existing one, and switch between them. Switching is refused while you have unsaved changes in the editor, because switching out from under an unsaved scene is how words go missing.
 
 - **Extensions can fill in a Codex entry properly.** An extension could write an entry's name, description and notes and nothing else — so an importer brought a character across with their whole biography and not their hair colour, and a questionnaire had nowhere but a notes section to put the answers. Extensions can now write an entry's own fields, the properties you added yourself, and its relationships, with the other half of each relationship authored onto the entry it names.

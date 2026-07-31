@@ -109,6 +109,38 @@ public partial class ProjectService : IProjectService
         return metadata;
     }
 
+    /// <summary>
+    /// Creates a project on disk without adopting it, and returns its folder.
+    ///
+    /// Creating a project loads it, which is right when a person clicked New
+    /// Project and wrong when an extension did: an importer building a binder
+    /// would take the writer out of the book they were in the middle of a
+    /// sentence of. The five fields that say which project is open are put
+    /// back, so the only trace of the call is the folder it wrote.
+    /// </summary>
+    public async Task<string> CreateProjectDetachedAsync(
+        string parentDirectory, string projectName, string firstBookName)
+    {
+        var project = CurrentProject;
+        var settings = ProjectSettings;
+        var book = ActiveBook;
+        var scenes = ScenesManifest;
+        var root = ProjectRoot;
+        try
+        {
+            await CreateProjectAsync(parentDirectory, projectName, firstBookName);
+            return ProjectRoot!;
+        }
+        finally
+        {
+            CurrentProject = project;
+            ProjectSettings = settings;
+            ActiveBook = book;
+            ScenesManifest = scenes;
+            ProjectRoot = root;
+        }
+    }
+
     public async Task<ProjectMetadata> LoadProjectAsync(string projectDirectory)
     {
         var metadataPath = _fileService.CombinePath(projectDirectory, ".novalist", "project.json");

@@ -21,6 +21,11 @@ public interface IProjectService
     event EventHandler<ReconciliationReport>? DraftReconciled;
 
     Task<ProjectMetadata> CreateProjectAsync(string parentDirectory, string projectName, string firstBookName);
+
+    /// <summary>
+    /// Creates a project on disk without opening it, and returns its folder.
+    /// </summary>
+    Task<string> CreateProjectDetachedAsync(string parentDirectory, string projectName, string firstBookName);
     Task<ProjectMetadata> LoadProjectAsync(string projectDirectory);
     Task SaveProjectAsync();
     Task SaveProjectSettingsAsync();

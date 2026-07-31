@@ -1292,5 +1292,35 @@ public class HostServicesExtendedTests
             new Dictionary<string, string> { ["Age"] = "31" });
         Assert.True(entities > 0);
     }
+
+    [Fact]
+    public async Task ANewProjectIsWrittenWithoutTakingTheWriterToIt()
+    {
+        var (host, proj, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var chapter = await host.ProjectService.CreateChapterAsync("One");
+        var openProject = proj.ProjectRoot;
+        var openBook = proj.ActiveBook?.Id;
+
+        var created = await host.ProjectService.CreateProjectAsync(dir.Path, "Second", "Book One");
+
+        Assert.NotNull(created);
+        Assert.True(File.Exists(Path.Combine(created!, ".novalist", "project.json")));
+        // The whole point: the writer is still in the project they were in, and
+        // it still has what it had.
+        Assert.Equal(openProject, proj.ProjectRoot);
+        Assert.Equal(openBook, proj.ActiveBook?.Id);
+        Assert.Contains(host.ProjectService.GetChaptersOrdered(), c => c.Guid == chapter);
+    }
+
+    [Fact]
+    public async Task ANewProjectNeedsSomewhereToGoAndSomethingToBeCalled()
+    {
+        var (host, _, _, dir) = BuildWithEditor();
+        using var _d = dir;
+
+        Assert.Null(await host.ProjectService.CreateProjectAsync("  ", "Second", "Book One"));
+        Assert.Null(await host.ProjectService.CreateProjectAsync(dir.Path, "  ", "Book One"));
+    }
 }
 

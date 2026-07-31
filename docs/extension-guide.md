@@ -118,6 +118,8 @@ An extension whose `minHostVersion` is above the running Novalist is skipped wit
 
 Use **`GetAiContextAsync`** rather than the `Load*` methods when you are assembling context for a model. The `Load*` methods return everything, because the Codex has to show everything. `GetAiContextAsync` applies the writer's per-entry AI inclusion setting and their per-section withholding — which your extension cannot reconstruct on its own. A writer who marks an entry "never" means it.
 
+**`ProjectService.CreateProjectAsync`** — writes a whole new project to disk and returns its folder. It deliberately does **not** open it: an importer building a binder should not be able to move somebody out of the book they are in the middle of a sentence of. Tell the writer where it is and let them decide when to open it.
+
 **`ProjectService`, books and drafts** — `GetBooks`, `CreateBookAsync`, `RenameBookAsync`, `SwitchBookAsync`, and the same four for drafts, plus `ActiveBookId` / `ActiveDraftId`. Every other manuscript call on this interface acts on the active book and draft, so an importer building a second volume — or a revision pass wanting its own draft — had no way to say which one it meant. `CreateDraftAsync` takes an optional draft to copy, which is what a revision pass wants: the writer keeps the version it started from.
 
 Creating a book does **not** switch to it; an extension adding a volume should not move the writer out of the one they are in. Switching book or draft is **refused while the editor holds unsaved changes** — the editor would be holding text for a book that is no longer the one being written to.

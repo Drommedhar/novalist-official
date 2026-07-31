@@ -276,6 +276,16 @@ public sealed partial class HostServices
 
     // ── Books and drafts (IExtensionProjectService) ────────────────
 
+    async Task<string?> IExtensionProjectService.CreateProjectAsync(
+        string parentDirectory, string projectName, string firstBookName)
+    {
+        if (string.IsNullOrWhiteSpace(parentDirectory) || string.IsNullOrWhiteSpace(projectName))
+            return null;
+        // No structure-changed signal: nothing the interface is showing moved.
+        return await _projectService.CreateProjectDetachedAsync(
+            parentDirectory, projectName, firstBookName ?? string.Empty);
+    }
+
     IReadOnlyList<Sdk.Services.BookInfo> IExtensionProjectService.GetBooks()
         => [.. (_projectService.CurrentProject?.Books ?? [])
             .Select(b => new Sdk.Services.BookInfo { Id = b.Id, Name = b.Name })];

@@ -1083,4 +1083,44 @@ public class ProjectServiceTests : IDisposable
         Assert.StartsWith("01 - ", first.FolderName);
     }
 
+
+    [Fact]
+    public async Task CreateProjectDetached_WritesTheProjectAndLeavesTheOpenOneAlone()
+    {
+        // Creating a project loads it, which is right when a person clicked New
+        // Project and wrong when an extension did: the writer would be taken
+        // out of the book they were in the middle of a sentence of.
+        await Create("First", "Book One");
+        var openRoot = _sut.ProjectRoot;
+        var openProject = _sut.CurrentProject;
+        var openBook = _sut.ActiveBook;
+        var openScenes = _sut.ScenesManifest;
+        var openSettings = _sut.ProjectSettings;
+
+        var created = await _sut.CreateProjectDetachedAsync(_dir.Path, "Second", "Book Two");
+
+        Assert.True(File.Exists(Path.Combine(created, ".novalist", "project.json")));
+        Assert.NotEqual(openRoot, created);
+        Assert.Equal(openRoot, _sut.ProjectRoot);
+        Assert.Same(openProject, _sut.CurrentProject);
+        Assert.Same(openBook, _sut.ActiveBook);
+        Assert.Same(openScenes, _sut.ScenesManifest);
+        Assert.Same(openSettings, _sut.ProjectSettings);
+    }
+
+    [Fact]
+    public async Task CreateProjectDetached_PutsTheOpenProjectBackEvenWhenItFails()
+    {
+        await Create("First", "Book One");
+        var openRoot = _sut.ProjectRoot;
+
+        // A path that cannot be written to: the restore has to happen anyway,
+        // or a failed import leaves the writer with no project open.
+        await Assert.ThrowsAnyAsync<Exception>(
+            () => _sut.CreateProjectDetachedAsync(" :/nowhere", "Second", "Book Two"));
+
+        Assert.Equal(openRoot, _sut.ProjectRoot);
+        Assert.NotNull(_sut.CurrentProject);
+    }
 }
+
