@@ -7,6 +7,8 @@ import './series.css'
 interface SeriesBookDto {
   id: string
   name: string
+  /** Who wrote this one, when that is not who wrote the project. */
+  author: string
   chapters: number
   scenes: number
   words: number
@@ -68,6 +70,21 @@ export function SeriesView(): React.JSX.Element {
               {book.words.toLocaleString()} {t('series.words')} - {book.stagedScenes}{' '}
               {t('series.staged')}
             </span>
+            {/* An anthology's volumes are by different people. Left empty, the
+                book goes out under the project's author, which is what every
+                book that is not part of a collection wants. */}
+            <input
+              className="dialog-input series-book-author"
+              defaultValue={book.author}
+              placeholder={t('series.bookAuthorPlaceholder')}
+              aria-label={t('series.bookAuthor')}
+              onBlur={(e) => {
+                if (e.target.value === book.author) return
+                void rpc
+                  .request<SeriesOverviewDto>('series/setBookAuthor', [book.id, e.target.value])
+                  .then(setOverview)
+              }}
+            />
           </div>
         ))}
         {total === 1 && <p className="settings-hint">{t('series.oneBook')}</p>}

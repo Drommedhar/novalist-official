@@ -2990,7 +2990,9 @@
     "appearancesIntro": "一个世界设定条目以及它出现的书 — 依据您记录的名单与确认的提及。三本中只出现一本，不是配角，就是被丢下的线。",
     "inBooks": "在 {{total}} 本中的 {{count}} 本",
     "empty": "还没有共享条目出现在任何书中。",
-    "oneBook": "本项目只有一本书。系列视图在有两本以后才有意义。"
+    "oneBook": "本项目只有一本书。系列视图在有两本以后才有意义。",
+    "bookAuthor": "本书作者",
+    "bookAuthorPlaceholder": "项目作者"
   },
   "draftCompare": {
     "title": "比较稿本",

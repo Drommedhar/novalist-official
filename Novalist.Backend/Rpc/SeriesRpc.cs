@@ -29,6 +29,25 @@ public sealed class SeriesRpc
     /// book's folder, so there is no read-only way in - and the writer is put
     /// back in the book they were in when it finishes.
     /// </summary>
+    /// <summary>
+    /// Sets who wrote one book, for an anthology whose volumes are by
+    /// different people. Empty means the project's author, which is the answer
+    /// for every book that is not part of a collection.
+    /// </summary>
+    [JsonRpcMethod("series/setBookAuthor")]
+    public async Task<SeriesOverviewDto> SetBookAuthorAsync(string bookId, string author)
+    {
+        var project = _workspace.Projects.CurrentProject
+            ?? throw new InvalidOperationException("No project open.");
+        var book = project.Books.FirstOrDefault(b => b.Id == bookId);
+        if (book != null)
+        {
+            book.Author = (author ?? string.Empty).Trim();
+            await _workspace.Projects.SaveProjectAsync();
+        }
+        return await OverviewAsync();
+    }
+
     [JsonRpcMethod("series/overview")]
     public async Task<SeriesOverviewDto> OverviewAsync()
     {
@@ -58,6 +77,7 @@ public sealed class SeriesRpc
                 books.Add(new SeriesBookDto(
                     book.Id,
                     book.Name,
+                    book.Author,
                     chapters.Count,
                     scenes.Count,
                     scenes.Sum(s => s.WordCount),
@@ -139,7 +159,7 @@ public sealed class SeriesRpc
 
 /// <summary>One book in the series, at a glance.</summary>
 public sealed record SeriesBookDto(
-    string Id, string Name, int Chapters, int Scenes, int Words, int StagedScenes);
+    string Id, string Name, string Author, int Chapters, int Scenes, int Words, int StagedScenes);
 
 /// <summary>
 /// A shared Codex entry and the books it appears in. <c>BookCount</c> is what

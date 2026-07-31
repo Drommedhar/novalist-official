@@ -427,6 +427,18 @@ public partial class ExportService
         Func<ChapterData, SceneData, Task<string>> ReadScene,
         bool SelectAll = false);
 
+    /// <summary>
+    /// The by-line under a volume's heading, or null when the volume is by
+    /// whoever wrote the rest of the project - repeating the project's author
+    /// over every volume of a series says nothing and reads as a mistake.
+    /// </summary>
+    private static string? AuthorLine(BookData book, ExportOptions options)
+        => !string.IsNullOrWhiteSpace(book.Author)
+            && !string.Equals(book.Author.Trim(), (options.Author ?? string.Empty).Trim(),
+                StringComparison.OrdinalIgnoreCase)
+            ? book.Author.Trim()
+            : null;
+
     /// <summary>The open book, which is what every export read before volumes existed.</summary>
     private VolumeSource ActiveSource() => new(
         _projectService.ActiveBook,
@@ -453,6 +465,9 @@ public partial class ExportService
                 // volume, never numbered, because it is not a chapter of one.
                 Heading = volume.Book.Name,
                 IsVolume = true,
+                // An anthology's volumes are by different people. Without this
+                // a collection of six writers goes out under one name.
+                Subtitle = AuthorLine(volume.Book, options),
                 Scenes = []
             });
             chapters.AddRange(await CompileChaptersAsync(options, volume));

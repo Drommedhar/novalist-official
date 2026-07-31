@@ -187,4 +187,32 @@ public sealed class SeriesRpcTests : IDisposable
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => new SeriesRpc(bare).OverviewAsync());
     }
+
+    [Fact]
+    public async Task ABookCanCarryItsOwnAuthorForAnAnthology()
+    {
+        await WriteSceneAsync("Arrival");
+
+        var bookId = _workspace.Projects.ActiveBook!.Id;
+        var overview = await _rpc.SetBookAuthorAsync(bookId, "  Mara Vane  ");
+
+        // Trimmed on the way in: a name with a stray space would not match the
+        // project's author and would print a by-line that says the same thing.
+        Assert.Equal("Mara Vane", overview.Books.First(b => b.Id == bookId).Author);
+        Assert.Equal("Mara Vane", _workspace.Projects.ActiveBook.Author);
+
+        overview = await _rpc.SetBookAuthorAsync(bookId, "");
+        Assert.Equal(string.Empty, overview.Books.First(b => b.Id == bookId).Author);
+    }
+
+    [Fact]
+    public async Task SettingTheAuthorOfABookThatIsNotThereChangesNothing()
+    {
+        await WriteSceneAsync("Arrival");
+
+        var overview = await _rpc.SetBookAuthorAsync("no-such-book", "Mara Vane");
+
+        Assert.All(overview.Books, b => Assert.Equal(string.Empty, b.Author));
+    }
 }
+

@@ -42,6 +42,8 @@ In a project with more than one book, **Also include these books** appears above
 - Chapter numbering runs across the whole set rather than restarting per volume, and the volume headings are not numbered: a volume title counted as Chapter Seven is exactly what section types exist to prevent.
 - A volume sits **a level above** a chapter: `#` against `##` in Markdown, `\part` against `\chapter` in LaTeX, and in an EPUB its chapters nest underneath it in the contents. A flat list of eighty entries gives a reader no way to tell where one book ends.
 
+- **An anthology's volumes can carry their own author.** Set one per book in the [Series](40-series.md) view. It prints under that volume's heading, so a collection by six writers does not go out under one name. Leave it empty and the volume is by whoever wrote the project, which is what every book of a series wants — repeating the same name over every volume says nothing and reads as a mistake.
+
 Volumes are read without being opened, so building a box set never changes which book you are working in.
 
 ## Replacements on export

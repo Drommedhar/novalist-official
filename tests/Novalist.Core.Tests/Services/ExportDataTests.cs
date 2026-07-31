@@ -695,4 +695,61 @@ public class ExportDataTests : IDisposable
         // And the list it opened is closed again.
         Assert.EndsWith("</ol>", nav[..nav.LastIndexOf("</nav>", StringComparison.Ordinal)].TrimEnd());
     }
+
+    [Fact]
+    public async Task AnAnthologysVolumesCarryTheirOwnAuthor()
+    {
+        // One project whose volumes are by different people. Without this a
+        // collection of six writers goes out under one name.
+        var options = Setup(ExportFormat.Markdown,
+            new SceneData { Title = "Arrival", Order = 1 });
+        options.Author = "The Editor";
+        var open = new BookData { Id = "b1", Name = "Book One" };
+        var closed = new BookData
+        {
+            Id = "b2", Name = "Book Two", ChapterFolder = "Chapters", Author = "Mara Vane"
+        };
+        var closedChapter = new ChapterData { Guid = "c2", Title = "Later", Order = 0 };
+        closed.Chapters.Add(closedChapter);
+        _project.ActiveBook.Returns(open);
+        _project.CurrentProject.Returns(new ProjectMetadata { Books = [open, closed] });
+
+        var manifest = new ScenesManifest();
+        var closedScene = new SceneData { Id = "s9", Title = "Elsewhere", Order = 0 };
+        manifest.Chapters["c2"] = [closedScene];
+        _project.LoadScenesManifestForAsync(closed).Returns(manifest);
+        _project.ReadSceneContentForAsync(closed, closedChapter, closedScene)
+            .Returns("<p>The second book.</p>");
+
+        options.IncludedBookIds = ["b2"];
+        var chapters = await Service().CompileChaptersAsync(options);
+
+        Assert.Equal("Mara Vane", chapters[1].Subtitle);
+    }
+
+    [Fact]
+    public async Task AVolumeByTheProjectsOwnAuthorIsNotGivenAByLine()
+    {
+        // Repeating the project's author over every volume of a series says
+        // nothing and reads as a mistake.
+        var options = Setup(ExportFormat.Markdown,
+            new SceneData { Title = "Arrival", Order = 1 });
+        options.Author = "Mara Vane";
+        var open = new BookData { Id = "b1", Name = "Book One" };
+        var same = new BookData
+        {
+            Id = "b2", Name = "Book Two", ChapterFolder = "Chapters", Author = " mara vane "
+        };
+        var none = new BookData { Id = "b3", Name = "Book Three", ChapterFolder = "Chapters" };
+        _project.ActiveBook.Returns(open);
+        _project.CurrentProject.Returns(new ProjectMetadata { Books = [open, same, none] });
+        _project.LoadScenesManifestForAsync(same).Returns(new ScenesManifest());
+        _project.LoadScenesManifestForAsync(none).Returns(new ScenesManifest());
+
+        options.IncludedBookIds = ["b2", "b3"];
+        var chapters = await Service().CompileChaptersAsync(options);
+
+        Assert.All(chapters.Where(c => c.IsVolume), c => Assert.Null(c.Subtitle));
+    }
 }
+

@@ -17,6 +17,18 @@ public class BookData
     [JsonPropertyName("folderName")]
     public string FolderName { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Who wrote this book, when that is not who wrote the project.
+    ///
+    /// An anthology is one project whose volumes have different authors, and
+    /// the export carried a single project-level author across all of them -
+    /// so a collection of six writers went out under one name. Empty means the
+    /// project's author, which is the answer for every book that is not part
+    /// of a collection.
+    /// </summary>
+    [JsonPropertyName("author")]
+    public string Author { get; set; } = string.Empty;
+
     [JsonPropertyName("createdAt")]
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

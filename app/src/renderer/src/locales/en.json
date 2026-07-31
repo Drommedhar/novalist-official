@@ -2950,7 +2950,9 @@
     "appearancesIntro": "A World Bible entry and the books it turns up in - by the cast you recorded and the mentions you confirmed. One book out of three is either a walk-on or a thread you dropped.",
     "inBooks": "in {{count}} of {{total}}",
     "empty": "No shared entries appear in any book yet.",
-    "oneBook": "This project has one book. A series view starts to say something once there are two."
+    "oneBook": "This project has one book. A series view starts to say something once there are two.",
+    "bookAuthor": "Author of this book",
+    "bookAuthorPlaceholder": "Project author"
   },
   "draftCompare": {
     "title": "Compare drafts",

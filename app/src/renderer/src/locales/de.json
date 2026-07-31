@@ -2958,7 +2958,9 @@
     "appearancesIntro": "Ein Weltenbibel-Eintrag und die Bücher, in denen er auftaucht – nach der erfassten Besetzung und den bestätigten Erwähnungen. Eines von drei Büchern heißt: Nebenrolle oder fallengelassener Strang.",
     "inBooks": "in {{count}} von {{total}}",
     "empty": "Noch erscheinen keine geteilten Einträge in einem Buch.",
-    "oneBook": "Dieses Projekt hat ein Buch. Eine Reihenansicht sagt erst ab zwei etwas aus."
+    "oneBook": "Dieses Projekt hat ein Buch. Eine Reihenansicht sagt erst ab zwei etwas aus.",
+    "bookAuthor": "Autor dieses Buchs",
+    "bookAuthorPlaceholder": "Projektautor"
   },
   "draftCompare": {
     "title": "Fassungen vergleichen",

@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **An anthology's volumes can carry their own author.** A box set printed every volume under the project's single author, so a collection by six writers went out under one name. The Series view now has an author field per book, and it prints under that volume's heading in the export. Leave it empty and the book is by whoever wrote the project — repeating the same name over every volume of a series says nothing and reads as a mistake.
+
 - **Backup and draft-comparison tooling can be an extension.** Extensions can take, list, read and restore scene snapshots — the same ones your snapshots dialog shows, rather than a second history beside them — read a draft you do not currently have open, and enumerate and read the project's own files. Comparing two drafts was the single most obvious reason to keep a second one and the one thing no extension could do. Restoring a snapshot is refused while that scene is open with unsaved changes. Research items can also resolve where their file actually is on disk.
 
 - **Extensions can read the rest of your plan.** Plot-grid cell notes, your saved lists with the rules behind them, and your maps with their pins are now reachable, so an extension reporting on a book can respect a saved list rather than only ever covering all of it, and can say what a thread is doing in a scene rather than only that it is there. Cell notes can be written too; maps stay read-only.

@@ -41,3 +41,11 @@
   background: var(--nl-accent);
   border-color: var(--nl-accent);
 }
+
+/* Sits at the end of the row, narrow: it is empty for every book that is not
+   part of an anthology, so it must not take space from the name and the counts. */
+.series-book-author {
+  margin-left: auto;
+  max-width: 14rem;
+  font-size: var(--nl-font-caption);
+}
