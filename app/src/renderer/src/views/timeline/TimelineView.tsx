@@ -9,6 +9,7 @@ import { FilterBar } from '../../shell/FilterBar'
 import { useProjectStore } from '../../stores/projectStore'
 import { useWikiStore } from '../../stores/wikiStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
+import { InputDialog } from '../../shell/InputDialog'
 import { TimelineEventEditor, type TimelineEventDraft } from './TimelineEventEditor'
 import './timeline.css'
 
@@ -33,6 +34,8 @@ export interface TimelineEventDto {
   endDateStr: string
   /** The end sortable, or null when it cannot be read. */
   sortEndDate: string | null
+  /** Timelines this event sits on. Empty means the first one. */
+  timelineIds?: string[]
 }
 
 interface TimelineEntityLink {
@@ -41,11 +44,20 @@ interface TimelineEntityLink {
   typeKey: string
 }
 
+interface TimelineTrack {
+  id: string
+  name: string
+}
+
 interface TimelineDto {
   viewMode: string
   zoomLevel: string
   groups: { key: string; label: string; events: TimelineEventDto[] }[]
   entityLinks: TimelineEntityLink[]
+  /** The project's named timelines. Always at least one. */
+  timelines: TimelineTrack[]
+  /** The one being shown, or empty for all of them at once. */
+  activeTimelineId: string
 }
 
 const ZOOMS = ['year', 'month', 'day']
@@ -96,6 +108,10 @@ export function TimelineView(): React.JSX.Element {
   const shared = useFilterStore((s) => s.filter)
   const characterFilter = shared.character
   const locationFilter = shared.location
+  // Naming a new timeline, or renaming the one being shown.
+  const [addingTimeline, setAddingTimeline] = useState(false)
+  const [renamingTimeline, setRenamingTimeline] = useState(false)
+  const [removingTimeline, setRemovingTimeline] = useState(false)
   const [structureOpen, setStructureOpen] = useState(false)
   const [structures, setStructures] = useState<
     { id: string; displayName: string; description: string }[]
@@ -132,6 +148,17 @@ export function TimelineView(): React.JSX.Element {
     setData(await rpc.request<TimelineDto>('timeline/get'))
   }
 
+  // Backstory and the manuscript's own dates shared one stream, so a war
+  // three hundred years before chapter one sat between two scenes of a
+  // Tuesday. Picking a timeline is what separates them.
+  const chooseTimeline = async (value: string): Promise<void> => {
+    if (value === '__add') {
+      setAddingTimeline(true)
+      return
+    }
+    setData(await rpc.request<TimelineDto>('timeline/setActiveTimeline', [value]))
+  }
+
   const save = async (draft: TimelineEventDraft, id: string | null): Promise<void> => {
     setData(
       await rpc.request<TimelineDto>('timeline/saveEvent', [
@@ -143,7 +170,8 @@ export function TimelineView(): React.JSX.Element {
         draft.linkedChapterGuid,
         draft.characters,
         draft.locations,
-        draft.endDate
+        draft.endDate,
+        draft.timelineIds
       ])
     )
   }
@@ -416,6 +444,49 @@ export function TimelineView(): React.JSX.Element {
             </option>
           ))}
         </select>
+        {/* Only worth showing once there is more than one. A lone select
+            with a single option is a control that does nothing. */}
+        {(data.timelines.length > 1 || data.activeTimelineId !== '') && (
+          <select
+            className="dialog-input findreplace-scope"
+            value={data.activeTimelineId}
+            aria-label={t('timeline.timelines')}
+            onChange={(e) => void chooseTimeline(e.target.value)}
+          >
+            <option value="">{t('timeline.allTimelines')}</option>
+            {data.timelines.map((line) => (
+              <option key={line.id} value={line.id}>
+                {line.name}
+              </option>
+            ))}
+            <option value="__add">{t('timeline.addTimeline')}</option>
+          </select>
+        )}
+        {data.activeTimelineId !== '' && data.timelines[0]?.id !== data.activeTimelineId && (
+          <>
+            <button
+              className="toolbar-button"
+              onClick={() => setRenamingTimeline(true)}
+            >
+              {t('explorer.contextRename')}
+            </button>
+            <button
+              className="toolbar-button"
+              onClick={() => setRemovingTimeline(true)}
+            >
+              {t('explorer.contextDelete')}
+            </button>
+          </>
+        )}
+        {data.timelines.length === 1 && data.activeTimelineId === '' && (
+          <button
+            className="toolbar-button toolbar-action"
+            onClick={() => setAddingTimeline(true)}
+          >
+            <Plus size={14} strokeWidth={2} />
+            {t('timeline.addTimeline')}
+          </button>
+        )}
         <button
           className="toolbar-button toolbar-action"
           onClick={() =>
@@ -633,11 +704,62 @@ export function TimelineView(): React.JSX.Element {
             ))}
           </div>
         ))}
-        {data.groups.length === 0 && <p className="codex-empty">{t('timeline.noEvents')}</p>}
+        {/* On a timeline of its own, "add chapter dates" is advice that
+            cannot help: chapters belong to the first timeline. */}
+        {data.groups.length === 0 && (
+          <p className="codex-empty">
+            {t(
+              data.activeTimelineId !== '' &&
+                data.timelines[0]?.id !== data.activeTimelineId
+                ? 'timeline.noEventsOnTimeline'
+                : 'timeline.noEvents'
+            )}
+          </p>
+        )}
       </div>
+      {addingTimeline && (
+        <InputDialog
+          title={t('timeline.addTimeline')}
+          onCancel={() => setAddingTimeline(false)}
+          onSubmit={(name) => {
+            setAddingTimeline(false)
+            void rpc.request<TimelineDto>('timeline/addTimeline', [name]).then(setData)
+          }}
+        />
+      )}
+      {renamingTimeline && (
+        <InputDialog
+          title={t('explorer.contextRename')}
+          placeholder={
+            data.timelines.find((l) => l.id === data.activeTimelineId)?.name ?? ''
+          }
+          onCancel={() => setRenamingTimeline(false)}
+          onSubmit={(name) => {
+            setRenamingTimeline(false)
+            void rpc
+              .request<TimelineDto>('timeline/renameTimeline', [data.activeTimelineId, name])
+              .then(setData)
+          }}
+        />
+      )}
+      {removingTimeline && (
+        <ConfirmDialog
+          title={t('timeline.removeTimeline')}
+          message={t('timeline.removeTimelineHint')}
+          onCancel={() => setRemovingTimeline(false)}
+          onConfirm={() => {
+            setRemovingTimeline(false)
+            void rpc
+              .request<TimelineDto>('timeline/deleteTimeline', [data.activeTimelineId])
+              .then(setData)
+          }}
+        />
+      )}
       {pending?.kind === 'create' && (
         <TimelineEventEditor
           initial={null}
+          timelines={data.timelines}
+          activeTimelineId={data.activeTimelineId}
           onCancel={() => setPending(null)}
           onSubmit={(draft) => {
             setPending(null)
@@ -648,6 +770,8 @@ export function TimelineView(): React.JSX.Element {
       {pending?.kind === 'edit' && (
         <TimelineEventEditor
           initial={pending.event}
+          timelines={data.timelines}
+          activeTimelineId={data.activeTimelineId}
           onCancel={() => setPending(null)}
           onDelete={() => {
             const event = pending.event

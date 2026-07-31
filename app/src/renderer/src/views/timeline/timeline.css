@@ -205,3 +205,18 @@
   background: var(--nl-accent);
   opacity: 0.65;
 }
+
+/* One row of ticks: a project has a handful of timelines, not a list to scroll. */
+.timeline-event-timelines {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-md);
+}
+
+.timeline-event-timeline {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  font-size: var(--nl-font-body);
+  color: var(--nl-text);
+}

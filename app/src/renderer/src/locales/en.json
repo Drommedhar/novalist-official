@@ -1764,7 +1764,13 @@
     "eventCharacters": "Who was there",
     "eventLocations": "Where",
     "namesPlaceholder": "Names, separated by commas",
-    "spanBar": "How much of the story this covers"
+    "spanBar": "How much of the story this covers",
+    "timelines": "Timelines",
+    "allTimelines": "All timelines",
+    "addTimeline": "Add timeline",
+    "removeTimeline": "Remove this timeline",
+    "removeTimelineHint": "The events on it are kept and move back to the first timeline.",
+    "noEventsOnTimeline": "Nothing on this timeline yet. Add an event, or put an existing one on it from the event editor."
   },
   "export": {
     "header": "Export Novel",

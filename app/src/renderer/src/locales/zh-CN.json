@@ -1797,7 +1797,13 @@
     "eventCharacters": "在场的人",
     "eventLocations": "地点",
     "namesPlaceholder": "名称，以逗号分隔",
-    "spanBar": "这段占故事的多长"
+    "spanBar": "这段占故事的多长",
+    "timelines": "时间线",
+    "allTimelines": "全部时间线",
+    "addTimeline": "添加时间线",
+    "removeTimeline": "移除此时间线",
+    "removeTimelineHint": "其上的事件会保留，并回到第一条时间线。",
+    "noEventsOnTimeline": "这条时间线上还没有内容。添加一个事件，或在事件编辑器中把已有事件放到这里。"
   },
   "export": {
     "header": "导出小说",

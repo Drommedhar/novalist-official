@@ -368,4 +368,212 @@ public sealed class TimelineRpcTests : IDisposable
         Assert.Null(dto.SortEndDate);
     }
 
+
+    // ── More than one timeline ──
+
+    [Fact]
+    public async Task AProjectStartsWithOneTimelineShowingEverything()
+    {
+        var view = await _rpc.Get();
+
+        Assert.Single(view.Timelines);
+        Assert.Equal("main", view.Timelines[0].Id);
+        Assert.Equal(string.Empty, view.ActiveTimelineId);
+    }
+
+    [Fact]
+    public async Task ASecondTimelineSeparatesBackstoryFromTheManuscript()
+    {
+        // The complaint this fixes: a war three hundred years before chapter
+        // one sitting between two scenes of a Tuesday.
+        await _rpc.SaveEventAsync(null, "The war", "0100-01-01", "", "world", null);
+        var view = await _rpc.AddTimelineAsync("Backstory");
+        var backstory = view.Timelines[1].Id;
+
+        var war = FirstManual();
+        await _rpc.SaveEventAsync(war.Id, war.Title, war.Date, "", "world", null,
+            timelineIds: [backstory]);
+
+        // Showing the backstory: the war is there.
+        view = await _rpc.SetActiveTimelineAsync(backstory);
+        Assert.Equal(backstory, view.ActiveTimelineId);
+        Assert.Contains(AllEvents(view), e => e.Title == "The war");
+
+        // Showing the first timeline: it is not.
+        view = await _rpc.SetActiveTimelineAsync("main");
+        Assert.DoesNotContain(AllEvents(view), e => e.Title == "The war");
+
+        // Showing everything: it is back.
+        view = await _rpc.SetActiveTimelineAsync(null);
+        Assert.Equal(string.Empty, view.ActiveTimelineId);
+        Assert.Contains(AllEvents(view), e => e.Title == "The war");
+    }
+
+    [Fact]
+    public async Task AnEventNamingNoTimelineIsOnTheFirst()
+    {
+        // Everything written before there was more than one timeline names
+        // none, and none of it may disappear.
+        await _rpc.SaveEventAsync(null, "Chapter one", "2020-01-01", "", "plot", null);
+        await _rpc.AddTimelineAsync("Backstory");
+
+        var view = await _rpc.SetActiveTimelineAsync("main");
+
+        Assert.Contains(AllEvents(view), e => e.Title == "Chapter one");
+    }
+
+    [Fact]
+    public async Task AnEventWrittenWhileShowingOneTimelineLandsOnIt()
+    {
+        // Otherwise it would vanish the moment it was saved.
+        var view = await _rpc.AddTimelineAsync("Backstory");
+        var backstory = view.Timelines[1].Id;
+        await _rpc.SetActiveTimelineAsync(backstory);
+
+        await _rpc.SaveEventAsync(null, "The founding", "0050-01-01", "", "world", null);
+
+        Assert.Contains(AllEvents(await _rpc.Get()), e => e.Title == "The founding");
+        Assert.DoesNotContain(AllEvents(await _rpc.SetActiveTimelineAsync("main")),
+            e => e.Title == "The founding");
+    }
+
+    [Fact]
+    public async Task AnEventCanBeOnMoreThanOneTimelineAtOnce()
+    {
+        // A duel belongs to a character's life and to the world's history; two
+        // copies would be two things to keep in step.
+        var view = await _rpc.AddTimelineAsync("Backstory");
+        var backstory = view.Timelines[1].Id;
+        await _rpc.SaveEventAsync(null, "The duel", "0100-01-01", "", "plot", null);
+        var duel = FirstManual();
+
+        await _rpc.SaveEventAsync(duel.Id, duel.Title, duel.Date, "", "plot", null,
+            timelineIds: ["main", backstory]);
+
+        Assert.Contains(AllEvents(await _rpc.SetActiveTimelineAsync("main")),
+            e => e.Title == "The duel");
+        Assert.Contains(AllEvents(await _rpc.SetActiveTimelineAsync(backstory)),
+            e => e.Title == "The duel");
+    }
+
+    [Fact]
+    public async Task AnUnknownTimelineIdIsNotStoredOnAnEvent()
+    {
+        // It would put the event somewhere nothing can select, which is the
+        // same as losing it.
+        await _rpc.SaveEventAsync(null, "The duel", "0100-01-01", "", "plot", null);
+        var duel = FirstManual();
+
+        await _rpc.SaveEventAsync(duel.Id, duel.Title, duel.Date, "", "plot", null,
+            timelineIds: ["no-such-timeline"]);
+
+        Assert.Null(FirstManual().TimelineIds);
+        Assert.Contains(AllEvents(await _rpc.SetActiveTimelineAsync("main")),
+            e => e.Title == "The duel");
+    }
+
+    [Fact]
+    public async Task ATimelineCanBeRenamed()
+    {
+        var view = await _rpc.AddTimelineAsync("Backstor");
+        var id = view.Timelines[1].Id;
+
+        view = await _rpc.RenameTimelineAsync(id, "  Backstory  ");
+        Assert.Equal("Backstory", view.Timelines[1].Name);
+
+        // Nothing to rename, and nothing to rename it to, both change nothing.
+        view = await _rpc.RenameTimelineAsync("no-such-timeline", "X");
+        Assert.Equal("Backstory", view.Timelines[1].Name);
+        view = await _rpc.RenameTimelineAsync(id, "   ");
+        Assert.Equal("Backstory", view.Timelines[1].Name);
+    }
+
+    [Fact]
+    public async Task ANewTimelineWithNoNameStillHasOne()
+    {
+        var view = await _rpc.AddTimelineAsync("   ");
+
+        Assert.Equal("Timeline", view.Timelines[1].Name);
+    }
+
+    [Fact]
+    public async Task RemovingATimelineKeepsItsEvents()
+    {
+        // The container goes; the writer's events are not thrown away with it.
+        var view = await _rpc.AddTimelineAsync("Backstory");
+        var backstory = view.Timelines[1].Id;
+        await _rpc.SetActiveTimelineAsync(backstory);
+        await _rpc.SaveEventAsync(null, "The founding", "0050-01-01", "", "world", null);
+
+        view = await _rpc.DeleteTimelineAsync(backstory);
+
+        Assert.Single(view.Timelines);
+        // Back on the first timeline rather than gone.
+        Assert.Null(FirstManual().TimelineIds);
+        Assert.Equal(string.Empty, view.ActiveTimelineId);
+        Assert.Contains(AllEvents(await _rpc.SetActiveTimelineAsync("main")),
+            e => e.Title == "The founding");
+    }
+
+    [Fact]
+    public async Task TheFirstTimelineCannotBeRemoved()
+    {
+        // It is where everything unassigned lives; without it those events
+        // would have no home.
+        await _rpc.AddTimelineAsync("Backstory");
+
+        var view = await _rpc.DeleteTimelineAsync("main");
+
+        Assert.Equal(2, view.Timelines.Count);
+        Assert.Equal("main", view.Timelines[0].Id);
+    }
+
+    [Fact]
+    public async Task TheLastTimelineCannotBeRemovedEither()
+    {
+        var view = await _rpc.DeleteTimelineAsync("main");
+
+        Assert.Single(view.Timelines);
+    }
+
+    [Fact]
+    public async Task ShowingATimelineThatIsNotThereShowsAllOfThem()
+    {
+        await _rpc.AddTimelineAsync("Backstory");
+
+        var view = await _rpc.SetActiveTimelineAsync("no-such-timeline");
+
+        Assert.Equal(string.Empty, view.ActiveTimelineId);
+    }
+
+    private Novalist.Core.Models.TimelineManualEvent FirstManual()
+        => _workspace.Projects.ProjectSettings.Timeline.ManualEvents[0];
+
+    private static IEnumerable<TimelineEventDto> AllEvents(TimelineDto view)
+        => view.Groups.SelectMany(g => g.Events);
+
+    [Fact]
+    public async Task ABackstoryTimelineDoesNotShowTheWholeManuscript()
+    {
+        // The point of a second timeline. Showing all 122 scenes under it puts
+        // the war back among the Tuesdays, which is what it exists to stop.
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        chapter.Date = "2021-08-16";
+        await _workspace.Projects.SaveProjectAsync();
+
+        var view = await _rpc.AddTimelineAsync("Backstory");
+        var backstory = view.Timelines[1].Id;
+        await _rpc.SetActiveTimelineAsync(backstory);
+        await _rpc.SaveEventAsync(null, "The war", "0100-01-01", "", "world", null);
+
+        view = await _rpc.Get();
+        var titles = AllEvents(view).Select(e => e.Title).ToList();
+        Assert.Contains("The war", titles);
+        Assert.DoesNotContain("One", titles);
+
+        // The first timeline, and all of them, still carry the manuscript.
+        Assert.Contains("One", AllEvents(await _rpc.SetActiveTimelineAsync("main")).Select(e => e.Title));
+        Assert.Contains("One", AllEvents(await _rpc.SetActiveTimelineAsync(null)).Select(e => e.Title));
+    }
 }
+

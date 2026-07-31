@@ -17,6 +17,8 @@ export interface TimelineEventDraft {
   locations: string[]
   /** End of the span, or empty for something instantaneous. */
   endDate: string
+  /** Which timelines it sits on. Empty means the first one. */
+  timelineIds: string[]
 }
 
 /** Comma-separated names in and out, which is how the chips are stored. */
@@ -30,6 +32,10 @@ const CATEGORIES = ['plot', 'character', 'location', 'world', 'other']
 
 interface TimelineEventEditorProps {
   initial: TimelineEventDto | null
+  /** The project's timelines. One of them means there is nothing to choose. */
+  timelines: { id: string; name: string }[]
+  /** The timeline being shown, or empty for all of them. */
+  activeTimelineId: string
   onSubmit(draft: TimelineEventDraft): void
   onCancel(): void
   onDelete?(): void
@@ -37,6 +43,8 @@ interface TimelineEventEditorProps {
 
 export function TimelineEventEditor({
   initial,
+  timelines,
+  activeTimelineId,
   onSubmit,
   onCancel,
   onDelete
@@ -51,6 +59,16 @@ export function TimelineEventEditor({
   const [endDate, setEndDate] = useState(initial?.endDateStr ?? '')
   const [characters, setCharacters] = useState((initial?.characters ?? []).join(', '))
   const [locations, setLocations] = useState((initial?.locations ?? []).join(', '))
+  // A new event made while looking at one timeline belongs to it - that is
+  // what the host does with it, and the ticks have to say so rather than
+  // showing the first timeline and filing it somewhere else.
+  const [timelineIds, setTimelineIds] = useState<string[]>(
+    initial?.timelineIds?.length
+      ? initial.timelineIds
+      : initial === null && activeTimelineId !== ''
+        ? [activeTimelineId]
+        : []
+  )
   // The timeline prefixes a manual event's id to keep it apart from the
   // generated ones; the stored event knows itself by the bare id.
   const eventId =
@@ -66,7 +84,8 @@ export function TimelineEventEditor({
       linkedChapterGuid: linkedChapter || null,
       characters: split(characters),
       locations: split(locations),
-      endDate: endDate.trim()
+      endDate: endDate.trim(),
+      timelineIds
     })
   }
 
@@ -106,6 +125,38 @@ export function TimelineEventEditor({
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
         />
+        {/* An event can belong to a character's life and to the world's history
+            at once, so this is a set rather than a choice - two copies of one
+            event would be two things to keep in step. Only worth showing once
+            there is more than one timeline. */}
+        {timelines.length > 1 && (
+          <>
+            <span className="inspector-label">{t('timeline.timelines')}</span>
+            <div className="timeline-event-timelines">
+              {timelines.map((line, index) => (
+                <label key={line.id} className="timeline-event-timeline">
+                  <input
+                    type="checkbox"
+                    checked={
+                      timelineIds.length === 0 ? index === 0 : timelineIds.includes(line.id)
+                    }
+                    onChange={(e) => {
+                      // An empty set means the first timeline, so the first tick
+                      // starts from that rather than from nothing.
+                      const current = timelineIds.length === 0 ? [timelines[0].id] : timelineIds
+                      setTimelineIds(
+                        e.target.checked
+                          ? [...current, line.id]
+                          : current.filter((id) => id !== line.id)
+                      )
+                    }}
+                  />
+                  {line.name}
+                </label>
+              ))}
+            </div>
+          </>
+        )}
         {/* Who and where. The model has held both for a long time and only
             scene analysis ever wrote them, so backstory that never appears in
             a scene could not be attached to the people it defines. */}

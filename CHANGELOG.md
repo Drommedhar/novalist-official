@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **A project can have more than one timeline.** Everything dated shared a single stream, so a war three hundred years before chapter one sat between two scenes of a Tuesday and the shape of the book disappeared under the backstory. **Add timeline** in the Timeline toolbar makes another, and a dropdown switches between them or shows all at once. An event can sit on several timelines rather than being copied into each, events you add while looking at one land on it, and removing a timeline keeps its events — they move back to the first one. Your chapters and scenes belong to the first timeline, so a backstory timeline shows only what you put on it.
+
 - **An anthology's volumes can carry their own author.** A box set printed every volume under the project's single author, so a collection by six writers went out under one name. The Series view now has an author field per book, and it prints under that volume's heading in the export. Leave it empty and the book is by whoever wrote the project — repeating the same name over every volume of a series says nothing and reads as a mistake.
 
 - **Backup and draft-comparison tooling can be an extension.** Extensions can take, list, read and restore scene snapshots — the same ones your snapshots dialog shows, rather than a second history beside them — read a draft you do not currently have open, and enumerate and read the project's own files. Comparing two drafts was the single most obvious reason to keep a second one and the one thing no extension could do. Restoring a snapshot is refused while that scene is open with unsaved changes. Research items can also resolve where their file actually is on disk.

@@ -1365,7 +1365,13 @@
     "eventCharacters": "Wer dabei war",
     "eventLocations": "Wo",
     "namesPlaceholder": "Namen, durch Kommas getrennt",
-    "spanBar": "Wie viel der Geschichte das umfasst"
+    "spanBar": "Wie viel der Geschichte das umfasst",
+    "timelines": "Zeitstrahlen",
+    "allTimelines": "Alle Zeitstrahlen",
+    "addTimeline": "Zeitstrahl hinzufügen",
+    "removeTimeline": "Diesen Zeitstrahl entfernen",
+    "removeTimelineHint": "Die Ereignisse bleiben erhalten und wandern zurück zum ersten Zeitstrahl.",
+    "noEventsOnTimeline": "Auf diesem Zeitstrahl ist noch nichts. Füge ein Ereignis hinzu oder ordne im Ereignis-Editor ein vorhandenes zu."
   },
   "export": {
     "header": "Roman exportieren",

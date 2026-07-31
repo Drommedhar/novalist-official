@@ -31,6 +31,7 @@ Entries are grouped under headers according to the zoom level (for example `2024
 - **Character filter** — only show events that reference a specific character. The dropdown appears once at least one event references characters.
 - **Location filter** — same, for locations.
 - **Source filter** — limit to **Acts**, **Chapters**, **Scenes**, or **Events** (manual). Use this to hide the chapter rows when you only want your planned beats.
+- **Timelines** — which timeline you are looking at (see below). Appears once the project has more than one.
 - **Vertical / Horizontal** — toggles the layout direction. Vertical flows top-to-bottom for scrolling; horizontal lays groups left-to-right for a sense of pace.
 - **Zoom** — cycles the grouping granularity: **Year → Month → Day**.
 
@@ -43,6 +44,19 @@ To the right of the toolbar are controls for moving the visible window along the
 - **Previous / Next** — step the scroll position back or forward by one unit of the current zoom (a year, month, or day) and highlight the group you land on.
 - **Today** — jump to the group nearest today's date.
 - **Jump to date** — pick any date; the timeline scrolls to the matching group, or the nearest dated group when nothing sits in that exact bucket.
+
+## More than one timeline
+
+A project starts with one timeline and everything goes on it. That is fine until it isn't: a war three hundred years before chapter one ends up sitting between two scenes of a Tuesday, and the shape of the book disappears under the backstory.
+
+**Add timeline** in the toolbar makes a second one. Once there is more than one, a dropdown appears offering **All timelines** and each timeline by name.
+
+- Events you add while looking at one timeline are put on it, and the event editor shows that. Otherwise they would vanish the moment you saved them.
+- The event editor has a **Timelines** row of ticks. An event can be on **more than one** timeline — a duel belongs to a character's life and to the world's history at once, and keeping two copies in step is a job nobody wants.
+- Events that name no timeline are on the first one. Everything you wrote before the project had a second timeline is therefore exactly where it was.
+- Acts, chapters and scenes belong to the **first** timeline. They are the manuscript's own chronology, not something you filed anywhere, so a backstory timeline shows only what you put on it — otherwise the war is back among the Tuesdays and nothing has been separated. **All timelines** and the first timeline both show them.
+- **Rename** and **Remove** appear beside the dropdown while you are looking at a timeline other than the first.
+- Removing a timeline does **not** remove its events. They move back to the first timeline. The first timeline cannot be removed, because it is where everything unassigned lives.
 
 ## Reading order
 

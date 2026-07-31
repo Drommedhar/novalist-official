@@ -28,6 +28,13 @@ public sealed class TimelineRpc
 
         var events = new List<TimelineEventDto>();
         var seenActs = new HashSet<string>();
+        // Acts, chapters and scenes are the manuscript's own chronology, so they
+        // belong to the first timeline. Showing them under a backstory timeline
+        // as well would put the war back among the Tuesdays, which is the whole
+        // thing a second timeline exists to stop.
+        var manuscriptShown = string.IsNullOrEmpty(timeline.ActiveTimelineId)
+            || (timeline.Timelines.Count > 0
+                && timeline.Timelines[0].Id == timeline.ActiveTimelineId);
         // Names for the ids a scene's cast holds, so an event can say who is in
         // it rather than only which thread it belongs to.
         var readingIndex = 0;
@@ -48,7 +55,9 @@ public sealed class TimelineRpc
             .Where(r => r.Derived && r.Iso != null)
             .ToDictionary(r => r.SceneId, r => r.Iso!, StringComparer.Ordinal);
 
-        foreach (var chapter in book.Chapters.OrderBy(c => c.Order))
+        foreach (var chapter in manuscriptShown
+            ? book.Chapters.OrderBy(c => c.Order)
+            : Enumerable.Empty<ChapterData>())
         {
             if (!string.IsNullOrEmpty(chapter.Act) && seenActs.Add(chapter.Act))
             {
@@ -98,8 +107,13 @@ public sealed class TimelineRpc
             }
         }
 
+        var active = timeline.ActiveTimelineId;
         foreach (var manual in timeline.ManualEvents)
         {
+            // Empty means the first timeline, which is what every event written
+            // before there was more than one means. An empty active shows all.
+            if (!string.IsNullOrEmpty(active) && !OnTimeline(manual, timeline, active)) continue;
+
             events.Add(new TimelineEventDto(
                 $"manual-{manual.Id}", manual.Title, manual.Date, Iso(ParseDate(manual.Date)),
                 manual.Description, "manual", manual.CategoryId,
@@ -107,7 +121,8 @@ public sealed class TimelineRpc
                 string.IsNullOrEmpty(manual.LinkedSceneId) ? null : manual.LinkedSceneId,
                 double.MaxValue, manual.Characters.ToArray(), manual.Locations.ToArray(), true,
                 string.Empty, [], string.Empty, 0,
-                manual.EndDate, Iso(ParseDate(manual.EndDate))));
+                manual.EndDate, Iso(ParseDate(manual.EndDate)),
+                [.. manual.TimelineIds ?? []]));
         }
 
         // A book on its own calendar has dates no Gregorian parser can read,
@@ -124,7 +139,22 @@ public sealed class TimelineRpc
                 .Select(g => new TimelineGroupDto(g.Key, GroupLabel(g.Key, zoom), g.ToArray()))]
             : GroupByInWorldYear(events, custom);
 
-        return new TimelineDto(timeline.ViewMode, zoom, groups, await BuildEntityLinksAsync(events));
+        return new TimelineDto(
+            timeline.ViewMode, zoom, groups, await BuildEntityLinksAsync(events),
+            [.. timeline.Timelines.Select(l => new TimelineTrackDto(l.Id, l.Name))],
+            timeline.ActiveTimelineId);
+    }
+
+    /// <summary>
+    /// Whether an event belongs on a timeline. An event naming none is on the
+    /// first, so nothing written before timelines existed disappears.
+    /// </summary>
+    private static bool OnTimeline(TimelineManualEvent manual, TimelineData timeline, string timelineId)
+    {
+        var ids = manual.TimelineIds;
+        if (ids == null || ids.Count == 0)
+            return timeline.Timelines.Count > 0 && timeline.Timelines[0].Id == timelineId;
+        return ids.Contains(timelineId, StringComparer.Ordinal);
     }
 
     /// <summary>Resolves the character/location names carried by manual events to
@@ -172,7 +202,7 @@ public sealed class TimelineRpc
     public async Task<TimelineDto> SaveEventAsync(
         string? id, string title, string date, string description, string categoryId,
         string? linkedChapterGuid, string[]? characters = null, string[]? locations = null,
-        string? endDate = null)
+        string? endDate = null, string[]? timelineIds = null)
     {
         var timeline = _workspace.Projects.ProjectSettings.Timeline;
         var existing = id == null ? null : timeline.ManualEvents.FirstOrDefault(e => e.Id == id);
@@ -198,6 +228,90 @@ public sealed class TimelineRpc
                 .Select(l => l.Trim())
                 .Distinct(StringComparer.OrdinalIgnoreCase)];
         if (endDate != null) existing.EndDate = endDate.Trim();
+        if (timelineIds != null)
+        {
+            // Only ids the project actually has: a stale one would put the event
+            // on a timeline nothing can select, which is the same as losing it.
+            var known = timeline.Timelines.Select(l => l.Id).ToHashSet(StringComparer.Ordinal);
+            var kept = timelineIds.Where(known.Contains).Distinct(StringComparer.Ordinal).ToList();
+            existing.TimelineIds = kept.Count == 0 ? null : kept;
+        }
+        else if (existing.TimelineIds == null && !string.IsNullOrEmpty(timeline.ActiveTimelineId))
+        {
+            // Written while looking at one timeline: it belongs there, or it
+            // would vanish the moment it was saved.
+            existing.TimelineIds = [timeline.ActiveTimelineId];
+        }
+        await _workspace.Projects.SaveProjectSettingsAsync();
+        return await Get();
+    }
+
+    /// <summary>
+    /// Adds a timeline and returns the view. A project starts with one; a second
+    /// is what separates backstory from the manuscript's own dates.
+    /// </summary>
+    [JsonRpcMethod("timeline/addTimeline")]
+    public async Task<TimelineDto> AddTimelineAsync(string name)
+    {
+        var timeline = _workspace.Projects.ProjectSettings.Timeline;
+        timeline.Timelines.Add(new TimelineTrack
+        {
+            Id = $"tl-{Guid.NewGuid().ToString("N")[..8]}",
+            Name = string.IsNullOrWhiteSpace(name) ? "Timeline" : name.Trim()
+        });
+        await _workspace.Projects.SaveProjectSettingsAsync();
+        return await Get();
+    }
+
+    /// <summary>Renames a timeline. An unknown id changes nothing.</summary>
+    [JsonRpcMethod("timeline/renameTimeline")]
+    public async Task<TimelineDto> RenameTimelineAsync(string timelineId, string name)
+    {
+        var track = _workspace.Projects.ProjectSettings.Timeline.Timelines
+            .FirstOrDefault(l => l.Id == timelineId);
+        if (track != null && !string.IsNullOrWhiteSpace(name))
+        {
+            track.Name = name.Trim();
+            await _workspace.Projects.SaveProjectSettingsAsync();
+        }
+        return await Get();
+    }
+
+    /// <summary>
+    /// Removes a timeline. The first one cannot go: it is where everything
+    /// unassigned lives, and without it those events would have no home.
+    ///
+    /// Events are not deleted with it - one that named only this timeline falls
+    /// back to the first rather than being thrown away with the container.
+    /// </summary>
+    [JsonRpcMethod("timeline/deleteTimeline")]
+    public async Task<TimelineDto> DeleteTimelineAsync(string timelineId)
+    {
+        var timeline = _workspace.Projects.ProjectSettings.Timeline;
+        if (timeline.Timelines.Count < 2 || timeline.Timelines[0].Id == timelineId)
+            return await Get();
+
+        timeline.Timelines.RemoveAll(l => l.Id == timelineId);
+        foreach (var manual in timeline.ManualEvents)
+        {
+            if (manual.TimelineIds == null) continue;
+            manual.TimelineIds.RemoveAll(x => string.Equals(x, timelineId, StringComparison.Ordinal));
+            if (manual.TimelineIds.Count == 0) manual.TimelineIds = null;
+        }
+        if (timeline.ActiveTimelineId == timelineId) timeline.ActiveTimelineId = string.Empty;
+
+        await _workspace.Projects.SaveProjectSettingsAsync();
+        return await Get();
+    }
+
+    /// <summary>Shows one timeline, or all of them with an empty id.</summary>
+    [JsonRpcMethod("timeline/setActiveTimeline")]
+    public async Task<TimelineDto> SetActiveTimelineAsync(string? timelineId)
+    {
+        var timeline = _workspace.Projects.ProjectSettings.Timeline;
+        var id = timelineId ?? string.Empty;
+        timeline.ActiveTimelineId =
+            id.Length > 0 && timeline.Timelines.Any(l => l.Id == id) ? id : string.Empty;
         await _workspace.Projects.SaveProjectSettingsAsync();
         return await Get();
     }
@@ -314,7 +428,12 @@ public sealed record TimelineDto(
     string ViewMode,
     string ZoomLevel,
     IReadOnlyList<TimelineGroupDto> Groups,
-    IReadOnlyList<TimelineEntityLinkDto> EntityLinks);
+    IReadOnlyList<TimelineEntityLinkDto> EntityLinks,
+    IReadOnlyList<TimelineTrackDto> Timelines,
+    string ActiveTimelineId);
+
+/// <summary>One named timeline of the project.</summary>
+public sealed record TimelineTrackDto(string Id, string Name);
 
 /// <summary>A character/location name used on a manual event that resolves to
 /// exactly one Codex entity, so the renderer can link the chip to its article.
@@ -361,4 +480,8 @@ public sealed record TimelineEventDto(
     /// </summary>
     string EndDateStr = "",
     /// <summary>The end date sortable, or null when it cannot be read.</summary>
-    string? SortEndDate = null);
+    string? SortEndDate = null,
+    /// <summary>The timelines this event sits on. Empty means the first,
+    /// which is what every event written before there was more than one
+    /// timeline means.</summary>
+    IReadOnlyList<string>? TimelineIds = null);
