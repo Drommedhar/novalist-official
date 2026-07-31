@@ -97,6 +97,36 @@ public interface IExtensionStoryService
     Task<bool> SetScenePlotlinesAsync(
         string chapterGuid, string sceneId, IReadOnlyList<string> plotlineIds);
 
+    /// <summary>
+    /// The note on one plot-grid cell - the short "what this scene does for
+    /// this thread" line. Empty when there is none.
+    ///
+    /// The membership tick says a thread is present; the note says what it is
+    /// doing there, and it is the half a thread-coverage report actually needs
+    /// to say anything useful.
+    /// </summary>
+    string GetCellNote(string chapterGuid, string sceneId, string plotlineId);
+
+    /// <summary>
+    /// Sets a plot-grid cell note, or clears it with empty text. False when the
+    /// scene does not exist.
+    /// </summary>
+    Task<bool> SetCellNoteAsync(
+        string chapterGuid, string sceneId, string plotlineId, string note);
+
+    /// <summary>
+    /// The writer's saved lists - the standing questions they ask of their own
+    /// draft. An extension reporting on a book had no way to respect them, so
+    /// it could only ever report on all of it.
+    /// </summary>
+    IReadOnlyList<SmartListInfo> GetSmartLists();
+
+    /// <summary>
+    /// Maps in the active book, with their pins. Read-only: a map is a drawing,
+    /// and the drawing surface is the host's.
+    /// </summary>
+    Task<IReadOnlyList<MapInfo>> GetMapsAsync();
+
     /// <summary>Hand-entered timeline events, in the order they are stored.</summary>
     IReadOnlyList<TimelineEventInfo> GetTimelineEvents();
 
@@ -108,6 +138,54 @@ public interface IExtensionStoryService
 
     /// <summary>Deletes a timeline event. False when the id is unknown.</summary>
     Task<bool> DeleteTimelineEventAsync(string eventId);
+}
+
+/// <summary>One condition in a saved list.</summary>
+public sealed class SmartListRuleInfo
+{
+    /// <summary>The scene or chapter attribute the rule tests.</summary>
+    public string Field { get; init; } = string.Empty;
+
+    /// <summary>"Is", "Contains", "GreaterThan", "LessThan", "IsSet" or "IsNotSet".</summary>
+    public string Op { get; init; } = string.Empty;
+
+    public string Value { get; init; } = string.Empty;
+}
+
+/// <summary>A saved scene query the writer built.</summary>
+public sealed class SmartListInfo
+{
+    public string Id { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+
+    /// <summary>"All" when every rule must hold, "Any" when one is enough.</summary>
+    public string Match { get; init; } = string.Empty;
+
+    public IReadOnlyList<SmartListRuleInfo> Rules { get; init; } = [];
+}
+
+/// <summary>A pin on a map.</summary>
+public sealed class MapPinInfo
+{
+    public string Id { get; init; } = string.Empty;
+    public string Label { get; init; } = string.Empty;
+    public double X { get; init; }
+    public double Y { get; init; }
+
+    /// <summary>The Codex entry this pin stands for, or empty.</summary>
+    public string EntityId { get; init; } = string.Empty;
+    public string EntityType { get; init; } = string.Empty;
+
+    /// <summary>Another map this pin opens, or empty.</summary>
+    public string TargetMapId { get; init; } = string.Empty;
+}
+
+/// <summary>A map of the world, with what is marked on it.</summary>
+public sealed class MapInfo
+{
+    public string Id { get; init; } = string.Empty;
+    public string Name { get; init; } = string.Empty;
+    public IReadOnlyList<MapPinInfo> Pins { get; init; } = [];
 }
 
 /// <summary>What a chapter is, beyond the scenes in it.</summary>

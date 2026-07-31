@@ -1459,5 +1459,109 @@ public class HostServicesExtendedTests
         Assert.Equal("day 4", detail!.DateEnd);
         Assert.Equal(string.Empty, detail.DateStart);
     }
+
+    // ── Cell notes, saved lists, maps ──
+
+    [Fact]
+    public async Task APlotGridCellCarriesItsNote()
+    {
+        // The tick says a thread is present; the note says what it is doing
+        // there, which is the half a coverage report needs.
+        var (host, _, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var chapter = await host.ProjectService.CreateChapterAsync("One");
+        var scene = await host.ProjectService.CreateSceneAsync(chapter, "Arrival");
+        var thread = await host.StoryService.CreatePlotlineAsync("The crossing");
+
+        Assert.Equal(string.Empty, host.StoryService.GetCellNote(chapter, scene, thread));
+
+        Assert.True(await host.StoryService.SetCellNoteAsync(
+            chapter, scene, thread, "She sees the far bank."));
+        Assert.Equal("She sees the far bank.",
+            host.StoryService.GetCellNote(chapter, scene, thread));
+
+        Assert.True(await host.StoryService.SetCellNoteAsync(chapter, scene, thread, ""));
+        Assert.Equal(string.Empty, host.StoryService.GetCellNote(chapter, scene, thread));
+
+        Assert.False(await host.StoryService.SetCellNoteAsync(
+            chapter, "no-such-scene", thread, "x"));
+        Assert.Equal(string.Empty, host.StoryService.GetCellNote(chapter, "no-such-scene", thread));
+    }
+
+    [Fact]
+    public void SavedListsAreReadableWithTheRulesBehindThem()
+    {
+        var (host, proj, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        proj.CurrentProject!.SmartLists.Add(new SmartList
+        {
+            Id = "list-1",
+            Name = "Unfinished night scenes",
+            Match = SmartListMatch.Any,
+            Rules =
+            [
+                new SmartListRule { Field = "tag", Op = SmartListOperator.Contains, Value = "night" },
+                new SmartListRule { Field = "chapterStatus", Op = SmartListOperator.Is, Value = "Outline" }
+            ]
+        });
+
+        var lists = host.StoryService.GetSmartLists();
+
+        Assert.Single(lists);
+        Assert.Equal("Unfinished night scenes", lists[0].Name);
+        Assert.Equal("Any", lists[0].Match);
+        Assert.Equal(2, lists[0].Rules.Count);
+        Assert.Equal("tag", lists[0].Rules[0].Field);
+        Assert.Equal("Contains", lists[0].Rules[0].Op);
+        Assert.Equal("night", lists[0].Rules[0].Value);
+    }
+
+    [Fact]
+    public async Task MapsAreReadableWithTheirPins()
+    {
+        var (host, proj, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var maps = new MapService(proj, new FileService());
+        var map = await maps.CreateMapAsync("The North");
+        map.Pins.Add(new MapPin
+        {
+            Id = "pin-1",
+            Label = "Kelmar",
+            X = 0.25,
+            Y = 0.5,
+            EntityId = "loc-1",
+            EntityType = "location",
+            TargetMapId = "map-2"
+        });
+        await maps.SaveMapAsync(map);
+
+        var read = await host.StoryService.GetMapsAsync();
+
+        Assert.Single(read);
+        Assert.Equal("The North", read[0].Name);
+        Assert.Single(read[0].Pins);
+        Assert.Equal("Kelmar", read[0].Pins[0].Label);
+        Assert.Equal(0.25, read[0].Pins[0].X);
+        Assert.Equal("loc-1", read[0].Pins[0].EntityId);
+        Assert.Equal("location", read[0].Pins[0].EntityType);
+        Assert.Equal("map-2", read[0].Pins[0].TargetMapId);
+    }
+
+    [Fact]
+    public async Task AMapThatWillNotLoadCostsOnlyItself()
+    {
+        var (host, proj, _, dir) = BuildWithEditor();
+        using var _d = dir;
+        var maps = new MapService(proj, new FileService());
+        var good = await maps.CreateMapAsync("The North");
+        await maps.SaveMapAsync(good);
+        // A reference with no file behind it: the other maps still come back.
+        proj.ActiveBook!.Maps.Add(new MapReference { Id = "ghost", Name = "Missing" });
+
+        var read = await host.StoryService.GetMapsAsync();
+
+        Assert.Single(read);
+        Assert.Equal("The North", read[0].Name);
+    }
 }
 

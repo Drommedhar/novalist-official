@@ -716,6 +716,69 @@ public sealed partial class HostServices
         return true;
     }
 
+    string IExtensionStoryService.GetCellNote(string chapterGuid, string sceneId, string plotlineId)
+    {
+        var scene = FindScene(chapterGuid, sceneId);
+        return scene?.PlotlineNotes != null
+            && scene.PlotlineNotes.TryGetValue(plotlineId, out var note)
+            ? note
+            : string.Empty;
+    }
+
+    async Task<bool> IExtensionStoryService.SetCellNoteAsync(
+        string chapterGuid, string sceneId, string plotlineId, string note)
+    {
+        if (FindScene(chapterGuid, sceneId) == null) return false;
+        await new Core.Services.PlotlineService(_projectService)
+            .SetCellNoteAsync(chapterGuid, sceneId, plotlineId, note);
+        ProjectStructureChanged?.Invoke();
+        return true;
+    }
+
+    IReadOnlyList<SmartListInfo> IExtensionStoryService.GetSmartLists()
+        => [.. (_projectService.CurrentProject?.SmartLists ?? [])
+            .Select(list => new SmartListInfo
+            {
+                Id = list.Id,
+                Name = list.Name,
+                Match = list.Match.ToString(),
+                Rules = [.. (list.Rules ?? []).Select(rule => new SmartListRuleInfo
+                {
+                    Field = rule.Field,
+                    Op = rule.Op.ToString(),
+                    Value = rule.Value
+                })]
+            })];
+
+    async Task<IReadOnlyList<MapInfo>> IExtensionStoryService.GetMapsAsync()
+    {
+        var maps = new List<MapInfo>();
+        var service = new Core.Services.MapService(_projectService, _fileService);
+        foreach (var reference in _projectService.ActiveBook?.Maps ?? [])
+        {
+            // A map lives in its own file, and one that failed to load should
+            // cost the caller that map rather than all of them.
+            var map = await service.LoadMapAsync(reference.Id);
+            if (map == null) continue;
+            maps.Add(new MapInfo
+            {
+                Id = map.Id,
+                Name = map.Name,
+                Pins = [.. (map.Pins ?? []).Select(pin => new MapPinInfo
+                {
+                    Id = pin.Id,
+                    Label = pin.Label,
+                    X = pin.X,
+                    Y = pin.Y,
+                    EntityId = pin.EntityId ?? string.Empty,
+                    EntityType = pin.EntityType ?? string.Empty,
+                    TargetMapId = pin.TargetMapId ?? string.Empty
+                })]
+            });
+        }
+        return maps;
+    }
+
     IReadOnlyList<ActInfo> IExtensionStoryService.GetActs()
         => [.. _projectService.GetChaptersOrdered()
             .Where(c => !string.IsNullOrWhiteSpace(c.Act))

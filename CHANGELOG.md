@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Extensions can read the rest of your plan.** Plot-grid cell notes, your saved lists with the rules behind them, and your maps with their pins are now reachable, so an extension reporting on a book can respect a saved list rather than only ever covering all of it, and can say what a thread is doing in a scene rather than only that it is there. Cell notes can be written too; maps stay read-only.
+
 - **Extensions can read and write what a scene and a chapter are.** An extension could read a chapter's title and its order and nothing else, so no extension could group a report by act, colour it by status, or place a chapter in story time. Chapters now report status, act, in-world date and date range, description, word target, running word count and your own fields, and an extension can set a chapter's status and change a scene's metadata a field at a time without disturbing the fields it said nothing about.
 
 - **Extensions can create a project.** An importer bringing a book in from another program had no way to build the binder to put it in. It writes the project and tells you where; opening it stays your decision, so nothing can move you out of the book you are working in.
