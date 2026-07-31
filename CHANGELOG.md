@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Extensions can run code in the interface.** Until now an extension's interface was HTML in a sandboxed frame that could not touch the editor or the binder. An extension can now contribute a script that runs in Novalist itself: it can add commands to the palette, put items in the status bar, read and change the open scene, and call anything the app can. This is powerful and it is not sandboxed — an extension running here sees every keystroke in the editor, and the manual says so. Novalist names the extension when its script fails, refuses a script that lives outside its own extension folder, and refuses one written for a plugin API version it does not speak.
+
 - **Craft reference in the inspector.** Novalist's word lists were analysis stems shown to nobody — it could count filter words and could not help you find a better one. **Craft** now holds three things beside the scene you are writing: prompts for when the page is blank (including a set of moves for when you are stuck), a thesaurus of **specifics** rather than synonyms — the fear entry offers *a swallow that will not go down*, never the word *frightened* — and eight short pieces on point of view, stakes, scene shape, dialogue, description, revision, drafting and character. Prompts and thesaurus are in all three bundled languages; the articles are English for now and the panel says so.
 
 - **Generate land on a map.** Every coastline, river and terrain polygon had to be drawn by hand from a blank canvas — the part of mapmaking that stops a writer who is not an illustrator. **Generate land** puts a first island on the open map: coastline, high ground, woods, rivers running to the sea, and settlements placed on land and never stacked on each other. It arrives on a layer of its own named for its seed, underneath anything you drew, and everything it makes is an ordinary shape you can drag, reshape or delete. The same seed makes the same land, so a coastline you liked can be made again.
@@ -257,6 +259,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **Extension webviews no longer disappear when another extension loads.** Registering one extension's folder cleared every other extension's, so whichever registered last was the only one whose files could be found.
+
 - **Family relationships were upside down.** Novalist read a relationship row as what the entry is to the target rather than what the target is to the entry, so on a character whose row said "mother -> Amy" it concluded the character was Amy's mother. Every family was inverted: the kinship labels on the Relationships graph called a mother a daughter and a grandchild a grandparent. Rows read the right way round now.
 
 - **An extension's changes show up without clicking away and back.** When an extension wrote to the Codex or changed the shape of the project, it changed the files and nothing on screen: the entry kept showing its old values and the binder kept its old order until you navigated somewhere else and returned. The interface now reloads when an extension writes.

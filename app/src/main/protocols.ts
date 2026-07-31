@@ -28,10 +28,12 @@ export function registerProtocolHandlers(): void {
     projectRoot = root
   })
 
-  ipcMain.on(
+  ipcMain.handle(
     'novalist:register-ext-roots',
     (_event, roots: Record<string, string>) => {
-      extensionRoots.clear()
+      // Merged rather than replaced. Two callers register their own subset -
+      // the views and the renderer plugins - and clearing meant whichever ran
+      // second silently unregistered the other's extensions.
       for (const [id, root] of Object.entries(roots)) extensionRoots.set(id, root)
     }
   )

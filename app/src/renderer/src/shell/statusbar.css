@@ -382,3 +382,11 @@ button.status-ext-item:hover {
   color: var(--nl-text-subtle);
   font-size: var(--nl-font-caption);
 }
+
+/* Plugin items sit apart from Novalist's own, and carry their extension's
+   name in the tooltip: when one misbehaves you need to know which to turn off. */
+.status-plugin-item {
+  padding: 0 var(--nl-space-sm);
+  color: var(--nl-text-dim);
+  cursor: default;
+}

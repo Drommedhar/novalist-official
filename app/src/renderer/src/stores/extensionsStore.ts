@@ -157,11 +157,16 @@ export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
     set({ extensions, loaded: true })
     await get().refreshViews()
     await get().refreshContributions()
+    // Scripts an extension runs inside the interface. Loaded here rather than
+    // at startup only: an extension installed now should work now, and being
+    // told to restart is what makes an extension system feel like a build step.
+    const { reloadRendererPlugins } = await import('../shell/pluginHost')
+    await reloadRendererPlugins()
   },
 
   refreshViews: async () => {
     const views = await rpc.request<ExtensionWebView[]>('extensions/views')
-    window.novalist.registerExtensionRoots(
+    await window.novalist.registerExtensionRoots(
       Object.fromEntries(views.map((v) => [v.extensionId, v.folderPath]))
     )
     set({ views })

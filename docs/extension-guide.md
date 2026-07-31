@@ -246,6 +246,45 @@ Two folders, and the difference matters:
 
 Never put an API key in the project folder. Projects get committed and shared.
 
+## Running code in the interface
+
+Everything above runs in the core process. A **renderer plugin** runs in the interface itself — the same place the editor, the binder and the Codex live.
+
+Declare it in the manifest:
+
+```json
+{
+  "contributes": {
+    "renderer": [{ "entry": "plugin.js", "apiVersion": 1 }]
+  }
+}
+```
+
+The script is an ES module. Export `activate` (or a default function); it is called once with the API:
+
+```js
+export function activate(novalist) {
+  novalist.setStatusItem('words', 'ready')
+
+  novalist.registerCommand('tidy', 'Tidy this scene', async () => {
+    const scene = novalist.currentScene()
+    if (!scene) return
+    const html = await novalist.request('scenes/read', [scene.chapterGuid, scene.sceneId])
+    novalist.notify(`${html.length} characters`)
+  })
+
+  novalist.onSceneChanged((scene) => novalist.log('now in', scene?.sceneId ?? 'nothing'))
+}
+```
+
+**The API, version 1.** `request` (any backend method), `registerCommand`, `setStatusItem` / `removeStatusItem`, `notify`, `getView` / `setView`, `currentScene`, `onSceneChanged`, `log`. A manifest declaring an `apiVersion` the host does not implement is refused and the writer is told which extension and why — rather than loaded and left to fail somewhere less obvious.
+
+**Understand what this is.** A webview is sandboxed: it renders in a frame, talks over a message channel, and cannot touch anything the writer is looking at. A renderer plugin can. It sees every keystroke in the editor, and one that misbehaves produces bugs indistinguishable from Novalist's own. That is the deal, and the manual says it in those words to the writer as well.
+
+Two things are still enforced. The script must live **inside the extension's own folder** — a manifest cannot name a file elsewhere on the machine and have the interface run it. And it is imported as a real module over the extension protocol rather than evaluated from a string, so the interface never turns on `unsafe-eval`; a plugin gets to run its own code, not to make arbitrary strings executable for everything else.
+
+Failures are attributed. A script that throws, exports nothing callable, or is missing produces a message naming the extension.
+
 ## What the SDK will not let you do
 
 Being explicit about the ceiling saves you finding it the hard way:
@@ -263,7 +302,7 @@ foreach (var scene in host.ProjectService.GetScenesForChapter(chapterGuid))
 - **Erasing anything.** You can trash a chapter and archive a scene, both of which the writer can undo. Nothing in the SDK deletes a chapter, a scene or an entry for good.
 - **Merging or splitting scenes.** Create, rename, move, trash and archive are yours; merge and split are the host's.
 - **Replacing the Codex's own rules.** You can create entries and write their names, descriptions and sections. Match settings, AI inclusion, state overrides and per-context resolution stay host-owned, and entity extraction returns *proposals* the writer confirms.
-- **Drawing native UI.** All extension interface is HTML in a frame. There is no Avalonia or React surface to attach to.
+- **Drawing native UI from the core process.** Extension interface is HTML in a frame, or a renderer plugin (above). There is no Avalonia surface to attach to.
 - **Reaching the network from a web view.** The frame is sandboxed. Do network work in .NET.
 - **Deleting a book or a draft.** You can add and rename both. Nothing here erases one, for the same reason nothing erases a chapter.
 - **Modifying an export you were handed.** `IExportPostProcessor` gets a path so it can *read* the file and report on it. Rewriting an export the writer is about to send is the worst possible moment to be clever.

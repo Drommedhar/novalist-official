@@ -158,7 +158,7 @@ const novalist: Window['novalist'] = {
   endProjectAccess: (path: string) => {
     void hostCall('endProjectAccess', [path])
   },
-  registerExtensionRoots: () => {},
+  registerExtensionRoots: () => Promise.resolve(),
   // Store-delivered updates: no self-update on mobile.
   checkAppUpdate: async () => null,
   downloadAppUpdate: async () => '',

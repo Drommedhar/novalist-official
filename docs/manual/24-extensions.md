@@ -94,6 +94,8 @@ An extension can also **propose an edit** to your prose. It appears as a [sugges
 
 An extension can fill in a Codex entry as fully as you can: its fields, the properties you added yourself, and its relationships — with the far half of each relationship written onto the entry it names, the same way the Codex does it. Before this, an importer could bring a character across with their whole biography and not their hair colour.
 
+Some extensions run code **inside the interface** rather than in a panel of their own. An extension that does this can see and change anything you are looking at, including every keystroke in the editor, and one that misbehaves produces problems that look like Novalist's own rather than the extension's. Novalist names the extension when its script fails, and the Extensions view is where you turn one off. Install these the way you would install any program: from somebody you have reason to trust.
+
 Backup, comparison and version tooling can be an extension too: an extension can take, list, read and restore scene snapshots — the same ones the snapshots dialog shows, not a second history beside them — read a draft you do not have open so two drafts can be compared, and enumerate and read the project's files.
 
 An extension can create a whole new project — that is how an importer builds a binder from a file written elsewhere. It cannot open it, though: you are told where the project was written and you open it when you want to, so nothing can move you out of the book you are working in.

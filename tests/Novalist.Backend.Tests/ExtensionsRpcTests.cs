@@ -185,4 +185,102 @@ public sealed class ExtensionsRpcTests : IDisposable
         Assert.Equal("boom", seen);
         HostNotifications.Error = null;
     }
+
+    // ── Scripts an extension runs inside the interface ──
+
+    /// <summary>An extension folder with a renderer plugin declared in it.</summary>
+    private async Task<ExtensionsRpc> WithPluginAsync(
+        string entry, int apiVersion, string? script = "novalist.log('hello')")
+    {
+        var folder = Path.Combine(_root, "exts", "Plugin");
+        Directory.CreateDirectory(folder);
+        File.Copy(
+            Path.Combine(AppContext.BaseDirectory, "Novalist.Sdk.Example.dll"),
+            Path.Combine(folder, "Novalist.Sdk.Example.dll"), overwrite: true);
+        var manifest =
+            "{\"id\":\"com.novalist.plugin\",\"name\":\"Plugin\",\"version\":\"1.0.0\","
+            + "\"entryAssembly\":\"Novalist.Sdk.Example.dll\","
+            + "\"contributes\":{\"renderer\":[{\"entry\":\"" + entry.Replace("\\", "/")
+            + "\",\"apiVersion\":" + apiVersion + "}]}}";
+        File.WriteAllText(Path.Combine(folder, "extension.json"), manifest);
+        if (script != null)
+        {
+            var scriptPath = Path.Combine(folder, "plugin.js");
+            Directory.CreateDirectory(Path.GetDirectoryName(scriptPath)!);
+            File.WriteAllText(scriptPath, script);
+        }
+
+        _workspace.ExtensionsLoaderOverride = new ExtensionLoader(Path.Combine(_root, "exts"));
+        var rpc = new ExtensionsRpc(_workspace);
+        await rpc.LoadAsync();
+        return rpc;
+    }
+
+    [Fact]
+    public async Task ARendererPluginComesBackAsItsSource()
+    {
+        // Read here rather than fetched by the renderer: it has no filesystem,
+        // and a script that could be swapped between being listed and being run
+        // is one nobody could reason about.
+        var rpc = await WithPluginAsync("plugin.js", ExtensionsRpc.RendererPluginApiVersion);
+
+        var plugin = Assert.Single(rpc.RendererPlugins());
+        Assert.Null(plugin.Refused);
+        Assert.Contains("hello", plugin.Source);
+        Assert.Equal("com.novalist.plugin", plugin.ExtensionId);
+    }
+
+    [Fact]
+    public async Task APluginWrittenForAnotherApiVersionIsRefusedByName()
+    {
+        // Named rather than dropped: an extension that does nothing and says
+        // nothing is the hardest kind of broken to report.
+        var rpc = await WithPluginAsync("plugin.js", ExtensionsRpc.RendererPluginApiVersion + 1);
+
+        var plugin = Assert.Single(rpc.RendererPlugins());
+        Assert.NotNull(plugin.Refused);
+        Assert.Contains("plugin API", plugin.Refused);
+        Assert.Empty(plugin.Source);
+    }
+
+    [Fact]
+    public async Task APluginPointingOutsideItsOwnFolderIsRefused()
+    {
+        // Otherwise a manifest could name any file on the machine and have the
+        // interface run it.
+        var rpc = await WithPluginAsync("../../../outside.js",
+            ExtensionsRpc.RendererPluginApiVersion);
+
+        var plugin = Assert.Single(rpc.RendererPlugins());
+        Assert.NotNull(plugin.Refused);
+        Assert.Empty(plugin.Source);
+    }
+
+    [Fact]
+    public async Task APluginWhoseScriptIsMissingIsRefused()
+    {
+        var rpc = await WithPluginAsync("plugin.js",
+            ExtensionsRpc.RendererPluginApiVersion, script: null);
+
+        var plugin = Assert.Single(rpc.RendererPlugins());
+        Assert.NotNull(plugin.Refused);
+    }
+
+    [Fact]
+    public async Task AnExtensionThatDeclaresNoPluginContributesNone()
+    {
+        var extensionsDir = Path.Combine(_root, "exts", "Quiet");
+        Directory.CreateDirectory(extensionsDir);
+        File.Copy(
+            Path.Combine(AppContext.BaseDirectory, "Novalist.Sdk.Example.dll"),
+            Path.Combine(extensionsDir, "Novalist.Sdk.Example.dll"), overwrite: true);
+        File.WriteAllText(Path.Combine(extensionsDir, "extension.json"),
+            """{"id":"com.novalist.quiet","name":"Quiet","version":"1.0.0","entryAssembly":"Novalist.Sdk.Example.dll"}""");
+
+        _workspace.ExtensionsLoaderOverride = new ExtensionLoader(Path.Combine(_root, "exts"));
+        var rpc = new ExtensionsRpc(_workspace);
+        await rpc.LoadAsync();
+
+        Assert.Empty(rpc.RendererPlugins());
+    }
 }

@@ -98,6 +98,63 @@ public sealed class ExtensionsRpc
                 e.FolderPath)))
             .ToArray();
 
+    /// <summary>
+    /// The scripts extensions want to run inside the interface, as source.
+    ///
+    /// The path rather than the text: the interface imports it as a real module
+    /// over the extension protocol. Handing over source would mean evaluating a
+    /// string there, which needs unsafe-eval turned on for the whole interface -
+    /// a far bigger hole than the one a plugin itself opens.
+    ///
+    /// An API version the host does not implement is refused rather than
+    /// loaded and left to fail somewhere less obvious.
+    /// </summary>
+    [JsonRpcMethod("extensions/rendererPlugins")]
+    public RendererPluginDto[] RendererPlugins()
+    {
+        var plugins = new List<RendererPluginDto>();
+        foreach (var extension in _workspace.ExtensionsHost.Extensions)
+        {
+            if (!extension.IsEnabled || extension.Manifest.Contributes == null) continue;
+
+            foreach (var plugin in extension.Manifest.Contributes.Renderer)
+            {
+                if (plugin.ApiVersion != RendererPluginApiVersion)
+                {
+                    plugins.Add(new RendererPluginDto(
+                        extension.Manifest.Id, extension.Manifest.Name, plugin.ApiVersion,
+                        string.Empty,
+                        $"needs plugin API v{plugin.ApiVersion}; this Novalist speaks v{RendererPluginApiVersion}",
+                        extension.FolderPath));
+                    continue;
+                }
+
+                // The script has to live inside the extension's own folder. A
+                // relative path that climbs out would let a manifest name any
+                // file on the machine and have the interface run it.
+                var root = Path.GetFullPath(extension.FolderPath);
+                var full = Path.GetFullPath(Path.Combine(root, plugin.Entry ?? string.Empty));
+                if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !File.Exists(full))
+                {
+                    plugins.Add(new RendererPluginDto(
+                        extension.Manifest.Id, extension.Manifest.Name, plugin.ApiVersion,
+                        string.Empty, "its script is missing or outside the extension folder",
+                        extension.FolderPath));
+                    continue;
+                }
+
+                // Forward slashes: this becomes a URL path, not a filesystem one.
+                plugins.Add(new RendererPluginDto(
+                    extension.Manifest.Id, extension.Manifest.Name, plugin.ApiVersion,
+                    plugin.Entry.Replace('\\', '/'), null, extension.FolderPath));
+            }
+        }
+        return [.. plugins];
+    }
+
+    /// <summary>The plugin API this Novalist implements.</summary>
+    public const int RendererPluginApiVersion = 1;
+
     [JsonRpcMethod("extensions/webviewMessage")]
     public async Task<string?> WebviewMessageAsync(string extensionId, string viewKey, string json)
     {
@@ -203,3 +260,21 @@ public sealed record WebViewInfoDto(
     string Placement,
     string Entry,
     string FolderPath);
+
+/// <summary>
+/// One script an extension wants to run inside the interface.
+/// </summary>
+/// <param name="Entry">
+/// The script's path inside the extension folder, or empty when it cannot be
+/// run. The interface turns this into a module URL.
+/// </param>
+/// <param name="Refused">
+/// Why it will not be run, or null when it will. Named rather than dropped
+/// silently: an extension that does nothing and says nothing is the hardest
+/// kind of broken to report.
+/// </param>
+public sealed record RendererPluginDto(
+    string ExtensionId, string ExtensionName, int ApiVersion, string Entry, string? Refused,
+    /// <summary>Where the extension lives, so the interface can register the
+    /// root its module URL resolves against.</summary>
+    string FolderPath = "");

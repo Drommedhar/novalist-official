@@ -8,6 +8,7 @@ import { useProjectStore } from '../stores/projectStore'
 import { elapsedSeconds, formatDuration, sprintWords, useSprintStore } from '../stores/sprintStore'
 import { SprintPanel } from './SprintPanel'
 import { useSettingsStore } from '../stores/settingsStore'
+import { onPluginContributionsChanged, pluginStatusItems } from './pluginHost'
 import './statusbar.css'
 
 // Whole-project figures the status bar surfaces (goal progress + the overview
@@ -246,6 +247,14 @@ function computeStats(plainText: string, language: string): EditorStats {
 }
 
 export function StatusBar(): React.JSX.Element {
+  // Plugins add and remove these at any time, so the bar listens rather than
+  // reading once.
+  const [pluginItems, setPluginItems] = useState([...pluginStatusItems()])
+  useEffect(
+    () => onPluginContributionsChanged(() => setPluginItems([...pluginStatusItems()])),
+    []
+  )
+
   const { t } = useTranslation()
   const backendVersion = useShellStore((s) => s.backendVersion)
   const setMainView = useShellStore((s) => s.setMainView)
@@ -584,6 +593,18 @@ export function StatusBar(): React.JSX.Element {
           <span className="status-backend-dot" aria-hidden />
         </span>
       </span>
+      {/* Whatever plugins put here, each carrying the name of whoever added
+          it: when one misbehaves the writer needs to know which to turn off. */}
+      {pluginItems.map((item) => (
+        <span
+          key={`${item.extensionId}:${item.id}`}
+          className="status-plugin-item"
+          title={item.tooltip ?? item.extensionId}
+          onClick={item.onClick}
+        >
+          {item.text}
+        </span>
+      ))}
       {sprintOpen && <SprintPanel onClose={() => setSprintOpen(false)} />}
     </footer>
   )

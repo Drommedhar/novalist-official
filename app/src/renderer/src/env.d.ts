@@ -21,6 +21,11 @@ interface Window {
     settings: typeof import('./stores/settingsStore').useSettingsStore
   }
   novalistRpc: import('./rpc/client').RpcClient
+  novalistPlugins?: {
+    commands: () => readonly { extensionId: string; id: string; title: string }[]
+    statusItems: () => readonly { extensionId: string; id: string; text: string }[]
+    reload: () => Promise<void>
+  }
   novalist: {
     material: 'glass' | 'vibrancy' | 'opaque'
     platform: NodeJS.Platform
@@ -69,7 +74,7 @@ interface Window {
     setProjectRoot(root: string | null): void
     beginProjectAccess(path: string): Promise<boolean>
     endProjectAccess(path: string): void
-    registerExtensionRoots(roots: Record<string, string>): void
+    registerExtensionRoots(roots: Record<string, string>): Promise<void>
     checkAppUpdate(): Promise<AppUpdate | null>
     downloadAppUpdate(info: AppUpdate): Promise<string>
     updatesChecked(): void

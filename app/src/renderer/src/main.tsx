@@ -20,6 +20,15 @@ window.novalistStores = {
   settings: useSettingsStore
 }
 window.novalistRpc = rpc
+// Same reason the stores are here: an end-to-end test drives the real app, and
+// what a plugin contributed is otherwise only visible as pixels.
+void import('./shell/pluginHost').then((host) => {
+  window.novalistPlugins = {
+    commands: host.pluginCommands,
+    statusItems: host.pluginStatusItems,
+    reload: host.reloadRendererPlugins
+  }
+})
 
 const root = document.documentElement
 root.dataset.material = window.novalist.material

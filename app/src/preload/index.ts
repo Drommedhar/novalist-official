@@ -130,8 +130,10 @@ contextBridge.exposeInMainWorld('novalist', {
   endProjectAccess(path: string): void {
     ipcRenderer.send('novalist:end-project-access', path)
   },
-  registerExtensionRoots(roots: Record<string, string>): void {
-    ipcRenderer.send('novalist:register-ext-roots', roots)
+  registerExtensionRoots(roots: Record<string, string>): Promise<void> {
+    // Awaitable rather than fired and forgotten: a plugin module URL resolves
+    // against these, and an import that overtook the message got a 404.
+    return ipcRenderer.invoke('novalist:register-ext-roots', roots)
   },
   // App self-update (ported download-and-run-installer flow).
   checkAppUpdate(): Promise<unknown> {

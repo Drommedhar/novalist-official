@@ -146,6 +146,13 @@ export function AppShell(): React.JSX.Element {
     void rpc
       .connect()
       .then(hydrate)
+      // Extension scripts that run inside the interface. After connecting, not
+      // at module load: this makes the first request of the session, and at
+      // import time there is no connection for it to make it on.
+      .then(async () => {
+        const { loadRendererPlugins } = await import('./pluginHost')
+        await loadRendererPlugins()
+      })
       .then(() => (window.novalist.autoUpdate ? runUpdateCheck(false) : undefined))
       .then(async () => {
         // A novalist:// link that started the app has been waiting since before

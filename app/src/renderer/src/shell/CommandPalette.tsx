@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { HotkeyAction } from './hotkeys'
+import { onPluginContributionsChanged, pluginCommands } from './pluginHost'
 
 interface CommandPaletteProps {
   actions: HotkeyAction[]
@@ -15,15 +16,34 @@ export function CommandPalette({ actions, onClose }: CommandPaletteProps): React
 
   useEffect(() => inputRef.current?.focus(), [])
 
+  // Commands extensions added, alongside Novalist's own. A plugin command that
+  // could not be reached from here would be a command nobody could run.
+  const [plugins, setPlugins] = useState([...pluginCommands()])
+  useEffect(() => onPluginContributionsChanged(() => setPlugins([...pluginCommands()])), [])
+
+  const all = useMemo<HotkeyAction[]>(
+    () => [
+      ...actions,
+      ...plugins.map((command) => ({
+        actionId: `${command.extensionId}:${command.id}`,
+        // Already the extension's own words, so it is passed through rather
+        // than looked up - a locale key would never resolve.
+        labelKey: command.title,
+        run: command.run
+      })) as HotkeyAction[]
+    ],
+    [actions, plugins]
+  )
+
   const filtered = useMemo(() => {
     const lower = query.toLowerCase()
-    return actions.filter(
+    return all.filter(
       (action) =>
         lower.length === 0 ||
         t(action.labelKey).toLowerCase().includes(lower) ||
         action.actionId.toLowerCase().includes(lower)
     )
-  }, [actions, query, t])
+  }, [all, query, t])
 
   const run = (action: HotkeyAction): void => {
     onClose()
