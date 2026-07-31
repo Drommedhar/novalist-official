@@ -3293,5 +3293,8 @@
     "cousin_other": "Cousin/Cousine {{count}}. Grades",
     "cousinRemoved": "Cousin/Cousine, {{removed}}x entfernt",
     "cousinRemoved_other": "Cousin/Cousine {{count}}. Grades, {{removed}}x entfernt"
+  },
+  "typePacks": {
+    "startFrom": "Aus einer Vorlage starten"
   }
 }

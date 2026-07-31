@@ -266,6 +266,14 @@ Beyond the four built-ins you can define your own types: Factions, Spells, Vehic
 
 Click **Manage types** in the tab strip:
 
+### Start from a pack
+
+Under **Start from a pack** are five shipped starting points — **Species**, **Magic system**, **Faction**, **Language** and **Religion**. Clicking one fills the builder in with a field list and then gets out of the way: nothing is created until you confirm, and every field is yours to rename, reorder or throw out first. A magic system that runs on debt rather than on energy needs different questions to the one shipped here.
+
+Every packed field carries the question it is for, and that question stays on the entry rather than vanishing after creation. A field labelled "Cost" answers nothing on its own; *"What does using it take out of the user, and who pays if they cannot?"* is what makes it worth filling in. The one worth reading twice is Magic system → **Limits**: *"What can it not do?"* is the field that keeps an ending earned.
+
+### Building one by hand
+
 1. Click **New Entity Type**.
 2. Enter a **Display Name** (e.g. "Faction") and optionally a **Plural Name** ("Factions" — auto-generated if empty).
 3. Define its **Fields** — each has a name, a type (String, Int, Bool, Date, Enum, Timespan, or EntityRef — a link to another entity), an optional default value, for Enum a comma-separated option list, for **EntityRef** a target-type picker choosing which entity type it links to, and a **Required** flag.

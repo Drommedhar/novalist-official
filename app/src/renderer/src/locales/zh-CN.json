@@ -3325,5 +3325,8 @@
     "cousin_other": "{{count}} 从堂表亲",
     "cousinRemoved": "堂表亲，隔 {{removed}} 代",
     "cousinRemoved_other": "{{count}} 从堂表亲，隔 {{removed}} 代"
+  },
+  "typePacks": {
+    "startFrom": "从模板开始"
   }
 }

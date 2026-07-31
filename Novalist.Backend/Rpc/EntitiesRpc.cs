@@ -26,6 +26,28 @@ public sealed class EntitiesRpc
     public CustomEntityTypeDefinition[] GetCustomTypes() =>
         _entities.GetCustomEntityTypes().ToArray();
 
+    /// <summary>
+    /// Starting points for the entity types a worldbuilder ends up needing.
+    ///
+    /// The type builder is an empty form, so everybody who wants species, a
+    /// magic system, factions or a language rebuilds the same field list by
+    /// hand and rebuilds it differently every time. A pack fills the form in
+    /// and then gets out of the way - nothing is created until the writer
+    /// saves, and the fields are theirs to change first.
+    /// </summary>
+    [JsonRpcMethod("entities/typePacks")]
+    public CustomTypeSpecDto[] TypePacks()
+        => [.. GenreTypePacks.All.Select(pack => new CustomTypeSpecDto(
+            pack.TypeKey,
+            pack.DisplayName,
+            pack.DisplayNamePlural,
+            [.. pack.DefaultFields.Select(f => new CustomFieldSpecDto(
+                f.Key, f.DisplayName, f.Type.ToString(), f.DefaultValue, f.EnumOptions?.ToArray(),
+                f.Required, f.Prompt))],
+            pack.Features.IncludeImages,
+            pack.Features.IncludeRelationships,
+            pack.Features.IncludeSections))];
+
     [JsonRpcMethod("entities/saveCustomType")]
     public async Task<CustomEntityTypeDefinition[]> SaveCustomTypeAsync(CustomTypeSpecDto spec)
     {

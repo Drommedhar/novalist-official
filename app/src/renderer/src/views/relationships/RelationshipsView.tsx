@@ -99,27 +99,42 @@ export function RelationshipsView(): React.JSX.Element {
       setKinship({})
       return
     }
+    // Recentring quickly puts two of these in flight too, and the answers are
+    // about different people.
+    let current = true
     void rpc
       .request<KinshipRow[]>('relationships/kinship', [parentMap(allNodes), rootId])
       .then((rows) => {
+        if (!current) return
         const next: Record<string, string> = {}
         for (const row of rows) next[row.entityId] = kinshipLabel(t, row)
         setKinship(next)
       })
-      .catch(() => setKinship({}))
+      .catch(() => current && setKinship({}))
+    return () => {
+      current = false
+    }
   }, [rootId, allNodes, t])
 
   useEffect(() => {
     if (mainView !== 'relationships') return
+    // Centring on somebody and then widening the reach puts two fetches in
+    // flight. Without this the older one can land last and win, so the graph
+    // snaps back to the narrower view it was already leaving.
+    let current = true
     void rpc
       .request<GraphCharacter[]>('relationships/graph', [rootId, depth, withScenes])
       .then((all) => {
+        if (!current) return
         typeOf.current = new Map(all.map((n) => [n.id, n.entityType]))
         chapterOf.current = new Map(
           all.filter((n) => n.chapterGuid).map((n) => [n.id, n.chapterGuid!])
         )
         setCharacters(all)
       })
+    return () => {
+      current = false
+    }
   }, [mainView, rootId, depth, withScenes])
 
   // Every entry, only to fill the "centre on" picker: the graph itself may be

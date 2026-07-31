@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pencil, Plus, Trash2, X } from 'lucide-react'
 import { rpc } from '../../rpc/client'
@@ -41,6 +41,25 @@ interface FieldRow {
   prompt: string
 }
 
+/** One shipped pack, in the shape the save call already takes. */
+interface TypePackDto {
+  typeKey: string | null
+  displayName: string
+  displayNamePlural: string | null
+  fields: {
+    key: string | null
+    displayName: string
+    type: string
+    defaultValue: string | null
+    enumOptions: string[] | null
+    required: boolean
+    prompt: string | null
+  }[] | null
+  includeImages: boolean
+  includeRelationships: boolean
+  includeSections: boolean
+}
+
 interface FormState {
   typeKey: string | null
   displayName: string
@@ -72,6 +91,20 @@ export function CustomTypeManager({
 }): React.JSX.Element {
   const { t } = useTranslation()
   const [form, setForm] = useState<FormState | null>(null)
+  /**
+   * Shipped starting points, asked for rather than copied here.
+   *
+   * A list in the renderer would drift from the packs that actually ship, and
+   * the picker would offer one that is not there.
+   */
+  const [packs, setPacks] = useState<TypePackDto[]>([])
+
+  useEffect(() => {
+    void rpc
+      .request<TypePackDto[]>('entities/typePacks')
+      .then(setPacks)
+      .catch(() => setPacks([]))
+  }, [])
   const [deleting, setDeleting] = useState<CustomTypeDefinition | null>(null)
 
   const patchField = (index: number, patch: Partial<FieldRow>): void => {
@@ -186,6 +219,43 @@ export function CustomTypeManager({
               ))}
               {types.length === 0 && <p className="codex-empty">{t('codexHub.emptyHint')}</p>}
             </div>
+            {/* A pack fills the form in and gets out of the way. Everybody who
+                wants species or a magic system rebuilds the same field list by
+                hand otherwise, and rebuilds it differently every project. */}
+            {packs.length > 0 && (
+              <div className="type-pack-row">
+                <span className="export-field-label">{t('typePacks.startFrom')}</span>
+                <div className="type-pack-buttons">
+                  {packs.map((pack) => (
+                    <button
+                      key={pack.typeKey ?? pack.displayName}
+                      className="dialog-button type-pack"
+                      onClick={() =>
+                        setForm({
+                          typeKey: null,
+                          displayName: pack.displayName,
+                          displayNamePlural: pack.displayNamePlural ?? '',
+                          fields: (pack.fields ?? []).map((f) => ({
+                            key: f.key ?? '',
+                            displayName: f.displayName,
+                            type: f.type,
+                            defaultValue: f.defaultValue ?? '',
+                            enumOptionsText: (f.enumOptions ?? []).join(', '),
+                            required: f.required,
+                            prompt: f.prompt ?? ''
+                          })),
+                          includeImages: pack.includeImages,
+                          includeRelationships: pack.includeRelationships,
+                          includeSections: pack.includeSections
+                        })
+                      }
+                    >
+                      {pack.displayName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <div className="dialog-actions">
               <button className="dialog-button primary" onClick={() => setForm(EMPTY_FORM)}>
                 <Plus size={13} strokeWidth={2} /> {t('entityPanel.newEntityType')}

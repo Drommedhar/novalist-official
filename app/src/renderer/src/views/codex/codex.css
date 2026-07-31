@@ -168,3 +168,20 @@
   border-color: var(--nl-accent);
   color: var(--nl-accent);
 }
+
+/* Shipped starting points for a type, above the blank-form button: the field
+   list is the part nobody wants to invent twice. */
+.type-pack-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  margin-top: var(--nl-space-md);
+  padding-top: var(--nl-space-sm);
+  border-top: 1px solid var(--nl-border-subtle);
+}
+
+.type-pack-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tightest);
+}

@@ -614,5 +614,10 @@ public sealed class CustomEntityTypeInfo
     public string TypeKey { get; init; } = string.Empty;
     public string DisplayName { get; init; } = string.Empty;
     public string DisplayNamePlural { get; init; } = string.Empty;
-    public string Icon { get; init; } = "📋";
+    /// <summary>
+    /// Optional icon name. Empty by default: the icon system is SVG
+    /// paths and lucide names, and a pictograph here was the only
+    /// emoji in the entity model.
+    /// </summary>
+    public string Icon { get; init; } = string.Empty;
 }

@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Starting points for the entity types a world needs.** The custom type builder was an empty form, so everybody who wanted species, a magic system, factions or a language rebuilt the same field list by hand — and rebuilt it differently in every project. **Manage types** now offers five shipped packs: Species, Magic system, Faction, Language and Religion. A pack fills the builder in and gets out of the way; nothing is created until you confirm, and every field is yours to change first. Each field carries the question it is for, and that question stays on the entry instead of vanishing after creation.
+
 - **The graph says how two people are related.** Novalist stored a tie as a role and a target — "mother", "Mira" — and could always draw the lines; nothing could say what they added up to. Centre the Relationships graph on somebody and every other node now carries what that person is to them: sibling, grandparent, great-aunt or uncle, second cousin once removed. You record parents once instead of recording every pair. Half-siblings who are also distant cousins read as siblings, because the nearest shared ancestor wins.
 
 - **How thick the book will be.** The project overview popover now carries an estimated page count, per chapter and for the whole book. Novalist could only answer this exactly, and only through the Normseiten export preset — which is the right answer for a German submission and the wrong one for "how long is the paperback". Set **words to a printed page** per project in Settings: about 250 for a trade paperback, nearer 300 for mass-market, about 150 for large print. The popover says which figure it used, because a number with no stated assumption behind it is worse than no number.
@@ -205,6 +207,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **The Relationships graph no longer snaps back when you change the reach.** Centring on somebody and then widening the hops put two requests in flight, and the older answer could arrive last and win — so the graph returned to the narrower view it was already leaving. Late answers are now discarded.
+
 - **Relationships typed on a place, an item or a piece of lore are saved.** Novalist wrote the other half of a relationship whatever the two ends were — a sword owned by a character appearing as "owns" on the character — but only characters ever reached that code. Saving a tie on any other kind of entry went looking for a character with that entry's id, found none, and failed silently, so the row was lost the moment it was typed and the reciprocal was never written.
 
 - **A relationship row no longer loses what you just typed.** Filling in the role and moving to the target saved the row as it stood a moment earlier, and the reply from that save landed on top of the target field while it was being typed. The target ended up empty on every entry type, characters included. Fields are now left alone while you are in them.

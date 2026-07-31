@@ -241,6 +241,29 @@ public sealed class EntitiesRpcTests : IDisposable
         }
     }
 
+    // The builder is an empty form, so everybody who wants species or a magic
+    // system rebuilds the same field list by hand. A pack fills the form in and
+    // creates nothing until the writer saves.
+    [Fact]
+    public async Task TypePacks_FillTheBuilderAndSaveLikeAnyOtherType()
+    {
+        var packs = _rpc.TypePacks();
+
+        var magic = Assert.Single(packs, p => p.TypeKey == "magic_system");
+        Assert.NotNull(magic.Fields);
+        Assert.Contains(magic.Fields!, f => f.DisplayName == "Limits");
+        Assert.All(magic.Fields!, f => Assert.False(string.IsNullOrWhiteSpace(f.Prompt)));
+
+        // Listing a pack creates nothing.
+        Assert.Empty(_rpc.GetCustomTypes());
+
+        // And a pack goes through the same save as a hand-built type, prompts
+        // and all.
+        var saved = await _rpc.SaveCustomTypeAsync(magic);
+        var created = Assert.Single(saved, ty => ty.DisplayName == "Magic system");
+        Assert.Contains(created.DefaultFields, f => f.DisplayName == "Limits" && f.Prompt.Length > 0);
+    }
+
     [Fact]
     public async Task SaveCustomType_GeneratesKeyPluralAndFields()
     {

@@ -3285,5 +3285,8 @@
     "cousin_other": "cousin {{count}}",
     "cousinRemoved": "first cousin, {{removed}}x removed",
     "cousinRemoved_other": "cousin {{count}}, {{removed}}x removed"
+  },
+  "typePacks": {
+    "startFrom": "Start from a pack"
   }
 }

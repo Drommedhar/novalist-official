@@ -23,7 +23,12 @@ public class CustomEntityTypeDefinition
     public string DisplayNamePlural { get; set; } = string.Empty;
 
     [JsonPropertyName("icon")]
-    public string Icon { get; set; } = "📋";
+    /// <summary>
+    /// Optional icon name. Empty by default: the icon system is SVG
+    /// paths and lucide names, and a pictograph here was the only
+    /// emoji in the entity model.
+    /// </summary>
+    public string Icon { get; set; } = string.Empty;
 
     /// <summary>
     /// Folder name within the book/world-bible directory for storing entities of this type.
