@@ -200,6 +200,47 @@ public sealed class WikiRpc
         return new WikiRegenerateResultDto(result.Summary, null, generatedAt);
     }
 
+    /// <summary>
+    /// Writes one section of a Codex entry rather than the whole summary.
+    ///
+    /// The Wiki summary is regenerated whole or not at all, which is the wrong
+    /// unit for the way an entry actually gets filled in: the writer is happy
+    /// with the history and wants another go at the appearance. Sections have
+    /// been ordered, titled blocks in the data model all along - the title is
+    /// the writer's own words and the best statement there is of what belongs
+    /// in it.
+    ///
+    /// Returns the prose without writing it. Generated text is wrong a fair
+    /// amount of the time, and a section overwritten in place is found out
+    /// about later, by which point the thing it replaced is gone.
+    /// </summary>
+    [JsonRpcMethod("entities/generateSection")]
+    public async Task<WikiRegenerateResultDto?> GenerateSectionAsync(
+        string type, string id, string sectionTitle, string currentContent,
+        CancellationToken cancellationToken)
+    {
+        var host = _workspace.ExtensionHostOrNull;
+        if (host == null || !host.IsArticleGeneratorAvailable) return null;
+        if (string.IsNullOrWhiteSpace(sectionTitle)) return null;
+
+        var (core, _, dossier) = await BuildCoreAndDossierAsync(type, id);
+        var result = (await host.GenerateArticleAsync(
+            new ArticleGenerationRequest
+            {
+                TypeKey = core.TypeKey,
+                EntityId = core.Id,
+                EntityName = core.Title,
+                Context = dossier,
+                SectionTitle = sectionTitle,
+                SectionContent = currentContent ?? string.Empty,
+            },
+            cancellationToken))!;
+
+        return string.IsNullOrEmpty(result.Error)
+            ? new WikiRegenerateResultDto(result.Summary, null, null)
+            : new WikiRegenerateResultDto(null, result.Error, null);
+    }
+
     /// <summary>Loads and builds just what the AI generator needs: the entity
     /// core, its ordered appearances, and the plain-text dossier prompt context.</summary>
     private async Task<(ArticleCore Core, WikiAppearanceDto[] Appearances, string Dossier)>

@@ -924,7 +924,9 @@
     "tieKindrival": "对手",
     "tieKindmember": "隔属于",
     "tieKindowner": "拥有",
-    "tieKindplace": "地点"
+    "tieKindplace": "地点",
+    "generateSection": "让模型撰写此章节",
+    "rerollSection": "重新撰写此章节"
   },
   "context": {
     "title": "NOVALIST 上下文",

@@ -767,7 +767,9 @@
     "tieKindrival": "Rivale",
     "tieKindmember": "Mitglied von",
     "tieKindowner": "Besitzer von",
-    "tieKindplace": "Ort"
+    "tieKindplace": "Ort",
+    "generateSection": "Diesen Abschnitt vom Modell schreiben lassen",
+    "rerollSection": "Diesen Abschnitt neu schreiben lassen"
   },
   "context": {
     "title": "NOVALIST KONTEXT",

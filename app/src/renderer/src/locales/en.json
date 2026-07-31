@@ -891,7 +891,9 @@
     "tieKindrival": "Rival",
     "tieKindmember": "Member of",
     "tieKindowner": "Owner of",
-    "tieKindplace": "Place"
+    "tieKindplace": "Place",
+    "generateSection": "Write this section with the model",
+    "rerollSection": "Write this section again"
   },
   "context": {
     "title": "NOVALIST CONTEXT",

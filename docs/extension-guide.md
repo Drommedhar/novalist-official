@@ -183,7 +183,7 @@ Implement any of these alongside `IExtension`; the host finds them by type.
 | `IEntityTypeContributor` | A custom Codex entity type |
 | `IPropertyTypeContributor` | A custom property type for entity templates |
 | `IEntityExtractionContributor` | Proposes Codex entries found in prose |
-| `IArticleGeneratorContributor` | Generates Wiki article prose |
+| `IArticleGeneratorContributor` | Generates Wiki article prose, and one Codex section at a time |
 | `IGrammarCheckContributor` | A grammar/style checker |
 | `IThemeContributor` | Colour themes for the Settings theme picker |
 | `IWizardContributor` | Multi-step wizards |
@@ -192,6 +192,16 @@ Implement any of these alongside `IExtension`; the host finds them by type.
 | `IExportPostProcessor` | Checks a written export and reports what is wrong |
 
 Each interface's XML documentation on the SDK type is the contract; read it before implementing.
+
+### One Codex section, not the whole summary
+
+`ArticleGenerationRequest` now carries **`SectionTitle`** and **`SectionContent`**. Empty `SectionTitle` is the whole-entity Wiki summary, exactly as before — an existing generator keeps working untouched. Non-empty means the writer pressed generate on one section of a Codex entry, and:
+
+- **The title is the instruction, not a hint.** It is the writer's own words — "Backstory", "How they speak", "What the villagers say about him" — and the clearest statement there is of what belongs underneath. Write that and nothing else; a section that re-summarises the dossier is the Wiki summary again under a different heading.
+- **`SectionContent` non-empty means they asked again.** They read what you produced and did not want it. Take a different angle rather than paraphrasing it back — a generator that ignores this hands over the same paragraph with the clauses reordered, which reads as the feature being broken.
+- **Do not emit the heading.** The section already has one.
+
+The host does not write your answer anywhere; it puts the text in the writer's editor for them to keep or discard.
 
 ### Reading a scene
 

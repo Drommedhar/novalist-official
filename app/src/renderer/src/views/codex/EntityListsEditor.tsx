@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, Sparkles, Loader2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { useCodexStore } from '../../stores/codexStore'
 import { MarkdownEditor } from '../../shell/MarkdownEditor'
@@ -45,6 +45,17 @@ export function EntityListsEditor(): React.JSX.Element | null {
   const [aliasDraft, setAliasDraft] = useState('')
   const [sections, setSections] = useState<SectionRow[]>([])
   const [relationships, setRelationshipsState] = useState<RelationshipRow[]>([])
+  // Whether any extension offers a generator at all. Without one the buttons
+  // below would be a row of controls that do nothing, on an entry the writer is
+  // filling in by hand.
+  const [canGenerate, setCanGenerate] = useState(false)
+  const [generating, setGenerating] = useState<number | null>(null)
+  useEffect(() => {
+    void rpc
+      .request<boolean>('wiki/generatorAvailable')
+      .then(setCanGenerate)
+      .catch(() => setCanGenerate(false))
+  }, [])
   /**
    * The rows as they stand right now, for the blur handlers.
    *
@@ -156,6 +167,33 @@ export function EntityListsEditor(): React.JSX.Element | null {
   }, [selectedId])
 
   if (!record || !selectedId) return null
+
+  /**
+   * Writes one section with the model, and leaves it in the editor.
+   *
+   * Not saved on arrival: generated prose is wrong a fair amount of the time,
+   * and the writer should be able to read it, change it, or click away from it
+   * before it is what the entry says. It persists on blur like anything else
+   * they typed.
+   */
+  const generateSection = async (index: number): Promise<void> => {
+    if (!selectedId || generating !== null) return
+    setGenerating(index)
+    try {
+      const result = await rpc.request<{ summary: string | null; error: string | null } | null>(
+        'entities/generateSection',
+        [entityType, selectedId, sections[index].title, sections[index].content]
+      )
+      if (result?.summary) {
+        setSections(sections.map((s, i) => (i === index ? { ...s, content: result.summary! } : s)))
+      }
+    } catch {
+      // The notification surface belongs to whoever failed; a silent no-op here
+      // beats a second error message about the same thing.
+    } finally {
+      setGenerating(null)
+    }
+  }
 
   const persist = (
     nextAliases: string[] | null,
@@ -326,6 +364,29 @@ export function EntityListsEditor(): React.JSX.Element | null {
               }
               onBlur={() => persist(null, sections, null)}
             />
+            {canGenerate && (
+              <button
+                className="binder-expand"
+                title={
+                  section.content.trim().length > 0
+                    ? t('entityEditor.rerollSection')
+                    : t('entityEditor.generateSection')
+                }
+                aria-label={
+                  section.content.trim().length > 0
+                    ? t('entityEditor.rerollSection')
+                    : t('entityEditor.generateSection')
+                }
+                disabled={generating !== null || section.title.trim().length === 0}
+                onClick={() => void generateSection(index)}
+              >
+                {generating === index ? (
+                  <Loader2 size={12} strokeWidth={2} className="wiki-spin" />
+                ) : (
+                  <Sparkles size={12} strokeWidth={2} />
+                )}
+              </button>
+            )}
             <button
               className="binder-expand"
               aria-label={t('explorer.contextDelete')}

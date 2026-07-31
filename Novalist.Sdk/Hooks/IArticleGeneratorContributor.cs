@@ -50,6 +50,24 @@ public sealed class ArticleGenerationRequest
     /// entity's fields, sections, relationships, and appearances — everything the
     /// generator needs, so it does not re-query the project.</summary>
     public string Context { get; init; } = string.Empty;
+
+    /// <summary>
+    /// The one section being written, or empty for the whole-entity summary the
+    /// Wiki shows.
+    ///
+    /// A single summary is regenerated whole or not at all, which is the wrong
+    /// unit for the way an entry is actually filled in: the writer is happy with
+    /// the history and wants another go at the appearance. The title is the
+    /// writer's own — "Backstory", "How they speak" — and is the strongest hint
+    /// there is about what belongs there.
+    /// </summary>
+    public string SectionTitle { get; init; } = string.Empty;
+
+    /// <summary>
+    /// What that section says now, empty when it is blank. A re-roll that cannot
+    /// see what it is replacing tends to hand back the same paragraph again.
+    /// </summary>
+    public string SectionContent { get; init; } = string.Empty;
 }
 
 /// <summary>The result of a generation attempt.</summary>

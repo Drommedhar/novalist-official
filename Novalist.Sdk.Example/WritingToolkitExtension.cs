@@ -457,6 +457,19 @@ public sealed class WritingToolkitExtension :
         // exercises the error path; everything else returns a one-line summary.
         if (string.Equals(request.EntityName, "GenFail", StringComparison.OrdinalIgnoreCase))
             return Task.FromResult(new ArticleGenerationResult { Error = "no model configured" });
+
+        // A section request answers about that section, and says whether it was
+        // told what the section already held - which is what a re-roll turns on.
+        if (request.SectionTitle.Length > 0)
+        {
+            var reroll = request.SectionContent.Length > 0 ? " (again)" : string.Empty;
+            return Task.FromResult(new ArticleGenerationResult
+            {
+                Summary = $"On {request.SectionTitle}{reroll}: {request.EntityName} is a notable "
+                    + $"{request.TypeKey} in this story."
+            });
+        }
+
         return Task.FromResult(new ArticleGenerationResult
         {
             Summary = $"{request.EntityName} is a notable {request.TypeKey} in this story."

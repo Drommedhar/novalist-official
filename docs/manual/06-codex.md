@@ -128,6 +128,19 @@ This is what a project with two settings needs: without it, two worlds are two u
   The reciprocal is written **whatever the two ends are**. A sword owned by a character now appears as "owns" on the character, and a character born in a place appears as "birthplace of" on the place. Until now only characters wrote the other half, so an item's owner link existed from one side and not the other — and nothing that reads relationships could see it.
 - **Sections** — free-form titled text blocks ("Background", "Motivation", "Voice", ...). Add, retitle, edit, and remove; this is where long-form prose about an entity lives.
 
+### Writing a section with an AI extension
+
+If you have an AI extension installed and configured, each section head gets a second button beside the remove one. It writes that one section, using everything the entry already holds — its fields, its other sections, its relationships, and the scenes it appears in — and the section's own title as the instruction. A section called "How they speak" gets an answer about how they speak.
+
+Press it again on a section that already says something and it is a re-roll: the extension is told what is there and what you did not want, and asked for a different angle rather than the same paragraph rearranged.
+
+Two things about it are deliberate:
+
+- **Nothing is saved on arrival.** The text lands in the section's editor where you can read it, change it, or click away and lose it. Generated prose is wrong a fair amount of the time, and a section overwritten in place is discovered later, by which point what it replaced is gone.
+- **The button is only there when an extension can actually answer.** Without one, there is nothing to press.
+
+Give a section a title before generating — an untitled block has nothing to write towards.
+
 ### Formatting
 
 Sections, the multi-line entity fields, per-scope overrides, research notes, timeline event descriptions, and wizard answers are all formatted text. Each box has a toolbar — bold, italic, strikethrough, heading, bulleted list, numbered list, quote, link — and `Ctrl+B` / `Ctrl+I` work as you would expect. You do not need to know any syntax: select some text and press the button.
