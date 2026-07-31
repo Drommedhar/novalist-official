@@ -322,6 +322,12 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
     Map<string, { id: string; name: string; detail: string; imagePath: string | null; type: string }>
   >(new Map())
   const openHoveredEntity = (entityType: string, entityId: string): void => {
+    // A coined word has no Wiki article; it has a dictionary entry.
+    if (entityType === 'conlang') {
+      const word = conlangWordsRef.current.get(entityId)
+      if (word) useShellStore.getState().navigateToLanguage(word)
+      return
+    }
     useShellStore.getState().setMainView('wiki')
     void useWikiStore.getState().openArticle(entityType, entityId)
   }
@@ -383,6 +389,9 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   // Shared focus-peek overlay: owns the show/hide debounce, the pointer-over-card
   // guard, pin state, and viewport-clamped positioning. Driven here by the iframe's
   // entity hover/exit messages; the context sidebar drives the same hook itself.
+  /** Coined word id -> the word, so clicking a peek can search for it. */
+  const conlangWordsRef = useRef(new Map<string, string>())
+
   const peek = useEntityPeek({ scope: peekScope, onOpen: openHoveredEntity })
   // Read the latest controls from inside the (rarely re-created) listener effect.
   const peekRef = useRef(peek)
@@ -491,6 +500,37 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
         subtitle: hit.detail ?? ''
       })
     }
+    // Words the writer coined, so a language module is something that helps
+    // while drafting rather than a list they have to go and open. Hovering one
+    // raises the same card an entity name does; the backend answers for it.
+    try {
+      type Language = { id: string; name: string; words: { id: string; word: string }[] }
+      const languages = await rpc.request<Language[]>('conlang/list')
+      const seen = new Set<string>()
+      const words = new Map<string, string>()
+      for (const language of languages ?? []) {
+        for (const word of language.words ?? []) {
+          const text = (word.word ?? '').trim()
+          // Two letters is where an invented word stops being distinguishable
+          // from a preposition in the prose language, and highlighting every
+          // "an" in the manuscript is worse than not highlighting anything.
+          if (text.length < 3) continue
+          const key = text.toLowerCase()
+          // A word coined twice, or one that collides with a name already
+          // matched, is left alone rather than pointing somewhere arbitrary -
+          // the same Count==1 rule the entity names follow.
+          if (seen.has(key) || byText.has(key)) continue
+          seen.add(key)
+          words.set(word.id, text)
+          names.push({ name: text, entityId: word.id, entityType: 'conlang', isAlias: false })
+        }
+      }
+      conlangWordsRef.current = words
+    } catch {
+      // A project with no languages, or an older backend: the manuscript simply
+      // highlights nothing extra.
+    }
+
     entityIndexRef.current = index
     editor.setEntityNames(JSON.stringify(names))
     // Same records feed the @-mention autocomplete picker.

@@ -267,6 +267,8 @@ interface ShellState {
   quickCaptureOpen: boolean
   /** One-shot request to open a research item, consumed by ResearchView. */
   pendingResearchId: string | null
+  /** A coined word to search for when Languages opens. */
+  pendingLanguageQuery: string | null
   /** In-app user-manual help viewer overlay. */
   helpOpen: boolean
   /** Named workspace layouts: save the shape you are in, come back to it. */
@@ -307,6 +309,10 @@ interface ShellState {
   navigateToResearch(itemId: string): void
   /** ResearchView clears the pending selection once it has consumed it. */
   clearPendingResearch(): void
+  /** Switch to Languages and search for a word. */
+  navigateToLanguage(word: string): void
+  /** LanguagesView clears it once consumed. */
+  clearPendingLanguage(): void
   setHelpOpen(open: boolean): void
   setLayoutsOpen(open: boolean): void
   setTourOpen(open: boolean): void
@@ -395,6 +401,7 @@ export const useShellStore = create<ShellState>((set) => ({
   quickOpenOpen: false,
   quickCaptureOpen: false,
   pendingResearchId: null,
+  pendingLanguageQuery: null,
   helpOpen: false,
   layoutsOpen: false,
   tourOpen: false,
@@ -469,6 +476,9 @@ export const useShellStore = create<ShellState>((set) => ({
   navigateToResearch: (itemId) =>
     set((s) => ({ ...showView(s, 'research'), pendingResearchId: itemId })),
   clearPendingResearch: () => set({ pendingResearchId: null }),
+  navigateToLanguage: (word) =>
+    set((s) => ({ ...showView(s, 'languages'), pendingLanguageQuery: word })),
+  clearPendingLanguage: () => set({ pendingLanguageQuery: null }),
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   setLayoutsOpen: (layoutsOpen) => set({ layoutsOpen }),
   setTourOpen: (tourOpen) => set({ tourOpen }),

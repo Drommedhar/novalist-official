@@ -55,6 +55,14 @@ export function LanguagesView(): React.JSX.Element {
   const [languages, setLanguages] = useState<Language[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  // Arriving from a coined word the writer hovered in the manuscript: land on
+  // that word rather than on the whole dictionary.
+  const pendingQuery = useShellStore((s) => s.pendingLanguageQuery)
+  useEffect(() => {
+    if (!pendingQuery) return
+    setQuery(pendingQuery)
+    useShellStore.getState().clearPendingLanguage()
+  }, [pendingQuery])
   const [draft, setDraft] = useState<Word>(BLANK)
   const [adding, setAdding] = useState(false)
   // The same query across every other language. A writer coining a word wants

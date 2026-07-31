@@ -26,7 +26,19 @@ The search box reads **both** the word and its meaning. You either have the inve
 
 Under the results, **Also in your other languages** shows matches from every other language in the project. That is the one question the list in front of you cannot answer: did I already coin this somewhere else? Click the language name to go there.
 
+## Your words in the manuscript
+
+A dictionary you have to go and open is a dictionary you stop opening. So the words you coin are recognised in your prose the same way a character's name is: hover one in the editor and a card gives its meaning, its part of speech, its pronunciation, and which of your languages it belongs to. Click the card to open Languages with that word searched.
+
+Two rules keep this from becoming noise:
+
+- **Words shorter than three letters are not matched.** A two-letter word is rarely distinguishable from a preposition in the language you are actually writing in, and highlighting every "an" in the manuscript is worse than highlighting nothing.
+- **A word that collides with a Codex name loses.** If you coin a word that is also a character's name, the name wins — a hover that could mean two things is a hover that means neither.
+
+Nothing is written into your prose. The word stays the word you typed; the recognition is display only, and deleting the dictionary entry removes it.
+
 ## Where to go next
 
 - [Codex](06-codex.md) — the people, places and things the language belongs to.
+- [Editor](05-editor.md) — where the words you coin get recognised as you write.
 - [Wiki](30-wiki.md) — reading the world rather than editing it.

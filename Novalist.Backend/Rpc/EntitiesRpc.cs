@@ -1519,11 +1519,54 @@ public sealed class EntitiesRpc
     /// <see cref="EntityPeekDto.ScopeLabel"/> names the scope so the card can flag
     /// that it is showing overridden values.
     /// </summary>
+    /// <summary>
+    /// A coined word, in the shape the peek card already draws.
+    ///
+    /// A dictionary the writer has to go and open is a dictionary they stop
+    /// opening, and a language module whose words never appear while drafting
+    /// is a list. Answering here rather than adding a second card means the
+    /// hover, the pinning and the keyboard handling are the ones that already
+    /// work.
+    /// </summary>
+    internal EntityPeekDto? PeekConlangWord(string id)
+    {
+        var hit = new Core.Services.ConlangService(_workspace.Projects)
+            .GetAll()
+            .SelectMany(language => language.Words.Select(word => (language, word)))
+            .FirstOrDefault(x => x.word.Id == id);
+        if (hit.word == null) return null;
+
+        var pills = new List<PeekPillDto> { new(hit.language.Name, null, null, false, "accent", null) };
+        if (!string.IsNullOrWhiteSpace(hit.word.PartOfSpeech))
+            pills.Add(new PeekPillDto(hit.word.PartOfSpeech, null, null, true, "neutral", null));
+        if (!string.IsNullOrWhiteSpace(hit.word.Pronunciation))
+            pills.Add(new PeekPillDto(hit.word.Pronunciation, null, null, true, "neutral", null));
+
+        return new EntityPeekDto(
+            hit.word.Id, ConlangTypeKey, hit.word.Word, hit.language.Name, "accent",
+            // The meaning is the description: it is what the writer wants when
+            // they hover a word they coined three months ago.
+            hit.word.Meaning ?? string.Empty,
+            [], [.. pills], [], [], [], [], [],
+            null, null);
+    }
+
+    /// <summary>The type key a coined word peeks under. Not an entity type: no
+    /// Codex list holds these, and nothing should try to open one.</summary>
+    internal const string ConlangTypeKey = "conlang";
+
     [JsonRpcMethod("entities/peek")]
     public async Task<EntityPeekDto> PeekAsync(
         string type, string id,
         string? chapterGuid = null, string? chapterTitle = null, string? sceneTitle = null)
     {
+        if (string.Equals(type, ConlangTypeKey, StringComparison.OrdinalIgnoreCase))
+        {
+            return PeekConlangWord(id)
+                ?? new EntityPeekDto(id, ConlangTypeKey, string.Empty, null, "accent",
+                    string.Empty, [], [], [], [], [], [], [], null, null);
+        }
+
         var characters = await _entities.LoadCharactersAsync();
         var locations = await _entities.LoadLocationsAsync();
         var items = await _entities.LoadItemsAsync();

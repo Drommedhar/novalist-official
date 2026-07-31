@@ -33,6 +33,64 @@ public sealed class EntitiesPeekRpcTests : IDisposable
     private EntityService Entities => new(_workspace.Projects);
     private MapService Maps => new(_workspace.Projects, _workspace.FileService);
 
+    // ── Coined words ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Peek_ConlangWord_ShowsTheMeaningAndWhichLanguage()
+    {
+        var conlang = new ConlangService(_workspace.Projects);
+        var language = await conlang.CreateAsync("Old Hillsford");
+        var word = await conlang.SaveWordAsync(language.Id, new ConlangWord
+        {
+            Word = "kelvar",
+            Meaning = "the first thaw of the year",
+            PartOfSpeech = "noun",
+            Pronunciation = "KEL-var",
+        });
+
+        var peek = await _rpc.PeekAsync("conlang", word.Id);
+
+        Assert.Equal(word.Id, peek.Id);
+        Assert.Equal("kelvar", peek.Title);
+        // The meaning is what the writer wants when they hover a word they
+        // coined three months ago.
+        Assert.Equal("the first thaw of the year", peek.Description);
+        Assert.Equal("Old Hillsford", peek.CustomTypeLabel);
+        // Which language, and the two things that tell them how to use it.
+        Assert.Contains(peek.Pills, x => x.Text == "Old Hillsford");
+        Assert.Contains(peek.Pills, x => x.Text == "noun");
+        Assert.Contains(peek.Pills, x => x.Text == "KEL-var");
+    }
+
+    [Fact]
+    public async Task Peek_ConlangWord_OmittedFieldsProduceNoEmptyPills()
+    {
+        var conlang = new ConlangService(_workspace.Projects);
+        var language = await conlang.CreateAsync("Old Hillsford");
+        var word = await conlang.SaveWordAsync(language.Id, new ConlangWord
+        {
+            Word = "vash",
+            Meaning = "to wait",
+        });
+
+        var peek = await _rpc.PeekAsync("conlang", word.Id);
+
+        // Only the language. A blank pill is a box with nothing in it.
+        Assert.Single(peek.Pills);
+        Assert.Equal("Old Hillsford", Assert.Single(peek.Pills).Text);
+    }
+
+    [Fact]
+    public async Task Peek_ConlangWord_UnknownId_IsEmptyRatherThanAThrow()
+    {
+        // A word deleted between the manuscript being marked up and the writer
+        // hovering it. The card shows nothing; it does not take the editor down.
+        var peek = await _rpc.PeekAsync("conlang", "no-such-word");
+
+        Assert.Equal(string.Empty, peek.Title);
+        Assert.Empty(peek.Pills);
+    }
+
     [Fact]
     public async Task Peek_Character_BuildsBadgePillsAppearanceRelationshipsSectionsImages()
     {
