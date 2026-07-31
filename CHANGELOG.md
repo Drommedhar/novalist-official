@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **Other programs can link to a place in your work.** Novalist now answers `novalist://` links: `novalist://open?project=<folder>`, optionally with a chapter and scene. A task in a tracker or a note in another app can point at the scene it is about. An already-running Novalist takes the link and comes to the front instead of a second copy opening the same folder. Links are read strictly — one that names no project, or a scene without its chapter, does nothing rather than opening something almost right.
+
 - **Exports can be produced without opening the app.** The bundled backend now takes arguments: `--export <format> --project <dir> --out <file>`, optionally `--book`. An EPUB on every commit, or a fresh outline spreadsheet each morning, no longer needs somebody to click a save dialog. Exit codes are made to be read by a script, and a mistyped argument fails loudly rather than quietly starting a server nothing is talking to. See the manual page "Exporting from the command line".
 
 - **Starting points for the entity types a world needs.** The custom type builder was an empty form, so everybody who wanted species, a magic system, factions or a language rebuilt the same field list by hand — and rebuilt it differently in every project. **Manage types** now offers five shipped packs: Species, Magic system, Faction, Language and Religion. A pack fills the builder in and gets out of the way; nothing is created until you confirm, and every field is yours to change first. Each field carries the question it is for, and that question stays on the entry instead of vanishing after creation.

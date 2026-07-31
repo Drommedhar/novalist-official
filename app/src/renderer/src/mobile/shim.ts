@@ -162,6 +162,9 @@ const novalist: Window['novalist'] = {
   // Store-delivered updates: no self-update on mobile.
   checkAppUpdate: async () => null,
   downloadAppUpdate: async () => '',
+  // No protocol handler on mobile: there is nothing to register a scheme with.
+  takeDeepLink: () => Promise.resolve(null),
+  onDeepLink: () => {},
   updatesChecked: () => {}
 }
 

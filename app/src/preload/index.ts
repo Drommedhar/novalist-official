@@ -64,6 +64,22 @@ contextBridge.exposeInMainWorld('novalist', {
     ipcRenderer.on('novalist:spellcheck-word-added', (_event, word: string) => handler(word))
   },
   /** The misspelling under the pointer, reported as the context menu opens. */
+  /**
+   * A novalist:// link, if one is waiting.
+   *
+   * Pulled rather than pushed for the cold start: a link is usually what
+   * launches the app, so it arrives long before the renderer is listening.
+   */
+  takeDeepLink(): Promise<{ project: string; chapter?: string; scene?: string } | null> {
+    return ipcRenderer.invoke('novalist:take-deep-link')
+  },
+
+  /** Links that arrive while the app is already open. */
+  onDeepLink(handler: (link: { project: string; chapter?: string; scene?: string }) => void): void {
+    ipcRenderer.removeAllListeners('novalist:deep-link')
+    ipcRenderer.on('novalist:deep-link', (_event, link) => handler(link))
+  },
+
   onSpellingContext(handler: (word: string, suggestions: string[]) => void): void {
     // Replaces rather than adds. Every editor pane registers on mount, and a
     // second registration meant the menu was told about the same misspelling

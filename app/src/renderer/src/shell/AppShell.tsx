@@ -147,8 +147,47 @@ export function AppShell(): React.JSX.Element {
       .connect()
       .then(hydrate)
       .then(() => (window.novalist.autoUpdate ? runUpdateCheck(false) : undefined))
+      .then(async () => {
+        // A novalist:// link that started the app has been waiting since before
+        // the renderer existed.
+        const waiting = await window.novalist.takeDeepLink()
+        if (!waiting) return
+        await useProjectStore.getState().openProject(waiting.project)
+        if (waiting.chapter && waiting.scene) {
+          await useProjectStore.getState().openScene(waiting.chapter, waiting.scene)
+        }
+      })
       .catch(() => {})
       .finally(() => window.novalist.updatesChecked())
+  }, [])
+
+  /**
+   * novalist:// links, so something outside the app can point at a place in it.
+   *
+   * Both directions: one waiting from launch, which is the usual case because a
+   * link is normally what starts the app, and any that arrive while it is
+   * already open.
+   */
+  useEffect(() => {
+    const follow = async (link: {
+      project: string
+      chapter?: string
+      scene?: string
+    }): Promise<void> => {
+      try {
+        await useProjectStore.getState().openProject(link.project)
+        // A scene id means nothing without the chapter that holds it, so the
+        // link carries both or neither.
+        if (link.chapter && link.scene) {
+          await useProjectStore.getState().openScene(link.chapter, link.scene)
+        }
+      } catch {
+        // A link to a project that has moved should do nothing rather than
+        // leave the app half-open on it.
+      }
+    }
+
+    window.novalist.onDeepLink((link) => void follow(link))
   }, [])
 
   // Opening a project lands on the dashboard, matching the Avalonia app.

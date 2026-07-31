@@ -14,6 +14,7 @@ import { installAppMenu } from './menu'
 import { checkAppUpdate, downloadAndInstall } from './appUpdater'
 import { createSplashWindow, setSplashStatus } from './splash'
 import { registerProtocolSchemes, registerProtocolHandlers } from './protocols'
+import { SCHEME, parseDeepLink, deepLinkFromArgv, type DeepLink } from './deeplink'
 
 // Name the app before anything reads it (menu/About/dock/window title) so the
 // UI never shows the default "Electron".
@@ -116,8 +117,53 @@ ipcMain.on('novalist:set-titlebar-colors', (event, color: string, symbolColor: s
   }
 })
 
+/**
+ * A novalist:// link that arrived before the renderer could take it.
+ *
+ * A link is usually what starts the app, so it lands well before anything is
+ * listening. Holding it and handing it over on request is the difference
+ * between a link that works cold and one that only works when Novalist is
+ * already open.
+ */
+let pendingDeepLink: DeepLink | null = deepLinkFromArgv(process.argv)
+
+function deliverDeepLink(link: DeepLink | null): void {
+  if (!link) return
+  const win = BrowserWindow.getAllWindows()[0]
+  if (!win || win.isDestroyed()) {
+    pendingDeepLink = link
+    return
+  }
+  if (win.isMinimized()) win.restore()
+  win.focus()
+  win.webContents.send('novalist:deep-link', link)
+}
+
+// The renderer asks once it is ready, which is how a cold start gets its link.
+ipcMain.handle('novalist:take-deep-link', () => {
+  const link = pendingDeepLink
+  pendingDeepLink = null
+  return link
+})
+
+// One window owns the project, so a second launch hands its link over rather
+// than starting a rival instance on the same folder.
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', (_event, argv) => deliverDeepLink(deepLinkFromArgv(argv)))
+  // macOS delivers links as an event rather than as arguments.
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+    deliverDeepLink(parseDeepLink(url))
+  })
+}
+
 void app.whenReady().then(() => {
   installAppMenu()
+  // Registered on every start: an install, a move or a reinstall all leave the
+  // registration pointing somewhere else or nowhere.
+  if (app.isPackaged) app.setAsDefaultProtocolClient(SCHEME)
   // Dock icon for the dev run (packaged builds get it from the app bundle).
   if (process.platform === 'darwin' && !app.isPackaged) {
     const iconPath = resolveIconPath()

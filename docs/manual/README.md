@@ -56,7 +56,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 
 29. [Exposé](32-expose.md) — the per-book pitch document, with live character and Normseiten counts against your limits.
 30. [Export](20-export.md) — EPUB, DOCX, PDF, Markdown, Normseiten, and more, plus formats added by extensions.
-31. [Command line](41-command-line.md) — write an export without opening the app, so a book can be built on a schedule.
+31. [Command line & links](41-command-line.md) — write an export without opening the app, and link to a scene from another program.
 
 ### The inspector
 
