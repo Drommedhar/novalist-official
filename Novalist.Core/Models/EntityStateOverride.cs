@@ -51,6 +51,17 @@ public sealed class EntityStateOverride
     public Dictionary<string, string>? Fields { get; set; }
 
     /// <summary>The writer's note on why, shown beside the restated values.</summary>
+    /// <summary>
+    /// From this point the entry is out of the story: dead, departed, destroyed.
+    ///
+    /// Novalist tracked what an entry was like at a point in the story and never
+    /// that it had stopped being in it, so nothing could notice a character
+    /// standing in a scene two chapters after their funeral.
+    /// </summary>
+    [JsonPropertyName("gone")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Gone { get; set; }
+
     [JsonPropertyName("note")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Note { get; set; }
@@ -58,5 +69,7 @@ public sealed class EntityStateOverride
     /// <summary>Whether this override restates anything at all.</summary>
     [JsonIgnore]
     public bool HasValues =>
-        Name != null || Description != null || (Fields is { Count: > 0 });
+        // Gone counts: an override that says only "and then they were gone" is
+        // the whole point of the marker and must not be pruned as empty.
+        Name != null || Description != null || (Fields is { Count: > 0 }) || Gone;
 }

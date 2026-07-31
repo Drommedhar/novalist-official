@@ -2366,6 +2366,19 @@
       "noPov": "This scene has no point of view recorded, so there is nothing to check the prose against.",
       "noOtherCast": "No other characters to slip into yet.",
       "noVerbList": "This check has no word list for your writing language yet."
+    },
+    "continuity": "Continuity",
+    "continuityHint": "Deterministic checks over the whole book. No model is asked and nothing is guessed from names, so a quiet report means these rules found nothing - not that the book is right.",
+    "continuityClean": "Nothing found.",
+    "continuityRule": {
+      "gone-then-present": "Somebody appears after they are gone",
+      "unknown-cast": "A scene casts an entry the Codex no longer has",
+      "time-runs-backwards": "Time runs backwards with nothing saying so"
+    },
+    "continuityFinding": {
+      "gone-then-present": "{{subject}} is in this scene, after leaving the story",
+      "unknown-cast": "Cast entry no longer in the Codex: {{detail}}",
+      "time-runs-backwards": "Dated earlier than the scene before it ({{detail}})"
     }
   },
   "review": {
@@ -2670,7 +2683,8 @@
     "descriptionPlaceholder": "What it is like, from here",
     "notePlaceholder": "Why (a note to yourself)",
     "add": "Restate at a point",
-    "remove": "Remove this restatement"
+    "remove": "Remove this restatement",
+    "gone": "Gone from here on"
   },
   "layout": {
     "title": "Export layouts",

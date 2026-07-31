@@ -749,6 +749,7 @@ public sealed class EntitiesRpc
                 Name = NullIfEmpty(o.Name),
                 Description = NullIfEmpty(o.Description),
                 Note = NullIfEmpty(o.Note),
+                Gone = o.Gone,
                 Fields = o.Fields is { Count: > 0 }
                     ? o.Fields.Where(kv => !string.IsNullOrWhiteSpace(kv.Key))
                         .ToDictionary(kv => kv.Key.Trim(), kv => kv.Value ?? string.Empty)
@@ -782,7 +783,7 @@ public sealed class EntitiesRpc
 
     private static StateOverrideDto ToDto(Core.Models.EntityStateOverride o)
         => new(o.Act, o.Chapter, o.Scene, o.Name, o.Description,
-            o.Fields?.ToDictionary(kv => kv.Key, kv => kv.Value), o.Note);
+            o.Fields?.ToDictionary(kv => kv.Key, kv => kv.Value), o.Note, o.Gone);
 
     /// <summary>How an entry's name is recognised in prose.</summary>
     [JsonRpcMethod("entities/getMatchSettings")]
@@ -2154,7 +2155,10 @@ public sealed record StateOverrideDto(
     string? Name,
     string? Description,
     Dictionary<string, string>? Fields,
-    string? Note);
+    string? Note,
+    /// <summary>From here the entry is out of the story: dead, departed,
+    /// destroyed. Read by the continuity gates.</summary>
+    bool Gone = false);
 
 /// <summary>What an entry is like in one context. <c>IsOverridden</c> false
 /// means the entry reads as itself and nothing else here is meaningful.</summary>

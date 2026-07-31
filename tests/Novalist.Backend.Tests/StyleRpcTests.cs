@@ -239,4 +239,174 @@ public sealed class StyleRpcTests : IDisposable
         // slip reads exactly the same to a reader.
         Assert.Single((await _rpc.PovCheckAsync(_chapterGuid, _sceneId)).Slips);
     }
+
+    // ── Continuity gates ──
+
+    [Fact]
+    public async Task ContinuityFindsSomebodyAppearingAfterTheyAreGone()
+    {
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        var mara = new Novalist.Core.Models.CharacterData { Name = "Mara" };
+        // She leaves the story in the first scene, and is cast in the second.
+        mara.StateOverrides.Add(new Novalist.Core.Models.EntityStateOverride
+        {
+            Chapter = _chapterGuid,
+            Scene = _sceneId,
+            Gone = true
+        });
+        await entities.SaveCharacterAsync(mara);
+
+        var later = await _workspace.Projects.CreateSceneAsync(_chapterGuid, "Later");
+        later.Cast = [mara.Id];
+        await _workspace.Projects.SaveScenesAsync();
+
+        var report = await _rpc.ContinuityAsync();
+
+        var found = Assert.Single(report.Findings,
+            f => f.RuleId == Novalist.Core.Services.ContinuityGates.GoneThenPresent);
+        Assert.Equal("Mara", found.Subject);
+        Assert.Equal(later.Id, found.SceneId);
+        // Enough to jump to it without opening anything first.
+        Assert.Equal("One", found.ChapterTitle);
+        Assert.Equal("Later", found.SceneTitle);
+    }
+
+    [Fact]
+    public async Task ContinuityFindsACastEntryTheCodexNoLongerHas()
+    {
+        var scene = _workspace.Projects.GetScenesForChapter(_chapterGuid).First();
+        scene.Cast = ["deleted-entry"];
+        await _workspace.Projects.SaveScenesAsync();
+
+        var report = await _rpc.ContinuityAsync();
+
+        var found = Assert.Single(report.Findings,
+            f => f.RuleId == Novalist.Core.Services.ContinuityGates.UnknownCast);
+        Assert.Equal("deleted-entry", found.Detail);
+    }
+
+    [Fact]
+    public async Task ContinuityFindsTimeRunningBackwards()
+    {
+        var first = _workspace.Projects.GetScenesForChapter(_chapterGuid).First();
+        first.Date = "2020-05-01";
+        var second = await _workspace.Projects.CreateSceneAsync(_chapterGuid, "Earlier");
+        second.Date = "2020-04-01";
+        await _workspace.Projects.SaveScenesAsync();
+
+        var report = await _rpc.ContinuityAsync();
+
+        Assert.Contains(report.Findings,
+            f => f.RuleId == Novalist.Core.Services.ContinuityGates.TimeRunsBackwards
+                && f.SceneId == second.Id);
+    }
+
+    [Fact]
+    public async Task AFlashbackIsNotReportedAsTimeRunningBackwards()
+    {
+        var first = _workspace.Projects.GetScenesForChapter(_chapterGuid).First();
+        first.Date = "2020-05-01";
+        var second = await _workspace.Projects.CreateSceneAsync(_chapterGuid, "Before");
+        second.Date = "1999-04-01";
+        second.NarrativeMode = "Flashback";
+        await _workspace.Projects.SaveScenesAsync();
+
+        var report = await _rpc.ContinuityAsync();
+
+        Assert.DoesNotContain(report.Findings,
+            f => f.RuleId == Novalist.Core.Services.ContinuityGates.TimeRunsBackwards);
+    }
+
+    [Fact]
+    public async Task ARuleCanBeTurnedOffAndBackOnForThisBook()
+    {
+        var scene = _workspace.Projects.GetScenesForChapter(_chapterGuid).First();
+        scene.Cast = ["deleted-entry"];
+        await _workspace.Projects.SaveScenesAsync();
+
+        var off = await _rpc.SetContinuityRuleAsync(
+            Novalist.Core.Services.ContinuityGates.UnknownCast, enabled: false);
+        Assert.Contains(Novalist.Core.Services.ContinuityGates.UnknownCast, off.DisabledRules);
+        Assert.Empty(off.Findings);
+
+        var on = await _rpc.SetContinuityRuleAsync(
+            Novalist.Core.Services.ContinuityGates.UnknownCast, enabled: true);
+        Assert.Empty(on.DisabledRules);
+        Assert.NotEmpty(on.Findings);
+    }
+
+    [Fact]
+    public async Task ARuleThatDoesNotExistIsNotStored()
+    {
+        // Otherwise a typo would sit in the project file forever, disabling
+        // nothing and looking like it did something.
+        var report = await _rpc.SetContinuityRuleAsync("no-such-rule", enabled: false);
+
+        Assert.Empty(report.DisabledRules);
+        Assert.Equal(Novalist.Core.Services.ContinuityGates.AllRules.Count, report.AllRules.Count);
+    }
+
+    [Fact]
+    public async Task ArchivedScenesAreNotChecked()
+    {
+        // A scene the writer took out of the book is not part of its
+        // chronology, and reporting on it would be reporting on nothing.
+        var archived = await _workspace.Projects.CreateSceneAsync(_chapterGuid, "Archived");
+        archived.Cast = ["deleted-entry"];
+        archived.ArchivedAt = DateTime.UtcNow;
+        await _workspace.Projects.SaveScenesAsync();
+
+        var report = await _rpc.ContinuityAsync();
+
+        Assert.DoesNotContain(report.Findings, f => f.SceneId == archived.Id);
+    }
+
+    [Fact]
+    public async Task ACleanBookReportsNothingAndStillListsItsRules()
+    {
+        // A rule list that only appears when something is wrong gives the
+        // writer nothing to turn off before it fires.
+        var report = await _rpc.ContinuityAsync();
+
+        Assert.Empty(report.Findings);
+        Assert.NotEmpty(report.AllRules);
+    }
+
+    [Fact]
+    public async Task ContinuityChecksCustomEntityTypesToo()
+    {
+        // A ship leaving the story is the same continuity error as a character
+        // leaving it, and a gate that only reads the built-in types would miss
+        // every project that models its world with its own kinds.
+        var entities = new Novalist.Core.Services.EntityService(_workspace.Projects);
+        await entities.SaveCustomEntityTypeAsync(
+            new Novalist.Core.Models.CustomEntityTypeDefinition
+            {
+                TypeKey = "ship",
+                DisplayName = "Ship"
+            });
+        var ship = new Novalist.Core.Models.CustomEntityData
+        {
+            Name = "Dawnrunner",
+            EntityTypeKey = "ship"
+        };
+        ship.StateOverrides.Add(new Novalist.Core.Models.EntityStateOverride
+        {
+            Chapter = _chapterGuid,
+            Scene = _sceneId,
+            Gone = true
+        });
+        await entities.SaveCustomEntityAsync(ship);
+
+        var later = await _workspace.Projects.CreateSceneAsync(_chapterGuid, "Later");
+        later.Cast = [ship.Id];
+        await _workspace.Projects.SaveScenesAsync();
+
+        var report = await _rpc.ContinuityAsync();
+
+        Assert.Contains(report.Findings,
+            f => f.RuleId == Novalist.Core.Services.ContinuityGates.GoneThenPresent
+                && f.Subject == "Dawnrunner");
+    }
 }
+

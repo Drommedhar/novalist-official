@@ -17,6 +17,101 @@ public sealed class StyleRpc
     private string Language => _workspace.Settings.Effective.AutoReplacementLanguage;
 
     /// <summary>
+    /// Deterministic continuity checks over the whole book.
+    ///
+    /// Everything else here is about prose in one scene. This is the only report
+    /// that reads the book as a book, which is where a character standing two
+    /// chapters after their own funeral actually shows up.
+    /// </summary>
+    [JsonRpcMethod("style/continuity")]
+    public async Task<ContinuityReportDto> ContinuityAsync()
+    {
+        var projects = _workspace.Projects;
+        var entities = new Core.Services.EntityService(projects);
+
+        // Reading order is the spine of two of the three rules, so it is built
+        // once and everything else is looked up against it.
+        var scenes = new List<Core.Services.GateScene>();
+        var indexOf = new Dictionary<string, int>(StringComparer.Ordinal);
+        var index = 0;
+        foreach (var chapter in projects.GetChaptersOrdered())
+        {
+            foreach (var scene in projects.GetScenesForChapter(chapter.Guid))
+            {
+                if (scene.ArchivedAt != null) continue;
+                var date = string.IsNullOrEmpty(scene.DateRange?.Start)
+                    ? (string.IsNullOrEmpty(scene.Date) ? chapter.Date : scene.Date)
+                    : scene.DateRange!.Start;
+                scenes.Add(new Core.Services.GateScene(
+                    chapter.Guid, scene.Id, index, [.. scene.Cast ?? []], date, scene.NarrativeMode));
+                indexOf[$"{chapter.Guid}/{scene.Id}"] = index;
+                indexOf[chapter.Guid] = indexOf.TryGetValue(chapter.Guid, out var first) ? first : index;
+                index++;
+            }
+        }
+
+        int? ReadingIndexOf(string chapterGuid, string? sceneId)
+            => sceneId != null && indexOf.TryGetValue($"{chapterGuid}/{sceneId}", out var exact)
+                ? exact
+                : indexOf.TryGetValue(chapterGuid, out var chapterStart) ? chapterStart : null;
+
+        var all = new List<Core.Models.IEntityData>();
+        all.AddRange(await entities.LoadCharactersAsync());
+        all.AddRange(await entities.LoadLocationsAsync());
+        all.AddRange(await entities.LoadItemsAsync());
+        all.AddRange(await entities.LoadLoreAsync());
+        foreach (var type in entities.GetCustomEntityTypes())
+            all.AddRange(await entities.LoadCustomEntitiesAsync(type.TypeKey));
+
+        var gateEntities = all
+            .Select(e => new Core.Services.GateEntity(
+                e.Id,
+                e.DisplayName,
+                Core.Services.ContinuityGates.GoneFrom(e.StateOverrides ?? [], ReadingIndexOf)))
+            .ToList();
+
+        var disabled = new HashSet<string>(
+            projects.ProjectSettings.DisabledContinuityRules ?? [], StringComparer.Ordinal);
+        var findings = Core.Services.ContinuityGates.Run(scenes, gateEntities, disabled);
+
+        // Titles resolved here rather than in the gates: the engine deals in
+        // ids so it stays testable without a project behind it.
+        var titles = projects.GetChaptersOrdered()
+            .ToDictionary(c => c.Guid, c => c.Title, StringComparer.Ordinal);
+        var sceneTitles = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var chapter in projects.GetChaptersOrdered())
+            foreach (var scene in projects.GetScenesForChapter(chapter.Guid))
+                sceneTitles[scene.Id] = scene.Title;
+
+        return new ContinuityReportDto(
+            [.. findings.Select(f => new ContinuityFindingDto(
+                f.RuleId,
+                f.ChapterGuid,
+                f.SceneId,
+                titles.GetValueOrDefault(f.ChapterGuid, string.Empty),
+                sceneTitles.GetValueOrDefault(f.SceneId, string.Empty),
+                f.Subject,
+                f.Detail))],
+            [.. Core.Services.ContinuityGates.AllRules],
+            [.. disabled]);
+    }
+
+    /// <summary>Turns one continuity rule on or off for this book.</summary>
+    [JsonRpcMethod("style/setContinuityRule")]
+    public async Task<ContinuityReportDto> SetContinuityRuleAsync(string ruleId, bool enabled)
+    {
+        var settings = _workspace.Projects.ProjectSettings;
+        settings.DisabledContinuityRules ??= [];
+        if (enabled) settings.DisabledContinuityRules.RemoveAll(r => r == ruleId);
+        else if (Core.Services.ContinuityGates.AllRules.Contains(ruleId)
+            && !settings.DisabledContinuityRules.Contains(ruleId))
+            settings.DisabledContinuityRules.Add(ruleId);
+
+        await _workspace.Projects.SaveProjectSettingsAsync();
+        return await ContinuityAsync();
+    }
+
+    /// <summary>
     /// Grades every sentence in the text the editor is showing. Offsets are
     /// into the string as passed, because the editor decorates that same string
     /// and any normalising here would shift every mark after it.
@@ -198,3 +293,19 @@ public sealed record PovSlipDto(string Name, string Verb, int Offset, string Con
 /// </summary>
 public sealed record PovReportDto(
     string Pov, bool Checked, string SkippedBecause, PovSlipDto[] Slips);
+
+/// <summary>One continuity finding, with enough to jump to it.</summary>
+public sealed record ContinuityFindingDto(
+    string RuleId,
+    string ChapterGuid,
+    string SceneId,
+    string ChapterTitle,
+    string SceneTitle,
+    string Subject,
+    string Detail);
+
+/// <summary>What the gates found, and which of them ran.</summary>
+public sealed record ContinuityReportDto(
+    IReadOnlyList<ContinuityFindingDto> Findings,
+    IReadOnlyList<string> AllRules,
+    IReadOnlyList<string> DisabledRules);

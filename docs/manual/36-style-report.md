@@ -92,6 +92,22 @@ Alongside the sentence figures, the report gives **paragraphs**, **mean paragrap
 
 Sentence variation is the well-known one. A chapter of identically-sized paragraphs reads as flat for exactly the same reason, and is just as invisible while you are writing it. Higher is more varied; zero means every paragraph is the same length.
 
+## Continuity
+
+Everything else in the Style view reads the prose of one scene. This reads the book as a book, which is where a character standing two chapters after their own funeral actually shows up.
+
+Every rule is deterministic and offline. No model is asked, and nothing is guessed from names — so an empty report means **these rules found nothing**, not that the book is right.
+
+| Rule | What it looks for |
+| --- | --- |
+| Somebody appears after they are gone | An entry whose [state](06-codex.md) is marked **gone from here** in one scene, cast in a later one. The scene they leave in is not a finding — that is the writer's own sentence. |
+| A scene casts an entry the Codex no longer has | A cast id left behind by a deleted entry. |
+| Time runs backwards with nothing saying so | A scene dated earlier than the one the reader met last. A scene with a [narrative mode](04-chapters-and-scenes.md#how-a-scene-sits-in-time) — flashback, parallel — is not a finding, and a flashback does not drag the clock back for everything after it. |
+
+Each rule has a tick beside it. Turning one off is remembered **with the project**, because a rule that is noise in a time-travel novel is exactly what somebody else needs. Click a finding to open the scene it is about.
+
+Dates Novalist cannot read are skipped rather than guessed at: an in-world calendar date is not a contradiction.
+
 ## Where to go next
 
 - [Editor](05-editor.md) — grammar and spelling as you type, which is a different job from these reports.

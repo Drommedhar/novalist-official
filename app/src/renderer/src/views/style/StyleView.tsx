@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
+import { useShellStore } from '../../stores/shellStore'
 import './style.css'
 
 interface StyleHit {
@@ -68,8 +69,26 @@ const TEXT_SCOPES: TextScope[] = ['Everything', 'ProseOnly', 'DialogueOnly']
  * text and the writing language's word lists, so the same manuscript always
  * produces the same report. Nothing is sent anywhere and no model is involved.
  */
+interface ContinuityFinding {
+  ruleId: string
+  chapterGuid: string
+  sceneId: string
+  chapterTitle: string
+  sceneTitle: string
+  /** Who the finding is about, or empty when the scene itself is. */
+  subject: string
+  detail: string
+}
+
+interface ContinuityReport {
+  findings: ContinuityFinding[]
+  allRules: string[]
+  disabledRules: string[]
+}
+
 export function StyleView(): React.JSX.Element {
   const { t } = useTranslation()
+  const mainView = useShellStore((s) => s.mainView)
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const openSceneId = useProjectStore((s) => s.openSceneId)
@@ -80,6 +99,9 @@ export function StyleView(): React.JSX.Element {
   const [busy, setBusy] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const [pov, setPov] = useState<PovReport | null>(null)
+  // The only report here that reads the book as a book, so it is loaded once
+  // rather than following the scene the writer has open.
+  const [continuity, setContinuity] = useState<ContinuityReport | null>(null)
 
   const run = useCallback(async () => {
     setBusy(true)
@@ -110,6 +132,14 @@ export function StyleView(): React.JSX.Element {
       setBusy(false)
     }
   }, [scope, textScope, openChapterGuid, openSceneId])
+
+  useEffect(() => {
+    if (mainView !== 'style') return
+    void rpc
+      .request<ContinuityReport>('style/continuity')
+      .then(setContinuity)
+      .catch(() => setContinuity(null))
+  }, [mainView])
 
   useEffect(() => {
     void run()
@@ -237,6 +267,61 @@ export function StyleView(): React.JSX.Element {
                     ))}
                   </ul>
                 </>
+              )}
+            </div>
+          )}
+
+          {/* Everything else here is about the prose in one scene. This
+              reads the book as a book, which is where a character standing two
+              chapters after their own funeral actually shows up. */}
+          {continuity && (
+            <div className="style-continuity">
+              <div className="inspector-label">{t('style.continuity')}</div>
+              <div className="settings-hint">{t('style.continuityHint')}</div>
+
+              <div className="style-continuity-rules">
+                {continuity.allRules.map((rule) => (
+                  <label key={rule} className="style-continuity-rule">
+                    <input
+                      type="checkbox"
+                      checked={!continuity.disabledRules.includes(rule)}
+                      onChange={(e) =>
+                        void rpc
+                          .request<ContinuityReport>('style/setContinuityRule', [
+                            rule,
+                            e.target.checked
+                          ])
+                          .then(setContinuity)
+                      }
+                    />
+                    {t(`style.continuityRule.${rule}`)}
+                  </label>
+                ))}
+              </div>
+
+              {continuity.findings.length === 0 ? (
+                <div className="settings-hint">{t('style.continuityClean')}</div>
+              ) : (
+                <ul className="style-examples">
+                  {continuity.findings.map((f, i) => (
+                    <li key={`${f.ruleId}-${f.sceneId}-${i}`}>
+                      <button
+                        className="style-continuity-jump"
+                        onClick={() =>
+                          void useProjectStore.getState().openScene(f.chapterGuid, f.sceneId)
+                        }
+                      >
+                        {f.chapterTitle} - {f.sceneTitle}
+                      </button>
+                      <span className="style-example-context">
+                        {t(`style.continuityFinding.${f.ruleId}`, {
+                          subject: f.subject,
+                          detail: f.detail
+                        })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           )}

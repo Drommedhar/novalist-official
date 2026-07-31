@@ -9,6 +9,14 @@ namespace Novalist.Core.Models;
 /// </summary>
 public class ProjectSettings
 {
+    /// <summary>
+    /// Continuity rules the writer turned off for this book. Kept with the
+    /// project rather than the app: a rule that is noise in a time-travel novel
+    /// is exactly what somebody else needs.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("disabledContinuityRules")]
+    public List<string> DisabledContinuityRules { get; set; } = [];
+
     [JsonPropertyName("author")]
     public string Author { get; set; } = string.Empty;
 

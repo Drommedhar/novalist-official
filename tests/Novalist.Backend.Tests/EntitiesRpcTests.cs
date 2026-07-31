@@ -1897,4 +1897,25 @@ public sealed class EntitiesRpcTests : IDisposable
         Assert.True(await _rpc.SetParentAsync(place, "Northreach"));
         Assert.False((await _rpc.ListAsync("location")).Single(e => e.Id == place).IsWorld);
     }
+
+    [Fact]
+    public async Task AStateOverrideCanSayTheEntryIsGoneFromHere()
+    {
+        // The marker the continuity gates read. Without a way to set it the
+        // rule could never fire, which is the same as not having it.
+        var chapter = await _workspace.Projects.CreateChapterAsync("One");
+        var character = await _rpc.CreateAsync("character", "Mara");
+        var id = character.GetProperty("id").GetString()!;
+
+        var saved = await _rpc.SetStateOverridesAsync("character", id,
+            [new StateOverrideDto(null, chapter.Guid, null, null, null, null, null, Gone: true)]);
+
+        var only = Assert.Single(saved);
+        Assert.True(only.Gone);
+
+        // And it survives a round trip rather than only living in the response.
+        var read = await _rpc.GetStateOverridesAsync("character", id);
+        Assert.True(Assert.Single(read).Gone);
+    }
 }
+

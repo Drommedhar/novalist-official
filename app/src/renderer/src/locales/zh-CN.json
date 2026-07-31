@@ -2406,6 +2406,19 @@
       "noPov": "此场景未记录视角，无从比对。",
       "noOtherCast": "还没有其他角色可供切换。",
       "noVerbList": "你的写作语言还没有此项检查的词表。"
+    },
+    "continuity": "连贯性",
+    "continuityHint": "对整本书的确定性检查。不询问模型，也不从名字猜测——报告为空表示这些规则没有发现问题，而不是这本书没有问题。",
+    "continuityClean": "未发现问题。",
+    "continuityRule": {
+      "gone-then-present": "某人离场之后再次出现",
+      "unknown-cast": "场景中的出场角色已不在设定集中",
+      "time-runs-backwards": "时间倒流，且没有任何说明"
+    },
+    "continuityFinding": {
+      "gone-then-present": "{{subject}} 出现在此场景，但已离开故事",
+      "unknown-cast": "设定集中已无此出场条目：{{detail}}",
+      "time-runs-backwards": "日期早于前一个场景（{{detail}}）"
     }
   },
   "review": {
@@ -2710,7 +2723,8 @@
     "descriptionPlaceholder": "从此处起的样子",
     "notePlaceholder": "原因（给自己的备注）",
     "add": "在某个点重新描述",
-    "remove": "移除该重新描述"
+    "remove": "移除该重新描述",
+    "gone": "从此不再出现"
   },
   "layout": {
     "title": "导出版式",

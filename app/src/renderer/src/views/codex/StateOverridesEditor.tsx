@@ -12,6 +12,8 @@ interface StateOverride {
   description: string | null
   fields: Record<string, string> | null
   note: string | null
+  /** From here the entry is out of the story: dead, departed, destroyed. */
+  gone: boolean
 }
 
 /**
@@ -67,7 +69,8 @@ export function StateOverridesEditor(props: {
         name: null,
         description: null,
         fields: null,
-        note: null
+        note: null,
+        gone: false
       }
     ])
   }
@@ -132,6 +135,22 @@ export function StateOverridesEditor(props: {
             onChange={(e) => edit(index, { note: e.target.value || null })}
             onBlur={() => void save(overrides)}
           />
+          {/* Novalist tracked what an entry was like at a point and never that
+              it had stopped being in the story, so nothing could notice a
+              character standing two chapters after their own funeral. */}
+          <label className="state-override-gone">
+            <input
+              type="checkbox"
+              checked={override.gone}
+              onChange={(e) => {
+                edit(index, { gone: e.target.checked })
+                void save(
+                  overrides.map((o, i) => (i === index ? { ...o, gone: e.target.checked } : o))
+                )
+              }}
+            />
+            {t('stateOverride.gone')}
+          </label>
         </div>
       ))}
 

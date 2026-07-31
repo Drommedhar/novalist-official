@@ -2374,6 +2374,19 @@
       "noPov": "Für diese Szene ist keine Perspektive hinterlegt, also gibt es nichts zum Abgleich.",
       "noOtherCast": "Noch keine anderen Figuren, in die gewechselt werden könnte.",
       "noVerbList": "Für Ihre Schreibsprache gibt es noch keine Wortliste für diese Prüfung."
+    },
+    "continuity": "Kontinuität",
+    "continuityHint": "Deterministische Prüfungen über das ganze Buch. Kein Modell wird gefragt und nichts aus Namen geraten - ein leerer Bericht heißt, dass diese Regeln nichts gefunden haben, nicht dass das Buch stimmt.",
+    "continuityClean": "Nichts gefunden.",
+    "continuityRule": {
+      "gone-then-present": "Jemand taucht auf, nachdem er weg ist",
+      "unknown-cast": "Eine Szene besetzt einen Eintrag, den der Kodex nicht mehr hat",
+      "time-runs-backwards": "Die Zeit läuft rückwärts, ohne dass etwas es sagt"
+    },
+    "continuityFinding": {
+      "gone-then-present": "{{subject}} ist in dieser Szene, nachdem die Figur die Geschichte verlassen hat",
+      "unknown-cast": "Besetzungseintrag nicht mehr im Kodex: {{detail}}",
+      "time-runs-backwards": "Früher datiert als die Szene davor ({{detail}})"
     }
   },
   "review": {
@@ -2678,7 +2691,8 @@
     "descriptionPlaceholder": "Wie es ab hier ist",
     "notePlaceholder": "Warum (Notiz für Sie selbst)",
     "add": "An einem Punkt neu fassen",
-    "remove": "Diese Neufassung entfernen"
+    "remove": "Diese Neufassung entfernen",
+    "gone": "Ab hier nicht mehr dabei"
   },
   "layout": {
     "title": "Export-Layouts",

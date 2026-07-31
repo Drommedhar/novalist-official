@@ -201,3 +201,12 @@
   color: var(--nl-text-dim);
   font-variant-numeric: tabular-nums;
 }
+
+/* Reads as the last thing about this point in the story, after what changed. */
+.state-override-gone {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
