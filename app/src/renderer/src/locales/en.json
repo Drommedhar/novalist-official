@@ -1515,7 +1515,8 @@
     "sceneTemplate": "Start from",
     "sceneTemplateNone": "A blank scene",
     "sectionType": "What this is",
-    "sectionTypeUnnumbered": "not numbered"
+    "sectionTypeUnnumbered": "not numbered",
+    "edit": "Edit"
   },
   "book": {
     "pickerTooltip": "Switch book",
@@ -2172,7 +2173,8 @@
       "git": "Git",
       "settings": "Settings",
       "style": "Style report",
-      "canvas": "Planning board"
+      "canvas": "Planning board",
+      "languages": "Languages"
     },
     "words": "words",
     "chapters": "chapters",
@@ -3346,5 +3348,25 @@
     "intro": "Kept out of a world export made for readers. Nothing here affects the manuscript, and nothing here affects what an AI extension sees - that is the setting above.",
     "hideEntry": "Keep this entry from readers entirely",
     "sections": "Sections to keep back"
+  },
+  "languages": {
+    "title": "Languages",
+    "intro": "Invented languages and their dictionaries. Search reads both the word and what it means, so you can find out whether you already coined something.",
+    "language": "Language",
+    "add": "Add language",
+    "none": "No languages yet",
+    "emptyHint": "No languages yet. Add one to start a dictionary.",
+    "describe": "Who speaks it, how it sounds, anything about the language rather than one of its words",
+    "words": "{{count}} words",
+    "word": "Word",
+    "meaning": "Meaning",
+    "partOfSpeech": "Part of speech",
+    "pronunciation": "Pronunciation",
+    "addWord": "Add word",
+    "searchPlaceholder": "Search a word or a meaning...",
+    "noWords": "No words yet.",
+    "noMatch": "Nothing matches that.",
+    "deleteHint": "{{name}} and every word in it.",
+    "elsewhere": "Also in your other languages"
   }
 }

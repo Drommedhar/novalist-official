@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import {
+  Languages,
   BookOpen,
   Blocks,
   CalendarDays,
@@ -47,6 +48,7 @@ const viewIcons: Partial<Record<MainView, IconComponent>> = {
   codex: Library,
   wiki: Newspaper,
   maps: Map,
+  languages: Languages,
   research: FileText,
   gallery: Images,
   expose: ScrollText,

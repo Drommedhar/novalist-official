@@ -1548,7 +1548,8 @@
     "sceneTemplate": "以此为起点",
     "sceneTemplateNone": "空白场景",
     "sectionType": "这是什么",
-    "sectionTypeUnnumbered": "不编号"
+    "sectionTypeUnnumbered": "不编号",
+    "edit": "编辑"
   },
   "book": {
     "pickerTooltip": "切换书籍",
@@ -2202,7 +2203,8 @@
       "git": "Git",
       "settings": "设置",
       "style": "文风报告",
-      "canvas": "规划板"
+      "canvas": "规划板",
+      "languages": "语言"
     },
     "words": "字",
     "chapters": "章",
@@ -3386,5 +3388,25 @@
     "intro": "在面向读者的世界导出中省略。不影响手稿，也不影响 AI 扩展能看到的内容——那是上方的设置。",
     "hideEntry": "对读者完全隐藏此条目",
     "sections": "要保留不公开的章节"
+  },
+  "languages": {
+    "title": "语言",
+    "intro": "自创语言及其词典。搜索会同时匹配词形和词义，方便你确认是否已经造过这个词。",
+    "language": "语言",
+    "add": "添加语言",
+    "none": "暂无语言",
+    "emptyHint": "暂无语言。添加一个即可开始编纂词典。",
+    "describe": "谁在说它、它听起来如何——关于这门语言本身而非某个词的说明",
+    "words": "{{count}} 个词",
+    "word": "词",
+    "meaning": "词义",
+    "partOfSpeech": "词性",
+    "pronunciation": "发音",
+    "addWord": "添加词",
+    "searchPlaceholder": "搜索词或词义……",
+    "noWords": "暂无词条。",
+    "noMatch": "没有匹配项。",
+    "deleteHint": "{{name}} 及其中的所有词。",
+    "elsewhere": "你的其他语言中也有"
   }
 }

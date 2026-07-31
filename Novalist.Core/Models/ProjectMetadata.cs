@@ -84,6 +84,16 @@ public class ProjectMetadata
     public List<SmartList> SmartLists { get; set; } = [];
 
     /// <summary>
+    /// Invented languages and their dictionaries.
+    ///
+    /// Project-wide rather than per book: a language outlives the volume it was
+    /// coined for, and a trilogy whose second book cannot see the first book's
+    /// words is a dictionary that has to be typed twice.
+    /// </summary>
+    [JsonPropertyName("languages")]
+    public List<ConlangLanguage> Languages { get; set; } = [];
+
+    /// <summary>
     /// The project's tag vocabulary: every tag that has been given a colour,
     /// and the colour it has. A tag used on something but never coloured is
     /// still a tag - this list is what the manager knows about, not what

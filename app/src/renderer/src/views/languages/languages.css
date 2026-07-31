@@ -1,0 +1,76 @@
+.languages-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  padding-bottom: var(--nl-space-md);
+}
+
+.languages-description {
+  width: 100%;
+  margin-bottom: var(--nl-space-md);
+}
+
+.languages-table td,
+.languages-table th {
+  text-align: left;
+  padding: var(--nl-space-tighter) var(--nl-space-sm);
+}
+
+.languages-row-actions {
+  display: flex;
+  gap: var(--nl-space-tighter);
+}
+
+/* One row rather than a dialog: coining words happens in runs, and a dialog
+   per word turns ten into thirty clicks. */
+.languages-draft {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm);
+  padding-top: var(--nl-space-md);
+}
+
+.languages-draft .dialog-input {
+  flex: 1 1 10rem;
+  min-width: 8rem;
+}
+
+/* The one question the list in front of you cannot answer: did I already coin
+   this somewhere else? */
+.languages-elsewhere {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tighter);
+  padding-top: var(--nl-space-md);
+}
+
+.languages-elsewhere-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-dim);
+}
+
+/* The dictionary reads as a table, not as a list crammed against the search
+   box above it. */
+.languages .dashboard-card > .dialog-input {
+  width: 100%;
+  margin-bottom: var(--nl-space-md);
+}
+
+.languages-table {
+  width: 100%;
+  margin-bottom: var(--nl-space-sm);
+}
+
+.languages-table th {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  font-weight: normal;
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.languages-table tbody tr:not(:last-child) td {
+  border-bottom: 1px solid var(--nl-border-subtle);
+}

@@ -17,6 +17,7 @@ export type MainView =
   | 'codex'
   | 'wiki'
   | 'maps'
+  | 'languages'
   | 'series'
   | 'research'
   | 'gallery'
@@ -35,7 +36,7 @@ export type MainView =
 export const activityGroups: { key: string; views: MainView[] }[] = [
   { key: 'shell.groupWrite', views: ['dashboard', 'manuscript'] },
   { key: 'shell.groupPlan', views: ['timeline', 'plotGrid', 'calendar', 'relationships', 'dialogue', 'style', 'canvas', 'series'] },
-  { key: 'shell.groupWorld', views: ['codex', 'wiki', 'maps', 'research', 'gallery'] },
+  { key: 'shell.groupWorld', views: ['codex', 'wiki', 'maps', 'languages', 'research', 'gallery'] },
   { key: 'shell.groupPublish', views: ['expose', 'export', 'git'] }
 ]
 

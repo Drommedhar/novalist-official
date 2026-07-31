@@ -984,7 +984,8 @@
     "sceneTemplate": "Ausgehen von",
     "sceneTemplateNone": "Einer leeren Szene",
     "sectionType": "Was das ist",
-    "sectionTypeUnnumbered": "ohne Nummer"
+    "sectionTypeUnnumbered": "ohne Nummer",
+    "edit": "Bearbeiten"
   },
   "book": {
     "pickerTooltip": "Buch wechseln",
@@ -2180,7 +2181,8 @@
       "git": "Git",
       "settings": "Einstellungen",
       "style": "Stilbericht",
-      "canvas": "Planungsboard"
+      "canvas": "Planungsboard",
+      "languages": "Sprachen"
     },
     "words": "Wörter",
     "chapters": "Kapitel",
@@ -3354,5 +3356,25 @@
     "intro": "Wird aus einem für Leser erstellten Welt-Export ausgelassen. Das Manuskript bleibt unberührt, und was eine KI-Erweiterung sieht, steht in der Einstellung darüber.",
     "hideEntry": "Diesen Eintrag ganz vor Lesern verbergen",
     "sections": "Abschnitte zurückhalten"
+  },
+  "languages": {
+    "title": "Sprachen",
+    "intro": "Erfundene Sprachen und ihre Wörterbücher. Die Suche liest das Wort und seine Bedeutung, damit du siehst, ob du schon etwas geprägt hast.",
+    "language": "Sprache",
+    "add": "Sprache hinzufügen",
+    "none": "Noch keine Sprachen",
+    "emptyHint": "Noch keine Sprachen. Füge eine hinzu, um ein Wörterbuch zu beginnen.",
+    "describe": "Wer sie spricht, wie sie klingt - alles über die Sprache statt über ein einzelnes Wort",
+    "words": "{{count}} Wörter",
+    "word": "Wort",
+    "meaning": "Bedeutung",
+    "partOfSpeech": "Wortart",
+    "pronunciation": "Aussprache",
+    "addWord": "Wort hinzufügen",
+    "searchPlaceholder": "Wort oder Bedeutung suchen...",
+    "noWords": "Noch keine Wörter.",
+    "noMatch": "Dazu passt nichts.",
+    "deleteHint": "{{name}} und jedes Wort darin.",
+    "elsewhere": "Auch in deinen anderen Sprachen"
   }
 }
