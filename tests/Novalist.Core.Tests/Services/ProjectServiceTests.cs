@@ -1122,5 +1122,44 @@ public class ProjectServiceTests : IDisposable
         Assert.Equal(openRoot, _sut.ProjectRoot);
         Assert.NotNull(_sut.CurrentProject);
     }
+
+    [Fact]
+    public async Task LoadChaptersFor_ReadsTheDraftOnDiskRatherThanTheOpenOne()
+    {
+        // The active draft's chapters live in memory on the book; every other
+        // draft's live only in its own draft.json.
+        await Create();
+        var chapter = await _sut.CreateChapterAsync("One");
+        var first = _sut.ActiveBook!.ActiveDraftId;
+
+        var second = await _sut.CreateDraftAsync("Revision", first);
+        await _sut.SwitchDraftAsync(second.Id);
+        await _sut.RenameChapterAsync(chapter.Guid, "One, again");
+
+        _sut.ActiveBook.ActiveDraftId = first;
+        var chapters = await _sut.LoadChaptersForAsync(_sut.ActiveBook);
+        Assert.Contains(chapters, c => c.Guid == chapter.Guid && c.Title == "One");
+
+        _sut.ActiveBook.ActiveDraftId = second.Id;
+        chapters = await _sut.LoadChaptersForAsync(_sut.ActiveBook);
+        Assert.Contains(chapters, c => c.Title == "One, again");
+    }
+
+    [Fact]
+    public async Task LoadChaptersFor_IsEmptyWhenTheDraftHasNoFileYet()
+    {
+        await Create();
+        var book = _sut.ActiveBook!;
+        // A draft id with no folder behind it: nothing to read, and nothing
+        // worth throwing over.
+        book.Drafts.Add(new BookDraftMetadata { Id = "ghost", FolderName = "ghost" });
+        book.ActiveDraftId = "ghost";
+
+        Assert.Empty(await _sut.LoadChaptersForAsync(book));
+
+        book.Drafts.Clear();
+        book.ActiveDraftId = string.Empty;
+        Assert.Empty(await _sut.LoadChaptersForAsync(book));
+    }
 }
 

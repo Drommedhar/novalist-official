@@ -49,4 +49,13 @@ public interface IExtensionResearchService
     /// rather than referenced so the project stays self-contained.
     /// </summary>
     Task<string> ImportFileAsync(string sourcePath);
+
+    /// <summary>
+    /// Where a File, Image or Pdf item's content actually is on disk.
+    ///
+    /// An item stores a project-relative path so the project can be moved or
+    /// shared without breaking, which leaves an extension holding a path it
+    /// cannot open. Empty when there is no project.
+    /// </summary>
+    string GetFullPath(string relativePath);
 }

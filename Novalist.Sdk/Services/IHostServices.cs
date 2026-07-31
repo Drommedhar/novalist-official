@@ -359,6 +359,9 @@ public interface IHostServices
     /// <summary>Scene metadata, acts, plot threads and timeline events.</summary>
     IExtensionStoryService StoryService { get; }
 
+    /// <summary>Snapshots, other drafts, and the project's files.</summary>
+    IExtensionArchiveService ArchiveService { get; }
+
     /// <summary>Current host version.</summary>
     string HostVersion { get; }
 

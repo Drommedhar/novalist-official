@@ -483,6 +483,18 @@ public sealed partial class HostServices
     Task<string> IExtensionResearchService.ImportFileAsync(string sourcePath)
         => Research.ImportFileAsync(sourcePath);
 
+    string IExtensionResearchService.GetFullPath(string relativePath)
+    {
+        var root = _projectService.ProjectRoot;
+        if (root == null || string.IsNullOrWhiteSpace(relativePath)) return string.Empty;
+        // A stored path that climbs out of the project would let an extension
+        // read anything on the machine through a research item.
+        var full = Path.GetFullPath(Path.Combine(root, relativePath));
+        return full.StartsWith(Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
+            ? full
+            : string.Empty;
+    }
+
     private static ResearchItemInfo ToInfo(ResearchItem item) => new()
     {
         Id = item.Id,

@@ -335,6 +335,26 @@ public partial class ProjectService : IProjectService
     /// for a pass over a book nobody is editing, so a stale copy would be worse
     /// than the read.
     /// </summary>
+    /// <summary>
+    /// A book's chapters as its draft has them on disk, in order.
+    ///
+    /// The active draft's chapters live in memory on the book; every other
+    /// draft's live only in its own draft.json, so comparing two drafts - the
+    /// most obvious thing to want a second draft for - had no way to read the
+    /// one that is not open.
+    /// </summary>
+    public async Task<List<ChapterData>> LoadChaptersForAsync(BookData book)
+    {
+        var draftRoot = DraftRootFor(book);
+        if (draftRoot == null) return [];
+        var path = _fileService.CombinePath(draftRoot, "draft.json");
+        if (!await _fileService.ExistsAsync(path)) return [];
+
+        var data = JsonSerializer.Deserialize<BookDraftData>(
+            await _fileService.ReadTextAsync(path), JsonOptions);
+        return [.. (data?.Chapters ?? []).OrderBy(c => c.Order)];
+    }
+
     public async Task<ScenesManifest?> LoadScenesManifestForAsync(BookData book)
     {
         var draftRoot = DraftRootFor(book);

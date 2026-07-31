@@ -23,6 +23,7 @@ public sealed partial class HostServices :
     IExtensionProjectService,
     IExtensionEntityService,
     IExtensionResearchService,
+    IExtensionArchiveService,
     IExtensionReviewService,
     IExtensionStoryService,
     IDisposable
@@ -72,6 +73,7 @@ public sealed partial class HostServices :
     public IExtensionResearchService ResearchService => this;
     public IExtensionReviewService ReviewService => this;
     public IExtensionStoryService StoryService => this;
+    public IExtensionArchiveService ArchiveService => this;
     public string HostVersion => VersionInfo.Version;
     public string CurrentLanguage => Loc.Instance.CurrentLanguage;
 

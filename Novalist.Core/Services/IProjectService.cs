@@ -115,6 +115,9 @@ public interface IProjectService
     string? DraftRootFor(BookData book);
     string? ChapterFolderPathFor(BookData book, ChapterData chapter);
     Task<ScenesManifest?> LoadScenesManifestForAsync(BookData book);
+
+    /// <summary>A book's chapters as its draft has them on disk, in order.</summary>
+    Task<List<ChapterData>> LoadChaptersForAsync(BookData book);
     Task<string> ReadSceneContentForAsync(BookData book, ChapterData chapter, SceneData scene);
 
     List<ChapterData> GetChaptersOrdered();
