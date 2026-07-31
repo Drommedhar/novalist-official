@@ -94,3 +94,17 @@ Deciding that "Mutter" means a parent is a question about language, so it uses t
 - [Codex](06-codex.md) — where character relationships are edited.
 - [Timeline](12-timeline.md) — track where those characters appear over story time.
 - [Dialogue](33-dialogue.md) — every line one of those characters speaks, in story order.
+
+## As a family tree
+
+The canvas lays everything out by force, which is right for "what is connected to what" and wrong for "who descends from whom" — a force layout puts a grandmother wherever there is room, so three generations read as a cloud.
+
+Centre on somebody, then **As tree**. The view redraws as generations on lines, with the person you centred on outlined.
+
+- **Generations up** and **Generations down** are separate limits. Tracing a line of succession usually means many generations down and one or two up, and the same view with both at ten is unreadable.
+- **Sideways / Downwards** turns the tree, for a family that is wider than it is deep.
+- Click a box to recentre the tree on that person; hold Alt and click to open their entry.
+- Hover for the whole name and what that person is to the root.
+
+The tree is built from **parent** and **child** relationships. A row on an entry names what the *target* is to it — on Liam, "Mother -> Amy" means Amy is his mother.
+

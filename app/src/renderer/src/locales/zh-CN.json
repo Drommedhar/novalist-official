@@ -282,7 +282,17 @@
     "hops": "{{count}} 层",
     "withScenes": "显示场景",
     "kindscene": "场景",
-    "recentreOn": "以 {{name}} 为中心（Alt+点击打开）"
+    "recentreOn": "以 {{name}} 为中心（Alt+点击打开）",
+    "asTree": "族谱视图",
+    "asGraph": "关系图视图",
+    "treeNeedsRoot": "请先选定一个中心条目",
+    "ancestors": "向上代数",
+    "descendants": "向下代数",
+    "ancestorsN": "向上 {{count}} 代",
+    "descendantsN": "向下 {{count}} 代",
+    "treeHorizontal": "横向",
+    "treeVertical": "纵向",
+    "treeEmpty": "没有父母或子女关系指向此条目。"
   },
   "calendar": {
     "title": "日历",

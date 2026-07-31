@@ -249,7 +249,17 @@
     "hops_other": "{{count}} hops",
     "withScenes": "Show scenes",
     "kindscene": "Scenes",
-    "recentreOn": "Centre on {{name}} (Alt-click to open it)"
+    "recentreOn": "Centre on {{name}} (Alt-click to open it)",
+    "asTree": "As tree",
+    "asGraph": "As graph",
+    "treeNeedsRoot": "Centre on somebody first",
+    "ancestors": "Generations up",
+    "descendants": "Generations down",
+    "ancestorsN": "{{count}} up",
+    "descendantsN": "{{count}} down",
+    "treeHorizontal": "Sideways",
+    "treeVertical": "Downwards",
+    "treeEmpty": "No parent or child relationships lead to this entry."
   },
   "calendar": {
     "title": "Calendar",

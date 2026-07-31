@@ -6,6 +6,11 @@ import { useWikiStore } from '../../stores/wikiStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { layoutGraph, parentMap, NODE_SIZE, type GraphCharacter } from './layout'
 import { kinshipLabel, type KinshipRow } from './kinshipLabel'
+import {
+  layoutFamilyTree,
+  TREE_NODE_WIDTH,
+  TREE_NODE_HEIGHT
+} from './familyTree'
 import './relationships.css'
 
 // Distinct per-family box colors (cycles when there are more families than
@@ -71,6 +76,13 @@ export function RelationshipsView(): React.JSX.Element {
   // Codex on one canvas proves the links exist and answers nothing; the
   // question a writer has is "what is this one connected to".
   const [rootId, setRootId] = useState<string | null>(null)
+  // A force layout answers "what is connected to what" and puts a grandmother
+  // wherever there is room, so three generations read as a cloud. A tree puts a
+  // generation on a line, which is the one thing a family view has to do.
+  const [asTree, setAsTree] = useState(false)
+  const [ancestorDepth, setAncestorDepth] = useState(3)
+  const [descendantDepth, setDescendantDepth] = useState(3)
+  const [treeHorizontal, setTreeHorizontal] = useState(false)
   /**
    * How each person is related to the one the view is centred on.
    *
@@ -216,6 +228,19 @@ export function RelationshipsView(): React.JSX.Element {
   )
 
   const layout = useMemo(() => layoutGraph(filtered), [filtered])
+  // Built from every node rather than the filtered set: a tree with a
+  // generation missing is not a shorter tree, it is a wrong one.
+  const tree = useMemo(
+    () =>
+      asTree && rootId
+        ? layoutFamilyTree(allNodes, parentMap(allNodes), rootId, {
+            ancestors: ancestorDepth,
+            descendants: descendantDepth,
+            horizontal: treeHorizontal
+          })
+        : null,
+    [asTree, rootId, allNodes, ancestorDepth, descendantDepth, treeHorizontal]
+  )
 
   // Fit-and-centre the graph in the viewport whenever it is rebuilt.
   const fitToGraph = useCallback(() => {
@@ -362,6 +387,52 @@ export function RelationshipsView(): React.JSX.Element {
             ))}
           </select>
         )}
+        {/* Generations rather than a force layout. Needs a root: a tree with
+            no root is a forest, and a forest is what the canvas already is. */}
+        <button
+          className={`dialog-button${asTree ? ' primary' : ''}`}
+          disabled={!rootId}
+          title={rootId ? undefined : t('relationships.treeNeedsRoot')}
+          onClick={() => setAsTree(!asTree)}
+        >
+          {t(asTree ? 'relationships.asGraph' : 'relationships.asTree')}
+        </button>
+        {asTree && rootId && (
+          <>
+            {/* A writer tracing a line of succession wants ten generations down
+                and one up; the same view with both at ten is unreadable. */}
+            <select
+              className="dialog-input relationships-filter relationships-depth"
+              aria-label={t('relationships.ancestors')}
+              value={String(ancestorDepth)}
+              onChange={(e) => setAncestorDepth(Number(e.target.value))}
+            >
+              {[0, 1, 2, 3, 5, 10].map((d) => (
+                <option key={d} value={d}>
+                  {t('relationships.ancestorsN', { count: d })}
+                </option>
+              ))}
+            </select>
+            <select
+              className="dialog-input relationships-filter relationships-depth"
+              aria-label={t('relationships.descendants')}
+              value={String(descendantDepth)}
+              onChange={(e) => setDescendantDepth(Number(e.target.value))}
+            >
+              {[0, 1, 2, 3, 5, 10].map((d) => (
+                <option key={d} value={d}>
+                  {t('relationships.descendantsN', { count: d })}
+                </option>
+              ))}
+            </select>
+            <button
+              className="dialog-button"
+              onClick={() => setTreeHorizontal(!treeHorizontal)}
+            >
+              {t(treeHorizontal ? 'relationships.treeVertical' : 'relationships.treeHorizontal')}
+            </button>
+          </>
+        )}
         {/* The edge that was always known and never drawn: which scenes these
             people are actually in together. */}
         <label className="relationships-toggle">
@@ -417,7 +488,65 @@ export function RelationshipsView(): React.JSX.Element {
           dragRef.current = null
         }}
       >
-        {layout.nodes.length === 0 ? (
+        {tree ? (
+          tree.nodes.length === 0 ? (
+            <p className="codex-empty">{t('relationships.treeEmpty')}</p>
+          ) : (
+            <svg
+              className="relationships-canvas"
+              width={tree.width * zoom}
+              height={tree.height * zoom}
+              viewBox={`0 0 ${tree.width} ${tree.height}`}
+              style={{ transform: `translate(${pan.x}px, ${pan.y}px)` }}
+            >
+              {/* Parent to child, drawn under the boxes so a line never crosses
+                  a name. */}
+              {tree.edges.map((edge, i) => {
+                const from = tree.nodes.find((n) => n.id === edge.parentId)
+                const to = tree.nodes.find((n) => n.id === edge.childId)
+                if (!from || !to) return null
+                return (
+                  <line
+                    key={`${edge.parentId}-${edge.childId}-${i}`}
+                    className="tree-edge"
+                    x1={from.x + TREE_NODE_WIDTH / 2}
+                    y1={from.y + TREE_NODE_HEIGHT / 2}
+                    x2={to.x + TREE_NODE_WIDTH / 2}
+                    y2={to.y + TREE_NODE_HEIGHT / 2}
+                  />
+                )
+              })}
+              {tree.nodes.map((node) => (
+                <g
+                  key={node.id}
+                  className="tree-node"
+                  onClick={(e) => (e.altKey ? openEntity(node.id) : recentre(node.id))}
+                >
+                  <rect
+                    x={node.x}
+                    y={node.y}
+                    width={TREE_NODE_WIDTH}
+                    height={TREE_NODE_HEIGHT}
+                    rx={6}
+                    className={`tree-box${node.generation === 0 ? ' root' : ''}`}
+                  />
+                  <text
+                    x={node.x + TREE_NODE_WIDTH / 2}
+                    y={node.y + TREE_NODE_HEIGHT / 2 + 4}
+                    className="tree-name"
+                  >
+                    {fitLabel(node.name)}
+                  </text>
+                  {/* The whole name, and what they are to the root - the same
+                      answer the graph gives, kept when the shape changes. */}
+                  <title>
+                    {kinship[node.id] ? `${node.name} - ${kinship[node.id]}` : node.name}
+                  </title>
+                </g>
+              ))}
+            </svg>
+          )
+        ) : layout.nodes.length === 0 ? (
           <p className="codex-empty">{t('relationships.emptyHint')}</p>
         ) : (
           <svg

@@ -61,3 +61,32 @@
   stroke: var(--nl-node-scene);
   stroke-dasharray: 3 2;
 }
+
+/* A generation on a line. The root is marked, because a tree with no visible
+   root is just a shape. */
+.tree-edge {
+  stroke: var(--nl-border);
+  stroke-width: 1.5;
+}
+
+.tree-node {
+  cursor: pointer;
+}
+
+.tree-box {
+  fill: var(--nl-surface-card);
+  stroke: var(--nl-border);
+  stroke-width: 1.5;
+}
+
+.tree-box.root {
+  stroke: var(--nl-accent);
+  stroke-width: 2.5;
+}
+
+.tree-name {
+  fill: var(--nl-text);
+  font-size: var(--nl-font-caption);
+  text-anchor: middle;
+  pointer-events: none;
+}

@@ -18,6 +18,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Added
 
+- **A family tree.** The Relationships canvas lays everything out by force, which is right for "what is connected to what" and wrong for "who descends from whom" — three generations read as a cloud. Centre on somebody and press **As tree** and the same people redraw as generations on lines, with separate limits for how many generations up and down to show and a switch between a tree that runs downwards and one that runs sideways.
+
 - **Continuity checks over the whole book.** Every check Novalist ran was about the prose in one scene, so a character standing two chapters after their own funeral was nobody's job to notice. A **Continuity** section in the Style view now reports three things across the whole manuscript: somebody appearing after they have left the story, a scene casting an entry the Codex no longer has, and time running backwards with no flashback saying so. Every rule is deterministic — no model is asked and nothing is guessed from names — each can be turned off per project, and clicking a finding opens the scene. Codex entries can now be marked **gone from here** at a point in the story, which is what the first rule reads.
 
 - **Timeline dates can follow other dates.** Every date stood on its own, so moving a siege by a week meant finding and retyping every date that hung off it — and the ones you missed said the wrong thing until somebody noticed the funeral happening before the death. **Follows this event** in the event editor hangs a date off another by a number of days, counted from that event's start or its end, and moving the anchor moves everything downstream through as many links as you have made. A span keeps its own length. **Pin this date** holds one event still while its own dependents still follow it. A loop, or an anchor on a date Novalist cannot read, leaves the dates alone rather than guessing.
@@ -243,6 +245,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 - **The Watch Filesystem project setting.** It has never done anything — no watcher was ever started — so a control that promised live reconciliation was leaving people to think external changes were being picked up while the app ran. External changes are still reconciled when you open a project, and a scene that changed on disk is now caught when you save it.
 
 ### Fixed
+- **Family relationships were upside down.** Novalist read a relationship row as what the entry is to the target rather than what the target is to the entry, so on a character whose row said "mother -> Amy" it concluded the character was Amy's mother. Every family was inverted: the kinship labels on the Relationships graph called a mother a daughter and a grandchild a grandparent. Rows read the right way round now.
+
 - **An extension's changes show up without clicking away and back.** When an extension wrote to the Codex or changed the shape of the project, it changed the files and nothing on screen: the entry kept showing its old values and the binder kept its old order until you navigated somewhere else and returned. The interface now reloads when an extension writes.
 
 - **A new plot thread no longer comes out the same blue as every other one.** The manual has promised an automatically assigned colour the whole time; every thread in fact got the same one, which made a grid of coloured cells say nothing about which thread was which. Each new thread now takes the next colour in a palette.

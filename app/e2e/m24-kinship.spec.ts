@@ -44,9 +44,9 @@ test('centring the graph on somebody names how everyone else is related to them'
     const mira = await make('Mira')
     const cousin = await make('Cousin')
 
-    // "Mother" reads as the subject's role toward the target: Gran is Mum's
-    // mother. setRelationships writes the whole list, so both of Gran's
-    // children go in one call or the second replaces the first.
+    // A row names what the target is to the subject: on Mum, "Mother -> Gran"
+    // means Gran is Mum's mother. setRelationships writes the whole list, so
+    // everything one entry says goes in a single call.
     const ties = async (id: string, targets: string[]): Promise<void> => {
       await rpc.request('entities/setRelationships', [
         id,
@@ -54,9 +54,10 @@ test('centring the graph on somebody names how everyone else is related to them'
         'character'
       ])
     }
-    await ties(gran, ['Mum', 'Aunt'])
-    await ties(mum, ['Mira'])
-    await ties(aunt, ['Cousin'])
+    await ties(mum, ['Gran'])
+    await ties(aunt, ['Gran'])
+    await ties(mira, ['Mum'])
+    await ties(cousin, ['Aunt'])
 
     return { gran, mira, cousin }
   }, workDir)

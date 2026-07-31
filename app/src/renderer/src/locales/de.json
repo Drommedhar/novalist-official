@@ -1166,7 +1166,17 @@
     "hops_other": "{{count}} Schritte",
     "withScenes": "Szenen anzeigen",
     "kindscene": "Szenen",
-    "recentreOn": "Auf {{name}} zentrieren (Alt-Klick zum Öffnen)"
+    "recentreOn": "Auf {{name}} zentrieren (Alt-Klick zum Öffnen)",
+    "asTree": "Als Stammbaum",
+    "asGraph": "Als Graph",
+    "treeNeedsRoot": "Erst jemanden zentrieren",
+    "ancestors": "Generationen nach oben",
+    "descendants": "Generationen nach unten",
+    "ancestorsN": "{{count}} nach oben",
+    "descendantsN": "{{count}} nach unten",
+    "treeHorizontal": "Seitwärts",
+    "treeVertical": "Nach unten",
+    "treeEmpty": "Keine Eltern- oder Kind-Beziehungen führen zu diesem Eintrag."
   },
   "calendar": {
     "title": "Kalender",

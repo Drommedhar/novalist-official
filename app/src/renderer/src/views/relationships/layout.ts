@@ -704,9 +704,12 @@ export function parentMap(characters: GraphCharacter[]): Record<string, string[]
       for (const targetName of rel.target.split(',')) {
         const target = byName.get(targetName.trim().toLowerCase())
         if (!target || target.id === c.id) continue
-        // "role" reads as c's role toward target: c is target's <role>.
-        if (matchesAny(rel.role, parentWords)) add(target.id, c.id)
-        else if (matchesAny(rel.role, childWords)) add(c.id, target.id)
+        // A row names what the TARGET is to this entry: on Liam, "mother ->
+        // Amy" means Amy is his mother. Read the other way round it inverted
+        // every family - the tree drew parents below their children, and the
+        // kinship labels called a mother a daughter.
+        if (matchesAny(rel.role, parentWords)) add(c.id, target.id)
+        else if (matchesAny(rel.role, childWords)) add(target.id, c.id)
       }
     }
   }
