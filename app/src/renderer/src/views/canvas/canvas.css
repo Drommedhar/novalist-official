@@ -91,7 +91,7 @@
   border: none;
   resize: none;
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   padding: 0;
 }
 

@@ -6,7 +6,7 @@
 .codex-field-prompt {
   margin-top: var(--nl-space-tightest);
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   line-height: 1.4;
 }
 
@@ -22,7 +22,7 @@
   border: 1px dashed var(--nl-border);
   border-radius: var(--nl-radius-sm);
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   margin: var(--nl-space-tightest) var(--nl-space-sm);
   padding: var(--nl-space-tighter);
   text-align: center;
@@ -127,7 +127,7 @@
 
 .name-suggestions summary {
   cursor: pointer;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }
 
@@ -161,7 +161,7 @@
   background: var(--nl-surface-input);
   color: var(--nl-text);
   cursor: pointer;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
 }
 
 .name-suggestion:hover {
@@ -197,7 +197,7 @@
 }
 
 .entity-history-when {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
   font-variant-numeric: tabular-nums;
 }
@@ -207,6 +207,6 @@
   display: flex;
   align-items: center;
   gap: var(--nl-space-tighter);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }

@@ -1,6 +1,6 @@
 # Editor
 
-The Editor is where you write. It is a WYSIWYG rich-text editor. Each editor pane keeps a strip of open scene tabs, and you can show a second pane side by side. The writing engine is the same proven one as in earlier Novalist versions — typewriter scrolling, page view, comments, and footnotes all behave identically; only the shell around it is new.
+The Editor is where you write. It is a WYSIWYG rich-text editor. Each editor pane keeps a strip of open scene tabs, and the main area can be split so several scenes sit side by side. The writing engine is the same proven one as in earlier Novalist versions — typewriter scrolling, page view, comments, and footnotes all behave identically; only the shell around it is new.
 
 Shortcuts below are written with `Ctrl`; on macOS use `Cmd`.
 
@@ -16,7 +16,7 @@ The Editor has no view-rail icon of its own — you always reach it by opening a
 
 Each editor pane keeps the scenes you have opened as a **tab strip** across the top of the pane. Clicking another scene in the binder adds it as a new tab instead of replacing the current one, so you can keep several scenes open and jump between them.
 
-The strip appears once a pane has more than one scene open (a single open scene keeps the clean, strip-free look). Each tab shows:
+The strip appears once a pane has more than one scene open, or once a second editor pane is open (a lone editor on one scene keeps the clean, strip-free look). Each tab shows:
 
 - The scene title (falling back to the chapter title for an untitled scene).
 - A small **dirty dot** while the scene has unsaved edits, which clears once autosave flushes.
@@ -26,7 +26,7 @@ Tab actions:
 
 - **Click** a tab to switch the pane to that scene.
 - **Middle-click** a tab, or click its `×`, to close it. Closing the active tab activates its neighbour.
-- **Right-click** a tab for a small menu: **Close tab** and **Move to other split** (sends the scene to the other editor pane, opening the split if needed).
+- **Right-click** a tab for a small menu: **Close tab** and **Move to other pane** (hands the scene to the next editor pane, splitting the main area if there is not one yet).
 
 ## Auto-save
 
@@ -115,11 +115,20 @@ The bin holds the most recent 500 cuts and lives with the project, so it travels
 
 The context menu's **Split scene here** divides the scene at the caret: everything below it becomes a new scene directly after this one, carrying the date, stage, plotlines and POV that still describe it. See [Chapters and scenes](04-chapters-and-scenes.md#splitting-a-scene-in-two).
 
-## Split editor
+## Two scenes at once
 
-To see two scenes at once, right-click a scene in the binder and choose **Toggle split editor**. The main area splits into two editor panes: your current scene on the left, the chosen scene on the right. Both panes are fully editable, auto-save independently, and each keeps its own [tab strip](#scene-tabs) of open scenes. Use **Move to other split** on a tab to hand a scene from one pane to the other.
+The main area is a tree of [panes](02-interface-overview.md#splitting-the-main-area-into-panes), and every pane showing the editor holds its own scene. There is no separate "split editor" mode and no limit of two.
 
-Common uses: referencing an earlier scene while writing a later one, or editing two scenes in parallel.
+Two ways in:
+
+- Right-click a scene in the binder and choose **Open in split** — the main area splits and the scene opens in the new pane.
+- Split the pane yourself (`Ctrl+Alt+Right`, `Ctrl+Alt+Down`, or the split buttons in the pane header). The new pane starts empty; click a scene in the binder and it opens there.
+
+Every editor pane is fully editable, auto-saves independently, and keeps its own [tab strip](#scene-tabs) of open scenes. **Move to other pane** on a tab hands a scene to the next editor pane, creating one if there is no second pane yet.
+
+The inspector, the status bar, find-and-replace and the scene-notes dock follow the pane you are working in.
+
+Common uses: referencing an earlier scene while writing a later one, editing two scenes in parallel, or keeping the Codex open beside the scene it describes.
 
 ## Entity mentions and autocomplete
 
@@ -288,6 +297,7 @@ One thing suggestion mode is deliberately careful about: a plain strikethrough y
 ## Where to go next
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — the binder tree around the editor.
+- [Interface Overview](02-interface-overview.md#splitting-the-main-area-into-panes) — splitting the main area, pane layouts, and opening a pane in its own window.
 - [Exposé](32-expose.md) — the same writing surface with paragraph-style buttons and length counters.
 - [Snapshots](17-snapshots.md) — revert a single scene to a previous state.
 - [Find & Replace](21-find-replace.md) — search across scene, chapter, book, or project.

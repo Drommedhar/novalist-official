@@ -16,7 +16,7 @@ The **Chapters** tab of the binder shows the active draft's structure as a tree:
 The tree supports:
 
 - **Drag to reorder** — drag a chapter onto another chapter to change chapter order. Drag a scene within its chapter to reorder it, or drop it onto another chapter (or one of that chapter's scenes) to move it there.
-- **Right-click context menus** — on chapters: **Rename Act**, **Rename Chapter**, **Delete**. On scenes: **Archive**, **Toggle split editor**, **Rename**, **Delete**.
+- **Right-click context menus** — on chapters: **Rename Act**, **Rename Chapter**, **Delete**. On scenes: **Archive**, **Open in split**, **Rename**, **Delete**.
 
 ## Chapters
 
@@ -116,9 +116,9 @@ Right-click the scene in the binder → **Rename**. The file on disk is renamed 
 
 Drag within the same chapter to change order. Drop the scene onto another chapter to move it there; the file moves to the target chapter's folder and the snapshot history follows.
 
-### Opening a scene in the split editor
+### Opening a scene beside the one you are writing
 
-Right-click → **Toggle split editor** opens the scene in a second editor pane beside the one you are writing in — for example to reference an earlier scene. See [Editor](05-editor.md#split-editor).
+Right-click → **Open in split** splits the main area and opens the scene in the pane that appears, beside the one you are writing in — for example to reference an earlier scene. Each editor pane holds its own scene, and there is no limit of two. See [Editor](05-editor.md#two-scenes-at-once).
 
 ### Splitting a scene in two
 
@@ -298,7 +298,7 @@ This is not archiving: an [archived](#archiving-scenes) scene leaves the binder,
 
 ## Where to go next
 
-- [Editor](05-editor.md) — formatting, split editor, comments, footnotes.
+- [Editor](05-editor.md) — formatting, two scenes at once, comments, footnotes.
 - [Plot Grid](08-plot-grid.md) — attach scenes to plotlines.
 - [Calendar & in-world dates](13-calendar.md) — give scenes structured story dates.
 - [Smart Lists](16-smart-lists.md) — saved scene queries.

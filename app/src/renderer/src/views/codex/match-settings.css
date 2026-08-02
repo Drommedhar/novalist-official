@@ -23,7 +23,7 @@
 
 .match-hint {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   margin-bottom: var(--nl-space-sm);
 }
 
@@ -39,7 +39,7 @@
 
 .match-row > span {
   flex: 1;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -53,7 +53,7 @@
   align-items: center;
   cursor: pointer;
   display: flex;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   gap: var(--nl-space-sm);
 }
 
@@ -91,7 +91,7 @@
 }
 
 .unlinked-name {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   font-weight: 600;
 }
 
@@ -116,5 +116,5 @@
 
 .unlinked-context {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
 }

@@ -10,7 +10,7 @@
 /* What this export will contain: a quiet line, not a panel. */
 .export-preview {
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   margin: var(--nl-space-sm) 0 0;
 }
 
@@ -40,7 +40,7 @@
   border: 1px solid var(--nl-border-subtle);
   border-radius: var(--nl-radius-sm);
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   padding: var(--nl-space-tightest) var(--nl-space-sm);
   cursor: pointer;
 }
@@ -74,7 +74,7 @@
 }
 
 .export-preset-desc {
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
   margin-top: calc(-1 * var(--nl-space-tighter));
 }
@@ -144,7 +144,7 @@
 }
 
 .review-anchor {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
   border-left: 2px solid var(--nl-border-subtle);
   padding-left: var(--nl-space-sm);
@@ -199,7 +199,7 @@
 .matter-custom-title {
   color: var(--nl-text-dim);
   margin-left: var(--nl-space-sm);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
 }
 
 .matter-body {
@@ -268,7 +268,7 @@
   border-radius: var(--nl-radius-sm);
   background: var(--nl-surface-input);
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
 }
 
 /* One row of contents / template controls, wrapping on a narrow dialog rather

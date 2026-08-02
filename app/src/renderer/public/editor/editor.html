@@ -40,8 +40,13 @@
  * menu into something that filled the window.
  */
 :root {
-    --chrome-font: 13px;
-    --chrome-font-sm: 11px;
+    /* The two steps the shell calls --nl-font-ui and --nl-font-caption. The
+       iframe cannot read the app's tokens, so it restates the pair by value:
+       the context menu and the floating toolbar are shell chrome that happens
+       to be drawn inside the page, and they have to match the chrome around
+       them rather than run two steps smaller than it. */
+    --chrome-font: 15px;
+    --chrome-font-sm: 13px;
     --chrome-gap: 6px;
 }
 html, body {
@@ -247,7 +252,7 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
     pointer-events: none;
 }
 #context-menu .cm-shortcut {
-    font-size: 11px;
+    font-size: var(--chrome-font-sm);
     opacity: 0.5;
     margin-left: 24px;
 }
@@ -304,7 +309,7 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
 }
 #context-menu .cm-grammar-msg {
     padding: 4px 14px;
-    font-size: 11px;
+    font-size: var(--chrome-font-sm);
     opacity: 0.6;
     font-style: italic;
 }
@@ -339,7 +344,7 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
     border-radius: 4px;
     color: var(--fg);
     cursor: pointer;
-    font-size: 13px;
+    font-size: var(--chrome-font);
     padding: 3px 7px;
     min-width: 28px;
     min-height: 26px;
@@ -3274,9 +3279,16 @@ function setContextMenuLabels(labelsJson) {
  * Rows that need a selection are disabled rather than hidden, so the menu keeps
  * the same shape whether or not anything is selected - a menu that reshuffles
  * itself is a menu nobody learns.
+ *
+ * A group in which every row is disabled is dropped entirely, though. Keeping
+ * it leaves a flyout that opens onto nothing usable, which reads as broken
+ * rather than as unavailable - the group name gives no hint that a selection
+ * is what it wants.
  */
 function submenu(title, rows, hasSelection) {
     if (!rows || rows.length === 0) return '';
+    const usable = rows.some((row) => !row.needsSelection || hasSelection);
+    if (!usable) return '';
     let inner = '';
     for (const row of rows) {
         const off = row.needsSelection && !hasSelection ? ' disabled' : '';
@@ -3368,8 +3380,12 @@ document.addEventListener('contextmenu', (e) => {
         return hasSelection || a.allowsEmptySelection;
     });
     if (offerableActions.length > 0) {
+        // Group the offerable ones, not every contributed action: grouping the
+        // full list put actions that need a selection into the menu with no
+        // selection and nothing marking them dead, so they looked clickable
+        // and did nothing.
         const grouped = {};
-        for (const a of inlineActions) {
+        for (const a of offerableActions) {
             const g = a.group || '';
             (grouped[g] = grouped[g] || []).push(a);
         }

@@ -34,7 +34,7 @@
   border: 1px solid var(--nl-border-subtle);
   border-radius: var(--nl-radius-sm);
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   padding: var(--nl-space-tightest) var(--nl-space-sm);
   cursor: pointer;
 }

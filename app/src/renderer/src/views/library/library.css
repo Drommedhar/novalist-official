@@ -22,7 +22,7 @@
   border-radius: var(--nl-radius-md);
   background: var(--nl-surface-card);
   color: var(--nl-text);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -77,14 +77,14 @@
 }
 
 .research-meta dt {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   font-weight: var(--nl-weight-title);
   color: var(--nl-text-subtle);
 }
 
 .research-meta dd {
   margin: 0;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
   word-break: break-all;
 }
@@ -100,7 +100,7 @@
 }
 
 .research-tags-label {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
 }
 
@@ -118,7 +118,7 @@
   border-radius: var(--nl-radius-pill);
   background: var(--nl-accent);
   color: var(--nl-accent-ink);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
 }
 
 .research-tag-remove {
@@ -227,7 +227,7 @@
 }
 
 .gallery-list-path {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -289,7 +289,7 @@
   text-align: left;
   padding: var(--nl-space-sm) var(--nl-space-md);
   border-radius: var(--nl-radius-sm);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text);
 }
 
@@ -309,7 +309,7 @@
   border-radius: var(--nl-radius-md);
   color: var(--nl-text-subtle);
   font: inherit;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   cursor: pointer;
 }
 
@@ -348,7 +348,7 @@
 
 .research-filing-label {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
 }
 
 .quick-capture-input {
@@ -358,7 +358,7 @@
 
 .research-tags-hint {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
 }
 
 /* Drop files or a URL onto the research list to add them. */
@@ -490,7 +490,7 @@
 
 .scratchpad-empty {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   margin-top: var(--nl-space-sm);
 }
 
@@ -513,7 +513,7 @@
   border-radius: var(--nl-radius-pill);
   color: var(--nl-text-dim);
   display: inline-flex;
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   gap: var(--nl-space-tightest);
   padding: 0 var(--nl-space-tighter);
 }

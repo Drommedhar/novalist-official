@@ -134,7 +134,16 @@ def main() -> int:
                     used.setdefault(name, set()).add(path.as_posix())
 
 
-    # The same reference scan over every extension web folder in the workspace.
+    # The same reference scan over every extension web folder in the workspace -
+    # but only for tokens that do not exist, not for fallbacks.
+    #
+    # A fallback is dead weight in the renderer, where :root is always right
+    # there. In an extension panel it is load-bearing: the panel is a separate
+    # document that inherits no tokens at all, and gets them only once the host
+    # posts them in. So var(--nl-surface-card, #252526) is what a panel should
+    # write - it is the colour before the theme arrives, and the colour for
+    # good on a host too old to send one. Extensions ship on their own release
+    # cycle, so "too old" is a real host, not a hypothetical one.
     for root in extension_roots():
         for pattern in ("*.css", "*.html", "*.js", "*.ts", "*.tsx"):
             for path in sorted(root.rglob(pattern)):
@@ -143,8 +152,6 @@ def main() -> int:
                 text = path.read_text(encoding="utf-8", errors="ignore")
                 for match in REFERENCE.finditer(text):
                     used.setdefault(match.group(1), set()).add(path.as_posix())
-                for match in REFERENCE_WITH_FALLBACK.finditer(text):
-                    fallbacks.setdefault(match.group(1), set()).add(path.as_posix())
 
     # Sizes written by hand instead of taken from the scale.
     raw: list[str] = []

@@ -130,9 +130,15 @@ contextBridge.exposeInMainWorld('novalist', {
   endProjectAccess(path: string): void {
     ipcRenderer.send('novalist:end-project-access', path)
   },
-  /** Opens a second window showing one view. */
-  openPaneWindow(view: string): Promise<void> {
-    return ipcRenderer.invoke('novalist:open-pane-window', view)
+  /** Opens a second window showing one view, on the project the asking window
+   *  has open and - for the editor - the scene it is showing. */
+  openPaneWindow(request: {
+    view: string
+    projectPath: string | null
+    chapterGuid: string | null
+    sceneId: string | null
+  }): Promise<void> {
+    return ipcRenderer.invoke('novalist:open-pane-window', request)
   },
 
   registerExtensionRoots(roots: Record<string, string>): Promise<void> {

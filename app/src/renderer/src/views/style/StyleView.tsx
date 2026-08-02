@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
 import { useProjectStore } from '../../stores/projectStore'
-import { useShellStore } from '../../stores/shellStore'
 import './style.css'
 
 interface StyleHit {
@@ -98,7 +97,6 @@ interface ContinuityReport {
 
 export function StyleView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
   const openSceneId = useProjectStore((s) => s.openSceneId)
@@ -148,7 +146,6 @@ export function StyleView(): React.JSX.Element {
   }, [scope, textScope, openChapterGuid, openSceneId])
 
   useEffect(() => {
-    if (mainView !== 'style') return
     void rpc
       .request<ContinuityReport>('style/continuity')
       .then(setContinuity)
@@ -157,7 +154,7 @@ export function StyleView(): React.JSX.Element {
       .request<WeakScene[]>('rubric/weakest', [20])
       .then(setWeakest)
       .catch(() => setWeakest([]))
-  }, [mainView])
+  }, [])
 
   useEffect(() => {
     void run()

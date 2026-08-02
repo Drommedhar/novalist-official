@@ -250,6 +250,44 @@ Anything with a user interface is HTML rendered in a sandboxed frame. Declare it
 
 Implement `IWebViewContributor` to receive messages from the frame and reply to them. That channel is the only way your HTML reaches your .NET code.
 
+### Wearing the writer's theme
+
+A panel is a separate document, so it inherits none of Novalist's design tokens — a panel that styles itself with `var(--nl-surface-card)` and nothing else gets no colour at all. Include the theme shim and it gets all of them:
+
+```html
+<script src="__novalist/theme.js"></script>
+```
+
+The path is served by Novalist for every extension; there is no file to copy and nothing to declare in the manifest. Novalist posts the resolved `--nl-*` set into your frame as soon as the shim reports it is listening, and again whenever the writer changes theme, so the panel repaints with the rest of the app.
+
+After that, style with the tokens and nothing else:
+
+```html
+<style>
+  body {
+    margin: 0;
+    padding: var(--nl-space-lg);
+    background: var(--nl-surface-card);
+    color: var(--nl-text);
+    font-family: var(--nl-font-family);
+    font-size: var(--nl-font-ui);
+  }
+  button {
+    background: var(--nl-foil);
+    color: var(--nl-accent-ink);
+    border: 0;
+    border-radius: var(--nl-radius-md);
+    padding: var(--nl-space-sm) var(--nl-space-md);
+    font-size: var(--nl-font-ui);
+  }
+  .meta { color: var(--nl-text-subtle); font-size: var(--nl-font-caption); }
+</style>
+```
+
+The whole set arrives — surfaces, text, accent, borders, status colours, the type scale, spacing, radius and elevation — so there is no list to check against. `--nl-font-ui` is the size for controls and rows, `--nl-font-caption` for metadata, `--nl-font-body` for prose. The names and what each is for are in [the manual's theming page](manual/34-custom-themes-and-languages.md).
+
+The shim sets `data-novalist-theme="ready"` on your `<html>` element once the tokens are on, which is worth waiting for if you measure anything at startup. Hardcoding a palette still works and is still wrong: it will not follow a theme, and it will not follow a writer who picked high contrast because they need it.
+
 ## Localization
 
 Ship a `Locales/` folder of JSON files named by language code (`en.json`, `de.json`, …), and resolve keys through `host.GetLocalization(Id)`. Missing keys fall back to English. Subscribe to `LanguageChanged` if you cache resolved strings.

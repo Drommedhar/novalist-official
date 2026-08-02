@@ -56,7 +56,7 @@
 .shift-dates-row {
   align-items: baseline;
   display: flex;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   gap: var(--nl-space-sm);
 }
 

@@ -39,7 +39,7 @@
   border-radius: var(--nl-radius-sm);
   color: inherit;
   font-family: inherit;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   padding: var(--nl-space-tightest) var(--nl-space-tighter);
   text-align: left;
   white-space: pre-wrap;

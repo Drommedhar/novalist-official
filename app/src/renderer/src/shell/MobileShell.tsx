@@ -101,10 +101,9 @@ export function MobileShell(): React.JSX.Element {
     window.novalist.setNavVisible?.(!inspectorOpen)
   }, [inspectorOpen])
 
-  // Mobile navigates via the tab, but several views gate their data fetch on
-  // mainView (e.g. DashboardView only fetches when mainView === 'dashboard').
-  // Keep mainView in sync with the tab so those views load on return instead of
-  // getting stuck on "Connecting to core".
+  // Mobile navigates via the tab rather than the pane tree, so mainView is kept
+  // in sync with it - the status bar, the palette and the menu commands all
+  // describe where the writer is by reading it.
   useEffect(() => {
     const map: Record<MobileTab, MainView> = {
       dashboard: 'dashboard',
@@ -206,7 +205,8 @@ export function MobileShell(): React.JSX.Element {
             className="mobile-back"
             aria-label={t('shell.view.manuscript')}
             onClick={() => {
-              if (openChapterGuid && openSceneId) void closeTab('primary', openSceneId)
+              const pane = useProjectStore.getState().activeEditorPaneId
+              if (pane && openChapterGuid && openSceneId) void closeTab(pane, openSceneId)
             }}
           >
             <ChevronLeft size={20} strokeWidth={2} />

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FolderPlus, ImagePlus, LayoutGrid, List, Tag } from 'lucide-react'
 import { rpc } from '../../rpc/client'
-import { useShellStore } from '../../stores/shellStore'
 import './library.css'
 
 interface GalleryImage {
@@ -29,7 +28,6 @@ const src = (url: string): string => `novalist-project://nl/${encodeURI(url)}`
 
 export function GalleryView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const [catalog, setCatalog] = useState<GalleryCatalog>({
     images: [],
     collections: [],
@@ -49,9 +47,8 @@ export function GalleryView(): React.JSX.Element {
   }
 
   useEffect(() => {
-    if (mainView !== 'gallery') return
     load()
-  }, [mainView])
+  }, [])
 
   const query = search.trim().toLowerCase()
   const filtered = images.filter(

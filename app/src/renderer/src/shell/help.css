@@ -81,7 +81,7 @@
 
 .help-empty {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   padding: var(--nl-space-sm);
 }
 

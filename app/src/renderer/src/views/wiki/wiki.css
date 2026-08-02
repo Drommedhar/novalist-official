@@ -54,7 +54,7 @@
   background: none;
   outline: none;
   color: var(--nl-text);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   padding: var(--nl-space-tighter) 0;
 }
 
@@ -82,7 +82,7 @@
 }
 
 .wiki-type-label {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   font-weight: var(--nl-weight-title);
   color: var(--nl-text-dim);
   padding: var(--nl-space-tighter) var(--nl-space-sm);
@@ -143,7 +143,7 @@
 }
 
 .wiki-entry-subtitle {
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
   white-space: nowrap;
   overflow: hidden;
@@ -210,7 +210,7 @@
   border-radius: var(--nl-radius-md);
   background: var(--nl-surface-card);
   color: var(--nl-text);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   cursor: pointer;
 }
 
@@ -323,7 +323,7 @@
   border-radius: var(--nl-radius-md);
   background: var(--nl-surface-input);
   color: var(--nl-text);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   cursor: pointer;
 }
 
@@ -337,7 +337,7 @@
 }
 
 .wiki-summary-error {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-danger);
 }
 
@@ -395,7 +395,7 @@
 }
 
 .wiki-toc-title {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   font-weight: var(--nl-weight-title);
   color: var(--nl-text-dim);
   margin-bottom: var(--nl-space-tighter);
@@ -443,7 +443,7 @@
   border-radius: var(--nl-radius-pill);
   background: var(--nl-surface-card);
   color: var(--nl-text);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   cursor: pointer;
 }
 
@@ -492,7 +492,7 @@
 
 .wiki-mappin-map {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
 }
 
 /* ===== Changes over time (overrides) ===== */
@@ -510,7 +510,7 @@
 }
 
 .wiki-override-scope {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   font-weight: var(--nl-weight-title);
   color: var(--nl-text-dim);
   margin-bottom: var(--nl-space-tighter);
@@ -787,7 +787,7 @@
 
 .wiki-appearance-date {
   flex: 0 0 130px;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
   font-variant-numeric: tabular-nums;
 }
@@ -799,7 +799,7 @@
 }
 
 .wiki-appearance-scene {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
 }
 
@@ -910,13 +910,13 @@
 .wiki-event-date {
   flex: none;
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   font-variant-numeric: tabular-nums;
 }
 
 .wiki-event-desc {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
 }
 
 /* ===== Mobile drill-down (phone Codex tab -> Wiki) ===== */
@@ -1029,7 +1029,7 @@
 
 .wiki-prose code {
   font-family: var(--nl-font-mono);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
 }
 
 /* Written articles, as opposed to the generated ones. The title is edited in

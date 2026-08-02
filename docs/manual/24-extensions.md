@@ -120,6 +120,7 @@ Extensions can register **multiple** hooks — a single extension might add a pa
 - **Hotkeys** contributed by an extension fire globally (and from inside the editor). Their default gestures are shown together with the built-in shortcuts.
 - **Themes** contributed by an extension are listed in **Settings, Appearance, Theme** together with the built-in themes and any you dropped into your own Themes folder; the Extensions view names the ones your extensions provide and points there. A contributed theme carries a table of design tokens, a stylesheet shipped in the extension folder, or simply an accent colour — the same formats described in [Custom themes & language packs](34-custom-themes-and-languages.md).
 - **Status-bar items** render at the left of the status bar and refresh about once a second; clicking one runs the extension's command.
+- **An extension's own panels follow the theme you picked**, provided the extension asks for it. A panel is a separate document, so it does not inherit Novalist's colours and sizes automatically; an extension that opts in is handed the whole set and repaints when you change theme, and one that has not been updated keeps whatever colours its author hardcoded. If a panel looks out of place beside the rest of the app, that is what has happened — it is worth telling its author, because the fix on their side is one line.
 
 ## Host UI an extension can drive
 

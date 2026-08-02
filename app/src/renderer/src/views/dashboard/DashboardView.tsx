@@ -10,7 +10,6 @@ import { TensionCard } from './TensionCard'
 import { CastAbsenceCard } from './CastAbsenceCard'
 import { SceneAxisCard } from './SceneAxisCard'
 import { InputDialog } from '../../shell/InputDialog'
-import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
 import './dashboard.css'
 
@@ -100,7 +99,6 @@ interface StageTally {
 export function DashboardView(): React.JSX.Element {
   const { t } = useTranslation()
   const [stageBreakdown, setStageBreakdown] = useState<StageTally[]>([])
-  const mainView = useShellStore((s) => s.mainView)
   const [data, setData] = useState<DashboardDto | null>(null)
   const [range, setRange] = useState(30)
   const [editingGoal, setEditingGoal] = useState<'daily' | 'project' | null>(null)
@@ -108,16 +106,14 @@ export function DashboardView(): React.JSX.Element {
   const [banner, setBanner] = useState<string | null>(null)
 
   useEffect(() => {
-    if (mainView !== 'dashboard') return
     void rpc.request<DashboardDto>('dashboard/get', [range]).then(setData)
-  }, [mainView, range])
+  }, [range])
 
   useEffect(() => {
-    if (mainView !== 'dashboard') return
     void rpc.request<string | null>('dashboard/getCover').then(setCover)
     void rpc.request<string | null>('dashboard/getBanner').then(setBanner)
     void rpc.request<StageTally[]>('stages/breakdown').then(setStageBreakdown)
-  }, [mainView])
+  }, [])
 
   const stageTotal = Math.max(
     1,

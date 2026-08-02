@@ -14,7 +14,7 @@ The dialog lists the extensions it can read, so you know what to look for before
 | Markdown | `.md`, `.markdown` | `#` headings, paragraphs, and `***` / `---` scene breaks. |
 | Plain text | `.txt` | Paragraphs, "Chapter N" lines, and ornament scene breaks. |
 | Rich text | `.rtf` | Paragraphs only. Formatting is not recovered. |
-| Scrivener | `.scriv` | The binder as chapters and scenes, with synopsis cards. See below. |
+| Scrivener | `.scriv` | The draft as parts, chapters and scenes, plus Codex entries and research. See below. |
 
 Import is **prose only**. Bold and italic, images, footnotes and comments are not carried over — the goal is to get your words into Novalist with the right structure, not to reproduce another program's layout.
 
@@ -22,13 +22,50 @@ Import is **prose only**. Bold and italic, images, footnotes and comments are no
 
 A Scrivener project is a folder rather than a file, so it has its own button: **Choose a Scrivener project**. Point it at the `.scriv` folder. Both Scrivener 2 and Scrivener 3 projects are read.
 
-Novalist takes the binder at its word rather than guessing from headings — the binder already says where the chapters are. Folders become chapters, the text documents inside them become scenes, and a document's **synopsis card** becomes the scene's synopsis, which is the one piece of Scrivener metadata Novalist has an exact home for.
+Novalist takes the binder at its word rather than guessing from headings — the binder already says where the chapters are. It reads what each part of the binder *is* from Scrivener's own markers rather than from folder titles, so a project in German, or one where you renamed the draft folder, imports the same as any other.
 
-Scrivener's binder nests as deep as you like; Novalist is two levels. A three-level binder is flattened into its outermost folder, so nesting is lost rather than text.
+### The draft
+
+Only the **Draft** folder becomes manuscript, whatever it is called in your project.
+
+- A folder holding other folders is a **part**, and becomes an act.
+- A folder holding documents is a **chapter**.
+- The documents inside it become **scenes**, in binder order.
+- Anything nested deeper than a chapter is flattened into it, so nesting is lost rather than text.
+- A document sitting directly in the draft with no folder around it lands in a chapter called "Imported".
+
+Two chapters with the same name stay two chapters. Scrivener's own novel template names every part "Part" and every chapter "Chapter", and they are kept apart by identity rather than by title.
+
+**Empty documents still come across.** Outlining in empty binder documents is how most Scrivener projects start, and that outline is the part worth keeping.
+
+### Scene metadata
+
+| In Scrivener | In Novalist |
+| --- | --- |
+| Synopsis card | Scene synopsis |
+| Document notes | Scene notes |
+| Status ("First Draft", "Done", your own) | Scene stage, created if the book has no stage by that name |
+| Label ("Red", your own) | Scene label, created if the book has no label by that name |
+| Include in Compile, unticked | Scene excluded from export |
+| Custom metadata fields | Scene properties — a list field becomes a set of allowed values, anything else becomes text |
+
+### The Codex
+
+Character and setting sketches become **Codex entries** — characters and places respectively. The sketch prose lands in a **Sketch** section and any document notes in a **Notes** section, because a filled-in Scrivener sheet is already a set of headed answers.
+
+Sketches filed into sub-folders still come across; the grouping folders are flattened.
+
+Scrivener's blank **template sheets** are deliberately not imported. They would arrive as a character called "Character Sketch" whose every field is a prompt.
+
+### Research
+
+Everything else in the binder that carried content becomes a **research item**: notes keep their prose, and PDFs, pictures, recordings, video and other imported files are **copied into your project** so it stays portable and the Scrivener project can be deleted afterwards. The folder each item sat in comes across as a tag.
+
+Front matter — a title page, a copyright page, a dedication — is research too. Novalist builds its own front matter at export time, so the words are kept and the arrangement is not.
 
 ### What does not come across
 
-The preview names what will be left behind before you commit, so you find out here rather than by noticing something missing later. **Research**, **Trash**, **Templates** and **Front Matter** folders stay in Scrivener — as do labels, statuses, collections, keywords, compile settings and snapshot history, none of which Novalist has an equivalent for.
+The preview names what will be left behind before you commit, so you find out here rather than by noticing something missing later. The **Trash** and the **Template Sheets** folder stay in Scrivener, as do collections, keywords, label colours, compile settings and snapshot history.
 
 Your Scrivener project is never modified. If the import is not what you wanted, delete the imported chapters and the original is untouched.
 
@@ -51,7 +88,7 @@ Chapters and scenes with nothing to name them get numbered.
 
 ## The preview
 
-Choosing a file **reads it without writing anything**. You get the format Novalist recognised, how many chapters, scenes and words it found, and the chapter list with per-chapter counts.
+Choosing a file **reads it without writing anything**. You get the format Novalist recognised, how many chapters, scenes and words it found, and the chapter list with per-chapter counts. For a Scrivener project it also names the acts the chapters will land in, and counts the characters, places and research items that will be created.
 
 Nothing touches your project until you press **Import**. If the split is wrong — the wrong heading level, a manuscript with no structure at all — close the dialog and nothing has happened.
 
@@ -69,4 +106,6 @@ That means running an import twice gives you the book twice rather than destroyi
 
 - [Chapters & Scenes](04-chapters-and-scenes.md) — what the import creates.
 - [Projects & Books](03-projects-and-books.md) — importing into a specific book and draft.
+- [Codex](06-codex.md) — where imported character and place sketches land.
+- [Research](15-research.md) — where imported notes, PDFs and media land.
 - [Export](20-export.md) — the other direction.

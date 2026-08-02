@@ -5,6 +5,9 @@ import { ImportPluginDialog } from './ImportPluginDialog'
 import { ScratchpadPanel } from './ScratchpadPanel'
 import { CreateProjectDialog } from './CreateProjectDialog'
 
+/** How many covers the welcome screen shows. Beyond this the row scrolls. */
+const MAX_RECENTS = 8
+
 interface StartScreenProps {
   recentProjects: { name: string; path: string; cover?: string | null }[]
   onOpenPath(path: string): void
@@ -52,8 +55,11 @@ export function StartScreen({
           {recentProjects.length === 0 && (
             <p className="start-recents-empty">{t('welcome.noRecentProjects')}</p>
           )}
-          <div className="start-recent-grid">
-            {recentProjects.map((p) => (
+          {/* One row, never a wall. The list grows with every project ever
+              opened, and a grid that wraps pushed the scratchpad off the
+              bottom of the screen by the tenth. */}
+          <div className="start-recent-row">
+            {recentProjects.slice(0, MAX_RECENTS).map((p) => (
               <button
                 key={p.path}
                 className="start-recent-card"

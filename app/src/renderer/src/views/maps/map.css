@@ -23,7 +23,7 @@
   align-items: center;
   gap: var(--nl-space-tighter);
   padding: var(--nl-space-tighter) var(--nl-space-sm);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
@@ -44,7 +44,7 @@
 
 .map-tab {
   padding: var(--nl-space-tighter) var(--nl-space-sm);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
   background: transparent;
   border: 1px solid transparent;
@@ -175,7 +175,7 @@
 
 .map-flyout-item {
   padding: var(--nl-space-tighter) var(--nl-space-sm);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   text-align: left;
   color: var(--nl-text);
   background: transparent;
@@ -241,7 +241,7 @@
   margin-bottom: var(--nl-space-tighter);
 }
 .map-loading-status {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
   margin-bottom: var(--nl-space-sm);
 }
@@ -298,7 +298,7 @@
 }
 .map-peek-detail {
   margin-top: var(--nl-space-tightest);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
   max-height: 96px;
   overflow-y: auto;
@@ -323,7 +323,7 @@
   border-bottom: 1px solid var(--nl-border-subtle);
 }
 .map-panel-title {
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--nl-text-subtle);
@@ -333,7 +333,7 @@
   align-items: center;
   gap: var(--nl-space-hairline);
   padding: var(--nl-space-hairline) var(--nl-space-tighter);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
   background: transparent;
   border: 1px solid var(--nl-border);
@@ -361,7 +361,7 @@
   align-items: center;
   gap: var(--nl-space-hairline);
   padding: var(--nl-space-tightest) var(--nl-space-tighter) var(--nl-space-tightest) 0;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text);
   cursor: pointer;
   border-top: 2px solid transparent;
@@ -406,7 +406,7 @@
 .map-layer-rename {
   flex: 1 1 auto;
   min-width: 0;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-accent);
@@ -459,7 +459,7 @@
   display: flex;
   align-items: center;
   gap: var(--nl-space-tighter);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }
 .map-prop-row input[type='range'] {
@@ -472,7 +472,7 @@
 }
 .map-prop-num {
   width: 52px;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
@@ -481,7 +481,7 @@
 }
 .map-prop-select {
   flex: 1 1 auto;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
@@ -489,7 +489,7 @@
   padding: var(--nl-space-hairline) var(--nl-space-tightest);
 }
 .map-prop-caption {
-  font-size: var(--nl-font-tiny);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
   line-height: 1.35;
 }
@@ -497,7 +497,7 @@
   display: flex;
   align-items: center;
   gap: var(--nl-space-tighter);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }
 
@@ -513,7 +513,7 @@
   display: flex;
   align-items: center;
   gap: var(--nl-space-tightest);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
 }
 .map-element-name {
   flex: 1 1 auto;
@@ -581,7 +581,7 @@
 .map-image-empty {
   grid-column: 1 / -1;
   padding: var(--nl-space-md);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
   text-align: center;
 }
@@ -592,7 +592,7 @@
   color: var(--nl-text);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-sm);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   padding: var(--nl-space-tightest) var(--nl-space-tighter);
 }
 

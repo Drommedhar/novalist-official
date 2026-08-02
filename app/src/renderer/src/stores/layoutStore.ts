@@ -5,6 +5,7 @@ import {
   INSPECTOR_MAX,
   INSPECTOR_MIN,
   savePanelSize,
+  setPaneViewIn,
   useShellStore,
   type BinderTab,
   type InspectorTab,
@@ -107,8 +108,13 @@ export const useLayoutStore = create<LayoutState>((set, get) => ({
 
     const binderWidth = clamp(layout.binderWidth, BINDER_MIN, BINDER_MAX)
     const inspectorWidth = clamp(layout.inspectorWidth, INSPECTOR_MIN, INSPECTOR_MAX)
+    const shell = useShellStore.getState()
     useShellStore.setState({
       mainView: layout.mainView,
+      // The content area is a tree of panes and the main area renders that tree,
+      // so setting mainView alone restored a label and left the screen showing
+      // whatever it already was.
+      panes: setPaneViewIn(shell.panes, shell.activePaneId, layout.mainView),
       extView: null,
       binderTab: layout.binderTab,
       binderVisible: layout.binderVisible,

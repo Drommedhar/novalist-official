@@ -22,7 +22,7 @@ If you are looking for a specific feature, jump straight to its page from the ta
 ### Writing
 
 5. [Chapters & Scenes](04-chapters-and-scenes.md) — the unit of writing in Novalist. Status, dates, plotlines, favorites, reordering, archiving.
-6. [Editor](05-editor.md) — WYSIWYG editor, inline formatting, paragraph styles, focus mode, split editor, auto-replacements, dialogue correction, grammar check, entity hover cards.
+6. [Editor](05-editor.md) — WYSIWYG editor, inline formatting, paragraph styles, focus mode, two scenes at once, auto-replacements, dialogue correction, grammar check, entity hover cards.
 7. [Manuscript view](10-manuscript.md) — read the whole book end-to-end, switch to corkboard or outliner.
 8. [Find & Replace](21-find-replace.md) — project-wide search with scopes and snapshot-guarded replace-all.
 9. [Quick Open](31-quick-open.md) — one search box over scenes, Codex, notes, comments, research, and events.

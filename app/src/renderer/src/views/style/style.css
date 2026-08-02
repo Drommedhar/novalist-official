@@ -101,7 +101,7 @@
 }
 
 .style-finding-unsupported {
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
 }
 
@@ -124,12 +124,12 @@
 }
 
 .style-example-hit {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-accent);
 }
 
 .style-example-context {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }
 
@@ -198,7 +198,7 @@
   display: flex;
   align-items: center;
   gap: var(--nl-space-tighter);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }
 

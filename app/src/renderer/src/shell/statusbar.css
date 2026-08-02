@@ -105,7 +105,7 @@
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-lg);
   box-shadow: var(--nl-elevation-md);
-  padding: var(--nl-space-normal);
+  padding: var(--nl-space-md);
 }
 
 .status-overview-title {
@@ -158,7 +158,7 @@
 
 .status-overview-row {
   padding: var(--nl-space-hairline) 0;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
 }
 
 .status-overview-name {
@@ -287,7 +287,7 @@
   /* Parchment, never pure white, over whichever pigment the level carries. */
   color: var(--nv-text);
   font-family: var(--nl-font-mono);
-  font-size: var(--nl-font-tiny);
+  font-size: var(--nl-font-caption);
   font-weight: var(--nl-weight-title);
   font-variant-numeric: tabular-nums;
 }
@@ -370,7 +370,7 @@ button.status-ext-item:hover {
   text-align: right;
   font-variant-numeric: tabular-nums;
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
 }
 
 /* What the estimate assumed, said plainly rather than left as a number out of

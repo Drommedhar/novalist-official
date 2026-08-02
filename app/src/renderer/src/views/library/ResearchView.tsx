@@ -48,7 +48,6 @@ const isFileType = (type: string): boolean =>
 
 export function ResearchView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const pendingResearchId = useShellStore((s) => s.pendingResearchId)
   const clearPendingResearch = useShellStore((s) => s.clearPendingResearch)
   const [items, setItems] = useState<ResearchItemDto[]>([])
@@ -66,25 +65,23 @@ export function ResearchView(): React.JSX.Element {
   const [filing, setFiling] = useState<'create' | 'append' | null>(null)
 
   useEffect(() => {
-    if (mainView !== 'research') return
     void rpc.request<ResearchItemDto[]>('research/list').then(setItems)
-  }, [mainView])
+  }, [])
 
   // Quick-open (and other deep links) can ask for a specific item; select it once
   // the list has loaded, then clear the request so it fires only once.
   useEffect(() => {
-    if (mainView !== 'research' || !pendingResearchId) return
+    if (!pendingResearchId) return
     if (!items.some((i) => i.id === pendingResearchId)) return
     setSelectedId(pendingResearchId)
     setSearch('')
     clearPendingResearch()
-  }, [mainView, pendingResearchId, items, clearPendingResearch])
+  }, [pendingResearchId, items, clearPendingResearch])
 
   const selected = items.find((i) => i.id === selectedId) ?? null
 
   // Load the Codex once per visit so links can be picked and shown by name.
   useEffect(() => {
-    if (mainView !== 'research') return
     let cancelled = false
     const load = async (): Promise<void> => {
       const types = ['character', 'location', 'item', 'lore']
@@ -110,7 +107,7 @@ export function ResearchView(): React.JSX.Element {
     return () => {
       cancelled = true
     }
-  }, [mainView])
+  }, [])
 
   const entityNames = new Map(allEntities.map((e) => [e.id, e.name]))
 

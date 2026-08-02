@@ -3,7 +3,7 @@
   display: flex;
   align-items: baseline;
   gap: var(--nl-space-md);
-  padding: var(--nl-space-normal) var(--nl-space-xl) 0;
+  padding: var(--nl-space-md) var(--nl-space-xl) 0;
 }
 
 .relationships-title {
@@ -13,14 +13,14 @@
 }
 
 .relationships-hint {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
 }
 
 .relationships-clear {
   -webkit-app-region: no-drag;
   font: inherit;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
   background: transparent;
   border: 1px solid var(--nl-border);
@@ -86,7 +86,7 @@
 
 .tree-name {
   fill: var(--nl-text);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   text-anchor: middle;
   pointer-events: none;
 }

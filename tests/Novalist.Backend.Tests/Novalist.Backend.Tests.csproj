@@ -12,5 +12,12 @@
   <ItemGroup>
     <PackageReference Include="Nerdbank.Streams" Version="2.13.16" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- One copy of the Scrivener fixture, shared with the core tests. The
+         reader and the import RPC have to agree about what a project looks
+         like, and two hand-kept copies would drift. -->
+    <Compile Include="..\Novalist.Core.Tests\TestHelpers\ScrivenerProjectBuilder.cs"
+             Link="TestHelpers\ScrivenerProjectBuilder.cs" />
+  </ItemGroup>
 
 </Project>

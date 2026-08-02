@@ -12,7 +12,7 @@ import {
 } from './editorBridge'
 import { EditorToolbar, type FormattingState } from './EditorToolbar'
 import { useEditorBridge } from '../../stores/editorBridgeStore'
-import { useProjectStore, type ProjectStateDto, type SceneTabRef, type EditorPane } from '../../stores/projectStore'
+import { editorPane, useProjectStore, type ProjectStateDto, type SceneTabRef } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
 import { useWikiStore } from '../../stores/wikiStore'
@@ -184,20 +184,22 @@ interface SceneFootnote {
 }
 
 /** Ordered tab strip for the scenes open in one editor pane. */
-function SceneTabStrip({ pane }: { pane: EditorPane }): React.JSX.Element | null {
+function SceneTabStrip({ paneId }: { paneId: string }): React.JSX.Element | null {
   const { t } = useTranslation()
-  const tabs = useProjectStore((s) => (pane === 'split' ? s.splitTabs : s.openTabs))
-  const activeId = useProjectStore((s) => (pane === 'split' ? s.splitSceneId : s.openSceneId))
+  const tabs = useProjectStore((s) => editorPane(s, paneId).tabs)
+  const activeId = useProjectStore((s) => editorPane(s, paneId).sceneId)
   const chapters = useProjectStore((s) => s.chapters)
   const dirtyMap = useProjectStore((s) => s.dirtyMap)
-  const splitOpen = useProjectStore((s) => s.splitSceneId !== null)
+  const editorCount = useProjectStore(
+    (s) => Object.values(s.editors).filter((e) => e.sceneId !== null).length
+  )
   const [menu, setMenu] = useState<{ x: number; y: number; sceneId: string } | null>(null)
 
-  // While the split editor is open, both panes always show their strip (so each
-  // side's scene is closeable and the two panes look consistent). With a single
-  // editor, keep the strip-free look until a second scene is opened.
+  // With a second editor open every pane shows its strip, so each side's scene
+  // is closeable and the panes look alike. A lone editor keeps the strip-free
+  // look until a second scene is opened in it.
   if (tabs.length === 0) return null
-  if (!splitOpen && tabs.length <= 1) return null
+  if (editorCount < 2 && tabs.length <= 1) return null
 
   const titleFor = (ref: SceneTabRef): string => {
     const chapter = chapters.find((c) => c.guid === ref.chapterGuid)
@@ -207,17 +209,14 @@ function SceneTabStrip({ pane }: { pane: EditorPane }): React.JSX.Element | null
 
   const activate = (ref: SceneTabRef): void => {
     if (ref.sceneId === activeId) return
-    const store = useProjectStore.getState()
-    void (pane === 'split'
-      ? store.openSceneInSplit(ref.chapterGuid, ref.sceneId)
-      : store.openScene(ref.chapterGuid, ref.sceneId))
+    void useProjectStore.getState().openSceneIn(paneId, ref.chapterGuid, ref.sceneId)
   }
   const close = (sceneId: string): void => {
-    void useProjectStore.getState().closeTab(pane, sceneId)
+    void useProjectStore.getState().closeTab(paneId, sceneId)
   }
   const moveOther = (sceneId: string): void => {
     setMenu(null)
-    void useProjectStore.getState().moveTabToOtherPane(pane, sceneId)
+    void useProjectStore.getState().moveTabToOtherPane(paneId, sceneId)
   }
 
   return (
@@ -287,13 +286,18 @@ function SceneTabStrip({ pane }: { pane: EditorPane }): React.JSX.Element | null
  * the parent-frame transport branch) and wires the ready handshake, theme,
  * content push, and autosave round-trip.
  */
-export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.JSX.Element {
+export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element {
   const { t, i18n } = useTranslation()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const editorRef = useRef<EditorWindow | null>(null)
   const [linkPrompt, setLinkPrompt] = useState(false)
-  const openSceneId = useProjectStore((s) => (pane === 'split' ? s.splitSceneId : s.openSceneId))
-  const sceneHtml = useProjectStore((s) => (pane === 'split' ? s.splitSceneHtml : s.openSceneHtml))
+  // Mobile has no panes, so an editor mounted without one is whichever the
+  // shell is following.
+  const fallbackPaneId = useProjectStore((s) => s.activeEditorPaneId)
+  const pane = paneId ?? fallbackPaneId ?? ''
+  const openSceneId = useProjectStore((s) => editorPane(s, pane).sceneId)
+  const sceneHtml = useProjectStore((s) => editorPane(s, pane).html)
+  const isActiveEditor = useProjectStore((s) => s.activeEditorPaneId === pane)
   const chapters = useProjectStore((s) => s.chapters)
   const loadingRef = useRef(false)
   // The HTML the editor last reported to the store. The store round-trips every
@@ -435,7 +439,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
       list.push({ hit, primaryName, isAlias, text: trimmed, match })
       byText.set(key, list)
     }
-    const sceneId = useProjectStore.getState()[pane === 'split' ? 'splitSceneId' : 'openSceneId']
+    const sceneId = editorPane(useProjectStore.getState(), pane).sceneId
     for (const type of ['character', 'location', 'item', 'lore']) {
       const list = await rpc.request<
         {
@@ -551,10 +555,8 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   }
 
   const paneIds = (): { chapterGuid: string | null; sceneId: string | null } => {
-    const state = useProjectStore.getState()
-    return pane === 'split'
-      ? { chapterGuid: state.splitChapterGuid, sceneId: state.splitSceneId }
-      : { chapterGuid: state.openChapterGuid, sceneId: state.openSceneId }
+    const editor = editorPane(useProjectStore.getState(), pane)
+    return { chapterGuid: editor.chapterGuid, sceneId: editor.sceneId }
   }
 
   const loadAnnotations = async (editor: EditorWindow | null): Promise<void> => {
@@ -641,8 +643,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           live.setMobile(window.novalist.isMobile === true)
           // Content loads synchronously so typing can never race a deferred
           // setContent; the settings push is made non-destructive instead.
-          const state = useProjectStore.getState()
-          const initialHtml = pane === 'split' ? state.splitSceneHtml : state.openSceneHtml
+          const initialHtml = editorPane(useProjectStore.getState(), pane).html
           if (initialHtml !== null) {
             loadingRef.current = true
             live.setContent(initialHtml)
@@ -672,7 +673,8 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           lastReportedHtmlRef.current = String(message.html ?? '')
           useProjectStore
             .getState()
-            [pane === 'split' ? 'onSplitContentChanged' : 'onEditorContentChanged'](
+            .onEditorContentChanged(
+              pane,
               String(message.html ?? ''),
               String(message.plainText ?? '')
             )
@@ -772,9 +774,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
           // Everything after the caret becomes a new scene right below this
           // one, carrying the date, stage, plotlines and POV that still
           // describe it.
-          const proj = useProjectStore.getState()
-          const chapterGuid = pane === 'split' ? proj.splitChapterGuid : proj.openChapterGuid
-          const sceneId = pane === 'split' ? proj.splitSceneId : proj.openSceneId
+          const { chapterGuid, sceneId } = paneIds()
           if (!chapterGuid || !sceneId) break
           void rpc
             .request<{ sceneId: string | null; state: ProjectStateDto }>('sceneSplit/split', [
@@ -788,7 +788,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
               useProjectStore.getState().applyState(result.state)
               // The scene shrank under the editor, so it has to be re-read
               // rather than left showing both halves.
-              void useProjectStore.getState().openScene(chapterGuid, sceneId)
+              void useProjectStore.getState().openSceneIn(pane, chapterGuid, sceneId)
             })
           break
         }
@@ -977,20 +977,20 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
   }, [])
 
   // Panels outside this pane - the footnotes and comments lists - need a way
-  // to reach the prose. Registered for the main pane alone: a split pane is
-  // showing a different scene, and answering for it would strip a marker out
-  // of the wrong one.
+  // to reach the prose. Registered by the pane the writer is in alone: another
+  // editor is showing a different scene, and answering for it would strip a
+  // marker out of the wrong one.
   useEffect(() => {
-    if (pane === 'split') return
+    if (!isActiveEditor) return
     useEditorBridge.getState().register(editorRef.current, openSceneId)
     return () => useEditorBridge.getState().register(null, null)
-  }, [pane, openSceneId, sceneHtml])
+  }, [isActiveEditor, openSceneId, sceneHtml])
 
   // Opening a scene puts the caret in it. Without this the writer clicks a
   // scene in the binder, starts typing, and the keystrokes go to the binder -
   // which is why the editor grew a focusEditor that nothing ever called.
   useEffect(() => {
-    if (pane === 'split' || !openSceneId) return
+    if (!isActiveEditor || !openSceneId) return
     const at = window.setTimeout(() => {
       // The iframe first. Focusing an element inside a frame does nothing for
       // the keyboard while the frame itself is not focused - the caret appears
@@ -1004,7 +1004,7 @@ export function EditorFrame({ pane = 'primary' }: { pane?: EditorPane }): React.
 
   return (
     <div className="editor-pane">
-      <SceneTabStrip pane={pane} />
+      <SceneTabStrip paneId={pane} />
       <EditorToolbar
         formatting={formatting}
         editor={() => editorRef.current}

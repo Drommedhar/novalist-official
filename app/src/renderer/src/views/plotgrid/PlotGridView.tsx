@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { rpc } from '../../rpc/client'
-import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { ContextMenu } from '../../shell/ContextMenu'
 import { InputDialog } from '../../shell/InputDialog'
@@ -43,7 +42,6 @@ const ROW_SOURCES = ['plotline', 'character', 'location', 'item', 'lore'] as con
 
 export function PlotGridView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const [grid, setGrid] = useState<PlotGridDto | null>(null)
   const [menu, setMenu] = useState<{ x: number; y: number; id: string; name: string } | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
@@ -55,9 +53,8 @@ export function PlotGridView(): React.JSX.Element {
   const [asLanes, setAsLanes] = useState(false)
 
   useEffect(() => {
-    if (mainView !== 'plotGrid') return
     void rpc.request<PlotGridDto>('plot/grid', [rowSource]).then(setGrid)
-  }, [mainView, rowSource])
+  }, [rowSource])
 
   if (!grid) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 

@@ -43,7 +43,7 @@
     "focusMode": "Fokusmodus",
     "plotGrid": "Plot-Raster",
     "research": "Recherche",
-    "toggleSplitEditor": "Geteilter Editor",
+    "toggleSplitEditor": "Geteilt öffnen",
     "addComment": "Kommentar hinzufügen",
     "addFootnote": "Fußnote hinzufügen",
     "commandPalette": "Befehlspalette..."
@@ -905,7 +905,7 @@
     "archiveBanner.text": "Diese Szene ist archiviert. Stelle sie wieder her, um zu bearbeiten und ins Manuskript aufzunehmen.",
     "archiveBanner.restore": "Wiederherstellen",
     "tabClose": "Tab schließen",
-    "tabMoveOther": "Auf andere Seite verschieben",
+    "tabMoveOther": "In anderen Bereich verschieben",
     "contextMenu.cut": "Ausschneiden",
     "contextMenu.copy": "Kopieren",
     "contextMenu.paste": "Einfügen",
@@ -2189,14 +2189,16 @@
       "settings": "Einstellungen",
       "style": "Stilbericht",
       "canvas": "Planungsboard",
-      "languages": "Sprachen"
+      "languages": "Sprachen",
+      "extensions": "Erweiterungen"
     },
     "words": "Wörter",
     "chapters": "Kapitel",
     "scenes": "Szenen",
     "groupApp": "Anwendung",
     "menu": "Menü",
-    "view.series": "Reihe"
+    "view.series": "Reihe",
+    "paneAwaitingScene": "Wähle eine Szene im Ordner, um sie hier zu schreiben."
   },
   "hostBridge": {
     "toastRegion": "Benachrichtigungen",
@@ -2513,6 +2515,9 @@
     "appendHint": "Kapitel werden am Ende des Buches angehängt. Vorhandenes wird nicht ersetzt.",
     "done": "{{chapters}} Kapitel, {{scenes}} Szenen und {{words}} Wörter importiert.",
     "formats": "Lesbare Formate: {{formats}}",
+    "partSummary": "Der Entwurf besteht aus {{count}} Teilen, die zu Akten werden.",
+    "extrasSummary": "Außerdem gefunden: {{characters}} Figuren, {{locations}} Orte und {{research}} Rechercheeinträge.",
+    "doneExtras": "{{characters}} Figuren, {{locations}} Orte und {{research}} Rechercheeinträge hinzugefügt.",
     "chooseScrivener": "Scrivener-Projekt wählen...",
     "losses": "Wird nicht übernommen: {{items}}. Novalist hat dafür keine Entsprechung, es bleibt in Scrivener."
   },
@@ -3728,6 +3733,8 @@
     "layouts": "Layouts",
     "layoutName": "Layout benennen",
     "deleteLayout": "Layout vergessen",
-    "popOut": "In eigenem Fenster öffnen"
+    "popOut": "In eigenem Fenster öffnen",
+    "showInPane": "In diesem Bereich anzeigen",
+    "resize": "Bereiche anpassen"
   }
 }

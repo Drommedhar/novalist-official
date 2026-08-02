@@ -27,7 +27,7 @@
   justify-content: center;
   height: 120px;
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
 }
 
 .dashboard-cover-actions {
@@ -104,7 +104,7 @@
 }
 
 .dashboard-bookcover-hint {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
 }
 
@@ -114,12 +114,12 @@
 }
 
 .dashboard-cover-btn {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text);
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-md);
-  padding: var(--nl-space-tighter) var(--nl-space-normal);
+  padding: var(--nl-space-tighter) var(--nl-space-md);
 }
 
 .dashboard-cover-btn:hover {
@@ -139,7 +139,7 @@
 }
 
 .dashboard-subtitle {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
 }
 
@@ -215,7 +215,7 @@
 .dashboard-status-summary {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: var(--nl-space-normal);
+  gap: var(--nl-space-md);
   background: var(--nl-surface-hover);
   border-radius: var(--nl-radius-md);
   padding: var(--nl-space-lg);
@@ -230,14 +230,14 @@
 }
 
 .dashboard-summary-count-label {
-  font-size: var(--nl-font-tiny);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
   margin-top: var(--nl-space-tightest);
 }
 
 /* ===== Echo finder description ===== */
 .dashboard-echo-desc {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
   margin-bottom: var(--nl-space-lg);
 }
@@ -340,7 +340,7 @@
 }
 
 .arc-name {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   font-weight: 600;
 }
 

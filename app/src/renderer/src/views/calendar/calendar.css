@@ -20,7 +20,7 @@
 .calendar-event-note {
   display: block;
   margin-top: 1px;
-  font-size: var(--nl-font-tiny);
+  font-size: var(--nl-font-caption);
   font-style: italic;
   color: var(--nl-text-subtle);
   overflow: hidden;
@@ -91,7 +91,7 @@
 .calendar-hour-label {
   height: var(--cal-hour);
   padding: var(--nl-space-hairline) var(--nl-space-sm);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
   font-variant-numeric: tabular-nums;
 }
@@ -122,7 +122,7 @@
   background: var(--nl-accent);
   color: var(--nl-accent-ink);
   border-radius: var(--nl-radius-sm);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   line-height: 1.2;
   cursor: pointer;
   box-shadow: 0 0 0 1px var(--nl-surface-editor);

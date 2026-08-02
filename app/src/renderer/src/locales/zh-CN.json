@@ -43,7 +43,7 @@
     "focusMode": "专注模式",
     "plotGrid": "剧情网格",
     "research": "资料",
-    "toggleSplitEditor": "切换分屏编辑器",
+    "toggleSplitEditor": "在拆分窗格中打开",
     "addComment": "添加批注",
     "addFootnote": "添加脚注",
     "commandPalette": "命令面板..."
@@ -1472,7 +1472,7 @@
     "archiveBanner.text": "此场景已归档。恢复后才能进行编辑并包含在书稿中。",
     "archiveBanner.restore": "恢复",
     "tabClose": "关闭标签页",
-    "tabMoveOther": "移动到其他分屏",
+    "tabMoveOther": "移到其他窗格",
     "contextMenu.cut": "剪切",
     "contextMenu.copy": "复制",
     "contextMenu.paste": "粘贴",
@@ -2211,7 +2211,8 @@
       "settings": "设置",
       "style": "文风报告",
       "canvas": "规划板",
-      "languages": "语言"
+      "languages": "语言",
+      "extensions": "扩展"
     },
     "words": "字",
     "chapters": "章",
@@ -2221,7 +2222,8 @@
     "toggleSceneNotes": "切换场景笔记",
     "snapshots": "场景快照",
     "activityBar": "视图",
-    "view.series": "系列"
+    "view.series": "系列",
+    "paneAwaitingScene": "在资料夹中选择一个场景，在这里书写。"
   },
   "help": {
     "title": "Novalist 手册",
@@ -2545,6 +2547,9 @@
     "appendHint": "章节会追加到书末，不会替换已有内容。",
     "done": "已导入 {{chapters}} 章、{{scenes}} 个场景、{{words}} 字。",
     "formats": "可读取的格式：{{formats}}",
+    "partSummary": "草稿分为 {{count}} 个部分，将转为幕。",
+    "extrasSummary": "还找到：{{characters}} 个角色、{{locations}} 个地点和 {{research}} 条资料。",
+    "doneExtras": "已添加 {{characters}} 个角色、{{locations}} 个地点和 {{research}} 条资料。",
     "chooseScrivener": "选择 Scrivener 项目...",
     "losses": "不会导入：{{items}}。Novalist 没有对应的位置，它们会留在 Scrivener 中。"
   },
@@ -3760,6 +3765,8 @@
     "layouts": "布局",
     "layoutName": "为布局命名",
     "deleteLayout": "忘记此布局",
-    "popOut": "在独立窗口中打开"
+    "popOut": "在独立窗口中打开",
+    "showInPane": "在此窗格中显示",
+    "resize": "调整窗格大小"
   }
 }

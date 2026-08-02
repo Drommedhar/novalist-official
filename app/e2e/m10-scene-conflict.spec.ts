@@ -60,7 +60,7 @@ test('a save is refused when the scene changed on disk, and the merge resolves i
   // hash the editor read before the other machine wrote: refused, dialog opens.
   await page.evaluate(async () => {
     const store = window.novalistStores.project.getState()
-    store.onEditorContentChanged('<p>mine</p>', 'mine')
+    store.onEditorContentChanged(store.activeEditorPaneId!, '<p>mine</p>', 'mine')
     await window.novalistStores.project.getState().flushPendingSave()
   })
 

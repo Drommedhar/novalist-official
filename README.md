@@ -47,7 +47,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - WYSIWYG editor with inline formatting, paragraph styles (heading, subheading, block quote, verse), bulleted and numbered lists, inline comments, and numbered footnotes — every style carried through to DOCX, EPUB, Markdown and LaTeX.
 - Auto-save with per-scene **snapshot history** and a side-by-side compare view — revert a single scene without touching the rest of the project.
 - **Focus Mode** that hides every panel except the editor.
-- **Split editor** for editing two scenes side by side.
+- **Split panes** — divide the main area as many times as you like, each pane showing any view, and tear one off into its own window.
 - **Auto-replacements** for smart quotes, em-dashes, and ellipses with language presets (English, German, French, Spanish, Italian, Portuguese, Russian, Polish, Czech, Slovak).
 - **Dialogue punctuation correction** as you type.
 - **Offline spell check** using the operating system's own checker — no server, no account, no network — with a personal dictionary that travels with your settings.
@@ -61,7 +61,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - Scenes with synopsis, notes, label color, plotline membership, in-world date range, POV / emotion / intensity / conflict / tags (auto-detected with manual overrides).
 - **Smart Lists** — saved scene queries by status, POV, tag, or plotline.
 - **Writing sprints** — a status-bar timer with words-this-sitting, live pace, and a per-project history.
-- **Manuscript import** — bring an existing book in from Word, OpenDocument, EPUB, Markdown, plain text, RTF, or a **Scrivener** project. Chapters and scenes are worked out from the document's own heading styles, with a preview of the whole plan before anything is written; imports append rather than replace.
+- **Manuscript import** — bring an existing book in from Word, OpenDocument, EPUB, Markdown, plain text, RTF, or a **Scrivener** project. Chapters and scenes are worked out from the document's own heading styles, with a preview of the whole plan before anything is written; imports append rather than replace. A Scrivener project comes across whole: parts become acts, the draft becomes chapters and scenes with their synopsis cards, notes, statuses, labels and custom fields, character and setting sketches become Codex entries, and research — notes, PDFs, pictures, recordings — is copied into the project.
 - **Filesystem is the source of truth** — add, move, rename, or delete scenes and chapters with any file manager and Novalist reconciles the changes, both on open and live while running. Scene identity travels in a one-line comment in each file; chapter identity in a hidden folder marker.
 
 ### Worldbuilding (Codex)

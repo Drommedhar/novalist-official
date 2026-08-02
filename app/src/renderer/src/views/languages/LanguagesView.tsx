@@ -51,7 +51,6 @@ const BLANK: Word = {
  */
 export function LanguagesView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const [languages, setLanguages] = useState<Language[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
@@ -72,12 +71,11 @@ export function LanguagesView(): React.JSX.Element {
   const [removing, setRemoving] = useState(false)
 
   useEffect(() => {
-    if (mainView !== 'languages') return
     void rpc
       .request<Language[]>('conlang/list')
       .then(setLanguages)
       .catch(() => setLanguages([]))
-  }, [mainView])
+  }, [])
 
   const selected = languages.find((l) => l.id === selectedId) ?? languages[0] ?? null
 

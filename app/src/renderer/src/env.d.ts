@@ -21,6 +21,11 @@ interface Window {
     settings: typeof import('./stores/settingsStore').useSettingsStore
   }
   novalistRpc: import('./rpc/client').RpcClient
+  novalistExtensionTheme: {
+    themeTokens: () => Record<string, string>
+    postThemeToFrame: (frame: Window | null | undefined) => void
+    watchTheme: (send: () => void) => () => void
+  }
   novalistPlugins?: {
     commands: () => readonly { extensionId: string; id: string; title: string }[]
     statusItems: () => readonly { extensionId: string; id: string; text: string }[]
@@ -74,7 +79,12 @@ interface Window {
     setProjectRoot(root: string | null): void
     beginProjectAccess(path: string): Promise<boolean>
     endProjectAccess(path: string): void
-    openPaneWindow(view: string): Promise<void>
+    openPaneWindow(request: {
+      view: string
+      projectPath: string | null
+      chapterGuid: string | null
+      sceneId: string | null
+    }): Promise<void>
     registerExtensionRoots(roots: Record<string, string>): Promise<void>
     checkAppUpdate(): Promise<AppUpdate | null>
     downloadAppUpdate(info: AppUpdate): Promise<string>

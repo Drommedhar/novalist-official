@@ -14,7 +14,7 @@
 }
 
 .git-section-title {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   font-weight: var(--nl-weight-title);
   color: var(--nl-text-subtle);
   text-transform: uppercase;
@@ -29,7 +29,7 @@
   border: 1px solid var(--nl-border-subtle);
   border-radius: var(--nl-radius-sm);
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   padding: var(--nl-space-tightest) var(--nl-space-sm);
   cursor: pointer;
 }
@@ -177,7 +177,7 @@
   max-height: 40vh;
   overflow: auto;
   font-family: var(--nl-font-mono);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
   white-space: pre;
 }

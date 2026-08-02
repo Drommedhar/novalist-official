@@ -85,35 +85,57 @@ function createWindow(): BrowserWindow {
  *
  * Smaller and without a minimum width, because a torn-off pane is usually
  * narrow on purpose - a column of notes beside a full-screen editor.
+ *
+ * The project and scene travel with the request. The window used to open
+ * whatever project was most recent and no scene at all, so tearing off the
+ * editor produced a window saying "open a project" that had no binder to open
+ * one with.
  */
-ipcMain.handle('novalist:open-pane-window', (_event, view: string) => {
-  const iconPath = resolveIconPath()
-  const win = new BrowserWindow({
-    width: 720,
-    height: 900,
-    minWidth: 360,
-    minHeight: 400,
-    show: false,
-    title: 'Novalist',
-    ...(iconPath ? { icon: iconPath } : {}),
-    ...materialWindowOptions(material),
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-      contextIsolation: true,
-      nodeIntegration: false,
-      additionalArguments: [`--nl-material=${material}`]
+ipcMain.handle(
+  'novalist:open-pane-window',
+  (
+    _event,
+    request: {
+      view: string
+      projectPath: string | null
+      chapterGuid: string | null
+      sceneId: string | null
     }
-  })
-  win.once('ready-to-show', () => win.show())
-  attachSpellingMenu(win, () => spellingMenuLabels)
+  ) => {
+    const iconPath = resolveIconPath()
+    const win = new BrowserWindow({
+      width: 720,
+      height: 900,
+      minWidth: 360,
+      minHeight: 400,
+      show: false,
+      title: 'Novalist',
+      ...(iconPath ? { icon: iconPath } : {}),
+      ...materialWindowOptions(material),
+      webPreferences: {
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false,
+        contextIsolation: true,
+        nodeIntegration: false,
+        additionalArguments: [`--nl-material=${material}`]
+      }
+    })
+    win.once('ready-to-show', () => win.show())
+    attachSpellingMenu(win, () => spellingMenuLabels)
 
-  if (process.env.ELECTRON_RENDERER_URL) {
-    void win.loadURL(`${process.env.ELECTRON_RENDERER_URL}?pane=${encodeURIComponent(view)}`)
-  } else {
-    void win.loadFile(join(__dirname, '../renderer/index.html'), { query: { pane: view } })
+    const query: Record<string, string> = { pane: request.view }
+    if (request.projectPath) query.project = request.projectPath
+    if (request.chapterGuid) query.chapter = request.chapterGuid
+    if (request.sceneId) query.scene = request.sceneId
+
+    if (process.env.ELECTRON_RENDERER_URL) {
+      const search = new URLSearchParams(query).toString()
+      void win.loadURL(`${process.env.ELECTRON_RENDERER_URL}?${search}`)
+    } else {
+      void win.loadFile(join(__dirname, '../renderer/index.html'), { query })
+    }
   }
-})
+)
 
 let spellingMenuLabels = {
   addToDictionary: 'Add to dictionary',

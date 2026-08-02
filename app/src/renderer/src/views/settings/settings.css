@@ -96,7 +96,7 @@
 }
 
 .settings-preview {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
   background: var(--nl-surface-hover);
   border-radius: var(--nl-radius-md);
@@ -105,7 +105,7 @@
 
 .settings-desc,
 .settings-hint {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
 }
 
@@ -157,7 +157,7 @@
 
 .settings-hotkey-conflict {
   color: var(--nl-warning);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
 }
 
 .settings-hotkey-gesture {
@@ -168,7 +168,7 @@
   background: var(--nl-surface-card);
   color: var(--nl-text);
   cursor: pointer;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
 }
 
 .settings-hotkey-gesture.recording {
@@ -318,7 +318,7 @@
 }
 
 .language-pack-code {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
 }
 
 .language-pack-name {
@@ -397,5 +397,5 @@
   width: 100%;
   min-height: 120px;
   font-family: var(--nl-font-mono);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
 }

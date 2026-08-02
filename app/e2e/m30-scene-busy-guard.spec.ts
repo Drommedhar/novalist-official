@@ -59,7 +59,8 @@ test('the editor tells the backend which scene it holds', async () => {
     await project.openScene(chapter.guid, scene.id)
     // Typing is what marks a scene dirty; going through the store's own path
     // keeps this about the app's behaviour rather than the test's.
-    window.novalistStores.project.getState().onEditorContentChanged('<p>Unsaved.</p>', 'Unsaved.')
+    const editing = window.novalistStores.project.getState()
+    editing.onEditorContentChanged(editing.activeEditorPaneId!, '<p>Unsaved.</p>', 'Unsaved.')
 
     // The report rides a store subscription, so let it land.
     await new Promise((r) => setTimeout(r, 400))

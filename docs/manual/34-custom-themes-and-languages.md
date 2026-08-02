@@ -106,6 +106,21 @@ The full, current list lives in `app/src/renderer/src/styles/tokens.css` in the 
 
 Set `--nl-base` if you set `--nl-surface-window`, or the frosted chrome on macOS will tint toward the old colour.
 
+### The type scale
+
+Sizes are tokens too, and a theme may restate them. There are nine steps and none below 13px, each answering to a kind of surface rather than to a number:
+
+| Token | Size | What wears it |
+| --- | --- | --- |
+| `--nl-font-caption` | 13px | Metadata nobody reads in sequence — counts, dates, paths, word totals, uppercase eyebrows. |
+| `--nl-font-ui` | 15px | The default for chrome: every control, row, tab, input, menu item and field label. |
+| `--nl-font-body` | 17px | Prose, and the chrome prominent enough to read as prose — binder rows, nav items. |
+| `--nl-font-body-lg` | 20px | Lead prose and the one primary action per screen. |
+| `--nl-font-title-sm` / `--nl-font-title` | 23px / 26px | Card and subsection titles; view titles. |
+| `--nl-font-display-sm` / `--nl-font-display` / `--nl-font-display-lg` | 30px and up | Headline figures and heroes. |
+
+Restating a step changes it everywhere it is used, which is the point — raising `--nl-font-ui` enlarges the whole interface without touching the manuscript, and raising `--nl-font-body` enlarges your prose without touching the interface.
+
 ### Picking a theme
 
 **Settings, Appearance, Theme** lists the built-in themes first, then yours, then any contributed by extensions. Selecting one applies it immediately. The **Accent Color** picker still overrides the accent on top of whichever theme is active.

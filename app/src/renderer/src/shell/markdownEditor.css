@@ -69,7 +69,7 @@
 }
 
 .md-surface .cm-content {
-  padding: var(--nl-space-md) var(--nl-space-normal);
+  padding: var(--nl-space-md) var(--nl-space-md);
   caret-color: var(--nl-accent);
 }
 
@@ -141,7 +141,7 @@
 
 .cm-md-code {
   font-family: var(--nl-font-mono);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-accent-hover);
 }
 

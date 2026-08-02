@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { CalendarConfigPanel } from './CalendarConfigPanel'
-import { useShellStore } from '../../stores/shellStore'
 import { useProjectStore } from '../../stores/projectStore'
 import { handleSceneClick, useSelectionStore } from '../../stores/selectionStore'
 import { SceneBulkBar } from '../../shell/SceneBulkBar'
@@ -161,7 +160,6 @@ const MONTHS = Array.from({ length: 12 }, (_, i) => i)
 
 export function CalendarView(): React.JSX.Element {
   const { t, i18n } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const [mode, setMode] = useState<CalendarMode>('week')
   const [configOpen, setConfigOpen] = useState(false)
   const [anchor, setAnchor] = useState<Date>(new Date())
@@ -204,7 +202,6 @@ export function CalendarView(): React.JSX.Element {
   }, [anchor, mode])
 
   useEffect(() => {
-    if (mainView !== 'calendar') return
     if (!anchorLoaded) {
       void rpc.request<string | null>('calendar/getAnchor').then((saved) => {
         if (saved) {
@@ -216,7 +213,7 @@ export function CalendarView(): React.JSX.Element {
       return
     }
     void load()
-  }, [mainView, anchorLoaded, load])
+  }, [anchorLoaded, load])
 
   const pan = (direction: -1 | 1): void => {
     const next = new Date(anchor)

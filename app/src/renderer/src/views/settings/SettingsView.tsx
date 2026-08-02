@@ -220,7 +220,6 @@ function useSpeechVoices(): SpeechSynthesisVoice[] {
 
 export function SettingsView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const view = useSettingsStore((s) => s.view)
   const load = useSettingsStore((s) => s.load)
   const update = useSettingsStore((s) => s.update)
@@ -244,18 +243,17 @@ export function SettingsView(): React.JSX.Element {
   const systemVoices = useSystemVoices()
 
   useEffect(() => {
-    if (mainView !== 'settings') return
     void load()
-  }, [mainView, load])
+  }, [load])
 
   // Consume a one-shot deep-link prefill (e.g. "Extensions" from the backstage
   // drawer) and clear it so it does not re-apply on the next visit.
   useEffect(() => {
-    if (mainView === 'settings' && settingsSearch) {
+    if (settingsSearch) {
       setSearch(settingsSearch)
       useShellStore.getState().settingsSearch && useShellStore.setState({ settingsSearch: '' })
     }
-  }, [mainView, settingsSearch])
+  }, [settingsSearch])
 
   if (!view) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 

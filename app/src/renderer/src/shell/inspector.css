@@ -6,7 +6,7 @@
 /* ===== Inspector header ===== */
 .inspector-subtitle {
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   padding: 0 var(--nl-space-sm) var(--nl-space-tightest);
 }
 
@@ -54,7 +54,7 @@
 .ctx-analysis-input {
   flex: 1;
   min-width: 0;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   padding: var(--nl-space-tightest) var(--nl-space-sm);
 }
 
@@ -87,7 +87,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--nl-space-tightest);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
   padding: 0 var(--nl-space-sm);
   cursor: pointer;
@@ -187,7 +187,7 @@
 .snapshot-diff-cell {
   padding: var(--nl-space-tightest) var(--nl-space-sm);
   font-family: var(--nl-font-mono);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   white-space: pre-wrap;
   word-break: break-word;
   border-bottom: 1px solid var(--nl-border);
@@ -295,7 +295,7 @@
 }
 
 .draft-compare-scene-title {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
 }
 
 .draft-compare-scene-meta {
@@ -379,7 +379,7 @@
 }
 
 .suggestion-text {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -422,7 +422,7 @@
 }
 
 .inbox-suggestion-scene {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
 }
 
 /* What a scene points at, and what points back. One row each, the reason
@@ -521,7 +521,7 @@
 }
 
 .darling-text {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   max-height: 12rem;
   overflow-y: auto;
   white-space: pre-wrap;
@@ -576,7 +576,7 @@
 }
 
 .task-list-name {
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   font-weight: 600;
 }
 
@@ -630,7 +630,7 @@
 
 .rubric-unasked,
 .rubric-advice {
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }
 
@@ -690,7 +690,7 @@
 /* A wall of text in a side panel is not read at all. */
 .craft-body {
   margin: 0 0 var(--nl-space-sm);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   line-height: 1.55;
   color: var(--nl-text-dim);
 }

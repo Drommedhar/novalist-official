@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowDownToLine, ArrowUpFromLine, Minus, Plus, RefreshCw, Undo2 } from 'lucide-react'
 import { rpc } from '../../rpc/client'
-import { useShellStore } from '../../stores/shellStore'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { InputDialog } from '../../shell/InputDialog'
 import './git.css'
@@ -53,7 +52,6 @@ function splitPath(relativePath: string): { dir: string; name: string } {
 
 export function GitView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const [status, setStatus] = useState<GitStatusDto | null | undefined>(undefined)
   const [gitInstalled, setGitInstalled] = useState(true)
   const [message, setMessage] = useState('')
@@ -83,9 +81,8 @@ export function GitView(): React.JSX.Element {
   }, [])
 
   useEffect(() => {
-    if (mainView !== 'git') return
     void refresh()
-  }, [mainView, refresh])
+  }, [refresh])
 
   if (status === undefined) {
     return <div className="main-placeholder">{t('shell.backendConnecting')}</div>

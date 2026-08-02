@@ -112,7 +112,6 @@ function anchors(
 
 export function TimelineView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const [data, setData] = useState<TimelineDto | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
   const [sourceFilter, setSourceFilter] = useState('all')
@@ -143,7 +142,6 @@ export function TimelineView(): React.JSX.Element {
   const groupRefs = useRef<Map<string, HTMLDivElement>>(new Map())
 
   useEffect(() => {
-    if (mainView !== 'timeline') return
     void rpc.request<TimelineDto>('timeline/get').then(setData)
     void rpc
       .request<{ id: string; displayName: string; description: string }[]>(
@@ -151,7 +149,7 @@ export function TimelineView(): React.JSX.Element {
       )
       .then(setStructures)
       .catch(() => setStructures([]))
-  }, [mainView])
+  }, [])
 
   // Plotlines are stored by id; a lane headed with a GUID says nothing.
   useEffect(() => {

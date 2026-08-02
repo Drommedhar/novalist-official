@@ -92,7 +92,29 @@ Drag the binder's right edge to resize it. It opens at a width proportional to y
 
 ## The main area
 
-The big region in the middle shows the active view: the scene **Editor** by default, or whichever view you picked in the activity bar (Dashboard, Timeline, Codex, Export, Settings, and so on). When a second scene is opened in the split editor, the main area shows two editor panes side by side. See [Editor](05-editor.md).
+The big region in the middle shows the active view: the scene **Editor** by default, or whichever view you picked in the activity bar (Dashboard, Timeline, Codex, Export, Settings, and so on).
+
+### Splitting the main area into panes
+
+The main area can be split into as many **panes** as you have room for, each showing a different view — the manuscript beside the Codex beside your research, or two scenes side by side.
+
+- **Split** with the toolbar's split-right and split-down buttons, `Ctrl+Alt+Right` and `Ctrl+Alt+Down`, or the same two buttons in a pane's own header.
+- **Choose what a pane shows** from its **header**: the pane's name (top left of the pane) is a menu of every view, grouped as the activity bar groups them, with the **Editor** included. A pane appears with a header as soon as the window holds more than one; a single-pane window looks as it always did.
+- **Resize** by dragging the divider between two panes.
+- **Close** a pane with the `×` in its header or `Ctrl+Alt+W`. The last pane always stays.
+- The **active pane** is outlined. Everything that changes a view — the activity bar, the command palette, a link in a panel — lands there, and clicking anywhere inside a pane makes it the active one.
+
+A pane split off the editor starts empty and waits for a scene: click one in the binder and it opens there. Two editor panes are two independent scenes, each with its own [tab strip](05-editor.md#scene-tabs) and its own auto-save.
+
+### Pane layouts
+
+The **Layouts** drop-down beside the split buttons saves the arrangement of panes you are in under a name and brings it back later. These are the pane arrangements; the [workspace layouts](#workspace-layouts) above are the panel and view state, and the two are stored separately.
+
+### Opening a pane in its own window
+
+The **Open in its own window** button — in the toolbar and in every pane header — tears the pane out into a second window: the Codex on another monitor while the manuscript stays where it is.
+
+The new window runs the real view against the same project, so edits made in it land in the book like any other. It opens on the project the pane came from, and on the same scene when the editor is what you tore out. It has no activity bar and no binder — a torn-off pane is one thing on purpose — but it keeps its pane header, so you can point it at a different view or split it further.
 
 ### The scene-notes dock
 

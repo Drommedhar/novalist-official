@@ -21,7 +21,7 @@ import { UpdateDialog } from './UpdateDialog'
 import { useBackupScheduler } from './useBackupScheduler'
 import { useSpellCheck } from './useSpellCheck'
 import { SceneConflictDialog } from './SceneConflictDialog'
-import { useShellStore, type MainView } from '../stores/shellStore'
+import { anyPaneShows, useShellStore, type MainView } from '../stores/shellStore'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { useExtensionsStore, type StoreUpdate } from '../stores/extensionsStore'
@@ -83,7 +83,11 @@ export function AppShell(): React.JSX.Element {
   const focusMode = useShellStore((s) => s.focusMode)
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
   const notesDockVisible = useShellStore((s) => s.notesDockVisible)
-  const mainView = useShellStore((s) => s.mainView)
+  // The surfaces beside the content area belong to the window rather than to
+  // one pane, so they ask whether the window holds the view at all - not what
+  // the pane the writer last clicked in happens to be showing.
+  const editorOpen = useShellStore((s) => anyPaneShows(s.panes, ['write']))
+  const sceneContextOpen = useShellStore((s) => anyPaneShows(s.panes, ['write', 'manuscript']))
   const extView = useShellStore((s) => s.extView)
   const isLoaded = useProjectStore((s) => s.isLoaded)
   const recentProjects = useProjectStore((s) => s.recentProjects)
@@ -259,14 +263,9 @@ export function AppShell(): React.JSX.Element {
               {binderVisible && !focusMode && <Binder />}
               <div className="shell-main">
                 <MainArea />
-                {mainView === 'write' && !extView && notesDockVisible && !focusMode && (
-                  <SceneNotesDock />
-                )}
+                {editorOpen && !extView && notesDockVisible && !focusMode && <SceneNotesDock />}
               </div>
-              {inspectorVisible &&
-                !focusMode &&
-                !extView &&
-                (mainView === 'write' || mainView === 'manuscript') && <Inspector />}
+              {inspectorVisible && !focusMode && !extView && sceneContextOpen && <Inspector />}
             </>
           )
         ) : (

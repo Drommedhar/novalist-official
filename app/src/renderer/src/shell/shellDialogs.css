@@ -29,7 +29,7 @@
      would otherwise push the panel wider than the dialog. */
   overflow-wrap: anywhere;
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   line-height: var(--nl-leading-body);
   padding: var(--nl-space-lg);
   background: var(--nl-surface-input);
@@ -175,7 +175,7 @@
 }
 
 .update-ext-ver {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
   font-variant-numeric: tabular-nums;
 }
@@ -246,7 +246,7 @@
 
 .dialog-empty {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   padding: var(--nl-space-md) 0;
 }
 
@@ -361,7 +361,7 @@
 
 .tour-step {
   color: var(--nl-text-subtle);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
 }
 
 .tour-body {

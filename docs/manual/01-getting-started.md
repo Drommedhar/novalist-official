@@ -94,7 +94,7 @@ The structure is easy to read with any text editor, easy to back up, and easy to
 Now that you have a working project, here are the most useful things to learn next:
 
 - [Interface Overview](02-interface-overview.md) — every part of the window and what it does.
-- [Editor](05-editor.md) — formatting, page view, split editor, grammar check.
+- [Editor](05-editor.md) — formatting, page view, two scenes at once, grammar check.
 - [Codex](06-codex.md) — create your first character or location.
 - [Dashboard](11-dashboard.md) — set up your daily word goal.
 - [Hotkeys reference](26-hotkeys.md) — every keyboard shortcut.

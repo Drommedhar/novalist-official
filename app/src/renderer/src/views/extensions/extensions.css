@@ -38,7 +38,7 @@
 
 .extensions-error {
   color: var(--nl-danger);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   margin-top: var(--nl-space-sm);
 }
 
@@ -77,7 +77,7 @@
 }
 
 .extension-card-version {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
 }
 
@@ -95,7 +95,7 @@
 }
 
 .extension-card-author {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
 }
 
@@ -106,7 +106,7 @@
 }
 
 .extension-card-loaderr {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-danger);
   margin: 0;
 }
@@ -122,7 +122,7 @@
    alongside the built-in ones; this section only points there. */
 .ext-theme-hint {
   margin: 0;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-subtle);
 }
 
@@ -167,7 +167,7 @@
 }
 
 .ext-schema-label {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   font-weight: var(--nl-weight-label);
   color: var(--nl-text-dim);
 }
@@ -217,7 +217,7 @@
 }
 
 .ext-schema-help {
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-subtle);
 }
 
@@ -296,7 +296,7 @@
 
 .store-banner {
   margin-top: var(--nl-space-md);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }
 

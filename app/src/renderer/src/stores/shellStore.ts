@@ -100,6 +100,19 @@ export function paneLeaves(node: PaneNode): Extract<PaneNode, { kind: 'leaf' }>[
 }
 
 /**
+ * Whether any pane is showing one of these views.
+ *
+ * What the surfaces around the content area have to ask. `mainView` names the
+ * view of the pane the writer is in, so a shell asking it about the editor got
+ * "no" the moment they clicked into the Codex beside it - which is how the
+ * context sidebar and the notes dock disappeared as soon as anyone split the
+ * window.
+ */
+export function anyPaneShows(node: PaneNode, views: MainView[]): boolean {
+  return paneLeaves(node).some((leaf) => views.includes(leaf.view))
+}
+
+/**
  * Splits a leaf in two. The new pane opens on the same view, because splitting
  * to look at the same thing twice - two places in one manuscript - is at least
  * as common as splitting to look at two different things.
@@ -277,8 +290,14 @@ interface ShellState {
   tourOpen: boolean
   setMainView(view: MainView): void
   setActivePane(id: string): void
+  /** Points one pane at a view without moving the writer into it. */
+  setPaneView(id: string, view: MainView): void
   splitActivePane(direction: 'row' | 'column'): void
+  /** Splits a named pane and returns the id of the pane that appeared. */
+  splitPaneById(id: string, direction: 'row' | 'column'): string | null
   closeActivePane(): void
+  /** Closes one pane. The last pane in the window always stays. */
+  closePaneById(id: string): void
   setPaneSizes(splitId: string, sizes: number[]): void
   saveLayout(name: string): void
   applyLayout(name: string): void
@@ -326,17 +345,51 @@ function resize(node: PaneNode, splitId: string, sizes: number[]): PaneNode {
 }
 
 /* Layouts are about the writer's screen rather than their book, so they live
- * beside the other view-state preferences instead of in the project. */
-const LAYOUT_STORAGE_KEY = 'nl.shell.layouts'
+ * beside the other view-state preferences instead of in the project.
+ *
+ * Its own key: pane layouts and the named workspace layouts (layoutStore) both
+ * called themselves "nl.shell.layouts" and stored different shapes under it, so
+ * saving one kind erased the other and opening the pane-layout list on an entry
+ * the dialog had written asked for the leaves of a tree that was not there. */
+const LAYOUT_STORAGE_KEY = 'nl.shell.paneLayouts'
 
 function readLayouts(): SavedLayout[] {
   try {
     const raw = localStorage.getItem(LAYOUT_STORAGE_KEY)
     const parsed: unknown = raw ? JSON.parse(raw) : []
-    return Array.isArray(parsed) ? (parsed as SavedLayout[]) : []
+    if (!Array.isArray(parsed)) return []
+    // Anything without a pane tree is not a pane layout, whoever wrote it.
+    return (parsed as SavedLayout[]).filter(
+      (layout) => typeof layout?.name === 'string' && isPaneNode(layout.root)
+    )
   } catch {
     return []
   }
+}
+
+function isPaneNode(node: unknown): node is PaneNode {
+  if (!node || typeof node !== 'object') return false
+  const candidate = node as PaneNode
+  if (candidate.kind === 'leaf') return typeof candidate.id === 'string'
+  return (
+    candidate.kind === 'split' &&
+    Array.isArray(candidate.children) &&
+    candidate.children.every(isPaneNode)
+  )
+}
+
+/**
+ * Gives a restored tree fresh pane ids.
+ *
+ * Ids are handed out per session, so a layout saved yesterday holds "pane-2"
+ * while this session is about to hand that name to the next split - and two
+ * panes answering to one id are one pane as far as everything keyed by it is
+ * concerned, which for the editor means both showing the same scene.
+ */
+function reidentify(node: PaneNode): PaneNode {
+  return node.kind === 'leaf'
+    ? { ...node, id: paneId() }
+    : { ...node, id: paneId(), children: node.children.map(reidentify) }
 }
 
 function persistLayouts(layouts: SavedLayout[]): void {
@@ -371,7 +424,7 @@ function showView(
   }
 }
 
-export const useShellStore = create<ShellState>((set) => ({
+export const useShellStore = create<ShellState>((set, get) => ({
   mainView: 'write',
   panes: initialPanes,
   activePaneId: initialPanes.id,
@@ -415,19 +468,42 @@ export const useShellStore = create<ShellState>((set) => ({
         : { activePaneId }
     }),
 
+  setPaneView: (id, view) =>
+    set((s) => {
+      const pane = findPane(s.panes, id)
+      if (!pane || pane.kind !== 'leaf' || pane.view === view) return {}
+      return {
+        panes: setPaneViewIn(s.panes, id, view),
+        // The label the toolbar and the palette read follows the pane the writer
+        // is in, so retargeting some other pane must not move it.
+        ...(id === s.activePaneId ? { mainView: view, extView: null } : {})
+      }
+    }),
+
   splitActivePane: (direction) =>
     set((s) => {
       const { root, created } = splitPane(s.panes, s.activePaneId, direction)
       return created ? { panes: root, activePaneId: created } : {}
     }),
 
-  closeActivePane: () =>
+  splitPaneById: (id, direction) => {
+    const { root, created } = splitPane(get().panes, id, direction)
+    if (created) set({ panes: root, activePaneId: created })
+    return created
+  },
+
+  closeActivePane: () => get().closePaneById(get().activePaneId),
+
+  closePaneById: (id) =>
     set((s) => {
       // The last pane stays: a content area with nothing in it is not a layout,
       // it is a broken window.
       if (paneLeaves(s.panes).length < 2) return {}
-      const root = closePane(s.panes, s.activePaneId)
+      const root = closePane(s.panes, id)
       if (!root) return {}
+      // Closing the pane you were in moves you somewhere real; closing another
+      // one leaves you where you were.
+      if (id !== s.activePaneId && findPane(root, s.activePaneId)) return { panes: root }
       const first = paneLeaves(root)[0]
       return { panes: root, activePaneId: first.id, mainView: first.view }
     }),
@@ -449,8 +525,9 @@ export const useShellStore = create<ShellState>((set) => ({
     set((s) => {
       const layout = s.layouts.find((l) => l.name === name)
       if (!layout) return {}
-      const first = paneLeaves(layout.root)[0]
-      return { panes: layout.root, activePaneId: first.id, mainView: first.view }
+      const root = reidentify(layout.root)
+      const first = paneLeaves(root)[0]
+      return { panes: root, activePaneId: first.id, mainView: first.view }
     }),
 
   deleteLayout: (name) =>

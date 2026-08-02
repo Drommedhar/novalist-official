@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { rpc } from '../rpc/client'
-import { useShellStore } from './shellStore'
+import { paneLeaves, useShellStore } from './shellStore'
 import { useSettingsStore } from './settingsStore'
 
 export interface SceneDto {
@@ -65,7 +65,38 @@ export interface SceneTabRef {
   sceneId: string
 }
 
-export type EditorPane = 'primary' | 'split'
+/**
+ * One editor pane's own scene.
+ *
+ * The editor used to be a fixed pair of slots - a primary one and a "split" one
+ * - which meant splitting the content area twice gave you two panes showing the
+ * same scene, because the scene lived in the store rather than in the pane.
+ * Keyed by the shell's pane id instead, so every pane holding the editor has its
+ * own scene, its own tabs and its own unsaved state, and splitting a third time
+ * costs nothing.
+ */
+export interface EditorPaneState {
+  chapterGuid: string | null
+  sceneId: string | null
+  html: string | null
+  plainText: string | null
+  tabs: SceneTabRef[]
+  isDirty: boolean
+}
+
+const EMPTY_EDITOR: EditorPaneState = {
+  chapterGuid: null,
+  sceneId: null,
+  html: null,
+  plainText: null,
+  tabs: [],
+  isDirty: false
+}
+
+/** An editor pane's state, or the empty one for a pane nothing is open in. */
+export function editorPane(state: ProjectState, paneId: string | null): EditorPaneState {
+  return (paneId && state.editors[paneId]) || EMPTY_EDITOR
+}
 
 // Matches the Avalonia EditorViewModel.AutoSaveDelayMs default.
 const AUTOSAVE_DELAY_MS = 2000
@@ -107,10 +138,12 @@ interface ProjectState {
   } | null
   openScenePlainText: string | null
   openTabs: SceneTabRef[]
-  splitChapterGuid: string | null
-  splitSceneId: string | null
-  splitSceneHtml: string | null
-  splitTabs: SceneTabRef[]
+  /** Every editor pane's own scene, keyed by the shell's pane id. The five
+   *  fields above mirror whichever of these the writer is working in, so the
+   *  inspector, the status bar and the dialogs keep following one scene. */
+  editors: Record<string, EditorPaneState>
+  /** The editor pane the rest of the shell follows. Null when none is open. */
+  activeEditorPaneId: string | null
   /** Per-scene unsaved-edit flags, keyed by sceneId (drives the tab dirty dot). */
   dirtyMap: Record<string, boolean>
   isDirty: boolean
@@ -119,12 +152,19 @@ interface ProjectState {
   openProject(path: string): Promise<void>
   pickAndOpenProject(): Promise<void>
   openScene(chapterGuid: string, sceneId: string): Promise<void>
+  /** Opens a scene in one named pane, turning that pane into an editor. */
+  openSceneIn(paneId: string, chapterGuid: string, sceneId: string): Promise<void>
+  /** Splits the content area and opens the scene in the pane that appears. */
   openSceneInSplit(chapterGuid: string, sceneId: string): Promise<void>
-  closeSplit(): void
-  closeTab(pane: EditorPane, sceneId: string): Promise<void>
-  moveTabToOtherPane(pane: EditorPane, sceneId: string): Promise<void>
-  onEditorContentChanged(html: string, plainText: string): void
-  onSplitContentChanged(html: string, plainText: string): void
+  closeTab(paneId: string, sceneId: string): Promise<void>
+  /** Moves a tab to the next editor pane, wrapping round. */
+  moveTabToOtherPane(paneId: string, sceneId: string): Promise<void>
+  onEditorContentChanged(paneId: string, html: string, plainText: string): void
+  /** Drops editor state for panes that closed or stopped showing the editor,
+   *  and keeps the mirrored fields pointed at the pane the writer is in. */
+  syncEditorPanes(): void
+  /** Writes one pane's unsaved edit now, cancelling its autosave timer. */
+  flushPane(paneId: string): Promise<void>
   flushPendingSave(): Promise<void>
   /** @param insertAtOrder where the chapter goes, one-based; omit to append. */
   createChapter(title: string, insertAtOrder?: number): Promise<void>
@@ -173,10 +213,8 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   sceneConflict: null,
   openScenePlainText: null,
   openTabs: [],
-  splitChapterGuid: null,
-  splitSceneId: null,
-  splitSceneHtml: null,
-  splitTabs: [],
+  editors: {},
+  activeEditorPaneId: null,
   dirtyMap: {},
   isDirty: false,
 
@@ -267,37 +305,52 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   openScene: async (chapterGuid, sceneId) => {
-    await get().flushPendingSave()
+    await get().openSceneIn(targetEditorPane(), chapterGuid, sceneId)
+  },
+
+  openSceneIn: async (paneId, chapterGuid, sceneId) => {
+    const shell = useShellStore.getState()
+    // The pane holds the editor from here on, and it is the one the writer is
+    // now in: opening a scene somewhere the caret is not is how the old split
+    // pane lost people.
+    shell.setPaneView(paneId, 'write')
+    shell.setActivePane(paneId)
+    await get().flushPane(paneId)
     const content = await rpc.request<{ sceneId: string; html: string; hash: string }>(
       'scenes/read',
       [chapterGuid, sceneId]
     )
-    const tabs = get().openTabs
-    set({
-      openChapterGuid: chapterGuid,
-      openSceneId: sceneId,
-      sceneHashes: { ...get().sceneHashes, [sceneId]: content.hash },
-      openSceneHtml: content.html,
-      openScenePlainText: stripHtml(content.html),
-      openTabs: tabs.some((t) => t.sceneId === sceneId) ? tabs : [...tabs, { chapterGuid, sceneId }]
+    set((s) => {
+      const previous = editorPane(s, paneId)
+      const editors = {
+        ...s.editors,
+        [paneId]: {
+          chapterGuid,
+          sceneId,
+          html: content.html,
+          plainText: stripHtml(content.html),
+          tabs: previous.tabs.some((t) => t.sceneId === sceneId)
+            ? previous.tabs
+            : [...previous.tabs, { chapterGuid, sceneId }],
+          isDirty: false
+        }
+      }
+      return {
+        editors,
+        activeEditorPaneId: paneId,
+        sceneHashes: { ...s.sceneHashes, [sceneId]: content.hash },
+        ...mirror(editors, paneId)
+      }
     })
-    useShellStore.getState().setMainView('write')
   },
 
   openSceneInSplit: async (chapterGuid, sceneId) => {
-    const content = await rpc.request<{ sceneId: string; html: string; hash: string }>(
-      'scenes/read',
-      [chapterGuid, sceneId]
-    )
-    const tabs = get().splitTabs
-    set({
-      splitChapterGuid: chapterGuid,
-      splitSceneId: sceneId,
-      sceneHashes: { ...get().sceneHashes, [sceneId]: content.hash },
-      splitSceneHtml: content.html,
-      splitTabs: tabs.some((t) => t.sceneId === sceneId) ? tabs : [...tabs, { chapterGuid, sceneId }]
-    })
-    useShellStore.getState().setMainView('write')
+    // "Open in split" now means a real second pane rather than the editor's own
+    // two-slot arrangement, so the scene can sit beside the Codex or a third
+    // scene just as easily as beside another editor.
+    const shell = useShellStore.getState()
+    const target = shell.splitPaneById(targetEditorPane(), 'row')
+    if (target) await get().openSceneIn(target, chapterGuid, sceneId)
   },
 
   resolveSceneConflict: async (html) => {
@@ -307,117 +360,120 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       'scenes/resolveConflict',
       [conflict.chapterGuid, conflict.sceneId, html, stripHtml(html)]
     )
-    set((state) => ({
-      sceneConflict: null,
-      sceneHashes: { ...state.sceneHashes, [conflict.sceneId]: result.hash },
-      openSceneHtml: state.openSceneId === conflict.sceneId ? html : state.openSceneHtml,
-      splitSceneHtml: state.splitSceneId === conflict.sceneId ? html : state.splitSceneHtml,
-      isDirty: state.openSceneId === conflict.sceneId ? false : state.isDirty,
-      dirtyMap: { ...state.dirtyMap, [conflict.sceneId]: false },
-      chapters: state.chapters.map((c) =>
-        c.guid === conflict.chapterGuid
-          ? {
-              ...c,
-              scenes: c.scenes.map((sc) =>
-                sc.id === conflict.sceneId ? { ...sc, wordCount: result.wordCount } : sc
-              )
-            }
-          : c
+    set((state) => {
+      // The resolved text belongs to every pane holding that scene, not just the
+      // one the writer resolved it from.
+      const editors = mapEditors(state.editors, (editor) =>
+        editor.sceneId === conflict.sceneId ? { ...editor, html, isDirty: false } : editor
       )
-    }))
+      return {
+        sceneConflict: null,
+        sceneHashes: { ...state.sceneHashes, [conflict.sceneId]: result.hash },
+        editors,
+        dirtyMap: { ...state.dirtyMap, [conflict.sceneId]: false },
+        ...mirror(editors, state.activeEditorPaneId),
+        chapters: state.chapters.map((c) =>
+          c.guid === conflict.chapterGuid
+            ? {
+                ...c,
+                scenes: c.scenes.map((sc) =>
+                  sc.id === conflict.sceneId ? { ...sc, wordCount: result.wordCount } : sc
+                )
+              }
+            : c
+        )
+      }
+    })
   },
 
   dismissSceneConflict: () => set({ sceneConflict: null }),
 
-  closeSplit: () =>
-    set({ splitChapterGuid: null, splitSceneId: null, splitSceneHtml: null, splitTabs: [] }),
+  closeTab: async (paneId, sceneId) => {
+    const editor = editorPane(get(), paneId)
+    const idx = editor.tabs.findIndex((t) => t.sceneId === sceneId)
+    if (idx < 0) return
+    const isActive = editor.sceneId === sceneId
+    if (isActive) await get().flushPane(paneId)
+    const remaining = editorPane(get(), paneId).tabs.filter((t) => t.sceneId !== sceneId)
 
-  closeTab: async (pane, sceneId) => {
-    const s = get()
-    if (pane === 'primary') {
-      const idx = s.openTabs.findIndex((t) => t.sceneId === sceneId)
-      if (idx < 0) return
-      const isActive = s.openSceneId === sceneId
-      if (isActive) await get().flushPendingSave()
-      const remaining = get().openTabs.filter((t) => t.sceneId !== sceneId)
-      if (!isActive) {
-        set({ openTabs: remaining })
-        return
-      }
-      if (remaining.length === 0) {
-        set({
-          openTabs: [],
-          openChapterGuid: null,
-          openSceneId: null,
-          openSceneHtml: null,
-          openScenePlainText: null,
-          isDirty: false
-        })
-        // No scenes left open in the editor — fall back to the dashboard
-        // (unless a scene is still open in the split pane).
-        if (get().splitSceneId === null) useShellStore.getState().setMainView('dashboard')
-        return
-      }
-      const next = remaining[Math.min(idx, remaining.length - 1)]
-      set({ openTabs: remaining })
-      await get().openScene(next.chapterGuid, next.sceneId)
-    } else {
-      const idx = s.splitTabs.findIndex((t) => t.sceneId === sceneId)
-      if (idx < 0) return
-      const isActive = s.splitSceneId === sceneId
-      const remaining = s.splitTabs.filter((t) => t.sceneId !== sceneId)
-      if (!isActive) {
-        set({ splitTabs: remaining })
-        return
-      }
-      if (remaining.length === 0) {
-        get().closeSplit()
-        return
-      }
-      const next = remaining[Math.min(idx, remaining.length - 1)]
-      set({ splitTabs: remaining })
-      await get().openSceneInSplit(next.chapterGuid, next.sceneId)
+    if (!isActive) {
+      set((s) => patchEditor(s, paneId, { tabs: remaining }))
+      return
     }
+    if (remaining.length === 0) {
+      set((s) => patchEditor(s, paneId, { ...EMPTY_EDITOR }))
+      // Nothing left in this pane. With another editor still open the writer is
+      // mid-work elsewhere, so only a shell with no scene open anywhere falls
+      // back to the dashboard.
+      if (!Object.values(get().editors).some((e) => e.sceneId)) {
+        useShellStore.getState().setMainView('dashboard')
+      }
+      return
+    }
+    const next = remaining[Math.min(idx, remaining.length - 1)]
+    set((s) => patchEditor(s, paneId, { tabs: remaining }))
+    await get().openSceneIn(paneId, next.chapterGuid, next.sceneId)
   },
 
-  moveTabToOtherPane: async (pane, sceneId) => {
-    const srcTabs = pane === 'primary' ? get().openTabs : get().splitTabs
-    const tab = srcTabs.find((t) => t.sceneId === sceneId)
+  moveTabToOtherPane: async (paneId, sceneId) => {
+    const tab = editorPane(get(), paneId).tabs.find((t) => t.sceneId === sceneId)
     if (!tab) return
-    await get().closeTab(pane, sceneId)
-    if (pane === 'primary') await get().openSceneInSplit(tab.chapterGuid, tab.sceneId)
-    else await get().openScene(tab.chapterGuid, tab.sceneId)
+    const others = writePaneIds().filter((id) => id !== paneId)
+    await get().closeTab(paneId, sceneId)
+    // With no second pane to move to, "the other pane" is one that has to exist
+    // first - which is what a writer asking for this means anyway.
+    if (others.length === 0) await get().openSceneInSplit(tab.chapterGuid, tab.sceneId)
+    else await get().openSceneIn(others[0], tab.chapterGuid, tab.sceneId)
   },
 
-  onEditorContentChanged: (html, plainText) => {
-    const { openChapterGuid, openSceneId } = get()
-    if (!openChapterGuid || !openSceneId) return
-    set((state) => ({
-      openSceneHtml: html,
-      openScenePlainText: plainText,
-      isDirty: true,
-      dirtyMap: { ...state.dirtyMap, [openSceneId]: true }
+  onEditorContentChanged: (paneId, html, plainText) => {
+    const editor = editorPane(get(), paneId)
+    const { chapterGuid, sceneId } = editor
+    if (!chapterGuid || !sceneId) return
+    set((s) => ({
+      ...patchEditor(s, paneId, { html, plainText, isDirty: true }),
+      dirtyMap: { ...s.dirtyMap, [sceneId]: true }
     }))
-    scheduleSave('primary', openChapterGuid, openSceneId, html, plainText)
+    scheduleSave(paneId, chapterGuid, sceneId, html, plainText)
   },
 
-  onSplitContentChanged: (html, plainText) => {
-    const { splitChapterGuid, splitSceneId } = get()
-    if (!splitChapterGuid || !splitSceneId) return
-    set((state) => ({
-      splitSceneHtml: html,
-      dirtyMap: { ...state.dirtyMap, [splitSceneId]: true }
-    }))
-    scheduleSave('split', splitChapterGuid, splitSceneId, html, plainText)
+  syncEditorPanes: () => {
+    const shell = useShellStore.getState()
+    const live = writePaneIds()
+    const s = get()
+    let editors = s.editors
+    const stale = Object.keys(editors).filter((id) => !live.includes(id))
+    if (stale.length > 0) {
+      editors = { ...editors }
+      for (const id of stale) {
+        // A pane that goes away takes its editor with it, but not the writer's
+        // last keystrokes: closing a split must never be a way to lose words.
+        void flushEditor(editors[id])
+        delete editors[id]
+      }
+    }
+    // The shell follows the pane the writer is in when that pane is an editor,
+    // and otherwise stays on the editor they were last in.
+    const active = live.includes(shell.activePaneId)
+      ? shell.activePaneId
+      : s.activeEditorPaneId && live.includes(s.activeEditorPaneId)
+        ? s.activeEditorPaneId
+        : (live[0] ?? null)
+    if (editors === s.editors && active === s.activeEditorPaneId) return
+    set({ editors, activeEditorPaneId: active, ...mirror(editors, active) })
+  },
+
+  flushPane: async (paneId) => {
+    const timer = autosaveTimers.get(paneId)
+    if (timer) clearTimeout(timer)
+    autosaveTimers.delete(paneId)
+    await flushEditor(get().editors[paneId])
   },
 
   flushPendingSave: async () => {
-    const { isDirty, openChapterGuid, openSceneId, openSceneHtml } = get()
     for (const timer of autosaveTimers.values()) clearTimeout(timer)
     autosaveTimers.clear()
-    if (isDirty && openChapterGuid && openSceneId && openSceneHtml !== null) {
-      await saveScene(openChapterGuid, openSceneId, openSceneHtml, '')
-    }
+    for (const editor of Object.values(get().editors)) await flushEditor(editor)
   },
 
   createChapter: async (title, insertAtOrder) => {
@@ -446,42 +502,12 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
   },
 
   deleteChapter: async (chapterGuid) => {
-    set((s) => ({
-      openTabs: s.openTabs.filter((t) => t.chapterGuid !== chapterGuid),
-      splitTabs: s.splitTabs.filter((t) => t.chapterGuid !== chapterGuid),
-      ...(s.openChapterGuid === chapterGuid
-        ? {
-            openChapterGuid: null,
-            openSceneId: null,
-            openSceneHtml: null,
-            openScenePlainText: null,
-            isDirty: false
-          }
-        : {}),
-      ...(s.splitChapterGuid === chapterGuid
-        ? { splitChapterGuid: null, splitSceneId: null, splitSceneHtml: null }
-        : {})
-    }))
+    set((s) => forgetScenes(s, (tab) => tab.chapterGuid !== chapterGuid))
     get().applyState(await rpc.request<ProjectStateDto>('project/deleteChapter', [chapterGuid]))
   },
 
   deleteScene: async (chapterGuid, sceneId) => {
-    set((s) => ({
-      openTabs: s.openTabs.filter((t) => t.sceneId !== sceneId),
-      splitTabs: s.splitTabs.filter((t) => t.sceneId !== sceneId),
-      ...(s.openSceneId === sceneId
-        ? {
-            openChapterGuid: null,
-            openSceneId: null,
-            openSceneHtml: null,
-            openScenePlainText: null,
-            isDirty: false
-          }
-        : {}),
-      ...(s.splitSceneId === sceneId
-        ? { splitChapterGuid: null, splitSceneId: null, splitSceneHtml: null }
-        : {})
-    }))
+    set((s) => forgetScenes(s, (tab) => tab.sceneId !== sceneId))
     get().applyState(
       await rpc.request<ProjectStateDto>('project/deleteScene', [chapterGuid, sceneId])
     )
@@ -530,14 +556,112 @@ function clearedEditorState(): Partial<ProjectState> {
     openSceneHtml: null,
     openScenePlainText: null,
     openTabs: [],
-    splitChapterGuid: null,
-    splitSceneId: null,
-    splitSceneHtml: null,
-    splitTabs: [],
+    editors: {},
     dirtyMap: {},
     isDirty: false
   }
 }
+
+/**
+ * The five fields the rest of the shell reads, taken from one pane.
+ *
+ * The inspector, the status bar, find-and-replace and the scene-notes dock all
+ * describe "the scene you are writing", which with several editors open means
+ * the one in the pane you are in. Mirroring it here is what let those surfaces
+ * stay as they were when the editor stopped being a single slot.
+ */
+function mirror(
+  editors: Record<string, EditorPaneState>,
+  activePaneId: string | null
+): Pick<
+  ProjectState,
+  'openChapterGuid' | 'openSceneId' | 'openSceneHtml' | 'openScenePlainText' | 'openTabs' | 'isDirty'
+> {
+  const editor = (activePaneId && editors[activePaneId]) || EMPTY_EDITOR
+  return {
+    openChapterGuid: editor.chapterGuid,
+    openSceneId: editor.sceneId,
+    openSceneHtml: editor.html,
+    openScenePlainText: editor.plainText,
+    openTabs: editor.tabs,
+    isDirty: editor.isDirty
+  }
+}
+
+function mapEditors(
+  editors: Record<string, EditorPaneState>,
+  fn: (editor: EditorPaneState) => EditorPaneState
+): Record<string, EditorPaneState> {
+  return Object.fromEntries(Object.entries(editors).map(([id, editor]) => [id, fn(editor)]))
+}
+
+/** Changes one pane's editor state and re-mirrors if it is the active one. */
+function patchEditor(
+  state: ProjectState,
+  paneId: string,
+  patch: Partial<EditorPaneState>
+): Partial<ProjectState> {
+  const editors = {
+    ...state.editors,
+    [paneId]: { ...editorPane(state, paneId), ...patch }
+  }
+  return { editors, ...mirror(editors, state.activeEditorPaneId) }
+}
+
+/** Drops scenes that no longer exist from every pane's tabs and content. */
+function forgetScenes(
+  state: ProjectState,
+  keep: (tab: SceneTabRef) => boolean
+): Partial<ProjectState> {
+  const editors = mapEditors(state.editors, (editor) => {
+    const tabs = editor.tabs.filter(keep)
+    const gone =
+      editor.chapterGuid !== null &&
+      editor.sceneId !== null &&
+      !keep({ chapterGuid: editor.chapterGuid, sceneId: editor.sceneId })
+    return gone ? { ...EMPTY_EDITOR, tabs } : { ...editor, tabs }
+  })
+  return { editors, ...mirror(editors, state.activeEditorPaneId) }
+}
+
+/** Every pane currently holding the editor, in the order they appear. */
+function writePaneIds(): string[] {
+  return paneLeaves(useShellStore.getState().panes)
+    .filter((leaf) => leaf.view === 'write')
+    .map((leaf) => leaf.id)
+}
+
+/**
+ * Where a scene opens.
+ *
+ * The pane the writer is in when that pane is already an editor, so clicking a
+ * scene beside the Codex does not turn the Codex into an editor; otherwise the
+ * editor they were last in; otherwise this pane becomes one, which is what a
+ * single-pane window has always done.
+ */
+function targetEditorPane(): string {
+  const shell = useShellStore.getState()
+  const live = writePaneIds()
+  if (live.includes(shell.activePaneId)) return shell.activePaneId
+  const last = useProjectStore.getState().activeEditorPaneId
+  if (last && live.includes(last)) return last
+  return shell.activePaneId
+}
+
+/** Writes a pane's unsaved edit, if it has one. */
+async function flushEditor(editor: EditorPaneState | undefined): Promise<void> {
+  if (!editor?.isDirty || !editor.chapterGuid || !editor.sceneId || editor.html === null) return
+  await saveScene(editor.chapterGuid, editor.sceneId, editor.html, editor.plainText ?? '')
+}
+
+/* A pane that closes, or stops showing the editor, must not leave its scene
+ * behind in the store - and the shell has to keep following whichever editor
+ * the writer moved into. The shell store knows nothing about scenes, so the
+ * project store watches it rather than the other way round. */
+useShellStore.subscribe((state, previous) => {
+  if (state.panes === previous.panes && state.activePaneId === previous.activePaneId) return
+  useProjectStore.getState().syncEditorPanes()
+})
 
 /** Strips HTML tags and decodes entities to plain text for live statistics.
  * Mirrors the desktop EditorViewModel.StripHtmlForStats fast path. */
@@ -601,21 +725,29 @@ async function saveScene(
     return
   }
 
-  useProjectStore.setState((state) => ({
-    sceneHashes: { ...state.sceneHashes, [sceneId]: result.hash },
-    isDirty: state.openSceneId === sceneId ? false : state.isDirty,
-    dirtyMap: state.dirtyMap[sceneId] ? { ...state.dirtyMap, [sceneId]: false } : state.dirtyMap,
-    chapters: state.chapters.map((c) =>
-      c.guid === chapterGuid
-        ? {
-            ...c,
-            scenes: c.scenes.map((s) =>
-              s.id === sceneId ? { ...s, wordCount: result.wordCount } : s
-            )
-          }
-        : c
+  useProjectStore.setState((state) => {
+    // The scene is on disk, so every pane holding it is clean - two panes on one
+    // scene must not leave the second one claiming unsaved work forever.
+    const editors = mapEditors(state.editors, (editor) =>
+      editor.sceneId === sceneId && editor.isDirty ? { ...editor, isDirty: false } : editor
     )
-  }))
+    return {
+      sceneHashes: { ...state.sceneHashes, [sceneId]: result.hash },
+      editors,
+      ...mirror(editors, state.activeEditorPaneId),
+      dirtyMap: state.dirtyMap[sceneId] ? { ...state.dirtyMap, [sceneId]: false } : state.dirtyMap,
+      chapters: state.chapters.map((c) =>
+        c.guid === chapterGuid
+          ? {
+              ...c,
+              scenes: c.scenes.map((s) =>
+                s.id === sceneId ? { ...s, wordCount: result.wordCount } : s
+              )
+            }
+          : c
+      )
+    }
+  })
 }
 
 /**

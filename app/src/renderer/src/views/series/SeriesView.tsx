@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../../rpc/client'
-import { useShellStore } from '../../stores/shellStore'
 import './series.css'
 
 interface SeriesBookDto {
@@ -38,16 +37,14 @@ interface SeriesOverviewDto {
  */
 export function SeriesView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const [overview, setOverview] = useState<SeriesOverviewDto | null>(null)
 
   useEffect(() => {
-    if (mainView !== 'series') return
     void rpc
       .request<SeriesOverviewDto>('series/overview')
       .then(setOverview)
       .catch(() => setOverview(null))
-  }, [mainView])
+  }, [])
 
   if (!overview) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 

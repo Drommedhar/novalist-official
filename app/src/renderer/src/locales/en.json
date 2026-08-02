@@ -43,7 +43,7 @@
     "focusMode": "Focus Mode",
     "plotGrid": "Plot Grid",
     "research": "Research",
-    "toggleSplitEditor": "Toggle split editor",
+    "toggleSplitEditor": "Open in split",
     "addComment": "Add comment",
     "addFootnote": "Add footnote",
     "commandPalette": "Command Palette..."
@@ -1439,7 +1439,7 @@
     "archiveBanner.text": "This scene is archived. Restore it to edit and include in the manuscript.",
     "archiveBanner.restore": "Restore",
     "tabClose": "Close tab",
-    "tabMoveOther": "Move to other split",
+    "tabMoveOther": "Move to other pane",
     "contextMenu.cut": "Cut",
     "contextMenu.copy": "Copy",
     "contextMenu.paste": "Paste",
@@ -2181,14 +2181,16 @@
       "settings": "Settings",
       "style": "Style report",
       "canvas": "Planning board",
-      "languages": "Languages"
+      "languages": "Languages",
+      "extensions": "Extensions"
     },
     "words": "words",
     "chapters": "chapters",
     "scenes": "scenes",
     "groupApp": "Application",
     "menu": "Menu",
-    "view.series": "Series"
+    "view.series": "Series",
+    "paneAwaitingScene": "Choose a scene in the binder to write it here."
   },
   "hostBridge": {
     "toastRegion": "Notifications",
@@ -2505,6 +2507,9 @@
     "appendHint": "Chapters are added to the end of the book. Nothing already in it is replaced.",
     "done": "Imported {{chapters}} chapters, {{scenes}} scenes and {{words}} words.",
     "formats": "Readable formats: {{formats}}",
+    "partSummary": "The draft is in {{count}} parts, which become acts.",
+    "extrasSummary": "Also found: {{characters}} characters, {{locations}} places and {{research}} research items.",
+    "doneExtras": "Added {{characters}} characters, {{locations}} places and {{research}} research items.",
     "chooseScrivener": "Choose a Scrivener project...",
     "losses": "Not brought across: {{items}}. Novalist has no equivalent for these, so they stay in Scrivener."
   },
@@ -3720,6 +3725,8 @@
     "layouts": "Layouts",
     "layoutName": "Name this layout",
     "deleteLayout": "Forget this layout",
-    "popOut": "Open in its own window"
+    "popOut": "Open in its own window",
+    "showInPane": "Show in this pane",
+    "resize": "Resize panes"
   }
 }

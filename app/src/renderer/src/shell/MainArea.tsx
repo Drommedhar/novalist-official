@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   paneLeaves,
@@ -5,7 +6,8 @@ import {
   type MainView,
   type PaneNode
 } from '../stores/shellStore'
-import { useProjectStore } from '../stores/projectStore'
+import { editorPane, useProjectStore } from '../stores/projectStore'
+import { PaneHeader } from './PaneHeader'
 import { EditorFrame } from '../views/editor/EditorFrame'
 import { CodexView } from '../views/codex/CodexView'
 import { WikiView } from '../views/wiki/WikiView'
@@ -34,12 +36,16 @@ import { HostBridgeOverlays } from './HostBridgeOverlays'
 
 /** Wraps the routed main-area content with the always-present extension-host UI
  * surfaces (toasts, busy-progress, wizard). The overlays read their state from
- * the host-bridge store, so a view switch never disturbs an in-flight dialog. */
-export function MainArea(): React.JSX.Element {
+ * the host-bridge store, so a view switch never disturbs an in-flight dialog.
+ *
+ * `headers` forces the per-pane header on in a window that holds a single pane:
+ * a torn-off pane has no activity bar, so without it there would be no way to
+ * change what that window is showing. */
+export function MainArea({ headers = 'auto' }: { headers?: 'auto' | 'always' }): React.JSX.Element {
   const panes = useShellStore((s) => s.panes)
   return (
     <>
-      <PaneTree node={panes} />
+      <PaneTree node={panes} headers={headers} />
       <HostBridgeOverlays />
     </>
   )
@@ -56,7 +62,13 @@ export function MainArea(): React.JSX.Element {
  * changes a view - the activity bar, the palette, a link in a panel - lands
  * there, and a writer needs to know where their next click will go.
  */
-function PaneTree({ node }: { node: PaneNode }): React.JSX.Element {
+function PaneTree({
+  node,
+  headers
+}: {
+  node: PaneNode
+  headers: 'auto' | 'always'
+}): React.JSX.Element {
   const activePaneId = useShellStore((s) => s.activePaneId)
   const setActivePane = useShellStore((s) => s.setActivePane)
   const only = useShellStore((s) => paneLeaves(s.panes).length < 2)
@@ -65,13 +77,17 @@ function PaneTree({ node }: { node: PaneNode }): React.JSX.Element {
     return (
       <div className={`pane-split ${node.direction}`}>
         {node.children.map((child, i) => (
-          <div
-            key={child.id}
-            className="pane-slot"
-            style={{ flexBasis: `${node.sizes[i] ?? 100 / node.children.length}%` }}
-          >
-            <PaneTree node={child} />
-          </div>
+          <Fragment key={child.id}>
+            {/* Between the slots rather than inside one, so a drag belongs to
+                the boundary it moves rather than to either neighbour. */}
+            {i > 0 && <PaneDivider split={node} index={i} />}
+            <div
+              className="pane-slot"
+              style={{ flexBasis: `${node.sizes[i] ?? 100 / node.children.length}%` }}
+            >
+              <PaneTree node={child} headers={headers} />
+            </div>
+          </Fragment>
         ))}
       </div>
     )
@@ -84,18 +100,82 @@ function PaneTree({ node }: { node: PaneNode }): React.JSX.Element {
       // without every view having to know panes exist.
       onPointerDownCapture={() => setActivePane(node.id)}
     >
-      <MainAreaContent view={node.view} />
+      {(headers === 'always' || !only) && <PaneHeader paneId={node.id} view={node.view} />}
+      <MainAreaContent view={node.view} paneId={node.id} />
     </div>
   )
 }
 
-function MainAreaContent({ view }: { view: MainView }): React.JSX.Element {
+/**
+ * The boundary between two panes, dragged to change their proportions.
+ *
+ * Splits shipped fixed at fifty-fifty because nothing ever called the store's
+ * resize action - a manuscript beside a narrow column of notes was a shape the
+ * data model allowed and the screen would not give you.
+ */
+function PaneDivider({
+  split,
+  index
+}: {
+  split: Extract<PaneNode, { kind: 'split' }>
+  index: number
+}): React.JSX.Element {
+  const { t } = useTranslation()
+  const setPaneSizes = useShellStore((s) => s.setPaneSizes)
+  const row = split.direction === 'row'
+
+  const onPointerDown = (event: React.PointerEvent<HTMLDivElement>): void => {
+    event.preventDefault()
+    const container = event.currentTarget.parentElement
+    if (!container) return
+    const total = row ? container.clientWidth : container.clientHeight
+    if (total <= 0) return
+    const start = row ? event.clientX : event.clientY
+    const sizes = split.sizes.slice()
+    const before = sizes[index - 1]
+    const after = sizes[index]
+    const handle = event.currentTarget
+    handle.setPointerCapture(event.pointerId)
+
+    const move = (e: PointerEvent): void => {
+      const delta = ((row ? e.clientX : e.clientY) - start) / total * 100
+      // A pane can be made small but never nothing: a slot dragged to zero is
+      // one the writer can no longer grab to bring back.
+      const shift = Math.max(-before + 10, Math.min(after - 10, delta))
+      const next = sizes.slice()
+      next[index - 1] = before + shift
+      next[index] = after - shift
+      setPaneSizes(split.id, next)
+    }
+    const up = (): void => {
+      handle.releasePointerCapture(event.pointerId)
+      handle.removeEventListener('pointermove', move)
+      handle.removeEventListener('pointerup', up)
+    }
+    handle.addEventListener('pointermove', move)
+    handle.addEventListener('pointerup', up)
+  }
+
+  return (
+    <div
+      className={`pane-divider ${split.direction}`}
+      role="separator"
+      aria-label={t('panes.resize')}
+      aria-orientation={row ? 'vertical' : 'horizontal'}
+      onPointerDown={onPointerDown}
+    />
+  )
+}
+
+function MainAreaContent({ view, paneId }: { view: MainView; paneId: string }): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = view
   const extView = useShellStore((s) => s.extView)
   const extViews = useExtensionsStore((s) => s.views)
-  const openSceneId = useProjectStore((s) => s.openSceneId)
-  const splitSceneId = useProjectStore((s) => s.splitSceneId)
+  // This pane's own scene: two editors side by side are two scenes, not one
+  // scene drawn twice.
+  const openSceneId = useProjectStore((s) => editorPane(s, paneId).sceneId)
+  const isLoaded = useProjectStore((s) => s.isLoaded)
 
   if (extView) {
     const view = extViews.find(
@@ -114,18 +194,14 @@ function MainAreaContent({ view }: { view: MainView }): React.JSX.Element {
     return (
       <main className="main-area">
         {openSceneId ? (
-          splitSceneId ? (
-            <div className="split-editors">
-              <EditorFrame pane="primary" />
-              <EditorFrame pane="split" />
-            </div>
-          ) : (
-            <EditorFrame />
-          )
+          <EditorFrame paneId={paneId} />
         ) : (
           <div className="main-placeholder">
             <h1>{t('shell.view.write')}</h1>
-            <p>{t('shell.binderEmpty')}</p>
+            {/* A pane split off to hold a second scene starts empty, which is
+                the point - it is waiting for a different scene rather than
+                showing another copy of the one next to it. */}
+            <p>{t(isLoaded ? 'shell.paneAwaitingScene' : 'shell.binderEmpty')}</p>
           </div>
         )}
       </main>

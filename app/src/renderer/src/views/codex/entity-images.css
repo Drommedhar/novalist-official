@@ -38,7 +38,7 @@
   width: 72px;
   margin-top: var(--nl-space-tighter);
   font: inherit;
-  font-size: var(--nl-font-tiny);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text);
   background: transparent;
   border: none;
@@ -62,7 +62,7 @@
 }
 
 .entity-url-error {
-  font-size: var(--nl-font-tiny);
+  font-size: var(--nl-font-ui);
   color: var(--nl-danger);
 }
 
@@ -88,7 +88,7 @@
 }
 
 .overrides-inherit-tag {
-  font-size: var(--nl-font-tiny);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -101,7 +101,7 @@
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-accent);
   padding: var(--nl-space-none);
 }

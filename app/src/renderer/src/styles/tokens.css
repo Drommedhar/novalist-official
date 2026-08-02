@@ -53,19 +53,23 @@
 :root {
   /* ===== 1. Scales, derived from the brand geometry =====
      Spacing steps out from the brand gutter (24px = --nl-space-xl) so panel
-     padding lands inside the colophon's 26-34px card band at --nl-space-xxl. */
+     padding lands inside the colophon's 26-34px card band at --nl-space-xxl.
+
+     Nine steps on a 2px grid, ascending with no gaps and no synonyms. The
+     old scale carried a --nl-space-normal at 14px wedged between md and lg,
+     which sorted wrong wherever it was read and gave two names to one idea;
+     its callers belong on md or lg. */
   --nl-space-none: 0px;
   /* A hairline: the gap that reads as a rule rather than as space. Every
      grid that wanted one was writing 1px or 2px by hand. */
   --nl-space-hairline: 2px;
-  --nl-space-tightest: 3px;
+  --nl-space-tightest: 4px;
   --nl-space-tighter: 6px;
   --nl-space-sm: 8px;
   --nl-space-md: 12px;
-  --nl-space-normal: 14px;
   --nl-space-lg: 18px;
   --nl-space-xl: 24px;
-  --nl-space-xxl: 30px;
+  --nl-space-xxl: 32px;
 
   /* Corner radius. The brand fixes three of these - button, card and pill; the
      remaining two interpolate so nested controls still step down cleanly. */
@@ -85,16 +89,40 @@
      content can inset its bottom padding to sit above it. */
   --nl-mobile-tabbar-h: 49px;
 
-  /* Typography, anchored on the brand body size of 17px. The two display steps
-     are the colophon's own clamps, so a wide window gets the hero proportions
-     the identity specifies and a narrow one degrades to the floor. */
-  --nl-font-tiny: 10px;
-  --nl-font-caption: 11.5px; /* record floor */
-  --nl-font-body-sm: 13px; /* record ceiling, eyebrow */
+  /* ===== Typography =====
+     Anchored on the brand body size of 17px, and deliberately short: nine
+     steps, none of them below 13px. Each one answers to a surface class, and
+     picking a size means naming the class rather than eyeballing a number.
+
+       --nl-font-caption   metadata nobody reads in sequence - counts, dates,
+                           paths, word totals, uppercase eyebrows, badges
+       --nl-font-ui        the default for chrome: every control, row, tab,
+                           input, menu item and field label. When in doubt on
+                           a surface that is not prose, this is the answer
+       --nl-font-body      the brand body. Prose, and the chrome prominent
+                           enough to read as prose - binder rows, nav items
+       --nl-font-body-lg   lead prose and the one primary action per screen
+       --nl-font-title-sm  card and subsection titles
+       --nl-font-title     view titles
+       --nl-font-display*  heroes and headline figures
+
+     Three sizes were removed rather than retuned. 10px and 11.5px were being
+     asked to carry buttons, inputs and sidebar rows - the app runs on a serif
+     whose x-height is well short of a UI sans, so those read a full step
+     smaller than the same number in Segoe or Inter. 13px stayed, as the floor
+     for metadata only. The 13-to-17 cliff in the middle of the old scale is
+     what --nl-font-ui closes: chrome had nothing to land on between a caption
+     and the manuscript, so half of it picked one and half the other.
+
+     The two display steps are the colophon's own clamps, so a wide window
+     gets the hero proportions the identity specifies and a narrow one
+     degrades to the floor. */
+  --nl-font-caption: 13px;
+  --nl-font-ui: 15px;
   --nl-font-body: 17px; /* brand body */
-  --nl-font-body-lg: 18px;
-  --nl-font-title-sm: 20px;
-  --nl-font-title: 24px;
+  --nl-font-body-lg: 20px;
+  --nl-font-title-sm: 23px;
+  --nl-font-title: 26px;
   --nl-font-display-sm: 30px;
   --nl-font-display: clamp(30px, 3.8vw, 44px); /* section */
   --nl-font-display-lg: clamp(38px, 5.6vw, 64px); /* hero */

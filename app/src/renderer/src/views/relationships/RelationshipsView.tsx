@@ -61,7 +61,6 @@ const ENTRY_KINDS = ['character', 'location', 'item', 'lore', 'scene'] as const
 
 export function RelationshipsView(): React.JSX.Element {
   const { t } = useTranslation()
-  const mainView = useShellStore((s) => s.mainView)
   const [characters, setCharacters] = useState<GraphCharacter[]>([])
   const [allNodes, setAllNodes] = useState<GraphCharacter[]>([])
   const [search, setSearch] = useState('')
@@ -157,7 +156,6 @@ export function RelationshipsView(): React.JSX.Element {
   }, [rootId, allNodes, t])
 
   useEffect(() => {
-    if (mainView !== 'relationships') return
     // Centring on somebody and then widening the reach puts two fetches in
     // flight. Without this the older one can land last and win, so the graph
     // snaps back to the narrower view it was already leaving.
@@ -175,17 +173,16 @@ export function RelationshipsView(): React.JSX.Element {
     return () => {
       current = false
     }
-  }, [mainView, rootId, depth, withScenes])
+  }, [rootId, depth, withScenes])
 
   // Every entry, only to fill the "centre on" picker: the graph itself may be
   // showing a neighbourhood, and you have to be able to jump out of it.
   useEffect(() => {
-    if (mainView !== 'relationships') return
     void rpc
       .request<GraphCharacter[]>('relationships/graph', [null, 4, false])
       .then(setAllNodes)
       .catch(() => setAllNodes([]))
-  }, [mainView])
+  }, [])
 
   const availableGroups = useMemo(
     () =>

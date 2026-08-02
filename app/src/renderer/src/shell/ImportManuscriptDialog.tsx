@@ -11,6 +11,9 @@ interface ImportScene {
 
 interface ImportChapter {
   title: string
+  /** The act this chapter lands in. Empty when the source had no part above
+   *  it, which is every format except a Scrivener project with parts. */
+  partTitle: string
   scenes: ImportScene[]
 }
 
@@ -23,12 +26,19 @@ interface ImportPlan {
   /** What this import will not bring across. Empty for the single-file
    *  formats; populated for a Scrivener project. */
   losses: string[]
+  partCount: number
+  characterCount: number
+  locationCount: number
+  researchCount: number
 }
 
 interface ImportResult {
   chapters: number
   scenes: number
   words: number
+  characters: number
+  locations: number
+  research: number
 }
 
 /**
@@ -85,8 +95,13 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
     }
   }
 
+  /** A Scrivener project can be worth importing for its Codex sketches and
+   *  research alone, so an empty draft is not an empty import. */
+  const hasSomething = (p: ImportPlan): boolean =>
+    p.chapterCount > 0 || p.characterCount > 0 || p.locationCount > 0 || p.researchCount > 0
+
   const run = async (): Promise<void> => {
-    if (!plan || plan.chapterCount === 0) return
+    if (!plan || !hasSomething(plan)) return
     setBusy(true)
     try {
       setResult(await rpc.request<ImportResult>('manuscriptImport/run', [path]))
@@ -135,11 +150,11 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
           </p>
         )}
 
-        {plan && plan.chapterCount === 0 && (
+        {plan && !hasSomething(plan) && (
           <p className="settings-hint">{t('manuscriptImport.nothingFound')}</p>
         )}
 
-        {plan && plan.chapterCount > 0 && (
+        {plan && hasSomething(plan) && (
           <>
             <p className="settings-hint">
               {t('manuscriptImport.summary', {
@@ -150,10 +165,32 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
               })}
             </p>
 
+            {plan.partCount > 0 && (
+              <p className="settings-hint">
+                {t('manuscriptImport.partSummary', { count: plan.partCount })}
+              </p>
+            )}
+
+            {/* Named before the import runs, so nothing about a writer's Codex
+                arrives as a surprise. */}
+            {(plan.characterCount > 0 ||
+              plan.locationCount > 0 ||
+              plan.researchCount > 0) && (
+              <p className="settings-hint">
+                {t('manuscriptImport.extrasSummary', {
+                  characters: plan.characterCount,
+                  locations: plan.locationCount,
+                  research: plan.researchCount
+                })}
+              </p>
+            )}
+
             <ul className="import-preview">
               {plan.chapters.map((c, i) => (
                 <li key={`${c.title}-${i}`}>
-                  <div className="import-preview-chapter">{c.title}</div>
+                  <div className="import-preview-chapter">
+                    {c.partTitle ? `${c.partTitle} - ${c.title}` : c.title}
+                  </div>
                   <div className="import-preview-scenes">
                     {t('manuscriptImport.sceneSummary', {
                       count: c.scenes.length,
@@ -174,13 +211,24 @@ export function ImportManuscriptDialog(props: { onClose: () => void }): React.JS
         )}
 
         {result && (
-          <p className="settings-hint">
-            {t('manuscriptImport.done', {
-              chapters: result.chapters,
-              scenes: result.scenes,
-              words: result.words.toLocaleString()
-            })}
-          </p>
+          <>
+            <p className="settings-hint">
+              {t('manuscriptImport.done', {
+                chapters: result.chapters,
+                scenes: result.scenes,
+                words: result.words.toLocaleString()
+              })}
+            </p>
+            {(result.characters > 0 || result.locations > 0 || result.research > 0) && (
+              <p className="settings-hint">
+                {t('manuscriptImport.doneExtras', {
+                  characters: result.characters,
+                  locations: result.locations,
+                  research: result.research
+                })}
+              </p>
+            )}
+          </>
         )}
       </div>
     </div>

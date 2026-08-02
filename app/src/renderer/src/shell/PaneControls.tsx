@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Columns2, ExternalLink, Rows2, X } from 'lucide-react'
 import { paneLeaves, useShellStore } from '../stores/shellStore'
 import { InputDialog } from './InputDialog'
+import { popOut } from './PaneHeader'
 
 /**
  * Splitting the content area, and the layouts a writer named.
@@ -61,7 +62,7 @@ export function PaneControls(): React.JSX.Element {
         className="toolbar-button"
         title={t('panes.popOut')}
         aria-label={t('panes.popOut')}
-        onClick={() => void window.novalist.openPaneWindow(activeView)}
+        onClick={() => void popOut(activeView)}
       >
         <ExternalLink size={16} strokeWidth={1.75} />
       </button>

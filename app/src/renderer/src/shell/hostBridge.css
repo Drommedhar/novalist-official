@@ -27,7 +27,7 @@
 
 .toast-message {
   flex: 1;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   line-height: 1.4;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .busy-progress-status {
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }
 
@@ -121,14 +121,14 @@
 
 .wizard-host-help {
   margin: 0;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
   line-height: 1.4;
 }
 
 .wizard-host-hint {
   margin: 0;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-caption);
   color: var(--nl-text-dim);
 }
 
@@ -147,17 +147,17 @@
   display: flex;
   align-items: center;
   gap: var(--nl-space-sm);
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
 }
 
 .wizard-host-choice-desc {
   color: var(--nl-text-dim);
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
 }
 
 .wizard-host-error {
   margin: 0;
-  font-size: var(--nl-font-body-sm);
+  font-size: var(--nl-font-ui);
   color: var(--nl-danger);
 }
 
@@ -199,7 +199,7 @@
 }
 
 .ext-settings-card-sub {
-  font-size: var(--nl-font-caption);
+  font-size: var(--nl-font-ui);
   color: var(--nl-text-dim);
 }
 
