@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.0] - 2026-08-03
+
 ### Added
 
 This is the largest release Novalist has had. The short version:
@@ -1132,7 +1138,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v2.5...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.0...HEAD
+[3.0]: https://github.com/Drommedhar/novalist-official/compare/v2.5...v3.0
 [2.5]: https://github.com/Drommedhar/novalist-official/compare/v2.4...v2.5
 [2.4]: https://github.com/Drommedhar/novalist-official/compare/v2.3.1...v2.4
 [2.3.1]: https://github.com/Drommedhar/novalist-official/compare/v2.3...v2.3.1
