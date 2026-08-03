@@ -32,7 +32,7 @@ Other roles — mentor, enemy, business partner, owes a debt to — appear as la
 - **Hide world-bible entities** — hide characters marked as world-bible, leaving only this book's cast.
 - **Clear filters** — appears once any filter (search, group, role, or hide-world-bible) is active; resets them all at once.
 - **Centre on** — pick one entry and the graph shows only its neighbourhood. A whole Codex on one canvas proves the links exist and answers nothing; the question you actually have is what *this one* is connected to.
-- **How far out** — one to four hops from whatever you centred on, shown once you have. Two is usually where a family or a faction becomes a visible shape.
+- **How far out** — one to four hops from whatever you centred on, shown once you have. Two is usually where a family or a faction becomes a visible shape. This is the graph's reach; the [family tree](#as-a-family-tree) has its own two generation limits instead.
 - **Show scenes** — adds a node per scene with an edge to everything in it. Novalist always knew which entries appear in which scene and never drew that edge, so "where do these two actually meet" had no answer on the graph. Off by default: a node per scene doubles the canvas.
 - **Zoom readout** — shows the current zoom percentage.
 
@@ -106,5 +106,15 @@ Centre on somebody, then **As tree**. The view redraws as generations on lines, 
 - Click a box to recentre the tree on that person; hold Alt and click to open their entry.
 - Hover for the whole name and what that person is to the root.
 
+**How far out**, the graph's reach control, is not shown here. The tree is built from every entry in the project and reaches exactly as far as the two generation limits say.
+
+### Who appears
+
+The tree goes **up** from the person you centred on as far as *Generations up* allows, then comes back **down** from everyone it found, as far as *Generations down* allows. So it is the family rather than a line: setting one generation up brings in brothers and sisters, two brings in aunts, uncles and cousins, three brings in great-aunts and second cousins.
+
+Going up follows only the line through the person you centred on. It does not climb into the family somebody married into, which would drag a second family's whole ancestry in behind it.
+
 The tree is built from **parent** and **child** relationships. A row on an entry names what the *target* is to it — on Liam, "Mother -> Amy" means Amy is his mother.
+
+**Brother**, **sister**, **sibling** and **twin** are read too, for the family you have not built out yet: naming somebody Liam's brother puts him on Liam's row even when no parents are recorded anywhere. There is no line to draw between them, because nothing has been said about who their parents are — record the parents and the tree draws the family properly.
 

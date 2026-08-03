@@ -114,7 +114,8 @@ public sealed class WikiRpc
             .SelectMany(r => r.Targets)
             .Select(t => t.EntityId)
             .Where(eid => eid != null)
-            .ToHashSet(StringComparer.Ordinal)!;
+            .Select(eid => eid!)
+            .ToHashSet(StringComparer.Ordinal);
         var referencedBy = BuildReferencedBy(
             id, characters, locations, items, lore, customTypes, resolve, relatedIds);
         var contains = BuildContains(id, locations, resolve);

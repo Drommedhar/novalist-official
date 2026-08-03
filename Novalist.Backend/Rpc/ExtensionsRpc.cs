@@ -133,7 +133,8 @@ public sealed class ExtensionsRpc
                 // relative path that climbs out would let a manifest name any
                 // file on the machine and have the interface run it.
                 var root = Path.GetFullPath(extension.FolderPath);
-                var full = Path.GetFullPath(Path.Combine(root, plugin.Entry ?? string.Empty));
+                var entry = plugin.Entry ?? string.Empty;
+                var full = Path.GetFullPath(Path.Combine(root, entry));
                 if (!full.StartsWith(root, StringComparison.OrdinalIgnoreCase) || !File.Exists(full))
                 {
                     plugins.Add(new RendererPluginDto(
@@ -146,7 +147,7 @@ public sealed class ExtensionsRpc
                 // Forward slashes: this becomes a URL path, not a filesystem one.
                 plugins.Add(new RendererPluginDto(
                     extension.Manifest.Id, extension.Manifest.Name, plugin.ApiVersion,
-                    plugin.Entry.Replace('\\', '/'), null, extension.FolderPath));
+                    entry.Replace('\\', '/'), null, extension.FolderPath));
             }
         }
         return [.. plugins];

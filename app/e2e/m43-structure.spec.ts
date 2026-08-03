@@ -78,7 +78,7 @@ test('scenes move to another chapter and keep their order', async () => {
   await h.close()
 })
 
-test('a collection is a curated set that survives a reload of the state', async () => {
+test('a collection is a named, reorderable set that survives a reload of the state', async () => {
   test.setTimeout(180_000)
   const h = await launchApp('nl-struct-coll-')
   const book = await seedBook(h, { 'One': ['A', 'B', 'C'] })
@@ -102,8 +102,35 @@ test('a collection is a curated set that survives a reload of the state', async 
   expect(mine.scenes.map((s) => s.sceneId), 'the collection is not the scenes put in it')
     .toEqual([scenes[0].id, scenes[2].id])
 
-  await h.rpc('collections/remove', [mine.id, scenes[0].id])
-  expect((await find()).scenes.map((s) => s.sceneId)).toEqual([scenes[2].id])
+  // The plan claims named, reorderable collections, so exercise those verbs
+  // through the shipped panel rather than only proving the storage methods.
+  await h.page.getByRole('button', { name: 'Collections', exact: true }).click()
+  await h.page.getByRole('button', { name: 'Rename collection' }).click()
+  const rename = h.page.getByRole('textbox', { name: 'Rename collection' })
+  await rename.fill('Tuesday fixes')
+  await h.page.getByRole('button', { name: 'Save collection name' }).click()
+  await expect(h.page.getByText('Tuesday fixes', { exact: true })).toBeVisible()
+
+  await h.page.getByRole('button', { name: 'Move earlier in collection' }).nth(1).click()
+  // The button starts an RPC and repaints from its result. Wait on the stored
+  // order rather than racing a second RPC against the first one.
+  await expect
+    .poll(async () => {
+      const renamed = (await h.rpc<Coll[]>('collections/list')).find(
+        (c) => c.name === 'Tuesday fixes'
+      )
+      return renamed?.scenes.map((s) => s.sceneId)
+    })
+    .toEqual([scenes[2].id, scenes[0].id])
+
+  const renamed = (await h.rpc<Coll[]>('collections/list')).find(
+    (c) => c.name === 'Tuesday fixes'
+  )!
+
+  await h.rpc('collections/remove', [renamed.id, scenes[0].id])
+  expect((await h.rpc<Coll[]>('collections/list'))[0].scenes.map((s) => s.sceneId)).toEqual([
+    scenes[2].id
+  ])
 
   await h.close()
 })

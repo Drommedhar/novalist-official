@@ -716,3 +716,43 @@ export function parentMap(characters: GraphCharacter[]): Record<string, string[]
 
   return Object.fromEntries(Object.entries(parents).map(([id, set]) => [id, [...set]]))
 }
+
+/**
+ * Who each person's brothers and sisters are, by id.
+ *
+ * Siblings are normally worked out from a shared parent, which is why the tree
+ * did not need this. But a writer who notes "brother: Tom" on a character
+ * without ever creating the parents has recorded a family the parent links
+ * cannot describe, and reading only those links drew it as a single box. A
+ * sibling names a generation directly, so it is worth reading.
+ *
+ * The link goes both ways: naming somebody your sister makes you hers.
+ */
+export function siblingMap(characters: GraphCharacter[]): Record<string, string[]> {
+  const siblingWords = relationshipRoleKeywords('sibling')
+
+  const byName = new Map<string, GraphCharacter>()
+  for (const c of characters) {
+    byName.set(c.displayName.toLowerCase(), c)
+    if (!byName.has(c.name.toLowerCase())) byName.set(c.name.toLowerCase(), c)
+  }
+
+  const siblings: Record<string, Set<string>> = {}
+  const link = (a: string, b: string): void => {
+    if (a === b) return
+    ;(siblings[a] ??= new Set()).add(b)
+    ;(siblings[b] ??= new Set()).add(a)
+  }
+
+  for (const c of characters) {
+    for (const rel of c.relationships) {
+      if (!matchesAny(rel.role, siblingWords)) continue
+      for (const targetName of rel.target.split(',')) {
+        const target = byName.get(targetName.trim().toLowerCase())
+        if (target) link(c.id, target.id)
+      }
+    }
+  }
+
+  return Object.fromEntries(Object.entries(siblings).map(([id, set]) => [id, [...set]]))
+}

@@ -5,7 +5,12 @@ import { join } from 'node:path'
 
 /** Launches the packaged .app (when present) and verifies the backend handshake. */
 
-const PACKAGED_BIN = 'dist/mac-arm64/Novalist.app/Contents/MacOS/Novalist'
+const PACKAGED_BIN =
+  process.platform === 'win32'
+    ? join('dist', 'win-unpacked', 'Novalist.exe')
+    : process.platform === 'darwin'
+      ? join('dist', `mac-${process.arch}`, 'Novalist.app', 'Contents', 'MacOS', 'Novalist')
+      : join('dist', 'linux-unpacked', 'novalist')
 
 test('packaged app boots and connects to its bundled backend', async () => {
   test.skip(!existsSync(PACKAGED_BIN), 'packaged app not built')

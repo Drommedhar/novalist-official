@@ -31,7 +31,16 @@ export async function launchApp(prefix: string): Promise<Harness> {
   env.NOVALIST_NO_SPLASH = '1'
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  // A fresh Chromium profile per launch. The settings dir above isolates what
+  // the backend writes, but everything the renderer remembers per machine -
+  // saved pane layouts, panel widths, the last workspace - lives in
+  // localStorage, which is in the profile. Sharing one profile let a layout
+  // saved by one spec turn up in the next, so a test could pass or fail
+  // depending on which ones had run before it.
+  const app = await electron.launch({
+    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'profile')}`],
+    env
+  })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 

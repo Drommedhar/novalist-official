@@ -2697,6 +2697,18 @@ function toDisplayImages(root) {
 }
 
 /**
+ * The paragraph the writer asked for an image at, remembered from the moment of
+ * asking.
+ *
+ * The frame owns no file picker, so inserting means a round trip through the
+ * host: a native file dialog, then a dialog asking for alt text. Both take focus
+ * out of this frame and leave it with no selection at all, so by the time the
+ * path comes back the caret is long gone and reading it then put every image at
+ * the end of the scene.
+ */
+let imageTargetBlock = null;
+
+/**
  * Inserts an image at the caret, on a line of its own. The alt text is what a
  * reader who cannot see it gets, and it travels into every export.
  */
@@ -2709,9 +2721,17 @@ function insertImageAtCaret(storedPath, alt) {
     img.setAttribute('src', imageBaseUrl + storedPath.split('/').map(encodeURIComponent).join('/'));
     paragraph.appendChild(img);
 
-    const block = caretBlock();
-    if (block && block.parentNode === editor) {
-        editor.insertBefore(paragraph, block.nextSibling);
+    // The remembered paragraph, unless the scene has been rebuilt under it -
+    // switching scene mid-dialog detaches it, and putting the picture into the
+    // scene that happens to be open now is worse than putting it at the end.
+    const remembered = imageTargetBlock;
+    imageTargetBlock = null;
+    const block = remembered && editor.contains(remembered) ? remembered : caretBlock();
+    // Into whatever holds the paragraph, which in page view is the .nv-page
+    // rather than the editor: testing for the editor put every image in page
+    // view at the end of the scene, and outside the paper surface at that.
+    if (block && block.parentNode && editor.contains(block)) {
+        block.parentNode.insertBefore(paragraph, block.nextSibling);
     } else {
         editor.appendChild(paragraph);
     }
@@ -3504,8 +3524,11 @@ contextMenu.addEventListener('click', (e) => {
         }
         case 'insertImage': {
             // The frame owns no file picker; the host asks and answers with a
-            // stored path, which insertImageAtCaret then places.
+            // stored path, which insertImageAtCaret then places. Where it goes
+            // has to be settled now: the host's dialogs take focus, and the
+            // caret does not survive them.
             restoreContextMenuSelection();
+            imageTargetBlock = caretBlock();
             sendMessage({ type: 'insertImageRequested' });
             break;
         }

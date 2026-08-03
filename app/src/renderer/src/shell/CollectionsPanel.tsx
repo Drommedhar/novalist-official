@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronRight, Plus, Trash2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, Check, ChevronRight, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { useSelectionStore } from '../stores/selectionStore'
@@ -37,6 +37,8 @@ export function CollectionsPanel(): React.JSX.Element {
   const [collections, setCollections] = useState<CollectionDto[]>([])
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [name, setName] = useState('')
+  const [renamingId, setRenamingId] = useState<string | null>(null)
+  const [renameValue, setRenameValue] = useState('')
 
   useEffect(() => {
     void rpc
@@ -53,6 +55,15 @@ export function CollectionsPanel(): React.JSX.Element {
       .request<CollectionDto[]>('collections/create', [name, selectedIds])
       .then(setCollections)
     setName('')
+  }
+
+  const rename = (): void => {
+    if (renamingId === null || renameValue.trim().length === 0) return
+    void rpc
+      .request<CollectionDto[]>('collections/rename', [renamingId, renameValue])
+      .then(setCollections)
+    setRenamingId(null)
+    setRenameValue('')
   }
 
   return (
@@ -101,8 +112,45 @@ export function CollectionsPanel(): React.JSX.Element {
                 className={`binder-chevron${collapsed[collection.id] ? '' : ' open'}`}
               />
             </button>
-            <span className="binder-chapter-title">{collection.name}</span>
+            {renamingId === collection.id ? (
+              <input
+                className="inspector-input collections-rename"
+                aria-label={t('collections.rename')}
+                value={renameValue}
+                autoFocus
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') rename()
+                  if (e.key === 'Escape') setRenamingId(null)
+                }}
+              />
+            ) : (
+              <span className="binder-chapter-title">{collection.name}</span>
+            )}
             <span className="binder-pin-chapter">{collection.scenes.length}</span>
+            {renamingId === collection.id ? (
+              <button
+                className="binder-row-action"
+                aria-label={t('collections.saveName')}
+                title={t('collections.saveName')}
+                disabled={renameValue.trim().length === 0}
+                onClick={rename}
+              >
+                <Check size={14} strokeWidth={2} />
+              </button>
+            ) : (
+              <button
+                className="binder-row-action"
+                aria-label={t('collections.rename')}
+                title={t('collections.rename')}
+                onClick={() => {
+                  setRenamingId(collection.id)
+                  setRenameValue(collection.name)
+                }}
+              >
+                <Pencil size={14} strokeWidth={2} />
+              </button>
+            )}
             {selectedIds.length > 0 && (
               <button
                 className="binder-row-action"
@@ -131,7 +179,7 @@ export function CollectionsPanel(): React.JSX.Element {
             </button>
           </div>
           {!collapsed[collection.id] &&
-            collection.scenes.map((scene) => (
+            collection.scenes.map((scene, index) => (
               <div key={scene.sceneId} className="collections-row">
                 <button
                   className="binder-scene-row"
@@ -140,6 +188,40 @@ export function CollectionsPanel(): React.JSX.Element {
                   }
                 >
                   <span className="binder-scene-title">{scene.title}</span>
+                </button>
+                <button
+                  className="binder-expand"
+                  aria-label={t('collections.moveUp')}
+                  title={t('collections.moveUp')}
+                  disabled={index === 0}
+                  onClick={() =>
+                    void rpc
+                      .request<CollectionDto[]>('collections/move', [
+                        collection.id,
+                        scene.sceneId,
+                        index - 1
+                      ])
+                      .then(setCollections)
+                  }
+                >
+                  <ArrowUp size={13} strokeWidth={2} />
+                </button>
+                <button
+                  className="binder-expand"
+                  aria-label={t('collections.moveDown')}
+                  title={t('collections.moveDown')}
+                  disabled={index === collection.scenes.length - 1}
+                  onClick={() =>
+                    void rpc
+                      .request<CollectionDto[]>('collections/move', [
+                        collection.id,
+                        scene.sceneId,
+                        index + 1
+                      ])
+                      .then(setCollections)
+                  }
+                >
+                  <ArrowDown size={13} strokeWidth={2} />
                 </button>
                 <button
                   className="binder-expand"

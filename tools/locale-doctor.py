@@ -45,6 +45,9 @@ class Target:
     # When True, also treat any bare quoted string that matches an en.json key as a
     # reference (covers keys passed to t() via a variable, e.g. t(group.key)).
     match_bare_literals: bool = False
+    # Extension webviews often receive an already-translated string map from
+    # C#. Keys on the left of that map are transport slots, not locale keys.
+    exclude_supplied_slots: bool = False
     # Auto-discovered template-literal prefixes (react) added at scan time.
     extra_dynamic: set[str] = field(default_factory=set)
 
@@ -88,10 +91,10 @@ REACT = Target(
     scan_roots=[REPO_ROOT / "app" / "src" / "renderer" / "src"],
     scan_exts={".ts", ".tsx"},
     literal_patterns=[
-        re.compile(r"\bt\(\s*'([^']+)'"),
-        re.compile(r'\bt\(\s*"([^"]+)"'),
-        re.compile(r"\bi18n(?:ext)?\.t\(\s*'([^']+)'"),
-        re.compile(r'\bi18n(?:ext)?\.t\(\s*"([^"]+)"'),
+        re.compile(r"\bt\(\s*'([^']+)'\s*[,)]"),
+        re.compile(r'\bt\(\s*"([^"]+)"\s*[,)]'),
+        re.compile(r"\bi18n(?:ext)?\.t\(\s*'([^']+)'\s*[,)]"),
+        re.compile(r'\bi18n(?:ext)?\.t\(\s*"([^"]+)"\s*[,)]'),
     ],
     # Keys reached via variables/dynamic composition; kept from dead/missing noise.
     dynamic_prefixes={
@@ -126,6 +129,8 @@ def load_locale(path: Path) -> dict[str, str]:
 def scan_references(target: Target, en_keys: set[str]) -> set[str]:
     refs: set[str] = set()
     bare = re.compile(r"['\"]([\w][\w.]*\.[\w.]+)['\"]") if target.match_bare_literals else None
+    supplied_re = re.compile(r'\[\s*"([^"]+)"\s*\]\s*=\s*[^;\r\n]*\bT\(')
+    sources: list[tuple[Path, str]] = []
     for root in target.scan_roots:
         if not root.exists():
             continue
@@ -138,17 +143,26 @@ def scan_references(target: Target, en_keys: set[str]) -> set[str]:
                 text = path.read_text(encoding="utf-8-sig")
             except Exception:
                 continue
-            for pat in target.literal_patterns:
-                for m in pat.finditer(text):
+            sources.append((path, text))
+
+    supplied: set[str] = set()
+    if target.exclude_supplied_slots:
+        for _, text in sources:
+            supplied.update(m.group(1) for m in supplied_re.finditer(text))
+
+    for _, text in sources:
+        for pat in target.literal_patterns:
+            for m in pat.finditer(text):
+                if m.group(1) not in supplied:
                     refs.add(m.group(1))
-            for m in REACT_TEMPLATE_PREFIX_RE.finditer(text):
-                if m.group(1):
-                    target.extra_dynamic.add(m.group(1))
-            # Bare quoted strings that exactly match a known key (variable-passed keys).
-            if bare is not None:
-                for m in bare.finditer(text):
-                    if m.group(1) in en_keys:
-                        refs.add(m.group(1))
+        for m in REACT_TEMPLATE_PREFIX_RE.finditer(text):
+            if m.group(1):
+                target.extra_dynamic.add(m.group(1))
+        # Bare quoted strings that exactly match a known key (variable-passed keys).
+        if bare is not None:
+            for m in bare.finditer(text):
+                if m.group(1) in en_keys:
+                    refs.add(m.group(1))
     return refs
 
 
@@ -314,13 +328,14 @@ def extension_targets() -> list[Target]:
                 scan_roots=[root],
                 scan_exts={".cs", ".axaml", ".ts", ".tsx", ".js", ".html"},
                 literal_patterns=[
-                    re.compile(r'\b_?[Ll]oc\.T\(\s*"([^"]+)"'),
-                    re.compile(r'\bT\(\s*"([^"]+)"'),
-                    re.compile(r"\bt\(\s*'([^']+)'"),
-                    re.compile(r'\bt\(\s*"([^"]+)"'),
+                    re.compile(r'\b_?[Ll]oc\.T\(\s*"([^"]+)"\s*[,)]'),
+                    re.compile(r'\bT\(\s*"([^"]+)"\s*[,)]'),
+                    re.compile(r"\bt\(\s*'([^']+)'\s*[,)]"),
+                    re.compile(r'\bt\(\s*"([^"]+)"\s*[,)]'),
                     re.compile(r'data-i18n="([^"]+)"'),
                 ],
                 dynamic_prefixes=set(),
+                exclude_supplied_slots=True,
             ))
     return found
 

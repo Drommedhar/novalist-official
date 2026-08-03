@@ -110,6 +110,10 @@ A pane split off the editor starts empty and waits for a scene: click one in the
 
 The **Layouts** drop-down beside the split buttons saves the arrangement of panes you are in under a name and brings it back later. These are the pane arrangements; the [workspace layouts](#workspace-layouts) above are the panel and view state, and the two are stored separately.
 
+The drop-down names the layout you are currently in, and reads "Layouts" when you are not in one. Split a pane, close one or drag a divider and the name clears by itself — the arrangement is no longer the one that was saved. **Save this layout** and the entries that forget a layout sit in a separate **Manage** group, below the layouts themselves.
+
+**Default** at the top of the list is always there and cannot be deleted: it collapses the window back to a single pane, whatever you have split it into. It is the arrangement Novalist starts in, so it is the way back when a layout is not what you want. The view you are on comes with you — going back to one pane changes how the window is arranged, not where you are in the book.
+
 ### Opening a pane in its own window
 
 The **Open in its own window** button — in the toolbar and in every pane header — tears the pane out into a second window: the Codex on another monitor while the manuscript stays where it is.

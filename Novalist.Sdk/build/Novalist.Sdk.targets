@@ -78,10 +78,13 @@ foreach (var raw in File.ReadAllLines(english))
 // Every way this codebase asks for a string.
 var patterns = new[]
 {
-    new Regex("\\b_?[Ll]oc\\.T\\(\\s*\"([^\"]+)\""),
-    new Regex("\\bT\\(\\s*\"([^\"]+)\""),
-    new Regex("\\bt\\(\\s*'([^']+)'"),
-    new Regex("\\bt\\(\\s*\"([^\"]+)\""),
+    // Require the literal to be the complete argument. Without the trailing
+    // comma/paren, t('culture_' + culture) is misread as a static culture_
+    // key even though the complete keys are supplied individually.
+    new Regex("\\b_?[Ll]oc\\.T\\(\\s*\"([^\"]+)\"\\s*[,)]"),
+    new Regex("\\bT\\(\\s*\"([^\"]+)\"\\s*[,)]"),
+    new Regex("\\bt\\(\\s*'([^']+)'\\s*[,)]"),
+    new Regex("\\bt\\(\\s*\"([^\"]+)\"\\s*[,)]"),
     new Regex("data-i18n=\"([^\"]+)\""),
 };
 

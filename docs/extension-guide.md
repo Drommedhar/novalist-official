@@ -83,7 +83,7 @@ Every extension folder needs an `extension.json` beside the DLL:
   "version": "1.0.0",
   "author": "Your Name",
   "entryAssembly": "MyExtension.dll",
-  "minHostVersion": "2.5.0",
+  "minHostVersion": "3.0.0",
   "maxHostVersion": "",
   "tags": ["analysis"],
   "icon": "icon.png",

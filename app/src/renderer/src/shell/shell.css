@@ -33,7 +33,17 @@
   padding-right: 148px;
 }
 
-.toolbar button {
+/* Everything in the strip that can be operated has to opt out of the drag
+   region, or the window swallows the click and moves instead. It listed
+   buttons only, so the Layouts dropdown - a select, and the one control here
+   that is not a button - could not be opened at all: clicking it dragged the
+   window, which looks exactly like a control that does nothing. Written as
+   every interactive element rather than as one more class, so the next control
+   added to the toolbar does not have to remember. */
+.toolbar button,
+.toolbar select,
+.toolbar input,
+.toolbar a {
   -webkit-app-region: no-drag;
 }
 
@@ -2544,6 +2554,18 @@
   font-size: var(--nl-font-ui);
 }
 
+/* A depth dropdown with its name beside it. Three of them sat in this toolbar
+   showing "2 steps", "3 up" and "3 down" and nothing else, which says how much
+   each one changes but never what it changes. */
+.relationships-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+  white-space: nowrap;
+}
+
 .relationships-viewport {
   flex: 1;
   overflow: hidden;
@@ -3906,6 +3928,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.collections-head .collections-rename {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .collections-row {

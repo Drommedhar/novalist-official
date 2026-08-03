@@ -4,7 +4,7 @@ import { rpc } from '../../rpc/client'
 import { useShellStore } from '../../stores/shellStore'
 import { useWikiStore } from '../../stores/wikiStore'
 import { useProjectStore } from '../../stores/projectStore'
-import { layoutGraph, parentMap, NODE_SIZE, type GraphCharacter } from './layout'
+import { layoutGraph, parentMap, siblingMap, NODE_SIZE, type GraphCharacter } from './layout'
 import { kinshipLabel, type KinshipRow } from './kinshipLabel'
 import {
   layoutFamilyTree,
@@ -230,11 +230,17 @@ export function RelationshipsView(): React.JSX.Element {
   const tree = useMemo(
     () =>
       asTree && rootId
-        ? layoutFamilyTree(allNodes, parentMap(allNodes), rootId, {
-            ancestors: ancestorDepth,
-            descendants: descendantDepth,
-            horizontal: treeHorizontal
-          })
+        ? layoutFamilyTree(
+            allNodes,
+            parentMap(allNodes),
+            rootId,
+            {
+              ancestors: ancestorDepth,
+              descendants: descendantDepth,
+              horizontal: treeHorizontal
+            },
+            siblingMap(allNodes)
+          )
         : null,
     [asTree, rootId, allNodes, ancestorDepth, descendantDepth, treeHorizontal]
   )
@@ -370,19 +376,24 @@ export function RelationshipsView(): React.JSX.Element {
               </option>
             ))}
         </select>
-        {rootId && (
-          <select
-            className="dialog-input relationships-filter relationships-depth"
-            aria-label={t('relationships.depth')}
-            value={String(depth)}
-            onChange={(e) => setDepth(Number(e.target.value))}
-          >
-            {[1, 2, 3, 4].map((d) => (
-              <option key={d} value={d}>
-                {t('relationships.hops', { count: d })}
-              </option>
-            ))}
-          </select>
+        {/* Only for the graph: the tree is drawn from every entry and reaches
+            as far as its own two generation controls say, so leaving this one
+            up in tree view offered a third depth dropdown that did nothing. */}
+        {rootId && !asTree && (
+          <label className="relationships-field">
+            <span>{t('relationships.depth')}</span>
+            <select
+              className="dialog-input relationships-filter relationships-depth"
+              value={String(depth)}
+              onChange={(e) => setDepth(Number(e.target.value))}
+            >
+              {[1, 2, 3, 4].map((d) => (
+                <option key={d} value={d}>
+                  {t('relationships.hops', { count: d })}
+                </option>
+              ))}
+            </select>
+          </label>
         )}
         {/* Generations rather than a force layout. Needs a root: a tree with
             no root is a forest, and a forest is what the canvas already is. */}
@@ -397,31 +408,37 @@ export function RelationshipsView(): React.JSX.Element {
         {asTree && rootId && (
           <>
             {/* A writer tracing a line of succession wants ten generations down
-                and one up; the same view with both at ten is unreadable. */}
-            <select
-              className="dialog-input relationships-filter relationships-depth"
-              aria-label={t('relationships.ancestors')}
-              value={String(ancestorDepth)}
-              onChange={(e) => setAncestorDepth(Number(e.target.value))}
-            >
-              {[0, 1, 2, 3, 5, 10].map((d) => (
-                <option key={d} value={d}>
-                  {t('relationships.ancestorsN', { count: d })}
-                </option>
-              ))}
-            </select>
-            <select
-              className="dialog-input relationships-filter relationships-depth"
-              aria-label={t('relationships.descendants')}
-              value={String(descendantDepth)}
-              onChange={(e) => setDescendantDepth(Number(e.target.value))}
-            >
-              {[0, 1, 2, 3, 5, 10].map((d) => (
-                <option key={d} value={d}>
-                  {t('relationships.descendantsN', { count: d })}
-                </option>
-              ))}
-            </select>
+                and one up; the same view with both at ten is unreadable. The
+                label is drawn rather than only announced: "3 up" beside "3 down"
+                beside "2 steps" said nothing about which was which. */}
+            <label className="relationships-field">
+              <span>{t('relationships.ancestors')}</span>
+              <select
+                className="dialog-input relationships-filter relationships-depth"
+                value={String(ancestorDepth)}
+                onChange={(e) => setAncestorDepth(Number(e.target.value))}
+              >
+                {[0, 1, 2, 3, 5, 10].map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="relationships-field">
+              <span>{t('relationships.descendants')}</span>
+              <select
+                className="dialog-input relationships-filter relationships-depth"
+                value={String(descendantDepth)}
+                onChange={(e) => setDescendantDepth(Number(e.target.value))}
+              >
+                {[0, 1, 2, 3, 5, 10].map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </label>
             <button
               className="dialog-button"
               onClick={() => setTreeHorizontal(!treeHorizontal)}

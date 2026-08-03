@@ -40,12 +40,20 @@ const MARGIN = 30
  * Ancestors go one way from the root and descendants the other, each to its own
  * depth, because a writer tracing a line of succession wants ten generations
  * down and one up, and the same view with both at ten is unreadable.
+ *
+ * A family is not a line, though. Walking strictly up and then strictly down
+ * from the root reaches only the people the root descends from and the people
+ * who descend from the root, which leaves out every branch: no brothers, no
+ * aunts, no cousins, no nieces. What a family tree shows is the line of ascent
+ * and then everyone descending from it - so the walk goes up first, and comes
+ * back down from every ancestor it found.
  */
 export function layoutFamilyTree(
   characters: GraphCharacter[],
   parents: Record<string, string[]>,
   rootId: string,
-  options: { ancestors: number; descendants: number; horizontal: boolean }
+  options: { ancestors: number; descendants: number; horizontal: boolean },
+  siblings: Record<string, string[]> = {}
 ): TreeLayout {
   const byId = new Map(characters.map((c) => [c.id, c]))
   if (!byId.has(rootId)) return { nodes: [], edges: [], width: 0, height: 0 }
@@ -55,26 +63,51 @@ export function layoutFamilyTree(
     for (const parentId of parentIds) (children[parentId] ??= []).push(childId)
   }
 
+  const upTo = Math.max(0, options.ancestors)
+  const downTo = Math.max(0, options.descendants)
+
   // Generation per id. First writer wins, so somebody reachable both ways -
   // which a cousin marriage produces - is placed once rather than twice.
   const generation = new Map<string, number>([[rootId, 0]])
-  const walk = (step: Record<string, string[]>, depth: number, direction: -1 | 1): void => {
-    let frontier = [rootId]
-    for (let level = 1; level <= depth; level++) {
-      const next: string[] = []
-      for (const id of frontier) {
-        for (const other of step[id] ?? []) {
-          if (generation.has(other) || !byId.has(other)) continue
-          generation.set(other, direction * level)
-          next.push(other)
-        }
+
+  // Up the root's own line, and only that line. Following parents from anyone
+  // met later would climb into the family somebody married into and bring their
+  // whole ancestry along, which is a different family's tree.
+  let frontier = [rootId]
+  for (let level = 1; level <= upTo; level++) {
+    const next: string[] = []
+    for (const id of frontier) {
+      for (const parentId of parents[id] ?? []) {
+        if (generation.has(parentId) || !byId.has(parentId)) continue
+        generation.set(parentId, -level)
+        next.push(parentId)
       }
-      if (next.length === 0) break
-      frontier = next
+    }
+    if (next.length === 0) break
+    frontier = next
+  }
+
+  // Down from every one of them - which is what turns a line into a family.
+  // Descending from the great-grandmother reaches great-aunts, their children
+  // and their children's children, all of them the root's relatives.
+  const queue = [...generation.keys()]
+  while (queue.length > 0) {
+    const id = queue.shift()!
+    const level = generation.get(id)!
+    // A brother named on the entry with no parents recorded anywhere sits on
+    // the same row, since that is the whole of what is known about him.
+    for (const siblingId of siblings[id] ?? []) {
+      if (generation.has(siblingId) || !byId.has(siblingId)) continue
+      generation.set(siblingId, level)
+      queue.push(siblingId)
+    }
+    if (level + 1 > downTo) continue
+    for (const childId of children[id] ?? []) {
+      if (generation.has(childId) || !byId.has(childId)) continue
+      generation.set(childId, level + 1)
+      queue.push(childId)
     }
   }
-  walk(parents, Math.max(0, options.ancestors), -1)
-  walk(children, Math.max(0, options.descendants), 1)
 
   // One row per generation, in reading order so the tree does not reshuffle
   // between renders.

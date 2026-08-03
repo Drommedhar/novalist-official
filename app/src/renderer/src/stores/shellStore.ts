@@ -82,6 +82,51 @@ export function newLeaf(view: MainView): PaneNode {
   return { kind: 'leaf', id: paneId(), view }
 }
 
+/**
+ * Whether two pane trees are the same arrangement.
+ *
+ * Ids are deliberately ignored: applying a layout re-identifies every node, so
+ * a tree restored from a layout never shares an id with the one that was saved.
+ * What makes two arrangements the same is their shape, their direction, their
+ * proportions and the view in each leaf.
+ */
+export function sameArrangement(a: PaneNode, b: PaneNode): boolean {
+  if (a.kind !== b.kind) return false
+  if (a.kind === 'leaf') return a.view === (b as typeof a).view
+
+  const other = b as typeof a
+  return (
+    a.direction === other.direction &&
+    a.children.length === other.children.length &&
+    // A dragged divider is a different arrangement, but a pixel of rounding is
+    // not - the sizes are floats the writer never typed.
+    a.sizes.every((size, i) => Math.abs(size - (other.sizes[i] ?? 0)) < 0.5) &&
+    a.children.every((child, i) => sameArrangement(child, other.children[i]))
+  )
+}
+
+/**
+ * The built-in single-pane layout, always offered and never deletable.
+ *
+ * Not a `SavedLayout`: it is the arrangement the window starts in rather than
+ * one the writer named, so keeping it out of the stored list is what stops it
+ * being renamed, overwritten or forgotten. The sentinel cannot collide with a
+ * layout somebody names "Default" either.
+ */
+export const DEFAULT_LAYOUT = '__default'
+
+/**
+ * The layout the window is currently in, or '' when it is in none.
+ *
+ * A layout the writer named wins over the built-in default: both match an
+ * unsplit window, and the name they chose says more than "Default" does.
+ */
+export function matchingLayout(panes: PaneNode, layouts: SavedLayout[]): string {
+  const named = layouts.find((l) => sameArrangement(panes, l.root))
+  if (named) return named.name
+  return panes.kind === 'leaf' ? DEFAULT_LAYOUT : ''
+}
+
 /** The leaf with this id, or null. */
 export function findPane(node: PaneNode, id: string): PaneNode | null {
   if (node.id === id) return node
@@ -299,6 +344,8 @@ interface ShellState {
   /** Closes one pane. The last pane in the window always stays. */
   closePaneById(id: string): void
   setPaneSizes(splitId: string, sizes: number[]): void
+  /** Back to a single pane, the arrangement the window starts in. */
+  resetPanes(): void
   saveLayout(name: string): void
   applyLayout(name: string): void
   deleteLayout(name: string): void
@@ -510,6 +557,18 @@ export const useShellStore = create<ShellState>((set, get) => ({
 
   setPaneSizes: (splitId, sizes) =>
     set((s) => ({ panes: resize(s.panes, splitId, sizes) })),
+
+  resetPanes: () =>
+    set((s) => {
+      if (s.panes.kind === 'leaf') return {}
+      // The view you are on comes with you. Which view a pane shows is where you
+      // are in the book rather than how the window is arranged, and going back
+      // to one pane should not also navigate you somewhere you did not ask for.
+      const here = findPane(s.panes, s.activePaneId)
+      const view = here && here.kind === 'leaf' ? here.view : s.mainView
+      const root = newLeaf(view)
+      return { panes: root, activePaneId: root.id, mainView: view }
+    }),
 
   saveLayout: (name) =>
     set((s) => {

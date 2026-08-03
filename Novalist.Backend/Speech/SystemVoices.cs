@@ -46,7 +46,7 @@ public sealed class SystemVoices : ISystemVoices
     /// True where a system engine can be reached at all. Everywhere else the
     /// renderer keeps using the browser's voices, which is what it always did.
     /// </summary>
-    public bool Available => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    public bool Available => OperatingSystem.IsWindows();
 
     public IReadOnlyList<SystemVoice> List()
     {
@@ -155,6 +155,9 @@ public sealed class SystemVoices : ISystemVoices
 
     private object Voice()
     {
+        if (!OperatingSystem.IsWindows())
+            throw new NotSupportedException("SAPI is available only on Windows.");
+
         // One instance for the session: creating a new SpVoice per sentence
         // makes stopping impossible, because Stop would purge a queue nobody
         // is speaking from.

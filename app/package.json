@@ -1,6 +1,6 @@
 {
   "name": "novalist",
-  "version": "2.0.0-dev",
+  "version": "3.0.0-dev",
   "description": "Novalist - a writing app for novelists",
   "main": "./out/main/index.js",
   "private": true,
@@ -11,7 +11,7 @@
     "preview": "electron-vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json",
     "package": "npm run build && npm run backend:publish && electron-builder --config electron-builder.yml",
-    "backend:publish": "dotnet publish ../Novalist.Backend/Novalist.Backend.csproj -c Release -r $npm_config_rid --self-contained -p:PublishSingleFile=true -o dist-backend"
+    "backend:publish": "node scripts/publish-backend.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.10.4",

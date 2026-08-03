@@ -772,10 +772,16 @@ export function SettingsView(): React.JSX.Element {
           <div className="settings-hint">{t('settings.lineHeightDesc')}</div>
 
           {/* One click rather than a paragraph telling somebody where the
-              theme picker is. */}
+              theme picker is.
+              The theme belongs to Appearance, so it is written wherever
+              Appearance is written. Hardcoding "global" here did nothing at all
+              for a project that pins its own appearance: the write landed in
+              the app-level settings and the project's override went on
+              shadowing it, so the button reported nothing and changed
+              nothing. */}
           <button
             className="dialog-button"
-            onClick={() => void update('global', { theme: 'High Contrast' })}
+            onClick={() => void update(scopeFor('appearance'), { theme: 'High Contrast' })}
           >
             {t('settings.useHighContrast')}
           </button>
