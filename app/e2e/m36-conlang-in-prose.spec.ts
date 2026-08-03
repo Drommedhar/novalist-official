@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * A coined word, recognised in the manuscript.
@@ -15,7 +16,6 @@ import { evaluateWhenReady } from './appReady'
  * to recognise, and that the card raised over it is the dictionary entry rather
  * than a Codex lookup that finds nothing.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('a coined word is recognised in the manuscript and peeks its meaning', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

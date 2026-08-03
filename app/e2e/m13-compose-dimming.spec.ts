@@ -4,13 +4,13 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * Paragraph dimming: with the setting on, the paragraph the caret is in stays
  * fully opaque and the rest go faint. The reported symptom was that nothing
  * happened at all.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('compose dimming marks the caret paragraph and dims the rest', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

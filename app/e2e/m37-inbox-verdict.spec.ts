@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * Deciding against a note, and having it still say so.
@@ -18,7 +19,6 @@ import { evaluateWhenReady } from './appReady'
  * Inbox, that choosing one shows on the note, and that weighing a note leaves
  * it in the list while declining takes it out.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('a note can be weighed or declined, and says which', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

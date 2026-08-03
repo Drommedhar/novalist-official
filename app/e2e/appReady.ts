@@ -30,7 +30,12 @@ export async function evaluateWhenReady<Arg, Result>(
   let last: unknown
   for (let attempt = 0; attempt < 4; attempt += 1) {
     try {
-      return await page.evaluate(fn, arg as Arg)
+      // Playwright unboxes handles out of the argument type, which a plain
+      // generic passthrough cannot express. Callers keep their own types; only
+      // this hop is loose.
+      return (await page.evaluate(
+        fn as unknown as (a: unknown) => Result, arg as unknown
+      )) as Result
     } catch (error) {
       if (!String(error).includes('Execution context was destroyed')) throw error
       last = error

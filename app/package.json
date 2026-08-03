@@ -9,7 +9,7 @@
     "build": "electron-vite build",
     "build:mobile": "vite build --config vite.mobile.config.ts",
     "preview": "electron-vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json",
+    "typecheck": "tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.e2e.json",
     "package": "npm run build && npm run backend:publish && electron-builder --config electron-builder.yml",
     "backend:publish": "dotnet publish ../Novalist.Backend/Novalist.Backend.csproj -c Release -r $npm_config_rid --self-contained -p:PublishSingleFile=true -o dist-backend"
   },

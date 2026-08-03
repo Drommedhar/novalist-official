@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * A command an extension registered, found and run from the command palette.
@@ -19,7 +20,6 @@ import { evaluateWhenReady } from './appReady'
  * then shows, because a command that runs and changes nothing is the same
  * failure wearing a different hat.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('an extension command is listed in the palette and runs', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

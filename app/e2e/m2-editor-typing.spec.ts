@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * Regression: typing must not reset the caret to the start of the scene, and
@@ -11,7 +12,6 @@ import { evaluateWhenReady } from './appReady'
  * HTML on every keystroke, inserting each character at position 0 (so a typed
  * run appeared reversed at the top) and wiping the native undo stack.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('editor: typing keeps the caret and undo works', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

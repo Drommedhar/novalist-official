@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * A pane torn out into its own window, and two panes side by side.
@@ -15,7 +16,6 @@ import { evaluateWhenReady } from './appReady'
  * main shell again, would look fine in every other test - as would a split that
  * puts the same scene in both halves.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('a pane opens in its own window and shows the real view', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

@@ -3,13 +3,13 @@ import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT as REAL } from './realProject'
 
 /**
  * The read-only Wiki view must list Codex entities in its index and render a
  * browsable article (infobox / sections / appearances) for the selected entity,
  * and its "Edit in Codex" button must switch to the Codex view.
  */
-const REAL = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('wiki view lists entities and opens an article', async () => {
   test.skip(!existsSync(join(REAL, '.novalist')), 'real project not available')

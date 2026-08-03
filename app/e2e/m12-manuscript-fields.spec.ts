@@ -52,7 +52,15 @@ test('a scene field defined in Settings becomes an editable outliner column', as
 
   // ── It becomes a column in the outliner, and typing in it sticks ──
   await page.evaluate(() => window.novalistStores.shell.getState().setMainView('manuscript'))
-  await page.evaluate(() => window.novalistStores.manuscript?.getState?.().setMode?.('outliner'))
+  // Best effort: there is no manuscript store on the window contract, and the
+  // button below is the real route. Kept as a fast path, typed as the reach
+  // outside the contract that it is.
+  await page.evaluate(() => {
+    const stores = window.novalistStores as unknown as Record<
+      string, { getState?: () => { setMode?: (m: string) => void } } | undefined
+    >
+    stores.manuscript?.getState?.().setMode?.('outliner')
+  })
   const modeButton = page.getByRole('button', { name: 'Outliner' })
   if (await modeButton.count()) await modeButton.first().click()
 

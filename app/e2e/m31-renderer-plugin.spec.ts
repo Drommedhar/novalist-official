@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * An extension running JavaScript inside the interface.
@@ -16,7 +17,6 @@ import { evaluateWhenReady } from './appReady'
  * that loads nothing fails silently - every other test stays green and the
  * writer's extension simply does nothing.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('an extension script runs in the interface and what it adds shows up', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

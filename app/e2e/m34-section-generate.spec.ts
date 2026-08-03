@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * Writing one section of a Codex entry, and asking for another go at it.
@@ -17,7 +18,6 @@ import { evaluateWhenReady } from './appReady'
  * when no extension can generate, and that what comes back lands in the section
  * they pressed it on rather than the first one.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('a Codex section can be written and re-rolled from its own head', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

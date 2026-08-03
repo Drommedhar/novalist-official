@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * Regression: the editor's selection-capture actions ("Add selection to entity",
@@ -12,7 +13,6 @@ import { evaluateWhenReady } from './appReady'
  * and collapses the live selection, so reading it at click time silently did
  * nothing — the menu item looked dead.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('editor: "Add selection to entity" opens the picker with the selected text', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

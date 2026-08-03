@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * The guard that stops an extension writing over the scene being typed in.
@@ -18,7 +19,6 @@ import { evaluateWhenReady } from './appReady'
  * test can reach: that the running app reports at all, and reports the right
  * scene at the right moment.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('the editor tells the backend which scene it holds', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

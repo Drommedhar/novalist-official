@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * Regression: a grammar result arriving seconds after the request must not move
@@ -15,7 +16,6 @@ import { evaluateWhenReady } from './appReady'
  * line therefore snapped the caret back to the end of the previous paragraph
  * once the LanguageTool round trip returned.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 const FIXTURE =
   '<p id="nlt-a">The quick brown fox jumps over the lazy dog.</p>' +

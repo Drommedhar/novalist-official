@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * The research the open scene is about, beside the scene.
@@ -19,7 +20,6 @@ import { evaluateWhenReady } from './appReady'
  * there, that an unrelated note stays out of it, and that clicking one lands in
  * Research with that item open.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('the inspector shows the research this scene is about', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')
@@ -62,7 +62,11 @@ test('the inspector shows the research this scene is about', async () => {
     }
     return { chapterGuid: '', sceneId: '', character: null as { id: string; name: string } | null }
   })
-  expect(opened.character?.id).toBeTruthy()
+  // Narrowed once, so the assertions below read the value rather than the
+  // maybe-value: without a character in a scene the rest of this proves nothing.
+  const character = opened.character
+  expect(character?.id, 'no character was found in any scene').toBeTruthy()
+  if (!character) throw new Error('no character in the sample project')
 
   // One note about somebody in the scene, one about nobody.
   await page.evaluate(async (characterId: string) => {
@@ -72,7 +76,7 @@ test('the inspector shows the research this scene is about', async () => {
     await window.novalistRpc.request('research/save', [
       null, 'Shipping lanes of the North Sea', 'Note', 'Unrelated.', [], []
     ])
-  }, opened.character.id)
+  }, character.id)
 
   // Re-open so the inspector asks again.
   await page.evaluate(async ({ chapterGuid, sceneId }) => {
@@ -83,7 +87,7 @@ test('the inspector shows the research this scene is about', async () => {
   await expect(section).toBeVisible({ timeout: 30_000 })
   await expect(section).toContainText('Did the bridge exist in 1755?')
   // The reason, so the writer knows why without opening it.
-  await expect(section).toContainText(opened.character.name)
+  await expect(section).toContainText(character.name)
   // And the note about nobody stays out; a suggestion list that shows
   // everything is the Research view in a narrower column.
   await expect(section).not.toContainText('Shipping lanes')

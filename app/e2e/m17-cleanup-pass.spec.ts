@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { copyProject } from './copyProject'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT } from './realProject'
 
 /**
  * A cleanup pass over prose that is already written.
@@ -13,7 +14,6 @@ import { evaluateWhenReady } from './appReady'
  * double spaces for good. The preview is the part that matters here: a pass
  * that rewrites every scene in a book must be reportable before it runs.
  */
-const REAL_PROJECT = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('the cleanup pass reports what it would change before changing it', async () => {
   test.skip(!existsSync(join(REAL_PROJECT, '.novalist')), 'real project not available')

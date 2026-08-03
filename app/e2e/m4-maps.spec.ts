@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
+import { REAL_PROJECT as REAL } from './realProject'
 
 /**
  * Regression: the Maps view must load the active map into the iframe engine on
@@ -11,7 +12,6 @@ import { evaluateWhenReady } from './appReady'
  * event time — otherwise the "ready" handshake is missed and the map stays blank
  * (both the canvas and the React Layers panel empty).
  */
-const REAL = process.env.NOVALIST_REAL_PROJECT ?? '/Users/dominikgoblirsch/GIT/The-Silent-Shadows'
 
 test('maps view loads the active map into the engine', async () => {
   test.skip(!existsSync(join(REAL, '.novalist')), 'real project not available')
