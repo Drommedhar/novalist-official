@@ -22,7 +22,20 @@ public sealed record CraftEntry(string Key, string Group, string Name, IReadOnly
 /// Plain text with blank lines between paragraphs. No markup: this is read in
 /// a panel, not published, and a format nobody can render is a format.
 /// </param>
-public sealed record CraftArticle(string Id, string Topic, string Title, string Body);
+public sealed record CraftArticle(string Id, string Topic, string Title, string Body)
+{
+    /// <summary>
+    /// The article text, with line endings normalised to <c>\n</c>.
+    ///
+    /// The bodies are literals in this file, so their line endings are whatever
+    /// the checkout produced: a Windows clone gets CRLF and the blank line
+    /// between two paragraphs stops being "\n\n". Anything splitting on it then
+    /// reads the whole article as one paragraph, on some machines and not
+    /// others. What a paragraph break is should not depend on who cloned the
+    /// repository.
+    /// </summary>
+    public string Body { get; init; } = Body.Replace("\r\n", "\n");
+}
 
 /// <summary>
 /// Reference a writer can reach without leaving the app.

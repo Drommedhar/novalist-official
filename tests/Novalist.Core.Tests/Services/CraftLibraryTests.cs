@@ -163,6 +163,11 @@ public class CraftLibraryTests
             Assert.False(string.IsNullOrWhiteSpace(a.Title));
             // Short enough to read in a panel, long enough to say something.
             Assert.True(a.Body.Trim().Length > 400, a.Id);
+            // Asserted rather than assumed: the bodies are literals in a source
+            // file, so a Windows checkout gives them CRLF and the blank line
+            // between paragraphs stops being "\n\n" - which is how this passed
+            // on one machine and failed on the next.
+            Assert.DoesNotContain("\r", a.Body);
             Assert.Contains("\n\n", a.Body);
         });
     }
