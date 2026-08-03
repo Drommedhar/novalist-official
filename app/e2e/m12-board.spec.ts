@@ -54,17 +54,43 @@ test('the board groups scenes by stage and a drop rewrites the stage', async () 
   const card = page.locator('.board-card').first()
   const target = page.locator('.board-column', { hasText: 'Revised' }).first()
 
-  // Driven a step at a time rather than through dragTo. The board uses HTML5
-  // drag and drop, where the drop only counts if dragover fired on the target
-  // and called preventDefault - and a single move into the column does not
-  // reliably produce one. It held on a fast machine and dropped nothing on a
-  // slow CI runner, which reads as the feature being broken rather than the
-  // gesture never having been made.
-  await card.hover()
-  await page.mouse.down()
-  await target.hover()
-  await target.hover()
-  await page.mouse.up()
+  await expect(target).toBeVisible()
+  await expect(card).toBeVisible()
+
+  // The drag events are dispatched rather than performed with the mouse.
+  //
+  // HTML5 drag and drop is driven by the operating system's own drag loop, and
+  // there is no such loop under the headless X server the e2e job runs on: no
+  // amount of mouse input there produces a dragstart, so both dragTo and a
+  // hand-rolled press-move-release passed on a desktop and dropped nothing in
+  // CI. Sending the three events the browser would have sent is the same
+  // sequence the board actually listens for - dragstart naming the card,
+  // dragover on the column, drop - and it behaves the same way everywhere.
+  //
+  // What this no longer covers is the browser's own drag machinery: that the
+  // card is draggable at all, and that a real pointer gesture starts a drag.
+  // Those hold on every platform a writer runs and on none that CI can drive.
+  // Runs in the page, so the event type comes in as an argument rather than
+  // through a closure.
+  const fire = (el: Element, type: string): void => {
+    el.dispatchEvent(
+      new DragEvent(type, { bubbles: true, cancelable: true, dataTransfer: new DataTransfer() })
+    )
+  }
+
+  // One event per step, not all three in a row: the board remembers which card
+  // is moving in React state, and a handler that runs in the same tick as the
+  // dragstart still sees the state from before it. A real drag has the browser
+  // between the events; here the round trip does the same job.
+  await card.evaluate(fire, 'dragstart')
+  await target.evaluate(fire, 'dragover')
+
+  // The column highlights on dragover, which is the board saying it has taken
+  // the drag - and proof that the render carrying the card's identity has
+  // landed before the drop asks for it.
+  await expect(target).toHaveClass(/\bover\b/)
+
+  await target.evaluate(fire, 'drop')
 
   await expect
     .poll(
