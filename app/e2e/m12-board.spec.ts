@@ -53,7 +53,18 @@ test('the board groups scenes by stage and a drop rewrites the stage', async () 
   // Dropping into "Revised" writes the stage rather than only moving a card.
   const card = page.locator('.board-card').first()
   const target = page.locator('.board-column', { hasText: 'Revised' }).first()
-  await card.dragTo(target)
+
+  // Driven a step at a time rather than through dragTo. The board uses HTML5
+  // drag and drop, where the drop only counts if dragover fired on the target
+  // and called preventDefault - and a single move into the column does not
+  // reliably produce one. It held on a fast machine and dropped nothing on a
+  // slow CI runner, which reads as the feature being broken rather than the
+  // gesture never having been made.
+  await card.hover()
+  await page.mouse.down()
+  await target.hover()
+  await target.hover()
+  await page.mouse.up()
 
   await expect
     .poll(
