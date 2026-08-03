@@ -135,7 +135,7 @@ interface ExtensionsState {
    * surface through the shared host-progress overlay. Refreshes both the installed
    * list and the store index on success. */
   installFromStore(id: string, repo: string, update: boolean): Promise<StoreInstallResult>
-  fetchReadme(repo: string): Promise<string>
+  fetchReadme(repo: string, id?: string): Promise<string>
   fetchReleases(id: string, repo: string): Promise<StoreRelease[]>
   /** Re-fetches the installed-extensions list (after a live install/update). */
   refreshInstalled(): Promise<void>
@@ -307,7 +307,7 @@ export const useExtensionsStore = create<ExtensionsState>((set, get) => ({
     return result
   },
 
-  fetchReadme: (repo) => rpc.request<string>('store/readme', [repo]),
+  fetchReadme: (repo, id) => rpc.request<string>('store/readme', [repo, id ?? null]),
 
   fetchReleases: (id, repo) => rpc.request<StoreRelease[]>('store/releases', [id, repo]),
 

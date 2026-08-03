@@ -14,6 +14,9 @@
 		},
 		{
 			"path": "../novalist-extension"
+		},
+		{
+			"path": "../novalist-extension-gallery"
 		}
 	],
 	"settings": {

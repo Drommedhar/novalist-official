@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next'
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import type { StoreUpdate } from '../stores/extensionsStore'
 import './shellDialogs.css'
 
@@ -61,8 +63,16 @@ export function UpdateDialog({
         {appUpdate && (
           <>
             <p className="dialog-message">{versionLine}</p>
+            {/* The notes are the changelog's own Markdown, so they are read as
+                Markdown - the Extensions store has rendered release bodies this
+                way since it shipped, while this dialog showed the asterisks and
+                hashes to the writer as characters. */}
             <div className="update-notes">
-              {appUpdate.notes.trim() ? appUpdate.notes : t('update.noNotes')}
+              {appUpdate.notes.trim() ? (
+                <Markdown remarkPlugins={[remarkGfm]}>{appUpdate.notes}</Markdown>
+              ) : (
+                t('update.noNotes')
+              )}
             </div>
             {downloading && (
               <div className="update-progress">

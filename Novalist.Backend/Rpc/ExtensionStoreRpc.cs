@@ -95,12 +95,16 @@ public sealed class ExtensionStoreRpc
         return result.ToArray();
     }
 
-    /// <summary>Fetches the raw README markdown for an extension's repository.</summary>
+    /// <summary>
+    /// The README to show for one extension. With an id it prefers the README
+    /// that extension's own release published, so several extensions sharing a
+    /// repository do not all show the repository's front page.
+    /// </summary>
     [JsonRpcMethod("store/readme")]
-    public async Task<string> ReadmeAsync(string repo)
+    public async Task<string> ReadmeAsync(string repo, string? id = null)
     {
         var gallery = await GalleryAsync();
-        return await gallery.FetchReadmeAsync(repo);
+        return await gallery.FetchReadmeAsync(repo, id);
     }
 
     /// <summary>Fetches the published releases (newest first) for an extension.</summary>

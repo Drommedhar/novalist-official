@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Novalist.Core.Models;
@@ -38,9 +39,10 @@ public interface IExtensionGalleryService
     Task<GalleryRelease?> GetLatestCompatibleReleaseAsync(GalleryEntry entry, CancellationToken ct = default);
 
     /// <summary>
-    /// Fetches the README.md content from the extension's GitHub repository.
+    /// The README to show for an extension: the one its latest release
+    /// published, and the repository's own when it published none.
     /// </summary>
-    Task<string> FetchReadmeAsync(string repo, CancellationToken ct = default);
+    Task<string> FetchReadmeAsync(string repo, string? extensionId = null, CancellationToken ct = default);
 
     /// <summary>
     /// Downloads the extension ZIP to a temporary directory and returns the file path.
@@ -71,7 +73,7 @@ public interface IExtensionGalleryService
     string? ReadInstalledManifestVersion(string extensionId);
 }
 
-public sealed class ExtensionGalleryService : IExtensionGalleryService
+public sealed partial class ExtensionGalleryService : IExtensionGalleryService
 {
     private const string GalleryIndexUrl =
         "https://raw.githubusercontent.com/Drommedhar/novalist-extension-gallery/main/gallery.json";
@@ -194,6 +196,11 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
             if (r.Prerelease || r.Draft)
                 continue;
 
+            string? Named(string suffix) => r.Assets?
+                .FirstOrDefault(a => string.Equals(
+                    a.Name, $"{entry.Id}{suffix}", StringComparison.OrdinalIgnoreCase))
+                ?.BrowserDownloadUrl;
+
             var asset = r.Assets?.FirstOrDefault(a =>
                 string.Equals(a.Name, expectedAssetName, StringComparison.OrdinalIgnoreCase));
 
@@ -203,11 +210,13 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
             results.Add(new GalleryRelease
             {
                 TagName = r.TagName ?? string.Empty,
-                Version = (r.TagName ?? string.Empty).TrimStart('v', 'V'),
+                Version = VersionFromTag(r.TagName),
                 Body = r.Body ?? string.Empty,
                 IsPrerelease = r.Prerelease,
                 ZipDownloadUrl = asset.BrowserDownloadUrl,
                 ZipSize = asset.Size,
+                ManifestUrl = Named(".extension.json"),
+                ReadmeUrl = Named(".README.md"),
                 PublishedAt = r.PublishedAt
             });
         }
@@ -234,14 +243,32 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
 
     // ── README ────────────────────────────────────────────────────────
 
-    public async Task<string> FetchReadmeAsync(string repo, CancellationToken ct = default)
+    public async Task<string> FetchReadmeAsync(
+        string repo, string? extensionId = null, CancellationToken ct = default)
     {
-        if (_readmeCache.TryGetValue(repo, out var cached))
+        var key = string.IsNullOrWhiteSpace(extensionId) ? repo : $"{repo}#{extensionId}";
+        if (_readmeCache.TryGetValue(key, out var cached))
             return cached;
 
+        // A release that published its own README describes one extension; the
+        // repository's README describes the repository, which is the wrong page
+        // when four of them live in it.
         var url = $"{GitHubApiBase}/repos/{repo}/readme";
+        var raw = false;
+        if (!string.IsNullOrWhiteSpace(extensionId))
+        {
+            var entry = new GalleryEntry { Id = extensionId!, Repo = repo };
+            var releases = await FetchReleasesAsync(entry, ct);
+            var published = releases.FirstOrDefault(r => !string.IsNullOrWhiteSpace(r.ReadmeUrl));
+            if (published is not null)
+            {
+                url = published.ReadmeUrl!;
+                raw = true;
+            }
+        }
+
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Accept.ParseAdd("application/vnd.github.raw+json");
+        if (!raw) request.Headers.Accept.ParseAdd("application/vnd.github.raw+json");
         ApplyAuth(request);
 
         using var response = await _http.SendAsync(request, ct);
@@ -250,7 +277,7 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
             return string.Empty;
 
         var readme = await response.Content.ReadAsStringAsync(ct);
-        _readmeCache[repo] = readme;
+        _readmeCache[key] = readme;
         return readme;
     }
 
@@ -493,10 +520,18 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
 
     private async Task<bool> IsReleaseCompatibleAsync(GalleryEntry entry, GalleryRelease release, CancellationToken ct)
     {
-        // Fetch the extension.json from the tagged commit to check compatibility
-        // and extract the icon URL without downloading the full ZIP
+        // The manifest, to check compatibility and take the icon without
+        // downloading the whole ZIP.
+        //
+        // The release's own copy first, when it published one: a repository with
+        // four extensions in it has no manifest at its root, and guessing which
+        // project folder to look in would make the gallery responsible for a
+        // layout that is none of its business. Falling back to the root keeps
+        // every one-extension repository working exactly as it did.
         var tag = release.TagName;
-        var url = $"https://raw.githubusercontent.com/{entry.Repo}/{tag}/extension.json";
+        var url = !string.IsNullOrWhiteSpace(release.ManifestUrl)
+            ? release.ManifestUrl!
+            : $"https://raw.githubusercontent.com/{entry.Repo}/{tag}/extension.json";
 
         try
         {
@@ -567,6 +602,28 @@ public sealed class ExtensionGalleryService : IExtensionGalleryService
 
         return true;
     }
+
+    /// <summary>
+    /// The version a tag names, whatever it prefixes it with.
+    ///
+    /// A repository holding one extension tags <c>v1.2.0</c>. A repository
+    /// holding four has to say which one a tag is for, so it tags
+    /// <c>toolkit-v1.2.0</c> - and trimming a leading "v" off that leaves the
+    /// whole tag, which parses as version zero. Every such release then compared
+    /// as older than what was installed, so the update was never offered and
+    /// nothing said why.
+    /// </summary>
+    internal static string VersionFromTag(string? tag)
+    {
+        var name = (tag ?? string.Empty).Trim();
+        var match = TagVersion().Match(name);
+        return match.Success ? match.Groups[1].Value : name;
+    }
+
+    // An optional "<slug>-" prefix, an optional "v", then the version itself -
+    // keeping any pre-release or build suffix, which the comparison strips.
+    [GeneratedRegex(@"^(?:.*-)?[vV]?(\d+(?:\.\d+)*(?:[-+][0-9A-Za-z.\-]+)?)$")]
+    private static partial Regex TagVersion();
 
     private static string StripPreRelease(string version)
     {

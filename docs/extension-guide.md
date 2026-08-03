@@ -378,10 +378,28 @@ Novalist's extension store reads a public gallery repository and installs from G
 
 1. Host the source on a public Git host.
 2. Zip the Release output **with the files at the archive root** — `extension.json` must be the top level of the zip, not inside a folder.
-3. Attach the zip to a GitHub release tagged with a semantic version (`v1.0.0`).
-4. Open a pull request against the `novalist-extension-gallery` repository adding your manifest entry: id, name, description, author, repository, tags, and icon URL.
+3. Name the zip after your extension id: `com.example.myextension.zip`. The store finds a release by that name, which is also what lets one repository publish several extensions.
+4. Attach the zip to a GitHub release tagged with a semantic version (`v1.0.0`).
+5. Open a pull request against the `novalist-extension-gallery` repository adding your manifest entry: id, name, description, author, repository, tags, and icon URL.
 
 Once merged, your extension appears in **Browse Store** inside Novalist, and the store's update check will offer new releases to anyone who installed it.
+
+### Several extensions in one repository
+
+Nothing about the gallery assumes one extension per repository. The store matches a release by an asset named `{id}.zip`, and installs into a folder named after the id, so four extensions can share a repository and a release history without colliding.
+
+Two things are worth doing when they do:
+
+- **Say which extension a tag is for.** `toolkit-v1.2.0` rather than `v1.2.0`, so releasing one does not imply a version bump for its siblings. Novalist reads the version out of the tag whatever it prefixes it with, so both forms work.
+- **Attach the manifest and the store page to the release**, named the same way as the zip:
+
+  | Asset | What the store does with it |
+  | --- | --- |
+  | `{id}.zip` | Required. The extension itself. |
+  | `{id}.extension.json` | Compatibility and the icon, read before installing anything. |
+  | `{id}.README.md` | The store's page for this extension. |
+
+  Without them the store falls back to `extension.json` and the README at the repository root — which is right for a repository holding one extension, and wrong for one holding four, where the root has no single manifest and the README describes the whole repository. Publishing them from the release keeps the gallery out of the business of knowing your folder layout.
 
 Browsing and installing use the public GitHub API, which is rate-limited for anonymous requests. Users who hit the limit can add a personal access token under Settings → Updates & Integrations.
 

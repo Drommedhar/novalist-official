@@ -58,6 +58,25 @@ public sealed class GalleryRelease
 
     public long ZipSize { get; set; }
 
+    /// <summary>
+    /// The release's own copy of this extension's manifest, when it published
+    /// one as <c>{id}.extension.json</c>.
+    ///
+    /// One repository can hold several extensions, and then there is no manifest
+    /// at the repository root to read compatibility and the icon from - the
+    /// manifests are one per project folder, and the gallery has no business
+    /// knowing that layout. A release that attaches its own manifest answers the
+    /// question without anyone having to.
+    /// </summary>
+    public string? ManifestUrl { get; set; }
+
+    /// <summary>
+    /// The release's own README, when it published one as <c>{id}.README.md</c>.
+    /// Same reason: the repository README describes the repository, which is the
+    /// wrong page for one of four extensions inside it.
+    /// </summary>
+    public string? ReadmeUrl { get; set; }
+
     public DateTime PublishedAt { get; set; }
 
     /// <summary>

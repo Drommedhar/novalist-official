@@ -24,7 +24,6 @@
 .update-notes {
   max-height: 280px;
   overflow-y: auto;
-  white-space: pre-wrap;
   /* Release notes carry bare compare URLs, which have no break opportunity and
      would otherwise push the panel wider than the dialog. */
   overflow-wrap: anywhere;
@@ -35,6 +34,58 @@
   background: var(--nl-surface-input);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-md);
+}
+
+/* The notes are rendered Markdown now, so the panel styles the elements it
+   produces rather than holding raw text in a pre-wrap block. A long release is
+   mostly headings and bullets, and the headings are what make it scannable. */
+.update-notes > :first-child {
+  margin-top: 0;
+}
+
+.update-notes > :last-child {
+  margin-bottom: 0;
+}
+
+.update-notes h2,
+.update-notes h3,
+.update-notes h4 {
+  margin: var(--nl-space-lg) 0 var(--nl-space-sm);
+  font-size: var(--nl-font-ui);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text);
+}
+
+.update-notes h2 {
+  font-size: var(--nl-font-body);
+}
+
+.update-notes p,
+.update-notes ul,
+.update-notes ol {
+  margin: 0 0 var(--nl-space-md);
+}
+
+.update-notes ul,
+.update-notes ol {
+  padding-left: var(--nl-space-lg);
+}
+
+.update-notes li {
+  margin-bottom: var(--nl-space-sm);
+}
+
+.update-notes strong {
+  color: var(--nl-text);
+}
+
+.update-notes a {
+  color: var(--nl-accent);
+}
+
+.update-notes code {
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-caption);
 }
 
 /* Backstage drawer: a left-anchored panel (not a centred modal) with project

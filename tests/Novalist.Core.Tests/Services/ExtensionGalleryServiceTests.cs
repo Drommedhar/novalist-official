@@ -41,6 +41,179 @@ public class ExtensionGalleryServiceTests : IDisposable
 
     private static GalleryEntry Entry(string id = "ext1", string repo = "owner/ext1") => new() { Id = id, Repo = repo };
 
+    // -- One repository, several extensions ----------------------------
+
+    [Theory]
+    // A repository holding one extension.
+    [InlineData("v1.2.3", "1.2.3")]
+    [InlineData("1.2.3", "1.2.3")]
+    [InlineData("V2.0.0", "2.0.0")]
+    [InlineData("v2.2.0-beta.1", "2.2.0-beta.1")]
+    // A repository holding several, where the tag has to say which one.
+    [InlineData("toolkit-v1.2.3", "1.2.3")]
+    [InlineData("formats-1.0.0", "1.0.0")]
+    [InlineData("insight-v1.2.0-rc.1", "1.2.0-rc.1")]
+    // Nothing recognisable is shown as written rather than as nothing.
+    [InlineData("nightly", "nightly")]
+    public void AVersionIsReadOutOfWhateverTheTagPrefixesItWith(string tag, string expected)
+    {
+        Assert.Equal(expected, ExtensionGalleryService.VersionFromTag(tag));
+    }
+
+    [Fact]
+    public async Task ATagNamingItsExtensionStillOffersTheUpdate()
+    {
+        // The whole point: toolkit-v2.0.0 used to parse as version zero, so it
+        // compared as older than what was installed and the update was never
+        // offered - silently, because nothing errors when a release is simply
+        // considered old.
+        Directory.CreateDirectory(Path.Combine(_extDir, "ext1"));
+        await File.WriteAllTextAsync(
+            Path.Combine(_extDir, "ext1", "store-meta.json"),
+            "{\"installedFromGallery\":true,\"repo\":\"owner/ext1\",\"installedVersion\":\"1.0.0\"}");
+        await File.WriteAllTextAsync(
+            Path.Combine(_extDir, "ext1", "extension.json"),
+            "{\"id\":\"ext1\",\"version\":\"1.0.0\"}");
+
+        var sut = Service(request =>
+        {
+            var url = request.RequestUri!.ToString();
+            if (url.Contains("gallery.json", StringComparison.Ordinal))
+                return Json("[ { \"id\": \"ext1\", \"repo\": \"owner/ext1\" } ]");
+            if (url.Contains("/releases", StringComparison.Ordinal))
+                return Json(ReleasesJson("toolkit-v2.0.0", "ext1.zip"));
+            return Text("", HttpStatusCode.NotFound);
+        });
+
+        var updates = await sut.CheckForUpdatesAsync();
+
+        var update = Assert.Single(updates);
+        Assert.Equal("2.0.0", update.AvailableVersion);
+        Assert.Equal("1.0.0", update.InstalledVersion);
+    }
+
+    /// <summary>A release carrying its own manifest beside the ZIP.</summary>
+    private static string ReleasesWithAssetJson(string tag, params string[] assetNames)
+    {
+        var assets = string.Join(", ", assetNames.Select(n =>
+            $"{{ \"name\": \"{n}\", \"browser_download_url\": \"http://dl/{n}\", \"size\": 4 }}"));
+        return "[ { \"tag_name\": \"" + tag + "\", \"prerelease\": false, \"draft\": false, "
+             + "\"published_at\": \"2024-01-01T00:00:00Z\", \"assets\": [ " + assets + " ] } ]";
+    }
+
+    [Fact]
+    public async Task AReleaseCanCarryItsOwnManifestInsteadOfOneAtTheRepositoryRoot()
+    {
+        // Four extensions in one repository means no manifest at its root, and
+        // the gallery has no business knowing which folder each one lives in.
+        var askedRoot = false;
+        var sut = Service(request =>
+        {
+            var url = request.RequestUri!.ToString();
+            if (url.Contains("/releases", StringComparison.Ordinal))
+                return Json(ReleasesWithAssetJson("toolkit-v1.0.0", "ext1.zip", "ext1.extension.json"));
+            if (url.Contains("ext1.extension.json", StringComparison.Ordinal))
+                return Json("{ \"minHostVersion\": \"0.1.0\", \"icon\": \"http://icon/ext1.png\" }");
+            if (url.Contains("raw.githubusercontent", StringComparison.Ordinal))
+            {
+                askedRoot = true;
+                return Text("", HttpStatusCode.NotFound);
+            }
+            return Text("", HttpStatusCode.NotFound);
+        });
+
+        var release = await sut.GetLatestCompatibleReleaseAsync(Entry());
+
+        Assert.NotNull(release);
+        Assert.Equal("1.0.0", release!.Version);
+        // Read from the release's own manifest, so the icon survives too.
+        Assert.Equal("http://icon/ext1.png", release.Icon);
+        Assert.False(askedRoot, "the root manifest was fetched even though the release carried one");
+    }
+
+    [Fact]
+    public async Task WithNoManifestOnTheReleaseTheRepositoryRootIsStillRead()
+    {
+        var sut = Service(request =>
+        {
+            var url = request.RequestUri!.ToString();
+            if (url.Contains("/releases", StringComparison.Ordinal))
+                return Json(ReleasesJson("v1.0.0", "ext1.zip"));
+            if (url.Contains("raw.githubusercontent", StringComparison.Ordinal))
+                return Json("{ \"minHostVersion\": \"0.1.0\", \"icon\": \"http://icon/root.png\" }");
+            return Text("", HttpStatusCode.NotFound);
+        });
+
+        var release = await sut.GetLatestCompatibleReleaseAsync(Entry());
+
+        Assert.Equal("http://icon/root.png", release!.Icon);
+    }
+
+    [Fact]
+    public async Task AnExtensionShowsItsOwnPageRatherThanTheRepositorysFrontPage()
+    {
+        var sut = Service(request =>
+        {
+            var url = request.RequestUri!.ToString();
+            if (url.Contains("/releases", StringComparison.Ordinal))
+                return Json(ReleasesWithAssetJson("toolkit-v1.0.0", "ext1.zip", "ext1.README.md"));
+            if (url.Contains("ext1.README.md", StringComparison.Ordinal))
+                return Text("# Toolkit");
+            if (url.EndsWith("/readme", StringComparison.Ordinal))
+                return Text("# The whole repository");
+            return Text("", HttpStatusCode.NotFound);
+        });
+
+        Assert.Equal("# Toolkit", await sut.FetchReadmeAsync("owner/ext1", "ext1"));
+    }
+
+    [Fact]
+    public async Task WithNoPageOnTheReleaseTheRepositoryReadmeIsShown()
+    {
+        var sut = Service(request =>
+        {
+            var url = request.RequestUri!.ToString();
+            if (url.Contains("/releases", StringComparison.Ordinal))
+                return Json(ReleasesJson("v1.0.0", "ext1.zip"));
+            if (url.EndsWith("/readme", StringComparison.Ordinal))
+                return Text("# The whole repository");
+            return Text("", HttpStatusCode.NotFound);
+        });
+
+        Assert.Equal("# The whole repository", await sut.FetchReadmeAsync("owner/ext1", "ext1"));
+    }
+
+    [Fact]
+    public async Task TheReadmeIsCachedPerExtensionRatherThanPerRepository()
+    {
+        // Two extensions sharing a repository must not be served each other's
+        // page out of the cache.
+        var sut = Service(request =>
+        {
+            var url = request.RequestUri!.ToString();
+            if (url.Contains("/releases", StringComparison.Ordinal))
+                return Json(ReleasesWithAssetJson("v1.0.0", "ext1.zip", "ext2.zip"));
+            if (url.EndsWith("/readme", StringComparison.Ordinal))
+                return Text("# The whole repository");
+            return Text("", HttpStatusCode.NotFound);
+        });
+
+        Assert.Equal("# The whole repository", await sut.FetchReadmeAsync("owner/shared", "ext1"));
+        Assert.Equal("# The whole repository", await sut.FetchReadmeAsync("owner/shared", "ext2"));
+    }
+
+    [Fact]
+    public async Task WithNoExtensionNamedTheRepositoryReadmeIsUsedAsBefore()
+    {
+        var sut = Service(request =>
+            request.RequestUri!.ToString().EndsWith("/readme", StringComparison.Ordinal)
+                ? Text("# The whole repository")
+                : Text("", HttpStatusCode.NotFound));
+
+        Assert.Equal("# The whole repository", await sut.FetchReadmeAsync("owner/ext1"));
+    }
+
+
     private static string ReleasesJson(string tag, string assetName, bool prerelease = false, bool draft = false)
         => $$"""
         [ { "tag_name": "{{tag}}", "body": "notes", "prerelease": {{(prerelease ? "true" : "false")}},

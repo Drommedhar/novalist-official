@@ -257,7 +257,7 @@ function StoreDetail({
     setLoading(true)
     void (async () => {
       const [rm, rel] = await Promise.all([
-        fetchReadme(entry.repo).catch(() => ''),
+        fetchReadme(entry.repo, entry.id).catch(() => ''),
         fetchReleases(entry.id, entry.repo).catch(() => [] as StoreRelease[])
       ])
       if (!alive) return
