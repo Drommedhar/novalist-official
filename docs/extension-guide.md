@@ -116,6 +116,8 @@ An extension whose `minHostVersion` is above the running Novalist is skipped wit
 
 `SetEntityRelationshipsAsync` writes the far half of each row too when you give it an `InverseRole`. A relationship that exists from one side only is worse than none: the graph draws an edge that vanishes when you look from the other end. Leave `InverseRole` empty and the other entry is left alone rather than guessed at.
 
+**Call `RequestEntityRefresh()` when you have finished writing.** The Codex reads its entries once and keeps them; your writes go to disk, and without this the screen keeps showing what it loaded. Nothing errors — the entry is genuinely saved — so the failure looks like a write that did not happen, and the writer's fix is to navigate away and back. Once per batch is right; calling it after every field in a loop just makes the view rebuild repeatedly.
+
 Use **`GetAiContextAsync`** rather than the `Load*` methods when you are assembling context for a model. The `Load*` methods return everything, because the Codex has to show everything. `GetAiContextAsync` applies the writer's per-entry AI inclusion setting and their per-section withholding — which your extension cannot reconstruct on its own. A writer who marks an entry "never" means it.
 
 **`ArchiveService`** — the project as files and stored versions. `ListSnapshotsAsync` / `ReadSnapshotAsync` / `TakeSnapshotAsync` / `RestoreSnapshotAsync` use the snapshot store the writer already uses, so version tooling does not have to build a second history of the same book beside it. Take one before a pass rewrites anything. A restore is refused while that scene is open with unsaved changes, for the same reason a prose write is.
