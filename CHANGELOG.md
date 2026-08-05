@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.0.1] - 2026-08-05
+
 ### Added
 
 - **Window menu** — a "Novalist Window" item (Cmd+0) reopens the main window. Closing the
@@ -1149,7 +1155,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.0...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.0.1...HEAD
+[3.0.1]: https://github.com/Drommedhar/novalist-official/compare/v3.0...v3.0.1
 [3.0]: https://github.com/Drommedhar/novalist-official/compare/v2.5...v3.0
 [2.5]: https://github.com/Drommedhar/novalist-official/compare/v2.4...v2.5
 [2.4]: https://github.com/Drommedhar/novalist-official/compare/v2.3.1...v2.4
