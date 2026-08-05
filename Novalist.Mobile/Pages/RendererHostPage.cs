@@ -521,6 +521,28 @@ public sealed class RendererHostPage : ContentPage, IDisposable
 #endif
                 return null;
             }
+            case "setSelectedTab":
+            {
+                // The bar highlights whatever was tapped. A tab the web switched
+                // to on its own (the first-run tour walks them) never was, so it
+                // has to be told, or the highlight names one tab while the screen
+                // shows another.
+                var index = args.ValueKind == JsonValueKind.Array
+                    && args.GetArrayLength() > 0
+                    && args[0].ValueKind == JsonValueKind.Number
+                    ? args[0].GetInt32()
+                    : -1;
+#if IOS
+                await MainThread.InvokeOnMainThreadAsync(() =>
+                {
+                    if (_tabBar?.Items is not { } items) return;
+                    if (index < 0 || index >= items.Length) return;
+                    _tabBar.SelectedItem = items[index];
+                    _committedItem = items[index];
+                });
+#endif
+                return null;
+            }
             case "setTabTitles":
             {
                 // args[0] = localized titles in tab order (dashboard, manuscript,

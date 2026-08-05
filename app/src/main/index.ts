@@ -35,6 +35,14 @@ function resolveIconPath(): string | null {
 
 registerProtocolSchemes()
 
+/**
+ * The window that holds the project, as opposed to a torn-off pane.
+ *
+ * Tracked so there is something to bring back: closing it on macOS does not
+ * quit the app, and a pane window left open is not a substitute for it.
+ */
+let mainWindow: BrowserWindow | null = null
+
 function createWindow(): BrowserWindow {
   const iconPath = resolveIconPath()
   const win = new BrowserWindow({
@@ -72,7 +80,39 @@ function createWindow(): BrowserWindow {
   } else {
     void win.loadFile(join(__dirname, '../renderer/index.html'))
   }
+  mainWindow = win
+  win.on('closed', () => {
+    if (mainWindow === win) mainWindow = null
+  })
   return win
+}
+
+/**
+ * The main window, opened if it is gone and brought forward if it is not.
+ *
+ * Closing the last window on macOS does not quit Novalist - the dock icon and
+ * the menu bar stay - so there has to be a way back to it. There was not: the
+ * dock-icon path made a window and left it hidden, because the reveal belongs
+ * to the startup sequence that waits for the splash, and nothing was doing that
+ * afterwards. The app then believed it had a window, so it never made another
+ * one, and the only way back was to quit and relaunch. A torn-off pane window
+ * counts for even less: it kept the window list non-empty while the project
+ * itself had nowhere to be.
+ */
+function showMainWindow(): void {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    if (!mainWindow.isVisible()) mainWindow.show()
+    mainWindow.focus()
+    return
+  }
+  const win = createWindow()
+  win.once('ready-to-show', () => {
+    if (win.isDestroyed()) return
+    win.maximize()
+    win.show()
+    win.focus()
+  })
 }
 
 /**
@@ -222,7 +262,7 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 void app.whenReady().then(() => {
-  installAppMenu()
+  installAppMenu(showMainWindow)
   // Registered on every start: an install, a move or a reinstall all leave the
   // registration pointing somewhere else or nowhere.
   if (app.isPackaged) app.setAsDefaultProtocolClient(SCHEME)
@@ -266,9 +306,7 @@ void app.whenReady().then(() => {
     win.once('ready-to-show', reveal)
   }
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
+  app.on('activate', () => showMainWindow())
 })
 
 app.on('window-all-closed', () => {

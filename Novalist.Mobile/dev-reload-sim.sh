@@ -13,7 +13,11 @@
 #
 set -euo pipefail
 
-BUNDLE_ID=com.novalist.mobile
+# Must match <ApplicationId> in Novalist.Mobile.csproj. It is deliberately the
+# desktop's id so iOS ships as a platform of the same App Store record; pointing
+# this at the old com.novalist.mobile silently reloaded whichever stale build of
+# that id was still installed, and the app under test never changed.
+BUNDLE_ID=com.novalist.app
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 echo "[1/3] building renderer bundle..."

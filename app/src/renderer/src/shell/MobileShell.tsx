@@ -18,6 +18,16 @@ import './mobile.css'
 
 // Plan menu items, in the order shown in the native popover. Index maps back from
 // window.__novalistPlanSelect. 'findReplace' opens the dialog, not a view.
+// The native UITabBar's items, in the order RendererHostPage builds them, so a
+// tab can be named back to the index the bar highlights by.
+const NATIVE_TAB_ORDER: MobileTab[] = [
+  'dashboard',
+  'manuscript',
+  'codex',
+  'planning',
+  'settings'
+]
+
 type PlanningTarget = MainView | 'findReplace'
 const PLANNING_TARGETS: PlanningTarget[] = ['timeline', 'plotGrid', 'calendar', 'findReplace']
 const PLANNING_LABEL_KEYS = [
@@ -114,6 +124,13 @@ export function MobileShell(): React.JSX.Element {
     }
     useShellStore.getState().setMainView(map[tab])
   }, [tab, planningView])
+
+  // The native bar highlights what was tapped, so a tab switched from here (the
+  // first-run tour walks them) has to be pushed across, or the bar names one
+  // place while the screen shows another.
+  useEffect(() => {
+    window.novalist.setSelectedTab?.(NATIVE_TAB_ORDER.indexOf(tab))
+  }, [tab])
 
   const selectPlanning = (target: PlanningTarget): void => {
     setPlanningDrawerOpen(false)

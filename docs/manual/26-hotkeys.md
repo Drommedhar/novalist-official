@@ -41,8 +41,11 @@ The number keys switch the main area between views, in this order:
 | Quick Open (search everything) | `Ctrl+P` |
 | Quick capture (jot a note) | `Ctrl+Shift+K` |
 | Print | `Ctrl+Alt+P` |
+| Reopen the main window | `Ctrl+0` |
 
 ## Notes
+
+- **Reopen the main window** lives in the Window menu rather than in the shortcut list the app installs, so it works from the menu bar even when no window is open. On macOS, closing the last window leaves Novalist running — use this, or click the dock icon, to bring the project back.
 
 - While the cursor is in a text field or the editor, only gestures that include `Ctrl` (or `Cmd`) fire, so plain typing and `Alt` shortcuts never interrupt your writing. `Alt+F` works whenever focus is outside a text field.
 - Standard text-editing shortcuts — copy, cut, paste, select all, undo, redo (`Ctrl+C/X/V/A/Z/Y`, `Ctrl+Shift+Z`) — are handled natively by the writing surface.

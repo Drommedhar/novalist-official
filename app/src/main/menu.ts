@@ -22,7 +22,7 @@ const nav = (label: string, view: string, accelerator?: string): MenuItemConstru
  * bar (so every view is reachable from the menu bar too), panel toggles, and no
  * leftover Electron defaults.
  */
-export function installAppMenu(): void {
+export function installAppMenu(showMainWindow: () => void = () => {}): void {
   const isMac = process.platform === 'darwin'
   const name = app.name
 
@@ -121,6 +121,16 @@ export function installAppMenu(): void {
     {
       label: 'Window',
       submenu: [
+        // The way back to the project after its window has been closed. The
+        // window list below only names windows that exist, and closing the last
+        // one does not quit on macOS, so without this the app can be running
+        // with nothing to show and no menu item that brings it back.
+        {
+          label: `${name} Window`,
+          accelerator: 'CmdOrCtrl+0',
+          click: () => showMainWindow()
+        },
+        { type: 'separator' as const },
         { role: 'minimize' as const },
         { role: 'zoom' as const },
         ...(isMac

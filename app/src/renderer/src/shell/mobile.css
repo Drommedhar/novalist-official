@@ -106,19 +106,32 @@
 }
 
 /* Codex is single-pane on mobile: the list and the detail each take the full
-   width (CodexView renders one at a time), so drop the fixed-width side list. */
+   width (CodexView renders one at a time), so drop the fixed-width side list.
+
+   It stays a flex COLUMN rather than becoming a block. Both the list's inner
+   scroller (.codex-nav-scroll) and the detail scroll by being flex children of
+   a height-bounded parent; as a block they sized to their own content instead,
+   which left nothing to scroll and let the Codex tab clip whatever did not fit
+   on one screen - a character list stopped at whoever fitted, and an entry's
+   fields ended at whichever one reached the bottom edge. */
 .shell.mobile .codex-body-mobile {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .shell.mobile .codex-body-mobile .codex-list {
   width: 100%;
   min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
   border-right: none;
 }
 
 .shell.mobile .codex-body-mobile .codex-detail {
   width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .shell.mobile .codex-detail-back {
@@ -213,6 +226,18 @@
   border: none;
   color: var(--nl-accent);
   cursor: pointer;
+}
+
+/* The first-run tour sits in the bottom-right corner, which on a phone is where
+   the native Liquid Glass tab bar floats over the web content. Its Skip / Back /
+   Next row ended up underneath the bar, so the tour could not be advanced or
+   dismissed and covered the bottom of every tab on every launch. Lift it clear
+   of the bar and let it use the width a phone actually has. */
+.shell.mobile .tour-card {
+  bottom: calc(var(--nl-mobile-tabbar-h) + env(safe-area-inset-bottom) + var(--nl-space-md));
+  left: calc(env(safe-area-inset-left) + var(--nl-space-md));
+  right: calc(env(safe-area-inset-right) + var(--nl-space-md));
+  max-width: none;
 }
 
 /* ── Mobile bottom sheet (writing hub: Context / Footnotes / Notes) ── */

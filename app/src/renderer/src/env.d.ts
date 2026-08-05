@@ -41,6 +41,11 @@ interface Window {
     setNavVisible?(visible: boolean): void
     // Mobile-only: push localized titles onto the native tab bar (tab order).
     setTabTitles?(titles: string[]): void
+    // Mobile-only: highlight the tab at this index. The native bar highlights
+    // what was tapped, so anything that switches tab from the web side (the
+    // first-run tour) has to say so, or the bar names one place while the
+    // screen shows another.
+    setSelectedTab?(index: number): void
     // Mobile-only: read a project-relative image as a data: URI (the mobile
     // WebView has no novalist-project:// scheme handler).
     readProjectImage?(path: string): Promise<string | null>

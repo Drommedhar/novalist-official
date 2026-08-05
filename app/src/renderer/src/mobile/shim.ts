@@ -136,6 +136,11 @@ const novalist: Window['novalist'] = {
   setTabTitles: (titles: string[]) => {
     void hostCall('setTabTitles', [titles])
   },
+  // Mobile-only: move the native bar's highlight to this tab index, for a tab
+  // change the web made rather than the writer tapping.
+  setSelectedTab: (index: number) => {
+    void hostCall('setSelectedTab', [index])
+  },
   // Mobile-only: show/hide the native Liquid Glass Plan popover with the given
   // localized item labels; selection comes back via window.__novalistPlanSelect.
   setPlanningMenuOpen: (open: boolean, labels: string[]) => {

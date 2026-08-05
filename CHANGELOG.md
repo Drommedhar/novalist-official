@@ -16,7 +16,18 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Window menu** — a "Novalist Window" item (Cmd+0) reopens the main window. Closing the
+  last window on macOS leaves the app running, and there was no way back to it short of
+  quitting and relaunching.
+
+### Fixed
+
+- Clicking the dock icon after closing the main window brings Novalist back. It used to
+  create a window and never show it, which left the app running with nothing on screen and
+  no way to recover it short of quitting. A torn-off pane window left open made it worse:
+  the app counted that as having a window and stopped offering another.
 
 ---
 
