@@ -162,7 +162,7 @@ function OverrideImages({
   }
 
   const importImage = async (): Promise<void> => {
-    const path = await window.novalist.pickFile(t('entityEditor.addImage'))
+    const path = await window.novalist.pickFile(t('entityEditor.addImage'), 'images')
     if (!path) return
     apply(await rpc.request<Record<string, unknown>>('entities/addOverrideImage', [...args, path]))
   }

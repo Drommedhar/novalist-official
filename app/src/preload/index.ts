@@ -19,6 +19,13 @@ contextBridge.exposeInMainWorld('novalist', {
   // True only in the Mac App Store build. The renderer uses this to hide
   // self-update UI (the store delivers updates there).
   isMas,
+  // The phone shell (single pane, native tab bar) is what the iOS build gets
+  // from its own bridge; here it is off, except when NOVALIST_FORCE_MOBILE asks
+  // for it. That exists so the mobile layout can be rendered and measured
+  // without a simulator - m51 checks the real MobileShell tree rather than an
+  // approximation of it, and a developer can eyeball the phone layout by
+  // setting the variable. It is never set in a shipped build.
+  isMobile: process.env.NOVALIST_FORCE_MOBILE === '1',
   // Off in headless/e2e runs (NOVALIST_NO_SPLASH) so a network update check
   // never pops a modal that blocks tests. Also off in the Mac App Store build,
   // where self-updating is prohibited.

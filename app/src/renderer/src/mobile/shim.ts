@@ -18,6 +18,8 @@
  *              host  -> window.__novalistHostResult(<base64 json>)
  */
 
+import i18next from 'i18next'
+
 import { installProjectImageLoader, clearProjectImageCache } from './projectImages'
 
 type HybridWebViewApi = { SendRawMessage?: (message: string) => void }
@@ -106,7 +108,21 @@ const novalist: Window['novalist'] = {
   // Window capture is an Electron capability with no iOS equivalent, so map
   // image export reports failure rather than pretending to have written a file.
   captureRegion: () => Promise.resolve(false),
-  pickFile: (title, mode) => hostCall<string | null>('pickFile', [title, mode ?? 'all']),
+  // An image request opens a native "Photo Library / Browse Files" sheet, so the
+  // host needs those three labels localized; the renderer owns the locale files,
+  // the native side only renders what it is handed.
+  pickFile: (title, mode) =>
+    hostCall<string | null>('pickFile', [
+      title,
+      mode ?? 'all',
+      mode === 'images'
+        ? [
+            i18next.t('mobile.imageSource.photos'),
+            i18next.t('mobile.imageSource.files'),
+            i18next.t('dialog.cancel')
+          ]
+        : []
+    ]),
   // iOS spell-checks a contenteditable natively once the element carries
   // spellcheck="true", which the editor already sets from the same setting.
   // There is no session to configure and no menu for us to build: the system

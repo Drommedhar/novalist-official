@@ -40,6 +40,84 @@ import {
 } from './EntityDetailFields'
 import { ArrangeFieldsDialog } from './ArrangeFieldsDialog'
 import type { EntitySummary } from '../../stores/codexStore'
+import { MobileGroup, MobileNav, MobileRow, useMobileNav } from '../../shell/MobileNav'
+import { useIsPhone } from '../../shell/useIsPhone'
+
+/**
+ * The entry's editors as rows that open one at a time.
+ *
+ * A Codex entry carries a dozen editors - relationships, images, attachments,
+ * custom properties, chapter overrides, arc, name matching, history, two
+ * policies. Down a desktop pane they read as sections of one page. On a phone
+ * they became a scroll through a dozen stacked forms to reach the last, so here
+ * each is a row that pushes its own page, and the fields above stay the page.
+ *
+ * Grouped by what the writer is doing: what the entry IS, what it looks like,
+ * how it behaves in the story, and the technical settings behind it.
+ */
+function PhoneEntitySections({
+  entityType,
+  entityId
+}: {
+  entityType: EntityType
+  entityId: string | null
+}): React.JSX.Element {
+  const { t } = useTranslation()
+  const nav = useMobileNav()
+
+  const row = (label: string, content: React.ReactNode): React.JSX.Element => (
+    <MobileRow
+      key={label}
+      label={label}
+      onClick={() => nav.push({ title: label, content: <div className="codex-phone-page">{content}</div> })}
+    />
+  )
+
+  return (
+    <div className="codex-phone-sections">
+      {/* The inline labels these sections use are written in caps in the locale
+          files ("RELATIONSHIPS"), which is right above a field and shouting as a
+          page title, so the pushed pages take sentence-case titles of their
+          own. */}
+      <MobileGroup header={t('mobile.entity.relationships')}>
+        {row(t('mobile.entity.relationships'), <EntityListsEditor />)}
+        {row(t('mobile.entity.customProperties'), <CustomPropsEditor />)}
+      </MobileGroup>
+
+      <MobileGroup header={t('mobile.entity.images')}>
+        {row(t('mobile.entity.images'), <EntityImages />)}
+        {row(t('attachments.title'), <EntityAttachments />)}
+      </MobileGroup>
+
+      <MobileGroup header={t('mobile.entity.chapterOverrides')}>
+        {row(t('mobile.entity.chapterOverrides'), <OverridesEditor />)}
+        {entityId && entityType === 'character'
+          ? row(t('arc.title'), <ArcEditor characterId={entityId} />)
+          : entityId
+            ? row(
+                t('stateOverride.title'),
+                <StateOverridesEditor entityType={entityType} entityId={entityId} />
+              )
+            : null}
+      </MobileGroup>
+
+      {entityId && (
+        <MobileGroup header={t('match.title')}>
+          {row(t('match.title'), <MatchSettingsEditor entityType={entityType} entityId={entityId} />)}
+          {row(
+            t('entityHistory.title'),
+            <EntityHistoryPanel entityType={entityType} entityId={entityId} />
+          )}
+          {row(t('aiPolicy.title'), <AiPolicyEditor entityType={entityType} entityId={entityId} />)}
+          {row(
+            t('readerPolicy.title'),
+            <ReaderPolicyEditor entityType={entityType} entityId={entityId} />
+          )}
+        </MobileGroup>
+      )}
+    </div>
+  )
+}
 
 const TYPES: { type: EntityType; key: string }[] = [
   { type: 'character', key: 'codexHub.characters' },
@@ -67,6 +145,7 @@ export function CodexView(): React.JSX.Element {
   const remove = useCodexStore((s) => s.remove)
   const moveWorldBible = useCodexStore((s) => s.moveWorldBible)
   const isMobile = window.novalist.isMobile === true
+  const isPhone = useIsPhone()
   const [arrangeOpen, setArrangeOpen] = useState(false)
   const [pending, setPending] = useState<
     { kind: 'create' } | { kind: 'delete'; entity: EntitySummary } | null
@@ -154,7 +233,7 @@ export function CodexView(): React.JSX.Element {
     }
   }
 
-  return (
+  const tree = (
     <div className="codex">
       <div className="codex-tabs">
         {TYPES.map(({ type, key }) => (
@@ -265,6 +344,18 @@ export function CodexView(): React.JSX.Element {
                 customDef={customTypes.find((d) => d.typeKey === entityType)}
                 updateField={updateField}
               />
+              {isPhone ? (
+                /* On a phone the entry reads like a contact card: the fields
+                   above are what the writer came for, and everything below is
+                   an editor in its own right. Stacked, they made the page a
+                   scroll of a dozen forms; behind rows, each is one tap away
+                   and the page stays a page. */
+                <PhoneEntitySections
+                  entityType={entityType}
+                  entityId={selectedId}
+                />
+              ) : (
+                <>
               <EntityImages />
               <EntityAttachments />
               <CustomPropsEditor />
@@ -319,6 +410,8 @@ export function CodexView(): React.JSX.Element {
               )}
               <OverridesEditor />
               <EntityListsEditor />
+                </>
+              )}
             </>
             ) : (
               <p className="codex-empty">{t('codexHub.selectHint')}</p>
@@ -456,4 +549,9 @@ export function CodexView(): React.JSX.Element {
       )}
     </div>
   )
+
+  // The phone wraps the whole view, not just the detail: a pushed editor should
+  // cover the type tabs and the entry list too, the way a pushed page does on
+  // iOS. Switching tabs unmounts this and takes the stack with it.
+  return isPhone ? <MobileNav title={t('shell.view.codex')}>{tree}</MobileNav> : tree
 }

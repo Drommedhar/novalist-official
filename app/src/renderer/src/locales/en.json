@@ -6,6 +6,16 @@
       "codex": "Codex",
       "planning": "Plan",
       "settings": "Settings"
+    },
+    "imageSource": {
+      "photos": "Photo Library",
+      "files": "Browse Files"
+    },
+    "entity": {
+      "relationships": "Relationships",
+      "customProperties": "Custom properties",
+      "images": "Images",
+      "chapterOverrides": "Chapter overrides"
     }
   },
   "splash": {
@@ -151,7 +161,10 @@
     "unresolvedBadge": "{{count}} open",
     "asLanes": "As lanes",
     "asGrid": "As a grid",
-    "laneEmpty": "in no scene yet"
+    "laneEmpty": "in no scene yet",
+    "sceneCount_one": "{{count}} scene",
+    "sceneCount_other": "{{count}} scenes",
+    "sceneCount": "{{count}} scenes"
   },
   "comments": {
     "noSelection": "Select some text in the scene first.",
@@ -613,7 +626,14 @@
     "readAloudNoMatchingVoice": "None of the available voices speaks {{language}}, so read-aloud will use whichever voice your system picks.",
     "readAloudVoiceKinds": "Windows has two kinds of voice and only one of them can be used by applications. Voices added under **Accessibility → Narrator → Add natural voices** are reserved for Narrator: they appear in Narrator's own list and in no program, including this one. The voices that work here come from **Time & language → Language & region → Add a language**, with the language's optional **Speech** feature installed. Restart Novalist after installing one.",
     "wordsPerPage": "Words to a printed page",
-    "wordsPerPageDesc": "Used for the page estimate in the project overview. A trade paperback is about 250, mass-market nearer 300, large print about 150. Clear the field to go back to 250."
+    "wordsPerPageDesc": "Used for the page estimate in the project overview. A trade paperback is about 250, mass-market nearer 300, large print about 150. Clear the field to go back to 250.",
+    "group": {
+      "general": "General",
+      "writing": "Writing",
+      "project": "Project",
+      "system": "System",
+      "other": "Other"
+    }
   },
   "hotkeys": {
     "searchPlaceholder": "Filter shortcuts...",
@@ -1793,7 +1813,8 @@
     "dependsFrom": "Counted from",
     "dependsFromStart": "its start",
     "dependsFromEnd": "its end",
-    "dateLocked": "Pin this date - a cascade will not move it"
+    "dateLocked": "Pin this date - a cascade will not move it",
+    "viewOptions": "View options"
   },
   "export": {
     "header": "Export Novel",

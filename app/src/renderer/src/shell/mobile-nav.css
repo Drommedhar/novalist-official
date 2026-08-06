@@ -1,0 +1,159 @@
+/* Drill-down navigation and grouped lists for the phone shell.
+   iOS ergonomics - a back bar that names where it goes, inset groups with a
+   small caps header, rows a fingertip can land on - in Novalist's own type and
+   colour. Sizes come from the phone token block in tokens.css. */
+
+.mobile-nav {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+/* At the root there is no page of our own to lay out - the view below keeps the
+   layout it had before a stack existed. The element stays in the DOM (it is how
+   the scroller is found) but contributes no box. */
+.mobile-nav-root {
+  display: contents;
+}
+
+/* Sticky so the way back is reachable from anywhere in a long page, which is
+   the whole point of pushing one. */
+.mobile-nav-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-sm) var(--nl-space-lg) var(--nl-space-md);
+  background: var(--nl-surface-window);
+  border-bottom: 1px solid var(--nl-border-subtle);
+}
+
+.mobile-nav-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--nl-space-tightest);
+  align-self: flex-start;
+  min-height: var(--nl-control-h);
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--nl-accent);
+  font-size: var(--nl-font-ui);
+  cursor: pointer;
+}
+
+/* The label is the page below, and a long one must not push the row wider than
+   the screen. */
+.mobile-nav-back-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60vw;
+}
+
+.mobile-nav-title {
+  margin: 0;
+  font-size: var(--nl-font-title);
+  font-weight: var(--nl-weight-title);
+  color: var(--nl-text);
+}
+
+.mobile-nav-page {
+  flex: 1;
+  min-height: 0;
+  padding: var(--nl-space-lg) 0 var(--nl-space-xxl);
+}
+
+/* ── Grouped lists ── */
+
+.mobile-group {
+  margin-bottom: var(--nl-space-xl);
+}
+
+/* iOS sets a group header in small caps, outside the card, in the muted text
+   colour - it labels the block rather than titling a section. */
+.mobile-group-header {
+  margin: 0 0 var(--nl-space-sm);
+  padding: 0 var(--nl-space-lg);
+  font-size: var(--nl-font-caption);
+  font-weight: var(--nl-weight-label);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--nl-text-subtle);
+}
+
+.mobile-group-body {
+  background: var(--nl-surface-card);
+  border-top: 1px solid var(--nl-border-subtle);
+  border-bottom: 1px solid var(--nl-border-subtle);
+  overflow: hidden;
+}
+
+/* Inset with rounded corners once there is room at the sides; edge to edge on
+   the narrowest phones, where the inset costs more than it reads. */
+@media (min-width: 375px) {
+  .mobile-group-body {
+    margin: 0 var(--nl-space-lg);
+    border: 1px solid var(--nl-border-subtle);
+    border-radius: var(--nl-radius-lg);
+  }
+}
+
+.mobile-group-footer {
+  margin: var(--nl-space-sm) 0 0;
+  padding: 0 var(--nl-space-lg);
+  font-size: var(--nl-font-caption);
+  color: var(--nl-text-subtle);
+}
+
+.mobile-row {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-md);
+  width: 100%;
+  min-height: var(--nl-control-h);
+  padding: var(--nl-space-sm) var(--nl-space-lg);
+  background: none;
+  border: none;
+  color: var(--nl-text);
+  font-size: var(--nl-font-body);
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Separators run between rows only, and stop short of the left edge the way
+   iOS insets them to the label. */
+.mobile-row + .mobile-row {
+  border-top: 1px solid var(--nl-border-subtle);
+}
+
+.mobile-row-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The value states what the setting currently is, so it is quieter than the
+   label and gives way first when the row runs out of room. */
+.mobile-row-value {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-ui);
+}
+
+.mobile-row-chevron {
+  flex: 0 0 auto;
+  color: var(--nl-text-subtle);
+}
+
+.mobile-row:active {
+  background: var(--nl-surface-hover);
+}

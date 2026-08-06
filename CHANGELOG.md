@@ -16,7 +16,10 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Switching views now starts you at the top. Opening a long view from a scrolled one dropped you into the middle of it — leaving a scrolled Dashboard for Settings landed halfway down the page.
+- The **Timeline**'s month headings sit flush at the top of the list as you scroll. A strip above each one showed the previous month's last event sliding past, clipped in half.
 
 ---
 

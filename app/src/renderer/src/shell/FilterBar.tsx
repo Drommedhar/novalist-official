@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { X } from 'lucide-react'
+import { ChevronDown, ChevronRight, X } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
 import { useStageStore } from '../stores/stageStore'
+import { useIsPhone } from './useIsPhone'
 import {
   activeCount,
   isEmptyFilter,
@@ -30,6 +31,16 @@ export function FilterBar(): React.JSX.Element {
   const presets = useFilterStore((s) => s.presets)
   const projectPath = useProjectStore((s) => s.projectPath)
   const stages = useStageStore((s) => s.stages)
+  const isPhone = useIsPhone()
+  /** Phone only: whether the bar is unfolded. */
+  const [open, setOpen] = useState(false)
+
+  // Something narrowing the view is not allowed to sit behind a closed row: if
+  // a filter is set (restored from a preset, say), the bar shows itself.
+  const narrowed = !isEmptyFilter(filter)
+  useEffect(() => {
+    if (narrowed) setOpen(true)
+  }, [narrowed])
   const [characters, setCharacters] = useState<Named[]>([])
   const [locations, setLocations] = useState<Named[]>([])
   const [plotlines, setPlotlines] = useState<Named[]>([])
@@ -78,8 +89,40 @@ export function FilterBar(): React.JSX.Element {
     </label>
   )
 
+  // On a phone five pickers and a preset field are most of the screen, on top of
+  // whatever toolbar the view has, so the bar folds to a single row. It says how
+  // many filters are on, because a folded bar that is quietly narrowing the view
+  // is worse than no bar - and it opens itself when something is active, so a
+  // filter can never be hiding behind a closed row.
+  if (isPhone && !open) {
+    return (
+      <button
+        type="button"
+        className="filter-bar-toggle"
+        aria-expanded={false}
+        onClick={() => setOpen(true)}
+      >
+        <ChevronRight size={15} strokeWidth={2} />
+        {isEmptyFilter(filter)
+          ? t('filters.title')
+          : t('filters.clear', { count: activeCount(filter) })}
+      </button>
+    )
+  }
+
   return (
     <div className="filter-bar">
+      {isPhone && (
+        <button
+          type="button"
+          className="filter-bar-toggle"
+          aria-expanded
+          onClick={() => setOpen(false)}
+        >
+          <ChevronDown size={15} strokeWidth={2} />
+          {t('filters.title')}
+        </button>
+      )}
       {chip(
         'status',
         'filters.status',

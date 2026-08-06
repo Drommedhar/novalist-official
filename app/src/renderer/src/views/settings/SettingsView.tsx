@@ -5,6 +5,8 @@ import { availableLanguages } from '../../i18n'
 import { rpc } from '../../rpc/client'
 import { useSettingsStore, type SettingsSection } from '../../stores/settingsStore'
 import { useShellStore } from '../../stores/shellStore'
+import { MobileGroup, MobileNav, MobileRow, useMobileNav } from '../../shell/MobileNav'
+import { useIsPhone } from '../../shell/useIsPhone'
 import { TargetsPanel } from '../dashboard/TargetsCard'
 import { useProjectStore } from '../../stores/projectStore'
 import { useThemeCatalog } from '../../stores/themeCatalog'
@@ -182,6 +184,48 @@ interface SectionDef {
 }
 
 /**
+ * How the sections are grouped in the phone index. Membership only, in the
+ * order the groups should read; a section missing from every group falls into
+ * "Other" rather than disappearing.
+ */
+const PHONE_GROUPS: { id: string; keys: string[] }[] = [
+  { id: 'general', keys: ['appearance', 'editor', 'accessibility', 'completion'] },
+  {
+    id: 'writing',
+    keys: [
+      'writingGoals',
+      'writingAssistance',
+      'sceneStages',
+      'sceneLabels',
+      'sceneTemplates',
+      'manuscriptProperties',
+      'tags',
+      'groups'
+    ]
+  },
+  { id: 'project', keys: ['backups', 'templates', 'themeTokens'] },
+  { id: 'system', keys: ['languagePacks', 'diagnostics'] }
+]
+
+/** A section as one row of the phone index: tapping it pushes the section. */
+function SettingsPhoneRow({ section }: { section: SectionDef }): React.JSX.Element {
+  const { t } = useTranslation()
+  const nav = useMobileNav()
+  const title = t(section.titleKey)
+  return (
+    <MobileRow
+      label={title}
+      onClick={() =>
+        nav.push({
+          title,
+          content: <div className="settings-phone-section">{section.body}</div>
+        })
+      }
+    />
+  )
+}
+
+/**
  * The voices the platform has installed, for the read-aloud picker. They arrive
  * asynchronously on every platform and are simply absent on some, so the list
  * starts empty and fills in - which is also why the picker always offers
@@ -236,6 +280,7 @@ export function SettingsView(): React.JSX.Element {
   // GitHub token (Git is external on mobile), desktop file-watching, and the
   // file-manager log-folder reveal (no-op in the iOS sandbox).
   const isMobile = window.novalist.isMobile === true
+  const isPhone = useIsPhone()
   const settingsSearch = useShellStore((s) => s.settingsSearch)
   const [search, setSearch] = useState('')
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
@@ -1284,6 +1329,61 @@ export function SettingsView(): React.JSX.Element {
     requestAnimationFrame(() => {
       sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
+  }
+
+  // On a phone the seventeen sections become a grouped index that opens one at
+  // a time, the way iOS Settings does - the sections themselves are unchanged,
+  // only how they are reached. Anything not named in a group still appears,
+  // under "Other": a section that quietly vanished from Settings because nobody
+  // updated this list would be a bad way to find out.
+  if (isPhone) {
+    const shown = visibleSections.filter(sectionVisible)
+    const grouped = PHONE_GROUPS.map((group) => ({
+      id: group.id,
+      sections: shown.filter((s) => group.keys.includes(s.key))
+    })).filter((g) => g.sections.length > 0)
+    const claimed = new Set(PHONE_GROUPS.flatMap((g) => g.keys))
+    const rest = shown.filter((s) => !claimed.has(s.key))
+
+    return (
+      <MobileNav title={t('settings.title')}>
+        <div className="settings-phone">
+          <h1 className="mobile-nav-title settings-phone-title">{t('settings.title')}</h1>
+          <input
+            className="dialog-input settings-phone-search"
+            placeholder={t('settings.searchPlaceholder')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {/* A search is a flat answer, not an index: grouping the few matches
+              under their usual headings buries them again. */}
+          {query.length > 0 ? (
+            <MobileGroup>
+              {shown.map((s) => (
+                <SettingsPhoneRow key={s.key} section={s} />
+              ))}
+            </MobileGroup>
+          ) : (
+            <>
+              {grouped.map((group) => (
+                <MobileGroup key={group.id} header={t(`settings.group.${group.id}`)}>
+                  {group.sections.map((s) => (
+                    <SettingsPhoneRow key={s.key} section={s} />
+                  ))}
+                </MobileGroup>
+              ))}
+              {rest.length > 0 && (
+                <MobileGroup header={t('settings.group.other')}>
+                  {rest.map((s) => (
+                    <SettingsPhoneRow key={s.key} section={s} />
+                  ))}
+                </MobileGroup>
+              )}
+            </>
+          )}
+        </div>
+      </MobileNav>
+    )
   }
 
   return (

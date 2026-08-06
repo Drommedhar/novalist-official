@@ -6,6 +6,16 @@
       "codex": "百科",
       "planning": "规划",
       "settings": "设置"
+    },
+    "imageSource": {
+      "photos": "照片图库",
+      "files": "浏览文件"
+    },
+    "entity": {
+      "relationships": "关系",
+      "customProperties": "自定义属性",
+      "images": "图片",
+      "chapterOverrides": "章节覆盖"
     }
   },
   "splash": {
@@ -144,7 +154,10 @@
     "unresolvedBadge": "{{count}} 未了结",
     "asLanes": "以轨道显示",
     "asGrid": "以网格显示",
-    "laneEmpty": "尚未出现在任何场景"
+    "laneEmpty": "尚未出现在任何场景",
+    "sceneCount_other": "{{count}} 个场景",
+    "sceneCount": "{{count}} 个场景",
+    "sceneCount_one": "{{count}} 个场景"
   },
   "comments": {
     "noSelection": "请先在场景中选择一些文本。",
@@ -648,7 +661,14 @@
     "readAloudNoMatchingVoice": "可用语音中没有能朗读 {{language}} 的，朗读将使用系统自行选择的语音。",
     "readAloudVoiceKinds": "Windows 有两类语音，只有一类可供应用程序使用。在**辅助功能 → 讲述人 → 添加自然语音**中安装的语音仅供讲述人使用：它们只出现在讲述人自己的列表里，任何程序（包括本应用）都无法使用。可用的语音来自**时间和语言 → 语言和区域 → 添加语言**，并安装该语言的可选**语音**功能。安装后请重启 Novalist。",
     "wordsPerPage": "每印刷页词数",
-    "wordsPerPageDesc": "用于项目概览中的页数估算。平装本约 250，普及本接近 300，大字版约 150。清空则恢复为 250。"
+    "wordsPerPageDesc": "用于项目概览中的页数估算。平装本约 250，普及本接近 300，大字版约 150。清空则恢复为 250。",
+    "group": {
+      "general": "通用",
+      "writing": "写作",
+      "project": "项目",
+      "system": "系统",
+      "other": "其他"
+    }
   },
   "hotkeys": {
     "searchPlaceholder": "筛选快捷键...",
@@ -1828,7 +1848,8 @@
     "dependsFrom": "计算起点",
     "dependsFromStart": "它的开始",
     "dependsFromEnd": "它的结束",
-    "dateLocked": "固定此日期 — 连锁调整不会移动它"
+    "dateLocked": "固定此日期 — 连锁调整不会移动它",
+    "viewOptions": "视图选项"
   },
   "export": {
     "header": "导出小说",

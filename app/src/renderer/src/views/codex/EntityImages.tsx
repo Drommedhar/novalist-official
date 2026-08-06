@@ -65,7 +65,7 @@ export function EntityImages(): React.JSX.Element | null {
   }
 
   const importImage = async (): Promise<void> => {
-    const path = await window.novalist.pickFile(t('entityEditor.addImage'))
+    const path = await window.novalist.pickFile(t('entityEditor.addImage'), 'images')
     if (!path) return
     applyResult(
       await rpc.request<Record<string, unknown>>('entities/addImage', [

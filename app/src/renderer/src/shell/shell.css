@@ -2330,7 +2330,12 @@
 .timeline-body {
   flex: 1;
   overflow: auto;
-  padding: var(--nl-space-xl);
+  /* No padding at the top. A scroller's padding is part of what scrolls, and
+     the sticky month headings pin to the content edge below it - which left a
+     strip above every heading where the previous month's last event slid past,
+     visible and clipped. The opening gap is put on the content instead, so it
+     scrolls away and the heading pins flush. */
+  padding: 0 var(--nl-space-xl) var(--nl-space-xl);
 }
 
 .timeline-body.horizontal {
@@ -2354,6 +2359,25 @@
   top: 0;
   background: var(--nl-surface-editor);
   padding: var(--nl-space-tighter) 0;
+  /* Above the events, which are painted after it and would otherwise show
+     through as they scroll under. */
+  z-index: 1;
+}
+
+/* The gap the scroller's top padding used to give, moved onto the content so
+   that it scrolls rather than holding a strip open above the headings. */
+.timeline-body > *:first-child {
+  margin-top: var(--nl-space-xl);
+}
+
+/* The heading band runs the full width of the scroller rather than stopping at
+   the content's gutter, so nothing can slide past beside it. Horizontal mode
+   lays the groups out as columns and keeps its own inset. */
+.timeline-body.vertical .timeline-group-label {
+  margin-left: calc(-1 * var(--nl-space-xl));
+  margin-right: calc(-1 * var(--nl-space-xl));
+  padding-left: var(--nl-space-xl);
+  padding-right: var(--nl-space-xl);
 }
 
 .timeline-event {
@@ -4309,4 +4333,12 @@
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
+}
+
+/* Date navigation in the calendar toolbar: back, the range, forward. Grouped so
+   a wrapped toolbar keeps them on one line together. */
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
 }

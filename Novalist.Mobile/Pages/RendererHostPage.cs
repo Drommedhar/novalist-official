@@ -71,6 +71,11 @@ public sealed class RendererHostPage : ContentPage, IDisposable
             wk.ScrollView.MinimumZoomScale = 1f;
             wk.ScrollView.MaximumZoomScale = 1f;
             wk.ScrollView.BouncesZoom = false;
+            // The web layout never scrolls sideways (the single-pane shell scrolls
+            // vertically only), so refuse horizontal drags outright rather than let
+            // the page be pulled left and right into empty space.
+            wk.ScrollView.AlwaysBounceHorizontal = false;
+            wk.ScrollView.ShowsHorizontalScrollIndicator = false;
             if (wk.ScrollView.PinchGestureRecognizer != null)
                 wk.ScrollView.PinchGestureRecognizer.Enabled = false;
         }
@@ -389,6 +394,17 @@ public sealed class RendererHostPage : ContentPage, IDisposable
         return el.ValueKind == JsonValueKind.String ? el.GetString() ?? "" : "";
     }
 
+    private static List<string> ArgStrings(JsonElement args, int index)
+    {
+        var list = new List<string>();
+        if (args.ValueKind != JsonValueKind.Array || index >= args.GetArrayLength()) return list;
+        var el = args[index];
+        if (el.ValueKind != JsonValueKind.Array) return list;
+        foreach (var item in el.EnumerateArray())
+            list.Add(item.ValueKind == JsonValueKind.String ? item.GetString() ?? "" : "");
+        return list;
+    }
+
     // Absolute folder of the open project; set via setProjectRoot on project open.
     private string? _projectRoot;
 
@@ -454,8 +470,19 @@ public sealed class RendererHostPage : ContentPage, IDisposable
                 return ReadProjectImage(ArgString(args, 0));
             case "pickFile":
             {
+                // Images get the photo-library / Files choice (ImagePicking): the
+                // document picker alone cannot see the camera roll. args[2] carries
+                // the localized sheet labels (photos, files, cancel), in that order.
+                if (ArgString(args, 1) == "images")
+                {
+                    var labels = ArgStrings(args, 2);
+                    return await ImagePicking.PickImageAsync(
+                        ArgString(args, 0),
+                        labels.ElementAtOrDefault(0) ?? "Photo Library",
+                        labels.ElementAtOrDefault(1) ?? "Browse Files",
+                        labels.ElementAtOrDefault(2) ?? "Cancel").ConfigureAwait(false);
+                }
                 var options = new PickOptions { PickerTitle = ArgString(args, 0) };
-                if (ArgString(args, 1) == "images") options.FileTypes = FilePickerFileType.Images;
                 var result = await MainThread.InvokeOnMainThreadAsync(() => FilePicker.Default.PickAsync(options))
                     .ConfigureAwait(false);
                 return result?.FullPath;

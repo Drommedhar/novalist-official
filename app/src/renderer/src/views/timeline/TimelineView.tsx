@@ -1,10 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftRight, ChevronLeft, ChevronRight, FileDown, Plus, ZoomIn, Milestone } from 'lucide-react'
+import {
+  ArrowLeftRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  FileDown,
+  Plus,
+  ZoomIn,
+  Milestone
+} from 'lucide-react'
 import { rpc } from '../../rpc/client'
 import { StructurePanel } from './StructurePanel'
 import { useShellStore } from '../../stores/shellStore'
 import { useFilterStore } from '../../stores/filterStore'
+import { useIsPhone } from '../../shell/useIsPhone'
 import { FilterBar } from '../../shell/FilterBar'
 import { useProjectStore } from '../../stores/projectStore'
 import { useWikiStore } from '../../stores/wikiStore'
@@ -114,6 +124,9 @@ export function TimelineView(): React.JSX.Element {
   const { t } = useTranslation()
   const [data, setData] = useState<TimelineDto | null>(null)
   const [pending, setPending] = useState<Pending | null>(null)
+  const isPhone = useIsPhone()
+  /** Phone only: whether the timeline's setup controls are showing. */
+  const [toolbarOpen, setToolbarOpen] = useState(false)
   const [sourceFilter, setSourceFilter] = useState('all')
   // Filtering hides the threads being compared, which is exactly wrong for
   // "does this POV vanish for eighty pages". Lanes show them side by side.
@@ -374,6 +387,27 @@ export function TimelineView(): React.JSX.Element {
           <Plus size={14} strokeWidth={2} />
           {t('timeline.addEvent')}
         </button>
+        {/* Adding an event is what the toolbar is for; the other dozen controls
+            are how the timeline is set up, and on a phone they wrapped into five
+            rows above the events themselves. They fold behind one row, with the
+            primary action left out where it can be reached. */}
+        {isPhone && (
+          <button
+            type="button"
+            className="toolbar-button toolbar-action"
+            aria-expanded={toolbarOpen}
+            onClick={() => setToolbarOpen((open) => !open)}
+          >
+            {toolbarOpen ? (
+              <ChevronDown size={14} strokeWidth={2} />
+            ) : (
+              <ChevronRight size={14} strokeWidth={2} />
+            )}
+            {t('timeline.viewOptions')}
+          </button>
+        )}
+        {(!isPhone || toolbarOpen) && (
+          <>
         <button
           className="toolbar-button toolbar-action"
           onClick={() =>
@@ -569,6 +603,8 @@ export function TimelineView(): React.JSX.Element {
             }}
           />
         </div>
+          </>
+        )}
       </div>
 
       {/* A sub-view of the Timeline rather than its own place: structure is

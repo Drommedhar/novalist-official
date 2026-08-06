@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   paneLeaves,
@@ -72,6 +72,23 @@ function PaneTree({
   const activePaneId = useShellStore((s) => s.activePaneId)
   const setActivePane = useShellStore((s) => s.setActivePane)
   const only = useShellStore((s) => paneLeaves(s.panes).length < 2)
+  const leafRef = useRef<HTMLDivElement>(null)
+  const extView = useShellStore((s) => s.extView)
+
+  // A new view starts at the top. The .main-area scroller belongs to the pane,
+  // not to the view inside it, so switching views left it wherever the last one
+  // had been scrolled to - open Settings from a scrolled Dashboard and it came
+  // up in the middle. It only looked right when the new view was too short to
+  // hold the old offset and the browser clamped it away.
+  //
+  // Reset here rather than in each of the two dozen view branches: this is the
+  // one place every view passes through, and it reads the element instead of
+  // holding a ref, so a branch that renders its own .main-area cannot miss it.
+  useEffect(() => {
+    if (node.kind !== 'leaf') return
+    const area = leafRef.current?.querySelector('.main-area')
+    if (area) area.scrollTop = 0
+  }, [node.kind === 'leaf' ? node.view : null, extView])
 
   if (node.kind === 'split') {
     return (
@@ -95,6 +112,7 @@ function PaneTree({
 
   return (
     <div
+      ref={leafRef}
       className={`pane-leaf${!only && node.id === activePaneId ? ' active' : ''}`}
       // Capture, so clicking anything inside a pane makes it the active one
       // without every view having to know panes exist.

@@ -23,13 +23,18 @@ export type Harness = {
   close(): Promise<void>
 }
 
-export async function launchApp(prefix: string): Promise<Harness> {
+export async function launchApp(
+  prefix: string,
+  /** Extra environment for the launch, e.g. NOVALIST_FORCE_MOBILE for the phone shell. */
+  extraEnv: Record<string, string> = {}
+): Promise<Harness> {
   const workDir = mkdtempSync(join(tmpdir(), prefix))
   const env: Record<string, string> = Object.fromEntries(
     Object.entries(process.env).filter(([k, v]) => v !== undefined && k !== 'ELECTRON_RUN_AS_NODE')
   ) as Record<string, string>
   env.NOVALIST_NO_SPLASH = '1'
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
+  Object.assign(env, extraEnv)
 
   // A fresh Chromium profile per launch. The settings dir above isolates what
   // the backend writes, but everything the renderer remembers per machine -
@@ -42,7 +47,16 @@ export async function launchApp(prefix: string): Promise<Harness> {
     env
   })
   const page = await app.firstWindow()
-  await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  // The phone shell has no status bar to read the connection off, so it waits
+  // for its own root and for the RPC client the backend indicator stands for.
+  if (extraEnv.NOVALIST_FORCE_MOBILE === '1') {
+    // .shell.mobile is the root class; .mobile-shell only exists once a project
+    // is open, which is after this point.
+    await expect(page.locator('.shell.mobile')).toBeVisible({ timeout: 30_000 })
+    await page.waitForFunction(() => !!window.novalistRpc, undefined, { timeout: 30_000 })
+  } else {
+    await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+  }
 
   const rpc = <T,>(method: string, params: unknown[] = []): Promise<T> =>
     page.evaluate(

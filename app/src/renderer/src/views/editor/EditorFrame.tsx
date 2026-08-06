@@ -695,7 +695,7 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
         }
         case 'insertImageRequested': {
           void (async () => {
-            const path = await window.novalist.pickFile(t('editorImage.pick'))
+            const path = await window.novalist.pickFile(t('editorImage.pick'), 'images')
             if (!path) return
             const image = await rpc.request<{ path: string; url: string }>('gallery/import', [path])
             setPendingImage(image.path)

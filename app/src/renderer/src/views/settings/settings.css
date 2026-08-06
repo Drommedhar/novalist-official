@@ -399,3 +399,59 @@
   font-family: var(--nl-font-mono);
   font-size: var(--nl-font-ui);
 }
+
+/* ── Settings on a phone ──
+   The index that replaces the desktop nav column: a title, a search, and the
+   sections as grouped rows that open one at a time (see MobileNav). Bounded by
+   width, not by the mobile build - an iPad keeps the two-column layout. */
+@media (max-width: 700px) {
+  .shell.mobile .settings-phone {
+    padding: var(--nl-space-md) 0 var(--nl-space-xl);
+  }
+
+  .shell.mobile .settings-phone-title {
+    margin: 0 0 var(--nl-space-md);
+    padding: 0 var(--nl-space-lg);
+  }
+
+  .shell.mobile .settings-phone-search {
+    width: calc(100% - 2 * var(--nl-space-lg));
+    margin: 0 var(--nl-space-lg) var(--nl-space-xl);
+    min-height: var(--nl-control-h);
+  }
+
+  /* An opened section is the desktop body without its card: the nav bar above
+     already names it, so a second title inside would say it twice. */
+  .shell.mobile .settings-phone-section {
+    padding: 0 var(--nl-space-lg);
+  }
+
+  /* Controls a fingertip has to land on. The bodies are shared with the
+     desktop, so the sizing is applied here rather than in each of them. */
+  .shell.mobile .settings-phone-section .dialog-input,
+  .shell.mobile .settings-phone-section .inspector-input,
+  .shell.mobile .settings-phone-section select,
+  .shell.mobile .settings-phone-section .dialog-button {
+    min-height: var(--nl-control-h);
+  }
+
+  /* A field takes the row it is on. Sized to its content - which is what a
+     <select> does by default - a language picker showing "en" is a 60px target
+     floating in an empty line, and the form reads as a scatter of odd shapes
+     rather than a column. Buttons keep their own width: they are actions, and a
+     full-width button reads as the primary one. */
+  .shell.mobile .settings-phone-section .dialog-input,
+  .shell.mobile .settings-phone-section .inspector-input,
+  .shell.mobile .settings-phone-section select,
+  .shell.mobile .settings-phone-section textarea {
+    width: 100%;
+    max-width: none;
+  }
+
+  /* Except a colour well, which is a swatch. Stretched across the row it stops
+     reading as the colour it holds and becomes a painted bar. */
+  .shell.mobile .settings-phone-section input[type='color'] {
+    width: 64px;
+    max-width: 64px;
+  }
+}

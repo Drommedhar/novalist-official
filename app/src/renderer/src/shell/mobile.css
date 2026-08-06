@@ -21,33 +21,50 @@
   height: 100%;
   min-height: 0;
   background: var(--nl-surface-window);
+  /* The safe-area insets belong to the frame, not to the scroller inside it.
+     On .mobile-content they were part of the scrollable region: content scrolled
+     up THROUGH the top inset and showed in the status-bar strip, and a sticky
+     header could not cover it - sticky pins to the scrollport's content edge,
+     which is below that padding. Held out here, the scroller starts under the
+     status bar and there is nothing above it to scroll into. */
+  padding-top: var(--nl-safe-top);
+  /* Clear the side notch / Dynamic Island in landscape (0 in portrait). */
+  padding-left: var(--nl-safe-left);
+  padding-right: var(--nl-safe-right);
 }
 
 .mobile-content {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  /* Vertical only. `overflow: auto` made this a scroller on BOTH axes, and
+     WebKit lets a two-axis scroller be dragged sideways and rubber-band back
+     even when nothing overflows - so every view, Dashboard and Settings
+     included, could be pulled left and right for no reason. Clamping X also
+     means a layout that does overflow one day gets caught by m51 rather than
+     turning into a silent sideways drag. Containers that scroll horizontally
+     on purpose (Timeline, Plot Grid, tables) have their own inner scroller and
+     are unaffected. */
+  overflow-x: hidden;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-top: env(safe-area-inset-top);
-  /* Clear the side notch / Dynamic Island in landscape (0 in portrait). */
-  padding-left: env(safe-area-inset-left);
-  padding-right: env(safe-area-inset-right);
+  /* Top and side insets live on .mobile-shell above - see the note there. The
+     bottom one stays: content is meant to run to the very bottom and simply
+     stop clear of the tab bar. */
   /* Clear the native floating tab bar. RendererHostPage measures the real
      (bottom-pinned) tab-bar frame and pushes it as --nl-mobile-tabbar-h on every
      layout / rotation. Add the bottom safe-area inset so the last content clears
      the floating pill comfortably (it sits above the home indicator) in both
      orientations - a small extra gap is preferable to clipping on-device. */
-  padding-bottom: calc(var(--nl-mobile-tabbar-h) + env(safe-area-inset-bottom));
+  padding-bottom: calc(var(--nl-mobile-tabbar-h) + var(--nl-safe-bottom));
 }
 
 /* Back bar shown above the editor in the Manuscript tab. */
 .mobile-editor-bar {
   display: flex;
   align-items: center;
+  /* The shell now holds the safe-area insets, so this bar only needs its own
+     padding - adding the inset again would double it. */
   padding: var(--nl-space-sm) var(--nl-space-md);
-  padding-top: calc(env(safe-area-inset-top) + var(--nl-space-sm));
-  padding-left: calc(env(safe-area-inset-left) + var(--nl-space-md));
-  padding-right: calc(env(safe-area-inset-right) + var(--nl-space-md));
   border-bottom: 1px solid var(--nl-border-subtle);
   background: var(--nl-surface-toolbar);
 }
@@ -62,10 +79,6 @@
   font-size: var(--nl-font-body-lg);
   cursor: pointer;
   padding: var(--nl-space-tighter) var(--nl-space-sm);
-}
-
-.mobile-editor-bar + .mobile-content {
-  padding-top: 0;
 }
 
 /* The binder is a fixed-width sidebar on desktop (inline style width); full-width
@@ -234,10 +247,84 @@
    dismissed and covered the bottom of every tab on every launch. Lift it clear
    of the bar and let it use the width a phone actually has. */
 .shell.mobile .tour-card {
-  bottom: calc(var(--nl-mobile-tabbar-h) + env(safe-area-inset-bottom) + var(--nl-space-md));
-  left: calc(env(safe-area-inset-left) + var(--nl-space-md));
-  right: calc(env(safe-area-inset-right) + var(--nl-space-md));
+  bottom: calc(var(--nl-mobile-tabbar-h) + var(--nl-safe-bottom) + var(--nl-space-md));
+  left: calc(var(--nl-safe-left) + var(--nl-space-md));
+  right: calc(var(--nl-safe-right) + var(--nl-space-md));
   max-width: none;
+}
+
+/* ── Axis clamps: every screen the phone shell runs on ──
+   These containers each declare only `overflow-y: auto`, and CSS turns the other
+   axis from `visible` into `auto` as soon as one axis scrolls - so each became a
+   two-axis scroller that could be dragged sideways, whether or not there was
+   anything to drag. .mobile-content is clamped where it is defined above; these
+   are the scrollers inside it, which that clamp cannot reach.
+
+   .codex-tabs and CodeMirror's scrollers are deliberately left out: those scroll
+   horizontally on purpose. */
+.shell.mobile .codex-detail,
+.shell.mobile .codex-nav-scroll,
+.shell.mobile .language-pack-table {
+  overflow-x: hidden;
+}
+
+/* ── Narrow screens only ──
+   Everything below reshapes a layout written for a desktop pane so it fits a
+   phone. It is bounded by width rather than by .shell.mobile alone because the
+   iOS build runs on iPad too (UIDeviceFamily 1 and 2): keyed only on "is mobile",
+   these turned an 1180px iPad into a single column of stacked rows.
+
+   Width, not device, is the right question - an iPhone in landscape is 852px and
+   has the room for the full layouts, while an iPad in a narrow split view does
+   not. m51 measures both orientations of every device family. */
+@media (max-width: 700px) {
+  /* Each of these is a single flex line pairing a text field with buttons, a
+     colour swatch or a toggle. None of them wrap, so on a narrow screen the row
+     kept its one-line width and pushed the whole view past the edge - which is
+     what made Dashboard and Settings draggable sideways. */
+  .shell.mobile .stage-row,
+  .shell.mobile .match-row,
+  .shell.mobile .premise-voice-row,
+  .shell.mobile .settings-hotkeys-header {
+    flex-wrap: wrap;
+  }
+
+  /* A flex child containing an <input> or <select> keeps that control's default
+     intrinsic width as its floor - `flex: 1` alone will not shrink it - so the
+     row cannot fit however much it wraps until the floor is lifted. */
+  .shell.mobile .stage-row > .inspector-input,
+  .shell.mobile .match-row > .inspector-input,
+  .shell.mobile .premise-voice-row > select,
+  .shell.mobile .settings-hotkeys-filter {
+    min-width: 0;
+  }
+
+  /* Card insets sized for a desktop column: at 320px the two of them together
+     take a fifth of the screen, and the card outgrew its own grid. */
+  .shell.mobile .dashboard-card {
+    padding: var(--nl-space-lg);
+  }
+
+  /* The card grid asks for tracks of at least 320px (repeat(auto-fit,
+     minmax(320px, 1fr))). Once the view's own padding is off a 320px phone there
+     is less than that, so the track kept its floor and the cards hung over the
+     edge. One column that is free to shrink - which is what auto-fit resolves to
+     at this width anyway. */
+  .shell.mobile .dashboard-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* A relationship row puts a 140px kind column, a target field and a button on
+     one line - about 110px more than a phone has. Stack them instead. */
+  .shell.mobile .entity-rel-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* The language-pack rows keep their columns at min-content, a little wider
+     than a narrow phone. Let the text tracks shrink; the row stays a row. */
+  .shell.mobile .language-pack-row {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  }
 }
 
 /* ── Mobile bottom sheet (writing hub: Context / Footnotes / Notes) ── */
@@ -259,7 +346,7 @@
   border-top-left-radius: var(--nl-radius-xl);
   border-top-right-radius: var(--nl-radius-xl);
   box-shadow: var(--nl-elevation-md);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--nl-safe-bottom);
   transition: transform 0.2s ease;
   animation: mobile-sheet-up 0.24s ease;
 }
@@ -323,7 +410,9 @@
 .mobile-sheet-body {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  /* Same reason as .mobile-content: the sheet scrolls vertically only. */
+  overflow-x: hidden;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -386,4 +475,309 @@
 .mobile-codex-body > * {
   flex: 1 1 auto;
   min-height: 0;
+}
+
+/* ── Codex on a phone ──
+   The entry's editors sit behind rows (PhoneEntitySections in CodexView); this
+   is the room around them. It lives here rather than in the Codex stylesheet
+   because views/codex/codex.css is imported by nothing - anything put there
+   simply does not load. */
+@media (max-width: 700px) {
+  .shell.mobile .codex-phone-sections {
+    margin-top: var(--nl-space-xl);
+  }
+
+  /* A pushed editor is the desktop component given the page's own gutter; the
+     nav bar above already names it. */
+  .shell.mobile .codex-phone-page {
+    padding: 0 var(--nl-space-lg);
+  }
+
+  .shell.mobile .codex-phone-page .dialog-input,
+  .shell.mobile .codex-phone-page .inspector-input,
+  .shell.mobile .codex-phone-page select,
+  .shell.mobile .codex-phone-page textarea {
+    width: 100%;
+    max-width: none;
+    min-height: var(--nl-control-h);
+  }
+
+  .shell.mobile .codex-phone-page input[type='color'] {
+    width: 64px;
+    max-width: 64px;
+  }
+
+  /* Interview / arrange / delete were a row of buttons above the fields,
+     wrapping into three ragged columns on a phone. They are actions on the
+     entry, so they read as rows at the foot of it. */
+  .shell.mobile .codex-detail-actions {
+    flex-wrap: wrap;
+    gap: var(--nl-space-sm);
+  }
+
+  .shell.mobile .codex-detail-actions .dialog-button {
+    flex: 1 1 auto;
+    min-height: var(--nl-control-h);
+    justify-content: center;
+  }
+}
+
+/* ── Dashboard on a phone ──
+   The metric rows were written for a card in a desktop column: five status
+   counts and three pacing figures side by side. At 393px each cell is under
+   70px, so a four-digit count wraps mid-number and the labels below it stack
+   into columns of single words. Two up reads; five does not. */
+@media (max-width: 700px) {
+  .shell.mobile .dashboard-status-summary,
+  .shell.mobile .dashboard-pacing-summary,
+  .shell.mobile .dashboard-deadline-detail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--nl-space-lg);
+  }
+
+  /* The per-chapter analytics rows lead with a fixed 140px label column, over a
+     third of the screen, leaving the bar it labels too short to read as one.
+     The label takes its own line and the bar gets the width. */
+  .shell.mobile .analytics-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  /* Headline figures set at the desktop display step overflow their tile once
+     the tile is half a phone wide. */
+  .shell.mobile .dashboard-metric-value,
+  .shell.mobile .dashboard-summary-value,
+  .shell.mobile .dashboard-avg-value {
+    font-size: var(--nl-font-display-sm);
+  }
+}
+
+/* ── Planning views on a phone ──
+   These three did not need restructuring, which is worth saying: the Timeline
+   is already a vertical list of events, the Plot Grid is a sticky-label grid
+   that scrolls sideways on purpose, and a month grid is what a phone calendar
+   looks like anyway. What they needed was room and targets a finger can hit. */
+@media (max-width: 700px) {
+  /* Plot Grid: a 22px cell is a third of a fingertip. Widening the cells and
+     narrowing the label column keeps the overview - which is the entire point
+     of a grid - while making a scene tappable. The grid still scrolls sideways
+     inside .plotgrid-scroll, deliberately. */
+  .shell.mobile .plotgrid-cell {
+    width: 34px;
+    height: 34px;
+  }
+
+  .shell.mobile .plotgrid-rowlabel {
+    max-width: 116px;
+    font-size: var(--nl-font-ui);
+  }
+
+  .shell.mobile .plotgrid-scroll {
+    padding: var(--nl-space-md);
+  }
+
+  .shell.mobile .plotgrid-rowsource {
+    max-width: none;
+  }
+
+  /* Calendar: seven columns on a phone leaves ~50px a day, so the month's own
+     padding is the first thing to give back. */
+  .shell.mobile .calendar-month {
+    padding: var(--nl-space-sm);
+    gap: var(--nl-space-hairline);
+  }
+
+  .shell.mobile .calendar-cell {
+    padding: var(--nl-space-hairline);
+  }
+
+  /* An event in a 50px cell can only be a marker; its title belongs to the day
+     that is opened, not to the month. */
+  .shell.mobile .calendar-event {
+    padding: var(--nl-space-hairline) var(--nl-space-tightest);
+    font-size: var(--nl-font-caption);
+  }
+
+  /* Timeline: the list is right, the rows were sized for a mouse. */
+  .shell.mobile .timeline-event-head {
+    min-height: var(--nl-control-h);
+  }
+}
+
+/* ── The chapter list on a phone ──
+   The Write tab is the one a writer opens most, and it was giving the book
+   itself the bottom third of the screen: four rows of chrome - view tabs
+   wrapping onto two lines, a scene filter, a sort row, the book and draft
+   pickers - came to roughly 540px of an 852px phone before the first chapter.
+
+   None of it is removed; it is put on one line each and allowed to scroll
+   sideways, which is what a phone does with a row of controls it cannot fit.
+   That gives the chapters back about half the screen. */
+@media (max-width: 700px) {
+  .shell.mobile .binder-tabs,
+  .shell.mobile .binder-scene-filter,
+  .shell.mobile .binder-sort-row,
+  .shell.mobile .mobile-bookdraft {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: var(--nl-space-tightest);
+    padding-bottom: var(--nl-space-tightest);
+  }
+
+  .shell.mobile .binder-tabs > *,
+  .shell.mobile .binder-scene-filter > *,
+  .shell.mobile .binder-sort-row > * {
+    flex: 0 0 auto;
+  }
+
+  /* The sort and book/draft pickers were sized to their content and stacked;
+     side by side on one line they cost a single row instead of two. */
+  .shell.mobile .binder-sort-select,
+  .shell.mobile .mobile-bookdraft-select {
+    min-height: var(--nl-control-h);
+  }
+
+  /* Chapter and scene rows are what the writer is aiming at, and a row sized by
+     its text is about half a fingertip tall. */
+  .shell.mobile .binder-chapter-row,
+  .shell.mobile .binder-scene-row {
+    min-height: var(--nl-control-h);
+  }
+
+  .shell.mobile .binder-scene-title,
+  .shell.mobile .binder-chapter-title {
+    font-size: var(--nl-font-body);
+  }
+
+  /* Separators between scenes, so the list reads as a list rather than as text
+     down a page - the same grouping the rest of the phone shell uses. */
+  .shell.mobile .binder-scene-wrap + .binder-scene-wrap {
+    border-top: 1px solid var(--nl-border-subtle);
+  }
+}
+
+/* The one row the folded binder controls leave behind. */
+@media (max-width: 700px) {
+  .shell.mobile .binder-phone-controls-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--nl-space-tighter);
+    width: 100%;
+    min-height: var(--nl-control-h);
+    padding: var(--nl-space-tightest) var(--nl-space-md);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--nl-border-subtle);
+    color: var(--nl-text-dim);
+    font-size: var(--nl-font-ui);
+    text-align: left;
+    cursor: pointer;
+  }
+}
+
+/* ── Calendar and Plot Grid on a phone ── */
+@media (max-width: 700px) {
+  /* The calendar's top bar carries a range switcher, a prev/next pair and the
+     month label, which came to 753px of controls in a 393px viewport - reachable
+     only by scrolling the bar sideways, so half of it was always off screen.
+     Wrapped onto two lines it all fits and nothing has to be hunted for. */
+  .shell.mobile .calendar .timeline-toolbar {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    row-gap: var(--nl-space-sm);
+  }
+
+  .shell.mobile .calendar .timeline-toolbar > * {
+    flex-shrink: 1;
+  }
+
+  /* Date navigation reads as one thing - back, where you are, forward - so the
+     arrows travel with the label rather than being left at the ends of two
+     different lines. Ordering all three last keeps them together; the label
+     takes what is left between them and centres in it. */
+  .shell.mobile .calendar-nav {
+    order: 1;
+    flex: 1 1 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--nl-space-sm);
+  }
+
+  .shell.mobile .calendar-header-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: center;
+    font-size: var(--nl-font-body);
+  }
+
+  .shell.mobile .calendar .toolbar-button {
+    min-width: var(--nl-control-h);
+    min-height: var(--nl-control-h);
+  }
+
+  /* Plot Grid: the phone form is a list of threads, each opening its scenes. */
+  .shell.mobile .plotgrid-phone {
+    padding-top: var(--nl-space-lg);
+  }
+
+  .shell.mobile .plotgrid-phone-page {
+    padding-top: var(--nl-space-md);
+  }
+
+  /* The membership tick is the whole point of the row, so it is sized to be
+     hit rather than to sit beside a label. */
+  .shell.mobile .plotgrid-phone-check {
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    accent-color: var(--nl-accent);
+  }
+}
+
+/* The folded filter bar's single row (FilterBar). */
+@media (max-width: 700px) {
+  .shell.mobile .filter-bar-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--nl-space-tighter);
+    width: 100%;
+    min-height: var(--nl-control-h);
+    padding: var(--nl-space-tightest) var(--nl-space-md);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--nl-border-subtle);
+    color: var(--nl-text-dim);
+    font-size: var(--nl-font-ui);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  /* Unfolded, the bar is a column of full-width pickers rather than a row that
+     wraps into ragged pairs. */
+  .shell.mobile .filter-bar {
+    flex-wrap: wrap;
+    padding: var(--nl-space-sm) var(--nl-space-md);
+  }
+
+  /* Only inside the bar, where the row runs across. Standing on its own the
+     toggle is a child of the view's flex COLUMN, and a 100% basis there is read
+     as height - it stretched to fill and pushed the timeline off the screen. */
+  .shell.mobile .filter-bar > .filter-bar-toggle {
+    flex: 1 1 100%;
+    order: -1;
+  }
+
+  .shell.mobile .timeline > .filter-bar-toggle,
+  .shell.mobile .manuscript > .filter-bar-toggle {
+    flex: 0 0 auto;
+  }
+
+  /* The timeline's own toolbar sits under it; its actions wrap rather than
+     being cut off at the edge, since a row that scrolls out of sight reads as
+     missing buttons. */
+  .shell.mobile .timeline .timeline-toolbar {
+    flex-wrap: wrap;
+    overflow-x: visible;
+    row-gap: var(--nl-space-sm);
+  }
 }

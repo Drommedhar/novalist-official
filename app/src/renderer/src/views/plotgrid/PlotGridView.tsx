@@ -10,6 +10,86 @@ import { CustomFieldsPanel } from '../../shell/CustomFieldsPanel'
 import { PromisesPanel } from './PromisesPanel'
 import { PlotlineDetailDialog, type Plotline } from './PlotlineDetailDialog'
 import { PlotLanes } from './PlotLanes'
+import { MobileGroup, MobileNav, MobileRow, useMobileNav } from '../../shell/MobileNav'
+import { useIsPhone } from '../../shell/useIsPhone'
+
+/**
+ * The plot grid as a phone can show it.
+ *
+ * A matrix needs two axes on screen at once. On a 393px phone the scene names
+ * have to be turned on their side to fit, which cost a quarter of the height
+ * and still only showed seven columns, and the row labels were clipped
+ * mid-word - "Mira and Tom", "The inheritan". Read the grid it could not be.
+ *
+ * The question the grid answers is "which scenes carry this thread", so on a
+ * phone it is asked one thread at a time: the threads are a list, and opening
+ * one lists every scene with its membership as a checkbox. Same data, same
+ * toggle, one axis at a time.
+ */
+function PhonePlotGrid({
+  grid,
+  rowSource,
+  toggle
+}: {
+  grid: PlotGridDto
+  rowSource: string
+  toggle: (chapterGuid: string, sceneId: string, plotlineId: string) => Promise<void>
+}): React.JSX.Element {
+  const { t } = useTranslation()
+  const nav = useMobileNav()
+
+  const openThread = (line: Plotline): void => {
+    // Grouped by chapter, because a scene list without its chapters is a list
+    // of titles with no place in the book.
+    const chapters: { guid: string; title: string; scenes: PlotGridDto['columns'] }[] = []
+    for (const column of grid.columns) {
+      const last = chapters[chapters.length - 1]
+      if (last && last.guid === column.chapterGuid) last.scenes.push(column)
+      else chapters.push({ guid: column.chapterGuid, title: column.chapterTitle, scenes: [column] })
+    }
+    nav.push({
+      title: line.name,
+      content: (
+        <div className="plotgrid-phone-page">
+          {chapters.map((chapter) => (
+            <MobileGroup key={chapter.guid} header={chapter.title}>
+              {chapter.scenes.map((scene) => (
+                <MobileRow key={scene.sceneId} label={scene.sceneTitle}>
+                  <input
+                    type="checkbox"
+                    className="plotgrid-phone-check"
+                    aria-label={scene.sceneTitle}
+                    checked={scene.plotlineIds.includes(line.id)}
+                    onChange={() => void toggle(scene.chapterGuid, scene.sceneId, line.id)}
+                  />
+                </MobileRow>
+              ))}
+            </MobileGroup>
+          ))}
+        </div>
+      )
+    })
+  }
+
+  return (
+    <div className="plotgrid-phone">
+      <MobileGroup header={t(`plotGrid.rows${rowSource}`)}>
+        {grid.plotlines.map((line) => {
+          const count = grid.columns.filter((c) => c.plotlineIds.includes(line.id)).length
+          return (
+            <MobileRow
+              key={line.id}
+              label={line.name}
+              value={t('plotGrid.sceneCount', { count })}
+              onClick={() => openThread(line)}
+            />
+          )
+        })}
+      </MobileGroup>
+      {grid.plotlines.length === 0 && <p className="codex-empty">{t('plotGrid.empty')}</p>}
+    </div>
+  )
+}
 
 interface PlotGridDto {
   plotlines: Plotline[]
@@ -51,6 +131,7 @@ export function PlotGridView(): React.JSX.Element {
   // A matrix says which scenes a thread touches. Lanes say where two threads
   // meet, which is the question a revision actually asks.
   const [asLanes, setAsLanes] = useState(false)
+  const isPhone = useIsPhone()
 
   useEffect(() => {
     void rpc.request<PlotGridDto>('plot/grid', [rowSource]).then(setGrid)
@@ -72,6 +153,51 @@ export function PlotGridView(): React.JSX.Element {
             rowSource
           ])
         : await rpc.request<PlotGridDto>('plot/toggle', [chapterGuid, sceneId, plotlineId])
+    )
+  }
+
+  // On a phone the matrix is unreadable, so the same data is asked one thread
+  // at a time. The lanes view is a second matrix and goes the same way.
+  if (isPhone) {
+    return (
+      <MobileNav title={t('shell.view.plotGrid')}>
+        <div className="plotgrid">
+          <div className="plotgrid-toolbar">
+            <select
+              className="dialog-input plotgrid-rowsource"
+              value={rowSource}
+              aria-label={t('plotGrid.rowSource')}
+              onChange={(e) => setRowSource(e.target.value)}
+            >
+              {ROW_SOURCES.map((source) => (
+                <option key={source} value={source}>
+                  {t(`plotGrid.rows${source}`)}
+                </option>
+              ))}
+            </select>
+            {!byCodex && (
+              <button
+                className="toolbar-button toolbar-action"
+                onClick={() => setPending({ kind: 'create' })}
+              >
+                <Plus size={14} strokeWidth={2} />
+                {t('plotGrid.addPlotline')}
+              </button>
+            )}
+          </div>
+          <PhonePlotGrid grid={grid} rowSource={rowSource} toggle={toggle} />
+        </div>
+        {pending?.kind === 'create' && (
+          <InputDialog
+            title={t('plotGrid.addPlotline')}
+            onCancel={() => setPending(null)}
+            onSubmit={(name) => {
+              setPending(null)
+              void rpc.request<PlotGridDto>('plot/createPlotline', [name]).then(setGrid)
+            }}
+          />
+        )}
+      </MobileNav>
     )
   }
 

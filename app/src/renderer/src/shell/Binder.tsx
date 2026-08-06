@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronRight, MoreHorizontal, Pin, Plus } from 'lucide-react'
+import { ChevronDown, ChevronRight, MoreHorizontal, Pin, Plus } from 'lucide-react'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { ContextMenu, type ContextMenuItem } from './ContextMenu'
 import { MobileBookDraftBar } from './MobileBookDraftBar'
+import { useIsPhone } from './useIsPhone'
 import { InputDialog } from './InputDialog'
 import { ConfirmDialog } from './ConfirmDialog'
 import { ChapterDialog } from './ChapterDialog'
@@ -156,6 +157,9 @@ export function Binder(): React.JSX.Element {
   // Touch has no right-click/hover, so mobile surfaces add + row-menu buttons
   // (which reuse the same dialogs and context menu as the desktop).
   const isMobile = window.novalist.isMobile === true
+  const isPhone = useIsPhone()
+  /** Phone only: whether the filter / sort / book-draft rows are showing. */
+  const [controlsOpen, setControlsOpen] = useState(false)
   const [addChapterOpen, setAddChapterOpen] = useState(false)
   const [addSceneChapter, setAddSceneChapter] = useState<string | null>(null)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
@@ -670,7 +674,24 @@ export function Binder(): React.JSX.Element {
       {/* A scene taken out of the book is still in the plan, so the binder has
           to be able to show it, hide it, or show only the parked ones - which
           is the whole point of a state between keeping and archiving. */}
-      {binderTab === 'chapters' && (
+      {/* On a phone these three rows - the in-book filter, the sort and thread
+          pickers, and the book/draft bar - came to a third of the screen before
+          the first chapter, on the tab a writer opens most. Folded away, they
+          are one row until asked for; the chapters get the rest. Open on the
+          desktop, where the pane has the room and hiding them would only cost a
+          click. */}
+      {isPhone && binderTab === 'chapters' && (
+        <button
+          type="button"
+          className="binder-phone-controls-toggle"
+          aria-expanded={controlsOpen}
+          onClick={() => setControlsOpen((open) => !open)}
+        >
+          {controlsOpen ? <ChevronDown size={15} strokeWidth={2} /> : <ChevronRight size={15} strokeWidth={2} />}
+          {t('binder.sceneFilter')}
+        </button>
+      )}
+      {binderTab === 'chapters' && (!isPhone || controlsOpen) && (
         <div className="binder-scene-filter">
           {(['active', 'all', 'inactive'] as const).map((mode) => (
             <button
@@ -694,7 +715,7 @@ export function Binder(): React.JSX.Element {
       {/* Ordering and threads. Neither changes the book: one is a way of
           looking for a scene, the other a way of following one line through
           it. Reading order and every thread is where the binder starts. */}
-      {binderTab === 'chapters' && chapters.length > 0 && (
+      {binderTab === 'chapters' && chapters.length > 0 && (!isPhone || controlsOpen) && (
         <div className="binder-sort-row">
           <select
             className="binder-sort-select"
@@ -727,7 +748,7 @@ export function Binder(): React.JSX.Element {
           )}
         </div>
       )}
-      {isMobile && binderTab === 'chapters' && <MobileBookDraftBar />}
+      {isMobile && binderTab === 'chapters' && (!isPhone || controlsOpen) && <MobileBookDraftBar />}
       {isMobile && binderTab === 'chapters' && (
         <div className="binder-mobile-actions">
           <button className="binder-mobile-add" onClick={() => setAddChapterOpen(true)}>

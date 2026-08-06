@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, PanelRightOpen } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Binder } from './Binder'
@@ -171,6 +171,15 @@ export function MobileShell(): React.JSX.Element {
 
   const inEditor = tab === 'manuscript' && !!openSceneId
 
+  // A tab starts at the top. .mobile-content is one scroller shared by every
+  // tab, so its offset outlived the view in it: leaving a scrolled Dashboard for
+  // Settings dropped the writer into the middle of Settings. It only appeared to
+  // behave when the next tab was too short to hold the offset.
+  const contentRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (contentRef.current) contentRef.current.scrollTop = 0
+  }, [tab, planningView, codexMode, inEditor])
+
   let content: React.JSX.Element
   if (tab === 'dashboard') content = <DashboardView />
   else if (tab === 'codex')
@@ -239,7 +248,9 @@ export function MobileShell(): React.JSX.Element {
           </button>
         </div>
       )}
-      <div className="mobile-content">{content}</div>
+      <div className="mobile-content" ref={contentRef}>
+        {content}
+      </div>
       {inEditor && inspectorOpen && (
         <MobileInspectorSheet onClose={() => setInspectorOpen(false)} />
       )}

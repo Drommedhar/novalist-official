@@ -169,6 +169,51 @@
      screen. */
   --nl-scrim: rgb(0 0 0 / 0.45);
   --nl-scrim-strong: rgb(0 0 0 / 0.6);
+
+  /* The smallest a control may be and still be hit reliably. A pointer can
+     land on whatever the text happens to occupy; a fingertip cannot, which is
+     why Apple's guidelines put the floor at 44pt. Desktop keeps its own,
+     smaller value - a mouse does not need the room, and rows sized for a thumb
+     read as a touch app on a desktop. */
+  --nl-control-h: 28px;
+
+  /* The screen's unusable edges - status bar and Dynamic Island at the top, the
+     notch in landscape, the home indicator below. Named as tokens rather than
+     written as env() at each use so there is one place that decides, and so a
+     test can put a real inset in: env() resolves to 0 everywhere except a
+     device, which is precisely where the mistakes do not show up. */
+  --nl-safe-top: env(safe-area-inset-top);
+  --nl-safe-right: env(safe-area-inset-right);
+  --nl-safe-bottom: env(safe-area-inset-bottom);
+  --nl-safe-left: env(safe-area-inset-left);
+}
+
+/* ===== Phone-sized values for the same scale =====
+   The type steps already agree with iOS - 17px body, 15px chrome - so what
+   changes on a phone is the room around them. The desktop gutters take a fifth
+   of a 393px screen, the display steps are set by viewport width and read as
+   shouting at arm's length, and a control sized by its text alone is smaller
+   than a fingertip.
+
+   Bounded by width rather than by the shell alone: the iOS build runs on iPad
+   too (UIDeviceFamily 1 and 2), and a 1180px iPad has the room for the desktop
+   values. Everything in the renderer reads these tokens, so a view picks the
+   phone sizing up without being edited. */
+@media (max-width: 700px) {
+  .shell.mobile {
+    --nl-space-xl: 16px;
+    --nl-space-xxl: 20px;
+
+    /* Headline steps stop scaling with the viewport and settle on the sizes
+       iOS uses for a navigation title and a grouped-list header. */
+    --nl-font-title: 22px;
+    --nl-font-title-sm: 20px;
+    --nl-font-display-sm: 26px;
+    --nl-font-display: 28px;
+    --nl-font-display-lg: 34px;
+
+    --nl-control-h: 44px;
+  }
 }
 
 /* ===== 2. Default theme: the Novalist identity =====

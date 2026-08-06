@@ -299,13 +299,18 @@ export function CalendarView(): React.JSX.Element {
         <button className="dashboard-range" onClick={() => jumpTo(new Date())}>
           {t('calendar.today')}
         </button>
-        <button className="toolbar-button" onClick={() => pan(-1)} title={t('timeline.prev')}>
-          <ChevronLeft size={15} strokeWidth={2} />
-        </button>
-        <span className="calendar-header-label">{headerLabel}</span>
-        <button className="toolbar-button" onClick={() => pan(1)} title={t('timeline.next')}>
-          <ChevronRight size={15} strokeWidth={2} />
-        </button>
+        {/* Back, where you are, forward: one control, so a phone wrapping the
+            toolbar onto a second line keeps them together instead of leaving an
+            arrow stranded at the end of each line. */}
+        <div className="calendar-nav">
+          <button className="toolbar-button" onClick={() => pan(-1)} title={t('timeline.prev')}>
+            <ChevronLeft size={15} strokeWidth={2} />
+          </button>
+          <span className="calendar-header-label">{headerLabel}</span>
+          <button className="toolbar-button" onClick={() => pan(1)} title={t('timeline.next')}>
+            <ChevronRight size={15} strokeWidth={2} />
+          </button>
+        </div>
         <button
           className={`dashboard-range${configOpen ? ' active' : ''}`}
           onClick={() => setConfigOpen((open) => !open)}

@@ -6,6 +6,16 @@
       "codex": "Codex",
       "planning": "Planen",
       "settings": "Einstellungen"
+    },
+    "imageSource": {
+      "photos": "Fotomediathek",
+      "files": "Dateien durchsuchen"
+    },
+    "entity": {
+      "relationships": "Beziehungen",
+      "customProperties": "Eigene Eigenschaften",
+      "images": "Bilder",
+      "chapterOverrides": "Kapitel-Überschreibungen"
     }
   },
   "splash": {
@@ -151,7 +161,10 @@
     "unresolvedBadge": "{{count}} offen",
     "asLanes": "Als Spuren",
     "asGrid": "Als Raster",
-    "laneEmpty": "noch in keiner Szene"
+    "laneEmpty": "noch in keiner Szene",
+    "sceneCount_one": "{{count}} Szene",
+    "sceneCount_other": "{{count}} Szenen",
+    "sceneCount": "{{count}} Szenen"
   },
   "smartList": {
     "section": "Smart-Listen",
@@ -491,7 +504,14 @@
     "readAloudNoMatchingVoice": "Keine der verfügbaren Stimmen spricht {{language}}; das Vorlesen nutzt daher die Stimme, die Ihr System auswählt.",
     "readAloudVoiceKinds": "Windows kennt zwei Arten von Stimmen, und nur eine davon können Anwendungen nutzen. Stimmen aus **Barrierefreiheit → Sprachausgabe → Natürliche Stimmen hinzufügen** sind der Sprachausgabe vorbehalten: Sie erscheinen in deren eigener Liste und in keinem Programm, auch nicht in diesem. Nutzbar sind Stimmen aus **Zeit und Sprache → Sprache und Region → Sprache hinzufügen**, samt der optionalen Funktion **Sprache**. Danach Novalist neu starten.",
     "wordsPerPage": "Woerter je gedruckter Seite",
-    "wordsPerPageDesc": "Fuer die Seitenschaetzung in der Projektuebersicht. Taschenbuch etwa 250, Massenmarkt eher 300, Grossdruck etwa 150. Leeres Feld setzt auf 250 zurueck."
+    "wordsPerPageDesc": "Fuer die Seitenschaetzung in der Projektuebersicht. Taschenbuch etwa 250, Massenmarkt eher 300, Grossdruck etwa 150. Leeres Feld setzt auf 250 zurueck.",
+    "group": {
+      "general": "Allgemein",
+      "writing": "Schreiben",
+      "project": "Projekt",
+      "system": "System",
+      "other": "Sonstiges"
+    }
   },
   "hotkeys": {
     "searchPlaceholder": "Tastenkürzel filtern...",
@@ -1391,7 +1411,8 @@
     "dependsFrom": "Gerechnet ab",
     "dependsFromStart": "seinem Anfang",
     "dependsFromEnd": "seinem Ende",
-    "dateLocked": "Datum festhalten - eine Verschiebung lässt es stehen"
+    "dateLocked": "Datum festhalten - eine Verschiebung lässt es stehen",
+    "viewOptions": "Ansichtsoptionen"
   },
   "export": {
     "header": "Roman exportieren",
