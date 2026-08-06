@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.0.2] - 2026-08-06
+
 ### Fixed
 
 - Switching views now starts you at the top. Opening a long view from a scrolled one dropped you into the middle of it — leaving a scrolled Dashboard for Settings landed halfway down the page.
@@ -1158,7 +1164,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.0.1...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.0.2...HEAD
+[3.0.2]: https://github.com/Drommedhar/novalist-official/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/Drommedhar/novalist-official/compare/v3.0...v3.0.1
 [3.0]: https://github.com/Drommedhar/novalist-official/compare/v2.5...v3.0
 [2.5]: https://github.com/Drommedhar/novalist-official/compare/v2.4...v2.5
