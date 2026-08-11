@@ -39,6 +39,10 @@ public interface IEffectiveSettings
 
     string AutoReplacementLanguage { get; }
 
+    /// <summary>Whether anything is substituted while typing. Off leaves the
+    /// writer's own quotes, hyphens and dots exactly as typed.</summary>
+    bool AutoReplacementEnabled { get; }
+
     /// <summary>The name put on a suggested edit.</summary>
     string ReviewerName { get; }
     List<AutoReplacementPair> AutoReplacements { get; }

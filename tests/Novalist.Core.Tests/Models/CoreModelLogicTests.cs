@@ -26,6 +26,23 @@ public class AppSettingsTests
     }
 
     [Fact]
+    public void AutoReplacementIsOnForAFreshInstall()
+        => Assert.True(new AppSettings().AutoReplacementEnabled);
+
+    [Fact]
+    public void SwitchingAutoReplacementOff_KeepsThePairsForWhenItComesBack()
+    {
+        var s = new AppSettings { AutoReplacementEnabled = false };
+        s.EnsureDefaults();
+
+        // The switch governs whether the pairs are used, not whether they
+        // exist - turning it back on must restore the language's own quotes
+        // rather than the English fallback.
+        Assert.False(s.AutoReplacementEnabled);
+        Assert.NotEmpty(s.AutoReplacements);
+    }
+
+    [Fact]
     public void GetKnownInverseRoles_Blank_ReturnsEmpty()
         => Assert.Empty(new AppSettings().GetKnownInverseRoles("  "));
 
@@ -124,6 +141,10 @@ public class SettingsOverridesTests
         => Assert.True(new SettingsOverrides { GrammarCheckEnabled = true }.HasWritingOverride);
 
     [Fact]
+    public void HasWritingOverride_TrueForAutoReplacementSwitchAlone()
+        => Assert.True(new SettingsOverrides { AutoReplacementEnabled = false }.HasWritingOverride);
+
+    [Fact]
     public void ClearAppearance_NullsAppearanceKeys()
     {
         var o = new SettingsOverrides { Language = "en", Theme = "dark", AccentColor = "#fff" };
@@ -153,9 +174,15 @@ public class SettingsOverridesTests
     [Fact]
     public void ClearWriting_NullsWritingKeys()
     {
-        var o = new SettingsOverrides { GrammarCheckEnabled = true, AutoReplacementLanguage = "en" };
+        var o = new SettingsOverrides
+        {
+            GrammarCheckEnabled = true,
+            AutoReplacementLanguage = "en",
+            AutoReplacementEnabled = false
+        };
         o.ClearWriting();
         Assert.False(o.HasWritingOverride);
+        Assert.Null(o.AutoReplacementEnabled);
     }
 
     /// <summary>The values a pin copies from — a global settings object, which
@@ -184,6 +211,7 @@ public class SettingsOverridesTests
         BookFontFamily = "Fraunces",
         BookFontSize = 12,
         AutoReplacementLanguage = "de-low",
+        AutoReplacementEnabled = false,
         AutoReplacements = [new AutoReplacementPair { Start = "\"", StartReplace = "„" }],
         DialogueCorrectionEnabled = true,
         GrammarCheckEnabled = true,
@@ -246,6 +274,7 @@ public class SettingsOverridesTests
 
         Assert.True(o.HasWritingOverride);
         Assert.Equal("de-low", o.AutoReplacementLanguage);
+        Assert.False(o.AutoReplacementEnabled);
         Assert.True(o.DialogueCorrectionEnabled);
         Assert.True(o.GrammarCheckEnabled);
         Assert.Equal("https://example.invalid", o.GrammarCheckApiUrl);

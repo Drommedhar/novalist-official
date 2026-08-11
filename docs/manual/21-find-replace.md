@@ -90,6 +90,8 @@ Six rules, each independent and all on by default:
 
 Markup is never touched. A straight quote inside `class="..."` is not a quotation mark, and the spaces inside a style attribute are not prose.
 
+If you have unticked **Replace quotes and dashes as I type** in Settings → Writing assistance, the first two rules are greyed out and cannot be run. They are the same substitutions the switch turned off, and a cleanup pass would apply them to the whole book in one go. The other four are unaffected.
+
 **Show me what would change** reports how many scenes the pass would rewrite and names them, without changing anything. Use it first — this is not something to find out about afterwards.
 
 **Clean up** runs the pass and takes a snapshot of every scene before it changes it, the same as Replace All. If a rule did something you did not want, the previous version is in [Snapshots](17-snapshots.md).

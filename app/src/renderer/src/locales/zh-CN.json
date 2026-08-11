@@ -543,7 +543,9 @@
     "projectAuthor": "作者",
     "projectAuthorDesc": "仪表板标题和导出内容中默认使用的作者名称。",
     "writingAssistance": "写作辅助",
-    "autoReplacement": "自动替换",
+    "autoReplacement": "输入时替换引号和破折号",
+    "autoReplacementDesc": "输入时把直引号转换为所选语言使用的引号对，把两个连字符转换为破折号，把三个点转换为省略号。关闭后，每个字符都保持您输入时的原样。下方的引号样式仍然决定本书的写作语言，导出、语法、拼写和统计都会读取它。",
+    "autoReplacementOffPreview": "已关闭 - 输入时不做任何替换。",
     "quoteStyle": "引号样式",
     "quoteStyleDesc": "选择用于智能引号、破折号和省略号替换的语言预设。",
     "dialogueCorrection": "对话标点纠正",
@@ -3299,7 +3301,8 @@
     "run": "清理",
     "previewCount": "{{total}} 个场景中有 {{changed}} 个会发生变化。",
     "ranCount": "已清理 {{total}} 个场景中的 {{changed}} 个。",
-    "snapshotNote": "每个场景在修改前都已创建快照。"
+    "snapshotNote": "每个场景在修改前都已创建快照。",
+    "autoReplacementOff": "已在设置中关闭引号和破折号替换，因此这两条规则在此不可用。"
   },
   "links": {
     "pointsAt": "指向",

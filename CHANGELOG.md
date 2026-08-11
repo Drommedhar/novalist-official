@@ -16,7 +16,9 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Added
+
+- **Auto-replacement can be switched off.** Settings, Writing assistance, **Replace quotes and dashes as I type**. Untick it and nothing is substituted while you write: a straight quote stays straight, `--` stays two hyphens, `...` stays three dots. There was no way to stop this before — the Quote Style picker offered eleven language presets and no twelfth option for "none", and that same picker also names the language your book is written in, so there was nothing safe to set it to. It stays where it is, because export, grammar check, spell check and the statistics all read it. The two matching rules in **Clean up the manuscript** are greyed out while the switch is off, so a cleanup pass cannot put the substitutions back over a whole book either. Your preset is remembered, so switching replacement back on picks up where you left it. Like the rest of Writing assistance, it can differ per project.
 
 ---
 

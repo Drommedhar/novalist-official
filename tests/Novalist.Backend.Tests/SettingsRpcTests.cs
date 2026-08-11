@@ -55,6 +55,23 @@ public sealed class SettingsRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task AutoReplacementCanBeSwitchedOff_WithoutLosingTheWritingLanguage()
+    {
+        var view = await _rpc.UpdateGlobalAsync(Patch(
+            """{"autoReplacementLanguage": "de-low", "autoReplacementEnabled": false}"""));
+
+        var effective = view.GetProperty("effective");
+        Assert.False(effective.GetProperty("autoReplacementEnabled").GetBoolean());
+        // The language still reaches export, grammar, spelling and statistics.
+        Assert.Equal("de-low", effective.GetProperty("autoReplacementLanguage").GetString());
+    }
+
+    [Fact]
+    public async Task AutoReplacementIsOnUntilTheWriterSaysOtherwise()
+        => Assert.True((await _rpc.GetAsync())
+            .GetProperty("effective").GetProperty("autoReplacementEnabled").GetBoolean());
+
+    [Fact]
     public async Task ProjectOverrides_WinOverGlobal_AndClearSectionReverts()
     {
         await OpenProjectAsync();

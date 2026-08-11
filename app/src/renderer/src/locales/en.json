@@ -508,7 +508,9 @@
     "projectAuthor": "Author",
     "projectAuthorDesc": "Author name used as default on the dashboard header and in exports.",
     "writingAssistance": "Writing assistance",
-    "autoReplacement": "AUTO-REPLACEMENT",
+    "autoReplacement": "Replace quotes and dashes as I type",
+    "autoReplacementDesc": "Turns straight quotes into the pair your language uses, two hyphens into an em dash, and three dots into an ellipsis, as you type them. Switch it off to keep every character exactly as you typed it. The quote style below still sets the language your book is written in, which export, grammar, spelling and the statistics all read.",
+    "autoReplacementOffPreview": "Off - nothing is replaced as you type.",
     "quoteStyle": "Quote Style",
     "quoteStyleDesc": "Selects the language preset for smart quotes, em-dashes, and ellipsis replacement.",
     "dialogueCorrection": "Dialogue Punctuation Correction",
@@ -3257,7 +3259,8 @@
     "run": "Clean up",
     "previewCount": "{{changed}} of {{total}} scenes would change.",
     "ranCount": "Cleaned up {{changed}} of {{total}} scenes.",
-    "snapshotNote": "A snapshot was taken of every scene before it was changed."
+    "snapshotNote": "A snapshot was taken of every scene before it was changed.",
+    "autoReplacementOff": "Replacing quotes and dashes is switched off in Settings, so those two rules are not available here."
   },
   "links": {
     "pointsAt": "Points at",

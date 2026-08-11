@@ -191,6 +191,8 @@ As you type, certain character sequences are converted automatically based on th
 
 Replacements only fire as you type; pasted text is left alone.
 
+To switch them off entirely, untick **Replace quotes and dashes as I type** in Settings → Writing assistance. Nothing is then substituted — every character you type is the character that lands — and the two substitution rules in [Clean up the manuscript](21-find-replace.md#cleaning-up-a-whole-manuscript) are greyed out as well, so no later pass puts them back. The **Quote Style** picker stays where it is, because it is also the language your book is written in.
+
 ## Dialogue correction
 
 When **Dialogue Punctuation Correction** is enabled in Settings → Writing assistance, common dialogue punctuation mistakes are fixed as you type, following the conventions of the selected quote-style language — for example a period before a dialogue tag becomes a comma. Disable it if you have your own house style.

@@ -17,13 +17,26 @@ public class CleanupRpc(Workspace workspace)
 {
     private readonly Workspace _workspace = workspace;
 
-    private CleanupOptions Options(string[] rules) => new()
+    private CleanupOptions Options(string[] rules)
     {
-        Rules = [.. rules.Select(ParseRule).Where(r => r.HasValue).Select(r => r!.Value)],
-        // The book's writing language, so a German manuscript is smartened to
-        // low-9 quotes rather than to the English pair.
-        Language = _workspace.Settings.Effective.AutoReplacementLanguage
-    };
+        var settings = _workspace.Settings.Effective;
+        var parsed = rules.Select(ParseRule).Where(r => r.HasValue).Select(r => r!.Value);
+
+        // A writer who switched auto-replacement off asked for their own
+        // characters to be left alone. These two rules are exactly the pass
+        // that would put the substitutions back, over the whole book, in one
+        // run - so they are dropped here as well as hidden in the dialog.
+        if (!settings.AutoReplacementEnabled)
+            parsed = parsed.Where(r => r is not (CleanupRule.SmartenQuotes or CleanupRule.Typography));
+
+        return new CleanupOptions
+        {
+            Rules = [.. parsed],
+            // The book's writing language, so a German manuscript is smartened to
+            // low-9 quotes rather than to the English pair.
+            Language = settings.AutoReplacementLanguage
+        };
+    }
 
     /// <summary>An unknown rule is ignored rather than fatal: an older renderer
     /// naming a rule this build dropped should still clean up the rest.</summary>

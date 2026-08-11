@@ -331,6 +331,7 @@ public sealed class SettingsRpc
             ["bookFontFamily"] = effective.BookFontFamily,
             ["bookFontSize"] = effective.BookFontSize,
             ["autoReplacementLanguage"] = effective.AutoReplacementLanguage,
+            ["autoReplacementEnabled"] = effective.AutoReplacementEnabled,
             ["reviewerName"] = effective.ReviewerName,
             ["dialogueCorrectionEnabled"] = effective.DialogueCorrectionEnabled,
             ["grammarCheckEnabled"] = effective.GrammarCheckEnabled,

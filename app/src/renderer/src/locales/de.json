@@ -386,7 +386,9 @@
     "projectAuthor": "Autor",
     "projectAuthorDesc": "Standardname für Autor im Dashboard-Header und beim Export.",
     "writingAssistance": "Schreibhilfe",
-    "autoReplacement": "AUTO-ERSETZUNG",
+    "autoReplacement": "Anführungszeichen und Striche beim Tippen ersetzen",
+    "autoReplacementDesc": "Macht beim Tippen aus geraden Anführungszeichen das Paar Ihrer Sprache, aus zwei Bindestrichen einen Geviertstrich und aus drei Punkten Auslassungspunkte. Ausgeschaltet bleibt jedes Zeichen genau so, wie Sie es eingegeben haben. Der Anführungszeichen-Stil darunter legt weiterhin die Sprache fest, in der Ihr Buch geschrieben ist - Export, Grammatik, Rechtschreibung und Statistik lesen sie alle.",
+    "autoReplacementOffPreview": "Aus - beim Tippen wird nichts ersetzt.",
     "quoteStyle": "Anführungszeichen-Stil",
     "quoteStyleDesc": "Wählt die Sprachvorlage für typografische Anführungszeichen, Geviertstriche und Auslassungspunkte.",
     "dialogueCorrection": "Dialog-Zeichensetzung",
@@ -3265,7 +3267,8 @@
     "run": "Bereinigen",
     "previewCount": "{{changed}} von {{total}} Szenen würden sich ändern.",
     "ranCount": "{{changed}} von {{total}} Szenen bereinigt.",
-    "snapshotNote": "Vor jeder Änderung wurde ein Schnappschuss der Szene angelegt."
+    "snapshotNote": "Vor jeder Änderung wurde ein Schnappschuss der Szene angelegt.",
+    "autoReplacementOff": "Das Ersetzen von Anführungszeichen und Strichen ist in den Einstellungen abgeschaltet, deshalb stehen diese beiden Regeln hier nicht zur Verfügung."
   },
   "links": {
     "pointsAt": "Verweist auf",

@@ -88,6 +88,30 @@ public sealed class CleanupRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task WithAutoReplacementOff_TheQuotesAndDashesAreLeftAlone()
+    {
+        _workspace.Settings.Settings.AutoReplacementEnabled = false;
+
+        var report = await _rpc.RunAsync(EveryRule());
+
+        // The writer asked for their own characters to stand, and this pass is
+        // the one thing that could put the substitutions back over a whole
+        // book. The rest of the cleanup still runs.
+        Assert.Equal(1, report.ScenesChanged);
+        Assert.Equal("<p>\"He left--again...\"</p><p>* * *</p><p>Then she did.</p>",
+            await SceneTextAsync());
+    }
+
+    [Fact]
+    public async Task WithAutoReplacementOff_ThoseTwoRulesAloneAreNoPass()
+    {
+        _workspace.Settings.Settings.AutoReplacementEnabled = false;
+
+        Assert.Equal(0,
+            (await _rpc.PreviewAsync(["SmartenQuotes", "Typography"])).ScenesConsidered);
+    }
+
+    [Fact]
     public async Task NoRulesIsNoPass()
         => Assert.Equal(0, (await _rpc.PreviewAsync([])).ScenesConsidered);
 

@@ -33,6 +33,7 @@ public class EffectiveSettingsTests
             BookFontFamily = "Georgia",
             BookFontSize = 12,
             AutoReplacementLanguage = "en",
+            AutoReplacementEnabled = false,
             DialogueCorrectionEnabled = true,
             GrammarCheckEnabled = true,
             GrammarCheckApiUrl = "http://g",
@@ -65,6 +66,7 @@ public class EffectiveSettingsTests
         Assert.Equal("Georgia", sut.BookFontFamily);
         Assert.Equal(12, sut.BookFontSize);
         Assert.Equal("en", sut.AutoReplacementLanguage);
+        Assert.False(sut.AutoReplacementEnabled);
         Assert.Same(global.AutoReplacements, sut.AutoReplacements);
         Assert.True(sut.DialogueCorrectionEnabled);
         Assert.True(sut.GrammarCheckEnabled);
@@ -103,6 +105,7 @@ public class EffectiveSettingsTests
             BookFontFamily = "Serif",
             BookFontSize = 18,
             AutoReplacementLanguage = "de",
+            AutoReplacementEnabled = false,
             AutoReplacements = new List<AutoReplacementPair> { new() { Start = "x" } },
             DialogueCorrectionEnabled = false,
             GrammarCheckEnabled = false,
@@ -136,6 +139,10 @@ public class EffectiveSettingsTests
         Assert.Equal("Serif", sut.BookFontFamily);
         Assert.Equal(18, sut.BookFontSize);
         Assert.Equal("de", sut.AutoReplacementLanguage);
+        // The project can switch substitution off on its own, without the
+        // globals losing the language the other books are written in.
+        Assert.False(sut.AutoReplacementEnabled);
+        Assert.True(global.AutoReplacementEnabled);
         Assert.Same(ovr.AutoReplacements, sut.AutoReplacements);
         Assert.False(sut.DialogueCorrectionEnabled);
         Assert.False(sut.GrammarCheckEnabled);

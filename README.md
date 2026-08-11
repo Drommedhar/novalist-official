@@ -48,7 +48,7 @@ For extension authors, the [Extension Guide](docs/extension-guide.md) walks thro
 - Auto-save with per-scene **snapshot history** and a side-by-side compare view — revert a single scene without touching the rest of the project.
 - **Focus Mode** that hides every panel except the editor.
 - **Split panes** — divide the main area as many times as you like, each pane showing any view, and tear one off into its own window.
-- **Auto-replacements** for smart quotes, em-dashes, and ellipses with language presets (English, German, French, Spanish, Italian, Portuguese, Russian, Polish, Czech, Slovak).
+- **Auto-replacements** for smart quotes, em-dashes, and ellipses with language presets (English, German, French, Spanish, Italian, Portuguese, Russian, Polish, Czech, Slovak) — or switched off entirely, so every character you type is the character that lands.
 - **Dialogue punctuation correction** as you type.
 - **Offline spell check** using the operating system's own checker — no server, no account, no network — with a personal dictionary that travels with your settings.
 - **Grammar check** via LanguageTool (public endpoint by default; self-hosted endpoint supported).

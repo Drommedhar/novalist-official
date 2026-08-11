@@ -22,6 +22,10 @@ public class SettingsOverrides
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? AutoReplacementLanguage { get; set; }
 
+    [JsonPropertyName("autoReplacementEnabled")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? AutoReplacementEnabled { get; set; }
+
     /// <summary>The name put on a suggested edit; per project, because who is
     /// reviewing is a fact about the project rather than about the machine.</summary>
     public string? ReviewerName { get; set; }
@@ -172,7 +176,8 @@ public class SettingsOverrides
     /// <summary>True when any Writing-assistance key (auto-replace, dialogue, grammar) is overridden.</summary>
     [JsonIgnore]
     public bool HasWritingOverride =>
-        AutoReplacementLanguage != null || AutoReplacements != null || ReviewerName != null
+        AutoReplacementLanguage != null || AutoReplacementEnabled != null
+        || AutoReplacements != null || ReviewerName != null
         || DialogueCorrectionEnabled != null || GrammarCheckEnabled != null
         || SpellCheckEnabled != null || SpellCheckLanguages != null
         || GrammarCheckApiUrl != null || GrammarCheckApiKey != null || GrammarCheckUsername != null
@@ -219,6 +224,7 @@ public class SettingsOverrides
     public void PinWriting(Services.IEffectiveSettings source)
     {
         AutoReplacementLanguage = source.AutoReplacementLanguage;
+        AutoReplacementEnabled = source.AutoReplacementEnabled;
         ReviewerName = source.ReviewerName;
         AutoReplacements = [.. source.AutoReplacements];
         DialogueCorrectionEnabled = source.DialogueCorrectionEnabled;
@@ -267,6 +273,7 @@ public class SettingsOverrides
     public void ClearWriting()
     {
         AutoReplacementLanguage = null;
+        AutoReplacementEnabled = null;
         ReviewerName = null;
         AutoReplacements = null;
         DialogueCorrectionEnabled = null;

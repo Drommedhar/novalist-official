@@ -4057,6 +4057,16 @@
   margin: var(--nl-space-sm) 0;
 }
 
+/* A rule the writer has switched off in Settings. Shown rather than dropped,
+   so the reason is visible - a rule that vanished would read as a bug. The
+   whole row dims: a faint checkbox beside full-strength text does not read
+   as unavailable. */
+.cleanup-rules .relationships-toggle.is-unavailable {
+  color: var(--nl-text-dim);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .cleanup-report {
   border-top: 1px solid var(--nl-border);
   margin-top: var(--nl-space-sm);

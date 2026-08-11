@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { rpc } from '../rpc/client'
 import { useProjectStore } from '../stores/projectStore'
+import { useSettingsStore } from '../stores/settingsStore'
 
 interface CleanupReportDto {
   scenesConsidered: number
@@ -26,6 +27,16 @@ const RULES = [
 ] as const
 
 /**
+ * The two rules that are auto-replacement applied to prose already written.
+ *
+ * When the writer has switched auto-replacement off, running these would put
+ * back over the whole book exactly what the switch is there to prevent - so
+ * they are offered greyed out, not silently dropped, and the backend refuses
+ * them too.
+ */
+const SUBSTITUTION_RULES: readonly string[] = ['SmartenQuotes', 'Typography']
+
+/**
  * A cleanup pass over prose that is already written.
  *
  * Auto-replacements fire while typing and skip pasted text on purpose, so a
@@ -37,7 +48,11 @@ export function CleanupDialog({ onClose }: { onClose(): void }): React.JSX.Eleme
   const { t } = useTranslation()
   const chapters = useProjectStore((s) => s.chapters)
   const openChapterGuid = useProjectStore((s) => s.openChapterGuid)
-  const [rules, setRules] = useState<Set<string>>(new Set(RULES))
+  const autoReplacementEnabled = useSettingsStore(
+    (s) => s.view?.effective.autoReplacementEnabled ?? true
+  )
+  const offered = RULES.filter((r) => autoReplacementEnabled || !SUBSTITUTION_RULES.includes(r))
+  const [rules, setRules] = useState<Set<string>>(new Set(offered))
   const [wholeBook, setWholeBook] = useState(true)
   const [report, setReport] = useState<CleanupReportDto | null>(null)
   const [ran, setRan] = useState(false)
@@ -74,22 +89,32 @@ export function CleanupDialog({ onClose }: { onClose(): void }): React.JSX.Eleme
         <p className="inspector-meta">{t('cleanup.intro')}</p>
 
         <div className="cleanup-rules">
-          {RULES.map((rule) => (
-            <label key={rule} className="relationships-toggle">
-              <input
-                type="checkbox"
-                checked={rules.has(rule)}
-                onChange={(e) => {
-                  toggle(rule, e.target.checked)
-                  // The old count described a different pass, and a stale
-                  // number beside a changed choice is worse than none.
-                  setReport(null)
-                }}
-              />
-              {t(`cleanup.rule${rule}`)}
-            </label>
-          ))}
+          {RULES.map((rule) => {
+            const suppressed = !offered.includes(rule)
+            return (
+              <label
+                key={rule}
+                className={`relationships-toggle${suppressed ? ' is-unavailable' : ''}`}
+              >
+                <input
+                  type="checkbox"
+                  disabled={suppressed}
+                  checked={rules.has(rule)}
+                  onChange={(e) => {
+                    toggle(rule, e.target.checked)
+                    // The old count described a different pass, and a stale
+                    // number beside a changed choice is worse than none.
+                    setReport(null)
+                  }}
+                />
+                {t(`cleanup.rule${rule}`)}
+              </label>
+            )
+          })}
         </div>
+        {!autoReplacementEnabled && (
+          <p className="inspector-meta">{t('cleanup.autoReplacementOff')}</p>
+        )}
 
         {openChapter && (
           <label className="relationships-toggle">

@@ -88,6 +88,22 @@ public class AppSettings : IEffectiveSettings
     public string AutoReplacementLanguage { get; set; } = "en";
 
     /// <summary>
+    /// Whether anything is substituted as the writer types: the language's
+    /// quote pair, the em dash, the ellipsis. Off means the characters typed
+    /// are the characters kept - a straight quote stays straight and two
+    /// hyphens stay two hyphens - which is what a writer wants when the
+    /// manuscript goes somewhere with its own house style, or when the
+    /// substitution simply fights them.
+    ///
+    /// Separate from <see cref="AutoReplacementLanguage"/> because that value
+    /// doubles as the writing language for export, grammar, spell-check and
+    /// the statistics: switching substitution off must not cost the book the
+    /// language it is written in.
+    /// </summary>
+    [JsonPropertyName("autoReplacementEnabled")]
+    public bool AutoReplacementEnabled { get; set; } = true;
+
+    /// <summary>
     /// The name put on a suggested edit. Empty is fine for a writer working
     /// alone - it is only worth filling in when more than one person is
     /// suggesting, which is exactly when an unattributed edit is useless.

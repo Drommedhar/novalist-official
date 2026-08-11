@@ -47,6 +47,7 @@ public sealed class EffectiveSettings : IEffectiveSettings
     public double BookFontSize => O?.BookFontSize ?? G.BookFontSize;
 
     public string AutoReplacementLanguage => O?.AutoReplacementLanguage ?? G.AutoReplacementLanguage;
+    public bool AutoReplacementEnabled => O?.AutoReplacementEnabled ?? G.AutoReplacementEnabled;
     public string ReviewerName => O?.ReviewerName ?? G.ReviewerName;
     public List<AutoReplacementPair> AutoReplacements => O?.AutoReplacements ?? G.AutoReplacements;
     public bool DialogueCorrectionEnabled => O?.DialogueCorrectionEnabled ?? G.DialogueCorrectionEnabled;

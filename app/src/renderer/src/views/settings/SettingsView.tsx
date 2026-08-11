@@ -947,6 +947,22 @@ export function SettingsView(): React.JSX.Element {
       body: (
         <>
           {scopeToggle('writing')}
+          {/* The master switch comes before the style it governs. Off, nothing
+              is substituted as you type - the quote style below still names the
+              language the book is written in, which export, grammar, spelling
+              and the statistics all read. */}
+          <label className="relationships-toggle">
+            <input
+              id="set-auto-replacement"
+              type="checkbox"
+              checked={eff.autoReplacementEnabled}
+              onChange={(e) =>
+                void update(scopeFor('writing'), { autoReplacementEnabled: e.target.checked })
+              }
+            />
+            {t('settings.autoReplacement')}
+          </label>
+          <div className="settings-hint">{t('settings.autoReplacementDesc')}</div>
           <label className="inspector-label" htmlFor="set-quotes">
             {t('settings.quoteStyle')}
           </label>
@@ -965,7 +981,10 @@ export function SettingsView(): React.JSX.Element {
             ))}
           </select>
           <div className="settings-preview">
-            {t('settings.preview')}: {autoReplacementPreview(eff.autoReplacementLanguage)}
+            {t('settings.preview')}:{' '}
+            {eff.autoReplacementEnabled
+              ? autoReplacementPreview(eff.autoReplacementLanguage)
+              : t('settings.autoReplacementOffPreview')}
           </div>
           <label className="inspector-label" htmlFor="set-reviewer">
             {t('settings.reviewerName')}

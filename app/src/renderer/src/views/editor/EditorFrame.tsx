@@ -126,7 +126,12 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
   const view = useSettingsStore.getState().view
   if (!view) return
   const eff = view.effective
-  const pairs = (view.overrides?.autoReplacements ?? view.global.autoReplacements) as unknown[] | undefined
+  // An empty pair list is the off switch the editor page already understands:
+  // tryAutoReplace returns early and every keystroke stands as typed. The
+  // stored pairs are left untouched, so switching back on restores them.
+  const pairs = eff.autoReplacementEnabled
+    ? ((view.overrides?.autoReplacements ?? view.global.autoReplacements) as unknown[] | undefined)
+    : []
   editor.setAutoReplacements(JSON.stringify(pairs ?? []))
   editor.setDialogueCorrectionConfig(
     dialogueCorrectionConfigJson(eff.autoReplacementLanguage, eff.dialogueCorrectionEnabled)

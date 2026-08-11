@@ -28,6 +28,9 @@ export interface EffectiveSettings {
   bookFontFamily: string
   bookFontSize: number
   autoReplacementLanguage: string
+  /** Whether anything is substituted while typing. Off leaves the writer's own
+   * quotes, hyphens and dots exactly as typed. */
+  autoReplacementEnabled: boolean
   /** The name put on a suggested edit. */
   reviewerName: string
   dialogueCorrectionEnabled: boolean
