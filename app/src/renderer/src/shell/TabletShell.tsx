@@ -27,23 +27,50 @@ import { useProjectStore } from '../stores/projectStore'
 // the user opens it from the top bar. Landscape always clears it.
 const BINDER_AUTO_WIDTH = 900
 
+/**
+ * The binder's share of a tablet window.
+ *
+ * Not the desktop `binderWidth`, which this used to take: that is a fraction of
+ * the DISPLAY tuned for a window opening maximised on a large monitor, and on a
+ * tablet the same fraction lands on the desktop MINIMUM - 0.15 of an 11-inch
+ * iPad's 1194pt is 179 - so the column arrived at its floor and every chapter
+ * title, scene filter and draft picker in it was truncated mid-word. There is no
+ * divider to drag on a tablet either, so that default was the last word.
+ *
+ * Measured off the window rather than the screen, because a tablet rotates and
+ * `screen.availWidth` does not describe the pane after a rotation or in Split
+ * View. The bounds keep a 13-inch from spending 26% on a list of short titles
+ * and keep the narrowest window that still shows the binder legible.
+ */
+const TABLET_BINDER_FRACTION = 0.26
+const TABLET_BINDER_MIN = 260
+const TABLET_BINDER_MAX = 380
+
+function tabletBinderWidth(windowWidth: number): number {
+  const share = windowWidth * TABLET_BINDER_FRACTION
+  return Math.round(Math.min(TABLET_BINDER_MAX, Math.max(TABLET_BINDER_MIN, share)))
+}
+
 export function TabletShell(): React.JSX.Element {
   const { t } = useTranslation()
   const mainView = useShellStore((s) => s.mainView)
-  const binderWidth = useShellStore((s) => s.binderWidth)
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const [inspectorOpen, setInspectorOpen] = useState(false)
   // null = follow the window width; true/false = the user's explicit choice,
   // which survives rotation until they change it again.
   const [binderOverride, setBinderOverride] = useState<boolean | null>(null)
   const [wideEnough, setWideEnough] = useState(() => window.innerWidth >= BINDER_AUTO_WIDTH)
+  const [binderWidth, setBinderWidth] = useState(() => tabletBinderWidth(window.innerWidth))
   // The native sidebar owns its own width; we only tell it which state to be in.
   // Held in the store so it survives this component unmounting on a layout flip.
   const sidebarCollapsed = useShellStore((s) => s.sidebarCollapsed)
   const setSidebarCollapsed = useShellStore((s) => s.setSidebarCollapsed)
 
   useEffect(() => {
-    const onResize = (): void => setWideEnough(window.innerWidth >= BINDER_AUTO_WIDTH)
+    const onResize = (): void => {
+      setWideEnough(window.innerWidth >= BINDER_AUTO_WIDTH)
+      setBinderWidth(tabletBinderWidth(window.innerWidth))
+    }
     window.addEventListener('resize', onResize)
     onResize()
     return () => window.removeEventListener('resize', onResize)

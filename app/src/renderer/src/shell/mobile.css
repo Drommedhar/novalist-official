@@ -905,6 +905,30 @@
   border-right: 1px solid var(--nl-border);
 }
 
+/* The binder's chrome is a narrow COLUMN even when the window is wide, so the
+   folding the phone does to these rows belongs here too - the phone rules are
+   bounded by window width and an iPad never meets them, which left the desktop
+   behaviour in a column a third its intended size: four tabs wrapping onto two
+   lines, and three filter chips splitting the row into equal thirds so the
+   longest ellipsed to "Out of the ...".
+   One line each that scrolls sideways, and children sized to their own text
+   rather than to a share of the row, so every label reads in full. */
+[data-mobile-layout='tablet'] .binder-tabs,
+[data-mobile-layout='tablet'] .binder-scene-filter,
+[data-mobile-layout='tablet'] .binder-sort-row {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: var(--nl-space-tightest);
+  padding-bottom: var(--nl-space-tightest);
+}
+
+[data-mobile-layout='tablet'] .binder-tabs > *,
+[data-mobile-layout='tablet'] .binder-scene-filter > *,
+[data-mobile-layout='tablet'] .binder-sort-row > * {
+  flex: 0 0 auto;
+}
+
 [data-mobile-layout='tablet'] .tablet-main {
   display: flex;
   flex-direction: column;
