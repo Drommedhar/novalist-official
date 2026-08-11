@@ -22,6 +22,8 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ### Fixed
 
+- **Picking a quote style now changes the quotes you actually type.** The setting only ever seeded the replacement list on a fresh install, so choosing German — or French, or any of the others — after that first launch changed the preview line and nothing else: the prose kept getting English curly quotes, permanently, with the preview promising otherwise. Choosing a language rewrites the replacements to match it. Setting one for a single book leaves your other books alone, and clearing it lets the book go back to inheriting yours.
+
 - **The activity bar no longer runs off the bottom of a short window.** With enough views on the rail — and every extension that contributes one makes it longer — the icons at the end simply fell past the edge of the screen, taking **Extensions** and **Settings** with them. There was no way to reach them without making the window taller, and Extensions is exactly where you would go to deal with the extension whose icon had vanished. Whatever does not fit now moves into a **...** button at the end of the rail, which opens a menu of the views it is holding and highlights itself while you are on one of them. Extensions and Settings are pinned below it and never move. Views an extension contributed sit at the end of the rail, so they are the first to move into the menu.
 
 - **Long context menus stay on screen.** A menu opened near the bottom of a short window was placed using a guess at how tall its rows are, so a long one could be pushed off the top edge or run past the bottom. Menus are now measured, kept fully inside the window, and scroll when the window is shorter than the menu.

@@ -39,11 +39,25 @@ public sealed class SettingsRpc
         return JsonSerializer.SerializeToElement(payload, JsonOptions);
     }
 
+    /// <summary>
+    /// The patch key that carries the writing language.
+    ///
+    /// Named because picking a language has to do more than store the name:
+    /// the pairs are what the editor actually types against, and the language
+    /// only ever seeded them - and only while the list was empty. A writer who
+    /// chose German after their first launch got a preview promising low-9
+    /// quotes and English ones in the prose ever after.
+    /// </summary>
+    private const string LanguageKey = "autoReplacementLanguage";
+
     [JsonRpcMethod("settings/updateGlobal")]
     public async Task<JsonElement> UpdateGlobalAsync(Dictionary<string, JsonElement> patch)
     {
         var beforeLanguage = _workspace.Settings.Effective.Language;
-        Apply(_workspace.Settings.Settings, patch);
+        var settings = _workspace.Settings.Settings;
+        Apply(settings, patch);
+        if (patch.ContainsKey(LanguageKey))
+            settings.AutoReplacements = AutoReplacementDefaults.GetPreset(settings.AutoReplacementLanguage);
         await _workspace.Settings.SaveAsync();
         RaiseLanguageIfChanged(beforeLanguage);
         return await GetAsync();
@@ -66,7 +80,15 @@ public sealed class SettingsRpc
             throw new InvalidOperationException("No project open.");
         }
         var beforeLanguage = _workspace.Settings.Effective.Language;
-        Apply(_workspace.Projects.ProjectSettings.Overrides, patch);
+        var overrides = _workspace.Projects.ProjectSettings.Overrides;
+        Apply(overrides, patch);
+        // Clearing the language override clears the pairs with it, so the
+        // project goes back to inheriting both rather than keeping one book's
+        // quotes against everyone else's language.
+        if (patch.ContainsKey(LanguageKey))
+            overrides.AutoReplacements = overrides.AutoReplacementLanguage is null
+                ? null
+                : AutoReplacementDefaults.GetPreset(overrides.AutoReplacementLanguage);
         await _workspace.Projects.SaveProjectSettingsAsync();
         RaiseLanguageIfChanged(beforeLanguage);
         return await GetAsync();

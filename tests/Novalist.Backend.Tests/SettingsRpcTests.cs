@@ -67,6 +67,52 @@ public sealed class SettingsRpcTests : IDisposable
     }
 
     [Fact]
+    public async Task PickingALanguage_ReseedsThePairsTheEditorTypesAgainst()
+    {
+        // The pairs are the source of truth; the language only ever seeded them,
+        // and only while the list was empty. Picking German after the first
+        // launch used to leave English quotes in the prose for good.
+        var view = await _rpc.UpdateGlobalAsync(Patch("""{"autoReplacementLanguage": "de-low"}"""));
+
+        var pairs = view.GetProperty("global").GetProperty("autoReplacements");
+        var quotes = pairs.EnumerateArray().First(p => p.GetProperty("start").GetString() == "'");
+        Assert.Equal("„", quotes.GetProperty("startReplace").GetString());
+        Assert.Equal("“", quotes.GetProperty("endReplace").GetString());
+    }
+
+    [Fact]
+    public async Task PickingALanguageForOneProject_ReseedsOnlyThatProject()
+    {
+        await OpenProjectAsync();
+        await _rpc.UpdateGlobalAsync(Patch("""{"autoReplacementLanguage": "en"}"""));
+
+        var view = await _rpc.UpdateProjectAsync(Patch("""{"autoReplacementLanguage": "de-guillemet"}"""));
+
+        var overrides = view.GetProperty("overrides").GetProperty("autoReplacements");
+        var quotes = overrides.EnumerateArray().First(p => p.GetProperty("start").GetString() == "'");
+        Assert.Equal("»", quotes.GetProperty("startReplace").GetString());
+        // The other books keep the language they are written in.
+        var global = view.GetProperty("global").GetProperty("autoReplacements");
+        Assert.Equal("“",
+            global.EnumerateArray().First(p => p.GetProperty("start").GetString() == "'")
+                .GetProperty("startReplace").GetString());
+    }
+
+    [Fact]
+    public async Task ClearingTheLanguageOverride_LetsThePairsFallBackToo()
+    {
+        await OpenProjectAsync();
+        await _rpc.UpdateProjectAsync(Patch("""{"autoReplacementLanguage": "de-low"}"""));
+
+        var view = await _rpc.UpdateProjectAsync(Patch("""{"autoReplacementLanguage": null}"""));
+
+        // Keeping one book's quotes against everybody else's language is the
+        // half-overridden state this is here to prevent.
+        var overrides = view.GetProperty("overrides");
+        Assert.False(overrides.TryGetProperty("autoReplacements", out _));
+    }
+
+    [Fact]
     public async Task AutoReplacementIsOnUntilTheWriterSaysOtherwise()
         => Assert.True((await _rpc.GetAsync())
             .GetProperty("effective").GetProperty("autoReplacementEnabled").GetBoolean());
