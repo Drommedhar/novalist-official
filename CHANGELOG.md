@@ -16,7 +16,11 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- Chapters, Scenes and Words are capitalised wherever they name something rather than count it. In English the binder tab read "chapters" beside "Smart Lists" and "Collections", and the Dashboard read "Words / chapters / scenes / Reading Time"; the Manuscript grouping picker and the Outliner column headings had the same slip. Counts such as "1,234 words" are unchanged, and other languages were already correct.
+
+- Keyboard shortcuts that use the Command key now work while you are typing in the editor. Previously any Command shortcut pressed with the cursor in your text was ignored, so you had to click out of the editor first. Command-B, Command-I and Command-U still apply bold, italic and underline as before.
 
 ---
 

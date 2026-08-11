@@ -291,6 +291,15 @@ export const NOTES_DOCK_DEFAULT = initialPanelSize(
   screenH
 )
 
+/**
+ * Which mobile layout the native shell is showing, mirroring its horizontal size
+ * class: 'phone' is the compact single-pane layout (iPhone, and a narrow iPad
+ * Split View / Slide Over window), 'tablet' the iPad two-pane one. Announced by
+ * RendererHostPage through window.__novalistLayout and kept here so views can
+ * adapt without each re-deriving it from the window width.
+ */
+export type MobileLayout = 'phone' | 'tablet'
+
 interface ShellState {
   mainView: MainView
   /** The content area's pane tree. One leaf until the writer splits it. */
@@ -300,6 +309,7 @@ interface ShellState {
   /** Layouts the writer named. */
   layouts: SavedLayout[]
   mobileTab: MobileTab
+  mobileLayout: MobileLayout
   extView: ActiveExtView | null
   binderTab: BinderTab
   binderVisible: boolean
@@ -350,6 +360,15 @@ interface ShellState {
   applyLayout(name: string): void
   deleteLayout(name: string): void
   setMobileTab(tab: MobileTab): void
+  setMobileLayout(layout: MobileLayout): void
+  /**
+   * Tablet: whether the native sidebar is showing as an icon-only rail. Lives
+   * here rather than in TabletShell because that component unmounts whenever a
+   * narrow Split View drops to the phone layout - local state would reset to
+   * "expanded" while the native sidebar stayed a rail, desyncing the toggle.
+   */
+  sidebarCollapsed: boolean
+  setSidebarCollapsed(collapsed: boolean): void
   /** Switch to the Maps view and ask it to open the given map and focus a pin. */
   navigateToMapPin(mapId: string, pinId: string): void
   /** MapsView clears the pending nav once it has consumed it. */
@@ -477,6 +496,10 @@ export const useShellStore = create<ShellState>((set, get) => ({
   activePaneId: initialPanes.id,
   layouts: storedLayouts,
   mobileTab: 'dashboard',
+  // Compact until the native side says otherwise, so the desktop build and any
+  // pre-announcement frame render the narrow layout rather than flashing panes.
+  mobileLayout: 'phone',
+  sidebarCollapsed: false,
   extView: null,
   binderTab: 'chapters',
   binderVisible: true,
@@ -597,6 +620,8 @@ export const useShellStore = create<ShellState>((set, get) => ({
     }),
 
   setMobileTab: (mobileTab) => set({ mobileTab }),
+  setMobileLayout: (mobileLayout) => set({ mobileLayout }),
+  setSidebarCollapsed: (sidebarCollapsed) => set({ sidebarCollapsed }),
   navigateToMapPin: (mapId, pinId) =>
     set((s) => ({ ...showView(s, 'maps'), pendingMapNav: { mapId, pinId } })),
   clearPendingMapNav: () => set({ pendingMapNav: null }),

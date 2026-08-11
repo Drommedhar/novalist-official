@@ -37,6 +37,10 @@ interface Window {
     // True on the mobile (MAUI) build. Undefined on desktop. Gates capabilities
     // unavailable in the sandbox (e.g. Git/versioning UI).
     isMobile?: boolean
+    // Test-only: stands in for the iPad horizontal size class, which only the
+    // native shell can report. Set from NOVALIST_FORCE_TABLET so the e2e run can
+    // render the real TabletShell; never true in a shipped build.
+    isTablet?: boolean
     // Mobile-only: show/hide the native Liquid Glass tab bar (project vs welcome).
     setNavVisible?(visible: boolean): void
     // Mobile-only: push localized titles onto the native tab bar (tab order).
@@ -52,6 +56,17 @@ interface Window {
     // Mobile-only: show/hide the native Liquid Glass Plan popover with the given
     // localized labels (selection returns via window.__novalistPlanSelect).
     setPlanningMenuOpen?(open: boolean, labels: string[]): void
+    // Tablet-only (iPad, regular width): push localized titles onto the native
+    // Liquid Glass sidebar, in TABLET_DESTINATIONS order.
+    setSidebarTitles?(titles: string[]): void
+    // Tablet-only: keep the sidebar highlight on the destination actually shown
+    // (the web can switch views without a sidebar tap, e.g. opening a scene).
+    setSidebarSelection?(key: string): void
+    // Tablet-only: collapse the native sidebar to an icon-only rail, or expand it.
+    setSidebarCollapsed?(collapsed: boolean): void
+    // Mobile-only: ask the native side to re-announce the current layout through
+    // window.__novalistLayout (the first size-class pass can precede page load).
+    requestLayout?(): void
     isMas: boolean
     autoUpdate: boolean
     requestBackendPort(): void

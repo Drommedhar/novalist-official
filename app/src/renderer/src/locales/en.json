@@ -2164,6 +2164,7 @@
   },
   "shell": {
     "toggleBinder": "Toggle binder",
+    "toggleSidebar": "Toggle sidebar",
     "toggleInspector": "Toggle inspector",
     "toggleSceneNotes": "Toggle scene notes",
     "snapshots": "Scene snapshots",
@@ -2204,8 +2205,9 @@
       "extensions": "Extensions"
     },
     "words": "words",
-    "chapters": "chapters",
-    "scenes": "scenes",
+    "wordsTitle": "Words",
+    "chapters": "Chapters",
+    "scenes": "Scenes",
     "groupApp": "Application",
     "menu": "Menu",
     "view.series": "Series",

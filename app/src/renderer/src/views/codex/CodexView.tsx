@@ -8,6 +8,7 @@ import {
   Trash2
 } from 'lucide-react'
 import { useCodexStore, type EntityType } from '../../stores/codexStore'
+import { useShellStore } from '../../stores/shellStore'
 import { rpc } from '../../rpc/client'
 import { ConfirmDialog } from '../../shell/ConfirmDialog'
 import { EntityListsEditor } from './EntityListsEditor'
@@ -144,7 +145,10 @@ export function CodexView(): React.JSX.Element {
   const create = useCodexStore((s) => s.create)
   const remove = useCodexStore((s) => s.remove)
   const moveWorldBible = useCodexStore((s) => s.moveWorldBible)
-  const isMobile = window.novalist.isMobile === true
+  // Single-pane only where the width forces it. An iPad in the tablet layout has
+  // room for the desktop list + detail side by side, so it keeps both panes.
+  const tabletLayout = useShellStore((s) => s.mobileLayout) === 'tablet'
+  const isMobile = window.novalist.isMobile === true && !tabletLayout
   const isPhone = useIsPhone()
   const [arrangeOpen, setArrangeOpen] = useState(false)
   const [pending, setPending] = useState<

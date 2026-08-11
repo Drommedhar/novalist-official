@@ -376,12 +376,47 @@
   background: var(--nl-border);
 }
 
-.mobile-sheet-title {
+.mobile-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
   padding: 0 var(--nl-space-lg) var(--nl-space-sm);
+}
+
+.mobile-sheet-title {
+  flex: 1;
+  min-width: 0;
+  /* Offset the trailing close button so the title reads as centred. */
+  padding-left: calc(32px + var(--nl-space-sm));
   font-size: var(--nl-font-title);
   font-weight: 600;
   color: var(--nl-text);
   text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Explicit dismiss: the drag grabber is hidden in the tablet slide-over, and a
+   hardware keyboard needs something focusable besides the scrim. */
+.mobile-sheet-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 32px;
+  min-height: 32px;
+  background: none;
+  border: none;
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text-dim);
+  cursor: pointer;
+}
+
+.mobile-sheet-close:hover,
+.mobile-sheet-close:focus-visible {
+  color: var(--nl-text);
+  background: var(--nl-surface-window);
 }
 
 .mobile-sheet-tabs {
@@ -656,23 +691,25 @@
   }
 }
 
-/* The one row the folded binder controls leave behind. */
-@media (max-width: 700px) {
-  .shell.mobile .binder-phone-controls-toggle {
-    display: flex;
-    align-items: center;
-    gap: var(--nl-space-tighter);
-    width: 100%;
-    min-height: var(--nl-control-h);
-    padding: var(--nl-space-tightest) var(--nl-space-md);
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--nl-border-subtle);
-    color: var(--nl-text-dim);
-    font-size: var(--nl-font-ui);
-    text-align: left;
-    cursor: pointer;
-  }
+/* The one row the folded binder controls leave behind.
+   Not width-bounded and not scoped to either shell: the Binder renders this
+   button only when it is folding its controls, which is the phone and the iPad
+   both. Scoping it to a max-width would have missed the tablet, whose binder is
+   a narrow column inside a wide window. */
+.binder-controls-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  width: 100%;
+  min-height: var(--nl-control-h);
+  padding: var(--nl-space-tightest) var(--nl-space-md);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--nl-border-subtle);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+  text-align: left;
+  cursor: pointer;
 }
 
 /* ── Calendar and Plot Grid on a phone ── */
@@ -780,4 +817,186 @@
     overflow-x: visible;
     row-gap: var(--nl-space-sm);
   }
+}
+
+/* ══ Tablet (iPad, regular horizontal size class) ══════════════════════════
+   Two panes - a persistent binder beside the routed main view - with the native
+   leading Liquid Glass sidebar overlaying the web view. RendererHostPage pushes
+   its width as --nl-mobile-sidebar-w (0 in the compact layout) and pins
+   --nl-mobile-tabbar-h to 0, so the insets always match the chrome on screen.
+
+   Scoped by the documentElement attribute MobileShell sets rather than a class
+   on the shell, so overlays rendered outside the shell subtree match too. */
+
+[data-mobile-layout='tablet'] .tablet-shell {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  background: var(--nl-surface-window);
+  /* Reserve only the collapsed RAIL width. Expanding the sidebar slides it over
+     this content rather than reflowing it, so the Liquid Glass refracts the
+     manuscript underneath. RendererHostPage pushes the rail width here. */
+  padding-left: var(--nl-mobile-sidebar-w);
+}
+
+/* Slim bar carrying the binder toggle and, in the editor, the inspector. The
+   desktop Toolbar and StatusBar stay hidden on mobile in both layouts. */
+[data-mobile-layout='tablet'] .tablet-topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  flex: 0 0 auto;
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  padding-top: calc(env(safe-area-inset-top) + var(--nl-space-sm));
+  padding-right: calc(env(safe-area-inset-right) + var(--nl-space-md));
+  border-bottom: 1px solid var(--nl-border-subtle);
+  background: var(--nl-surface-toolbar);
+}
+
+[data-mobile-layout='tablet'] .tablet-topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 34px;
+  min-height: 34px;
+  background: none;
+  border: none;
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-accent);
+  cursor: pointer;
+}
+
+[data-mobile-layout='tablet'] .tablet-topbar-btn:focus-visible {
+  background: var(--nl-surface-selected);
+}
+
+[data-mobile-layout='tablet'] .tablet-topbar-btn-end {
+  margin-left: auto;
+}
+
+[data-mobile-layout='tablet'] .tablet-topbar-title {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--nl-font-title-sm);
+  font-weight: 600;
+  color: var(--nl-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-mobile-layout='tablet'] .tablet-body {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Fixed-width binder column; the Binder itself fills it (the compact rule below
+   stretches .binder to 100%, which is what we want inside this wrapper). */
+[data-mobile-layout='tablet'] .tablet-binder {
+  display: flex;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-right: 1px solid var(--nl-border);
+}
+
+/* The binder's chrome is a narrow COLUMN even when the window is wide, so the
+   folding the phone does to these rows belongs here too - the phone rules are
+   bounded by window width and an iPad never meets them, which left the desktop
+   behaviour in a column a third its intended size: four tabs wrapping onto two
+   lines, and three filter chips splitting the row into equal thirds so the
+   longest ellipsed to "Out of the ...".
+   One line each that scrolls sideways, and children sized to their own text
+   rather than to a share of the row, so every label reads in full. */
+[data-mobile-layout='tablet'] .binder-tabs,
+[data-mobile-layout='tablet'] .binder-scene-filter,
+[data-mobile-layout='tablet'] .binder-sort-row {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-top: var(--nl-space-tightest);
+  padding-bottom: var(--nl-space-tightest);
+}
+
+[data-mobile-layout='tablet'] .binder-tabs > *,
+[data-mobile-layout='tablet'] .binder-scene-filter > *,
+[data-mobile-layout='tablet'] .binder-sort-row > * {
+  flex: 0 0 auto;
+}
+
+[data-mobile-layout='tablet'] .tablet-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding-right: env(safe-area-inset-right);
+}
+
+[data-mobile-layout='tablet'] .tablet-main .main-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* The writing hub reads as a trailing slide-over on a tablet, not a bottom
+   sheet: in landscape - where an external keyboard usually is - a sheet rising
+   from the bottom would cover most of the line the user is writing. */
+[data-mobile-layout='tablet'] .mobile-sheet-overlay {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+/* Glass material. iOS 26 WebKit does not expose the system materials to CSS
+   (-apple-visual-effect is unsupported; only backdrop-filter is), and a native
+   UIVisualEffectView can only refract what sits BEHIND it in the view hierarchy
+   - below the web view there is nothing to refract. backdrop-filter samples the
+   real editor text behind the panel, which is the behaviour the native material
+   has, so it is the closest match available to web content in one web view. */
+[data-mobile-layout='tablet'] .mobile-sheet {
+  width: min(420px, 80vw);
+  height: 100%;
+  max-height: none;
+  border-radius: 0;
+  border-top-left-radius: var(--nl-radius-xl);
+  border-bottom-left-radius: var(--nl-radius-xl);
+  box-shadow: var(--nl-elevation-side);
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  animation: tablet-sheet-in 0.24s ease;
+  background: var(--nl-glass-surface);
+  -webkit-backdrop-filter: var(--nl-glass-blur);
+  backdrop-filter: var(--nl-glass-blur);
+  /* Specular hairline along the leading edge, as the native material has. */
+  border-left: 1px solid var(--nl-glass-hairline);
+}
+
+/* Lighter scrim than the phone sheet: the full scrim swamps the blur and the
+   panel stops reading as glass. */
+[data-mobile-layout='tablet'] .mobile-sheet-overlay {
+  background: var(--nl-scrim-soft);
+}
+
+@keyframes tablet-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Drag-down-to-dismiss makes no sense on a trailing panel; the close button,
+   the scrim, and Escape cover it. */
+[data-mobile-layout='tablet'] .mobile-sheet-grab {
+  display: none;
 }

@@ -2172,6 +2172,7 @@
   },
   "shell": {
     "toggleBinder": "Binder umschalten",
+    "toggleSidebar": "Seitenleiste umschalten",
     "toggleInspector": "Inspektor umschalten",
     "toggleSceneNotes": "Szenennotizen umschalten",
     "snapshots": "Szenen-Schnappschüsse",
@@ -2212,6 +2213,7 @@
       "extensions": "Erweiterungen"
     },
     "words": "Wörter",
+    "wordsTitle": "Wörter",
     "chapters": "Kapitel",
     "scenes": "Szenen",
     "groupApp": "Anwendung",

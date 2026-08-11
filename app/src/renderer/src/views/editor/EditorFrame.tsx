@@ -817,13 +817,21 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           break
         }
         case 'hotkey': {
-          dispatchForwardedHotkey({
-            key: String(message.key ?? ''),
+          const key = String(message.key ?? '')
+          const ran = dispatchForwardedHotkey({
+            key,
             code: String(message.code ?? ''),
             ctrlKey: Boolean(message.ctrlKey),
+            metaKey: Boolean(message.metaKey),
             shiftKey: Boolean(message.shiftKey),
             altKey: Boolean(message.altKey)
           })
+          // Escape is not a registered hotkey - it is what dismisses whatever
+          // overlay is up (mobile sheets, dialogs). Those listen on the window,
+          // which an iframe keydown never reaches, so replay it there.
+          if (!ran && key === 'Escape') {
+            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+          }
           break
         }
         case 'zoom': {

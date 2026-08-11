@@ -648,7 +648,7 @@ function Outliner(): React.JSX.Element {
         <span>{t('sceneNotes.goal')}</span>
         <span>{t('sceneNotes.outcome')}</span>
         <span>{t('common.povWatermark')}</span>
-        <span>{t('shell.words')}</span>
+        <span>{t('shell.wordsTitle')}</span>
         <span>{t('targets.column')}</span>
         {columns.map((property) => (
           <span key={property.key}>{property.label}</span>

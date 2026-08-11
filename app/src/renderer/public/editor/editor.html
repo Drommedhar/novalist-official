@@ -3140,6 +3140,7 @@ editor.addEventListener('keydown', (e) => {
             key: e.key,
             code: e.code,
             ctrlKey: e.ctrlKey,
+            metaKey: e.metaKey,
             shiftKey: e.shiftKey,
             altKey: e.altKey
         });
@@ -3148,13 +3149,17 @@ editor.addEventListener('keydown', (e) => {
 
     // Forward modifier key combinations to the host app for hotkey dispatch.
     // Exclude standard text-editing shortcuts handled natively by contenteditable.
-    if ((e.ctrlKey || e.altKey) && !isTextEditingShortcut(e)) {
+    // metaKey counts: the host treats Cmd as Ctrl, and on an iPad with a hardware
+    // keyboard (or macOS with the menu unavailable) Cmd is the only modifier a
+    // writer actually presses - without it every Cmd shortcut died in the editor.
+    if ((e.ctrlKey || e.metaKey || e.altKey) && !isTextEditingShortcut(e)) {
         e.preventDefault();
         sendMessage({
             type: 'hotkey',
             key: e.key,
             code: e.code,
             ctrlKey: e.ctrlKey,
+            metaKey: e.metaKey,
             shiftKey: e.shiftKey,
             altKey: e.altKey
         });
@@ -3162,13 +3167,21 @@ editor.addEventListener('keydown', (e) => {
 });
 
 function isTextEditingShortcut(e) {
-    if (!e.ctrlKey) return false;
+    // Cmd is the editing modifier on Apple platforms, so it must reserve the same
+    // native shortcuts (Cmd+C/V/X/Z/A) that Ctrl does elsewhere.
+    if (!e.ctrlKey && !e.metaKey) return false;
     var k = e.key.toLowerCase();
     // Navigation keys that should be handled natively by contenteditable
     var navKeys = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', 'home', 'end'];
     if (navKeys.includes(k)) return true;
-    // Ctrl+(no shift): select-all, copy, paste, cut, undo, redo
-    if (!e.shiftKey && !e.altKey) return 'acvxzy'.includes(k);
+    // Ctrl+(no shift): select-all, copy, paste, cut, undo, redo. On Apple
+    // keyboards Cmd+B/I/U are the system bold/italic/underline gestures and
+    // contenteditable applies them natively, so they stay reserved too -
+    // forwarding them would hand Cmd+B to the binder toggle (Ctrl+B) and take
+    // bold away from every macOS and iPad writer.
+    if (!e.shiftKey && !e.altKey) {
+        return 'acvxzy'.includes(k) || (e.metaKey && !e.ctrlKey && 'biu'.includes(k));
+    }
     // Ctrl+Shift+Z = redo
     if (e.shiftKey && !e.altKey && k === 'z') return true;
     return false;

@@ -89,6 +89,19 @@
      content can inset its bottom padding to sit above it. */
   --nl-mobile-tabbar-h: 49px;
 
+  /* Tablet (iPad, regular width): width of the native leading Liquid Glass
+     sidebar overlay, so web content can inset its left padding to clear it.
+     0 while the compact tab-bar layout is in use. */
+  --nl-mobile-sidebar-w: 0px;
+
+  /* Web approximation of the iOS Liquid Glass material, for panels that live
+     inside the WebView and therefore cannot be a real UIVisualEffectView (the
+     tablet slide-over). Composed against --nl-base so it tracks the theme, and
+     paired with a backdrop blur to pick up the content behind it. */
+  --nl-glass-surface: rgb(var(--nl-base) / 0.58);
+  --nl-glass-blur: blur(30px) saturate(180%);
+  --nl-glass-hairline: rgb(255 255 255 / 0.12);
+
   /* ===== Typography =====
      Anchored on the brand body size of 17px, and deliberately short: nine
      steps, none of them below 13px. Each one answers to a surface class, and
@@ -164,11 +177,21 @@
   --nl-elevation-md: 0 12px 32px -16px rgb(0 0 0 / 0.7);
   --nl-elevation-high: var(--nv-shadow);
 
+  /* The same cast thrown sideways, for a panel that enters from an edge rather
+     than sitting above the page - the tablet slide-over. The vertical steps
+     above put their shadow under the panel, where a trailing panel has nothing
+     to cast onto. */
+  --nl-elevation-side: -8px 0 32px rgb(0 0 0 / 0.35);
+
   /* The wash behind a sheet or a lightbox. Every overlay was writing its
      own rgba black, so they dimmed by different amounts on the same
      screen. */
   --nl-scrim: rgb(0 0 0 / 0.45);
   --nl-scrim-strong: rgb(0 0 0 / 0.6);
+  /* A panel that is glass dims what is behind it by refracting rather than by
+     darkening; at the full scrim the blur is swamped and it stops reading as
+     glass at all. */
+  --nl-scrim-soft: rgb(0 0 0 / 0.22);
 
   /* The smallest a control may be and still be hit reliably. A pointer can
      land on whatever the text happens to occupy; a fingertip cannot, which is
