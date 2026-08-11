@@ -210,6 +210,8 @@ If you find Novalist useful and want to support its development:
 
 [Buy me a coffee on Ko-fi](https://ko-fi.com/drommedhar)
 
+[Official Discord](https://discord.gg/xRyDQ7Cbvq)
+
 ## License
 
 [MIT](LICENSE)
