@@ -26,6 +26,16 @@ contextBridge.exposeInMainWorld('novalist', {
   // approximation of it, and a developer can eyeball the phone layout by
   // setting the variable. It is never set in a shipped build.
   isMobile: process.env.NOVALIST_FORCE_MOBILE === '1',
+  // On iOS the native side owns the horizontal size class and announces it; here
+  // there is no size class, so NOVALIST_FORCE_TABLET stands in for one. Without
+  // it the layout stays 'phone' and TabletShell can never render outside a
+  // simulator - which is how the iPad two-pane layout went a release cycle with
+  // its e2e "tablet" case silently exercising the phone shell at iPad width.
+  // A flag rather than a callback: contextIsolation gives the preload its own
+  // window, so it cannot reach the renderer's __novalistLayout. MobileShell feeds
+  // this through that callback instead, keeping one application point for both
+  // hosts. Never set in a shipped build.
+  isTablet: process.env.NOVALIST_FORCE_TABLET === '1',
   // Off in headless/e2e runs (NOVALIST_NO_SPLASH) so a network update check
   // never pops a modal that blocks tests. Also off in the Mac App Store build,
   // where self-updating is prohibited.

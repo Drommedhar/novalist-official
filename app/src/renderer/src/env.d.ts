@@ -37,6 +37,10 @@ interface Window {
     // True on the mobile (MAUI) build. Undefined on desktop. Gates capabilities
     // unavailable in the sandbox (e.g. Git/versioning UI).
     isMobile?: boolean
+    // Test-only: stands in for the iPad horizontal size class, which only the
+    // native shell can report. Set from NOVALIST_FORCE_TABLET so the e2e run can
+    // render the real TabletShell; never true in a shipped build.
+    isTablet?: boolean
     // Mobile-only: show/hide the native Liquid Glass tab bar (project vs welcome).
     setNavVisible?(visible: boolean): void
     // Mobile-only: push localized titles onto the native tab bar (tab order).

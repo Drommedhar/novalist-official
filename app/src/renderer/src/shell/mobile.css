@@ -943,7 +943,7 @@
   border-radius: 0;
   border-top-left-radius: var(--nl-radius-xl);
   border-bottom-left-radius: var(--nl-radius-xl);
-  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--nl-elevation-side);
   padding-top: env(safe-area-inset-top);
   padding-right: env(safe-area-inset-right);
   animation: tablet-sheet-in 0.24s ease;
@@ -954,10 +954,10 @@
   border-left: 1px solid var(--nl-glass-hairline);
 }
 
-/* Lighter scrim than the phone sheet: at 0.4 the dimming swamps the blur and the
+/* Lighter scrim than the phone sheet: the full scrim swamps the blur and the
    panel stops reading as glass. */
 [data-mobile-layout='tablet'] .mobile-sheet-overlay {
-  background: rgba(0, 0, 0, 0.22);
+  background: var(--nl-scrim-soft);
 }
 
 @keyframes tablet-sheet-in {

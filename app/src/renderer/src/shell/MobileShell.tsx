@@ -105,6 +105,10 @@ export function MobileShell(): React.JSX.Element {
     const w = window as unknown as { __novalistLayout?: (mode: string) => void }
     w.__novalistLayout = (mode: string) =>
       useShellStore.getState().setMobileLayout(mode === 'tablet' ? 'tablet' : 'phone')
+    // Electron has no size class to announce, so the e2e flag stands in for one.
+    // Pushed through the same callback the native side calls, so a test drives
+    // the real path into TabletShell rather than an approximation of it.
+    if (window.novalist.isTablet) w.__novalistLayout('tablet')
     window.novalist.requestLayout?.()
     return () => {
       delete w.__novalistLayout

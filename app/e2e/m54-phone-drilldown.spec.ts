@@ -111,6 +111,50 @@ test('tablet: the phone index does not follow the app onto an iPad', async () =>
 })
 
 /**
+ * The iPad shell itself, not merely the absence of the phone one.
+ *
+ * The case above passes at iPad width while still rendering MobileShell, because
+ * without a size class to report the layout stays 'phone' - so for a full release
+ * cycle "the iPad is fine" was asserted by a test that never built the two-pane
+ * tree at all. NOVALIST_FORCE_TABLET supplies the size class the simulator would,
+ * and this asserts the panes a writer is actually asking for: a binder standing
+ * beside the routed main view, both on screen at once.
+ */
+test('tablet: an iPad gets the binder and the main view side by side', async () => {
+  test.setTimeout(180_000)
+  const h = await launchApp('nl-tablet-', {
+    NOVALIST_FORCE_MOBILE: '1',
+    NOVALIST_FORCE_TABLET: '1'
+  })
+  await seedBook(h, { 'Chapter One': ['Scene A'] })
+  const page = h.page
+  await h.app.evaluate(async ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0]
+    win.setMinimumSize(300, 300)
+    win.setBounds({ width: 1180, height: 820 })
+  })
+  await page.waitForTimeout(1400)
+
+  await expect(page.locator('.tablet-shell')).toBeVisible()
+  expect(await page.locator('.mobile-shell').count(), 'the phone shell stands down').toBe(0)
+
+  const binder = page.locator('.tablet-binder')
+  const main = page.locator('.tablet-main')
+  await expect(binder).toBeVisible()
+  await expect(main).toBeVisible()
+
+  // Side by side, not stacked: the binder ends where the main view begins.
+  const b = await binder.boundingBox()
+  const m = await main.boundingBox()
+  expect(b, 'the binder is laid out').not.toBeNull()
+  expect(m, 'the main view is laid out').not.toBeNull()
+  expect(b!.x + b!.width, 'the binder sits left of the main view').toBeLessThanOrEqual(m!.x + 1)
+  expect(m!.width, 'the main view keeps a usable column').toBeGreaterThan(400)
+
+  await h.close()
+})
+
+/**
  * A push starts at the top of the new page; a pop returns to where the writer
  * was on the old one.
  *
