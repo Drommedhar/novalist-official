@@ -691,23 +691,25 @@
   }
 }
 
-/* The one row the folded binder controls leave behind. */
-@media (max-width: 700px) {
-  .shell.mobile .binder-phone-controls-toggle {
-    display: flex;
-    align-items: center;
-    gap: var(--nl-space-tighter);
-    width: 100%;
-    min-height: var(--nl-control-h);
-    padding: var(--nl-space-tightest) var(--nl-space-md);
-    background: none;
-    border: none;
-    border-bottom: 1px solid var(--nl-border-subtle);
-    color: var(--nl-text-dim);
-    font-size: var(--nl-font-ui);
-    text-align: left;
-    cursor: pointer;
-  }
+/* The one row the folded binder controls leave behind.
+   Not width-bounded and not scoped to either shell: the Binder renders this
+   button only when it is folding its controls, which is the phone and the iPad
+   both. Scoping it to a max-width would have missed the tablet, whose binder is
+   a narrow column inside a wide window. */
+.binder-controls-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-tighter);
+  width: 100%;
+  min-height: var(--nl-control-h);
+  padding: var(--nl-space-tightest) var(--nl-space-md);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--nl-border-subtle);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+  text-align: left;
+  cursor: pointer;
 }
 
 /* ── Calendar and Plot Grid on a phone ── */
