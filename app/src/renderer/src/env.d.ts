@@ -19,6 +19,7 @@ interface Window {
     codex: typeof import('./stores/codexStore').useCodexStore
     wiki: typeof import('./stores/wikiStore').useWikiStore
     settings: typeof import('./stores/settingsStore').useSettingsStore
+    extensions: typeof import('./stores/extensionsStore').useExtensionsStore
   }
   novalistRpc: import('./rpc/client').RpcClient
   novalistExtensionTheme: {

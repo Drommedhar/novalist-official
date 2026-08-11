@@ -11,6 +11,7 @@ import { useShellStore } from './stores/shellStore'
 import { useCodexStore } from './stores/codexStore'
 import { useWikiStore } from './stores/wikiStore'
 import { useSettingsStore } from './stores/settingsStore'
+import { useExtensionsStore } from './stores/extensionsStore'
 import { rpc } from './rpc/client'
 import { postThemeToFrame, themeTokens, watchTheme } from './shell/extensionTheme'
 
@@ -20,7 +21,8 @@ window.novalistStores = {
   shell: useShellStore,
   codex: useCodexStore,
   wiki: useWikiStore,
-  settings: useSettingsStore
+  settings: useSettingsStore,
+  extensions: useExtensionsStore
 }
 window.novalistRpc = rpc
 // The theme bridge for extension frames. Exposed for the same reason as the

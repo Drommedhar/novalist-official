@@ -54,6 +54,8 @@ The slim icon rail on the far left is the top-level view switcher. From top to b
 
 The **Editor** has no icon of its own — you reach it by opening a scene from the binder. The same destinations are also listed in the **Go** menu in the menu bar, and `Ctrl+1` through `Ctrl+9` jump to the most-used views — see [Hotkeys](26-hotkeys.md).
 
+In a window too short for every icon, whatever does not fit moves into a **...** button at the end of the rail; click it for a menu of the views it is holding, and the button is highlighted while you are on one of them. **Extensions** and **Settings** are pinned below and never move into the menu — Extensions is how you reach the extension whose icon went into it. Views the extensions contribute sit at the end of the rail, so they are the first to move. Make the window taller and the icons come back out.
+
 ## The binder
 
 The left pane is the chapter/scene tree only — view navigation lives in the activity bar.

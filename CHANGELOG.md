@@ -20,6 +20,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 - **Auto-replacement can be switched off.** Settings, Writing assistance, **Replace quotes and dashes as I type**. Untick it and nothing is substituted while you write: a straight quote stays straight, `--` stays two hyphens, `...` stays three dots. There was no way to stop this before — the Quote Style picker offered eleven language presets and no twelfth option for "none", and that same picker also names the language your book is written in, so there was nothing safe to set it to. It stays where it is, because export, grammar check, spell check and the statistics all read it. The two matching rules in **Clean up the manuscript** are greyed out while the switch is off, so a cleanup pass cannot put the substitutions back over a whole book either. Your preset is remembered, so switching replacement back on picks up where you left it. Like the rest of Writing assistance, it can differ per project.
 
+### Fixed
+
+- **The activity bar no longer runs off the bottom of a short window.** With enough views on the rail — and every extension that contributes one makes it longer — the icons at the end simply fell past the edge of the screen, taking **Extensions** and **Settings** with them. There was no way to reach them without making the window taller, and Extensions is exactly where you would go to deal with the extension whose icon had vanished. Whatever does not fit now moves into a **...** button at the end of the rail, which opens a menu of the views it is holding and highlights itself while you are on one of them. Extensions and Settings are pinned below it and never move. Views an extension contributed sit at the end of the rail, so they are the first to move into the menu.
+
+- **Long context menus stay on screen.** A menu opened near the bottom of a short window was placed using a guess at how tall its rows are, so a long one could be pushed off the top edge or run past the bottom. Menus are now measured, kept fully inside the window, and scroll when the window is shorter than the menu.
+
 ---
 
 ## [3.0.3] - 2026-08-11

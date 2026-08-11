@@ -204,6 +204,19 @@
   align-items: center;
 }
 
+/* The views take the room that is left; Extensions and Settings keep theirs.
+   min-height:0 lets this box shrink below its content so the rail can measure
+   what actually fits and move the rest into the "..." menu, rather than
+   growing and pushing the pinned buttons off the bottom of the window. */
+.activity-bar-top {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.activity-bar-bottom {
+  flex: 0 0 auto;
+}
+
 .activity-bar-group {
   display: flex;
   flex-direction: column;
@@ -1606,6 +1619,8 @@
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-lg);
   box-shadow: var(--nl-elevation-md);
+  max-height: calc(100vh - 16px);
+  overflow-y: auto;
 }
 
 .context-menu-item {

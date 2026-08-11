@@ -2247,6 +2247,7 @@
     "toggleSceneNotes": "切换场景笔记",
     "snapshots": "场景快照",
     "activityBar": "视图",
+    "activityBarMore": "更多视图",
     "view.series": "系列",
     "paneAwaitingScene": "在资料夹中选择一个场景，在这里书写。"
   },
