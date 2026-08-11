@@ -16,6 +16,12 @@ the GitHub release notes and stamps it with the tag's version and date.
 
 ## [Unreleased]
 
+Nothing yet.
+
+---
+
+## [3.0.3] - 2026-08-11
+
 ### Fixed
 
 - Chapters, Scenes and Words are capitalised wherever they name something rather than count it. In English the binder tab read "chapters" beside "Smart Lists" and "Collections", and the Dashboard read "Words / chapters / scenes / Reading Time"; the Manuscript grouping picker and the Outliner column headings had the same slip. Counts such as "1,234 words" are unchanged, and other languages were already correct.
@@ -1168,7 +1174,8 @@ First public release.
 
 ---
 
-[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.0.2...HEAD
+[Unreleased]: https://github.com/Drommedhar/novalist-official/compare/v3.0.3...HEAD
+[3.0.3]: https://github.com/Drommedhar/novalist-official/compare/v3.0.2...v3.0.3
 [3.0.2]: https://github.com/Drommedhar/novalist-official/compare/v3.0.1...v3.0.2
 [3.0.1]: https://github.com/Drommedhar/novalist-official/compare/v3.0...v3.0.1
 [3.0]: https://github.com/Drommedhar/novalist-official/compare/v2.5...v3.0
