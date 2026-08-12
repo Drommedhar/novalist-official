@@ -18,6 +18,23 @@ public class SettingsServiceTests
     }
 
     [Fact]
+    public async Task SavesThatOverlapDoNotCollideOnTheFile()
+    {
+        // Two edits in quick succession - tabbing between two fields of one
+        // form - used to reach the file at the same moment. Windows refuses the
+        // second write outright, and the edit it carried was gone with nothing
+        // to show the writer that anything had failed.
+        using var dir = new TempDir();
+        var sut = new SettingsService(dir.Path);
+
+        await Task.WhenAll(Enumerable.Range(0, 16).Select(_ => sut.SaveAsync()));
+
+        var reloaded = new SettingsService(dir.Path);
+        await reloaded.LoadAsync();
+        Assert.NotNull(reloaded.Settings);
+    }
+
+    [Fact]
     public async Task SaveThenLoad_RoundTrips()
     {
         using var dir = new TempDir();

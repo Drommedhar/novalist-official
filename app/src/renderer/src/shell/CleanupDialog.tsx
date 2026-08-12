@@ -20,6 +20,7 @@ interface CleanupReportDto {
 const RULES = [
   'SmartenQuotes',
   'Typography',
+  'CustomRules',
   'CollapseSpaces',
   'TrimParagraphs',
   'DropEmptyParagraphs',
@@ -34,7 +35,7 @@ const RULES = [
  * they are offered greyed out, not silently dropped, and the backend refuses
  * them too.
  */
-const SUBSTITUTION_RULES: readonly string[] = ['SmartenQuotes', 'Typography']
+const SUBSTITUTION_RULES: readonly string[] = ['SmartenQuotes', 'Typography', 'CustomRules']
 
 /**
  * A cleanup pass over prose that is already written.

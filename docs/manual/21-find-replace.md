@@ -79,10 +79,11 @@ Novalist's auto-replacements fire while you type, and they deliberately skip pas
 
 **Clean up the manuscript** does the whole set in one pass. Open it from the command palette. It has no default hotkey: it rewrites the prose in every scene it touches, and a pass that big should be reached on purpose rather than by a mistyped chord.
 
-Six rules, each independent and all on by default:
+Seven rules, each independent and all on by default:
 
 - **Curl straight quotes and apostrophes.** Quotes alternate open and closed, in the pair your book's writing language actually uses — a German manuscript gets low-9 quotes, not English ones. An apostrophe is never treated as a closing quote: "don't" and "the boys' coats" are ordinary prose. A quote that is neither clearly an elision nor clearly a quotation — `'73`, say — is left exactly as you typed it, because guessing wrong is worse than doing nothing.
 - **Turn double hyphens into dashes and three dots into an ellipsis.** The same table the typing-time replacements use, so the two cannot disagree.
+- **Apply my own replacement rules.** The [rules you wrote](05-editor.md#your-own-rules) in Settings → Writing assistance, run over prose already written — including the pattern ones, with their captures. They run before the quote pass, so a rule that produces a straight quote still gets curled. A pattern that turns out to be too slow to finish is abandoned rather than allowed to hold up the pass.
 - **Collapse repeated spaces**, including the double space after a full stop. A non-breaking space is left alone — those are authored, not stray.
 - **Trim spaces** left hanging at the start and end of a paragraph.
 - **Drop paragraphs that hold nothing.** A paragraph holding only an image or a horizontal rule is kept: it carries no text and is still the point of the paragraph it sits in.
@@ -90,7 +91,7 @@ Six rules, each independent and all on by default:
 
 Markup is never touched. A straight quote inside `class="..."` is not a quotation mark, and the spaces inside a style attribute are not prose.
 
-If you have unticked **Replace quotes and dashes as I type** in Settings → Writing assistance, the first two rules are greyed out and cannot be run. They are the same substitutions the switch turned off, and a cleanup pass would apply them to the whole book in one go. The other four are unaffected.
+If you have unticked **Replace quotes and dashes as I type** in Settings → Writing assistance, the first three rules are greyed out and cannot be run. They are the same substitutions the switch turned off, and a cleanup pass would apply them to the whole book in one go. The other four are unaffected.
 
 **Show me what would change** reports how many scenes the pass would rewrite and names them, without changing anything. Use it first — this is not something to find out about afterwards.
 

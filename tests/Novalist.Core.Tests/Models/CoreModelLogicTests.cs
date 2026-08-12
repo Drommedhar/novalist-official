@@ -30,6 +30,34 @@ public class AppSettingsTests
         => Assert.True(new AppSettings().AutoReplacementEnabled);
 
     [Fact]
+    public void DeletingEveryRuleSticksAcrossARestart()
+    {
+        var s = new AppSettings();
+        s.EnsureDefaults();
+        s.AutoReplacements.Clear();
+
+        s.EnsureDefaults();
+
+        // Without the seeded flag, "no rules at all" and "a fresh install" look
+        // identical and the whole preset comes back on the next launch.
+        Assert.Empty(s.AutoReplacements);
+    }
+
+    [Fact]
+    public void RulesAlreadyStoredCountAsSeeded()
+    {
+        // Somebody upgrading has rules and no flag; deleting them all afterwards
+        // has to stick for them too.
+        var s = new AppSettings { AutoReplacementsSeeded = false };
+        s.AutoReplacements.Clear();
+        s.AutoReplacements.Add(new AutoReplacementPair { Start = "x", StartReplace = "y" });
+
+        s.EnsureDefaults();
+
+        Assert.True(s.AutoReplacementsSeeded);
+    }
+
+    [Fact]
     public void SwitchingAutoReplacementOff_KeepsThePairsForWhenItComesBack()
     {
         var s = new AppSettings { AutoReplacementEnabled = false };

@@ -455,3 +455,154 @@
     max-width: 64px;
   }
 }
+
+/* ===== The writer's own replacement rules =====
+   A grid rather than a table: every row is the same four fields plus a remove
+   button, and the columns have to line up down the list or the trigger and the
+   thing it becomes stop reading as a pair. The trigger and its replacement get
+   the room; kind and closing are short by nature. */
+.replacement-rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.replacement-rules-head,
+.replacement-rule {
+  display: grid;
+  grid-template-columns: 7rem 1fr 1fr 6rem auto;
+  gap: var(--nl-space-tighter);
+  align-items: center;
+}
+
+.replacement-rules-head {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  padding-right: var(--nl-space-lg);
+}
+
+/* A pattern has no alternating form, so its closing field is not a field the
+   writer can fill in - dimmed rather than removed, so the columns still line
+   up with every other row. */
+.replacement-rule .dialog-input:disabled {
+  opacity: 0.45;
+}
+
+.replacement-rules-error {
+  color: var(--nl-danger);
+}
+
+.replacement-rules-actions {
+  display: flex;
+  gap: var(--nl-space-tighter);
+}
+
+/* The rules are a table, and a table does not fit a phone. Each row becomes a
+   stack, with the column headings dropped: a heading row over stacked fields
+   names nothing. */
+@media (max-width: 720px) {
+  .replacement-rules-head {
+    display: none;
+  }
+
+  .replacement-rule {
+    grid-template-columns: 1fr auto;
+    padding-bottom: var(--nl-space-tighter);
+    border-bottom: 1px solid var(--nl-border-subtle);
+  }
+}
+
+/* ===== Trying a rule out while writing it =====
+   A rule is not something anybody gets right first time, and a pattern least
+   of all. The sample spans the whole row under the fields it belongs to, so
+   the result sits directly beneath the pattern that produced it. */
+.rule-tryit {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: var(--nl-space-tighter);
+  align-items: center;
+  padding: var(--nl-space-tightest) 0 var(--nl-space-tighter);
+}
+
+.rule-tryit-label {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+  text-align: right;
+}
+
+.rule-tryit-out {
+  grid-column: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter);
+  align-items: baseline;
+  font-size: var(--nl-font-ui);
+}
+
+/* What the sentence becomes. Set in the mono face for the same reason every
+   other computed figure in the app is: it is the app's answer, not prose. */
+.rule-tryit-result {
+  font-family: var(--nl-font-mono);
+  color: var(--nl-text);
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-sm);
+  padding: var(--nl-space-hairline) var(--nl-space-tighter);
+}
+
+.rule-tryit-detail {
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+}
+
+/* ===== The reference, folded away =====
+   Six sentences and a table of pattern pieces is what somebody writing their
+   first pattern needs and what everybody else has to scroll past. */
+.rule-help > summary {
+  cursor: pointer;
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+  padding: var(--nl-space-tightest) 0;
+}
+
+.rule-help ul {
+  margin: var(--nl-space-tighter) 0;
+  padding-left: var(--nl-space-lg);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+}
+
+.rule-help li {
+  margin-bottom: var(--nl-space-tightest);
+}
+
+.rule-help-table {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--nl-space-tightest) var(--nl-space-md);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-caption);
+}
+
+.rule-help-table code {
+  font-family: var(--nl-font-mono);
+  color: var(--nl-text);
+  background: var(--nl-surface-hover);
+  border-radius: var(--nl-radius-sm);
+  padding: 0 var(--nl-space-tightest);
+  margin-right: var(--nl-space-tightest);
+}
+
+@media (max-width: 720px) {
+  .rule-tryit {
+    grid-template-columns: 1fr;
+  }
+
+  .rule-tryit-label {
+    text-align: left;
+  }
+
+  .rule-tryit-out {
+    grid-column: 1;
+  }
+}

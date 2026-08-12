@@ -1,3 +1,4 @@
+using Novalist.Core.Models;
 using Novalist.Core.Services;
 using Xunit;
 
@@ -202,6 +203,78 @@ public class ProseCleanupTests
 
         Assert.True(ProseCleanup.Changes("<p>\"Hi\"</p>", options));
         Assert.False(ProseCleanup.Changes("<p>“Hi”</p>", options));
+    }
+
+    // ─── The writer's own rules ──────────────────────────────────────
+
+    [Fact]
+    public void TheWritersOwnRulesRunOverProseAlreadyWritten()
+    {
+        var options = new CleanupOptions
+        {
+            Rules = [CleanupRule.CustomRules],
+            CustomRules = [new AutoReplacementPair { Start = "(c)", StartReplace = "©" }]
+        };
+
+        Assert.Equal("<p>© Ltd</p>", ProseCleanup.Apply("<p>(c) Ltd</p>", options));
+    }
+
+    [Fact]
+    public void APatternPutsBackWhatItCaptured()
+    {
+        var options = new CleanupOptions
+        {
+            Rules = [CleanupRule.CustomRules],
+            CustomRules = [new AutoReplacementPair
+            {
+                Kind = AutoReplacementKinds.Regex,
+                Start = @"(\d+)x(\d+)",
+                StartReplace = "$1×$2"
+            }]
+        };
+
+        Assert.Equal("<p>12×9 feet</p>", ProseCleanup.Apply("<p>12x9 feet</p>", options));
+    }
+
+    [Fact]
+    public void TheWritersOwnRulesLeaveTheMarkupAlone()
+    {
+        var options = new CleanupOptions
+        {
+            Rules = [CleanupRule.CustomRules],
+            CustomRules = [new AutoReplacementPair { Start = "p", StartReplace = "q" }]
+        };
+
+        // The p of a <p> tag is not prose, and rewriting it would take the
+        // paragraph with it.
+        Assert.Equal("<p>qroqer</p>", ProseCleanup.Apply("<p>proper</p>", options));
+    }
+
+    [Fact]
+    public void TheWritersOwnRulesRunBeforeTheQuotePass()
+    {
+        var options = new CleanupOptions
+        {
+            Rules = [CleanupRule.CustomRules, CleanupRule.SmartenQuotes],
+            Language = "en",
+            CustomRules = [new AutoReplacementPair { Start = "(q)", StartReplace = "\"Hi\"" }]
+        };
+
+        // A rule that produces a straight quote still gets curled, rather than
+        // leaving the one thing the pass exists to fix.
+        Assert.Equal("<p>“Hi”</p>", ProseCleanup.Apply("<p>(q)</p>", options));
+    }
+
+    [Fact]
+    public void TheWritersOwnRulesAreNotRunUnlessAskedFor()
+    {
+        var options = new CleanupOptions
+        {
+            Rules = [CleanupRule.CollapseSpaces],
+            CustomRules = [new AutoReplacementPair { Start = "(c)", StartReplace = "©" }]
+        };
+
+        Assert.Equal("<p>(c)</p>", ProseCleanup.Apply("<p>(c)</p>", options));
     }
 
     [Fact]

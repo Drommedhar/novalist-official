@@ -13,6 +13,9 @@ public enum CleanupRule
     /// <summary>Two hyphens become an em dash, three dots become an ellipsis.</summary>
     Typography,
 
+    /// <summary>The writer's own replacement rules, run over prose already written.</summary>
+    CustomRules,
+
     /// <summary>Runs of spaces collapse to one, including the double space after a full stop.</summary>
     CollapseSpaces,
 
@@ -38,6 +41,14 @@ public sealed class CleanupOptions
     /// and getting this wrong is worse than leaving the straight quotes alone.
     /// </summary>
     public string Language { get; set; } = "en";
+
+    /// <summary>
+    /// The writer's own rules, for <see cref="CleanupRule.CustomRules"/>.
+    ///
+    /// Passed in rather than read from a preset, because these are the rules
+    /// they wrote: the whole point is that they are not the preset.
+    /// </summary>
+    public IReadOnlyList<AutoReplacementPair> CustomRules { get; set; } = [];
 
     public bool Has(CleanupRule rule) => Rules.Contains(rule);
 }
@@ -113,6 +124,11 @@ public static class ProseCleanup
             foreach (var pair in pairs)
                 if (!string.IsNullOrEmpty(pair.Start))
                     text = text.Replace(pair.Start, pair.StartReplace, StringComparison.Ordinal);
+
+            // The writer's own rules run before the quote pass, so a rule that
+            // produces a straight quote still gets curled like any other.
+            if (options.Has(CleanupRule.CustomRules))
+                text = AutoReplacementRules.Apply(text, options.CustomRules);
 
             if (quotes != null) text = Smarten(text, quotes.Value, ref open);
             if (options.Has(CleanupRule.CollapseSpaces)) text = CollapseSpaces(text);

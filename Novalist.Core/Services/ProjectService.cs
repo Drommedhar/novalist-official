@@ -407,13 +407,28 @@ public partial class ProjectService : IProjectService
         return _fileService.CombinePath(ActiveDraftRoot, "draft.json");
     }
 
+    /// <summary>
+    /// One save at a time. Two writes that overlap collide on the file rather
+    /// than merging, and the change the losing one carried is gone with nothing
+    /// to show for it - see <see cref="SettingsService.SaveAsync"/>.
+    /// </summary>
+    private readonly SemaphoreSlim _projectSettingsSaveLock = new(1, 1);
+
     public async Task SaveProjectSettingsAsync()
     {
         if (ProjectRoot == null) return;
 
-        var settingsPath = _fileService.CombinePath(ProjectRoot, ".novalist", "settings.json");
-        var json = JsonSerializer.Serialize(ProjectSettings, JsonOptions);
-        await _fileService.WriteTextAsync(settingsPath, json);
+        await _projectSettingsSaveLock.WaitAsync();
+        try
+        {
+            var settingsPath = _fileService.CombinePath(ProjectRoot, ".novalist", "settings.json");
+            var json = JsonSerializer.Serialize(ProjectSettings, JsonOptions);
+            await _fileService.WriteTextAsync(settingsPath, json);
+        }
+        finally
+        {
+            _projectSettingsSaveLock.Release();
+        }
     }
 
     private async Task LoadProjectSettingsAsync()

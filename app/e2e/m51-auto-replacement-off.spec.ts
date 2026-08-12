@@ -65,11 +65,14 @@ test('auto-replacement off leaves the typed characters alone', async () => {
   await page.evaluate(() => window.novalistStores.shell.getState().setCleanupOpen(true))
   const dialog = page.locator('.cleanup-card')
   await expect(dialog).toBeVisible({ timeout: 20_000 })
+  // Quotes, typography and the writer's own rules: the three that substitute.
   const boxes = dialog.locator('.cleanup-rules input[type="checkbox"]')
   await expect(boxes.nth(0)).toBeDisabled()
   await expect(boxes.nth(1)).toBeDisabled()
+  await expect(boxes.nth(2)).toBeDisabled()
   await expect(boxes.nth(0)).not.toBeChecked()
-  await expect(boxes.nth(2)).toBeEnabled()
+  // The rules that only tidy whitespace and paragraphs are untouched.
+  await expect(boxes.nth(3)).toBeEnabled()
 
   await app.close()
 })

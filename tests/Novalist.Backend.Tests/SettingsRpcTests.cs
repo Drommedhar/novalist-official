@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Models;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -111,6 +112,70 @@ public sealed class SettingsRpcTests : IDisposable
         var overrides = view.GetProperty("overrides");
         Assert.False(overrides.TryGetProperty("autoReplacements", out _));
     }
+
+    [Fact]
+    public async Task TheWriterCanStoreRulesOfTheirOwn()
+    {
+        var view = await _rpc.SetAutoReplacementsAsync("global", [
+            new AutoReplacementPair { Start = "(c)", End = "(c)", StartReplace = "©", EndReplace = "©" },
+            new AutoReplacementPair
+            {
+                Kind = AutoReplacementKinds.Regex,
+                Start = @"(\d+)x(\d+)",
+                StartReplace = "$1×$2"
+            }
+        ]);
+
+        var rules = view.GetProperty("global").GetProperty("autoReplacements").EnumerateArray().ToList();
+        Assert.Equal(2, rules.Count);
+        Assert.Equal("©", rules[0].GetProperty("startReplace").GetString());
+        Assert.Equal("regex", rules[1].GetProperty("kind").GetString());
+    }
+
+    [Fact]
+    public async Task ARuleThatCouldNotBeRunIsRefusedRatherThanStored()
+    {
+        // Stored and skipped is the worst outcome: the writer sees the rule in
+        // the list and never sees it fire.
+        var bad = new AutoReplacementPair { Kind = AutoReplacementKinds.Regex, Start = "(unclosed" };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetAutoReplacementsAsync("global", [bad]));
+
+        var view = await _rpc.GetAsync();
+        Assert.DoesNotContain("unclosed",
+            view.GetProperty("global").GetProperty("autoReplacements").ToString());
+    }
+
+    [Fact]
+    public async Task DeletingEveryRuleSticks()
+    {
+        await _rpc.SetAutoReplacementsAsync("global", []);
+
+        var view = await _rpc.GetAsync();
+        Assert.Empty(view.GetProperty("global").GetProperty("autoReplacements").EnumerateArray());
+        // settings/get reloads from disk, which is where the preset used to be
+        // put back.
+        Assert.True(view.GetProperty("global").GetProperty("autoReplacementsSeeded").GetBoolean());
+    }
+
+    [Fact]
+    public async Task OneBookCanCarryItsOwnRules()
+    {
+        await OpenProjectAsync();
+
+        var view = await _rpc.SetAutoReplacementsAsync("project", [
+            new AutoReplacementPair { Start = "->", End = "->", StartReplace = "→", EndReplace = "→" }
+        ]);
+
+        var rules = view.GetProperty("overrides").GetProperty("autoReplacements").EnumerateArray().ToList();
+        Assert.Equal("→", Assert.Single(rules).GetProperty("startReplace").GetString());
+    }
+
+    [Fact]
+    public async Task ProjectRulesNeedAProject()
+        => await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _rpc.SetAutoReplacementsAsync("project", []));
 
     [Fact]
     public async Task AutoReplacementIsOnUntilTheWriterSaysOtherwise()

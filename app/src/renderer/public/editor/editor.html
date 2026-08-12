@@ -2239,12 +2239,51 @@ function getCaretRect() {
 
 // ── Auto Replacement ────────────────────────────────────────────
 
+// How much of the line before the caret a pattern is offered. A pattern that
+// backtracks badly costs time in proportion to what it is given, and this runs
+// on every keystroke - a bound here is the difference between a slow rule and
+// an editor that stops accepting typing.
+const REGEX_LOOKBEHIND = 120;
+// A rule that spends longer than this on one keystroke is set aside for the
+// rest of the session. Typing cannot wait for it, and a rule that is this slow
+// on one line will be slow on the next.
+const REGEX_BUDGET_MS = 15;
+
 function setAutoReplacements(pairsJson) {
+    let parsed;
     try {
-        autoReplacements = JSON.parse(pairsJson);
+        parsed = JSON.parse(pairsJson);
     } catch (_) {
-        autoReplacements = [];
+        parsed = [];
     }
+    autoReplacements = [];
+    for (const pair of (parsed || [])) {
+        if ((pair.kind || 'literal') !== 'regex') {
+            autoReplacements.push(pair);
+            continue;
+        }
+        // Anchored at the caret: a rule fires on what has just been finished,
+        // not on something further back that the writer already moved past.
+        try {
+            const regex = new RegExp('(?:' + pair.start + ')$');
+            // A pattern that matches the empty string matches before every
+            // keystroke, forever. The backend refuses these; this is the same
+            // guard for a settings file edited by hand.
+            if (regex.test('')) continue;
+            autoReplacements.push(Object.assign({}, pair, { regex: regex, tooSlow: false }));
+        } catch (_) {
+            // A pattern that will not compile is not a rule.
+        }
+    }
+}
+
+/** Puts the captured groups into a replacement: $1..$9, and $$ for a literal $. */
+function expandCaptures(template, match) {
+    return template.replace(/\$(\$|\d)/g, function (whole, token) {
+        if (token === '$') return '$';
+        const group = match[Number(token)];
+        return group === undefined ? '' : group;
+    });
 }
 
 function getContainingBlock(node) {
@@ -2298,6 +2337,31 @@ function tryAutoReplace(inputText) {
     const lineText = textBeforePara + inputText;
 
     for (const pair of autoReplacements) {
+        if (pair.regex) {
+            if (pair.tooSlow) continue;
+            // Only the tail is offered: the cost of a bad pattern grows with
+            // what it is given, and no rule needs the whole paragraph.
+            const tail = lineText.length > REGEX_LOOKBEHIND
+                ? lineText.slice(-REGEX_LOOKBEHIND)
+                : lineText;
+            const started = performance.now();
+            const match = pair.regex.exec(tail);
+            if (performance.now() - started > REGEX_BUDGET_MS) {
+                pair.tooSlow = true;
+                console.warn('[AutoReplace] rule set aside for this session, too slow:', pair.start);
+                continue;
+            }
+            // The match has to cover what was just typed, or the replacement
+            // would eat characters the writer did not type in this keystroke.
+            if (match && match[0].length >= inputText.length) {
+                return {
+                    replacement: expandCaptures(pair.startReplace, match),
+                    backtrack: match[0].length - inputText.length
+                };
+            }
+            continue;
+        }
+
         // Paired quotes: same trigger, different open/close
         if (pair.start === pair.end && pair.startReplace !== pair.endReplace) {
             if (lineText.endsWith(pair.end)) {

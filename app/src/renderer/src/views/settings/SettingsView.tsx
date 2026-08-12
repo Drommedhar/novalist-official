@@ -26,6 +26,7 @@ import { CompletionCard } from './CompletionCard'
 import { ThemeTokensCard } from './ThemeTokensCard'
 import { SceneTemplatesCard } from './SceneTemplatesCard'
 import { TagsCard } from './TagsCard'
+import { AutoReplacementsCard } from './AutoReplacementsCard'
 import './settings.css'
 
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
@@ -986,6 +987,8 @@ export function SettingsView(): React.JSX.Element {
               ? autoReplacementPreview(eff.autoReplacementLanguage)
               : t('settings.autoReplacementOffPreview')}
           </div>
+          <div className="settings-hint">{t('settings.quoteStyleReseeds')}</div>
+          <AutoReplacementsCard scope={scopeFor('writing')} />
           <label className="inspector-label" htmlFor="set-reviewer">
             {t('settings.reviewerName')}
           </label>

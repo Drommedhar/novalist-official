@@ -113,6 +113,17 @@ public class AppSettings : IEffectiveSettings
     [JsonPropertyName("autoReplacements")]
     public List<AutoReplacementPair> AutoReplacements { get; set; } = new();
 
+    /// <summary>
+    /// Whether the rule list has ever been filled in.
+    ///
+    /// Without this, "no rules at all" and "a fresh install" look identical, and
+    /// a writer who deletes the last rule gets the whole preset back on the next
+    /// launch. Set the first time the preset seeds the list, and set for anybody
+    /// upgrading with rules already stored.
+    /// </summary>
+    [JsonPropertyName("autoReplacementsSeeded")]
+    public bool AutoReplacementsSeeded { get; set; }
+
     [JsonPropertyName("dialogueCorrectionEnabled")]
     public bool DialogueCorrectionEnabled { get; set; }
 
@@ -322,10 +333,17 @@ public class AppSettings : IEffectiveSettings
     /// </summary>
     public void EnsureDefaults()
     {
-        if (AutoReplacements.Count == 0)
+        // Rules already stored: nothing to seed, and say so, so that deleting
+        // them all later is read as a decision rather than as a fresh install.
+        if (AutoReplacements.Count > 0)
         {
-            AutoReplacements = AutoReplacementDefaults.GetPreset(AutoReplacementLanguage);
+            AutoReplacementsSeeded = true;
+            return;
         }
+        if (AutoReplacementsSeeded) return;
+
+        AutoReplacements = AutoReplacementDefaults.GetPreset(AutoReplacementLanguage);
+        AutoReplacementsSeeded = true;
     }
 
     public IReadOnlyList<string> GetKnownInverseRoles(string role)
@@ -385,19 +403,54 @@ public class RecentProject
     public string CoverImagePath { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// One thing that gets substituted as the writer types.
+///
+/// A literal rule fires when the characters in <see cref="Start"/> are the ones
+/// just typed. A rule whose start and end are the same trigger with different
+/// replacements alternates between them, which is how a quotation mark knows
+/// whether it is opening or closing.
+///
+/// A regex rule matches <see cref="Start"/> as a pattern against the text
+/// ending at the caret, and <see cref="StartReplace"/> may refer back to what
+/// it captured as <c>$1</c>. <see cref="End"/> and <see cref="EndReplace"/>
+/// carry nothing for a regex rule: there is no alternating form of a pattern.
+/// </summary>
 public class AutoReplacementPair
 {
+    /// <summary>Literal trigger, or the pattern when <see cref="Kind"/> is regex.</summary>
     [JsonPropertyName("start")]
     public string Start { get; set; } = string.Empty;
 
     [JsonPropertyName("end")]
     public string End { get; set; } = string.Empty;
 
+    /// <summary>What lands. A regex rule may use <c>$1</c> for a capture.</summary>
     [JsonPropertyName("startReplace")]
     public string StartReplace { get; set; } = string.Empty;
 
     [JsonPropertyName("endReplace")]
     public string EndReplace { get; set; } = string.Empty;
+
+    /// <summary>
+    /// <c>literal</c> or <c>regex</c>. Absent in every settings file written
+    /// before custom rules existed, so literal is the default and an older file
+    /// keeps working untouched.
+    /// </summary>
+    [JsonPropertyName("kind")]
+    public string Kind { get; set; } = AutoReplacementKinds.Literal;
+
+    /// <summary>True when this rule's start is a pattern rather than characters.</summary>
+    [JsonIgnore]
+    public bool IsRegex =>
+        string.Equals(Kind, AutoReplacementKinds.Regex, StringComparison.OrdinalIgnoreCase);
+}
+
+/// <summary>The two kinds a replacement rule comes in.</summary>
+public static class AutoReplacementKinds
+{
+    public const string Literal = "literal";
+    public const string Regex = "regex";
 }
 
 public static class AutoReplacementDefaults

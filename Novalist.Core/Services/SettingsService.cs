@@ -12,6 +12,18 @@ public class SettingsService : ISettingsService
         PropertyNameCaseInsensitive = true
     };
 
+    /// <summary>
+    /// One save at a time.
+    ///
+    /// Two writes that overlap do not merge, they collide: Windows refuses the
+    /// second with "the file is being used by another process", and the change
+    /// it was carrying is lost with no sign to the writer that anything went
+    /// wrong. Settings are written per edit, and two edits in quick succession
+    /// - tabbing between two fields of the same form - is ordinary use, not an
+    /// edge case.
+    /// </summary>
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
+
     public AppSettings Settings { get; private set; } = new();
 
     private SettingsOverrides? _activeOverrides;
@@ -45,8 +57,19 @@ public class SettingsService : ISettingsService
 
     public async Task SaveAsync()
     {
-        var json = JsonSerializer.Serialize(Settings, JsonOptions);
-        await File.WriteAllTextAsync(_settingsPath, json);
+        await _saveLock.WaitAsync();
+        try
+        {
+            // Serialized inside the lock as well as written: the object is
+            // being edited by whoever asked for the save, and reading it
+            // outside would let one save capture half of the next one's change.
+            var json = JsonSerializer.Serialize(Settings, JsonOptions);
+            await File.WriteAllTextAsync(_settingsPath, json);
+        }
+        finally
+        {
+            _saveLock.Release();
+        }
     }
 
     /// <summary>

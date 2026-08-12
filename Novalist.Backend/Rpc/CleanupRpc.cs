@@ -23,18 +23,20 @@ public class CleanupRpc(Workspace workspace)
         var parsed = rules.Select(ParseRule).Where(r => r.HasValue).Select(r => r!.Value);
 
         // A writer who switched auto-replacement off asked for their own
-        // characters to be left alone. These two rules are exactly the pass
-        // that would put the substitutions back, over the whole book, in one
-        // run - so they are dropped here as well as hidden in the dialog.
+        // characters to be left alone. These rules are exactly the pass that
+        // would put the substitutions back, over the whole book, in one run -
+        // so they are dropped here as well as hidden in the dialog.
         if (!settings.AutoReplacementEnabled)
-            parsed = parsed.Where(r => r is not (CleanupRule.SmartenQuotes or CleanupRule.Typography));
+            parsed = parsed.Where(r =>
+                r is not (CleanupRule.SmartenQuotes or CleanupRule.Typography or CleanupRule.CustomRules));
 
         return new CleanupOptions
         {
             Rules = [.. parsed],
             // The book's writing language, so a German manuscript is smartened to
             // low-9 quotes rather than to the English pair.
-            Language = settings.AutoReplacementLanguage
+            Language = settings.AutoReplacementLanguage,
+            CustomRules = settings.AutoReplacements
         };
     }
 

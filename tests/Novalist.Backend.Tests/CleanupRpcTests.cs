@@ -1,5 +1,6 @@
 using Novalist.Backend;
 using Novalist.Backend.Rpc;
+using Novalist.Core.Models;
 using Xunit;
 
 namespace Novalist.Backend.Tests;
@@ -103,12 +104,25 @@ public sealed class CleanupRpcTests : IDisposable
     }
 
     [Fact]
-    public async Task WithAutoReplacementOff_ThoseTwoRulesAloneAreNoPass()
+    public async Task WithAutoReplacementOff_ThoseRulesAloneAreNoPass()
     {
         _workspace.Settings.Settings.AutoReplacementEnabled = false;
 
         Assert.Equal(0,
-            (await _rpc.PreviewAsync(["SmartenQuotes", "Typography"])).ScenesConsidered);
+            (await _rpc.PreviewAsync(["SmartenQuotes", "Typography", "CustomRules"])).ScenesConsidered);
+    }
+
+    [Fact]
+    public async Task TheWritersOwnRulesRunOverTheWholeBook()
+    {
+        _workspace.Settings.Settings.AutoReplacements =
+        [
+            new AutoReplacementPair { Start = "again", StartReplace = "once more" }
+        ];
+
+        await _rpc.RunAsync(["CustomRules"]);
+
+        Assert.Contains("once more", await SceneTextAsync());
     }
 
     [Fact]

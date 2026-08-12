@@ -191,7 +191,31 @@ As you type, certain character sequences are converted automatically based on th
 
 Replacements only fire as you type; pasted text is left alone.
 
-To switch them off entirely, untick **Replace quotes and dashes as I type** in Settings → Writing assistance. Nothing is then substituted — every character you type is the character that lands — and the two substitution rules in [Clean up the manuscript](21-find-replace.md#cleaning-up-a-whole-manuscript) are greyed out as well, so no later pass puts them back. The **Quote Style** picker stays where it is, because it is also the language your book is written in.
+### Your own rules
+
+The list is yours to edit, under **Replacement rules** in Settings → Writing assistance. Picking a language fills it in with that language's own rules; everything after that is up to you. Each rule has:
+
+- **Kind** — **Text** matches the characters you type. **Pattern** is a regular expression matched against the text ending at the cursor, and its replacement can put back what the pattern captured using `$1`, `$2` and so on. A rule of `(\d+)x(\d+)` becoming `$1×$2` turns `12x9` into `12×9` as you finish typing it.
+- **When I type** — the characters, or the pattern.
+- **Insert** — what lands instead.
+- **Closing** — fill this in only for a rule that should alternate, the way an opening quote alternates with a closing one. Left empty, the rule produces the same thing every time. A pattern has no alternating form, so this is unavailable for one.
+
+### Trying a rule out
+
+Each rule has a **Try it on** box under its fields. Type a sentence there and the rule is run against it as you go, showing what the sentence becomes — and, for a pattern, what it matched and what each capture group holds. Nothing you type there is stored; it is scratch paper for building the rule.
+
+The preview shows **typing-time** behaviour, which is what makes patterns hard to reason about otherwise: a rule fires the moment the last character of its match is typed, and only there. Clean up the manuscript applies the same rules to prose already written, where they replace every occurrence rather than only the one at the cursor.
+
+**How matching and replacement work** below the table folds open into the full account — when a rule fires, how the order decides which one wins, how the Closing form alternates, how captures work — with a reference for the pattern pieces you are most likely to need: the character classes `\d`, `\w`, `\s` and `.`, your own sets `[abc]`, `[^abc]` and `[a-z]`, the word edge `\b`, the repeats `+`, `*` and `?`, the either-or `|`, the capture `(…)` and its `$1`, and `\.` for matching a symbol that would otherwise mean something.
+
+### What is refused
+
+Rules run in the order they are listed, so a later rule can act on what an earlier one produced. A pattern that is not valid, or that matches nothing at all, is refused when you enter it rather than saved and quietly skipped — the reason appears under the row while you are still looking at it. A pattern that turns out to be too slow to run while you type is set aside for the rest of the session, so it cannot hold up your typing.
+
+Like the rest of Writing assistance, the list can differ per book.
+
+To switch them off entirely, untick **Replace quotes and dashes as I type** in Settings → Writing assistance. Nothing is then substituted — every character you type is the character that lands — and the substitution rules in [Clean up the manuscript](21-find-replace.md#cleaning-up-a-whole-manuscript) are greyed out as well, so no later pass puts them back. The **Quote Style** picker stays where it is, because it is also the language your book is written in.
+
 
 ## Dialogue correction
 

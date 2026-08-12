@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json;
 using Novalist.Core.Models;
+using Novalist.Core.Services;
 using StreamJsonRpc;
 
 namespace Novalist.Backend.Rpc;
@@ -91,6 +92,45 @@ public sealed class SettingsRpc
                 : AutoReplacementDefaults.GetPreset(overrides.AutoReplacementLanguage);
         await _workspace.Projects.SaveProjectSettingsAsync();
         RaiseLanguageIfChanged(beforeLanguage);
+        return await GetAsync();
+    }
+
+    /// <summary>
+    /// Replaces the writer's own replacement rules, for their defaults or for
+    /// the open book.
+    ///
+    /// Its own method rather than a key in the settings patch: the patch is a
+    /// reflection hop over scalars, and a rule list needs checking before it is
+    /// stored - a pattern that will not compile has to be refused with a reason
+    /// while the writer is still looking at the row they typed it into.
+    /// </summary>
+    [JsonRpcMethod("settings/setAutoReplacements")]
+    public async Task<JsonElement> SetAutoReplacementsAsync(
+        string scope, AutoReplacementPair[] rules)
+    {
+        var rejected = rules
+            .Select((rule, index) => (index, reason: AutoReplacementRules.Validate(rule)))
+            .FirstOrDefault(r => r.reason is not null);
+        if (rejected.reason is not null)
+            throw new InvalidOperationException(
+                $"Rule {rejected.index} cannot be stored: {rejected.reason}");
+
+        if (scope == "project")
+        {
+            if (!_workspace.Projects.IsProjectLoaded)
+                throw new InvalidOperationException("No project open.");
+            _workspace.Projects.ProjectSettings.Overrides.AutoReplacements = [.. rules];
+            await _workspace.Projects.SaveProjectSettingsAsync();
+        }
+        else
+        {
+            var settings = _workspace.Settings.Settings;
+            settings.AutoReplacements = [.. rules];
+            // An empty list is a decision from here on, not a fresh install
+            // waiting to be seeded.
+            settings.AutoReplacementsSeeded = true;
+            await _workspace.Settings.SaveAsync();
+        }
         return await GetAsync();
     }
 
