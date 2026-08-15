@@ -48,6 +48,8 @@
     --chrome-font: 15px;
     --chrome-font-sm: 13px;
     --chrome-gap: 6px;
+    /* Chrome, not prose: editor font size must never widen this gutter. */
+    --comment-gutter-width: clamp(180px, 26vw, 320px);
 }
 html, body {
     height: 100%;
@@ -336,6 +338,8 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
     align-items: center;
     box-shadow: 0 3px 12px rgba(0,0,0,0.4);
     pointer-events: auto;
+    max-width: calc(100vw - (var(--chrome-gap) * 2));
+    overflow-x: auto;
 }
 #floating-toolbar.visible { display: flex; }
 #floating-toolbar button {
@@ -386,19 +390,19 @@ body.dim-others #editor > .nv-page > .nv-focus-block { opacity: 1; }
     background-color: rgba(255, 200, 60, 0.55);
 }
 
-/* Margin comment gutter — sizes in em scale with --font-size */
+/* Margin comment gutter — fixed to chrome scale, independent of prose size. */
 #commentGutter {
     position: fixed;
     top: 0;
     right: 0;
     bottom: 0;
-    width: 18em;
-    font-size: var(--font-size);
+    width: var(--comment-gutter-width);
+    font-size: var(--chrome-font);
     pointer-events: none;
     overflow: visible;
     z-index: 5;
 }
-body.has-comments { padding-right: 18em; }
+body.has-comments { padding-right: var(--comment-gutter-width); }
 /* Mobile: an 18em margin gutter has no room on a phone, so reclaim the width and
    show comments as inline highlights only (.nv-comment). Touch targets on the
    floating selection toolbar and the context menu are enlarged. */
@@ -413,6 +417,10 @@ body.mobile #floating-toolbar button {
 body.mobile #floating-toolbar .ft-sep { height: 24px; }
 body.mobile #context-menu .cm-item { padding: 10px 14px; font-size: 15px; }
 body.mobile #context-menu .cm-suggestion { padding: 8px 14px; }
+@media (max-width: 720px) {
+    body.has-comments { padding-right: 0; }
+    #commentGutter { display: none; }
+}
 .nv-cc-card {
     position: absolute;
     left: 0.5em;
@@ -760,8 +768,8 @@ body.page-view.typewriter-on #editor { padding-top: 70vh; }
     <button id="ft-align-right" title="Align Right">&#8678;</button>
     <button id="ft-align-justify" title="Justify">&#8801;</button>
     <div class="ft-sep"></div>
-    <button id="ft-comment" title="Add comment">Cmt</button>
-    <button id="ft-footnote" title="Add footnote">Fn</button>
+    <button id="ft-comment" title="Add comment" aria-label="Add comment">Comment</button>
+    <button id="ft-footnote" title="Add footnote" aria-label="Add footnote">Footnote</button>
 </div>
 <div id="mention-picker" tabindex="-1"></div>
 <script>
@@ -1403,6 +1411,17 @@ function toggleNumberList() {
 // ── Formatting State ────────────────────────────────────────────
 
 function getFormattingState() {
+    const selection = window.getSelection();
+    const hasSelection = !!selection && !selection.isCollapsed && selection.toString().trim() !== '';
+    let linkActive = false;
+    let ancestor = selection && selection.anchorNode;
+    while (ancestor && ancestor !== editor) {
+        if (ancestor.nodeType === Node.ELEMENT_NODE && ancestor.tagName === 'A') {
+            linkActive = true;
+            break;
+        }
+        ancestor = ancestor.parentNode;
+    }
     const bold = document.queryCommandState('bold');
     const italic = document.queryCommandState('italic');
     const underline = document.queryCommandState('underline');
@@ -1414,6 +1433,9 @@ function getFormattingState() {
         bold,
         italic,
         underline,
+        hasSelection,
+        linkActive,
+        entityAtCaret: !hasSelection && !!findEntityAtCaret(),
         strikethrough: document.queryCommandState('strikeThrough'),
         highlight: !!highlightAncestor(window.getSelection() && window.getSelection().anchorNode),
         alignment,
@@ -2140,6 +2162,26 @@ function queueContentChangedSoon() {
     editor.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
+/** A DOM range over [start,end) of an element's text, for measuring a hit. */
+function rangeForTextOffsets(parentEl, start, end) {
+    const walker = document.createTreeWalker(parentEl, NodeFilter.SHOW_TEXT, null, false);
+    const range = document.createRange();
+    let node, pos = 0, started = false;
+    while ((node = walker.nextNode())) {
+        const len = (node.textContent || '').length;
+        if (!started && pos + len > start) {
+            range.setStart(node, Math.max(0, start - pos));
+            started = true;
+        }
+        if (started && pos + len >= end) {
+            range.setEnd(node, Math.max(0, end - pos));
+            return range;
+        }
+        pos += len;
+    }
+    return null;
+}
+
 function findEntityAtPoint(x, y) {
     if (!entityRegex) return null;
 
@@ -2184,7 +2226,18 @@ function findEntityAtPoint(x, y) {
     let match;
     while ((match = globalRegex.exec(lineText)) !== null) {
         if (charOffset >= match.index && charOffset <= match.index + match[0].length) {
-            return entityHitAllowed(match[0], lineText) ? match[0] : null;
+            if (!entityHitAllowed(match[0], lineText)) return null;
+            // The rect of the word itself, not the pointer. The host places the
+            // peek clear of the whole name, so drifting a few pixels inside it
+            // never moves the pointer onto the card.
+            const hitRange = rangeForTextOffsets(parentEl, match.index, match.index + match[0].length);
+            const box = hitRange ? hitRange.getBoundingClientRect() : null;
+            return {
+                alias: match[0],
+                rect: box && box.width > 0
+                    ? { left: box.left, top: box.top, right: box.right, bottom: box.bottom }
+                    : null
+            };
         }
     }
     return null;
@@ -2235,6 +2288,20 @@ function getCaretRect() {
     const rect = range.getBoundingClientRect();
     if (!rect || (rect.x === 0 && rect.y === 0 && rect.width === 0 && rect.height === 0)) return null;
     return rect;
+}
+
+/** Keyboard-accessible counterpart to hover/tap focus peek. */
+function peekEntityAtCaret() {
+    const alias = findEntityAtCaret();
+    const rect = getCaretRect();
+    if (!alias || !rect) return false;
+    sendMessage({
+        type: 'entityHover',
+        alias: alias,
+        x: rect.left + Math.max(1, rect.width / 2),
+        y: rect.bottom
+    });
+    return true;
 }
 
 // ── Auto Replacement ────────────────────────────────────────────
@@ -3155,17 +3222,18 @@ editor.addEventListener('mousemove', (e) => {
     }
 
     if (!entityRegex) return;
-    const alias = findEntityAtPoint(e.clientX, e.clientY);
-    if (alias) {
+    const hit = findEntityAtPoint(e.clientX, e.clientY);
+    if (hit) {
         // Found an entity — cancel any pending exit and notify if alias changed
         if (entityExitTimer) { clearTimeout(entityExitTimer); entityExitTimer = null; }
-        if (alias !== lastHoveredAlias) {
-            lastHoveredAlias = alias;
+        if (hit.alias !== lastHoveredAlias) {
+            lastHoveredAlias = hit.alias;
             sendMessage({
                 type: 'entityHover',
-                alias: alias,
+                alias: hit.alias,
                 x: e.clientX,
-                y: e.clientY
+                y: e.clientY,
+                rect: hit.rect
             });
         }
     } else if (lastHoveredAlias) {
@@ -3367,6 +3435,30 @@ let contextMenuLabels = { cut: 'Cut', copy: 'Copy', paste: 'Paste', selectAll: '
 function setContextMenuLabels(labelsJson) {
     try {
         contextMenuLabels = JSON.parse(labelsJson);
+        const floatingLabels = {
+            'ft-bold': contextMenuLabels.bold,
+            'ft-italic': contextMenuLabels.italic,
+            'ft-underline': contextMenuLabels.underline,
+            'ft-strike': contextMenuLabels.strikethrough,
+            'ft-highlight': contextMenuLabels.highlight,
+            'ft-link': contextMenuLabels.link,
+            'ft-align-left': contextMenuLabels.alignLeft,
+            'ft-align-center': contextMenuLabels.alignCenter,
+            'ft-align-right': contextMenuLabels.alignRight,
+            'ft-align-justify': contextMenuLabels.justify,
+            'ft-comment': contextMenuLabels.addComment,
+            'ft-footnote': contextMenuLabels.addFootnote
+        };
+        for (const id in floatingLabels) {
+            const button = document.getElementById(id);
+            const label = floatingLabels[id];
+            if (!button || !label) continue;
+            button.title = label;
+            button.setAttribute('aria-label', label);
+            if (id === 'ft-comment' || id === 'ft-footnote' || id === 'ft-link') {
+                button.textContent = label;
+            }
+        }
     } catch (_) {}
 }
 
@@ -4170,10 +4262,16 @@ editor.addEventListener('mousedown', (e) => {
     }
     // Most entity references in prose are plain text (auto-detected), not explicit
     // mention spans, so resolve the entity at the tap point and peek that.
-    const alias = (typeof findEntityAtPoint === 'function') ? findEntityAtPoint(e.clientX, e.clientY) : null;
-    if (alias) {
+    const tapped = (typeof findEntityAtPoint === 'function') ? findEntityAtPoint(e.clientX, e.clientY) : null;
+    if (tapped) {
         e.preventDefault();
-        sendMessage({ type: 'entityHover', alias: alias, x: e.clientX, y: e.clientY });
+        sendMessage({
+            type: 'entityHover',
+            alias: tapped.alias,
+            x: e.clientX,
+            y: e.clientY,
+            rect: tapped.rect
+        });
         return;
     }
     // Tapping plain text with no entity dismisses any shown peek.

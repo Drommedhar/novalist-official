@@ -79,7 +79,7 @@ test('export separates what from how, and targets are reachable from Settings', 
   expect(await page.locator('#export-preset').inputValue()).toContain('custom-')
 
   // ── Word targets, from Settings rather than only the binder's context menu ──
-  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('settings'))
+  await page.evaluate(() => window.novalistStores.shell.getState().openSettings('writingGoals'))
   await expect(page.locator('#set-daily-goal')).toBeVisible({ timeout: 20_000 })
 
   await page.locator('#set-daily-goal').fill('1500')

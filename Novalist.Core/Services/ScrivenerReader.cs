@@ -1,4 +1,5 @@
 using System.Xml.Linq;
+using System.Text.RegularExpressions;
 
 namespace Novalist.Core.Services;
 
@@ -19,6 +20,7 @@ public sealed record ScrivenerScene(
     string ChapterTitle,
     string Title,
     string Text,
+    string Html,
     string Synopsis,
     string Notes,
     string Label,
@@ -45,7 +47,9 @@ public sealed record ScrivenerEntity(
     ScrivenerEntityKind Kind,
     string Name,
     string Text,
-    string Notes);
+    string Notes,
+    string MarkdownText,
+    string MarkdownNotes);
 
 /// <summary>What kind of research item a binder document becomes.</summary>
 public enum ScrivenerResearchKind
@@ -65,6 +69,7 @@ public sealed record ScrivenerResearch(
     string Title,
     ScrivenerResearchKind Kind,
     string Text,
+    string MarkdownText,
     string SourcePath,
     string FolderTag);
 
@@ -298,15 +303,15 @@ public static class ScrivenerReader
                 WalkDraft(child, ctx, nextPart, nextChapter);
 
             // A folder can carry text of its own - a chapter with an epigraph.
-            var folderText = ReadRtf(DocumentPath(item, ctx, "content.rtf", ".rtf"));
-            if (folderText.Length > 0)
+            var folderText = ReadRtf(item, ctx, "content.rtf", ".rtf");
+            if (!folderText.IsEmpty)
                 AddScene(item, ctx, nextPart, nextChapter.IsEmpty ? self : nextChapter, title, folderText);
 
             return;
         }
 
         AddScene(item, ctx, part, chapter.IsEmpty ? Node.DefaultChapter : chapter, title,
-            ReadRtf(DocumentPath(item, ctx, "content.rtf", ".rtf")));
+            ReadRtf(item, ctx, "content.rtf", ".rtf"));
     }
 
     /// <summary>A part or chapter the walk is inside: its binder identity and
@@ -342,17 +347,20 @@ public static class ScrivenerReader
     /// the stock novel template, imported, produced nothing at all.
     /// </summary>
     private static void AddScene(
-        XElement item, Context ctx, Node part, Node chapter, string title, string text)
+        XElement item, Context ctx, Node part, Node chapter, string title, RichContent content)
     {
+        var sceneTitle = ctx.SceneTitle(chapter.Key, title);
+        var notes = ReadRtf(item, ctx, "notes.rtf", "_notes.rtf");
         ctx.Scenes.Add(new ScrivenerScene(
             part.Key,
             part.Title,
             chapter.Key,
             chapter.Title,
-            title,
-            text,
+            sceneTitle,
+            content.Text,
+            content.Html,
             ReadPlain(DocumentPath(item, ctx, "synopsis.txt", "_synopsis.txt")),
-            ReadRtf(DocumentPath(item, ctx, "notes.rtf", "_notes.rtf")),
+            notes.Text,
             ctx.LabelName(MetaOf(item, "LabelID")),
             ctx.StatusName(MetaOf(item, "StatusID")),
             !string.Equals(MetaOf(item, "IncludeInCompile"), "No", StringComparison.OrdinalIgnoreCase),
@@ -400,11 +408,12 @@ public static class ScrivenerReader
                 WalkEntities(child, EntityKindOf(child) ?? kind, ctx);
         }
 
-        var text = ReadRtf(DocumentPath(item, ctx, "content.rtf", ".rtf"));
-        var notes = ReadRtf(DocumentPath(item, ctx, "notes.rtf", "_notes.rtf"));
-        if (text.Length == 0 && notes.Length == 0) return;
+        var text = ReadRtf(item, ctx, "content.rtf", ".rtf");
+        var notes = ReadRtf(item, ctx, "notes.rtf", "_notes.rtf");
+        if (text.IsEmpty && notes.IsEmpty) return;
 
-        ctx.Entities.Add(new ScrivenerEntity(kind, TitleOf(item), text, notes));
+        ctx.Entities.Add(new ScrivenerEntity(
+            kind, TitleOf(item), text.Text, notes.Text, text.Markdown, notes.Markdown));
     }
 
     // ── Everything else that carried content ─────────────────────────────
@@ -458,11 +467,11 @@ public static class ScrivenerReader
             return;
         }
 
-        var text = ReadRtf(DocumentPath(item, ctx, "content.rtf", ".rtf"));
-        if (text.Length == 0) return;
+        var text = ReadRtf(item, ctx, "content.rtf", ".rtf");
+        if (text.IsEmpty) return;
 
         ctx.Research.Add(new ScrivenerResearch(
-            title, ScrivenerResearchKind.Note, text, string.Empty, folderTag));
+            title, ScrivenerResearchKind.Note, text.Text, text.Markdown, string.Empty, folderTag));
     }
 
     /// <summary>A file-backed research item, whose bytes the import copies.</summary>
@@ -476,7 +485,7 @@ public static class ScrivenerReader
             if (file != null && File.Exists(file))
             {
                 ctx.Research.Add(new ScrivenerResearch(
-                    title, kind, string.Empty, file, folderTag));
+                    title, kind, string.Empty, string.Empty, file, folderTag));
                 return;
             }
         }
@@ -553,17 +562,229 @@ public static class ScrivenerReader
         return Path.Combine(ctx.Root, "Files", "Docs", id + suffix2);
     }
 
-    /// <summary>An RTF document's prose, through the reader a plain .rtf import
-    /// already uses. Empty when there is no such file.</summary>
-    private static string ReadRtf(string? file)
+    /// <summary>An RTF document's plain text, semantic editor HTML and Markdown.
+    /// Empty when there is no such file.</summary>
+    private static RichContent ReadRtf(
+        XElement item, Context ctx, string name3, string suffix2)
     {
-        if (file == null || !File.Exists(file)) return string.Empty;
+        var file = DocumentPath(item, ctx, name3, suffix2);
+        if (file == null || !File.Exists(file)) return RichContent.Empty;
 
         // Read wraps the whole walk in the same catch, so a file that vanishes
         // mid-import degrades to an empty project rather than needing a second
         // guard here.
-        var document = ManuscriptReader.ReadRtf(File.ReadAllText(file));
-        return string.Join("\n\n", document.Paragraphs.Select(p => p.Text)).Trim();
+        var document = ManuscriptReader.ReadRtf(File.ReadAllBytes(file));
+        var paragraphs = ScrivenerFormatting.Apply(
+            document.Paragraphs,
+            ctx.Styles,
+            ReadStyleIds(Path.ChangeExtension(file, ".styles")));
+        return new RichContent(
+            ImportedRichText.ToPlainText(paragraphs),
+            ImportedRichText.ToHtml(paragraphs),
+            ImportedRichText.ToMarkdown(paragraphs),
+            paragraphs);
+    }
+
+    private static IReadOnlyList<string> ReadStyleIds(string path)
+        => File.Exists(path)
+            ? File.ReadAllText(path)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            : [];
+
+    private sealed record RichContent(
+        string Text,
+        string Html,
+        string Markdown,
+        IReadOnlyList<ImportedParagraph> Paragraphs)
+    {
+        public static RichContent Empty { get; } = new(string.Empty, string.Empty, string.Empty, []);
+        public bool IsEmpty => Paragraphs.Count == 0;
+    }
+
+    private sealed record ScrivenerStyleInfo(
+        string Id,
+        string Name,
+        bool AppliesToCharacters,
+        bool Bold,
+        bool Italic,
+        bool Underline,
+        bool Strike,
+        int HeadingLevel,
+        ImportedParagraphStyle ParagraphStyle,
+        ImportedTextAlignment Alignment);
+
+    /// <summary>
+    /// Scrivener writes named-style boundaries into the visible RTF stream as
+    /// &lt;$Scr_Ps::N&gt;, &lt;$Scr_Cs::N&gt; and &lt;$Scr_H::N&gt;. The N indexes
+    /// the document's content.styles list, whose UUIDs resolve through
+    /// Files/styles.xml. Interpret those markers and remove them from prose.
+    /// </summary>
+    private static class ScrivenerFormatting
+    {
+        private static readonly Regex Marker = new(
+            @"<(?<close>!)?\$Scr_(?<kind>Ps|Cs|H)::(?<index>\d+)>",
+            RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+        public static IReadOnlyList<ImportedParagraph> Apply(
+            IReadOnlyList<ImportedParagraph> source,
+            IReadOnlyDictionary<string, ScrivenerStyleInfo> catalog,
+            IReadOnlyList<string> styleIds)
+        {
+            var result = new List<ImportedParagraph>();
+            int? activeParagraphStyle = null;
+            int? activeCharacterStyle = null;
+            var activeHeading = 0;
+
+            foreach (var paragraph in source)
+            {
+                var runs = new List<ImportedTextRun>();
+                int? usedParagraphStyle = null;
+                var usedHeading = 0;
+
+                foreach (var run in paragraph.Runs.Count > 0
+                             ? paragraph.Runs
+                             : [new ImportedTextRun(paragraph.Text)])
+                {
+                    var offset = 0;
+                    foreach (Match match in Marker.Matches(run.Text))
+                    {
+                        AddText(run.Text[offset..match.Index], run);
+                        ApplyMarker(match);
+                        offset = match.Index + match.Length;
+                    }
+
+                    AddText(run.Text[offset..], run);
+                }
+
+                TrimRuns(runs);
+                var text = string.Concat(runs.Select(r => r.Text));
+                if (paragraph.IsSceneBreak)
+                {
+                    result.Add(paragraph);
+                    continue;
+                }
+                if (text.Length == 0) continue;
+
+                var named = StyleAt(usedParagraphStyle);
+                var heading = Math.Max(paragraph.HeadingLevel,
+                    Math.Max(usedHeading, named?.HeadingLevel ?? 0));
+                var paragraphStyle = heading switch
+                {
+                    1 => ImportedParagraphStyle.Heading,
+                    > 1 => ImportedParagraphStyle.Subheading,
+                    _ => named?.ParagraphStyle ?? paragraph.Style
+                };
+
+                result.Add(new ImportedParagraph
+                {
+                    Text = text,
+                    Runs = MergeRuns(runs),
+                    HeadingLevel = heading,
+                    IsSceneBreak = paragraph.IsSceneBreak,
+                    ListKind = paragraph.ListKind,
+                    ListLevel = paragraph.ListLevel,
+                    Alignment = paragraph.Alignment != ImportedTextAlignment.Default
+                        ? paragraph.Alignment
+                        : named?.Alignment ?? ImportedTextAlignment.Default,
+                    Style = paragraphStyle
+                });
+
+                continue;
+
+                void AddText(string value, ImportedTextRun original)
+                {
+                    if (value.Length == 0) return;
+                    if (value.Any(c => !char.IsWhiteSpace(c)))
+                    {
+                        usedParagraphStyle ??= activeParagraphStyle;
+                        if (activeHeading > 0) usedHeading = Math.Max(usedHeading, activeHeading);
+                    }
+
+                    var paragraphNamed = StyleAt(activeParagraphStyle);
+                    var characterNamed = StyleAt(activeCharacterStyle);
+                    runs.Add(original with
+                    {
+                        Text = value,
+                        Bold = original.Bold || paragraphNamed?.Bold == true || characterNamed?.Bold == true,
+                        Italic = original.Italic || paragraphNamed?.Italic == true || characterNamed?.Italic == true,
+                        Underline = original.Underline || paragraphNamed?.Underline == true
+                            || characterNamed?.Underline == true,
+                        Strike = original.Strike || paragraphNamed?.Strike == true || characterNamed?.Strike == true
+                    });
+                }
+
+                void ApplyMarker(Match match)
+                {
+                    var closing = match.Groups["close"].Success;
+                    var kind = match.Groups["kind"].Value;
+                    _ = int.TryParse(match.Groups["index"].Value, out var index);
+                    switch (kind)
+                    {
+                        case "Ps":
+                            activeParagraphStyle = closing ? null : index;
+                            break;
+                        case "Cs":
+                            activeCharacterStyle = closing ? null : index;
+                            break;
+                        case "H":
+                            activeHeading = closing ? 0 : Math.Clamp(index, 1, 6);
+                            break;
+                    }
+                }
+
+                ScrivenerStyleInfo? StyleAt(int? index)
+                {
+                    if (index is null || index < 0 || index >= styleIds.Count) return null;
+                    return catalog.TryGetValue(styleIds[index.Value], out var value) ? value : null;
+                }
+            }
+
+            return result;
+        }
+
+        private static IReadOnlyList<ImportedTextRun> MergeRuns(List<ImportedTextRun> source)
+        {
+            var merged = new List<ImportedTextRun>();
+            foreach (var run in source.Where(r => r.Text.Length > 0))
+            {
+                if (merged.Count > 0 && SameStyle(merged[^1], run))
+                    merged[^1] = merged[^1] with { Text = merged[^1].Text + run.Text };
+                else
+                    merged.Add(run);
+            }
+
+            return merged;
+        }
+
+        private static bool SameStyle(ImportedTextRun left, ImportedTextRun right)
+            => left.Bold == right.Bold && left.Italic == right.Italic
+               && left.Underline == right.Underline && left.Strike == right.Strike
+               && left.Superscript == right.Superscript && left.Subscript == right.Subscript;
+
+        private static void TrimRuns(List<ImportedTextRun> runs)
+        {
+            while (runs.Count > 0)
+            {
+                var text = runs[0].Text.TrimStart();
+                if (text.Length == 0) runs.RemoveAt(0);
+                else
+                {
+                    runs[0] = runs[0] with { Text = text };
+                    break;
+                }
+            }
+
+            while (runs.Count > 0)
+            {
+                var text = runs[^1].Text.TrimEnd();
+                if (text.Length == 0) runs.RemoveAt(runs.Count - 1);
+                else
+                {
+                    runs[^1] = runs[^1] with { Text = text };
+                    break;
+                }
+            }
+        }
     }
 
     private static string ReadPlain(string? file)
@@ -574,6 +795,7 @@ public static class ScrivenerReader
     {
         private readonly Dictionary<string, string> _labels;
         private readonly Dictionary<string, string> _statuses;
+        private readonly Dictionary<string, int> _scenePositions = new(StringComparer.Ordinal);
 
         public Context(string root, string version, XDocument document)
         {
@@ -585,14 +807,23 @@ public static class ScrivenerReader
             _statuses = NamesById(document, "StatusSettings", "Status");
             CustomFields = ReadCustomFields(document);
             _customIds = [.. CustomFields.Select(f => f.Id)];
+            Styles = ReadStyles(root);
         }
 
         private readonly HashSet<string> _customIds;
 
         /// <summary>The project's own custom metadata fields, in declared order.</summary>
         public List<ScrivenerCustomField> CustomFields { get; }
+        public IReadOnlyDictionary<string, ScrivenerStyleInfo> Styles { get; }
 
         public bool HasCustomField(string id) => _customIds.Contains(id);
+
+        public string SceneTitle(string chapterKey, string title)
+        {
+            var position = _scenePositions.TryGetValue(chapterKey, out var previous) ? previous + 1 : 1;
+            _scenePositions[chapterKey] = position;
+            return title.Length > 0 ? title : $"Scene {position}";
+        }
 
         /// <summary>
         /// The custom metadata fields a Scrivener 3 project declares. A field
@@ -619,6 +850,57 @@ public static class ScrivenerReader
             }
 
             return fields;
+        }
+
+        private static IReadOnlyDictionary<string, ScrivenerStyleInfo> ReadStyles(string root)
+        {
+            var path = Path.Combine(root, "Files", "styles.xml");
+            if (!File.Exists(path))
+                return new Dictionary<string, ScrivenerStyleInfo>(StringComparer.Ordinal);
+
+            var result = new Dictionary<string, ScrivenerStyleInfo>(StringComparer.Ordinal);
+            var document = XDocument.Load(path);
+            foreach (var style in document.Descendants("Style"))
+            {
+                var id = ((string?)style.Attribute("ID") ?? string.Empty).Trim();
+                if (id.Length == 0) continue;
+
+                var name = ((string?)style.Attribute("Name") ?? string.Empty).Trim();
+                var type = ((string?)style.Attribute("Type") ?? string.Empty).Trim();
+                var format = style.Element("Format")?.Value ?? string.Empty;
+                var parsed = ManuscriptReader.ReadRtf(format);
+                var paragraph = parsed.Paragraphs.FirstOrDefault();
+                var runs = parsed.Paragraphs.SelectMany(p => p.Runs).ToList();
+                var headingMatch = Regex.Match(format, @"<\$Scr_H::(?<level>\d+)>",
+                    RegexOptions.CultureInvariant);
+                var heading = headingMatch.Success
+                    && int.TryParse(headingMatch.Groups["level"].Value, out var level)
+                    ? Math.Clamp(level, 1, 6)
+                    : 0;
+
+                var paragraphStyle = name.ToLowerInvariant() switch
+                {
+                    "title" or "heading 1" => ImportedParagraphStyle.Heading,
+                    "heading 2" => ImportedParagraphStyle.Subheading,
+                    "block quote" or "blockquote" => ImportedParagraphStyle.BlockQuote,
+                    "verse" or "poetry" => ImportedParagraphStyle.Poetry,
+                    _ => ImportedParagraphStyle.Normal
+                };
+
+                result[id] = new ScrivenerStyleInfo(
+                    id,
+                    name,
+                    type.Contains("Char", StringComparison.OrdinalIgnoreCase),
+                    runs.Any(r => r.Bold),
+                    runs.Any(r => r.Italic),
+                    runs.Any(r => r.Underline),
+                    runs.Any(r => r.Strike),
+                    heading,
+                    paragraphStyle,
+                    paragraph?.Alignment ?? ImportedTextAlignment.Default);
+            }
+
+            return result;
         }
 
         public string Root { get; }

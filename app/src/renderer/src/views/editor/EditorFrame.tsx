@@ -12,6 +12,7 @@ import {
 } from './editorBridge'
 import { EditorToolbar, type FormattingState } from './EditorToolbar'
 import { useEditorBridge } from '../../stores/editorBridgeStore'
+import { useOnboardingStore } from '../../stores/onboardingStore'
 import { editorPane, useProjectStore, type ProjectStateDto, type SceneTabRef } from '../../stores/projectStore'
 import { useShellStore } from '../../stores/shellStore'
 import { useSettingsStore } from '../../stores/settingsStore'
@@ -144,6 +145,16 @@ function pushEditorConfig(editor: EditorWindow, t: TFunction): void {
       selectAll: t('editor.contextMenu.selectAll'),
       addComment: t('editor.contextMenu.addComment'),
       addFootnote: t('editor.contextMenu.addFootnote'),
+      bold: t('blockStyle.bold'),
+      italic: t('blockStyle.italic'),
+      underline: t('blockStyle.underline'),
+      strikethrough: t('blockStyle.strikethrough'),
+      highlight: t('blockStyle.highlight'),
+      link: t('blockStyle.link'),
+      alignLeft: t('blockStyle.left'),
+      alignCenter: t('blockStyle.center'),
+      alignRight: t('blockStyle.right'),
+      justify: t('blockStyle.justify'),
       addToDictionary: t('editor.contextMenu.addToDictionary'),
       createEntity: t('editor.contextMenu.createEntity'),
       appendToEntity: t('editor.contextMenu.appendToEntity'),
@@ -169,10 +180,15 @@ const DEFAULT_FORMATTING: FormattingState = {
   bold: false,
   italic: false,
   underline: false,
+  strikethrough: false,
+  highlight: false,
   alignment: 'left',
   paragraphStyle: '',
   bulletList: false,
-  numberList: false
+  numberList: false,
+  hasSelection: false,
+  linkActive: false,
+  entityAtCaret: false
 }
 
 interface SceneComment {
@@ -312,6 +328,11 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
   const lastReportedHtmlRef = useRef<string | null>(null)
   const [formatting, setFormatting] = useState<FormattingState>(DEFAULT_FORMATTING)
   const [speaking, setSpeaking] = useState(false)
+  const showFocusPeekTip = useOnboardingStore(
+    (state) => state.tipsEnabled && state.tips['focus-peek'] == null
+  )
+  const completeFocusPeekTip = useOnboardingStore((state) => state.completeTip)
+  const dismissFocusPeekTip = useOnboardingStore((state) => state.dismissTip)
   // An image waiting on its alt text. Asked for at insert time, because asking
   // later means never: a picture in the prose without one is invisible to a
   // reader using a screen reader and to an accessible export.
@@ -617,17 +638,27 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
     const showHoverCard = (
       hit: { id: string; type: string },
       x: number,
-      y: number
+      y: number,
+      wordRect?: { left: number; top: number; right: number; bottom: number } | null
     ): void => {
       if (!iframeRef.current) return
-      // Translate the iframe-relative point into viewport coordinates; the shared
-      // overlay handles the pinned guard, debounce cancel, and clamping.
-      const rect = iframeRef.current.getBoundingClientRect()
-      peekRef.current.showAt(
-        { entityType: hit.type, entityId: hit.id },
-        rect.left + x,
-        rect.top + y
-      )
+      // Translate the iframe-relative geometry into viewport coordinates; the
+      // shared overlay handles the pinned guard, the debounce and the placing.
+      //
+      // The anchor is the word's own rectangle where the editor could measure
+      // one. Anchoring to the pointer instead left the card covering the rest of
+      // the word, so the smallest drift of a resting hand moved the pointer onto
+      // the card, the editor stopped seeing the name, and the peek flickered.
+      const frame = iframeRef.current.getBoundingClientRect()
+      const anchor = wordRect
+        ? {
+            left: frame.left + wordRect.left,
+            top: frame.top + wordRect.top,
+            right: frame.left + wordRect.right,
+            bottom: frame.top + wordRect.bottom
+          }
+        : { left: frame.left + x, top: frame.top + y, right: frame.left + x, bottom: frame.top + y }
+      peekRef.current.showAt({ entityType: hit.type, entityId: hit.id }, anchor)
     }
 
     const dispose = listenToEditor(iframe, (message) => {
@@ -866,12 +897,30 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
         }
         case 'entityMentionHover': {
           const hit = entityIndexRef.current.get(String(message.entityId))
-          if (hit) showHoverCard(hit, Number(message.x ?? 0), Number(message.y ?? 0))
+          if (hit) {
+            showHoverCard(
+              hit,
+              Number(message.x ?? 0),
+              Number(message.y ?? 0),
+              (message as { rect?: { left: number; top: number; right: number; bottom: number } })
+                .rect ?? null
+            )
+            useOnboardingStore.getState().completeTip('focus-peek')
+          }
           break
         }
         case 'entityHover': {
           const hit = entityIndexRef.current.get(String(message.alias ?? '').toLowerCase())
-          if (hit) showHoverCard(hit, Number(message.x ?? 0), Number(message.y ?? 0))
+          if (hit) {
+            showHoverCard(
+              hit,
+              Number(message.x ?? 0),
+              Number(message.y ?? 0),
+              (message as { rect?: { left: number; top: number; right: number; bottom: number } })
+                .rect ?? null
+            )
+            useOnboardingStore.getState().completeTip('focus-peek')
+          }
           break
         }
         case 'entityExit': {
@@ -931,15 +980,27 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           break
         }
         case 'formattingChanged': {
-          setFormatting({
+          const nextFormatting: FormattingState = {
             bold: Boolean(message.bold),
             italic: Boolean(message.italic),
             underline: Boolean(message.underline),
+            strikethrough: Boolean(message.strikethrough),
+            highlight: Boolean(message.highlight),
             alignment: (message.alignment as FormattingState['alignment']) ?? 'left',
             paragraphStyle: String(message.paragraphStyle ?? ''),
             bulletList: Boolean(message.bulletList),
-            numberList: Boolean(message.numberList)
-          })
+            numberList: Boolean(message.numberList),
+            hasSelection: Boolean(message.hasSelection),
+            linkActive: Boolean(message.linkActive),
+            entityAtCaret: Boolean(message.entityAtCaret)
+          }
+          setFormatting(nextFormatting)
+          if (useEditorBridge.getState().editor === editorRef.current) {
+            useEditorBridge.getState().setContext({
+              hasSelection: nextFormatting.hasSelection,
+              entityAtCaret: nextFormatting.entityAtCaret
+            })
+          }
           break
         }
         default:
@@ -1032,7 +1093,38 @@ export function EditorFrame({ paneId }: { paneId?: string }): React.JSX.Element 
           const eff = useSettingsStore.getState().view?.effective
           live.startReadAloud(true, eff?.readAloudRate ?? 1, eff?.readAloudVoiceUri ?? null)
         }}
+        onRequestLink={() => setLinkPrompt(true)}
+        onAddComment={() => editorRef.current?.addCommentToSelection(crypto.randomUUID())}
+        onAddFootnote={() => editorRef.current?.insertFootnoteAtSelection(crypto.randomUUID())}
       />
+      {isActiveEditor && formatting.entityAtCaret && showFocusPeekTip && (
+        <section
+          className="editor-onboarding-tip"
+          aria-label={t('focusPeek.tipTitle')}
+          data-onboarding-tip="focus-peek"
+        >
+          <div className="editor-onboarding-copy">
+            <strong>{t('focusPeek.tipTitle')}</strong>
+            <span>{t('focusPeek.tipBody')}</span>
+          </div>
+          <div className="editor-onboarding-actions">
+            <button
+              className="btn-primary"
+              onClick={() => {
+                if (editorRef.current?.peekEntityAtCaret()) completeFocusPeekTip('focus-peek')
+              }}
+            >
+              {t('focusPeek.tipTry')}
+            </button>
+            <button
+              className="btn-secondary"
+              onClick={() => dismissFocusPeekTip('focus-peek')}
+            >
+              {t('focusPeek.tipDismiss')}
+            </button>
+          </div>
+        </section>
+      )}
       <iframe
         ref={iframeRef}
         className="editor-frame"

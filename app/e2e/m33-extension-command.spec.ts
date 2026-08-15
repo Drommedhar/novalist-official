@@ -87,6 +87,11 @@ test('an extension command is listed in the palette and runs', async () => {
   expect(listed).toContain('ext.writingtoolkit.pomodoro.toggle')
   expect(listed).toContain('ext.writingtoolkit.countword')
 
+  // Back to a view that has a status bar: Extensions is a system view and
+  // deliberately carries none of the project chrome, so the item an
+  // extension contributes to the status bar cannot be seen from inside it.
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
+
   // Idle, before anything runs it.
   const pomodoro = page.locator('.status-ext-item', { hasText: '--:--' })
   await expect(pomodoro).toBeVisible({ timeout: 30_000 })

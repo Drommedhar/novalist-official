@@ -712,4 +712,144 @@ public class ScrivenerReaderTests : IDisposable
 
         Assert.Equal("tension", ScrivenerReader.Read(root).CustomFields.Single().Title);
     }
+
+    // ── Real Scrivener RTF ──
+
+    [Fact]
+    public void RealScrivenerRtfDecodesPunctuationAndNeverLeaksInternalMarkers()
+    {
+        var root = ScrivenerProjectBuilder.CopyRealFormattingFixture(_dir.Path);
+
+        var scene = Assert.Single(ScrivenerReader.Read(root).Scenes);
+
+        Assert.Equal("Scene 1", scene.Title);
+        Assert.Contains("“Lorem ipsum!”", scene.Text);
+        Assert.Contains("Volupta’s aliqua—dolores esse…", scene.Text);
+        Assert.DoesNotContain("'93", scene.Text);
+        Assert.DoesNotContain("$Scr_", scene.Text);
+        Assert.False(scene.Text.StartsWith("**", StringComparison.Ordinal));
+        Assert.DoesNotContain('�', scene.Text);
+    }
+
+    [Fact]
+    public void RealScrivenerRtfPreservesSemanticEditorFormatting()
+    {
+        var root = ScrivenerProjectBuilder.CopyRealFormattingFixture(_dir.Path);
+
+        var scene = Assert.Single(ScrivenerReader.Read(root).Scenes);
+
+        Assert.Contains("<p class=\"nv-style-heading\">Prologue</p>", scene.Html);
+        Assert.Contains("<ul><li>A bullet from the real project.</li></ul>", scene.Html);
+        Assert.Contains("<ol><li>A numbered item from the real project.</li></ol>", scene.Html);
+        Assert.Contains("font-weight:bold", scene.Html);
+        Assert.Contains("font-style:italic", scene.Html);
+        Assert.DoesNotContain("$Scr_", scene.Html);
+    }
+
+    [Fact]
+    public void RealScrivenerNamedStylesBecomeSafeMarkdownForResearch()
+    {
+        var root = ScrivenerProjectBuilder.CopyRealFormattingFixture(_dir.Path);
+
+        var research = Assert.Single(ScrivenerReader.Read(root).Research);
+
+        Assert.Equal("Style Guide", research.Title);
+        Assert.StartsWith("# **Dignissimos in blanditiis**", research.MarkdownText);
+        Assert.Contains("## **\\[Dignissimos in blanditiis\\]**", research.MarkdownText);
+        Assert.Contains("**Nisi cupiditate:**", research.MarkdownText);
+        Assert.Contains("*cupidatat vitae lorem sequi do corrupti ipsam.*", research.MarkdownText);
+        Assert.DoesNotContain("$Scr_", research.Text);
+        Assert.DoesNotContain("$Scr_", research.MarkdownText);
+    }
+
+    // ── Named styles resolved through styles.xml ──
+
+    /// <summary>
+    /// Writes a project whose single scene carries raw RTF, a per-document
+    /// style list, and a styles.xml naming the two paragraph styles Novalist
+    /// maps by name rather than by formatting.
+    /// </summary>
+    private string NewStyledProject(string sceneRtf)
+    {
+        var root = NewProject();
+        WriteScrivx(root,
+            """
+            <BinderItem UUID="DRAFT" ID="1" Type="DraftFolder"><Title>Manuscript</Title><Children>
+              <BinderItem UUID="S1" ID="2" Type="Text"><Title>Styled</Title></BinderItem>
+            </Children></BinderItem>
+            """);
+
+        var files = Path.Combine(root, "Files");
+        Directory.CreateDirectory(files);
+        File.WriteAllText(Path.Combine(files, "styles.xml"),
+            """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <Styles>
+              <Style ID="QUOTE-UUID" Name="Block Quote" Type="Paragraph"><Format>{\rtf1 sample\par}</Format></Style>
+              <Style ID="VERSE-UUID" Name="Verse" Type="Paragraph"><Format>{\rtf1 sample\par}</Format></Style>
+              <Style ID="EMPH-UUID" Name="Author Emphasis" Type="Character"><Format>{\rtf1\b sample\par}</Format></Style>
+            </Styles>
+            """,
+            Encoding.UTF8);
+
+        var folder = Path.Combine(files, "Data", "S1");
+        Directory.CreateDirectory(folder);
+        File.WriteAllText(Path.Combine(folder, "content.rtf"), sceneRtf);
+        File.WriteAllText(
+            Path.Combine(folder, "content.styles"), "QUOTE-UUID, VERSE-UUID, EMPH-UUID");
+        return root;
+    }
+
+    [Fact]
+    public void StyleNamesScrivenerShipsWithBecomeNovalistParagraphStyles()
+    {
+        // Index 0 and 1 address content.styles, whose UUIDs resolve through
+        // styles.xml - the indirection that makes a bare <$Scr_Ps::N> meaningful.
+        var root = NewStyledProject(
+            @"{\rtf1\ansi <$Scr_Ps::0>Quoted line<!$Scr_Ps::0>\par" +
+            @"<$Scr_Ps::1>Versed line<!$Scr_Ps::1>\par}");
+
+        var scene = Assert.Single(ScrivenerReader.Read(root).Scenes);
+
+        Assert.Equal(
+            "<p class=\"nv-style-blockquote\">Quoted line</p>"
+            + "<p class=\"nv-style-poetry\">Versed line</p>",
+            scene.Html);
+        Assert.DoesNotContain("$Scr_", scene.Html);
+    }
+
+    [Fact]
+    public void AMarkerLeavesNoEmptyRunAndNoSplitInTheProseAroundIt()
+    {
+        // The markers sit inside styled runs, so stripping them leaves a
+        // whitespace-only run at each end of the first paragraph, cuts the prose
+        // either side of a heading marker into two runs of identical style, and
+        // applies a character style to the middle of the third.
+        var root = NewStyledProject(
+            @"{\rtf1\ansi {\b <$Scr_Ps::0> }Real text{\i  <!$Scr_Ps::0>}\par " +
+            @"One <$Scr_H::1>two<!$Scr_H::1>\par " +
+            @"Plain <$Scr_Cs::2>emphasised<!$Scr_Cs::2> plain.\par}");
+
+        var document = ScrivenerReader.Read(root);
+        var scene = Assert.Single(document.Scenes);
+
+        Assert.Contains("<p class=\"nv-style-blockquote\">Real text</p>", scene.Html);
+        Assert.Contains("<p class=\"nv-style-heading\">One two</p>", scene.Html);
+        Assert.Contains(
+            "<p>Plain <span style=\"font-weight:bold\">emphasised</span> plain.</p>", scene.Html);
+        // Merged rather than left as two adjacent spans of the same style.
+        Assert.DoesNotContain("</span><span", scene.Html);
+    }
+
+    [Fact]
+    public void ASceneBreakSurvivesTheNamedStylePassIntact()
+    {
+        var root = NewStyledProject(
+            @"{\rtf1\ansi Before the break.\par * * *\par After the break.\par}");
+
+        var scene = Assert.Single(ScrivenerReader.Read(root).Scenes);
+
+        Assert.Equal(
+            "<p>Before the break.</p><p>***</p><p>After the break.</p>", scene.Html);
+    }
 }

@@ -115,6 +115,27 @@
   margin-bottom: var(--nl-space-sm);
 }
 
+.status-overview-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-tighter) var(--nl-space-lg);
+  margin-bottom: var(--nl-space-sm);
+  color: var(--nl-text-dim);
+  font-size: var(--nl-font-ui);
+}
+
+.status-overview-summary > span {
+  white-space: nowrap;
+}
+
+.status-overview-goals {
+  justify-content: space-between;
+  padding: var(--nl-space-sm) 0;
+  margin-bottom: var(--nl-space-sm);
+  border-top: 1px solid var(--nl-border);
+  border-bottom: 1px solid var(--nl-border);
+}
+
 .status-overview-cols,
 .status-overview-row {
   display: grid;
@@ -208,6 +229,22 @@
   align-items: center;
   gap: var(--nl-space-lg);
   min-width: 0;
+}
+
+.shell-capacity-medium .status-project-label,
+.shell-capacity-compact .status-project-label,
+.shell-capacity-medium .status-git-branch,
+.shell-capacity-compact .status-git-branch,
+.shell-capacity-compact .status-stats .status-dim,
+.shell-capacity-compact .status-readability-badge,
+.shell-capacity-compact .status-ext-items {
+  display: none;
+}
+
+.shell-capacity-compact .status-left,
+.shell-capacity-compact .status-right {
+  gap: var(--nl-space-sm);
+  overflow: hidden;
 }
 
 .status-goals {

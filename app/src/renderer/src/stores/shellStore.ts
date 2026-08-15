@@ -1,4 +1,9 @@
 import { create } from 'zustand'
+import {
+  parseSettingsDestination,
+  setSettingsDestination
+} from '../views/settings/settingsNavigation'
+import { isSettingsSectionKey } from '../views/settings/settingsRegistry'
 
 /** Main-area destinations. Surfaced as the slim activity-bar icon rail
  * (mirrors the Avalonia MainWindow activity bar); the editor ("write") is
@@ -234,6 +239,30 @@ export const INSPECTOR_MAX = 720
 export const NOTES_DOCK_MIN = 80
 export const NOTES_DOCK_MAX = 640
 
+/** Available horizontal capacity of the actual shell content area. */
+export type ShellCapacity = 'compact' | 'medium' | 'wide'
+
+export function shellCapacityForWidth(width: number): ShellCapacity {
+  if (width < 900) return 'compact'
+  if (width < 1240) return 'medium'
+  return 'wide'
+}
+
+/**
+ * A remembered drag width is a preference, not permission to squeeze the
+ * editor out of the window. Runtime width is capped against the shell itself;
+ * the stored preference remains untouched and comes back on a wider monitor.
+ */
+export function panelWidthForShell(
+  preferred: number,
+  shellWidth: number,
+  min: number,
+  max: number
+): number {
+  const capacityCap = Math.max(min, Math.floor(shellWidth * 0.28))
+  return clamp(preferred, min, Math.min(max, capacityCap))
+}
+
 interface PanelSizes {
   binderWidth?: number
   inspectorWidth?: number
@@ -276,12 +305,11 @@ function initialPanelSize(
 
 const storedPanels = readPanelSizes()
 
-/* Measured against the display rather than the window. This module is evaluated
- * during renderer boot, which races the main process maximising the window, so
- * innerWidth here is still the constructor's 1440 and would size the panels for
- * a window the user never sees. availWidth is stable whenever it is read. */
-const screenW = typeof window === 'undefined' ? 1440 : window.screen?.availWidth || window.innerWidth
-const screenH = typeof window === 'undefined' ? 900 : window.screen?.availHeight || window.innerHeight
+/* Initial guesses only. AppShell immediately replaces the basis with its own
+ * ResizeObserver measurement, which is the width that actually matters after
+ * OS DPI, page scale, split view and window restoration have been applied. */
+const screenW = typeof window === 'undefined' ? 1440 : window.innerWidth || 1440
+const screenH = typeof window === 'undefined' ? 900 : window.innerHeight || 900
 
 export const NOTES_DOCK_DEFAULT = initialPanelSize(
   storedPanels.notesDockHeight,
@@ -314,8 +342,14 @@ interface ShellState {
   binderTab: BinderTab
   binderVisible: boolean
   binderWidth: number
+  /** A compact-shell drawer. Kept separate from the wide-layout preference. */
+  binderOverlayOpen: boolean
   inspectorVisible: boolean
   inspectorWidth: number
+  /** Inspector drawer used when there is not room for a persistent sidebar. */
+  inspectorOverlayOpen: boolean
+  shellWidth: number
+  shellCapacity: ShellCapacity
   inspectorTab: InspectorTab
   /** Bottom scene-notes dock (Synopsis + Notes), Scene view only. Off by default. */
   notesDockVisible: boolean
@@ -384,6 +418,8 @@ interface ShellState {
   setInspectorTab(tab: InspectorTab): void
   toggleNotesDock(): void
   setBackendVersion(version: string | null): void
+  /** Actual rendered shell width, after DPI/UI scale. */
+  setShellMetrics(width: number): void
   toggleFocusMode(): void
   setFindReplaceOpen(open: boolean): void
   setCleanupOpen(open: boolean): void
@@ -482,11 +518,16 @@ const initialPanes = newLeaf('write')
 function showView(
   state: ShellState,
   mainView: MainView
-): Pick<ShellState, 'mainView' | 'extView' | 'panes'> {
+): Pick<
+  ShellState,
+  'mainView' | 'extView' | 'panes' | 'binderOverlayOpen' | 'inspectorOverlayOpen'
+> {
   return {
     mainView,
     extView: null,
-    panes: setPaneViewIn(state.panes, state.activePaneId, mainView)
+    panes: setPaneViewIn(state.panes, state.activePaneId, mainView),
+    binderOverlayOpen: false,
+    inspectorOverlayOpen: false
   }
 }
 
@@ -504,6 +545,7 @@ export const useShellStore = create<ShellState>((set, get) => ({
   binderTab: 'chapters',
   binderVisible: true,
   binderWidth: initialPanelSize(storedPanels.binderWidth, 0.15, BINDER_MIN, BINDER_MAX, screenW),
+  binderOverlayOpen: false,
   inspectorVisible: true,
   inspectorWidth: initialPanelSize(
     storedPanels.inspectorWidth,
@@ -512,6 +554,9 @@ export const useShellStore = create<ShellState>((set, get) => ({
     INSPECTOR_MAX,
     screenW
   ),
+  inspectorOverlayOpen: false,
+  shellWidth: screenW,
+  shellCapacity: shellCapacityForWidth(screenW),
   inspectorTab: 'context',
   notesDockVisible: false,
   settingsSearch: '',
@@ -625,7 +670,18 @@ export const useShellStore = create<ShellState>((set, get) => ({
   navigateToMapPin: (mapId, pinId) =>
     set((s) => ({ ...showView(s, 'maps'), pendingMapNav: { mapId, pinId } })),
   clearPendingMapNav: () => set({ pendingMapNav: null }),
-  openSettings: (search = '') => set((s) => ({ ...showView(s, 'settings'), settingsSearch: search })),
+  openSettings: (search = '') => {
+    const current = get()
+    const parsed = parseSettingsDestination(search)
+    const directSection = isSettingsSectionKey(search) ? { section: search } : null
+    setSettingsDestination({
+      ...(parsed ?? directSection ?? (search ? { query: search } : { section: 'appearance' })),
+      ...(current.mainView !== 'settings'
+        ? { origin: { view: current.mainView, labelKey: `shell.view.${current.mainView}` } }
+        : {})
+    })
+    set((s) => ({ ...showView(s, 'settings'), settingsSearch: '' }))
+  },
   setExtView: (extView) => set({ extView }),
   setBinderTab: (binderTab) => set({ binderTab }),
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
@@ -643,11 +699,39 @@ export const useShellStore = create<ShellState>((set, get) => ({
   setHelpOpen: (helpOpen) => set({ helpOpen }),
   setLayoutsOpen: (layoutsOpen) => set({ layoutsOpen }),
   setTourOpen: (tourOpen) => set({ tourOpen }),
-  toggleBinder: () => set((s) => ({ binderVisible: !s.binderVisible })),
+  toggleBinder: () =>
+    set((s) =>
+      s.shellCapacity === 'compact'
+        ? { binderOverlayOpen: !s.binderOverlayOpen, inspectorOverlayOpen: false }
+        : { binderVisible: !s.binderVisible }
+    ),
   setBinderWidth: (px) => set({ binderWidth: clamp(px, BINDER_MIN, BINDER_MAX) }),
-  toggleInspector: () => set((s) => ({ inspectorVisible: !s.inspectorVisible })),
+  toggleInspector: () =>
+    set((s) =>
+      s.shellCapacity === 'wide'
+        ? { inspectorVisible: !s.inspectorVisible }
+        : { inspectorOverlayOpen: !s.inspectorOverlayOpen, binderOverlayOpen: false }
+    ),
   setInspectorWidth: (px) => set({ inspectorWidth: clamp(px, INSPECTOR_MIN, INSPECTOR_MAX) }),
   setInspectorTab: (inspectorTab) => set({ inspectorTab }),
   toggleNotesDock: () => set((s) => ({ notesDockVisible: !s.notesDockVisible })),
-  setBackendVersion: (backendVersion) => set({ backendVersion })
+  setBackendVersion: (backendVersion) => set({ backendVersion }),
+  setShellMetrics: (rawWidth) =>
+    set((s) => {
+      const shellWidth = Math.max(1, Math.round(rawWidth))
+      const shellCapacity = shellCapacityForWidth(shellWidth)
+      return {
+        shellWidth,
+        shellCapacity,
+        ...(shellCapacity !== 'compact' ? { binderOverlayOpen: false } : {}),
+        ...(shellCapacity === 'wide' ? { inspectorOverlayOpen: false } : {}),
+        // Crossing between constrained modes should never leave two drawers
+        // stacked over the manuscript.
+        ...(shellCapacity !== s.shellCapacity
+          ? shellCapacity === 'compact'
+            ? { inspectorOverlayOpen: false }
+            : { binderOverlayOpen: false }
+          : {})
+      }
+    })
 }))

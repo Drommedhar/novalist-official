@@ -34,15 +34,29 @@ Novalist saves automatically **two seconds** after the last keystroke. Pending c
 
 ## The formatting toolbar
 
-The strip above the page:
+The strip above the page shows **what applies to where you are**, rather than every command at once with most of them greyed out.
+
+**With the caret in the text and nothing selected**, the toolbar is about the paragraph:
 
 - **Paragraph style** (drop-down, far left) — what the paragraph under the caret *is*: Body, Heading, Subheading, Block quote or Verse. See [Paragraph styles](#paragraph-styles) below.
-- **Bold**, **Italic**, **Underline** — toggle inline formatting on the selection.
-- **Bulleted list** and **Numbered list** — turn the selected paragraphs into a list, or turn a list back into paragraphs.
+- **Bulleted list** and **Numbered list** — turn the paragraph into a list item, or turn a list back into paragraphs.
 - **Align left / center / right / justify** — set paragraph alignment.
-- **Mark hard-to-read sentences** (gauge icon, right) — tints the sentences that fight the reader. See [Readability marking](#readability-marking) below.
-- **Read aloud** (speaker icon, right) — reads the scene back to you from the caret's paragraph. See [Read aloud](#read-aloud) below.
-- **Page view toggle** (book icon, far right) — switches the editor between a plain writing surface and a printed-book-style page with paper background, margins, and shadow. This is the same setting as **Page View** in [Settings](23-settings.md) → Editor.
+- **Peek at entity under caret** — appears only when the caret is actually on a linked Codex name, and opens its [hover card](#entity-hover-cards) from the toolbar. Hovering with the pointer still works; this is the way to reach the same card without one, which on a touch screen or by keyboard was previously not possible at all.
+
+**With text selected**, it becomes about that text: **Bold**, **Italic**, **Underline**, **Strikethrough**, **Highlight**, **Link**, and the two labelled buttons **Comment** and **Footnote**.
+
+At the right-hand end, whatever the context:
+
+- **Suggestion mode** (pen icon) — see [Suggesting edits](#suggesting-edits-instead-of-making-them) below.
+- **Writing options** (sliders icon) — a menu holding the settings that used to sit on the bar permanently:
+  - **Mark hard-to-read sentences** — tints the sentences that fight the reader. See [Readability marking](#readability-marking) below.
+  - **Read aloud** — reads the scene back to you from the caret's paragraph. See [Read aloud](#read-aloud) below.
+  - **Page view**, **Dim other paragraphs**, **Typewriter scrolling**, and focus mode.
+  - **More writing settings**, which opens the matching section of Settings and offers a link back to the scene when you are done.
+
+When **read aloud** or **suggestion mode** is running, a bar under the toolbar says so and carries a single button to leave that mode, so there is never a mode you are in without being told and without an obvious way out.
+
+In a narrow editor pane the primary commands stay put and the rest move into a **More** menu, rather than being cut off at the edge.
 
 The active formatting of the text under the caret is highlighted in the toolbar.
 
@@ -226,7 +240,7 @@ When **Dialogue Punctuation Correction** is enabled in Settings → Writing assi
 In [Settings](23-settings.md) → Editor:
 
 - **Typewriter Scrolling** keeps the active line at a fixed vertical position (top, middle, or bottom) so you never write at the bottom edge of the window.
-- **Page View** renders the editor as a book-style page (also toggleable from the formatting toolbar).
+- **Page View** renders the editor as a book-style page (also toggleable under **Writing options** in the formatting toolbar).
 - **Book Page Width** constrains the text column to a printed page width, with selectable page formats, and **Book Font** / **Book Font Size** set the typeface for that mode.
 - **Book Paragraph Spacing** adds book-like vertical spacing.
 - **Font Family** and **Font Size** control the regular editing view. New projects start on Newsreader at 17px — the app's own text face, bundled so it is always available — but the field takes any family installed on your machine.
@@ -264,7 +278,7 @@ Delete an image the way you delete anything else: put the caret after it and pre
 
 ## Readability marking
 
-The gauge button on the toolbar tints each sentence Novalist judges hard to read: a light wash for **difficult**, a stronger one for **very difficult**. Everything easier is left alone on purpose — tinting every sentence produces a heat map you stop seeing, and what you actually want is the handful of sentences that fight the reader.
+**Mark hard-to-read sentences**, under **Writing options** in the toolbar, tints each sentence Novalist judges hard to read: a light wash for **difficult**, a stronger one for **very difficult**. Everything easier is left alone on purpose — tinting every sentence produces a heat map you stop seeing, and what you actually want is the handful of sentences that fight the reader.
 
 - Each sentence is graded on its own, with the same readability method the [style report](36-style-report.md) uses for the scene, chosen from your writing language.
 - Sentences under four words are never marked. A two-word line is a beat or a piece of dialogue, not a readability signal.
@@ -275,7 +289,7 @@ The toggle is remembered, and can be pinned per project like the rest of the edi
 
 ## Read aloud
 
-The speaker button on the toolbar reads the open scene aloud, starting from the paragraph your caret is in. The sentence being spoken is highlighted and the editor scrolls to keep it in view, so you can follow the reading with your eyes — which is what makes it useful for catching a sentence that does not land, not only for listening.
+**Read aloud**, under **Writing options** in the toolbar, reads the open scene aloud, starting from the paragraph your caret is in. The sentence being spoken is highlighted and the editor scrolls to keep it in view, so you can follow the reading with your eyes — which is what makes it useful for catching a sentence that does not land, not only for listening.
 
 Stop it by pressing the button again (it becomes a stop square while reading), by pressing `Escape`, or simply by starting to type: typing over a passage being read back is you taking over.
 

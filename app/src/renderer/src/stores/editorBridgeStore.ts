@@ -18,8 +18,11 @@ interface EditorBridgeState {
    * scene's prose.
    */
   sceneId: string | null
+  hasSelection: boolean
+  entityAtCaret: boolean
 
   register(editor: EditorWindow | null, sceneId: string | null): void
+  setContext(context: { hasSelection: boolean; entityAtCaret: boolean }): void
 
   /** True when the bridge is live and showing this scene. */
   isShowing(sceneId: string): boolean
@@ -28,8 +31,12 @@ interface EditorBridgeState {
 export const useEditorBridge = create<EditorBridgeState>((set, get) => ({
   editor: null,
   sceneId: null,
+  hasSelection: false,
+  entityAtCaret: false,
 
-  register: (editor, sceneId) => set({ editor, sceneId }),
+  register: (editor, sceneId) =>
+    set({ editor, sceneId, ...(editor ? {} : { hasSelection: false, entityAtCaret: false }) }),
+  setContext: (context) => set(context),
 
   isShowing: (sceneId) => {
     const state = get()

@@ -13,10 +13,27 @@ The dialog lists the extensions it can read, so you know what to look for before
 | EPUB | `.epub` | Content documents in reading order, with heading levels. |
 | Markdown | `.md`, `.markdown` | `#` headings, paragraphs, and `***` / `---` scene breaks. |
 | Plain text | `.txt` | Paragraphs, "Chapter N" lines, and ornament scene breaks. |
-| Rich text | `.rtf` | Paragraphs only. Formatting is not recovered. |
+| Rich text | `.rtf` | Paragraphs, headings, bold and italic, lists, and alignment. See [Formatting](#formatting). |
 | Scrivener | `.scriv` | The draft as parts, chapters and scenes, plus Codex entries and research. See below. |
 
-Import is **prose only**. Bold and italic, images, footnotes and comments are not carried over — the goal is to get your words into Novalist with the right structure, not to reproduce another program's layout.
+Import recovers **words and the shape they were written in** — not the page they were written on. Fonts, type sizes, colours, margins and compile settings stay in the program you left; images, footnotes and comments are not carried over either.
+
+## Formatting
+
+Rich text and Scrivener carry more than paragraphs. What comes across is the formatting that means something — the emphasis you would lose the sense of a sentence without:
+
+- **Bold**, *italic*, underline and strikethrough, kept where they sit inside a sentence rather than applied to the whole paragraph.
+- Superscript and subscript.
+- Headings, block quotations and verse, from the named styles the source used.
+- Numbered and bulleted lists, as lists rather than as typed-out numbers.
+- Centred, right-aligned and justified paragraphs.
+- Scene-break ornaments, kept as scene breaks.
+
+Everything else — the typeface, the point size, the line spacing, the indents — is left behind on purpose. Novalist styles your prose from your own settings, so importing a book does not import somebody else's page design along with it.
+
+Curly quotes, apostrophes, ellipses, en and em dashes arrive as themselves. A file written on a different platform, or in a language whose characters sit outside the Latin alphabet, reads correctly rather than arriving speckled with stray characters.
+
+A document Novalist cannot make sense of is reported on its own and the rest of the import goes ahead, so one damaged file no longer costs you the whole book.
 
 ## Scrivener projects
 
@@ -37,6 +54,10 @@ Only the **Draft** folder becomes manuscript, whatever it is called in your proj
 Two chapters with the same name stay two chapters. Scrivener's own novel template names every part "Part" and every chapter "Chapter", and they are kept apart by identity rather than by title.
 
 **Empty documents still come across.** Outlining in empty binder documents is how most Scrivener projects start, and that outline is the part worth keeping.
+
+A document you never named becomes **Scene 1**, **Scene 2** and so on in binder order, rather than an untitled row you have to identify by opening it.
+
+Scrivener's **named styles** are read from the project itself, so a paragraph you styled as a heading, a block quotation or verse arrives as that, and the markers Scrivener writes into its own files to record them never show up in your prose.
 
 ### Scene metadata
 
@@ -60,6 +81,8 @@ Scrivener's blank **template sheets** are deliberately not imported. They would 
 ### Research
 
 Everything else in the binder that carried content becomes a **research item**: notes keep their prose, and PDFs, pictures, recordings, video and other imported files are **copied into your project** so it stays portable and the Scrivener project can be deleted afterwards. The folder each item sat in comes across as a tag.
+
+A research note keeps its formatting as Markdown, so headings, emphasis and lists in a set of notes survive as headings, emphasis and lists rather than flattening into one block of text.
 
 Front matter — a title page, a copyright page, a dedication — is research too. Novalist builds its own front matter at export time, so the words are kept and the arrangement is not.
 

@@ -55,7 +55,18 @@ export async function launchApp(
     await expect(page.locator('.shell.mobile')).toBeVisible({ timeout: 30_000 })
     await page.waitForFunction(() => !!window.novalistRpc, undefined, { timeout: 30_000 })
   } else {
-    await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
+    // The status bar is contextual chrome and is intentionally absent before a
+    // project opens (including project-less Settings). Read the same backend
+    // readiness state directly instead of making every desktop test depend on
+    // that particular visual surface being mounted.
+    await page.waitForFunction(
+      () =>
+        Boolean(
+          window.novalistRpc && window.novalistStores?.shell.getState().backendVersion
+        ),
+      undefined,
+      { timeout: 30_000 }
+    )
   }
 
   const rpc = <T,>(method: string, params: unknown[] = []): Promise<T> =>
@@ -65,6 +76,63 @@ export async function launchApp(
     ) as Promise<T>
 
   return { app, page, workDir, rpc, close: () => app.close() }
+}
+
+/**
+ * Sizes the window, in Electron's display-independent pixels.
+ *
+ * The app opens maximised. On Windows, setBounds() on a maximised window is
+ * silently ignored: the window stayed full-screen, the renderer stayed above
+ * every phone breakpoint, and a spec that believed it was looking at a 393px
+ * phone was actually asserting against the desktop shell. Where the assertion
+ * happened to hold at both sizes it passed for the wrong reason; where it did
+ * not, it failed for a reason that had nothing to do with the code under test.
+ * Leaving the maximised state first is what makes the requested size take
+ * effect, and waiting on the viewport is what proves it did.
+ */
+export async function resizeWindow(
+  h: Harness,
+  width: number,
+  height: number,
+  minimum: [number, number] = [300, 300]
+): Promise<void> {
+  await h.app.evaluate(
+    async ({ BrowserWindow }, s: { w: number; h: number; min: [number, number] }) => {
+      const win = BrowserWindow.getAllWindows()[0]
+      if (win.isFullScreen()) win.setFullScreen(false)
+      if (win.isMaximized()) win.unmaximize()
+      win.setMinimumSize(s.min[0], s.min[1])
+      win.setBounds({ width: s.w, height: s.h })
+    },
+    { w: width, h: height, min: minimum }
+  )
+  // The OS applies the new bounds asynchronously; the viewport is the thing the
+  // specs actually measure, so wait for that rather than for the bounds call.
+  await h.page.waitForFunction(
+    (w: number) => Math.abs(window.innerWidth - w) <= 40,
+    width,
+    { timeout: 15_000 }
+  )
+}
+
+/**
+ * Closes the first-run tour if this profile is being offered it.
+ *
+ * A fresh profile opens the tour over the content, and its card takes the
+ * pointer events for everything it covers - which at a phone width is most of
+ * the screen. A spec about layout is not a spec about onboarding, so it
+ * dismisses the tour rather than working around it at every interaction.
+ */
+export async function dismissTour(page: Page): Promise<void> {
+  const tour = page.locator('.tour-card')
+  try {
+    await tour.waitFor({ state: 'visible', timeout: 2_000 })
+    await tour.getByRole('button', { name: 'Close tour' }).click()
+    await tour.waitFor({ state: 'hidden', timeout: 5_000 })
+  } catch {
+    // A migrated profile, or one whose tour is deliberately off, has nothing
+    // to close - which is not a failure of the spec that called this.
+  }
 }
 
 export type Book = {

@@ -380,7 +380,7 @@ Printing prose leaves the working apparatus out: no floating toolbar, no grammar
 Beyond the chapter checkboxes:
 
 - **Hold back from exports** — right-click a scene in the binder. The scene stays in the binder, keeps its word count and still counts towards your goals; it simply never reaches a compiled book. The menu item reads **Include in exports again** on a scene already held back. With several scenes selected it applies to all of them.
-- **Only scenes at these stages** — tick the [stages](10-manuscript.md#scene-stages) an export should include. Leave **Every stage** ticked to export everything, which is what an export with no filter has always done. This is how a draft export of only the finished scenes, or a revision pass over only the outlined ones, is produced without touching the book.
+- **Only scenes at these stages** — tick the [stages](04-chapters-and-scenes.md#scene-stages) an export should include. Leave **Every stage** ticked to export everything, which is what an export with no filter has always done. This is how a draft export of only the finished scenes, or a revision pass over only the outlined ones, is produced without touching the book.
 
 A scene held back is held back whatever the stage filter says. The filter narrows what is included; it never overrides an explicit exclusion.
 

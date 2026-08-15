@@ -179,8 +179,8 @@ public sealed class ManuscriptImportRpc
             foreach (var imported in group.Scenes)
             {
                 var scene = await _workspace.Projects.CreateSceneAsync(chapter.Guid, imported.Title);
-                var html = ParagraphsToHtml(imported.Text);
-                await _workspace.WriteSceneAsync(chapter.Guid, scene.Id, html, imported.Text);
+                await _workspace.WriteSceneAsync(
+                    chapter.Guid, scene.Id, imported.Html, imported.Text);
 
                 if (imported.Synopsis.Length > 0) scene.Synopsis = imported.Synopsis;
                 if (imported.Notes.Length > 0) scene.Notes = imported.Notes;
@@ -226,9 +226,9 @@ public sealed class ManuscriptImportRpc
         {
             var sections = new List<EntitySection>();
             if (imported.Text.Length > 0)
-                sections.Add(new EntitySection { Title = "Sketch", Content = imported.Text });
+                sections.Add(new EntitySection { Title = "Sketch", Content = imported.MarkdownText });
             if (imported.Notes.Length > 0)
-                sections.Add(new EntitySection { Title = "Notes", Content = imported.Notes });
+                sections.Add(new EntitySection { Title = "Notes", Content = imported.MarkdownNotes });
 
             if (imported.Kind == ScrivenerEntityKind.Character)
             {
@@ -276,7 +276,7 @@ public sealed class ManuscriptImportRpc
             if (imported.Kind == ScrivenerResearchKind.Note)
             {
                 item.Type = ResearchItemType.Note;
-                item.Content = imported.Text;
+                item.Content = imported.MarkdownText;
             }
             else
             {
@@ -385,15 +385,6 @@ public sealed class ManuscriptImportRpc
         var key = new string([.. name.ToLowerInvariant().Where(char.IsLetterOrDigit)]);
         return key.Length > 0 ? key : Guid.NewGuid().ToString("N")[..8];
     }
-
-    /// <summary>Blank-line-separated prose as the paragraph markup the editor
-    /// speaks.</summary>
-    private static string ParagraphsToHtml(string text)
-        => string.Concat(text
-            .Split("\n\n", StringSplitOptions.RemoveEmptyEntries)
-            .Select(p => p.Trim())
-            .Where(p => p.Length > 0)
-            .Select(p => "<p>" + System.Net.WebUtility.HtmlEncode(p) + "</p>"));
 
     /// <summary>Paragraph text without the tags, for the word count the
     /// manifest stores.</summary>

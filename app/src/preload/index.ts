@@ -181,6 +181,20 @@ contextBridge.exposeInMainWorld('novalist', {
    */
   setTitleBarColors(color: string, symbolColor: string): void {
     ipcRenderer.send('novalist:set-titlebar-colors', color, symbolColor)
+  },
+  /** Applies the persisted whole-interface scale to this renderer window. */
+  setUiScale(factor: number): Promise<number> {
+    return ipcRenderer.invoke('novalist:set-ui-scale', factor)
+  },
+  /** Content-free display facts used by diagnostics and display troubleshooting. */
+  displayDiagnostics(): Promise<{
+    zoomFactor: number
+    scaleFactor: number
+    windowBounds: Electron.Rectangle
+    contentBounds: Electron.Rectangle
+    workArea: Electron.Rectangle
+  } | null> {
+    return ipcRenderer.invoke('novalist:display-diagnostics')
   }
 })
 

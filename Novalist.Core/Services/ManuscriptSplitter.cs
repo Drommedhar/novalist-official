@@ -78,7 +78,7 @@ public static partial class ManuscriptSplitter
 
         var chapters = new List<ImportedChapter>();
         var scenes = new List<ImportedScene>();
-        var body = new List<string>();
+        var body = new List<ImportedParagraph>();
         var chapterTitle = string.Empty;
         var sceneTitle = string.Empty;
 
@@ -136,7 +136,7 @@ public static partial class ManuscriptSplitter
                 continue;
             }
 
-            body.Add(paragraph.Text);
+            body.Add(paragraph);
 
             // A very long run with no breaks becomes several scenes rather than
             // one the editor struggles to open.
@@ -167,29 +167,21 @@ public static partial class ManuscriptSplitter
         return ChapterHeadingRegex().IsMatch(trimmed) || BareNumberRegex().IsMatch(trimmed);
     }
 
-    private static ImportedScene BuildScene(string title, List<string> paragraphs, int index)
+    private static ImportedScene BuildScene(string title, List<ImportedParagraph> paragraphs, int index)
     {
-        var html = new StringBuilder();
-        foreach (var paragraph in paragraphs)
-        {
-            html.Append("<p>");
-            html.Append(System.Net.WebUtility.HtmlEncode(paragraph));
-            html.Append("</p>");
-        }
-
         return new ImportedScene
         {
             Title = title.Length > 0 ? title : $"Scene {index + 1}",
-            Html = html.ToString(),
+            Html = ImportedRichText.ToHtml(paragraphs),
             WordCount = CountWords(paragraphs)
         };
     }
 
-    private static int CountWords(List<string> paragraphs)
+    private static int CountWords(List<ImportedParagraph> paragraphs)
     {
         var total = 0;
         foreach (var paragraph in paragraphs)
-            total += paragraph.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
+            total += paragraph.Text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
         return total;
     }
 }

@@ -111,9 +111,21 @@ export function installAppMenu(showMainWindow: () => void = () => {}): void {
         { role: 'reload' as const },
         { role: 'toggleDevTools' as const },
         { type: 'separator' as const },
-        { role: 'resetZoom' as const },
-        { role: 'zoomIn' as const },
-        { role: 'zoomOut' as const },
+        {
+          label: 'Reset Interface Scale',
+          accelerator: 'CmdOrCtrl+0',
+          click: () => sendCommand('uiScale:reset')
+        },
+        {
+          label: 'Increase Interface Scale',
+          accelerator: 'CmdOrCtrl+Plus',
+          click: () => sendCommand('uiScale:increase')
+        },
+        {
+          label: 'Decrease Interface Scale',
+          accelerator: 'CmdOrCtrl+-',
+          click: () => sendCommand('uiScale:decrease')
+        },
         { type: 'separator' as const },
         { role: 'togglefullscreen' as const }
       ]
@@ -127,7 +139,6 @@ export function installAppMenu(showMainWindow: () => void = () => {}): void {
         // with nothing to show and no menu item that brings it back.
         {
           label: `${name} Window`,
-          accelerator: 'CmdOrCtrl+0',
           click: () => showMainWindow()
         },
         { type: 'separator' as const },
@@ -147,7 +158,7 @@ export function installAppMenu(showMainWindow: () => void = () => {}): void {
       role: 'help',
       submenu: [
         {
-          label: 'Novalist Manual',
+          label: 'Help for Current View',
           accelerator: 'F1',
           click: () => sendCommand('help:manual')
         },

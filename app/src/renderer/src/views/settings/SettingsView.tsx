@@ -1,14 +1,20 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ExternalLink, FolderOpen } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import { ArrowLeft, ExternalLink, FolderOpen, Search, X } from 'lucide-react'
 import { availableLanguages } from '../../i18n'
 import { rpc } from '../../rpc/client'
 import { useSettingsStore, type SettingsSection } from '../../stores/settingsStore'
+import {
+  DEFAULT_UI_SCALE,
+  UI_SCALE_STEPS,
+  useUiScaleStore
+} from '../../stores/uiScaleStore'
+import { useOnboardingStore } from '../../stores/onboardingStore'
 import { useShellStore } from '../../stores/shellStore'
 import { MobileGroup, MobileNav, MobileRow, useMobileNav } from '../../shell/MobileNav'
 import { useIsPhone } from '../../shell/useIsPhone'
 import { TargetsPanel } from '../dashboard/TargetsCard'
-import { useProjectStore } from '../../stores/projectStore'
 import { useThemeCatalog } from '../../stores/themeCatalog'
 import { assetDirectories } from '../../stores/userAssets'
 import { TemplatesCard } from './TemplatesCard'
@@ -27,6 +33,21 @@ import { ThemeTokensCard } from './ThemeTokensCard'
 import { SceneTemplatesCard } from './SceneTemplatesCard'
 import { TagsCard } from './TagsCard'
 import { AutoReplacementsCard } from './AutoReplacementsCard'
+import {
+  SETTINGS_CATEGORIES,
+  searchSettings,
+  settingsControl,
+  settingsSectionsForContext,
+  type SettingsControlMetadata,
+  type SettingsScopeKind,
+  type SettingsSectionKey,
+  type SettingsSectionMetadata
+} from './settingsRegistry'
+import {
+  parseSettingsDestination,
+  setSettingsDestination,
+  useSettingsNavigation
+} from './settingsNavigation'
 import './settings.css'
 
 const QUOTE_LANGUAGES = ['en', 'de-low', 'de-guillemet', 'fr', 'es', 'it', 'pt', 'ru', 'pl', 'cs', 'sk']
@@ -175,41 +196,25 @@ function SettingInput({
   )
 }
 
-interface SectionDef {
-  key: string
-  titleKey: string
-  keywords: string[]
+interface SectionBodyDef {
+  key: SettingsSectionKey
   body: React.ReactNode
   /** True when the body is a self-contained card (its own title + styling). */
   standalone?: boolean
 }
 
-/**
- * How the sections are grouped in the phone index. Membership only, in the
- * order the groups should read; a section missing from every group falls into
- * "Other" rather than disappearing.
- */
-const PHONE_GROUPS: { id: string; keys: string[] }[] = [
-  { id: 'general', keys: ['appearance', 'editor', 'accessibility', 'completion'] },
-  {
-    id: 'writing',
-    keys: [
-      'writingGoals',
-      'writingAssistance',
-      'sceneStages',
-      'sceneLabels',
-      'sceneTemplates',
-      'manuscriptProperties',
-      'tags',
-      'groups'
-    ]
-  },
-  { id: 'project', keys: ['backups', 'templates', 'themeTokens'] },
-  { id: 'system', keys: ['languagePacks', 'diagnostics'] }
-]
+type ResolvedSection = SettingsSectionMetadata & SectionBodyDef
+
+interface DisplayDiagnostics {
+  zoomFactor: number
+  scaleFactor: number
+  windowBounds: { width: number; height: number }
+  contentBounds: { width: number; height: number }
+  workArea: { width: number; height: number }
+}
 
 /** A section as one row of the phone index: tapping it pushes the section. */
-function SettingsPhoneRow({ section }: { section: SectionDef }): React.JSX.Element {
+function SettingsPhoneRow({ section }: { section: ResolvedSection }): React.JSX.Element {
   const { t } = useTranslation()
   const nav = useMobileNav()
   const title = t(section.titleKey)
@@ -224,6 +229,39 @@ function SettingsPhoneRow({ section }: { section: SectionDef }): React.JSX.Eleme
       }
     />
   )
+}
+
+function controlTarget(
+  container: HTMLElement,
+  metadata: SettingsControlMetadata,
+  translatedLabel: string
+): HTMLElement | null {
+  if (metadata.targetId) {
+    const exact = document.getElementById(metadata.targetId)
+    if (exact && container.contains(exact)) return exact
+  }
+
+  const wanted = translatedLabel.trim().toLocaleLowerCase()
+  const labelled = [...container.querySelectorAll<HTMLElement>('label, button, summary')].find(
+    (candidate) => candidate.textContent?.trim().toLocaleLowerCase().includes(wanted)
+  )
+  if (!labelled) return null
+  if (labelled instanceof HTMLLabelElement && labelled.htmlFor) {
+    return document.getElementById(labelled.htmlFor) ?? labelled
+  }
+  return labelled.querySelector<HTMLElement>('input, select, textarea, button') ?? labelled
+}
+
+function scopeLabelKey(
+  scope: SettingsScopeKind,
+  projectOverride: boolean
+): string {
+  if (scope === 'project') return 'settings.scopeProjectBadge'
+  if (scope === 'mixed') return 'settings.scopeMixedBadge'
+  if (scope === 'overridable') {
+    return projectOverride ? 'settings.scopeOverrideProjectBadge' : 'settings.scopeOverrideGlobalBadge'
+  }
+  return 'settings.scopeGlobalBadge'
 }
 
 /**
@@ -275,7 +313,6 @@ export function SettingsView(): React.JSX.Element {
   // read once, because contributed themes register after the first render.
   const themes = useThemeCatalog((s) => s.themes)
   const assetDirs = assetDirectories()
-  const isLoaded = useProjectStore((s) => s.isLoaded)
   // On mobile, hide sections/controls that only make sense on desktop: physical
   // keyboard shortcuts, store-delivered self-update, extensions (deferred), the
   // GitHub token (Git is external on mobile), desktop file-watching, and the
@@ -283,23 +320,105 @@ export function SettingsView(): React.JSX.Element {
   const isMobile = window.novalist.isMobile === true
   const isPhone = useIsPhone()
   const settingsSearch = useShellStore((s) => s.settingsSearch)
-  const [search, setSearch] = useState('')
-  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const setMainView = useShellStore((s) => s.setMainView)
+  const uiScale = useUiScaleStore((s) => s.percent)
+  const setUiScale = useUiScaleStore((s) => s.setPercent)
+  const resetUiScale = useUiScaleStore((s) => s.reset)
+  const tipsEnabled = useOnboardingStore((s) => s.tipsEnabled)
+  const setTipsEnabled = useOnboardingStore((s) => s.setTipsEnabled)
+  const destination = useSettingsNavigation((s) => s.destination)
+  const destinationRevision = useSettingsNavigation((s) => s.revision)
+  const [search, setSearch] = useState(destination.query ?? '')
+  const [selectedSection, setSelectedSection] = useState<SettingsSectionKey>(
+    destination.section ?? 'appearance'
+  )
+  const [displayInfo, setDisplayInfo] = useState<DisplayDiagnostics | null>(null)
+  const [displayInfoBusy, setDisplayInfoBusy] = useState(false)
+  const sectionSurfaceRef = useRef<HTMLDivElement>(null)
   const voices = useSpeechVoices()
   const systemVoices = useSystemVoices()
+
+  const refreshDisplayInfo = async (): Promise<void> => {
+    if (!window.novalist.displayDiagnostics) return
+    setDisplayInfoBusy(true)
+    try {
+      setDisplayInfo(await window.novalist.displayDiagnostics())
+    } finally {
+      setDisplayInfoBusy(false)
+    }
+  }
+
+  const availableMetadata = useMemo(
+    () =>
+      settingsSectionsForContext({
+        hasProject: view?.hasProject === true,
+        isMobile
+      }),
+    [isMobile, view?.hasProject]
+  )
+
+  const searchResults = useMemo(
+    () => searchSettings(availableMetadata, search, (key) => t(key)),
+    [availableMetadata, search, t]
+  )
 
   useEffect(() => {
     void load()
   }, [load])
 
-  // Consume a one-shot deep-link prefill (e.g. "Extensions" from the backstage
-  // drawer) and clear it so it does not re-apply on the next visit.
+  // Keep the old search-string bridge working until every shell caller uses the
+  // typed Settings-owned destination API. A settings/section/control string is
+  // already a precise route; other text remains a translated search query.
   useEffect(() => {
     if (settingsSearch) {
-      setSearch(settingsSearch)
+      const parsed = parseSettingsDestination(settingsSearch)
+      if (parsed) {
+        setSettingsDestination({ ...parsed, origin: destination.origin })
+      } else {
+        setSearch(settingsSearch)
+      }
       useShellStore.getState().settingsSearch && useShellStore.setState({ settingsSearch: '' })
     }
-  }, [settingsSearch])
+  }, [destination.origin, settingsSearch])
+
+  useEffect(() => {
+    if (destination.query !== undefined) setSearch(destination.query)
+    if (destination.section) setSelectedSection(destination.section)
+  }, [destination, destinationRevision])
+
+  // A project-only destination can outlive the project it came from. Fall back
+  // to the first available global section instead of leaving an empty surface.
+  useEffect(() => {
+    if (availableMetadata.some((section) => section.key === selectedSection)) return
+    const fallback = availableMetadata[0]?.key
+    if (!fallback) return
+    setSelectedSection(fallback)
+    setSettingsDestination({ section: fallback, origin: destination.origin })
+  }, [availableMetadata, destination.origin, selectedSection])
+
+  // Focus the exact control after its one section has mounted. For older
+  // self-contained cards without stable ids, controlTarget falls back to the
+  // translated label rather than making the route depend on English text.
+  useEffect(() => {
+    if (!view || !destination.control || destination.section !== selectedSection) return
+    const metadata = settingsControl(selectedSection, destination.control)
+    const surface = sectionSurfaceRef.current
+    if (!metadata || !surface) return
+
+    let target: HTMLElement | null = null
+    const frame = requestAnimationFrame(() => {
+      target = controlTarget(surface, metadata, t(metadata.labelKey)) ?? surface
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      if (target.matches('input, select, textarea, button, summary, [tabindex]')) {
+        target.focus({ preventScroll: true })
+      }
+      target.classList.add('settings-deep-link-target')
+    })
+    return () => {
+      cancelAnimationFrame(frame)
+      target?.classList.remove('settings-deep-link-target')
+    }
+  }, [destination.control, destination.section, destinationRevision, selectedSection, t, view])
 
   if (!view) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>
 
@@ -355,11 +474,9 @@ export function SettingsView(): React.JSX.Element {
     </datalist>
   )
 
-  const sections: SectionDef[] = [
+  const sectionBodies: SectionBodyDef[] = [
     {
       key: 'appearance',
-      titleKey: 'settings.appearance',
-      keywords: ['appearance', 'language', 'theme', 'accent', 'color', 'interface'],
       body: (
         <>
           {scopeToggle('appearance')}
@@ -393,6 +510,31 @@ export function SettingsView(): React.JSX.Element {
               </option>
             ))}
           </select>
+          <label className="inspector-label" htmlFor="set-ui-scale">
+            {t('settings.uiScale')}
+          </label>
+          <div className="settings-button-row">
+            <select
+              id="set-ui-scale"
+              className="dialog-input"
+              value={uiScale}
+              onChange={(event) => setUiScale(Number(event.target.value))}
+            >
+              {UI_SCALE_STEPS.map((percent) => (
+                <option key={percent} value={percent}>
+                  {percent}%
+                </option>
+              ))}
+            </select>
+            <button
+              className="dialog-button"
+              disabled={uiScale === DEFAULT_UI_SCALE}
+              onClick={resetUiScale}
+            >
+              {t('settings.uiScaleReset')}
+            </button>
+          </div>
+          <p className="settings-hint">{t('settings.uiScaleDesc')}</p>
           <p className="settings-hint">{t('settings.customAssetsHint')}</p>
           <div className="settings-accent-row">
             <button
@@ -435,10 +577,6 @@ export function SettingsView(): React.JSX.Element {
     },
     {
       key: 'editor',
-      titleKey: 'settings.editor',
-      keywords: ['editor', 'font', 'book', 'width', 'page', 'paragraph', 'spacing', 'typewriter',
-        'line height', 'leading', 'letter spacing', 'accessibility', 'dyslexia',
-        'read aloud', 'speech', 'voice', 'tts'],
       body: (
         <>
           {scopeToggle('editor')}
@@ -586,8 +724,13 @@ export function SettingsView(): React.JSX.Element {
               </div>
             )
           )}
-          {systemVoices.length === 0 && (
-            <div className="settings-hint">{t('settings.readAloudVoiceKinds')}</div>
+          {window.novalist.platform === 'win32' && (
+            <details className="settings-help-disclosure">
+              <summary>{t('settings.readAloudHelpSummary')}</summary>
+              <div className="settings-help-copy">
+                <ReactMarkdown>{t('settings.readAloudVoiceKinds')}</ReactMarkdown>
+              </div>
+            </details>
           )}
           {/* Typewriter scroll makes no sense on a phone (and is force-disabled in
               the mobile editor), so hide it there. */}
@@ -595,6 +738,7 @@ export function SettingsView(): React.JSX.Element {
             <>
               <label className="relationships-toggle">
                 <input
+                  id="set-compose-dimming"
                   type="checkbox"
                   checked={eff.composeDimming}
                   onChange={(e) =>
@@ -606,6 +750,7 @@ export function SettingsView(): React.JSX.Element {
               <div className="settings-hint">{t('settings.composeDimmingDesc')}</div>
               <label className="relationships-toggle">
                 <input
+                  id="set-typewriter-scroll"
                   type="checkbox"
                   checked={eff.typewriterScrollEnabled}
                   onChange={(e) =>
@@ -637,6 +782,7 @@ export function SettingsView(): React.JSX.Element {
           )}
           <label className="relationships-toggle">
             <input
+              id="set-page-view"
               type="checkbox"
               checked={eff.pageViewEnabled}
               onChange={(e) =>
@@ -647,6 +793,7 @@ export function SettingsView(): React.JSX.Element {
           </label>
           <label className="relationships-toggle">
             <input
+              id="set-book-spacing"
               type="checkbox"
               checked={eff.enableBookParagraphSpacing}
               onChange={(e) =>
@@ -662,6 +809,7 @@ export function SettingsView(): React.JSX.Element {
             <>
           <label className="relationships-toggle">
             <input
+              id="set-book-width"
               type="checkbox"
               checked={eff.enableBookWidth}
               onChange={(e) =>
@@ -754,20 +902,20 @@ export function SettingsView(): React.JSX.Element {
     },
     {
       key: 'accessibility',
-      titleKey: 'settings.accessibility',
-      keywords: [
-        'accessibility',
-        'dyslexia',
-        'dyslexic',
-        'contrast',
-        'spacing',
-        'legible',
-        'readable',
-        'font'
-      ],
       body: (
         <>
           <div className="settings-desc">{t('settings.accessibilityDesc')}</div>
+
+          <label className="relationships-toggle">
+            <input
+              id="set-contextual-tips"
+              type="checkbox"
+              checked={tipsEnabled}
+              onChange={(event) => setTipsEnabled(event.target.checked)}
+            />
+            {t('settings.contextualTips')}
+          </label>
+          <div className="settings-hint">{t('settings.contextualTipsDesc')}</div>
 
           {/* The same three settings the Editor section has, gathered where
               somebody looking for them would look. A dyslexia-friendly face is
@@ -826,6 +974,7 @@ export function SettingsView(): React.JSX.Element {
               shadowing it, so the button reported nothing and changed
               nothing. */}
           <button
+            id="set-high-contrast"
             className="dialog-button"
             onClick={() => void update(scopeFor('appearance'), { theme: 'High Contrast' })}
           >
@@ -837,19 +986,6 @@ export function SettingsView(): React.JSX.Element {
     },
     {
       key: 'writingGoals',
-      titleKey: 'settings.writingGoals',
-      keywords: [
-        'goal',
-        'deadline',
-        'author',
-        'writing',
-        'target',
-        'targets',
-        'words',
-        'chapter',
-        'scene',
-        'act'
-      ],
       body: (
         <>
           <div className="settings-desc">{t('settings.goalsDesc')}</div>
@@ -943,8 +1079,6 @@ export function SettingsView(): React.JSX.Element {
     },
     {
       key: 'writingAssistance',
-      titleKey: 'settings.writingAssistance',
-      keywords: ['auto', 'replacement', 'quote', 'dialogue', 'grammar', 'spelling'],
       body: (
         <>
           {scopeToggle('writing')}
@@ -1003,6 +1137,7 @@ export function SettingsView(): React.JSX.Element {
           <div className="settings-hint">{t('settings.reviewerNameHint')}</div>
           <label className="relationships-toggle">
             <input
+              id="set-dialogue-correction"
               type="checkbox"
               checked={eff.dialogueCorrectionEnabled}
               onChange={(e) =>
@@ -1015,6 +1150,7 @@ export function SettingsView(): React.JSX.Element {
               one a writer should meet before the network-bound grammar check. */}
           <label className="relationships-toggle">
             <input
+              id="set-spell-check"
               type="checkbox"
               checked={eff.spellCheckEnabled}
               onChange={(e) =>
@@ -1036,6 +1172,7 @@ export function SettingsView(): React.JSX.Element {
           <WatchWordsCard />
           <label className="relationships-toggle">
             <input
+              id="set-grammar-check"
               type="checkbox"
               checked={eff.grammarCheckEnabled}
               onChange={(e) =>
@@ -1091,6 +1228,7 @@ export function SettingsView(): React.JSX.Element {
               </button>
               <label className="relationships-toggle">
                 <input
+                  id="set-gc-picky"
                   type="checkbox"
                   checked={eff.grammarCheckPickyMode}
                   onChange={(e) =>
@@ -1124,28 +1262,18 @@ export function SettingsView(): React.JSX.Element {
         </>
       )
     },
-    ...(isLoaded
-      ? [
-          {
-            key: 'templates',
-            titleKey: 'settings.templates',
-            keywords: ['template', 'character', 'location', 'item', 'lore'],
-            body: <TemplatesCard />,
-            standalone: true
-          }
-        ]
-      : []),
+    {
+      key: 'templates',
+      body: <TemplatesCard />,
+      standalone: true
+    },
     {
       key: 'hotkeys',
-      titleKey: 'settings.hotkeys',
-      keywords: ['hotkey', 'keyboard', 'shortcut', 'key', 'binding', 'gesture'],
       body: <HotkeysCard />,
       standalone: true
     },
     {
       key: 'updatesIntegrations',
-      titleKey: 'settings.updatesIntegrations',
-      keywords: ['update', 'extension', 'github', 'token', 'pat', 'integration', 'general'],
       body: (
         <>
           {/* App self-update is disabled on the Mac App Store build (the store
@@ -1154,6 +1282,7 @@ export function SettingsView(): React.JSX.Element {
             <>
               <label className="relationships-toggle">
                 <input
+                  id="set-check-updates"
                   type="checkbox"
                   checked={Boolean(view.global.checkForUpdates)}
                   onChange={(e) => void update('global', { checkForUpdates: e.target.checked })}
@@ -1165,6 +1294,7 @@ export function SettingsView(): React.JSX.Element {
           )}
           <label className="relationships-toggle">
             <input
+              id="set-extension-updates"
               type="checkbox"
               checked={Boolean(view.global.checkForExtensionUpdates)}
               onChange={(e) =>
@@ -1189,83 +1319,93 @@ export function SettingsView(): React.JSX.Element {
     },
     {
       key: 'backups',
-      titleKey: 'backup.title',
-      keywords: ['backup', 'archive', 'restore', 'zip', 'recovery', 'safety'],
       body: <BackupsCard />
     },
     {
       key: 'sceneStages',
-      titleKey: 'stages.title',
-      keywords: ['stage', 'status', 'revision', 'draft', 'progress', 'scene'],
       body: <SceneStagesCard />
     },
     {
       key: 'sceneLabels',
-      titleKey: 'labels.title',
-      keywords: ['label', 'labels', 'colour', 'color', 'flag', 'scene', 'corkboard'],
       body: <SceneLabelsCard />
     },
     {
       key: 'themeTokens',
-      titleKey: 'themeTokens.title',
-      keywords: ['token', 'tokens', 'theme', 'colour', 'color', 'appearance', 'font', 'radius', 'spacing'],
       body: <ThemeTokensCard />
     },
     {
       key: 'completion',
-      titleKey: 'completion.title',
-      keywords: ['completion', 'autocomplete', 'words', 'phrases', 'vocabulary', 'typing', 'spelling'],
       body: <CompletionCard />
     },
     {
       key: 'groups',
-      titleKey: 'groups.title',
-      keywords: ['group', 'groups', 'faction', 'factions', 'house', 'crew', 'family', 'colour', 'color'],
       body: <GroupsCard />
     },
     {
       key: 'sceneTemplates',
-      titleKey: 'sceneTemplates.title',
-      keywords: ['template', 'templates', 'scene', 'preset', 'skeleton', 'start'],
       body: <SceneTemplatesCard />
     },
     {
       key: 'tags',
-      titleKey: 'tags.title',
-      keywords: ['tag', 'tags', 'label', 'colour', 'color', 'merge', 'rename', 'vocabulary'],
       body: <TagsCard />
     },
     {
       key: 'manuscriptProperties',
-      titleKey: 'props.title',
-      keywords: [
-        'property',
-        'properties',
-        'field',
-        'fields',
-        'custom',
-        'metadata',
-        'column',
-        'scene',
-        'chapter',
-        'tension'
-      ],
       body: <ManuscriptPropertiesCard />
     },
     {
       key: 'languagePacks',
-      titleKey: 'languagePacks.title',
-      keywords: ['language', 'locale', 'translation', 'lexicon', 'analysis', 'i18n', 'pack'],
       body: <LanguagePacksCard />
     },
     {
       key: 'diagnostics',
-      titleKey: 'settings.diagnostics',
-      keywords: ['log', 'logging', 'diagnostic', 'support'],
       body: (
         <>
+          {!isMobile && window.novalist.displayDiagnostics && (
+            <div className="settings-display-diagnostics">
+              <div className="settings-desc">{t('settings.displayInfoDesc')}</div>
+              <button
+                id="set-display-diagnostics"
+                className="dialog-button"
+                disabled={displayInfoBusy}
+                onClick={() => void refreshDisplayInfo()}
+              >
+                {t(displayInfoBusy ? 'settings.displayInfoReading' : 'settings.displayInfoRefresh')}
+              </button>
+              {displayInfo && (
+                <dl
+                  className="settings-display-grid"
+                  data-testid="display-diagnostics"
+                  data-zoom-factor={displayInfo.zoomFactor}
+                  data-scale-factor={displayInfo.scaleFactor}
+                >
+                  <div>
+                    <dt>{t('settings.uiScale')}</dt>
+                    <dd>{Math.round(displayInfo.zoomFactor * 100)}%</dd>
+                  </div>
+                  <div>
+                    <dt>{t('settings.osScale')}</dt>
+                    <dd>{Math.round(displayInfo.scaleFactor * 100)}%</dd>
+                  </div>
+                  <div>
+                    <dt>{t('settings.windowSize')}</dt>
+                    <dd>{displayInfo.windowBounds.width} × {displayInfo.windowBounds.height}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('settings.contentSize')}</dt>
+                    <dd>{displayInfo.contentBounds.width} × {displayInfo.contentBounds.height}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('settings.workAreaSize')}</dt>
+                    <dd>{displayInfo.workArea.width} × {displayInfo.workArea.height}</dd>
+                  </div>
+                </dl>
+              )}
+            </div>
+          )}
           <label className="relationships-toggle">
             <input
+              id="set-diagnostic-logging"
               type="checkbox"
               checked={Boolean(view.global.diagnosticLoggingEnabled)}
               onChange={(e) =>
@@ -1324,48 +1464,55 @@ export function SettingsView(): React.JSX.Element {
     },
     {
       key: 'extensions',
-      titleKey: 'extensions.title',
-      keywords: ['extension', 'plugin', 'addon'],
       body: <ExtensionsCard />,
       standalone: true
     }
   ]
 
-  // Whole sections that only make sense on desktop. Hotkeys need a physical
-  // keyboard; Updates/Integrations covers store-delivered self-update, extension
-  // updates, and the GitHub token (Git is external on mobile); Extensions are
-  // deferred on mobile (App Store remote-code rules).
-  const HIDDEN_ON_MOBILE = new Set(['hotkeys', 'updatesIntegrations', 'extensions'])
-  const visibleSections = isMobile
-    ? sections.filter((s) => !HIDDEN_ON_MOBILE.has(s.key))
-    : sections
+  const bodiesByKey = new Map(sectionBodies.map((section) => [section.key, section]))
+  const visibleSections: ResolvedSection[] = availableMetadata.flatMap((metadata) => {
+    const body = bodiesByKey.get(metadata.key)
+    return body ? [{ ...metadata, ...body, standalone: metadata.standalone ?? body.standalone }] : []
+  })
+  const activeSection =
+    visibleSections.find((section) => section.key === selectedSection) ?? visibleSections[0]
+  const query = search.trim()
 
-  const query = search.trim().toLowerCase()
-  const sectionVisible = (s: SectionDef): boolean =>
-    query.length === 0 ||
-    t(s.titleKey).toLowerCase().includes(query) ||
-    s.keywords.some((k) => k.includes(query))
-
-  const jumpTo = (key: string): void => {
+  const goTo = (section: SettingsSectionKey, control?: string): void => {
     setSearch('')
-    requestAnimationFrame(() => {
-      sectionRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
+    setSelectedSection(section)
+    setSettingsDestination({ section, control, origin: destination.origin })
   }
 
-  // On a phone the seventeen sections become a grouped index that opens one at
-  // a time, the way iOS Settings does - the sections themselves are unchanged,
-  // only how they are reached. Anything not named in a group still appears,
-  // under "Other": a section that quietly vanished from Settings because nobody
-  // updated this list would be a bad way to find out.
+  const sectionOverride = (section: SettingsSectionKey): SettingsSection | null => {
+    if (section === 'appearance' || section === 'editor') return section
+    if (section === 'writingAssistance') return 'writing'
+    return null
+  }
+
+  const overrideActive = (section: SettingsSectionMetadata): boolean => {
+    const override = sectionOverride(section.key)
+    return override ? isOverridden(override) : false
+  }
+
+  const returnToOrigin = (): void => {
+    if (!destination.origin) return
+    const origin = destination.origin
+    setSettingsDestination({ section: activeSection?.key ?? 'appearance' })
+    setMainView(origin.view)
+  }
+
+  // Phone navigation keeps the native-style drilldown, but its groups and
+  // availability now come from the same registry as desktop.
   if (isPhone) {
-    const shown = visibleSections.filter(sectionVisible)
-    const grouped = PHONE_GROUPS.map((group) => ({
-      id: group.id,
-      sections: shown.filter((s) => group.keys.includes(s.key))
-    })).filter((g) => g.sections.length > 0)
-    const claimed = new Set(PHONE_GROUPS.flatMap((g) => g.keys))
-    const rest = shown.filter((s) => !claimed.has(s.key))
+    const resultKeys = new Set(searchResults.map((result) => result.section.key))
+    const shown = query
+      ? visibleSections.filter((section) => resultKeys.has(section.key))
+      : visibleSections
+    const grouped = SETTINGS_CATEGORIES.map((category) => ({
+      id: category,
+      sections: shown.filter((section) => section.category === category)
+    })).filter((group) => group.sections.length > 0)
 
     return (
       <MobileNav title={t('settings.title')}>
@@ -1377,9 +1524,7 @@ export function SettingsView(): React.JSX.Element {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          {/* A search is a flat answer, not an index: grouping the few matches
-              under their usual headings buries them again. */}
-          {query.length > 0 ? (
+          {query ? (
             <MobileGroup>
               {shown.map((s) => (
                 <SettingsPhoneRow key={s.key} section={s} />
@@ -1394,13 +1539,6 @@ export function SettingsView(): React.JSX.Element {
                   ))}
                 </MobileGroup>
               ))}
-              {rest.length > 0 && (
-                <MobileGroup header={t('settings.group.other')}>
-                  {rest.map((s) => (
-                    <SettingsPhoneRow key={s.key} section={s} />
-                  ))}
-                </MobileGroup>
-              )}
             </>
           )}
         </div>
@@ -1411,51 +1549,121 @@ export function SettingsView(): React.JSX.Element {
   return (
     <div className="dashboard settings-view">
       <div className="settings-header">
-        <h1 className="dashboard-title">{t('settings.title')}</h1>
-        <input
-          className="dialog-input settings-search"
-          placeholder={t('settings.searchPlaceholder')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <div className="settings-heading-copy">
+          {destination.origin && (
+            <button className="settings-origin" onClick={returnToOrigin}>
+              <ArrowLeft size={16} aria-hidden="true" />
+              {t('settings.backTo', { context: t(destination.origin.labelKey) })}
+            </button>
+          )}
+          <h1 className="dashboard-title">{t('settings.title')}</h1>
+        </div>
+        <div className="settings-search-box">
+          <Search size={16} aria-hidden="true" />
+          <input
+            className="settings-search"
+            type="search"
+            aria-label={t('settings.searchPlaceholder')}
+            placeholder={t('settings.searchPlaceholder')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {query && (
+            <button
+              className="settings-search-clear"
+              aria-label={t('settings.searchClear')}
+              onClick={() => setSearch('')}
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="settings-layout">
-        <nav className="settings-nav">
-          {visibleSections.map((s) => (
-            <button key={s.key} className="settings-nav-item" onClick={() => jumpTo(s.key)}>
-              {t(s.titleKey)}
-            </button>
-          ))}
+        <nav className="settings-nav" aria-label={t('settings.navigationLabel')}>
+          {SETTINGS_CATEGORIES.map((category) => {
+            const categorySections = visibleSections.filter(
+              (section) => section.category === category
+            )
+            if (categorySections.length === 0) return null
+            return (
+              <div className="settings-nav-group" key={category}>
+                <div className="settings-nav-heading">{t(`settings.group.${category}`)}</div>
+                {categorySections.map((section) => (
+                  <button
+                    key={section.key}
+                    className={`settings-nav-item${
+                      activeSection?.key === section.key ? ' active' : ''
+                    }`}
+                    aria-current={activeSection?.key === section.key ? 'page' : undefined}
+                    onClick={() => goTo(section.key)}
+                  >
+                    {t(section.titleKey)}
+                  </button>
+                ))}
+              </div>
+            )
+          })}
         </nav>
 
         <div className="settings-sections">
-          {visibleSections.map((s) =>
-            sectionVisible(s) ? (
-              s.standalone ? (
-                <div
-                  key={s.key}
-                  className="settings-anchor"
-                  ref={(el) => {
-                    sectionRefs.current[s.key] = el
-                  }}
-                >
-                  {s.body}
-                </div>
+          {query ? (
+            <section className="settings-results" aria-live="polite">
+              <h2 className="settings-results-title">
+                {t('settings.searchResults', { count: searchResults.length })}
+              </h2>
+              {searchResults.length === 0 ? (
+                <p className="settings-results-empty">{t('settings.searchNoResults')}</p>
               ) : (
-                <div
-                  key={s.key}
-                  className="dashboard-card export-card"
-                  ref={(el) => {
-                    sectionRefs.current[s.key] = el
-                  }}
-                >
-                  <div className="dashboard-card-title">{t(s.titleKey)}</div>
-                  {s.body}
+                <div className="settings-results-list">
+                  {searchResults.map((result) => {
+                    const resultKey = `${result.section.key}:${result.control?.key ?? 'section'}`
+                    const resultTitle = result.control
+                      ? t(result.control.labelKey)
+                      : t(result.section.titleKey)
+                    return (
+                      <button
+                        className="settings-result"
+                        key={resultKey}
+                        onClick={() => goTo(result.section.key, result.control?.key)}
+                      >
+                        <span className="settings-result-title">{resultTitle}</span>
+                        <span className="settings-result-context">
+                          {t(result.section.titleKey)} ·{' '}
+                          {t(`settings.group.${result.section.category}`)}
+                        </span>
+                      </button>
+                    )
+                  })}
                 </div>
-              )
-            ) : null
-          )}
+              )}
+            </section>
+          ) : activeSection ? (
+            <section
+              ref={sectionSurfaceRef}
+              className="settings-section-surface"
+              data-settings-section={activeSection.key}
+              tabIndex={-1}
+            >
+              <header className="settings-section-header">
+                <div>
+                  <div className="settings-section-category">
+                    {t(`settings.group.${activeSection.category}`)}
+                  </div>
+                  <h2 className="settings-section-title">{t(activeSection.titleKey)}</h2>
+                </div>
+                <span className={`settings-scope-badge ${activeSection.scope}`}>
+                  {t(scopeLabelKey(activeSection.scope, overrideActive(activeSection)))}
+                </span>
+              </header>
+              {activeSection.standalone ? (
+                <div className="settings-standalone">{activeSection.body}</div>
+              ) : (
+                <div className="dashboard-card export-card">{activeSection.body}</div>
+              )}
+            </section>
+          ) : null}
         </div>
       </div>
     </div>

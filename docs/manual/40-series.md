@@ -6,7 +6,7 @@ Open it from **Series** in the **Plan** group of the activity bar.
 
 ## Books
 
-Every book in the project with its size and shape: chapters, scenes, words, and how many scenes have a [stage](10-manuscript.md#scene-stages) set. Each row also carries an **author** field, for an anthology whose volumes are by different people: what you type here prints under that volume's heading when the book is part of a [box set](20-export.md). Leave it empty and the book goes out under the project's author, which is what every book of a series wants. A project with one book says so — a series view starts to mean something once there are two.
+Every book in the project with its size and shape: chapters, scenes, words, and how many scenes have a [stage](04-chapters-and-scenes.md#scene-stages) set. Each row also carries an **author** field, for an anthology whose volumes are by different people: what you type here prints under that volume's heading when the book is part of a [box set](20-export.md). Leave it empty and the book goes out under the project's author, which is what every book of a series wants. A project with one book says so — a series view starts to mean something once there are two.
 
 ## Shared entries across the books
 

@@ -4,6 +4,7 @@ import {
   GitCompare,
   History,
   Menu,
+  MoreHorizontal,
   PanelBottom,
   PanelLeft,
   PanelRight,
@@ -22,6 +23,7 @@ import { SceneDialog } from './SceneDialog'
 import { StartMenuOverlay } from './StartMenuOverlay'
 import { SnapshotsDialog } from './SnapshotsDialog'
 import { DraftCompareDialog } from './DraftCompareDialog'
+import { chromeFor } from './viewChromePolicy'
 
 type PendingDialog = 'chapter' | 'scene' | 'book' | 'draft' | 'renameProject' | null
 
@@ -31,6 +33,8 @@ export function Toolbar(): React.JSX.Element {
   const toggleInspector = useShellStore((s) => s.toggleInspector)
   const toggleNotesDock = useShellStore((s) => s.toggleNotesDock)
   const notesDockVisible = useShellStore((s) => s.notesDockVisible)
+  const mainView = useShellStore((s) => s.mainView)
+  const shellCapacity = useShellStore((s) => s.shellCapacity)
   const projectName = useProjectStore((s) => s.projectName)
   const isLoaded = useProjectStore((s) => s.isLoaded)
   const books = useProjectStore((s) => s.books)
@@ -53,6 +57,10 @@ export function Toolbar(): React.JSX.Element {
 
   const targetChapter = openChapterGuid ?? chapters[chapters.length - 1]?.guid ?? null
   const activeDraft = drafts.find((d) => d.isActive) ?? null
+  const chrome = chromeFor(mainView)
+  const wide = shellCapacity === 'wide'
+  const compact = shellCapacity === 'compact'
+  const showSelectors = isLoaded && chrome.bookSelectors && !compact
 
   return (
     <header
@@ -72,7 +80,7 @@ export function Toolbar(): React.JSX.Element {
       >
         {projectName ?? 'Novalist'}
       </button>
-      {books.length > 0 && (
+      {showSelectors && books.length > 0 && (
         <select
           className="toolbar-select"
           value={activeBookId ?? ''}
@@ -89,7 +97,7 @@ export function Toolbar(): React.JSX.Element {
           <option value="__new__">{t('book.addBook')}</option>
         </select>
       )}
-      {drafts.length > 0 && (
+      {showSelectors && drafts.length > 0 && (
         <div className="toolbar-draft">
           <select
             className="toolbar-select"
@@ -106,36 +114,42 @@ export function Toolbar(): React.JSX.Element {
             ))}
             <option value="__new__">{t('draft.add')}</option>
           </select>
-          <button
-            className="toolbar-button"
-            title={t('draftCompare.title')}
-            disabled={drafts.length < 2}
-            onClick={() => setCompareDrafts(true)}
-          >
-            <GitCompare size={14} strokeWidth={1.75} />
-          </button>
-          <button
-            className="toolbar-button"
-            title={t('draft.deleteTitle')}
-            disabled={drafts.length <= 1 || !activeDraft}
-            onClick={() =>
-              activeDraft && setDeleteDraftTarget({ id: activeDraft.id, name: activeDraft.name })
-            }
-          >
-            <Trash2 size={14} strokeWidth={1.75} />
-          </button>
+          {wide && (
+            <>
+              <button
+                className="toolbar-button"
+                title={t('draftCompare.title')}
+                disabled={drafts.length < 2}
+                onClick={() => setCompareDrafts(true)}
+              >
+                <GitCompare size={14} strokeWidth={1.75} />
+              </button>
+              <button
+                className="toolbar-button"
+                title={t('draft.deleteTitle')}
+                disabled={drafts.length <= 1 || !activeDraft}
+                onClick={() =>
+                  activeDraft && setDeleteDraftTarget({ id: activeDraft.id, name: activeDraft.name })
+                }
+              >
+                <Trash2 size={14} strokeWidth={1.75} />
+              </button>
+            </>
+          )}
         </div>
       )}
       {/* Everything past the wordmark acts on an open project - adding a chapter
           or scene, searching it, or toggling panels that the welcome screen does
           not have. The spacer stays either way so the strip keeps its drag
           region and its room for the window controls. */}
-      {isLoaded && (
+      {isLoaded && chrome.writingActions && (
         <>
-          <button className="toolbar-button toolbar-action" onClick={() => setDialog('chapter')}>
-            <Plus size={14} strokeWidth={2} />
-            {t('shell.newChapter')}
-          </button>
+          {!compact && (
+            <button className="toolbar-button toolbar-action" onClick={() => setDialog('chapter')}>
+              <Plus size={14} strokeWidth={2} />
+              {t('shell.newChapter')}
+            </button>
+          )}
           <button
             className="toolbar-button toolbar-action"
             disabled={targetChapter === null}
@@ -147,7 +161,7 @@ export function Toolbar(): React.JSX.Element {
         </>
       )}
       <div className="toolbar-spacer" />
-      {isLoaded && (
+      {isLoaded && wide && chrome.writingActions && (
         <>
           <button
             className="toolbar-button"
@@ -185,6 +199,118 @@ export function Toolbar(): React.JSX.Element {
             <PanelRight size={16} strokeWidth={1.75} />
           </button>
         </>
+      )}
+      {isLoaded && !wide && (chrome.writingActions || chrome.bookSelectors) && (
+        <details className="toolbar-more">
+          <summary className="toolbar-button" aria-label={t('shell.more')}>
+            <MoreHorizontal size={16} strokeWidth={1.75} />
+            <span>{t('shell.more')}</span>
+          </summary>
+          <div className="toolbar-more-menu">
+            {compact && chrome.bookSelectors && books.length > 0 && (
+              <label className="toolbar-more-field">
+                <span>{t('book.label')}</span>
+                <select
+                  className="toolbar-select"
+                  value={activeBookId ?? ''}
+                  onChange={(e) => {
+                    if (e.target.value === '__new__') setDialog('book')
+                    else void useProjectStore.getState().switchBook(e.target.value)
+                  }}
+                >
+                  {books.map((book) => (
+                    <option key={book.id} value={book.id}>{book.name}</option>
+                  ))}
+                  <option value="__new__">{t('book.addBook')}</option>
+                </select>
+              </label>
+            )}
+            {compact && chrome.bookSelectors && drafts.length > 0 && (
+              <label className="toolbar-more-field">
+                <span>{t('draft.label')}</span>
+                <select
+                  className="toolbar-select"
+                  value={activeDraft?.id ?? ''}
+                  onChange={(e) => {
+                    if (e.target.value === '__new__') setDialog('draft')
+                    else void useProjectStore.getState().switchDraft(e.target.value)
+                  }}
+                >
+                  {drafts.map((draft) => (
+                    <option key={draft.id} value={draft.id}>{draft.name}</option>
+                  ))}
+                  <option value="__new__">{t('draft.add')}</option>
+                </select>
+              </label>
+            )}
+            {chrome.writingActions && compact && (
+              <button className="toolbar-more-action" onClick={() => setDialog('chapter')}>
+                <Plus size={15} strokeWidth={1.75} />
+                {t('shell.newChapter')}
+              </button>
+            )}
+            {chrome.writingActions && (
+              <>
+                <button
+                  className="toolbar-more-action"
+                  onClick={() => useShellStore.getState().setFindReplaceOpen(true)}
+                >
+                  <Search size={15} strokeWidth={1.75} />
+                  {t('findReplace.title')}
+                </button>
+                <button
+                  className="toolbar-more-action"
+                  disabled={!openChapterGuid || !openSceneId}
+                  onClick={() => setSnapshotsOpen(true)}
+                >
+                  <History size={15} strokeWidth={1.75} />
+                  {t('shell.snapshots')}
+                </button>
+                <PaneControls />
+              </>
+            )}
+            {chrome.bookSelectors && drafts.length > 0 && (
+              <>
+                <button
+                  className="toolbar-more-action"
+                  disabled={drafts.length < 2}
+                  onClick={() => setCompareDrafts(true)}
+                >
+                  <GitCompare size={15} strokeWidth={1.75} />
+                  {t('draftCompare.title')}
+                </button>
+                <button
+                  className="toolbar-more-action"
+                  disabled={drafts.length <= 1 || !activeDraft}
+                  onClick={() =>
+                    activeDraft && setDeleteDraftTarget({ id: activeDraft.id, name: activeDraft.name })
+                  }
+                >
+                  <Trash2 size={15} strokeWidth={1.75} />
+                  {t('draft.deleteTitle')}
+                </button>
+              </>
+            )}
+            {chrome.binder && (
+              <button className="toolbar-more-action" onClick={toggleBinder}>
+                <PanelLeft size={15} strokeWidth={1.75} />
+                {t('shell.toggleBinder')}
+              </button>
+            )}
+            {chrome.writingActions && (
+              <button className="toolbar-more-action" onClick={toggleNotesDock}>
+                <PanelBottom size={15} strokeWidth={1.75} />
+                {t('shell.toggleSceneNotes')}
+              </button>
+            )}
+            {chrome.inspector && (
+              <button className="toolbar-more-action" onClick={toggleInspector}>
+                <PanelRight size={15} strokeWidth={1.75} />
+                {t('shell.toggleInspector')}
+              </button>
+            )}
+          </div>
+        </details>
       )}
       {startMenuOpen && <StartMenuOverlay onClose={() => setStartMenuOpen(false)} />}
       {snapshotsOpen && openChapterGuid && openSceneId && (

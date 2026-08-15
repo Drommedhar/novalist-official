@@ -228,7 +228,9 @@ test('real project renders binder and scene content', async () => {
     .toBe('Frostmantel')
 
   // Template editor: create a character template in Settings, verify it lists.
-  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('settings'))
+  // Settings opens one section at a time, so the section has to be asked for
+  // by name rather than scrolled to on a single long page.
+  await page.evaluate(() => window.novalistStores.shell.getState().openSettings('templates'))
   const templatesCard = page.locator('.templates-card')
   await expect(templatesCard).toBeVisible({ timeout: 15_000 })
   await templatesCard.locator('.template-group').first().locator('.binder-rail-item').click()

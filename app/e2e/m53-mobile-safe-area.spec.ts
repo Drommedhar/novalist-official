@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { launchApp, seedBook } from './harness'
+import { launchApp, resizeWindow, seedBook } from './harness'
 
 /**
  * Nothing scrolls into the status bar.
@@ -24,11 +24,7 @@ test('mobile: content cannot scroll into the safe area', async () => {
   const h = await launchApp('nl-safearea-', { NOVALIST_FORCE_MOBILE: '1' })
   await seedBook(h, { 'Chapter One': ['Scene A', 'Scene B'] })
   const page = h.page
-  await h.app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0]
-    win.setMinimumSize(300, 300)
-    win.setBounds({ width: 393, height: 852 })
-  })
+  await resizeWindow(h, 393, 852)
 
   // Injected as the token, not onto a chosen element: the inset then lands
   // wherever the production CSS puts it, which is the thing under test. Setting
@@ -94,11 +90,7 @@ test('mobile: sticky headings are flush with their scroller', async () => {
   const h = await launchApp('nl-sticky-', { NOVALIST_FORCE_MOBILE: '1' })
   await seedBook(h, { 'Chapter One': ['Scene A', 'Scene B'], 'Chapter Two': ['Scene C'] })
   const page = h.page
-  await h.app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0]
-    win.setMinimumSize(300, 300)
-    win.setBounds({ width: 393, height: 852 })
-  })
+  await resizeWindow(h, 393, 852)
   // Events months apart, so the timeline renders more than one sticky heading.
   // Created before the view opens, and asserted below - a timeline with no
   // headings would let this test pass without checking anything.

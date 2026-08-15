@@ -5,6 +5,7 @@ import { MainArea } from './MainArea'
 import { StatusBar } from './StatusBar'
 import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { newLeaf, useShellStore, type MainView } from '../stores/shellStore'
+import { useUiScaleStore } from '../stores/uiScaleStore'
 
 /** What the window was torn off to show. */
 export interface DetachedRequest {
@@ -34,6 +35,10 @@ export function DetachedPane({ request }: { request: DetachedRequest }): React.J
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
+    useUiScaleStore.getState().apply()
+    const reportWidth = (): void => useShellStore.getState().setShellMetrics(window.innerWidth)
+    reportWidth()
+    window.addEventListener('resize', reportWidth)
     // Its own connection and its own copy of the project state. Sharing the
     // main window's would mean one window's navigation moving the other's.
     void rpc
@@ -64,6 +69,7 @@ export function DetachedPane({ request }: { request: DetachedRequest }): React.J
       })
       .catch(() => {})
       .finally(() => setReady(true))
+    return () => window.removeEventListener('resize', reportWidth)
   }, [request])
 
   if (!ready) return <div className="main-placeholder">{t('shell.backendConnecting')}</div>

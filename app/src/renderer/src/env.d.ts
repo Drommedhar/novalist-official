@@ -113,6 +113,16 @@ interface Window {
     /** Repaints the system window controls to match the theme. Desktop only;
      *  a no-op on macOS and on the mobile build. */
     setTitleBarColors?(color: string, symbolColor: string): void
+    /** Whole-interface scale, independent from the manuscript font size. */
+    setUiScale?(factor: number): Promise<number>
+    /** Content-free display facts for Settings -> Diagnostics. */
+    displayDiagnostics?(): Promise<{
+      zoomFactor: number
+      scaleFactor: number
+      windowBounds: { x: number; y: number; width: number; height: number }
+      contentBounds: { x: number; y: number; width: number; height: number }
+      workArea: { x: number; y: number; width: number; height: number }
+    } | null>
   }
 }
 

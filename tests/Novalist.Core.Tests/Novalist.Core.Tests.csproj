@@ -8,4 +8,10 @@
     <ProjectReference Include="..\..\Novalist.Core\Novalist.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\Fixtures\Scrivener\**\*"
+          Link="Fixtures\Scrivener\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

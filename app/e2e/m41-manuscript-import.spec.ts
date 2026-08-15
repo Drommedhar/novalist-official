@@ -1,5 +1,5 @@
 import { test, expect, _electron as electron, type Page } from '@playwright/test'
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { cpSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { evaluateWhenReady } from './appReady'
@@ -22,6 +22,15 @@ import { evaluateWhenReady } from './appReady'
 
 const RTF = (text: string): string =>
   `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times;}}\\f0\\fs24 ${text}\\par}`
+
+const REAL_SCRIVENER_FIXTURE = join(
+  process.cwd(),
+  '..',
+  'tests',
+  'Fixtures',
+  'Scrivener',
+  'RealFormatting.scriv'
+)
 
 async function launch(workDir: string): Promise<{
   app: Awaited<ReturnType<typeof electron.launch>>
@@ -241,6 +250,46 @@ test('a Scrivener project imports through the app, not just through the reader',
     window.novalistRpc.request('entities/list', ['character'])
   )) as { name: string }[]
   expect(characters.map((c) => c.name)).toContain('Mira Vance')
+
+  await app.close()
+})
+
+test('a real-derived Scrivener document keeps punctuation, formatting, lists and a usable title', async () => {
+  test.setTimeout(180_000)
+  const workDir = mkdtempSync(join(tmpdir(), 'nl-imp-scriv-real-'))
+  const root = join(workDir, 'RealFormatting.scriv')
+  cpSync(REAL_SCRIVENER_FIXTURE, root, { recursive: true })
+
+  const { app, page } = await launch(workDir)
+  await newProject(page, workDir)
+
+  const plan = await preview(page, root)
+  expect(plan.format).toBe('scrivener3')
+  expect(plan.chapters[0].scenes[0].title).toBe('Scene 1')
+
+  await runImport(page, root)
+  const stored = (await page.evaluate(async () => {
+    const state = (await window.novalistRpc.request('project/getState')) as {
+      chapters: { guid: string; scenes: { id: string; title: string }[] }[]
+    }
+    const chapter = state.chapters[0]
+    const scene = chapter.scenes[0]
+    const content = (await window.novalistRpc.request('scenes/read', [chapter.guid, scene.id])) as {
+      html: string
+    }
+    return { title: scene.title, html: content.html }
+  })) as { title: string; html: string }
+
+  expect(stored.title).toBe('Scene 1')
+  expect(stored.html).toContain('<p class="nv-style-heading">Prologue</p>')
+  expect(stored.html).toContain('<ul><li>A bullet from the real project.</li></ul>')
+  expect(stored.html).toContain('<ol><li>A numbered item from the real project.</li></ol>')
+  expect(stored.html).toContain('“<span style="font-weight:bold">Lorem ipsum!</span>”')
+  expect(stored.html).toContain('Volupta’s aliqua—dolores esse…')
+  expect(stored.html).toContain('font-weight:bold')
+  expect(stored.html).toContain('font-style:italic')
+  expect(stored.html).not.toContain("'93")
+  expect(stored.html).not.toContain('$Scr_')
 
   await app.close()
 })

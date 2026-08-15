@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -6,6 +6,7 @@ import { EyeOff } from 'lucide-react'
 import type { TFunction } from 'i18next'
 import { useShellStore } from '../../stores/shellStore'
 import { rpc } from '../../rpc/client'
+import { placePeekCard, type PeekAnchor } from './peekPlacement'
 import './editor.css'
 
 // Shapes returned by the backend `entities/peek` method (camelCase over RPC).
@@ -90,10 +91,23 @@ export interface PeekScope {
 
 /** Where the peek card sits, plus which entity it currently shows. */
 interface HoverCard {
-  x: number
-  y: number
+  /** What the card belongs to, in viewport coordinates: the whole word, not the
+   *  pixel under the pointer. Keeping the anchor stable while the pointer moves
+   *  inside the word is what stops the card jumping about. */
+  anchor: PeekAnchor
+  prefer: 'below' | 'beside'
   entityType: string
   entityId: string
+}
+
+/** Rounded to the pixel: sub-pixel jitter from a reflow is not a new anchor. */
+function sameAnchor(a: PeekAnchor, b: PeekAnchor): boolean {
+  return (
+    Math.round(a.left) === Math.round(b.left) &&
+    Math.round(a.top) === Math.round(b.top) &&
+    Math.round(a.right) === Math.round(b.right) &&
+    Math.round(a.bottom) === Math.round(b.bottom)
+  )
 }
 
 const BUILTIN_TYPES = new Set(['character', 'location', 'item', 'lore'])
@@ -475,9 +489,16 @@ export function PeekCard({
  * the editor (driven by iframe hover messages) and the context sidebar (driven by
  * card mouse-enter/leave) use one of these so the peek behaves identically. */
 export interface EntityPeekController {
-  /** Show the peek for an entity, anchored at the given viewport coordinates.
-   * A pinned card ignores this and stays put, matching the desktop app. */
-  showAt(target: { entityType: string; entityId: string }, x: number, y: number): void
+  /** Show the peek for an entity, anchored to a rectangle in viewport
+   * coordinates - the hovered word, or the sidebar row it belongs to. Showing
+   * the same entity against the same rectangle again is a no-op, so a pointer
+   * moving inside the word neither moves the card nor refetches it. A pinned
+   * card ignores this and stays put, matching the desktop app. */
+  showAt(
+    target: { entityType: string; entityId: string },
+    anchor: PeekAnchor,
+    prefer?: 'below' | 'beside'
+  ): void
   /** Debounced hide — cancelled if the pointer reaches the card (or it is pinned),
    * so moving onto the card never dismisses it. */
   scheduleHide(): void
@@ -504,6 +525,8 @@ export function useEntityPeek(opts: {
   const [hoverCard, setHoverCard] = useState<HoverCard | null>(null)
   // A pinned card ignores hover changes and stays until explicitly closed.
   const [pinned, setPinned] = useState(false)
+  const anchorRef = useRef<HTMLDivElement>(null)
+  const [position, setPosition] = useState<{ left: number; top: number } | null>(null)
   const pinnedRef = useRef(false)
   pinnedRef.current = pinned
   const hoverHideRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -513,9 +536,31 @@ export function useEntityPeek(opts: {
   // *after* the pointer has already moved onto the card, so without this guard
   // the late exit would re-schedule a hide and close the card as you reach it.
   const pointerOverCardRef = useRef(false)
+  // Last known pointer position, tracked on the window rather than inferred from
+  // the anchor's mouseenter. An element that appears *underneath* a stationary
+  // cursor does not reliably receive mouseenter, so the flag above can stay
+  // false while the pointer is in fact over the card - which used to let the
+  // debounced hide fire and start a show/hide loop.
+  const pointerRef = useRef<{ x: number; y: number } | null>(null)
+  // The entity the visible card is for, so re-showing the same one can keep its
+  // measured position instead of blinking through an unpositioned frame.
+  const shownKeyRef = useRef<string | null>(null)
   // On mobile the peek is a full-screen sheet (see the anchor's `mobile` class)
   // rather than a card anchored at the tap point, which clipped off-screen.
   const isMobilePeek = window.novalist.isMobile === true
+
+  const pointerIsOverCard = (): boolean => {
+    if (pointerOverCardRef.current) return true
+    const rect = anchorRef.current?.getBoundingClientRect()
+    const pointer = pointerRef.current
+    if (!rect || !pointer) return false
+    return (
+      pointer.x >= rect.left &&
+      pointer.x <= rect.right &&
+      pointer.y >= rect.top &&
+      pointer.y <= rect.bottom
+    )
+  }
 
   const clearHide = (): void => {
     if (hoverHideRef.current) {
@@ -524,46 +569,138 @@ export function useEntityPeek(opts: {
     }
   }
   const scheduleHide = (): void => {
-    if (pinnedRef.current || pointerOverCardRef.current) return
+    if (pinnedRef.current || pointerIsOverCard()) return
     clearHide()
-    hoverHideRef.current = setTimeout(() => setHoverCard(null), 260)
+    hoverHideRef.current = setTimeout(() => {
+      hoverHideRef.current = null
+      // Re-checked on expiry, not only when scheduled: the pointer may have
+      // reached the card in the meantime, and hiding it out from under the
+      // pointer is what the editor beneath reads as a fresh hover.
+      if (pinnedRef.current || pointerIsOverCard()) return
+      shownKeyRef.current = null
+      setHoverCard(null)
+    }, 260)
   }
   const hide = (): void => {
     // A pinned card survives (matches the desktop: a click in the editor does not
     // dismiss a pinned peek).
     if (pinnedRef.current) return
     clearHide()
+    shownKeyRef.current = null
     setHoverCard(null)
   }
   const showAt = (
     target: { entityType: string; entityId: string },
-    x: number,
-    y: number
+    anchor: PeekAnchor,
+    prefer: 'below' | 'beside' = 'below'
   ): void => {
     // A pinned card stays put and ignores hover changes.
     if (pinnedRef.current) return
     clearHide()
-    setHoverCard({ x, y, entityType: target.entityType, entityId: target.entityId })
+    const key = `${target.entityType}:${target.entityId}`
+    if (shownKeyRef.current !== key) {
+      // A different entity: measure it hidden before showing it anywhere.
+      shownKeyRef.current = key
+      setPosition(null)
+    }
+    setHoverCard((current) =>
+      current &&
+      current.entityType === target.entityType &&
+      current.entityId === target.entityId &&
+      current.prefer === prefer &&
+      sameAnchor(current.anchor, anchor)
+        ? // Same entity, same word: nothing to re-place and nothing to refetch.
+          current
+        : { anchor, prefer, entityType: target.entityType, entityId: target.entityId }
+    )
   }
   const closeCard = (): void => {
     clearHide()
     setPinned(false)
+    shownKeyRef.current = null
     setHoverCard(null)
   }
 
   // Clear any pending timer if the host unmounts.
   useEffect(() => clearHide, [])
 
+  useEffect(() => {
+    const track = (event: PointerEvent): void => {
+      pointerRef.current = { x: event.clientX, y: event.clientY }
+    }
+    window.addEventListener('pointermove', track, { passive: true })
+    return () => window.removeEventListener('pointermove', track)
+  }, [])
+
+  // The card grows as its asynchronous sections arrive. Measure the rendered
+  // element every time it changes instead of clamping against an obsolete
+  // guessed width/height, and re-place it when the pane/window resizes.
+  // Primitives, so the placement effect re-runs when the anchor actually moves
+  // rather than on every render that rebuilds the object around it.
+  const anchorLeft = hoverCard?.anchor.left ?? 0
+  const anchorTop = hoverCard?.anchor.top ?? 0
+  const anchorRight = hoverCard?.anchor.right ?? 0
+  const anchorBottom = hoverCard?.anchor.bottom ?? 0
+  const prefer = hoverCard?.prefer ?? 'below'
+  const showing = hoverCard !== null
+
+  useLayoutEffect(() => {
+    const anchor = anchorRef.current
+    if (!showing || !anchor || isMobilePeek || pinned) return
+    const place = (): void => {
+      const styles = getComputedStyle(document.documentElement)
+      const gap = Number.parseFloat(styles.getPropertyValue('--nl-space-md')) || 12
+      const rect = anchor.getBoundingClientRect()
+      // The rule lives in peekPlacement.ts, where it can be checked over every
+      // geometry rather than only the ones a hover test happens to produce.
+      const { left, top } = placePeekCard({
+        anchor: {
+          left: anchorLeft,
+          top: anchorTop,
+          right: anchorRight,
+          bottom: anchorBottom
+        },
+        prefer,
+        width: rect.width,
+        height: rect.height,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        gap
+      })
+
+      setPosition((current) =>
+        current?.left === left && current.top === top ? current : { left, top }
+      )
+    }
+    place()
+    const observer = new ResizeObserver(place)
+    observer.observe(anchor)
+    window.addEventListener('resize', place)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', place)
+    }
+  }, [
+    showing,
+    anchorLeft,
+    anchorTop,
+    anchorRight,
+    anchorBottom,
+    prefer,
+    isMobilePeek,
+    pinned
+  ])
+
   const overlay = hoverCard ? (
     <div
+      ref={anchorRef}
       className={`peek-card-anchor${pinned ? ' pinned' : ''}${isMobilePeek ? ' mobile' : ''}`}
       style={
         isMobilePeek || pinned
           ? undefined
-          : {
-              left: Math.min(hoverCard.x, window.innerWidth - 380),
-              top: Math.min(hoverCard.y + 18, window.innerHeight - 220)
-            }
+          : position
+            ? position
+            : { left: 0, top: 0, visibility: 'hidden' }
       }
       onMouseEnter={() => {
         pointerOverCardRef.current = true
@@ -571,6 +708,11 @@ export function useEntityPeek(opts: {
       }}
       onMouseLeave={() => {
         pointerOverCardRef.current = false
+        // The window stops seeing pointermove once the cursor is inside the
+        // editor iframe, so the last recorded position would otherwise go stale
+        // *inside* the card's box and hold it open. Leaving the card is the one
+        // moment we know for certain the pointer is not on it.
+        pointerRef.current = null
         scheduleHide()
       }}
       // Mobile: the peek is a full-screen sheet; a tap on the scrim (outside the
@@ -598,7 +740,7 @@ export function useEntityPeek(opts: {
     scheduleHide,
     clearHide,
     hide,
-    isPointerOverCard: () => pointerOverCardRef.current,
+    isPointerOverCard: pointerIsOverCard,
     overlay
   }
 }

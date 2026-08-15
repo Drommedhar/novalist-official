@@ -8,14 +8,13 @@
 
 /* ===== Research ===== */
 .research-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--nl-space-tighter);
   margin-bottom: var(--nl-space-sm);
 }
 
 .research-action-btn {
-  flex: 1;
   min-width: 0;
   padding: var(--nl-space-sm) var(--nl-space-md);
   border: 1px solid var(--nl-border);
@@ -23,9 +22,10 @@
   background: var(--nl-surface-card);
   color: var(--nl-text);
   font-size: var(--nl-font-ui);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  line-height: var(--nl-leading-tight);
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .research-action-btn:hover {

@@ -41,11 +41,23 @@ The number keys switch the main area between views, in this order:
 | Quick Open (search everything) | `Ctrl+P` |
 | Quick capture (jot a note) | `Ctrl+Shift+K` |
 | Print | `Ctrl+Alt+P` |
-| Reopen the main window | `Ctrl+0` |
+
+## Interface size and help
+
+These live in the application menu bar rather than in the rebindable list, so they work even when no window has focus. They are fixed rather than configurable.
+
+| Action | Gesture |
+| --- | --- |
+| Increase interface size | `Ctrl+Plus` |
+| Decrease interface size | `Ctrl+-` |
+| Reset interface size to 100% | `Ctrl+0` |
+| Help for the current view | `F1` |
+
+**Interface size** is the size of Novalist's own chrome, not of your manuscript — see [Settings → Appearance](23-settings.md#appearance). `F1` opens the manual at the page for whatever you are looking at; see [In-app help](02-interface-overview.md#in-app-help).
 
 ## Notes
 
-- **Reopen the main window** lives in the Window menu rather than in the shortcut list the app installs, so it works from the menu bar even when no window is open. On macOS, closing the last window leaves Novalist running — use this, or click the dock icon, to bring the project back.
+- **Reopen the main window** is in the Window menu, named after the app. It no longer carries a gesture, because `Ctrl+0` now resets the interface size — the two collided, and only one of them can have the key. On macOS, closing the last window leaves Novalist running; use the menu item, or click the dock icon, to bring the project back.
 
 - While the cursor is in a text field or the editor, only gestures that include `Ctrl` (or `Cmd`) fire, so plain typing and `Alt` shortcuts never interrupt your writing. `Alt+F` works whenever focus is outside a text field.
 - Standard text-editing shortcuts — copy, cut, paste, select all, undo, redo (`Ctrl+C/X/V/A/Z/Y`, `Ctrl+Shift+Z`) — are handled natively by the writing surface.

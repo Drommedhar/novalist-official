@@ -126,7 +126,7 @@ Targets can also be set from here rather than only from the binder — pick a ch
 
 ### Submissions
 
-Novalist produces submission-ready material — the [Exposé](25-expose.md), the Shunn layout — and used to record nothing at all about where any of it went. So the one thing you must not do, send the same manuscript to the same agent twice, was the one thing it could not help with.
+Novalist produces submission-ready material — the [Exposé](32-expose.md), the Shunn layout — and used to record nothing at all about where any of it went. So the one thing you must not do, send the same manuscript to the same agent twice, was the one thing it could not help with.
 
 Type a recipient and press **Record a send**. Each row then takes what you sent, when, what came back, when they answered, and a note.
 

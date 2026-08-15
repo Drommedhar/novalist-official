@@ -72,7 +72,7 @@ By default the cards sit in reading order, grouped by chapter — which is the a
 - A scene you have never placed takes the slot it would have had in reading order, so turning the mode on shows you the book as it stands rather than a pile in the corner. New scenes appear the same way.
 - **Back to reading order** forgets the arrangement entirely. The board goes back to tracking reading order, including for scenes you add or reorder later.
 
-Arranging cards never changes the order of the book. It is a place to think, not an edit to the manuscript — to actually reorder scenes, drag them in the [binder](02-interface-tour.md) or use the [Board](#board-mode).
+Arranging cards never changes the order of the book. It is a place to think, not an edit to the manuscript — to actually reorder scenes, drag them in the [binder](02-interface-overview.md#the-binder) or use the [Board](#board-mode).
 
 ## Outliner mode
 

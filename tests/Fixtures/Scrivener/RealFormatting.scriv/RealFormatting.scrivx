@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ScrivenerProject>
+  <Binder>
+    <BinderItem UUID="DRAFT" Type="DraftFolder">
+      <Title>Manuscript</Title>
+      <Children>
+        <BinderItem UUID="CHAPTER" Type="Folder">
+          <Title>Chapter</Title>
+          <Children>
+            <BinderItem UUID="REAL-SCENE" Type="Text"><Title /></BinderItem>
+          </Children>
+        </BinderItem>
+      </Children>
+    </BinderItem>
+    <BinderItem UUID="RESEARCH" Type="ResearchFolder">
+      <Title>Research</Title>
+      <Children>
+        <BinderItem UUID="REAL-RESEARCH" Type="Text"><Title>Style Guide</Title></BinderItem>
+      </Children>
+    </BinderItem>
+  </Binder>
+</ScrivenerProject>

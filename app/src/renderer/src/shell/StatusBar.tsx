@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { GitBranch, Timer } from 'lucide-react'
+import { BarChart3, GitBranch, Timer } from 'lucide-react'
 import { rpc } from '../rpc/client'
 import { ExtensionStatusItems } from './ExtensionStatusItems'
 import { useShellStore } from '../stores/shellStore'
@@ -396,27 +396,11 @@ export function StatusBar(): React.JSX.Element {
             onClick={toggleOverview}
             title={t('statusBar.overviewTooltip')}
           >
+            <BarChart3 size={13} strokeWidth={1.75} />
             <span className="status-metric">
               {`${totalWords.toLocaleString()} ${t('shell.words')}`}
             </span>
-            <span className="status-metric">{`${chapters.length} ${t('statusBar.chAbbrev')}`}</span>
-            <span className="status-metric">{`${sceneCount} ${t('statusBar.scAbbrev')}`}</span>
-            {overview && (
-              <>
-                <span className="status-metric">
-                  {`${overview.characterCount} ${t('statusBar.charsAbbrev')}`}
-                </span>
-                <span className="status-metric">
-                  {`${overview.locationCount} ${t('statusBar.locAbbrev')}`}
-                </span>
-                <span className="status-dim">
-                  {t('statusBar.readingTime', { minutes: overview.readingTimeMinutes })}
-                </span>
-              </>
-            )}
-            <span className="status-dim">
-              {t('statusBar.avgPerChapter', { value: avgChapterWords.toLocaleString() })}
-            </span>
+            <span className="status-project-label">{t('statusBar.projectStatus')}</span>
           </button>
         ) : (
           <span className="status-center" />
@@ -428,6 +412,56 @@ export function StatusBar(): React.JSX.Element {
               <div className="status-overview-title">
                 {breakdown?.projectName ?? t('dashboard.projectOverview')}
               </div>
+              <div className="status-overview-summary">
+                <span>{chapters.length.toLocaleString()} {t('statusBar.chapters')}</span>
+                <span>{sceneCount.toLocaleString()} {t('statusBar.scenes')}</span>
+                {overview && (
+                  <>
+                    <span>{overview.characterCount.toLocaleString()} {t('statusBar.charactersFull')}</span>
+                    <span>{overview.locationCount.toLocaleString()} {t('statusBar.locations')}</span>
+                    <span>{t('statusBar.readingTime', { minutes: overview.readingTimeMinutes })}</span>
+                  </>
+                )}
+                <span>
+                  {t('statusBar.averageChapter', { value: avgChapterWords.toLocaleString() })}
+                </span>
+              </div>
+              {overview && (overview.dailyGoalTarget > 0 || overview.projectGoalTarget > 0) && (
+                <div className="status-goals status-overview-goals">
+                  {overview.dailyGoalTarget > 0 && (
+                    <span className="status-goal" title={`${overview.dailyGoalPercent}%`}>
+                      <span className="status-goal-label">
+                        {t('statusBar.dailyGoalShort', {
+                          current: overview.dailyGoalCurrent.toLocaleString(),
+                          target: overview.dailyGoalTarget.toLocaleString()
+                        })}
+                      </span>
+                      <span className="status-goal-track">
+                        <span
+                          className="status-goal-fill"
+                          style={{ width: `${overview.dailyGoalPercent}%` }}
+                        />
+                      </span>
+                    </span>
+                  )}
+                  {overview.projectGoalTarget > 0 && (
+                    <span className="status-goal" title={`${overview.projectGoalPercent}%`}>
+                      <span className="status-goal-label">
+                        {t('statusBar.projectGoalShort', {
+                          current: overview.totalWords.toLocaleString(),
+                          target: overview.projectGoalTarget.toLocaleString()
+                        })}
+                      </span>
+                      <span className="status-goal-track">
+                        <span
+                          className="status-goal-fill"
+                          style={{ width: `${overview.projectGoalPercent}%` }}
+                        />
+                      </span>
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="status-overview-cols">
                 <span>{t('overview.chapterColumn')}</span>
                 <span>{t('overview.wordsColumn')}</span>
@@ -526,42 +560,6 @@ export function StatusBar(): React.JSX.Element {
               t('sprint.start')
             )}
           </button>
-        )}
-        {overview && (overview.dailyGoalTarget > 0 || overview.projectGoalTarget > 0) && (
-          <span className="status-goals">
-            {overview.dailyGoalTarget > 0 && (
-              <span className="status-goal" title={`${overview.dailyGoalPercent}%`}>
-                <span className="status-goal-label">
-                  {t('statusBar.dailyGoalShort', {
-                    current: overview.dailyGoalCurrent.toLocaleString(),
-                    target: overview.dailyGoalTarget.toLocaleString()
-                  })}
-                </span>
-                <span className="status-goal-track">
-                  <span
-                    className="status-goal-fill"
-                    style={{ width: `${overview.dailyGoalPercent}%` }}
-                  />
-                </span>
-              </span>
-            )}
-            {overview.projectGoalTarget > 0 && (
-              <span className="status-goal" title={`${overview.projectGoalPercent}%`}>
-                <span className="status-goal-label">
-                  {t('statusBar.projectGoalShort', {
-                    current: overview.totalWords.toLocaleString(),
-                    target: overview.projectGoalTarget.toLocaleString()
-                  })}
-                </span>
-                <span className="status-goal-track">
-                  <span
-                    className="status-goal-fill"
-                    style={{ width: `${overview.projectGoalPercent}%` }}
-                  />
-                </span>
-              </span>
-            )}
-          </span>
         )}
         {git && (
           <button

@@ -101,6 +101,11 @@ test('an extension script runs in the interface and what it adds shows up', asyn
   expect(state.items).toContain('PLUGIN-RAN')
   expect(state.commands).toContain('PLUGIN-COMMAND')
 
+  // Back to a view that has a status bar: Extensions is a system view and
+  // deliberately carries none of the project chrome, so the item an
+  // extension contributes to the status bar cannot be seen from inside it.
+  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('dashboard'))
+
   // On screen, not merely returned by an RPC.
   await expect(page.locator('.status-plugin-item', { hasText: 'PLUGIN-RAN' })).toBeVisible({
     timeout: 30_000

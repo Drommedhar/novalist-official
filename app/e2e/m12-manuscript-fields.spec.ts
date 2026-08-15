@@ -39,8 +39,12 @@ test('a scene field defined in Settings becomes an editable outliner column', as
   }, workDir)
 
   // ── Define a field in Settings, the way a writer would ──
-  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('settings'))
-  const card = page.locator('.dashboard-card', { hasText: 'Scene and chapter fields' })
+  await page.evaluate(() =>
+    window.novalistStores.shell.getState().openSettings('manuscriptProperties')
+  )
+  // The section is identified by its stable key rather than by its heading
+  // text, which is translated, or by a card class it no longer carries.
+  const card = page.locator('.settings-section-surface[data-settings-section="manuscriptProperties"]')
   await expect(card).toBeVisible({ timeout: 20_000 })
 
   await card.getByRole('button', { name: 'Add a field' }).click()

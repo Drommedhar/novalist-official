@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { launchApp, seedBook } from './harness'
+import { dismissTour, launchApp, resizeWindow, seedBook } from './harness'
 
 /**
  * A view opens at the top, on both shells.
@@ -64,11 +64,8 @@ test('mobile: switching tabs starts at the top', async () => {
   const h = await launchApp('nl-scrollreset-m-', { NOVALIST_FORCE_MOBILE: '1' })
   await seedLongProject(h)
   const page = h.page
-  await h.app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0]
-    win.setMinimumSize(300, 400)
-    win.setBounds({ width: 393, height: 852 })
-  })
+  await resizeWindow(h, 393, 852, [300, 400])
+  await dismissTour(page)
 
   const tab = (k: string): Promise<void> =>
     page.evaluate((key) => (window as unknown as {

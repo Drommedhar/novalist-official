@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BookOpen, FilePlus2, FolderOpen, Import } from 'lucide-react'
+import { BookOpen, CircleHelp, FilePlus2, FolderOpen, Import, Settings } from 'lucide-react'
 import { ImportPluginDialog } from './ImportPluginDialog'
 import { ScratchpadPanel } from './ScratchpadPanel'
 import { CreateProjectDialog } from './CreateProjectDialog'
+import { useShellStore } from '../stores/shellStore'
 
 /** How many covers the welcome screen shows. Beyond this the row scrolls. */
 const MAX_RECENTS = 8
@@ -50,6 +51,22 @@ export function StartScreen({
             }}
           />
         )}
+        <div className="start-system-actions">
+          <button
+            className="start-open secondary"
+            onClick={() => useShellStore.getState().openSettings()}
+          >
+            <Settings size={16} strokeWidth={1.75} />
+            {t('settings.title')}
+          </button>
+          <button
+            className="start-open secondary"
+            onClick={() => useShellStore.getState().setHelpOpen(true)}
+          >
+            <CircleHelp size={16} strokeWidth={1.75} />
+            {t('help.title')}
+          </button>
+        </div>
         <div className="start-recents">
           <div className="start-recents-label">{t('welcome.recentProjects')}</div>
           {recentProjects.length === 0 && (

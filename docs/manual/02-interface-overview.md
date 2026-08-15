@@ -30,6 +30,30 @@ Navigation happens through the **activity bar**, the **Go** menu in the menu bar
 
 On Windows and Linux the menu bar is hidden so the toolbar can serve as the window's title bar; press `Alt` to show it. On macOS the menu bar sits in the system bar as usual.
 
+### The shell follows the view
+
+Not every panel means something in every view. The binder is the chapter and scene tree, and there are no chapters to pick while you are reading Settings; project word counts are not what you came to Export for.
+
+So the chrome around the main area changes with what you are doing:
+
+- **Writing views** — the editor and Manuscript — keep the full layout: binder, inspector, the **+ Chapter** and **+ Scene** buttons, and the status bar. The **Dashboard** keeps all of it except the inspector, which is about the scene you are in rather than the book as a whole.
+- **Project views** — Timeline, Codex, Research, Export, Git and the rest — keep the book and draft selectors and the status bar, and drop the binder, the inspector and the scene-creation buttons. Each of those views already has its own list of the thing it is about.
+- **Settings and Extensions** keep none of it. They are not about a book, and Settings had become a fourth column beside three panels it had nothing to do with.
+
+Nothing is taken away, only put away: every command is still in the [command palette](25-command-palette.md) and on its hotkey, and toggling a panel back on in a view that hides it by default leaves your writing layout exactly as you had it.
+
+### The shell follows the window
+
+The layout also responds to how much room it actually has, measured from the window rather than guessed from the monitor — so a narrow window on a wide screen reflows properly, and moving the window between monitors of different scaling reflows it again without a restart.
+
+- **Wide** — binder and inspector side by side with the main area, as above.
+- **Medium** — the inspector becomes a drawer you open when you want it, and secondary toolbar commands collect under a **More** menu.
+- **Compact** — the binder becomes an overlay over the main area rather than a column beside it, so the editor keeps a usable width instead of being squeezed out.
+
+The width you drag a panel to is remembered as a preference, not as a demand: on a narrower window a panel is capped so the editor stays usable, and your stored width comes back when there is room for it again.
+
+For how large the interface is drawn — as opposed to how it is arranged — see **Interface size** in [Settings → Appearance](23-settings.md#appearance).
+
 ## The toolbar
 
 The slim bar at the top of the window — it doubles as the window's title bar, so it is also where you drag the window and where the minimise, maximise, and close buttons sit. On the left, from left to right:
@@ -144,10 +168,18 @@ The toolbar burger opens a left-anchored **backstage drawer**: create or open a 
 The thin strip across the bottom:
 
 - **Left** — the open scene's live word count, reading time, and readability badge.
-- **Center** — an always-visible project metrics strip: words, chapters, scenes, characters, locations, reading time, and average words per chapter. Click it for the **project overview** popover, a per-chapter and per-scene breakdown with word bars, an estimated page count and readability.
+- **Center** — a single **Project status** button. The strip used to spell out every project total at all times, in abbreviations — `12 ch`, `48 sc`, `9 loc` — which is a row of numbers to read past while writing rather than something to act on. Click the button for the **project overview** popover, which now holds all of it in words rather than abbreviations: chapters, scenes, characters, locations, reading time, average words per chapter, goal progress, and a per-chapter and per-scene breakdown with word bars, an estimated page count and readability.
 
   The page estimate is exactly that — an estimate. It divides the word count by a **words to a printed page** figure you set per project in Settings, and the popover says which figure it used. A trade paperback runs about 250 words to a page, mass-market nearer 300, large print about 150; the default is 250. Clearing the field puts it back. For an exact count rather than an estimate, export with the Normseiten preset, which is a real typeset grid.
 - **Right** — daily and project goal progress, the git branch and changed-file count, and a compact **core-connection dot** (green once the bundled Novalist Core process is up; hover it for the version). If it never connects, see [Troubleshooting](28-troubleshooting.md).
+
+## In-app help
+
+`F1`, or **Help → Help for Current View**, opens this manual inside the app.
+
+It opens **where you are**. On the Timeline it opens the Timeline page; in the Codex, the Codex page; in Settings, the page for the section you have open. A link that points at a particular section arrives at that section rather than at the top of the page, so "read more about typewriter scrolling" lands on typewriter scrolling.
+
+The page list down the left side holds the whole manual, and the search box above it searches the text of every page — so opening help in the right place never stops you going somewhere else.
 
 ## The command palette
 

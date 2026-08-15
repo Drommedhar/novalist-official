@@ -2,7 +2,7 @@
 
 Novalist is extensible. An extension is a small .NET assembly that runs inside the Novalist core process and contributes new panels, export formats, entity types, AI integrations, grammar checkers, or property types. Anyone can install one; anyone can write one.
 
-This page covers using extensions. For writing them, see [`extension-guide.md`](../extension-guide.md) in the parent docs folder.
+This page covers using extensions. For writing them, see the [Extension Guide](https://github.com/Drommedhar/novalist-official/blob/main/docs/extension-guide.md).
 
 ## How extensions run
 
@@ -204,7 +204,7 @@ Refer to the extension's README for specifics; AI extensions are not part of the
 
 ## Writing your own extension
 
-See [`extension-guide.md`](../extension-guide.md). In short:
+See the [Extension Guide](https://github.com/Drommedhar/novalist-official/blob/main/docs/extension-guide.md). In short:
 
 1. Create a .NET 8 class library.
 2. Reference the `Novalist.Sdk` package.
@@ -228,6 +228,6 @@ The full submission flow is in the extension guide.
 
 ## Where to go next
 
-- [`extension-guide.md`](../extension-guide.md) — full SDK and packaging guide for developers.
+- [Extension Guide](https://github.com/Drommedhar/novalist-official/blob/main/docs/extension-guide.md) — full SDK and packaging guide for developers.
 - [Settings](23-settings.md) — app settings, including the diagnostics log that captures extension load errors.
 - [Export](20-export.md) — extension-contributed formats appear here.

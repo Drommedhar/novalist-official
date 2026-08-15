@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { launchApp, seedBook } from './harness'
+import { dismissTour, launchApp, resizeWindow, seedBook } from './harness'
 
 /**
  * Nothing the phone shell shows may scroll sideways.
@@ -59,6 +59,7 @@ test('no mobile view overflows a phone width', async () => {
     'character'
   ])
   await page.evaluate(() => window.novalistStores.codex.getState().refresh())
+  await dismissTour(page)
 
   const tab = (key: string): Promise<void> =>
     page.evaluate((k) => (window as unknown as {
@@ -122,11 +123,7 @@ test('no mobile view overflows a phone width', async () => {
 
   const failures: string[] = []
   for (const size of SIZES) {
-    await h.app.evaluate(async ({ BrowserWindow }, s: { w: number; h: number }) => {
-      const win = BrowserWindow.getAllWindows()[0]
-      win.setMinimumSize(300, 300)
-      win.setBounds({ width: s.w, height: s.h })
-    }, { w: size.w, h: size.h })
+    await resizeWindow(h, size.w, size.h)
     // A notched iPhone in landscape reserves ~59pt down each side, which
     // .mobile-content takes as padding from env(safe-area-inset-*). env() is 0
     // in a desktop Chromium, so the inset is applied here instead - without it

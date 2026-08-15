@@ -20,13 +20,23 @@ No account is required. Novalist works fully offline. The only times it touches 
 - Browsing the extension store.
 - Calling the LanguageTool grammar service when grammar check is enabled (toggleable, and the endpoint can be replaced with a self-hosted server).
 
-## The tour
+## First-time guidance
 
-The first time you open a project, a small card appears in the corner offering a walk through the views. It is seven stops — Dashboard, Manuscript, Codex, Timeline, Plot Grid, Research, Export — and each one **actually goes there** rather than describing it, so you have been in the rooms once before you need them.
+The first time you open a project, a small card appears in the corner offering a walk through the app. It is eight stops — Dashboard, Manuscript, the writing view, Focus Peek, Codex, Timeline, Research, Export — and each one **actually goes there** rather than describing it, so you have been in the rooms once before you need them.
+
+Each stop names **one thing to do** rather than only describing what you are looking at: open a scene and write a sentence, set a daily goal you can reach, capture one fact you will want beside the draft. **Try this** does the part that needs doing for you where it can — on the Focus Peek stop, **Point it out** finds a linked name in your scene and shows you what hovering it would do.
+
+A stop that needs something you do not have yet says so instead of failing quietly. With no scene open, the writing stop tells you to open one from the binder first; with no linked names in the scene, the Focus Peek stop says that too, rather than asking you to hover something that is not there.
 
 Novalist has eighteen views behind four groups in the activity bar. The manual covers all of them, and nobody reads a manual before they have a reason to; the tour exists so the Plot Grid is not a surprise in month three.
 
 **Skip** is as prominent as **Next** — if you already know the app, one click and it is gone. It is offered once per installation and never asks again. To take it later, press **Ctrl+Alt+T** or find **Take the tour** in the command palette.
+
+### Tips as you go
+
+Beyond the tour, Novalist offers a short tip the first time a feature actually becomes usable — when your caret first lands on a linked Codex name, for example, rather than in a lesson before you have any. Each tip can be tried, put off, or turned off for good, and Novalist remembers only which tips you have seen: no part of your writing is recorded to decide when to show one.
+
+Turn the whole thing off under **Settings → Accessibility → Show contextual guidance while I learn**.
 
 
 ## The start screen

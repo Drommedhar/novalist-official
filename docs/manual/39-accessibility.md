@@ -12,7 +12,7 @@ Everything here is in **Settings → Editor**, and every one of them applies to 
 - **Letter Spacing** — -1 to 4 pixels.
 - **Paragraph Spacing** — 0 to 3 ems, used when **Book Paragraph Spacing** is on.
 
-All five can be set globally or [pinned to one project](23-settings.md#global-vs-per-project-settings), so a book you find hard to read can carry its own settings.
+All five can be set globally or [pinned to one project](23-settings.md#global-vs-project-settings), so a book you find hard to read can carry its own settings.
 
 ## High Contrast theme
 
@@ -83,9 +83,12 @@ Stated so nobody has to discover it the hard way:
 
 A section gathering the settings that matter most for reading comfort, so they are findable without knowing which other section they live in. Everything here is also in Editor or Appearance; this is the same setting either way.
 
+- **Show contextual guidance while I learn** — short, dismissible tips that appear the first time a feature becomes usable, rather than a tour up front that explains things before they mean anything. Turn it off and Novalist stops offering them. See [First-time guidance](01-getting-started.md#first-time-guidance).
 - **Editor typeface** — the list names faces chosen for readability alongside the usual ones: **OpenDyslexic**, **Atkinson Hyperlegible**, **Lexend**, plus Verdana and Tahoma. Novalist does not bundle them, so the face you pick has to be installed on this machine — the box is free text and accepts anything installed.
 - **Font size** and **Line spacing** — larger text and looser leading, which for many readers does more than the typeface does.
 - **Switch to the High Contrast theme** — one click, rather than a paragraph telling you where the theme picker is. Switch back under Appearance whenever you like.
+
+**Settings → Appearance → Interface size** is the separate control for the size of Novalist's own chrome — menus, panels, labels and buttons — from 75% to 150%, on `Ctrl+Plus` / `Ctrl+-` / `Ctrl+0` as well. It is deliberately not the same setting as the editor's font size: enlarging the interface to read its labels no longer forces your manuscript to a size you did not want, and vice versa.
 
 ## Where to go next
 

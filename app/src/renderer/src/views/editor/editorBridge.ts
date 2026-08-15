@@ -84,6 +84,8 @@ export interface EditorWindow extends Window {
   toggleBold(): void
   toggleItalic(): void
   toggleUnderline(): void
+  toggleStrikethrough(): void
+  toggleHighlight(): void
   alignLeft(): void
   alignCenter(): void
   alignRight(): void
@@ -92,6 +94,8 @@ export interface EditorWindow extends Window {
   setParagraphStyle(style: string): void
   toggleBulletList(): void
   toggleNumberList(): void
+  /** Opens focus peek for the entity under the collapsed caret, if any. */
+  peekEntityAtCaret(): boolean
   focusEditor(): void
   /** Chromium's spelling suggestions for the word the menu was opened on. */
   setSpellingSuggestions(word: string, suggestions: string[]): void

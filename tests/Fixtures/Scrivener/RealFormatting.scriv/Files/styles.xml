@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Styles>
+  <Style ID="356F8B75-4D12-4690-9FCA-78E7895785B5" Name="Title" Type="Para+Char" FontChange="Size">
+    <Format><![CDATA[{\rtf1\ansi\ansicpg1252\uc1\deff0
+{\fonttbl{\f0\fnil\fcharset0\fprq2 Calibri;}}
+\f0\fs56\pard\plain \sb260\sl262\slmult1\ltrch\loch {\f0\fs56\b0\i0 Attributes}}]]></Format>
+  </Style>
+  <Style ID="C9906AA4-02B5-414C-8213-C9A65EA748E9" Name="Heading 1" Type="Para+Char" FontChange="Size">
+    <Format><![CDATA[{\rtf1\ansi\ansicpg1252\uc1\deff0
+{\fonttbl{\f0\fnil\fcharset0\fprq2 Calibri-Bold;}}
+\f0\fs36\pard\plain \sb260\sl262\slmult1\ltrch\loch {\f0\fs36\b1\i0 <$Scr_H::1>Attributes<!$Scr_H::1>}}]]></Format>
+  </Style>
+  <Style ID="95B409B0-C0F2-45F1-BA28-D62834ED5474" Name="Heading 2" Type="Para+Char" FontChange="Size">
+    <Format><![CDATA[{\rtf1\ansi\ansicpg1252\uc1\deff0
+{\fonttbl{\f0\fnil\fcharset0\fprq2 Calibri-Bold;}}
+\f0\fs26\pard\plain \sb260\sl262\slmult1\ltrch\loch {\f0\fs26\b1\i0 <$Scr_H::2>Attributes<!$Scr_H::2>}}]]></Format>
+  </Style>
+  <Style ID="6DAD3B44-A4F1-4E96-AE54-49994986D26C" Name="Verse" Type="Para" FontChange="Size">
+    <Format><![CDATA[{\rtf1\ansi\ansicpg1252\uc1\deff0
+{\fonttbl{\f0\fnil\fcharset0\fprq2 Calibri;}}
+\f0\fs24\pard\plain \sl264\slmult1\qc\ltrch\loch {\f0\fs24\b0\i0 Attributes}}]]></Format>
+  </Style>
+</Styles>

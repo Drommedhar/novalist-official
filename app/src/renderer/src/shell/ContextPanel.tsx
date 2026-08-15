@@ -263,9 +263,17 @@ export function ContextPanel({
   })
   const cardPeek: CardPeek = {
     onEnter: (type, id, el) => {
-      // Anchor the card just to the left of the sidebar card so it never covers it.
+      // Anchored to the row itself, asking for beside rather than below: the
+      // sidebar sits at the right edge, so the card goes to its left and never
+      // covers the row it belongs to. It used to be positioned by subtracting a
+      // guessed card width from the row's left edge, which was only ever right
+      // for one card size.
       const rect = el.getBoundingClientRect()
-      entityPeek.showAt({ entityType: type, entityId: id }, Math.max(8, rect.left - 372), rect.top - 18)
+      entityPeek.showAt(
+        { entityType: type, entityId: id },
+        { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom },
+        'beside'
+      )
     },
     // Debounced, guarded by the pointer-over-card flag so moving onto the card keeps it open.
     onLeave: () => entityPeek.scheduleHide()

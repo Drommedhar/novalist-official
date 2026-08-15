@@ -19,5 +19,10 @@
     <Compile Include="..\Novalist.Core.Tests\TestHelpers\ScrivenerProjectBuilder.cs"
              Link="TestHelpers\ScrivenerProjectBuilder.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Fixtures\Scrivener\**\*"
+          Link="Fixtures\Scrivener\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
 </Project>

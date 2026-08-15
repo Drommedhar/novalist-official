@@ -220,7 +220,7 @@ Novalist also supports per-scene snapshots — a manual version history per scen
 
 ## Importing from other tools
 
-The start screen has an **Import from Obsidian Plugin...** entry. This converts a project produced by the legacy Obsidian-based Novalist workflow into a native Novalist project. See [Troubleshooting](28-troubleshooting.md#import) for details.
+The start screen has an **Import from Obsidian Plugin...** entry. This converts a project produced by the legacy Obsidian-based Novalist workflow into a native Novalist project. See [Troubleshooting](28-troubleshooting.md#importing-from-obsidian) for details.
 
 ## Where to go next
 

@@ -15,6 +15,15 @@ public sealed class ImportedParagraph
     public string Text { get; init; } = string.Empty;
     public int HeadingLevel { get; init; }
 
+    /// <summary>Text runs with the semantic formatting the source carried.
+    /// Empty for plain-text formats, whose <see cref="Text"/> is the sole run.</summary>
+    public IReadOnlyList<ImportedTextRun> Runs { get; init; } = [];
+
+    public ImportedListKind ListKind { get; init; }
+    public int ListLevel { get; init; }
+    public ImportedTextAlignment Alignment { get; init; }
+    public ImportedParagraphStyle Style { get; init; }
+
     /// <summary>True when the paragraph is a scene-break ornament rather than
     /// prose - a line of asterisks, a horizontal rule, a lone hash.</summary>
     public bool IsSceneBreak { get; init; }
@@ -79,7 +88,7 @@ public static partial class ManuscriptReader
                 ".epub" => ReadEpub(path),
                 ".md" or ".markdown" => ReadMarkdown(File.ReadAllText(path)),
                 ".txt" => ReadPlainText(File.ReadAllText(path)),
-                ".rtf" => ReadRtf(File.ReadAllText(path)),
+                ".rtf" => ReadRtf(File.ReadAllBytes(path)),
                 _ => new ManuscriptDocument()
             };
         }
@@ -335,103 +344,13 @@ public static partial class ManuscriptReader
 
     // ── RTF ──
 
-    /// <summary>
-    /// Paragraph-level RTF extraction: control words are dropped and <c>\par</c>
-    /// ends a paragraph. Formatting is deliberately not recovered - an RTF
-    /// manuscript imports as clean prose, which is what the structure heuristics
-    /// need and what a writer would have to re-style anyway.
-    /// </summary>
-    /// <summary>
-    /// Control words that open a group of metadata rather than prose. RTF has
-    /// many; these are the ones a word processor actually emits ahead of the
-    /// body, and the ones whose contents are plain text that would otherwise be
-    /// mistaken for the manuscript.
-    /// </summary>
-    private static bool IsSkippableGroup(string control) => control
-        is "fonttbl" or "colortbl" or "stylesheet" or "info" or "listtable"
-        or "listoverridetable" or "rsidtbl" or "generator" or "pict"
-        or "themedata" or "colorschememapping" or "latentstyles" or "datastore";
-
+    /// <summary>Reads RTF through the stateful decoder used by both standalone
+    /// manuscripts and Scrivener document files.</summary>
     internal static ManuscriptDocument ReadRtf(string content)
-    {
-        var text = new StringBuilder();
-        var paragraphs = new List<ImportedParagraph>();
+        => RtfDocumentReader.Read(content);
 
-        void EndParagraph()
-        {
-            var line = text.ToString().Trim();
-            text.Clear();
-            if (line.Length == 0)
-                return;
-
-            paragraphs.Add(SceneBreakRegex().IsMatch(line)
-                ? new ImportedParagraph { IsSceneBreak = true }
-                : Build(line, 0));
-        }
-
-        // Header groups whose contents are metadata, not prose. Every real RTF
-        // opens with a font table, so without this the writer's first paragraph
-        // arrives with "Times New Roman;" glued to the front of it.
-        var skipDepth = 0;
-        var depth = 0;
-
-        for (var i = 0; i < content.Length; i++)
-        {
-            var c = content[i];
-
-            if (c == '\\')
-            {
-                var word = new StringBuilder();
-                var j = i + 1;
-                while (j < content.Length && char.IsLetter(content[j]))
-                    word.Append(content[j++]);
-
-                // A numeric parameter belongs to the control word.
-                while (j < content.Length && (char.IsDigit(content[j]) || content[j] == '-'))
-                    j++;
-                if (j < content.Length && content[j] == ' ')
-                    j++;
-
-                var control = word.ToString();
-                if (skipDepth == 0 && IsSkippableGroup(control))
-                {
-                    // Everything to this group's closing brace is metadata.
-                    skipDepth = depth;
-                }
-                else if (skipDepth == 0)
-                {
-                    if (control is "par" or "pard" or "line")
-                        EndParagraph();
-                    else if (control == "tab")
-                        text.Append(' ');
-                }
-
-                i = j - 1;
-                continue;
-            }
-
-            if (c == '{')
-            {
-                depth++;
-                continue;
-            }
-
-            if (c == '}')
-            {
-                depth--;
-                if (skipDepth > 0 && depth < skipDepth) skipDepth = 0;
-                continue;
-            }
-
-            if (c is '\r' or '\n')
-                continue;
-
-            if (skipDepth == 0) text.Append(c);
-        }
-
-        EndParagraph();
-        return Done(paragraphs, "rtf");
-    }
+    internal static ManuscriptDocument ReadRtf(byte[] content)
+        => RtfDocumentReader.Read(content);
 
     // ── Shared ──
 

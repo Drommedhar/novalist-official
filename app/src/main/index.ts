@@ -1,4 +1,12 @@
-import { app, BrowserWindow, MessageChannelMain, ipcMain, shell, nativeImage } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  MessageChannelMain,
+  ipcMain,
+  shell,
+  nativeImage,
+  screen
+} from 'electron'
 import { join } from 'node:path'
 import { existsSync } from 'node:fs'
 import { BackendProcess } from './backend-process'
@@ -43,13 +51,44 @@ registerProtocolSchemes()
  */
 let mainWindow: BrowserWindow | null = null
 
+/** A restore-down size expressed in Electron's display-independent pixels. */
+function initialWindowGeometry(): {
+  width: number
+  height: number
+  minWidth: number
+  minHeight: number
+} {
+  const workArea = screen.getPrimaryDisplay().workAreaSize
+  return {
+    width: Math.min(1440, workArea.width),
+    height: Math.min(900, workArea.height),
+    minWidth: Math.min(760, workArea.width),
+    minHeight: Math.min(520, workArea.height)
+  }
+}
+
+/**
+ * Keeps a restored window reachable after a monitor is removed or its display
+ * scale changes. Bounds and work areas are both DIPs, so OS DPI remains native.
+ */
+function clampWindowToDisplay(win: BrowserWindow): void {
+  if (win.isDestroyed() || win.isMaximized() || win.isFullScreen() || win.isMinimized()) return
+  const bounds = win.getBounds()
+  const area = screen.getDisplayMatching(bounds).workArea
+  const width = Math.min(Math.max(bounds.width, Math.min(760, area.width)), area.width)
+  const height = Math.min(Math.max(bounds.height, Math.min(520, area.height)), area.height)
+  const x = Math.max(area.x, Math.min(bounds.x, area.x + area.width - width))
+  const y = Math.max(area.y, Math.min(bounds.y, area.y + area.height - height))
+  if (x !== bounds.x || y !== bounds.y || width !== bounds.width || height !== bounds.height) {
+    win.setBounds({ x, y, width, height })
+  }
+}
+
 function createWindow(): BrowserWindow {
   const iconPath = resolveIconPath()
+  const geometry = initialWindowGeometry()
   const win = new BrowserWindow({
-    width: 1440,
-    height: 900,
-    minWidth: 960,
-    minHeight: 600,
+    ...geometry,
     show: false,
     title: 'Novalist',
     ...(iconPath ? { icon: iconPath } : {}),
@@ -81,6 +120,7 @@ function createWindow(): BrowserWindow {
     void win.loadFile(join(__dirname, '../renderer/index.html'))
   }
   mainWindow = win
+  win.on('unmaximize', () => clampWindowToDisplay(win))
   win.on('closed', () => {
     if (mainWindow === win) mainWindow = null
   })
@@ -220,6 +260,31 @@ ipcMain.on('novalist:set-titlebar-colors', (event, color: string, symbolColor: s
 })
 
 /**
+ * One explicit whole-interface scale. Native menu shortcuts, Settings and
+ * detached panes all call this bridge instead of accumulating hidden Chromium
+ * page zoom independently.
+ */
+ipcMain.handle('novalist:set-ui-scale', (event, requested: number) => {
+  const factor = Math.max(0.75, Math.min(1.5, Number.isFinite(requested) ? requested : 1))
+  event.sender.setZoomFactor(factor)
+  return factor
+})
+
+/** Content-free display facts for Settings -> Diagnostics and regression tests. */
+ipcMain.handle('novalist:display-diagnostics', (event) => {
+  const win = BrowserWindow.fromWebContents(event.sender)
+  if (!win || win.isDestroyed()) return null
+  const display = screen.getDisplayMatching(win.getBounds())
+  return {
+    zoomFactor: event.sender.getZoomFactor(),
+    scaleFactor: display.scaleFactor,
+    windowBounds: win.getBounds(),
+    contentBounds: win.getContentBounds(),
+    workArea: display.workArea
+  }
+})
+
+/**
  * A novalist:// link that arrived before the renderer could take it.
  *
  * A link is usually what starts the app, so it lands well before anything is
@@ -281,6 +346,12 @@ void app.whenReady().then(() => {
   // Skipped under NOVALIST_NO_SPLASH so e2e's app.firstWindow() deterministically
   // hits the renderer and startup is not gated on a network check.
   const win = createWindow()
+  const reclampOpenWindows = (): void => {
+    for (const open of BrowserWindow.getAllWindows()) clampWindowToDisplay(open)
+  }
+  screen.on('display-metrics-changed', reclampOpenWindows)
+  screen.on('display-added', reclampOpenWindows)
+  screen.on('display-removed', reclampOpenWindows)
   const splash = process.env.NOVALIST_NO_SPLASH ? null : createSplashWindow(resolveIconPath())
   setSplashStatus(splash, 'Checking for updates…')
 

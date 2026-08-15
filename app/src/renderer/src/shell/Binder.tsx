@@ -14,7 +14,13 @@ import { StoryDateRangeDialog } from './StoryDateRangeDialog'
 import { SmartListsPanel } from './SmartListsPanel'
 import { BookmarksPanel } from './BookmarksPanel'
 import { CollectionsPanel } from './CollectionsPanel'
-import { savePanelSize, useShellStore } from '../stores/shellStore'
+import {
+  BINDER_MAX,
+  BINDER_MIN,
+  panelWidthForShell,
+  savePanelSize,
+  useShellStore
+} from '../stores/shellStore'
 import { handleSceneClick, useSelectionStore } from '../stores/selectionStore'
 import { useStageStore } from '../stores/stageStore'
 import { useTargetStore } from '../stores/targetStore'
@@ -82,7 +88,14 @@ export function Binder(): React.JSX.Element {
   const { t } = useTranslation()
   const binderTab = useShellStore((s) => s.binderTab)
   const setBinderTab = useShellStore((s) => s.setBinderTab)
-  const binderWidth = useShellStore((s) => s.binderWidth)
+  const preferredBinderWidth = useShellStore((s) => s.binderWidth)
+  const shellWidth = useShellStore((s) => s.shellWidth)
+  const binderWidth = panelWidthForShell(
+    preferredBinderWidth,
+    shellWidth,
+    BINDER_MIN,
+    BINDER_MAX
+  )
   const setBinderWidth = useShellStore((s) => s.setBinderWidth)
   const projectPath = useProjectStore((s) => s.projectPath)
   const [changedIds, setChangedIds] = useState<Set<string>>(new Set())

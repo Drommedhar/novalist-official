@@ -94,6 +94,15 @@
      0 while the compact tab-bar layout is in use. */
   --nl-mobile-sidebar-w: 0px;
 
+  /* Desktop shell geometry. Central tokens keep the renderer, responsive
+     policies and screenshot assertions on the same dimensions. */
+  --nl-toolbar-height: 38px;
+  --nl-status-height: 24px;
+  --nl-activity-rail-width: 44px;
+  --nl-peek-width: 460px;
+  --nl-peek-max-height: 580px;
+  --nl-toolbar-menu-width: 320px;
+
   /* Web approximation of the iOS Liquid Glass material, for panels that live
      inside the WebView and therefore cannot be a real UIVisualEffectView (the
      tablet slide-over). Composed against --nl-base so it tracks the theme, and

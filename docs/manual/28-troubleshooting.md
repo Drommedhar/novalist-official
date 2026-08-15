@@ -132,7 +132,7 @@ Novalist checks for updates on startup (in installed builds) and from **Help →
 
 ## The manual and startup
 
-- Press **F1** or use **Help → Novalist Manual** in the app menu bar to open this manual inside the app: a searchable, readable overlay with every page.
+- Press **F1** or use **Help → Help for Current View** in the app menu bar to open this manual inside the app: a searchable, readable overlay with every page. It opens at the page for whatever you were looking at, and the page list down the side is still there to browse or search the rest.
 - A brief **splash** appears while the core process starts and the update check runs, then the main window opens.
 
 ## Reporting bugs

@@ -21,7 +21,15 @@ test('an overwritten codex entry can be put back from the detail pane', async ()
   env.NOVALIST_NO_SPLASH = '1'
   env.NOVALIST_SETTINGS_DIR = join(workDir, 'settings')
 
-  const app = await electron.launch({ args: ['out/main/index.js'], env })
+  // Its own Electron profile. The renderer remembers the last workspace in
+  // localStorage, which lives in the profile, so a spec that shares the default
+  // one can have a previously opened project restored over the top of the one it
+  // just created - and then every id it holds belongs to a project the backend
+  // is no longer in. That surfaced here as "Unknown entity" on a fresh id.
+  const app = await electron.launch({
+    args: ['out/main/index.js', `--user-data-dir=${join(workDir, 'electron-profile')}`],
+    env
+  })
   const page = await app.firstWindow()
   await expect(page.locator('.status-backend.connected')).toBeVisible({ timeout: 30_000 })
 

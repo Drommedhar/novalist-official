@@ -90,8 +90,10 @@ test('a writer can add their own replacement rules, plain and pattern', async ()
   expect(remaining).toBe(0)
 
   // ─── The table itself, driven the way a writer drives it ───────────
-  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('settings' as never))
-  await expect(page.locator('#set-theme')).toBeVisible({ timeout: 20_000 })
+  await page.evaluate(() => window.novalistStores.shell.getState().openSettings('writingAssistance'))
+  await expect(
+    page.locator('.settings-section-surface[data-settings-section="writingAssistance"]')
+  ).toBeVisible({ timeout: 20_000 })
 
   const rows = page.locator('.replacement-rule')
   const error = page.locator('.replacement-rules-error')
@@ -178,8 +180,10 @@ test('the preview beside a rule agrees with what the editor actually types', asy
 
   const samples = ["she said 'no' twice", 'the room is 12x9 feet']
 
-  await page.evaluate(() => window.novalistStores.shell.getState().setMainView('settings' as never))
-  await expect(page.locator('#set-theme')).toBeVisible({ timeout: 20_000 })
+  await page.evaluate(() => window.novalistStores.shell.getState().openSettings('writingAssistance'))
+  await expect(
+    page.locator('.settings-section-surface[data-settings-section="writingAssistance"]')
+  ).toBeVisible({ timeout: 20_000 })
   const rows = page.locator('.replacement-rule')
   const predicted: string[] = []
   for (let i = 0; i < samples.length; i++) {

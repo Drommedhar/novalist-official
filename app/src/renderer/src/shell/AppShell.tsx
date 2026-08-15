@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityBar } from './ActivityBar'
 import { Binder } from './Binder'
 import { CommandPalette } from './CommandPalette'
@@ -26,8 +26,13 @@ import { useProjectStore, type ProjectStateDto } from '../stores/projectStore'
 import { rpc } from '../rpc/client'
 import { useExtensionsStore, type StoreUpdate } from '../stores/extensionsStore'
 import { useSettingsStore } from '../stores/settingsStore'
+import { useUiScaleStore } from '../stores/uiScaleStore'
 import { loadUserAssets, watchUserAssets } from '../stores/userAssets'
 import type { PingResult } from '../rpc/contract'
+import { chromeFor } from './viewChromePolicy'
+import { helpTargetForContext, type ManualTarget } from './helpTargets'
+import { useSettingsNavigation } from '../views/settings/settingsNavigation'
+import { useEditorBridge } from '../stores/editorBridgeStore'
 import './shell.css'
 
 /** Maps a native-menu command ("nav:codex", "toggle:focus") onto the shell store. */
@@ -52,6 +57,15 @@ function handleMenuCommand(command: string): void {
       break
     case 'help:manual':
       shell.setHelpOpen(true)
+      break
+    case 'uiScale:reset':
+      useUiScaleStore.getState().reset()
+      break
+    case 'uiScale:increase':
+      useUiScaleStore.getState().increase()
+      break
+    case 'uiScale:decrease':
+      useUiScaleStore.getState().decrease()
       break
   }
 }
@@ -79,9 +93,14 @@ export function AppShell(): React.JSX.Element {
   useBackupScheduler()
   useSpellCheck()
   const binderVisible = useShellStore((s) => s.binderVisible)
+  const binderOverlayOpen = useShellStore((s) => s.binderOverlayOpen)
   const backendVersion = useShellStore((s) => s.backendVersion)
   const focusMode = useShellStore((s) => s.focusMode)
   const inspectorVisible = useShellStore((s) => s.inspectorVisible)
+  const inspectorOverlayOpen = useShellStore((s) => s.inspectorOverlayOpen)
+  const shellCapacity = useShellStore((s) => s.shellCapacity)
+  const mainView = useShellStore((s) => s.mainView)
+  const inspectorTab = useShellStore((s) => s.inspectorTab)
   const notesDockVisible = useShellStore((s) => s.notesDockVisible)
   // The surfaces beside the content area belong to the window rather than to
   // one pane, so they ask whether the window holds the view at all - not what
@@ -101,7 +120,30 @@ export function AppShell(): React.JSX.Element {
   const helpOpen = useShellStore((s) => s.helpOpen)
   const layoutsOpen = useShellStore((s) => s.layoutsOpen)
   const tourOpen = useShellStore((s) => s.tourOpen)
+  const settingsSection = useSettingsNavigation((s) => s.destination.section)
+  const activeEditor = useEditorBridge((s) => s.editor)
+  const editorEntityAtCaret = useEditorBridge((s) => s.entityAtCaret)
   const hotkeys = useMemo(() => buildDefaultHotkeys(), [])
+  const shellRef = useRef<HTMLDivElement>(null)
+  const chrome = chromeFor(mainView)
+  const contextualHelp: ManualTarget =
+    isLoaded || mainView === 'settings'
+      ? helpTargetForContext({
+        view: mainView,
+        inspectorTab,
+        ...(mainView === 'settings' && settingsSection ? { settingsSection } : {})
+      })
+      : { file: '01-getting-started.md' }
+  const projectOrSettings = isLoaded || mainView === 'settings'
+  const showBinder =
+    isLoaded &&
+    chrome.binder &&
+    (shellCapacity === 'compact' ? binderOverlayOpen : binderVisible)
+  const showInspector =
+    isLoaded &&
+    chrome.inspector &&
+    sceneContextOpen &&
+    (shellCapacity === 'wide' ? inspectorVisible : inspectorOverlayOpen)
 
   // ── Combined app + extension update check (run in the splash on startup) ──
   const [appUpdate, setAppUpdate] = useState<AppUpdate | null>(null)
@@ -170,6 +212,26 @@ export function AppShell(): React.JSX.Element {
       })
       .catch(() => {})
       .finally(() => window.novalist.updatesChecked())
+  }, [])
+
+  // The UI scale is machine-local view state. Apply it before the first useful
+  // interaction, and measure the resulting CSS viewport rather than guessing
+  // from the physical display.
+  useEffect(() => {
+    useUiScaleStore.getState().apply()
+  }, [])
+
+  useEffect(() => {
+    const shell = shellRef.current
+    if (!shell) return
+    const report = (width: number): void => useShellStore.getState().setShellMetrics(width)
+    report(shell.getBoundingClientRect().width)
+    const observer = new ResizeObserver((entries) => {
+      const width = entries[0]?.contentRect.width
+      if (typeof width === 'number') report(width)
+    })
+    observer.observe(shell)
+    return () => observer.disconnect()
   }, [])
 
   /**
@@ -248,24 +310,28 @@ export function AppShell(): React.JSX.Element {
   const isMobile = window.novalist.isMobile === true
 
   return (
-    <div className={`shell${isMobile ? ' mobile' : ''}`}>
+    <div
+      ref={shellRef}
+      className={`shell shell-capacity-${shellCapacity}${isMobile ? ' mobile' : ''}`}
+      data-shell-capacity={shellCapacity}
+    >
       {/* Composition mode is the whole screen. Leaving the toolbar and the
           status bar in place made it a wider editor rather than a place to
           write. Everything is a keystroke away again. */}
       {!isMobile && !focusMode && <Toolbar />}
       <div className="shell-body">
-        {isLoaded ? (
-          isMobile ? (
+        {projectOrSettings ? (
+          isMobile && isLoaded ? (
             <MobileShell />
           ) : (
             <>
               {!focusMode && <ActivityBar />}
-              {binderVisible && !focusMode && <Binder />}
+              {showBinder && !focusMode && <Binder />}
               <div className="shell-main">
                 <MainArea />
                 {editorOpen && !extView && notesDockVisible && !focusMode && <SceneNotesDock />}
               </div>
-              {inspectorVisible && !focusMode && !extView && sceneContextOpen && <Inspector />}
+              {showInspector && !focusMode && !extView && <Inspector />}
             </>
           )
         ) : (
@@ -292,7 +358,9 @@ export function AppShell(): React.JSX.Element {
           }}
         />
       )}
-      {!isMobile && !focusMode && <StatusBar />}
+      {!isMobile && !focusMode && mainView !== 'settings' && (!isLoaded || chrome.status) && (
+        <StatusBar />
+      )}
       {findReplaceOpen && (
         <FindReplaceDialog onClose={() => useShellStore.getState().setFindReplaceOpen(false)} />
       )}
@@ -311,11 +379,22 @@ export function AppShell(): React.JSX.Element {
       {quickCaptureOpen && (
         <QuickCapture onClose={() => useShellStore.getState().setQuickCaptureOpen(false)} />
       )}
-      {helpOpen && <HelpOverlay onClose={() => useShellStore.getState().setHelpOpen(false)} />}
+      {helpOpen && (
+        <HelpOverlay
+          initialTarget={contextualHelp}
+          onClose={() => useShellStore.getState().setHelpOpen(false)}
+        />
+      )}
       {layoutsOpen && (
         <WorkspaceLayoutsDialog onClose={() => useShellStore.getState().setLayoutsOpen(false)} />
       )}
-      {tourOpen && <FirstRunTour onClose={() => useShellStore.getState().setTourOpen(false)} />}
+      {tourOpen && (
+        <FirstRunTour
+          prerequisites={{ focusPeekAvailable: editorEntityAtCaret }}
+          onFocusPeekRequest={() => activeEditor?.peekEntityAtCaret()}
+          onClose={() => useShellStore.getState().setTourOpen(false)}
+        />
+      )}
       {/* Raised by the store when a save was refused because the scene changed
           on disk. Renders nothing until there is something to resolve. */}
       <SceneConflictDialog />

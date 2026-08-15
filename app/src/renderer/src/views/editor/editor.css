@@ -1,5 +1,46 @@
 /* Scene tab strip + enriched focus-peek card for the editor pane. */
 
+.editor-onboarding-tip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--nl-space-md);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  color: var(--nl-text);
+  background: var(--nl-surface-selected);
+  border-bottom: 1px solid var(--nl-border);
+}
+
+.editor-onboarding-copy {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  min-width: 0;
+  font-size: var(--nl-font-ui);
+}
+
+.editor-onboarding-copy span {
+  color: var(--nl-text-dim);
+}
+
+.editor-onboarding-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--nl-space-sm);
+  flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .editor-onboarding-tip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .editor-onboarding-actions > button {
+    flex: 1;
+  }
+}
+
 .editor-tabs {
   display: flex;
   align-items: stretch;
@@ -144,9 +185,9 @@
 .peek-card {
   display: flex;
   flex-direction: column;
-  width: 460px;
-  max-width: 460px;
-  max-height: 580px;
+  width: min(var(--nl-peek-width), calc(100vw - (var(--nl-space-md) * 2)));
+  max-width: var(--nl-peek-width);
+  max-height: min(var(--nl-peek-max-height), calc(100vh - (var(--nl-space-md) * 2)));
   background: var(--nl-surface-card);
   border: 1px solid var(--nl-border);
   border-radius: var(--nl-radius-xl);

@@ -30,6 +30,28 @@ public static class ScrivenerProjectBuilder
         => "{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times;}}\\f0\\fs24 " + text + "\\par}";
 
     /// <summary>
+    /// Copies the minimized real Scrivener 3 fixture next to a test's project.
+    /// Unlike <see cref="Rtf"/>, its RTF and style files came from Scrivener and
+    /// deliberately retain the format's Unicode fallback and marker traps.
+    /// </summary>
+    public static string CopyRealFormattingFixture(
+        string parent, string name = "RealFormatting.scriv")
+    {
+        var source = Path.Combine(
+            AppContext.BaseDirectory, "Fixtures", "Scrivener", "RealFormatting.scriv");
+        if (!Directory.Exists(source))
+            throw new DirectoryNotFoundException($"Scrivener fixture was not copied: {source}");
+
+        var target = Path.Combine(parent, name);
+        Directory.CreateDirectory(target);
+        foreach (var directory in Directory.EnumerateDirectories(source, "*", SearchOption.AllDirectories))
+            Directory.CreateDirectory(Path.Combine(target, Path.GetRelativePath(source, directory)));
+        foreach (var file in Directory.EnumerateFiles(source, "*", SearchOption.AllDirectories))
+            File.Copy(file, Path.Combine(target, Path.GetRelativePath(source, file)), overwrite: true);
+        return target;
+    }
+
+    /// <summary>
     /// The binder every fixture shares. Ids are the same in both layouts; only
     /// where the bytes live differs.
     /// </summary>

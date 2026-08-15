@@ -136,6 +136,13 @@ jobs:
       - name: Locale doctor (new UI keys)
         run: python3 tools/locale-doctor.py --target react --no-fail-on-dead
 
+      # The manual is bundled into the Help overlay, so a stale filename or
+      # heading fragment is a broken in-product control, not merely a docs typo.
+      - name: Manual doctor (links, anchors, images, TOC)
+        run: |
+          python3 tools/manual-doctor.py
+          python3 -m unittest tools/test_manual_doctor.py
+
       # A var() on a token that does not exist invalidates the whole
       # declaration and the property silently falls back to its initial value,
       # so a broken layout ships looking like a design decision.

@@ -3,7 +3,9 @@
  * shell.css; this file only adds settings-specific composition. */
 
 .settings-view {
-  max-width: 1080px;
+  container-type: inline-size;
+  max-width: none;
+  width: 100%;
 }
 
 .settings-header {
@@ -14,23 +16,96 @@
   flex-wrap: wrap;
 }
 
-.settings-search {
-  max-width: 280px;
-}
-
-.settings-layout {
-  display: grid;
-  grid-template-columns: 176px minmax(0, 1fr);
-  gap: var(--nl-space-xl);
-  align-items: start;
-}
-
-.settings-nav {
-  position: sticky;
-  top: var(--nl-space-md);
+.settings-heading-copy {
   display: flex;
   flex-direction: column;
   gap: var(--nl-space-tightest);
+}
+
+.settings-origin {
+  align-items: center;
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--nl-text-dim);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: var(--nl-font-ui);
+  gap: var(--nl-space-tighter);
+  padding: var(--nl-space-tightest) var(--nl-space-none);
+}
+
+.settings-origin:hover {
+  color: var(--nl-text);
+}
+
+.settings-search-box {
+  align-items: center;
+  background: var(--nl-surface-card);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text-subtle);
+  display: flex;
+  flex: 1 1 var(--nl-measure-text);
+  gap: var(--nl-space-tighter);
+  max-width: var(--nl-measure-text);
+  min-height: var(--nl-control-h);
+  padding: var(--nl-space-none) var(--nl-space-sm);
+}
+
+.settings-search-box:focus-within {
+  border-color: var(--nl-accent);
+}
+
+.settings-search {
+  background: transparent;
+  border: none;
+  color: var(--nl-text);
+  flex: 1;
+  font: inherit;
+  min-width: 0;
+  outline: none;
+}
+
+.settings-search-clear {
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--nl-text-subtle);
+  cursor: pointer;
+  display: inline-flex;
+  padding: var(--nl-space-tightest);
+}
+
+.settings-layout {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-xl);
+}
+
+.settings-nav {
+  display: flex;
+  flex: 0 1 max-content;
+  flex-direction: column;
+  gap: var(--nl-space-lg);
+  min-width: max-content;
+  position: sticky;
+  top: var(--nl-space-md);
+}
+
+.settings-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.settings-nav-heading {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  letter-spacing: 0.07em;
+  padding: var(--nl-space-none) var(--nl-space-md);
+  text-transform: uppercase;
 }
 
 .settings-nav-item {
@@ -40,7 +115,7 @@
   color: var(--nl-text-dim);
   padding: var(--nl-space-sm) var(--nl-space-md);
   border-radius: var(--nl-radius-md);
-  font-size: var(--nl-font-body);
+  font-size: var(--nl-font-ui);
   cursor: pointer;
 }
 
@@ -49,11 +124,175 @@
   color: var(--nl-text);
 }
 
+.settings-nav-item.active {
+  background: var(--nl-surface-selected);
+  color: var(--nl-text);
+  font-weight: 600;
+}
+
 .settings-sections {
   display: flex;
+  flex: 1 1 var(--nl-measure-text);
   flex-direction: column;
   gap: var(--nl-space-lg);
+  min-width: min(100%, var(--nl-measure-text));
+}
+
+.settings-section-surface {
   min-width: 0;
+  outline: none;
+}
+
+.settings-section-header {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--nl-space-md);
+  justify-content: space-between;
+  margin-bottom: var(--nl-space-md);
+}
+
+.settings-section-category {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.settings-section-title,
+.settings-results-title {
+  color: var(--nl-text);
+  font-family: var(--nl-font-display-face);
+  font-size: var(--nl-font-title);
+  font-weight: 600;
+  margin: var(--nl-space-tightest) var(--nl-space-none) var(--nl-space-none);
+}
+
+.settings-scope-badge {
+  background: var(--nl-surface-hover);
+  border: 1px solid var(--nl-border);
+  border-radius: var(--nl-radius-pill);
+  color: var(--nl-text-subtle);
+  flex: 0 0 auto;
+  font-size: var(--nl-font-caption);
+  padding: var(--nl-space-hairline) var(--nl-space-sm);
+}
+
+.settings-scope-badge.project,
+.settings-scope-badge.overridable {
+  border-color: var(--nl-accent);
+  color: var(--nl-accent);
+}
+
+.settings-standalone > .dashboard-card,
+.settings-standalone > .templates-card {
+  max-width: none;
+}
+
+.settings-standalone > .dashboard-card > .dashboard-card-title:first-child,
+.settings-standalone > .templates-card > .dashboard-card-title:first-child {
+  display: none;
+}
+
+.settings-results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-md);
+}
+
+.settings-results-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+}
+
+.settings-result {
+  align-items: flex-start;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--nl-radius-md);
+  color: var(--nl-text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-tightest);
+  padding: var(--nl-space-sm) var(--nl-space-md);
+  text-align: left;
+}
+
+.settings-result:hover,
+.settings-result:focus-visible {
+  background: var(--nl-surface-hover);
+  border-color: var(--nl-border);
+}
+
+.settings-result-title {
+  font-size: var(--nl-font-body);
+}
+
+.settings-result-context,
+.settings-results-empty {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-ui);
+}
+
+.settings-deep-link-target {
+  outline: 2px solid var(--nl-accent);
+  outline-offset: var(--nl-space-hairline);
+}
+
+.settings-help-disclosure {
+  border-left: 1px solid var(--nl-border-subtle);
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-ui);
+  margin: var(--nl-space-sm) var(--nl-space-none);
+  padding-left: var(--nl-space-md);
+}
+
+.settings-help-disclosure > summary {
+  color: var(--nl-text-dim);
+  cursor: pointer;
+}
+
+.settings-help-copy p {
+  margin-bottom: var(--nl-space-none);
+}
+
+.settings-display-diagnostics {
+  background: var(--nl-surface-hover);
+  border: 1px solid var(--nl-border-subtle);
+  border-radius: var(--nl-radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--nl-space-sm);
+  margin-bottom: var(--nl-space-lg);
+  padding: var(--nl-space-md);
+}
+
+.settings-display-diagnostics .dialog-button {
+  align-self: flex-start;
+}
+
+.settings-display-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--nl-space-sm) var(--nl-space-lg);
+  margin: var(--nl-space-none);
+}
+
+.settings-display-grid > div {
+  flex: 1 1 max-content;
+}
+
+.settings-display-grid dt {
+  color: var(--nl-text-subtle);
+  font-size: var(--nl-font-caption);
+}
+
+.settings-display-grid dd {
+  color: var(--nl-text);
+  font-family: var(--nl-font-mono);
+  font-size: var(--nl-font-ui);
+  margin: var(--nl-space-none);
 }
 
 /* Section cards fill the sections column rather than the narrow export width. */

@@ -1,7 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useProjectStore } from '../stores/projectStore'
-import { savePanelSize, useShellStore } from '../stores/shellStore'
+import {
+  INSPECTOR_MAX,
+  INSPECTOR_MIN,
+  panelWidthForShell,
+  savePanelSize,
+  useShellStore
+} from '../stores/shellStore'
 import { rpc } from '../rpc/client'
 import { LinksPanel } from './LinksPanel'
 import { DarlingsPanel } from './DarlingsPanel'
@@ -31,7 +37,14 @@ export function Inspector(): React.JSX.Element {
   const openSceneId = useProjectStore((s) => s.openSceneId)
   const inspectorTab = useShellStore((s) => s.inspectorTab)
   const setInspectorTab = useShellStore((s) => s.setInspectorTab)
-  const inspectorWidth = useShellStore((s) => s.inspectorWidth)
+  const preferredInspectorWidth = useShellStore((s) => s.inspectorWidth)
+  const shellWidth = useShellStore((s) => s.shellWidth)
+  const inspectorWidth = panelWidthForShell(
+    preferredInspectorWidth,
+    shellWidth,
+    INSPECTOR_MIN,
+    INSPECTOR_MAX
+  )
   const setInspectorWidth = useShellStore((s) => s.setInspectorWidth)
   const chapter = chapters.find((c) => c.guid === openChapterGuid)
   const scene = chapter?.scenes.find((sc) => sc.id === openSceneId)

@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { launchApp, seedBook } from './harness'
+import { dismissTour, launchApp, resizeWindow, seedBook } from './harness'
 
 /**
  * The phone shows one thing at a time.
@@ -21,11 +21,7 @@ test('phone: Settings opens one section at a time', async () => {
   const h = await launchApp('nl-drill-s-', { NOVALIST_FORCE_MOBILE: '1' })
   await seedBook(h, { 'Chapter One': ['Scene A'] })
   const page = h.page
-  await h.app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0]
-    win.setMinimumSize(300, 300)
-    win.setBounds({ width: 393, height: 852 })
-  })
+  await resizeWindow(h, 393, 852)
   await page.evaluate(() => (window as unknown as {
     __novalistTab: (k: string) => void
   }).__novalistTab('settings'))
@@ -61,11 +57,7 @@ test('phone: a Codex entry keeps its editors behind rows', async () => {
   const page = h.page
   await h.rpc('entities/create', ['character', 'Mira Vance'])
   await page.evaluate(() => window.novalistStores.codex.getState().refresh())
-  await h.app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0]
-    win.setMinimumSize(300, 300)
-    win.setBounds({ width: 393, height: 852 })
-  })
+  await resizeWindow(h, 393, 852)
   await page.evaluate(() => (window as unknown as {
     __novalistTab: (k: string) => void
   }).__novalistTab('codex'))
@@ -94,11 +86,7 @@ test('tablet: the phone index does not follow the app onto an iPad', async () =>
   const h = await launchApp('nl-drill-t-', { NOVALIST_FORCE_MOBILE: '1' })
   await seedBook(h, { 'Chapter One': ['Scene A'] })
   const page = h.page
-  await h.app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0]
-    win.setMinimumSize(300, 300)
-    win.setBounds({ width: 1180, height: 820 })
-  })
+  await resizeWindow(h, 1180, 820)
   await page.evaluate(() => (window as unknown as {
     __novalistTab: (k: string) => void
   }).__novalistTab('settings'))
@@ -128,11 +116,7 @@ test('tablet: an iPad gets the binder and the main view side by side', async () 
   })
   await seedBook(h, { 'Chapter One': ['Scene A'] })
   const page = h.page
-  await h.app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0]
-    win.setMinimumSize(300, 300)
-    win.setBounds({ width: 1180, height: 820 })
-  })
+  await resizeWindow(h, 1180, 820)
   await page.waitForTimeout(1400)
 
   await expect(page.locator('.tablet-shell')).toBeVisible()
@@ -171,11 +155,8 @@ test('phone: back returns to where the entry was scrolled to', async () => {
   const page = h.page
   await h.rpc('entities/create', ['character', 'Mira Vance'])
   await page.evaluate(() => window.novalistStores.codex.getState().refresh())
-  await h.app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0]
-    win.setMinimumSize(300, 300)
-    win.setBounds({ width: 393, height: 852 })
-  })
+  await resizeWindow(h, 393, 852)
+  await dismissTour(page)
   await page.evaluate(() => (window as unknown as {
     __novalistTab: (k: string) => void
   }).__novalistTab('codex'))
@@ -237,11 +218,7 @@ test('phone: the timeline opens with its chrome folded', async () => {
   ] as const) {
     await h.rpc('timeline/saveEvent', [null, title, date, '', null, null, [], [], null, [], null, null])
   }
-  await h.app.evaluate(async ({ BrowserWindow }) => {
-    const win = BrowserWindow.getAllWindows()[0]
-    win.setMinimumSize(300, 300)
-    win.setBounds({ width: 393, height: 852 })
-  })
+  await resizeWindow(h, 393, 852)
   await page.evaluate(() => (window as unknown as {
     __novalistPlanSelect: (i: number) => void
   }).__novalistPlanSelect(0))

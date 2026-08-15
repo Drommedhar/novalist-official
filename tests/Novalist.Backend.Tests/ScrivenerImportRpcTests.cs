@@ -38,6 +38,8 @@ public sealed class ScrivenerImportRpcTests : IDisposable
     }
 
     private string BuildProject() => ScrivenerProjectBuilder.BuildV3(_root);
+    private string BuildRealFormattingProject()
+        => ScrivenerProjectBuilder.CopyRealFormattingFixture(_root);
 
     private BookData Book => _workspace.Projects.ActiveBook!;
 
@@ -161,6 +163,38 @@ public sealed class ScrivenerImportRpcTests : IDisposable
         Assert.Contains("She arrived at dusk.", html);
         // Read through the paragraph markup the editor speaks, not as raw text.
         Assert.StartsWith("<p>", html);
+    }
+
+    [Fact]
+    public void RealScrivenerPreviewUsesTheSameUntitledSceneFallbackAsTheImport()
+    {
+        var plan = _rpc.Preview(BuildRealFormattingProject());
+
+        Assert.Equal("scrivener3", plan.Format);
+        Assert.Equal("Scene 1", Assert.Single(Assert.Single(plan.Chapters).Scenes).Title);
+        Assert.Equal(1, plan.ResearchCount);
+    }
+
+    [Fact]
+    public async Task RealScrivenerFormattingAndUnicodeLandInTheStoredScene()
+    {
+        await _rpc.RunAsync(BuildRealFormattingProject());
+
+        var chapter = Assert.Single(_workspace.Projects.GetChaptersOrdered());
+        var scene = Assert.Single(ScenesOf(chapter));
+        var html = await _workspace.Projects.ReadSceneContentAsync(chapter, scene);
+
+        Assert.Equal("Scene 1", scene.Title);
+        Assert.Contains("<p class=\"nv-style-heading\">Prologue</p>", html);
+        Assert.Contains("<ul><li>A bullet from the real project.</li></ul>", html);
+        Assert.Contains("<ol><li>A numbered item from the real project.</li></ol>", html);
+        Assert.Contains("“", html);
+        Assert.Contains("—", html);
+        Assert.Contains("font-weight:bold", html);
+        Assert.Contains("font-style:italic", html);
+        Assert.DoesNotContain("'93", html);
+        Assert.DoesNotContain("$Scr_", html);
+        Assert.DoesNotContain("&lt;$Scr_", html);
     }
 
     [Fact]
@@ -346,6 +380,20 @@ public sealed class ScrivenerImportRpcTests : IDisposable
         Assert.Equal(ResearchItemType.Note, dedication.Type);
         Assert.Equal("For everyone who waited.", dedication.Content);
         Assert.Equal(["Front Matter"], dedication.Tags);
+    }
+
+    [Fact]
+    public async Task RealScrivenerResearchKeepsNamedStylesAsMarkdown()
+    {
+        await _rpc.RunAsync(BuildRealFormattingProject());
+
+        var guide = new ResearchService(_workspace.Projects, _workspace.FileService)
+            .GetAll().Single(r => r.Title == "Style Guide");
+
+        Assert.StartsWith("# **Dignissimos in blanditiis**", guide.Content);
+        Assert.Contains("## **\\[Dignissimos in blanditiis\\]**", guide.Content);
+        Assert.Contains("*cupidatat vitae lorem sequi do corrupti ipsam.*", guide.Content);
+        Assert.DoesNotContain("$Scr_", guide.Content);
     }
 
     [Fact]

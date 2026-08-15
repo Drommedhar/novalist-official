@@ -8,14 +8,34 @@ In the activity bar (the icon rail on the far left), click **Settings** in the b
 
 ## Finding a setting
 
-The Settings view has a **search box** in the header and a **category navigation** rail down the left side.
+Settings shows **one section at a time**. The rail down the left side groups every section under four headings, and the header carries a search box.
 
-- **Search** — type a word (for example `grammar`, `deadline`, `accent`, `github`) to hide every card that does not match its title or keywords, so only the relevant sections remain.
-- **Category rail** — click a category name (Appearance, Editor, Writing Goals, and so on) to jump straight to that card.
+| Category | What lives there |
+| --- | --- |
+| **General** | Appearance, Accessibility, Keyboard shortcuts, Theme tokens |
+| **Writing** | Editor, Writing assistance |
+| **Project** | Writing goals, Word completion, Templates, Scene stages, Scene labels, Groups and factions, Scene templates, Tags, Scene and chapter fields |
+| **System** | Backups, Updates and integrations, Language packs, Diagnostics, Extensions |
+
+- **Search** — type a word (for example `grammar`, `deadline`, `accent`, `github`) and the results name the **individual controls** that match, not just the sections holding them. Picking a result opens its section and takes you to the control itself. If nothing matches, Settings says so rather than showing you an empty page.
+- **Category rail** — pick a section to open it. Only that section is on screen, so a long page of unrelated controls is no longer between you and the one you came for.
+
+Settings opens **without a project**, so your global preferences are reachable from the start screen. Controls that need a project are visibly disabled rather than missing, so you can see what a project would give you.
+
+When you reach Settings from a control elsewhere — the editor's **More writing settings**, for example — the header carries a **Back to...** link that returns you to the view you came from.
 
 ## Global vs project settings
 
-The **Appearance**, **Editor**, and **Writing Assistance** cards each have an **Override for this project** checkbox at the top. It appears only while a project is open.
+The **Appearance**, **Editor**, and **Writing Assistance** sections each have an **Override for this project** checkbox at the top. It appears only while a project is open.
+
+Every section states its reach with a badge, so you never have to remember which is which:
+
+| Badge | Meaning |
+| --- | --- |
+| **All projects** | The section is global. What you change here applies everywhere. |
+| **Current project** | The section belongs to the open project and does not exist without one. |
+| **Global default** | The section can be pinned to a project and currently is not, so you are editing your defaults. |
+| **This project** | The section is pinned to the open project; your global defaults are untouched. |
 
 - **Off (default)** — that section uses your global settings, shared by every project. The controls stay editable, and what you change is your global defaults; a line under the checkbox says so, so it is never ambiguous which one you are editing.
 - **On** — the section's values are saved with the project, in its `.novalist` folder, and override the global values whenever this project is open. Because they live inside the project folder, the overrides travel with the project through Git and across devices.
@@ -28,7 +48,7 @@ The checkbox reflects what is actually stored with the project, so it reads the 
 
 This lets you, for example, keep one book in English with English quotation marks and another in German with German quotes and a German interface, without changing your global defaults. Switching projects re-applies the effective theme, accent color, and interface language for the project you open.
 
-The **Templates** and **Writing Goals** sections are per-project (they only apply while a project is open). **Hotkeys**, **Updates & Integrations**, **Diagnostics**, and **Extensions** are always global.
+Everything under **Project** is per-project and only applies while a project is open. **Keyboard shortcuts**, **Updates and integrations**, **Backups**, **Language packs**, **Diagnostics**, and **Extensions** are always global.
 
 ## Appearance
 
@@ -38,6 +58,9 @@ The **Templates** and **Writing Goals** sections are per-project (they only appl
   - **Discord**
   - **High Contrast** — pure black behind pure white text, with borders you can actually see. Built for low vision and for working in a bright room; every text-on-background pair in it clears WCAG AAA, which the other palettes do not attempt.
   - **Catppuccin Mocha**
+- **Interface size** — how large Novalist's own interface is drawn, from 75% to 150%, with **Reset to 100%** beside it. This is the whole interface: the toolbar, the binder, the inspector, dialogs and Settings itself. It is **not** the size of your manuscript — that is the editor's own font size, and the two no longer move together, so you can have small chrome around large prose or the reverse. `Ctrl+Plus`, `Ctrl+-` and `Ctrl+0` change the same setting, so the keyboard and Settings never disagree about it, and the size you pick is remembered.
+
+  Your operating system's own display scaling is still respected on top of this. Interface size is the adjustment you make when the OS setting is right for everything else and Novalist alone is too small or too large.
 - **Accent Color** — pick a custom highlight color used throughout the interface. A **Reset** button next to the color picker clears the custom accent and returns to the theme's default. A custom accent also flattens the gold foil on primary buttons to a single fill in your colour.
 - **Themes folder** / **Languages folder** — open the folders you drop your own colour schemes and interface languages into. **Rescan** in the Language packs panel picks up what you dropped in without a restart. See [Custom themes & language packs](34-custom-themes-and-languages.md) for the file formats.
 
@@ -203,6 +226,7 @@ The default bindings are listed in [Hotkeys](26-hotkeys.md).
 
 ## Diagnostics
 
+- **Read display information** — reports what Novalist can see about your screen: your operating system's scale factor, the current interface size, the window size, the content size, and the monitor's usable area. This is what to send if the interface is the wrong size or is clipped, and it is the fastest way to tell an OS scaling problem from a Novalist one. Like the log, it contains **dimensions only** — never a project name, a file path, or any of your writing.
 - **Diagnostic logging** — toggle, off by default. When on, Novalist writes a technical log to a file you can send for support (e.g. to report a bug we cannot reproduce).
   - **What it records:** app events, lifecycle and startup phases, settings state, and errors / stack traces.
   - **What it never records:** your story text, characters, locations, items, lore, scene or chapter titles, notes, or file names. The log is content-safe by design, and you can open and read the file before sending it.
